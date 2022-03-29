@@ -1,12 +1,11 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Config } from "../model/config";
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConfigService {
-  config = new Config();
+  api = '//localhost:8081';
 
   constructor(
     public http: HttpClient,
@@ -15,7 +14,7 @@ export class ConfigService {
   load() {
     this.http.get('/assets/config.json')
     .subscribe((result: any) => {
-      this.config.api = result['api'];
+      this.api = result['api'];
     });
   }
 }

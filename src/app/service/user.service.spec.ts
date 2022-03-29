@@ -1,10 +1,10 @@
 import { TestBed } from "@angular/core/testing";
 
-import { ConfigService } from "./config.service";
+import { UserService } from "./user.service";
 import { HttpClientModule } from "@angular/common/http";
 
-describe('ConfigService', () => {
-  let service: ConfigService;
+describe('UserService', () => {
+  let service: UserService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -12,7 +12,7 @@ describe('ConfigService', () => {
         HttpClientModule,
       ]
     });
-    service = TestBed.inject(ConfigService);
+    service = TestBed.inject(UserService);
   });
 
   it('should be created', () => {

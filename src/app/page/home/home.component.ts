@@ -1,4 +1,7 @@
 import { Component, OnInit } from "@angular/core";
+import { Ref } from "../../model/ref";
+import { RefService } from "../../service/ref.service";
+import { Page } from "../../model/page";
 
 @Component({
   selector: 'app-home',
@@ -7,7 +10,14 @@ import { Component, OnInit } from "@angular/core";
 })
 export class HomePage implements OnInit {
 
-  constructor() { }
+  page!: Page<Ref>;
+
+  constructor(
+    ref: RefService,
+  ) {
+    ref.page()
+    .subscribe(value => this.page = value);
+  }
 
   ngOnInit(): void {
   }
