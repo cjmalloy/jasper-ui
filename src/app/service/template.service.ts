@@ -24,9 +24,9 @@ export class TemplateService {
     return this.http.post<void>(this.base, template);
   }
 
-  get(tag: string): Observable<Template> {
+  get(tag: string, origin = ''): Observable<Template> {
     return this.http.get(this.base, {
-      params: { tag },
+      params: { tag, origin },
     }).pipe(map(mapTemplate));
   }
 

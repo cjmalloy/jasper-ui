@@ -30,6 +30,46 @@ export class RefService {
     }).pipe(map(mapRef));
   }
 
+  getResponses(
+    url: string,
+    query?: string,
+    page?: number,
+    size?: number,
+    sort?: string,
+    direction?: 'asc' | 'desc',
+  ): Observable<Page<Ref>> {
+    return this.http.get(`${this.base}/responses`,{
+      params: params({ url, query, page, size, sort, direction }),
+    }).pipe(map(mapPage(mapRef)));
+  }
+
+  countResponses(url: string, query?: string): Observable<number> {
+    return this.http.get(`${this.base}/responses/count`,{
+      responseType: 'text',
+      params: params({ url, query }),
+    }).pipe(map(parseInt));
+  }
+
+  getSources(
+    url: string,
+    query?: string,
+    page?: number,
+    size?: number,
+    sort?: string,
+    direction?: 'asc' | 'desc',
+  ): Observable<Page<Ref>> {
+    return this.http.get(`${this.base}/sources`,{
+      params: params({ url, query, page, size, sort, direction }),
+    }).pipe(map(mapPage(mapRef)));
+  }
+
+  countSources(url: string, query?: string): Observable<number> {
+    return this.http.get(`${this.base}/sources/count`,{
+      responseType: 'text',
+      params: params({ url, query }),
+    }).pipe(map(parseInt));
+  }
+
   page(
     query?: string,
     page?: number,

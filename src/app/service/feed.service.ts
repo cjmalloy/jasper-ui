@@ -24,9 +24,9 @@ export class FeedService {
     return this.http.post<void>(this.base, feed);
   }
 
-  get(url: string): Observable<Feed> {
+  get(url: string, origin = ''): Observable<Feed> {
     return this.http.get(this.base, {
-      params: { url },
+      params: { url, origin },
     }).pipe(map(mapFeed));
   }
 

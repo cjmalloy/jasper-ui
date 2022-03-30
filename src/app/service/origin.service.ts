@@ -24,9 +24,9 @@ export class OriginService {
     return this.http.post<void>(this.base, origin);
   }
 
-  get(tag: string, origin = ''): Observable<Origin> {
+  get(origin: string): Observable<Origin> {
     return this.http.get(this.base, {
-      params: { tag, origin },
+      params: { origin },
     }).pipe(map(mapOrigin));
   }
 

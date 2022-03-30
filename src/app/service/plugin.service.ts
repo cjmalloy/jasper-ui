@@ -24,9 +24,9 @@ export class PluginService {
     return this.http.post<void>(this.base, plugin);
   }
 
-  get(tag: string): Observable<Plugin> {
+  get(tag: string, origin = ''): Observable<Plugin> {
     return this.http.get(this.base, {
-      params: { tag },
+      params: { tag, origin },
     }).pipe(map(mapPlugin));
   }
 

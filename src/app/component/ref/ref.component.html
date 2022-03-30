@@ -1,0 +1,41 @@
+<div class="link">
+  <a [href]="ref.url">{{ ref.title || ref.url }}</a>&nbsp;
+  <span class="host">({{ host }})</span>
+</div>
+<div class="link-below">
+  <div class="toggle"
+       *ngIf="showToggle && expandPlugin"
+       (click)="expanded = !expanded">
+    <span *ngIf="!expanded">+</span>
+    <span *ngIf="expanded">x</span>
+  </div>
+  <div class="stack">
+    <div class="info">
+      submitted {{ ref.created?.fromNow() }}
+      <ng-container *ngIf="authors">
+        by
+        <ng-container *ngFor="let user of authors">
+          <a [routerLink]="['/tag', 'hot', user]">{{ user.substring('user/'.length) }}</a>
+        </ng-container>
+      </ng-container>
+      tagged
+      <ng-container *ngFor="let tag of tags">
+        <a [routerLink]="['/tag', 'hot', tag]">{{ tag }}</a>&nbsp;
+      </ng-container>
+    </div>
+    <div class="expand" *ngIf="expandPlugin && !showToggle">
+      {{ ref.comment }}
+    </div>
+    <div class="actions">
+      <a [routerLink]="['/ref/comments/', ref.url]">{{ commentCount }} comments</a>&nbsp;
+      <a [routerLink]="['/ref/responses/', ref.url]">{{ responseCount - commentCount }} responses</a>&nbsp;
+      <a [routerLink]="['/ref/sources/', ref.url]">{{ ref.sources?.length || 0 }} sources</a>&nbsp;
+      <a [routerLink]="['/ref/graph/', ref.url]">graph</a>&nbsp;
+      <a href="#" (click)="watch()">watch</a>&nbsp;
+      <a href="#" (click)="tag()">tag</a>&nbsp;
+    </div>
+  </div>
+</div>
+<div class="expand" *ngIf="expanded && expandPlugin && showToggle">
+  {{ ref.comment }}
+</div>

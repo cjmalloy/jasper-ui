@@ -1,1 +1,27 @@
-/* You can add global styles to this file, and also import other style files */
+html, body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+:link {
+  text-decoration: none;
+}
+
+.link {
+  .host {
+    font-size: 80%;
+  }
+}
+.info {
+  font-size: 80%;
+  :link, :visited, :active {
+    color: grey;
+    text-decoration: underline;
+  }
+}
+.actions {
+  font-size: 80%;
+  font-weight: bold;
+  :link, :visited, :active {
+    color: grey;
+  }
+}

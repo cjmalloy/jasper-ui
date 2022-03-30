@@ -1,0 +1,6 @@
+<a routerLink="/home">Home</a>&nbsp;
+<a routerLink="/all">All</a>&nbsp;
+<a *ngFor="let sub of subscriptions"
+      [routerLink]="['/tag', 'hot', sub]">
+  {{ sub }}
+</a>

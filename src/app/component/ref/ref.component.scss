@@ -1,0 +1,27 @@
+:host {
+  margin: 4px;
+}
+
+.link-below {
+  display: flex;
+  .toggle {
+    width: 24px;
+    height: 24px;
+    margin: 2px;
+    border-radius: 2px;
+    background-color: lightgray;
+    text-align: center;
+    line-height: 22px;
+    cursor: pointer;
+  }
+  .stack {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.expand {
+  border: 1px solid black;
+  border-radius: 8px;
+  padding: 2px;
+}

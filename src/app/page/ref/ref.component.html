@@ -1,0 +1,8 @@
+<div class="tabs">
+  <a [routerLink]="['./comments', ref.url]">Comments</a>
+  <a [routerLink]="['./responses', ref.url]">Responses</a>
+  <a [routerLink]="['./sources', ref.url]">Sources</a>
+  <a [routerLink]="['./graph', ref.url]">Graph</a>
+</div>
+<app-ref [ref]="ref"></app-ref>
+<router-outlet></router-outlet>
