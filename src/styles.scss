@@ -95,6 +95,7 @@ html, body {
 
 .link {
   .host {
+    margin-left: 4px;
     font-size: 80%;
   }
 }
@@ -114,4 +115,13 @@ html, body {
 
 .expand {
   border-radius: 4px;
+  padding: 4px;
+}
+
+.notification {
+  filter: sepia(100%) saturate(400%) brightness(74%) hue-rotate(300deg);
+}
+
+.no-results {
+  margin-left: 10px;
 }

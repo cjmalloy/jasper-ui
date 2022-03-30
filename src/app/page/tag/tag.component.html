@@ -1,5 +1,7 @@
 <div class="tabs">
-  <a [routerLink]="['/tag', 'hot', tag]">Hot</a>
-  <a [routerLink]="['/tag', 'new', tag]">New</a>
+  <a [routerLink]="['/tag', 'hot', tag]" routerLinkActive="current-tab">hot</a>
+  <a [routerLink]="['/tag', 'new', tag]" routerLinkActive="current-tab">new</a>
+  <div class="spacer"></div>
+  <app-settings></app-settings>
 </div>
 <app-ref-list [page]="page"></app-ref-list>

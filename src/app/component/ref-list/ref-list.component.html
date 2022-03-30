@@ -1,3 +1,6 @@
+<p class="no-results" *ngIf="page && page.empty">
+  No results found
+</p>
 <app-ref *ngFor="let ref of page?.content"
          [ref]="ref"
          [showToggle]="true"

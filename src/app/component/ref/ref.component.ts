@@ -1,7 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
-import { authors, interestingTags } from "../../util/format";
+import { authors, interestingTags, refUrlSummary, webLink } from "../../util/format";
 import * as _ from "lodash";
 
 @Component({
@@ -49,7 +49,11 @@ export class RefComponent implements OnInit {
   }
 
   get host() {
-    return new URL(this.ref.url).host;
+    return refUrlSummary(this.ref);
+  }
+
+  get webLink() {
+    return webLink(this.ref);
   }
 
   watch() {

@@ -16,8 +16,11 @@ import { ResponsesComponent } from "./page/ref/responses/responses.component";
 import { SourcesComponent } from "./page/ref/sources/sources.component";
 import { GraphComponent } from "./page/ref/graph/graph.component";
 import { RefComponent } from "./component/ref/ref.component";
-import { CommentComponent } from './component/comment/comment.component';
-import { SettingsComponent } from './component/settings/settings.component';
+import { CommentComponent } from "./component/comment/comment.component";
+import { SettingsComponent } from "./component/settings/settings.component";
+import { InboxPage } from "./page/inbox/inbox.component";
+import { AllComponent } from "./page/inbox/all/all.component";
+import { UnreadComponent } from "./page/inbox/unread/unread.component";
 
 @NgModule({
   declarations: [
@@ -34,6 +37,9 @@ import { SettingsComponent } from './component/settings/settings.component';
     GraphComponent,
     CommentComponent,
     SettingsComponent,
+    InboxPage,
+    AllComponent,
+    UnreadComponent,
   ],
   imports: [
     BrowserModule,

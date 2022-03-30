@@ -7,11 +7,14 @@ import { CommentsComponent } from "./page/ref/comments/comments.component";
 import { ResponsesComponent } from "./page/ref/responses/responses.component";
 import { SourcesComponent } from "./page/ref/sources/sources.component";
 import { GraphComponent } from "./page/ref/graph/graph.component";
+import { InboxPage } from "./page/inbox/inbox.component";
+import { AllComponent } from "./page/inbox/all/all.component";
+import { UnreadComponent } from "./page/inbox/unread/unread.component";
 
 const routes: Routes = [
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  { path: '', redirectTo: '/home/hot', pathMatch: 'full' },
+  { path: 'home', redirectTo: '/home/hot', pathMatch: 'full' },
 
-  { path: 'home', component: HomePage },
   { path: 'home/:sort', component: HomePage },
   { path: 'all/:sort', component: HomePage },
   { path: 'tag/:sort/:tag', component: TagPage },
@@ -24,6 +27,15 @@ const routes: Routes = [
       { path: 'responses/:ref', component: ResponsesComponent },
       { path: 'sources/:ref', component: SourcesComponent },
       { path: 'graph/:ref', component: GraphComponent },
+    ]
+  },
+  {
+    path: 'inbox',
+    component: InboxPage,
+    children: [
+      { path: '', redirectTo: 'all', pathMatch: 'full' },
+      { path: 'all', component: AllComponent },
+      { path: 'unread', component: UnreadComponent },
     ]
   },
 ];

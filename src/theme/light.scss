@@ -5,6 +5,7 @@ $info: gray;
 $tag: navy;
 $border: black;
 $unselected-tab: lightgray;
+$error: #da0000;
 body.light-theme {
   background-color: $bg;
   color: $text;
@@ -93,4 +94,9 @@ body.light-theme {
       color: $info;
     }
   }
+
+  .no-results {
+    color: $error;
+  }
+
 }

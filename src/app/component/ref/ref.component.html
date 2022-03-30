@@ -1,5 +1,6 @@
 <div class="link">
-  <a [href]="ref.url">{{ ref.title || ref.url }}</a>&nbsp;
+  <a *ngIf="webLink" [href]="ref.url">{{ ref.title || ref.url }}</a>
+  <a *ngIf="!webLink" [routerLink]="['/ref/comments/', ref.url]">{{ ref.title || ref.url }}</a>
   <span class="host">({{ host }})</span>
 </div>
 <div class="link-below">

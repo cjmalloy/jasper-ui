@@ -1,4 +1,9 @@
-<a class="author" [routerLink]="['/tag', 'new', userTag]">{{ userTag.substring('user/'.length) }}</a> |
-mail |
+<a class="author" [routerLink]="['/tag', 'new', user?.tag]">{{ user?.tag?.substring('user/'.length) }}</a> |
+<ng-container *ngIf="notifications > 0">
+  {{ notifications }} <a class="notification" routerLink="/inbox/unread">📧</a> |
+</ng-container>
+<ng-container *ngIf="notifications === 0">
+  <a routerLink="/inbox">📧</a> |
+</ng-container>
 preferences |
 logout

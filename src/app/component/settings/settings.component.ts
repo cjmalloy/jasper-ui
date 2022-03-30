@@ -1,5 +1,7 @@
 import { Component, HostBinding, OnInit } from "@angular/core";
 import { UserService } from "../../service/user.service";
+import { RefService } from "../../service/ref.service";
+import { User } from "../../model/user";
 
 @Component({
   selector: 'app-settings',
@@ -9,13 +11,21 @@ import { UserService } from "../../service/user.service";
 export class SettingsComponent implements OnInit {
   @HostBinding('class') css = 'settings';
 
-  userTag = '';
+  user?: User;
+  notifications = 0;
 
   constructor(
     private users: UserService,
+    private refs: RefService,
   ) {
-    users.whoAmI()
-      .subscribe(tag => this.userTag = tag);
+    users.getMyUser()
+      .subscribe(user => {
+        this.user = user;
+        this.refs.count(
+          "plugin/inbox/" + user.tag,
+          user.lastNotified
+        ).subscribe(count => this.notifications = count);
+      });
   }
 
   ngOnInit(): void {

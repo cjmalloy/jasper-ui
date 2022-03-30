@@ -5,6 +5,7 @@ $info: #969696;
 $tag: #af5800;
 $border: lightgrey;
 $unselected-tab: grey;
+$error: #dc5c5c;
 body.dark-theme {
   background-color: $bg;
   color: $text;
@@ -101,5 +102,9 @@ body.dark-theme {
     :link, :visited, :active {
       color: $info;
     }
+  }
+
+  .no-results {
+    color: $error;
   }
 }

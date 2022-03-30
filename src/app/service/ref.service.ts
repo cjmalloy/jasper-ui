@@ -5,6 +5,7 @@ import { map, Observable } from "rxjs";
 import { mapRef, Ref } from "../model/ref";
 import { mapPage, Page } from "../model/page";
 import { params } from "../util/http";
+import * as moment from "moment";
 
 @Injectable({
   providedIn: 'root'
@@ -30,6 +31,26 @@ export class RefService {
     }).pipe(map(mapRef));
   }
 
+  page(
+    query?: string,
+    page?: number,
+    size?: number,
+    sort?: string,
+    direction?: 'asc' | 'desc',
+    modifiedAfter?: moment.Moment,
+  ): Observable<Page<Ref>> {
+    return this.http.get(`${this.base}/list`, {
+      params: params({ query, page, size, sort, direction, modifiedAfter }),
+    }).pipe(map(mapPage(mapRef)));
+  }
+
+  count(query?: string, modifiedAfter?: moment.Moment): Observable<number> {
+    return this.http.get(`${this.base}/count`, {
+      responseType: 'text',
+      params: params({ query, modifiedAfter }),
+    }).pipe(map(parseInt));
+  }
+
   getResponses(
     url: string,
     query?: string,
@@ -37,16 +58,17 @@ export class RefService {
     size?: number,
     sort?: string,
     direction?: 'asc' | 'desc',
+    modifiedAfter?: moment.Moment,
   ): Observable<Page<Ref>> {
     return this.http.get(`${this.base}/responses`,{
-      params: params({ url, query, page, size, sort, direction }),
+      params: params({ url, query, page, size, sort, direction, modifiedAfter }),
     }).pipe(map(mapPage(mapRef)));
   }
 
-  countResponses(url: string, query?: string): Observable<number> {
+  countResponses(url: string, query?: string, modifiedAfter?: moment.Moment): Observable<number> {
     return this.http.get(`${this.base}/responses/count`,{
       responseType: 'text',
-      params: params({ url, query }),
+      params: params({ url, query, modifiedAfter }),
     }).pipe(map(parseInt));
   }
 
@@ -57,29 +79,18 @@ export class RefService {
     size?: number,
     sort?: string,
     direction?: 'asc' | 'desc',
+    modifiedAfter?: moment.Moment,
   ): Observable<Page<Ref>> {
     return this.http.get(`${this.base}/sources`,{
-      params: params({ url, query, page, size, sort, direction }),
+      params: params({ url, query, page, size, sort, direction, modifiedAfter }),
     }).pipe(map(mapPage(mapRef)));
   }
 
-  countSources(url: string, query?: string): Observable<number> {
+  countSources(url: string, query?: string, modifiedAfter?: moment.Moment): Observable<number> {
     return this.http.get(`${this.base}/sources/count`,{
       responseType: 'text',
-      params: params({ url, query }),
+      params: params({ url, query, modifiedAfter }),
     }).pipe(map(parseInt));
-  }
-
-  page(
-    query?: string,
-    page?: number,
-    size?: number,
-    sort?: string,
-    direction?: 'asc' | 'desc',
-  ): Observable<Page<Ref>> {
-    return this.http.get(`${this.base}/list`, {
-      params: params({ query, page, size, sort, direction }),
-    }).pipe(map(mapPage(mapRef)));
   }
 
   update(ref: Ref): Observable<void> {
