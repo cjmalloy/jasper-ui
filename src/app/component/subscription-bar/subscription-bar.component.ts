@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, HostBinding, OnInit } from "@angular/core";
 import { UserService } from "../../service/user.service";
 
 @Component({
@@ -7,6 +7,7 @@ import { UserService } from "../../service/user.service";
   styleUrls: ['./subscription-bar.component.scss']
 })
 export class SubscriptionBarComponent implements OnInit {
+  @HostBinding('class') css = 'subscription-bar';
 
   subscriptions?: string[];
 

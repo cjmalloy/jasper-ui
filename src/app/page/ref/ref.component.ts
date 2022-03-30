@@ -11,7 +11,7 @@ import { mergeMap } from "rxjs/operators";
 })
 export class RefPage implements OnInit {
 
-  ref!: Ref;
+  ref?: Ref;
 
   constructor(
     private route: ActivatedRoute,

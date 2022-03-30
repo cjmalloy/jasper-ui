@@ -12,27 +12,29 @@
   <div class="stack">
     <div class="info">
       submitted {{ ref.created?.fromNow() }}
-      <ng-container *ngIf="authors">
+      <ng-container *ngIf="authors.length">
         by
         <ng-container *ngFor="let user of authors">
-          <a [routerLink]="['/tag', 'hot', user]">{{ user.substring('user/'.length) }}</a>
+          <a [routerLink]="['/tag', 'new', user]">{{ user.substring('user/'.length) }}</a>
         </ng-container>
       </ng-container>
-      tagged
-      <ng-container *ngFor="let tag of tags">
-        <a [routerLink]="['/tag', 'hot', tag]">{{ tag }}</a>&nbsp;
+      <ng-container *ngIf="tags.length">
+        tagged
+        <ng-container *ngFor="let tag of tags">
+          <a [routerLink]="['/tag', 'hot', tag]">{{ tag }}</a>&nbsp;
+        </ng-container>
       </ng-container>
     </div>
-    <div class="expand" *ngIf="expandPlugin && !showToggle">
+    <div class="expand" *ngIf="ref.comment && !showToggle">
       {{ ref.comment }}
     </div>
     <div class="actions">
-      <a [routerLink]="['/ref/comments/', ref.url]">{{ commentCount }} comments</a>&nbsp;
-      <a [routerLink]="['/ref/responses/', ref.url]">{{ responseCount - commentCount }} responses</a>&nbsp;
-      <a [routerLink]="['/ref/sources/', ref.url]">{{ ref.sources?.length || 0 }} sources</a>&nbsp;
-      <a [routerLink]="['/ref/graph/', ref.url]">graph</a>&nbsp;
-      <a href="#" (click)="watch()">watch</a>&nbsp;
-      <a href="#" (click)="tag()">tag</a>&nbsp;
+      <a [routerLink]="['/ref/comments/', ref.url]">{{ commentCount }} comments</a>
+      <a [routerLink]="['/ref/responses/', ref.url]">{{ responseCount - commentCount }} responses</a>
+      <a [routerLink]="['/ref/sources/', ref.url]">{{ sourceCount }} sources</a>
+      <a [routerLink]="['/ref/graph/', ref.url]">graph</a>
+      <a href="#" (click)="watch()">watch</a>
+      <a href="#" (click)="tag()">tag</a>
     </div>
   </div>
 </div>

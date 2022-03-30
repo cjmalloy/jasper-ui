@@ -1,0 +1,91 @@
+$bg: white;
+$text: black;
+$active: #da0000;
+$info: gray;
+$tag: navy;
+$border: black;
+body.light-theme {
+  background-color: $bg;
+  color: $text;
+
+  :active {
+    color: $text;
+  }
+
+  .subscription-bar {
+    background-color: lightgray;
+    border-bottom: 1px solid black;
+    :link, :visited, :active {
+      color: black;
+    }
+    .current-page {
+      color: $active;
+    }
+  }
+
+  .tabs {
+    background-color: grey;
+    border-bottom: 1px solid $border;
+    background-image: url("/assets/jasper-light.png");
+    background-position: 4px 0;
+    background-repeat: no-repeat;
+    & > a {
+      background-color: lightgray;
+      border-bottom: 1px solid $border;
+      &:link, &:visited, &:active {
+        color: black;
+      }
+      &.current-tab {
+        color: $active;
+        background-color: $bg;
+        border-top: 1px solid $border;
+        border-left: 1px solid $border;
+        border-right: 1px solid $border;
+        border-bottom: 1px solid $bg;
+      }
+    }
+  }
+
+  .ref {
+    &:focus {
+      border: 1px dashed $border;
+    }
+  }
+
+  .comment-container {
+    &:focus {
+      border: 1px dashed $border;
+    }
+  }
+
+  .link {
+    .host {
+      color: $info;
+    }
+  }
+  .toggle {
+    background-color: lightgray;
+  }
+
+  .info {
+    color: $info;
+    :link, :visited, :active {
+      color: $tag;
+    }
+    .collapsed {
+      :link, :visited, :active {
+        color: $info;
+      }
+    }
+  }
+
+  .expand {
+    border: 1px solid $border;
+  }
+
+  .actions {
+    :link, :visited, :active {
+      color: $info;
+    }
+  }
+}

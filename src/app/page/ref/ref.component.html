@@ -1,8 +1,14 @@
-<div class="tabs">
-  <a [routerLink]="['./comments', ref.url]">Comments</a>
-  <a [routerLink]="['./responses', ref.url]">Responses</a>
-  <a [routerLink]="['./sources', ref.url]">Sources</a>
-  <a [routerLink]="['./graph', ref.url]">Graph</a>
-</div>
-<app-ref [ref]="ref"></app-ref>
+<ng-container *ngIf="!ref">
+  Loading...
+</ng-container>
+<ng-container *ngIf="ref">
+  <div class="tabs">
+    <a [routerLink]="['./comments', ref.url]" routerLinkActive="current-tab">comments</a>
+    <a [routerLink]="['./responses', ref.url]" routerLinkActive="current-tab">responses</a>
+    <a [routerLink]="['./sources', ref.url]" routerLinkActive="current-tab">sources</a>
+    <a [routerLink]="['./graph', ref.url]" routerLinkActive="current-tab">graph</a>
+  </div>
+  <app-ref [ref]="ref"
+           [expanded]="true"></app-ref>
+</ng-container>
 <router-outlet></router-outlet>

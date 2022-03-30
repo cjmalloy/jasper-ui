@@ -1,0 +1,47 @@
+<div class="comment-container info collapsed" tabindex="0" *ngIf="collapsed">
+  <span class="comment-expand fake-link" (click)="collapsed = false">[+]</span>&nbsp;
+  <ng-container *ngFor="let user of authors">
+    <a class="author" [routerLink]="['/tag', 'new', user]">{{ user.substring('user/'.length) }}</a>
+  </ng-container>
+  {{ ref.created?.fromNow() }}
+  <ng-container *ngIf="childrenCount === 1">
+    ( 1 child )
+  </ng-container>
+  <ng-container *ngIf="childrenCount !== 1">
+    ( {{ childrenCount }} children )
+  </ng-container>
+</div>
+
+<div class="comment-container" tabindex="0" *ngIf="!collapsed">
+  <div class="info">
+    <span class="comment-collapse fake-link" (click)="collapsed = true">[&ndash;]</span>&nbsp;
+    <ng-container *ngFor="let user of authors">
+      <a class="author" [routerLink]="['/tag', 'new', user]">{{ user.substring('user/'.length) }}</a>
+    </ng-container>
+    {{ ref.created?.fromNow() }}
+    <ng-container *ngIf="tags.length">
+      tagged
+      <ng-container *ngFor="let tag of tags">
+        <a class="tag" [routerLink]="['/tag', 'hot', tag]">{{ tag }}</a>&nbsp;
+      </ng-container>
+    </ng-container>
+  </div>
+  <div class="comment-body">
+    {{ ref.comment }}
+  </div>
+  <div class="actions">
+    <a [routerLink]="['/ref/comments/', ref.url]">permalink</a>
+    <a *ngIf="responseCount - childrenCount > 1"
+       [routerLink]="['/ref/responses/', ref.url]">{{ responseCount - childrenCount }} responses</a>
+    <a *ngIf="sourceCount > 1"
+       [routerLink]="['/ref/sources/', ref.url]">{{ sourceCount }} sources</a>
+    <a [routerLink]="['/ref/graph/', ref.url]">graph</a>
+    <a href="#" (click)="watch()">watch</a>
+    <a href="#" (click)="tag()">tag</a>
+    <a href="#" (click)="reply()">reply</a>
+  </div>
+</div>
+<app-comment *ngFor="let comment of children?.content"
+             [style.visibility]="collapsed ? 'hidden' : null"
+             [ref]="comment"
+             [depth]="depth - 1"></app-comment>

@@ -1,9 +1,83 @@
+@import "theme/light";
+@import "theme/dark";
+
 html, body {
   font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
 :link {
   text-decoration: none;
+}
+:link:hover,
+.fake-link:hover {
+  text-decoration: underline;
+}
+.fake-link {
+  cursor: pointer;
+}
+
+.subscription-bar {
+  font-size: 70%;
+  border-bottom: 1px solid transparent;
+  padding: 4px;
+  a {
+    text-transform: uppercase;
+    padding: 0 2px;
+  }
+  .current-page {
+    font-weight: bold;
+  }
+}
+
+.tabs {
+  display: flex;
+  height: 60px;
+  padding-left: 120px;
+  & > a {
+    display: inline-block;
+    align-self: flex-end;
+    position: relative;
+    bottom: -1px;
+
+    margin: 0 4px;
+    padding: 2px 8px;
+    font-weight: bold;
+    border-bottom: 1px solid transparent;
+
+    &:link:hover {
+      text-decoration: none;
+    }
+    &.current-tab {
+    }
+  }
+}
+
+.ref {
+  border: 1px solid transparent;
+}
+
+.comment {
+  .comment-container {
+    padding: 2px;
+    border: 1px solid transparent;
+  }
+  .comment-body, .actions {
+    padding: 2px;
+    margin-left: 20px;
+  }
+  .collapsed {
+    font-style: italic;
+    .comment-expand {
+      font-style: normal;
+    }
+  }
+  .info {
+    .author {
+      font-weight: bold;
+    }
+  }
 }
 
 .link {
@@ -11,17 +85,20 @@ html, body {
     font-size: 80%;
   }
 }
+
 .info {
   font-size: 80%;
-  :link, :visited, :active {
-    color: grey;
-    text-decoration: underline;
-  }
 }
+
 .actions {
+  padding: 2px;
   font-size: 80%;
   font-weight: bold;
-  :link, :visited, :active {
-    color: grey;
+  a {
+    margin: 2px;
   }
+}
+
+.expand {
+  border-radius: 4px;
 }

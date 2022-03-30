@@ -16,6 +16,7 @@ import { ResponsesComponent } from "./page/ref/responses/responses.component";
 import { SourcesComponent } from "./page/ref/sources/sources.component";
 import { GraphComponent } from "./page/ref/graph/graph.component";
 import { RefComponent } from "./component/ref/ref.component";
+import { CommentComponent } from './component/comment/comment.component';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import { RefComponent } from "./component/ref/ref.component";
     ResponsesComponent,
     SourcesComponent,
     GraphComponent,
+    CommentComponent,
   ],
   imports: [
     BrowserModule,

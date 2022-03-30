@@ -12,7 +12,8 @@ const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
 
   { path: 'home', component: HomePage },
-  { path: 'all', component: HomePage },
+  { path: 'home/:sort', component: HomePage },
+  { path: 'all/:sort', component: HomePage },
   { path: 'tag/:sort/:tag', component: TagPage },
   {
     path: 'ref',

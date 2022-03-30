@@ -1,6 +1,5 @@
-<a routerLink="/home">Home</a>&nbsp;
-<a routerLink="/all">All</a>&nbsp;
-<a *ngFor="let sub of subscriptions"
-      [routerLink]="['/tag', 'hot', sub]">
-  {{ sub }}
-</a>
+<a routerLink="/home" routerLinkActive="current-page">home</a> &bullet;
+<a routerLink="/all" routerLinkActive="current-page">all</a>
+<ng-container *ngFor="let sub of subscriptions">
+  &bullet; <a [routerLink]="['/tag', 'hot', sub]" routerLinkActive="current-page">{{ sub }}</a>
+</ng-container>

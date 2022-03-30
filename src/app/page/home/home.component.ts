@@ -14,6 +14,7 @@ import { ActivatedRoute, UrlSegment } from "@angular/router";
 export class HomePage implements OnInit {
 
   page?: Page<Ref>;
+  sort = 'hot';
 
   constructor(
     private route: ActivatedRoute,
@@ -21,6 +22,7 @@ export class HomePage implements OnInit {
     private users: UserService,
   ) {
     route.url.subscribe(segments => this.setView(segments[0]));
+    route.params.subscribe(params => this.sort = params['sort'])
   }
 
   ngOnInit(): void {

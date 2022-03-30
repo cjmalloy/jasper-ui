@@ -2,41 +2,38 @@ import { Component, HostBinding, Input, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { authors, interestingTags } from "../../util/format";
-import * as _ from "lodash";
+import { Page } from "../../model/page";
 
 @Component({
-  selector: 'app-ref',
-  templateUrl: './ref.component.html',
-  styleUrls: ['./ref.component.scss']
+  selector: 'app-comment',
+  templateUrl: './comment.component.html',
+  styleUrls: ['./comment.component.scss']
 })
-export class RefComponent implements OnInit {
-  @HostBinding('class') css = 'ref';
+export class CommentComponent implements OnInit {
+  @HostBinding('class') css = 'comment';
   @HostBinding('attr.tabindex') tabIndex = 0;
-
-  expandable = ['plugin/comment', 'plugin/image', 'plugin/video'];
 
   @Input()
   ref!: Ref;
   @Input()
-  expanded = false;
-  @Input()
-  showToggle = false;
+  depth = 7;
 
-  commentCount = 0;
+  children?: Page<Ref>;
+  childrenCount = 0;
   responseCount = 0;
   sourceCount = 0;
-  expandPlugin?: string;
+  collapsed = false;
 
   constructor(
     private refs: RefService,
   ) { }
 
   ngOnInit(): void {
-    this.refs.countResponses(this.ref.url, 'plugin/comment').subscribe(n => this.commentCount = n);
+    this.refs.countResponses(this.ref.url, 'plugin/comment').subscribe(n => this.childrenCount = n);
     this.refs.countResponses(this.ref.url).subscribe(n => this.responseCount = n);
     this.refs.countSources(this.ref.url).subscribe(n => this.sourceCount = n);
-    if (this.ref.tags) {
-      this.expandPlugin = _.intersection(this.ref.tags, this.expandable)[0];
+    if (this.depth > 0) {
+      this.refs.getResponses(this.ref.url, 'plugin/comment').subscribe(page => this.children = page);
     }
   }
 
@@ -48,10 +45,6 @@ export class RefComponent implements OnInit {
     return interestingTags(this.ref.tags);
   }
 
-  get host() {
-    return new URL(this.ref.url).host;
-  }
-
   watch() {
     window.alert('watch')
   }
@@ -59,4 +52,9 @@ export class RefComponent implements OnInit {
   tag() {
     window.alert('tag')
   }
+
+  reply() {
+    window.alert('reply')
+  }
+
 }
