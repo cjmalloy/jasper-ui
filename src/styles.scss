@@ -7,6 +7,10 @@ html, body {
   padding: 0;
 }
 
+.spacer {
+  flex-grow: 1;
+}
+
 :link {
   text-decoration: none;
 }
@@ -51,6 +55,15 @@ html, body {
     }
     &.current-tab {
     }
+  }
+  .settings {
+    border-top-left-radius: 8px;
+    display: inline-block;
+    align-self: flex-end;
+
+    font-size: 80%;
+    padding: 4px;
+    font-weight: bold;
   }
 }
 

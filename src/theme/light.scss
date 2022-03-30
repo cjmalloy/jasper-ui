@@ -4,6 +4,7 @@ $active: #da0000;
 $info: gray;
 $tag: navy;
 $border: black;
+$unselected-tab: lightgray;
 body.light-theme {
   background-color: $bg;
   color: $text;
@@ -30,7 +31,7 @@ body.light-theme {
     background-position: 4px 0;
     background-repeat: no-repeat;
     & > a {
-      background-color: lightgray;
+      background-color: $unselected-tab;
       border-bottom: 1px solid $border;
       &:link, &:visited, &:active {
         color: black;
@@ -43,6 +44,10 @@ body.light-theme {
         border-right: 1px solid $border;
         border-bottom: 1px solid $bg;
       }
+    }
+
+    .settings {
+      background-color: $unselected-tab;
     }
   }
 

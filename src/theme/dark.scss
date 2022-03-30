@@ -4,6 +4,7 @@ $active: #dc5c5c;
 $info: #969696;
 $tag: #af5800;
 $border: lightgrey;
+$unselected-tab: grey;
 body.dark-theme {
   background-color: $bg;
   color: $text;
@@ -36,7 +37,7 @@ body.dark-theme {
     background-position: 4px 0;
     background-repeat: no-repeat;
     & > a {
-      background-color: grey;
+      background-color: $unselected-tab;
       border-bottom: 1px solid $border;
       &:link, &:visited, &:active {
         color: black;
@@ -48,6 +49,13 @@ body.dark-theme {
         border-left: 1px solid $border;
         border-right: 1px solid $border;
         border-bottom: 1px solid $bg;
+      }
+    }
+
+    .settings {
+      background-color: $unselected-tab;
+      .author {
+        color: $tag;
       }
     }
   }
