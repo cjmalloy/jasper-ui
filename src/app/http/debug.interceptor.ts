@@ -11,6 +11,7 @@ export class DebugInterceptor implements HttpInterceptor {
     if (isDevMode()) {
       request = request.clone({
         setHeaders: {
+          // USER
           Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsIm5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMiwiYXV0aCI6IlJPTEVfVVNFUiJ9.Ht6Zs8Oqjf-yzhoAK4A2xn2qKe38uCGLw56pkl8pQW4`
         }
       });

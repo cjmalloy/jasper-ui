@@ -1,9 +1,24 @@
-<a class="author" [routerLink]="['/tag', 'new', user?.tag]">{{ user?.tag?.substring('user/'.length) }}</a> |
-<ng-container *ngIf="notifications > 0">
-  {{ notifications }} <a class="notification" routerLink="/inbox/unread">📧</a> |
+<ng-container *ngIf="!user">
+  <ng-container *ngIf="config.login">
+    <a [href]="config.login">login</a>
+  </ng-container>
+  <span *ngIf="config.login && config.signup"> or </span>
+  <ng-container *ngIf="config.signup">
+    <a [href]="config.signup">sign up</a>
+  </ng-container>
+  <span *ngIf="config.login || config.signup"> | </span>
+  preferences
 </ng-container>
-<ng-container *ngIf="notifications === 0">
-  <a routerLink="/inbox">📧</a> |
+<ng-container *ngIf="user">
+  <a class="author" [routerLink]="['/tag', 'new', user?.tag]">{{ user?.tag?.substring('user/'.length) }}</a>
+  <ng-container *ngIf="notifications > 0">
+    | {{ notifications }} <a class="notification" routerLink="/inbox/unread">📧</a>
+  </ng-container>
+  <ng-container *ngIf="notifications === 0">
+    | <a routerLink="/inbox">📧</a>
+  </ng-container>
+  | preferences
+  <ng-container *ngIf="config.logout">
+    | <a [href]="config.logout">logout</a>
+  </ng-container>
 </ng-container>
-preferences |
-<a [href]="config.logout">logout</a>

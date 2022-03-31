@@ -7,6 +7,8 @@ import { HttpClient } from "@angular/common/http";
 export class ConfigService {
   api = '//localhost:8081';
   logout = '';
+  login = '';
+  signup = '';
 
   constructor(
     public http: HttpClient,
@@ -17,6 +19,8 @@ export class ConfigService {
     .subscribe((result: any) => {
       this.api = result['api'];
       this.logout = result['logout'];
+      this.login = result['login'];
+      this.signup = result['signup'];
     });
   }
 }
