@@ -49,6 +49,14 @@ body.light-theme {
 
     .settings {
       background-color: $unselected-tab;
+      .author {
+        color: $tag;
+      }
+      & > a {
+        &:link, &:visited, &:active {
+          color: black;
+        }
+      }
     }
   }
 

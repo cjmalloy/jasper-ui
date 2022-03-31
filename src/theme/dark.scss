@@ -58,6 +58,11 @@ body.dark-theme {
       .author {
         color: $tag;
       }
+      & > a {
+        &:link, &:visited, &:active {
+          color: black;
+        }
+      }
     }
   }
 

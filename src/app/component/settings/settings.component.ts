@@ -2,6 +2,7 @@ import { Component, HostBinding, OnInit } from "@angular/core";
 import { UserService } from "../../service/user.service";
 import { RefService } from "../../service/ref.service";
 import { User } from "../../model/user";
+import { ConfigService } from "../../service/config.service";
 
 @Component({
   selector: 'app-settings',
@@ -15,6 +16,7 @@ export class SettingsComponent implements OnInit {
   notifications = 0;
 
   constructor(
+    public config: ConfigService,
     private users: UserService,
     private refs: RefService,
   ) {

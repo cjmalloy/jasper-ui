@@ -6,6 +6,7 @@ import { HttpClient } from "@angular/common/http";
 })
 export class ConfigService {
   api = '//localhost:8081';
+  logout = '';
 
   constructor(
     public http: HttpClient,
@@ -15,6 +16,7 @@ export class ConfigService {
     this.http.get('/assets/config.json')
     .subscribe((result: any) => {
       this.api = result['api'];
+      this.logout = result['logout'];
     });
   }
 }
