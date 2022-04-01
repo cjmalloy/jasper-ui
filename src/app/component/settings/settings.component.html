@@ -7,7 +7,7 @@
     <a [href]="config.signup">sign up</a>
   </ng-container>
   <span *ngIf="config.login || config.signup"> | </span>
-  preferences
+  settings
 </ng-container>
 <ng-container *ngIf="user">
   <a class="author" [routerLink]="['/tag', 'new', user]">{{ user.substring('user/'.length) }}</a>
@@ -17,7 +17,7 @@
   <ng-container *ngIf="notifications === 0">
     | <a routerLink="/inbox">📧</a>
   </ng-container>
-  | preferences
+  | settings
   <ng-container *ngIf="config.logout">
     | <a [href]="config.logout">logout</a>
   </ng-container>

@@ -72,6 +72,10 @@ body.light-theme {
     }
   }
 
+  .comment-children {
+    border-left: 1px dotted rgba(128, 128, 128, 0.3);
+  }
+
   .link {
     .host {
       color: $info;

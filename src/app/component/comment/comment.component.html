@@ -41,7 +41,9 @@
     <a href="#" (click)="reply()">reply</a>
   </div>
 </div>
-<app-comment *ngFor="let comment of children?.content"
-             [style.visibility]="collapsed ? 'hidden' : null"
-             [ref]="comment"
-             [depth]="depth - 1"></app-comment>
+<div class="comment-children">
+  <app-comment *ngFor="let comment of children?.content"
+               [class.hidden-without-removing]="collapsed"
+               [ref]="comment"
+               [depth]="depth - 1"></app-comment>
+</div>

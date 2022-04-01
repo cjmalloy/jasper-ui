@@ -5,3 +5,10 @@
 .comment-collapse {
   cursor: pointer;
 }
+.comment-children {
+  margin-left: 18px;
+}
+.hidden-without-removing {
+  visibility: hidden;
+  height: 0;
+}
