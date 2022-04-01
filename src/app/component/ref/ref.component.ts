@@ -13,7 +13,7 @@ export class RefComponent implements OnInit {
   @HostBinding('class') css = 'ref';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
-  expandable = ['plugin/comment', 'plugin/image', 'plugin/video'];
+  expandable = ['plugin/image', 'plugin/video'];
 
   @Input()
   ref!: Ref;
@@ -32,8 +32,8 @@ export class RefComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.refs.count({ query: 'plugin/comment', responses: this.ref.url }).subscribe(n => this.commentCount = n);
-    this.refs.count({ query: '!plugin/comment', responses: this.ref.url }).subscribe(n => this.responseCount = n);
+    this.refs.count({ query: 'plugin/comment@*', responses: this.ref.url }).subscribe(n => this.commentCount = n);
+    this.refs.count({ query: '!plugin/comment@*', responses: this.ref.url }).subscribe(n => this.responseCount = n);
     this.refs.count({ sources: this.ref.url }).subscribe(n => this.sourceCount = n);
     if (this.ref.tags) {
       this.expandPlugin = _.intersection(this.ref.tags, this.expandable)[0];

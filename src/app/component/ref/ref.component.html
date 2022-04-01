@@ -16,13 +16,13 @@
       <ng-container *ngIf="authors.length">
         by
         <ng-container *ngFor="let user of authors">
-          <a [routerLink]="['/tag', 'new', user]">{{ user.substring('user/'.length) }}</a>
+          <a [routerLink]="['/tag', user]">{{ user.substring('user/'.length) + ref.origin }}</a>
         </ng-container>
       </ng-container>
       <ng-container *ngIf="tags.length">
         tagged
         <ng-container *ngFor="let tag of tags">
-          <a [routerLink]="['/tag', 'hot', tag]">{{ tag }}</a>&nbsp;
+          <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
         </ng-container>
       </ng-container>
     </div>

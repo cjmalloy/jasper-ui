@@ -33,7 +33,7 @@ export class HomePage implements OnInit {
   }
 
   filter(filter: string) {
-    if (this.path === "home") {
+    if (this.path === 'home') {
       if (filter === 'new') {
         this.users.whoAmI().pipe(
           mergeMap(user => this.exts.get(user)),
@@ -44,8 +44,8 @@ export class HomePage implements OnInit {
       } else if (filter === 'unsourced') {
         this.refs.page({ unsourced: true }).subscribe(page => this.page = page);
       }
-    } else if (this.path === "all") {
-      this.refs.page().subscribe(page => this.page = page);
+    } else if (this.path === 'all') {
+      this.refs.page({ query: '!plugin/comment@*'}).subscribe(page => this.page = page);
     }
   }
 

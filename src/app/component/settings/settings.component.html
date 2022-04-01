@@ -10,7 +10,7 @@
   settings
 </ng-container>
 <ng-container *ngIf="user">
-  <a class="author" [routerLink]="['/tag', 'new', user]">{{ user.substring('user/'.length) }}</a>
+  <a class="author" [routerLink]="['/tag', user]">{{ user.substring('user/'.length) }}</a>
   <ng-container *ngIf="notifications > 0">
     | {{ notifications }} <a class="notification" routerLink="/inbox/unread">📧</a>
   </ng-container>
