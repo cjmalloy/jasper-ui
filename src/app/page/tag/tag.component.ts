@@ -19,7 +19,7 @@ export class TagPage implements OnInit {
     private route: ActivatedRoute,
     private refs: RefService,
   ) {
-    route.params.pipe(mergeMap(params => this.refs.page(params['tag'])))
+    route.params.pipe(mergeMap(params => this.refs.page({ query: params['tag'] })))
     .subscribe(page => this.page = page);
     route.params
     .subscribe(params => this.tag = params['tag']);
