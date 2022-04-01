@@ -22,7 +22,7 @@ export class UnreadComponent implements OnInit {
   ) {
     users.getMyUser().pipe(
       tap(user => this.user = user),
-      mergeMap(user => refs.page('plugin/inbox/' + user.tag, undefined, undefined, undefined, undefined, user.lastNotified)))
+      mergeMap(user => refs.page({ query: 'plugin/inbox/' + user.tag, modifiedAfter: user.lastNotified })))
     .subscribe(page => {
       this.page = page;
       users.clearNotifications(this.user!.tag).subscribe();

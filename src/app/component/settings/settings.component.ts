@@ -23,10 +23,10 @@ export class SettingsComponent implements OnInit {
     users.getMyUser()
       .subscribe(user => {
         this.user = user;
-        this.refs.count(
-          "plugin/inbox/" + user.tag,
-          user.lastNotified
-        ).subscribe(count => this.notifications = count);
+        this.refs.count({
+          query: "plugin/inbox/" + user.tag,
+          modifiedAfter: user.lastNotified,
+        }).subscribe(count => this.notifications = count);
       });
   }
 

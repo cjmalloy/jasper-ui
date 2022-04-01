@@ -31,65 +31,34 @@ export class RefService {
     }).pipe(map(mapRef));
   }
 
-  page(
+  page(args?: {
     query?: string,
     page?: number,
     size?: number,
     sort?: string,
     direction?: 'asc' | 'desc',
     modifiedAfter?: moment.Moment,
-  ): Observable<Page<Ref>> {
+    responses?: string,
+    sources?: string,
+    uncited?: boolean,
+    unsourced?: boolean,
+  }): Observable<Page<Ref>> {
     return this.http.get(`${this.base}/list`, {
-      params: params({ query, page, size, sort, direction, modifiedAfter }),
+      params: params(args),
     }).pipe(map(mapPage(mapRef)));
   }
 
-  count(query?: string, modifiedAfter?: moment.Moment): Observable<number> {
+  count(args: {
+    query?: string,
+    modifiedAfter?: moment.Moment,
+    responses?: string,
+    sources?: string,
+    uncited?: boolean,
+    unsourced?: boolean,
+  }): Observable<number> {
     return this.http.get(`${this.base}/count`, {
       responseType: 'text',
-      params: params({ query, modifiedAfter }),
-    }).pipe(map(parseInt));
-  }
-
-  getResponses(
-    url: string,
-    query?: string,
-    page?: number,
-    size?: number,
-    sort?: string,
-    direction?: 'asc' | 'desc',
-    modifiedAfter?: moment.Moment,
-  ): Observable<Page<Ref>> {
-    return this.http.get(`${this.base}/responses`,{
-      params: params({ url, query, page, size, sort, direction, modifiedAfter }),
-    }).pipe(map(mapPage(mapRef)));
-  }
-
-  countResponses(url: string, query?: string, modifiedAfter?: moment.Moment): Observable<number> {
-    return this.http.get(`${this.base}/responses/count`,{
-      responseType: 'text',
-      params: params({ url, query, modifiedAfter }),
-    }).pipe(map(parseInt));
-  }
-
-  getSources(
-    url: string,
-    query?: string,
-    page?: number,
-    size?: number,
-    sort?: string,
-    direction?: 'asc' | 'desc',
-    modifiedAfter?: moment.Moment,
-  ): Observable<Page<Ref>> {
-    return this.http.get(`${this.base}/sources`,{
-      params: params({ url, query, page, size, sort, direction, modifiedAfter }),
-    }).pipe(map(mapPage(mapRef)));
-  }
-
-  countSources(url: string, query?: string, modifiedAfter?: moment.Moment): Observable<number> {
-    return this.http.get(`${this.base}/sources/count`,{
-      responseType: 'text',
-      params: params({ url, query, modifiedAfter }),
+      params: params(args),
     }).pipe(map(parseInt));
   }
 

@@ -19,7 +19,7 @@ export class SourcesComponent implements OnInit {
     private refs: RefService,
   ) {
     route.params
-    .pipe(mergeMap(params => refs.getSources(params['ref'])))
+    .pipe(mergeMap(params => refs.page({ sources: params['ref'] })))
     .subscribe(page => this.page = page);
   }
 

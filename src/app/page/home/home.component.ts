@@ -3,8 +3,8 @@ import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { Page } from "../../model/page";
 import { UserService } from "../../service/user.service";
-import { mergeMap } from "rxjs/operators";
-import { ActivatedRoute, UrlSegment } from "@angular/router";
+import { mergeMap, switchMap, tap } from "rxjs/operators";
+import { ActivatedRoute } from "@angular/router";
 
 @Component({
   selector: 'app-home-page',
@@ -14,30 +14,35 @@ import { ActivatedRoute, UrlSegment } from "@angular/router";
 export class HomePage implements OnInit {
 
   page?: Page<Ref>;
-  sort = 'hot';
+  path = 'home';
 
   constructor(
     private route: ActivatedRoute,
     private refs: RefService,
     private users: UserService,
   ) {
-    route.url.subscribe(segments => this.setView(segments[0]));
-    route.params.subscribe(params => this.sort = params['sort'])
+    route.url.pipe(
+      tap(segments => this.path = segments[0].path),
+      switchMap(() => route.params)
+    ).subscribe(params => this.filter(params['filter']))
   }
 
   ngOnInit(): void {
   }
 
-  setView(view: UrlSegment) {
-    if (!view) return;
-    if (view.path === "home") {
-      this.users
-        .getMyUser().pipe(
-          mergeMap(user => this.refs.page(user.subscriptions?.join('+'))))
-        .subscribe(page => this.page = page);
-    } else if (view.path === "all") {
-      this.refs.page()
-        .subscribe(page => this.page = page);
+  filter(filter: string) {
+    if (this.path === "home") {
+      if (filter === 'new') {
+        this.users.getMyUser().pipe(
+          mergeMap(user => this.refs.page({ query: user.subscriptions?.join('+') }))
+        ).subscribe(page => this.page = page);
+      } else if (filter === 'uncited') {
+        this.refs.page({uncited: true }).subscribe(page => this.page = page);
+      } else if (filter === 'unsourced') {
+        this.refs.page({ unsourced: true }).subscribe(page => this.page = page);
+      }
+    } else if (this.path === "all") {
+      this.refs.page().subscribe(page => this.page = page);
     }
   }
 

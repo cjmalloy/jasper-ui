@@ -19,7 +19,7 @@ export class CommentsComponent implements OnInit {
     private refs: RefService,
   ) {
     route.params
-      .pipe(mergeMap(params => refs.getResponses(params['ref'], 'plugin/comment')))
+      .pipe(mergeMap(params => refs.page({ query: 'plugin/comment', responses: params['ref'] })))
       .subscribe(page => this.page = page);
   }
 

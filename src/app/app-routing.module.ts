@@ -13,11 +13,12 @@ import { UnreadComponent } from "./page/inbox/unread/unread.component";
 
 const routes: Routes = [
   { path: '', redirectTo: '/home/hot', pathMatch: 'full' },
-  { path: 'home', redirectTo: '/home/hot', pathMatch: 'full' },
+  { path: 'home', redirectTo: '/home/new', pathMatch: 'full' },
 
-  { path: 'home/:sort', component: HomePage },
-  { path: 'all/:sort', component: HomePage },
-  { path: 'tag/:sort/:tag', component: TagPage },
+  { path: 'home/:filter', component: HomePage },
+  { path: 'all/:filter', component: HomePage },
+  { path: 'tag/:tag', redirectTo: '/tag/new/:tag', pathMatch: 'full' },
+  { path: 'tag/:filter/:tag', component: TagPage },
   {
     path: 'ref',
     component: RefPage,

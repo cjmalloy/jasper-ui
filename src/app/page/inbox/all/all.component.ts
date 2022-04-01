@@ -18,7 +18,7 @@ export class AllComponent implements OnInit {
     private users: UserService,
     private refs: RefService,
   ) {
-    users.getMyUser().pipe(mergeMap(user => refs.page('plugin/inbox/' + user.tag)))
+    users.getMyUser().pipe(mergeMap(user => refs.page({ query: 'plugin/inbox/' + user.tag })))
       .subscribe(page => this.page = page);
   }
 

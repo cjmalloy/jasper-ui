@@ -30,9 +30,9 @@
       {{ ref.comment }}
     </div>
     <div class="actions">
-      <a [routerLink]="['/ref/comments/', ref.url]">{{ commentCount }} comments</a>
-      <a [routerLink]="['/ref/responses/', ref.url]">{{ responseCount - commentCount }} responses</a>
-      <a [routerLink]="['/ref/sources/', ref.url]">{{ sourceCount }} sources</a>
+      <a [routerLink]="['/ref/comments/', ref.url]">{{ comments }}</a>
+      <a [routerLink]="['/ref/responses/', ref.url]">{{ responses }}</a>
+      <a [routerLink]="['/ref/sources/', ref.url]">{{ sources }}</a>
       <a [routerLink]="['/ref/graph/', ref.url]">graph</a>
       <a href="#" (click)="watch()">watch</a>
       <a href="#" (click)="tag()">tag</a>

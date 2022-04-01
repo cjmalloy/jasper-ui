@@ -29,11 +29,11 @@ export class CommentComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.refs.countResponses(this.ref.url, 'plugin/comment').subscribe(n => this.childrenCount = n);
-    this.refs.countResponses(this.ref.url).subscribe(n => this.responseCount = n);
-    this.refs.countSources(this.ref.url).subscribe(n => this.sourceCount = n);
+    this.refs.count({ query: 'plugin/comment', responses: this.ref.url }).subscribe(n => this.childrenCount = n);
+    this.refs.count({ responses: this.ref.url }).subscribe(n => this.responseCount = n);
+    this.refs.count({ sources: this.ref.url }).subscribe(n => this.sourceCount = n);
     if (this.depth > 0) {
-      this.refs.getResponses(this.ref.url, 'plugin/comment').subscribe(page => this.children = page);
+      this.refs.page({ query: 'plugin/comment', responses: this.ref.url }).subscribe(page => this.children = page);
     }
   }
 
