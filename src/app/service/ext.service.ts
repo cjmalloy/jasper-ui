@@ -46,6 +46,13 @@ export class ExtService {
     return this.http.put<void>(this.base, ext);
   }
 
+  patch(tag: string, patch: any[]): Observable<void> {
+    return this.http.patch<void>(this.base, patch, {
+      headers: { 'Content-Type': 'application/json-patch+json' },
+      params: params({ tag })
+    });
+  }
+
   delete(tag: string): Observable<void> {
     return this.http.delete<void>(this.base, {
       params: { tag },

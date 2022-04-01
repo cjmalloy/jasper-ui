@@ -33,10 +33,13 @@ export class UnreadComponent implements OnInit {
         modifiedAfter: tag?.config?.inbox?.lastNotified || moment().subtract(1, 'year') }))
     ).subscribe(page => {
       this.page = page;
-      this.ext!.config ??= {};
-      this.ext!.config.inbox ??= {};
-      this.ext!.config.inbox.lastNotified = moment().toISOString();
-      this.exts.update(this.ext!).subscribe();
+      if (!page.empty) {
+        this.exts.patch(this.user!, [{
+          op: 'replace',
+          path: '/config/inbox/lastNotified',
+          value: moment().toISOString(),
+        }]).subscribe();
+      }
     });
   }
 
