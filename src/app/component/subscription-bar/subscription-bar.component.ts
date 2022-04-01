@@ -1,5 +1,7 @@
 import { Component, HostBinding, OnInit } from "@angular/core";
 import { UserService } from "../../service/user.service";
+import { mergeMap } from "rxjs/operators";
+import { TagService } from "../../service/tag.service";
 
 @Component({
   selector: 'app-subscription-bar',
@@ -13,9 +15,11 @@ export class SubscriptionBarComponent implements OnInit {
 
   constructor(
     private users: UserService,
+    private tags: TagService,
   ) {
-    users.getMyUser()
-    .subscribe(user => this.subscriptions = user.subscriptions)
+    this.users.whoAmI().pipe(
+      mergeMap(user => this.tags.get(user)),
+    ).subscribe(tag => this.subscriptions = tag.config?.subscriptions || []);
   }
 
   ngOnInit(): void {

@@ -4,7 +4,9 @@ import { Ref } from "../../../model/ref";
 import { RefService } from "../../../service/ref.service";
 import { mergeMap, tap } from "rxjs/operators";
 import { UserService } from "../../../service/user.service";
-import { User } from "../../../model/user";
+import { TagService } from "../../../service/tag.service";
+import * as moment from "moment";
+import { Tag } from "../../../model/tag";
 
 @Component({
   selector: 'app-unread',
@@ -13,19 +15,28 @@ import { User } from "../../../model/user";
 })
 export class UnreadComponent implements OnInit {
 
-  user?: User;
+  user?: string;
+  tag?: Tag;
   page?: Page<Ref>;
 
   constructor(
     private users: UserService,
     private refs: RefService,
+    private tags: TagService,
   ) {
-    users.getMyUser().pipe(
+    this.users.whoAmI().pipe(
       tap(user => this.user = user),
-      mergeMap(user => refs.page({ query: 'plugin/inbox/' + user.tag, modifiedAfter: user.lastNotified })))
-    .subscribe(page => {
+      mergeMap(user => this.tags.get(user)),
+      tap(tag => this.tag = tag),
+      mergeMap(tag => this.refs.page({
+        query: 'plugin/inbox/' + this.user,
+        modifiedAfter: tag?.config?.inbox?.lastNotified || moment().subtract(1, 'year') }))
+    ).subscribe(page => {
       this.page = page;
-      users.clearNotifications(this.user!.tag).subscribe();
+      this.tag!.config ??= {};
+      this.tag!.config.inbox ??= {};
+      this.tag!.config.inbox.lastNotified = moment().toISOString();
+      this.tags.update(this.tag!).subscribe();
     });
   }
 

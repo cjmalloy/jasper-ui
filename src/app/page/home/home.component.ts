@@ -5,6 +5,7 @@ import { Page } from "../../model/page";
 import { UserService } from "../../service/user.service";
 import { mergeMap, switchMap, tap } from "rxjs/operators";
 import { ActivatedRoute } from "@angular/router";
+import { TagService } from "../../service/tag.service";
 
 @Component({
   selector: 'app-home-page',
@@ -20,6 +21,7 @@ export class HomePage implements OnInit {
     private route: ActivatedRoute,
     private refs: RefService,
     private users: UserService,
+    private tags: TagService,
   ) {
     route.url.pipe(
       tap(segments => this.path = segments[0].path),
@@ -33,8 +35,9 @@ export class HomePage implements OnInit {
   filter(filter: string) {
     if (this.path === "home") {
       if (filter === 'new') {
-        this.users.getMyUser().pipe(
-          mergeMap(user => this.refs.page({ query: user.subscriptions?.join('+') }))
+        this.users.whoAmI().pipe(
+          mergeMap(user => this.tags.get(user)),
+          mergeMap(tag => this.refs.page({ query: tag.config?.subscriptions?.join('+') || ''}))
         ).subscribe(page => this.page = page);
       } else if (filter === 'uncited') {
         this.refs.page({uncited: true }).subscribe(page => this.page = page);

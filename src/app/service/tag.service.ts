@@ -24,21 +24,21 @@ export class TagService {
     return this.http.post<void>(this.base, tag);
   }
 
-  get(tag: string, origin = ''): Observable<Tag> {
+  get(tag: string): Observable<Tag> {
     return this.http.get(this.base, {
-      params: { tag, origin },
+      params: { tag },
     }).pipe(map(mapTag));
   }
 
-  page(
+  page(args?: {
     query?: string,
     page?: number,
     size?: number,
     sort?: string,
     direction?: 'asc' | 'desc',
-  ): Observable<Page<Tag>> {
+  }): Observable<Page<Tag>> {
     return this.http.get(`${this.base}/list`, {
-      params: params({ query, page, size, sort, direction }),
+      params: params(args),
     }).pipe(map(mapPage(mapTag)));
   }
 

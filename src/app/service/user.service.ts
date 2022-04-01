@@ -52,12 +52,6 @@ export class UserService {
     });
   }
 
-  clearNotifications(tag: string) : Observable<void> {
-    return this.http.delete<void>(`${this.base}/notifications`, {
-      params: { tag },
-    });
-  }
-
   whoAmI(): Observable<string> {
     return this.http.get(`${this.base}/whoami`, { responseType: 'text' });
   }
