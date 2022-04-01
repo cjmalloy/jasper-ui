@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { ConfigService } from "./config.service";
-import { mapTag, Tag } from "../model/tag";
+import { Ext, mapTag } from "../model/ext";
 import { map, Observable } from "rxjs";
 import { mapPage, Page } from "../model/page";
 import { params } from "../util/http";
@@ -9,7 +9,7 @@ import { params } from "../util/http";
 @Injectable({
   providedIn: 'root'
 })
-export class TagService {
+export class ExtService {
 
   constructor(
     private http: HttpClient,
@@ -17,14 +17,14 @@ export class TagService {
   ) { }
 
   private get base() {
-    return this.config.api + '/api/v1/tag';
+    return this.config.api + '/api/v1/ext';
   }
 
-  create(tag: Tag): Observable<void> {
+  create(tag: Ext): Observable<void> {
     return this.http.post<void>(this.base, tag);
   }
 
-  get(tag: string): Observable<Tag> {
+  get(tag: string): Observable<Ext> {
     return this.http.get(this.base, {
       params: { tag },
     }).pipe(map(mapTag));
@@ -36,14 +36,14 @@ export class TagService {
     size?: number,
     sort?: string,
     direction?: 'asc' | 'desc',
-  }): Observable<Page<Tag>> {
+  }): Observable<Page<Ext>> {
     return this.http.get(`${this.base}/list`, {
       params: params(args),
     }).pipe(map(mapPage(mapTag)));
   }
 
-  update(tag: Tag): Observable<void> {
-    return this.http.put<void>(this.base, tag);
+  update(ext: Ext): Observable<void> {
+    return this.http.put<void>(this.base, ext);
   }
 
   delete(tag: string): Observable<void> {

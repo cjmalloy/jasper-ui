@@ -1,16 +1,14 @@
 import * as moment from "moment";
 
-export interface Tag {
+export interface Ext {
   tag: string;
   origin: string;
   name: string;
-  color: number;
-  textColor: number;
   config: any;
   modified?: moment.Moment;
 }
 
-export function mapTag(obj: any): Tag {
+export function mapTag(obj: any): Ext {
   obj.modified = moment(obj.modified);
   return obj;
 }

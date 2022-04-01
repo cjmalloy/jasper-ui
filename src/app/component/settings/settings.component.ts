@@ -3,7 +3,7 @@ import { UserService } from "../../service/user.service";
 import { RefService } from "../../service/ref.service";
 import { ConfigService } from "../../service/config.service";
 import { mergeMap, tap } from "rxjs/operators";
-import { TagService } from "../../service/tag.service";
+import { ExtService } from "../../service/ext.service";
 import * as moment from "moment";
 
 @Component({
@@ -21,14 +21,14 @@ export class SettingsComponent implements OnInit {
     public config: ConfigService,
     private users: UserService,
     private refs: RefService,
-    private tags: TagService,
+    private exts: ExtService,
   ) {
     users.whoAmI().pipe(
       tap(user => this.user = user),
-      mergeMap(user => tags.get(user)),
-      mergeMap(tag => this.refs.count({
+      mergeMap(user => exts.get(user)),
+      mergeMap(ext => this.refs.count({
         query: "plugin/inbox/" + this.user,
-        modifiedAfter: tag.config?.inbox?.lastNotified || moment().subtract(1, 'year') }))
+        modifiedAfter: ext.config?.inbox?.lastNotified || moment().subtract(1, 'year') }))
     ).subscribe(count => this.notifications = count);
   }
 

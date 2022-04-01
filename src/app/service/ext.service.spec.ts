@@ -1,10 +1,10 @@
 import { TestBed } from "@angular/core/testing";
 
-import { TagService } from "./tag.service";
+import { ExtService } from "./ext.service";
 import { HttpClientModule } from "@angular/common/http";
 
-describe('TagService', () => {
-  let service: TagService;
+describe('ExtService', () => {
+  let service: ExtService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -12,7 +12,7 @@ describe('TagService', () => {
         HttpClientModule,
       ]
     });
-    service = TestBed.inject(TagService);
+    service = TestBed.inject(ExtService);
   });
 
   it('should be created', () => {
