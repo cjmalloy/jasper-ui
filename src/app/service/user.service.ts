@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { ConfigService } from "./config.service";
 import { mapUser, User } from "../model/user";
-import { map, mergeMap, Observable } from "rxjs";
+import { map, Observable } from "rxjs";
 import { mapPage, Page } from "../model/page";
 import { params } from "../util/http";
 
@@ -24,7 +24,7 @@ export class UserService {
     return this.http.post<void>(this.base, user);
   }
 
-  get(tag: string, origin = ''): Observable<User> {
+  get(tag: string): Observable<User> {
     return this.http.get(this.base, {
       params: { tag, origin },
     }).pipe(map(mapUser));
@@ -54,10 +54,5 @@ export class UserService {
 
   whoAmI(): Observable<string> {
     return this.http.get(`${this.base}/whoami`, { responseType: 'text' });
-  }
-
-  getMyUser(): Observable<User> {
-    return this.whoAmI()
-    .pipe(mergeMap(tag => this.get(tag)));
   }
 }

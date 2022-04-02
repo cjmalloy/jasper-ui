@@ -2,8 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { Page } from "../../../model/page";
 import { Ref } from "../../../model/ref";
 import { RefService } from "../../../service/ref.service";
-import { mergeMap } from "rxjs/operators";
-import { UserService } from "../../../service/user.service";
+import { AccountService } from "../../../service/account.service";
 
 @Component({
   selector: 'app-all',
@@ -15,10 +14,10 @@ export class AllComponent implements OnInit {
   page?: Page<Ref>;
 
   constructor(
-    private users: UserService,
+    private account: AccountService,
     private refs: RefService,
   ) {
-    users.getMyUser().pipe(mergeMap(user => refs.page({ query: 'plugin/inbox/' + user.tag })))
+    this.refs.page({ query: 'plugin/inbox/' + account.tag })
       .subscribe(page => this.page = page);
   }
 

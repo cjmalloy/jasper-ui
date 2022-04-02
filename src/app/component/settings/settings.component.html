@@ -1,4 +1,4 @@
-<ng-container *ngIf="!user">
+<ng-container *ngIf="!account.tag">
   <ng-container *ngIf="config.login">
     <a [href]="config.login">login</a>
   </ng-container>
@@ -9,8 +9,8 @@
   <span *ngIf="config.login || config.signup"> | </span>
   settings
 </ng-container>
-<ng-container *ngIf="user">
-  <a class="author" [routerLink]="['/tag', user]">{{ user.substring('user/'.length) }}</a>
+<ng-container *ngIf="account.tag">
+  <a class="author" [routerLink]="['/tag', account.tag]">{{ account.tag.substring('user/'.length) }}</a>
   <ng-container *ngIf="notifications > 0">
     | {{ notifications }} <a class="notification" routerLink="/inbox/unread">📧</a>
   </ng-container>

@@ -2,11 +2,10 @@ import { Component, OnInit } from "@angular/core";
 import { Page } from "../../../model/page";
 import { Ref } from "../../../model/ref";
 import { RefService } from "../../../service/ref.service";
-import { mergeMap, tap } from "rxjs/operators";
-import { UserService } from "../../../service/user.service";
-import { ExtService } from "../../../service/ext.service";
+import { mergeMap } from "rxjs/operators";
 import * as moment from "moment";
-import { Ext } from "../../../model/ext";
+import { AccountService } from "../../../service/account.service";
+import { ExtService } from "../../../service/ext.service";
 
 @Component({
   selector: 'app-unread',
@@ -15,26 +14,21 @@ import { Ext } from "../../../model/ext";
 })
 export class UnreadComponent implements OnInit {
 
-  user?: string;
-  ext?: Ext;
   page?: Page<Ref>;
 
   constructor(
-    private users: UserService,
+    private account: AccountService,
     private refs: RefService,
     private exts: ExtService,
   ) {
-    this.users.whoAmI().pipe(
-      tap(user => this.user = user),
-      mergeMap(user => this.exts.get(user)),
-      tap(ext => this.ext = ext),
-      mergeMap(tag => this.refs.page({
-        query: 'plugin/inbox/' + this.user,
-        modifiedAfter: tag?.config?.inbox?.lastNotified || moment().subtract(1, 'year') }))
+    this.account.getMyUserExt().pipe(
+      mergeMap(ext => this.refs.page({
+        query: 'plugin/inbox/' + account.tag,
+        modifiedAfter: ext.config.inbox.lastNotified || moment().subtract(1, 'year') }))
     ).subscribe(page => {
       this.page = page;
       if (!page.empty) {
-        this.exts.patch(this.user!, [{
+        this.exts.patch(account.tag!, [{
           op: 'add',
           path: '/config/inbox/lastNotified',
           value: moment().toISOString(),

@@ -21,6 +21,13 @@ import { SettingsComponent } from "./component/settings/settings.component";
 import { InboxPage } from "./page/inbox/inbox.component";
 import { AllComponent } from "./page/inbox/all/all.component";
 import { UnreadComponent } from "./page/inbox/unread/unread.component";
+import { AccountService } from "./service/account.service";
+import { mergeMap } from "rxjs";
+
+const loadFactory = (config: ConfigService, account: AccountService) => () =>
+  config.load().pipe(
+    mergeMap(() => account.init())
+  )
 
 @NgModule({
   declarations: [
@@ -50,8 +57,8 @@ import { UnreadComponent } from "./page/inbox/unread/unread.component";
     ConfigService,
     {
       provide: APP_INITIALIZER,
-      useFactory: (config: ConfigService) => () => config.load(),
-      deps: [ConfigService],
+      useFactory: loadFactory,
+      deps: [ConfigService, AccountService],
       multi: true
     },
     {

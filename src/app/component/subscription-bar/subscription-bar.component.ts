@@ -1,7 +1,5 @@
 import { Component, HostBinding, OnInit } from "@angular/core";
-import { UserService } from "../../service/user.service";
-import { mergeMap } from "rxjs/operators";
-import { ExtService } from "../../service/ext.service";
+import { AccountService } from "../../service/account.service";
 
 @Component({
   selector: 'app-subscription-bar',
@@ -14,12 +12,10 @@ export class SubscriptionBarComponent implements OnInit {
   subscriptions?: string[];
 
   constructor(
-    private users: UserService,
-    private exts: ExtService,
+    private account: AccountService,
   ) {
-    this.users.whoAmI().pipe(
-      mergeMap(user => this.exts.get(user)),
-    ).subscribe(ext => this.subscriptions = ext.config?.subscriptions || []);
+    this.account.getMyUserExt()
+      .subscribe(ext => this.subscriptions = ext.config!.subscriptions);
   }
 
   ngOnInit(): void {

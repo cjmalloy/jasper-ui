@@ -2,9 +2,9 @@ import * as moment from "moment";
 
 export interface Ext {
   tag: string;
-  origin: string;
-  name: string;
-  config: any;
+  origin?: string;
+  name?: string;
+  config?: any;
   modified?: moment.Moment;
 }
 
