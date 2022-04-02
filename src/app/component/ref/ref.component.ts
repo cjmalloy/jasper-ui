@@ -22,9 +22,9 @@ export class RefComponent implements OnInit {
   @Input()
   showToggle = false;
 
-  commentCount = 0;
-  responseCount = 0;
-  sourceCount = 0;
+  commentCount?: number;
+  responseCount?: number;
+  sourceCount?: number;
   expandPlugin?: string;
 
   constructor(
@@ -57,18 +57,21 @@ export class RefComponent implements OnInit {
   }
 
   get comments() {
+    if (this.commentCount === undefined) return '? comments';
     if (this.commentCount === 0) return 'comment';
     if (this.commentCount === 1) return '1 comment';
     return this.commentCount + ' comments';
   }
 
   get responses() {
+    if (this.responseCount === undefined) return '? citations';
     if (this.responseCount === 0) return 'uncited';
     if (this.responseCount === 1) return '1 citation';
     return this.responseCount + ' citations';
   }
 
   get sources() {
+    if (this.sourceCount === undefined) return '? sources';
     if (this.sourceCount === 0) return 'unsourced';
     if (this.sourceCount === 1) return '1 source';
     return this.sourceCount + ' sources';

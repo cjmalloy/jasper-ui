@@ -4,12 +4,7 @@
     <a class="author" [routerLink]="['/tag', user]">{{ user.substring('user/'.length) + ref.origin }}</a>
   </ng-container>
   {{ ref.created?.fromNow() }}
-  <ng-container *ngIf="childrenCount === 1">
-    ( 1 child )
-  </ng-container>
-  <ng-container *ngIf="childrenCount !== 1">
-    ( {{ childrenCount }} children )
-  </ng-container>
+  {{ comments }}
 </div>
 
 <div class="comment-container" tabindex="0" *ngIf="!collapsed">
@@ -31,10 +26,8 @@
   </div>
   <div class="actions">
     <a [routerLink]="['/ref/comments/', ref.url]">permalink</a>
-    <a *ngIf="responseCount - childrenCount > 1"
-       [routerLink]="['/ref/responses/', ref.url]">{{ responseCount - childrenCount }} responses</a>
-    <a *ngIf="sourceCount > 1"
-       [routerLink]="['/ref/sources/', ref.url]">{{ sourceCount }} sources</a>
+    <a [routerLink]="['/ref/responses/', ref.url]">{{ responses }}</a>
+    <a [routerLink]="['/ref/sources/', ref.url]">{{ sources }}</a>
     <a [routerLink]="['/ref/graph/', ref.url]">graph</a>
     <a href="#" (click)="watch()">watch</a>
     <a href="#" (click)="tag()">tag</a>
