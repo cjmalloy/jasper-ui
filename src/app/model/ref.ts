@@ -2,7 +2,7 @@ import * as moment from "moment";
 
 export interface Ref {
   url: string;
-  origin: string;
+  origin?: string;
   title?: string;
   comment?: string;
   tags?: string[];

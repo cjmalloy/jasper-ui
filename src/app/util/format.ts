@@ -7,7 +7,7 @@ export function authors(ref: Ref) {
 }
 
 export function primaryAuthor(ref: Ref) {
-  return _.find(ref.tags, t => t.startsWith('user/')) + ref.origin;
+  return _.find(ref.tags, t => t.startsWith('user/')) + ref.origin!;
 }
 
 export function webLink(ref: Ref) {

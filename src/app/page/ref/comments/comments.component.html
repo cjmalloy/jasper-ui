@@ -1,4 +1,12 @@
 <ng-container *ngIf="!ref">
   Loading...
 </ng-container>
-<app-comment-list *ngIf="ref" [ref]="ref"></app-comment-list>
+<hr>
+<div class="comment-reply">
+  <textarea #textbox></textarea>
+  <br>
+  <button (click)="reply(textbox.value)">reply</button>
+</div>
+<app-comment-list *ngIf="ref"
+                  [ref]="ref"
+                  [newComments]="newComments"></app-comment-list>

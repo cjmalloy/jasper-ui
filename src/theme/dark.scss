@@ -124,4 +124,9 @@ body.dark-theme {
   .no-results {
     color: $error;
   }
+
+  textarea {
+    background-color: $bg;
+    color: $text;
+  }
 }

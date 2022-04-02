@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { Page } from "../../model/page";
 import { RefService } from "../../service/ref.service";
+import { Observable } from "rxjs";
 
 @Component({
   selector: 'app-comment-list',
@@ -14,6 +15,8 @@ export class CommentListComponent implements OnInit {
   ref!: string;
   @Input()
   depth = 7;
+  @Input()
+  newComments!: Observable<Ref>;
 
   pages: Page<Ref>[] = [];
 
@@ -28,6 +31,7 @@ export class CommentListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadMore();
+    this.newComments?.subscribe(comment => this.pages[0].content.unshift(comment));
   }
 
   loadMore() {
