@@ -34,9 +34,14 @@
     <a href="#" (click)="reply()">reply</a>
   </div>
 </div>
-<div class="comment-children">
-  <app-comment *ngFor="let comment of children?.content"
-               [class.hidden-without-removing]="collapsed"
-               [ref]="comment"
-               [depth]="depth - 1"></app-comment>
+<span class="fake-link"
+      *ngIf="!collapsed && depth === 0 && commentCount! > 0"
+      (click)="depth = depth + 1">
+  load more comments
+</span>
+<div *ngIf="depth > 0"
+     class="comment-children"
+     [class.hidden-without-removing]="collapsed">
+  <app-comment-list [ref]="ref.url"
+                    [depth]="depth - 1"></app-comment-list>
 </div>

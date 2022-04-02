@@ -1,6 +1,4 @@
-<ng-container *ngIf="!page">
+<ng-container *ngIf="!ref">
   Loading...
 </ng-container>
-<app-comment *ngFor="let comment of page?.content"
-             [ref]="comment"
-             [depth]="7"></app-comment>
+<app-comment-list *ngIf="ref" [ref]="ref"></app-comment-list>

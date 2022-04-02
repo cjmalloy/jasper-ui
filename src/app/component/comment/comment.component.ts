@@ -2,7 +2,6 @@ import { Component, HostBinding, Input, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { authors, interestingTags } from "../../util/format";
-import { Page } from "../../model/page";
 
 @Component({
   selector: 'app-comment',
@@ -18,7 +17,6 @@ export class CommentComponent implements OnInit {
   @Input()
   depth = 7;
 
-  children?: Page<Ref>;
   commentCount?: number;
   responseCount?: number;
   sourceCount?: number;
@@ -32,9 +30,7 @@ export class CommentComponent implements OnInit {
     this.refs.count({ query: 'plugin/comment@*', responses: this.ref.url }).subscribe(n => this.commentCount = n);
     this.refs.count({ query: '!plugin/comment@*', responses: this.ref.url }).subscribe(n => this.responseCount = n);
     this.refs.count({ query: '!plugin/comment@*', sources: this.ref.url }).subscribe(n => this.sourceCount = n);
-    if (this.depth > 0) {
-      this.refs.page({ query: 'plugin/comment@*', responses: this.ref.url }).subscribe(page => this.children = page);
-    }
+
   }
 
   get authors() {

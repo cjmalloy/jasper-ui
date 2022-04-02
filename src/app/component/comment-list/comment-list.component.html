@@ -1,0 +1,10 @@
+<ng-container *ngFor="let page of pages">
+  <app-comment *ngFor="let comment of page.content"
+               [ref]="comment"
+               [depth]="depth"></app-comment>
+</ng-container>
+<span class="fake-link"
+      *ngIf="hasMore"
+      (click)="loadMore()">
+  load more comments
+</span>

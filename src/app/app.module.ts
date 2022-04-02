@@ -23,6 +23,8 @@ import { AllComponent } from "./page/inbox/all/all.component";
 import { UnreadComponent } from "./page/inbox/unread/unread.component";
 import { AccountService } from "./service/account.service";
 import { mergeMap } from "rxjs";
+import { PageComponent } from './component/page/page.component';
+import { CommentListComponent } from './component/comment-list/comment-list.component';
 
 const loadFactory = (config: ConfigService, account: AccountService) => () =>
   config.load().pipe(
@@ -47,6 +49,8 @@ const loadFactory = (config: ConfigService, account: AccountService) => () =>
     InboxPage,
     AllComponent,
     UnreadComponent,
+    PageComponent,
+    CommentListComponent,
   ],
   imports: [
     BrowserModule,

@@ -2,9 +2,10 @@ import { Component, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { Page } from "../../model/page";
-import { mergeMap, switchMap, tap } from "rxjs/operators";
+import { mergeMap, tap } from "rxjs/operators";
 import { ActivatedRoute } from "@angular/router";
 import { AccountService } from "../../service/account.service";
+import { Observable, of } from "rxjs";
 
 @Component({
   selector: 'app-home-page',
@@ -15,6 +16,9 @@ export class HomePage implements OnInit {
 
   page?: Page<Ref>;
   path = 'home';
+  filter = 'new';
+  pageNumber?: number;
+  pageSize = 20;
 
   constructor(
     private route: ActivatedRoute,
@@ -23,27 +27,48 @@ export class HomePage implements OnInit {
   ) {
     route.url.pipe(
       tap(segments => this.path = segments[0].path),
-      switchMap(() => route.params)
-    ).subscribe(params => this.filter(params['filter']))
+      mergeMap(() => route.params),
+      tap(params => this.filter = params['filter']),
+      mergeMap(() => route.queryParams),
+      tap(queryParams => {
+        this.pageNumber = queryParams['pageNumber'] ?? this.pageNumber;
+        this.pageSize = queryParams['pageSize'] ?? this.pageSize;
+      }),
+    ).subscribe(() => this.refresh())
   }
 
   ngOnInit(): void {
   }
 
-  filter(filter: string) {
+  get query(): Observable<Record<string, any>> {
     if (this.path === 'home') {
-      if (filter === 'new') {
-        this.account.getMyUserExt().pipe(
-          mergeMap(ext => this.refs.page({ query: ext.config.subscriptions.join('+')}))
-        ).subscribe(page => this.page = page);
-      } else if (filter === 'uncited') {
-        this.refs.page({uncited: true }).subscribe(page => this.page = page);
-      } else if (filter === 'unsourced') {
-        this.refs.page({ unsourced: true }).subscribe(page => this.page = page);
+      if (this.filter === 'new') {
+        return this.account.getMyUserExt().pipe(
+          mergeMap(ext => of({ query: ext.config.subscriptions.join('+') }))
+        );
       }
-    } else if (this.path === 'all') {
-      this.refs.page({ query: '!plugin/comment@*'}).subscribe(page => this.page = page);
+      if (this.filter === 'uncited') {
+        return of({ uncited: true })
+      }
+      if (this.filter === 'unsourced') {
+        return of({ unsourced: true })
+      }
+      throw `Invalid filter ${this.filter}`;
     }
+    if (this.path === 'all') {
+      return of({ query: '!plugin/comment@*' });
+    }
+    throw `Invalid path ${this.path}`;
+  }
+
+  refresh() {
+    this.query.pipe(
+      mergeMap(query => this.refs.page({
+        ...query,
+        page: this.pageNumber,
+        size: this.pageSize,
+      }))
+    ).subscribe(page => this.page = page);
   }
 
 }

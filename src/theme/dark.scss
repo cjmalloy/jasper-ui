@@ -66,6 +66,14 @@ body.dark-theme {
     }
   }
 
+  .page-controls {
+    .disabled {
+      &:link, &:active, &:visited {
+        color: $text;
+      }
+    }
+  }
+
   .ref {
     &:focus {
       border: 1px dashed $border;

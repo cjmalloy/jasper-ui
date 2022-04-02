@@ -3,13 +3,11 @@ export interface Page<T> {
   empty: boolean;
   first: boolean;
   last: boolean;
+  number: number;
   totalPages: number;
+  size: number;
   totalElements: number;
-  pageable: {
-    offset: number;
-    pageNumber: number;
-    pageSize: number;
-  }
+  numberOfElements: number;
 }
 
 export function mapPage<T>(contentMapper: (obj: any) => T): (obj: any) => Page<T> {
