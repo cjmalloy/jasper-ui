@@ -66,6 +66,13 @@ export class RefService {
     return this.http.put<void>(this.base, ref);
   }
 
+  patch(url: string, origin: string, patch: any[]): Observable<void> {
+    return this.http.patch<void>(this.base, patch, {
+      headers: { 'Content-Type': 'application/json-patch+json' },
+      params: params({ url, origin })
+    });
+  }
+
   delete(url: string): Observable<void> {
     return this.http.delete<void>(this.base, {
       params: { url },
