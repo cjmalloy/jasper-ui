@@ -35,7 +35,7 @@ export class UnreadComponent implements OnInit {
       this.page = page;
       if (!page.empty) {
         this.exts.patch(this.user!, [{
-          op: 'replace',
+          op: 'add',
           path: '/config/inbox/lastNotified',
           value: moment().toISOString(),
         }]).subscribe();
