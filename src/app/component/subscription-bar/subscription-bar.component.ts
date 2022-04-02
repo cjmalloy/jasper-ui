@@ -9,13 +9,15 @@ import { AccountService } from "../../service/account.service";
 export class SubscriptionBarComponent implements OnInit {
   @HostBinding('class') css = 'subscription-bar';
 
-  subscriptions?: string[];
+  subscriptions = [];
 
   constructor(
     private account: AccountService,
   ) {
-    this.account.getMyUserExt()
+    if (this.account.signedIn()) {
+      this.account.getMyUserExt()
       .subscribe(ext => this.subscriptions = ext.config!.subscriptions);
+    }
   }
 
   ngOnInit(): void {

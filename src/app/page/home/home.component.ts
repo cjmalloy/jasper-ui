@@ -15,7 +15,7 @@ import { Observable, of } from "rxjs";
 export class HomePage implements OnInit {
 
   page?: Page<Ref>;
-  path = 'home';
+  path = 'all';
   filter = 'new';
   pageNumber?: number;
   pageSize = 20;
@@ -26,7 +26,7 @@ export class HomePage implements OnInit {
     private refs: RefService,
   ) {
     route.url.pipe(
-      tap(segments => this.path = segments[0].path),
+      tap(segments => this.path = account.signedIn() ? segments[0].path : 'all'),
       mergeMap(() => route.params),
       tap(params => this.filter = params['filter']),
       mergeMap(() => route.queryParams),

@@ -1,8 +1,5 @@
 import { Component, HostBinding, OnInit } from "@angular/core";
-import { RefService } from "../../service/ref.service";
 import { ConfigService } from "../../service/config.service";
-import { mergeMap } from "rxjs/operators";
-import * as moment from "moment";
 import { AccountService } from "../../service/account.service";
 
 @Component({
@@ -18,16 +15,12 @@ export class SettingsComponent implements OnInit {
   constructor(
     public config: ConfigService,
     public account: AccountService,
-    private refs: RefService,
   ) {
-    this.account.getMyUserExt().pipe(
-      mergeMap(ext => this.refs.count({
-        query: "plugin/inbox/" + this.account.tag,
-        modifiedAfter: ext.config?.inbox?.lastNotified || moment().subtract(1, 'year') }))
-    ).subscribe(count => this.notifications = count);
+    this.account.notifications.subscribe(count => this.notifications = count);
   }
 
   ngOnInit(): void {
+    this.account.checkNotifications();
   }
 
 }

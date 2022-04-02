@@ -1,38 +1,65 @@
 import { Injectable } from "@angular/core";
 import { UserService } from "./user.service";
-import { catchError, Observable } from "rxjs";
+import { BehaviorSubject, catchError, Observable, of } from "rxjs";
 import { User } from "../model/user";
 import { ExtService } from "./ext.service";
 import { Ext } from "../model/ext";
 import { mergeMap, tap } from "rxjs/operators";
+import * as moment from "moment";
+import { RefService } from "./ref.service";
 
 @Injectable({
   providedIn: 'root'
 })
 export class AccountService {
 
-  tag?: string;
+  tag = "";
+  notifications = new BehaviorSubject(0);
 
   constructor(
     private users: UserService,
     private exts: ExtService,
+    private refs: RefService,
   ) { }
 
   init() {
     return this.users.whoAmI().pipe(
       tap(tag => this.tag = tag),
       mergeMap(() => this.getMyUserExt()),
-      catchError(err => this.exts.create({ tag: this.tag!}))
+      catchError(err => this.exts.create({ tag: this.tag})),
+      catchError(err => of(null)),
     );
   }
 
+  signedIn() {
+    return !!this.tag;
+  }
+
   getMyUser(): Observable<User> {
-    if (!this.tag) return this.users.whoAmI().pipe(tap(tag => this.tag = tag), mergeMap(tag => this.users.get(tag)));
-    return this.users.get(this.tag!);
+    if (!this.signedIn()) throw "Not signed in";
+    return this.users.get(this.tag);
   }
 
   getMyUserExt(): Observable<Ext> {
-    if (!this.tag) return this.users.whoAmI().pipe(tap(tag => this.tag = tag), mergeMap(tag => this.exts.get(tag)));
-    return this.exts.get(this.tag!);
+    if (!this.signedIn()) throw "Not signed in";
+    return this.exts.get(this.tag);
+  }
+
+  checkNotifications() {
+    if (!this.signedIn()) return;
+    return this.getMyUserExt().pipe(
+      mergeMap(ext => this.refs.count({
+        query: "plugin/inbox/" + this.tag,
+        modifiedAfter: ext.config?.inbox?.lastNotified || moment().subtract(1, 'year') }))
+    ).subscribe(count => this.notifications.next(count));
+  }
+
+  clearNotifications() {
+    if (!this.signedIn()) return;
+    this.exts.patch(this.tag, [{
+      op: 'add',
+      path: '/config/inbox/lastNotified',
+      value: moment().toISOString(),
+    }]).subscribe(() => this.checkNotifications());
   }
 }

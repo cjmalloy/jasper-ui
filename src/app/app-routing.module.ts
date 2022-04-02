@@ -12,7 +12,7 @@ import { AllComponent } from "./page/inbox/all/all.component";
 import { UnreadComponent } from "./page/inbox/unread/unread.component";
 
 const routes: Routes = [
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  { path: '', redirectTo: '/home/new', pathMatch: 'full' },
   { path: 'home', redirectTo: '/home/new', pathMatch: 'full' },
   { path: 'all', redirectTo: '/all/new', pathMatch: 'full' },
 

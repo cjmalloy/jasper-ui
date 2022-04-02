@@ -5,7 +5,6 @@ import { RefService } from "../../../service/ref.service";
 import { mergeMap } from "rxjs/operators";
 import * as moment from "moment";
 import { AccountService } from "../../../service/account.service";
-import { ExtService } from "../../../service/ext.service";
 
 @Component({
   selector: 'app-unread',
@@ -19,7 +18,6 @@ export class UnreadComponent implements OnInit {
   constructor(
     private account: AccountService,
     private refs: RefService,
-    private exts: ExtService,
   ) {
     this.account.getMyUserExt().pipe(
       mergeMap(ext => this.refs.page({
@@ -27,13 +25,7 @@ export class UnreadComponent implements OnInit {
         modifiedAfter: ext.config.inbox.lastNotified || moment().subtract(1, 'year') }))
     ).subscribe(page => {
       this.page = page;
-      if (!page.empty) {
-        this.exts.patch(account.tag!, [{
-          op: 'add',
-          path: '/config/inbox/lastNotified',
-          value: moment().toISOString(),
-        }]).subscribe();
-      }
+      if (!page.empty) this.account.clearNotifications();
     });
   }
 
