@@ -119,4 +119,14 @@ body.light-theme {
     color: $error;
   }
 
+  textarea {
+    background-color: $bg;
+    color: $text;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px dotted $border;
+  }
+
 }
