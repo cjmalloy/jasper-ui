@@ -1,12 +1,9 @@
-<ng-container *ngIf="!ref">
+<ng-container *ngIf="!source">
   Loading...
 </ng-container>
 <hr>
-<div class="comment-reply">
-  <textarea #textbox></textarea>
-  <br>
-  <button (click)="reply(textbox.value)">reply</button>
-</div>
-<app-comment-list *ngIf="ref"
-                  [ref]="ref"
+<app-editor [sources]="[source.value]"
+            [newComments]="newComments"></app-editor>
+<app-comment-list *ngIf="source"
+                  [source]="source"
                   [newComments]="newComments"></app-comment-list>

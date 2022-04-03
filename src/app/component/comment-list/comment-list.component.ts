@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { Page } from "../../model/page";
 import { RefService } from "../../service/ref.service";
-import { Observable } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 
 @Component({
   selector: 'app-comment-list',
@@ -12,7 +12,7 @@ import { Observable } from "rxjs";
 export class CommentListComponent implements OnInit {
 
   @Input()
-  ref!: string;
+  source!: BehaviorSubject<string>;
   @Input()
   depth = 7;
   @Input()
@@ -30,14 +30,17 @@ export class CommentListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadMore();
+    this.source.subscribe(() => {
+      this.pages = [];
+      this.loadMore();
+    });
     this.newComments?.subscribe(comment => this.pages[0].content.unshift(comment));
   }
 
   loadMore() {
     this.refs.page({
       query: 'plugin/comment@*',
-      responses: this.ref,
+      responses: this.source.value,
       page: this.pages.length,
     }).subscribe(page => this.pages.push(page));
   }

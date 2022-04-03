@@ -116,7 +116,7 @@ body.dark-theme {
   }
 
   .actions {
-    :link, :visited, :active {
+    :link, :visited, :active, .fake-link {
       color: $info;
     }
   }

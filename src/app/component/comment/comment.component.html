@@ -29,11 +29,14 @@
     <a [routerLink]="['/ref/responses/', ref.url]">{{ responses }}</a>
     <a [routerLink]="['/ref/sources/', ref.url]">{{ sources }}</a>
     <a [routerLink]="['/ref/graph/', ref.url]">graph</a>
-    <a href="#" (click)="watch()">watch</a>
-    <a href="#" (click)="tag()">tag</a>
-    <a href="#" (click)="reply()">reply</a>
+    <a class="fake-link" (click)="watch()">watch</a>
+    <a class="fake-link" (click)="tag()">tag</a>
+    <a class="fake-link" (click)="reply = true">reply</a>
   </div>
 </div>
+<app-editor *ngIf="reply"
+            [sources]="[ref.url]"
+            [newComments]="newComments"></app-editor>
 <span class="fake-link"
       *ngIf="!collapsed && depth === 0 && commentCount! > 0"
       (click)="depth = depth + 1">
@@ -42,6 +45,7 @@
 <div *ngIf="depth > 0"
      class="comment-children"
      [class.hidden-without-removing]="collapsed">
-  <app-comment-list [ref]="ref.url"
-                    [depth]="depth - 1"></app-comment-list>
+  <app-comment-list [source]="source"
+                    [depth]="depth - 1"
+                    [newComments]="newComments"></app-comment-list>
 </div>

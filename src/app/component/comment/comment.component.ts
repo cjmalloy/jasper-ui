@@ -2,6 +2,7 @@ import { Component, HostBinding, Input, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { authors, interestingTags } from "../../util/format";
+import { BehaviorSubject, Subject } from "rxjs";
 
 @Component({
   selector: 'app-comment',
@@ -17,10 +18,13 @@ export class CommentComponent implements OnInit {
   @Input()
   depth = 7;
 
+  source = new BehaviorSubject<string>(null!);
+  newComments = new Subject<Ref>();
   commentCount?: number;
   responseCount?: number;
   sourceCount?: number;
   collapsed = false;
+  reply = false;
 
   constructor(
     private refs: RefService,
@@ -30,7 +34,8 @@ export class CommentComponent implements OnInit {
     this.refs.count({ query: 'plugin/comment@*', responses: this.ref.url }).subscribe(n => this.commentCount = n);
     this.refs.count({ query: '!plugin/comment@*', responses: this.ref.url }).subscribe(n => this.responseCount = n);
     this.refs.count({ query: '!plugin/comment@*', sources: this.ref.url }).subscribe(n => this.sourceCount = n);
-
+    this.newComments.subscribe(() => this.reply = false);
+    this.source.next(this.ref.url);
   }
 
   get authors() {
@@ -67,10 +72,6 @@ export class CommentComponent implements OnInit {
 
   tag() {
     window.alert('tag')
-  }
-
-  reply() {
-    window.alert('reply')
   }
 
 }

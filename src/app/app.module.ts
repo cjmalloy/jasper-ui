@@ -25,6 +25,7 @@ import { AccountService } from "./service/account.service";
 import { mergeMap } from "rxjs";
 import { PageComponent } from './component/page/page.component';
 import { CommentListComponent } from './component/comment-list/comment-list.component';
+import { EditorComponent } from './component/editor/editor.component';
 
 const loadFactory = (config: ConfigService, account: AccountService) => () =>
   config.load().pipe(
@@ -51,6 +52,7 @@ const loadFactory = (config: ConfigService, account: AccountService) => () =>
     UnreadComponent,
     PageComponent,
     CommentListComponent,
+    EditorComponent,
   ],
   imports: [
     BrowserModule,
