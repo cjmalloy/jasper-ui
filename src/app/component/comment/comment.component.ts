@@ -3,6 +3,8 @@ import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { authors, interestingTags } from "../../util/format";
 import { BehaviorSubject, Subject } from "rxjs";
+import { inboxes } from "../../plugin/inbox";
+import { AccountService } from "../../service/account.service";
 
 @Component({
   selector: 'app-comment',
@@ -27,6 +29,7 @@ export class CommentComponent implements OnInit {
   reply = false;
 
   constructor(
+    private account: AccountService,
     private refs: RefService,
   ) { }
 
@@ -40,6 +43,10 @@ export class CommentComponent implements OnInit {
 
   get authors() {
     return authors(this.ref);
+  }
+
+  get inboxes() {
+    return inboxes(this.ref, this.account.tag);
   }
 
   get tags() {

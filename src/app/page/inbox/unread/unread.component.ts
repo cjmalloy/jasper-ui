@@ -21,7 +21,7 @@ export class UnreadComponent implements OnInit {
   ) {
     this.account.getMyUserExt().pipe(
       mergeMap(ext => this.refs.page({
-        query: 'plugin/inbox/' + account.tag,
+        query: account.inbox,
         modifiedAfter: ext.config.inbox.lastNotified || moment().subtract(1, 'year') }))
     ).subscribe(page => {
       this.page = page;

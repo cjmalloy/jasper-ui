@@ -3,6 +3,7 @@
 </ng-container>
 <hr>
 <app-editor [sources]="[source.value]"
+            [tags]="inboxes"
             [newComments]="newComments"></app-editor>
 <app-comment-list *ngIf="source"
                   [source]="source"

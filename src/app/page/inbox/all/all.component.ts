@@ -17,7 +17,7 @@ export class AllComponent implements OnInit {
     private account: AccountService,
     private refs: RefService,
   ) {
-    this.refs.page({ query: 'plugin/inbox/' + account.tag })
+    this.refs.page({ query: account.inbox })
       .subscribe(page => this.page = page);
   }
 

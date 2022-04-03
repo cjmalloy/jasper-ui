@@ -10,7 +10,7 @@
   settings
 </ng-container>
 <ng-container *ngIf="account.tag">
-  <a class="author" [routerLink]="['/tag', account.tag]">{{ account.tag.substring('user/'.length) }}</a>
+  <a class="author" [routerLink]="['/tag', account.tag]">{{ account.tag.replace('user/', '') }}</a>
   <ng-container *ngIf="notifications > 0">
     | {{ notifications }} <a class="notification" routerLink="/inbox/unread">📧</a>
   </ng-container>
@@ -18,6 +18,12 @@
     | <a routerLink="/inbox">📧</a>
   </ng-container>
   | settings
+  <ng-container *ngIf="account.mod">
+    | <a routerLink="/mod">mod tools</a>
+  </ng-container>
+  <ng-container *ngIf="account.admin">
+    | <a routerLink="/admin">admin tools</a>
+  </ng-container>
   <ng-container *ngIf="config.logout">
     | <a [href]="config.logout">logout</a>
   </ng-container>

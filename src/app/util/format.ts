@@ -2,12 +2,12 @@ import { Ref } from "../model/ref";
 import * as _ from "lodash";
 
 export function authors(ref: Ref) {
-  return _.filter(ref.tags, t => t.startsWith('user/'))
+  return _.filter(ref.tags, t => t.startsWith('user/') || t.startsWith('_user/'))
     .map(t => t + ref.origin);
 }
 
 export function primaryAuthor(ref: Ref) {
-  return _.find(ref.tags, t => t.startsWith('user/')) + ref.origin!;
+  return _.find(ref.tags, t => t.startsWith('user/') || t.startsWith('_user/')) + ref.origin!;
 }
 
 export function webLink(ref: Ref) {

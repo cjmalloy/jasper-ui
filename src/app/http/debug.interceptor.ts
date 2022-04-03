@@ -13,6 +13,22 @@ export class DebugInterceptor implements HttpInterceptor {
         setHeaders: {
           // USER
           Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsIm5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMiwiYXV0aCI6IlJPTEVfVVNFUiJ9.Ht6Zs8Oqjf-yzhoAK4A2xn2qKe38uCGLw56pkl8pQW4`
+
+          // MOD
+          // Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsImF1dGgiOiJST0xFX01PRCJ9.083AEQTw8BNF82Z-lV8TorYU-iS9s4TndmD9QZdMemY`
+
+          // ADMIN
+          // Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsImF1dGgiOiJST0xFX0FETUlOIn0.NRnKPalO88BRTdPDDRfftYa7sf4jS2e8rlsbGC6eSaY`
+
+          // PRIVATE USER
+          // Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsImF1dGgiOiJST0xFX1VTRVIsUk9MRV9QUklWQVRFIn0.8C75htXT2kmT9HfnIHkhmUXjgCqzc4YszS8VhDLKdK0`
+
+          // PRIVATE MOD
+          // Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsImF1dGgiOiJST0xFX01PRCxST0xFX1BSSVZBVEUifQ.VcAIsvOBMZrLZklmEpiVP7E2n9tn-9vBwLPccRKvzpI`
+
+          // PRIVATE ADMIN
+          // Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfUFJJVkFURSJ9._-_hnLRK1cNoU5wUANUujikDQdWiGCCyWvdrduB_lr0`
+
         }
       });
     }

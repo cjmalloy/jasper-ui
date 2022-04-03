@@ -53,6 +53,20 @@ export class UserService {
   }
 
   whoAmI(): Observable<string> {
-    return this.http.get(`${this.base}/whoami`, { responseType: 'text' });
+    return this.http.get(`${this.base}/whoami`, {
+      responseType: 'text'
+    });
+  }
+
+  amIAdmin(): Observable<boolean> {
+    return this.http.get(`${this.base}/whoami/admin`, {
+      responseType: 'text'
+    }).pipe(map(v => v === 'true'));
+  }
+
+  amIMod(): Observable<boolean> {
+    return this.http.get(`${this.base}/whoami/mod`, {
+      responseType: 'text'
+    }).pipe(map(v => v === 'true'));
   }
 }

@@ -16,7 +16,7 @@
       <ng-container *ngIf="authors.length">
         by
         <ng-container *ngFor="let user of authors">
-          <a [routerLink]="['/tag', user]">{{ user.substring('user/'.length) + ref.origin }}</a>
+          <a [routerLink]="['/tag', user]">{{ user.replace('user/', '') + ref.origin }}</a>
         </ng-container>
       </ng-container>
       <ng-container *ngIf="tags.length">

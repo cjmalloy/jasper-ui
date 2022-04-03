@@ -17,6 +17,8 @@ export class EditorComponent implements AfterViewInit {
   @Input()
   sources!: string[];
   @Input()
+  tags: string[] = [];
+  @Input()
   newComments!: Subject<Ref>;
   @ViewChild('textbox')
   textbox!: ElementRef;
@@ -37,7 +39,7 @@ export class EditorComponent implements AfterViewInit {
       url,
       sources: this.sources,
       comment: value,
-      tags: ["public", this.account.tag, "plugin/comment"],
+      tags: ["public", "plugin/comment", this.account.tag, ...this.tags],
       published: moment(),
     }).pipe(
       mergeMap(() => this.refs.get(url))

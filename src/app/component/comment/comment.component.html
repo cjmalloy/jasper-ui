@@ -1,7 +1,7 @@
 <div class="comment-container info collapsed" tabindex="0" *ngIf="collapsed">
   <span class="comment-expand fake-link" (click)="collapsed = false">[+]</span>&nbsp;
   <ng-container *ngFor="let user of authors">
-    <a class="author" [routerLink]="['/tag', user]">{{ user.substring('user/'.length) + ref.origin }}</a>
+    <a class="author" [routerLink]="['/tag', user]">{{ user.replace('user/', '') + ref.origin }}</a>
   </ng-container>
   {{ ref.created?.fromNow() }}
   {{ comments }}
@@ -11,7 +11,7 @@
   <div class="info">
     <span class="comment-collapse fake-link" (click)="collapsed = true">[&ndash;]</span>&nbsp;
     <ng-container *ngFor="let user of authors">
-      <a class="author" [routerLink]="['/tag', user]">{{ user.substring('user/'.length) + ref.origin }}</a>
+      <a class="author" [routerLink]="['/tag', user]">{{ user.replace('user/', '') + ref.origin }}</a>
     </ng-container>
     {{ ref.created?.fromNow() }}
     <ng-container *ngIf="tags.length">
@@ -36,6 +36,7 @@
 </div>
 <app-editor *ngIf="reply"
             [sources]="[ref.url]"
+            [tags]="inboxes"
             [newComments]="newComments"></app-editor>
 <span class="fake-link"
       *ngIf="!collapsed && depth === 0 && commentCount! > 0"
