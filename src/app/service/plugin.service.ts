@@ -30,15 +30,15 @@ export class PluginService {
     }).pipe(map(mapPlugin));
   }
 
-  page(
+  page(args: {
     query?: string,
     page?: number,
     size?: number,
     sort?: string,
     direction?: 'asc' | 'desc',
-  ): Observable<Page<Plugin>> {
+  }): Observable<Page<Plugin>> {
     return this.http.get(`${this.base}/list`, {
-      params: params({ query, page, size, sort, direction }),
+      params: params(args),
     }).pipe(map(mapPage(mapPlugin)));
   }
 

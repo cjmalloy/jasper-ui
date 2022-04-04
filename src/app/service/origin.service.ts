@@ -30,15 +30,15 @@ export class OriginService {
     }).pipe(map(mapOrigin));
   }
 
-  page(
+  page(args: {
     query?: string,
     page?: number,
     size?: number,
     sort?: string,
     direction?: 'asc' | 'desc',
-  ): Observable<Page<Origin>> {
+  }): Observable<Page<Origin>> {
     return this.http.get(`${this.base}/list`, {
-      params: params({ query, page, size, sort, direction }),
+      params: params(args),
     }).pipe(map(mapPage(mapOrigin)));
   }
 

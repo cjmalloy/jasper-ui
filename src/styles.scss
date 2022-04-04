@@ -77,10 +77,15 @@ html, body {
 }
 
 .ref-list-container {
-  .list-number {
-    font-weight: bold;
-  }
-}
+   display: grid;
+   grid-template-columns: min-content auto;
+   .list-number {
+     text-align: right;
+     align-self: center;
+     padding: 10px;
+     font-weight: bold;
+   }
+ }
 
 .page-controls {
   padding: 2px;

@@ -30,15 +30,15 @@ export class TemplateService {
     }).pipe(map(mapTemplate));
   }
 
-  page(
+  page(args: {
     query?: string,
     page?: number,
     size?: number,
     sort?: string,
     direction?: 'asc' | 'desc',
-  ): Observable<Page<Template>> {
+  }): Observable<Page<Template>> {
     return this.http.get(`${this.base}/list`, {
-      params: params({ query, page, size, sort, direction }),
+      params: params(args),
     }).pipe(map(mapPage(mapTemplate)));
   }
 

@@ -30,15 +30,15 @@ export class UserService {
     }).pipe(map(mapUser));
   }
 
-  page(
+  page(args: {
     query?: string,
     page?: number,
     size?: number,
     sort?: string,
     direction?: 'asc' | 'desc',
-  ): Observable<Page<User>> {
+  }): Observable<Page<User>> {
     return this.http.get(`${this.base}/list`, {
-      params: params({ query, page, size, sort, direction }),
+      params: params(args),
     }).pipe(map(mapPage(mapUser)));
   }
 
