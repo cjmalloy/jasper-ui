@@ -1,8 +1,14 @@
 <p class="no-results" *ngIf="page && page.empty">
   No results found
 </p>
-<app-ref *ngFor="let ref of page?.content"
-         [ref]="ref"
-         [showToggle]="true"
-         [expanded]="false"></app-ref>
+<div class="ref-list-container">
+  <ng-container *ngFor="let ref of page?.content; let i = index">
+    <div class="list-number">
+      {{ i + page!.number * page!.size + 1 }}
+    </div>
+    <app-ref [ref]="ref"
+             [showToggle]="true"
+             [expanded]="false"></app-ref>
+  </ng-container>
+</div>
 <app-page *ngIf="page" [page]="page"></app-page>

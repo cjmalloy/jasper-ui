@@ -66,6 +66,12 @@ body.dark-theme {
     }
   }
 
+  .ref-list-container {
+    .list-number {
+      color: $info;
+    }
+  }
+
   .page-controls {
     .disabled {
       &:link, &:active, &:visited {
