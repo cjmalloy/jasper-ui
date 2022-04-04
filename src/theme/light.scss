@@ -60,6 +60,15 @@ body.light-theme {
     }
   }
 
+  .sidebar {
+    .submit-button {
+      border: 1px solid $border;
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+
   .ref-list-container {
     .list-number {
       color: $info;

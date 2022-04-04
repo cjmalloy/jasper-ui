@@ -27,6 +27,8 @@ import { CommentListComponent } from "./component/comment-list/comment-list.comp
 import { EditorComponent } from "./component/editor/editor.component";
 import { SidebarComponent } from "./component/sidebar/sidebar.component";
 import { PageControlsComponent } from "./component/page-controls/page-controls.component";
+import { SubmitPage } from "./page/submit/submit.component";
+import { WebComponent } from './page/submit/web/web.component';
 
 const loadFactory = (config: ConfigService, account: AccountService) => () =>
   config.load().pipe(
@@ -55,6 +57,8 @@ const loadFactory = (config: ConfigService, account: AccountService) => () =>
     CommentListComponent,
     EditorComponent,
     SidebarComponent,
+    SubmitPage,
+    WebComponent,
   ],
   imports: [
     BrowserModule,

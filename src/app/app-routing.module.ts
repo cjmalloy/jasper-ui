@@ -10,6 +10,8 @@ import { GraphComponent } from "./page/ref/graph/graph.component";
 import { InboxPage } from "./page/inbox/inbox.component";
 import { AllComponent } from "./page/inbox/all/all.component";
 import { UnreadComponent } from "./page/inbox/unread/unread.component";
+import { SubmitPage } from "./page/submit/submit.component";
+import { WebComponent } from "./page/submit/web/web.component";
 
 const routes: Routes = [
   { path: '', redirectTo: '/home/new', pathMatch: 'full' },
@@ -40,6 +42,8 @@ const routes: Routes = [
       { path: 'unread', component: UnreadComponent },
     ]
   },
+  { path: 'submit', component: SubmitPage },
+  { path: 'submit/web', component: WebComponent },
 ];
 
 @NgModule({

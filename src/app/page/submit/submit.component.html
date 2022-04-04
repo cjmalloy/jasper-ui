@@ -1,0 +1,15 @@
+<input #url
+       type="text"
+       placeholder="Link"
+       (input)="checkLink(url.value)">
+<div class="validations">
+  <div *ngFor="let v of validations">
+    <span *ngIf="v.passed">✔️{{ v.name }}</span>
+    <span *ngIf="!v.passed">❌️{{ v.name }}</span>
+  </div>
+</div>
+<button [disabled]="!allPassed"
+        [routerLink]="['./', linkType(url.value)]"
+        [queryParams]="{ url: url.value }">
+  Next
+</button>

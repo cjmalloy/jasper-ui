@@ -67,6 +67,15 @@ html, body {
   }
 }
 
+.sidebar {
+  .submit-button {
+    border: 1px solid transparent;
+    margin: 4px;
+    padding: 4px;
+    cursor: pointer;
+  }
+}
+
 .ref-list-container {
   .list-number {
     font-weight: bold;

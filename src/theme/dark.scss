@@ -66,6 +66,15 @@ body.dark-theme {
     }
   }
 
+  .sidebar {
+    .submit-button {
+      border: 1px solid $border;
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+    }
+  }
+
   .ref-list-container {
     .list-number {
       color: $info;

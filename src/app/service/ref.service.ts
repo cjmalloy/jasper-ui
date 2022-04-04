@@ -25,6 +25,12 @@ export class RefService {
     return this.http.post<void>(this.base, ref);
   }
 
+  exists(url: string, origin = ''): Observable<void> {
+    return this.http.head<void>(this.base, {
+      params: { url, origin },
+    });
+  }
+
   get(url: string, origin = ''): Observable<Ref> {
     return this.http.get(this.base, {
       params: { url, origin },
