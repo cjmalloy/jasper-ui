@@ -11,4 +11,4 @@
              [expanded]="false"></app-ref>
   </ng-container>
 </div>
-<app-page *ngIf="page" [page]="page"></app-page>
+<app-page *ngIf="page && !page.empty" [page]="page"></app-page>
