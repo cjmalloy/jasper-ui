@@ -22,7 +22,7 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   source$ = new BehaviorSubject<string>(null!);
   newComments$ = new Subject<Ref>();
-  commentCount?: number;
+  childCount?: number;
   responseCount?: number;
   sourceCount?: number;
   collapsed = false;
@@ -34,10 +34,14 @@ export class CommentComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.refs.count({ query: 'plugin/comment@*', responses: this.ref.url }).subscribe(n => this.commentCount = n);
+    this.refs.count({ query: 'plugin/comment@*', responses: this.ref.url }).subscribe(n => this.childCount = n);
     this.refs.count({ query: '!plugin/comment@*', responses: this.ref.url }).subscribe(n => this.responseCount = n);
     this.refs.count({ query: '!plugin/comment@*', sources: this.ref.url }).subscribe(n => this.sourceCount = n);
-    this.newComments$.subscribe(() => this.reply = false);
+    this.newComments$.subscribe(() => {
+      this.reply = false;
+      this.childCount = this.childCount! + 1;
+      if (this.depth === 0) this.depth = 1;
+    });
     this.source$.next(this.ref.url);
   }
 
@@ -59,9 +63,9 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get comments() {
-    if (this.commentCount === undefined) return '(? comments)';
-    if (this.commentCount === 1) return '(1 comment)';
-    return `(${this.commentCount} comments)`;
+    if (this.childCount === undefined) return '(? comments)';
+    if (this.childCount === 1) return '(1 comment)';
+    return `(${this.childCount} comments)`;
   }
 
   get responses() {

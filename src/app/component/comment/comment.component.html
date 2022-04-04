@@ -31,15 +31,15 @@
     <a [routerLink]="['/ref/graph/', ref.url]">graph</a>
     <a class="fake-link" (click)="watch()">watch</a>
     <a class="fake-link" (click)="tag()">tag</a>
-    <a class="fake-link" (click)="reply = true">reply</a>
+    <a class="fake-link" (click)="reply = !reply">reply</a>
   </div>
 </div>
 <app-editor *ngIf="reply"
             [sources]="[ref.url]"
             [tags]="inboxes"
             [newComments$]="newComments$"></app-editor>
-<span class="fake-link"
-      *ngIf="!collapsed && depth === 0 && commentCount! > 0"
+<span class="fake-link load-more"
+      *ngIf="!collapsed && depth === 0 && childCount! > 0"
       (click)="depth = depth + 1">
   load more comments
 </span>
