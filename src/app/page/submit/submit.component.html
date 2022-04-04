@@ -1,15 +1,19 @@
-<input #url
-       type="text"
-       placeholder="Link"
-       (input)="checkLink(url.value)">
-<div class="validations">
-  <div *ngFor="let v of validations">
-    <span *ngIf="v.passed">✔️{{ v.name }}</span>
-    <span *ngIf="!v.passed">❌️{{ v.name }}</span>
-  </div>
+<div class="tabs">
+  <div class="spacer"></div>
+  <app-settings></app-settings>
 </div>
-<button [disabled]="!allPassed"
-        [routerLink]="['./', linkType(url.value)]"
-        [queryParams]="{ url: url.value }">
-  Next
-</button>
+<form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
+
+  <label for="url">URL:</label>
+  <input id="url" type="text" formControlName="url">
+
+  <br>
+  <div class="validations">
+    <div *ngFor="let v of validations">
+      <span *ngIf="v.passed">✔️{{ v.name }}</span>
+      <span *ngIf="!v.passed">❌️{{ v.name }}</span>
+    </div>
+  </div>
+
+  <button type="submit" [disabled]="!submitForm.valid">Next</button>
+</form>

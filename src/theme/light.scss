@@ -8,12 +8,19 @@ $unselected-tab: lightgray;
 $error: #da0000;
 $mod: #136500;
 body.light-theme {
+  color-scheme: light;
   background-color: $bg;
   color: $text;
 
   :active {
     color: $text;
   }
+
+  .error {
+    font-size: 80%;
+    color: $error;
+  }
+
 
   .subscription-bar {
     background-color: lightgray;

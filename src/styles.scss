@@ -68,9 +68,15 @@ html, body {
 }
 
 .sidebar {
+  * {
+    margin: 4px;
+  }
+  input[type=search] {
+    height: 30px;
+    width: 300px;
+  }
   .submit-button {
     border: 1px solid transparent;
-    margin: 4px;
     padding: 4px;
     cursor: pointer;
   }
@@ -86,6 +92,22 @@ html, body {
      font-weight: bold;
    }
  }
+
+.form {
+  max-width: 600px;
+  display: grid;
+  grid-template-columns: min-content auto;
+  padding: 10px;
+
+  label {
+    vertical-align: center;
+    text-align: right;
+  }
+
+  * {
+    margin: 4px;
+  }
+}
 
 .page-controls {
   padding: 2px;

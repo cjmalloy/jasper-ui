@@ -11,7 +11,8 @@ import { InboxPage } from "./page/inbox/inbox.component";
 import { AllComponent } from "./page/inbox/all/all.component";
 import { UnreadComponent } from "./page/inbox/unread/unread.component";
 import { SubmitPage } from "./page/submit/submit.component";
-import { WebComponent } from "./page/submit/web/web.component";
+import { SubmitWebPage } from "./page/submit/web/web.component";
+import { SubmitTextPage } from "./page/submit/text/text.component";
 
 const routes: Routes = [
   { path: '', redirectTo: '/home/new', pathMatch: 'full' },
@@ -43,7 +44,8 @@ const routes: Routes = [
     ]
   },
   { path: 'submit', component: SubmitPage },
-  { path: 'submit/web', component: WebComponent },
+  { path: 'submit/web', component: SubmitWebPage },
+  { path: 'submit/text', component: SubmitTextPage },
 ];
 
 @NgModule({

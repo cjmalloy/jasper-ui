@@ -1,6 +1,15 @@
 import { Ref } from "../model/ref";
 import * as _ from "lodash";
 
+export const TAG_REGEX = /^_?[a-z]+(\/[a-z]+)*$/;
+export const USER_REGEX = /^_?user\/[a-z]+(\/[a-z]+)*$/;
+export const PLUGIN_REGEX = /^_?plugin\/[a-z]+(\/[a-z]+)*$/;
+export const ORIGIN_NOT_BLANK_REGEX = /^@[a-z]+(\.[a-z]+)*$/;
+export const ORIGIN_REGEX = /^(@[a-z]+(\.[a-z]+)*)?$/;
+export const QUALIFIED_TAG_REGEX = /^(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
+export const SELECTOR_REGEX = /^!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
+export const QUERY_REGEX = /^!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ +|:&]!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*$/;
+
 export function authors(ref: Ref) {
   return _.filter(ref.tags, t => t.startsWith('user/') || t.startsWith('_user/'))
     .map(t => t + ref.origin);

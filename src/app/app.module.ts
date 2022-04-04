@@ -28,7 +28,9 @@ import { EditorComponent } from "./component/editor/editor.component";
 import { SidebarComponent } from "./component/sidebar/sidebar.component";
 import { PageControlsComponent } from "./component/page-controls/page-controls.component";
 import { SubmitPage } from "./page/submit/submit.component";
-import { WebComponent } from './page/submit/web/web.component';
+import { SubmitWebPage } from "./page/submit/web/web.component";
+import { SubmitTextPage } from "./page/submit/text/text.component";
+import { ReactiveFormsModule } from "@angular/forms";
 
 const loadFactory = (config: ConfigService, account: AccountService) => () =>
   config.load().pipe(
@@ -58,12 +60,14 @@ const loadFactory = (config: ConfigService, account: AccountService) => () =>
     EditorComponent,
     SidebarComponent,
     SubmitPage,
-    WebComponent,
+    SubmitWebPage,
+    SubmitTextPage,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
+    ReactiveFormsModule,
   ],
   providers: [
     ConfigService,

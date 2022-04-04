@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { SubmitWebPage } from "./web.component";
+import { SubmitTextPage } from "./text.component";
 
-describe('WebComponent', () => {
-  let component: SubmitWebPage;
-  let fixture: ComponentFixture<SubmitWebPage>;
+describe('TextComponent', () => {
+  let component: SubmitTextPage;
+  let fixture: ComponentFixture<SubmitTextPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SubmitWebPage ]
+      declarations: [ SubmitTextPage ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SubmitWebPage);
+    fixture = TestBed.createComponent(SubmitTextPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

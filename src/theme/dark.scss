@@ -8,6 +8,7 @@ $unselected-tab: grey;
 $error: #dc5c5c;
 $mod: #4d9339;
 body.dark-theme {
+  color-scheme: dark;
   background-color: $bg;
   color: $text;
 
@@ -19,6 +20,11 @@ body.dark-theme {
   }
   :active {
     color: $text;
+  }
+
+  .error {
+    font-size: 80%;
+    color: $error;
   }
 
   .subscription-bar {
@@ -145,11 +151,6 @@ body.dark-theme {
 
   .no-results {
     color: $error;
-  }
-
-  textarea {
-    background-color: $bg;
-    color: $text;
   }
 
   hr {

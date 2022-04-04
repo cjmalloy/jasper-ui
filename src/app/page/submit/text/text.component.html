@@ -3,10 +3,7 @@
   <app-settings></app-settings>
 </div>
 
-<form class="form" [formGroup]="webForm" (ngSubmit)="submit()">
-
-  <label for="url">URL:</label>
-  <input id="url" type="text" formControlName="url">
+<form class="form" [formGroup]="textForm" (ngSubmit)="submit()">
 
   <label for="title">Title:</label>
   <input id="title" type="text" formControlName="title">
@@ -17,33 +14,10 @@
     </div>
   </div>
 
-  <label for="published">Published:</label>
-  <input id="published" type="date" formControlName="published">
-  <span><!-- Published Errors --></span>
-  <div>
-    <div class="error" *ngIf="published.touched && published.errors?.['required']">
-      Published date is required.
-    </div>
-  </div>
-
-  <label for="comment">Abstract:</label>
+  <label for="comment">Comment:</label>
   <textarea id="comment" formControlName="comment"></textarea>
 
-  <label for="sources">Sources:</label>
-  <div id="sources" class="form-group" formArrayName="sources">
-    <button type="button" (click)="addSource()">+ Add another source</button>
-
-    <div *ngFor="let alias of sources.controls; let i=index">
-      <label for="sources-{{ i }}">Source:</label>
-      <input id="sources-{{ i }}" type="text" [formControlName]="i">
-      <button type="button" (click)="removeSource(i)">&ndash;</button>
-      <div class="error" *ngIf="sources.at(i).touched && sources.at(i).errors?.['required']">
-        Source must not be blank.
-      </div>
-    </div>
-  </div>
-
-  <label for="tags">Tags:</label>
+  <label for="tags">Tags</label>
   <div id="tags" class="form-group" formArrayName="tags">
     <button type="button" (click)="addTag()">+ Add another tag</button>
 
@@ -62,6 +36,5 @@
     </div>
   </div>
 
-  <button type="submit" [disabled]="submitted && !webForm.valid">Submit</button>
+  <button type="submit" [disabled]="submitted && !textForm.valid">Submit</button>
 </form>
-
