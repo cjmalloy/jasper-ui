@@ -23,9 +23,10 @@ import { AllComponent } from "./page/inbox/all/all.component";
 import { UnreadComponent } from "./page/inbox/unread/unread.component";
 import { AccountService } from "./service/account.service";
 import { mergeMap } from "rxjs";
-import { PageComponent } from './component/page/page.component';
-import { CommentListComponent } from './component/comment-list/comment-list.component';
-import { EditorComponent } from './component/editor/editor.component';
+import { CommentListComponent } from "./component/comment-list/comment-list.component";
+import { EditorComponent } from "./component/editor/editor.component";
+import { SidebarComponent } from "./component/sidebar/sidebar.component";
+import { PageControlsComponent } from "./component/page-controls/page-controls.component";
 
 const loadFactory = (config: ConfigService, account: AccountService) => () =>
   config.load().pipe(
@@ -50,9 +51,10 @@ const loadFactory = (config: ConfigService, account: AccountService) => () =>
     InboxPage,
     AllComponent,
     UnreadComponent,
-    PageComponent,
+    PageControlsComponent,
     CommentListComponent,
     EditorComponent,
+    SidebarComponent,
   ],
   imports: [
     BrowserModule,

@@ -2,11 +2,11 @@ import { Component, HostBinding, Input, OnInit } from "@angular/core";
 import { Page } from "../../model/page";
 
 @Component({
-  selector: 'app-page',
-  templateUrl: './page.component.html',
-  styleUrls: ['./page.component.scss']
+  selector: 'app-page-controls',
+  templateUrl: './page-controls.component.html',
+  styleUrls: ['./page-controls.component.scss']
 })
-export class PageComponent implements OnInit {
+export class PageControlsComponent implements OnInit {
   @HostBinding('class') css = 'page-controls';
 
   @Input()
@@ -15,7 +15,7 @@ export class PageComponent implements OnInit {
   constructor() { }
 
   get hasQuery() {
-   return !!window.location.search
+    return !!window.location.search
   }
 
   get prev() {
