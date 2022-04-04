@@ -1,10 +1,10 @@
-<ng-container *ngIf="!source">
+<ng-container *ngIf="!source$">
   Loading...
 </ng-container>
 <hr>
-<app-editor [sources]="[source.value]"
+<app-editor [sources]="[source$.value]"
             [tags]="inboxes"
-            [newComments]="newComments"></app-editor>
-<app-comment-list *ngIf="source"
-                  [source]="source"
-                  [newComments]="newComments"></app-comment-list>
+            [newComments$]="newComments$"></app-editor>
+<app-comment-list *ngIf="source$"
+                  [source$]="source$"
+                  [newComments$]="newComments$"></app-comment-list>

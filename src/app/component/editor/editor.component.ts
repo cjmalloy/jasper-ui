@@ -19,7 +19,7 @@ export class EditorComponent implements AfterViewInit {
   @Input()
   tags: string[] = [];
   @Input()
-  newComments!: Subject<Ref>;
+  newComments$!: Subject<Ref>;
   @ViewChild('textbox')
   textbox!: ElementRef;
 
@@ -44,7 +44,7 @@ export class EditorComponent implements AfterViewInit {
     }).pipe(
       mergeMap(() => this.refs.get(url))
     ).subscribe(ref => {
-      this.newComments.next(ref);
+      this.newComments$.next(ref);
       this.textbox.nativeElement.value = '';
     });
   }

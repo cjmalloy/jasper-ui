@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { BehaviorSubject, mergeMap, Subject } from "rxjs";
 import { Ref } from "../../../model/ref";
@@ -12,12 +12,12 @@ import { inboxes } from "../../../plugin/inbox";
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.scss']
 })
-export class CommentsComponent implements OnInit {
+export class CommentsComponent implements OnInit, OnDestroy {
 
   inboxes: string[] = [];
-  source = new BehaviorSubject<string>(null!);
+  source$ = new BehaviorSubject<string>(null!);
   depth = 7;
-  newComments = new Subject<Ref>();
+  newComments$ = new Subject<Ref>();
 
   constructor(
     private router: Router,
@@ -29,11 +29,16 @@ export class CommentsComponent implements OnInit {
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
       switchMap(() => route.params),
-      tap(params => this.source.next(params['ref'])),
-      mergeMap(() => refs.get(this.source.value)),
+      tap(params => this.source$.next(params['ref'])),
+      mergeMap(() => refs.get(this.source$.value)),
     ).subscribe(ref => this.inboxes = inboxes(ref, account.tag));
   }
 
   ngOnInit(): void {
+  }
+
+  ngOnDestroy() {
+    this.source$.complete();
+    this.newComments$.complete();
   }
 }

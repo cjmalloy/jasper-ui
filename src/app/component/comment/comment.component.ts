@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit } from "@angular/core";
+import { Component, HostBinding, Input, OnDestroy, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { authors, interestingTags } from "../../util/format";
@@ -11,7 +11,7 @@ import { AccountService } from "../../service/account.service";
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss']
 })
-export class CommentComponent implements OnInit {
+export class CommentComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'comment';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
@@ -20,8 +20,8 @@ export class CommentComponent implements OnInit {
   @Input()
   depth = 7;
 
-  source = new BehaviorSubject<string>(null!);
-  newComments = new Subject<Ref>();
+  source$ = new BehaviorSubject<string>(null!);
+  newComments$ = new Subject<Ref>();
   commentCount?: number;
   responseCount?: number;
   sourceCount?: number;
@@ -37,8 +37,13 @@ export class CommentComponent implements OnInit {
     this.refs.count({ query: 'plugin/comment@*', responses: this.ref.url }).subscribe(n => this.commentCount = n);
     this.refs.count({ query: '!plugin/comment@*', responses: this.ref.url }).subscribe(n => this.responseCount = n);
     this.refs.count({ query: '!plugin/comment@*', sources: this.ref.url }).subscribe(n => this.sourceCount = n);
-    this.newComments.subscribe(() => this.reply = false);
-    this.source.next(this.ref.url);
+    this.newComments$.subscribe(() => this.reply = false);
+    this.source$.next(this.ref.url);
+  }
+
+  ngOnDestroy(): void {
+    this.newComments$.complete();
+    this.source$.complete();
   }
 
   get authors() {

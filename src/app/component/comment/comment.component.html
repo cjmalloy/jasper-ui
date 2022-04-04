@@ -37,7 +37,7 @@
 <app-editor *ngIf="reply"
             [sources]="[ref.url]"
             [tags]="inboxes"
-            [newComments]="newComments"></app-editor>
+            [newComments$]="newComments$"></app-editor>
 <span class="fake-link"
       *ngIf="!collapsed && depth === 0 && commentCount! > 0"
       (click)="depth = depth + 1">
@@ -46,7 +46,7 @@
 <div *ngIf="depth > 0"
      class="comment-children"
      [class.hidden-without-removing]="collapsed">
-  <app-comment-list [source]="source"
+  <app-comment-list [source$]="source$"
                     [depth]="depth - 1"
-                    [newComments]="newComments"></app-comment-list>
+                    [newComments$]="newComments$"></app-comment-list>
 </div>

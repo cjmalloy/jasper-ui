@@ -1,22 +1,23 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnDestroy, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { Page } from "../../model/page";
 import { RefService } from "../../service/ref.service";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject, Observable, Subject, takeUntil } from "rxjs";
 
 @Component({
   selector: 'app-comment-list',
   templateUrl: './comment-list.component.html',
   styleUrls: ['./comment-list.component.scss']
 })
-export class CommentListComponent implements OnInit {
+export class CommentListComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   @Input()
-  source!: BehaviorSubject<string>;
+  source$!: BehaviorSubject<string>;
   @Input()
   depth = 7;
   @Input()
-  newComments!: Observable<Ref>;
+  newComments$!: Observable<Ref>;
 
   pages: Page<Ref>[] = [];
 
@@ -30,17 +31,26 @@ export class CommentListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.source.subscribe(() => {
+    this.source$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.pages = [];
       this.loadMore();
     });
-    this.newComments?.subscribe(comment => this.pages[0].content.unshift(comment));
+    this.newComments$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(comment => this.pages[0].content.unshift(comment));
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadMore() {
     this.refs.page({
       query: 'plugin/comment@*',
-      responses: this.source.value,
+      responses: this.source$.value,
       page: this.pages.length,
     }).subscribe(page => this.pages.push(page));
   }
