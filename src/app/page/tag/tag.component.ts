@@ -8,6 +8,7 @@ import { AccountService } from "../../service/account.service";
 import { BehaviorSubject, catchError, Observable, of, Subject, takeUntil } from "rxjs";
 import { Ext } from "../../model/ext";
 import { ExtService } from "../../service/ext.service";
+import { decompose } from "../../util/tag";
 
 @Component({
   selector: 'app-tag-page',
@@ -55,6 +56,11 @@ export class TagPage implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.pinned$.complete();
+  }
+
+  get tagNoOrigin() {
+    const [tag, origin] = decompose(this.tag)
+    return tag;
   }
 
   get localTag() {

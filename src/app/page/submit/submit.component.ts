@@ -41,7 +41,10 @@ export class SubmitPage implements OnInit {
 
   submit() {
     const url = this.submitForm.value.url;
-    this.router.navigate(['./submit', this.linkType(url)], { queryParams: { url } })
+    this.router.navigate(['./submit', this.linkType(url)], {
+      queryParams: { url } ,
+      queryParamsHandling: 'merge',
+    })
   }
 
   validLink(control: AbstractControl): Observable<ValidationErrors | null> {

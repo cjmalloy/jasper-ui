@@ -1,7 +1,7 @@
 <input type="search" placeholder="Search">
-<div class="submit-button" routerLink="/submit">
+<div class="submit-button" routerLink="/submit" [queryParams]="{ tag }">
   Submit Link
 </div>
-<div class="submit-button" routerLink="/submit/text">
+<div class="submit-button" routerLink="/submit/text" [queryParams]="{ tag }">
   Submit Text Post
 </div>

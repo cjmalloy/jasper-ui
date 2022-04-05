@@ -34,7 +34,12 @@ export class SubmitWebPage implements OnInit {
         this.fb.control(account.tag, [Validators.required, Validators.pattern(TAG_REGEX)]),
       ]),
     });
-    route.queryParams.subscribe(params => this.url = params['url']);
+    route.queryParams.subscribe(params => {
+      this.url = params['url'];
+      if (params['tag']) {
+        this.addTag(params['tag']);
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -64,8 +69,8 @@ export class SubmitWebPage implements OnInit {
     this.webForm.get('url')?.setValue(value);
   }
 
-  addTag() {
-    this.tags.push(this.fb.control('', [Validators.required, Validators.pattern(TAG_REGEX)]));
+  addTag(value = '') {
+    this.tags.push(this.fb.control(value, [Validators.required, Validators.pattern(TAG_REGEX)]));
     this.submitted = false;
   }
 

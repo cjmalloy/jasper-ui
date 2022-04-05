@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit } from "@angular/core";
+import { Component, HostBinding, Input, OnInit } from "@angular/core";
 
 @Component({
   selector: 'app-sidebar',
@@ -7,6 +7,9 @@ import { Component, HostBinding, OnInit } from "@angular/core";
 })
 export class SidebarComponent implements OnInit {
   @HostBinding('class') css = 'sidebar';
+
+  @Input()
+  tag = '';
 
   constructor() { }
 
