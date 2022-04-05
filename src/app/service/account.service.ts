@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { UserService } from "./user.service";
-import { BehaviorSubject, catchError, map, Observable, of } from "rxjs";
+import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from "rxjs";
 import { User } from "../model/user";
 import { ExtService } from "./ext.service";
 import { Ext } from "../model/ext";
@@ -10,6 +10,9 @@ import { RefService } from "./ref.service";
 import { getInbox } from "../plugin/inbox";
 import { Ref } from "../model/ref";
 import { capturesAny, isOwner, qualifyTags } from "../util/tag";
+import * as _ from "lodash";
+
+export const CACHE_MS = 15000;
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +23,9 @@ export class AccountService {
   admin = false;
   mod = false;
   notifications = new BehaviorSubject(0);
+
+  private user$?: Observable<User>;
+  private userExt$?: Observable<Ext>;
 
   constructor(
     private users: UserService,
@@ -50,14 +56,24 @@ export class AccountService {
 
   getMyUser(): Observable<User> {
     if (!this.signedIn()) throw 'Not signed in';
-    // TODO: shareReplay
-    return this.users.get(this.tag);
+    if (!this.user$) {
+      this.user$ = this.users.get(this.tag).pipe(
+        shareReplay(1)
+      );
+      _.delay(() => this.user$ = undefined, CACHE_MS);
+    }
+    return this.user$;
   }
 
   getMyUserExt(): Observable<Ext> {
     if (!this.signedIn()) throw 'Not signed in';
-    // TODO: shareReplay
-    return this.exts.get(this.tag);
+    if (!this.userExt$) {
+      this.userExt$ = this.exts.get(this.tag).pipe(
+        shareReplay(1)
+      );
+      _.delay(() => this.userExt$ = undefined, CACHE_MS);
+    }
+    return this.userExt$;
   }
 
   checkNotifications() {
