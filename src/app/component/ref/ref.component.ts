@@ -3,9 +3,11 @@ import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { authors, interestingTags, refUrlSummary, TAG_REGEX, webLink } from "../../util/format";
 import * as _ from "lodash";
-import { mergeMap, Observable } from "rxjs";
+import { catchError, mergeMap, Observable, throwError } from "rxjs";
 import { AccountService } from "../../service/account.service";
 import { FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { HttpErrorResponse } from "@angular/common/http";
+import { printError } from "../../util/http";
 
 @Component({
   selector: 'app-ref',
@@ -37,6 +39,7 @@ export class RefComponent implements OnInit {
   tagging = false;
   editing = false;
   writeAccess$?: Observable<boolean>;
+  serverError: string[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -149,6 +152,10 @@ export class RefComponent implements OnInit {
       ...this.ref,
       ...this.editForm.value,
     }).pipe(
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(res);
+      }),
       mergeMap(() => this.refs.get(this.ref.url, this.ref.origin)),
     ).subscribe(ref => {
       this.editing = false;

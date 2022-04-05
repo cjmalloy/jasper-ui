@@ -36,6 +36,11 @@
     </div>
   </div>
 
+  <ng-container *ngFor="let e of serverError">
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  </ng-container>
+
   <span><!-- Buttons --></span>
   <span>
     <button type="submit" [disabled]="submitted && !textForm.valid">Submit</button>

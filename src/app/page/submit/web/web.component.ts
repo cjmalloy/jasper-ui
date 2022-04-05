@@ -5,6 +5,9 @@ import { AccountService } from "../../../service/account.service";
 import { RefService } from "../../../service/ref.service";
 import * as moment from "moment";
 import { TAG_REGEX } from "../../../util/format";
+import { catchError, throwError } from "rxjs";
+import { HttpErrorResponse } from "@angular/common/http";
+import { printError } from "../../../util/http";
 
 @Component({
   selector: 'app-submit-web-page',
@@ -15,6 +18,7 @@ export class SubmitWebPage implements OnInit {
 
   submitted = false;
   webForm: FormGroup;
+  serverError: string[] = [];
 
   constructor(
     private router: Router,
@@ -88,13 +92,19 @@ export class SubmitWebPage implements OnInit {
   }
 
   submit() {
+    this.serverError = [];
     this.submitted = true;
     this.webForm.markAllAsTouched();
     if (!this.webForm.valid) return;
     this.refs.create({
       ...this.webForm.value,
       published: moment(this.webForm.value.published).toISOString(),
-    }).subscribe(() => {
+    }).pipe(
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(res);
+      }),
+    ).subscribe(() => {
       this.router.navigate(['/ref/comments', this.webForm.value.url]);
     });
   }

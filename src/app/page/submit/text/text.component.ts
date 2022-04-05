@@ -6,6 +6,9 @@ import { AccountService } from "../../../service/account.service";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { TAG_REGEX } from "../../../util/format";
+import { catchError, throwError } from "rxjs";
+import { HttpErrorResponse } from "@angular/common/http";
+import { printError } from "../../../util/http";
 
 @Component({
   selector: 'app-submit-text',
@@ -16,6 +19,7 @@ export class SubmitTextPage implements OnInit {
 
   submitted = false;
   textForm: FormGroup;
+  serverError: string[] = [];
 
   constructor(
     private router: Router,
@@ -64,6 +68,7 @@ export class SubmitTextPage implements OnInit {
   }
 
   submit() {
+    this.serverError = [];
     this.submitted = true;
     this.textForm.markAllAsTouched();
     if (!this.textForm.valid) return;
@@ -72,7 +77,12 @@ export class SubmitTextPage implements OnInit {
       ...this.textForm.value,
       url,
       published: moment(),
-    }).subscribe(() => {
+    }).pipe(
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(res);
+      }),
+    ).subscribe(() => {
       this.router.navigate(['/ref/comments', url]);
     });
   }

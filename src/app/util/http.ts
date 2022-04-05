@@ -1,4 +1,6 @@
 import { isMoment } from "moment";
+import { HttpErrorResponse } from "@angular/common/http";
+import { Problem } from "../model/problem";
 
 /**
  * Format all non-empty properties for HTTP Query params.
@@ -14,4 +16,16 @@ export function params(obj?: Record<string, any>): Record<string, any> | undefin
     }
   }
   return result;
+}
+
+export function printError(res: HttpErrorResponse): string[] {
+  let result = [];
+  const problem = res.error as Problem;
+  if (problem.message === 'error.validation') {
+    for (const fe of problem.fieldErrors) {
+      result.push(`Error: ${fe.objectName} ${fe.field} ${fe.message}`);
+    }
+    return result;
+  }
+  return [problem.detail || res.message];
 }
