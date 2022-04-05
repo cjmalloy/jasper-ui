@@ -17,7 +17,7 @@ export class CommentsComponent implements OnInit, OnDestroy {
   inboxes: string[] = [];
   source$ = new BehaviorSubject<string>(null!);
   depth = 7;
-  newComments$ = new Subject<Ref>();
+  newComments$ = new Subject<Ref | undefined>();
 
   constructor(
     private router: Router,

@@ -1,4 +1,4 @@
-
 <textarea #textbox></textarea>
 <br>
 <button (click)="reply(textbox.value)">reply</button>
+<button *ngIf="showCancel" (click)="cancel()">cancel</button>

@@ -7,7 +7,11 @@
   {{ comments }}
 </div>
 
-<div class="comment-container" tabindex="0" *ngIf="!collapsed">
+<div class="comment-container info collapsed" tabindex="0" *ngIf="ref.plugins?.['plugin/comment']?.deleted">
+  deleted comment
+</div>
+
+<div class="comment-container" tabindex="0" *ngIf="!collapsed && !ref.plugins?.['plugin/comment']?.deleted">
   <div class="info">
     <span class="comment-collapse fake-link" (click)="collapsed = true">[&ndash;]</span>&nbsp;
     <ng-container *ngFor="let user of authors">
@@ -21,23 +25,35 @@
       </ng-container>
     </ng-container>
   </div>
-  <div class="comment-body">
+  <div class="comment-body" *ngIf="!editing">
     {{ ref.comment }}
   </div>
+  <app-comment-edit *ngIf="editing"
+                    [ref]="ref"
+                    [commentEdited$]="commentEdited$"></app-comment-edit>
   <div class="actions">
     <a [routerLink]="['/ref/comments/', ref.url]">permalink</a>
     <a [routerLink]="['/ref/responses/', ref.url]">{{ responses }}</a>
     <a [routerLink]="['/ref/sources/', ref.url]">{{ sources }}</a>
     <a [routerLink]="['/ref/graph/', ref.url]">graph</a>
+    <a *ngIf="writeAccess | async" class="fake-link" (click)="editing = !editing">edit</a>
+    <a *ngIf="!deleting && (writeAccess | async)" class="fake-link" (click)="deleting = true">delete</a>
+    <span *ngIf="deleting" class="delete-confirm">
+      are you sure?
+      <a class="fake-link" (click)="delete()">yes</a>
+      /
+      <a class="fake-link" (click)="deleting = false">no</a>
+    </span>
     <a class="fake-link" (click)="watch()">watch</a>
     <a class="fake-link" (click)="tag()">tag</a>
-    <a class="fake-link" (click)="reply = !reply">reply</a>
+    <a class="fake-link" (click)="replying = !replying">reply</a>
   </div>
 </div>
-<app-editor *ngIf="reply"
-            [sources]="[ref.url]"
-            [tags]="inboxes"
-            [newComments$]="newComments$"></app-editor>
+<app-comment-reply *ngIf="replying"
+                   [showCancel]="true"
+                   [sources]="[ref.url]"
+                   [tags]="inboxes"
+                   [newComments$]="newComments$"></app-comment-reply>
 <span class="fake-link load-more"
       *ngIf="!collapsed && depth === 0 && childCount! > 0"
       (click)="depth = depth + 1">

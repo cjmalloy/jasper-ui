@@ -2,9 +2,9 @@
   Loading...
 </ng-container>
 <hr>
-<app-editor [sources]="[source$.value]"
-            [tags]="inboxes"
-            [newComments$]="newComments$"></app-editor>
+<app-comment-reply [sources]="[source$.value]"
+                   [tags]="inboxes"
+                   [newComments$]="newComments$"></app-comment-reply>
 <app-comment-list *ngIf="source$"
                   [source$]="source$"
                   [newComments$]="newComments$"></app-comment-list>

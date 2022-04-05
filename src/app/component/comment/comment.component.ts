@@ -2,7 +2,7 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from "@angular/core"
 import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { authors, interestingTags } from "../../util/format";
-import { BehaviorSubject, Subject } from "rxjs";
+import { BehaviorSubject, mergeMap, Subject, takeUntil } from "rxjs";
 import { inboxes } from "../../plugin/inbox";
 import { AccountService } from "../../service/account.service";
 
@@ -14,6 +14,7 @@ import { AccountService } from "../../service/account.service";
 export class CommentComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'comment';
   @HostBinding('attr.tabindex') tabIndex = 0;
+  private destroy$ = new Subject<void>();
 
   @Input()
   ref!: Ref;
@@ -21,12 +22,15 @@ export class CommentComponent implements OnInit, OnDestroy {
   depth = 7;
 
   source$ = new BehaviorSubject<string>(null!);
-  newComments$ = new Subject<Ref>();
+  commentEdited$ = new Subject<void>();
+  newComments$ = new Subject<Ref | undefined>();
   childCount?: number;
   responseCount?: number;
   sourceCount?: number;
   collapsed = false;
-  reply = false;
+  replying = false;
+  editing = false;
+  deleting = false;
 
   constructor(
     private account: AccountService,
@@ -37,17 +41,27 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.refs.count({ query: 'plugin/comment@*', responses: this.ref.url }).subscribe(n => this.childCount = n);
     this.refs.count({ query: '!plugin/comment@*', responses: this.ref.url }).subscribe(n => this.responseCount = n);
     this.refs.count({ query: '!plugin/comment@*', sources: this.ref.url }).subscribe(n => this.sourceCount = n);
-    this.newComments$.subscribe(() => {
-      this.reply = false;
-      this.childCount = this.childCount! + 1;
-      if (this.depth === 0) this.depth = 1;
+    this.newComments$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(ref => {
+      this.replying = false;
+      if (ref) {
+        this.childCount = this.childCount! + 1;
+        if (this.depth === 0) this.depth = 1;
+      }
     });
+    this.commentEdited$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.editing = false);
     this.source$.next(this.ref.url);
   }
 
   ngOnDestroy(): void {
+    this.commentEdited$.complete();
     this.newComments$.complete();
     this.source$.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get authors() {
@@ -82,6 +96,10 @@ export class CommentComponent implements OnInit, OnDestroy {
     return this.sourceCount + ' sources';
   }
 
+  get writeAccess() {
+    return this.account.writeAccess(this.ref);
+  }
+
   watch() {
     window.alert('watch')
   }
@@ -90,4 +108,13 @@ export class CommentComponent implements OnInit, OnDestroy {
     window.alert('tag')
   }
 
+  delete() {
+    this.refs.patch(this.ref.url, this.ref.origin!, [{
+      op: 'add',
+      path: '/plugins/plugin~1comment/deleted',
+      value: true,
+    }]).pipe(
+      mergeMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+    ).subscribe(ref => this.ref = ref);
+  }
 }

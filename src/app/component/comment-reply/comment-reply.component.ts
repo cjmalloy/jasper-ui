@@ -1,25 +1,28 @@
 import { AfterViewInit, Component, ElementRef, HostBinding, Input, ViewChild } from "@angular/core";
+import { mergeMap, Subject } from "rxjs";
+import { Ref } from "../../model/ref";
+import { AccountService } from "../../service/account.service";
+import { RefService } from "../../service/ref.service";
 import { v4 as uuid } from "uuid";
 import * as moment from "moment";
-import { mergeMap, Subject } from "rxjs";
-import { RefService } from "../../service/ref.service";
-import { AccountService } from "../../service/account.service";
-import { Ref } from "../../model/ref";
 
 @Component({
-  selector: 'app-editor',
-  templateUrl: './editor.component.html',
-  styleUrls: ['./editor.component.scss']
+  selector: 'app-comment-reply',
+  templateUrl: './comment-reply.component.html',
+  styleUrls: ['./comment-reply.component.scss']
 })
-export class EditorComponent implements AfterViewInit {
-  @HostBinding('class') css = 'editor';
+export class CommentReplyComponent implements AfterViewInit {
+  @HostBinding('class') css = 'comment-reply';
 
   @Input()
   sources!: string[];
   @Input()
   tags: string[] = [];
   @Input()
-  newComments$!: Subject<Ref>;
+  newComments$!: Subject<Ref | undefined>;
+  @Input()
+  showCancel = false;
+
   @ViewChild('textbox')
   textbox!: ElementRef;
 
@@ -40,6 +43,9 @@ export class EditorComponent implements AfterViewInit {
       sources: this.sources,
       comment: value,
       tags: ["public", "plugin/comment", this.account.tag, ...this.tags],
+      plugins: {
+        'plugin/comment': {},
+      },
       published: moment(),
     }).pipe(
       mergeMap(() => this.refs.get(url))
@@ -49,4 +55,8 @@ export class EditorComponent implements AfterViewInit {
     });
   }
 
+  cancel() {
+    this.newComments$.next(undefined);
+    this.textbox.nativeElement.value = '';
+  }
 }

@@ -24,13 +24,14 @@ import { UnreadComponent } from "./page/inbox/unread/unread.component";
 import { AccountService } from "./service/account.service";
 import { mergeMap } from "rxjs";
 import { CommentListComponent } from "./component/comment-list/comment-list.component";
-import { EditorComponent } from "./component/editor/editor.component";
 import { SidebarComponent } from "./component/sidebar/sidebar.component";
 import { PageControlsComponent } from "./component/page-controls/page-controls.component";
 import { SubmitPage } from "./page/submit/submit.component";
 import { SubmitWebPage } from "./page/submit/web/web.component";
 import { SubmitTextPage } from "./page/submit/text/text.component";
-import { ReactiveFormsModule } from "@angular/forms";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { CommentReplyComponent } from "./component/comment-reply/comment-reply.component";
+import { CommentEditComponent } from "./component/comment-edit/comment-edit.component";
 
 const loadFactory = (config: ConfigService, account: AccountService) => () =>
   config.load().pipe(
@@ -57,7 +58,8 @@ const loadFactory = (config: ConfigService, account: AccountService) => () =>
     UnreadComponent,
     PageControlsComponent,
     CommentListComponent,
-    EditorComponent,
+    CommentReplyComponent,
+    CommentEditComponent,
     SidebarComponent,
     SubmitPage,
     SubmitWebPage,
@@ -67,6 +69,7 @@ const loadFactory = (config: ConfigService, account: AccountService) => () =>
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
+    FormsModule,
     ReactiveFormsModule,
   ],
   providers: [

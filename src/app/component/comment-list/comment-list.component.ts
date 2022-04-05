@@ -17,7 +17,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
   @Input()
   depth = 7;
   @Input()
-  newComments$!: Observable<Ref>;
+  newComments$!: Observable<Ref | undefined>;
 
   pages: Page<Ref>[] = [];
 
@@ -39,7 +39,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
     });
     this.newComments$.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(comment => this.pages[0].content.unshift(comment));
+    ).subscribe(comment => comment && this.pages[0].content.unshift(comment));
   }
 
   ngOnDestroy() {

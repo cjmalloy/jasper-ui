@@ -79,9 +79,9 @@ export class RefService {
     });
   }
 
-  delete(url: string): Observable<void> {
+  delete(url: string, origin = ''): Observable<void> {
     return this.http.delete<void>(this.base, {
-      params: { url },
+      params: { url, origin },
     });
   }
 }
