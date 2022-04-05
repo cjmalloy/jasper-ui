@@ -24,7 +24,7 @@ export class SubmitWebPage implements OnInit {
     private fb: FormBuilder,
   ) {
     this.webForm = fb.group({
-      url: [{ value: '', disabled: true }],
+      url: [''],
       published: ['', [Validators.required]],
       title: ['', [Validators.required]],
       comment: [''],
