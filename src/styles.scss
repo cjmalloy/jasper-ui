@@ -167,10 +167,27 @@ html, body {
 
 .actions {
   padding: 2px;
+  height: 14px;
   font-size: 80%;
   font-weight: bold;
   a {
     margin: 2px 4px 2px 0;
+  }
+  input {
+    margin: 0;
+    font-size: 80%;
+    height: 10px;
+    &:invalid {
+      color: $error;
+    }
+  }
+  button {
+    position: relative;
+    top: 1px;
+    margin: 0 6px;
+    padding: 0 4px;
+    height: 14px;
+    line-height: 10px;
   }
 }
 

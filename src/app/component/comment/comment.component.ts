@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnDestroy, OnInit } from "@angular/core";
+import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { authors, interestingTags } from "../../util/format";
@@ -23,6 +23,9 @@ export class CommentComponent implements OnInit, OnDestroy {
   @Input()
   depth = 7;
 
+  @ViewChild('inlineTag')
+  inlineTag?: ElementRef;
+
   source$ = new BehaviorSubject<string>(null!);
   commentEdited$ = new Subject<void>();
   newComments$ = new Subject<Ref | undefined>();
@@ -32,6 +35,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   collapsed = false;
   replying = false;
   editing = false;
+  tagging = false;
   deleting = false;
 
   constructor(
@@ -102,12 +106,19 @@ export class CommentComponent implements OnInit, OnDestroy {
     return this.account.writeAccess(this.ref);
   }
 
-  watch() {
-    window.alert('watch')
-  }
-
-  tag() {
-    window.alert('tag')
+  addInlineTag() {
+    if (!this.inlineTag) return;
+    const tag = this.inlineTag.nativeElement.value;
+    this.refs.patch(this.ref.url, this.ref.origin!, [{
+      op: 'add',
+      path: '/tags/-',
+      value: tag,
+    }]).pipe(
+      mergeMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+    ).subscribe(ref => {
+      this.tagging = false;
+      this.ref = ref;
+    });
   }
 
   delete() {

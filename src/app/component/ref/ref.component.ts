@@ -1,8 +1,10 @@
-import { Component, HostBinding, Input, OnInit } from "@angular/core";
+import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { authors, interestingTags, refUrlSummary, webLink } from "../../util/format";
 import * as _ from "lodash";
+import { mergeMap } from "rxjs";
+import { AccountService } from "../../service/account.service";
 
 @Component({
   selector: 'app-ref',
@@ -22,12 +24,17 @@ export class RefComponent implements OnInit {
   @Input()
   showToggle = false;
 
+  @ViewChild('inlineTag')
+  inlineTag?: ElementRef;
+
   commentCount?: number;
   responseCount?: number;
   sourceCount?: number;
   expandPlugin?: string;
+  tagging = false;
 
   constructor(
+    private account: AccountService,
     private refs: RefService,
   ) { }
 
@@ -77,11 +84,22 @@ export class RefComponent implements OnInit {
     return this.sourceCount + ' sources';
   }
 
-  watch() {
-    window.alert('watch')
+  get writeAccess() {
+    return this.account.writeAccess(this.ref);
   }
 
-  tag() {
-    window.alert('tag')
+  addInlineTag() {
+    if (!this.inlineTag) return;
+    const tag = this.inlineTag.nativeElement.value;
+    this.refs.patch(this.ref.url, this.ref.origin!, [{
+      op: 'add',
+      path: '/tags/-',
+      value: tag,
+    }]).pipe(
+      mergeMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+    ).subscribe(ref => {
+      this.tagging = false;
+      this.ref = ref;
+    });
   }
 }
