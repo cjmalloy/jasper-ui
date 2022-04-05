@@ -124,6 +124,11 @@ html, body {
 
 .ref {
   border: 1px solid transparent;
+  margin: 4px;
+
+  .toggle {
+    margin: 2px 8px 2px 2px;
+  }
 }
 
 .comment {
@@ -166,7 +171,7 @@ html, body {
 }
 
 .actions {
-  padding: 2px;
+  padding: 2px 0;
   height: 14px;
   font-size: 80%;
   font-weight: bold;
