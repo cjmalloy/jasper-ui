@@ -3,7 +3,7 @@ import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { authors, interestingTags, refUrlSummary, webLink } from "../../util/format";
 import * as _ from "lodash";
-import { mergeMap } from "rxjs";
+import { mergeMap, Observable } from "rxjs";
 import { AccountService } from "../../service/account.service";
 
 @Component({
@@ -32,6 +32,7 @@ export class RefComponent implements OnInit {
   sourceCount?: number;
   expandPlugin?: string;
   tagging = false;
+  writeAccess$?: Observable<boolean>;
 
   constructor(
     private account: AccountService,
@@ -39,6 +40,7 @@ export class RefComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.writeAccess$ = this.account.writeAccess(this.ref);
     this.refs.count({ query: 'plugin/comment@*', responses: this.ref.url }).subscribe(n => this.commentCount = n);
     this.refs.count({ query: '!plugin/comment@*', responses: this.ref.url }).subscribe(n => this.responseCount = n);
     this.refs.count({ sources: this.ref.url }).subscribe(n => this.sourceCount = n);
@@ -82,10 +84,6 @@ export class RefComponent implements OnInit {
     if (this.sourceCount === 0) return 'unsourced';
     if (this.sourceCount === 1) return '1 source';
     return this.sourceCount + ' sources';
-  }
-
-  get writeAccess() {
-    return this.account.writeAccess(this.ref);
   }
 
   addInlineTag() {

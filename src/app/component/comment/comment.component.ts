@@ -2,7 +2,7 @@ import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild
 import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { authors, interestingTags } from "../../util/format";
-import { BehaviorSubject, mergeMap, Subject, takeUntil } from "rxjs";
+import { BehaviorSubject, mergeMap, Observable, Subject, takeUntil } from "rxjs";
 import { inboxes } from "../../plugin/inbox";
 import { AccountService } from "../../service/account.service";
 
@@ -37,6 +37,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   editing = false;
   tagging = false;
   deleting = false;
+  writeAccess$?: Observable<boolean>;
 
   constructor(
     private account: AccountService,
@@ -44,6 +45,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    this.writeAccess$ = this.account.writeAccess(this.ref);
     this.refs.count({ query: 'plugin/comment@*', responses: this.ref.url }).subscribe(n => this.childCount = n);
     this.refs.count({ query: '!plugin/comment@*', responses: this.ref.url }).subscribe(n => this.responseCount = n);
     this.refs.count({ query: '!plugin/comment@*', sources: this.ref.url }).subscribe(n => this.sourceCount = n);
@@ -100,10 +102,6 @@ export class CommentComponent implements OnInit, OnDestroy {
     if (this.sourceCount === 0) return 'unsourced';
     if (this.sourceCount === 1) return '1 source';
     return this.sourceCount + ' sources';
-  }
-
-  get writeAccess() {
-    return this.account.writeAccess(this.ref);
   }
 
   addInlineTag() {

@@ -34,7 +34,7 @@
       <a [routerLink]="['/ref/responses/', ref.url]">{{ responses }}</a>
       <a [routerLink]="['/ref/sources/', ref.url]">{{ sources }}</a>
       <a [routerLink]="['/ref/graph/', ref.url]">graph</a>
-      <a class="fake-link" *ngIf="writeAccess | async" (click)="tagging = !tagging">tag</a>
+      <a class="fake-link" *ngIf="writeAccess$ | async" (click)="tagging = !tagging">tag</a>
       <span *ngIf="tagging" class="inline-tagging">
       <input #inlineTag
              (keydown)="$event.key === 'Enter' && addInlineTag() || true"

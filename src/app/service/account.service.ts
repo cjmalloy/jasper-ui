@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { UserService } from "./user.service";
-import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from "rxjs";
+import { BehaviorSubject, catchError, map, Observable, of, shareReplay, take } from "rxjs";
 import { User } from "../model/user";
 import { ExtService } from "./ext.service";
 import { Ext } from "../model/ext";
@@ -58,7 +58,8 @@ export class AccountService {
     if (!this.signedIn()) throw 'Not signed in';
     if (!this.user$) {
       this.user$ = this.users.get(this.tag).pipe(
-        shareReplay(1)
+        shareReplay(1),
+        take(1),
       );
       _.delay(() => this.user$ = undefined, CACHE_MS);
     }
@@ -69,7 +70,8 @@ export class AccountService {
     if (!this.signedIn()) throw 'Not signed in';
     if (!this.userExt$) {
       this.userExt$ = this.exts.get(this.tag).pipe(
-        shareReplay(1)
+        shareReplay(1),
+        take(1),
       );
       _.delay(() => this.userExt$ = undefined, CACHE_MS);
     }
