@@ -54,6 +54,11 @@ export class AccountService {
     return !!this.tag;
   }
 
+  clearCache() {
+    this.userExt$ = undefined;
+    this.user$ = undefined;
+  }
+
   getMyUser(): Observable<User> {
     if (!this.signedIn()) throw 'Not signed in';
     if (!this.user$) {
@@ -91,7 +96,10 @@ export class AccountService {
       op: 'add',
       path: '/config/inbox/lastNotified',
       value: moment().toISOString(),
-    }]).subscribe(() => this.checkNotifications());
+    }]).subscribe(() => {
+      this.clearCache();
+      this.checkNotifications();
+    });
   }
 
   writeAccess(ref: Ref): Observable<boolean> {
