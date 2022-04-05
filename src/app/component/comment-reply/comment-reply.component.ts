@@ -15,6 +15,8 @@ export class CommentReplyComponent implements AfterViewInit {
   @HostBinding('class') css = 'comment-reply';
 
   @Input()
+  top!: Ref;
+  @Input()
   sources!: string[];
   @Input()
   tags: string[] = [];
@@ -41,8 +43,9 @@ export class CommentReplyComponent implements AfterViewInit {
     this.refs.create({
       url,
       sources: this.sources,
+      title: 'Reply to: ' + this.top.title,
       comment: value,
-      tags: ["public", "plugin/comment", this.account.tag, ...this.tags],
+      tags: ['public', 'plugin/comment', this.account.tag, ...this.tags],
       plugins: {
         'plugin/comment': {},
       },

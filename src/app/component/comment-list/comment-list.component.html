@@ -1,5 +1,6 @@
 <ng-container *ngFor="let page of pages">
   <app-comment *ngFor="let comment of page.content"
+               [top]="top"
                [ref]="comment"
                [depth]="depth"></app-comment>
 </ng-container>

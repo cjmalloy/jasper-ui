@@ -14,6 +14,7 @@ import { inboxes } from "../../../plugin/inbox";
 })
 export class CommentsComponent implements OnInit, OnDestroy {
 
+  ref!: Ref;
   inboxes: string[] = [];
   source$ = new BehaviorSubject<string>(null!);
   depth = 7;
@@ -31,6 +32,7 @@ export class CommentsComponent implements OnInit, OnDestroy {
       switchMap(() => route.params),
       tap(params => this.source$.next(params['ref'])),
       mergeMap(() => refs.get(this.source$.value)),
+      tap(ref => this.ref = ref),
     ).subscribe(ref => this.inboxes = inboxes(ref, account.tag));
   }
 

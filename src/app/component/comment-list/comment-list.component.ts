@@ -13,6 +13,8 @@ export class CommentListComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   @Input()
+  top!: Ref;
+  @Input()
   source$!: BehaviorSubject<string>;
   @Input()
   depth = 7;

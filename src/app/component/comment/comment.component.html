@@ -50,6 +50,7 @@
   </div>
 </div>
 <app-comment-reply *ngIf="replying"
+                   [top]="top"
                    [showCancel]="true"
                    [sources]="[ref.url]"
                    [tags]="inboxes"
@@ -62,7 +63,8 @@
 <div *ngIf="depth > 0"
      class="comment-children"
      [class.hidden-without-removing]="collapsed">
-  <app-comment-list [source$]="source$"
+  <app-comment-list [top]="top"
+                    [source$]="source$"
                     [depth]="depth - 1"
                     [newComments$]="newComments$"></app-comment-list>
 </div>

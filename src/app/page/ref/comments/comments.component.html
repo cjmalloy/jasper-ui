@@ -2,9 +2,11 @@
   Loading...
 </ng-container>
 <hr>
-<app-comment-reply [sources]="[source$.value]"
+<app-comment-reply [top]="ref"
+                   [sources]="[source$.value]"
                    [tags]="inboxes"
                    [newComments$]="newComments$"></app-comment-reply>
 <app-comment-list *ngIf="source$"
+                  [top]="ref"
                   [source$]="source$"
                   [newComments$]="newComments$"></app-comment-list>

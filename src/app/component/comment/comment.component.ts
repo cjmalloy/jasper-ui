@@ -17,6 +17,8 @@ export class CommentComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   @Input()
+  top!: Ref;
+  @Input()
   ref!: Ref;
   @Input()
   depth = 7;
