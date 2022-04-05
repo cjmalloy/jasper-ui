@@ -5,7 +5,7 @@
 </div>
 <div class="link-below">
   <div class="toggle"
-       *ngIf="showToggle && expandPlugin"
+       *ngIf="showToggle && (ref.comment || expandPlugin)"
        (click)="expanded = !expanded">
     <span *ngIf="!expanded">+</span>
     <span *ngIf="expanded">x</span>
@@ -26,7 +26,7 @@
         </ng-container>
       </ng-container>
     </div>
-    <div class="expand" *ngIf="ref.comment && !showToggle">
+    <div class="expand" *ngIf="ref.comment && !showToggle && !editing">
       {{ ref.comment }}
     </div>
     <div class="actions">
@@ -34,6 +34,7 @@
       <a [routerLink]="['/ref/responses/', ref.url]">{{ responses }}</a>
       <a [routerLink]="['/ref/sources/', ref.url]">{{ sources }}</a>
       <a [routerLink]="['/ref/graph/', ref.url]">graph</a>
+      <a class="fake-link" *ngIf="writeAccess$ | async" (click)="editing = true">edit</a>
       <a class="fake-link" *ngIf="writeAccess$ | async" (click)="tagging = !tagging">tag</a>
       <span *ngIf="tagging" class="inline-tagging">
       <input #inlineTag
@@ -46,6 +47,52 @@
     </div>
   </div>
 </div>
-<div class="expand" *ngIf="expanded && expandPlugin && showToggle">
+<div class="expand" *ngIf="expanded && showToggle && !editing">
   {{ ref.comment }}
 </div>
+
+<form *ngIf="editing" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+
+  <label for="comment">Abstract:</label>
+  <textarea id="comment" formControlName="comment"></textarea>
+
+  <label for="sources">Sources:</label>
+  <div id="sources" class="form-group" formArrayName="sources">
+    <button type="button" (click)="addSource()">+ Add another source</button>
+
+    <div *ngFor="let alias of sourcesForm.controls; let i=index">
+      <label for="sources-{{ i }}">Source:</label>
+      <input id="sources-{{ i }}" type="text" [formControlName]="i">
+      <button type="button" (click)="removeSource(i)">&ndash;</button>
+      <div class="error" *ngIf="sourcesForm.at(i).touched && sourcesForm.at(i).errors?.['required']">
+        Source must not be blank.
+      </div>
+    </div>
+  </div>
+
+  <label for="tags">Tags:</label>
+  <div id="tags" class="form-group" formArrayName="tags">
+    <button type="button" (click)="addTag()">+ Add another tag</button>
+
+    <div *ngFor="let alias of tagsForm.controls; let i=index">
+      <label for="tags-{{ i }}">Tag:</label>
+      <input id="tags-{{ i }}" type="text" [formControlName]="i">
+      <button type="button" (click)="removeTag(i)">&ndash;</button>
+      <div class="error" *ngIf="tagsForm.at(i).touched && tagsForm.at(i).errors?.['pattern']">
+        Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+        tags start with an underscore.<br>
+        (i.e. "science", "my/tag", or "_my/private/tag")
+      </div>
+      <div class="error" *ngIf="tagsForm.at(i).touched && tagsForm.at(i).errors?.['required']">
+        Tag must not be blank.
+      </div>
+    </div>
+  </div>
+
+  <span><!-- Buttons --></span>
+  <span>
+    <button type="submit" [disabled]="submitted && !editForm.valid">save</button>
+    <button (click)="editing = false">cancel</button>
+  </span>
+</form>
+
