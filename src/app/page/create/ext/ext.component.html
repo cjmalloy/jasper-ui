@@ -1,0 +1,52 @@
+<div class="tabs">
+  <div class="spacer"></div>
+  <app-settings></app-settings>
+</div>
+
+<form class="form" [formGroup]="extForm" (ngSubmit)="create()">
+
+  <label for="tag">Tag:</label>
+  <input id="tag" type="text" formControlName="tag">
+  <span><!-- Tag Errors --></span>
+  <div>
+    <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']">
+      Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+      tags start with an underscore.<br>
+      (i.e. "science", "my/tag", or "_my/private/tag")
+    </div>
+    <div class="error" *ngIf="tag.touched && tag.errors?.['required']">
+      Tag must not be blank.
+    </div>
+  </div>
+
+  <label for="name">Name:</label>
+  <input id="name" type="text" formControlName="name">
+
+  <label for="sidebar">Sidebar:</label>
+  <textarea id="sidebar" [formControl]="sidebar"></textarea>
+
+  <label for="pinned">Pinned:</label>
+  <div id="pinned" class="form-group" [formGroup]="pinned">
+    <button type="button" (click)="addPinned()">+ Add another pinned link</button>
+
+    <div *ngFor="let alias of pinned.controls; let i=index">
+      <label for="pinned-{{ i }}">Link:</label>
+      <input id="pinned-{{ i }}" type="text" [formControlName]="i">
+      <button type="button" (click)="removePinned(i)">&ndash;</button>
+      <div class="error" *ngIf="pinned.at(i).touched && pinned.at(i).errors?.['required']">
+        Pinned link must not be blank.
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngFor="let e of serverError">
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  </ng-container>
+
+  <span><!-- Buttons --></span>
+  <span>
+    <button type="submit" [disabled]="submitted && !extForm.valid">Create</button>
+  </span>
+
+</form>

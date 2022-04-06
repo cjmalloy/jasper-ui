@@ -24,9 +24,9 @@ export class TemplateService {
     return this.http.post<void>(this.base, template);
   }
 
-  get(tag: string, origin = ''): Observable<Template> {
+  get(prefix = '', origin = ''): Observable<Template> {
     return this.http.get(this.base, {
-      params: { tag, origin },
+      params: { prefix, origin },
     }).pipe(map(mapTemplate));
   }
 
@@ -46,9 +46,9 @@ export class TemplateService {
     return this.http.put<void>(this.base, template);
   }
 
-  delete(tag: string): Observable<void> {
+  delete(prefix: string): Observable<void> {
     return this.http.delete<void>(this.base, {
-      params: { tag },
+      params: { prefix },
     });
   }
 }

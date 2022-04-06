@@ -1,10 +1,12 @@
 import * as moment from "moment";
+import { Schema } from "jtd";
 
 export interface Template {
   tag: string;
+  name?: string;
   config?: any;
   defaults?: any;
-  schema?: Record<string, any>;
+  schema?: Schema;
   modified?: moment.Moment;
 }
 

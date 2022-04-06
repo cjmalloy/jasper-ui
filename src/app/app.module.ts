@@ -34,6 +34,8 @@ import { CommentReplyComponent } from "./component/comment-reply/comment-reply.c
 import { CommentEditComponent } from "./component/comment-edit/comment-edit.component";
 import { AutofocusDirective } from "./directive/autofocus.directive";
 import { MarkdownModule } from "ngx-markdown";
+import { CreateExtPage } from "./page/create/ext/ext.component";
+import { EditTagPage } from "./page/tag/edit/edit.component";
 
 const loadFactory = (config: ConfigService, account: AccountService) => () =>
   config.load().pipe(
@@ -67,6 +69,8 @@ const loadFactory = (config: ConfigService, account: AccountService) => () =>
     SubmitWebPage,
     SubmitTextPage,
     AutofocusDirective,
+    CreateExtPage,
+    EditTagPage,
   ],
   imports: [
     BrowserModule,

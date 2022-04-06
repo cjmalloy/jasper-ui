@@ -5,3 +5,25 @@
 <div class="submit-button" routerLink="/submit/text" [queryParams]="{ tag }">
   Submit Text Post
 </div>
+<div *ngIf="account.mod" class="submit-button" routerLink="/create/ext">
+  Create Tag Extension
+</div>
+
+<div *ngIf="ext?.config?.sidebar"
+     class="md"
+     markdown emoji katex
+     [katexOptions]="{ throwOnError: false }"
+     [data]="ext?.config?.sidebar"></div>
+
+<a *ngIf="ext && writeAccess"
+   class="sidebar-edit"
+   [routerLink]="['/tag', tag, 'edit']">
+  edit tag extension
+</a>
+
+<a *ngIf="tag && !ext && writeAccess"
+   class="sidebar-edit"
+   routerLink="/create/ext"
+   [queryParams]="{ tag }">
+  create tag extension
+</a>

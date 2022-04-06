@@ -13,6 +13,8 @@ import { UnreadComponent } from "./page/inbox/unread/unread.component";
 import { SubmitPage } from "./page/submit/submit.component";
 import { SubmitWebPage } from "./page/submit/web/web.component";
 import { SubmitTextPage } from "./page/submit/text/text.component";
+import { CreateExtPage } from "./page/create/ext/ext.component";
+import { EditTagPage } from "./page/tag/edit/edit.component";
 
 const routes: Routes = [
   { path: '', redirectTo: '/home/new', pathMatch: 'full' },
@@ -22,6 +24,7 @@ const routes: Routes = [
   { path: 'home/:filter', component: HomePage },
   { path: 'all/:filter', component: HomePage },
   { path: 'tag/:tag', redirectTo: '/tag/:tag/new', pathMatch: 'full' },
+  { path: 'tag/:tag/edit', component: EditTagPage },
   { path: 'tag/:tag/:filter', component: TagPage },
   {
     path: 'ref',
@@ -46,6 +49,7 @@ const routes: Routes = [
   { path: 'submit', component: SubmitPage },
   { path: 'submit/web', component: SubmitWebPage },
   { path: 'submit/text', component: SubmitTextPage },
+  { path: 'create/ext', component: CreateExtPage },
 ];
 
 @NgModule({

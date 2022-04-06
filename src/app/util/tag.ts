@@ -35,3 +35,13 @@ export function isOwner(user: User, ref: Ref) {
   if (user.origin !== ref.origin) return false;
   return ref.tags?.includes(user.tag);
 }
+
+/**
+ * Return local tag if origin is a wildcard.
+ */
+export function localTag(tag: string) {
+  if (tag.endsWith('@*')) {
+    return tag.substring(0, tag.length - 2);
+  }
+  return tag;
+}

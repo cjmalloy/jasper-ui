@@ -8,7 +8,7 @@ import { AccountService } from "../../service/account.service";
 import { BehaviorSubject, catchError, Observable, of, Subject, takeUntil } from "rxjs";
 import { Ext } from "../../model/ext";
 import { ExtService } from "../../service/ext.service";
-import { decompose } from "../../util/tag";
+import { localTag } from "../../util/tag";
 
 @Component({
   selector: 'app-tag-page',
@@ -25,6 +25,7 @@ export class TagPage implements OnInit, OnDestroy {
   pageNumber?: number;
   pageSize = 20;
   pinned$ = new BehaviorSubject<Ref[]>([]);
+  tag$ = new BehaviorSubject<string>('');
 
   constructor(
     private router: Router,
@@ -56,19 +57,7 @@ export class TagPage implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.pinned$.complete();
-  }
-
-  get tagNoOrigin() {
-    const [tag, origin] = decompose(this.tag)
-    return tag;
-  }
-
-  get localTag() {
-    if (!this.tag || this.tag === '@*') return null;
-    if (this.tag.endsWith('@*')) {
-      return this.tag.substring(0, this.tag.length - 2);
-    }
-    return this.tag;
+    this.tag$.complete();
   }
 
   get args(): Observable<Record<string, any>> {
@@ -95,9 +84,10 @@ export class TagPage implements OnInit, OnDestroy {
       }))
     ).subscribe(page => this.page = page);
 
-    const localTag = this.localTag;
-    if (localTag) {
-      this.exts.get(localTag).pipe(
+    const extTag = localTag(this.tag);
+    if (extTag) {
+      this.tag$.next(extTag);
+      this.exts.get(extTag).pipe(
         takeUntil(this.destroy$),
         catchError(() => of(undefined)),
         tap(ext => this.ext = ext),
