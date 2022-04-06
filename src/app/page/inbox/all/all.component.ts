@@ -3,6 +3,7 @@ import { Page } from "../../../model/page";
 import { Ref } from "../../../model/ref";
 import { RefService } from "../../../service/ref.service";
 import { AccountService } from "../../../service/account.service";
+import { Observable } from "rxjs";
 
 @Component({
   selector: 'app-all',
@@ -11,14 +12,13 @@ import { AccountService } from "../../../service/account.service";
 })
 export class AllComponent implements OnInit {
 
-  page?: Page<Ref>;
+  page$: Observable<Page<Ref>>;
 
   constructor(
     private account: AccountService,
     private refs: RefService,
   ) {
-    this.refs.page({ query: account.inbox })
-      .subscribe(page => this.page = page);
+    this.page$ = this.refs.page({ query: account.inbox });
   }
 
   ngOnInit(): void {

@@ -1,16 +1,14 @@
-<ng-container *ngIf="!ref">
-  Loading...
-</ng-container>
-<ng-container *ngIf="ref">
-  <div class="tabs">
-    <a [routerLink]="['./comments', ref.url]" routerLinkActive="current-tab">comments</a>
-    <a [routerLink]="['./responses', ref.url]" routerLinkActive="current-tab">responses</a>
-    <a [routerLink]="['./sources', ref.url]" routerLinkActive="current-tab">sources</a>
-    <a [routerLink]="['./graph', ref.url]" routerLinkActive="current-tab">graph</a>
-    <div class="spacer"></div>
-    <app-settings></app-settings>
-  </div>
+<div class="tabs">
+  <a [routerLink]="['./comments', (url$ | async)]" routerLinkActive="current-tab">comments</a>
+  <a [routerLink]="['./responses', (url$ | async)]" routerLinkActive="current-tab">responses</a>
+  <a [routerLink]="['./sources', (url$ | async)]" routerLinkActive="current-tab">sources</a>
+  <a [routerLink]="['./graph', (url$ | async)]" routerLinkActive="current-tab">graph</a>
+  <div class="spacer"></div>
+  <app-settings></app-settings>
+</div>
+<ng-container *ngIf="ref$ | async as ref; else loading">
   <app-ref [ref]="ref"
            [expanded]="true"></app-ref>
 </ng-container>
+<ng-template #loading><app-loading></app-loading></ng-template>
 <router-outlet></router-outlet>

@@ -1,23 +1,22 @@
-<p class="no-results" *ngIf="page && page.empty">
-  No results found
-</p>
 <div class="ref-list-container">
   <ng-container *ngFor="let ref of pinned">
-    <div class="list-number">
-      &bullet;
-    </div>
+    <div class="list-number">&bullet;</div>
     <app-ref class="pinned"
              [ref]="ref"
              [showToggle]="true"
              [expanded]="false"></app-ref>
   </ng-container>
   <ng-container *ngFor="let ref of page?.content; let i = index">
-    <div class="list-number">
-      {{ i + page!.number * page!.size + 1 }}
-    </div>
+    <div class="list-number">{{ i + page!.number * page!.size + 1 }}</div>
     <app-ref [ref]="ref"
              [showToggle]="true"
              [expanded]="false"></app-ref>
   </ng-container>
 </div>
-<app-page-controls *ngIf="page && !page.empty" [page]="page"></app-page-controls>
+<app-loading *ngIf="!page"></app-loading>
+<app-page-controls *ngIf="page && !page.empty"
+                   [page]="page"></app-page-controls>
+
+<p class="no-results" *ngIf="page && page.empty">
+  No results found
+</p>

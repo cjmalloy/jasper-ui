@@ -36,6 +36,7 @@ import { AutofocusDirective } from "./directive/autofocus.directive";
 import { MarkdownModule } from "ngx-markdown";
 import { CreateExtPage } from "./page/create/ext/ext.component";
 import { EditTagPage } from "./page/tag/edit/edit.component";
+import { LoadingComponent } from './component/loading/loading.component';
 
 const loadFactory = (config: ConfigService, account: AccountService) => () =>
   config.load().pipe(
@@ -71,6 +72,7 @@ const loadFactory = (config: ConfigService, account: AccountService) => () =>
     AutofocusDirective,
     CreateExtPage,
     EditTagPage,
+    LoadingComponent,
   ],
   imports: [
     BrowserModule,

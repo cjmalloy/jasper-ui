@@ -2,9 +2,10 @@ import { Component, OnInit } from "@angular/core";
 import { Page } from "../../../model/page";
 import { Ref } from "../../../model/ref";
 import { RefService } from "../../../service/ref.service";
-import { mergeMap } from "rxjs/operators";
+import { mergeMap, tap } from "rxjs/operators";
 import * as moment from "moment";
 import { AccountService } from "../../../service/account.service";
+import { Observable } from "rxjs";
 
 @Component({
   selector: 'app-unread',
@@ -13,20 +14,21 @@ import { AccountService } from "../../../service/account.service";
 })
 export class UnreadComponent implements OnInit {
 
-  page?: Page<Ref>;
+  page$: Observable<Page<Ref>>;
 
   constructor(
     private account: AccountService,
     private refs: RefService,
   ) {
-    this.account.getMyUserExt().pipe(
+    this.page$ = this.account.getMyUserExt().pipe(
       mergeMap(ext => this.refs.page({
         query: account.inbox,
-        modifiedAfter: ext.config.inbox.lastNotified || moment().subtract(1, 'year') }))
-    ).subscribe(page => {
-      this.page = page;
-      if (!page.empty) this.account.clearNotifications();
-    });
+        modifiedAfter: ext.config.inbox.lastNotified || moment().subtract(1, 'year')
+      })),
+      tap(page => {
+        if (!page.empty) this.account.clearNotifications();
+      }),
+    );
   }
 
   ngOnInit(): void {
