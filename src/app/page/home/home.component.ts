@@ -1,11 +1,11 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { Page } from "../../model/page";
 import { distinctUntilChanged, mergeMap } from "rxjs/operators";
 import { ActivatedRoute } from "@angular/router";
 import { AccountService } from "../../service/account.service";
-import { combineLatest, map, Observable, of, Subject, takeUntil } from "rxjs";
+import { combineLatest, map, Observable, of } from "rxjs";
 import * as _ from "lodash";
 
 @Component({
@@ -13,28 +13,34 @@ import * as _ from "lodash";
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomePage implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class HomePage implements OnInit {
 
-  page?: Page<Ref>;
+  page$: Observable<Page<Ref>>;
   defaultPageSize = 20;
 
   constructor(
     private route: ActivatedRoute,
     private account: AccountService,
     private refs: RefService,
-  ) { }
-
-  ngOnInit(): void {
-    combineLatest(this.path$, this.filter$, this.pageNumber$, this.pageSize$,).pipe(
-      takeUntil(this.destroy$),
+  ) {
+    this.page$ = combineLatest(
+      this.path$,
+      this.filter$,
+      this.pageNumber$,
+      this.pageSize$,
+    ).pipe(
       distinctUntilChanged(_.isEqual),
-    ).subscribe(([path, filter, pageNumber, pageSize]) => this.refresh(path, filter, pageNumber, pageSize));
+      mergeMap(([path, filter, pageNumber, pageSize]) => {
+        return this.getQuery(path, filter).pipe(
+          mergeMap(query => this.refs.page({
+            ...query,
+            page: pageNumber,
+            size: pageSize ?? this.defaultPageSize,
+          })));
+      }));
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
+  ngOnInit(): void {
   }
 
   get path$() {
@@ -72,16 +78,6 @@ export class HomePage implements OnInit, OnDestroy {
       return of({ query: '!plugin/comment@*' });
     }
     throw `Invalid path ${path}`;
-  }
-
-  refresh(path: string, filter: string, pageNumber?: number, pageSize?: number) {
-    this.getQuery(path, filter).pipe(
-      mergeMap(query => this.refs.page({
-        ...query,
-        page: pageNumber,
-        size: pageSize ?? this.defaultPageSize,
-      }))
-    ).subscribe(page => this.page = page);
   }
 
 }

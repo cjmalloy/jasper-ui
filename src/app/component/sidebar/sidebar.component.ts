@@ -2,8 +2,10 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from "@angular/core"
 import { AccountService } from "../../service/account.service";
 import { ExtService } from "../../service/ext.service";
 import { Ext } from "../../model/ext";
-import { mergeMap, Observable, Subject, takeUntil } from "rxjs";
+import { catchError, map, mergeMap, Observable, of, Subject, takeUntil } from "rxjs";
 import { tap } from "rxjs/operators";
+import { ActivatedRoute } from "@angular/router";
+import { localTag } from "../../util/tag";
 
 @Component({
   selector: 'app-sidebar',
@@ -23,20 +25,21 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   constructor(
     public account: AccountService,
+    private route: ActivatedRoute,
     private exts: ExtService,
   ) { }
 
   ngOnInit(): void {
-    if (!this.tag$) return;
-
-    this.tag$.pipe(
+    this.route.params.pipe(
       takeUntil(this.destroy$),
+      map(params => localTag(params['tag'])),
       tap(tag => {
         this.tag = tag;
         this.account.writeAccessTag(tag)
           .subscribe(writeAccess => this.writeAccess = writeAccess);
       }),
       mergeMap(tag => this.exts.get(tag)),
+      catchError(err => of(undefined)),
     ).subscribe(ext => this.ext = ext);
   }
 

@@ -1,7 +1,6 @@
 import { Component, HostBinding, Input, OnInit } from "@angular/core";
 import { Page } from "../../model/page";
 import { Ref } from "../../model/ref";
-import { Observable } from "rxjs";
 import { RefService } from "../../service/ref.service";
 
 @Component({
@@ -13,10 +12,10 @@ export class RefListComponent implements OnInit {
   @HostBinding('class') css = 'ref-list';
 
   @Input()
-  page?: Page<Ref>;
+  page?: Page<Ref> | null;
 
   @Input()
-  pinned$?: Observable<Ref[]>;
+  pinned?: Ref[] | null;
 
   constructor(
     private refs: RefService,

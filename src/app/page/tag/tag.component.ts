@@ -1,31 +1,25 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
+import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
 import { RefService } from "../../service/ref.service";
-import { filter, mergeMap, scan, switchMap, takeLast, tap } from "rxjs/operators";
-import { Page } from "../../model/page";
+import { distinctUntilChanged, mergeMap, scan, take } from "rxjs/operators";
 import { Ref } from "../../model/ref";
 import { AccountService } from "../../service/account.service";
-import { BehaviorSubject, catchError, Observable, of, Subject, takeUntil } from "rxjs";
-import { Ext } from "../../model/ext";
+import { catchError, combineLatest, map, Observable, of } from "rxjs";
 import { ExtService } from "../../service/ext.service";
 import { localTag } from "../../util/tag";
+import { Page } from "../../model/page";
+import * as _ from "lodash";
 
 @Component({
   selector: 'app-tag-page',
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss']
 })
-export class TagPage implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class TagPage implements OnInit {
 
-  tag = '@*';
-  filter = 'new';
-  ext?: Ext;
-  page?: Page<Ref>;
-  pageNumber?: number;
-  pageSize = 20;
-  pinned$ = new BehaviorSubject<Ref[]>([]);
-  tag$ = new BehaviorSubject<string>('');
+  page$: Observable<Page<Ref>>;
+  defaultPageSize = 20;
+  pinned$: Observable<Ref[]>;
 
   constructor(
     private router: Router,
@@ -34,70 +28,60 @@ export class TagPage implements OnInit, OnDestroy {
     private refs: RefService,
     private exts: ExtService,
   ) {
-    router.events.pipe(
-      takeUntil(this.destroy$),
-      filter(event => event instanceof NavigationEnd),
-      switchMap(() => route.params),
-      tap(params => {
-        this.tag = params['tag'];
-        this.filter = params['filter'];
-      }),
-      mergeMap(() => route.queryParams),
-      tap(queryParams => {
-        this.pageNumber = queryParams['pageNumber'] ?? this.pageNumber;
-        this.pageSize = queryParams['pageSize'] ?? this.pageSize;
-      }),
-    ).subscribe(() => this.refresh())
+    this.page$ = combineLatest(
+      this.tag$, this.filter$, this.pageNumber$, this.pageSize$
+    ).pipe(
+      distinctUntilChanged(_.isEqual),
+      mergeMap(([tag, filter, pageNumber, pageSize]) => {
+      return this.getArgs(tag, filter).pipe(
+        mergeMap(args => this.refs.page({
+          ...args,
+          page: pageNumber,
+          size: pageSize ?? this.defaultPageSize,
+        })));
+    }));
+    this.pinned$ = this.tag$.pipe(
+      map(tag => localTag(tag)),
+      mergeMap(tag => this.exts.get(tag)),
+      mergeMap(ext => of(...ext.config.pinned as string[])),
+      mergeMap(pin => this.refs.get(pin)),
+      scan((acc, value) => [...acc, value], [] as Ref[]),
+      catchError(() => of([])),
+      take(1),
+    );
   }
 
   ngOnInit(): void {
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.pinned$.complete();
-    this.tag$.complete();
+  get tag$() {
+    return this.route.params.pipe(map(params => params['tag']));
   }
 
-  get args(): Observable<Record<string, any>> {
-    const query = `${this.tag}:!plugin/comment@*`;
-    if (this.filter === 'new') {
+  get filter$() {
+    return this.route.params.pipe(map(params => params['filter']));
+  }
+
+  get pageNumber$() {
+    return this.route.queryParams.pipe(map(params => params['pageNumber']));
+  }
+
+  get pageSize$() {
+    return this.route.queryParams.pipe(map(params => params['pageSize']));
+  }
+
+  getArgs(tag: string, filter: string): Observable<Record<string, any>> {
+    const query = `${tag}:!plugin/comment@*`;
+    if (filter === 'new') {
       return of({ query })
     }
-    if (this.filter === 'uncited') {
+    if (filter === 'uncited') {
       return of({ query, uncited: true })
     }
-    if (this.filter === 'unsourced') {
+    if (filter === 'unsourced') {
       return of({ query, unsourced: true })
     }
-    throw `Invalid filter ${this.filter}`;
-  }
-
-  refresh() {
-    this.args.pipe(
-      takeUntil(this.destroy$),
-      mergeMap(args => this.refs.page({
-        ...args,
-        page: this.pageNumber,
-        size: this.pageSize,
-      }))
-    ).subscribe(page => this.page = page);
-
-    const extTag = localTag(this.tag);
-    if (extTag) {
-      this.tag$.next(extTag);
-      this.exts.get(extTag).pipe(
-        takeUntil(this.destroy$),
-        catchError(() => of(undefined)),
-        tap(ext => this.ext = ext),
-        mergeMap(ext => of(...(ext?.config?.pinned as string[]))),
-        mergeMap(pin => this.refs.get(pin)),
-        scan((acc, value) => [...acc, value], [] as Ref[]),
-        catchError(() => of([])),
-        takeLast(1),
-      ).subscribe(fetched => this.pinned$.next(fetched));
-    }
+    throw `Invalid filter ${filter}`;
   }
 
 }
