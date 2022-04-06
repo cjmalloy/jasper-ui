@@ -68,12 +68,13 @@ html, body {
 }
 
 .sidebar {
+  width: 300px;
   * {
     margin: 4px;
   }
   input[type=search] {
     height: 30px;
-    width: 300px;
+    width: 292px;
   }
   .submit-button {
     border: 1px solid transparent;
