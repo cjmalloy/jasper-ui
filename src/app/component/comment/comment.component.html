@@ -25,9 +25,11 @@
       </ng-container>
     </ng-container>
   </div>
-  <div class="comment-body" *ngIf="!editing">
-    {{ ref.comment }}
-  </div>
+  <div *ngIf="!editing"
+       class="md comment-body"
+       markdown emoji katex
+       [katexOptions]="{ throwOnError: false }"
+       [data]="ref.comment"></div>
   <app-comment-edit *ngIf="editing"
                     [ref]="ref"
                     [commentEdited$]="commentEdited$"></app-comment-edit>

@@ -26,9 +26,11 @@
         </ng-container>
       </ng-container>
     </div>
-    <div class="expand" *ngIf="ref.comment && !showToggle && !editing">
-      {{ ref.comment }}
-    </div>
+    <div *ngIf="ref.comment && !showToggle && !editing"
+         class="md expand"
+         markdown emoji katex
+         [katexOptions]="{ throwOnError: false }"
+         [data]="ref.comment"></div>
     <div class="actions">
       <a [routerLink]="['/ref/comments/', ref.url]">{{ comments }}</a>
       <a [routerLink]="['/ref/responses/', ref.url]">{{ responses }}</a>
@@ -47,9 +49,11 @@
     </div>
   </div>
 </div>
-<div class="expand" *ngIf="expanded && showToggle && !editing">
-  {{ ref.comment }}
-</div>
+<div *ngIf="expanded && showToggle && !editing"
+     class="md expand"
+     markdown emoji katex
+     [katexOptions]="{ throwOnError: false }"
+     [data]="ref.comment"></div>
 
 <form *ngIf="editing" class="form" [formGroup]="editForm" (ngSubmit)="save()">
 

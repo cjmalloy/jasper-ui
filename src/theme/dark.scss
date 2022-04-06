@@ -157,4 +157,22 @@ body.dark-theme {
     border: none;
     border-top: 1px dotted $border;
   }
+
+  .md {
+    blockquote {
+      color: $info;
+      border-left: 2px solid $info;
+    }
+    del {
+      color: $info;
+    }
+    hr {
+      border: none;
+      background: $info;
+    }
+    table, th, tr, td {
+      border: 1px solid $info;
+      border-collapse: collapse;
+    }
+  }
 }

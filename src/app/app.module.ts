@@ -32,7 +32,8 @@ import { SubmitTextPage } from "./page/submit/text/text.component";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { CommentReplyComponent } from "./component/comment-reply/comment-reply.component";
 import { CommentEditComponent } from "./component/comment-edit/comment-edit.component";
-import { AutofocusDirective } from './directive/autofocus.directive';
+import { AutofocusDirective } from "./directive/autofocus.directive";
+import { MarkdownModule } from "ngx-markdown";
 
 const loadFactory = (config: ConfigService, account: AccountService) => () =>
   config.load().pipe(
@@ -73,6 +74,7 @@ const loadFactory = (config: ConfigService, account: AccountService) => () =>
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    MarkdownModule.forRoot(),
   ],
   providers: [
     ConfigService,

@@ -21,12 +21,11 @@ body.light-theme {
     color: $error;
   }
 
-
   .subscription-bar {
-    background-color: lightgray;
+    background-color: $bg;
     border-bottom: 1px solid black;
     :link, :visited, :active {
-      color: black;
+      color: $text;
     }
     .current-page {
       color: $active;
@@ -74,6 +73,12 @@ body.light-theme {
       &:hover {
         background-color: rgba(0, 0, 0, 0.2);
       }
+    }
+  }
+
+  .pinned .link {
+    :link, :visited, :active {
+      color: $mod;
     }
   }
 
@@ -133,7 +138,7 @@ body.light-theme {
   }
 
   .actions {
-    :link, :visited, :active {
+    :link, :visited, :active, .fake-link {
       color: $info;
     }
   }
@@ -142,14 +147,26 @@ body.light-theme {
     color: $error;
   }
 
-  textarea {
-    background-color: $bg;
-    color: $text;
-  }
-
   hr {
     border: none;
     border-top: 1px dotted $border;
   }
 
+  .md {
+    blockquote {
+      color: $info;
+      border-left: 2px solid $info;
+    }
+    del {
+      color: $info;
+    }
+    hr {
+      border: none;
+      background: $info;
+    }
+    table, th, tr, td {
+      border: 1px solid $info;
+      border-collapse: collapse;
+    }
+  }
 }

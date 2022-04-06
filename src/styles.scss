@@ -124,7 +124,8 @@ html, body {
 
 .ref {
   border: 1px solid transparent;
-  margin: 4px;
+  margin: 2px;
+  padding: 2px;
 
   .toggle {
     margin: 4px 8px 4px;
@@ -137,7 +138,7 @@ html, body {
     border: 1px solid transparent;
   }
   .comment-body, .actions {
-    padding: 2px;
+    padding: 4px;
     margin-left: 20px;
   }
   .collapsed {
@@ -198,7 +199,7 @@ html, body {
 
 .expand {
   border-radius: 4px;
-  padding: 4px;
+  padding: 8px;
 }
 
 .notification {
@@ -223,4 +224,35 @@ textarea {
 
 footer {
   text-align: center;
+}
+
+.md {
+  max-width: 60em;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+
+  &>:first-child {
+    margin-top: 0;
+  }
+  &>:last-child {
+    margin-bottom: 0;
+  }
+  li p, h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    padding: 0;
+  }
+  blockquote {
+    padding: 0 8px;
+    margin-left: 5px;
+  }
+  pre {
+    padding: 10px !important;
+  }
+  hr {
+    border: none;
+    height: 2px;
+  }
+  td, th {
+    padding: 4px;
+  }
 }
