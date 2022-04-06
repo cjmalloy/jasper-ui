@@ -4,7 +4,7 @@ $active: #da0000;
 $info: gray;
 $tag: navy;
 $border: black;
-$unselected-tab: lightgray;
+$unselected-tab: #b3b9c4;
 $error: #da0000;
 $mod: #136500;
 body.light-theme {
@@ -33,7 +33,7 @@ body.light-theme {
   }
 
   .tabs {
-    background-color: grey;
+    background-color: #c7d5f3;
     border-bottom: 1px solid $border;
     background-image: url("/assets/jasper-light.png");
     background-position: 4px 0;
