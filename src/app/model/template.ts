@@ -2,7 +2,7 @@ import * as moment from "moment";
 import { Schema } from "jtd";
 
 export interface Template {
-  tag: string;
+  prefix: string;
   name?: string;
   config?: any;
   defaults?: any;

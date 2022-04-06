@@ -11,6 +11,7 @@ import { getInbox } from "../plugin/inbox";
 import { Ref } from "../model/ref";
 import { capturesAny, isOwner, qualifyTags } from "../util/tag";
 import * as _ from "lodash";
+import { TemplateService } from "./template.service";
 
 export const CACHE_MS = 15000;
 
@@ -28,6 +29,7 @@ export class AccountService {
   private userExt$?: Observable<Ext>;
 
   constructor(
+    private templates: TemplateService,
     private users: UserService,
     private exts: ExtService,
     private refs: RefService,
@@ -45,7 +47,8 @@ export class AccountService {
       mergeMap(() => this.users.amIMod()),
       tap(mod => this.mod = mod),
       mergeMap(() => this.getMyUserExt()),
-      catchError(err => this.exts.create({ tag: this.tag})),
+      catchError(err => this.templates.get('user')),
+      mergeMap(() => this.exts.create({ tag: this.tag})),
       catchError(err => of(null)),
     );
   }
