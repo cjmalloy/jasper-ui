@@ -27,6 +27,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    if (!this.tag$) return;
+
     this.tag$.pipe(
       takeUntil(this.destroy$),
       tap(tag => {
@@ -36,7 +38,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
       }),
       mergeMap(tag => this.exts.get(tag)),
     ).subscribe(ext => this.ext = ext);
-
   }
 
   ngOnDestroy(): void {
