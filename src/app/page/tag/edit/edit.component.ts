@@ -85,13 +85,17 @@ export class EditTagPage implements OnInit {
     this.exts.update({
       ...this.ext,
       ...this.editForm.value,
+      config: {
+        ...this.ext.config,
+        ...this.editForm.value.config,
+      }
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/tag', this.editForm.value.tag]);
+      this.router.navigate(['/tag', this.ext.tag]);
     });
   }
 }

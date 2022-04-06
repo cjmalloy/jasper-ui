@@ -110,4 +110,13 @@ export class AccountService {
       map(user => isOwner(user, ref) || capturesAny(user.writeAccess, qualifyTags(ref.tags, ref.origin)))
     );
   }
+
+  writeAccessTag(tag: string): Observable<boolean> {
+    if (!this.signedIn()) return of(false);
+    if (tag === 'locked') return of(this.admin);
+    if (this.mod) return of(true);
+    return this.getMyUser().pipe(
+      map(user => tag === user.tag || capturesAny(user.writeAccess, [tag]))
+    );
+  }
 }

@@ -2,7 +2,6 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from "@angular/core"
 import { AccountService } from "../../service/account.service";
 import { ExtService } from "../../service/ext.service";
 import { Ext } from "../../model/ext";
-import { capturesAny } from "../../util/tag";
 import { mergeMap, Observable, Subject, takeUntil } from "rxjs";
 import { tap } from "rxjs/operators";
 
@@ -32,12 +31,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
       tap(tag => {
         this.tag = tag;
-        if (this.account.mod) {
-          this.writeAccess = true;
-        } else {
-          this.account.getMyUser()
-          .subscribe(user => this.writeAccess = capturesAny(user.writeAccess, [tag]));
-        }
+        this.account.writeAccessTag(tag)
+          .subscribe(writeAccess => this.writeAccess = writeAccess);
       }),
       mergeMap(tag => this.exts.get(tag)),
     ).subscribe(ext => this.ext = ext);
