@@ -15,5 +15,5 @@ export function mapPage<T>(contentMapper: (obj: any) => T): (obj: any) => Page<T
     const page = obj as Page<any>;
     page.content.forEach(contentMapper);
     return page;
-  }
+  };
 }

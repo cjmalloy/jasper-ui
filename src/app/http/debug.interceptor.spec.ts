@@ -5,8 +5,8 @@ import { DebugInterceptor } from './debug.interceptor';
 describe('DebugInterceptor', () => {
   beforeEach(() => TestBed.configureTestingModule({
     providers: [
-      DebugInterceptor
-      ]
+      DebugInterceptor,
+    ],
   }));
 
   it('should be created', () => {

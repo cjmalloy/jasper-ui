@@ -1,13 +1,13 @@
-import { Component, Input, OnDestroy, OnInit } from "@angular/core";
-import { Ref } from "../../model/ref";
-import { Page } from "../../model/page";
-import { RefService } from "../../service/api/ref.service";
-import { Observable, Subject, takeUntil } from "rxjs";
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Observable, Subject, takeUntil } from 'rxjs';
+import { Page } from '../../model/page';
+import { Ref } from '../../model/ref';
+import { RefService } from '../../service/api/ref.service';
 
 @Component({
   selector: 'app-comment-list',
   templateUrl: './comment-list.component.html',
-  styleUrls: ['./comment-list.component.scss']
+  styleUrls: ['./comment-list.component.scss'],
 })
 export class CommentListComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -33,14 +33,14 @@ export class CommentListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.source$.pipe(
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$),
     ).subscribe(source => {
       this.source = source;
       this.pages = [];
       this.loadMore();
     });
     this.newComments$.pipe(
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$),
     ).subscribe(comment => comment && this.pages[0].content.unshift(comment));
   }
 

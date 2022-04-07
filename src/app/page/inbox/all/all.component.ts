@@ -1,14 +1,14 @@
-import { Component, OnInit } from "@angular/core";
-import { Page } from "../../../model/page";
-import { Ref } from "../../../model/ref";
-import { RefService } from "../../../service/api/ref.service";
-import { AccountService } from "../../../service/account.service";
-import { Observable } from "rxjs";
+import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
+import { Page } from '../../../model/page';
+import { Ref } from '../../../model/ref';
+import { AccountService } from '../../../service/account.service';
+import { RefService } from '../../../service/api/ref.service';
 
 @Component({
   selector: 'app-all',
   templateUrl: './all.component.html',
-  styleUrls: ['./all.component.scss']
+  styleUrls: ['./all.component.scss'],
 })
 export class AllComponent implements OnInit {
 

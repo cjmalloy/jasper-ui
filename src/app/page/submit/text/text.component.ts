@@ -1,19 +1,19 @@
-import { Component, OnInit } from "@angular/core";
-import { v4 as uuid } from "uuid";
-import * as moment from "moment";
-import { RefService } from "../../../service/api/ref.service";
-import { AccountService } from "../../../service/account.service";
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
-import { TAG_REGEX } from "../../../util/format";
-import { catchError, throwError } from "rxjs";
-import { HttpErrorResponse } from "@angular/common/http";
-import { printError } from "../../../util/http";
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import * as moment from 'moment';
+import { catchError, throwError } from 'rxjs';
+import { v4 as uuid } from 'uuid';
+import { AccountService } from '../../../service/account.service';
+import { RefService } from '../../../service/api/ref.service';
+import { TAG_REGEX } from '../../../util/format';
+import { printError } from '../../../util/http';
 
 @Component({
   selector: 'app-submit-text',
   templateUrl: './text.component.html',
-  styleUrls: ['./text.component.scss']
+  styleUrls: ['./text.component.scss'],
 })
 export class SubmitTextPage implements OnInit {
 

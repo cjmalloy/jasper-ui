@@ -1,17 +1,17 @@
-import { Component, OnInit } from "@angular/core";
-import { Ref } from "../../model/ref";
-import { RefService } from "../../service/api/ref.service";
-import { Page } from "../../model/page";
-import { distinctUntilChanged, mergeMap } from "rxjs/operators";
-import { ActivatedRoute } from "@angular/router";
-import { AccountService } from "../../service/account.service";
-import { combineLatest, map, Observable, of } from "rxjs";
-import * as _ from "lodash";
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import * as _ from 'lodash';
+import { combineLatest, map, Observable, of } from 'rxjs';
+import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
+import { Page } from '../../model/page';
+import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
+import { RefService } from '../../service/api/ref.service';
 
 @Component({
   selector: 'app-home-page',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+  styleUrls: ['./home.component.scss'],
 })
 export class HomePage implements OnInit {
 
@@ -60,14 +60,14 @@ export class HomePage implements OnInit {
     if (path === 'home') {
       if (filter === 'new') {
         return this.account.getMyUserExt().pipe(
-          mergeMap(ext => of({ query: ext.config.subscriptions.join('+') }))
+          mergeMap(ext => of({ query: ext.config.subscriptions.join('+') })),
         );
       }
       if (filter === 'uncited') {
-        return of({ uncited: true })
+        return of({ uncited: true });
       }
       if (filter === 'unsourced') {
-        return of({ unsourced: true })
+        return of({ unsourced: true });
       }
       throw `Invalid filter ${filter}`;
     }

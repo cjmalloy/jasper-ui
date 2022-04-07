@@ -1,5 +1,5 @@
-import { Ref } from "../model/ref";
-import * as _ from "lodash";
+import * as _ from 'lodash';
+import { Ref } from '../model/ref';
 
 export const TAG_REGEX = /^_?[a-z]+(\/[a-z]+)*$/;
 export const USER_REGEX = /^_?user\/[a-z]+(\/[a-z]+)*$/;
@@ -12,7 +12,7 @@ export const QUERY_REGEX = /^!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z
 
 export function authors(ref: Ref) {
   return _.filter(ref.tags, t => t.startsWith('user/') || t.startsWith('_user/'))
-    .map(t => t + ref.origin);
+  .map(t => t + ref.origin);
 }
 
 export function primaryAuthor(ref: Ref) {

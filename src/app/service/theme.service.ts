@@ -1,8 +1,8 @@
-import { Inject, Injectable } from "@angular/core";
-import { DOCUMENT } from "@angular/common";
+import { DOCUMENT } from '@angular/common';
+import { Inject, Injectable } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ThemeService {
 
@@ -11,13 +11,13 @@ export class ThemeService {
   private theme = 'init-theme';
 
   constructor(
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: Document,
   ) {
     this.setTheme();
   }
 
   getSystemTheme(): string {
-    const darkThemeMq = window.matchMedia("(prefers-color-scheme: dark)");
+    const darkThemeMq = window.matchMedia('(prefers-color-scheme: dark)');
     return darkThemeMq.matches ? 'dark-theme' : 'light-theme';
   }
 

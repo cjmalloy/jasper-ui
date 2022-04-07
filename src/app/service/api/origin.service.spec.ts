@@ -1,7 +1,7 @@
-import { TestBed } from "@angular/core/testing";
+import { HttpClientModule } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
 
-import { OriginService } from "./origin.service";
-import { HttpClientModule } from "@angular/common/http";
+import { OriginService } from './origin.service';
 
 describe('OriginService', () => {
   let service: OriginService;
@@ -10,7 +10,7 @@ describe('OriginService', () => {
     TestBed.configureTestingModule({
       imports: [
         HttpClientModule,
-      ]
+      ],
     });
     service = TestBed.inject(OriginService);
   });

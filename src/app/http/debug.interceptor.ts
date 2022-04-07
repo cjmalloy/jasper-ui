@@ -1,6 +1,6 @@
-import { Injectable, isDevMode } from "@angular/core";
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from "@angular/common/http";
-import { Observable } from "rxjs";
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { Injectable, isDevMode } from '@angular/core';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class DebugInterceptor implements HttpInterceptor {
@@ -12,7 +12,7 @@ export class DebugInterceptor implements HttpInterceptor {
       request = request.clone({
         setHeaders: {
           // USER
-          Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsIm5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMiwiYXV0aCI6IlJPTEVfVVNFUiJ9.Ht6Zs8Oqjf-yzhoAK4A2xn2qKe38uCGLw56pkl8pQW4`
+          Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsIm5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMiwiYXV0aCI6IlJPTEVfVVNFUiJ9.Ht6Zs8Oqjf-yzhoAK4A2xn2qKe38uCGLw56pkl8pQW4`,
 
           // MOD
           // Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsImF1dGgiOiJST0xFX01PRCJ9.083AEQTw8BNF82Z-lV8TorYU-iS9s4TndmD9QZdMemY`
@@ -29,7 +29,7 @@ export class DebugInterceptor implements HttpInterceptor {
           // PRIVATE ADMIN
           // Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsImF1dGgiOiJST0xFX0FETUlOLFJPTEVfUFJJVkFURSJ9._-_hnLRK1cNoU5wUANUujikDQdWiGCCyWvdrduB_lr0`
 
-        }
+        },
       });
     }
     return next.handle(request);

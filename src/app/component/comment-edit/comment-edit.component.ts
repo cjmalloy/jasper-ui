@@ -1,13 +1,13 @@
-import { AfterViewInit, Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from "@angular/core";
-import { Subject } from "rxjs";
-import { Ref } from "../../model/ref";
-import { AccountService } from "../../service/account.service";
-import { RefService } from "../../service/api/ref.service";
+import { AfterViewInit, Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { Subject } from 'rxjs';
+import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
+import { RefService } from '../../service/api/ref.service';
 
 @Component({
   selector: 'app-comment-edit',
   templateUrl: './comment-edit.component.html',
-  styleUrls: ['./comment-edit.component.scss']
+  styleUrls: ['./comment-edit.component.scss'],
 })
 export class CommentEditComponent implements OnInit, AfterViewInit {
   @HostBinding('class') css = 'comment-edit';

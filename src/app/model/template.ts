@@ -1,5 +1,5 @@
-import * as moment from "moment";
-import { Schema } from "jtd";
+import { Schema } from 'jtd';
+import * as moment from 'moment';
 
 export interface Template {
   prefix: string;

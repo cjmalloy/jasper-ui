@@ -1,13 +1,13 @@
-import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { ConfigService } from "../config.service";
-import { Ext, mapTag } from "../../model/ext";
-import { map, Observable } from "rxjs";
-import { mapPage, Page } from "../../model/page";
-import { params } from "../../util/http";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { map, Observable } from 'rxjs';
+import { Ext, mapTag } from '../../model/ext';
+import { mapPage, Page } from '../../model/page';
+import { params } from '../../util/http';
+import { ConfigService } from '../config.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ExtService {
 
@@ -49,7 +49,7 @@ export class ExtService {
   patch(tag: string, patch: any[]): Observable<void> {
     return this.http.patch<void>(this.base, patch, {
       headers: { 'Content-Type': 'application/json-patch+json' },
-      params: params({ tag })
+      params: params({ tag }),
     });
   }
 

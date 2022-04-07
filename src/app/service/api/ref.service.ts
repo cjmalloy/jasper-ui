@@ -1,14 +1,14 @@
-import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { ConfigService } from "../config.service";
-import { map, Observable } from "rxjs";
-import { mapRef, Ref } from "../../model/ref";
-import { mapPage, Page } from "../../model/page";
-import { params } from "../../util/http";
-import * as moment from "moment";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import * as moment from 'moment';
+import { map, Observable } from 'rxjs';
+import { mapPage, Page } from '../../model/page';
+import { mapRef, Ref } from '../../model/ref';
+import { params } from '../../util/http';
+import { ConfigService } from '../config.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RefService {
 
@@ -75,7 +75,7 @@ export class RefService {
   patch(url: string, origin: string, patch: any[]): Observable<void> {
     return this.http.patch<void>(this.base, patch, {
       headers: { 'Content-Type': 'application/json-patch+json' },
-      params: params({ url, origin })
+      params: params({ url, origin }),
     });
   }
 

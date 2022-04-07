@@ -1,7 +1,7 @@
-import { TestBed } from "@angular/core/testing";
+import { HttpClientModule } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
 
-import { ConfigService } from "./config.service";
-import { HttpClientModule } from "@angular/common/http";
+import { ConfigService } from './config.service';
 
 describe('ConfigService', () => {
   let service: ConfigService;
@@ -10,7 +10,7 @@ describe('ConfigService', () => {
     TestBed.configureTestingModule({
       imports: [
         HttpClientModule,
-      ]
+      ],
     });
     service = TestBed.inject(ConfigService);
   });

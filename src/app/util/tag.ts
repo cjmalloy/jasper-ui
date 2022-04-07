@@ -1,5 +1,5 @@
-import { User } from "../model/user";
-import { Ref } from "../model/ref";
+import { Ref } from '../model/ref';
+import { User } from '../model/user';
 
 export function qualifyTags(tags?: string[], origin?: string): string[] | undefined {
   if (!tags) return undefined;

@@ -1,20 +1,20 @@
-import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
-import { RefService } from "../../service/api/ref.service";
-import { distinctUntilChanged, filter, mergeMap, scan, take } from "rxjs/operators";
-import { Ref } from "../../model/ref";
-import { AccountService } from "../../service/account.service";
-import { catchError, combineLatest, map, Observable, of } from "rxjs";
-import { ExtService } from "../../service/api/ext.service";
-import { Page } from "../../model/page";
-import * as _ from "lodash";
-import { localTag } from "../../util/tag";
-import { Ext } from "../../model/ext";
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import * as _ from 'lodash';
+import { catchError, combineLatest, map, Observable, of } from 'rxjs';
+import { distinctUntilChanged, filter, mergeMap, scan, take } from 'rxjs/operators';
+import { Ext } from '../../model/ext';
+import { Page } from '../../model/page';
+import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
+import { ExtService } from '../../service/api/ext.service';
+import { RefService } from '../../service/api/ref.service';
+import { localTag } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
   templateUrl: './tag.component.html',
-  styleUrls: ['./tag.component.scss']
+  styleUrls: ['./tag.component.scss'],
 })
 export class TagPage implements OnInit {
 
@@ -33,17 +33,17 @@ export class TagPage implements OnInit {
     private exts: ExtService,
   ) {
     this.page$ = combineLatest(
-      this.tag$, this.filter$, this.pageNumber$, this.pageSize$
+      this.tag$, this.filter$, this.pageNumber$, this.pageSize$,
     ).pipe(
       distinctUntilChanged(_.isEqual),
       mergeMap(([tag, filter, pageNumber, pageSize]) => {
-      return this.getArgs(tag, filter).pipe(
-        mergeMap(args => this.refs.page({
-          ...args,
-          page: pageNumber,
-          size: pageSize ?? this.defaultPageSize,
-        })));
-    }));
+        return this.getArgs(tag, filter).pipe(
+          mergeMap(args => this.refs.page({
+            ...args,
+            page: pageNumber,
+            size: pageSize ?? this.defaultPageSize,
+          })));
+      }));
     this.localTag$ = this.tag$.pipe(
       map(tag => localTag(tag)),
       filter(tag => !!tag),
@@ -84,20 +84,20 @@ export class TagPage implements OnInit {
 
   get pageSize$() {
     return this.route.queryParams.pipe(
-      map(params => params['pageSize'])
+      map(params => params['pageSize']),
     );
   }
 
   getArgs(tag: string, filter: string): Observable<Record<string, any>> {
     const query = `${tag}:!plugin/comment@*`;
     if (filter === 'new') {
-      return of({ query })
+      return of({ query });
     }
     if (filter === 'uncited') {
-      return of({ query, uncited: true })
+      return of({ query, uncited: true });
     }
     if (filter === 'unsourced') {
-      return of({ query, unsourced: true })
+      return of({ query, unsourced: true });
     }
     throw `Invalid filter ${filter}`;
   }

@@ -1,9 +1,9 @@
-import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { tap } from "rxjs/operators";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ConfigService {
   api = '//localhost:8081';
@@ -22,7 +22,7 @@ export class ConfigService {
         this.logout = result['logout'];
         this.login = result['login'];
         this.signup = result['signup'];
-      })
+      }),
     );
   }
 }

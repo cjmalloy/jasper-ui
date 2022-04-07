@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CreateExtPage } from "./ext.component";
+import { CreateExtPage } from './ext.component';
 
 describe('ExtComponent', () => {
   let component: CreateExtPage;
@@ -8,7 +8,7 @@ describe('ExtComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CreateExtPage ]
+      declarations: [CreateExtPage],
     })
     .compileComponents();
   });

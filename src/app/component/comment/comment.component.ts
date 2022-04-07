@@ -1,15 +1,15 @@
-import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import { Ref } from "../../model/ref";
-import { RefService } from "../../service/api/ref.service";
-import { authors, interestingTags } from "../../util/format";
-import { BehaviorSubject, mergeMap, Observable, Subject, takeUntil } from "rxjs";
-import { inboxes } from "../../plugin/inbox";
-import { AccountService } from "../../service/account.service";
+import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { BehaviorSubject, mergeMap, Observable, Subject, takeUntil } from 'rxjs';
+import { Ref } from '../../model/ref';
+import { inboxes } from '../../plugin/inbox';
+import { AccountService } from '../../service/account.service';
+import { RefService } from '../../service/api/ref.service';
+import { authors, interestingTags } from '../../util/format';
 
 @Component({
   selector: 'app-comment',
   templateUrl: './comment.component.html',
-  styleUrls: ['./comment.component.scss']
+  styleUrls: ['./comment.component.scss'],
 })
 export class CommentComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'comment';
@@ -44,7 +44,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.writeAccess$ = this.account.writeAccess(this.ref);
     this.newComments$.pipe(
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$),
     ).subscribe(ref => {
       this.replying = false;
       if (ref?.metadata) {
@@ -54,7 +54,7 @@ export class CommentComponent implements OnInit, OnDestroy {
       }
     });
     this.commentEdited$.pipe(
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$),
     ).subscribe(() => this.editing = false);
     this.source$.next(this.ref.url);
   }

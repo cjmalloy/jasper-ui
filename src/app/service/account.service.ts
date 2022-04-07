@@ -1,22 +1,22 @@
-import { Injectable } from "@angular/core";
-import { UserService } from "./api/user.service";
-import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from "rxjs";
-import { User } from "../model/user";
-import { ExtService } from "./api/ext.service";
-import { Ext } from "../model/ext";
-import { mergeMap, tap } from "rxjs/operators";
-import * as moment from "moment";
-import { RefService } from "./api/ref.service";
-import { getInbox } from "../plugin/inbox";
-import { Ref } from "../model/ref";
-import { capturesAny, isOwner, qualifyTags } from "../util/tag";
-import * as _ from "lodash";
-import { TemplateService } from "./api/template.service";
+import { Injectable } from '@angular/core';
+import * as _ from 'lodash';
+import * as moment from 'moment';
+import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from 'rxjs';
+import { mergeMap, tap } from 'rxjs/operators';
+import { Ext } from '../model/ext';
+import { Ref } from '../model/ref';
+import { User } from '../model/user';
+import { getInbox } from '../plugin/inbox';
+import { capturesAny, isOwner, qualifyTags } from '../util/tag';
+import { ExtService } from './api/ext.service';
+import { RefService } from './api/ref.service';
+import { TemplateService } from './api/template.service';
+import { UserService } from './api/user.service';
 
 export const CACHE_MS = 15000;
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AccountService {
 
@@ -48,7 +48,7 @@ export class AccountService {
       tap(mod => this.mod = mod),
       mergeMap(() => this.getMyUserExt()),
       catchError(err => this.templates.get('user').pipe(
-        mergeMap(() => this.exts.create({ tag: this.tag})),
+        mergeMap(() => this.exts.create({ tag: this.tag })),
       )),
       catchError(err => of(null)),
     );
@@ -90,7 +90,8 @@ export class AccountService {
     return this.getMyUserExt().pipe(
       mergeMap(ext => this.refs.count({
         query: this.inbox,
-        modifiedAfter: ext.config?.inbox?.lastNotified || moment().subtract(1, 'year') }))
+        modifiedAfter: ext.config?.inbox?.lastNotified || moment().subtract(1, 'year'),
+      })),
     ).subscribe(count => this.notifications.next(count));
   }
 
@@ -111,7 +112,7 @@ export class AccountService {
     if (ref.tags?.includes('locked')) return of(this.admin);
     if (this.mod) return of(true);
     return this.getMyUser().pipe(
-      map(user => isOwner(user, ref) || capturesAny(user.writeAccess, qualifyTags(ref.tags, ref.origin)))
+      map(user => isOwner(user, ref) || capturesAny(user.writeAccess, qualifyTags(ref.tags, ref.origin))),
     );
   }
 
@@ -120,7 +121,7 @@ export class AccountService {
     if (tag === 'locked') return of(this.admin);
     if (this.mod) return of(true);
     return this.getMyUser().pipe(
-      map(user => tag === user.tag || capturesAny(user.writeAccess, [tag]))
+      map(user => tag === user.tag || capturesAny(user.writeAccess, [tag])),
     );
   }
 }

@@ -1,16 +1,16 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
-import { Ref } from "../../model/ref";
-import { RefService } from "../../service/api/ref.service";
-import { ActivatedRoute, Router } from "@angular/router";
-import { distinctUntilChanged, mergeMap } from "rxjs/operators";
-import { catchError, map, Observable, of, shareReplay, Subject } from "rxjs";
-import { HttpErrorResponse } from "@angular/common/http";
-import { printError } from "../../util/http";
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { catchError, map, Observable, of, shareReplay, Subject } from 'rxjs';
+import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
+import { Ref } from '../../model/ref';
+import { RefService } from '../../service/api/ref.service';
+import { printError } from '../../util/http';
 
 @Component({
   selector: 'app-ref-page',
   templateUrl: './ref.component.html',
-  styleUrls: ['./ref.component.scss']
+  styleUrls: ['./ref.component.scss'],
 })
 export class RefPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -39,7 +39,7 @@ export class RefPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.destroy$.next();
-    this.destroy$.complete()
+    this.destroy$.complete();
   }
 
   get url$() {

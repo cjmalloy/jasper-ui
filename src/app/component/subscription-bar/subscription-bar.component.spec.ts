@@ -8,7 +8,7 @@ describe('SubscriptionBarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SubscriptionBarComponent ]
+      declarations: [SubscriptionBarComponent],
     })
     .compileComponents();
   });

@@ -1,15 +1,15 @@
-import { Component, OnInit } from "@angular/core";
-import { Page } from "../../../model/page";
-import { Ref } from "../../../model/ref";
-import { ActivatedRoute } from "@angular/router";
-import { RefService } from "../../../service/api/ref.service";
-import { mergeMap } from "rxjs/operators";
-import { map, Observable } from "rxjs";
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { map, Observable } from 'rxjs';
+import { mergeMap } from 'rxjs/operators';
+import { Page } from '../../../model/page';
+import { Ref } from '../../../model/ref';
+import { RefService } from '../../../service/api/ref.service';
 
 @Component({
   selector: 'app-sources',
   templateUrl: './sources.component.html',
-  styleUrls: ['./sources.component.scss']
+  styleUrls: ['./sources.component.scss'],
 })
 export class SourcesComponent implements OnInit {
 
@@ -20,7 +20,7 @@ export class SourcesComponent implements OnInit {
     private refs: RefService,
   ) {
     this.page$ = this.url$.pipe(
-      mergeMap(url => refs.page({ sources: url }))
+      mergeMap(url => refs.page({ sources: url })),
     );
   }
 

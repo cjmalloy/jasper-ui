@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SubmitTextPage } from "./text.component";
+import { SubmitTextPage } from './text.component';
 
 describe('TextComponent', () => {
   let component: SubmitTextPage;
@@ -8,7 +8,7 @@ describe('TextComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SubmitTextPage ]
+      declarations: [SubmitTextPage],
     })
     .compileComponents();
   });

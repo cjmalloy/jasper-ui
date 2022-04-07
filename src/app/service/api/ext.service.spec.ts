@@ -1,7 +1,7 @@
-import { TestBed } from "@angular/core/testing";
+import { HttpClientModule } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
 
-import { ExtService } from "./ext.service";
-import { HttpClientModule } from "@angular/common/http";
+import { ExtService } from './ext.service';
 
 describe('ExtService', () => {
   let service: ExtService;
@@ -10,7 +10,7 @@ describe('ExtService', () => {
     TestBed.configureTestingModule({
       imports: [
         HttpClientModule,
-      ]
+      ],
     });
     service = TestBed.inject(ExtService);
   });

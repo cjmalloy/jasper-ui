@@ -1,15 +1,15 @@
-import { AfterViewInit, Component, ElementRef, HostBinding, Input, ViewChild } from "@angular/core";
-import { mergeMap, Subject } from "rxjs";
-import { Ref } from "../../model/ref";
-import { AccountService } from "../../service/account.service";
-import { RefService } from "../../service/api/ref.service";
-import { v4 as uuid } from "uuid";
-import * as moment from "moment";
+import { AfterViewInit, Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
+import * as moment from 'moment';
+import { mergeMap, Subject } from 'rxjs';
+import { v4 as uuid } from 'uuid';
+import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
+import { RefService } from '../../service/api/ref.service';
 
 @Component({
   selector: 'app-comment-reply',
   templateUrl: './comment-reply.component.html',
-  styleUrls: ['./comment-reply.component.scss']
+  styleUrls: ['./comment-reply.component.scss'],
 })
 export class CommentReplyComponent implements AfterViewInit {
   @HostBinding('class') css = 'comment-reply';
@@ -51,7 +51,7 @@ export class CommentReplyComponent implements AfterViewInit {
       },
       published: moment(),
     }).pipe(
-      mergeMap(() => this.refs.get(url))
+      mergeMap(() => this.refs.get(url)),
     ).subscribe(ref => {
       this.newComments$.next(ref);
       this.textbox.nativeElement.value = '';

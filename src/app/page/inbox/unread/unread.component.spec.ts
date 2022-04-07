@@ -8,7 +8,7 @@ describe('UnreadComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ UnreadComponent ]
+      declarations: [UnreadComponent],
     })
     .compileComponents();
   });

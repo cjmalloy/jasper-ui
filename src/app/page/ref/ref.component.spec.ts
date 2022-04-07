@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RefPage } from "./ref.component";
+import { RefPage } from './ref.component';
 
 describe('RefComponent', () => {
   let component: RefPage;
@@ -8,7 +8,7 @@ describe('RefComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ RefPage ]
+      declarations: [RefPage],
     })
     .compileComponents();
   });

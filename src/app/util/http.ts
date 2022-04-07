@@ -1,6 +1,6 @@
-import { isMoment } from "moment";
-import { HttpErrorResponse } from "@angular/common/http";
-import { Problem } from "../model/problem";
+import { HttpErrorResponse } from '@angular/common/http';
+import { isMoment } from 'moment';
+import { Problem } from '../model/problem';
 
 /**
  * Format all non-empty properties for HTTP Query params.

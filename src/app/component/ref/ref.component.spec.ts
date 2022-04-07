@@ -8,7 +8,7 @@ describe('RefComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ RefComponent ]
+      declarations: [RefComponent],
     })
     .compileComponents();
   });

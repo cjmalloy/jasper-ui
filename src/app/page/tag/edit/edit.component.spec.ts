@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { EditTagPage } from "./edit.component";
+import { EditTagPage } from './edit.component';
 
 describe('EditComponent', () => {
   let component: EditTagPage;
@@ -8,7 +8,7 @@ describe('EditComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ EditTagPage ]
+      declarations: [EditTagPage],
     })
     .compileComponents();
   });

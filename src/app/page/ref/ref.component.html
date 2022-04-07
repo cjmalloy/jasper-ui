@@ -11,7 +11,9 @@
     <app-ref [ref]="ref"
              [expanded]="true"></app-ref>
   </ng-container>
-  <ng-template #loading><app-loading></app-loading></ng-template>
+  <ng-template #loading>
+    <app-loading></app-loading>
+  </ng-template>
   <router-outlet></router-outlet>
 </ng-container>
 <ng-template #errorMessage>

@@ -1,18 +1,18 @@
-import { Component, OnInit } from "@angular/core";
-import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
-import { AccountService } from "../../../service/account.service";
-import { ExtService } from "../../../service/api/ext.service";
-import { catchError, map, mergeMap, throwError } from "rxjs";
-import { HttpErrorResponse } from "@angular/common/http";
-import { printError } from "../../../util/http";
-import { localTag } from "../../../util/tag";
-import { Ext } from "../../../model/ext";
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { catchError, map, mergeMap, throwError } from 'rxjs';
+import { Ext } from '../../../model/ext';
+import { AccountService } from '../../../service/account.service';
+import { ExtService } from '../../../service/api/ext.service';
+import { printError } from '../../../util/http';
+import { localTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-edit-tag-page',
   templateUrl: './edit.component.html',
-  styleUrls: ['./edit.component.scss']
+  styleUrls: ['./edit.component.scss'],
 })
 export class EditTagPage implements OnInit {
 
@@ -98,7 +98,7 @@ export class EditTagPage implements OnInit {
       config: {
         ...this.ext.config,
         ...this.editForm.value.config,
-      }
+      },
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);

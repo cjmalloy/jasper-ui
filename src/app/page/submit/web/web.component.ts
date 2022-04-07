@@ -1,18 +1,18 @@
-import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
-import { AccountService } from "../../../service/account.service";
-import { RefService } from "../../../service/api/ref.service";
-import * as moment from "moment";
-import { TAG_REGEX } from "../../../util/format";
-import { catchError, throwError } from "rxjs";
-import { HttpErrorResponse } from "@angular/common/http";
-import { printError } from "../../../util/http";
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import * as moment from 'moment';
+import { catchError, throwError } from 'rxjs';
+import { AccountService } from '../../../service/account.service';
+import { RefService } from '../../../service/api/ref.service';
+import { TAG_REGEX } from '../../../util/format';
+import { printError } from '../../../util/http';
 
 @Component({
   selector: 'app-submit-web-page',
   templateUrl: './web.component.html',
-  styleUrls: ['./web.component.scss']
+  styleUrls: ['./web.component.scss'],
 })
 export class SubmitWebPage implements OnInit {
 

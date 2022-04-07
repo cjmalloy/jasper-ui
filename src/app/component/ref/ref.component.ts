@@ -1,18 +1,18 @@
-import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from "@angular/core";
-import { Ref } from "../../model/ref";
-import { RefService } from "../../service/api/ref.service";
-import { authors, interestingTags, refUrlSummary, TAG_REGEX, webLink } from "../../util/format";
-import * as _ from "lodash";
-import { catchError, mergeMap, Observable, throwError } from "rxjs";
-import { AccountService } from "../../service/account.service";
-import { FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { HttpErrorResponse } from "@angular/common/http";
-import { printError } from "../../util/http";
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import * as _ from 'lodash';
+import { catchError, mergeMap, Observable, throwError } from 'rxjs';
+import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
+import { RefService } from '../../service/api/ref.service';
+import { authors, interestingTags, refUrlSummary, TAG_REGEX, webLink } from '../../util/format';
+import { printError } from '../../util/http';
 
 @Component({
   selector: 'app-ref',
   templateUrl: './ref.component.html',
-  styleUrls: ['./ref.component.scss']
+  styleUrls: ['./ref.component.scss'],
 })
 export class RefComponent implements OnInit {
   @HostBinding('class') css = 'ref';

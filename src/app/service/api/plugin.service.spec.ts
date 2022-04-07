@@ -1,7 +1,7 @@
-import { TestBed } from "@angular/core/testing";
+import { HttpClientModule } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
 
-import { PluginService } from "./plugin.service";
-import { HttpClientModule } from "@angular/common/http";
+import { PluginService } from './plugin.service';
 
 describe('PluginService', () => {
   let service: PluginService;
@@ -10,7 +10,7 @@ describe('PluginService', () => {
     TestBed.configureTestingModule({
       imports: [
         HttpClientModule,
-      ]
+      ],
     });
     service = TestBed.inject(PluginService);
   });

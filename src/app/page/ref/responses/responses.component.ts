@@ -1,15 +1,15 @@
-import { Component, OnInit } from "@angular/core";
-import { Page } from "../../../model/page";
-import { Ref } from "../../../model/ref";
-import { ActivatedRoute } from "@angular/router";
-import { RefService } from "../../../service/api/ref.service";
-import { mergeMap } from "rxjs/operators";
-import { map, Observable } from "rxjs";
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { map, Observable } from 'rxjs';
+import { mergeMap } from 'rxjs/operators';
+import { Page } from '../../../model/page';
+import { Ref } from '../../../model/ref';
+import { RefService } from '../../../service/api/ref.service';
 
 @Component({
   selector: 'app-responses',
   templateUrl: './responses.component.html',
-  styleUrls: ['./responses.component.scss']
+  styleUrls: ['./responses.component.scss'],
 })
 export class ResponsesComponent implements OnInit {
 
@@ -20,7 +20,7 @@ export class ResponsesComponent implements OnInit {
     private refs: RefService,
   ) {
     this.page$ = this.url$.pipe(
-      mergeMap(url => refs.page({ query: '!plugin/comment@*', responses: url }))
+      mergeMap(url => refs.page({ query: '!plugin/comment@*', responses: url })),
     );
   }
 

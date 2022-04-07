@@ -1,16 +1,16 @@
-import { Component, OnInit } from "@angular/core";
-import { RefService } from "../../service/api/ref.service";
-import { catchError, forkJoin, map, mergeMap, Observable, of } from "rxjs";
-import { AbstractControl, AsyncValidatorFn, FormBuilder, FormGroup, ValidationErrors, Validators } from "@angular/forms";
-import { Router } from "@angular/router";
-import { scan, tap } from "rxjs/operators";
+import { Component, OnInit } from '@angular/core';
+import { AbstractControl, AsyncValidatorFn, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { catchError, forkJoin, map, mergeMap, Observable, of } from 'rxjs';
+import { scan, tap } from 'rxjs/operators';
+import { RefService } from '../../service/api/ref.service';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
 @Component({
   selector: 'app-submit-page',
   templateUrl: './submit.component.html',
-  styleUrls: ['./submit.component.scss']
+  styleUrls: ['./submit.component.scss'],
 })
 export class SubmitPage implements OnInit {
 
@@ -18,7 +18,11 @@ export class SubmitPage implements OnInit {
 
   validations: Validation[] = [
     { name: 'Valid link', passed: false, test: url => of(this.linkType(url)) },
-    { name: 'Not submitted yet', passed: false, test: url => this.refs.exists(url).pipe(map(() => false), catchError(err => of(err.status === 404)))},
+    {
+      name: 'Not submitted yet',
+      passed: false,
+      test: url => this.refs.exists(url).pipe(map(() => false), catchError(err => of(err.status === 404))),
+    },
     { name: 'No link shorteners', passed: false, test: url => of(!url.includes('bit.ly')) },
   ];
 
@@ -28,7 +32,7 @@ export class SubmitPage implements OnInit {
     private fb: FormBuilder,
   ) {
     this.submitForm = fb.group({
-      url: ['', [Validators.required], [this.validator]]
+      url: ['', [Validators.required], [this.validator]],
     });
   }
 
@@ -42,9 +46,9 @@ export class SubmitPage implements OnInit {
   submit() {
     const url = this.submitForm.value.url;
     this.router.navigate(['./submit', this.linkType(url)], {
-      queryParams: { url } ,
+      queryParams: { url },
       queryParamsHandling: 'merge',
-    })
+    });
   }
 
   validLink(control: AbstractControl): Observable<ValidationErrors | null> {
@@ -57,7 +61,7 @@ export class SubmitPage implements OnInit {
     }
     return forkJoin(...vs).pipe(
       mergeMap(res => of(...res)),
-      scan((acc, value) => value ? {...acc, ...value} : acc, {}),
+      scan((acc, value) => value ? { ...acc, ...value } : acc, {}),
     );
   }
 

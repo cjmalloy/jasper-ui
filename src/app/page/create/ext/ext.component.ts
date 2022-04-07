@@ -1,17 +1,17 @@
-import { Component, OnInit } from "@angular/core";
-import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
-import { AccountService } from "../../../service/account.service";
-import { TAG_REGEX } from "../../../util/format";
-import { catchError, throwError } from "rxjs";
-import { HttpErrorResponse } from "@angular/common/http";
-import { printError } from "../../../util/http";
-import { ExtService } from "../../../service/api/ext.service";
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
+import { AccountService } from '../../../service/account.service';
+import { ExtService } from '../../../service/api/ext.service';
+import { TAG_REGEX } from '../../../util/format';
+import { printError } from '../../../util/http';
 
 @Component({
   selector: 'app-create-ext-page',
   templateUrl: './ext.component.html',
-  styleUrls: ['./ext.component.scss']
+  styleUrls: ['./ext.component.scss'],
 })
 export class CreateExtPage implements OnInit {
 
