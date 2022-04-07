@@ -5,6 +5,7 @@
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>
-<app-sidebar></app-sidebar>
+<app-sidebar [tag]="localTag$ | async"
+             [ext]="ext$ | async"></app-sidebar>
 <app-ref-list [page]="page$ | async"
               [pinned]="pinned$ | async"></app-ref-list>

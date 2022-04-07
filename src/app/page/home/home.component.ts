@@ -24,10 +24,7 @@ export class HomePage implements OnInit {
     private refs: RefService,
   ) {
     this.page$ = combineLatest(
-      this.path$,
-      this.filter$,
-      this.pageNumber$,
-      this.pageSize$,
+      this.path$, this.filter$, this.pageNumber$, this.pageSize$,
     ).pipe(
       distinctUntilChanged(_.isEqual),
       mergeMap(([path, filter, pageNumber, pageSize]) => {

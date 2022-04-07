@@ -1,12 +1,13 @@
-<ng-container *ngIf="!source$">
-  Loading...
-</ng-container>
 <hr>
-<app-comment-reply [top]="ref"
-                   [sources]="[source$.value]"
-                   [tags]="inboxes"
-                   [newComments$]="newComments$"></app-comment-reply>
-<app-comment-list *ngIf="source$"
-                  [top]="ref"
-                  [source$]="source$"
-                  [newComments$]="newComments$"></app-comment-list>
+<ng-container *ngIf="ref$ | async as ref; else loading">
+  <app-comment-reply [top]="ref"
+                     [sources]="[ref.url]"
+                     [tags]="inboxes$ | async"
+                     [newComments$]="newComments$"></app-comment-reply>
+  <app-comment-list *ngIf="url$"
+                    [top]="ref"
+                    [source$]="url$"
+                    [newComments$]="newComments$"
+                    [depth]="depth$ | async"></app-comment-list>
+</ng-container>
+<ng-template #loading><app-loading></app-loading></ng-template>

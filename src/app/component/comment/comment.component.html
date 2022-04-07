@@ -69,11 +69,11 @@
       (click)="depth = depth + 1">
   load more comments
 </span>
-<div *ngIf="depth > 0"
+<div *ngIf="depth! > 0"
      class="comment-children"
      [class.hidden-without-removing]="collapsed">
   <app-comment-list [top]="top"
                     [source$]="source$"
-                    [depth]="depth - 1"
+                    [depth]="depth! - 1"
                     [newComments$]="newComments$"></app-comment-list>
 </div>

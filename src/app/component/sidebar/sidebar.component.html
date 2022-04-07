@@ -15,15 +15,17 @@
      [katexOptions]="{ throwOnError: false }"
      [data]="ext?.config?.sidebar"></div>
 
-<a *ngIf="ext && writeAccess"
-   class="sidebar-edit"
-   [routerLink]="['/tag', tag, 'edit']">
-  edit tag extension
-</a>
+<ng-container *ngIf="tag && (account.writeAccessTag(tag!) | async)">
+  <a *ngIf="ext"
+     class="sidebar-edit"
+     [routerLink]="['/tag', tag, 'edit']">
+    edit tag extension
+  </a>
 
-<a *ngIf="tag && !ext && writeAccess"
-   class="sidebar-edit"
-   routerLink="/create/ext"
-   [queryParams]="{ tag }">
-  create tag extension
-</a>
+  <a *ngIf="!ext"
+     class="sidebar-edit"
+     routerLink="/create/ext"
+     [queryParams]="{ tag }">
+    create tag extension
+  </a>
+</ng-container>

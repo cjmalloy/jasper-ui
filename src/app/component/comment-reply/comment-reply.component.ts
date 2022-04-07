@@ -19,9 +19,9 @@ export class CommentReplyComponent implements AfterViewInit {
   @Input()
   sources!: string[];
   @Input()
-  tags: string[] = [];
+  tags?: string[] | null = [];
   @Input()
-  newComments$!: Subject<Ref | undefined>;
+  newComments$!: Subject<Ref | null>;
   @Input()
   showCancel = false;
 
@@ -45,7 +45,7 @@ export class CommentReplyComponent implements AfterViewInit {
       sources: this.sources,
       title: 'Reply to: ' + this.top.title,
       comment: value,
-      tags: ['public', 'plugin/comment', this.account.tag, ...this.tags],
+      tags: ['public', 'plugin/comment', this.account.tag, ...this.tags!],
       plugins: {
         'plugin/comment': {},
       },
@@ -59,7 +59,7 @@ export class CommentReplyComponent implements AfterViewInit {
   }
 
   cancel() {
-    this.newComments$.next(undefined);
+    this.newComments$.next(null);
     this.textbox.nativeElement.value = '';
   }
 }

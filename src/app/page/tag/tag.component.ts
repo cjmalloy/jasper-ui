@@ -6,9 +6,10 @@ import { Ref } from "../../model/ref";
 import { AccountService } from "../../service/account.service";
 import { catchError, combineLatest, map, Observable, of } from "rxjs";
 import { ExtService } from "../../service/ext.service";
-import { localTag } from "../../util/tag";
 import { Page } from "../../model/page";
 import * as _ from "lodash";
+import { localTag } from "../../util/tag";
+import { Ext } from "../../model/ext";
 
 @Component({
   selector: 'app-tag-page',
@@ -17,9 +18,12 @@ import * as _ from "lodash";
 })
 export class TagPage implements OnInit {
 
+  localTag$: Observable<string>;
+  ext$: Observable<Ext>;
   page$: Observable<Page<Ref>>;
-  defaultPageSize = 20;
   pinned$: Observable<Ref[]>;
+
+  private defaultPageSize = 20;
 
   constructor(
     private router: Router,
@@ -40,9 +44,13 @@ export class TagPage implements OnInit {
           size: pageSize ?? this.defaultPageSize,
         })));
     }));
-    this.pinned$ = this.tag$.pipe(
+    this.localTag$ = this.tag$.pipe(
       map(tag => localTag(tag)),
+    );
+    this.ext$ = this.localTag$.pipe(
       mergeMap(tag => this.exts.get(tag)),
+    );
+    this.pinned$ = this.ext$.pipe(
       mergeMap(ext => of(...ext.config.pinned as string[])),
       mergeMap(pin => this.refs.get(pin)),
       scan((acc, value) => [...acc, value], [] as Ref[]),
@@ -55,19 +63,28 @@ export class TagPage implements OnInit {
   }
 
   get tag$() {
-    return this.route.params.pipe(map(params => params['tag']));
+    return this.route.params.pipe(
+      map(params => params['tag']),
+      distinctUntilChanged(),
+    );
   }
 
   get filter$() {
-    return this.route.params.pipe(map(params => params['filter']));
+    return this.route.params.pipe(
+      map(params => params['filter']),
+    );
   }
 
   get pageNumber$() {
-    return this.route.queryParams.pipe(map(params => params['pageNumber']));
+    return this.route.queryParams.pipe(
+      map(params => params['pageNumber']),
+    );
   }
 
   get pageSize$() {
-    return this.route.queryParams.pipe(map(params => params['pageSize']));
+    return this.route.queryParams.pipe(
+      map(params => params['pageSize'])
+    );
   }
 
   getArgs(tag: string, filter: string): Observable<Record<string, any>> {

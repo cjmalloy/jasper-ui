@@ -2,7 +2,7 @@ import { Component, Input, OnDestroy, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { Page } from "../../model/page";
 import { RefService } from "../../service/ref.service";
-import { BehaviorSubject, Observable, Subject, takeUntil } from "rxjs";
+import { Observable, Subject, takeUntil } from "rxjs";
 
 @Component({
   selector: 'app-comment-list',
@@ -15,27 +15,27 @@ export class CommentListComponent implements OnInit, OnDestroy {
   @Input()
   top!: Ref;
   @Input()
-  source$!: BehaviorSubject<string>;
+  source$!: Observable<string>;
   @Input()
-  depth = 7;
+  depth?: number | null = 7;
   @Input()
-  newComments$!: Observable<Ref | undefined>;
+  newComments$!: Observable<Ref | null>;
 
+  newComments: Ref[] = [];
   pages: Page<Ref>[] = [];
+  hasMore = false;
+
+  private source?: string;
 
   constructor(
     private refs: RefService,
   ) { }
 
-  get hasMore() {
-    if (this.pages.length === 0) return false;
-    return this.pages.length < this.pages[0].totalPages;
-  }
-
   ngOnInit(): void {
     this.source$.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(() => {
+    ).subscribe(source => {
+      this.source = source;
       this.pages = [];
       this.loadMore();
     });
@@ -52,9 +52,12 @@ export class CommentListComponent implements OnInit, OnDestroy {
   loadMore() {
     this.refs.page({
       query: 'plugin/comment@*',
-      responses: this.source$.value,
+      responses: this.source,
       page: this.pages.length,
-    }).subscribe(page => this.pages.push(page));
+    }).subscribe(page => {
+      this.pages.push(page);
+      this.hasMore = this.pages.length < this.pages[0].totalPages;
+    });
   }
 
 }

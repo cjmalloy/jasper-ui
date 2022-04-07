@@ -21,14 +21,14 @@ export class CommentComponent implements OnInit, OnDestroy {
   @Input()
   ref!: Ref;
   @Input()
-  depth = 7;
+  depth?: number | null = 7;
 
   @ViewChild('inlineTag')
   inlineTag?: ElementRef;
 
   source$ = new BehaviorSubject<string>(null!);
   commentEdited$ = new Subject<void>();
-  newComments$ = new Subject<Ref | undefined>();
+  newComments$ = new Subject<Ref | null>();
   childCount?: number;
   responseCount?: number;
   sourceCount?: number;

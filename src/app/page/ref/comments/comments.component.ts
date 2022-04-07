@@ -1,24 +1,26 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
-import { BehaviorSubject, mergeMap, Subject } from "rxjs";
+import { ActivatedRoute, Router } from "@angular/router";
+import { map, mergeMap, Observable, Subject } from "rxjs";
 import { Ref } from "../../../model/ref";
-import { filter, switchMap, tap } from "rxjs/operators";
 import { RefService } from "../../../service/ref.service";
 import { AccountService } from "../../../service/account.service";
 import { inboxes } from "../../../plugin/inbox";
+import { distinctUntilChanged } from "rxjs/operators";
 
 @Component({
   selector: 'app-comments',
   templateUrl: './comments.component.html',
-  styleUrls: ['./comments.component.scss']
+  styleUrls: ['./comments.component.scss'],
 })
 export class CommentsComponent implements OnInit, OnDestroy {
 
-  ref!: Ref;
-  inboxes: string[] = [];
-  source$ = new BehaviorSubject<string>(null!);
-  depth = 7;
-  newComments$ = new Subject<Ref | undefined>();
+  depth$: Observable<number>;
+  url$: Observable<string>;
+  ref$: Observable<Ref>;
+  inboxes$: Observable<string[]>;
+  newComments$ = new Subject<Ref | null>();
+
+  private depth = 7;
 
   constructor(
     private router: Router,
@@ -26,21 +28,26 @@ export class CommentsComponent implements OnInit, OnDestroy {
     private account: AccountService,
     private refs: RefService,
   ) {
-    route.queryParams.subscribe(queryParams => this.depth = queryParams['depth'] || this.depth);
-    router.events.pipe(
-      filter(event => event instanceof NavigationEnd),
-      switchMap(() => route.params),
-      tap(params => this.source$.next(params['ref'])),
-      mergeMap(() => refs.get(this.source$.value)),
-      tap(ref => this.ref = ref),
-    ).subscribe(ref => this.inboxes = inboxes(ref, account.tag));
+    this.depth$ = this.route.queryParams.pipe(
+      map(queryParams => queryParams['depth'] || this.depth),
+      distinctUntilChanged(),
+    );
+    this.url$ = this.route.params.pipe(
+      map(params => params['ref']),
+      distinctUntilChanged(),
+    );
+    this.ref$ = this.url$.pipe(
+      mergeMap(url => this.refs.get(url)),
+    );
+    this.inboxes$ = this.ref$.pipe(
+      map(ref => inboxes(ref, this.account.tag)),
+    );
   }
 
   ngOnInit(): void {
   }
 
   ngOnDestroy() {
-    this.source$.complete();
     this.newComments$.complete();
   }
 }
