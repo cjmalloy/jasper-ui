@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { map, mergeMap, Observable, Subject } from "rxjs";
 import { Ref } from "../../../model/ref";
-import { RefService } from "../../../service/ref.service";
+import { RefService } from "../../../service/api/ref.service";
 import { AccountService } from "../../../service/account.service";
 import { inboxes } from "../../../plugin/inbox";
 import { distinctUntilChanged } from "rxjs/operators";

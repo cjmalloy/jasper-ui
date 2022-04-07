@@ -6,7 +6,7 @@ import { TAG_REGEX } from "../../../util/format";
 import { catchError, throwError } from "rxjs";
 import { HttpErrorResponse } from "@angular/common/http";
 import { printError } from "../../../util/http";
-import { ExtService } from "../../../service/ext.service";
+import { ExtService } from "../../../service/api/ext.service";
 
 @Component({
   selector: 'app-create-ext-page',

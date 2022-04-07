@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
 import { Page } from "../../model/page";
-import { RefService } from "../../service/ref.service";
+import { RefService } from "../../service/api/ref.service";
 import { Observable, Subject, takeUntil } from "rxjs";
 
 @Component({

@@ -1,6 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
-import { RefService } from "../../service/ref.service";
+import { RefService } from "../../service/api/ref.service";
 import { Page } from "../../model/page";
 import { distinctUntilChanged, mergeMap } from "rxjs/operators";
 import { ActivatedRoute } from "@angular/router";

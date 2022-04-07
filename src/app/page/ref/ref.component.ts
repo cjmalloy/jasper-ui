@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { Ref } from "../../model/ref";
-import { RefService } from "../../service/ref.service";
+import { RefService } from "../../service/api/ref.service";
 import { ActivatedRoute, Router } from "@angular/router";
 import { distinctUntilChanged, mergeMap } from "rxjs/operators";
 import { catchError, map, Observable, of, shareReplay, Subject } from "rxjs";

@@ -2,7 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { Page } from "../../../model/page";
 import { Ref } from "../../../model/ref";
 import { ActivatedRoute } from "@angular/router";
-import { RefService } from "../../../service/ref.service";
+import { RefService } from "../../../service/api/ref.service";
 import { mergeMap } from "rxjs/operators";
 import { map, Observable } from "rxjs";
 

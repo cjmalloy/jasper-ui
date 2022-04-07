@@ -1,10 +1,10 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { ConfigService } from "./config.service";
+import { ConfigService } from "../config.service";
 import { map, Observable } from "rxjs";
-import { mapRef, Ref } from "../model/ref";
-import { mapPage, Page } from "../model/page";
-import { params } from "../util/http";
+import { mapRef, Ref } from "../../model/ref";
+import { mapPage, Page } from "../../model/page";
+import { params } from "../../util/http";
 import * as moment from "moment";
 
 @Injectable({

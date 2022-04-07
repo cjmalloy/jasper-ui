@@ -1,9 +1,9 @@
 import { Component } from "@angular/core";
 import { ThemeService } from "./service/theme.service";
 import { AccountService } from "./service/account.service";
-import { TemplateService } from "./service/template.service";
+import { TemplateService } from "./service/api/template.service";
 import { catchError, forkJoin, of } from "rxjs";
-import { PluginService } from "./service/plugin.service";
+import { PluginService } from "./service/api/plugin.service";
 import { printError } from "./util/http";
 import * as moment from "moment";
 

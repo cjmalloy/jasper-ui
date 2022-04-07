@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, HostBinding, Input, OnInit, ViewC
 import { Subject } from "rxjs";
 import { Ref } from "../../model/ref";
 import { AccountService } from "../../service/account.service";
-import { RefService } from "../../service/ref.service";
+import { RefService } from "../../service/api/ref.service";
 
 @Component({
   selector: 'app-comment-edit',

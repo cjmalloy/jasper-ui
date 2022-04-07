@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { Ref } from "../../model/ref";
-import { RefService } from "../../service/ref.service";
+import { RefService } from "../../service/api/ref.service";
 import { authors, interestingTags } from "../../util/format";
 import { BehaviorSubject, mergeMap, Observable, Subject, takeUntil } from "rxjs";
 import { inboxes } from "../../plugin/inbox";

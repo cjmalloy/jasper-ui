@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from "@angular/core";
 import { Ref } from "../../model/ref";
-import { RefService } from "../../service/ref.service";
+import { RefService } from "../../service/api/ref.service";
 import { authors, interestingTags, refUrlSummary, TAG_REGEX, webLink } from "../../util/format";
 import * as _ from "lodash";
 import { catchError, mergeMap, Observable, throwError } from "rxjs";

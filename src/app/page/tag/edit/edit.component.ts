@@ -2,7 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { AccountService } from "../../../service/account.service";
-import { ExtService } from "../../../service/ext.service";
+import { ExtService } from "../../../service/api/ext.service";
 import { catchError, map, mergeMap, throwError } from "rxjs";
 import { HttpErrorResponse } from "@angular/common/http";
 import { printError } from "../../../util/http";

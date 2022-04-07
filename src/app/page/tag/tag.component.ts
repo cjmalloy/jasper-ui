@@ -1,11 +1,11 @@
 import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { RefService } from "../../service/ref.service";
+import { RefService } from "../../service/api/ref.service";
 import { distinctUntilChanged, filter, mergeMap, scan, take } from "rxjs/operators";
 import { Ref } from "../../model/ref";
 import { AccountService } from "../../service/account.service";
 import { catchError, combineLatest, map, Observable, of } from "rxjs";
-import { ExtService } from "../../service/ext.service";
+import { ExtService } from "../../service/api/ext.service";
 import { Page } from "../../model/page";
 import * as _ from "lodash";
 import { localTag } from "../../util/tag";

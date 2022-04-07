@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, HostBinding, Input, ViewChild } f
 import { mergeMap, Subject } from "rxjs";
 import { Ref } from "../../model/ref";
 import { AccountService } from "../../service/account.service";
-import { RefService } from "../../service/ref.service";
+import { RefService } from "../../service/api/ref.service";
 import { v4 as uuid } from "uuid";
 import * as moment from "moment";
 

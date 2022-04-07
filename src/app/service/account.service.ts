@@ -1,17 +1,17 @@
 import { Injectable } from "@angular/core";
-import { UserService } from "./user.service";
+import { UserService } from "./api/user.service";
 import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from "rxjs";
 import { User } from "../model/user";
-import { ExtService } from "./ext.service";
+import { ExtService } from "./api/ext.service";
 import { Ext } from "../model/ext";
 import { mergeMap, tap } from "rxjs/operators";
 import * as moment from "moment";
-import { RefService } from "./ref.service";
+import { RefService } from "./api/ref.service";
 import { getInbox } from "../plugin/inbox";
 import { Ref } from "../model/ref";
 import { capturesAny, isOwner, qualifyTags } from "../util/tag";
 import * as _ from "lodash";
-import { TemplateService } from "./template.service";
+import { TemplateService } from "./api/template.service";
 
 export const CACHE_MS = 15000;
 

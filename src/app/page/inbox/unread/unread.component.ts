@@ -1,7 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { Page } from "../../../model/page";
 import { Ref } from "../../../model/ref";
-import { RefService } from "../../../service/ref.service";
+import { RefService } from "../../../service/api/ref.service";
 import { mergeMap, tap } from "rxjs/operators";
 import * as moment from "moment";
 import { AccountService } from "../../../service/account.service";

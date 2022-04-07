@@ -1,10 +1,10 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { ConfigService } from "./config.service";
-import { mapUser, User } from "../model/user";
+import { ConfigService } from "../config.service";
+import { mapUser, User } from "../../model/user";
 import { map, Observable } from "rxjs";
-import { mapPage, Page } from "../model/page";
-import { params } from "../util/http";
+import { mapPage, Page } from "../../model/page";
+import { params } from "../../util/http";
 
 @Injectable({
   providedIn: 'root'

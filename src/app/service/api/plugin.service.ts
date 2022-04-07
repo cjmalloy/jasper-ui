@@ -1,15 +1,15 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { ConfigService } from "./config.service";
-import { mapOrigin, Origin } from "../model/origin";
+import { ConfigService } from "../config.service";
+import { mapPlugin, Plugin } from "../../model/plugin";
 import { map, Observable } from "rxjs";
-import { mapPage, Page } from "../model/page";
-import { params } from "../util/http";
+import { mapPage, Page } from "../../model/page";
+import { params } from "../../util/http";
 
 @Injectable({
   providedIn: 'root'
 })
-export class OriginService {
+export class PluginService {
 
   constructor(
     private http: HttpClient,
@@ -17,17 +17,17 @@ export class OriginService {
   ) { }
 
   private get base() {
-    return this.config.api + '/api/v1/origin';
+    return this.config.api + '/api/v1/plugin';
   }
 
-  create(origin: Origin): Observable<void> {
-    return this.http.post<void>(this.base, origin);
+  create(plugin: Plugin): Observable<void> {
+    return this.http.post<void>(this.base, plugin);
   }
 
-  get(origin: string): Observable<Origin> {
+  get(tag: string, origin = ''): Observable<Plugin> {
     return this.http.get(this.base, {
-      params: { origin },
-    }).pipe(map(mapOrigin));
+      params: { tag, origin },
+    }).pipe(map(mapPlugin));
   }
 
   page(args: {
@@ -36,14 +36,14 @@ export class OriginService {
     size?: number,
     sort?: string,
     direction?: 'asc' | 'desc',
-  }): Observable<Page<Origin>> {
+  }): Observable<Page<Plugin>> {
     return this.http.get(`${this.base}/list`, {
       params: params(args),
-    }).pipe(map(mapPage(mapOrigin)));
+    }).pipe(map(mapPage(mapPlugin)));
   }
 
-  update(origin: Origin): Observable<void> {
-    return this.http.put<void>(this.base, origin);
+  update(plugin: Plugin): Observable<void> {
+    return this.http.put<void>(this.base, plugin);
   }
 
   delete(tag: string): Observable<void> {
