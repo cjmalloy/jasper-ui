@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import * as moment from 'moment';
 import { map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
-import { mapRef, Ref } from '../../model/ref';
+import { mapRef, Ref, writeRef } from '../../model/ref';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 
@@ -69,7 +69,7 @@ export class RefService {
   }
 
   update(ref: Ref): Observable<void> {
-    return this.http.put<void>(this.base, ref);
+    return this.http.put<void>(this.base, writeRef(ref));
   }
 
   patch(url: string, origin: string, patch: any[]): Observable<void> {

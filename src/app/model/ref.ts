@@ -26,3 +26,10 @@ export function mapRef(obj: any): Ref {
   obj.modified = moment(obj.modified);
   return obj;
 }
+
+export function writeRef(ref: Ref): Record<string, any> {
+  const result = { ...ref };
+  delete result.metadata;
+  delete result.created;
+  return result;
+}
