@@ -47,8 +47,9 @@ export class AccountService {
       mergeMap(() => this.users.amIMod()),
       tap(mod => this.mod = mod),
       mergeMap(() => this.getMyUserExt()),
-      catchError(err => this.templates.get('user')),
-      mergeMap(() => this.exts.create({ tag: this.tag})),
+      catchError(err => this.templates.get('user').pipe(
+        mergeMap(() => this.exts.create({ tag: this.tag})),
+      )),
       catchError(err => of(null)),
     );
   }
