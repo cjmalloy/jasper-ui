@@ -32,12 +32,12 @@ export class RefComponent implements OnInit {
 
   editForm: FormGroup;
   submitted = false;
-  commentCount?: number;
-  responseCount?: number;
-  sourceCount?: number;
   expandPlugin?: string;
   tagging = false;
   editing = false;
+  deleting = false;
+  @HostBinding('class.deleted')
+  deleted = false;
   writeAccess$?: Observable<boolean>;
   serverError: string[] = [];
 
@@ -55,9 +55,6 @@ export class RefComponent implements OnInit {
 
   ngOnInit(): void {
     this.writeAccess$ = this.account.writeAccess(this.ref);
-    this.refs.count({ query: 'plugin/comment@*', responses: this.ref.url }).subscribe(n => this.commentCount = n);
-    this.refs.count({ query: '!plugin/comment@*', responses: this.ref.url }).subscribe(n => this.responseCount = n);
-    this.refs.count({ sources: this.ref.url }).subscribe(n => this.sourceCount = n);
     if (this.ref.tags) {
       this.expandPlugin = _.intersection(this.ref.tags, this.expandable)[0];
     }
@@ -91,24 +88,26 @@ export class RefComponent implements OnInit {
   }
 
   get comments() {
-    if (this.commentCount === undefined) return '? comments';
-    if (this.commentCount === 0) return 'comment';
-    if (this.commentCount === 1) return '1 comment';
-    return this.commentCount + ' comments';
+    if (!this.ref.metadata) return '? comments';
+    const commentCount = this.ref.metadata.comments.length;
+    if (commentCount === 0) return 'comment';
+    if (commentCount === 1) return '1 comment';
+    return commentCount + ' comments';
   }
 
   get responses() {
-    if (this.responseCount === undefined) return '? citations';
-    if (this.responseCount === 0) return 'uncited';
-    if (this.responseCount === 1) return '1 citation';
-    return this.responseCount + ' citations';
+    if (!this.ref.metadata) return '? citations';
+    const responseCount = this.ref.metadata.responses.length - this.ref.metadata.comments.length;
+    if (responseCount === 0) return 'uncited';
+    if (responseCount === 1) return '1 citation';
+    return responseCount + ' citations';
   }
 
   get sources() {
-    if (this.sourceCount === undefined) return '? sources';
-    if (this.sourceCount === 0) return 'unsourced';
-    if (this.sourceCount === 1) return '1 source';
-    return this.sourceCount + ' sources';
+    const sourceCount = this.ref.sources?.length || 0;
+    if (sourceCount === 0) return 'unsourced';
+    if (sourceCount === 1) return '1 source';
+    return sourceCount + ' sources';
   }
 
   addInlineTag() {
@@ -160,6 +159,12 @@ export class RefComponent implements OnInit {
     ).subscribe(ref => {
       this.editing = false;
       this.ref = ref;
+    });
+  }
+
+  delete() {
+    this.refs.delete(this.ref.url, this.ref.origin!).subscribe(() => {
+      this.deleted = true;
     });
   }
 }

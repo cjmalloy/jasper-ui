@@ -29,9 +29,6 @@ export class CommentComponent implements OnInit, OnDestroy {
   source$ = new BehaviorSubject<string>(null!);
   commentEdited$ = new Subject<void>();
   newComments$ = new Subject<Ref | null>();
-  childCount?: number;
-  responseCount?: number;
-  sourceCount?: number;
   collapsed = false;
   replying = false;
   editing = false;
@@ -46,15 +43,13 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.writeAccess$ = this.account.writeAccess(this.ref);
-    this.refs.count({ query: 'plugin/comment@*', responses: this.ref.url }).subscribe(n => this.childCount = n);
-    this.refs.count({ query: '!plugin/comment@*', responses: this.ref.url }).subscribe(n => this.responseCount = n);
-    this.refs.count({ query: '!plugin/comment@*', sources: this.ref.url }).subscribe(n => this.sourceCount = n);
     this.newComments$.pipe(
       takeUntil(this.destroy$)
     ).subscribe(ref => {
       this.replying = false;
-      if (ref) {
-        this.childCount = this.childCount! + 1;
+      if (ref?.metadata) {
+        this.ref.metadata!.comments.push(ref.url);
+        this.ref.metadata!.responses.push(ref.url);
         if (this.depth === 0) this.depth = 1;
       }
     });
@@ -85,23 +80,26 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get comments() {
-    if (this.childCount === undefined) return '(? comments)';
-    if (this.childCount === 1) return '(1 comment)';
-    return `(${this.childCount} comments)`;
+    if (!this.ref.metadata) return '? comments';
+    const commentCount = this.ref.metadata.comments.length;
+    if (commentCount === 0) return 'comment';
+    if (commentCount === 1) return '1 comment';
+    return commentCount + ' comments';
   }
 
   get responses() {
-    if (this.responseCount === undefined) return '? citations';
-    if (this.responseCount === 0) return 'uncited';
-    if (this.responseCount === 1) return '1 citation';
-    return this.responseCount + ' citations';
+    if (!this.ref.metadata) return '? citations';
+    const responseCount = this.ref.metadata.responses.length - this.ref.metadata.comments.length;
+    if (responseCount === 0) return 'uncited';
+    if (responseCount === 1) return '1 citation';
+    return responseCount + ' citations';
   }
 
   get sources() {
-    if (this.sourceCount === undefined) return '? sources';
-    if (this.sourceCount === 0) return 'unsourced';
-    if (this.sourceCount === 1) return '1 source';
-    return this.sourceCount + ' sources';
+    const sourceCount = this.ref.sources?.length || 0;
+    if (sourceCount === 0) return 'unsourced';
+    if (sourceCount === 1) return '1 source';
+    return sourceCount + ' sources';
   }
 
   addInlineTag() {

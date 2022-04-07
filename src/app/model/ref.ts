@@ -9,9 +9,15 @@ export interface Ref {
   sources?: string[];
   alternateUrls?: string[];
   plugins?: Record<string, any>;
+  metadata?: Metadata;
   published: moment.Moment;
   created?: moment.Moment;
   modified?: moment.Moment;
+}
+
+export interface Metadata {
+  responses: string[];
+  comments: string[];
 }
 
 export function mapRef(obj: any): Ref {

@@ -1,7 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { RefService } from "../../service/ref.service";
-import { distinctUntilChanged, mergeMap, scan, take } from "rxjs/operators";
+import { distinctUntilChanged, filter, mergeMap, scan, take } from "rxjs/operators";
 import { Ref } from "../../model/ref";
 import { AccountService } from "../../service/account.service";
 import { catchError, combineLatest, map, Observable, of } from "rxjs";
@@ -46,6 +46,7 @@ export class TagPage implements OnInit {
     }));
     this.localTag$ = this.tag$.pipe(
       map(tag => localTag(tag)),
+      filter(tag => !!tag),
     );
     this.ext$ = this.localTag$.pipe(
       mergeMap(tag => this.exts.get(tag)),

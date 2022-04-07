@@ -40,6 +40,7 @@ export function isOwner(user: User, ref: Ref) {
  * Return local tag if origin is a wildcard.
  */
 export function localTag(tag: string) {
+  if (tag.startsWith('@')) return '';
   if (tag.endsWith('@*')) {
     return tag.substring(0, tag.length - 2);
   }

@@ -3,7 +3,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms"
 import { ActivatedRoute, Router } from "@angular/router";
 import { AccountService } from "../../../service/account.service";
 import { ExtService } from "../../../service/ext.service";
-import { catchError, mergeMap, throwError } from "rxjs";
+import { catchError, map, mergeMap, throwError } from "rxjs";
 import { HttpErrorResponse } from "@angular/common/http";
 import { printError } from "../../../util/http";
 import { localTag } from "../../../util/tag";
@@ -36,9 +36,7 @@ export class EditTagPage implements OnInit {
         pinned: fb.array([]),
       }),
     });
-    route.params.pipe(
-      mergeMap(params => exts.get(localTag(params['tag']))),
-    ).subscribe(ext => {
+    this.ext$.subscribe(ext => {
       this.ext = ext;
       while (this.pinned.length < (ext.config.pinned?.length || 0)) this.addPinned();
       this.editForm.patchValue(ext);
@@ -46,6 +44,18 @@ export class EditTagPage implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  get tag$() {
+    return this.route.params.pipe(
+      map(params => localTag(params['tag'])),
+    );
+  }
+
+  get ext$() {
+    return this.tag$.pipe(
+      mergeMap(tag => this.exts.get(tag)),
+    );
   }
 
   get tag() {

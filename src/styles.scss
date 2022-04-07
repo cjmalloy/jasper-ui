@@ -22,6 +22,16 @@ html, body {
   cursor: pointer;
 }
 
+.error-404 {
+  font-size: 300%;
+  text-align: center;
+}
+
+.deleted {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
 .subscription-bar {
   font-size: 70%;
   border-bottom: 1px solid transparent;
@@ -183,7 +193,7 @@ html, body {
   font-size: 80%;
   font-weight: bold;
   a {
-    margin: 2px 4px 2px 0;
+    margin: 2px 6px 2px 0;
   }
   input {
     margin: 0;

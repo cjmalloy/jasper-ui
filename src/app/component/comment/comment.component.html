@@ -35,8 +35,8 @@
                     [commentEdited$]="commentEdited$"></app-comment-edit>
   <div class="actions">
     <a [routerLink]="['/ref/comments/', ref.url]">permalink</a>
-    <a [routerLink]="['/ref/responses/', ref.url]">{{ responses }}</a>
-    <a [routerLink]="['/ref/sources/', ref.url]">{{ sources }}</a>
+    <a [routerLink]="['/ref/responses/', ref.url]">{{ responses.replace(' ', '&thinsp;') }}</a>
+    <a [routerLink]="['/ref/sources/', ref.url]">{{ sources.replace(' ', '&thinsp;')}}</a>
     <a [routerLink]="['/ref/graph/', ref.url]">graph</a>
     <a class="fake-link" *ngIf="writeAccess$ | async" (click)="editing = !editing">edit</a>
     <a class="fake-link" *ngIf="!deleting && (writeAccess$ | async)" (click)="deleting = true">delete</a>
@@ -65,7 +65,7 @@
                    [tags]="inboxes"
                    [newComments$]="newComments$"></app-comment-reply>
 <span class="fake-link load-more"
-      *ngIf="!collapsed && depth === 0 && childCount! > 0"
+      *ngIf="!collapsed && depth === 0 && ref.metadata!.comments.length > 0"
       (click)="depth = depth + 1">
   load more comments
 </span>

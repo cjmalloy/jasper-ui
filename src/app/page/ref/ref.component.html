@@ -6,9 +6,15 @@
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>
-<ng-container *ngIf="ref$ | async as ref; else loading">
-  <app-ref [ref]="ref"
-           [expanded]="true"></app-ref>
+<ng-container *ngIf="!error; else errorMessage">
+  <ng-container *ngIf="ref$ | async as ref; else loading">
+    <app-ref [ref]="ref"
+             [expanded]="true"></app-ref>
+  </ng-container>
+  <ng-template #loading><app-loading></app-loading></ng-template>
+  <router-outlet></router-outlet>
 </ng-container>
-<ng-template #loading><app-loading></app-loading></ng-template>
-<router-outlet></router-outlet>
+<ng-template #errorMessage>
+  <div *ngIf="error!.status === 404" class="error-404">Not Found</div>
+  <div *ngIf="error!.status !== 404" class="error">{{ printError(error!) }}</div>
+</ng-template>

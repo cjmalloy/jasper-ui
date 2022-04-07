@@ -3,7 +3,9 @@ import { Ref } from "../../model/ref";
 import { RefService } from "../../service/ref.service";
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { distinctUntilChanged, filter, mergeMap } from "rxjs/operators";
-import { map, Observable, Subject, takeUntil } from "rxjs";
+import { catchError, map, Observable, of, Subject, takeUntil } from "rxjs";
+import { HttpErrorResponse } from "@angular/common/http";
+import { printError } from "../../util/http";
 
 @Component({
   selector: 'app-ref-page',
@@ -13,7 +15,9 @@ import { map, Observable, Subject, takeUntil } from "rxjs";
 export class RefPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  ref$!: Observable<Ref>;
+  ref$!: Observable<Ref | null>;
+  error?: HttpErrorResponse;
+  printError = printError;
 
   constructor(
     private router: Router,
@@ -26,6 +30,10 @@ export class RefPage implements OnInit, OnDestroy {
     ).subscribe(() => {
       this.ref$ = this.url$.pipe(
         mergeMap(url => refs.get(url)),
+        catchError(err => {
+          this.error = err;
+          return of(null);
+        }),
       );
     })
   }
