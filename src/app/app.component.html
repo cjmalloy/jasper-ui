@@ -3,7 +3,8 @@
 </div>
 
 <div *ngIf="account.admin && doSetup">
-  Welcome to Jasper! Click <a class="fake-link" (click)="setupJasper()">here</a> to install the required plugins and tag extensions.
+  Welcome to Jasper! Click <a class="fake-link link-style" (click)="setupJasper()">here</a> to install the required plugins and tag
+  extensions.
 </div>
 
 <ng-container *ngFor="let e of setupErrors">

@@ -12,6 +12,9 @@ body.light-theme {
   background-color: $bg;
   color: $text;
 
+  .link-style {
+    color: blue;
+  }
   :active {
     color: $text;
   }
