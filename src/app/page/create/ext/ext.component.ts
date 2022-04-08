@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AccountService } from '../../../service/account.service';
@@ -61,7 +61,7 @@ export class CreateExtPage implements OnInit {
   }
 
   get pinned() {
-    return this.config.get('pinned') as any;
+    return this.config.get('pinned') as FormArray;
   }
 
   addPinned() {

@@ -55,7 +55,7 @@ export class AccountService {
   }
 
   get loadUserExt$() {
-    if (!this.adminService.templates.user) return of();
+    if (!this.adminService.status.templates.user) return of();
     return this.userExt$.pipe(catchError(err => this.exts.create({ tag: this.tag })));
   }
 
@@ -91,7 +91,7 @@ export class AccountService {
   }
 
   get subscriptions$(): Observable<string[]> {
-    if (!this.signedIn || !this.adminService.templates.user) return of(this.adminService.defaultSubscriptions);
+    if (!this.signedIn || !this.adminService.status.templates.user) return of(this.adminService.defaultSubscriptions);
     return this.userExt$.pipe(map(ext => ext.config.subscriptions),
     )
   }
