@@ -1,0 +1,35 @@
+
+<form class="form" [formGroup]="adminForm" (ngSubmit)="install()">
+  <span><!-- Title --></span>
+  <h3>Install Plugins and Templates</h3>
+  <span>Plugins:</span>
+  <div formGroupName="plugins">
+    <div *ngFor="let plugin of admin.status.plugins | keyvalue">
+      <input id="plugin-{{ plugin.key }}" type="checkbox" [formControlName]="$any(plugin.key)">
+      <label for="plugin-{{ plugin.key }}">{{ plugin.key }}</label>
+    </div>
+  </div>
+
+  <span>Templates:</span>
+  <div formGroupName="templates">
+    <div *ngFor="let template of admin.status.templates | keyvalue">
+      <input id="plugin-{{ template.key }}" type="checkbox" [formControlName]="$any(template.key)">
+      <label for="plugin-{{ template.key }}">{{ template.key }}</label>
+    </div>
+  </div>
+
+  <ng-container *ngFor="let e of serverError">
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  </ng-container>
+
+  <span><!-- Buttons --></span>
+  <span>
+    <button type="submit" [disabled]="submitted && !adminForm.valid">Install</button>
+  </span>
+
+  <ng-container *ngFor="let i of installMessages">
+    <span><!-- Progress Log --></span>
+    <div>{{ i }}</div>
+  </ng-container>
+</form>
