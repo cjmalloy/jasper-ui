@@ -2,7 +2,7 @@
 <ng-container *ngIf="ref$ | async as ref; else loading">
   <app-comment-reply [top]="ref"
                      [sources]="[ref.url]"
-                     [tags]="inboxes$ | async"
+                     [tags]="(inboxes$ | async) || []"
                      [newComments$]="newComments$"></app-comment-reply>
   <app-comment-list *ngIf="url$"
                     [top]="ref"

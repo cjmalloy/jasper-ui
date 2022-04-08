@@ -42,8 +42,9 @@ export class AdminSetupPage implements OnInit {
     this.adminForm.markAllAsTouched();
     if (!this.adminForm.valid) return;
     const installs = [];
-    for (const plugin in this.admin.status.plugins) {
-      if (this.admin.status.plugins[plugin] === this.adminForm.value.plugins[plugin]) continue;
+    const plugins: Record<string, boolean> = this.admin.status.plugins;
+    for (const plugin in plugins) {
+      if (plugins[plugin] === this.adminForm.value.plugins[plugin]) continue;
       if (this.adminForm.value.plugins[plugin]) {
         this.installMessages.push(`Installing ${plugin} plugin...`);
         installs.push(this.plugins.create(this.admin.def.plugins[plugin]));
@@ -52,8 +53,9 @@ export class AdminSetupPage implements OnInit {
         installs.push(this.plugins.delete(`plugin/${plugin}`))
       }
     }
-    for (const template in this.admin.status.templates) {
-      if (this.admin.status.templates[template] === this.adminForm.value.templates[template]) continue;
+    const templates: Record<string, boolean> = this.admin.status.templates;
+    for (const template in templates) {
+      if (templates[template] === this.adminForm.value.templates[template]) continue;
       if (this.adminForm.value.templates[template]) {
         this.installMessages.push(`Installing ${template} template...`);
         installs.push(this.templates.create(this.admin.def.templates[template]));

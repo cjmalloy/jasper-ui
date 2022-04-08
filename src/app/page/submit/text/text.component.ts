@@ -6,6 +6,7 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../../service/account.service';
+import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
@@ -22,6 +23,7 @@ export class SubmitTextPage implements OnInit {
   serverError: string[] = [];
 
   constructor(
+    private admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
     private account: AccountService,
@@ -41,6 +43,12 @@ export class SubmitTextPage implements OnInit {
         this.addTag(params['tag']);
       }
     });
+    if (admin.status.plugins.emoji) {
+      this.addTag('plugin/emoji');
+    }
+    if (admin.status.plugins.latex) {
+      this.addTag('plugin/latex');
+    }
   }
 
   ngOnInit(): void {
@@ -83,7 +91,7 @@ export class SubmitTextPage implements OnInit {
         return throwError(res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/ref/comments', url]);
+      this.router.navigate(['/ref', url]);
     });
   }
 }

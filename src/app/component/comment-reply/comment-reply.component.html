@@ -2,3 +2,14 @@
 <br>
 <button (click)="reply(textbox.value)">reply</button>
 <button *ngIf="showCancel" (click)="cancel()">cancel</button>
+
+<span class="comment-plugins">
+  <ng-container *ngIf="admin.status.plugins.emoji">
+    <input id="emoji" type="checkbox" [(ngModel)]="emoji">
+    <label for="emoji">Emoji plugin</label>
+  </ng-container>
+  <ng-container *ngIf="admin.status.plugins.latex">
+    <input id="latex" type="checkbox" [(ngModel)]="latex">
+    <label for="latex">LaTeX plugin</label>
+  </ng-container>
+</span>

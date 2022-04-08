@@ -4,6 +4,7 @@ import { mergeMap, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
+import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 
 @Component({
@@ -19,7 +20,7 @@ export class CommentReplyComponent implements AfterViewInit {
   @Input()
   sources!: string[];
   @Input()
-  tags?: string[] | null = [];
+  tags: string[] = [];
   @Input()
   newComments$!: Subject<Ref | null>;
   @Input()
@@ -28,10 +29,21 @@ export class CommentReplyComponent implements AfterViewInit {
   @ViewChild('textbox')
   textbox!: ElementRef;
 
+  emoji = this.admin.status.plugins.emoji;
+  latex = this.admin.status.plugins.latex;
+
   constructor(
+    public admin: AdminService,
     private account: AccountService,
     private refs: RefService,
   ) { }
+
+  get plugins() {
+    const result = [];
+    if (this.emoji) result.push('plugin/emoji');
+    if (this.latex) result.push('plugin/latex');
+    return result;
+  }
 
   ngAfterViewInit(): void {
     this.textbox.nativeElement.focus();
@@ -45,7 +57,11 @@ export class CommentReplyComponent implements AfterViewInit {
       sources: this.sources,
       title: 'Reply to: ' + this.top.title,
       comment: value,
-      tags: ['public', 'internal', 'plugin/comment', this.account.tag, ...this.tags!],
+      tags: ['public', 'internal', 'plugin/comment',
+        this.account.tag,
+        ...this.tags!,
+        ...this.plugins,
+      ],
       plugins: {
         'plugin/comment': {},
       },

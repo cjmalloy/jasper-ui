@@ -60,14 +60,15 @@ export class HomePage implements OnInit {
     if (path === 'home') {
       if (filter === 'new') {
         return this.account.subscriptions$.pipe(
-          map(subs => ({ query: subs.join('+') })),
+          // TODO: implement parentheses in queries
+          map(subs => ({ query: subs.join(':!internal@*+') + ':!internal@*' })),
         );
       }
       if (filter === 'uncited') {
-        return of({ uncited: true });
+        return of({ query: '!internal@*', uncited: true });
       }
       if (filter === 'unsourced') {
-        return of({ unsourced: true });
+        return of({ query: '!internal@*', unsourced: true });
       }
       throw `Invalid filter ${filter}`;
     }

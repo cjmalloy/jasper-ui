@@ -1,5 +1,6 @@
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { AccountService } from '../../service/account.service';
+import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
 
 @Component({
@@ -11,11 +12,12 @@ export class SettingsComponent implements OnInit {
   @HostBinding('class') css = 'settings';
 
   constructor(
+    public admin: AdminService,
     public config: ConfigService,
     public account: AccountService,
   ) {
-    if (this.account.signedIn) {
-      this.account.checkNotifications();
+    if (admin.status.plugins.inbox && account.signedIn) {
+      account.checkNotifications();
     }
   }
 

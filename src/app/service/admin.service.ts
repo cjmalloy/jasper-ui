@@ -4,7 +4,9 @@ import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';
 import { Template } from '../model/template';
 import { commentPlugin } from '../plugin/comment';
+import { emojiPlugin } from '../plugin/emoji';
 import { inboxPlugin } from '../plugin/inbox';
+import { latexPlugin } from '../plugin/latex';
 import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
 import { PluginService } from './api/plugin.service';
@@ -16,11 +18,13 @@ import { TemplateService } from './api/template.service';
 export class AdminService {
 
   status = {
-    plugins: <Record<string, boolean> | any> {
+    plugins: {
       inbox: false,
       comment: false,
+      latex: false,
+      emoji: false,
     },
-    templates: <Record<string, boolean> | any> {
+    templates: {
       root: false,
       user: false,
     }
@@ -30,6 +34,8 @@ export class AdminService {
     plugins: <Record<string, Plugin>> {
       inbox: inboxPlugin,
       comment: commentPlugin,
+      latex: latexPlugin,
+      emoji: emojiPlugin,
     },
     templates: <Record<string, Template>> {
       root: rootTemplate,
@@ -47,6 +53,8 @@ export class AdminService {
       forkJoin({
         inbox: this.plugins.exists('plugin/inbox'),
         comment: this.plugins.exists('plugin/comment'),
+        latex: this.plugins.exists('plugin/latex'),
+        emoji: this.plugins.exists('plugin/emoji'),
       }).pipe(tap(status => this.status.plugins = status)),
       forkJoin({
         root: this.templates.exists(''),

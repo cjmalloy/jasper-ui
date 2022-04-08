@@ -11,12 +11,14 @@
 </ng-container>
 <ng-container *ngIf="account.signedIn">
   <a class="author" [routerLink]="['/tag', account.tag]">{{ account.tag.replace('user/', '') }}</a>
-  <ng-container *ngIf="account.notifications | async as n; else noNotifications">
-    | {{ n }} <a class="notification" routerLink="/inbox/unread">📧</a>
+  <ng-container *ngIf="admin.status.plugins.inbox">
+    <ng-container *ngIf="account.notifications | async as n; else noNotifications">
+      | {{ n }} <a class="notification" routerLink="/inbox/unread">📧</a>
+    </ng-container>
+    <ng-template #noNotifications>
+      | <a routerLink="/inbox">📧</a>
+    </ng-template>
   </ng-container>
-  <ng-template #noNotifications>
-    | <a routerLink="/inbox">📧</a>
-  </ng-template>
   | settings
   <ng-container *ngIf="account.mod">
     | <a routerLink="/mod">mod tools</a>

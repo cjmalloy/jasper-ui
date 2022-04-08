@@ -2,6 +2,7 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { Observable, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
+import { AdminService } from '../../service/admin.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -20,6 +21,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   writeAccess$?: Observable<boolean>;
 
   constructor(
+    public admin: AdminService,
     public account: AccountService,
   ) {}
 

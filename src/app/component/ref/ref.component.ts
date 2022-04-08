@@ -5,6 +5,7 @@ import * as _ from 'lodash';
 import { catchError, mergeMap, Observable, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
+import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { authors, interestingTags, refUrlSummary, TAG_REGEX, webLink } from '../../util/format';
 import { printError } from '../../util/http';
@@ -42,9 +43,10 @@ export class RefComponent implements OnInit {
   serverError: string[] = [];
 
   constructor(
-    private fb: FormBuilder,
+    public admin: AdminService,
     private account: AccountService,
     private refs: RefService,
+    private fb: FormBuilder,
   ) {
     this.editForm = fb.group({
       comment: [''],
@@ -61,6 +63,14 @@ export class RefComponent implements OnInit {
     while (this.sourcesForm.length < (this.ref?.sources?.length || 0)) this.addSource();
     while (this.tagsForm.length < (this.ref?.tags?.length || 0)) this.addTag();
     this.editForm.patchValue(this.ref);
+  }
+
+  get emoji() {
+    return this.admin.status.plugins.emoji && !!this.ref.tags?.includes('plugin/emoji');
+  }
+
+  get latex() {
+    return this.admin.status.plugins.latex && !!this.ref.tags?.includes('plugin/latex');
   }
 
   get authors() {

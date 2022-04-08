@@ -1,6 +1,7 @@
 <div class="link">
   <a *ngIf="webLink" [href]="ref.url">{{ ref.title || ref.url }}</a>
-  <a *ngIf="!webLink" [routerLink]="['/ref/comments/', ref.url]">{{ ref.title || ref.url }}</a>
+  <a *ngIf="!webLink && admin.status.plugins.comment" [routerLink]="['/ref', ref.url, 'comments']">{{ ref.title || ref.url }}</a>
+  <a *ngIf="!webLink && !admin.status.plugins.comment" [routerLink]="['/ref', ref.url]">{{ ref.title || ref.url }}</a>
   <span class="host">({{ host }})</span>
 </div>
 <div class="link-below">
@@ -28,7 +29,9 @@
     </div>
     <div *ngIf="ref.comment && !showToggle && !editing"
          class="md expand"
-         markdown emoji katex
+         markdown
+         [emoji]="emoji"
+         [katex]="latex"
          [katexOptions]="{ throwOnError: false }"
          [data]="ref.comment"></div>
     <div class="actions">
@@ -71,7 +74,9 @@
 </div>
 <div *ngIf="expanded && showToggle && !editing"
      class="md expand"
-     markdown emoji katex
+     markdown
+     [emoji]="emoji"
+     [katex]="latex"
      [katexOptions]="{ throwOnError: false }"
      [data]="ref.comment"></div>
 

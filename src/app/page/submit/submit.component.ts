@@ -23,7 +23,9 @@ export class SubmitPage implements OnInit {
   }, {
     name: 'Not submitted yet',
     passed: false,
-    test: url => this.refs.exists(url).pipe(catchError(err => of(false))),
+    test: url => this.refs.exists(url).pipe(
+      map(exists => !exists),
+      catchError(err => of(false))),
   }, {
     name: 'No link shorteners',
     passed: false,

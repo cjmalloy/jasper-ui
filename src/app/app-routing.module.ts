@@ -39,7 +39,7 @@ const routes: Routes = [
     path: 'ref/:ref',
     component: RefPage,
     children: [
-      { path: '', redirectTo: 'comments', pathMatch: 'full' },
+      { path: '', redirectTo: 'sources', pathMatch: 'full' },
       { path: 'comments', component: CommentsComponent },
       { path: 'responses', component: ResponsesComponent },
       { path: 'sources', component: SourcesComponent },

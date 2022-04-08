@@ -176,9 +176,21 @@ html, body {
 }
 
 .comment-reply, .comment-edit {
-  & > * {
+  button, textarea {
     margin: 5px;
   }
+  textarea {
+    margin-bottom: 0;
+  }
+  .comment-plugins {
+    display: flex;
+    font-size: 75%;
+    label {
+      margin-right: 10px;
+      line-height: 13px;
+      align-self: center;
+    }
+   }
 }
 
 .link {

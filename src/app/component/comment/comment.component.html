@@ -27,7 +27,9 @@
   </div>
   <div *ngIf="!editing"
        class="md comment-body"
-       markdown emoji katex
+       markdown
+       [emoji]="emoji"
+       [katex]="latex"
        [katexOptions]="{ throwOnError: false }"
        [data]="ref.comment"></div>
   <app-comment-edit *ngIf="editing"

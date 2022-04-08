@@ -3,6 +3,7 @@ import { BehaviorSubject, mergeMap, Observable, Subject, takeUntil } from 'rxjs'
 import { Ref } from '../../model/ref';
 import { inboxes } from '../../plugin/inbox';
 import { AccountService } from '../../service/account.service';
+import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { authors, interestingTags } from '../../util/format';
 
@@ -37,9 +38,18 @@ export class CommentComponent implements OnInit, OnDestroy {
   writeAccess$?: Observable<boolean>;
 
   constructor(
+    public admin: AdminService,
     private account: AccountService,
     private refs: RefService,
   ) { }
+
+  get emoji() {
+    return this.admin.status.plugins.emoji && !!this.ref.tags?.includes('plugin/emoji');
+  }
+
+  get latex() {
+    return this.admin.status.plugins.latex && !!this.ref.tags?.includes('plugin/latex');
+  }
 
   ngOnInit(): void {
     this.writeAccess$ = this.account.writeAccess(this.ref);
