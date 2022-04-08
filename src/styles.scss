@@ -103,7 +103,7 @@ html, body {
   }
 }
 
-.ref-list-container {
+.list-container {
    display: grid;
    grid-template-columns: min-content auto;
    .list-number {
@@ -143,7 +143,7 @@ html, body {
   }
 }
 
-.ref {
+.list-item {
   border: 1px solid transparent;
   margin: 2px;
   padding: 2px;

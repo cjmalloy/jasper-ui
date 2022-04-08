@@ -47,6 +47,10 @@ import { TagPage } from './page/tag/tag.component';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
+import { TagListComponent } from './component/tag-list/tag-list.component';
+import { TagComponent } from './component/tag/tag.component';
+import { OriginListComponent } from './component/origin-list/origin-list.component';
+import { OriginComponent } from './component/origin/origin.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -93,6 +97,10 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     AdminOriginPage,
     AdminPluginPage,
     AdminTemplatePage,
+    TagListComponent,
+    TagComponent,
+    OriginListComponent,
+    OriginComponent,
   ],
   imports: [
     BrowserModule,

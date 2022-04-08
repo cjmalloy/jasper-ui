@@ -16,7 +16,7 @@ import { printError } from '../../util/http';
   styleUrls: ['./ref.component.scss'],
 })
 export class RefComponent implements OnInit {
-  @HostBinding('class') css = 'ref';
+  @HostBinding('class') css = 'list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   expandable = ['plugin/image', 'plugin/video'];

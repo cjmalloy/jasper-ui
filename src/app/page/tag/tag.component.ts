@@ -1,12 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash';
 import { catchError, combineLatest, filter, map, Observable, of, shareReplay } from 'rxjs';
 import { distinctUntilChanged, mergeMap, scan, take } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
-import { AccountService } from '../../service/account.service';
 import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { localTag } from '../../util/tag';
@@ -27,9 +26,7 @@ export class TagPage implements OnInit {
   private defaultPageSize = 20;
 
   constructor(
-    private router: Router,
     private route: ActivatedRoute,
-    private account: AccountService,
     private refs: RefService,
     private exts: ExtService,
   ) {

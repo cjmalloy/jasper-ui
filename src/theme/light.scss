@@ -89,7 +89,7 @@ body.light-theme {
     }
   }
 
-  .ref-list-container {
+  .list-container {
     .list-number {
       color: $info;
     }
@@ -103,7 +103,7 @@ body.light-theme {
     }
   }
 
-  .ref {
+  .list-item {
     &:focus {
       border: 1px dashed $border;
     }

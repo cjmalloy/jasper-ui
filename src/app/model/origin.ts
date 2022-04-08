@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 
 export interface Origin {
-  tag: string;
+  origin: string;
   url: string;
   name: string;
   proxy?: string;

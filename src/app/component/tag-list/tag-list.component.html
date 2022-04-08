@@ -1,0 +1,13 @@
+<div class="list-container">
+  <ng-container *ngFor="let tag of page?.content; let i = index">
+    <div class="list-number">{{ i + page!.number * page!.size + 1 }}</div>
+    <app-tag [tag]="tag"></app-tag>
+  </ng-container>
+</div>
+<app-loading *ngIf="!page"></app-loading>
+<app-page-controls *ngIf="page && !page.empty"
+                   [page]="page"></app-page-controls>
+
+<p class="no-results" *ngIf="page && page.empty">
+  No results found
+</p>
