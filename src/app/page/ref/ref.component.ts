@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, Observable, of, shareReplay, Subject } from 'rxjs';
 import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
+import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { printError } from '../../util/http';
 
@@ -20,6 +21,7 @@ export class RefPage implements OnInit, OnDestroy {
   printError = printError;
 
   constructor(
+    public admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
     private refs: RefService,
@@ -43,7 +45,7 @@ export class RefPage implements OnInit, OnDestroy {
   }
 
   get url$() {
-    return this.route.firstChild!.params.pipe(
+    return this.route.params.pipe(
       map((params) => params['ref']),
       distinctUntilChanged(),
     );

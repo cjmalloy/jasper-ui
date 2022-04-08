@@ -1,8 +1,12 @@
 <div class="tabs">
-  <a [routerLink]="['./comments', (url$ | async)]" routerLinkActive="current-tab">comments</a>
-  <a [routerLink]="['./responses', (url$ | async)]" routerLinkActive="current-tab">responses</a>
-  <a [routerLink]="['./sources', (url$ | async)]" routerLinkActive="current-tab">sources</a>
-  <a [routerLink]="['./graph', (url$ | async)]" routerLinkActive="current-tab">graph</a>
+  <a *ngIf="admin.status.plugins.comment"
+     [routerLink]="['../', (url$ | async), 'comments']"
+     routerLinkActive="current-tab">
+    comments
+  </a>
+  <a [routerLink]="['../', (url$ | async), 'responses']" routerLinkActive="current-tab">responses</a>
+  <a [routerLink]="['../', (url$ | async), 'sources']" routerLinkActive="current-tab">sources</a>
+  <a [routerLink]="['../', (url$ | async), 'graph']" routerLinkActive="current-tab">graph</a>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>

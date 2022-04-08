@@ -36,14 +36,14 @@ const routes: Routes = [
   { path: 'tag/:tag/edit', component: EditTagPage },
   { path: 'tag/:tag/:filter', component: TagPage },
   {
-    path: 'ref',
+    path: 'ref/:ref',
     component: RefPage,
     children: [
       { path: '', redirectTo: 'comments', pathMatch: 'full' },
-      { path: 'comments/:ref', component: CommentsComponent },
-      { path: 'responses/:ref', component: ResponsesComponent },
-      { path: 'sources/:ref', component: SourcesComponent },
-      { path: 'graph/:ref', component: GraphComponent },
+      { path: 'comments', component: CommentsComponent },
+      { path: 'responses', component: ResponsesComponent },
+      { path: 'sources', component: SourcesComponent },
+      { path: 'graph', component: GraphComponent },
     ],
   },
   {

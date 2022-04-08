@@ -32,7 +32,7 @@ export class CommentsComponent implements OnInit, OnDestroy {
       map(queryParams => queryParams['depth'] || this.depth),
       distinctUntilChanged(),
     );
-    this.url$ = this.route.params.pipe(
+    this.url$ = this.route.parent!.params.pipe(
       map(params => params['ref']),
       distinctUntilChanged(),
     );
