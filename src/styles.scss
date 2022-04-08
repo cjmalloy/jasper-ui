@@ -79,6 +79,7 @@ html, body {
 
 .sidebar {
   width: 300px;
+  margin-bottom: 100px;
   * {
     margin: 4px;
   }
@@ -239,6 +240,8 @@ textarea {
 }
 
 footer {
+  clear: both;
+  margin-top: 100px;
   text-align: center;
 }
 
