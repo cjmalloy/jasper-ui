@@ -48,6 +48,9 @@ body.dark-theme {
     background-image: url("/assets/jasper-dark.png");
     background-position: 4px 0;
     background-repeat: no-repeat;
+    h5 {
+      text-decoration: brown;
+    }
     & > a {
       background-color: $unselected-tab;
       border-bottom: 1px solid $border;

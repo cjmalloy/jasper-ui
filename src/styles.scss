@@ -49,9 +49,14 @@ html, body {
   display: flex;
   height: 60px;
   padding-left: 120px;
+  & > * {
+    align-self: flex-end;
+  }
+  h5 {
+    margin: 4px;
+  }
   & > a {
     display: inline-block;
-    align-self: flex-end;
     position: relative;
     bottom: -1px;
 
@@ -69,7 +74,6 @@ html, body {
   .settings {
     border-top-left-radius: 8px;
     display: inline-block;
-    align-self: flex-end;
 
     font-size: 80%;
     padding: 4px;
@@ -80,7 +84,7 @@ html, body {
 .sidebar {
   width: 300px;
   margin-bottom: 100px;
-  * {
+  & > * {
     margin: 4px;
   }
   input[type=search] {
@@ -121,7 +125,7 @@ html, body {
     text-align: right;
   }
 
-  * {
+  & > * {
     margin: 4px;
   }
 }
@@ -172,7 +176,7 @@ html, body {
 }
 
 .comment-reply, .comment-edit {
-  * {
+  & > * {
     margin: 5px;
   }
 }

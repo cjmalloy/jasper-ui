@@ -15,6 +15,7 @@ import { RefService } from '../../service/api/ref.service';
 })
 export class HomePage implements OnInit {
 
+  path$: Observable<string>;
   page$: Observable<Page<Ref>>;
   defaultPageSize = 20;
 
@@ -23,6 +24,9 @@ export class HomePage implements OnInit {
     private account: AccountService,
     private refs: RefService,
   ) {
+    this.path$ = this.route.url.pipe(
+      map(segments => segments[0].path)
+    );
     this.page$ = combineLatest(
       this.path$, this.filter$, this.pageNumber$, this.pageSize$,
     ).pipe(
@@ -38,10 +42,6 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit(): void {
-  }
-
-  get path$() {
-    return this.route.url.pipe(map(segments => segments[0].path));
   }
 
   get filter$() {

@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash';
-import { catchError, combineLatest, map, Observable, of } from 'rxjs';
-import { distinctUntilChanged, filter, mergeMap, scan, take } from 'rxjs/operators';
+import { catchError, combineLatest, filter, map, Observable, of, shareReplay } from 'rxjs';
+import { distinctUntilChanged, mergeMap, scan, take } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
@@ -18,8 +18,9 @@ import { localTag } from '../../util/tag';
 })
 export class TagPage implements OnInit {
 
+  title$: Observable<string>;
   localTag$: Observable<string>;
-  ext$: Observable<Ext>;
+  ext$: Observable<Ext | null>;
   page$: Observable<Page<Ref>>;
   pinned$: Observable<Ref[]>;
 
@@ -46,13 +47,19 @@ export class TagPage implements OnInit {
       }));
     this.localTag$ = this.tag$.pipe(
       map(tag => localTag(tag)),
-      filter(tag => !!tag),
     );
     this.ext$ = this.localTag$.pipe(
-      mergeMap(tag => this.exts.get(tag)),
+      mergeMap(tag => tag ? this.exts.get(tag) : of(null)),
+      shareReplay(1),
+    );
+    this.title$ = this.ext$.pipe(
+      mergeMap(ext => ext
+        ? of(ext.name || ext.tag)
+        : this.tag$)
     );
     this.pinned$ = this.ext$.pipe(
-      mergeMap(ext => of(...ext.config.pinned as string[])),
+      filter(ext => !!ext),
+      mergeMap(ext => of(...ext!.config.pinned as string[])),
       mergeMap(pin => this.refs.get(pin)),
       scan((acc, value) => [...acc, value], [] as Ref[]),
       catchError(() => of([])),
