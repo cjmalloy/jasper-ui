@@ -25,10 +25,11 @@ export class RefService {
     return this.http.post<void>(this.base, ref);
   }
 
-  exists(url: string, origin = ''): Observable<void> {
-    return this.http.head<void>(this.base, {
+  exists(url: string, origin = ''): Observable<boolean> {
+    return this.http.get(`${this.base}/exists`, {
       params: { url, origin },
-    });
+      responseType: 'text',
+    }).pipe(map(v => v === 'true'));
   }
 
   get(url: string, origin = ''): Observable<Ref> {

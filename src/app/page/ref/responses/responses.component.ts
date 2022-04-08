@@ -20,7 +20,7 @@ export class ResponsesComponent implements OnInit {
     private refs: RefService,
   ) {
     this.page$ = this.url$.pipe(
-      mergeMap(url => refs.page({ query: '!plugin/comment@*', responses: url })),
+      mergeMap(url => refs.page({ query: '!internal@*', responses: url })),
     );
   }
 

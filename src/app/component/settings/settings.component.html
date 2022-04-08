@@ -1,4 +1,4 @@
-<ng-container *ngIf="!account.tag">
+<ng-container *ngIf="!account.signedIn">
   <ng-container *ngIf="config.login">
     <a [href]="config.login">login</a>
   </ng-container>
@@ -9,14 +9,14 @@
   <span *ngIf="config.login || config.signup"> | </span>
   settings
 </ng-container>
-<ng-container *ngIf="account.tag">
+<ng-container *ngIf="account.signedIn">
   <a class="author" [routerLink]="['/tag', account.tag]">{{ account.tag.replace('user/', '') }}</a>
-  <ng-container *ngIf="notifications > 0">
-    | {{ notifications }} <a class="notification" routerLink="/inbox/unread">📧</a>
+  <ng-container *ngIf="account.notifications | async as n; else noNotifications">
+    | {{ n }} <a class="notification" routerLink="/inbox/unread">📧</a>
   </ng-container>
-  <ng-container *ngIf="notifications === 0">
+  <ng-template #noNotifications>
     | <a routerLink="/inbox">📧</a>
-  </ng-container>
+  </ng-template>
   | settings
   <ng-container *ngIf="account.mod">
     | <a routerLink="/mod">mod tools</a>

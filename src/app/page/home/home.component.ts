@@ -41,7 +41,7 @@ export class HomePage implements OnInit {
   }
 
   get path$() {
-    return this.route.url.pipe(map(segments => this.account.signedIn() ? segments[0].path : 'all'));
+    return this.route.url.pipe(map(segments => segments[0].path));
   }
 
   get filter$() {
@@ -59,8 +59,8 @@ export class HomePage implements OnInit {
   getQuery(path: string, filter: string): Observable<Record<string, any>> {
     if (path === 'home') {
       if (filter === 'new') {
-        return this.account.getMyUserExt().pipe(
-          mergeMap(ext => of({ query: ext.config.subscriptions.join('+') })),
+        return this.account.subscriptions$.pipe(
+          map(subs => ({ query: subs.join('+') })),
         );
       }
       if (filter === 'uncited') {
@@ -72,7 +72,7 @@ export class HomePage implements OnInit {
       throw `Invalid filter ${filter}`;
     }
     if (path === 'all') {
-      return of({ query: '!plugin/comment@*' });
+      return of({ query: '!internal@*' });
     }
     throw `Invalid path ${path}`;
   }

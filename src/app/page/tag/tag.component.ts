@@ -89,7 +89,7 @@ export class TagPage implements OnInit {
   }
 
   getArgs(tag: string, filter: string): Observable<Record<string, any>> {
-    const query = `${tag}:!plugin/comment@*`;
+    const query = `${tag}:!internal@*`;
     if (filter === 'new') {
       return of({ query });
     }

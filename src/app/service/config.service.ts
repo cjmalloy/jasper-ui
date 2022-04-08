@@ -15,7 +15,7 @@ export class ConfigService {
     public http: HttpClient,
   ) { }
 
-  load() {
+  get load$() {
     return this.http.get('/assets/config.json').pipe(
       tap((result: any) => {
         this.api = result['api'];

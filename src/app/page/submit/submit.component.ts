@@ -16,15 +16,19 @@ export class SubmitPage implements OnInit {
 
   submitForm: FormGroup;
 
-  validations: Validation[] = [
-    { name: 'Valid link', passed: false, test: url => of(this.linkType(url)) },
-    {
-      name: 'Not submitted yet',
-      passed: false,
-      test: url => this.refs.exists(url).pipe(map(() => false), catchError(err => of(err.status === 404))),
-    },
-    { name: 'No link shorteners', passed: false, test: url => of(!url.includes('bit.ly')) },
-  ];
+  validations: Validation[] = [{
+    name: 'Valid link',
+    passed: false,
+    test: url => of(this.linkType(url)),
+  }, {
+    name: 'Not submitted yet',
+    passed: false,
+    test: url => this.refs.exists(url).pipe(catchError(err => of(false))),
+  }, {
+    name: 'No link shorteners',
+    passed: false,
+    test: url => of(!url.includes('bit.ly')),
+  }];
 
   constructor(
     private router: Router,

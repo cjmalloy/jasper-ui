@@ -30,6 +30,13 @@ export class PluginService {
     }).pipe(map(mapPlugin));
   }
 
+  exists(tag: string, origin = ''): Observable<boolean> {
+    return this.http.get(`${this.base}/exists`, {
+      params: { tag, origin },
+      responseType: 'text',
+    }).pipe(map(v => v === 'true'));
+  }
+
   page(args: {
     query?: string,
     page?: number,

@@ -1,4 +1,5 @@
 import { Component, HostBinding, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
 import { AccountService } from '../../service/account.service';
 
 @Component({
@@ -8,16 +9,12 @@ import { AccountService } from '../../service/account.service';
 })
 export class SubscriptionBarComponent implements OnInit {
   @HostBinding('class') css = 'subscription-bar';
-
-  subscriptions = [];
+  subs$: Observable<string[]>;
 
   constructor(
-    private account: AccountService,
+    public account: AccountService,
   ) {
-    if (this.account.signedIn()) {
-      this.account.getMyUserExt()
-      .subscribe(ext => this.subscriptions = ext.config!.subscriptions);
-    }
+    this.subs$ = account.subscriptions$;
   }
 
   ngOnInit(): void {

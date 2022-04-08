@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { AdminPage } from './page/admin/admin.component';
 import { CreateExtPage } from './page/create/ext/ext.component';
 import { HomePage } from './page/home/home.component';
 import { AllComponent } from './page/inbox/all/all.component';
@@ -50,6 +51,7 @@ const routes: Routes = [
   { path: 'submit/web', component: SubmitWebPage },
   { path: 'submit/text', component: SubmitTextPage },
   { path: 'create/ext', component: CreateExtPage },
+  { path: 'admin', component: AdminPage },
 ];
 
 @NgModule({

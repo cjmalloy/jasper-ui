@@ -1,13 +1,15 @@
 <input type="search" placeholder="Search">
-<div class="submit-button" routerLink="/submit" [queryParams]="{ tag }">
-  Submit Link
-</div>
-<div class="submit-button" routerLink="/submit/text" [queryParams]="{ tag }">
-  Submit Text Post
-</div>
-<div *ngIf="account.mod" class="submit-button" routerLink="/create/ext">
-  Create Tag Extension
-</div>
+<ng-container *ngIf="account.signedIn">
+  <div class="submit-button" routerLink="/submit" [queryParams]="{ tag }">
+    Submit Link
+  </div>
+  <div class="submit-button" routerLink="/submit/text" [queryParams]="{ tag }">
+    Submit Text Post
+  </div>
+  <div *ngIf="account.mod" class="submit-button" routerLink="/create/ext">
+    Create Tag Extension
+  </div>
+</ng-container>
 
 <div *ngIf="ext?.config?.sidebar"
      class="md"
@@ -15,7 +17,7 @@
      [katexOptions]="{ throwOnError: false }"
      [data]="ext?.config?.sidebar"></div>
 
-<ng-container *ngIf="tag && (account.writeAccessTag(tag!) | async)">
+<ng-container *ngIf="tag && (writeAccess$ | async)">
   <a *ngIf="ext"
      class="sidebar-edit"
      [routerLink]="['/tag', tag, 'edit']">

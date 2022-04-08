@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from 'rxjs';
+import { BehaviorSubject, catchError, forkJoin, map, Observable, of, shareReplay } from 'rxjs';
 import { mergeMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 import { getInbox } from '../plugin/inbox';
 import { capturesAny, isOwner, qualifyTags } from '../util/tag';
+import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
-import { TemplateService } from './api/template.service';
 import { UserService } from './api/user.service';
 
 export const CACHE_MS = 15000;
@@ -25,11 +25,11 @@ export class AccountService {
   mod = false;
   notifications = new BehaviorSubject(0);
 
-  private user$?: Observable<User>;
-  private userExt$?: Observable<Ext>;
+  private _user$?: Observable<User>;
+  private _userExt$?: Observable<Ext>;
 
   constructor(
-    private templates: TemplateService,
+    private adminService: AdminService,
     private users: UserService,
     private exts: ExtService,
     private refs: RefService,
@@ -39,55 +39,66 @@ export class AccountService {
     return getInbox(this.tag);
   }
 
-  init() {
+  get init$() {
     return this.users.whoAmI().pipe(
       tap(tag => this.tag = tag),
-      mergeMap(() => this.users.amIAdmin()),
-      tap(admin => this.admin = admin),
-      mergeMap(() => this.users.amIMod()),
-      tap(mod => this.mod = mod),
-      mergeMap(() => this.getMyUserExt()),
-      catchError(err => this.templates.get('user').pipe(
-        mergeMap(() => this.exts.create({ tag: this.tag })),
-      )),
-      catchError(err => of(null)),
+      mergeMap(tag => tag ? this.loadUser$ : of()),
     );
   }
 
-  signedIn() {
+  get loadUser$() {
+    return forkJoin(
+      this.users.amIAdmin().pipe(tap(admin => this.admin = admin)),
+      this.users.amIMod().pipe(tap(mod => this.mod = mod)),
+      this.loadUserExt$,
+    );
+  }
+
+  get loadUserExt$() {
+    if (!this.adminService.templates.user) return of();
+    return this.userExt$.pipe(catchError(err => this.exts.create({ tag: this.tag })));
+  }
+
+  get signedIn() {
     return !!this.tag;
   }
 
   clearCache() {
-    this.userExt$ = undefined;
-    this.user$ = undefined;
+    this._userExt$ = undefined;
+    this._user$ = undefined;
   }
 
-  getMyUser(): Observable<User> {
-    if (!this.signedIn()) throw 'Not signed in';
-    if (!this.user$) {
-      this.user$ = this.users.get(this.tag).pipe(
+  get user$(): Observable<User> {
+    if (!this.signedIn) throw 'Not signed in';
+    if (!this._user$) {
+      this._user$ = this.users.get(this.tag).pipe(
         shareReplay(1),
       );
-      _.delay(() => this.user$ = undefined, CACHE_MS);
+      _.delay(() => this._user$ = undefined, CACHE_MS);
     }
-    return this.user$;
+    return this._user$;
   }
 
-  getMyUserExt(): Observable<Ext> {
-    if (!this.signedIn()) throw 'Not signed in';
-    if (!this.userExt$) {
-      this.userExt$ = this.exts.get(this.tag).pipe(
+  get userExt$(): Observable<Ext> {
+    if (!this.signedIn) throw 'Not signed in';
+    if (!this._userExt$) {
+      this._userExt$ = this.exts.get(this.tag).pipe(
         shareReplay(1),
       );
-      _.delay(() => this.userExt$ = undefined, CACHE_MS);
+      _.delay(() => this._userExt$ = undefined, CACHE_MS);
     }
-    return this.userExt$;
+    return this._userExt$;
+  }
+
+  get subscriptions$(): Observable<string[]> {
+    if (!this.signedIn || !this.adminService.templates.user) return of(this.adminService.defaultSubscriptions);
+    return this.userExt$.pipe(map(ext => ext.config.subscriptions),
+    )
   }
 
   checkNotifications() {
-    if (!this.signedIn()) throw 'Not signed in';
-    return this.getMyUserExt().pipe(
+    if (!this.signedIn) throw 'Not signed in';
+    return this.userExt$.pipe(
       mergeMap(ext => this.refs.count({
         query: this.inbox,
         modifiedAfter: ext.config?.inbox?.lastNotified || moment().subtract(1, 'year'),
@@ -96,7 +107,7 @@ export class AccountService {
   }
 
   clearNotifications() {
-    if (!this.signedIn()) throw 'Not signed in';
+    if (!this.signedIn) throw 'Not signed in';
     this.exts.patch(this.tag, [{
       op: 'add',
       path: '/config/inbox/lastNotified',
@@ -108,19 +119,19 @@ export class AccountService {
   }
 
   writeAccess(ref: Ref): Observable<boolean> {
-    if (!this.signedIn()) return of(false);
+    if (!this.signedIn) return of(false);
     if (ref.tags?.includes('locked')) return of(this.admin);
     if (this.mod) return of(true);
-    return this.getMyUser().pipe(
+    return this.user$.pipe(
       map(user => isOwner(user, ref) || capturesAny(user.writeAccess, qualifyTags(ref.tags, ref.origin))),
     );
   }
 
   writeAccessTag(tag: string): Observable<boolean> {
-    if (!this.signedIn()) return of(false);
+    if (!this.signedIn) return of(false);
     if (tag === 'locked') return of(this.admin);
     if (this.mod) return of(true);
-    return this.getMyUser().pipe(
+    return this.user$.pipe(
       map(user => tag === user.tag || capturesAny(user.writeAccess, [tag])),
     );
   }

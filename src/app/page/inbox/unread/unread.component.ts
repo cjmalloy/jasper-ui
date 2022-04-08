@@ -20,7 +20,7 @@ export class UnreadComponent implements OnInit {
     private account: AccountService,
     private refs: RefService,
   ) {
-    this.page$ = this.account.getMyUserExt().pipe(
+    this.page$ = this.account.userExt$.pipe(
       mergeMap(ext => this.refs.page({
         query: account.inbox,
         modifiedAfter: ext.config.inbox.lastNotified || moment().subtract(1, 'year'),

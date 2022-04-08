@@ -1,26 +1,7 @@
-<div *ngIf="!account.admin && doSetup" class="error">
-  Jasper has not been setup yet. Please log in as an admin to continue.
-</div>
-
-<div *ngIf="account.admin && doSetup">
-  Welcome to Jasper! Click <a class="fake-link link-style" (click)="setupJasper()">here</a> to install the required plugins and tag
-  extensions.
-</div>
-
-<ng-container *ngFor="let e of setupErrors">
-  <div class="error">{{ e }}</div>
-</ng-container>
-
-<div *ngIf="setupComplete">
-  Setup complete! Reload the page to start using Jasper.
-</div>
-
-<ng-container *ngIf="!doSetup">
-  <app-subscription-bar></app-subscription-bar>
-  <router-outlet></router-outlet>
-  <footer>
-    <p>
-      Powered by Jasper
-    </p>
-  </footer>
-</ng-container>
+<app-subscription-bar></app-subscription-bar>
+<router-outlet></router-outlet>
+<footer>
+  <p>
+    Powered by Jasper
+  </p>
+</footer>

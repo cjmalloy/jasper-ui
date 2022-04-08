@@ -20,6 +20,7 @@ import { SidebarComponent } from './component/sidebar/sidebar.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { DebugInterceptor } from './http/debug.interceptor';
+import { AdminPage } from './page/admin/admin.component';
 import { CreateExtPage } from './page/create/ext/ext.component';
 import { HomePage } from './page/home/home.component';
 import { AllComponent } from './page/inbox/all/all.component';
@@ -36,11 +37,13 @@ import { SubmitWebPage } from './page/submit/web/web.component';
 import { EditTagPage } from './page/tag/edit/edit.component';
 import { TagPage } from './page/tag/tag.component';
 import { AccountService } from './service/account.service';
+import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
 
-const loadFactory = (config: ConfigService, account: AccountService) => () =>
-  config.load().pipe(
-    mergeMap(() => account.init()),
+const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
+  config.load$.pipe(
+    mergeMap(() => admin.init$),
+    mergeMap(() => account.init$),
   );
 
 @NgModule({
@@ -73,6 +76,7 @@ const loadFactory = (config: ConfigService, account: AccountService) => () =>
     CreateExtPage,
     EditTagPage,
     LoadingComponent,
+    AdminPage,
   ],
   imports: [
     BrowserModule,
@@ -87,7 +91,7 @@ const loadFactory = (config: ConfigService, account: AccountService) => () =>
     {
       provide: APP_INITIALIZER,
       useFactory: loadFactory,
-      deps: [ConfigService, AccountService],
+      deps: [ConfigService, AdminService, AccountService],
       multi: true,
     },
     {

@@ -10,17 +10,16 @@ import { ConfigService } from '../../service/config.service';
 export class SettingsComponent implements OnInit {
   @HostBinding('class') css = 'settings';
 
-  notifications = 0;
-
   constructor(
     public config: ConfigService,
     public account: AccountService,
   ) {
-    this.account.notifications.subscribe(count => this.notifications = count);
+    if (this.account.signedIn) {
+      this.account.checkNotifications();
+    }
   }
 
   ngOnInit(): void {
-    this.account.checkNotifications();
   }
 
 }

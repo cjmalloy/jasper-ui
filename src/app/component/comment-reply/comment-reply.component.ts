@@ -45,7 +45,7 @@ export class CommentReplyComponent implements AfterViewInit {
       sources: this.sources,
       title: 'Reply to: ' + this.top.title,
       comment: value,
-      tags: ['public', 'plugin/comment', this.account.tag, ...this.tags!],
+      tags: ['public', 'internal', 'plugin/comment', this.account.tag, ...this.tags!],
       plugins: {
         'plugin/comment': {},
       },

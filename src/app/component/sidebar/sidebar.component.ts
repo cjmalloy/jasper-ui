@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
 
@@ -17,11 +17,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @Input()
   tag?: string | null;
 
+  writeAccess$?: Observable<boolean>;
+
   constructor(
     public account: AccountService,
-  ) { }
+  ) {}
 
   ngOnInit(): void {
+    this.writeAccess$ = this.account.writeAccessTag(this.tag!);
   }
 
   ngOnDestroy(): void {
