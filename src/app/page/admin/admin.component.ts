@@ -18,6 +18,7 @@ export class AdminPage implements OnInit {
   submitted = false;
   adminForm: FormGroup;
   serverError: string[] = [];
+  installMessages: string[] = [];
 
   constructor(
     public admin: AdminService,
@@ -36,6 +37,7 @@ export class AdminPage implements OnInit {
 
   install() {
     this.serverError = [];
+    this.installMessages = [];
     this.submitted = true;
     this.adminForm.markAllAsTouched();
     if (!this.adminForm.valid) return;
@@ -43,16 +45,20 @@ export class AdminPage implements OnInit {
     for (const plugin in this.admin.status.plugins) {
       if (this.admin.status.plugins[plugin] === this.adminForm.value.plugins[plugin]) continue;
       if (this.adminForm.value.plugins[plugin]) {
+        this.installMessages.push(`Installing ${plugin} plugin...`);
         installs.push(this.plugins.create(this.admin.def.plugins[plugin]));
       } else {
+        this.installMessages.push(`Deleting ${plugin} plugin...`);
         installs.push(this.plugins.delete(`plugin/${plugin}`))
       }
     }
     for (const template in this.admin.status.templates) {
       if (this.admin.status.templates[template] === this.adminForm.value.templates[template]) continue;
       if (this.adminForm.value.templates[template]) {
+        this.installMessages.push(`Installing ${template} template...`);
         installs.push(this.templates.create(this.admin.def.templates[template]));
       } else {
+        this.installMessages.push(`Deleting ${template} template...`);
         installs.push(this.templates.delete(template === 'root' ? '' : template))
       }
     }
@@ -64,7 +70,8 @@ export class AdminPage implements OnInit {
     ).subscribe(() => {
       this.submitted = true;
       this.admin.status = this.adminForm.value;
-      this.adminForm.reset(this.admin.status)
+      this.adminForm.reset(this.admin.status);
+      this.installMessages.push('Success.')
     });
   }
 

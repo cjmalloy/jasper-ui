@@ -31,4 +31,9 @@
   <span>
     <button type="submit" [disabled]="submitted && !adminForm.valid">Install</button>
   </span>
+
+  <ng-container *ngFor="let i of installMessages">
+    <span><!-- Progress Log --></span>
+    <div>{{ i }}</div>
+  </ng-container>
 </form>
