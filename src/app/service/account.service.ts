@@ -7,6 +7,7 @@ import { Ext } from '../model/ext';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 import { getInbox } from '../plugin/inbox';
+import { defaultSubs } from '../template/user';
 import { capturesAny, isOwner, qualifyTags } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
@@ -91,7 +92,7 @@ export class AccountService {
   }
 
   get subscriptions$(): Observable<string[]> {
-    if (!this.signedIn || !this.adminService.status.templates.user) return of(this.adminService.defaultSubscriptions);
+    if (!this.signedIn || !this.adminService.status.templates.user) return of(defaultSubs);
     return this.userExt$.pipe(map(ext => ext.config.subscriptions),
     )
   }

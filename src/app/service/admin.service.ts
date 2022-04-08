@@ -15,8 +15,6 @@ import { TemplateService } from './api/template.service';
 })
 export class AdminService {
 
-  defaultSubscriptions = ['science@*', 'politics@*', '@infoman'];
-
   status = {
     plugins: <Record<string, boolean> | any> {
       inbox: false,
