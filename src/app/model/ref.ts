@@ -17,7 +17,7 @@ export interface Ref {
 
 export interface Metadata {
   responses: string[];
-  comments: string[];
+  plugins: Record<string, string[]>;
 }
 
 export function mapRef(obj: any): Ref {

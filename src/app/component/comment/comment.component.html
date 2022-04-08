@@ -65,7 +65,7 @@
                    [tags]="inboxes"
                    [newComments$]="newComments$"></app-comment-reply>
 <span class="fake-link load-more"
-      *ngIf="!collapsed && depth === 0 && ref.metadata!.comments.length > 0"
+      *ngIf="!collapsed && depth === 0 && ref.metadata!.plugins['plugin/comment'].length > 0"
       (click)="depth = depth + 1">
   load more comments
 </span>

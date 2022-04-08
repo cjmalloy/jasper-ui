@@ -8,6 +8,7 @@ export interface Plugin {
   config?: any;
   defaults?: any;
   schema?: Schema;
+  generateMetadata?: boolean;
   modified?: moment.Moment;
 }
 

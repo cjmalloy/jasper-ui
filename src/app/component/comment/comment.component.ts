@@ -48,7 +48,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     ).subscribe(ref => {
       this.replying = false;
       if (ref?.metadata) {
-        this.ref.metadata!.comments.push(ref.url);
+        this.ref.metadata!.plugins['plugin/comment'].push(ref.url);
         this.ref.metadata!.responses.push(ref.url);
         if (this.depth === 0) this.depth = 1;
       }
@@ -81,7 +81,7 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   get comments() {
     if (!this.ref.metadata) return '? comments';
-    const commentCount = this.ref.metadata.comments.length;
+    const commentCount = this.ref.metadata.plugins['plugin/comment'].length;
     if (commentCount === 0) return 'comment';
     if (commentCount === 1) return '1 comment';
     return commentCount + ' comments';
@@ -89,7 +89,7 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   get responses() {
     if (!this.ref.metadata) return '? citations';
-    const responseCount = this.ref.metadata.responses.length - this.ref.metadata.comments.length;
+    const responseCount = this.ref.metadata.responses.length;
     if (responseCount === 0) return 'uncited';
     if (responseCount === 1) return '1 citation';
     return responseCount + ' citations';
