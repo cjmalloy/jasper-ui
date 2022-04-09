@@ -1,8 +1,9 @@
 import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
-import { Simulation, SimulationLinkDatum, SimulationNodeDatum } from 'd3';
+import { Simulation, SimulationNodeDatum } from 'd3';
 import * as _ from 'lodash';
-import { catchError, throwError } from 'rxjs';
+import { catchError, Observable, of, throwError } from 'rxjs';
+import { mergeMap, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 
@@ -21,7 +22,7 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
   @Input()
   filter?: string | null;
   @Input()
-  depth?: number;
+  depth = 0;
   @Input()
   tag = 'science';
 
@@ -32,9 +33,15 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
   @Input()
   nodeStrokeOpacity = 1;
   @Input()
-  nodeRadius = 5;
+  selectedStroke = '#e15c46';
   @Input()
-  nodeStrength?: number;
+  selectedStrokeWidth = 3;
+  @Input()
+  selectedStrokeOpacity = 1;
+  @Input()
+  nodeRadius = 16;
+  @Input()
+  nodeStrength = -700;
   @Input()
   linkStroke = '#cbcbcb';
   @Input()
@@ -44,7 +51,7 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
   @Input()
   linkStrokeLinecap = 'round';
   @Input()
-  linkStrength?: number;
+  linkStrength = 1;
 
   selected?: Ref;
   selectedNotFound?: string;
@@ -62,30 +69,37 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // this.refs.page({ size: 100})
-    // .subscribe(page => {
-    //   this.content = page.content;
-    //   this.draw();
-    // })
-    if (this.depth !== undefined) {
-      for (let i = 0; i < this.depth; i++) this.loadMore();
+    if (this.depth > 0) {
+      let init: Observable<any> = of(1);
+      for (let i = 0; i< this.depth; i++) {
+        init = init.pipe(mergeMap(() => this.loadMore$));
+      }
+      init.subscribe(() => this.draw());
+    } else {
+      this.draw();
     }
-    this.draw();
   }
 
-  loadMore() {
-    const more = this.unloadedReferences(this.content).filter(s => !this.notFound.includes(s));
-    if (!more.length) return;
-    this.refs.list(more)
-    .subscribe((moreLoaded: (Ref|null)[]) => {
-      for (let i = 0; i < more.length; i++) {
-        if (!moreLoaded[i]) {
-          this.notFound.push(more[i]);
-        }
-      }
-      this.content = [...this.content, ...<Ref[]>moreLoaded.filter(r => !!r)];
-      this.draw();
-    })
+  get loadMore$() {
+    return of(1).pipe(
+      mergeMap(() => of(this.unloadedReferences(this.content).filter(s => !this.notFound.includes(s)))),
+      mergeMap(more => !more.length ? of([]) : this.refs.list(more).pipe(
+        tap((moreLoaded: (Ref|null)[]) => {
+          for (let i = 0; i < more.length; i++) {
+            if (!moreLoaded[i]) {
+              this.notFound.push(more[i]);
+            }
+          }
+          this.content = [...this.content, ...<Ref[]>moreLoaded.filter(r => !!r)];
+        }),
+      )),
+    );
+  }
+
+  drawMore() {
+    this.loadMore$.subscribe(more => {
+      if (more.length) this.draw();
+    });
   }
 
   color(ref: GraphNode) {
@@ -151,22 +165,21 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
 
   draw() {
     this.figure.nativeElement.innerHTML = '';
-    const nodes = [
-      ...this.content.map(s => ({ ...s, id: s.url, loaded: true })),
+    const nodes: GraphNode[] = [
+      ...this.content.map((s: any) => {
+        s.id = s.url;
+        s.loaded = true;
+        return s;
+      }),
       ...this.unloadedReferences(this.content).map(s => ({ id: s, notFound: this.notFound.includes(s) })),
     ];
-    const links = [
-      ...this.content.flatMap(r => this.references([r]).map(s => ({source: r.url, target: s})) || []),
+    const links: GraphLink[] = [
+      ...this.content.flatMap(r => this.references([r]).map(s => ({ source: r.url, target: s })) || []),
     ];
 
-    const forceNode = d3.forceManyBody();
-    const forceLink = d3.forceLink(links as unknown as SimulationLinkDatum<SimulationNodeDatum>[]).id(node => nodes[node.index!].id);
-    if (this.nodeStrength !== undefined) forceNode.strength(this.nodeStrength);
-    if (this.linkStrength !== undefined) forceLink.strength(this.linkStrength);
-
     const simulation = d3.forceSimulation(nodes as SimulationNodeDatum[])
-      .force('link', forceLink)
-      .force('charge', forceNode)
+      .force('link', d3.forceLink(links).id(node => (node as GraphNode).id).strength(this.linkStrength))
+      .force('charge', d3.forceManyBody().strength(this.nodeStrength))
       .force('x', d3.forceX())
       .force('y', d3.forceY())
       .on('tick', () => {
@@ -196,6 +209,7 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
     .data(links)
     .join('line');
 
+    const self = this;
     const node = svg.append('g')
       .attr('stroke', this.nodeStroke)
       .attr('stroke-opacity', this.nodeStrokeOpacity)
@@ -204,10 +218,20 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
     .data(nodes)
     .join('circle')
       .attr('r', this.nodeRadius)
+      .attr('fill', node => this.color(node))
       .call(drag(simulation) as any)
-      .on('click', event => this.clickNode(event));
+      .on('click', function(event) {
+        d3.selectAll('circle')
+          .attr('stroke', self.nodeStroke)
+          .attr('stroke-opacity', self.nodeStrokeOpacity)
+          .attr('stroke-width', self.nodeStrokeWidth)
+        d3.select(this)
+          .attr('stroke', self.selectedStroke)
+          .attr('stroke-opacity', self.selectedStrokeOpacity)
+          .attr('stroke-width', self.selectedStrokeWidth)
+        self.clickNode(event);
+      });
 
-    node.attr('fill', node => this.color(node));
     node.append('title').text(node => this.title(node));
 
     function drag(simulation: Simulation<SimulationNodeDatum, undefined>) {
@@ -229,9 +253,9 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
       }
 
       return d3.drag()
-        .on("start", dragstarted)
-        .on("drag", dragged)
-        .on("end", dragended);
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended);
     }
   }
 
