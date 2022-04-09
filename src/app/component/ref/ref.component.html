@@ -27,7 +27,7 @@
         </ng-container>
       </ng-container>
     </div>
-    <div *ngIf="ref.comment && !showToggle && !editing"
+    <div *ngIf="ref.comment && expanded && expandInline && !editing"
          class="md expand"
          markdown
          [emoji]="emoji"
@@ -76,7 +76,7 @@
     </div>
   </div>
 </div>
-<div *ngIf="expanded && showToggle && !editing"
+<div *ngIf="ref.comment && expanded && !expandInline && !editing"
      class="md expand"
      markdown
      [emoji]="emoji"

@@ -21,6 +21,7 @@
   <ng-container *ngIf="ref$ | async as ref; else loading">
     <app-ref [ref]="ref"
              [showToggle]="true"
+             [expandInline]="true"
              [expanded]="true"></app-ref>
   </ng-container>
   <ng-template #loading>

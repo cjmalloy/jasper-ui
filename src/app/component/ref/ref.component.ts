@@ -26,6 +26,8 @@ export class RefComponent implements OnInit {
   @Input()
   expanded = false;
   @Input()
+  expandInline = false;
+  @Input()
   showToggle = false;
 
   @ViewChild('inlineTag')
