@@ -105,11 +105,10 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
   color(ref: GraphNode) {
     if (ref.notFound) return '#e54a4a';
     if (!ref.loaded) return '#e38a35';
-    if (!ref.tags) return '#857979';
-    if (ref.tags.includes('plugin/comment')) return '#4a8de5';
-    if (!ref.title || ref.tags.includes('internal')) return '#fc91f5';
+    if (ref.tags?.includes('plugin/comment')) return '#4a8de5';
     if (ref.id.startsWith('comment:')) return '#4ae552';
-    // if (ref.tags.includes(this.tag)) return '#e54a4a';
+    if (!ref.tags || !ref.title || ref.tags.includes('internal')) return '#857979';
+    if (ref.tags.includes(this.tag)) return '#c34ae5';
     return '#1c378c';
   }
 
