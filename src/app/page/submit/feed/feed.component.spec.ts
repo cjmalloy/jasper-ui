@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ModFeedPage } from './feed.component';
+import { SubmitFeedPage } from './feed.component';
 
 describe('FeedComponent', () => {
-  let component: ModFeedPage;
-  let fixture: ComponentFixture<ModFeedPage>;
+  let component: SubmitFeedPage;
+  let fixture: ComponentFixture<SubmitFeedPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ModFeedPage ]
+      declarations: [ SubmitFeedPage ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ModFeedPage);
+    fixture = TestBed.createComponent(SubmitFeedPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

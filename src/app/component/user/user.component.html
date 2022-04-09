@@ -1,0 +1,80 @@
+<div class="link">
+  <a [routerLink]="['/tag', qualifiedTag]">{{ user.name || user.tag || 'root' }}</a>
+  <span *ngIf="user.name" class="host">({{ user.tag + user.origin }})</span>
+  <span *ngIf="!user.name && user.origin" class="host">({{ user.origin }})</span>
+</div>
+<div class="stack">
+  <div class="info">
+    modified {{ user.modified?.fromNow() }}
+  </div>
+  <div class="actions" *ngIf="!user.origin">
+    <a *ngIf="writeAccess$ | async"
+       class="fake-link"
+       (click)="editing = true">edit</a>
+    <a *ngIf="!deleting && (writeAccess$ | async)"
+       class="fake-link"
+       (click)="deleting = true">delete</a>
+    <span *ngIf="deleting" class="delete-confirm">
+        are you sure?
+        <a class="fake-link" (click)="delete()">yes</a>
+        /
+        <a class="fake-link" (click)="deleting = false">no</a>
+      </span>
+  </div>
+</div>
+
+<form *ngIf="editing" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+
+  <label for="name">Name:</label>
+  <input type="text" id="name" [formControl]="name">
+
+  <label for="readAccess">Read Access:</label>
+  <div id="readAccess" class="form-group" formArrayName="readAccess">
+    <button type="button" (click)="addReadAccess()">+ Add another tag</button>
+
+    <div *ngFor="let alias of readAccess.controls; let i=index">
+      <label for="readAccess-{{ i }}">Source:</label>
+      <input id="readAccess-{{ i }}" type="text" [formControlName]="i">
+      <button type="button" (click)="removeReadAccess(i)">&ndash;</button>
+      <div class="error" *ngIf="readAccess.at(i).touched && readAccess.at(i).errors?.['pattern']">
+        Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
+        two forward slashes in a row. Private tags start with an underscore.<br>
+        (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")
+      </div>
+      <div class="error" *ngIf="readAccess.at(i).touched && readAccess.at(i).errors?.['required']">
+        Tag must not be blank.
+      </div>
+    </div>
+  </div>
+
+  <label for="writeAccess">Write Access:</label>
+  <div id="writeAccess" class="form-group" formArrayName="writeAccess">
+    <button type="button" (click)="addWriteAccess()">+ Add another tag</button>
+
+    <div *ngFor="let alias of writeAccess.controls; let i=index">
+      <label for="writeAccess-{{ i }}">Source:</label>
+      <input id="writeAccess-{{ i }}" type="text" [formControlName]="i">
+      <button type="button" (click)="removeWriteAccess(i)">&ndash;</button>
+      <div class="error" *ngIf="writeAccess.at(i).touched && writeAccess.at(i).errors?.['pattern']">
+        Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
+        two forward slashes in a row. Private tags start with an underscore.<br>
+        (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")
+      </div>
+      <div class="error" *ngIf="writeAccess.at(i).touched && writeAccess.at(i).errors?.['required']">
+        Tag must not be blank.
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngFor="let e of serverError">
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  </ng-container>
+
+  <span><!-- Buttons --></span>
+  <span>
+    <button type="submit" [disabled]="submitted && !editForm.valid">save</button>
+    <button (click)="editing = false">cancel</button>
+  </span>
+</form>
+

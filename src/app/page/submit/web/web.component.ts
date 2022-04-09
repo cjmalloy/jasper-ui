@@ -36,8 +36,8 @@ export class SubmitWebPage implements OnInit {
       comment: [''],
       sources: fb.array([]),
       tags: fb.array([
-        this.fb.control('public', [Validators.required, Validators.pattern(TAG_REGEX)]),
-        this.fb.control(account.tag, [Validators.required, Validators.pattern(TAG_REGEX)]),
+        fb.control('public', [Validators.required, Validators.pattern(TAG_REGEX)]),
+        fb.control(account.tag, [Validators.required, Validators.pattern(TAG_REGEX)]),
       ]),
     });
     route.queryParams.subscribe(params => {

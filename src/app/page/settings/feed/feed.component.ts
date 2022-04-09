@@ -3,31 +3,31 @@ import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash';
 import { combineLatest, map, Observable } from 'rxjs';
 import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
-import { Ext } from '../../../model/ext';
+import { Feed } from '../../../model/feed';
 import { Page } from '../../../model/page';
-import { ExtService } from '../../../service/api/ext.service';
+import { FeedService } from '../../../service/api/feed.service';
 
 @Component({
-  selector: 'app-mod-ext-page',
-  templateUrl: './ext.component.html',
-  styleUrls: ['./ext.component.scss']
+  selector: 'app-settings-feed-page',
+  templateUrl: './feed.component.html',
+  styleUrls: ['./feed.component.scss']
 })
-export class ModExtPage implements OnInit {
+export class SettingsFeedPage implements OnInit {
 
-  page$: Observable<Page<Ext>>;
+  page$: Observable<Page<Feed>>;
 
   private defaultPageSize = 20;
 
   constructor(
     private route: ActivatedRoute,
-    private exts: ExtService,
+    private feeds: FeedService,
   ) {
     this.page$ = combineLatest(
       this.pageNumber$, this.pageSize$,
     ).pipe(
       distinctUntilChanged(_.isEqual),
       mergeMap(([pageNumber, pageSize]) => {
-        return this.exts.page({
+        return this.feeds.page({
           page: pageNumber,
           size: pageSize ?? this.defaultPageSize,
         });

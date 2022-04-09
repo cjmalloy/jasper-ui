@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ModExtPage } from './ext.component';
+import { SettingsUserPage } from './user.component';
 
-describe('ExtComponent', () => {
-  let component: ModExtPage;
-  let fixture: ComponentFixture<ModExtPage>;
+describe('UserComponent', () => {
+  let component: SettingsUserPage;
+  let fixture: ComponentFixture<SettingsUserPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ModExtPage ]
+      declarations: [ SettingsUserPage ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ModExtPage);
+    fixture = TestBed.createComponent(SettingsUserPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

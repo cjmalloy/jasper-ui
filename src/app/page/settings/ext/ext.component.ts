@@ -3,31 +3,31 @@ import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash';
 import { combineLatest, map, Observable } from 'rxjs';
 import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
+import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
-import { User } from '../../../model/user';
-import { UserService } from '../../../service/api/user.service';
+import { ExtService } from '../../../service/api/ext.service';
 
 @Component({
-  selector: 'app-mod-user-page',
-  templateUrl: './user.component.html',
-  styleUrls: ['./user.component.scss']
+  selector: 'app-settings-ext-page',
+  templateUrl: './ext.component.html',
+  styleUrls: ['./ext.component.scss']
 })
-export class ModUserPage implements OnInit {
+export class SettingsExtPage implements OnInit {
 
-  page$: Observable<Page<User>>;
+  page$: Observable<Page<Ext>>;
 
   private defaultPageSize = 20;
 
   constructor(
     private route: ActivatedRoute,
-    private users: UserService,
+    private exts: ExtService,
   ) {
     this.page$ = combineLatest(
       this.pageNumber$, this.pageSize$,
     ).pipe(
       distinctUntilChanged(_.isEqual),
       mergeMap(([pageNumber, pageSize]) => {
-        return this.users.page({
+        return this.exts.page({
           page: pageNumber,
           size: pageSize ?? this.defaultPageSize,
         });

@@ -7,7 +7,7 @@
     <a [href]="config.signup">sign up</a>
   </ng-container>
   <span *ngIf="config.login || config.signup"> | </span>
-  settings
+  <a routerLink="/settings">settings</a>
 </ng-container>
 <ng-container *ngIf="account.signedIn">
   <a class="author" [routerLink]="['/tag', account.tag]">{{ account.tag.replace('user/', '') }}</a>
@@ -19,12 +19,9 @@
       | <a routerLink="/inbox">📧</a>
     </ng-template>
   </ng-container>
-  | settings
-  <ng-container *ngIf="account.mod">
-    | <a routerLink="/mod">mod tools</a>
-  </ng-container>
+  | <a routerLink="/settings">settings</a>
   <ng-container *ngIf="account.admin">
-    | <a routerLink="/admin">admin tools</a>
+    | <a routerLink="/admin">admin</a>
   </ng-container>
   <ng-container *ngIf="config.logout">
     | <a [href]="config.logout">logout</a>

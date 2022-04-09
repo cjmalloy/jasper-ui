@@ -129,6 +129,7 @@ html, body {
   }
 
   label {
+    white-space: nowrap;
     vertical-align: center;
     text-align: right;
   }
@@ -148,6 +149,7 @@ html, body {
 }
 
 .list-item {
+  display: block;
   border: 1px solid transparent;
   margin: 2px;
   padding: 2px;
@@ -155,6 +157,16 @@ html, body {
   .toggle {
     margin: 4px 8px 4px 0;
   }
+
+  .link-below {
+    display: flex;
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
 }
 
 .comment {

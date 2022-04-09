@@ -10,7 +10,7 @@
   <input id="url" type="text" formControlName="url" [attr.disabled]="true">
 
   <label for="title">Title:</label>
-  <input id="title" type="text" formControlName="title">
+  <input id="title" type="text" [formControl]="title">
   <span><!-- Title Errors --></span>
   <div>
     <div class="error" *ngIf="title.touched && title.errors?.['required']">
@@ -19,7 +19,7 @@
   </div>
 
   <label for="published">Published:</label>
-  <input id="published" type="date" formControlName="published">
+  <input id="published" type="date" [formControl]="published">
   <span><!-- Published Errors --></span>
   <div>
     <div class="error" *ngIf="published.touched && published.errors?.['required']">
@@ -28,7 +28,7 @@
   </div>
 
   <label for="comment">Abstract:</label>
-  <textarea id="comment" formControlName="comment"></textarea>
+  <textarea id="comment" [formControl]="comment"></textarea>
 
   <label for="sources">Sources:</label>
   <div id="sources" class="form-group" formArrayName="sources">

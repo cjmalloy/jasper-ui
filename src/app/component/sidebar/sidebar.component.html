@@ -8,8 +8,11 @@
   </div>
 </ng-container>
 <ng-container *ngIf="account.mod">
-  <div class="submit-button" routerLink="/create/feed">
-    Create Feed
+  <div class="submit-button" routerLink="/submit" [queryParams]="{ tag, linkType: 'feed' }">
+    Submit Feed
+  </div>
+  <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag }">
+    Create User Permissions
   </div>
 </ng-container>
 <ng-container *ngIf="account.admin">

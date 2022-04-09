@@ -3,31 +3,31 @@ import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash';
 import { combineLatest, map, Observable } from 'rxjs';
 import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
-import { Feed } from '../../../model/feed';
 import { Page } from '../../../model/page';
-import { FeedService } from '../../../service/api/feed.service';
+import { User } from '../../../model/user';
+import { UserService } from '../../../service/api/user.service';
 
 @Component({
-  selector: 'app-mod-feed-page',
-  templateUrl: './feed.component.html',
-  styleUrls: ['./feed.component.scss']
+  selector: 'app-settings-user-page',
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.scss']
 })
-export class ModFeedPage implements OnInit {
+export class SettingsUserPage implements OnInit {
 
-  page$: Observable<Page<Feed>>;
+  page$: Observable<Page<User>>;
 
   private defaultPageSize = 20;
 
   constructor(
     private route: ActivatedRoute,
-    private feeds: FeedService,
+    private users: UserService,
   ) {
     this.page$ = combineLatest(
       this.pageNumber$, this.pageSize$,
     ).pipe(
       distinctUntilChanged(_.isEqual),
       mergeMap(([pageNumber, pageSize]) => {
-        return this.feeds.page({
+        return this.users.page({
           page: pageNumber,
           size: pageSize ?? this.defaultPageSize,
         });

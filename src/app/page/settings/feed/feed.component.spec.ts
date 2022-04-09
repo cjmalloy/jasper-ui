@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ModPage } from './mod.component';
+import { SettingsFeedPage } from './feed.component';
 
-describe('ModComponent', () => {
-  let component: ModPage;
-  let fixture: ComponentFixture<ModPage>;
+describe('FeedComponent', () => {
+  let component: SettingsFeedPage;
+  let fixture: ComponentFixture<SettingsFeedPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ModPage ]
+      declarations: [ SettingsFeedPage ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ModPage);
+    fixture = TestBed.createComponent(SettingsFeedPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

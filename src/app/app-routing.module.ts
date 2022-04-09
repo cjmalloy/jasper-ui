@@ -6,19 +6,21 @@ import { AdminPluginPage } from './page/admin/plugin/plugin.component';
 import { AdminSetupPage } from './page/admin/setup/setup.component';
 import { AdminTemplatePage } from './page/admin/template/template.component';
 import { CreateExtPage } from './page/create/ext/ext.component';
+import { CreateUserPage } from './page/create/user/user.component';
 import { HomePage } from './page/home/home.component';
 import { AllComponent } from './page/inbox/all/all.component';
 import { InboxPage } from './page/inbox/inbox.component';
 import { UnreadComponent } from './page/inbox/unread/unread.component';
-import { ModExtPage } from './page/mod/ext/ext.component';
-import { ModFeedPage } from './page/mod/feed/feed.component';
-import { ModPage } from './page/mod/mod.component';
-import { ModUserPage } from './page/mod/user/user.component';
 import { CommentsComponent } from './page/ref/comments/comments.component';
 import { GraphComponent } from './page/ref/graph/graph.component';
 import { RefPage } from './page/ref/ref.component';
 import { ResponsesComponent } from './page/ref/responses/responses.component';
 import { SourcesComponent } from './page/ref/sources/sources.component';
+import { SettingsExtPage } from './page/settings/ext/ext.component';
+import { SettingsFeedPage } from './page/settings/feed/feed.component';
+import { SettingsPage } from './page/settings/settings.component';
+import { SettingsUserPage } from './page/settings/user/user.component';
+import { SubmitFeedPage } from './page/submit/feed/feed.component';
 import { SubmitPage } from './page/submit/submit.component';
 import { SubmitTextPage } from './page/submit/text/text.component';
 import { SubmitWebPage } from './page/submit/web/web.component';
@@ -60,7 +62,9 @@ const routes: Routes = [
   { path: 'submit', component: SubmitPage },
   { path: 'submit/web', component: SubmitWebPage },
   { path: 'submit/text', component: SubmitTextPage },
+  { path: 'submit/feed', component: SubmitFeedPage },
   { path: 'create/ext', component: CreateExtPage },
+  { path: 'create/user', component: CreateUserPage },
   { path: 'admin', redirectTo: 'admin/setup', pathMatch: 'full', },
   {
     path: 'admin',
@@ -72,14 +76,14 @@ const routes: Routes = [
       { path: 'template', component: AdminTemplatePage },
     ],
   },
-  { path: 'mod', redirectTo: '/mod/feed', pathMatch: 'full' },
+  { path: 'settings', redirectTo: 'settings/feed', pathMatch: 'full' },
   {
-    path: 'mod',
-    component: ModPage,
+    path: 'settings',
+    component: SettingsPage,
     children: [
-      { path: 'feed', component: ModFeedPage },
-      { path: 'user', component: ModUserPage },
-      { path: 'ext', component: ModExtPage },
+      { path: 'feed', component: SettingsFeedPage },
+      { path: 'user', component: SettingsUserPage },
+      { path: 'ext', component: SettingsExtPage },
     ],
   },
 ];

@@ -9,7 +9,6 @@ import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { TemplateService } from '../../service/api/template.service';
-import { UserService } from '../../service/api/user.service';
 import { printError } from '../../util/http';
 
 @Component({
@@ -39,7 +38,6 @@ export class TagComponent implements OnInit {
     private router: Router,
     private account: AccountService,
     private exts: ExtService,
-    private users: UserService,
     private plugins: PluginService,
     private templates: TemplateService,
     private fb: FormBuilder,
@@ -73,7 +71,6 @@ export class TagComponent implements OnInit {
   get service() {
     switch (this.tag.type) {
       case 'ext': return this.exts;
-      case 'user': return this.users;
       case 'plugin': return this.plugins;
       case 'template': return this.templates;
     }
