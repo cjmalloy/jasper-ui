@@ -14,6 +14,7 @@ export interface Ref extends HasTags {
 
 export interface Metadata {
   responses: string[];
+  internalResponses: string[];
   plugins: Record<string, string[]>;
 }
 
