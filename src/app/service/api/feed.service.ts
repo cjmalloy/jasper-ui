@@ -46,6 +46,13 @@ export class FeedService {
     return this.http.put<void>(this.base, feed);
   }
 
+  patch(url: string, origin: string, patch: any[]): Observable<void> {
+    return this.http.patch<void>(this.base, patch, {
+      headers: { 'Content-Type': 'application/json-patch+json' },
+      params: params({ url, origin }),
+    });
+  }
+
   delete(url: string, origin = ''): Observable<void> {
     return this.http.delete<void>(this.base, {
       params: { url, origin },

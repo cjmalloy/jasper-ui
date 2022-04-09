@@ -7,7 +7,7 @@ import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
-import { authors, interestingTags, refUrlSummary, TAG_REGEX, webLink } from '../../util/format';
+import { authors, interestingTags, TAG_REGEX, urlSummary, webLink } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -82,7 +82,7 @@ export class RefComponent implements OnInit {
   }
 
   get host() {
-    return refUrlSummary(this.ref);
+    return urlSummary(this.ref.url);
   }
 
   get webLink() {

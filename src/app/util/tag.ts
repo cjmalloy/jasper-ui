@@ -1,4 +1,4 @@
-import { Ref } from '../model/ref';
+import { HasTags } from '../model/tag';
 import { User } from '../model/user';
 
 export function qualifyTags(tags?: string[], origin?: string): string[] | undefined {
@@ -31,7 +31,7 @@ export function capturesAny(selectors?: string[], target?: string[]): boolean {
   return false;
 }
 
-export function isOwner(user: User, ref: Ref) {
+export function isOwner(user: User, ref: HasTags) {
   if (user.origin !== ref.origin) return false;
   return ref.tags?.includes(user.tag);
 }

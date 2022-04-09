@@ -23,7 +23,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   constructor(
     public admin: AdminService,
     public account: AccountService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.writeAccess$ = this.account.writeAccessTag(this.tag!);

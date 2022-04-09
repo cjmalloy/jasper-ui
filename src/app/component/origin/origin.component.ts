@@ -1,8 +1,11 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { catchError, mergeMap, throwError } from 'rxjs';
 import { Origin } from '../../model/origin';
+import { AccountService } from '../../service/account.service';
 import { OriginService } from '../../service/api/origin.service';
+import { printError } from '../../util/http';
 
 @Component({
   selector: 'app-origin',
@@ -23,10 +26,10 @@ export class OriginComponent implements OnInit {
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
-  writeAccess$?: Observable<boolean>;
   serverError: string[] = [];
 
   constructor(
+    public account: AccountService,
     private origins: OriginService,
     private fb: FormBuilder,
   ) {
@@ -43,24 +46,24 @@ export class OriginComponent implements OnInit {
     this.submitted = true;
     this.editForm.markAllAsTouched();
     if (!this.editForm.valid) return;
-    // this.refs.update({
-    //   ...this.ref,
-    //   ...this.editForm.value,
-    // }).pipe(
-    //   catchError((res: HttpErrorResponse) => {
-    //     this.serverError = printError(res);
-    //     return throwError(res);
-    //   }),
-    //   mergeMap(() => this.refs.get(this.ref.url, this.ref.origin)),
-    // ).subscribe(ref => {
-    //   this.editing = false;
-    //   this.ref = ref;
-    // });
+    this.origins.update({
+      ...this.origin,
+      ...this.editForm.value,
+    }).pipe(
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(() => res);
+      }),
+      mergeMap(() => this.origins.get(this.origin.origin)),
+    ).subscribe(origin => {
+      this.editing = false;
+      this.origin = origin;
+    });
   }
 
   delete() {
-    // this.refs.delete(this.ref.url, this.ref.origin!).subscribe(() => {
-    //   this.deleted = true;
-    // });
+    this.origins.delete(this.origin.origin).subscribe(() => {
+      this.deleted = true;
+    });
   }
 }

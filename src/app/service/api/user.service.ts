@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
-import { mapUser, User } from '../../model/user';
+import { mapUser, User, writeUser } from '../../model/user';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 
@@ -21,7 +21,7 @@ export class UserService {
   }
 
   create(user: User): Observable<void> {
-    return this.http.post<void>(this.base, user);
+    return this.http.post<void>(this.base, writeUser(user));
   }
 
   get(tag: string): Observable<User> {
@@ -43,7 +43,7 @@ export class UserService {
   }
 
   update(user: User): Observable<void> {
-    return this.http.put<void>(this.base, user);
+    return this.http.put<void>(this.base, writeUser(user));
   }
 
   delete(tag: string): Observable<void> {

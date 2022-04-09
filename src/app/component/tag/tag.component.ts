@@ -1,12 +1,16 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { HasTag } from '../../model/tag';
+import { Router } from '@angular/router';
+import { catchError, mergeMap, Observable, throwError } from 'rxjs';
+import { IsTag } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { TemplateService } from '../../service/api/template.service';
+import { UserService } from '../../service/api/user.service';
+import { printError } from '../../util/http';
 
 @Component({
   selector: 'app-tag',
@@ -18,12 +22,12 @@ export class TagComponent implements OnInit {
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
-  tag!: HasTag;
+  tag!: IsTag;
 
   editForm: FormGroup;
   submitted = false;
   tagging = false;
-  editing = false;
+  _editing = false;
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
@@ -32,8 +36,10 @@ export class TagComponent implements OnInit {
 
   constructor(
     public admin: AdminService,
+    private router: Router,
     private account: AccountService,
     private exts: ExtService,
+    private users: UserService,
     private plugins: PluginService,
     private templates: TemplateService,
     private fb: FormBuilder,
@@ -48,32 +54,54 @@ export class TagComponent implements OnInit {
     this.editForm.patchValue(this.tag);
   }
 
+  get editing() {
+    return this._editing;
+  }
+
+  set editing(value: boolean) {
+    if (value && this.tag.type === 'ext') {
+      this.router.navigate(['/tag', this.tag.tag, 'edit']);
+    } else {
+      this._editing = value;
+    }
+  }
+
   get qualifiedTag() {
     return this.tag.tag + this.tag.origin;
+  }
+
+  get service() {
+    switch (this.tag.type) {
+      case 'ext': return this.exts;
+      case 'user': return this.users;
+      case 'plugin': return this.plugins;
+      case 'template': return this.templates;
+    }
+    throw "Missing tag type!";
   }
 
   save() {
     this.submitted = true;
     this.editForm.markAllAsTouched();
     if (!this.editForm.valid) return;
-    // this.refs.update({
-    //   ...this.ref,
-    //   ...this.editForm.value,
-    // }).pipe(
-    //   catchError((res: HttpErrorResponse) => {
-    //     this.serverError = printError(res);
-    //     return throwError(res);
-    //   }),
-    //   mergeMap(() => this.refs.get(this.ref.url, this.ref.origin)),
-    // ).subscribe(ref => {
-    //   this.editing = false;
-    //   this.ref = ref;
-    // });
+    this.service.update({
+      ...this.tag,
+      ...this.editForm.value,
+    }).pipe(
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(() => res);
+      }),
+      mergeMap(() => this.service.get(this.tag.tag, this.tag.origin)),
+    ).subscribe(tag => {
+      this.editing = false;
+      this.tag = tag;
+    });
   }
 
   delete() {
-    // this.refs.delete(this.ref.url, this.ref.origin!).subscribe(() => {
-    //   this.deleted = true;
-    // });
+    this.service.delete(this.tag.tag).subscribe(() => {
+      this.deleted = true;
+    });
   }
 }

@@ -1,0 +1,79 @@
+<div class="link">
+  <a [href]="feed.url">{{ feed.name || feed.url }}</a>
+  <span class="host">({{ host }})</span>
+</div>
+<div class="link-below">
+  <div class="stack">
+    <div class="info">
+      last scraped {{ feed.lastScrape?.fromNow() }}
+      <ng-container *ngIf="tags.length">
+        tagged
+        <ng-container *ngFor="let tag of tags">
+          <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
+        </ng-container>
+      </ng-container>
+    </div>
+    <div class="actions">
+      <a *ngIf="account.mod"
+         class="fake-link"
+         (click)="editing = true">edit</a>
+      <a *ngIf="!deleting && account.mod"
+         class="fake-link"
+         (click)="deleting = true">delete</a>
+      <span *ngIf="deleting" class="delete-confirm">
+        are you sure?
+        <a class="fake-link" (click)="delete()">yes</a>
+        /
+        <a class="fake-link" (click)="deleting = false">no</a>
+      </span>
+      <a *ngIf="account.mod"
+         class="fake-link"
+         (click)="tagging = !tagging">tag</a>
+      <span *ngIf="tagging" class="inline-tagging">
+        <input #inlineTag
+               (keydown)="$event.key === 'Enter' && addInlineTag() || true"
+               type="text"
+               pattern="_?[a-z]+(/[a-z]+)*"
+               appAutofocus>
+        <button (click)="addInlineTag()">+</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<form *ngIf="editing" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+
+  <label for="name">Name:</label>
+  <textarea id="name" formControlName="name"></textarea>
+
+  <label for="tags">Tags:</label>
+  <div id="tags" class="form-group" formArrayName="tags">
+    <button type="button" (click)="addTag()">+ Add another tag</button>
+
+    <div *ngFor="let alias of tagsForm.controls; let i=index">
+      <label for="tags-{{ i }}">Tag:</label>
+      <input id="tags-{{ i }}" type="text" [formControlName]="i">
+      <button type="button" (click)="removeTag(i)">&ndash;</button>
+      <div class="error" *ngIf="tagsForm.at(i).touched && tagsForm.at(i).errors?.['pattern']">
+        Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+        tags start with an underscore.<br>
+        (i.e. "science", "my/tag", or "_my/private/tag")
+      </div>
+      <div class="error" *ngIf="tagsForm.at(i).touched && tagsForm.at(i).errors?.['required']">
+        Tag must not be blank.
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngFor="let e of serverError">
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  </ng-container>
+
+  <span><!-- Buttons --></span>
+  <span>
+    <button type="submit" [disabled]="submitted && !editForm.valid">save</button>
+    <button (click)="editing = false">cancel</button>
+  </span>
+</form>
+

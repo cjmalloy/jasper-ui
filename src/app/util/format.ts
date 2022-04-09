@@ -24,12 +24,12 @@ export function webLink(ref: Ref) {
   return url.protocol === 'http:' || url.protocol === 'https:';
 }
 
-export function refUrlSummary(ref: Ref) {
-  const url = new URL(ref.url);
-  if (url.protocol === 'http:' || url.protocol === 'https:') {
-    return url.host;
+export function urlSummary(url: string) {
+  const parsed = new URL(url);
+  if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+    return parsed.host;
   }
-  return url.protocol.substring(0, url.protocol.length - 1);
+  return parsed.protocol.substring(0, parsed.protocol.length - 1);
 }
 
 export function interestingTags(tags?: string[]): string[] {

@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Page } from '../../model/page';
-import { HasTag } from '../../model/tag';
+import { IsTag } from '../../model/tag';
 
 @Component({
   selector: 'app-tag-list',
@@ -11,7 +11,7 @@ export class TagListComponent implements OnInit {
   @HostBinding('class') css = 'tag-list';
 
   @Input()
-  page?: Page<HasTag> | null;
+  page?: Page<IsTag> | null;
 
   constructor() { }
 

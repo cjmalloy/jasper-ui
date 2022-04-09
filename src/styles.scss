@@ -92,6 +92,7 @@ html, body {
     width: 292px;
   }
   .submit-button {
+    text-transform: capitalize;
     border: 1px solid transparent;
     padding: 4px;
     cursor: pointer;
@@ -120,13 +121,13 @@ html, body {
   grid-template-columns: min-content auto;
   padding: 10px;
 
+  * {
+    margin: 4px;
+  }
+
   label {
     vertical-align: center;
     text-align: right;
-  }
-
-  * {
-    margin: 4px;
   }
 }
 

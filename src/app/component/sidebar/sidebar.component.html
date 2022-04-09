@@ -6,8 +6,15 @@
   <div class="submit-button" routerLink="/submit/text" [queryParams]="{ tag }">
     Submit Text Post
   </div>
-  <div *ngIf="account.mod" class="submit-button" routerLink="/create/ext">
-    Create Tag Extension
+</ng-container>
+<ng-container *ngIf="account.mod">
+  <div class="submit-button" routerLink="/create/feed">
+    Create Feed
+  </div>
+</ng-container>
+<ng-container *ngIf="account.admin">
+  <div class="submit-button" routerLink="/admin/origin/create">
+    Replicate Remote Origin
   </div>
 </ng-container>
 
@@ -26,7 +33,7 @@
     edit tag extension
   </a>
 
-  <a *ngIf="!ext"
+  <a *ngIf="admin.status.templates.root && !ext"
      class="sidebar-edit"
      routerLink="/create/ext"
      [queryParams]="{ tag }">

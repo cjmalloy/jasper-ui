@@ -1,10 +1,9 @@
 import * as moment from 'moment';
+import { HasTags } from './tag';
 
-export interface Feed {
+export interface Feed extends HasTags {
   url: string;
   name: string;
-  tags?: string[];
-  modified?: moment.Moment;
   lastScrape?: moment.Moment;
 }
 

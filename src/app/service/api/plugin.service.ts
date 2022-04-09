@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
-import { mapPlugin, Plugin } from '../../model/plugin';
+import { mapPlugin, Plugin, writePlugin } from '../../model/plugin';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 
@@ -21,7 +21,7 @@ export class PluginService {
   }
 
   create(plugin: Plugin): Observable<void> {
-    return this.http.post<void>(this.base, plugin);
+    return this.http.post<void>(this.base, writePlugin(plugin));
   }
 
   get(tag: string, origin = ''): Observable<Plugin> {
@@ -50,7 +50,7 @@ export class PluginService {
   }
 
   update(plugin: Plugin): Observable<void> {
-    return this.http.put<void>(this.base, plugin);
+    return this.http.put<void>(this.base, writePlugin(plugin));
   }
 
   delete(tag: string): Observable<void> {

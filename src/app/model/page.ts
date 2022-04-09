@@ -13,7 +13,9 @@ export interface Page<T> {
 export function mapPage<T>(contentMapper: (obj: any) => T): (obj: any) => Page<T> {
   return function(obj: any) {
     const page = obj as Page<any>;
-    page.content.forEach(contentMapper);
+    for (let i = 0; i < page.content.length; i++) {
+      page.content[i] = contentMapper(page.content[i]);
+    }
     return page;
   };
 }

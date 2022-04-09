@@ -1,12 +1,13 @@
-<div class="tag">
+<div class="link">
   <a [routerLink]="['/tag', qualifiedTag]">{{ tag.name || tag.tag || 'root' }}</a>
-  <span *ngIf="tag.origin" class="host">({{ tag.origin }})</span>
+  <span *ngIf="tag.name" class="host">({{ tag.tag + tag.origin }})</span>
+  <span *ngIf="!tag.name && tag.origin" class="host">({{ tag.origin }})</span>
 </div>
 <div class="stack">
   <div class="info">
     modified {{ tag.modified?.fromNow() }}
   </div>
-  <div class="actions">
+  <div class="actions" *ngIf="!tag.origin">
     <a *ngIf="writeAccess$ | async"
        class="fake-link"
        (click)="editing = true">edit</a>

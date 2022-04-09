@@ -1,11 +1,11 @@
 import * as moment from 'moment';
+import { HasOrigin } from './tag';
 
-export interface Origin {
+export interface Origin extends HasOrigin {
   origin: string;
   url: string;
   name: string;
   proxy?: string;
-  modified?: moment.Moment;
   lastScrape?: moment.Moment;
 }
 

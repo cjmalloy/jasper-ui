@@ -1,18 +1,23 @@
 import { Schema } from 'jtd';
 import * as moment from 'moment';
+import { IsTag } from './tag';
 
-export interface Plugin {
-  tag: string;
-  origin?: string;
-  name?: string;
+export interface Plugin extends IsTag {
+  type?: 'plugin';
   config?: any;
   defaults?: any;
   schema?: Schema;
   generateMetadata?: boolean;
-  modified?: moment.Moment;
 }
 
 export function mapPlugin(obj: any): Plugin {
+  obj.type = 'plugin';
   obj.modified = moment(obj.modified);
   return obj;
+}
+
+export function writePlugin(plugin: Plugin): Record<string, any> {
+  const result = { ...plugin };
+  delete result.type;
+  return result;
 }

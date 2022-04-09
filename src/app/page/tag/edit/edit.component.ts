@@ -1,6 +1,7 @@
+import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, mergeMap, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
@@ -22,6 +23,7 @@ export class EditTagPage implements OnInit {
   serverError: string[] = [];
 
   constructor(
+    private location: Location,
     private router: Router,
     private route: ActivatedRoute,
     private account: AccountService,
@@ -38,7 +40,7 @@ export class EditTagPage implements OnInit {
     });
     this.ext$.subscribe(ext => {
       this.ext = ext;
-      while (this.pinned.length < (ext.config.pinned?.length || 0)) this.addPinned();
+      while (this.pinned.length < (ext.config?.pinned?.length || 0)) this.addPinned();
       this.editForm.patchValue(ext);
     });
   }
@@ -75,7 +77,7 @@ export class EditTagPage implements OnInit {
   }
 
   get pinned() {
-    return this.config.get('pinned') as any;
+    return this.config.get('pinned') as FormArray;
   }
 
   addPinned() {
@@ -102,10 +104,10 @@ export class EditTagPage implements OnInit {
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
-        return throwError(res);
+        return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/tag', this.ext.tag]);
+      this.location.back();
     });
   }
 }

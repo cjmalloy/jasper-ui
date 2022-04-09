@@ -81,7 +81,7 @@ export class CreateExtPage implements OnInit {
     this.exts.create(this.extForm.value).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
-        return throwError(res);
+        return throwError(() => res);
       }),
     ).subscribe(() => {
       this.router.navigate(['/tag', this.extForm.value.tag]);

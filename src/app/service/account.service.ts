@@ -4,7 +4,7 @@ import * as moment from 'moment';
 import { BehaviorSubject, catchError, forkJoin, map, Observable, of, shareReplay } from 'rxjs';
 import { mergeMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
-import { Ref } from '../model/ref';
+import { HasTags } from '../model/tag';
 import { User } from '../model/user';
 import { getInbox } from '../plugin/inbox';
 import { defaultSubs } from '../template/user';
@@ -119,9 +119,9 @@ export class AccountService {
     });
   }
 
-  writeAccess(ref: Ref): Observable<boolean> {
+  writeAccess(ref: HasTags): Observable<boolean> {
     if (!this.signedIn) return of(false);
-    if (ref.tags?.includes('locked')) return of(this.admin);
+    if (ref.tags?.includes('locked')) return of(false);
     if (this.mod) return of(true);
     return this.user$.pipe(
       map(user => isOwner(user, ref) || capturesAny(user.writeAccess, qualifyTags(ref.tags, ref.origin))),
@@ -129,8 +129,10 @@ export class AccountService {
   }
 
   writeAccessTag(tag: string): Observable<boolean> {
+    if (!tag) return of(false);
+    if (!tag.endsWith('@*') && tag.includes('@')) return of(false);
     if (!this.signedIn) return of(false);
-    if (tag === 'locked') return of(this.admin);
+    if (tag === 'locked') return of(false);
     if (this.mod) return of(true);
     return this.user$.pipe(
       map(user => tag === user.tag || capturesAny(user.writeAccess, [tag])),

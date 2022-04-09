@@ -67,13 +67,13 @@ export class AdminSetupPage implements OnInit {
     forkJoin(installs).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
-        return throwError(res);
+        return throwError(() => res);
       }),
     ).subscribe(() => {
       this.submitted = true;
       this.admin.status = this.adminForm.value;
       this.adminForm.reset(this.admin.status);
-      this.installMessages.push('Success.')
+      this.installMessages.push('Success. You must reload the page to load your plugin changes.')
     });
   }
 

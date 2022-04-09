@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
-import { mapTemplate, Template } from '../../model/template';
+import { mapTemplate, Template, writeTemplate } from '../../model/template';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 
@@ -21,7 +21,7 @@ export class TemplateService {
   }
 
   create(template: Template): Observable<void> {
-    return this.http.post<void>(this.base, template);
+    return this.http.post<void>(this.base, writeTemplate(template));
   }
 
   get(tag = '', origin = ''): Observable<Template> {
@@ -37,7 +37,7 @@ export class TemplateService {
     }).pipe(map(v => v === 'true'));
   }
 
-  page(args: {
+  page(args?: {
     query?: string,
     page?: number,
     size?: number,
@@ -50,7 +50,7 @@ export class TemplateService {
   }
 
   update(template: Template): Observable<void> {
-    return this.http.put<void>(this.base, template);
+    return this.http.put<void>(this.base, writeTemplate(template));
   }
 
   delete(tag: string): Observable<void> {

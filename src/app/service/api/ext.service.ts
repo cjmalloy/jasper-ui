@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { Ext, mapTag } from '../../model/ext';
+import { Ext, mapTag, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
@@ -20,8 +20,8 @@ export class ExtService {
     return this.config.api + '/api/v1/ext';
   }
 
-  create(tag: Ext): Observable<void> {
-    return this.http.post<void>(this.base, tag);
+  create(ext: Ext): Observable<void> {
+    return this.http.post<void>(this.base, writeExt(ext));
   }
 
   get(tag: string): Observable<Ext> {
@@ -43,7 +43,7 @@ export class ExtService {
   }
 
   update(ext: Ext): Observable<void> {
-    return this.http.put<void>(this.base, ext);
+    return this.http.put<void>(this.base, writeExt(ext));
   }
 
   patch(tag: string, patch: any[]): Observable<void> {

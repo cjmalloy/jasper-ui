@@ -88,7 +88,7 @@ export class SubmitTextPage implements OnInit {
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
-        return throwError(res);
+        return throwError(() => res);
       }),
     ).subscribe(() => {
       this.router.navigate(['/ref', url]);

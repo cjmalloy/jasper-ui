@@ -4,17 +4,17 @@
   <h3>Install Plugins and Templates</h3>
   <span>Plugins:</span>
   <div formGroupName="plugins">
-    <div *ngFor="let plugin of admin.status.plugins | keyvalue">
+    <div *ngFor="let plugin of admin.def.plugins | keyvalue">
       <input id="plugin-{{ plugin.key }}" type="checkbox" [formControlName]="$any(plugin.key)">
-      <label for="plugin-{{ plugin.key }}">{{ plugin.key }}</label>
+      <label for="plugin-{{ plugin.key }}">{{ plugin.value.name || plugin.key }}</label>
     </div>
   </div>
 
   <span>Templates:</span>
   <div formGroupName="templates">
-    <div *ngFor="let template of admin.status.templates | keyvalue">
+    <div *ngFor="let template of admin.def.templates | keyvalue">
       <input id="plugin-{{ template.key }}" type="checkbox" [formControlName]="$any(template.key)">
-      <label for="plugin-{{ template.key }}">{{ template.key }}</label>
+      <label for="plugin-{{ template.key }}">{{ template.value.name || template.key }}</label>
     </div>
   </div>
 

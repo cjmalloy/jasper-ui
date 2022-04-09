@@ -51,6 +51,8 @@ import { TagListComponent } from './component/tag-list/tag-list.component';
 import { TagComponent } from './component/tag/tag.component';
 import { OriginListComponent } from './component/origin-list/origin-list.component';
 import { OriginComponent } from './component/origin/origin.component';
+import { FeedComponent } from './component/feed/feed.component';
+import { FeedListComponent } from './component/feed-list/feed-list.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -101,6 +103,8 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     TagComponent,
     OriginListComponent,
     OriginComponent,
+    FeedComponent,
+    FeedListComponent,
   ],
   imports: [
     BrowserModule,

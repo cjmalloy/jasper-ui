@@ -1,4 +1,4 @@
-<div class="tag">
+<div class="link">
   <a [routerLink]="['/tag', origin.origin]">{{ origin.name || origin.origin || 'local' }}</a>
 </div>
 <div class="stack">
@@ -6,10 +6,10 @@
     modified {{ origin.modified?.fromNow() }}
   </div>
   <div class="actions">
-    <a *ngIf="writeAccess$ | async"
+    <a *ngIf="account.admin"
        class="fake-link"
        (click)="editing = true">edit</a>
-    <a *ngIf="!deleting && (writeAccess$ | async)"
+    <a *ngIf="!deleting && account.admin"
        class="fake-link"
        (click)="deleting = true">delete</a>
     <span *ngIf="deleting" class="delete-confirm">

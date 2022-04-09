@@ -15,7 +15,7 @@
   <textarea id="sidebar" [formControl]="sidebar"></textarea>
 
   <label for="pinned">Pinned:</label>
-  <div id="pinned" class="form-group" [formGroup]="pinned">
+  <div id="pinned" class="form-group">
     <button type="button" (click)="addPinned()">+ Add another pinned link</button>
 
     <div *ngFor="let alias of pinned.controls; let i=index">
