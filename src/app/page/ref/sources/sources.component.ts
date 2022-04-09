@@ -28,7 +28,7 @@ export class SourcesComponent implements OnInit {
   }
 
   get url$() {
-    return this.route.parent!.params.pipe(
+    return this.route.params.pipe(
       map(params => params['ref']),
     );
   }

@@ -1,7 +1,5 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import * as _ from 'lodash';
-import { combineLatest, Observable, Subject, takeUntil } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
@@ -17,9 +15,9 @@ export class CommentListComponent implements OnInit, OnDestroy {
   @Input()
   top!: Ref;
   @Input()
-  filter$?: Observable<string>;
+  source!: string;
   @Input()
-  source$!: Observable<string>;
+  filter?: string | null;
   @Input()
   depth?: number | null = 7;
   @Input()
@@ -29,23 +27,12 @@ export class CommentListComponent implements OnInit, OnDestroy {
   pages: Page<Ref>[] = [];
   hasMore = false;
 
-  private source?: string;
-  private filter?: string;
-
   constructor(
     private refs: RefService,
   ) { }
 
   ngOnInit(): void {
-    combineLatest([this.source$, this.filter$]).pipe(
-      takeUntil(this.destroy$),
-      distinctUntilChanged(_.isEqual),
-    ).subscribe(([source, filter]) => {
-      this.source = source;
-      this.filter = filter;
-      this.pages = [];
-      this.loadMore();
-    });
+    this.loadMore();
     this.newComments$.pipe(
       takeUntil(this.destroy$),
     ).subscribe(comment => comment && this.pages[0].content.unshift(comment));
@@ -56,7 +43,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  getArgs(filter?: string) {
+  getArgs(filter?: string | null) {
     if (filter === 'all') {
       return { query: 'plugin/comment@*' };
     }

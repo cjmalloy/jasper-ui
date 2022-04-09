@@ -13,12 +13,12 @@ import { RefService } from '../../../service/api/ref.service';
   styleUrls: ['./comments.component.scss'],
 })
 export class CommentsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
-  depth$: Observable<number>;
-  url$: Observable<string>;
-  filter$: Observable<string>;
-  ref$: Observable<Ref>;
-  inboxes$: Observable<string[]>;
+  depth$!: Observable<number>;
+  filter$!: Observable<string>;
+  ref$!: Observable<Ref>;
+  inboxes$!: Observable<string[]>;
   newComments$ = new Subject<Ref | null>();
 
   private depth = 7;
@@ -29,12 +29,9 @@ export class CommentsComponent implements OnInit, OnDestroy {
     private account: AccountService,
     private refs: RefService,
   ) {
+    // TODO: fix route not updating
     this.depth$ = this.route.queryParams.pipe(
       map(queryParams => queryParams['depth'] || this.depth),
-      distinctUntilChanged(),
-    );
-    this.url$ = this.route.parent!.params.pipe(
-      map(params => params['ref']),
       distinctUntilChanged(),
     );
     this.filter$ = this.route.params.pipe(
@@ -54,5 +51,14 @@ export class CommentsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.newComments$.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  get url$() {
+    return this.route.params.pipe(
+      map(params => params['ref']),
+      distinctUntilChanged(),
+    );
   }
 }

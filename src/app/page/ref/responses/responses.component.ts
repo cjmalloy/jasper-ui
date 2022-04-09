@@ -28,7 +28,7 @@ export class ResponsesComponent implements OnInit {
   }
 
   get url$() {
-    return this.route.parent!.params.pipe(
+    return this.route.params.pipe(
       map(params => params['ref']),
     );
   }

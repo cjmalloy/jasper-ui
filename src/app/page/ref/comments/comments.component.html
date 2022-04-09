@@ -4,10 +4,9 @@
                      [sources]="[ref.url]"
                      [tags]="(inboxes$ | async) || []"
                      [newComments$]="newComments$"></app-comment-reply>
-  <app-comment-list *ngIf="url$"
-                    [top]="ref"
-                    [filter$]="filter$"
-                    [source$]="url$"
+  <app-comment-list [top]="ref"
+                    [filter]="filter$ | async"
+                    [source]="ref.url"
                     [newComments$]="newComments$"
                     [depth]="depth$ | async"></app-comment-list>
 </ng-container>

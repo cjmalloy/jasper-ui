@@ -79,7 +79,8 @@
      class="comment-children"
      [class.hidden-without-removing]="collapsed">
   <app-comment-list [top]="top"
-                    [source$]="source$"
+                    [source]="ref.url"
+                    [filter]="filter"
                     [depth]="depth! - 1"
                     [newComments$]="newComments$"></app-comment-list>
 </div>

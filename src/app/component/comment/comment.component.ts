@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { BehaviorSubject, mergeMap, Observable, Subject, takeUntil } from 'rxjs';
+import { mergeMap, Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { inboxes } from '../../plugin/inbox';
 import { AccountService } from '../../service/account.service';
@@ -22,12 +22,13 @@ export class CommentComponent implements OnInit, OnDestroy {
   @Input()
   ref!: Ref;
   @Input()
+  filter?: string | null;
+  @Input()
   depth?: number | null = 7;
 
   @ViewChild('inlineTag')
   inlineTag?: ElementRef;
 
-  source$ = new BehaviorSubject<string>(null!);
   commentEdited$ = new Subject<void>();
   newComments$ = new Subject<Ref | null>();
   collapsed = false;
@@ -58,13 +59,11 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.commentEdited$.pipe(
       takeUntil(this.destroy$),
     ).subscribe(() => this.editing = false);
-    this.source$.next(this.ref.url);
   }
 
   ngOnDestroy(): void {
     this.commentEdited$.complete();
     this.newComments$.complete();
-    this.source$.complete();
     this.destroy$.next();
     this.destroy$.complete();
   }
