@@ -20,6 +20,7 @@
 <ng-container *ngIf="!error; else errorMessage">
   <ng-container *ngIf="ref$ | async as ref; else loading">
     <app-ref [ref]="ref"
+             [showToggle]="true"
              [expanded]="true"></app-ref>
   </ng-container>
   <ng-template #loading>
