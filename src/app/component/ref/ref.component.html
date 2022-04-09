@@ -69,6 +69,10 @@
                appAutofocus>
         <button (click)="addInlineTag()">+</button>
       </span>
+      <a *ngIf="account.mod && !approved"
+         class="fake-link"
+         (click)="approve()">approve</a>
+      <span class="approved" *ngIf="account.mod && approved">✔️</span>
     </div>
   </div>
 </div>

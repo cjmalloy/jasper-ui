@@ -20,15 +20,15 @@ export class HomePage implements OnInit {
   defaultPageSize = 20;
 
   constructor(
+    public account: AccountService,
     private route: ActivatedRoute,
-    private account: AccountService,
     private refs: RefService,
   ) {
     this.path$ = this.route.url.pipe(
       map(segments => segments[0].path)
     );
     this.page$ = combineLatest(
-      this.path$, this.filter$, this.pageNumber$, this.pageSize$,
+      [this.path$, this.filter$, this.pageNumber$, this.pageSize$,]
     ).pipe(
       distinctUntilChanged(_.isEqual),
       mergeMap(([path, filter, pageNumber, pageSize]) => {
@@ -57,12 +57,38 @@ export class HomePage implements OnInit {
   }
 
   getQuery(path: string, filter: string): Observable<Record<string, any>> {
+    // TODO: implement parentheses in queries
     if (path === 'home') {
       if (filter === 'new') {
         return this.account.subscriptions$.pipe(
-          // TODO: implement parentheses in queries
           map(subs => ({ query: subs.join(':!internal@*+') + ':!internal@*' })),
         );
+      }
+      if (filter === 'uncited') {
+        return this.account.subscriptions$.pipe(
+          map(subs => ({ query: subs.join(':!internal@*+') + ':!internal@*', uncited: true })),
+        );
+      }
+      if (filter === 'unsourced') {
+        return this.account.subscriptions$.pipe(
+          map(subs => ({ query: subs.join(':!internal@*+') + ':!internal@*', unsourced: true })),
+        );
+      }
+      if (filter === 'modlist') {
+        return this.account.subscriptions$.pipe(
+          map(subs => ({ query: subs.join(':!internal@*:!_moderated@*+') + ':!internal@*:!_moderated' })),
+        );
+      }
+      if (filter === 'imodlist') {
+        return this.account.subscriptions$.pipe(
+          map(subs => ({ query: subs.join(':!_moderated@*+') + ':!_moderated' })),
+        );
+      }
+      throw `Invalid filter ${filter}`;
+    }
+    if (path === 'all') {
+      if (filter === 'new') {
+        return of({ query: '!internal@*' });
       }
       if (filter === 'uncited') {
         return of({ query: '!internal@*', uncited: true });
@@ -70,10 +96,12 @@ export class HomePage implements OnInit {
       if (filter === 'unsourced') {
         return of({ query: '!internal@*', unsourced: true });
       }
-      throw `Invalid filter ${filter}`;
-    }
-    if (path === 'all') {
-      return of({ query: '!internal@*' });
+      if (filter === 'modlist') {
+        return of({ query: '!internal@*:!_moderated' });
+      }
+      if (filter === 'imodlist') {
+        return of({ query: '!_moderated' });
+      }
     }
     throw `Invalid path ${path}`;
   }

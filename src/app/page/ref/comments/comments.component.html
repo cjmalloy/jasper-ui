@@ -6,6 +6,7 @@
                      [newComments$]="newComments$"></app-comment-reply>
   <app-comment-list *ngIf="url$"
                     [top]="ref"
+                    [filter$]="filter$"
                     [source$]="url$"
                     [newComments$]="newComments$"
                     [depth]="depth$ | async"></app-comment-list>

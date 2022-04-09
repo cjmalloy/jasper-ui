@@ -39,17 +39,9 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   constructor(
     public admin: AdminService,
-    private account: AccountService,
+    public account: AccountService,
     private refs: RefService,
   ) { }
-
-  get emoji() {
-    return this.admin.status.plugins.emoji && !!this.ref.tags?.includes('plugin/emoji');
-  }
-
-  get latex() {
-    return this.admin.status.plugins.latex && !!this.ref.tags?.includes('plugin/latex');
-  }
 
   ngOnInit(): void {
     this.writeAccess$ = this.account.writeAccess(this.ref);
@@ -77,6 +69,14 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  get emoji() {
+    return this.admin.status.plugins.emoji && !!this.ref.tags?.includes('plugin/emoji');
+  }
+
+  get latex() {
+    return this.admin.status.plugins.latex && !!this.ref.tags?.includes('plugin/latex');
+  }
+
   get authors() {
     return authors(this.ref);
   }
@@ -87,6 +87,10 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   get tags() {
     return interestingTags(this.ref.tags);
+  }
+
+  get approved() {
+    return this.ref.tags?.includes('_moderated');
   }
 
   get comments() {
@@ -125,6 +129,16 @@ export class CommentComponent implements OnInit, OnDestroy {
       this.tagging = false;
       this.ref = ref;
     });
+  }
+
+  approve() {
+    this.refs.patch(this.ref.url, this.ref.origin!, [{
+      op: 'add',
+      path: '/tags/-',
+      value: '_moderated',
+    }]).pipe(
+      mergeMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+    ).subscribe(ref => this.ref = ref);
   }
 
   delete() {

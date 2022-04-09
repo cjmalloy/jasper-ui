@@ -3,6 +3,10 @@
   <a routerLink="../new" routerLinkActive="current-tab">new</a>
   <a routerLink="../uncited" routerLinkActive="current-tab">uncited</a>
   <a routerLink="../unsourced" routerLinkActive="current-tab">unsourced</a>
+  <ng-container *ngIf="account.mod">
+    <a routerLink="../modlist" routerLinkActive="current-tab">modlist</a>
+    <a routerLink="../imodlist" routerLinkActive="current-tab">modlist+internal</a>
+  </ng-container>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>

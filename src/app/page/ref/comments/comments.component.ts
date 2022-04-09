@@ -16,6 +16,7 @@ export class CommentsComponent implements OnInit, OnDestroy {
 
   depth$: Observable<number>;
   url$: Observable<string>;
+  filter$: Observable<string>;
   ref$: Observable<Ref>;
   inboxes$: Observable<string[]>;
   newComments$ = new Subject<Ref | null>();
@@ -34,6 +35,10 @@ export class CommentsComponent implements OnInit, OnDestroy {
     );
     this.url$ = this.route.parent!.params.pipe(
       map(params => params['ref']),
+      distinctUntilChanged(),
+    );
+    this.filter$ = this.route.params.pipe(
+      map(params => params['filter']),
       distinctUntilChanged(),
     );
     this.ref$ = this.url$.pipe(

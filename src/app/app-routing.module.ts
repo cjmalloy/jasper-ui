@@ -26,27 +26,29 @@ import { EditTagPage } from './page/tag/edit/edit.component';
 import { TagPage } from './page/tag/tag.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/home/new', pathMatch: 'full' },
-  { path: 'home', redirectTo: '/home/new', pathMatch: 'full' },
-  { path: 'all', redirectTo: '/all/new', pathMatch: 'full' },
+  { path: '', redirectTo: 'home/new', pathMatch: 'full' },
+  { path: 'home', redirectTo: 'home/new', pathMatch: 'full' },
+  { path: 'all', redirectTo: 'all/new', pathMatch: 'full' },
 
   { path: 'home/:filter', component: HomePage },
   { path: 'all/:filter', component: HomePage },
-  { path: 'tag/:tag', redirectTo: '/tag/:tag/new', pathMatch: 'full' },
+  { path: 'tag/:tag', redirectTo: 'tag/:tag/new', pathMatch: 'full' },
   { path: 'tag/:tag/edit', component: EditTagPage },
   { path: 'tag/:tag/:filter', component: TagPage },
   {
     path: 'ref/:ref',
     component: RefPage,
     children: [
-      { path: '', redirectTo: 'sources', pathMatch: 'full' },
-      { path: 'comments', component: CommentsComponent },
-      { path: 'responses', component: ResponsesComponent },
-      { path: 'sources', component: SourcesComponent },
+      { path: '', redirectTo: 'sources/all', pathMatch: 'full' },
+      { path: 'comments', redirectTo: 'comments/all', pathMatch: 'full' },
+      { path: 'comments/:filter', component: CommentsComponent },
+      { path: 'responses', redirectTo: 'responses/all', pathMatch: 'full' },
+      { path: 'responses/:filter', component: ResponsesComponent },
+      { path: 'sources', redirectTo: 'sources/all', pathMatch: 'full' },
+      { path: 'sources/:filter', component: SourcesComponent },
       { path: 'graph', component: GraphComponent },
     ],
-  },
-  {
+  }, {
     path: 'inbox',
     component: InboxPage,
     children: [
@@ -59,7 +61,7 @@ const routes: Routes = [
   { path: 'submit/web', component: SubmitWebPage },
   { path: 'submit/text', component: SubmitTextPage },
   { path: 'create/ext', component: CreateExtPage },
-  { path: 'admin', redirectTo: '/admin/setup', pathMatch: 'full', },
+  { path: 'admin', redirectTo: 'admin/setup', pathMatch: 'full', },
   {
     path: 'admin',
     component: AdminPage,

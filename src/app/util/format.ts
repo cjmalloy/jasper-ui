@@ -40,6 +40,7 @@ export function interestingTag(tag: string) {
   if (tag === 'public') return false;
   if (tag === 'locked') return false;
   if (tag === 'internal') return false;
+  if (tag === '_moderated') return false;
   if (tag.startsWith('plugin/')) return false;
   if (tag.startsWith('_plugin/')) return false;
   if (tag.startsWith('user/')) return false;

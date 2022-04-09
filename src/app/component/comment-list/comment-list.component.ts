@@ -1,5 +1,7 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import * as _ from 'lodash';
+import { combineLatest, Observable, Subject, takeUntil } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
@@ -15,6 +17,8 @@ export class CommentListComponent implements OnInit, OnDestroy {
   @Input()
   top!: Ref;
   @Input()
+  filter$?: Observable<string>;
+  @Input()
   source$!: Observable<string>;
   @Input()
   depth?: number | null = 7;
@@ -26,16 +30,19 @@ export class CommentListComponent implements OnInit, OnDestroy {
   hasMore = false;
 
   private source?: string;
+  private filter?: string;
 
   constructor(
     private refs: RefService,
   ) { }
 
   ngOnInit(): void {
-    this.source$.pipe(
+    combineLatest([this.source$, this.filter$]).pipe(
       takeUntil(this.destroy$),
-    ).subscribe(source => {
+      distinctUntilChanged(_.isEqual),
+    ).subscribe(([source, filter]) => {
       this.source = source;
+      this.filter = filter;
       this.pages = [];
       this.loadMore();
     });
@@ -49,9 +56,19 @@ export class CommentListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  getArgs(filter?: string) {
+    if (filter === 'all') {
+      return { query: 'plugin/comment@*' };
+    }
+    if (filter === 'modlist') {
+      return { query: 'plugin/comment@*:!_moderated@*' };
+    }
+    throw `Invalid filter ${filter}`;
+  }
+
   loadMore() {
     this.refs.page({
-      query: 'plugin/comment@*',
+      ...this.getArgs(this.filter),
       responses: this.source,
       page: this.pages.length,
     }).subscribe(page => {

@@ -49,6 +49,9 @@ html, body {
   display: flex;
   height: 60px;
   padding-left: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   & > * {
     align-self: flex-end;
   }
@@ -242,6 +245,10 @@ html, body {
 
 .no-results {
   margin-left: 10px;
+}
+
+.approved {
+  line-height: 10px;
 }
 
 .load-more {

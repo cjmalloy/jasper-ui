@@ -6,6 +6,7 @@ import { distinctUntilChanged, mergeMap, scan, take } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
 import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { localTag } from '../../util/tag';
@@ -26,6 +27,7 @@ export class TagPage implements OnInit {
   private defaultPageSize = 20;
 
   constructor(
+    public account: AccountService,
     private route: ActivatedRoute,
     private refs: RefService,
     private exts: ExtService,
@@ -102,6 +104,12 @@ export class TagPage implements OnInit {
     }
     if (filter === 'unsourced') {
       return of({ query, unsourced: true });
+    }
+    if (filter === 'modlist') {
+      return of({ query: `${tag}:!internal@*:!_moderated@*` });
+    }
+    if (filter === 'imodlist') {
+      return of({ query: `${tag}:!_moderated@*` });
     }
     throw `Invalid filter ${filter}`;
   }

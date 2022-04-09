@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, Observable, of, shareReplay, Subject } from 'rxjs';
 import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { printError } from '../../util/http';
@@ -22,6 +23,7 @@ export class RefPage implements OnInit, OnDestroy {
 
   constructor(
     public admin: AdminService,
+    public account: AccountService,
     private router: Router,
     private route: ActivatedRoute,
     private refs: RefService,

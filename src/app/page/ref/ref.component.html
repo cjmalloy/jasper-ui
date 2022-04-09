@@ -7,6 +7,13 @@
   <a [routerLink]="['../', (url$ | async), 'responses']" routerLinkActive="current-tab">responses</a>
   <a [routerLink]="['../', (url$ | async), 'sources']" routerLinkActive="current-tab">sources</a>
   <a [routerLink]="['../', (url$ | async), 'graph']" routerLinkActive="current-tab">graph</a>
+  <ng-container *ngIf="admin.status.plugins.comment && account.mod">
+    <a [routerLink]="['../', (url$ | async), 'comments', 'modlist']" routerLinkActive="current-tab">comment modlist</a>
+  </ng-container>
+  <ng-container *ngIf="account.mod">
+    <a [routerLink]="['../', (url$ | async), 'responses', 'modlist']" routerLinkActive="current-tab">response modlist</a>
+    <a [routerLink]="['../', (url$ | async), 'sources', 'modlist']" routerLinkActive="current-tab">source modlist</a>
+  </ng-container>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>

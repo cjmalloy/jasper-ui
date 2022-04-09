@@ -44,7 +44,7 @@ export class RefComponent implements OnInit {
 
   constructor(
     public admin: AdminService,
-    private account: AccountService,
+    public account: AccountService,
     private refs: RefService,
     private fb: FormBuilder,
   ) {
@@ -87,6 +87,10 @@ export class RefComponent implements OnInit {
 
   get webLink() {
     return webLink(this.ref);
+  }
+
+  get approved() {
+    return this.ref.tags?.includes('_moderated');
   }
 
   get tagsForm() {
@@ -133,6 +137,16 @@ export class RefComponent implements OnInit {
       this.tagging = false;
       this.ref = ref;
     });
+  }
+
+  approve() {
+    this.refs.patch(this.ref.url, this.ref.origin!, [{
+      op: 'add',
+      path: '/tags/-',
+      value: '_moderated',
+    }]).pipe(
+      mergeMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+    ).subscribe(ref => this.ref = ref);
   }
 
   addTag(value = '') {
