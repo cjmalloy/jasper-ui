@@ -61,7 +61,8 @@ export class CommentListComponent implements OnInit, OnDestroy {
       return { query: 'plugin/comment@*' };
     }
     if (filter === 'modlist') {
-      return { query: 'plugin/comment@*:!_moderated@*' };
+      // TODO: detect if all children are moderated
+      return { query: 'plugin/comment@*' };
     }
     throw `Invalid filter ${filter}`;
   }
