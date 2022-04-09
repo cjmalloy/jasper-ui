@@ -14,7 +14,7 @@ import { printError } from '../../util/http';
 @Component({
   selector: 'app-tag',
   templateUrl: './tag.component.html',
-  styleUrls: ['./tag.component.scss']
+  styleUrls: ['./tag.component.scss'],
 })
 export class TagComponent implements OnInit {
   @HostBinding('class') css = 'list-item';
@@ -74,7 +74,7 @@ export class TagComponent implements OnInit {
       case 'plugin': return this.plugins;
       case 'template': return this.templates;
     }
-    throw "Missing tag type!";
+    throw 'Missing tag type!';
   }
 
   save() {

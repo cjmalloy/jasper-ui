@@ -8,7 +8,7 @@ describe('ExtComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SettingsExtPage ]
+      declarations: [SettingsExtPage],
     })
     .compileComponents();
   });

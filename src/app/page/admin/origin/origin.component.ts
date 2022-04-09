@@ -10,7 +10,7 @@ import { OriginService } from '../../../service/api/origin.service';
 @Component({
   selector: 'app-admin-origin-page',
   templateUrl: './origin.component.html',
-  styleUrls: ['./origin.component.scss']
+  styleUrls: ['./origin.component.scss'],
 })
 export class AdminOriginPage implements OnInit {
 

@@ -4,7 +4,7 @@ import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { authors } from '../util/format';
 
-export const inboxPlugin: Plugin  = {
+export const inboxPlugin: Plugin = {
   tag: 'plugin/inbox',
   name: 'Notifications Plugin',
   config: {

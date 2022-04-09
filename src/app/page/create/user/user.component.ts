@@ -12,7 +12,7 @@ import { printError } from '../../../util/http';
 @Component({
   selector: 'app-create-user',
   templateUrl: './user.component.html',
-  styleUrls: ['./user.component.scss']
+  styleUrls: ['./user.component.scss'],
 })
 export class CreateUserPage implements OnInit {
 

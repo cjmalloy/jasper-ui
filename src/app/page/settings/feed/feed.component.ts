@@ -10,7 +10,7 @@ import { FeedService } from '../../../service/api/feed.service';
 @Component({
   selector: 'app-settings-feed-page',
   templateUrl: './feed.component.html',
-  styleUrls: ['./feed.component.scss']
+  styleUrls: ['./feed.component.scss'],
 })
 export class SettingsFeedPage implements OnInit {
 

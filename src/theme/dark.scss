@@ -15,9 +15,11 @@ body.dark-theme {
   :link, .link-style {
     color: #5769c2;
   }
+
   :visited {
     color: #c66acb;
   }
+
   :active {
     color: $text;
   }
@@ -34,9 +36,11 @@ body.dark-theme {
   .subscription-bar {
     background-color: $bg;
     border-bottom: 1px solid black;
+
     :link, :visited, :active {
       color: $text;
     }
+
     .current-page {
       color: $active;
     }
@@ -48,15 +52,19 @@ body.dark-theme {
     background-image: url("/assets/jasper-dark.png");
     background-position: 4px 0;
     background-repeat: no-repeat;
+
     h5 {
       text-decoration: brown;
     }
+
     & > a {
       background-color: $unselected-tab;
       border-bottom: 1px solid $border;
+
       &:link, &:visited, &:active {
         color: black;
       }
+
       &.current-tab {
         color: $active;
         background-color: $bg;
@@ -69,9 +77,11 @@ body.dark-theme {
 
     .settings {
       background-color: $unselected-tab;
+
       .author {
         color: $tag;
       }
+
       & > a {
         &:link, &:visited, &:active {
           color: black;
@@ -83,6 +93,7 @@ body.dark-theme {
   .sidebar {
     .submit-button {
       border: 1px solid $border;
+
       &:hover {
         background-color: rgba(255, 255, 255, 0.2);
       }
@@ -130,15 +141,18 @@ body.dark-theme {
       color: $info;
     }
   }
+
   .toggle {
     background-color: #525252;
   }
 
   .info {
     color: $info;
+
     :link, :visited, :active {
       color: $tag;
     }
+
     .collapsed {
       :link, :visited, :active {
         color: $info;
@@ -170,13 +184,16 @@ body.dark-theme {
       color: $info;
       border-left: 2px solid $info;
     }
+
     del {
       color: $info;
     }
+
     hr {
       border: none;
       background: $info;
     }
+
     table, th, tr, td {
       border: 1px solid $info;
       border-collapse: collapse;

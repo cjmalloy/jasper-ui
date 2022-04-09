@@ -10,7 +10,7 @@ import { UserService } from '../../../service/api/user.service';
 @Component({
   selector: 'app-settings-user-page',
   templateUrl: './user.component.html',
-  styleUrls: ['./user.component.scss']
+  styleUrls: ['./user.component.scss'],
 })
 export class SettingsUserPage implements OnInit {
 

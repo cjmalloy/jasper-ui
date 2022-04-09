@@ -11,7 +11,7 @@ import { printError } from '../../../util/http';
 @Component({
   selector: 'app-admin-setup-page',
   templateUrl: './setup.component.html',
-  styleUrls: ['./setup.component.scss']
+  styleUrls: ['./setup.component.scss'],
 })
 export class AdminSetupPage implements OnInit {
 
@@ -50,7 +50,7 @@ export class AdminSetupPage implements OnInit {
         installs.push(this.plugins.create(this.admin.def.plugins[plugin]));
       } else {
         this.installMessages.push(`Deleting ${plugin} plugin...`);
-        installs.push(this.plugins.delete(`plugin/${plugin}`))
+        installs.push(this.plugins.delete(`plugin/${plugin}`));
       }
     }
     const templates: Record<string, boolean> = this.admin.status.templates;
@@ -61,7 +61,7 @@ export class AdminSetupPage implements OnInit {
         installs.push(this.templates.create(this.admin.def.templates[template]));
       } else {
         this.installMessages.push(`Deleting ${template} template...`);
-        installs.push(this.templates.delete(template === 'root' ? '' : template))
+        installs.push(this.templates.delete(template === 'root' ? '' : template));
       }
     }
     forkJoin(installs).pipe(
@@ -73,7 +73,7 @@ export class AdminSetupPage implements OnInit {
       this.submitted = true;
       this.admin.status = this.adminForm.value;
       this.adminForm.reset(this.admin.status);
-      this.installMessages.push('Success. You must reload the page to load your plugin changes.')
+      this.installMessages.push('Success. You must reload the page to load your plugin changes.');
     });
   }
 

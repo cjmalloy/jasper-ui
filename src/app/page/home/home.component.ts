@@ -25,10 +25,10 @@ export class HomePage implements OnInit {
     private refs: RefService,
   ) {
     this.path$ = this.route.url.pipe(
-      map(segments => segments[0].path)
+      map(segments => segments[0].path),
     );
     this.page$ = combineLatest(
-      [this.path$, this.filter$, this.pageNumber$, this.pageSize$,]
+      [this.path$, this.filter$, this.pageNumber$, this.pageSize$],
     ).pipe(
       distinctUntilChanged(_.isEqual),
       mergeMap(([path, filter, pageNumber, pageSize]) => {

@@ -8,7 +8,7 @@ describe('OriginListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ OriginListComponent ]
+      declarations: [OriginListComponent],
     })
     .compileComponents();
   });

@@ -65,7 +65,7 @@ const routes: Routes = [
   { path: 'submit/feed', component: SubmitFeedPage },
   { path: 'create/ext', component: CreateExtPage },
   { path: 'create/user', component: CreateUserPage },
-  { path: 'admin', redirectTo: 'admin/setup', pathMatch: 'full', },
+  { path: 'admin', redirectTo: 'admin/setup', pathMatch: 'full' },
   {
     path: 'admin',
     component: AdminPage,

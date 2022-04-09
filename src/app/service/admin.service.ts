@@ -13,7 +13,7 @@ import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AdminService {
 
@@ -27,21 +27,21 @@ export class AdminService {
     templates: {
       root: false,
       user: false,
-    }
+    },
   };
 
   def = {
-    plugins: <Record<string, Plugin>> {
+    plugins: <Record<string, Plugin>>{
       inbox: inboxPlugin,
       comment: commentPlugin,
       latex: latexPlugin,
       emoji: emojiPlugin,
     },
-    templates: <Record<string, Template>> {
+    templates: <Record<string, Template>>{
       root: rootTemplate,
       user: userTemplate,
-    }
-  }
+    },
+  };
 
   constructor(
     private plugins: PluginService,

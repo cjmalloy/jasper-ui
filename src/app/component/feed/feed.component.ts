@@ -13,7 +13,7 @@ import { printError } from '../../util/http';
 @Component({
   selector: 'app-feed',
   templateUrl: './feed.component.html',
-  styleUrls: ['./feed.component.scss']
+  styleUrls: ['./feed.component.scss'],
 })
 export class FeedComponent implements OnInit {
   @HostBinding('class') css = 'list-item';

@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 
-export const emojiPlugin: Plugin  = {
+export const emojiPlugin: Plugin = {
   tag: 'plugin/emoji',
   name: 'Markdown Emoji Plugin',
   config: {

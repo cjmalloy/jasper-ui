@@ -11,7 +11,7 @@ import { printError } from '../../../util/http';
 @Component({
   selector: 'app-submit-feed',
   templateUrl: './feed.component.html',
-  styleUrls: ['./feed.component.scss']
+  styleUrls: ['./feed.component.scss'],
 })
 export class SubmitFeedPage implements OnInit {
 

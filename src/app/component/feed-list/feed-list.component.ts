@@ -5,7 +5,7 @@ import { Page } from '../../model/page';
 @Component({
   selector: 'app-feed-list',
   templateUrl: './feed-list.component.html',
-  styleUrls: ['./feed-list.component.scss']
+  styleUrls: ['./feed-list.component.scss'],
 })
 export class FeedListComponent implements OnInit {
   @HostBinding('class') css = 'feed-list';

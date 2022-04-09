@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 
-export const latexPlugin: Plugin  = {
+export const latexPlugin: Plugin = {
   tag: 'plugin/latex',
   name: 'Markdown LaTeX Plugin',
   config: {

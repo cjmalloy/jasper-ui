@@ -10,7 +10,7 @@ import { TemplateService } from '../../../service/api/template.service';
 @Component({
   selector: 'app-admin-template-page',
   templateUrl: './template.component.html',
-  styleUrls: ['./template.component.scss']
+  styleUrls: ['./template.component.scss'],
 })
 export class AdminTemplatePage implements OnInit {
 

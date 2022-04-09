@@ -15,6 +15,7 @@ body.light-theme {
   .link-style {
     color: blue;
   }
+
   :active {
     color: $text;
   }
@@ -31,9 +32,11 @@ body.light-theme {
   .subscription-bar {
     background-color: $bg;
     border-bottom: 1px solid black;
+
     :link, :visited, :active {
       color: $text;
     }
+
     .current-page {
       color: $active;
     }
@@ -45,12 +48,15 @@ body.light-theme {
     background-image: url("/assets/jasper-light.png");
     background-position: 4px 0;
     background-repeat: no-repeat;
+
     & > a {
       background-color: $unselected-tab;
       border-bottom: 1px solid $border;
+
       &:link, &:visited, &:active {
         color: black;
       }
+
       &.current-tab {
         color: $active;
         background-color: $bg;
@@ -63,9 +69,11 @@ body.light-theme {
 
     .settings {
       background-color: $unselected-tab;
+
       .author {
         color: $tag;
       }
+
       & > a {
         &:link, &:visited, &:active {
           color: black;
@@ -77,6 +85,7 @@ body.light-theme {
   .sidebar {
     .submit-button {
       border: 1px solid $border;
+
       &:hover {
         background-color: rgba(0, 0, 0, 0.2);
       }
@@ -124,15 +133,18 @@ body.light-theme {
       color: $info;
     }
   }
+
   .toggle {
     background-color: lightgray;
   }
 
   .info {
     color: $info;
+
     :link, :visited, :active {
       color: $tag;
     }
+
     .collapsed {
       :link, :visited, :active {
         color: $info;
@@ -164,13 +176,16 @@ body.light-theme {
       color: $info;
       border-left: 2px solid $info;
     }
+
     del {
       color: $info;
     }
+
     hr {
       border: none;
       background: $info;
     }
+
     table, th, tr, td {
       border: 1px solid $info;
       border-collapse: collapse;

@@ -14,10 +14,12 @@ html, body {
 :link {
   text-decoration: none;
 }
+
 :link:hover,
 .fake-link:hover {
   text-decoration: underline;
 }
+
 .fake-link {
   cursor: pointer;
 }
@@ -36,10 +38,12 @@ html, body {
   font-size: 70%;
   border-bottom: 1px solid transparent;
   padding: 4px 8px 2px;
+
   a {
     text-transform: uppercase;
     padding: 0 2px;
   }
+
   .current-page {
     font-weight: bold;
   }
@@ -51,12 +55,15 @@ html, body {
   padding-left: 120px;
   white-space: nowrap;
   text-overflow: ellipsis;
+
   & > * {
     align-self: flex-end;
   }
+
   h5 {
     margin: 4px;
   }
+
   & > a {
     display: inline-block;
     position: relative;
@@ -70,9 +77,11 @@ html, body {
     &:link:hover {
       text-decoration: none;
     }
+
     &.current-tab {
     }
   }
+
   .settings {
     border-top-left-radius: 8px;
     display: inline-block;
@@ -86,19 +95,23 @@ html, body {
 .sidebar {
   width: 300px;
   margin-bottom: 100px;
+
   & > * {
     margin: 4px;
   }
+
   input[type=search] {
     height: 30px;
     width: 292px;
   }
+
   .submit-button {
     text-transform: capitalize;
     border: 1px solid transparent;
     padding: 4px;
     cursor: pointer;
   }
+
   .sidebar-edit {
     display: block;
     text-align: center;
@@ -107,15 +120,16 @@ html, body {
 }
 
 .list-container {
-   display: grid;
-   grid-template-columns: min-content auto;
-   .list-number {
-     text-align: right;
-     align-self: center;
-     padding: 10px;
-     font-weight: bold;
-   }
- }
+  display: grid;
+  grid-template-columns: min-content auto;
+
+  .list-number {
+    text-align: right;
+    align-self: center;
+    padding: 10px;
+    font-weight: bold;
+  }
+}
 
 .form {
   max-width: 600px;
@@ -141,6 +155,7 @@ html, body {
   .disabled {
     cursor: default;
     text-decoration: none;
+
     &:link, &:active, &:visited {
       color: black;
     }
@@ -173,16 +188,20 @@ html, body {
     padding: 2px;
     border: 1px solid transparent;
   }
+
   .comment-body, .actions {
     padding: 4px;
     margin-left: 20px;
   }
+
   .collapsed {
     font-style: italic;
+
     .comment-expand {
       font-style: normal;
     }
   }
+
   .info {
     .author {
       font-weight: bold;
@@ -194,18 +213,21 @@ html, body {
   button, textarea {
     margin: 5px;
   }
+
   textarea {
     margin-bottom: 0;
   }
+
   .comment-plugins {
     display: flex;
     font-size: 75%;
+
     label {
       margin-right: 10px;
       line-height: 13px;
       align-self: center;
     }
-   }
+  }
 }
 
 .link {
@@ -224,17 +246,21 @@ html, body {
   height: 14px;
   font-size: 80%;
   font-weight: bold;
+
   a {
     margin: 2px 6px 2px 0;
   }
+
   input {
     margin: 0;
     font-size: 80%;
     height: 10px;
+
     &:invalid {
       color: $error;
     }
   }
+
   button {
     position: relative;
     top: 1px;
@@ -285,27 +311,33 @@ footer {
   overflow-wrap: break-word;
   word-wrap: break-word;
 
-  &>:first-child {
+  & > :first-child {
     margin-top: 0;
   }
-  &>:last-child {
+
+  & > :last-child {
     margin-bottom: 0;
   }
+
   li p, h1, h2, h3, h4, h5, h6 {
     margin: 0;
     padding: 0;
   }
+
   blockquote {
     padding: 0 8px;
     margin-left: 5px;
   }
+
   pre {
     padding: 10px !important;
   }
+
   hr {
     border: none;
     height: 2px;
   }
+
   td, th {
     padding: 4px;
   }

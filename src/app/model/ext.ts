@@ -18,6 +18,6 @@ export function mapTag(obj: any): Ext {
 
 export function writeExt(ext: Ext): Record<string, any> {
   const result = { ...ext };
-  delete result.type
+  delete result.type;
   return result;
 }

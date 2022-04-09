@@ -94,7 +94,7 @@ export class AccountService {
   get subscriptions$(): Observable<string[]> {
     if (!this.signedIn || !this.adminService.status.templates.user) return of(defaultSubs);
     return this.userExt$.pipe(map(ext => ext.config.subscriptions),
-    )
+    );
   }
 
   checkNotifications() {

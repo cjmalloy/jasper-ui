@@ -10,7 +10,7 @@ import { printError } from '../../util/http';
 @Component({
   selector: 'app-origin',
   templateUrl: './origin.component.html',
-  styleUrls: ['./origin.component.scss']
+  styleUrls: ['./origin.component.scss'],
 })
 export class OriginComponent implements OnInit {
   @HostBinding('class') css = 'list-item';

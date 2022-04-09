@@ -8,7 +8,7 @@ describe('OriginComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ OriginComponent ]
+      declarations: [OriginComponent],
     })
     .compileComponents();
   });

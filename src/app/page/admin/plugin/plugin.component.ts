@@ -10,7 +10,7 @@ import { PluginService } from '../../../service/api/plugin.service';
 @Component({
   selector: 'app-admin-plugin-page',
   templateUrl: './plugin.component.html',
-  styleUrls: ['./plugin.component.scss']
+  styleUrls: ['./plugin.component.scss'],
 })
 export class AdminPluginPage implements OnInit {
 
@@ -28,9 +28,9 @@ export class AdminPluginPage implements OnInit {
       distinctUntilChanged(_.isEqual),
       mergeMap(([pageNumber, pageSize]) => {
         return this.plugins.page({
-            page: pageNumber,
-            size: pageSize ?? this.defaultPageSize,
-          });
+          page: pageNumber,
+          size: pageSize ?? this.defaultPageSize,
+        });
       }));
   }
 

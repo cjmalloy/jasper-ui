@@ -10,7 +10,7 @@ import { ExtService } from '../../../service/api/ext.service';
 @Component({
   selector: 'app-settings-ext-page',
   templateUrl: './ext.component.html',
-  styleUrls: ['./ext.component.scss']
+  styleUrls: ['./ext.component.scss'],
 })
 export class SettingsExtPage implements OnInit {
 

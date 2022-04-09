@@ -8,7 +8,7 @@ describe('FeedComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ FeedComponent ]
+      declarations: [FeedComponent],
     })
     .compileComponents();
   });

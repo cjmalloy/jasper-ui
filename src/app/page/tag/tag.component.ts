@@ -54,7 +54,7 @@ export class TagPage implements OnInit {
     this.title$ = this.ext$.pipe(
       mergeMap(ext => ext
         ? of(ext.name || ext.tag)
-        : this.tag$)
+        : this.tag$),
     );
     this.pinned$ = this.ext$.pipe(
       filter(ext => !!ext),
