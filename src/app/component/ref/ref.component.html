@@ -52,10 +52,8 @@
       <a *ngIf="!deleting && (writeAccess$ | async)"
          class="fake-link"
          (click)="deleting = true">delete</a>
-      <span *ngIf="deleting" class="delete-confirm">
-        are you sure?
-        <a class="fake-link" (click)="delete()">yes</a>
-        /
+      <span *ngIf="deleting" class="delete-confirm"> are you sure?
+        <a class="fake-link" (click)="delete()">yes</a> /
         <a class="fake-link" (click)="deleting = false">no</a>
       </span>
       <a *ngIf="writeAccess$ | async"

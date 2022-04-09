@@ -42,10 +42,8 @@
     <a [routerLink]="['/ref', ref.url, 'graph']">graph</a>
     <a class="fake-link" *ngIf="writeAccess$ | async" (click)="editing = !editing">edit</a>
     <a class="fake-link" *ngIf="!deleting && (writeAccess$ | async)" (click)="deleting = true">delete</a>
-    <span *ngIf="deleting" class="delete-confirm">
-      are you sure?
-      <a class="fake-link" (click)="delete()">yes</a>
-      /
+    <span *ngIf="deleting" class="delete-confirm"> are you sure?
+      <a class="fake-link" (click)="delete()">yes</a> /
       <a class="fake-link" (click)="deleting = false">no</a>
     </span>
     <a class="fake-link" *ngIf="writeAccess$ | async" (click)="tagging = !tagging">tag</a>

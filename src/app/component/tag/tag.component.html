@@ -1,7 +1,9 @@
 <div class="link">
-  <a [routerLink]="['/tag', qualifiedTag]">{{ tag.name || tag.tag || 'root' }}</a>
-  <span *ngIf="tag.name" class="host">({{ tag.tag + tag.origin }})</span>
-  <span *ngIf="!tag.name && tag.origin" class="host">({{ tag.origin }})</span>
+  <a *ngIf="tag.tag" [routerLink]="['/tag', qualifiedTag]">{{ tag.name || tag.tag }}</a>
+  <a *ngIf="!tag.tag" routerLink="/all">{{ tag.name || 'root' }}</a>
+  <span *ngIf="!tag.tag" class="host">(root: "")</span>
+  <span *ngIf="tag.name && tag.tag" class="host">({{ tag.tag + tag.origin }})</span>
+  <span *ngIf="!tag.tag && !tag.name && tag.origin" class="host">({{ tag.origin }})</span>
 </div>
 <div class="stack">
   <div class="info">
@@ -14,12 +16,10 @@
     <a *ngIf="!deleting && (writeAccess$ | async)"
        class="fake-link"
        (click)="deleting = true">delete</a>
-    <span *ngIf="deleting" class="delete-confirm">
-        are you sure?
-        <a class="fake-link" (click)="delete()">yes</a>
-        /
-        <a class="fake-link" (click)="deleting = false">no</a>
-      </span>
+    <span *ngIf="deleting" class="delete-confirm">are you sure?
+      <a class="fake-link" (click)="delete()">yes</a> /
+      <a class="fake-link" (click)="deleting = false">no</a>
+    </span>
   </div>
 </div>
 
