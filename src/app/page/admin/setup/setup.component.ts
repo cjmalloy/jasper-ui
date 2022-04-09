@@ -73,7 +73,7 @@ export class AdminSetupPage implements OnInit {
       this.submitted = true;
       this.admin.status = this.adminForm.value;
       this.adminForm.reset(this.admin.status);
-      this.installMessages.push('Success. You must reload the page to load your plugin changes.');
+      this.installMessages.push('Success.');
     });
   }
 

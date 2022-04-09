@@ -39,7 +39,9 @@
     <a [routerLink]="['/ref', ref.url, 'comments']">permalink</a>
     <a [routerLink]="['/ref', ref.url, 'responses']">{{ responses.replace(' ', '&thinsp;') }}</a>
     <a [routerLink]="['/ref', ref.url, 'sources']">{{ sources.replace(' ', '&thinsp;')}}</a>
-    <a [routerLink]="['/ref', ref.url, 'graph']">graph</a>
+    <ng-container *ngIf="admin.status.plugins.graph">
+      <a [routerLink]="['/ref', ref.url, 'graph']">graph</a>
+    </ng-container>
     <a class="fake-link" *ngIf="writeAccess$ | async" (click)="editing = !editing">edit</a>
     <a class="fake-link" *ngIf="!deleting && (writeAccess$ | async)" (click)="deleting = true">delete</a>
     <span *ngIf="deleting" class="delete-confirm"> are you sure?

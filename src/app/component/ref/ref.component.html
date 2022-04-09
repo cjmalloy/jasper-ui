@@ -45,7 +45,9 @@
       <a [routerLink]="['/ref', ref.url, 'sources']">
         {{ sources.replace(' ', '&thinsp;') }}
       </a>
-      <a [routerLink]="['/ref', ref.url, 'graph']">graph</a>
+      <ng-container *ngIf="admin.status.plugins.graph">
+        <a [routerLink]="['/ref', ref.url, 'graph']">graph</a>
+      </ng-container>
       <a *ngIf="writeAccess$ | async"
          class="fake-link"
          (click)="editing = true">edit</a>

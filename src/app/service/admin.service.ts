@@ -5,6 +5,7 @@ import { Plugin } from '../model/plugin';
 import { Template } from '../model/template';
 import { commentPlugin } from '../plugin/comment';
 import { emojiPlugin } from '../plugin/emoji';
+import { graphPlugin } from '../plugin/graph';
 import { inboxPlugin } from '../plugin/inbox';
 import { latexPlugin } from '../plugin/latex';
 import { rootTemplate } from '../template/root';
@@ -23,6 +24,7 @@ export class AdminService {
       comment: false,
       latex: false,
       emoji: false,
+      graph: false,
     },
     templates: {
       root: false,
@@ -36,6 +38,7 @@ export class AdminService {
       comment: commentPlugin,
       latex: latexPlugin,
       emoji: emojiPlugin,
+      graph: graphPlugin,
     },
     templates: <Record<string, Template>>{
       root: rootTemplate,
@@ -55,6 +58,7 @@ export class AdminService {
         comment: this.plugins.exists('plugin/comment'),
         latex: this.plugins.exists('plugin/latex'),
         emoji: this.plugins.exists('plugin/emoji'),
+        graph: this.plugins.exists('plugin/graph'),
       }).pipe(tap(status => this.status.plugins = status)),
       forkJoin({
         root: this.templates.exists(''),
