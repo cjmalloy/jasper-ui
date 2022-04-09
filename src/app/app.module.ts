@@ -13,6 +13,7 @@ import { CommentReplyComponent } from './component/comment-reply/comment-reply.c
 import { CommentComponent } from './component/comment/comment.component';
 import { FeedListComponent } from './component/feed-list/feed-list.component';
 import { FeedComponent } from './component/feed/feed.component';
+import { ForceDirectedComponent } from './component/graph/force-directed/force-directed.component';
 import { LoadingComponent } from './component/loading/loading.component';
 import { OriginListComponent } from './component/origin-list/origin-list.component';
 import { OriginComponent } from './component/origin/origin.component';
@@ -111,6 +112,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     FeedListComponent,
     UserComponent,
     CreateUserPage,
+    ForceDirectedComponent,
   ],
   imports: [
     BrowserModule,

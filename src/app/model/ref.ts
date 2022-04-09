@@ -25,6 +25,11 @@ export function mapRef(obj: any): Ref {
   return obj;
 }
 
+export function mapRefOrNull(obj: any): Ref | null {
+  if (!obj) return null;
+  return mapRef(obj);
+}
+
 export function writeRef(ref: Ref): Record<string, any> {
   const result = { ...ref };
   delete result.metadata;

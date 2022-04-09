@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, AsyncValidatorFn, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControl, AsyncValidatorFn, FormBuilder, FormControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, mergeMap, Observable, of } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
@@ -38,14 +38,21 @@ export class SubmitPage implements OnInit {
       if (params['linkType']) {
         this.linkTypeOverride = params['linkType'];
       }
+      if (params['url']) {
+        this.url.setValue(params['url']);
+      }
     });
+  }
+
+  ngOnInit(): void {
+  }
+
+  get url() {
+    return this.submitForm.get('url') as FormControl;
   }
 
   get validator(): AsyncValidatorFn {
     return (control: AbstractControl) => this.validLink(control);
-  }
-
-  ngOnInit(): void {
   }
 
   exists(url: string) {

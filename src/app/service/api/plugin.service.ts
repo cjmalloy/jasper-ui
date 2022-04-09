@@ -44,7 +44,7 @@ export class PluginService {
     sort?: string,
     direction?: 'asc' | 'desc',
   }): Observable<Page<Plugin>> {
-    return this.http.get(`${this.base}/list`, {
+    return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(map(mapPage(mapPlugin)));
   }

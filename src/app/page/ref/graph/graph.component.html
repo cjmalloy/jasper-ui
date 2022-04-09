@@ -1,2 +1,8 @@
 <hr>
-<p>graph works!</p>
+<ng-container *ngIf="ref$ | async as ref; else loading">
+  <app-force-directed [content]="[ref]"
+                      [filter]="filter$ | async"></app-force-directed>
+</ng-container>
+<ng-template #loading>
+  <app-loading></app-loading>
+</ng-template>

@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import * as moment from 'moment';
 import { map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
-import { mapRef, Ref, writeRef } from '../../model/ref';
+import { mapRef, mapRefOrNull, Ref, writeRef } from '../../model/ref';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 
@@ -38,6 +38,15 @@ export class RefService {
     }).pipe(map(mapRef));
   }
 
+  list(urls: string[], origin = ''): Observable<(Ref | null)[]> {
+    return this.http.get(`${this.base}/list`, {
+      params: { urls, origin },
+    }).pipe(
+      map(res => res as any[]),
+      map(res => res.map(mapRefOrNull)),
+    );
+  }
+
   page(args?: {
     query?: string,
     page?: number,
@@ -50,7 +59,7 @@ export class RefService {
     uncited?: boolean,
     unsourced?: boolean,
   }): Observable<Page<Ref>> {
-    return this.http.get(`${this.base}/list`, {
+    return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(map(mapPage(mapRef)));
   }
