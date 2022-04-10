@@ -6,6 +6,7 @@ import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
+import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 
 @Component({
@@ -17,9 +18,12 @@ export class HomePage implements OnInit {
 
   path$: Observable<string>;
   page$: Observable<Page<Ref>>;
-  defaultPageSize = 20;
+  graph = false;
+
+  private defaultPageSize = 20;
 
   constructor(
+    public admin: AdminService,
     public account: AccountService,
     private route: ActivatedRoute,
     private refs: RefService,
@@ -39,6 +43,9 @@ export class HomePage implements OnInit {
             size: pageSize ?? this.defaultPageSize,
           })));
       }));
+    this.route.queryParams.pipe(
+      map(params => params['graph']),
+    ).subscribe(graph => this.graph = graph);
   }
 
   ngOnInit(): void {

@@ -4,20 +4,24 @@ more results:
   <a class="first-page"
      routerLink="./"
      routerLinkActive="disabled"
-     [queryParams]="{ pageNumber: 0 }">first</a>
+     [queryParams]="{ pageNumber: 0 }"
+     queryParamsHandling="merge">first</a>
   |
   <a class="prev-page"
      routerLink="./"
      routerLinkActive="disabled"
-     [queryParams]="{ pageNumber: prev }">prev</a>
+     [queryParams]="{ pageNumber: prev }"
+     queryParamsHandling="merge">prev</a>
   |
 </ng-container>
 <a class="next-page"
    routerLink="./"
    routerLinkActive="disabled"
-   [queryParams]="{ pageNumber: next }">next</a>
+   [queryParams]="{ pageNumber: next }"
+   queryParamsHandling="merge">next</a>
 |
 <a class="last-page"
    routerLink="./"
    routerLinkActive="disabled"
-   [queryParams]="{ pageNumber: last }">last</a>
+   [queryParams]="{ pageNumber: last }"
+   queryParamsHandling="merge">last</a>

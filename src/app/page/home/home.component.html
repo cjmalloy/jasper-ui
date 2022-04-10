@@ -7,8 +7,15 @@
     <a routerLink="../modlist" routerLinkActive="current-tab">modlist</a>
     <a routerLink="../imodlist" routerLinkActive="current-tab">modlist+internal</a>
   </ng-container>
+  <ng-container *ngIf="admin.status.plugins.graph">
+    <a routerLink="./"
+       [class.current-tab]="graph"
+       [queryParams]="{ graph: graph ? null : true }"
+       queryParamsHandling="merge">graph</a>
+  </ng-container>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>
-<app-sidebar></app-sidebar>
-<app-ref-list [page]="page$ | async"></app-ref-list>
+<app-sidebar *ngIf="!graph"></app-sidebar>
+<app-ref-list [page]="page$ | async"
+              [graph]="graph"></app-ref-list>

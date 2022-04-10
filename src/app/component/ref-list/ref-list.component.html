@@ -1,4 +1,4 @@
-<div class="list-container">
+<div class="list-container" *ngIf="!graph">
   <ng-container *ngFor="let ref of pinned">
     <div class="list-number">&bullet;</div>
     <app-ref class="pinned"
@@ -13,8 +13,12 @@
              [expanded]="false"></app-ref>
   </ng-container>
 </div>
+<app-force-directed *ngIf="graph && page"
+                    [tag]="tag"
+                    [content]="page.content"></app-force-directed>
 <app-loading *ngIf="!page"></app-loading>
-<app-page-controls *ngIf="page && !page.empty"
+<!-- TODO: allow paging with graph -->
+<app-page-controls *ngIf="page && !page.empty && !graph"
                    [page]="page"></app-page-controls>
 
 <p class="no-results" *ngIf="page && page.empty">

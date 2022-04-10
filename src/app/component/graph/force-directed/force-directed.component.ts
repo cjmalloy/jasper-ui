@@ -6,6 +6,7 @@ import { catchError, Observable, of, throwError } from 'rxjs';
 import { mergeMap, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
+import { capturesAny } from '../../../util/tag';
 
 type GraphNode = { id: string, loaded?: boolean, notFound?: boolean, tags?: string[], title?: string };
 type GraphLink = { source: string, target: string };
@@ -24,7 +25,7 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
   @Input()
   depth = 0;
   @Input()
-  tag = 'science';
+  tag?: string | null = 'science';
 
   @Input()
   nodeStroke = '#d0d0d0';
@@ -39,9 +40,9 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
   @Input()
   selectedStrokeOpacity = 1;
   @Input()
-  nodeRadius = 16;
+  nodeRadius = 8;
   @Input()
-  nodeStrength = -700;
+  nodeStrength?: number;
   @Input()
   linkStroke = '#cbcbcb';
   @Input()
@@ -51,7 +52,7 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
   @Input()
   linkStrokeLinecap = 'round';
   @Input()
-  linkStrength = 1;
+  linkStrength?: number;
 
   selected?: Ref;
   selectedNotFound?: string;
@@ -108,7 +109,7 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
     if (ref.tags?.includes('plugin/comment')) return '#4a8de5';
     if (ref.id.startsWith('comment:')) return '#4ae552';
     if (!ref.tags || !ref.title || ref.tags.includes('internal')) return '#857979';
-    if (ref.tags.includes(this.tag)) return '#c34ae5';
+    if (this.tag && capturesAny([this.tag!], ref.tags)) return '#c34ae5';
     return '#1c378c';
   }
 
@@ -177,8 +178,8 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
     ];
 
     const simulation = d3.forceSimulation(nodes as SimulationNodeDatum[])
-      .force('link', d3.forceLink(links).id(node => (node as GraphNode).id).strength(this.linkStrength))
-      .force('charge', d3.forceManyBody().strength(this.nodeStrength))
+      .force('link', d3.forceLink(links).id(node => (node as GraphNode).id))
+      .force('charge', d3.forceManyBody())
       .force('x', d3.forceX())
       .force('y', d3.forceY())
       .on('tick', () => {

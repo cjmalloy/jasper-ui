@@ -7,6 +7,7 @@ import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
+import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { localTag } from '../../util/tag';
@@ -23,10 +24,12 @@ export class TagPage implements OnInit {
   ext$: Observable<Ext | null>;
   page$: Observable<Page<Ref>>;
   pinned$: Observable<Ref[]>;
+  graph = false;
 
   private defaultPageSize = 20;
 
   constructor(
+    public admin: AdminService,
     public account: AccountService,
     private route: ActivatedRoute,
     private refs: RefService,
@@ -44,6 +47,9 @@ export class TagPage implements OnInit {
             size: pageSize ?? this.defaultPageSize,
           })));
       }));
+    this.route.queryParams.pipe(
+      map(params => params['graph']),
+    ).subscribe(graph => this.graph = graph);
     this.localTag$ = this.tag$.pipe(
       map(tag => localTag(tag)),
     );

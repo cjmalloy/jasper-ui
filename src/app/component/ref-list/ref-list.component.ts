@@ -14,6 +14,10 @@ export class RefListComponent implements OnInit {
   page?: Page<Ref> | null;
   @Input()
   pinned?: Ref[] | null;
+  @Input()
+  tag?: string | null;
+  @Input()
+  graph = false;
 
   constructor() { }
 
