@@ -32,13 +32,14 @@ export class HomePage implements OnInit {
       map(segments => segments[0].path),
     );
     this.page$ = combineLatest(
-      [this.path$, this.filter$, this.pageNumber$, this.pageSize$],
+      [this.path$, this.filter$, this.search$, this.pageNumber$, this.pageSize$],
     ).pipe(
       distinctUntilChanged(_.isEqual),
-      mergeMap(([path, filter, pageNumber, pageSize]) => {
+      mergeMap(([path, filter, search, pageNumber, pageSize]) => {
         return this.getQuery(path, filter).pipe(
           mergeMap(query => this.refs.page({
             ...query,
+            search,
             page: pageNumber,
             size: pageSize ?? this.defaultPageSize,
           })));
@@ -52,15 +53,27 @@ export class HomePage implements OnInit {
   }
 
   get filter$() {
-    return this.route.params.pipe(map(params => params['filter']));
+    return this.route.params.pipe(
+      map(params => params['filter'])
+    );
+  }
+
+  get search$() {
+    return this.route.queryParams.pipe(
+      map(queryParams => queryParams['search'])
+    );
   }
 
   get pageNumber$() {
-    return this.route.queryParams.pipe(map(queryParams => queryParams['pageNumber']));
+    return this.route.queryParams.pipe(
+      map(queryParams => queryParams['pageNumber'])
+    );
   }
 
   get pageSize$() {
-    return this.route.queryParams.pipe(map(queryParams => queryParams['pageSize']));
+    return this.route.queryParams.pipe(
+      map(queryParams => queryParams['pageSize'])
+    );
   }
 
   getQuery(path: string, filter: string): Observable<Record<string, any>> {

@@ -1,4 +1,7 @@
-<input type="search" placeholder="Search">
+<input type="search"
+       placeholder="Search"
+       [(ngModel)]="searchValue"
+       (keydown)="$event.key === 'Enter' && search() || true">
 <ng-container *ngIf="account.signedIn">
   <div class="submit-button" routerLink="/submit" [queryParams]="{ tag }">
     Submit Link

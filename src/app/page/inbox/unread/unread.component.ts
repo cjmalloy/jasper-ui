@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { mergeMap, tap } from 'rxjs/operators';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
@@ -17,6 +18,7 @@ export class UnreadComponent implements OnInit {
   page$: Observable<Page<Ref>>;
 
   constructor(
+    private route: ActivatedRoute,
     private account: AccountService,
     private refs: RefService,
   ) {
@@ -32,6 +34,12 @@ export class UnreadComponent implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  get search$() {
+    return this.route.queryParams.pipe(
+      map(queryParams => queryParams['search'])
+    );
   }
 
 }

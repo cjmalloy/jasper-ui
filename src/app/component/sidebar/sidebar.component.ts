@@ -1,4 +1,5 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
@@ -18,12 +19,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @Input()
   tag?: string | null;
 
+  searchValue = '';
   writeAccess$?: Observable<boolean>;
 
   constructor(
+    public router: Router,
+    public route: ActivatedRoute,
     public admin: AdminService,
     public account: AccountService,
-  ) { }
+  ) {
+    this.route.queryParams.subscribe(params => this.searchValue = params['search']);
+  }
 
   ngOnInit(): void {
     this.writeAccess$ = this.account.writeAccessTag(this.tag!);
@@ -32,6 +38,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  search() {
+    this.router.navigate([], { queryParams: { search: this.searchValue }, queryParamsHandling: 'merge' });
   }
 
 }

@@ -36,13 +36,14 @@ export class TagPage implements OnInit {
     private exts: ExtService,
   ) {
     this.page$ = combineLatest(
-      this.tag$, this.filter$, this.pageNumber$, this.pageSize$,
+      this.tag$, this.filter$, this.search$, this.pageNumber$, this.pageSize$,
     ).pipe(
       distinctUntilChanged(_.isEqual),
-      mergeMap(([tag, filter, pageNumber, pageSize]) => {
+      mergeMap(([tag, filter, search, pageNumber, pageSize]) => {
         return this.getArgs(tag, filter).pipe(
           mergeMap(args => this.refs.page({
             ...args,
+            search,
             page: pageNumber,
             size: pageSize ?? this.defaultPageSize,
           })));
@@ -85,6 +86,12 @@ export class TagPage implements OnInit {
   get filter$() {
     return this.route.params.pipe(
       map(params => params['filter']),
+    );
+  }
+
+  get search$() {
+    return this.route.queryParams.pipe(
+      map(queryParams => queryParams['search'])
     );
   }
 

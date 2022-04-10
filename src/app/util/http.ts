@@ -11,7 +11,7 @@ export function params(obj?: Record<string, any>): Record<string, any> | undefin
   for (const k in obj) {
     let v = obj[k];
     if (isMoment(v)) v = v.toISOString();
-    if (v !== null && v !== undefined) {
+    if (v) {
       result[k] = v;
     }
   }
