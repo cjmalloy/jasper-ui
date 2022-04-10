@@ -24,25 +24,59 @@
   </div>
 </ng-container>
 
-<div *ngIf="ext?.config?.sidebar"
-     class="md"
-     markdown
-     [emoji]="admin.status.plugins.emoji"
-     [katex]="admin.status.plugins.latex"
-     [katexOptions]="{ throwOnError: false }"
-     [data]="ext?.config?.sidebar"></div>
+<ng-container *ngIf="queue">
+  <div *ngIf="ext?.config?.bounty">
+    {{ ext?.config?.bounty }}
+  </div>
+  <div *ngIf="ext?.config?.maxAge">
+    {{ ext?.config?.maxAge }}
+  </div>
+  <div *ngIf="ext?.config?.approvers?.length">
+    Approvers:
+    <br>
+    <ng-container *ngFor="let a of ext!.config!.approvers!">
+      <a [routerLink]="['/tag', a]">
+        {{ a }}
+      </a>
+      <br>
+    </ng-container>
+  </div>
+</ng-container>
 
-<ng-container *ngIf="tag && (writeAccess$ | async)">
-  <a *ngIf="ext"
-     class="sidebar-edit"
-     [routerLink]="['/tag', tag, 'edit']">
-    edit tag extension
-  </a>
+<ng-container *ngIf="user">
+  <div *ngIf="ext?.config?.subscriptions?.length">
+    Subscribed to:
+    <br>
+    <ng-container *ngFor="let sub of ext!.config!.subscriptions!">
+      <a [routerLink]="['/tag', sub]">
+        {{ sub }}
+      </a>
+      <br>
+    </ng-container>
+  </div>
+</ng-container>
 
-  <a *ngIf="admin.status.templates.root && !ext"
-     class="sidebar-edit"
-     routerLink="/create/ext"
-     [queryParams]="{ tag }">
-    create tag extension
-  </a>
+<ng-container *ngIf="root">
+  <div *ngIf="ext?.config?.sidebar"
+       class="md"
+       markdown
+       [emoji]="!!admin.status.plugins.emoji"
+       [katex]="!!admin.status.plugins.latex"
+       [katexOptions]="{ throwOnError: false }"
+       [data]="ext?.config?.sidebar"></div>
+
+  <ng-container *ngIf="writeAccess$ | async">
+    <a *ngIf="ext"
+       class="sidebar-edit"
+       [routerLink]="['/tag', tag, 'edit']">
+      Edit {{ type }}
+    </a>
+
+    <a *ngIf="admin.status.templates.root && !ext"
+       class="sidebar-edit"
+       routerLink="/create/ext"
+       [queryParams]="{ tag }">
+      Create {{ type }}
+    </a>
+  </ng-container>
 </ng-container>

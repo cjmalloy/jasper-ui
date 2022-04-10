@@ -34,9 +34,9 @@
   <div id="sources" class="form-group" formArrayName="sources">
     <button type="button" (click)="addSource()">+ Add another source</button>
 
-    <div *ngFor="let alias of sources.controls; let i=index">
+    <div *ngFor="let source of sources.controls; let i=index">
       <label for="sources-{{ i }}">Source:</label>
-      <input id="sources-{{ i }}" type="text" [formControlName]="i">
+      <input id="sources-{{ i }}" type="text" [formControl]="$any(source)">
       <button type="button" (click)="removeSource(i)">&ndash;</button>
       <div class="error" *ngIf="sources.at(i).touched && sources.at(i).errors?.['required']">
         Source must not be blank.
@@ -48,9 +48,9 @@
   <div id="tags" class="form-group" formArrayName="tags">
     <button type="button" (click)="addTag()">+ Add another tag</button>
 
-    <div *ngFor="let alias of tags.controls; let i=index">
+    <div *ngFor="let tag of tags.controls; let i=index">
       <label for="tags-{{ i }}">Tag:</label>
-      <input id="tags-{{ i }}" type="text" [formControlName]="i">
+      <input id="tags-{{ i }}" type="text" [formControl]="$any(tag)">
       <button type="button" (click)="removeTag(i)">&ndash;</button>
       <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['pattern']">
         Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private

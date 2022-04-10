@@ -23,8 +23,8 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
   @ViewChild('textbox')
   textbox!: ElementRef;
 
-  emoji = this.admin.status.plugins.emoji;
-  latex = this.admin.status.plugins.latex;
+  emoji = !!this.admin.status.plugins.emoji;
+  latex = !!this.admin.status.plugins.latex;
 
   constructor(
     public admin: AdminService,

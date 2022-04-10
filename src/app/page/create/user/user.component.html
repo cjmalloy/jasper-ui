@@ -28,9 +28,9 @@
   <div id="readAccess" class="form-group" formArrayName="readAccess">
     <button type="button" (click)="addReadAccess()">+ Add another tag</button>
 
-    <div *ngFor="let alias of readAccess.controls; let i=index">
+    <div *ngFor="let tag of readAccess.controls; let i=index">
       <label for="readAccess-{{ i }}">Source:</label>
-      <input id="readAccess-{{ i }}" type="text" [formControlName]="i">
+      <input id="readAccess-{{ i }}" type="text" [formControl]="$any(tag)">
       <button type="button" (click)="removeReadAccess(i)">&ndash;</button>
       <div class="error" *ngIf="readAccess.at(i).touched && readAccess.at(i).errors?.['pattern']">
         Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
@@ -47,9 +47,9 @@
   <div id="writeAccess" class="form-group" formArrayName="writeAccess">
     <button type="button" (click)="addWriteAccess()">+ Add another tag</button>
 
-    <div *ngFor="let alias of writeAccess.controls; let i=index">
+    <div *ngFor="let tag of writeAccess.controls; let i=index">
       <label for="writeAccess-{{ i }}">Source:</label>
-      <input id="writeAccess-{{ i }}" type="text" [formControlName]="i">
+      <input id="writeAccess-{{ i }}" type="text" [formControl]="$any(tag)">
       <button type="button" (click)="removeWriteAccess(i)">&ndash;</button>
       <div class="error" *ngIf="writeAccess.at(i).touched && writeAccess.at(i).errors?.['pattern']">
         Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain

@@ -68,11 +68,11 @@ export class RefComponent implements OnInit {
   }
 
   get emoji() {
-    return this.admin.status.plugins.emoji && !!this.ref.tags?.includes('plugin/emoji');
+    return !!this.admin.status.plugins.emoji && !!this.ref.tags?.includes('plugin/emoji');
   }
 
   get latex() {
-    return this.admin.status.plugins.latex && !!this.ref.tags?.includes('plugin/latex');
+    return !!this.admin.status.plugins.latex && !!this.ref.tags?.includes('plugin/latex');
   }
 
   get authors() {

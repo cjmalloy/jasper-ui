@@ -30,9 +30,9 @@
   <div id="pinned" class="form-group" formArrayName="pinned">
     <button type="button" (click)="addPinned()">+ Add another pinned link</button>
 
-    <div *ngFor="let alias of pinned.controls; let i=index">
+    <div *ngFor="let pin of pinned.controls; let i=index">
       <label for="pinned-{{ i }}">Link:</label>
-      <input id="pinned-{{ i }}" type="text" [formControlName]="i">
+      <input id="pinned-{{ i }}" type="text" [formControl]="$any(pin)">
       <button type="button" (click)="removePinned(i)">&ndash;</button>
       <div class="error" *ngIf="pinned.at(i).touched && pinned.at(i).errors?.['required']">
         Pinned link must not be blank.
