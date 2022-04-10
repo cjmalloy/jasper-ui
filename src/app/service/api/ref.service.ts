@@ -60,10 +60,6 @@ export class RefService {
     uncited?: boolean,
     unsourced?: boolean,
   }): Observable<Page<Ref>> {
-    args ??= {};
-    if (!args.search && args.sort === undefined) {
-      args.sort = 'created';
-    }
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(map(mapPage(mapRef)));
