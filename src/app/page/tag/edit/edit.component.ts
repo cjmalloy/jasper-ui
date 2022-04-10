@@ -1,4 +1,3 @@
-import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
@@ -26,7 +25,6 @@ export class EditTagPage implements OnInit {
 
   constructor(
     public admin: AdminService,
-    private location: Location,
     private router: Router,
     private route: ActivatedRoute,
     private account: AccountService,
@@ -187,7 +185,7 @@ export class EditTagPage implements OnInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.location.back();
+      this.router.navigate(['/tag', this.ext.tag]);
     });
   }
 }

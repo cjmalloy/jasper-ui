@@ -11,6 +11,9 @@
   </div>
 </ng-container>
 <ng-container *ngIf="account.mod">
+  <div class="submit-button" routerLink="/create/ext" [queryParams]="{ tag }">
+    Create Tag Extension
+  </div>
   <div class="submit-button" routerLink="/submit" [queryParams]="{ tag, linkType: 'feed' }">
     Submit Feed
   </div>
@@ -69,14 +72,7 @@
     <a *ngIf="ext"
        class="sidebar-edit"
        [routerLink]="['/tag', tag, 'edit']">
-      Edit {{ type }}
-    </a>
-
-    <a *ngIf="admin.status.templates.root && !ext"
-       class="sidebar-edit"
-       routerLink="/create/ext"
-       [queryParams]="{ tag }">
-      Create {{ type }}
+      edit
     </a>
   </ng-container>
 </ng-container>

@@ -56,11 +56,11 @@
     <input type="text" id="maxAge" [formControl]="maxAge">
 
     <label for="bounty">Bounty:</label>
-    <textarea id="bounty" [formControl]="bounty"></textarea>
+    <input type="text" id="bounty" [formControl]="bounty">
 
     <label for="approvers">Approvers:</label>
     <div id="approvers" class="form-group">
-      <button type="button" (click)="addSub()">+ Add another approver</button>
+      <button type="button" (click)="addApprover()">+ Add another approver</button>
 
       <div *ngFor="let approver of approvers.controls; let i=index">
         <label for="approver-{{ i }}">User:</label>

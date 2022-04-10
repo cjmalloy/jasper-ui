@@ -40,13 +40,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  get type() {
-    if (this.queue) return this.admin.status.templates.queue!.name || this.admin.status.templates.queue!.tag;
-    if (this.user) return this.admin.status.templates.user!.name || this.admin.status.templates.user!.tag;
-    if (this.root) return this.admin.status.templates.root!.name || this.admin.status.templates.root!.tag;
-    return '';
-  }
-
   get root() {
     return !!this.admin.status.templates.root && !!this.tag;
   }

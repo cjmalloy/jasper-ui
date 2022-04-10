@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AccountService } from '../../../service/account.service';
@@ -29,10 +29,6 @@ export class CreateExtPage implements OnInit {
     this.extForm = fb.group({
       tag: ['', [Validators.required, Validators.pattern(TAG_REGEX)]],
       name: [''],
-      config: fb.group({
-        sidebar: [''],
-        pinned: fb.array([]),
-      }),
     });
     route.queryParams.subscribe(params => {
       if (params['tag']) {
@@ -52,27 +48,6 @@ export class CreateExtPage implements OnInit {
     return this.extForm.get('name') as FormControl;
   }
 
-  get config() {
-    return this.extForm.get('config') as FormGroup;
-  }
-
-  get sidebar() {
-    return this.config.get('sidebar') as FormControl;
-  }
-
-  get pinned() {
-    return this.config.get('pinned') as FormArray;
-  }
-
-  addPinned() {
-    this.pinned.push(this.fb.control('', [Validators.required]));
-    this.submitted = false;
-  }
-
-  removePinned(index: number) {
-    this.pinned.removeAt(index);
-  }
-
   create() {
     this.serverError = [];
     this.submitted = true;
@@ -84,7 +59,7 @@ export class CreateExtPage implements OnInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/tag', this.extForm.value.tag]);
+      this.router.navigate(['/tag', this.extForm.value.tag, 'edit']);
     });
   }
 }

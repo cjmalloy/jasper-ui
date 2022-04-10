@@ -12,9 +12,11 @@ export const queueTemplate: Template = {
   },
   schema: {
     properties: {
+      approvers: { elements: { type: 'string' } },
+    },
+    optionalProperties: {
       bounty: { type: 'string' },
       maxAge: { type: 'string' },
-      approvers: { elements: { type: 'string' } },
     },
   },
 };
