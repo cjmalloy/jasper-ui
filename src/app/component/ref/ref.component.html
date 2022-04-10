@@ -8,8 +8,8 @@
   <div class="toggle"
        *ngIf="showToggle && (ref.comment || expandPlugin)"
        (click)="expanded = !expanded">
-    <span *ngIf="!expanded">+</span>
-    <span *ngIf="expanded">x</span>
+    <span class="toggle-plus" *ngIf="!expanded">＋</span>
+    <span class="toggle-x" *ngIf="expanded">✕</span>
   </div>
   <div class="stack">
     <div class="info">

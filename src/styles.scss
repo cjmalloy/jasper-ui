@@ -170,6 +170,22 @@ html, body {
 
   .toggle {
     margin: 4px 8px 4px 0;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 2px;
+    text-align: center;
+    line-height: 24px;
+    cursor: pointer;
+
+    .toggle-plus {
+      position: relative;
+      top: -0.5px;
+    }
+    .toggle-x {
+      position: relative;
+      top: 0;
+    }
   }
 
   .link-below {
@@ -273,6 +289,7 @@ html, body {
 
 .expand {
   border-radius: 4px;
+  margin: 2px;
   padding: 8px;
 }
 
