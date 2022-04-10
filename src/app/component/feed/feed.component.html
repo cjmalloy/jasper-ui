@@ -5,7 +5,13 @@
 <div class="link-below">
   <div class="stack">
     <div class="info">
-      last scraped {{ feed.lastScrape?.fromNow() }}
+      <ng-container *ngIf="feed.lastScrape">
+        last scraped {{ feed.lastScrape.fromNow() }}
+      </ng-container>
+      <ng-container *ngIf="!feed.lastScrape">
+        not scraped yet
+      </ng-container>
+      modified {{ feed.modified?.fromNow() }}
       <ng-container *ngIf="tags.length">
         tagged
         <ng-container *ngFor="let tag of tags">
@@ -35,6 +41,9 @@
                appAutofocus>
         <button (click)="addInlineTag()">+</button>
       </span>
+      <a *ngIf="account.mod"
+         class="fake-link"
+         (click)="scrape()">scrape</a>
     </div>
   </div>
 </div>

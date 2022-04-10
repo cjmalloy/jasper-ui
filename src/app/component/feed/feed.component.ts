@@ -121,4 +121,16 @@ export class FeedComponent implements OnInit {
       this.deleted = true;
     });
   }
+
+  scrape() {
+    this.feeds.scrape(this.feed.url, this.feed.origin!).pipe(
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(() => res);
+      }),
+      mergeMap(() => this.feeds.get(this.feed.url, this.feed.origin)),
+    ).subscribe(ref => {
+      this.feed = ref;
+    });
+  }
 }

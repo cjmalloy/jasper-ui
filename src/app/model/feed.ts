@@ -9,6 +9,6 @@ export interface Feed extends HasTags {
 
 export function mapFeed(obj: any): Feed {
   obj.modified = moment(obj.modified);
-  obj.lastScrape = moment(obj.lastScrape);
+  if (obj.lastScrape) obj.lastScrape = moment(obj.lastScrape);
   return obj;
 }

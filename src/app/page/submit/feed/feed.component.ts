@@ -76,7 +76,7 @@ export class SubmitFeedPage implements OnInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/']);
+      this.router.navigate(['/settings/feed']);
     });
   }
 }

@@ -6,6 +6,7 @@ import { catchError, Observable, of, throwError } from 'rxjs';
 import { mergeMap, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
+import { isTextPost } from '../../../util/format';
 import { capturesAny } from '../../../util/tag';
 
 type GraphNode = { id: string, loaded?: boolean, notFound?: boolean, tags?: string[], title?: string };
@@ -107,7 +108,7 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
     if (ref.notFound) return '#e54a4a';
     if (!ref.loaded) return '#e38a35';
     if (ref.tags?.includes('plugin/comment')) return '#4a8de5';
-    if (ref.id.startsWith('comment:')) return '#4ae552';
+    if (isTextPost(ref as unknown as Ref)) return '#4ae552';
     if (!ref.tags || !ref.title || ref.tags.includes('internal')) return '#857979';
     if (this.tag && capturesAny([this.tag!], ref.tags)) return '#c34ae5';
     return '#1c378c';

@@ -47,3 +47,7 @@ export function interestingTag(tag: string) {
   if (tag.startsWith('_user/')) return false;
   return true;
 }
+
+export function isTextPost(ref: Ref) {
+  return ref.url.startsWith('comment:') && (!ref.tags || !ref.tags?.includes('internal'));
+}

@@ -2,11 +2,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, Observable, of, shareReplay, Subject } from 'rxjs';
-import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
+import { distinctUntilChanged, mergeMap, tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { isTextPost } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -18,6 +19,7 @@ export class RefPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   ref$!: Observable<Ref | null>;
+  expandedByDefault = false;
   error?: HttpErrorResponse;
   printError = printError;
 
@@ -31,6 +33,7 @@ export class RefPage implements OnInit, OnDestroy {
     this.ref$ = this.url$.pipe(
       mergeMap(url => refs.get(url)),
       shareReplay(),
+      tap(ref => this.expandedByDefault = isTextPost(ref)),
       catchError(err => {
         this.error = err;
         return of(null);

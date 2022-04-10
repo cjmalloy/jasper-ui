@@ -1,4 +1,6 @@
 <figure id="force-directed-graph" #figure></figure>
+<a class="fake-link" (click)="drawMore()">load more</a>
+<br>
 Selected:
 <app-ref *ngIf="selected; else refNotFound"
          [ref]="selected"
@@ -7,5 +9,3 @@ Selected:
   Not Found (<pre>{{ selectedNotFound }}</pre>)
   <a routerLink="/submit" [queryParams]="{ url: selectedNotFound }">Submit this link</a>
 </ng-template>
-<br>
-<a class="fake-link" (click)="drawMore()">load more</a>

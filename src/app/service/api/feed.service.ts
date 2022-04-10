@@ -58,4 +58,10 @@ export class FeedService {
       params: { url, origin },
     });
   }
+
+  scrape(url: string, origin = ''): Observable<void> {
+    return this.http.get<void>(`${this.base}/scrape`, {
+      params: { url, origin },
+    });
+  }
 }
