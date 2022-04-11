@@ -7,7 +7,7 @@
 <form class="form" [formGroup]="invoiceForm" (ngSubmit)="submit()">
 
   <label for="to">Queue:</label>
-  <input id="to" type="text" [value]="queue" (change)="queue = $any($event.target).value">
+  <input id="to" type="text" [value]="queue || ''" (change)="queue = $any($event.target).value">
 
   <label for="qr">QR Code:</label>
   <input id="qr" type="text" [formControl]="url">
@@ -28,6 +28,29 @@
     <div class="error" *ngIf="title.touched && title.errors?.['required']">
       Title must not be blank.
     </div>
+  </div>
+
+  <span><!-- Message --></span>
+  <textarea class="has-plugins" [formControl]="comment"></textarea>
+
+  <span><!-- Comment Plugins --></span>
+  <div class="no-margin">
+    <span class="comment-plugins">
+      <ng-container *ngIf="admin.status.plugins.emoji">
+        <input id="emoji" type="checkbox" [checked]="emoji" (change)="emoji = !emoji">
+        <label for="emoji">
+          Emoji plugin
+          <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
+        </label>
+      </ng-container>
+      <ng-container *ngIf="admin.status.plugins.latex">
+        <input id="latex" type="checkbox" [checked]="latex" (change)="latex = !latex">
+        <label for="latex">
+          LaTeX plugin
+          <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
+        </label>
+      </ng-container>
+    </span>
   </div>
 
   <ng-container *ngFor="let e of serverError">

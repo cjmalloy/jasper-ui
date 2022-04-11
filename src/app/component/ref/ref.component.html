@@ -8,7 +8,7 @@
 </div>
 <div class="link-below">
   <div class="toggle"
-       *ngIf="showToggle && (ref.comment || expandPlugin) && !editing"
+       *ngIf="showToggle && (ref.comment || expandPlugins.length) && !editing"
        (click)="expanded = !expanded">
     <span class="toggle-plus" *ngIf="!expanded">＋</span>
     <span class="toggle-x" *ngIf="expanded">✕</span>
@@ -30,12 +30,13 @@
           <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
         </ng-container>
       </ng-container>
+      published {{ ref.published?.fromNow() }}
     </div>
-    <qrcode *ngIf="expandPlugin === 'plugin/qr' && expanded && expandInline && !editing"
+    <qrcode *ngIf="expandPlugins.includes('plugin/qr') && expanded && expandInline && !editing"
             [qrdata]="ref.url"
             [width]="256"
             [errorCorrectionLevel]="'M'"></qrcode>
-    <div *ngIf="expandPlugin === 'plugin/comment' && ref.comment && expanded && expandInline && !editing"
+    <div *ngIf="ref.comment && expanded && expandInline && !editing"
          class="md expand"
          markdown
          [emoji]="emoji"
@@ -125,11 +126,11 @@
     </div>
   </div>
 </div>
-<qrcode *ngIf="expandPlugin === 'plugin/qr' && expanded && !expandInline && !editing"
+<qrcode *ngIf="expandPlugins.includes('plugin/qr') && expanded && !expandInline && !editing"
         [qrdata]="ref.url"
         [width]="256"
         [errorCorrectionLevel]="'M'"></qrcode>
-<div *ngIf="expandPlugin === 'plugin/comment' && ref.comment && expanded && !expandInline && !editing"
+<div *ngIf="ref.comment && expanded && !expandInline && !editing"
      class="md expand"
      markdown
      [emoji]="emoji"

@@ -20,6 +20,12 @@ html, body {
   text-decoration: underline;
 }
 
+.no-underline {
+  &, &:active, &:hover, &:visited {
+    text-decoration: none;
+  }
+}
+
 .fake-link {
   cursor: pointer;
 }
@@ -141,10 +147,6 @@ html, body {
     margin: 4px;
   }
 
-  .form-group * {
-    margin: 4px;
-  }
-
   .no-margin {
     margin: 0;
   }
@@ -154,6 +156,10 @@ html, body {
     vertical-align: center;
     text-align: right;
   }
+}
+
+.form-group * {
+  margin: 4px;
 }
 
 .page-controls {

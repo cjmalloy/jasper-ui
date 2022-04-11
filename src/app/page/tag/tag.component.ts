@@ -10,6 +10,7 @@ import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
+import { getArgs } from '../../util/query';
 import { localTag } from '../../util/tag';
 
 @Component({
@@ -36,21 +37,19 @@ export class TagPage implements OnInit {
     private exts: ExtService,
   ) {
     this.page$ = combineLatest(
-      this.tag$, this.filter$, this.search$, this.pageNumber$, this.pageSize$,
+      this.tag$, this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$,
     ).pipe(
       distinctUntilChanged(_.isEqual),
-      mergeMap(([tag, filter, search, pageNumber, pageSize]) => {
-        return this.getArgs(tag, filter).pipe(
-          mergeMap(args => this.refs.page({
-            ...args,
-            search,
+      mergeMap(([tag, sort, filter, search, pageNumber, pageSize]) => {
+        return this.refs.page({
+            ...getArgs(tag, sort, filter, search),
             page: pageNumber,
             size: pageSize ?? this.defaultPageSize,
-          })));
+          });
       }));
     this.route.queryParams.pipe(
       map(params => params['graph']),
-    ).subscribe(graph => this.graph = graph);
+    ).subscribe(graph => this.graph = graph === 'true');
     this.localTag$ = this.tag$.pipe(
       map(tag => localTag(tag)),
     );
@@ -61,7 +60,9 @@ export class TagPage implements OnInit {
     this.title$ = this.ext$.pipe(
       mergeMap(ext => ext
         ? of(ext.name || ext.tag)
-        : this.tag$),
+        : this.tag$.pipe(
+          map(tag => tag === '@*' ? 'All' : tag),
+        )),
     );
     this.pinned$ = this.ext$.pipe(
       filter(ext => !!ext),
@@ -83,9 +84,15 @@ export class TagPage implements OnInit {
     );
   }
 
-  get filter$() {
+  get sort$() {
     return this.route.params.pipe(
-      map(params => params['filter']),
+      map(params => params['sort']),
+    );
+  }
+
+  get filter$() {
+    return this.route.queryParams.pipe(
+      map(queryParams => queryParams['filter']),
     );
   }
 
@@ -105,26 +112,6 @@ export class TagPage implements OnInit {
     return this.route.queryParams.pipe(
       map(params => params['pageSize']),
     );
-  }
-
-  getArgs(tag: string, filter: string): Observable<Record<string, any>> {
-    const query = tag.startsWith('plugin/') ? tag : `${tag}:!internal@*`;
-    if (filter === 'new') {
-      return of({ query });
-    }
-    if (filter === 'uncited') {
-      return of({ query, uncited: true });
-    }
-    if (filter === 'unsourced') {
-      return of({ query, unsourced: true });
-    }
-    if (filter === 'modlist') {
-      return of({ query: `${tag}:!internal@*:!_moderated@*` });
-    }
-    if (filter === 'imodlist') {
-      return of({ query: `${tag}:!_moderated@*` });
-    }
-    throw `Invalid filter ${filter}`;
   }
 
 }

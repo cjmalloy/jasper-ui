@@ -12,11 +12,14 @@ export const QUALIFIED_TAG_REGEX = /^([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z
 export const SELECTOR_REGEX = /^!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
 export const QUERY_REGEX = /^(!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))|\(!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |]!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*\))([ |:&](!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))|\(!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |]!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*\)))*$/;
 
+export function isTemplate(tag: string, template?: string) {
+  return tag.startsWith(template + '/') ||
+    tag.startsWith('_' + template + '/') ||
+    tag.startsWith('+' + template + '/');
+}
+
 export function templates(tags?: string[], template?: string) {
-  return _.filter(tags, t =>
-    t.startsWith(template + '/') ||
-    t.startsWith('_' + template + '/') ||
-    t.startsWith('+' + template + '/'));
+  return _.filter(tags, t => isTemplate(t, template));
 }
 
 export function hasTemplate(tags: string[], template: string) {

@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash';
-import { combineLatest, map, Observable, of } from 'rxjs';
+import { combineLatest, map, Observable } from 'rxjs';
 import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { getArgs } from '../../util/query';
 
 @Component({
   selector: 'app-home-page',
@@ -32,29 +33,39 @@ export class HomePage implements OnInit {
       map(segments => segments[0].path),
     );
     this.page$ = combineLatest(
-      [this.path$, this.filter$, this.search$, this.pageNumber$, this.pageSize$],
+      [this.subs$, this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$],
     ).pipe(
       distinctUntilChanged(_.isEqual),
-      mergeMap(([path, filter, search, pageNumber, pageSize]) => {
-        return this.getQuery(path, filter).pipe(
-          mergeMap(query => this.refs.page({
-            ...query,
-            search,
+      mergeMap(([subs, sort, filter, search, pageNumber, pageSize]) => {
+        return this.refs.page({
+            ...getArgs(subs, sort, filter, search),
             page: pageNumber,
             size: pageSize ?? this.defaultPageSize,
-          })));
+          });
       }));
     this.route.queryParams.pipe(
       map(params => params['graph']),
-    ).subscribe(graph => this.graph = graph);
+    ).subscribe(graph => this.graph = graph === 'true');
   }
 
   ngOnInit(): void {
   }
 
-  get filter$() {
+  get subs$() {
+    return this.account.subscriptions$.pipe(
+      map(subs => subs.join(' ')),
+    );
+  }
+
+  get sort$() {
     return this.route.params.pipe(
-      map(params => params['filter'])
+      map(params => params['sort']),
+    );
+  }
+
+  get filter$() {
+    return this.route.queryParams.pipe(
+      map(queryParams => queryParams['filter']),
     );
   }
 
@@ -74,56 +85,6 @@ export class HomePage implements OnInit {
     return this.route.queryParams.pipe(
       map(queryParams => queryParams['pageSize'])
     );
-  }
-
-  getQuery(path: string, filter: string): Observable<Record<string, any>> {
-    // TODO: implement parentheses in queries
-    if (path === 'home') {
-      if (filter === 'new') {
-        return this.account.subscriptions$.pipe(
-          map(subs => ({ query: `(${subs.join(' ')}):!internal@*` })),
-        );
-      }
-      if (filter === 'uncited') {
-        return this.account.subscriptions$.pipe(
-          map(subs => ({ query: `(${subs.join(' ')}):!internal@*`, uncited: true })),
-        );
-      }
-      if (filter === 'unsourced') {
-        return this.account.subscriptions$.pipe(
-          map(subs => ({ query: `(${subs.join(' ')}):!internal@*`, unsourced: true })),
-        );
-      }
-      if (filter === 'modlist') {
-        return this.account.subscriptions$.pipe(
-          map(subs => ({ query: `(${subs.join(' ')}):!internal@*:!_moderated@*` })),
-        );
-      }
-      if (filter === 'imodlist') {
-        return this.account.subscriptions$.pipe(
-          map(subs => ({ query: `(${subs.join(' ')}):!_moderated@*` })),
-        );
-      }
-      throw `Invalid filter ${filter}`;
-    }
-    if (path === 'all') {
-      if (filter === 'new') {
-        return of({ query: '!internal@*' });
-      }
-      if (filter === 'uncited') {
-        return of({ query: '!internal@*', uncited: true });
-      }
-      if (filter === 'unsourced') {
-        return of({ query: '!internal@*', unsourced: true });
-      }
-      if (filter === 'modlist') {
-        return of({ query: '!internal@*:!_moderated' });
-      }
-      if (filter === 'imodlist') {
-        return of({ query: '!_moderated' });
-      }
-    }
-    throw `Invalid path ${path}`;
   }
 
 }

@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, Subject } from 'rxjs';
+import { map, Observable, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -22,6 +22,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   tag?: string | null;
 
   searchValue = '';
+  allFilters = ['uncited', 'unsourced', 'rejected', 'paid', 'disputed'];
+  filters: string[] = [];
   writeAccess$?: Observable<boolean>;
 
   constructor(
@@ -30,7 +32,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     public admin: AdminService,
     public account: AccountService,
   ) {
-    this.route.queryParams.subscribe(params => this.searchValue = params['search']);
+    this.filter$.subscribe(filter => {
+      if (!filter) return;
+      if (!Array.isArray(filter)) filter = [filter];
+      this.filters = filter;
+    });
+    this.search$.subscribe(search => this.searchValue = search);
   }
 
   ngOnInit(): void {
@@ -61,6 +68,38 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.tag?.startsWith('queue/') ||
       this.tag?.startsWith('_queue/') ||
       this.tag?.startsWith('+queue/'));
+  }
+
+  addFilter() {
+    if (!this.filters) this.filters = [];
+    this.filters.push('');
+  }
+
+  setFilter(index: number, value: string) {
+    this.filters[index] = value;
+    this.setFilters();
+  }
+
+  removeFilter(index: number) {
+    this.filters.splice(index, 1);
+    this.setFilters();
+  }
+
+  setFilters() {
+    this.filters = [...this.filters];
+    this.router.navigate([], {queryParams: {filter: this.filters}});
+  }
+
+  get filter$() {
+    return this.route.queryParams.pipe(
+      map(queryParams => queryParams['filter']),
+    );
+  }
+
+  get search$() {
+    return this.route.queryParams.pipe(
+      map(queryParams => queryParams['search']),
+    );
   }
 
   search() {

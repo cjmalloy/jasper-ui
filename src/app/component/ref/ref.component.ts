@@ -38,7 +38,7 @@ export class RefComponent implements OnInit {
 
   editForm: FormGroup;
   submitted = false;
-  expandPlugin?: string;
+  expandPlugins: string[] = [];
   tagging = false;
   editing = false;
   deleting = false;
@@ -56,7 +56,6 @@ export class RefComponent implements OnInit {
     if (this.admin.status.plugins.qr) this.expandable.push('plugin/qr');
     if (this.admin.status.plugins.video) this.expandable.push('plugin/video');
     if (this.admin.status.plugins.image) this.expandable.push('plugin/image');
-    if (this.admin.status.plugins.comment) this.expandable.push('plugin/comment');
     this.editForm = fb.group({
       comment: [''],
       sources: fb.array([]),
@@ -67,7 +66,7 @@ export class RefComponent implements OnInit {
   ngOnInit(): void {
     this.writeAccess$ = this.account.writeAccess(this.ref);
     if (this.ref.tags) {
-      this.expandPlugin = _.intersection(this.ref.tags, this.expandable)[0];
+      this.expandPlugins = _.intersection(this.ref.tags, this.expandable);
     }
     while (this.sourcesForm.length < (this.ref?.sources?.length || 0)) this.addSource();
     while (this.tagsForm.length < (this.ref?.tags?.length || 0)) this.addTag();

@@ -7,6 +7,21 @@ import { mapRef, mapRefOrNull, Ref, writeRef } from '../../model/ref';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 
+export type RefQueryArgs = {
+  query?: string,
+  search?: string,
+  page?: number,
+  size?: number,
+  sort?: string[],
+  modifiedAfter?: moment.Moment,
+  responses?: string,
+  sources?: string,
+  uncited?: boolean,
+  unsourced?: boolean,
+  pluginResponse?: string;
+  noPluginResponse?: string;
+};
+
 @Injectable({
   providedIn: 'root',
 })
@@ -47,19 +62,7 @@ export class RefService {
     );
   }
 
-  page(args?: {
-    query?: string,
-    search?: string,
-    page?: number,
-    size?: number,
-    sort?: string,
-    direction?: 'asc' | 'desc',
-    modifiedAfter?: moment.Moment,
-    responses?: string,
-    sources?: string,
-    uncited?: boolean,
-    unsourced?: boolean,
-  }): Observable<Page<Ref>> {
+  page(args?: RefQueryArgs): Observable<Page<Ref>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(map(mapPage(mapRef)));

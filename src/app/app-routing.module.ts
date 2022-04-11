@@ -32,26 +32,26 @@ import { EditTagPage } from './page/tag/edit/edit.component';
 import { TagPage } from './page/tag/tag.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'home/new', pathMatch: 'full' },
-  { path: 'home', redirectTo: 'home/new', pathMatch: 'full' },
-  { path: 'all', redirectTo: 'all/new', pathMatch: 'full' },
+  { path: '', redirectTo: 'home/created', pathMatch: 'full' },
+  { path: 'all', redirectTo: 'tag/@*/created', pathMatch: 'full' },
 
-  { path: 'home/:filter', component: HomePage },
-  { path: 'all/:filter', component: HomePage },
-  { path: 'tag/:tag', redirectTo: 'tag/:tag/new', pathMatch: 'full' },
+  { path: 'home', redirectTo: 'home/created', pathMatch: 'full' },
+  { path: 'home/:sort', component: HomePage },
+  { path: 'tag', redirectTo: 'tag/@*/created', pathMatch: 'full' },
+  { path: 'tag/:tag', redirectTo: 'tag/:tag/created', pathMatch: 'full' },
   { path: 'tag/:tag/edit', component: EditTagPage },
-  { path: 'tag/:tag/:filter', component: TagPage },
+  { path: 'tag/:tag/:sort', component: TagPage },
   {
     path: 'ref/:ref',
     component: RefPage,
     children: [
-      { path: '', redirectTo: 'sources/all', pathMatch: 'full' },
-      { path: 'comments', redirectTo: 'comments/all', pathMatch: 'full' },
-      { path: 'comments/:filter', component: CommentsComponent },
-      { path: 'responses', redirectTo: 'responses/all', pathMatch: 'full' },
-      { path: 'responses/:filter', component: ResponsesComponent },
-      { path: 'sources', redirectTo: 'sources/all', pathMatch: 'full' },
-      { path: 'sources/:filter', component: SourcesComponent },
+      { path: '', redirectTo: 'sources/created', pathMatch: 'full' },
+      { path: 'comments', redirectTo: 'comments/created', pathMatch: 'full' },
+      { path: 'comments/:sort', component: CommentsComponent },
+      { path: 'responses', redirectTo: 'responses/created', pathMatch: 'full' },
+      { path: 'responses/:sort', component: ResponsesComponent },
+      { path: 'sources', redirectTo: 'sources/created', pathMatch: 'full' },
+      { path: 'sources/:sort', component: SourcesComponent },
       { path: 'graph', component: GraphComponent },
     ],
   }, {
@@ -73,22 +73,22 @@ const routes: Routes = [
   { path: 'submit/invoice', component: SubmitInvoicePage },
   { path: 'create/ext', component: CreateExtPage },
   { path: 'create/user', component: CreateUserPage },
-  { path: 'admin', redirectTo: 'admin/setup', pathMatch: 'full' },
   {
     path: 'admin',
     component: AdminPage,
     children: [
+      { path: '', redirectTo: 'setup', pathMatch: 'full' },
       { path: 'setup', component: AdminSetupPage },
       { path: 'origin', component: AdminOriginPage },
       { path: 'plugin', component: AdminPluginPage },
       { path: 'template', component: AdminTemplatePage },
     ],
   },
-  { path: 'settings', redirectTo: 'settings/feed', pathMatch: 'full' },
   {
     path: 'settings',
     component: SettingsPage,
     children: [
+      { path: '', redirectTo: 'feed', pathMatch: 'full' },
       { path: 'feed', component: SettingsFeedPage },
       { path: 'user', component: SettingsUserPage },
       { path: 'ext', component: SettingsExtPage },

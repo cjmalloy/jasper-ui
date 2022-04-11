@@ -1,16 +1,14 @@
 <div class="tabs">
   <h5>{{ title$ | async }}</h5>
-  <a routerLink="../new" routerLinkActive="current-tab">new</a>
-  <a routerLink="../uncited" routerLinkActive="current-tab">uncited</a>
-  <a routerLink="../unsourced" routerLinkActive="current-tab">unsourced</a>
-  <ng-container *ngIf="account.mod">
-    <a routerLink="../modlist" routerLinkActive="current-tab">modlist</a>
-    <a routerLink="../imodlist" routerLinkActive="current-tab">modlist+internal</a>
-  </ng-container>
+  <a routerLink="../created" routerLinkActive="current-tab" queryParamsHandling="merge">new</a>
+  <a routerLink="../published" routerLinkActive="current-tab" queryParamsHandling="merge">published</a>
+  <a routerLink="../modified" routerLinkActive="current-tab" queryParamsHandling="merge">modified</a>
+  <a routerLink="../title" routerLinkActive="current-tab" queryParamsHandling="merge">title</a>
+  <a *ngIf="search$ | async" routerLink="../rank" routerLinkActive="current-tab" queryParamsHandling="merge">rank</a>
   <ng-container *ngIf="admin.status.plugins.graph">
     <a routerLink="./"
        [class.current-tab]="graph"
-       [queryParams]="{graph: !graph}"
+       [queryParams]="{ graph: !graph }"
        queryParamsHandling="merge">graph</a>
   </ng-container>
   <div class="spacer"></div>
