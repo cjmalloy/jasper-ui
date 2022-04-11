@@ -23,7 +23,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   @Input()
   ref!: Ref;
   @Input()
-  filter?: string | null;
+  sort?: string | null;
   @Input()
   depth?: number | null = 7;
 

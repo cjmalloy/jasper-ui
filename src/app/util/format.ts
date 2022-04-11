@@ -31,16 +31,24 @@ export function authors(ref: Ref) {
 }
 
 export function webLink(ref: Ref) {
-  const url = new URL(ref.url);
-  return url.protocol === 'http:' || url.protocol === 'https:';
+  try {
+    const url = new URL(ref.url);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (e) {
+    return false;
+  }
 }
 
 export function urlSummary(url: string) {
-  const parsed = new URL(url);
-  if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-    return parsed.host;
-  }
-  return parsed.protocol.substring(0, parsed.protocol.length - 1);
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return parsed.host;
+    }
+    return parsed.protocol.substring(0, parsed.protocol.length - 1);
+  } catch (e) {}
+  if (url.startsWith('lnbc')) return 'lnbc';
+  return 'unknown';
 }
 
 export function interestingTags(tags?: string[]): string[] {

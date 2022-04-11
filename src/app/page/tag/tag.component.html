@@ -15,7 +15,7 @@
   <app-settings></app-settings>
 </div>
 <app-sidebar *ngIf="!graph"
-             [tag]="localTag$ | async"
+             [tag]="tag$ | async"
              [ext]="ext$ | async"></app-sidebar>
 <app-ref-list [page]="page$ | async"
               [pinned]="pinned$ | async"

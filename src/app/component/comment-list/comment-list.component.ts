@@ -3,6 +3,7 @@ import { Observable, Subject, takeUntil } from 'rxjs';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
+import { getArgs } from '../../util/query';
 
 @Component({
   selector: 'app-comment-list',
@@ -17,7 +18,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
   @Input()
   source!: string;
   @Input()
-  filter?: string | null;
+  sort?: string | null;
   @Input()
   depth?: number | null = 7;
   @Input()
@@ -43,20 +44,9 @@ export class CommentListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  getArgs(filter?: string | null) {
-    if (filter === 'all') {
-      return { query: 'plugin/comment@*' };
-    }
-    if (filter === 'modlist') {
-      // TODO: detect if all children are moderated
-      return { query: 'plugin/comment@*' };
-    }
-    throw `Invalid filter ${filter}`;
-  }
-
   loadMore() {
     this.refs.page({
-      ...this.getArgs(this.filter),
+      ...getArgs('plugin/comment@*', this.sort!),
       responses: this.source,
       page: this.pages.length,
     }).subscribe(page => {

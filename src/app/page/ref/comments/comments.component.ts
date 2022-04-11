@@ -16,7 +16,7 @@ export class CommentsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   depth$!: Observable<number>;
-  filter$!: Observable<string>;
+  sort$!: Observable<string>;
   ref$!: Observable<Ref>;
   inboxes$!: Observable<string[]>;
   newComments$ = new Subject<Ref | null>();
@@ -34,8 +34,8 @@ export class CommentsComponent implements OnInit, OnDestroy {
       map(queryParams => queryParams['depth'] || this.depth),
       distinctUntilChanged(),
     );
-    this.filter$ = this.route.params.pipe(
-      map(params => params['filter']),
+    this.sort$ = this.route.params.pipe(
+      map(params => params['sort']),
       distinctUntilChanged(),
     );
     this.ref$ = this.url$.pipe(

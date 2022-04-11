@@ -5,7 +5,7 @@
                      [tags]="(inboxes$ | async) || []"
                      [newComments$]="newComments$"></app-comment-reply>
   <app-comment-list [top]="ref"
-                    [filter]="filter$ | async"
+                    [sort]="sort$ | async"
                     [source]="ref.url"
                     [newComments$]="newComments$"
                     [depth]="depth$ | async"></app-comment-list>

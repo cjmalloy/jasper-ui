@@ -97,6 +97,28 @@ export class AccountService {
     );
   }
 
+  subscribe(tag: string) {
+    this.exts.patch(this.tag, [{
+      op: 'add',
+      path: '/config/subscriptions/-',
+      value: tag,
+    }]).subscribe(() => {
+      this.clearCache();
+    });
+  }
+
+  unsubscribe(tag: string) {
+    this.subscriptions$.pipe(
+      map(subs => subs.indexOf(tag)),
+      mergeMap(index => this.exts.patch(this.tag,[{
+        op: 'remove',
+        path: '/config/subscriptions/' + index,
+      }]))
+    ).subscribe(() => {
+      this.clearCache();
+    });
+  }
+
   checkNotifications() {
     if (!this.signedIn) throw 'Not signed in';
     return this.userExt$.pipe(

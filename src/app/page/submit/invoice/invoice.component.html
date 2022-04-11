@@ -16,9 +16,6 @@
     <div class="error" *ngIf="url.touched && url.errors?.['required']">
       QR Code must not be blank.
     </div>
-    <div class="error" *ngIf="url.touched && url.errors?.['pattern']">
-      QR Code be a valid URI according to <a href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
-    </div>
   </div>
 
   <label for="title">Title:</label>

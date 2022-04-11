@@ -4,7 +4,7 @@ import { map, Observable, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
-import { prefix } from '../../util/tag';
+import { localTag, prefix } from '../../util/tag';
 
 @Component({
   selector: 'app-sidebar',
@@ -24,6 +24,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   searchValue = '';
   allFilters = ['uncited', 'unsourced', 'rejected', 'paid', 'disputed'];
   filters: string[] = [];
+  localTag?: string;
   writeAccess$?: Observable<boolean>;
 
   constructor(
@@ -42,11 +43,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.writeAccess$ = this.account.writeAccessTag(this.tag!);
+    this.localTag = localTag(this.tag!);
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  get inSubs$() {
+    return this.account.userExt$.pipe(map(ext => ext.config.subscriptions.includes(this.tag)));
   }
 
   get root() {
@@ -106,4 +112,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.router.navigate([], { queryParams: { search: this.searchValue }, queryParamsHandling: 'merge' });
   }
 
+  subscribe() {
+    this.account.subscribe(this.tag!);
+  }
+
+  unsubscribe() {
+    this.account.unsubscribe(this.tag!);
+  }
 }

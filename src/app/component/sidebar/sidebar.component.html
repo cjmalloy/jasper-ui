@@ -15,21 +15,21 @@
   </div>
 </div>
 <ng-container *ngIf="account.signedIn">
-  <div class="submit-button" routerLink="/submit" [queryParams]="{ tag }">
+  <div class="submit-button" routerLink="/submit" [queryParams]="{ localTag }">
     Submit Link
   </div>
-  <div class="submit-button" routerLink="/submit/text" [queryParams]="{ tag }">
+  <div class="submit-button" routerLink="/submit/text" [queryParams]="{ localTag }">
     Submit Text Post
   </div>
 </ng-container>
 <ng-container *ngIf="account.mod">
-  <div class="submit-button" routerLink="/create/ext" [queryParams]="ext ? null : { tag }">
+  <div class="submit-button" routerLink="/create/ext" [queryParams]="ext ? null : { localTag }">
     Create Tag Extension
   </div>
-  <div class="submit-button" routerLink="/submit" [queryParams]="{ tag, linkType: 'feed' }">
+  <div class="submit-button" routerLink="/submit" [queryParams]="{ localTag, linkType: 'feed' }">
     Submit Feed
   </div>
-  <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag }">
+  <div class="submit-button" routerLink="/create/user" [queryParams]="{ localTag }">
     Create User Permissions
   </div>
 </ng-container>
@@ -37,6 +37,13 @@
   <div class="submit-button" routerLink="/admin/origin/create">
     Replicate Remote Origin
   </div>
+</ng-container>
+
+<ng-container *ngIf="tag && admin.status.templates.user">
+  <button *ngIf="inSubs$ | async as inSubs; else notInSubs" (click)="unsubscribe()">unsubscribe</button>
+  <ng-template #notInSubs>
+    <button class="fake-link" (click)="subscribe()">subscribe</button>
+  </ng-template>
 </ng-container>
 
 <ng-container *ngIf="queue">
@@ -89,7 +96,7 @@
   <ng-container *ngIf="writeAccess$ | async">
     <a *ngIf="ext"
        class="sidebar-edit"
-       [routerLink]="['/tag', tag, 'edit']">
+       [routerLink]="['/tag', localTag, 'edit']">
       edit
     </a>
   </ng-container>

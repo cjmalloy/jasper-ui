@@ -10,7 +10,7 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
-import { templates, URI_REGEX } from '../../../util/format';
+import { templates } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { prefix } from '../../../util/tag';
 
@@ -41,7 +41,7 @@ export class SubmitInvoicePage implements OnInit {
     private fb: FormBuilder,
   ) {
     this.invoiceForm = fb.group({
-      url: ['', [Validators.required, Validators.pattern(URI_REGEX)]],
+      url: ['', [Validators.required]],
       title: ['', [Validators.required]],
       comment: [''],
     });
