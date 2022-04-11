@@ -2,7 +2,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import * as _ from 'lodash';
+import * as moment from 'moment';
 import { catchError, mergeMap, Observable, throwError } from 'rxjs';
+import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -73,6 +75,39 @@ export class RefComponent implements OnInit {
 
   get latex() {
     return !!this.admin.status.plugins.latex && !!this.ref.tags?.includes('plugin/latex');
+  }
+
+  get canInvoice() {
+    return this.admin.status.plugins.invoice &&
+      this.isAuthor &&
+      (this.ref.tags?.includes('plugin/comment') ||
+        !this.ref.tags?.includes('internal')) &&
+      this.ref.sources;
+  }
+
+  get invoice() {
+    return this.admin.status.plugins.invoice &&
+      this.ref.tags?.includes('plugin/invoice');
+  }
+
+  get disputed() {
+    return this.ref.metadata?.plugins?.['plugin/invoice/disputed'].length;
+  }
+
+  get paid() {
+    return this.ref.metadata?.plugins?.['plugin/invoice/paid'].length;
+  }
+
+  get rejected() {
+    return this.ref.metadata?.plugins?.['plugin/invoice/rejected'].length;
+  }
+
+  get isAuthor() {
+    return this.ref.tags?.includes(this.account.tag);
+  }
+
+  get isRecipient() {
+    return this.ref.tags?.includes(this.account.inbox);
   }
 
   get authors() {
@@ -167,6 +202,67 @@ export class RefComponent implements OnInit {
 
   removeSource(index: number) {
     this.sourcesForm.removeAt(index);
+  }
+
+  accept() {
+    this.refs.delete(this.ref.metadata!.plugins['plugin/invoice/disputed'][0]).pipe(
+      mergeMap(() => this.refs.get(this.ref.url)),
+    ).subscribe(ref => {
+      this.ref = ref;
+    });
+  }
+
+  dispute() {
+    this.refs.create({
+      url: 'internal://' + uuid(),
+      published: moment(),
+      tags: ['internal', this.account.tag, 'plugin/invoice/disputed'],
+      sources: [this.ref.url],
+    }).pipe(
+      mergeMap(() => this.refs.get(this.ref.url)),
+    ).subscribe(ref => {
+      this.ref = ref;
+    });
+  }
+
+  markPaid() {
+    if (this.ref.metadata?.plugins?.['plugin/invoice/rejected']?.length) {
+      this.refs.delete(this.ref.metadata!.plugins['plugin/invoice/rejected'][0]).pipe(
+        mergeMap(() => this.refs.get(this.ref.url)),
+      ).subscribe(ref => {
+        this.ref = ref;
+      });
+    }
+    this.refs.create({
+      url: 'internal://' + uuid(),
+      published: moment(),
+      tags: ['internal', this.account.tag, 'plugin/invoice/paid'],
+      sources: [this.ref.url],
+    }).pipe(
+      mergeMap(() => this.refs.get(this.ref.url)),
+    ).subscribe(ref => {
+      this.ref = ref;
+    });
+  }
+
+  reject() {
+    if (this.ref.metadata?.plugins?.['plugin/invoice/paid']?.length) {
+      this.refs.delete(this.ref.metadata!.plugins['plugin/invoice/paid'][0]).pipe(
+        mergeMap(() => this.refs.get(this.ref.url)),
+      ).subscribe(ref => {
+        this.ref = ref;
+      });
+    }
+    this.refs.create({
+      url: 'internal://' + uuid(),
+      published: moment(),
+      tags: ['internal', this.account.tag, 'plugin/invoice/rejected'],
+      sources: [this.ref.url],
+    }).pipe(
+      mergeMap(() => this.refs.get(this.ref.url)),
+    ).subscribe(ref => {
+      this.ref = ref;
+    });
   }
 
   save() {

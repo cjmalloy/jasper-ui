@@ -1,10 +1,10 @@
-import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AccountService } from '../../../service/account.service';
+import { AdminService } from '../../../service/admin.service';
 import { UserService } from '../../../service/api/user.service';
 import { QUALIFIED_TAG_REGEX, USER_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
@@ -21,7 +21,8 @@ export class CreateUserPage implements OnInit {
   serverError: string[] = [];
 
   constructor(
-    private location: Location,
+    private admin: AdminService,
+    private router: Router,
     private route: ActivatedRoute,
     private account: AccountService,
     private users: UserService,
@@ -81,6 +82,9 @@ export class CreateUserPage implements OnInit {
     this.serverError = [];
     this.submitted = true;
     this.userForm.markAllAsTouched();
+    if (this.admin.status.plugins.inbox) {
+      this.addReadAccess('plugin/inbox/' + this.userForm.value.tag);
+    }
     if (!this.userForm.valid) return;
     this.users.create(this.userForm.value).pipe(
       catchError((res: HttpErrorResponse) => {
@@ -88,7 +92,7 @@ export class CreateUserPage implements OnInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.location.back();
+      this.router.navigate(['/settings/user']);
     });
   }
 }

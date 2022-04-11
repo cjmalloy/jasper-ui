@@ -43,23 +43,25 @@ export class AdminSetupPage implements OnInit {
     if (!this.adminForm.valid) return;
     const installs = [];
     for (const plugin in this.admin.status.plugins) {
-      if (this.admin.status.plugins[plugin] === this.adminForm.value.plugins[plugin]) continue;
+      if (!!this.admin.status.plugins[plugin] === this.adminForm.value.plugins[plugin]) continue;
+      const def = this.admin.def.plugins[plugin];
       if (this.adminForm.value.plugins[plugin]) {
-        this.installMessages.push(`Installing ${plugin} plugin...`);
-        installs.push(this.plugins.create(this.admin.def.plugins[plugin]));
+        this.installMessages.push(`Installing ${def.name || def.tag} plugin...`);
+        installs.push(this.plugins.create(def));
       } else {
-        this.installMessages.push(`Deleting ${plugin} plugin...`);
-        installs.push(this.plugins.delete(`plugin/${plugin}`));
+        this.installMessages.push(`Deleting ${def.name || def.tag} plugin...`);
+        installs.push(this.plugins.delete(def.tag));
       }
     }
     for (const template in this.admin.status.templates) {
-      if (this.admin.status.templates[template] === this.adminForm.value.templates[template]) continue;
+      if (!!this.admin.status.templates[template] === this.adminForm.value.templates[template]) continue;
+      const def = this.admin.def.templates[template];
       if (this.adminForm.value.templates[template]) {
-        this.installMessages.push(`Installing ${template} template...`);
-        installs.push(this.templates.create(this.admin.def.templates[template]));
+        this.installMessages.push(`Installing ${def.name || def.tag} template...`);
+        installs.push(this.templates.create(def));
       } else {
-        this.installMessages.push(`Deleting ${template} template...`);
-        installs.push(this.templates.delete(template === 'root' ? '' : template));
+        this.installMessages.push(`Deleting ${def.name || def.tag} template...`);
+        installs.push(this.templates.delete(def.tag));
       }
     }
     forkJoin(installs).pipe(

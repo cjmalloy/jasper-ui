@@ -1,0 +1,123 @@
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import * as moment from 'moment';
+import { catchError, map, mergeMap, of, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { Ext } from '../../../model/ext';
+import { AccountService } from '../../../service/account.service';
+import { AdminService } from '../../../service/admin.service';
+import { ExtService } from '../../../service/api/ext.service';
+import { RefService } from '../../../service/api/ref.service';
+import { templates, URI_REGEX } from '../../../util/format';
+import { printError } from '../../../util/http';
+
+@Component({
+  selector: 'app-submit-invoice',
+  templateUrl: './invoice.component.html',
+  styleUrls: ['./invoice.component.scss']
+})
+export class SubmitInvoicePage implements OnInit {
+
+  submitted = false;
+  invoiceForm: FormGroup;
+  serverError: string[] = [];
+
+  refUrl?: string;
+  validQueues?: string[];
+  queue?: string;
+  emoji = !!this.admin.status.plugins.emoji;
+  latex = !!this.admin.status.plugins.latex;
+
+  constructor(
+    public admin: AdminService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private account: AccountService,
+    private refs: RefService,
+    private exts: ExtService,
+    private fb: FormBuilder,
+  ) {
+    this.invoiceForm = fb.group({
+      url: ['', [Validators.required, Validators.pattern(URI_REGEX)]],
+      title: ['', [Validators.required]],
+      comment: [''],
+    });
+    this.ref$.pipe(
+      map(ref => ref.sources),
+      mergeMap(sources => sources ? this.refs.list(sources) : of([]))
+    ).subscribe(sources => {
+      this.validQueues = sources
+        .filter(s => !!s)
+        .flatMap(s => templates(s!, 'queue'));
+      if (this.validQueues?.length) this.queue = this.validQueues[0];
+    });
+  }
+
+  ngOnInit(): void {
+  }
+
+  get refUrl$() {
+    return this.route.queryParams.pipe(
+      map(params => params['url']),
+      tap(url => this.refUrl = url),
+    );
+  }
+
+  get ref$() {
+    return this.refUrl$.pipe(
+      mergeMap(url => this.refs.get(url)),
+    );
+  }
+
+  get url() {
+    return this.invoiceForm.get('url') as FormControl;
+  }
+
+  get title() {
+    return this.invoiceForm.get('title') as FormControl;
+  }
+
+  get comment() {
+    return this.invoiceForm.get('comment') as FormControl;
+  }
+
+  getTags(queueExt: Ext) {
+    const result = [
+      'locked',
+      'internal',
+      'plugin/invoice',
+      'plugin/invoice/' + queueExt.tag,
+      'plugin/qr',
+      this.account.tag,
+    ];
+    for (const approver of queueExt.config.approvers) {
+      result.push('plugin/inbox/' + approver);
+    }
+    if (this.emoji) result.push('plugin/emoji');
+    if (this.latex) result.push('plugin/latex');
+    return result;
+  }
+
+  submit() {
+    this.serverError = [];
+    this.submitted = true;
+    this.invoiceForm.markAllAsTouched();
+    if (!this.invoiceForm.valid) return;
+    this.exts.get(this.queue!).pipe(
+      mergeMap(queueExt => this.refs.create({
+        ...this.invoiceForm.value,
+        published: moment(),
+        tags: this.getTags(queueExt),
+        sources: [this.refUrl],
+      })),
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(() => res);
+      }),
+    ).subscribe(() => {
+      this.router.navigate(['/inbox/invoices']);
+    });
+  }
+}

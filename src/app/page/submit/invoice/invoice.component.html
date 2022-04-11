@@ -1,16 +1,34 @@
 <div class="tabs">
-  <h5>Direct Message</h5>
+  <h5>Submit Invoice</h5>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>
 
-<form class="form" [formGroup]="dmForm" (ngSubmit)="submit()">
+<form class="form" [formGroup]="invoiceForm" (ngSubmit)="submit()">
 
-  <label for="to">To:</label>
-  <input id="to" type="text" [value]="to" (change)="to = $any($event.target).value">
+  <label for="to">Queue:</label>
+  <input id="to" type="text" [value]="queue" (change)="queue = $any($event.target).value">
+
+  <label for="qr">QR Code:</label>
+  <input id="qr" type="text" [formControl]="url">
+  <span><!-- QR Code Errors --></span>
+  <div>
+    <div class="error" *ngIf="url.touched && url.errors?.['required']">
+      QR Code must not be blank.
+    </div>
+    <div class="error" *ngIf="url.touched && url.errors?.['pattern']">
+      QR Code be a valid URI according to <a href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
+    </div>
+  </div>
 
   <label for="title">Title:</label>
   <input id="title" type="text" [formControl]="title">
+  <span><!-- Title Errors --></span>
+  <div>
+    <div class="error" *ngIf="title.touched && title.errors?.['required']">
+      Title must not be blank.
+    </div>
+  </div>
 
   <span><!-- Message --></span>
   <textarea class="has-plugins" [formControl]="comment"></textarea>
@@ -42,6 +60,6 @@
 
   <span><!-- Buttons --></span>
   <span class="form-group">
-    <button type="submit" [disabled]="submitted && !dmForm.valid">Submit</button>
+    <button type="submit" [disabled]="submitted && !invoiceForm.valid">Submit</button>
   </span>
 </form>

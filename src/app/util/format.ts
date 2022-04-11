@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import { Ref } from '../model/ref';
 
+export const URI_REGEX = /^([^:/?#]+):(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
 export const TAG_REGEX = /^_?[a-z]+(\/[a-z]+)*$/;
 export const USER_REGEX = /^_?user\/[a-z]+(\/[a-z]+)*$/;
 export const PLUGIN_REGEX = /^_?plugin\/[a-z]+(\/[a-z]+)*$/;
@@ -10,13 +11,16 @@ export const QUALIFIED_TAG_REGEX = /^(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?
 export const SELECTOR_REGEX = /^!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
 export const QUERY_REGEX = /^!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ +|:&]!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*$/;
 
-export function authors(ref: Ref) {
-  return _.filter(ref.tags, t => t.startsWith('user/') || t.startsWith('_user/'))
-  .map(t => t + ref.origin);
+export function templates(ref: Ref, tag: string) {
+  return _.filter(ref.tags, t => t.startsWith(tag + '/') || t.startsWith('_' + tag + '/'));
 }
 
-export function primaryAuthor(ref: Ref) {
-  return _.find(ref.tags, t => t.startsWith('user/') || t.startsWith('_user/')) + ref.origin!;
+export function hasTemplate(ref: Ref, tag: string) {
+  return templates(ref, tag).length > 0;
+}
+
+export function authors(ref: Ref) {
+  return templates(ref, 'user').map(t => t + ref.origin);
 }
 
 export function webLink(ref: Ref) {

@@ -8,7 +8,9 @@ import { commentPlugin } from '../plugin/comment';
 import { emojiPlugin } from '../plugin/emoji';
 import { graphPlugin } from '../plugin/graph';
 import { inboxPlugin } from '../plugin/inbox';
+import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
 import { latexPlugin } from '../plugin/latex';
+import { qrPlugin } from '../plugin/qr';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
@@ -32,6 +34,11 @@ export class AdminService {
       latex: latexPlugin,
       emoji: emojiPlugin,
       graph: graphPlugin,
+      invoice: invoicePlugin,
+      invoiceRejected: invoiceRejectionPlugin,
+      invoiceDisputed: invoiceDisputedPlugin,
+      invoicePaid: invoicePaidPlugin,
+      qr: qrPlugin,
     },
     templates: <Record<string, Template>> {
       root: rootTemplate,

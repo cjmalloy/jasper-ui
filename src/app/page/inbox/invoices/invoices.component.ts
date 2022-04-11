@@ -1,19 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import * as moment from 'moment';
 import { map, Observable } from 'rxjs';
-import { mergeMap, tap } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
 
 @Component({
-  selector: 'app-unread',
-  templateUrl: './unread.component.html',
-  styleUrls: ['./unread.component.scss'],
+  selector: 'app-invoices',
+  templateUrl: './invoices.component.html',
+  styleUrls: ['./invoices.component.scss']
 })
-export class InboxUnreadPage implements OnInit {
+export class InboxInvoicesPage implements OnInit {
 
   page$: Observable<Page<Ref>>;
 
@@ -22,14 +21,10 @@ export class InboxUnreadPage implements OnInit {
     private account: AccountService,
     private refs: RefService,
   ) {
-    this.page$ = this.account.userExt$.pipe(
-      mergeMap(ext => this.refs.page({
-        query: account.inbox,
-        modifiedAfter: ext.config.inbox.lastNotified || moment().subtract(1, 'year'),
-      })),
-      tap(page => {
-        if (!page.empty) this.account.clearNotifications();
-      }),
+    this.page$ = this.search$.pipe(
+      mergeMap(search => this.refs.page({
+        query: account.inbox + ':plugin/invoice',
+        search })),
     );
   }
 

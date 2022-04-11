@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { UnreadComponent } from './unread.component';
+import { InboxUnreadPage } from './unread.component';
 
 describe('UnreadComponent', () => {
-  let component: UnreadComponent;
-  let fixture: ComponentFixture<UnreadComponent>;
+  let component: InboxUnreadPage;
+  let fixture: ComponentFixture<InboxUnreadPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [UnreadComponent],
+      declarations: [InboxUnreadPage],
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(UnreadComponent);
+    fixture = TestBed.createComponent(InboxUnreadPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

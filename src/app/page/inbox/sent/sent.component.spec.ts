@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { InboxAllPage } from './all.component';
+import { InboxSentPage } from './sent.component';
 
-describe('AllComponent', () => {
-  let component: InboxAllPage;
-  let fixture: ComponentFixture<InboxAllPage>;
+describe('SentComponent', () => {
+  let component: InboxSentPage;
+  let fixture: ComponentFixture<InboxSentPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [InboxAllPage],
+      declarations: [ InboxSentPage ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(InboxAllPage);
+    fixture = TestBed.createComponent(InboxSentPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

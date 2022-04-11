@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AdminService } from '../../service/admin.service';
 
 @Component({
   selector: 'app-inbox-page',
@@ -7,7 +8,9 @@ import { Component, OnInit } from '@angular/core';
 })
 export class InboxPage implements OnInit {
 
-  constructor() { }
+  constructor(
+    public admin: AdminService,
+  ) { }
 
   ngOnInit(): void {
   }

@@ -59,7 +59,6 @@ export class SubmitDmPage implements OnInit {
       'locked',
       this.account.tag,
       `plugin/inbox/` + this.to,
-      this.to,
     ];
     if (this.emoji) result.push('plugin/emoji');
     if (this.latex) result.push('plugin/latex');

@@ -108,7 +108,7 @@ export class TagPage implements OnInit {
   }
 
   getArgs(tag: string, filter: string): Observable<Record<string, any>> {
-    const query = `${tag}:!internal@*`;
+    const query = tag.startsWith('plugin/') ? tag : `${tag}:!internal@*`;
     if (filter === 'new') {
       return of({ query });
     }

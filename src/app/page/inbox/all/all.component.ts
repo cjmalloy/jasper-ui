@@ -11,7 +11,7 @@ import { RefService } from '../../../service/api/ref.service';
   templateUrl: './all.component.html',
   styleUrls: ['./all.component.scss'],
 })
-export class AllComponent implements OnInit {
+export class InboxAllPage implements OnInit {
 
   page$: Observable<Page<Ref>>;
 

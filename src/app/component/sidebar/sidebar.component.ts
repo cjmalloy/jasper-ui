@@ -44,6 +44,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return !!this.admin.status.templates.root && !!this.tag;
   }
 
+  get isApprover() {
+    return this.ext?.config.approvers.includes(this.account.tag);
+  }
+
   get user() {
     return !!this.admin.status.templates.user && (
       this.tag?.startsWith('user/') ||

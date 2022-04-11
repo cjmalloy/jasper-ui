@@ -76,6 +76,18 @@ export class CommentComponent implements OnInit, OnDestroy {
     return !!this.admin.status.plugins.latex && !!this.ref.tags?.includes('plugin/latex');
   }
 
+  get canInvoice() {
+    return this.admin.status.plugins.invoice &&
+      this.isAuthor &&
+      (this.ref.tags?.includes('plugin/comment') ||
+        !this.ref.tags?.includes('internal')) &&
+      this.ref.sources;
+  }
+
+  get isAuthor() {
+    return this.authors.includes(this.account.tag);
+  }
+
   get authors() {
     return authors(this.ref);
   }

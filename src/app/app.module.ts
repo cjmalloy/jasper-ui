@@ -2,6 +2,7 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
+import { QRCodeModule } from 'angularx-qrcode';
 import { MarkdownModule } from 'ngx-markdown';
 import { mergeMap } from 'rxjs';
 
@@ -36,9 +37,11 @@ import { AdminTemplatePage } from './page/admin/template/template.component';
 import { CreateExtPage } from './page/create/ext/ext.component';
 import { CreateUserPage } from './page/create/user/user.component';
 import { HomePage } from './page/home/home.component';
-import { AllComponent } from './page/inbox/all/all.component';
+import { InboxAllPage } from './page/inbox/all/all.component';
 import { InboxPage } from './page/inbox/inbox.component';
-import { UnreadComponent } from './page/inbox/unread/unread.component';
+import { InboxInvoicesPage } from './page/inbox/invoices/invoices.component';
+import { InboxSentPage } from './page/inbox/sent/sent.component';
+import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { CommentsComponent } from './page/ref/comments/comments.component';
 import { GraphComponent } from './page/ref/graph/graph.component';
 import { RefPage } from './page/ref/ref.component';
@@ -50,6 +53,7 @@ import { SettingsPage } from './page/settings/settings.component';
 import { SettingsUserPage } from './page/settings/user/user.component';
 import { SubmitDmPage } from './page/submit/dm/dm.component';
 import { SubmitFeedPage } from './page/submit/feed/feed.component';
+import { SubmitInvoicePage } from './page/submit/invoice/invoice.component';
 import { SubmitPage } from './page/submit/submit.component';
 import { SubmitTextPage } from './page/submit/text/text.component';
 import { SubmitWebPage } from './page/submit/web/web.component';
@@ -81,8 +85,8 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     CommentComponent,
     SettingsComponent,
     InboxPage,
-    AllComponent,
-    UnreadComponent,
+    InboxAllPage,
+    InboxUnreadPage,
     PageControlsComponent,
     CommentListComponent,
     CommentReplyComponent,
@@ -115,6 +119,9 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     CreateUserPage,
     ForceDirectedComponent,
     SubmitDmPage,
+    SubmitInvoicePage,
+    InboxInvoicesPage,
+    InboxSentPage,
   ],
   imports: [
     BrowserModule,
@@ -123,6 +130,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     FormsModule,
     ReactiveFormsModule,
     MarkdownModule.forRoot(),
+    QRCodeModule,
   ],
   providers: [
     ConfigService,
