@@ -9,7 +9,7 @@ export const ORIGIN_NOT_BLANK_REGEX = /^@[a-z]+(\.[a-z]+)*$/;
 export const ORIGIN_REGEX = /^(@[a-z]+(\.[a-z]+)*)?$/;
 export const QUALIFIED_TAG_REGEX = /^(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
 export const SELECTOR_REGEX = /^!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
-export const QUERY_REGEX = /^!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ +|:&]!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*$/;
+export const QUERY_REGEX = /^!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |:&]!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*$/;
 
 export function templates(ref: Ref, tag: string) {
   return _.filter(ref.tags, t => t.startsWith(tag + '/') || t.startsWith('_' + tag + '/'));
