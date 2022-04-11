@@ -1,7 +1,7 @@
 <div class="comment-container info collapsed" tabindex="0" *ngIf="collapsed">
   <span class="comment-expand fake-link" (click)="collapsed = false">[+]</span>&nbsp;
   <ng-container *ngFor="let user of authors">
-    <a class="author" [routerLink]="['/tag', user]">{{ formatTag(user.replace('user/', '')) }}</a>
+    <a class="author" [routerLink]="['/tag', user]">{{ user.replace('user/', '') }}</a>
   </ng-container>
   {{ ref.created?.fromNow() }}
   {{ comments }}

@@ -1,6 +1,6 @@
 <div class="link">
   <a [routerLink]="['/tag', qualifiedTag]">{{ user.name || user.tag || 'root' }}</a>
-  <span *ngIf="user.name" class="host">({{ formatTag(user.tag) + user.origin }})</span>
+  <span *ngIf="user.name" class="host">({{ user.tag + user.origin }})</span>
   <span *ngIf="!user.name && user.origin" class="host">({{ user.origin }})</span>
 </div>
 <div class="stack">

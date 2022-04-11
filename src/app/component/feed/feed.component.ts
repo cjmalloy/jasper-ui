@@ -6,7 +6,7 @@ import { Feed } from '../../model/feed';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { FeedService } from '../../service/api/feed.service';
-import { formatTag, interestingTags, TAG_REGEX, urlSummary } from '../../util/format';
+import { interestingTags, TAG_REGEX, TAG_REGEX_STRING, urlSummary } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -17,8 +17,7 @@ import { printError } from '../../util/http';
 export class FeedComponent implements OnInit {
   @HostBinding('class') css = 'list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
-  tagRegex = TAG_REGEX;
-  formatTag = formatTag;
+  tagRegex = TAG_REGEX_STRING;
 
   @Input()
   feed!: Feed;

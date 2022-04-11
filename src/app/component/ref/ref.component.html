@@ -23,7 +23,7 @@
       <ng-container *ngIf="tags.length">
         tagged
         <ng-container *ngFor="let tag of tags">
-          <a [routerLink]="['/tag', tag]">{{ formatTag(tag) }}</a>&nbsp;
+          <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
         </ng-container>
       </ng-container>
     </div>
@@ -112,12 +112,13 @@
           reject
         </a>
       </ng-container>
-      <a *ngIf="account.mod && !approved"
+      <a *ngIf="account.mod && !approved && !locked"
          class="fake-link"
          (click)="approve()">
         approve
       </a>
-      <span class="approved" *ngIf="account.mod && approved">✔️</span>
+      <span class="approved" *ngIf="account.mod && approved" title="Moderated">✔️</span>
+      <span class="lock" *ngIf="locked" title="Locked">🔒️</span>
     </div>
   </div>
 </div>

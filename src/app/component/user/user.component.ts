@@ -7,7 +7,7 @@ import { User } from '../../model/user';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { UserService } from '../../service/api/user.service';
-import { formatTag, QUALIFIED_TAG_REGEX } from '../../util/format';
+import { QUALIFIED_TAG_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -18,7 +18,6 @@ import { printError } from '../../util/http';
 export class UserComponent implements OnInit {
   @HostBinding('class') css = 'list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
-  formatTag = formatTag;
 
   @Input()
   user!: User;

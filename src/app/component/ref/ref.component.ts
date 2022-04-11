@@ -9,7 +9,7 @@ import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
-import { authors, formatTag, interestingTags, TAG_REGEX, urlSummary, webLink } from '../../util/format';
+import { authors, interestingTags, TAG_REGEX, TAG_REGEX_STRING, urlSummary, webLink } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -20,8 +20,7 @@ import { printError } from '../../util/http';
 export class RefComponent implements OnInit {
   @HostBinding('class') css = 'list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
-  tagRegex = TAG_REGEX;
-  formatTag = formatTag;
+  tagRegex = TAG_REGEX_STRING;
 
   expandable: string[] = [];
 
@@ -134,6 +133,10 @@ export class RefComponent implements OnInit {
 
   get approved() {
     return this.ref.tags?.includes('_moderated');
+  }
+
+  get locked() {
+    return this.ref.tags?.includes('locked');
   }
 
   get tagsForm() {

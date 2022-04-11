@@ -3,6 +3,7 @@ import { Ref } from '../model/ref';
 
 export const URI_REGEX = /^([^:/?#]+):(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
 export const TAG_REGEX = /^[_+]?[a-z]+(\/[a-z]+)*$/;
+export const TAG_REGEX_STRING = '^[_+]?[a-z]+(\/[a-z]+)*$';
 export const USER_REGEX = /^[_+]user\/[a-z]+(\/[a-z]+)*$/;
 export const PLUGIN_REGEX = /^[_+]?plugin\/[a-z]+(\/[a-z]+)*$/;
 export const ORIGIN_NOT_BLANK_REGEX = /^@[a-z]+(\.[a-z]+)*$/;
@@ -10,16 +11,6 @@ export const ORIGIN_REGEX = /^(@[a-z]+(\.[a-z]+)*)?$/;
 export const QUALIFIED_TAG_REGEX = /^([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
 export const SELECTOR_REGEX = /^!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
 export const QUERY_REGEX = /^!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |:&]!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*$/;
-
-export function formatTag(tag: string) {
-  if (tag.startsWith('_')) return tag;
-  if (!tag.startsWith('+')) return tag;
-  return '±' + tag.substring(1);
-}
-
-export function collapseSymmetric(tags: string[]) {
-  return tags.filter(t => !t.startsWith('_') || !tags.includes('+' + t.substring(1)));
-}
 
 export function templates(tags?: string[], template?: string) {
   return _.filter(tags, t =>
@@ -33,7 +24,7 @@ export function hasTemplate(tags: string[], template: string) {
 }
 
 export function authors(ref: Ref) {
-  return collapseSymmetric(templates(ref.tags || [], 'user')).map(t => t + ref.origin);
+  return templates(ref.tags || [], 'user').map(t => t + ref.origin);
 }
 
 export function webLink(ref: Ref) {
@@ -50,7 +41,7 @@ export function urlSummary(url: string) {
 }
 
 export function interestingTags(tags?: string[]): string[] {
-  return collapseSymmetric(_.filter(tags, interestingTag));
+  return _.filter(tags, interestingTag);
 }
 
 export function interestingTag(tag: string) {

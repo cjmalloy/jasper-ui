@@ -2,7 +2,6 @@ import { Component, HostBinding, OnInit } from '@angular/core';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
-import { formatTag } from '../../util/format';
 
 @Component({
   selector: 'app-settings',
@@ -11,7 +10,6 @@ import { formatTag } from '../../util/format';
 })
 export class SettingsComponent implements OnInit {
   @HostBinding('class') css = 'settings';
-  formatTag = formatTag;
 
   constructor(
     public admin: AdminService,

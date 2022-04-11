@@ -5,7 +5,7 @@ import { inboxes } from '../../plugin/inbox';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
-import { authors, formatTag, interestingTags, TAG_REGEX } from '../../util/format';
+import { authors, interestingTags, TAG_REGEX_STRING } from '../../util/format';
 
 @Component({
   selector: 'app-comment',
@@ -16,8 +16,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'comment';
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
-  tagRegex = TAG_REGEX;
-  formatTag = formatTag;
+  tagRegex = TAG_REGEX_STRING;
 
   @Input()
   top!: Ref;

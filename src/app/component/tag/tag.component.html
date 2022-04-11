@@ -2,7 +2,7 @@
   <a *ngIf="tag.tag" [routerLink]="['/tag', qualifiedTag]">{{ tag.name || tag.tag }}</a>
   <a *ngIf="!tag.tag" routerLink="/all">{{ tag.name || 'root' }}</a>
   <span *ngIf="!tag.tag" class="host">(root: "")</span>
-  <span *ngIf="tag.name && tag.tag" class="host">({{ formatTag(tag.tag) + tag.origin }})</span>
+  <span *ngIf="tag.name && tag.tag" class="host">({{ tag.tag + tag.origin }})</span>
   <span *ngIf="!tag.tag && !tag.name && tag.origin" class="host">({{ tag.origin }})</span>
 </div>
 <div class="stack">

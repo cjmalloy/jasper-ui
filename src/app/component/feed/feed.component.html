@@ -15,7 +15,7 @@
       <ng-container *ngIf="tags.length">
         tagged
         <ng-container *ngFor="let tag of tags">
-          <a [routerLink]="['/tag', tag]">{{ formatTag(tag) }}</a>&nbsp;
+          <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
         </ng-container>
       </ng-container>
     </div>
