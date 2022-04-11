@@ -17,13 +17,13 @@
       <ng-container *ngIf="authors.length">
         by
         <ng-container *ngFor="let user of authors">
-          <a [routerLink]="['/tag', user]">{{ user.replace('user/', '') + ref.origin }}</a>&nbsp;
+          <a [routerLink]="['/tag', user]">{{ user }}</a>&nbsp;
         </ng-container>
       </ng-container>
       <ng-container *ngIf="tags.length">
         tagged
         <ng-container *ngFor="let tag of tags">
-          <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
+          <a [routerLink]="['/tag', tag]">{{ formatTag(tag) }}</a>&nbsp;
         </ng-container>
       </ng-container>
     </div>
@@ -52,7 +52,7 @@
       </ng-container>
       <a *ngIf="writeAccess$ | async"
          class="fake-link"
-         (click)="editing = true">
+         (click)="editing = !editing">
         edit
       </a>
       <a *ngIf="!deleting && (writeAccess$ | async)"
@@ -73,7 +73,7 @@
         <input #inlineTag
                (keydown)="$event.key === 'Enter' && addInlineTag() || true"
                type="text"
-               pattern="_?[a-z]+(/[a-z]+)*"
+               [pattern]="tagRegex"
                appAutofocus>
         <button (click)="addInlineTag()">+</button>
       </span>

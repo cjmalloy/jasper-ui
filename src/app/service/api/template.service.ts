@@ -24,15 +24,15 @@ export class TemplateService {
     return this.http.post<void>(this.base, writeTemplate(template));
   }
 
-  get(tag = '', origin = ''): Observable<Template> {
+  get(tag = ''): Observable<Template> {
     return this.http.get(this.base, {
-      params: { tag, origin },
+      params: params({ tag }),
     }).pipe(map(mapTemplate));
   }
 
   exists(tag: string, origin = ''): Observable<boolean> {
     return this.http.get(`${this.base}/exists`, {
-      params: { tag, origin },
+      params: params({ tag }),
       responseType: 'text',
     }).pipe(map(v => v === 'true'));
   }
@@ -55,7 +55,7 @@ export class TemplateService {
 
   delete(tag: string): Observable<void> {
     return this.http.delete<void>(this.base, {
-      params: { tag },
+      params: params({ tag }),
     });
   }
 }

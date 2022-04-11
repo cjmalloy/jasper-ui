@@ -9,6 +9,7 @@ import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { TemplateService } from '../../service/api/template.service';
+import { formatTag } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -19,6 +20,7 @@ import { printError } from '../../util/http';
 export class TagComponent implements OnInit {
   @HostBinding('class') css = 'list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
+  formatTag = formatTag;
 
   @Input()
   tag!: IsTag;
@@ -89,7 +91,7 @@ export class TagComponent implements OnInit {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-      mergeMap(() => this.service.get(this.tag.tag, this.tag.origin)),
+      mergeMap(() => this.service.get(this.tag.tag)),
     ).subscribe(tag => {
       this.editing = false;
       this.tag = tag;

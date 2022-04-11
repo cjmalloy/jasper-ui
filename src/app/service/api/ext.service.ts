@@ -26,7 +26,7 @@ export class ExtService {
 
   get(tag: string): Observable<Ext> {
     return this.http.get(this.base, {
-      params: { tag },
+      params: params({ tag }),
     }).pipe(map(mapTag));
   }
 
@@ -55,7 +55,7 @@ export class ExtService {
 
   delete(tag: string): Observable<void> {
     return this.http.delete<void>(this.base, {
-      params: { tag },
+      params: params({ tag }),
     });
   }
 }

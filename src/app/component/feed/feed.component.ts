@@ -1,13 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import * as _ from 'lodash';
 import { catchError, mergeMap, throwError } from 'rxjs';
 import { Feed } from '../../model/feed';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { FeedService } from '../../service/api/feed.service';
-import { interestingTags, TAG_REGEX, urlSummary } from '../../util/format';
+import { formatTag, interestingTags, TAG_REGEX, urlSummary } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -18,8 +17,8 @@ import { printError } from '../../util/http';
 export class FeedComponent implements OnInit {
   @HostBinding('class') css = 'list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
-
-  expandable = ['plugin/image', 'plugin/video'];
+  tagRegex = TAG_REGEX;
+  formatTag = formatTag;
 
   @Input()
   feed!: Feed;
@@ -33,7 +32,6 @@ export class FeedComponent implements OnInit {
 
   editForm: FormGroup;
   submitted = false;
-  expandPlugin?: string;
   tagging = false;
   editing = false;
   deleting = false;
@@ -54,9 +52,6 @@ export class FeedComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.feed.tags) {
-      this.expandPlugin = _.intersection(this.feed.tags, this.expandable)[0];
-    }
     while (this.tagsForm.length < (this.feed?.tags?.length || 0)) this.addTag();
     this.editForm.patchValue(this.feed);
   }

@@ -1,6 +1,16 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpParameterCodec, HttpParams } from '@angular/common/http';
 import { isMoment } from 'moment';
 import { Problem } from '../model/problem';
+
+
+export class HttpUrlEncodingCodec implements HttpParameterCodec {
+  encodeKey(k: string): string { return encodeURIComponent(k); }
+  encodeValue(v: string): string { return encodeURIComponent(v); }
+  decodeKey(k: string): string { return decodeURIComponent(k); }
+  decodeValue(v: string) { return decodeURIComponent(v); }
+}
+
+const encoder = new HttpUrlEncodingCodec();
 
 /**
  * Format all non-empty properties for HTTP Query params.
@@ -15,7 +25,8 @@ export function params(obj?: Record<string, any>): Record<string, any> | undefin
       result[k] = v;
     }
   }
-  return result;
+  const params = new HttpParams({ encoder });
+  return params.appendAll(result);
 }
 
 export function printError(res: HttpErrorResponse): string[] {

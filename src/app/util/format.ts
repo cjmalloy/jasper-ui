@@ -2,25 +2,38 @@ import * as _ from 'lodash';
 import { Ref } from '../model/ref';
 
 export const URI_REGEX = /^([^:/?#]+):(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
-export const TAG_REGEX = /^_?[a-z]+(\/[a-z]+)*$/;
-export const USER_REGEX = /^_?user\/[a-z]+(\/[a-z]+)*$/;
-export const PLUGIN_REGEX = /^_?plugin\/[a-z]+(\/[a-z]+)*$/;
+export const TAG_REGEX = /^[_+]?[a-z]+(\/[a-z]+)*$/;
+export const USER_REGEX = /^[_+]user\/[a-z]+(\/[a-z]+)*$/;
+export const PLUGIN_REGEX = /^[_+]?plugin\/[a-z]+(\/[a-z]+)*$/;
 export const ORIGIN_NOT_BLANK_REGEX = /^@[a-z]+(\.[a-z]+)*$/;
 export const ORIGIN_REGEX = /^(@[a-z]+(\.[a-z]+)*)?$/;
-export const QUALIFIED_TAG_REGEX = /^(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
-export const SELECTOR_REGEX = /^!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
-export const QUERY_REGEX = /^!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |:&]!?(_?[a-z]+(\/[a-z]+)*|(_?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*$/;
+export const QUALIFIED_TAG_REGEX = /^([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
+export const SELECTOR_REGEX = /^!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
+export const QUERY_REGEX = /^!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |:&]!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*$/;
 
-export function templates(ref: Ref, tag: string) {
-  return _.filter(ref.tags, t => t.startsWith(tag + '/') || t.startsWith('_' + tag + '/'));
+export function formatTag(tag: string) {
+  if (tag.startsWith('_')) return tag;
+  if (!tag.startsWith('+')) return tag;
+  return '±' + tag.substring(1);
 }
 
-export function hasTemplate(ref: Ref, tag: string) {
-  return templates(ref, tag).length > 0;
+export function collapseSymmetric(tags: string[]) {
+  return tags.filter(t => !t.startsWith('_') || !tags.includes('+' + t.substring(1)));
+}
+
+export function templates(tags?: string[], template?: string) {
+  return _.filter(tags, t =>
+    t.startsWith(template + '/') ||
+    t.startsWith('_' + template + '/') ||
+    t.startsWith('+' + template + '/'));
+}
+
+export function hasTemplate(tags: string[], template: string) {
+  return templates(tags, template).length > 0;
 }
 
 export function authors(ref: Ref) {
-  return templates(ref, 'user').map(t => t + ref.origin);
+  return collapseSymmetric(templates(ref.tags || [], 'user')).map(t => t + ref.origin);
 }
 
 export function webLink(ref: Ref) {
@@ -37,7 +50,7 @@ export function urlSummary(url: string) {
 }
 
 export function interestingTags(tags?: string[]): string[] {
-  return _.filter(tags, interestingTag);
+  return collapseSymmetric(_.filter(tags, interestingTag));
 }
 
 export function interestingTag(tag: string) {
@@ -47,8 +60,10 @@ export function interestingTag(tag: string) {
   if (tag === '_moderated') return false;
   if (tag.startsWith('plugin/')) return false;
   if (tag.startsWith('_plugin/')) return false;
+  if (tag.startsWith('+plugin/')) return false;
   if (tag.startsWith('user/')) return false;
   if (tag.startsWith('_user/')) return false;
+  if (tag.startsWith('+user/')) return false;
   return true;
 }
 

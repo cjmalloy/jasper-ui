@@ -1,7 +1,7 @@
 <div class="comment-container info collapsed" tabindex="0" *ngIf="collapsed">
   <span class="comment-expand fake-link" (click)="collapsed = false">[+]</span>&nbsp;
   <ng-container *ngFor="let user of authors">
-    <a class="author" [routerLink]="['/tag', user]">{{ user.replace('user/', '') + ref.origin }}</a>
+    <a class="author" [routerLink]="['/tag', user]">{{ formatTag(user.replace('user/', '')) }}</a>
   </ng-container>
   {{ ref.created?.fromNow() }}
   {{ comments }}
@@ -15,7 +15,7 @@
   <div class="info">
     <span class="comment-collapse fake-link" (click)="collapsed = true">[&ndash;]</span>&nbsp;
     <ng-container *ngFor="let user of authors">
-      <a class="author" [routerLink]="['/tag', user]">{{ user.replace('user/', '') + ref.origin }}</a>
+      <a class="author" [routerLink]="['/tag', user]">{{ user }}</a>
     </ng-container>
     {{ ref.created?.fromNow() }}
     <ng-container *ngIf="tags.length">
@@ -73,7 +73,7 @@
       <input #inlineTag
              (keydown)="$event.key === 'Enter' && addInlineTag() || true"
              type="text"
-             pattern="_?[a-z]+(/[a-z]+)*"
+             [pattern]="tagRegex"
              appAutofocus>
       <button (click)="addInlineTag()">+</button>
     </span>

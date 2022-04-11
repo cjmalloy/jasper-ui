@@ -15,14 +15,14 @@
       <ng-container *ngIf="tags.length">
         tagged
         <ng-container *ngFor="let tag of tags">
-          <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
+          <a [routerLink]="['/tag', tag]">{{ formatTag(tag) }}</a>&nbsp;
         </ng-container>
       </ng-container>
     </div>
     <div class="actions">
       <a *ngIf="account.mod"
          class="fake-link"
-         (click)="editing = true">edit</a>
+         (click)="editing = !editing">edit</a>
       <a *ngIf="!deleting && account.mod"
          class="fake-link"
          (click)="deleting = true">delete</a>
@@ -37,7 +37,7 @@
         <input #inlineTag
                (keydown)="$event.key === 'Enter' && addInlineTag() || true"
                type="text"
-               pattern="_?[a-z]+(/[a-z]+)*"
+               [pattern]="tagRegex"
                appAutofocus>
         <button (click)="addInlineTag()">+</button>
       </span>

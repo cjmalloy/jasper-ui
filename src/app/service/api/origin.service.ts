@@ -26,7 +26,7 @@ export class OriginService {
 
   get(origin: string): Observable<Origin> {
     return this.http.get(this.base, {
-      params: { origin },
+      params: params({ origin }),
     }).pipe(map(mapOrigin));
   }
 
@@ -46,9 +46,9 @@ export class OriginService {
     return this.http.put<void>(this.base, origin);
   }
 
-  delete(tag: string): Observable<void> {
+  delete(origin: string): Observable<void> {
     return this.http.delete<void>(this.base, {
-      params: { tag },
+      params: params({ origin }),
     });
   }
 }

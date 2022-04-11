@@ -26,7 +26,7 @@ export class UserService {
 
   get(tag: string): Observable<User> {
     return this.http.get(this.base, {
-      params: { tag, origin },
+      params: params({ tag }),
     }).pipe(map(mapUser));
   }
 
@@ -48,7 +48,7 @@ export class UserService {
 
   delete(tag: string): Observable<void> {
     return this.http.delete<void>(this.base, {
-      params: { tag },
+      params: params({ tag }),
     });
   }
 

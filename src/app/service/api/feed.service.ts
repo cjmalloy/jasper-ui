@@ -26,7 +26,7 @@ export class FeedService {
 
   get(url: string, origin = ''): Observable<Feed> {
     return this.http.get(this.base, {
-      params: { url, origin },
+      params: params({ url, origin }),
     }).pipe(map(mapFeed));
   }
 
@@ -55,13 +55,13 @@ export class FeedService {
 
   delete(url: string, origin = ''): Observable<void> {
     return this.http.delete<void>(this.base, {
-      params: { url, origin },
+      params: params({ url, origin }),
     });
   }
 
   scrape(url: string, origin = ''): Observable<void> {
     return this.http.get<void>(`${this.base}/scrape`, {
-      params: { url, origin },
+      params: params({ url, origin }),
     });
   }
 }

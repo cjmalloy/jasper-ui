@@ -50,7 +50,7 @@ export class SubmitInvoicePage implements OnInit {
     ).subscribe(sources => {
       this.validQueues = sources
         .filter(s => !!s)
-        .flatMap(s => templates(s!, 'queue'));
+        .flatMap(s => templates(s!.tags, 'queue'));
       if (this.validQueues?.length) this.queue = this.validQueues[0];
     });
   }

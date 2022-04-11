@@ -27,20 +27,20 @@ export class RefService {
 
   exists(url: string, origin = ''): Observable<boolean> {
     return this.http.get(`${this.base}/exists`, {
-      params: { url, origin },
+      params: params({ url, origin }),
       responseType: 'text',
     }).pipe(map(v => v === 'true'));
   }
 
   get(url: string, origin = ''): Observable<Ref> {
     return this.http.get(this.base, {
-      params: { url, origin },
+      params: params({ url, origin }),
     }).pipe(map(mapRef));
   }
 
   list(urls: string[], origin = ''): Observable<(Ref | null)[]> {
     return this.http.get(`${this.base}/list`, {
-      params: { urls, origin },
+      params: params({ urls, origin }),
     }).pipe(
       map(res => res as any[]),
       map(res => res.map(mapRefOrNull)),
@@ -92,7 +92,7 @@ export class RefService {
 
   delete(url: string, origin = ''): Observable<void> {
     return this.http.delete<void>(this.base, {
-      params: { url, origin },
+      params: params({ url, origin }),
     });
   }
 }
