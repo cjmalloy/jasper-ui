@@ -84,7 +84,7 @@ export class SubmitTextPage implements OnInit {
     this.submitted = true;
     this.textForm.markAllAsTouched();
     if (!this.textForm.valid) return;
-    const url = 'comment://' + uuid();
+    const url = 'comment:' + uuid();
     this.refs.create({
       ...this.textForm.value,
       tags: this.addPlugins(this.textForm.value.tags),

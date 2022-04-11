@@ -51,7 +51,7 @@ export class CommentReplyComponent implements AfterViewInit {
 
   reply(value: string) {
     if (!value) return;
-    const url = 'comment://' + uuid();
+    const url = 'comment:' + uuid();
     this.refs.create({
       url,
       sources: this.sources,

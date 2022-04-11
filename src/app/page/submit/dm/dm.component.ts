@@ -74,7 +74,7 @@ export class SubmitDmPage implements OnInit {
       return;
     }
     if (!this.dmForm.valid) return;
-    const url = 'comment://' + uuid();
+    const url = 'comment:' + uuid();
     this.refs.create({
       ...this.dmForm.value,
       url,

@@ -47,7 +47,9 @@ export function urlSummary(url: string) {
     }
     return parsed.protocol.substring(0, parsed.protocol.length - 1);
   } catch (e) {}
-  if (url.startsWith('lnbc')) return 'lnbc';
+  if (url.startsWith('lnbc')) return 'lightning';
+  if (url.startsWith('bc1')) return 'bitcoin';
+  if (url.startsWith('0x')) return 'ethereum';
   return 'unknown';
 }
 

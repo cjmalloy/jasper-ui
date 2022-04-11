@@ -10,7 +10,7 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
-import { templates } from '../../../util/format';
+import { templates, URI_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { prefix } from '../../../util/tag';
 
@@ -41,7 +41,7 @@ export class SubmitInvoicePage implements OnInit {
     private fb: FormBuilder,
   ) {
     this.invoiceForm = fb.group({
-      url: ['', [Validators.required]],
+      url: ['', [Validators.required, Validators.pattern(URI_REGEX)]],
       title: ['', [Validators.required]],
       comment: [''],
     });
@@ -57,6 +57,17 @@ export class SubmitInvoicePage implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  checkUrl() {
+    // Try to fix common problems
+    if (!this.url.valid) {
+      if (this.url.value.startsWith('lnbc')) {
+        this.url.setValue('lightning:' + this.url.value);
+      } else if (this.url.value.startsWith('bc1')) {
+        this.url.setValue('bitcoin:' + this.url.value);
+      }
+    }
   }
 
   get refUrl$() {
@@ -118,7 +129,7 @@ export class SubmitInvoicePage implements OnInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/inbox/invoices']);
+      this.router.navigate(['/ref', this.invoiceForm.value.url]);
     });
   }
 }
