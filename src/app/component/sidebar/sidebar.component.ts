@@ -4,6 +4,7 @@ import { Observable, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
+import { prefix } from '../../util/tag';
 
 @Component({
   selector: 'app-sidebar',
@@ -13,6 +14,7 @@ import { AdminService } from '../../service/admin.service';
 export class SidebarComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'sidebar';
   private destroy$ = new Subject<void>();
+  prefix = prefix;
 
   @Input()
   ext?: Ext | null;

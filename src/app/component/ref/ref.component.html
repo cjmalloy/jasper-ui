@@ -27,7 +27,11 @@
         </ng-container>
       </ng-container>
     </div>
-    <div *ngIf="ref.comment && expanded && expandInline && !editing"
+    <qrcode *ngIf="expandPlugin === 'plugin/qr' && expanded && expandInline && !editing"
+            [qrdata]="ref.url"
+            [width]="256"
+            [errorCorrectionLevel]="'M'"></qrcode>
+    <div *ngIf="expandPlugin === 'plugin/comment' && ref.comment && expanded && expandInline && !editing"
          class="md expand"
          markdown
          [emoji]="emoji"
@@ -117,7 +121,11 @@
     </div>
   </div>
 </div>
-<div *ngIf="ref.comment && expanded && !expandInline && !editing"
+<qrcode *ngIf="expandPlugin === 'plugin/qr' && expanded && !expandInline && !editing"
+        [qrdata]="ref.url"
+        [width]="256"
+        [errorCorrectionLevel]="'M'"></qrcode>
+<div *ngIf="expandPlugin === 'plugin/comment' && ref.comment && expanded && !expandInline && !editing"
      class="md expand"
      markdown
      [emoji]="emoji"

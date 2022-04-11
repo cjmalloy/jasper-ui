@@ -12,6 +12,7 @@ import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { templates, URI_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { prefix } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-invoice',
@@ -88,12 +89,12 @@ export class SubmitInvoicePage implements OnInit {
       'locked',
       'internal',
       'plugin/invoice',
-      'plugin/invoice/' + queueExt.tag,
+      prefix('plugin/invoice/', queueExt.tag),
       'plugin/qr',
       this.account.tag,
     ];
     for (const approver of queueExt.config.approvers) {
-      result.push('plugin/inbox/' + approver);
+      result.push(prefix('plugin/inbox/', approver));
     }
     if (this.emoji) result.push('plugin/emoji');
     if (this.latex) result.push('plugin/latex');

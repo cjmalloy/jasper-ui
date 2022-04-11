@@ -46,3 +46,10 @@ export function localTag(tag: string) {
   }
   return tag;
 }
+
+export function prefix(prefix: string, tag: string) {
+  if (tag.startsWith('_')) {
+    return prefix + tag.substring(1);
+  }
+  return prefix + tag.replace('+', '');
+}

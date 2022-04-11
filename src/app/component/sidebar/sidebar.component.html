@@ -45,7 +45,7 @@
     </ng-container>
   </div>
   <div *ngIf="isApprover">
-    <a [routerLink]="['/tag', 'plugin/invoice/' + ext?.tag]">invoices</a>
+    <a [routerLink]="['/tag', prefix('plugin/invoice/', ext!.tag)]">invoices</a>
   </div>
 </ng-container>
 

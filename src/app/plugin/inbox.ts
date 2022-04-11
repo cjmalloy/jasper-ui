@@ -3,6 +3,7 @@ import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { authors } from '../util/format';
+import { prefix } from '../util/tag';
 
 export const inboxPlugin: Plugin = {
   tag: 'plugin/inbox',
@@ -17,11 +18,5 @@ export function inboxes(ref: Ref, myUserTag: string): string[] {
 }
 
 export function getInbox(userTag: string): string {
-  if (userTag.startsWith('_')) {
-    return '_plugin/inbox/' + userTag.substring(1);
-  } else if (userTag.startsWith('+')) {
-    return 'plugin/inbox/' + userTag.substring(1);
-  } else {
-    return 'plugin/inbox/' + userTag;
-  }
+  return prefix('plugin/inbox/', userTag);
 }

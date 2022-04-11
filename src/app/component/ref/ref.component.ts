@@ -23,7 +23,7 @@ export class RefComponent implements OnInit {
   tagRegex = TAG_REGEX;
   formatTag = formatTag;
 
-  expandable = ['plugin/image', 'plugin/video', 'plugin/qr'];
+  expandable: string[] = [];
 
   @Input()
   ref!: Ref;
@@ -54,6 +54,10 @@ export class RefComponent implements OnInit {
     private refs: RefService,
     private fb: FormBuilder,
   ) {
+    if (this.admin.status.plugins.qr) this.expandable.push('plugin/qr');
+    if (this.admin.status.plugins.video) this.expandable.push('plugin/video');
+    if (this.admin.status.plugins.image) this.expandable.push('plugin/image');
+    if (this.admin.status.plugins.comment) this.expandable.push('plugin/comment');
     this.editForm = fb.group({
       comment: [''],
       sources: fb.array([]),

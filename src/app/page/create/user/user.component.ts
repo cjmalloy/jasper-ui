@@ -8,6 +8,7 @@ import { AdminService } from '../../../service/admin.service';
 import { UserService } from '../../../service/api/user.service';
 import { QUALIFIED_TAG_REGEX, USER_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { prefix } from '../../../util/tag';
 
 @Component({
   selector: 'app-create-user',
@@ -83,7 +84,7 @@ export class CreateUserPage implements OnInit {
     this.submitted = true;
     this.userForm.markAllAsTouched();
     if (this.admin.status.plugins.inbox) {
-      this.addReadAccess('plugin/inbox/' + this.userForm.value.tag.substring(1));
+      this.addReadAccess(prefix('plugin/inbox/', this.userForm.value.tag));
     }
     if (!this.userForm.valid) return;
     this.users.create(this.userForm.value).pipe(

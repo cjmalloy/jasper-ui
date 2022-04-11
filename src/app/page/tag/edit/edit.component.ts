@@ -83,13 +83,15 @@ export class EditTagPage implements OnInit {
   get user() {
     return !!this.admin.status.templates.user && (
       this.ext.tag.startsWith('user/') ||
-      this.ext.tag.startsWith('_user/'));
+      this.ext.tag.startsWith('_user/') ||
+      this.ext.tag.startsWith('+user/'));
   }
 
   get queue() {
     return !!this.admin.status.templates.queue && (
       this.ext.tag.startsWith('queue/') ||
-      this.ext.tag.startsWith('_queue/'));
+      this.ext.tag.startsWith('_queue/') ||
+      this.ext.tag.startsWith('+queue/'));
   }
 
   get tag$() {
