@@ -81,27 +81,27 @@ export class HomePage implements OnInit {
     if (path === 'home') {
       if (filter === 'new') {
         return this.account.subscriptions$.pipe(
-          map(subs => ({ query: subs.join(':!internal@* ') + ':!internal@*' })),
+          map(subs => ({ query: `(${subs.join(' ')}):!internal@*` })),
         );
       }
       if (filter === 'uncited') {
         return this.account.subscriptions$.pipe(
-          map(subs => ({ query: subs.join(':!internal@* ') + ':!internal@*', uncited: true })),
+          map(subs => ({ query: `(${subs.join(' ')}):!internal@*`, uncited: true })),
         );
       }
       if (filter === 'unsourced') {
         return this.account.subscriptions$.pipe(
-          map(subs => ({ query: subs.join(':!internal@* ') + ':!internal@*', unsourced: true })),
+          map(subs => ({ query: `(${subs.join(' ')}):!internal@*`, unsourced: true })),
         );
       }
       if (filter === 'modlist') {
         return this.account.subscriptions$.pipe(
-          map(subs => ({ query: subs.join(':!internal@*:!_moderated@* ') + ':!internal@*:!_moderated' })),
+          map(subs => ({ query: `(${subs.join(' ')}):!internal@*:!_moderated@*` })),
         );
       }
       if (filter === 'imodlist') {
         return this.account.subscriptions$.pipe(
-          map(subs => ({ query: subs.join(':!_moderated@* ') + ':!_moderated' })),
+          map(subs => ({ query: `(${subs.join(' ')}):!_moderated@*` })),
         );
       }
       throw `Invalid filter ${filter}`;

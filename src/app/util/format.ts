@@ -10,7 +10,7 @@ export const ORIGIN_NOT_BLANK_REGEX = /^@[a-z]+(\.[a-z]+)*$/;
 export const ORIGIN_REGEX = /^(@[a-z]+(\.[a-z]+)*)?$/;
 export const QUALIFIED_TAG_REGEX = /^([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
 export const SELECTOR_REGEX = /^!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
-export const QUERY_REGEX = /^!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |:&]!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*$/;
+export const QUERY_REGEX = /^(!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))|\(!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |]!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*\))([ |:&](!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))|\(!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |]!?([_+]?[a-z]+(\/[a-z]+)*|([_+]?[a-z]+(\/[a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*\)))*$/;
 
 export function templates(tags?: string[], template?: string) {
   return _.filter(tags, t =>
