@@ -107,10 +107,15 @@
                    [tags]="inboxes"
                    [newComments$]="newComments$"></app-comment-reply>
 <span class="fake-link load-more"
-      *ngIf="!collapsed && depth === 0 && ref.metadata!.plugins['plugin/comment'].length > 0"
+      *ngIf="!collapsed && context < maxContext && depth === 0 && ref.metadata!.plugins['plugin/comment'].length > 0"
       (click)="depth = depth + 1">
   load more comments
 </span>
+<a class="load-more"
+   *ngIf="!collapsed && context >= maxContext && depth === 0 && ref.metadata!.plugins['plugin/comment'].length > 0"
+   [routerLink]="['/ref', ref.url, 'comments']">
+  continue this thread
+</a>
 <div *ngIf="depth! > 0"
      class="comment-children"
      [class.hidden-without-removing]="collapsed">
@@ -118,5 +123,6 @@
                     [source]="ref.url"
                     [sort]="sort"
                     [depth]="depth! - 1"
+                    [context]="context + 1"
                     [newComments$]="newComments$"></app-comment-list>
 </div>

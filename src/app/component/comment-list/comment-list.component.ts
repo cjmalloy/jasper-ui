@@ -22,6 +22,8 @@ export class CommentListComponent implements OnInit, OnDestroy {
   @Input()
   depth?: number | null = 7;
   @Input()
+  context = 0;
+  @Input()
   newComments$!: Observable<Ref | null>;
 
   newComments: Ref[] = [];

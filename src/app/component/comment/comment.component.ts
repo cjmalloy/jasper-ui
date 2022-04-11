@@ -18,6 +18,8 @@ export class CommentComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   tagRegex = TAG_REGEX_STRING;
 
+  maxContext = 20;
+
   @Input()
   top!: Ref;
   @Input()
@@ -26,6 +28,8 @@ export class CommentComponent implements OnInit, OnDestroy {
   sort?: string | null;
   @Input()
   depth?: number | null = 7;
+  @Input()
+  context = 0;
 
   @ViewChild('inlineTag')
   inlineTag?: ElementRef;
