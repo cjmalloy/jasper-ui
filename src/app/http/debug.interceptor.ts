@@ -13,6 +13,8 @@ export class DebugInterceptor implements HttpInterceptor {
         setHeaders: {
           // USER
           Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsIm5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMiwiYXV0aCI6IlJPTEVfVVNFUiJ9.Ht6Zs8Oqjf-yzhoAK4A2xn2qKe38uCGLw56pkl8pQW4`,
+          // Bob
+          // Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IiLCJhdXRoIjoiUk9MRV9VU0VSIn0.Uya4e74X-R7YVedzMLtG9H5X8Zj-lyx120vd7ktkj_A`,
 
           // MOD
           // Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjaHJpcyIsImF1dGgiOiJST0xFX01PRCJ9.083AEQTw8BNF82Z-lV8TorYU-iS9s4TndmD9QZdMemY`
