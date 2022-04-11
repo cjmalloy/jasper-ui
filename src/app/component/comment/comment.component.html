@@ -1,8 +1,11 @@
 <div class="comment-container info collapsed" tabindex="0" *ngIf="collapsed">
   <span class="comment-expand fake-link" (click)="collapsed = false">[+]</span>&nbsp;
   <ng-container *ngFor="let user of authors">
-    <a class="author" [routerLink]="['/tag', user]">{{ user.replace('user/', '') }}</a>
+    <a class="author" [routerLink]="['/tag', user]">
+      {{ user.replace('user/', '') }}
+    </a>
   </ng-container>
+  <span class="lock icon" *ngIf="locked" title="Locked">🔒️</span>
   {{ ref.created?.fromNow() }}
   {{ comments }}
 </div>
@@ -15,7 +18,9 @@
   <div class="info">
     <span class="comment-collapse fake-link" (click)="collapsed = true">[&ndash;]</span>&nbsp;
     <ng-container *ngFor="let user of authors">
-      <a class="author" [routerLink]="['/tag', user]">{{ user }}</a>
+      <a class="author" [routerLink]="['/tag', user]">
+        {{ user.replace('+', '').replace('user/', '') }}
+      </a>
     </ng-container>
     {{ ref.created?.fromNow() }}
     <ng-container *ngIf="tags.length">
@@ -92,7 +97,7 @@
        (click)="approve()">
       approve
     </a>
-    <span class="approved" *ngIf="account.mod && approved">✔️</span>
+    <span class="approved icon" *ngIf="account.mod && approved">✔️</span>
   </div>
 </div>
 <app-comment-reply *ngIf="replying"

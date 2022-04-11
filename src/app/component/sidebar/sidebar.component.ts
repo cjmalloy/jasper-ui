@@ -52,14 +52,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   get user() {
     return !!this.admin.status.templates.user && (
-      this.tag?.startsWith('user/') ||
+      this.tag?.startsWith('+user/') ||
       this.tag?.startsWith('_user/'));
   }
 
   get queue() {
     return !!this.admin.status.templates.queue && (
       this.tag?.startsWith('queue/') ||
-      this.tag?.startsWith('_queue/'));
+      this.tag?.startsWith('_queue/') ||
+      this.tag?.startsWith('+queue/'));
   }
 
   search() {

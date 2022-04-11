@@ -3,6 +3,8 @@
   <a *ngIf="!webLink && admin.status.plugins.comment" [routerLink]="['/ref', ref.url, 'comments']">{{ ref.title || ref.url }}</a>
   <a *ngIf="!webLink && !admin.status.plugins.comment" [routerLink]="['/ref', ref.url]">{{ ref.title || ref.url }}</a>
   <span class="host">({{ host }})</span>
+  <span class="invoice icon" *ngIf="invoice" title="Invoice">🧾️</span>
+  <span class="lock icon" *ngIf="locked" title="Locked">🔒️</span>
 </div>
 <div class="link-below">
   <div class="toggle"
@@ -17,7 +19,9 @@
       <ng-container *ngIf="authors.length">
         by
         <ng-container *ngFor="let user of authors">
-          <a [routerLink]="['/tag', user]">{{ user }}</a>&nbsp;
+          <a [routerLink]="['/tag', user]">
+            {{ user.replace('+', '').replace('user/', '') }}
+          </a>&nbsp;
         </ng-container>
       </ng-container>
       <ng-container *ngIf="tags.length">
@@ -117,8 +121,7 @@
          (click)="approve()">
         approve
       </a>
-      <span class="approved" *ngIf="account.mod && approved" title="Moderated">✔️</span>
-      <span class="lock" *ngIf="locked" title="Locked">🔒️</span>
+      <span class="approved icon" *ngIf="account.mod && approved" title="Moderated">✔️</span>
     </div>
   </div>
 </div>

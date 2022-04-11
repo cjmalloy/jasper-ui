@@ -105,6 +105,10 @@ export class CommentComponent implements OnInit, OnDestroy {
     return this.ref.tags?.includes('_moderated');
   }
 
+  get locked() {
+    return this.ref.tags?.includes('locked');
+  }
+
   get comments() {
     if (!this.ref.metadata) return '? comments';
     const commentCount = this.ref.metadata.plugins['plugin/comment'].length;
