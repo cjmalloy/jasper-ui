@@ -6,7 +6,7 @@
 </div>
 <div class="link-below">
   <div class="toggle"
-       *ngIf="showToggle && (ref.comment || expandPlugin)"
+       *ngIf="showToggle && (ref.comment || expandPlugin) && !editing"
        (click)="expanded = !expanded">
     <span class="toggle-plus" *ngIf="!expanded">＋</span>
     <span class="toggle-x" *ngIf="expanded">✕</span>
@@ -128,7 +128,7 @@
   </ng-container>
 
   <span><!-- Buttons --></span>
-  <span>
+  <span class="form-group">
     <button type="submit" [disabled]="submitted && !editForm.valid">save</button>
     <button (click)="editing = false">cancel</button>
   </span>

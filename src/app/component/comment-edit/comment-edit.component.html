@@ -1,4 +1,4 @@
-<textarea #textbox [(ngModel)]="editValue"></textarea>
+<textarea #textbox class="has-plugins" [(ngModel)]="editValue"></textarea>
 <br>
 <button (click)="save()">save</button>
 <button (click)="cancel()">cancel</button>
@@ -6,10 +6,16 @@
 <span class="comment-plugins">
   <ng-container *ngIf="admin.status.plugins.emoji">
     <input id="emoji" type="checkbox" [(ngModel)]="emoji">
-    <label for="emoji">Emoji plugin</label>
+    <label for="emoji">
+      Emoji plugin
+      <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
+    </label>
   </ng-container>
   <ng-container *ngIf="admin.status.plugins.latex">
     <input id="latex" type="checkbox" [(ngModel)]="latex">
-    <label for="latex">LaTeX plugin</label>
+    <label for="latex">
+      LaTeX plugin
+      <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
+    </label>
   </ng-container>
 </span>

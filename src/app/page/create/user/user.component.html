@@ -29,7 +29,7 @@
     <button type="button" (click)="addReadAccess()">+ Add another tag</button>
 
     <div *ngFor="let tag of readAccess.controls; let i=index">
-      <label for="readAccess-{{ i }}">Source:</label>
+      <label for="readAccess-{{ i }}">Tag:</label>
       <input id="readAccess-{{ i }}" type="text" [formControl]="$any(tag)">
       <button type="button" (click)="removeReadAccess(i)">&ndash;</button>
       <div class="error" *ngIf="readAccess.at(i).touched && readAccess.at(i).errors?.['pattern']">
@@ -48,7 +48,7 @@
     <button type="button" (click)="addWriteAccess()">+ Add another tag</button>
 
     <div *ngFor="let tag of writeAccess.controls; let i=index">
-      <label for="writeAccess-{{ i }}">Source:</label>
+      <label for="writeAccess-{{ i }}">Tag:</label>
       <input id="writeAccess-{{ i }}" type="text" [formControl]="$any(tag)">
       <button type="button" (click)="removeWriteAccess(i)">&ndash;</button>
       <div class="error" *ngIf="writeAccess.at(i).touched && writeAccess.at(i).errors?.['pattern']">
@@ -68,7 +68,7 @@
   </ng-container>
 
   <span><!-- Buttons --></span>
-  <span>
+  <span class="form-group">
     <button type="submit" [disabled]="submitted && !userForm.valid">Create</button>
   </span>
 

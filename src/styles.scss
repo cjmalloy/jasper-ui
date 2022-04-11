@@ -137,8 +137,16 @@ html, body {
   grid-template-columns: min-content auto;
   padding: 10px;
 
-  * {
+  & > * {
     margin: 4px;
+  }
+
+  .form-group * {
+    margin: 4px;
+  }
+
+  .no-margin {
+    margin: 0;
   }
 
   label {
@@ -229,19 +237,22 @@ html, body {
   button, textarea {
     margin: 5px;
   }
+}
 
-  textarea {
-    margin-bottom: 0;
-  }
+textarea.has-plugins {
+  margin-bottom: 0;
+}
 
-  .comment-plugins {
-    display: flex;
-    font-size: 75%;
+.comment-plugins {
+  display: flex;
+  font-size: 75%;
 
-    label {
-      margin-right: 10px;
-      line-height: 13px;
-      align-self: center;
+  label {
+    margin-right: 10px;
+    line-height: 13px;
+    align-self: center;
+    sup {
+      margin: 0;
     }
   }
 }

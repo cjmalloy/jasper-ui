@@ -48,6 +48,7 @@ import { SettingsExtPage } from './page/settings/ext/ext.component';
 import { SettingsFeedPage } from './page/settings/feed/feed.component';
 import { SettingsPage } from './page/settings/settings.component';
 import { SettingsUserPage } from './page/settings/user/user.component';
+import { SubmitDmPage } from './page/submit/dm/dm.component';
 import { SubmitFeedPage } from './page/submit/feed/feed.component';
 import { SubmitPage } from './page/submit/submit.component';
 import { SubmitTextPage } from './page/submit/text/text.component';
@@ -113,6 +114,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     UserComponent,
     CreateUserPage,
     ForceDirectedComponent,
+    SubmitDmPage,
   ],
   imports: [
     BrowserModule,

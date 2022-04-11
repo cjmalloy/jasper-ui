@@ -11,7 +11,7 @@
   </div>
 </ng-container>
 <ng-container *ngIf="account.mod">
-  <div class="submit-button" routerLink="/create/ext" [queryParams]="{ tag }">
+  <div class="submit-button" routerLink="/create/ext" [queryParams]="ext ? null : { tag }">
     Create Tag Extension
   </div>
   <div class="submit-button" routerLink="/submit" [queryParams]="{ tag, linkType: 'feed' }">
@@ -47,6 +47,9 @@
 </ng-container>
 
 <ng-container *ngIf="user">
+  <div *ngIf="admin.status.plugins.inbox && !ext?.origin">
+    <a routerLink="/submit/dm" [queryParams]="{ to: ext?.tag }">Send Direct Message</a>
+  </div>
   <div *ngIf="ext?.config?.subscriptions?.length">
     Subscribed to:
     <br>

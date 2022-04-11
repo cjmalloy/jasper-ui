@@ -1,0 +1,47 @@
+<div class="tabs">
+  <h5>Submit Text Post</h5>
+  <div class="spacer"></div>
+  <app-settings></app-settings>
+</div>
+
+<form class="form" [formGroup]="dmForm" (ngSubmit)="submit()">
+
+  <label for="to">To:</label>
+  <input id="to" type="text" [value]="to" (change)="to = $any($event.target).value">
+
+  <label for="title">Title:</label>
+  <input id="title" type="text" [formControl]="title">
+
+  <span><!-- Message --></span>
+  <textarea class="has-plugins" [formControl]="comment"></textarea>
+
+  <span><!-- Comment Plugins --></span>
+  <div class="no-margin">
+    <span class="comment-plugins">
+      <ng-container *ngIf="admin.status.plugins.emoji">
+        <input id="emoji" type="checkbox" [checked]="emoji" (change)="emoji = !emoji">
+        <label for="emoji">
+          Emoji plugin
+          <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
+        </label>
+      </ng-container>
+      <ng-container *ngIf="admin.status.plugins.latex">
+        <input id="latex" type="checkbox" [checked]="latex" (change)="latex = !latex">
+        <label for="latex">
+          LaTeX plugin
+          <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
+        </label>
+      </ng-container>
+    </span>
+  </div>
+
+  <ng-container *ngFor="let e of serverError">
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  </ng-container>
+
+  <span><!-- Buttons --></span>
+  <span class="form-group">
+    <button type="submit" [disabled]="submitted && !dmForm.valid">Submit</button>
+  </span>
+</form>
