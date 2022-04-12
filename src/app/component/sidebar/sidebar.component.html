@@ -30,7 +30,7 @@
 </ng-container>
 <div class="tag-header">
   <h3><a class="tag" [routerLink]="['/tag', tag]">{{ ext?.name || tag }}</a></h3>
-  <ng-container *ngIf="tag && admin.status.templates.user">
+  <ng-container *ngIf="account.signedIn && tag && admin.status.templates.user">
     <button *ngIf="inSubs$ | async as inSubs; else notInSubs" (click)="unsubscribe()">&ndash; unsubscribe</button>
     <ng-template #notInSubs>
       <button (click)="subscribe()">+ subscribe</button>

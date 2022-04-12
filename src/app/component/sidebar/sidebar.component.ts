@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map, Observable, Subject } from 'rxjs';
+import { map, Observable, of, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -44,7 +44,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get inSubs$() {
-    return this.account.userExt$.pipe(map(ext => ext.config.subscriptions.includes(this.tag)));
+    if (!this.tag) return of(false);
+    return this.account.subscriptions$.pipe(map(subs => subs.includes(this.tag!)));
   }
 
   get root() {

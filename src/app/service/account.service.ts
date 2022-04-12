@@ -26,7 +26,7 @@ export class AccountService {
   mod = false;
   editor = false;
   notifications = new BehaviorSubject(0);
-  watchSubs$ = new BehaviorSubject<string[]>([])
+  watchSubs$ = new BehaviorSubject<string[]>(defaultSubs)
 
   private _user$?: Observable<User>;
   private _userExt$?: Observable<Ext>;
