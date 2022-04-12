@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 import { Template } from '../model/template';
 
-export const defaultSubs = ['science@*', 'politics@*', 'news@*', 'funny@*', 'history@*', 'politics@*'];
+export const defaultSubs = ['science', 'politics', 'history', 'news', 'funny'];
 
 export const userTemplate: Template = {
   tag: 'user',

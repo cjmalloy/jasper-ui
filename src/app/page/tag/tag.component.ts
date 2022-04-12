@@ -62,7 +62,7 @@ export class TagPage implements OnInit {
     );
     this.pinned$ = this.ext$.pipe(
       mergeMap(ext => !ext?.config?.pinned?.length ? of([]) :
-        of(...ext.config.pinned as string[]).pipe(
+        of(...ext!.config.pinned as string[]).pipe(
           mergeMap(pin => this.refs.get(pin)),
           scan((acc, value) => [...acc, value], [] as Ref[]),
           catchError(() => of([])),

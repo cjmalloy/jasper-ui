@@ -1,5 +1,11 @@
 <app-search-filter></app-search-filter>
 <ng-container *ngIf="account.signedIn">
+  <ng-container *ngIf="tag && admin.status.templates.user">
+    <button *ngIf="inSubs$ | async as inSubs; else notInSubs" (click)="unsubscribe()">unsubscribe</button>
+    <ng-template #notInSubs>
+      <button (click)="subscribe()">subscribe</button>
+    </ng-template>
+  </ng-container>
   <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
     Submit Link
   </div>
@@ -23,12 +29,10 @@
     Replicate Remote Origin
   </div>
 </ng-container>
-
-<ng-container *ngIf="tag && admin.status.templates.user">
-  <button *ngIf="inSubs$ | async as inSubs; else notInSubs" (click)="unsubscribe()">unsubscribe</button>
-  <ng-template #notInSubs>
-    <button class="fake-link" (click)="subscribe()">subscribe</button>
-  </ng-template>
+<ng-container *ngIf="admin.status.plugins.inbox && user">
+  <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: ext?.tag }">
+    Send Direct Message
+  </div>
 </ng-container>
 
 <ng-container *ngIf="queue">
@@ -42,7 +46,7 @@
     Approvers:
     <br>
     <ng-container *ngFor="let a of ext!.config!.approvers!">
-      <a [routerLink]="['/tag', a]">
+      <a class="tag" [routerLink]="['/tag', a]">
         {{ a }}
       </a>
       <br>
@@ -54,23 +58,11 @@
 </ng-container>
 
 <ng-container *ngIf="user">
-  <ng-container *ngIf="writeAccess$ | async">
-    <a *ngIf="ext"
-       class="sidebar-link"
-       [routerLink]="['/tag', localTag, 'edit']">
-      edit {{ tag }}
-    </a>
-  </ng-container>
-  <ng-container *ngIf="admin.status.plugins.inbox">
-    <a routerLink="/submit/dm"
-       class="sidebar-link"
-       [queryParams]="{ to: ext?.tag }">Send Direct Message</a>
-  </ng-container>
   <div *ngIf="ext?.config?.subscriptions?.length">
     Subscribed to:
     <br>
     <ng-container *ngFor="let sub of ext!.config!.subscriptions!">
-      <a [routerLink]="['/tag', sub]">
+      <a class="tag" [routerLink]="['/tag', sub]">
         {{ sub }}
       </a>
       <br>

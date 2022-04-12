@@ -1,5 +1,4 @@
 import { Component, HostBinding, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
 import { AccountService } from '../../service/account.service';
 
 @Component({
@@ -9,13 +8,10 @@ import { AccountService } from '../../service/account.service';
 })
 export class SubscriptionBarComponent implements OnInit {
   @HostBinding('class') css = 'subscription-bar';
-  subs$: Observable<string[]>;
 
   constructor(
     public account: AccountService,
-  ) {
-    this.subs$ = account.subscriptions$;
-  }
+  ) { }
 
   ngOnInit(): void {
   }

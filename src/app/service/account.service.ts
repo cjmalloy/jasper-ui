@@ -14,7 +14,7 @@ import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { UserService } from './api/user.service';
 
-export const CACHE_MS = 15000;
+export const CACHE_MS = 15 * 1000;
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +26,7 @@ export class AccountService {
   mod = false;
   editor = false;
   notifications = new BehaviorSubject(0);
+  watchSubs$ = new BehaviorSubject<string[]>([])
 
   private _user$?: Observable<User>;
   private _userExt$?: Observable<Ext>;
@@ -45,6 +46,7 @@ export class AccountService {
     return this.users.whoAmI().pipe(
       tap(tag => this.tag = tag),
       mergeMap(tag => tag ? this.loadUser$ : of()),
+      mergeMap(() => this.subscriptions$),
     );
   }
 
@@ -95,30 +97,34 @@ export class AccountService {
 
   get subscriptions$(): Observable<string[]> {
     if (!this.signedIn || !this.adminService.status.templates.user) return of(defaultSubs);
-    return this.userExt$.pipe(map(ext => ext.config.subscriptions),
+    return this.userExt$.pipe(
+      map(ext => ext.config.subscriptions),
+      tap(subs => this.watchSubs$.next(subs)),
     );
   }
 
-  subscribe(tag: string) {
+  addSub(tag: string) {
     this.exts.patch(this.tag, [{
       op: 'add',
       path: '/config/subscriptions/-',
       value: tag,
-    }]).subscribe(() => {
-      this.clearCache();
-    });
+    }]).pipe(
+      tap(() => this.clearCache()),
+      mergeMap(() => this.subscriptions$),
+    ).subscribe();
   }
 
-  unsubscribe(tag: string) {
+  removeSub(tag: string) {
     this.subscriptions$.pipe(
       map(subs => subs.indexOf(tag)),
       mergeMap(index => this.exts.patch(this.tag,[{
         op: 'remove',
         path: '/config/subscriptions/' + index,
       }]))
-    ).subscribe(() => {
-      this.clearCache();
-    });
+    ).pipe(
+      tap(() => this.clearCache()),
+      mergeMap(() => this.subscriptions$),
+    ).subscribe();
   }
 
   checkNotifications() {
