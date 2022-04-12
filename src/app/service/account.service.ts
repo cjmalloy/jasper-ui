@@ -24,6 +24,7 @@ export class AccountService {
   tag = '';
   admin = false;
   mod = false;
+  editor = false;
   notifications = new BehaviorSubject(0);
 
   private _user$?: Observable<User>;
@@ -51,6 +52,7 @@ export class AccountService {
     return forkJoin(
       this.users.amIAdmin().pipe(tap(admin => this.admin = admin)),
       this.users.amIMod().pipe(tap(mod => this.mod = mod)),
+      this.users.amIEditor().pipe(tap(editor => this.editor = editor)),
       this.loadUserExt$,
     );
   }

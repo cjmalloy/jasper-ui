@@ -69,4 +69,10 @@ export class UserService {
       responseType: 'text',
     }).pipe(map(v => v === 'true'));
   }
+
+  amIEditor(): Observable<boolean> {
+    return this.http.get(`${this.base}/whoami/editor`, {
+      responseType: 'text',
+    }).pipe(map(v => v === 'true'));
+  }
 }

@@ -9,6 +9,7 @@ import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { TaggingService } from '../../service/api/tagging.service';
 import { authors, interestingTags, TAG_REGEX, TAG_REGEX_STRING, urlSummary, webLink } from '../../util/format';
 import { printError } from '../../util/http';
 
@@ -51,6 +52,7 @@ export class RefComponent implements OnInit {
     public admin: AdminService,
     public account: AccountService,
     private refs: RefService,
+    private ts: TaggingService,
     private fb: FormBuilder,
   ) {
     if (this.admin.status.plugins.qr) this.expandable.push('plugin/qr');
@@ -172,11 +174,7 @@ export class RefComponent implements OnInit {
   addInlineTag() {
     if (!this.inlineTag) return;
     const tag = this.inlineTag.nativeElement.value;
-    this.refs.patch(this.ref.url, this.ref.origin!, [{
-      op: 'add',
-      path: '/tags/-',
-      value: tag,
-    }]).pipe(
+    this.ts.create(tag, this.ref.url, this.ref.origin!).pipe(
       mergeMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
     ).subscribe(ref => {
       this.tagging = false;

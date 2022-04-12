@@ -72,7 +72,7 @@
         <a class="fake-link" (click)="delete()">yes</a> /
         <a class="fake-link" (click)="deleting = false">no</a>
       </span>
-      <a *ngIf="writeAccess$ | async"
+      <a *ngIf="account.editor || (writeAccess$ | async)"
          class="fake-link"
          (click)="tagging = !tagging">
         tag
