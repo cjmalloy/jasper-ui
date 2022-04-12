@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash';
-import { catchError, combineLatest, filter, map, Observable, of, shareReplay } from 'rxjs';
+import { catchError, combineLatest, map, Observable, of } from 'rxjs';
 import { distinctUntilChanged, mergeMap, scan, take } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -52,7 +52,6 @@ export class TagPage implements OnInit {
     );
     this.ext$ = this.localTag$.pipe(
       mergeMap(tag => tag ? this.exts.get(tag) : of(null)),
-      shareReplay(1),
     );
     this.title$ = this.ext$.pipe(
       mergeMap(ext => ext
@@ -62,12 +61,14 @@ export class TagPage implements OnInit {
         )),
     );
     this.pinned$ = this.ext$.pipe(
-      filter(ext => !!ext),
-      mergeMap(ext => of(...ext!.config.pinned as string[])),
-      mergeMap(pin => this.refs.get(pin)),
-      scan((acc, value) => [...acc, value], [] as Ref[]),
-      catchError(() => of([])),
-      take(1),
+      mergeMap(ext => !ext?.config?.pinned?.length ? of([]) :
+        of(...ext.config.pinned as string[]).pipe(
+          mergeMap(pin => this.refs.get(pin)),
+          scan((acc, value) => [...acc, value], [] as Ref[]),
+          catchError(() => of([])),
+          take(1),
+        ),
+      ),
     );
   }
 
