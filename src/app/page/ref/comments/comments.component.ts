@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { map, mergeMap, Observable, Subject } from 'rxjs';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { filter, map, mergeMap, Observable, startWith, Subject, switchMap, takeUntil } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { inboxes } from '../../../plugin/inbox';
@@ -17,7 +17,7 @@ export class CommentsComponent implements OnInit, OnDestroy {
 
   depth$!: Observable<number>;
   sort$!: Observable<string>;
-  ref$!: Observable<Ref>;
+  ref$ = new Subject<Ref>();
   inboxes$!: Observable<string[]>;
   newComments$ = new Subject<Ref | null>();
 
@@ -29,7 +29,6 @@ export class CommentsComponent implements OnInit, OnDestroy {
     private account: AccountService,
     private refs: RefService,
   ) {
-    // TODO: fix route not updating
     this.depth$ = this.route.queryParams.pipe(
       map(queryParams => queryParams['depth'] || this.depth),
       distinctUntilChanged(),
@@ -38,9 +37,10 @@ export class CommentsComponent implements OnInit, OnDestroy {
       map(params => params['sort']),
       distinctUntilChanged(),
     );
-    this.ref$ = this.url$.pipe(
+    this.url$.pipe(
+      takeUntil(this.destroy$),
       mergeMap(url => this.refs.get(url)),
-    );
+    ).subscribe(ref => this.ref$.next(ref));
     this.inboxes$ = this.ref$.pipe(
       map(ref => inboxes(ref, this.account.tag)),
     );
@@ -50,15 +50,18 @@ export class CommentsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.ref$.complete();
     this.newComments$.complete();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   get url$() {
-    return this.route.params.pipe(
+    return this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      startWith(this.router),
+      switchMap(() => this.route.params),
       map(params => params['ref']),
-      distinctUntilChanged(),
     );
   }
 }

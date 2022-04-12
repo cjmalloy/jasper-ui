@@ -39,14 +39,11 @@ export class TagPage implements OnInit {
     this.page$ = combineLatest(
       this.tag$, this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$,
     ).pipe(
+      map(([tag, sort, filter, search, pageNumber, pageSize]) =>
+        getArgs(tag, sort, filter, search, pageNumber, pageSize ?? this.defaultPageSize)),
       distinctUntilChanged(_.isEqual),
-      mergeMap(([tag, sort, filter, search, pageNumber, pageSize]) => {
-        return this.refs.page({
-            ...getArgs(tag, sort, filter, search),
-            page: pageNumber,
-            size: pageSize ?? this.defaultPageSize,
-          });
-      }));
+      mergeMap(args => this.refs.page(args)),
+    );
     this.route.queryParams.pipe(
       map(params => params['graph']),
     ).subscribe(graph => this.graph = graph === 'true');

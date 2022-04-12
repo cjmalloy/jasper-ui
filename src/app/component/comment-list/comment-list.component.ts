@@ -15,8 +15,15 @@ export class CommentListComponent implements OnInit, OnDestroy {
 
   @Input()
   top!: Ref;
+  _source!: string;
   @Input()
-  source!: string;
+  set source(value: string) {
+    if (this._source === value) return;
+    this._source = value;
+    this.newComments = [];
+    this.pages = [];
+    this.loadMore();
+  }
   @Input()
   sort?: string | null;
   @Input()
@@ -35,10 +42,10 @@ export class CommentListComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.loadMore();
     this.newComments$.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(comment => comment && this.pages[0].content.unshift(comment));
+    ).subscribe(comment =>
+      comment && this.pages[0].content.unshift(comment));
   }
 
   ngOnDestroy() {
@@ -47,9 +54,10 @@ export class CommentListComponent implements OnInit, OnDestroy {
   }
 
   loadMore() {
+    if (!this._source) return;
     this.refs.page({
       ...getArgs('plugin/comment@*', this.sort!),
-      responses: this.source,
+      responses: this._source,
       page: this.pages.length,
     }).subscribe(page => {
       this.pages.push(page);

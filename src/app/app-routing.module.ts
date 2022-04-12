@@ -99,6 +99,7 @@ const routes: Routes = [
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
     paramsInheritanceStrategy: 'always',
+    enableTracing: false,
   })],
   exports: [RouterModule],
 })

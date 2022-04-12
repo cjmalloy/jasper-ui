@@ -1,41 +1,79 @@
-import { RefQueryArgs } from '../service/api/ref.service';
+import { RefFilter, RefQueryArgs } from '../service/api/ref.service';
 
-export function getArgs(tagOrSimpleQuery: string, sort?: string | string[], filter?: string[], search?: string): RefQueryArgs {
+export function filterListToObj(filter?: string[]) {
+  if (!filter) return undefined;
+  const result: Record<string, any> = {};
+  for (const f of filter) {
+    result[f] = true;
+  }
+  if (result.paid) {
+    delete result.paid;
+    result.pluginResponse = 'plugin/invoice/paid';
+  }
+  if (result.rejected) {
+    delete result.rejected;
+    result.pluginResponse = 'plugin/invoice/rejected';
+  }
+  if (result.disputed) {
+    delete result.disputed;
+    result.pluginResponse = 'plugin/invoice/disputed';
+  }
+  return result;
+}
+
+export function getArgs(
+  tagOrSimpleQuery?: string,
+  sort?: string | string[],
+  filter?: (Record<string, any> & RefFilter) | string[],
+  search?: string,
+  pageNumber?: number,
+  pageSize?: number
+): RefQueryArgs {
+  if (Array.isArray(filter)) {
+    filter = filterListToObj(filter);
+  }
   let queryFilter = '';
-  if (filter && !filter.includes('internal') && !filter.includes('paid') && !filter.includes('rejected') && !filter.includes('disputed')) {
+  if (filter && !filter.internal && !filter.pluginResponse && !filter.noPluginResponse) {
     queryFilter += ':!internal@*';
   }
-  if (filter?.includes('modlist')) {
+  if (filter?.modlist) {
     queryFilter += ':!_moderated@*';
   }
-  tagOrSimpleQuery ??= '@*';
-  const query = queryFilter ? `(${tagOrSimpleQuery})${queryFilter}` : tagOrSimpleQuery;
   if (sort) {
     if (!Array.isArray(sort)) sort = [sort];
     for (let i = 0; i < sort.length; i++) {
       const s = sort[i];
-      if (s === 'created' || s === 'published' || s === 'modified' || s === 'rank') {
+      if (s === 'created' || s === 'published' || s === 'modified' || s === 'rank' || s === 'sourceCount' || s === 'responseCount') {
         sort[i] = s + ',desc';
       }
     }
   } else {
     sort = ['created,desc'];
   }
-  const args: RefQueryArgs = { query, sort, search };
-  if (filter?.includes('uncited')) {
+  const args: RefQueryArgs = {
+    query: queryFilter && tagOrSimpleQuery ? `(${tagOrSimpleQuery})${queryFilter}` : tagOrSimpleQuery,
+    sort,
+    search,
+    page: pageNumber,
+    size: pageSize,
+  };
+  if (filter?.sources) {
+    args.sources = filter.sources;
+  }
+  if (filter?.responses) {
+    args.responses = filter.responses;
+  }
+  if (filter?.uncited) {
     args.uncited = true;
   }
-  if (filter?.includes('unsourced')) {
+  if (filter?.unsourced) {
     args.unsourced = true;
   }
-  if (filter?.includes('paid')) {
-    args.pluginResponse = 'plugin/invoice/paid';
+  if (filter?.pluginResponse) {
+    args.pluginResponse = filter.pluginResponse;
   }
-  if (filter?.includes('rejected')) {
-    args.pluginResponse = 'plugin/invoice/rejected';
-  }
-  if (filter?.includes('disputed')) {
-    args.pluginResponse = 'plugin/invoice/disputed';
+  if (filter?.noPluginResponse) {
+    args.noPluginResponse = filter.noPluginResponse;
   }
   return args;
 }

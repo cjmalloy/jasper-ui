@@ -5,12 +5,13 @@
   <a [routerLink]="['../', (url$ | async), 'responses']" routerLinkActive="current-tab">responses</a>
   <a [routerLink]="['../', (url$ | async), 'sources']" routerLinkActive="current-tab">sources</a>
   <ng-container *ngIf="admin.status.plugins.graph">
-    <a [routerLink]="['../', (url$ | async), 'graph']" routerLinkActive="current-tab">graph</a>
+    <a [routerLink]="['../', (url$ | async), 'graph']" [queryParams]="{ hideSearch: true }" routerLinkActive="current-tab">graph</a>
   </ng-container>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>
-<div *ngIf="!error; else errorMessage">
+<app-search-filter *ngIf="!(hideSearch$ | async)" style="float: right"></app-search-filter>
+<div style="display: grid" *ngIf="!error; else errorMessage">
   <ng-container *ngIf="ref$ | async as ref; else loading">
     <app-ref [ref]="ref"
              [showToggle]="true"

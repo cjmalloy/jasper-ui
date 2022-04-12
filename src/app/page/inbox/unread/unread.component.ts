@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
-import { map, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { mergeMap, tap } from 'rxjs/operators';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
@@ -34,12 +34,6 @@ export class InboxUnreadPage implements OnInit {
   }
 
   ngOnInit(): void {
-  }
-
-  get search$() {
-    return this.route.queryParams.pipe(
-      map(queryParams => queryParams['search'])
-    );
   }
 
 }

@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, map, Observable, of, shareReplay, Subject } from 'rxjs';
+import { catchError, map, Observable, of, Subject } from 'rxjs';
 import { distinctUntilChanged, mergeMap, tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
@@ -22,6 +22,7 @@ export class RefPage implements OnInit, OnDestroy {
   expandedByDefault = false;
   error?: HttpErrorResponse;
   printError = printError;
+  hideSearch$: Observable<boolean>;
 
   constructor(
     public admin: AdminService,
@@ -32,12 +33,15 @@ export class RefPage implements OnInit, OnDestroy {
   ) {
     this.ref$ = this.url$.pipe(
       mergeMap(url => refs.get(url)),
-      shareReplay(),
       tap(ref => this.expandedByDefault = isTextPost(ref)),
       catchError(err => {
         this.error = err;
         return of(null);
       }),
+    );
+
+    this.hideSearch$ = this.route.queryParams.pipe(
+      map(params => params['hideSearch'] === 'true'),
     );
   }
 

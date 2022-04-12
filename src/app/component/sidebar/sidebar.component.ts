@@ -21,9 +21,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @Input()
   tag?: string | null;
 
-  searchValue = '';
-  allFilters = ['uncited', 'unsourced', 'internal', 'rejected', 'paid', 'disputed'];
-  filters: string[] = [];
   localTag?: string;
   writeAccess$?: Observable<boolean>;
 
@@ -32,17 +29,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     public route: ActivatedRoute,
     public admin: AdminService,
     public account: AccountService,
-  ) {
-    if (account.mod) {
-      this.allFilters.push('modlist');
-    }
-    this.filter$.subscribe(filter => {
-      if (!filter) return;
-      if (!Array.isArray(filter)) filter = [filter];
-      this.filters = filter;
-    });
-    this.search$.subscribe(search => this.searchValue = search);
-  }
+  ) { }
 
   ngOnInit(): void {
     this.writeAccess$ = this.account.writeAccessTag(this.tag!);
@@ -79,42 +66,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.tag?.startsWith('queue/') ||
       this.tag?.startsWith('_queue/') ||
       this.tag?.startsWith('+queue/'));
-  }
-
-  addFilter() {
-    if (!this.filters) this.filters = [];
-    this.filters.push('');
-  }
-
-  setFilter(index: number, value: string) {
-    this.filters[index] = value;
-    this.setFilters();
-  }
-
-  removeFilter(index: number) {
-    this.filters.splice(index, 1);
-    this.setFilters();
-  }
-
-  setFilters() {
-    this.filters = [...this.filters];
-    this.router.navigate([], {queryParams: {filter: this.filters}});
-  }
-
-  get filter$() {
-    return this.route.queryParams.pipe(
-      map(queryParams => queryParams['filter']),
-    );
-  }
-
-  get search$() {
-    return this.route.queryParams.pipe(
-      map(queryParams => queryParams['search']),
-    );
-  }
-
-  search() {
-    this.router.navigate([], { queryParams: { search: this.searchValue }, queryParamsHandling: 'merge' });
   }
 
   subscribe() {

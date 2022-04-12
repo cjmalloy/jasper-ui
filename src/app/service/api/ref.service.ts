@@ -7,19 +7,22 @@ import { mapRef, mapRefOrNull, Ref, writeRef } from '../../model/ref';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 
-export type RefQueryArgs = {
-  query?: string,
-  search?: string,
-  page?: number,
-  size?: number,
-  sort?: string[],
-  modifiedAfter?: moment.Moment,
+export type RefFilter = {
   responses?: string,
   sources?: string,
   uncited?: boolean,
   unsourced?: boolean,
   pluginResponse?: string;
   noPluginResponse?: string;
+};
+
+export type RefQueryArgs = RefFilter & {
+  query?: string,
+  search?: string,
+  page?: number,
+  size?: number,
+  sort?: string[],
+  modifiedAfter?: moment.Moment,
 };
 
 @Injectable({

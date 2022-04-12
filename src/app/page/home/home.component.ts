@@ -35,14 +35,11 @@ export class HomePage implements OnInit {
     this.page$ = combineLatest(
       [this.subs$, this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$],
     ).pipe(
+      map(([subs, sort, filter, search, pageNumber, pageSize]) =>
+        getArgs(subs, sort, filter, search, pageNumber, pageSize ?? this.defaultPageSize)),
       distinctUntilChanged(_.isEqual),
-      mergeMap(([subs, sort, filter, search, pageNumber, pageSize]) => {
-        return this.refs.page({
-            ...getArgs(subs, sort, filter, search),
-            page: pageNumber,
-            size: pageSize ?? this.defaultPageSize,
-          });
-      }));
+      mergeMap(args => this.refs.page(args)),
+    );
     this.route.queryParams.pipe(
       map(params => params['graph']),
     ).subscribe(graph => this.graph = graph === 'true');

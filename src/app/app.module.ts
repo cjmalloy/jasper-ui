@@ -62,6 +62,7 @@ import { TagPage } from './page/tag/tag.component';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
+import { SearchFilterComponent } from './component/search-filter/search-filter.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -122,6 +123,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     SubmitInvoicePage,
     InboxInvoicesPage,
     InboxSentPage,
+    SearchFilterComponent,
   ],
   imports: [
     BrowserModule,

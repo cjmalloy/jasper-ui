@@ -5,6 +5,7 @@ html, body {
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
 .spacer {
@@ -98,7 +99,7 @@ html, body {
   }
 }
 
-.sidebar {
+.sidebar, .search-filter {
   width: 300px;
   margin-bottom: 100px;
 
