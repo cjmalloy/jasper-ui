@@ -1,39 +1,42 @@
 <app-search-filter></app-search-filter>
 <ng-container *ngIf="account.signedIn">
-  <ng-container *ngIf="tag && admin.status.templates.user">
-    <button *ngIf="inSubs$ | async as inSubs; else notInSubs" (click)="unsubscribe()">unsubscribe</button>
-    <ng-template #notInSubs>
-      <button (click)="subscribe()">subscribe</button>
-    </ng-template>
-  </ng-container>
   <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
-    Submit Link
+    🔗 Submit Link
   </div>
   <div class="submit-button" routerLink="/submit/text" [queryParams]="{ tag: localTag }">
-    Submit Text Post
+    📝 Submit Text Post
   </div>
 </ng-container>
 <ng-container *ngIf="account.mod">
   <div class="submit-button" routerLink="/create/ext" [queryParams]="ext ? null : { tag: localTag }">
-    Create Tag Extension
+    🖌️ Create Tag Extension
   </div>
   <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag, linkType: 'feed' }">
-    Submit Feed
+    📰 Submit Feed
   </div>
   <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag: localTag }">
-    Create User Permissions
+    🗝️ Create User Permissions
   </div>
 </ng-container>
 <ng-container *ngIf="account.admin">
   <div class="submit-button" routerLink="/admin/origin/create">
-    Replicate Remote Origin
+    🔧 Replicate Remote Origin
   </div>
 </ng-container>
 <ng-container *ngIf="admin.status.plugins.inbox && user">
   <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: ext?.tag }">
-    Send Direct Message
+    ✉️Send Direct Message
   </div>
 </ng-container>
+<div class="tag-header">
+  <h3><a class="tag" [routerLink]="['/tag', tag]">{{ ext?.name || tag }}</a></h3>
+  <ng-container *ngIf="tag && admin.status.templates.user">
+    <button *ngIf="inSubs$ | async as inSubs; else notInSubs" (click)="unsubscribe()">&ndash; unsubscribe</button>
+    <ng-template #notInSubs>
+      <button (click)="subscribe()">+ subscribe</button>
+    </ng-template>
+  </ng-container>
+</div>
 
 <ng-container *ngIf="queue">
   <div *ngIf="ext?.config?.bounty">

@@ -1,12 +1,12 @@
 <div class="tabs">
   <h5>{{ path$ | async }}</h5>
-  <a routerLink="../created" routerLinkActive="current-tab" queryParamsHandling="merge">new</a>
-  <a routerLink="../sourceCount" routerLinkActive="current-tab" queryParamsHandling="merge">sources</a>
-  <a routerLink="../responseCount" routerLinkActive="current-tab" queryParamsHandling="merge">responses</a>
-  <a routerLink="../published" routerLinkActive="current-tab" queryParamsHandling="merge">published</a>
-  <a routerLink="../modified" routerLinkActive="current-tab" queryParamsHandling="merge">modified</a>
-  <a routerLink="../title" routerLinkActive="current-tab" queryParamsHandling="merge">title</a>
-  <a *ngIf="search$ | async" routerLink="../rank" routerLinkActive="current-tab" queryParamsHandling="merge">rank</a>
+  <a routerLink="../created" routerLinkActive="current-tab">new</a>
+  <a routerLink="../sourceCount" routerLinkActive="current-tab">sources</a>
+  <a routerLink="../responseCount" routerLinkActive="current-tab">responses</a>
+  <a routerLink="../published" routerLinkActive="current-tab">published</a>
+  <a routerLink="../modified" routerLinkActive="current-tab">modified</a>
+  <a routerLink="../title" routerLinkActive="current-tab">title</a>
+  <a *ngIf="search$ | async" routerLink="../rank" routerLinkActive="current-tab">rank</a>
   <ng-container *ngIf="admin.status.plugins.graph">
     <a routerLink="./"
        [class.current-tab]="graph"

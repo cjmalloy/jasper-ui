@@ -3,8 +3,9 @@
        [ngModel]="search$ | async"
        (input)="searchValue = $any($event.target).value"
        (keydown)="$event.key === 'Enter' && search() || true">
-<button type="button" (click)="addFilter()">+ Add filter</button>
+
 <div class="form-group">
+  <button type="button" (click)="addFilter()">+ Add filter</button>
   <div *ngFor="let f of filters; let i=index">
     <label for="filter-{{ i }}">Filter:</label>
     <select id="filter-{{ i }}" [ngModel]="filters[i]" (ngModelChange)="setFilter(i, $event)">
