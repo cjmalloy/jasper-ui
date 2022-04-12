@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
 import { Simulation, SimulationNodeDatum } from 'd3';
 import * as _ from 'lodash';
@@ -55,12 +55,17 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
   @Input()
   linkStrength?: number;
 
+  nodes!: GraphNode[];
+  links!: GraphLink[];
   selected?: Ref;
   selectedNotFound?: string;
-  notFound: string[] = [];
+  unloaded: GraphNode[] = [];
 
   @ViewChild('figure')
   figure!: ElementRef;
+
+  private simulation?: Simulation<SimulationNodeDatum, undefined>;
+  private node?: any;
 
   constructor(
     private refs: RefService,
@@ -71,6 +76,14 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.nodes = this.content.map((s: any) => {
+      s.id = s.url;
+      s.loaded = true;
+      return s;
+    });
+    this.links = this.content.flatMap(r => this.references([r]).map(s => ({ source: r.url, target: s })));
+    this.unloaded = this.unloadedReferences().map(s => ({ url: s,  id: s }));
+    this.nodes = this.nodes.concat(this.unloaded);
     if (this.depth > 0) {
       let init: Observable<any> = of(1);
       for (let i = 0; i< this.depth; i++) {
@@ -82,19 +95,30 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
     }
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.draw();
+  }
+
   get loadMore$() {
-    return of(1).pipe(
-      mergeMap(() => of(this.unloadedReferences(this.content).filter(s => !this.notFound.includes(s)))),
-      mergeMap(more => !more.length ? of([]) : this.refs.list(more).pipe(
-        tap((moreLoaded: (Ref|null)[]) => {
-          for (let i = 0; i < more.length; i++) {
-            if (!moreLoaded[i]) {
-              this.notFound.push(more[i]);
-            }
+    if (!this.unloaded.length) return of([]);
+    const more = this.unloaded.splice(0, Math.min(this.unloaded.length, 30));
+    return this.refs.list(more.map(m => m.id)).pipe(
+      tap((moreLoaded: (Ref|null)[]) => {
+        for (let i = 0; i < more.length; i++) {
+          if (!moreLoaded[i]) {
+            more[i].loaded = true;
+            more[i].notFound = true;
+          } else {
+            Object.assign(more[i], moreLoaded[i]);
+            more[i].loaded = true;
+            this.links.push(...this.references(<any>[more[i]]).map(s => ({ source: more[i].id, target: s })));
+            const moreUnloaded = this.unloadedReferences().map(s => ({ ...more[i], url: s, id: s, loaded: false, sources: null, metadata: null }));
+            this.unloaded = this.unloaded.concat(moreUnloaded);
+            this.nodes = this.nodes.concat(moreUnloaded);
           }
-          this.content = [...this.content, ...<Ref[]>moreLoaded.filter(r => !!r)];
-        }),
-      )),
+        }
+      }),
     );
   }
 
@@ -118,8 +142,8 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
     return ref.title || ref.id;
   }
 
-  contains(url: string): boolean {
-    return !!_.find(this.content, r => r.url === url);
+  contains(id: string): boolean {
+    return !!_.find(this.nodes, r => r.id === id);
   }
 
   references(list: Ref[]): string[] {
@@ -130,29 +154,42 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
     ]);
   }
 
-  unloadedReferences(list: Ref[]): string[] {
-    return this.references(list).filter(s => !this.contains(s));
+  unloadedReferences(): string[] {
+    const refs = this.references(<any>this.nodes);
+    return refs.filter(s => !this.contains(s));
   }
 
   clickNode(event: PointerEvent) {
     const url = (event.target as any).__data__.id;
-    if (this.notFound.includes(url)) {
+    const node: any = this.nodes.find(n => n.id === url);
+    if (node.notFound) {
       this.selectedNotFound = url;
       this.selected = undefined;
+      return;
+    }
+    if (node.loaded) {
+      this.selected = node;
+      return;
     }
     this.refs.get(url).pipe(
       catchError(err => {
-        this.notFound.push(url);
+        node.notFound = true;
+        this.unloaded = _.filter(this.unloaded, n => n.id !== url);
         this.selectedNotFound = url;
+        this.draw();
         return throwError(() => err);
       }),
     )
     .subscribe(ref => {
-      this.selected = ref;
-      if (!this.contains(url)) {
-        this.content.push(ref);
-        this.draw();
-      }
+      this.links.push(...this.references([ref]).map(s => ({ source: ref.url, target: s })));
+      Object.assign(node, ref);
+      node.loaded = true;
+      this.selected = <any>node;
+      this.unloaded = _.filter(this.unloaded, n => n.id !== url);
+      const moreUnloaded = this.unloadedReferences().map(s => ({ ...node, url: s, id: s, loaded: false, sources: null, metadata: null }));
+      this.unloaded = this.unloaded.concat(moreUnloaded);
+      this.nodes = this.nodes.concat(moreUnloaded);
+      this.draw();
     });
   }
 
@@ -165,21 +202,11 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
   }
 
   draw() {
-    this.figure.nativeElement.innerHTML = '';
-    const nodes: GraphNode[] = [
-      ...this.content.map((s: any) => {
-        s.id = s.url;
-        s.loaded = true;
-        return s;
-      }),
-      ...this.unloadedReferences(this.content).map(s => ({ id: s, notFound: this.notFound.includes(s) })),
-    ];
-    const links: GraphLink[] = [
-      ...this.content.flatMap(r => this.references([r]).map(s => ({ source: r.url, target: s })) || []),
-    ];
-
-    const simulation = d3.forceSimulation(nodes as SimulationNodeDatum[])
-      .force('link', d3.forceLink(links).id(node => (node as GraphNode).id))
+    if (this.simulation) {
+      this.simulation.stop();
+    }
+    this.simulation = d3.forceSimulation(this.nodes as SimulationNodeDatum[])
+      .force('link', d3.forceLink(this.links).id(node => (node as GraphNode).id))
       .force('charge', d3.forceManyBody())
       .force('x', d3.forceX())
       .force('y', d3.forceY())
@@ -190,11 +217,12 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
           .attr('x2', (d: any) => d.target.x)
           .attr('y2', (d: any) => d.target.y);
 
-        node
+        this.node
           .attr('cx', (d: any) => d.x)
           .attr('cy', (d: any) => d.y);
       });
 
+    this.figure.nativeElement.innerHTML = '';
     const svg = d3.select('figure#force-directed-graph').append('svg')
       .attr('width', this.figWidth)
       .attr('height', this.figHeight)
@@ -207,20 +235,20 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
       .attr('stroke-width', this.linkStrokeWidth)
       .attr('stroke-linecap', this.linkStrokeLinecap)
     .selectAll('line')
-    .data(links)
-    .join('line');
+      .data(this.links)
+      .join('line');
 
     const self = this;
-    const node = svg.append('g')
+    this.node = svg.append('g')
       .attr('stroke', this.nodeStroke)
       .attr('stroke-opacity', this.nodeStrokeOpacity)
       .attr('stroke-width', this.nodeStrokeWidth)
     .selectAll('circle')
-    .data(nodes)
-    .join('circle')
+      .data(this.nodes)
+      .join('circle')
       .attr('r', this.nodeRadius)
       .attr('fill', node => this.color(node))
-      .call(drag(simulation) as any)
+      .call(drag(this.simulation) as any)
       .on('click', function(event) {
         d3.selectAll('circle')
           .attr('stroke', self.nodeStroke)
@@ -233,7 +261,7 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
         self.clickNode(event);
       });
 
-    node.append('title').text(node => this.title(node));
+    this.node.append('title').text((node: any) => this.title(node));
 
     function drag(simulation: Simulation<SimulationNodeDatum, undefined>) {
       function dragstarted(event: any) {
@@ -259,6 +287,5 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
         .on('end', dragended);
     }
   }
-
 
 }
