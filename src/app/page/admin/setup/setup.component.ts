@@ -43,7 +43,7 @@ export class AdminSetupPage implements OnInit {
     if (!this.adminForm.valid) return;
     const installs = [];
     for (const plugin in this.admin.status.plugins) {
-      if (!!this.admin.status.plugins[plugin] === this.adminForm.value.plugins[plugin]) continue;
+      if (!!this.admin.status.plugins[plugin] === !!this.adminForm.value.plugins[plugin]) continue;
       const def = this.admin.def.plugins[plugin];
       if (this.adminForm.value.plugins[plugin]) {
         this.installMessages.push(`Installing ${def.name || def.tag} plugin...`);
@@ -54,7 +54,7 @@ export class AdminSetupPage implements OnInit {
       }
     }
     for (const template in this.admin.status.templates) {
-      if (!!this.admin.status.templates[template] === this.adminForm.value.templates[template]) continue;
+      if (!!this.admin.status.templates[template] === !!this.adminForm.value.templates[template]) continue;
       const def = this.admin.def.templates[template];
       if (this.adminForm.value.templates[template]) {
         this.installMessages.push(`Installing ${def.name || def.tag} template...`);

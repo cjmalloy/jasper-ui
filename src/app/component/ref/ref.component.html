@@ -20,8 +20,7 @@
         by
         <ng-container *ngFor="let user of authors">
           <a [routerLink]="['/tag', user]">
-            {{ user.replace('+', '').replace('user/', '') }}
-          </a>&nbsp;
+            {{ user.replace('+', '').replace('user/', '') }}</a>&nbsp;
         </ng-container>
       </ng-container>
       <ng-container *ngIf="tags.length">

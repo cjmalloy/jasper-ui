@@ -62,9 +62,6 @@ export class CommentReplyComponent implements AfterViewInit {
         ...this.tags!,
         ...this.plugins,
       ],
-      plugins: {
-        'plugin/comment': {},
-      },
       published: moment(),
     }).pipe(
       mergeMap(() => this.refs.get(url)),

@@ -7,17 +7,10 @@
   <ng-container *ngIf="admin.status.plugins.graph">
     <a [routerLink]="['../', (url$ | async), 'graph']" routerLinkActive="current-tab">graph</a>
   </ng-container>
-  <ng-container *ngIf="admin.status.plugins.comment && account.mod">
-    <a [routerLink]="['../', (url$ | async), 'comments', 'modlist']" routerLinkActive="current-tab">comment modlist</a>
-  </ng-container>
-  <ng-container *ngIf="account.mod">
-    <a [routerLink]="['../', (url$ | async), 'responses', 'modlist']" routerLinkActive="current-tab">response modlist</a>
-    <a [routerLink]="['../', (url$ | async), 'sources', 'modlist']" routerLinkActive="current-tab">source modlist</a>
-  </ng-container>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>
-<ng-container *ngIf="!error; else errorMessage">
+<div *ngIf="!error; else errorMessage">
   <ng-container *ngIf="ref$ | async as ref; else loading">
     <app-ref [ref]="ref"
              [showToggle]="true"
@@ -28,7 +21,7 @@
     <app-loading></app-loading>
   </ng-template>
   <router-outlet></router-outlet>
-</ng-container>
+</div>
 <ng-template #errorMessage>
   <div *ngIf="error!.status === 404" class="error-404">Not Found</div>
   <div *ngIf="error!.status !== 404" class="error">{{ printError(error!) }}</div>

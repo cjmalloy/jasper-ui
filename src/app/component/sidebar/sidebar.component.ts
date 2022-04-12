@@ -22,7 +22,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   tag?: string | null;
 
   searchValue = '';
-  allFilters = ['uncited', 'unsourced', 'rejected', 'paid', 'disputed'];
+  allFilters = ['uncited', 'unsourced', 'internal', 'rejected', 'paid', 'disputed'];
   filters: string[] = [];
   localTag?: string;
   writeAccess$?: Observable<boolean>;
@@ -33,6 +33,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     public admin: AdminService,
     public account: AccountService,
   ) {
+    if (account.mod) {
+      this.allFilters.push('modlist');
+    }
     this.filter$.subscribe(filter => {
       if (!filter) return;
       if (!Array.isArray(filter)) filter = [filter];
@@ -43,7 +46,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.writeAccess$ = this.account.writeAccessTag(this.tag!);
-    this.localTag = localTag(this.tag!);
+    if (this.tag) {
+      this.localTag = localTag(this.tag);
+    }
   }
 
   ngOnDestroy(): void {

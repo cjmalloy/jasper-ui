@@ -15,21 +15,21 @@
   </div>
 </div>
 <ng-container *ngIf="account.signedIn">
-  <div class="submit-button" routerLink="/submit" [queryParams]="{ localTag }">
+  <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
     Submit Link
   </div>
-  <div class="submit-button" routerLink="/submit/text" [queryParams]="{ localTag }">
+  <div class="submit-button" routerLink="/submit/text" [queryParams]="{ tag: localTag }">
     Submit Text Post
   </div>
 </ng-container>
 <ng-container *ngIf="account.mod">
-  <div class="submit-button" routerLink="/create/ext" [queryParams]="ext ? null : { localTag }">
+  <div class="submit-button" routerLink="/create/ext" [queryParams]="ext ? null : { tag: localTag }">
     Create Tag Extension
   </div>
-  <div class="submit-button" routerLink="/submit" [queryParams]="{ localTag, linkType: 'feed' }">
+  <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag, linkType: 'feed' }">
     Submit Feed
   </div>
-  <div class="submit-button" routerLink="/create/user" [queryParams]="{ localTag }">
+  <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag: localTag }">
     Create User Permissions
   </div>
 </ng-container>
@@ -69,9 +69,18 @@
 </ng-container>
 
 <ng-container *ngIf="user">
-  <div *ngIf="admin.status.plugins.inbox && !ext?.origin">
-    <a routerLink="/submit/dm" [queryParams]="{ to: ext?.tag }">Send Direct Message</a>
-  </div>
+  <ng-container *ngIf="writeAccess$ | async">
+    <a *ngIf="ext"
+       class="sidebar-link"
+       [routerLink]="['/tag', localTag, 'edit']">
+      edit {{ tag }}
+    </a>
+  </ng-container>
+  <ng-container *ngIf="admin.status.plugins.inbox">
+    <a routerLink="/submit/dm"
+       class="sidebar-link"
+       [queryParams]="{ to: ext?.tag }">Send Direct Message</a>
+  </ng-container>
   <div *ngIf="ext?.config?.subscriptions?.length">
     Subscribed to:
     <br>
@@ -95,7 +104,7 @@
 
   <ng-container *ngIf="writeAccess$ | async">
     <a *ngIf="ext"
-       class="sidebar-edit"
+       class="sidebar-link"
        [routerLink]="['/tag', localTag, 'edit']">
       edit
     </a>
