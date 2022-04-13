@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { BehaviorSubject, catchError, forkJoin, map, Observable, of, shareReplay } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from 'rxjs';
 import { mergeMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
 import { HasTags } from '../model/tag';
@@ -44,18 +44,14 @@ export class AccountService {
 
   get init$() {
     return this.users.whoAmI().pipe(
-      tap(tag => this.tag = tag),
-      mergeMap(tag => tag ? this.loadUser$ : of()),
+      tap(roles => {
+        this.tag = roles.tag;
+        this.admin = roles.admin;
+        this.mod = roles.mod;
+        this.editor = roles.editor;
+      }),
+      mergeMap(tag => tag ? this.loadUserExt$ : of()),
       mergeMap(() => this.subscriptions$),
-    );
-  }
-
-  get loadUser$() {
-    return forkJoin(
-      this.users.amIAdmin().pipe(tap(admin => this.admin = admin)),
-      this.users.amIMod().pipe(tap(mod => this.mod = mod)),
-      this.users.amIEditor().pipe(tap(editor => this.editor = editor)),
-      this.loadUserExt$,
     );
   }
 

@@ -65,6 +65,10 @@ body.dark-theme {
       background-color: $unselected-tab;
       border-bottom: 1px solid $border;
 
+      &:hover {
+        background-color: #a7a7a7;
+      }
+
       &:link, &:visited, &:active {
         color: black;
       }

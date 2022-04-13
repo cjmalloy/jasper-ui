@@ -1,3 +1,4 @@
 {
-  "api": "//localhost:8081"
+  "api": "//localhost:8081",
+  "//api": "https://jasper.local"
 }

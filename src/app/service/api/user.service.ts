@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
-import { mapUser, User, writeUser } from '../../model/user';
+import { mapUser, Roles, User, writeUser } from '../../model/user';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 
@@ -52,27 +52,7 @@ export class UserService {
     });
   }
 
-  whoAmI(): Observable<string> {
-    return this.http.get(`${this.base}/whoami`, {
-      responseType: 'text',
-    });
-  }
-
-  amIAdmin(): Observable<boolean> {
-    return this.http.get(`${this.base}/whoami/admin`, {
-      responseType: 'text',
-    }).pipe(map(v => v === 'true'));
-  }
-
-  amIMod(): Observable<boolean> {
-    return this.http.get(`${this.base}/whoami/mod`, {
-      responseType: 'text',
-    }).pipe(map(v => v === 'true'));
-  }
-
-  amIEditor(): Observable<boolean> {
-    return this.http.get(`${this.base}/whoami/editor`, {
-      responseType: 'text',
-    }).pipe(map(v => v === 'true'));
+  whoAmI(): Observable<Roles> {
+    return this.http.get<Roles>(`${this.base}/whoami`);
   }
 }

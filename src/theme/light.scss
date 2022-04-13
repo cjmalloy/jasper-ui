@@ -57,6 +57,10 @@ body.light-theme {
       background-color: $unselected-tab;
       border-bottom: 1px solid $border;
 
+      &:hover {
+        background-color: #dedddd;
+      }
+
       &:link, &:visited, &:active {
         color: black;
       }
