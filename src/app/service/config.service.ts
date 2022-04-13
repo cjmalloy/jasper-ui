@@ -16,7 +16,7 @@ export class ConfigService {
   ) { }
 
   get load$() {
-    return this.http.get('/assets/config.json').pipe(
+    return this.http.get('./assets/config.json').pipe(
       tap((result: any) => {
         this.api = result['api'];
         this.logout = result['logout'];
