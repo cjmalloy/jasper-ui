@@ -15,8 +15,12 @@ export class ConfigService {
     public http: HttpClient,
   ) { }
 
+  get base() {
+    return document.getElementsByTagName('base')[0].href
+  }
+
   get load$() {
-    return this.http.get('./assets/config.json').pipe(
+    return this.http.get(this.base + 'assets/config.json').pipe(
       tap((result: any) => {
         this.api = result['api'];
         this.logout = result['logout'];
