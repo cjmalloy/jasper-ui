@@ -101,6 +101,7 @@
   </div>
 </div>
 <app-comment-reply *ngIf="replying"
+                   [autofocus]="true"
                    [top]="top"
                    [showCancel]="true"
                    [sources]="[ref.url]"

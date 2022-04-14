@@ -25,6 +25,8 @@ export class CommentReplyComponent implements AfterViewInit {
   newComments$!: Subject<Ref | null>;
   @Input()
   showCancel = false;
+  @Input()
+  autofocus = false;
 
   @ViewChild('textbox')
   textbox!: ElementRef;
@@ -46,7 +48,9 @@ export class CommentReplyComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.textbox.nativeElement.focus();
+    if (this.autofocus) {
+      this.textbox.nativeElement.focus();
+    }
   }
 
   reply(value: string) {
