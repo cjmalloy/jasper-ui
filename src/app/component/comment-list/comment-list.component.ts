@@ -56,7 +56,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
   loadMore() {
     if (!this._source) return;
     this.refs.page({
-      ...getArgs('plugin/comment@*', this.sort!),
+      ...getArgs('plugin/comment@*', this.sort!, { internal: true }),
       responses: this._source,
       page: this.pages.length,
     }).subscribe(page => {

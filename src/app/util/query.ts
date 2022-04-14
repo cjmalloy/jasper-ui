@@ -1,6 +1,6 @@
 import { RefFilter, RefQueryArgs } from '../service/api/ref.service';
 
-export function filterListToObj(filter?: string[]) {
+export function filterListToObj(filter?: string[]): RefFilter | undefined {
   if (!filter) return undefined;
   const result: Record<string, any> = {};
   for (const f of filter) {
@@ -24,21 +24,23 @@ export function filterListToObj(filter?: string[]) {
 export function getArgs(
   tagOrSimpleQuery?: string,
   sort?: string | string[],
-  filter?: (Record<string, any> & RefFilter) | string[],
+  filterOrList?: (Record<string, any> & RefFilter) | string[],
   search?: string,
   pageNumber?: number,
   pageSize?: number
 ): RefQueryArgs {
-  if (Array.isArray(filter)) {
-    filter = filterListToObj(filter);
+  let filter: (Record<string, any> & RefFilter) | undefined = <any>filterOrList;
+  if (Array.isArray(filterOrList)) {
+    filter = filterListToObj(filterOrList);
   }
   let queryFilter = '';
-  if (filter && !filter.internal && !filter.pluginResponse && !filter.noPluginResponse) {
-    queryFilter += ':!internal@*';
+  if (!filter?.internal) {
+    queryFilter += '!internal@*';
   }
   if (filter?.modlist) {
-    queryFilter += ':!_moderated@*';
+    queryFilter += '!_moderated@*';
   }
+  const query = queryFilter && tagOrSimpleQuery ? `(${tagOrSimpleQuery}):${queryFilter}` : tagOrSimpleQuery || queryFilter;
   if (sort) {
     if (!Array.isArray(sort)) sort = [sort];
     for (let i = 0; i < sort.length; i++) {
@@ -51,7 +53,7 @@ export function getArgs(
     sort = ['created,desc'];
   }
   const args: RefQueryArgs = {
-    query: queryFilter && tagOrSimpleQuery ? `(${tagOrSimpleQuery})${queryFilter}` : tagOrSimpleQuery,
+    query,
     sort,
     search,
     page: pageNumber,
