@@ -31,7 +31,7 @@ export class ResponsesComponent implements OnInit {
       this.url$, this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$,
     ).pipe(
       map(([url, sort, filter, search, pageNumber, pageSize]) =>
-        getArgs('!internal@*', sort, {...filterListToObj(filter), responses: url}, search, pageNumber, pageSize ?? this.defaultPageSize)),
+        getArgs('', sort, {...filterListToObj(filter), responses: url, notInternal: true}, search, pageNumber, pageSize ?? this.defaultPageSize)),
       distinctUntilChanged(_.isEqual),
       mergeMap(args => this.refs.page(args)),
     );

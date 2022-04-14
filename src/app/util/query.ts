@@ -34,7 +34,7 @@ export function getArgs(
     filter = filterListToObj(filterOrList);
   }
   let queryFilter = '';
-  if (!filter?.internal) {
+  if (filter?.notInternal) {
     queryFilter += '!internal@*';
   }
   if (filter?.modlist) {

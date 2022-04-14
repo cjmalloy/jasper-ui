@@ -8,7 +8,7 @@ import { Ref } from '../../../model/ref';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
-import { filterListToObj, getArgs } from '../../../util/query';
+import { getArgs } from '../../../util/query';
 
 @Component({
   selector: 'app-sent',
@@ -31,7 +31,7 @@ export class InboxSentPage implements OnInit {
       this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$,
     ).pipe(
       map(([sort, filter, search, pageNumber, pageSize]) =>
-        getArgs(account.tag, sort, { ...filterListToObj(filter), internal: true }, search, pageNumber, pageSize ?? this.defaultPageSize)),
+        getArgs(account.tag, sort, filter, search, pageNumber, pageSize ?? this.defaultPageSize)),
       distinctUntilChanged(_.isEqual),
       mergeMap(args => this.refs.page(args)),
     );

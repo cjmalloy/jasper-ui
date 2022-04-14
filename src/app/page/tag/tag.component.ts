@@ -10,7 +10,7 @@ import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
-import { getArgs } from '../../util/query';
+import { filterListToObj, getArgs } from '../../util/query';
 import { localTag } from '../../util/tag';
 
 @Component({
@@ -40,7 +40,7 @@ export class TagPage implements OnInit {
       this.tag$, this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$,
     ).pipe(
       map(([tag, sort, filter, search, pageNumber, pageSize]) =>
-        getArgs(tag, sort, filter, search, pageNumber, pageSize ?? this.defaultPageSize)),
+        getArgs(tag, sort, {...filterListToObj(filter), notInternal: tag === '@*'}, search, pageNumber, pageSize ?? this.defaultPageSize)),
       distinctUntilChanged(_.isEqual),
       mergeMap(args => this.refs.page(args)),
     );
