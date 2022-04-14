@@ -16,6 +16,19 @@ export class ThemeService {
     this.setTheme();
   }
 
+  toggle() {
+    if (this.getTheme() === 'light-theme') {
+      this.setTheme('dark-theme');
+    } else {
+      this.setTheme('light-theme');
+    }
+  }
+
+  getTheme() {
+    if (this.theme) return this.theme;
+    return this.getSystemTheme();
+  }
+
   getSystemTheme(): string {
     const darkThemeMq = window.matchMedia('(prefers-color-scheme: dark)');
     return darkThemeMq.matches ? 'dark-theme' : 'light-theme';
