@@ -13,7 +13,7 @@ export class ThemeService {
   constructor(
     @Inject(DOCUMENT) private document: Document,
   ) {
-    this.setTheme();
+    this.setTheme(localStorage.getItem('theme'));
   }
 
   toggle() {
@@ -34,9 +34,15 @@ export class ThemeService {
     return darkThemeMq.matches ? 'dark-theme' : 'light-theme';
   }
 
-  setTheme(theme?: string) {
-    theme ??= this.getSystemTheme();
+  setTheme(theme?: string | null) {
+    const sysDefault = this.getSystemTheme();
+    theme ??= sysDefault;
     if (this.theme === theme) return;
+    if (theme !== sysDefault) {
+      localStorage.setItem('theme', theme);
+    } else {
+      localStorage.removeItem('theme');
+    }
     document.body.classList.add(theme);
     document.body.classList.remove(this.theme);
     this.theme = theme;
