@@ -44,13 +44,13 @@
 </div>
 
 <ng-container *ngIf="queue">
-  <div *ngIf="ext?.config?.bounty">
+  <div class="ext-text" *ngIf="ext?.config?.bounty">
     Bounty: {{ ext?.config?.bounty }}
   </div>
-  <div *ngIf="ext?.config?.maxAge">
+  <div class="ext-text" *ngIf="ext?.config?.maxAge">
     Max Age: {{ ext?.config?.maxAge }}
   </div>
-  <div *ngIf="ext?.config?.approvers?.length">
+  <div class="ext-text" *ngIf="ext?.config?.approvers?.length">
     Approvers:
     <br>
     <ng-container *ngFor="let a of ext!.config!.approvers!">
@@ -61,12 +61,14 @@
     </ng-container>
   </div>
   <div *ngIf="isApprover">
-    <a [routerLink]="['/tag', prefix('plugin/invoice/', ext!.tag)]">invoices</a>
+    <a
+      class="sidebar-link"
+      [routerLink]="['/tag', prefix('plugin/invoice/', ext!.tag)]">invoices</a>
   </div>
 </ng-container>
 
 <ng-container *ngIf="user">
-  <div *ngIf="ext?.config?.subscriptions?.length">
+  <div class="ext-text" *ngIf="ext?.config?.subscriptions?.length">
     Subscribed to:
     <br>
     <ng-container *ngFor="let sub of ext!.config!.subscriptions!">

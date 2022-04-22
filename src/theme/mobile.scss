@@ -10,7 +10,7 @@ $mobile-width: 1024px;
     &:not(.expanded) {
       width: 36px;
 
-      .tag-header, .md, .sidebar-link {
+      .tag-header, .md, .sidebar-link, .ext-text {
         display: none;
       }
     }
@@ -79,6 +79,10 @@ $mobile-width: 1024px;
     }
   }
 
+  .comment-container {
+    max-width: calc(100% - 8px);
+  }
+
   .comment-reply, .comment-edit {
     textarea {
       margin: 0;
@@ -89,7 +93,7 @@ $mobile-width: 1024px;
   }
 
   .info, .actions {
-    height: 0;
+    height: 28px;
     padding-top: 0;
     padding-bottom: 0;
     transition: height .5s;
@@ -101,10 +105,16 @@ $mobile-width: 1024px;
       font-size: 16px;
       line-height: 28px;
     }
+  }
 
-    &.expanded {
-      height: 28px;
-      padding-bottom: 10px;
+  .list-container, .full-page {
+    .info, .actions {
+      height: 0;
+
+      &.expanded {
+        height: 28px;
+        padding-bottom: 10px;
+      }
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
@@ -11,6 +11,7 @@ import { getArgs } from '../../util/query';
   styleUrls: ['./comment-list.component.scss'],
 })
 export class CommentListComponent implements OnInit, OnDestroy {
+  @HostBinding('class') css = 'comment-list';
   private destroy$ = new Subject<void>();
 
   @Input()

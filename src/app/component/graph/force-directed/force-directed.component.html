@@ -3,6 +3,7 @@
 <br>
 Selected:
 <app-ref *ngIf="selected; else refNotFound"
+         class="full-page"
          [ref]="selected"
          [showToggle]="true"></app-ref>
 <ng-template #refNotFound>

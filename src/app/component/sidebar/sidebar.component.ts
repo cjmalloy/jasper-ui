@@ -24,7 +24,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   showToggle = true;
   @Input()
   @HostBinding('class.expanded')
-  expanded = !!window.matchMedia('(min-width: 1024px)').matches;
+  private _expanded = false;
 
   localTag?: string;
   writeAccess$?: Observable<boolean>;
@@ -34,7 +34,22 @@ export class SidebarComponent implements OnInit, OnDestroy {
     public route: ActivatedRoute,
     public admin: AdminService,
     public account: AccountService,
-  ) { }
+  ) {
+    if (localStorage.getItem('sidebar-expanded') !== null) {
+      this._expanded = localStorage.getItem('sidebar-expanded') === 'true';
+    } else {
+      this._expanded = !!window.matchMedia('(min-width: 1024px)').matches;
+    }
+  }
+
+  get expanded(): boolean {
+    return this._expanded;
+  }
+
+  set expanded(value: boolean) {
+    localStorage.setItem('sidebar-expanded', ""+value);
+    this._expanded = value;
+  }
 
   ngOnInit(): void {
     this.writeAccess$ = this.account.writeAccessTag(this.tag!);

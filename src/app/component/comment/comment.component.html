@@ -2,7 +2,7 @@
   <span class="comment-expand fake-link" (click)="collapsed = false">[+]</span>&nbsp;
   <ng-container *ngFor="let user of authors">
     <a class="author" [routerLink]="['/tag', user]">
-      {{ user.replace('user/', '') }}
+      {{ user.replace('+', '').replace('user/', '') }}
     </a>
   </ng-container>
   <span class="lock icon" *ngIf="locked" title="Locked">🔒️</span>

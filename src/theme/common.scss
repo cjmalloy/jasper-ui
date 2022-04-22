@@ -188,7 +188,7 @@ html, body {
 
 .list-item {
   display: block;
-  max-width: 100vw;
+  max-width: calc(100vw - 8px);
   overflow: hidden;
   border: 1px solid transparent;
   margin: 2px;
