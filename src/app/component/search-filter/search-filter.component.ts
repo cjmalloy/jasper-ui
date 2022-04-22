@@ -13,7 +13,7 @@ export class SearchFilterComponent implements OnInit {
   @HostBinding('class') css = 'search-filter';
 
   searchValue = '';
-  allFilters = ['uncited', 'unsourced', 'internal', 'rejected', 'paid', 'disputed'];
+  allFilters = ['uncited', 'unsourced', 'internal', 'rejected', 'unpaid', 'paid', 'disputed'];
   filters: string[] = [];
 
   constructor(

@@ -10,6 +10,10 @@ export function filterListToObj(filter?: string[]): RefFilter | undefined {
     delete result.paid;
     result.pluginResponse = 'plugin/invoice/paid';
   }
+  if (result.unpaid) {
+    delete result.unpaid;
+    result.noPluginResponse = 'plugin/invoice/paid';
+  }
   if (result.rejected) {
     delete result.rejected;
     result.pluginResponse = 'plugin/invoice/rejected';
