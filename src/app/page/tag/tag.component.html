@@ -16,7 +16,8 @@
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>
-<app-sidebar *ngIf="!graph"
+<app-sidebar class="aside"
+             *ngIf="!graph"
              [tag]="tag$ | async"
              [ext]="ext$ | async"></app-sidebar>
 <app-ref-list [page]="page$ | async"

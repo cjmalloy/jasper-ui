@@ -45,6 +45,7 @@ export class RefComponent implements OnInit {
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
+  actionsExpanded = false;
   writeAccess$?: Observable<boolean>;
   serverError: string[] = [];
 

@@ -14,7 +14,7 @@
     <span class="toggle-x" *ngIf="expanded">✕</span>
   </div>
   <div class="stack">
-    <div class="info">
+    <div class="info" [class.expanded]="!actionsExpanded">
       submitted {{ ref.created?.fromNow() }}
       <ng-container *ngIf="authors.length">
         by
@@ -42,7 +42,7 @@
          [katex]="latex"
          [katexOptions]="{ throwOnError: false }"
          [data]="ref.comment"></div>
-    <div class="actions">
+    <div class="actions" [class.expanded]="actionsExpanded">
       <a *ngIf="admin.status.plugins.comment"
          [routerLink]="['/ref', ref.url, 'comments']">
         {{ comments.replace(' ', '&thinsp;') }}
@@ -124,6 +124,11 @@
       <span class="approved icon" *ngIf="account.mod && approved" title="Moderated">✔️</span>
     </div>
   </div>
+  <div class="toggle actions-toggle"
+       (click)="actionsExpanded = !actionsExpanded">⚙️</div>
+  <div class="toggle comments"
+       *ngIf="admin.status.plugins.comment"
+       [routerLink]="['/ref', ref.url, 'comments']">💬️</div>
 </div>
 <qrcode *ngIf="expandPlugins.includes('plugin/qr') && expanded && !expandInline && !editing"
         [qrdata]="ref.url"

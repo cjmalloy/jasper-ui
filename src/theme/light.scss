@@ -1,3 +1,4 @@
+$mobile-width: 1024px;
 $bg: white;
 $text: black;
 $active: #da0000;
@@ -72,6 +73,10 @@ body.light-theme {
         border-left: 1px solid $border;
         border-right: 1px solid $border;
         border-bottom: 1px solid $bg;
+      }
+
+      @media (max-width: $mobile-width) {
+        border: 1px solid $border;
       }
     }
 
@@ -167,6 +172,9 @@ body.light-theme {
   .actions {
     :link, :visited, :active, .fake-link {
       color: $info;
+    }
+    input:invalid {
+      color: $error;
     }
   }
 

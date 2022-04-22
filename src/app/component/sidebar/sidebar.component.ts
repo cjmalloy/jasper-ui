@@ -20,6 +20,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   ext?: Ext | null;
   @Input()
   tag?: string | null;
+  @Input()
+  showToggle = true;
+  @Input()
+  @HostBinding('class.expanded')
+  expanded = !!window.matchMedia('(min-width: 1024px)').matches;
 
   localTag?: string;
   writeAccess$?: Observable<boolean>;

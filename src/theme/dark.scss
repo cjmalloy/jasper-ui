@@ -1,3 +1,4 @@
+$mobile-width: 1024px;
 $bg: #242424;
 $text: #c9c9c9;
 $active: #dc5c5c;
@@ -80,6 +81,10 @@ body.dark-theme {
         border-left: 1px solid $border;
         border-right: 1px solid $border;
         border-bottom: 1px solid $bg;
+      }
+
+      @media (max-width: $mobile-width) {
+        border: 1px solid $border;
       }
     }
 
@@ -176,6 +181,9 @@ body.dark-theme {
   .actions {
     :link, :visited, :active, .fake-link {
       color: $info;
+    }
+    input:invalid {
+      color: $error;
     }
   }
 

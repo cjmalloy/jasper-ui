@@ -1,4 +1,9 @@
-<app-search-filter></app-search-filter>
+<div class="row dont-hide">
+  <div class="toggle dont-hide"
+       *ngIf="showToggle"
+       (click)="expanded = !expanded">📚️</div>
+  <app-search-filter class="dont-hide"></app-search-filter>
+</div>
 <ng-container *ngIf="account.signedIn">
   <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
     🔗 Submit Link

@@ -1,19 +1,20 @@
 <div class="tabs">
   <ng-container *ngIf="admin.status.plugins.comment">
-    <a [routerLink]="['../', (url$ | async), 'comments']" routerLinkActive="current-tab">comments</a>
+    <a routerLink="./comments" routerLinkActive="current-tab">comments</a>
   </ng-container>
-  <a [routerLink]="['../', (url$ | async), 'responses']" routerLinkActive="current-tab">responses</a>
-  <a [routerLink]="['../', (url$ | async), 'sources']" routerLinkActive="current-tab">sources</a>
+  <a routerLink="./responses" routerLinkActive="current-tab">responses</a>
+  <a routerLink="./sources" routerLinkActive="current-tab">sources</a>
   <ng-container *ngIf="admin.status.plugins.graph">
-    <a [routerLink]="['../', (url$ | async), 'graph']" [queryParams]="{ hideSearch: true }" routerLinkActive="current-tab">graph</a>
+    <a routerLink="./graph" [queryParams]="{ hideSearch: true }" routerLinkActive="current-tab">graph</a>
   </ng-container>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>
-<app-search-filter *ngIf="!(hideSearch$ | async)" style="float: right"></app-search-filter>
+<app-sidebar *ngIf="!(hideSearch$ | async)" class="aside"></app-sidebar>
 <div style="display: grid" *ngIf="!error; else errorMessage">
   <ng-container *ngIf="ref$ | async as ref; else loading">
-    <app-ref [ref]="ref"
+    <app-ref class="full-page"
+             [ref]="ref"
              [showToggle]="true"
              [expandInline]="true"
              [expanded]="expandedByDefault"></app-ref>

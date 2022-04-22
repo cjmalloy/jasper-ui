@@ -21,6 +21,7 @@ import { OriginComponent } from './component/origin/origin.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
 import { RefListComponent } from './component/ref-list/ref-list.component';
 import { RefComponent } from './component/ref/ref.component';
+import { SearchFilterComponent } from './component/search-filter/search-filter.component';
 import { SettingsComponent } from './component/settings/settings.component';
 import { SidebarComponent } from './component/sidebar/sidebar.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
@@ -62,7 +63,6 @@ import { TagPage } from './page/tag/tag.component';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
-import { SearchFilterComponent } from './component/search-filter/search-filter.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(

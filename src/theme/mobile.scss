@@ -1,0 +1,121 @@
+$mobile-width: 1024px;
+
+
+@media (min-width: $mobile-width) {
+  .aside {
+    float: right;
+    overflow: hidden;
+    transition: width .5s;
+
+    &:not(.expanded) {
+      width: 36px;
+
+      .tag-header, .md, .sidebar-link {
+        display: none;
+      }
+    }
+  }
+
+  .toggle.actions-toggle, .toggle.comments {
+    display: none;
+  }
+}
+
+
+@media (max-width: $mobile-width) {
+  .aside {
+
+    & > * {
+      max-height: 1000px;
+      overflow: hidden;
+      transition: opacity .4s .1s,
+                  font-size .5s,
+                  margin .5s,
+                  padding .5s,
+                  border .5s,
+                  max-height .5s;
+    }
+
+    &:not(.expanded) :not(.dont-hide) {
+      transition: opacity .5s,
+                  font-size .4s .1s,
+                  margin .4s .1s,
+                  padding .4s .1s,
+                  border .4s .1s,
+                  max-height .4s .1s;
+      font-size: 0 !important;
+      margin: 0 !important;
+      max-height: 0 !important;
+      opacity: 0 !important;
+      padding: 0 !important;
+      border: 0 !important;
+    }
+  }
+
+  .tabs {
+    height: auto;
+    flex-direction: column;
+    & > a {
+      display: block;
+      min-width: 30vw;
+      max-width: 80vw;
+      margin: 0;
+    }
+  }
+
+  .list-container {
+    .list-number {
+      opacity: 0;
+      width: 0;
+      padding: 0;
+    }
+    .link {
+      -webkit-box-orient: vertical;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal;
+    }
+  }
+
+  .comment-reply, .comment-edit {
+    textarea {
+      margin: 0;
+      width: 100vw;
+      border-left: none;
+      border-right: none;
+    }
+  }
+
+  .info, .actions {
+    height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    transition: height .5s;
+    overflow-y: hidden;
+    overflow-x: auto;
+    white-space: nowrap;
+
+    a {
+      font-size: 16px;
+      line-height: 28px;
+    }
+
+    &.expanded {
+      height: 28px;
+      padding-bottom: 10px;
+    }
+  }
+
+  .full-page {
+    .toggle.actions-toggle, .toggle.comments {
+      display: none;
+    }
+
+    .info, .actions {
+      height: 28px;
+      padding-bottom: 10px;
+    }
+  }
+}
