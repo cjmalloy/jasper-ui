@@ -16,7 +16,7 @@ import { printError } from '../../util/http';
   styleUrls: ['./user.component.scss'],
 })
 export class UserComponent implements OnInit {
-  @HostBinding('class') css = 'list-item';
+  @HostBinding('class') css = 'user list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()

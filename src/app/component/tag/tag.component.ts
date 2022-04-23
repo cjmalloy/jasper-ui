@@ -17,7 +17,7 @@ import { printError } from '../../util/http';
   styleUrls: ['./tag.component.scss'],
 })
 export class TagComponent implements OnInit {
-  @HostBinding('class') css = 'list-item';
+  @HostBinding('class') css = 'tag list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()

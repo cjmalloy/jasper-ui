@@ -15,7 +15,7 @@ import { printError } from '../../util/http';
   styleUrls: ['./feed.component.scss'],
 })
 export class FeedComponent implements OnInit {
-  @HostBinding('class') css = 'list-item';
+  @HostBinding('class') css = 'feed list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
   tagRegex = TAG_REGEX_STRING;
 

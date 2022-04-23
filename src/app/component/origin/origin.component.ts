@@ -13,7 +13,7 @@ import { printError } from '../../util/http';
   styleUrls: ['./origin.component.scss'],
 })
 export class OriginComponent implements OnInit {
-  @HostBinding('class') css = 'list-item';
+  @HostBinding('class') css = 'origin list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()

@@ -11,7 +11,7 @@
   <app-settings></app-settings>
 </div>
 <app-sidebar *ngIf="!(hideSearch$ | async)" class="aside"></app-sidebar>
-<div style="display: grid" *ngIf="!error; else errorMessage">
+<div *ngIf="!error; else errorMessage">
   <ng-container *ngIf="ref$ | async as ref; else loading">
     <app-ref class="full-page"
              [ref]="ref"
