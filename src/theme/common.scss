@@ -35,6 +35,16 @@ html, body {
   text-align: center;
 }
 
+.error-404.submit-button {
+  font-size: 100%;
+  white-space: nowrap;
+  text-transform: capitalize;
+  border: 1px solid transparent;
+  padding: 4px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
 .deleted {
   text-decoration: line-through;
   opacity: 0.5;
@@ -196,15 +206,15 @@ html, body {
 
   .link-below {
     display: flex;
-
-    .stack {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      flex: 1;
-      min-width: 0;
-    }
   }
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
 }
 
 .toggle {

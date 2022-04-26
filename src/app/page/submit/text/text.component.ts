@@ -18,6 +18,7 @@ import { printError } from '../../../util/http';
 })
 export class SubmitTextPage implements OnInit {
 
+  url?: string;
   submitted = false;
   textForm: FormGroup;
   serverError: string[] = [];
@@ -42,6 +43,7 @@ export class SubmitTextPage implements OnInit {
       ]),
     });
     route.queryParams.subscribe(params => {
+      this.url = params['url'];
       if (params['tag']) {
         this.addTag(params['tag']);
       }
@@ -84,7 +86,7 @@ export class SubmitTextPage implements OnInit {
     this.submitted = true;
     this.textForm.markAllAsTouched();
     if (!this.textForm.valid) return;
-    const url = 'comment:' + uuid();
+    const url = this.url || 'comment:' + uuid();
     this.refs.create({
       ...this.textForm.value,
       tags: this.addPlugins(this.textForm.value.tags),

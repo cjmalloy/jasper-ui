@@ -7,7 +7,6 @@ import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
-import { isTextPost } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -18,8 +17,9 @@ import { printError } from '../../util/http';
 export class RefPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  ref$!: Observable<Ref | null>;
-  expandedByDefault = false;
+  url$: Observable<string>;
+  ref$: Observable<Ref | null>;
+  isTextPost = false;
   error?: HttpErrorResponse;
   printError = printError;
   hideSearch$: Observable<boolean>;
@@ -31,9 +31,13 @@ export class RefPage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private refs: RefService,
   ) {
+    this.url$ = this.route.params.pipe(
+      map((params) => params['ref']),
+      tap(url => this.isTextPost = url.startsWith('comment:')),
+      distinctUntilChanged(),
+    );
     this.ref$ = this.url$.pipe(
       mergeMap(url => refs.get(url)),
-      tap(ref => this.expandedByDefault = isTextPost(ref)),
       catchError(err => {
         this.error = err;
         return of(null);
@@ -51,13 +55,6 @@ export class RefPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  get url$() {
-    return this.route.params.pipe(
-      map((params) => params['ref']),
-      distinctUntilChanged(),
-    );
   }
 
 }

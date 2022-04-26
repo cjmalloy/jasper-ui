@@ -63,7 +63,7 @@
          (click)="editing = !editing">
         edit
       </a>
-      <a *ngIf="!deleting && (writeAccess$ | async)"
+      <a *ngIf="!deleting && (account.mod || (writeAccess$ | async))"
          class="fake-link"
          (click)="deleting = true">
         delete

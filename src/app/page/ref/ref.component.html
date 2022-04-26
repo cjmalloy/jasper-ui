@@ -17,7 +17,7 @@
              [ref]="ref"
              [showToggle]="true"
              [expandInline]="true"
-             [expanded]="expandedByDefault"></app-ref>
+             [expanded]="isTextPost"></app-ref>
   </ng-container>
   <ng-template #loading>
     <app-loading></app-loading>
@@ -25,6 +25,18 @@
   <router-outlet></router-outlet>
 </div>
 <ng-template #errorMessage>
-  <div *ngIf="error!.status === 404" class="error-404">Not Found</div>
+  <ng-container *ngIf="error!.status === 404 && account.signedIn">
+    <div class="stack">
+      <div class="error-404">Not Found</div>
+      <ng-container *ngIf="account.signedIn">
+        <div *ngIf="!isTextPost" class="error-404 submit-button" routerLink="/submit" [queryParams]="{ url: url$ | async }">
+          🔗 Submit Link
+        </div>
+        <div *ngIf="isTextPost" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: url$ | async }">
+          📝 Submit Text Post
+        </div>
+      </ng-container>
+    </div>
+  </ng-container>
   <div *ngIf="error!.status !== 404" class="error">{{ printError(error!) }}</div>
 </ng-template>

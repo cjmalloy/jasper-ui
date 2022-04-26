@@ -154,7 +154,10 @@ export class AccountService {
     );
   }
 
-  writeAccessTag(tag: string): Observable<boolean> {
+  writeAccessTag(tag: string, type = 'ext'): Observable<boolean> {
+    if (type === 'plugin' || type === 'template')  {
+      return of(this.admin);
+    }
     if (!tag) return of(false);
     if (!tag.endsWith('@*') && tag.includes('@')) return of(false);
     if (!this.signedIn) return of(false);
