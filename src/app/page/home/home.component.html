@@ -1,17 +1,18 @@
 <div class="tabs">
   <h5>{{ path$ | async }}</h5>
-  <a routerLink="../created" routerLinkActive="current-tab">new</a>
-  <a routerLink="../sourceCount" routerLinkActive="current-tab">sources</a>
-  <a routerLink="../responseCount" routerLinkActive="current-tab">responses</a>
-  <a routerLink="../published" routerLinkActive="current-tab">published</a>
-  <a routerLink="../modified" routerLinkActive="current-tab">modified</a>
-  <a routerLink="../title" routerLinkActive="current-tab">title</a>
-  <a *ngIf="search$ | async" routerLink="../rank" routerLinkActive="current-tab">rank</a>
+  <a routerLink="../created" routerLinkActive="current-tab" title="Sort by created date">new</a>
+  <a routerLink="../sourceCount" routerLinkActive="current-tab" title="Sort by number of sources">sources</a>
+  <a routerLink="../responseCount" routerLinkActive="current-tab" title="Sort by number of responses">responses</a>
+  <a routerLink="../published" routerLinkActive="current-tab" title="Sort by published date">published</a>
+  <a routerLink="../modified" routerLinkActive="current-tab" title="Sort by modified date">modified</a>
+  <a routerLink="../title" routerLinkActive="current-tab" title="Sort alphabetically by title">title</a>
+  <a *ngIf="search$ | async" routerLink="../rank" routerLinkActive="current-tab" title="Sort by search relevance">rank</a>
   <ng-container *ngIf="admin.status.plugins.graph">
     <a routerLink="./"
        [class.current-tab]="graph"
        [queryParams]="{ graph: !graph }"
-       queryParamsHandling="merge">graph</a>
+       queryParamsHandling="merge"
+       title="Graph these results">graph</a>
   </ng-container>
   <div class="spacer"></div>
   <app-settings></app-settings>
