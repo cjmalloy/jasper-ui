@@ -246,6 +246,10 @@ html, body {
   }
 }
 
+.comment-list {
+  display: grid;
+}
+
 .comment {
   .comment-container {
     padding: 2px;
