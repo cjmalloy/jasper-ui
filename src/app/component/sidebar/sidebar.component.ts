@@ -19,15 +19,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @Input()
   ext?: Ext | null;
   @Input()
-  tag?: string | null;
-  @Input()
   showToggle = true;
   @Input()
   @HostBinding('class.expanded')
   private _expanded = false;
 
+  _tag: string | null = null;
   localTag?: string;
   writeAccess$?: Observable<boolean>;
+  inSubs$: Observable<boolean>;
 
   constructor(
     public router: Router,
@@ -40,6 +40,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
     } else {
       this._expanded = !!window.matchMedia('(min-width: 1024px)').matches;
     }
+    this.inSubs$ = of(false);
+  }
+
+  get tag(): string | null {
+    return this._tag;
+  }
+
+  @Input()
+  set tag(value: string | null) {
+    this._tag = value;
+    this.inSubs$ =  this.account.subscriptions$.pipe(
+      map(subs => subs.includes(this.tag!))
+    );
   }
 
   get expanded(): boolean {
@@ -52,9 +65,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.writeAccess$ = this.account.writeAccessTag(this.tag!);
-    if (this.tag) {
-      this.localTag = localTag(this.tag);
+    this.writeAccess$ = this.account.writeAccessTag(this._tag!);
+    if (this._tag) {
+      this.localTag = localTag(this._tag);
     }
   }
 
@@ -63,13 +76,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  get inSubs$() {
-    if (!this.tag) return of(false);
-    return this.account.subscriptions$.pipe(map(subs => subs.includes(this.tag!)));
-  }
-
   get root() {
-    return !!this.admin.status.templates.root && !!this.tag;
+    return !!this.admin.status.templates.root && !!this._tag;
   }
 
   get isApprover() {
@@ -78,22 +86,22 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   get user() {
     return !!this.admin.status.templates.user && (
-      this.tag?.startsWith('+user/') ||
-      this.tag?.startsWith('_user/'));
+      this._tag?.startsWith('+user/') ||
+      this._tag?.startsWith('_user/'));
   }
 
   get queue() {
     return !!this.admin.status.templates.queue && (
-      this.tag?.startsWith('queue/') ||
-      this.tag?.startsWith('_queue/') ||
-      this.tag?.startsWith('+queue/'));
+      this._tag?.startsWith('queue/') ||
+      this._tag?.startsWith('_queue/') ||
+      this._tag?.startsWith('+queue/'));
   }
 
   subscribe() {
-    this.account.addSub(this.tag!);
+    this.account.addSub(this._tag!);
   }
 
   unsubscribe() {
-    this.account.removeSub(this.tag!);
+    this.account.removeSub(this._tag!);
   }
 }
