@@ -44,39 +44,25 @@
          [data]="ref.comment"></div>
     <div class="actions" [class.expanded]="actionsExpanded">
       <a *ngIf="admin.status.plugins.comment"
-         [routerLink]="['/ref', ref.url, 'comments']">
-        {{ comments.replace(' ', '&thinsp;') }}
-      </a>
-      <a [routerLink]="['/ref', ref.url, 'responses']">
-        {{ responses.replace(' ', '&thinsp;') }}
-      </a>
-      <a [routerLink]="['/ref', ref.url, 'sources']">
-        {{ sources.replace(' ', '&thinsp;') }}
-      </a>
+         [routerLink]="['/ref', ref.url, 'comments']">{{ comments.replace(' ', '&thinsp;') }}</a>
+      <a [routerLink]="['/ref', ref.url, 'responses']">{{ responses.replace(' ', '&thinsp;') }}</a>
+      <a [routerLink]="['/ref', ref.url, 'sources']">{{ sources.replace(' ', '&thinsp;') }}</a>
       <ng-container *ngIf="admin.status.plugins.graph">
-        <a [routerLink]="['/ref', ref.url, 'graph']">
-          graph
-        </a>
+        <a [routerLink]="['/ref', ref.url, 'graph']">graph</a>
       </ng-container>
       <a *ngIf="writeAccess$ | async"
          class="fake-link"
-         (click)="editing = !editing">
-        edit
-      </a>
+         (click)="editing = !editing">edit</a>
       <a *ngIf="!deleting && (account.mod || (writeAccess$ | async))"
          class="fake-link"
-         (click)="deleting = true">
-        delete
-      </a>
+         (click)="deleting = true">delete</a>
       <span *ngIf="deleting" class="delete-confirm"> are you sure?
         <a class="fake-link" (click)="delete()">yes</a> /
         <a class="fake-link" (click)="deleting = false">no</a>
       </span>
       <a *ngIf="account.editor || (writeAccess$ | async)"
          class="fake-link"
-         (click)="tagging = !tagging">
-        tag
-      </a>
+         (click)="tagging = !tagging">tag</a>
       <span *ngIf="tagging" class="inline-tagging">
         <input #inlineTag
                (keydown)="$event.key === 'Enter' && addInlineTag() || true"
@@ -87,40 +73,28 @@
       </span>
       <ng-container *ngIf="canInvoice">
         <a [routerLink]="['/submit/invoice']"
-           [queryParams]="{url: ref.url}">
-          invoice
-        </a>
+           [queryParams]="{url: ref.url}">invoice</a>
       </ng-container>
       <ng-container *ngIf="invoice">
         <span *ngIf="disputed">disputed!</span>
         <a *ngIf="disputed && isAuthor"
            class="fake-link"
-           (click)="accept()">
-          accept
-        </a>
+           (click)="accept()">accept</a>
         <a *ngIf="!disputed && isAuthor"
            class="fake-link"
-           (click)="dispute()">
-          dispute
-        </a>
+           (click)="dispute()">dispute</a>
         <span *ngIf="paid">paid!</span>
         <a *ngIf="!paid && isRecipient"
            class="fake-link"
-           (click)="markPaid()">
-          paid
-        </a>
+           (click)="markPaid()">paid</a>
         <span *ngIf="rejected">rejected!</span>
         <a *ngIf="!rejected && isRecipient"
            class="fake-link"
-           (click)="reject()">
-          reject
-        </a>
+           (click)="reject()">reject</a>
       </ng-container>
       <a *ngIf="account.mod && !approved && !locked"
          class="fake-link"
-         (click)="approve()">
-        approve
-      </a>
+         (click)="approve()">approve</a>
       <span class="approved icon" *ngIf="account.mod && approved" title="Moderated">✔️</span>
     </div>
   </div>

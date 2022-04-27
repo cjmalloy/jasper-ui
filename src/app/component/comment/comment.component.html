@@ -41,39 +41,25 @@
                     [ref]="ref"
                     [commentEdited$]="commentEdited$"></app-comment-edit>
   <div class="actions">
-    <a [routerLink]="['/ref', ref.url, 'comments']">
-      permalink
-    </a>
-    <a [routerLink]="['/ref', ref.url, 'responses']">
-      {{ responses.replace(' ', '&thinsp;') }}
-    </a>
-    <a [routerLink]="['/ref', ref.url, 'sources']">
-      {{ sources.replace(' ', '&thinsp;')}}
-    </a>
+    <a [routerLink]="['/ref', ref.url, 'comments']">permalink</a>
+    <a [routerLink]="['/ref', ref.url, 'responses']">{{ responses.replace(' ', '&thinsp;') }}</a>
+    <a [routerLink]="['/ref', ref.url, 'sources']">{{ sources.replace(' ', '&thinsp;')}}</a>
     <ng-container *ngIf="admin.status.plugins.graph">
-      <a [routerLink]="['/ref', ref.url, 'graph']">
-        graph
-      </a>
+      <a [routerLink]="['/ref', ref.url, 'graph']">graph</a>
     </ng-container>
     <a class="fake-link"
        *ngIf="writeAccess$ | async"
-       (click)="editing = !editing">
-      edit
-    </a>
+       (click)="editing = !editing">edit</a>
     <a class="fake-link"
        *ngIf="!deleting && (writeAccess$ | async)"
-       (click)="deleting = true">
-      delete
-    </a>
+       (click)="deleting = true">delete</a>
     <span *ngIf="deleting" class="delete-confirm"> are you sure?
       <a class="fake-link" (click)="delete()">yes</a> /
       <a class="fake-link" (click)="deleting = false">no</a>
     </span>
     <a class="fake-link"
        *ngIf="writeAccess$ | async"
-       (click)="tagging = !tagging">
-      tag
-    </a>
+       (click)="tagging = !tagging">tag</a>
     <span *ngIf="tagging" class="inline-tagging">
       <input #inlineTag
              (keydown)="$event.key === 'Enter' && addInlineTag() || true"
@@ -83,20 +69,14 @@
       <button (click)="addInlineTag()">+</button>
     </span>
     <a class="fake-link"
-       (click)="replying = !replying">
-      reply
-    </a>
+       (click)="replying = !replying">reply</a>
     <ng-container *ngIf="canInvoice">
       <a [routerLink]="['/submit/invoice']"
-         [queryParams]="{url: ref.url}">
-        invoice
-      </a>
+         [queryParams]="{url: ref.url}">invoice</a>
     </ng-container>
     <a *ngIf="account.mod && !approved"
        class="fake-link"
-       (click)="approve()">
-      approve
-    </a>
+       (click)="approve()">approve</a>
     <span class="approved icon" *ngIf="account.mod && approved">✔️</span>
   </div>
 </div>
