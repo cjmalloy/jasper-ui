@@ -6,6 +6,7 @@ import { tap } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class ConfigService {
+  version = 'debug';
   api = '//localhost:8081';
   logout = '';
   login = '';
@@ -22,6 +23,7 @@ export class ConfigService {
   get load$() {
     return this.http.get(this.base + 'assets/config.json').pipe(
       tap((result: any) => {
+        this.version = result['version'];
         this.api = result['api'];
         this.logout = result['logout'];
         this.login = result['login'];
