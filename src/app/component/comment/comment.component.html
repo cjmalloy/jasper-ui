@@ -23,9 +23,9 @@
       </a>
     </ng-container>
     {{ ref.created?.fromNow() }}
-    <ng-container *ngIf="tags.length">
+    <ng-container *ngIf="tagged.length">
       tagged
-      <ng-container *ngFor="let tag of tags">
+      <ng-container *ngFor="let tag of tagged">
         <a class="tag" [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
       </ng-container>
     </ng-container>
