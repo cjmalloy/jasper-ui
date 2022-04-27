@@ -19,6 +19,7 @@ export class TaggingService {
   }
 
   create(tag: string, url: string, origin = ''): Observable<void> {
+    if (tag.startsWith('-')) return this.delete(tag.substring(1), url, origin);
     return this.http.post<void>(this.base, null, {
       params: params({ tag, url, origin }),
     });
