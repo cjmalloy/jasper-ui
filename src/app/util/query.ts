@@ -25,6 +25,8 @@ export function filterListToObj(filter?: string[]): RefFilter | undefined {
   return result;
 }
 
+export const defaultDesc = ['created', 'published', 'modified', 'rank', 'commentCount', 'sourceCount', 'responseCount'];
+
 export function getArgs(
   tagOrSimpleQuery?: string,
   sort?: string | string[],
@@ -49,7 +51,7 @@ export function getArgs(
     if (!Array.isArray(sort)) sort = [sort];
     for (let i = 0; i < sort.length; i++) {
       const s = sort[i];
-      if (s === 'created' || s === 'published' || s === 'modified' || s === 'rank' || s === 'sourceCount' || s === 'responseCount') {
+      if (defaultDesc.includes(s)) {
         sort[i] = s + ',desc';
       }
     }
