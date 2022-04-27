@@ -30,11 +30,12 @@ export const defaultDesc = ['created', 'published', 'modified', 'rank', 'comment
 export function getArgs(
   tagOrSimpleQuery?: string,
   sort?: string | string[],
-  filterOrList?: (Record<string, any> & RefFilter) | string[],
+  filterOrList?: (Record<string, any> & RefFilter) | string[] | string,
   search?: string,
   pageNumber?: number,
   pageSize?: number
 ): RefQueryArgs {
+  if (typeof filterOrList === 'string' || filterOrList instanceof String) filterOrList = [filterOrList];
   let filter: (Record<string, any> & RefFilter) | undefined = <any>filterOrList;
   if (Array.isArray(filterOrList)) {
     filter = filterListToObj(filterOrList);
