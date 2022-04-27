@@ -1,6 +1,6 @@
 <div class="subs">
   <a routerLink="/home" routerLinkActive="current-page">home</a> &bullet;
-  <a routerLink="/tag/@*/created" routerLinkActive="current-page">all</a>
+  <a routerLink="/tag/@*/published" routerLinkActive="current-page">all</a>
   <ng-container *ngFor="let sub of account.watchSubs$ | async">
     &bullet; <a [routerLink]="['/tag', sub]" routerLinkActive="current-page">{{ sub }}</a>
   </ng-container>
