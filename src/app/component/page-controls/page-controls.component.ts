@@ -33,4 +33,7 @@ export class PageControlsComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  scrollUp() {
+    window.scrollTo(0, 0);
+  }
 }

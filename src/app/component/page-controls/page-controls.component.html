@@ -18,6 +18,7 @@ more results:
    routerLink="./"
    routerLinkActive="disabled"
    [queryParams]="{ pageNumber: next }"
+   (click)="scrollUp()"
    queryParamsHandling="merge">next</a>
 |
 <a class="last-page"
