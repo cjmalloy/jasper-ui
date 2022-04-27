@@ -1,7 +1,9 @@
 <div class="tabs">
   <h5>{{ path$ | async }}</h5>
   <a routerLink="../created" routerLinkActive="current-tab" title="Sort by created date">new</a>
-  <a routerLink="../commentCount" routerLinkActive="current-tab" title="Sort by number of comments">comments</a>
+  <ng-container *ngIf="admin.status.plugins.comment">
+    <a routerLink="../commentCount" routerLinkActive="current-tab" title="Sort by number of comments">comments</a>
+  </ng-container>
   <a routerLink="../sourceCount" routerLinkActive="current-tab" title="Sort by number of sources">sources</a>
   <a routerLink="../responseCount" routerLinkActive="current-tab" title="Sort by number of responses">responses</a>
   <a routerLink="../published" routerLinkActive="current-tab" title="Sort by published date">published</a>
