@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map, Observable, of, Subject } from 'rxjs';
+import { map, of, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -25,8 +25,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   _tag: string | null = null;
   localTag?: string;
-  writeAccess$?: Observable<boolean>;
-  inSubs$: Observable<boolean>;
+  writeAccess$ = of(false);
+  inSubs$ = of(false);
 
   @HostBinding('class.expanded')
   private _expanded = false;
@@ -42,7 +42,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     } else {
       this._expanded = !!window.matchMedia('(min-width: 1024px)').matches;
     }
-    this.inSubs$ = of(false);
   }
 
   get tag(): string | null {
@@ -51,10 +50,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   @Input()
   set tag(value: string | null) {
+    if (this._tag === value) return;
     this._tag = value;
-    this.inSubs$ =  this.account.subscriptions$.pipe(
-      map(subs => subs.includes(this.tag!))
-    );
+    if (value) {
+      this.inSubs$ =  this.account.subscriptions$.pipe(
+        map(subs => subs.includes(value))
+      );
+      this.localTag = localTag(value);
+      this.writeAccess$ = this.account.writeAccessTag(value);
+    } else {
+      this.localTag = undefined;
+      this.writeAccess$ = of(false);
+      this.inSubs$ = of(false);
+    }
   }
 
   get expanded(): boolean {
@@ -68,10 +76,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.writeAccess$ = this.account.writeAccessTag(this._tag!);
-    if (this._tag) {
-      this.localTag = localTag(this._tag);
-    }
   }
 
   ngOnDestroy(): void {
