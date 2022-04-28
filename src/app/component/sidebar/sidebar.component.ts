@@ -102,9 +102,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   subscribe() {
     this.account.addSub(this._tag!);
+    this.inSubs$ = of(true);
   }
 
   unsubscribe() {
     this.account.removeSub(this._tag!);
+    this.inSubs$ = of(false);
   }
 }
