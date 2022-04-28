@@ -2,6 +2,7 @@ echo "Writing Jasper Config"
 
 config="
 {
+  \"title\": \"$JASPER_TITLE\",
   \"version\": \"$JASPER_VERSION\",
   \"api\": \"$JASPER_API\",
   \"logout\": \"$JASPER_LOGOUT\",
