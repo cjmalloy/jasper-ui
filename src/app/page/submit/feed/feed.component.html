@@ -31,6 +31,23 @@
     </div>
   </div>
 
+  <label for="scrapeInterval">Scrape Interval:</label>
+  <input id="scrapeInterval" type="text" [formControl]="scrapeInterval">
+
+  <span><!-- Help --></span>
+  <div class="no-margin">
+    <span class="hints">
+          Use time spans (HH:MM:SS) or ISO 8601 Durations
+          <sup><a target="_blank" href="https://en.wikipedia.org/wiki/ISO_8601#Durations">help</a></sup>
+    </span>
+  </div>
+
+  <label for="scrapeDescription">Scrape Description:</label>
+  <input id="scrapeDescription" type="checkbox" [formControl]="scrapeDescription">
+
+  <label for="removeDescriptionIndent">Remove Description Indent:</label>
+  <input id="removeDescriptionIndent" type="checkbox" [formControl]="removeDescriptionIndent">
+
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>

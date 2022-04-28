@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { catchError, mergeMap, throwError } from 'rxjs';
 import { Feed } from '../../model/feed';
 import { AccountService } from '../../service/account.service';
@@ -47,6 +47,9 @@ export class FeedComponent implements OnInit {
     this.editForm = fb.group({
       name: [''],
       tags: fb.array([]),
+      scrapeInterval: ['00:15:00'],
+      scrapeDescription: [true],
+      removeDescriptionIndent: [false],
     });
   }
 
@@ -89,6 +92,18 @@ export class FeedComponent implements OnInit {
 
   removeTag(index: number) {
     this.tagsForm.removeAt(index);
+  }
+
+  get scrapeInterval() {
+    return this.editForm.get('scrapeInterval') as FormControl;
+  }
+
+  get scrapeDescription() {
+    return this.editForm.get('scrapeDescription') as FormControl;
+  }
+
+  get removeDescriptionIndent() {
+    return this.editForm.get('removeDescriptionIndent') as FormControl;
   }
 
   save() {
