@@ -6,6 +6,7 @@ import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
 import { Feed } from '../../../model/feed';
 import { Page } from '../../../model/page';
 import { FeedService } from '../../../service/api/feed.service';
+import { ThemeService } from '../../../service/theme.service';
 
 @Component({
   selector: 'app-settings-feed-page',
@@ -19,9 +20,11 @@ export class SettingsFeedPage implements OnInit {
   private defaultPageSize = 20;
 
   constructor(
+    private theme: ThemeService,
     private route: ActivatedRoute,
     private feeds: FeedService,
   ) {
+    theme.setTitle('Settings: Feeds');
     this.page$ = combineLatest(
       this.pageNumber$, this.pageSize$,
     ).pipe(

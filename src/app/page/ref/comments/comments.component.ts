@@ -1,11 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter, map, mergeMap, Observable, startWith, Subject, switchMap, takeUntil } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { inboxes } from '../../../plugin/inbox';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
+import { ThemeService } from '../../../service/theme.service';
 
 @Component({
   selector: 'app-comments',
@@ -24,6 +25,7 @@ export class CommentsComponent implements OnInit, OnDestroy {
   private depth = 7;
 
   constructor(
+    private theme: ThemeService,
     private router: Router,
     private route: ActivatedRoute,
     private account: AccountService,
@@ -40,6 +42,7 @@ export class CommentsComponent implements OnInit, OnDestroy {
     this.url$.pipe(
       takeUntil(this.destroy$),
       mergeMap(url => this.refs.get(url)),
+      tap(ref => theme.setTitle('Comments: ' + (ref.title || ref.url))),
     ).subscribe(ref => this.ref$.next(ref));
     this.inboxes$ = this.ref$.pipe(
       map(ref => inboxes(ref, this.account.tag)),

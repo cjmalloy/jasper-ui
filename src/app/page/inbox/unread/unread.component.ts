@@ -7,6 +7,7 @@ import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
+import { ThemeService } from '../../../service/theme.service';
 
 @Component({
   selector: 'app-unread',
@@ -18,10 +19,12 @@ export class InboxUnreadPage implements OnInit {
   page$: Observable<Page<Ref>>;
 
   constructor(
+    private theme: ThemeService,
     private route: ActivatedRoute,
     private account: AccountService,
     private refs: RefService,
   ) {
+    theme.setTitle('Inbox: Unread');
     this.page$ = this.account.userExt$.pipe(
       mergeMap(ext => this.refs.page({
         query: account.inbox,

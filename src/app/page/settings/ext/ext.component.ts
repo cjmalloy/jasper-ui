@@ -6,6 +6,7 @@ import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { ExtService } from '../../../service/api/ext.service';
+import { ThemeService } from '../../../service/theme.service';
 
 @Component({
   selector: 'app-settings-ext-page',
@@ -19,9 +20,11 @@ export class SettingsExtPage implements OnInit {
   private defaultPageSize = 20;
 
   constructor(
+    private theme: ThemeService,
     private route: ActivatedRoute,
     private exts: ExtService,
   ) {
+    theme.setTitle('Settings: Tag Extensions');
     this.page$ = combineLatest(
       this.pageNumber$, this.pageSize$,
     ).pipe(

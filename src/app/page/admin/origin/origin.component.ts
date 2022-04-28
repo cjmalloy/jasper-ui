@@ -6,6 +6,7 @@ import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
 import { Origin } from '../../../model/origin';
 import { Page } from '../../../model/page';
 import { OriginService } from '../../../service/api/origin.service';
+import { ThemeService } from '../../../service/theme.service';
 
 @Component({
   selector: 'app-admin-origin-page',
@@ -19,9 +20,11 @@ export class AdminOriginPage implements OnInit {
   private defaultPageSize = 20;
 
   constructor(
+    private theme: ThemeService,
     private route: ActivatedRoute,
     private origins: OriginService,
   ) {
+    theme.setTitle('Admin: Origins');
     this.page$ = combineLatest(
       this.pageNumber$, this.pageSize$,
     ).pipe(

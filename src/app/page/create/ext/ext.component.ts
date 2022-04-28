@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AccountService } from '../../../service/account.service';
 import { ExtService } from '../../../service/api/ext.service';
+import { ThemeService } from '../../../service/theme.service';
 import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
@@ -20,12 +21,14 @@ export class CreateExtPage implements OnInit {
   serverError: string[] = [];
 
   constructor(
+    private theme: ThemeService,
     private router: Router,
     private route: ActivatedRoute,
     private account: AccountService,
     private exts: ExtService,
     private fb: FormBuilder,
   ) {
+    theme.setTitle('Create Tag Extension');
     this.extForm = fb.group({
       tag: ['', [Validators.required, Validators.pattern(TAG_REGEX)]],
       name: [''],

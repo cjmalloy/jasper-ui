@@ -6,7 +6,7 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { AccountService } from '../../../service/account.service';
 import { FeedService } from '../../../service/api/feed.service';
-import { ConfigService } from '../../../service/config.service';
+import { ThemeService } from '../../../service/theme.service';
 import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
@@ -22,13 +22,14 @@ export class SubmitFeedPage implements OnInit {
   serverError: string[] = [];
 
   constructor(
-    private config: ConfigService,
+    private theme: ThemeService,
     private router: Router,
     private route: ActivatedRoute,
     private account: AccountService,
     private feeds: FeedService,
     private fb: FormBuilder,
   ) {
+    theme.setTitle('Submit: Feed');
     this.feedForm = fb.group({
       url: [''],
       name: [''],

@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map, mergeMap, Observable } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
+import { ThemeService } from '../../../service/theme.service';
 
 @Component({
   selector: 'app-graph',
@@ -17,6 +18,7 @@ export class GraphComponent implements OnInit {
   ref$: Observable<Ref>;
 
   constructor(
+    private theme: ThemeService,
     private router: Router,
     private route: ActivatedRoute,
     private account: AccountService,
@@ -28,6 +30,7 @@ export class GraphComponent implements OnInit {
     );
     this.ref$ = this.url$.pipe(
       mergeMap(url => this.refs.get(url)),
+      tap(ref => theme.setTitle('Graph: ' + (ref.title || ref.url))),
     );
   }
 

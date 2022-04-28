@@ -8,6 +8,7 @@ import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
+import { ThemeService } from '../../../service/theme.service';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -26,6 +27,7 @@ export class SubmitDmPage implements OnInit {
   latex = !!this.admin.status.plugins.latex;
 
   constructor(
+    private theme: ThemeService,
     public admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
@@ -33,6 +35,7 @@ export class SubmitDmPage implements OnInit {
     private refs: RefService,
     private fb: FormBuilder,
   ) {
+    theme.setTitle('Submit: Direct Message');
     this.dmForm = fb.group({
       title: [''],
       comment: [''],

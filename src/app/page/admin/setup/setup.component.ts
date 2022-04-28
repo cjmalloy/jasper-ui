@@ -6,6 +6,7 @@ import { catchError, forkJoin, mergeMap, throwError } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
+import { ThemeService } from '../../../service/theme.service';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -22,10 +23,12 @@ export class AdminSetupPage implements OnInit {
 
   constructor(
     public admin: AdminService,
+    private theme: ThemeService,
     private plugins: PluginService,
     private templates: TemplateService,
     private fb: FormBuilder,
   ) {
+    theme.setTitle('Admin: Setup');
     this.adminForm = fb.group({
       plugins: fb.group(_.mapValues(admin.status.plugins, p => fb.control(p))),
       templates: fb.group(_.mapValues(admin.status.templates, t => fb.control(t))),

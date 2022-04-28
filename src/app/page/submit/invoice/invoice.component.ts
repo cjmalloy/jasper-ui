@@ -10,6 +10,7 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
+import { ThemeService } from '../../../service/theme.service';
 import { templates, URI_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { prefix } from '../../../util/tag';
@@ -32,6 +33,7 @@ export class SubmitInvoicePage implements OnInit {
   latex = !!this.admin.status.plugins.latex;
 
   constructor(
+    private theme: ThemeService,
     public admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
@@ -40,6 +42,7 @@ export class SubmitInvoicePage implements OnInit {
     private exts: ExtService,
     private fb: FormBuilder,
   ) {
+    theme.setTitle('Submit: Invoice');
     this.invoiceForm = fb.group({
       url: ['', [Validators.required, Validators.pattern(URI_REGEX)]],
       title: ['', [Validators.required]],

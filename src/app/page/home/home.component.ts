@@ -8,6 +8,7 @@ import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { ThemeService } from '../../service/theme.service';
 import { getArgs } from '../../util/query';
 
 @Component({
@@ -24,11 +25,13 @@ export class HomePage implements OnInit {
   private defaultPageSize = 20;
 
   constructor(
+    private theme: ThemeService,
     public admin: AdminService,
     public account: AccountService,
     private route: ActivatedRoute,
     private refs: RefService,
   ) {
+    theme.setTitle('Home');
     this.path$ = this.route.url.pipe(
       map(segments => segments[0].path),
     );

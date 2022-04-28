@@ -6,6 +6,7 @@ import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
 import { Page } from '../../../model/page';
 import { Template } from '../../../model/template';
 import { TemplateService } from '../../../service/api/template.service';
+import { ThemeService } from '../../../service/theme.service';
 
 @Component({
   selector: 'app-admin-template-page',
@@ -19,9 +20,11 @@ export class AdminTemplatePage implements OnInit {
   private defaultPageSize = 20;
 
   constructor(
+    private theme: ThemeService,
     private route: ActivatedRoute,
     private templates: TemplateService,
   ) {
+    theme.setTitle('Admin: Templates');
     this.page$ = combineLatest(
       this.pageNumber$, this.pageSize$,
     ).pipe(

@@ -7,6 +7,7 @@ import { tap } from 'rxjs/operators';
 })
 export class ConfigService {
   version = 'debug';
+  title = 'Jasper';
   api = '//localhost:8081';
   logout = '';
   login = '';
@@ -24,6 +25,7 @@ export class ConfigService {
     return this.http.get(this.base + 'assets/config.json').pipe(
       tap((result: any) => {
         this.version = result['version'];
+        this.title = result['title'];
         this.api = result['api'];
         this.logout = result['logout'];
         this.login = result['login'];

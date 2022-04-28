@@ -6,6 +6,7 @@ import { catchError, throwError } from 'rxjs';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { UserService } from '../../../service/api/user.service';
+import { ThemeService } from '../../../service/theme.service';
 import { QUALIFIED_TAG_REGEX, USER_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { prefix } from '../../../util/tag';
@@ -22,6 +23,7 @@ export class CreateUserPage implements OnInit {
   serverError: string[] = [];
 
   constructor(
+    private theme: ThemeService,
     private admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
@@ -29,6 +31,7 @@ export class CreateUserPage implements OnInit {
     private users: UserService,
     private fb: FormBuilder,
   ) {
+    theme.setTitle('Create User Permissions');
     this.userForm = fb.group({
       tag: ['', [Validators.required, Validators.pattern(USER_REGEX)]],
       name: [''],

@@ -8,6 +8,7 @@ import { Ref } from '../../../model/ref';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
+import { ThemeService } from '../../../service/theme.service';
 import { getArgs } from '../../../util/query';
 
 @Component({
@@ -22,11 +23,13 @@ export class InboxSentPage implements OnInit {
   private defaultPageSize = 20;
 
   constructor(
+    private theme: ThemeService,
     public admin: AdminService,
     public account: AccountService,
     private route: ActivatedRoute,
     private refs: RefService,
   ) {
+    theme.setTitle('Inbox: Sent');
     this.page$ = combineLatest(
       this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$,
     ).pipe(

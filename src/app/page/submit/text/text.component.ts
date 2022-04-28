@@ -8,6 +8,7 @@ import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
+import { ThemeService } from '../../../service/theme.service';
 import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
@@ -27,6 +28,7 @@ export class SubmitTextPage implements OnInit {
   latex = !!this.admin.status.plugins.latex;
 
   constructor(
+    private theme: ThemeService,
     public admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
@@ -34,6 +36,7 @@ export class SubmitTextPage implements OnInit {
     private refs: RefService,
     private fb: FormBuilder,
   ) {
+    theme.setTitle('Submit: Text Post');
     this.textForm = fb.group({
       title: ['', [Validators.required]],
       comment: [''],

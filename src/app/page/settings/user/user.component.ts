@@ -6,6 +6,7 @@ import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
 import { Page } from '../../../model/page';
 import { User } from '../../../model/user';
 import { UserService } from '../../../service/api/user.service';
+import { ThemeService } from '../../../service/theme.service';
 
 @Component({
   selector: 'app-settings-user-page',
@@ -19,9 +20,11 @@ export class SettingsUserPage implements OnInit {
   private defaultPageSize = 20;
 
   constructor(
+    private theme: ThemeService,
     private route: ActivatedRoute,
     private users: UserService,
   ) {
+    theme.setTitle('Settings: User Permissions');
     this.page$ = combineLatest(
       this.pageNumber$, this.pageSize$,
     ).pipe(

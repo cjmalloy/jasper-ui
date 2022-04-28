@@ -1,5 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
+import { Title } from '@angular/platform-browser';
+import { ConfigService } from './config.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +14,8 @@ export class ThemeService {
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
+    private config: ConfigService,
+    private titleService: Title,
   ) {
     this.setTheme(localStorage.getItem('theme'));
   }
@@ -46,5 +50,9 @@ export class ThemeService {
     document.body.classList.add(theme);
     document.body.classList.remove(this.theme);
     this.theme = theme;
+  }
+
+  setTitle(title: string) {
+    this.titleService.setTitle(`${this.config.title} ± ${title}`);
   }
 }
