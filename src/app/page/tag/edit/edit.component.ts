@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, map, mergeMap, throwError } from 'rxjs';
+import { catchError, map, switchMap, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
@@ -102,7 +102,7 @@ export class EditTagPage implements OnInit {
 
   get ext$() {
     return this.tag$.pipe(
-      mergeMap(tag => this.exts.get(tag)),
+      switchMap(tag => this.exts.get(tag)),
     );
   }
 

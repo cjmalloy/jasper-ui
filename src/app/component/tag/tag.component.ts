@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { catchError, mergeMap, Observable, throwError } from 'rxjs';
+import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { IsTag } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -89,7 +89,7 @@ export class TagComponent implements OnInit {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-      mergeMap(() => this.service.get(this.tag.tag)),
+      switchMap(() => this.service.get(this.tag.tag)),
     ).subscribe(tag => {
       this.editing = false;
       this.tag = tag;

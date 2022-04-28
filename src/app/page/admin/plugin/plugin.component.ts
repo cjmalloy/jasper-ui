@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash';
-import { combineLatest, map, Observable } from 'rxjs';
-import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
+import { combineLatest, map, Observable, switchMap } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { Page } from '../../../model/page';
 import { Plugin } from '../../../model/plugin';
 import { PluginService } from '../../../service/api/plugin.service';
@@ -29,7 +29,7 @@ export class AdminPluginPage implements OnInit {
       this.pageNumber$, this.pageSize$,
     ).pipe(
       distinctUntilChanged(_.isEqual),
-      mergeMap(([pageNumber, pageSize]) => {
+      switchMap(([pageNumber, pageSize]) => {
         return this.plugins.page({
           page: pageNumber,
           size: pageSize ?? this.defaultPageSize,

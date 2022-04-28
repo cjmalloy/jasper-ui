@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { catchError, mergeMap, Observable, throwError } from 'rxjs';
+import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { User } from '../../model/user';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -99,7 +99,7 @@ export class UserComponent implements OnInit {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-      mergeMap(() => this.users.get(this.qualifiedTag)),
+      switchMap(() => this.users.get(this.qualifiedTag)),
     ).subscribe(user => {
       this.editing = false;
       this.user = user;

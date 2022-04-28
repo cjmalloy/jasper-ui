@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
 import * as moment from 'moment';
-import { mergeMap, Subject } from 'rxjs';
+import { Subject, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
@@ -68,7 +68,7 @@ export class CommentReplyComponent implements AfterViewInit {
       ],
       published: moment(),
     }).pipe(
-      mergeMap(() => this.refs.get(url)),
+      switchMap(() => this.refs.get(url)),
     ).subscribe(ref => {
       this.newComments$.next(ref);
       this.textbox.nativeElement.value = '';

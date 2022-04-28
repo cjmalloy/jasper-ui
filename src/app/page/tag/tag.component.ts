@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash';
-import { catchError, combineLatest, map, Observable, of } from 'rxjs';
-import { distinctUntilChanged, mergeMap, scan, take } from 'rxjs/operators';
+import { catchError, combineLatest, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
@@ -10,6 +10,7 @@ import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
+import { ThemeService } from '../../service/theme.service';
 import { filterListToObj, getArgs } from '../../util/query';
 import { localTag } from '../../util/tag';
 
@@ -32,6 +33,8 @@ export class TagPage implements OnInit {
   constructor(
     public admin: AdminService,
     public account: AccountService,
+    private theme: ThemeService,
+    private router: Router,
     private route: ActivatedRoute,
     private refs: RefService,
     private exts: ExtService,
@@ -42,7 +45,7 @@ export class TagPage implements OnInit {
       map(([tag, sort, filter, search, pageNumber, pageSize]) =>
         getArgs(tag, sort, {...filterListToObj(filter), notInternal: tag === '@*'}, search, pageNumber, pageSize ?? this.defaultPageSize)),
       distinctUntilChanged(_.isEqual),
-      mergeMap(args => this.refs.page(args)),
+      switchMap(args => this.refs.page(args)),
     );
     this.route.queryParams.pipe(
       map(params => params['graph']),
@@ -51,23 +54,20 @@ export class TagPage implements OnInit {
       map(tag => localTag(tag)),
     );
     this.ext$ = this.localTag$.pipe(
-      mergeMap(tag => tag ? this.exts.get(tag) : of(null)),
+      switchMap(tag => tag ? this.exts.get(tag).pipe(
+        catchError(() => of(null))) : of(null)),
     );
     this.title$ = this.ext$.pipe(
-      mergeMap(ext => ext
+      switchMap(ext => ext
         ? of(ext.name || ext.tag)
-        : this.tag$.pipe(
-          map(tag => tag === '@*' ? 'All' : tag),
-        )),
+        : this.tag$
+      ),
+      map(title => title === '@*' ? 'All' : title),
+      tap(title => theme.setTitle(title)),
     );
     this.pinned$ = this.ext$.pipe(
-      mergeMap(ext => !ext?.config?.pinned?.length ? of([]) :
-        of(...ext!.config.pinned as string[]).pipe(
-          mergeMap(pin => this.refs.get(pin)),
-          scan((acc, value) => [...acc, value], [] as Ref[]),
-          catchError(() => of([])),
-          take(1),
-        ),
+      switchMap(ext => !ext?.config?.pinned?.length ? of([]) :
+        forkJoin((ext!.config.pinned as string[]).map(pin => this.refs.get(pin))),
       ),
     );
   }

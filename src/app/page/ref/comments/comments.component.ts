@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { filter, map, mergeMap, Observable, startWith, Subject, switchMap, takeUntil } from 'rxjs';
+import { filter, map, Observable, startWith, Subject, switchMap, takeUntil } from 'rxjs';
 import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { inboxes } from '../../../plugin/inbox';
@@ -41,7 +41,7 @@ export class CommentsComponent implements OnInit, OnDestroy {
     );
     this.url$.pipe(
       takeUntil(this.destroy$),
-      mergeMap(url => this.refs.get(url)),
+      switchMap(url => this.refs.get(url)),
       tap(ref => theme.setTitle('Comments: ' + (ref.title || ref.url))),
     ).subscribe(ref => this.ref$.next(ref));
     this.inboxes$ = this.ref$.pipe(

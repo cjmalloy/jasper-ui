@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash';
-import { combineLatest, map, Observable } from 'rxjs';
-import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
+import { combineLatest, map, Observable, switchMap } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { Page } from '../../../model/page';
 import { Template } from '../../../model/template';
 import { TemplateService } from '../../../service/api/template.service';
@@ -29,7 +29,7 @@ export class AdminTemplatePage implements OnInit {
       this.pageNumber$, this.pageSize$,
     ).pipe(
       distinctUntilChanged(_.isEqual),
-      mergeMap(([pageNumber, pageSize]) => {
+      switchMap(([pageNumber, pageSize]) => {
         return this.templates.page({
           page: pageNumber,
           size: pageSize ?? this.defaultPageSize,

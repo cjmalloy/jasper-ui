@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
-import { Observable } from 'rxjs';
-import { mergeMap, tap } from 'rxjs/operators';
+import { Observable, switchMap } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { AccountService } from '../../../service/account.service';
@@ -26,7 +26,7 @@ export class InboxUnreadPage implements OnInit {
   ) {
     theme.setTitle('Inbox: Unread');
     this.page$ = this.account.userExt$.pipe(
-      mergeMap(ext => this.refs.page({
+      switchMap(ext => this.refs.page({
         query: account.inbox,
         modifiedAfter: ext.config.inbox.lastNotified || moment().subtract(1, 'year'),
       })),

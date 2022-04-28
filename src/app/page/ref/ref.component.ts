@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, map, Observable, of, Subject } from 'rxjs';
-import { distinctUntilChanged, mergeMap, tap } from 'rxjs/operators';
+import { catchError, map, Observable, of, Subject, switchMap } from 'rxjs';
+import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -37,11 +37,12 @@ export class RefPage implements OnInit, OnDestroy {
       distinctUntilChanged(),
     );
     this.ref$ = this.url$.pipe(
-      mergeMap(url => refs.get(url)),
-      catchError(err => {
-        this.error = err;
-        return of(null);
-      }),
+      switchMap(url => refs.get(url).pipe(
+        catchError(err => {
+          this.error = err;
+          return of(null);
+        }),
+      )),
     );
 
     this.hideSearch$ = this.route.queryParams.pipe(

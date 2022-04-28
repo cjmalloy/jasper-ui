@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { catchError, mergeMap, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { Feed } from '../../model/feed';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -78,7 +78,7 @@ export class FeedComponent implements OnInit {
       path: '/tags/-',
       value: tag,
     }]).pipe(
-      mergeMap(() => this.feeds.get(this.feed.url, this.feed.origin!)),
+      switchMap(() => this.feeds.get(this.feed.url, this.feed.origin!)),
     ).subscribe(ref => {
       this.tagging = false;
       this.feed = ref;
@@ -118,7 +118,7 @@ export class FeedComponent implements OnInit {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-      mergeMap(() => this.feeds.get(this.feed.url, this.feed.origin)),
+      switchMap(() => this.feeds.get(this.feed.url, this.feed.origin)),
     ).subscribe(ref => {
       this.editing = false;
       this.feed = ref;
@@ -137,7 +137,7 @@ export class FeedComponent implements OnInit {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-      mergeMap(() => this.feeds.get(this.feed.url, this.feed.origin)),
+      switchMap(() => this.feeds.get(this.feed.url, this.feed.origin)),
     ).subscribe(ref => {
       this.feed = ref;
     });

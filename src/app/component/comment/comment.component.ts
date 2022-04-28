@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { mergeMap, Observable, Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, switchMap, takeUntil } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { inboxes } from '../../plugin/inbox';
 import { AccountService } from '../../service/account.service';
@@ -142,7 +142,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     if (!this.inlineTag) return;
     const tag = this.inlineTag.nativeElement.value;
     this.tags.create(tag, this.ref.url, this.ref.origin!).pipe(
-      mergeMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
     ).subscribe(ref => {
       this.tagging = false;
       this.ref = ref;
@@ -151,7 +151,7 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   approve() {
     this.tags.create('_moderated', this.ref.url, this.ref.origin!).pipe(
-      mergeMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
     ).subscribe(ref => {
       this.tagging = false;
       this.ref = ref;
@@ -164,7 +164,7 @@ export class CommentComponent implements OnInit, OnDestroy {
       path: '/plugins/plugin~1comment/deleted',
       value: true,
     }]).pipe(
-      mergeMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
     ).subscribe(ref => this.ref = ref);
   }
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash';
-import { combineLatest, map, mergeMap, Observable } from 'rxjs';
+import { combineLatest, map, Observable, switchMap } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
@@ -36,7 +36,7 @@ export class InboxAllPage implements OnInit {
       map(([sort, filter, search, pageNumber, pageSize]) =>
         getArgs(account.inbox, sort, filter, search, pageNumber, pageSize ?? this.defaultPageSize)),
       distinctUntilChanged(_.isEqual),
-      mergeMap(args => this.refs.page(args)),
+      switchMap(args => this.refs.page(args)),
     );
   }
 

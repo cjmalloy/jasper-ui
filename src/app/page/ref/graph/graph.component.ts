@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map, mergeMap, Observable } from 'rxjs';
+import { map, Observable, switchMap } from 'rxjs';
 import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { AccountService } from '../../../service/account.service';
@@ -29,7 +29,7 @@ export class GraphComponent implements OnInit {
       distinctUntilChanged(),
     );
     this.ref$ = this.url$.pipe(
-      mergeMap(url => this.refs.get(url)),
+      switchMap(url => this.refs.get(url)),
       tap(ref => theme.setTitle('Graph: ' + (ref.title || ref.url))),
     );
   }

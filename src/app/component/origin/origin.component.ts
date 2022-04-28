@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { catchError, mergeMap, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { Origin } from '../../model/origin';
 import { AccountService } from '../../service/account.service';
 import { OriginService } from '../../service/api/origin.service';
@@ -54,7 +54,7 @@ export class OriginComponent implements OnInit {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-      mergeMap(() => this.origins.get(this.origin.origin)),
+      switchMap(() => this.origins.get(this.origin.origin)),
     ).subscribe(origin => {
       this.editing = false;
       this.origin = origin;

@@ -3,7 +3,7 @@ import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@a
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { catchError, mergeMap, Observable, throwError } from 'rxjs';
+import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
@@ -176,7 +176,7 @@ export class RefComponent implements OnInit {
     if (!this.inlineTag) return;
     const tag = this.inlineTag.nativeElement.value;
     this.ts.create(tag, this.ref.url, this.ref.origin!).pipe(
-      mergeMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
     ).subscribe(ref => {
       this.tagging = false;
       this.ref = ref;
@@ -189,7 +189,7 @@ export class RefComponent implements OnInit {
       path: '/tags/-',
       value: '_moderated',
     }]).pipe(
-      mergeMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
     ).subscribe(ref => this.ref = ref);
   }
 
@@ -213,7 +213,7 @@ export class RefComponent implements OnInit {
 
   accept() {
     this.refs.delete(this.ref.metadata!.plugins['plugin/invoice/disputed'][0]).pipe(
-      mergeMap(() => this.refs.get(this.ref.url)),
+      switchMap(() => this.refs.get(this.ref.url)),
     ).subscribe(ref => {
       this.ref = ref;
     });
@@ -226,7 +226,7 @@ export class RefComponent implements OnInit {
       tags: ['internal', this.account.tag, 'plugin/invoice/disputed'],
       sources: [this.ref.url],
     }).pipe(
-      mergeMap(() => this.refs.get(this.ref.url)),
+      switchMap(() => this.refs.get(this.ref.url)),
     ).subscribe(ref => {
       this.ref = ref;
     });
@@ -235,7 +235,7 @@ export class RefComponent implements OnInit {
   markPaid() {
     if (this.ref.metadata?.plugins?.['plugin/invoice/rejected']?.length) {
       this.refs.delete(this.ref.metadata!.plugins['plugin/invoice/rejected'][0]).pipe(
-        mergeMap(() => this.refs.get(this.ref.url)),
+        switchMap(() => this.refs.get(this.ref.url)),
       ).subscribe(ref => {
         this.ref = ref;
       });
@@ -246,7 +246,7 @@ export class RefComponent implements OnInit {
       tags: ['internal', this.account.tag, 'plugin/invoice/paid'],
       sources: [this.ref.url],
     }).pipe(
-      mergeMap(() => this.refs.get(this.ref.url)),
+      switchMap(() => this.refs.get(this.ref.url)),
     ).subscribe(ref => {
       this.ref = ref;
     });
@@ -255,7 +255,7 @@ export class RefComponent implements OnInit {
   reject() {
     if (this.ref.metadata?.plugins?.['plugin/invoice/paid']?.length) {
       this.refs.delete(this.ref.metadata!.plugins['plugin/invoice/paid'][0]).pipe(
-        mergeMap(() => this.refs.get(this.ref.url)),
+        switchMap(() => this.refs.get(this.ref.url)),
       ).subscribe(ref => {
         this.ref = ref;
       });
@@ -266,7 +266,7 @@ export class RefComponent implements OnInit {
       tags: ['internal', this.account.tag, 'plugin/invoice/rejected'],
       sources: [this.ref.url],
     }).pipe(
-      mergeMap(() => this.refs.get(this.ref.url)),
+      switchMap(() => this.refs.get(this.ref.url)),
     ).subscribe(ref => {
       this.ref = ref;
     });
@@ -284,7 +284,7 @@ export class RefComponent implements OnInit {
         this.serverError = printError(res);
         return throwError(res);
       }),
-      mergeMap(() => this.refs.get(this.ref.url, this.ref.origin)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin)),
     ).subscribe(ref => {
       this.editing = false;
       this.ref = ref;

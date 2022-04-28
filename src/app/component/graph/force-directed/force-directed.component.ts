@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { Simulation, SimulationNodeDatum } from 'd3';
 import * as _ from 'lodash';
 import { catchError, Observable, of, throwError } from 'rxjs';
-import { mergeMap, tap } from 'rxjs/operators';
+import { switchMap, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { isTextPost } from '../../../util/format';
@@ -87,7 +87,7 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
     if (this.depth > 0) {
       let init: Observable<any> = of(1);
       for (let i = 0; i< this.depth; i++) {
-        init = init.pipe(mergeMap(() => this.loadMore$));
+        init = init.pipe(switchMap(() => this.loadMore$));
       }
       init.subscribe(() => this.draw());
     } else {

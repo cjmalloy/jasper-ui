@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import * as _ from 'lodash';
-import { catchError, forkJoin, mergeMap, throwError } from 'rxjs';
+import { catchError, forkJoin, switchMap, throwError } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
@@ -68,7 +68,7 @@ export class AdminSetupPage implements OnInit {
       }
     }
     forkJoin(installs).pipe(
-      mergeMap(() => this.admin.init$),
+      switchMap(() => this.admin.init$),
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);

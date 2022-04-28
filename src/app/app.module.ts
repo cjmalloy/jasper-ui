@@ -4,7 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { QRCodeModule } from 'angularx-qrcode';
 import { MarkdownModule } from 'ngx-markdown';
-import { mergeMap } from 'rxjs';
+import { switchMap } from 'rxjs';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -66,8 +66,8 @@ import { ConfigService } from './service/config.service';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
-    mergeMap(() => admin.init$),
-    mergeMap(() => account.init$),
+    switchMap(() => admin.init$),
+    switchMap(() => account.init$),
   );
 
 @NgModule({

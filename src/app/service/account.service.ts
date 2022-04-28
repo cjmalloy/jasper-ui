@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
 import * as moment from 'moment';
 import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from 'rxjs';
-import { mergeMap, tap } from 'rxjs/operators';
+import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
 import { HasTags } from '../model/tag';
 import { User } from '../model/user';
@@ -50,8 +50,8 @@ export class AccountService {
         this.mod = roles.mod;
         this.editor = roles.editor;
       }),
-      mergeMap(tag => tag ? this.loadUserExt$ : of()),
-      mergeMap(() => this.subscriptions$),
+      switchMap(tag => tag ? this.loadUserExt$ : of()),
+      switchMap(() => this.subscriptions$),
     );
   }
 
@@ -106,27 +106,27 @@ export class AccountService {
       value: tag,
     }]).pipe(
       tap(() => this.clearCache()),
-      mergeMap(() => this.subscriptions$),
+      switchMap(() => this.subscriptions$),
     ).subscribe();
   }
 
   removeSub(tag: string) {
     this.subscriptions$.pipe(
       map(subs => subs.indexOf(tag)),
-      mergeMap(index => this.exts.patch(this.tag,[{
+      switchMap(index => this.exts.patch(this.tag,[{
         op: 'remove',
         path: '/config/subscriptions/' + index,
       }]))
     ).pipe(
       tap(() => this.clearCache()),
-      mergeMap(() => this.subscriptions$),
+      switchMap(() => this.subscriptions$),
     ).subscribe();
   }
 
   checkNotifications() {
     if (!this.signedIn) throw 'Not signed in';
     return this.userExt$.pipe(
-      mergeMap(ext => this.refs.count({
+      switchMap(ext => this.refs.count({
         query: this.inbox,
         modifiedAfter: ext.config?.inbox?.lastNotified || moment().subtract(1, 'year'),
       })),

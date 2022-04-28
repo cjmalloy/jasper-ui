@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash';
-import { combineLatest, map, Observable } from 'rxjs';
-import { distinctUntilChanged, mergeMap } from 'rxjs/operators';
+import { combineLatest, map, Observable, switchMap } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
@@ -41,7 +41,7 @@ export class HomePage implements OnInit {
       map(([subs, sort, filter, search, pageNumber, pageSize]) =>
         getArgs(subs, sort, filter, search, pageNumber, pageSize ?? this.defaultPageSize)),
       distinctUntilChanged(_.isEqual),
-      mergeMap(args => this.refs.page(args)),
+      switchMap(args => this.refs.page(args)),
     );
     this.route.queryParams.pipe(
       map(params => params['graph']),

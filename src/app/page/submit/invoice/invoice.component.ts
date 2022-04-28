@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
-import { catchError, map, mergeMap, of, throwError } from 'rxjs';
+import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext } from '../../../model/ext';
 import { AccountService } from '../../../service/account.service';
@@ -50,7 +50,7 @@ export class SubmitInvoicePage implements OnInit {
     });
     this.ref$.pipe(
       map(ref => ref.sources),
-      mergeMap(sources => sources ? this.refs.list(sources) : of([]))
+      switchMap(sources => sources ? this.refs.list(sources) : of([]))
     ).subscribe(sources => {
       this.validQueues = sources
         .filter(s => !!s)
@@ -82,7 +82,7 @@ export class SubmitInvoicePage implements OnInit {
 
   get ref$() {
     return this.refUrl$.pipe(
-      mergeMap(url => this.refs.get(url)),
+      switchMap(url => this.refs.get(url)),
     );
   }
 
@@ -121,7 +121,7 @@ export class SubmitInvoicePage implements OnInit {
     this.invoiceForm.markAllAsTouched();
     if (!this.invoiceForm.valid) return;
     this.exts.get(this.queue!).pipe(
-      mergeMap(queueExt => this.refs.create({
+      switchMap(queueExt => this.refs.create({
         ...this.invoiceForm.value,
         published: moment(),
         tags: this.getTags(queueExt),
