@@ -21,13 +21,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @Input()
   showToggle = true;
   @Input()
-  @HostBinding('class.expanded')
-  private _expanded = false;
+  searchable = true;
 
   _tag: string | null = null;
   localTag?: string;
   writeAccess$?: Observable<boolean>;
   inSubs$: Observable<boolean>;
+
+  @HostBinding('class.expanded')
+  private _expanded = false;
 
   constructor(
     public router: Router,
@@ -59,6 +61,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return this._expanded;
   }
 
+  @Input()
   set expanded(value: boolean) {
     localStorage.setItem('sidebar-expanded', ""+value);
     this._expanded = value;
