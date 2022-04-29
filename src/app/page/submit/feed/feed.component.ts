@@ -33,13 +33,13 @@ export class SubmitFeedPage implements OnInit {
     this.feedForm = fb.group({
       url: [''],
       name: [''],
-      tags: fb.array([
-        fb.control('public', [Validators.required, Validators.pattern(TAG_REGEX)]),
-      ]),
+      tags: fb.array([]),
       scrapeInterval: ['00:15:00'],
       scrapeDescription: [true],
       removeDescriptionIndent: [false],
     });
+    this.addTag('public');
+    this.addTag('plugin/thumbnail');
     route.queryParams.subscribe(params => {
       this.url.setValue(params['url']);
       if (params['tag']) {
