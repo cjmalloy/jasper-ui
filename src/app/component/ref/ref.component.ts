@@ -26,8 +26,6 @@ export class RefComponent implements OnInit {
   expandable: string[] = [];
 
   @Input()
-  ref!: Ref;
-  @Input()
   expanded = false;
   @Input()
   expandInline = false;
@@ -49,6 +47,8 @@ export class RefComponent implements OnInit {
   writeAccess$?: Observable<boolean>;
   serverError: string[] = [];
 
+  private _ref!: Ref;
+
   constructor(
     public admin: AdminService,
     public account: AccountService,
@@ -67,71 +67,80 @@ export class RefComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-    this.writeAccess$ = this.account.writeAccess(this.ref);
-    if (this.ref.tags) {
-      this.expandPlugins = _.intersection(this.ref.tags, this.expandable);
+  get ref(): Ref {
+    return this._ref;
+  }
+
+  @Input()
+  set ref(value: Ref) {
+    this._ref = value;
+    this.writeAccess$ = this.account.writeAccess(this._ref);
+    if (this._ref.tags) {
+      this.expandPlugins = _.intersection(this._ref.tags, this.expandable);
     }
-    while (this.sourcesForm.length < (this.ref?.sources?.length || 0)) this.addSource();
-    while (this.tagsForm.length < (this.ref?.tags?.length || 0)) this.addTag();
-    this.editForm.patchValue(this.ref);
+    while (this.sourcesForm.length < (this._ref?.sources?.length || 0)) this.addSource();
+    while (this.tagsForm.length < (this._ref?.tags?.length || 0)) this.addTag();
+    this.editForm.patchValue(this._ref);
+  }
+
+  ngOnInit(): void {
   }
 
   get canInvoice() {
     return this.admin.status.plugins.invoice &&
       this.isAuthor &&
-      (this.ref.tags?.includes('plugin/comment') ||
-        !this.ref.tags?.includes('internal')) &&
-      this.ref.sources;
+      (this._ref.tags?.includes('plugin/comment') ||
+        !this._ref.tags?.includes('internal')) &&
+      this._ref.sources;
   }
 
   get invoice() {
     return this.admin.status.plugins.invoice &&
-      this.ref.tags?.includes('plugin/invoice');
+      this._ref.tags?.includes('plugin/invoice');
   }
 
   get disputed() {
-    return this.ref.metadata?.plugins?.['plugin/invoice/disputed'].length;
+    return this._ref.metadata?.plugins?.['plugin/invoice/disputed'].length;
   }
 
   get paid() {
-    return this.ref.metadata?.plugins?.['plugin/invoice/paid'].length;
+    return this._ref.metadata?.plugins?.['plugin/invoice/paid'].length;
   }
 
   get rejected() {
-    return this.ref.metadata?.plugins?.['plugin/invoice/rejected'].length;
+    return this._ref.metadata?.plugins?.['plugin/invoice/rejected'].length;
   }
 
   get isAuthor() {
-    return this.ref.tags?.includes(this.account.tag);
+    return this._ref.tags?.includes(this.account.tag);
   }
 
   get isRecipient() {
-    return this.ref.tags?.includes(this.account.inbox);
+    return this._ref.tags?.includes(this.account.inbox);
   }
 
   get authors() {
-    return authors(this.ref);
+    return authors(this._ref);
   }
 
   get tags() {
-    return interestingTags(this.ref.tags);
+    return interestingTags(this._ref.tags);
   }
 
   get host() {
-    return urlSummary(this.ref.url);
+    return urlSummary(this._ref.url);
   }
 
   get webLink() {
-    return webLink(this.ref);
+    return webLink(this._ref);
   }
 
   get approved() {
-    return this.ref.tags?.includes('_moderated');
+    return this._ref.tags?.includes('_moderated');
   }
 
   get locked() {
-    return this.ref.tags?.includes('locked');
+    return this._ref.tags?.includes('locked');
   }
 
   get tagsForm() {
@@ -143,23 +152,23 @@ export class RefComponent implements OnInit {
   }
 
   get comments() {
-    if (!this.ref.metadata) return '? comments';
-    const commentCount = this.ref.metadata.plugins?.['plugin/comment']?.length;
+    if (!this._ref.metadata) return '? comments';
+    const commentCount = this._ref.metadata.plugins?.['plugin/comment']?.length;
     if (commentCount === 0) return 'comment';
     if (commentCount === 1) return '1 comment';
     return commentCount + ' comments';
   }
 
   get responses() {
-    if (!this.ref.metadata) return '? citations';
-    const responseCount = this.ref.metadata.responses?.length;
+    if (!this._ref.metadata) return '? citations';
+    const responseCount = this._ref.metadata.responses?.length;
     if (responseCount === 0) return 'uncited';
     if (responseCount === 1) return '1 citation';
     return responseCount + ' citations';
   }
 
   get sources() {
-    const sourceCount = this.ref.sources?.length || 0;
+    const sourceCount = this._ref.sources?.length || 0;
     if (sourceCount === 0) return 'unsourced';
     if (sourceCount === 1) return '1 source';
     return sourceCount + ' sources';
@@ -168,7 +177,7 @@ export class RefComponent implements OnInit {
   addInlineTag() {
     if (!this.inlineTag) return;
     const tag = this.inlineTag.nativeElement.value;
-    this.ts.create(tag, this.ref.url, this.ref.origin!).pipe(
+    this.ts.create(tag, this._ref.url, this._ref.origin!).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
     ).subscribe(ref => {
       this.tagging = false;
@@ -177,12 +186,12 @@ export class RefComponent implements OnInit {
   }
 
   approve() {
-    this.refs.patch(this.ref.url, this.ref.origin!, [{
+    this.refs.patch(this._ref.url, this._ref.origin!, [{
       op: 'add',
       path: '/tags/-',
       value: '_moderated',
     }]).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
     ).subscribe(ref => this.ref = ref);
   }
 
@@ -205,8 +214,8 @@ export class RefComponent implements OnInit {
   }
 
   accept() {
-    this.refs.delete(this.ref.metadata!.plugins['plugin/invoice/disputed'][0]).pipe(
-      switchMap(() => this.refs.get(this.ref.url)),
+    this.refs.delete(this._ref.metadata!.plugins['plugin/invoice/disputed'][0]).pipe(
+      switchMap(() => this.refs.get(this._ref.url)),
     ).subscribe(ref => {
       this.ref = ref;
     });
@@ -217,18 +226,18 @@ export class RefComponent implements OnInit {
       url: 'internal://' + uuid(),
       published: moment(),
       tags: ['internal', this.account.tag, 'plugin/invoice/disputed'],
-      sources: [this.ref.url],
+      sources: [this._ref.url],
     }).pipe(
-      switchMap(() => this.refs.get(this.ref.url)),
+      switchMap(() => this.refs.get(this._ref.url)),
     ).subscribe(ref => {
       this.ref = ref;
     });
   }
 
   markPaid() {
-    if (this.ref.metadata?.plugins?.['plugin/invoice/rejected']?.length) {
-      this.refs.delete(this.ref.metadata!.plugins['plugin/invoice/rejected'][0]).pipe(
-        switchMap(() => this.refs.get(this.ref.url)),
+    if (this._ref.metadata?.plugins?.['plugin/invoice/rejected']?.length) {
+      this.refs.delete(this._ref.metadata!.plugins['plugin/invoice/rejected'][0]).pipe(
+        switchMap(() => this.refs.get(this._ref.url)),
       ).subscribe(ref => {
         this.ref = ref;
       });
@@ -237,18 +246,18 @@ export class RefComponent implements OnInit {
       url: 'internal://' + uuid(),
       published: moment(),
       tags: ['internal', this.account.tag, 'plugin/invoice/paid'],
-      sources: [this.ref.url],
+      sources: [this._ref.url],
     }).pipe(
-      switchMap(() => this.refs.get(this.ref.url)),
+      switchMap(() => this.refs.get(this._ref.url)),
     ).subscribe(ref => {
       this.ref = ref;
     });
   }
 
   reject() {
-    if (this.ref.metadata?.plugins?.['plugin/invoice/paid']?.length) {
-      this.refs.delete(this.ref.metadata!.plugins['plugin/invoice/paid'][0]).pipe(
-        switchMap(() => this.refs.get(this.ref.url)),
+    if (this._ref.metadata?.plugins?.['plugin/invoice/paid']?.length) {
+      this.refs.delete(this._ref.metadata!.plugins['plugin/invoice/paid'][0]).pipe(
+        switchMap(() => this.refs.get(this._ref.url)),
       ).subscribe(ref => {
         this.ref = ref;
       });
@@ -257,9 +266,9 @@ export class RefComponent implements OnInit {
       url: 'internal://' + uuid(),
       published: moment(),
       tags: ['internal', this.account.tag, 'plugin/invoice/rejected'],
-      sources: [this.ref.url],
+      sources: [this._ref.url],
     }).pipe(
-      switchMap(() => this.refs.get(this.ref.url)),
+      switchMap(() => this.refs.get(this._ref.url)),
     ).subscribe(ref => {
       this.ref = ref;
     });
@@ -277,7 +286,7 @@ export class RefComponent implements OnInit {
         this.serverError = printError(res);
         return throwError(res);
       }),
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin)),
+      switchMap(() => this.refs.get(this._ref.url, this._ref.origin)),
     ).subscribe(ref => {
       this.editing = false;
       this.ref = ref;
@@ -285,7 +294,7 @@ export class RefComponent implements OnInit {
   }
 
   delete() {
-    this.refs.delete(this.ref.url, this.ref.origin!).subscribe(() => {
+    this.refs.delete(this._ref.url, this._ref.origin!).subscribe(() => {
       this.deleted = true;
     });
   }

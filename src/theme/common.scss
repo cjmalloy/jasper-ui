@@ -358,6 +358,18 @@ textarea.has-plugins {
   padding: 8px;
 }
 
+.image-expand {
+  width: 320px;
+  height: 240px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.video-expand {
+  width: 320px;
+  height: 240px;
+}
+
 .notification {
   filter: sepia(100%) saturate(400%) brightness(74%) hue-rotate(300deg);
 }

@@ -29,4 +29,8 @@ export class EmbedComponent implements OnInit {
     return !!this.admin.status.plugins.latex && !!this.ref.tags?.includes('plugin/latex');
   }
 
+  cssUrl(url: string) {
+    return `url("${url}")`;
+  }
+
 }

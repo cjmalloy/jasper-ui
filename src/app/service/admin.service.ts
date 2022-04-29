@@ -8,11 +8,13 @@ import { commentPlugin } from '../plugin/comment';
 import { embedPlugin } from '../plugin/embed';
 import { emojiPlugin } from '../plugin/emoji';
 import { graphPlugin } from '../plugin/graph';
+import { imagePlugin } from '../plugin/image';
 import { inboxPlugin } from '../plugin/inbox';
 import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
 import { latexPlugin } from '../plugin/latex';
 import { qrPlugin } from '../plugin/qr';
 import { thumbnailPlugin } from '../plugin/thumbnail';
+import { videoPlugin } from '../plugin/video';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
@@ -43,6 +45,8 @@ export class AdminService {
       invoicePaid: invoicePaidPlugin,
       qr: qrPlugin,
       embed: embedPlugin,
+      image: imagePlugin,
+      video: videoPlugin,
     },
     templates: <Record<string, Template>> {
       root: rootTemplate,

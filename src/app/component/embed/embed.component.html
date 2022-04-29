@@ -1,14 +1,25 @@
 <iframe *ngIf="expandPlugins.includes('plugin/embed')"
         [width]="ref.plugins?.['plugin/embed']?.width || 560"
         [height]="ref.plugins?.['plugin/embed']?.height || 315"
-        [src]="ref.plugins?.['plugin/embed']?.url || ref.url | safe"
+        [src]="ref.plugins?.['plugin/embed']?.url || ref.url | embed | safe"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen></iframe>
+<div *ngIf="expandPlugins.includes('plugin/image')"
+     class="image-expand"
+     [style.background-image]="cssUrl(ref.url)"
+     appResize></div>
+<video *ngIf="expandPlugins.includes('plugin/video')"
+       class="video-expand"
+       controls
+       appResize>
+  <source [src]="ref.url">
+</video>
 <qrcode *ngIf="expandPlugins.includes('plugin/qr')"
         [qrdata]="ref.url"
         [width]="256"
-        [errorCorrectionLevel]="'M'"></qrcode>
+        [errorCorrectionLevel]="'M'"
+        appResize></qrcode>
 <div *ngIf="ref.comment"
      class="md expand"
      markdown

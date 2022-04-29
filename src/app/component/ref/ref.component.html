@@ -2,7 +2,7 @@
   <ng-container *ngIf="admin.status.plugins.thumbnail">
     <div class="thumbnail"
          *ngIf="ref.tags?.includes('plugin/thumbnail') else defaultThumbnail"
-         [style.background-image]="cssUrl(ref.plugins?.['plugin/thumbnail']?.url)"></div>
+         [style.background-image]="cssUrl(ref | thumbnail)"></div>
     <ng-template #defaultThumbnail>
       <div class="thumbnail default-thumbnail"></div>
     </ng-template>

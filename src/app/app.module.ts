@@ -65,6 +65,9 @@ import { SafePipe } from './pipe/safe.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
+import { EmbedPipe } from './pipe/embed.pipe';
+import { ThumbnailPipe } from './pipe/thumbnail.pipe';
+import { ResizeDirective } from './directive/resize.directive';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -128,6 +131,9 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     SearchFilterComponent,
     EmbedComponent,
     SafePipe,
+    EmbedPipe,
+    ThumbnailPipe,
+    ResizeDirective,
   ],
   imports: [
     BrowserModule,
