@@ -1,0 +1,18 @@
+<iframe *ngIf="expandPlugins.includes('plugin/embed')"
+        [width]="ref.plugins?.['plugin/embed']?.width || 560"
+        [height]="ref.plugins?.['plugin/embed']?.height || 315"
+        [src]="ref.plugins?.['plugin/embed']?.url || ref.url | safe"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+<qrcode *ngIf="expandPlugins.includes('plugin/qr')"
+        [qrdata]="ref.url"
+        [width]="256"
+        [errorCorrectionLevel]="'M'"></qrcode>
+<div *ngIf="ref.comment"
+     class="md expand"
+     markdown
+     [emoji]="emoji"
+     [katex]="latex"
+     [katexOptions]="{ throwOnError: false }"
+     [data]="ref.comment"></div>

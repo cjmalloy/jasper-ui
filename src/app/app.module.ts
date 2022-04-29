@@ -12,6 +12,7 @@ import { CommentEditComponent } from './component/comment-edit/comment-edit.comp
 import { CommentListComponent } from './component/comment-list/comment-list.component';
 import { CommentReplyComponent } from './component/comment-reply/comment-reply.component';
 import { CommentComponent } from './component/comment/comment.component';
+import { EmbedComponent } from './component/embed/embed.component';
 import { FeedListComponent } from './component/feed-list/feed-list.component';
 import { FeedComponent } from './component/feed/feed.component';
 import { ForceDirectedComponent } from './component/graph/force-directed/force-directed.component';
@@ -60,6 +61,7 @@ import { SubmitTextPage } from './page/submit/text/text.component';
 import { SubmitWebPage } from './page/submit/web/web.component';
 import { EditTagPage } from './page/tag/edit/edit.component';
 import { TagPage } from './page/tag/tag.component';
+import { SafePipe } from './pipe/safe.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
@@ -124,6 +126,8 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     InboxInvoicesPage,
     InboxSentPage,
     SearchFilterComponent,
+    EmbedComponent,
+    SafePipe,
   ],
   imports: [
     BrowserModule,

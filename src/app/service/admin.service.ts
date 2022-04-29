@@ -5,12 +5,14 @@ import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';
 import { Template } from '../model/template';
 import { commentPlugin } from '../plugin/comment';
+import { embedPlugin } from '../plugin/embed';
 import { emojiPlugin } from '../plugin/emoji';
 import { graphPlugin } from '../plugin/graph';
 import { inboxPlugin } from '../plugin/inbox';
 import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
 import { latexPlugin } from '../plugin/latex';
 import { qrPlugin } from '../plugin/qr';
+import { thumbnailPlugin } from '../plugin/thumbnail';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
@@ -31,6 +33,7 @@ export class AdminService {
     plugins: <Record<string, Plugin>> {
       inbox: inboxPlugin,
       comment: commentPlugin,
+      thumbnail: thumbnailPlugin,
       latex: latexPlugin,
       emoji: emojiPlugin,
       graph: graphPlugin,
@@ -39,6 +42,7 @@ export class AdminService {
       invoiceDisputed: invoiceDisputedPlugin,
       invoicePaid: invoicePaidPlugin,
       qr: qrPlugin,
+      embed: embedPlugin,
     },
     templates: <Record<string, Template>> {
       root: rootTemplate,

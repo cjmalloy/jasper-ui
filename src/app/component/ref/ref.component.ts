@@ -57,6 +57,7 @@ export class RefComponent implements OnInit {
     private fb: FormBuilder,
   ) {
     if (this.admin.status.plugins.qr) this.expandable.push('plugin/qr');
+    if (this.admin.status.plugins.embed) this.expandable.push('plugin/embed');
     if (this.admin.status.plugins.video) this.expandable.push('plugin/video');
     if (this.admin.status.plugins.image) this.expandable.push('plugin/image');
     this.editForm = fb.group({
@@ -74,14 +75,6 @@ export class RefComponent implements OnInit {
     while (this.sourcesForm.length < (this.ref?.sources?.length || 0)) this.addSource();
     while (this.tagsForm.length < (this.ref?.tags?.length || 0)) this.addTag();
     this.editForm.patchValue(this.ref);
-  }
-
-  get emoji() {
-    return !!this.admin.status.plugins.emoji && !!this.ref.tags?.includes('plugin/emoji');
-  }
-
-  get latex() {
-    return !!this.admin.status.plugins.latex && !!this.ref.tags?.includes('plugin/latex');
   }
 
   get canInvoice() {
@@ -295,5 +288,9 @@ export class RefComponent implements OnInit {
     this.refs.delete(this.ref.url, this.ref.origin!).subscribe(() => {
       this.deleted = true;
     });
+  }
+
+  cssUrl(url: string) {
+    return `url("${url}")`;
   }
 }

@@ -196,6 +196,19 @@ html, body {
   }
 }
 
+.thumbnail {
+  margin-right: 10px;
+  width: 64px;
+  height: 48px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  &.default-thumbnail {
+    background-image: url("~/assets/default-thumbnail.png");
+  }
+}
+
 .list-item {
   display: block;
   max-width: calc(100vw - 8px);
