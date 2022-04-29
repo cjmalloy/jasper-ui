@@ -141,6 +141,14 @@ body.dark-theme {
     }
   }
 
+  .thumbnail {
+    filter: drop-shadow(0px 0px 0.5px #ffffff);
+  }
+
+  .thumbnail.default-thumbnail {
+    filter: none;
+  }
+
   .list-item {
     &:focus {
       border: 1px dashed $border;

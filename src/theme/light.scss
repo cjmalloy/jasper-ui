@@ -1,6 +1,7 @@
 $mobile-width: 1024px;
 $bg: white;
 $text: black;
+$blue: #c7d5f3;
 $active: #da0000;
 $info: gray;
 $tag: navy;
@@ -48,7 +49,7 @@ body.light-theme {
   }
 
   .tabs {
-    background-color: #c7d5f3;
+    background-color: $blue;
     border-bottom: 1px solid $border;
     background-image: url("~/assets/jasper-light.png");
     background-position: 4px 0;
