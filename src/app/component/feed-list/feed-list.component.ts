@@ -1,4 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Feed } from '../../model/feed';
 import { Page } from '../../model/page';
 
@@ -10,10 +11,28 @@ import { Page } from '../../model/page';
 export class FeedListComponent implements OnInit {
   @HostBinding('class') css = 'feed-list';
 
-  @Input()
-  page?: Page<Feed> | null;
+  private _page!: Page<Feed> | null;
 
-  constructor() { }
+  constructor(private router: Router) { }
+
+  get page(): Page<Feed> | null {
+    return this._page;
+  }
+
+  @Input()
+  set page(value: Page<Feed> | null) {
+    this._page = value;
+    if (this._page) {
+      if (this._page.number > 0 && this._page.number >= this._page.totalPages) {
+        this.router.navigate([], {
+          queryParams: {
+            pageNumber: this._page.totalPages - 1
+          },
+          queryParamsHandling: "merge",
+        })
+      }
+    }
+  }
 
   ngOnInit(): void {
   }

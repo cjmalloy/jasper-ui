@@ -20,9 +20,7 @@ export class RefListComponent implements OnInit {
 
   private _page!: Page<Ref> | null;
 
-  constructor(
-    private router: Router,
-  ) { }
+  constructor(private router: Router) { }
 
   get page(): Page<Ref> | null {
     return this._page;

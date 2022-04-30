@@ -1,4 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Page } from '../../model/page';
 import { IsTag } from '../../model/tag';
 
@@ -10,10 +11,28 @@ import { IsTag } from '../../model/tag';
 export class TagListComponent implements OnInit {
   @HostBinding('class') css = 'tag-list';
 
-  @Input()
-  page?: Page<IsTag> | null;
+  private _page!: Page<IsTag> | null;
 
-  constructor() { }
+  constructor(private router: Router) { }
+
+  get page(): Page<IsTag> | null {
+    return this._page;
+  }
+
+  @Input()
+  set page(value: Page<IsTag> | null) {
+    this._page = value;
+    if (this._page) {
+      if (this._page.number > 0 && this._page.number >= this._page.totalPages) {
+        this.router.navigate([], {
+          queryParams: {
+            pageNumber: this._page.totalPages - 1
+          },
+          queryParamsHandling: "merge",
+        })
+      }
+    }
+  }
 
   ngOnInit(): void {
   }
