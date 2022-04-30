@@ -26,7 +26,7 @@ export class SearchFilterComponent implements OnInit {
       this.allFilters.push('modlist');
     }
     this.filter$.subscribe(filter => {
-      if (!filter) return;
+      if (!filter) filter = [];
       if (!Array.isArray(filter)) filter = [filter];
       this.filters = filter;
     });
