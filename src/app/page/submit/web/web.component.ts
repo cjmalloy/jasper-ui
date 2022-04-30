@@ -4,6 +4,9 @@ import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@ang
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
+import { isAudio } from '../../../plugin/audio';
+import { isImage } from '../../../plugin/image';
+import { isVideo } from '../../../plugin/video';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -81,6 +84,9 @@ export class SubmitWebPage implements OnInit {
   }
 
   set url(value: string) {
+    if (isAudio(value)) this.addTag('plugin/audio');
+    if (isVideo(value)) this.addTag('plugin/video');
+    if (isImage(value)) this.addTag('plugin/image');
     this.webForm.get('url')?.setValue(value);
   }
 

@@ -7,16 +7,23 @@
         allowfullscreen></iframe>
 <div *ngIf="expandPlugins.includes('plugin/image')"
      class="image-expand"
-     [style.background-image]="cssUrl(ref.url)"
+     [style.background-image]="cssUrl(ref.plugins?.['plugin/image']?.url || ref.url)"
      appResize></div>
 <video *ngIf="expandPlugins.includes('plugin/video')"
        class="video-expand"
+       autoplay
        controls
        appResize>
-  <source [src]="ref.url">
+  <source [src]="ref.plugins?.['plugin/video']?.url || ref.url">
 </video>
+<audio *ngIf="expandPlugins.includes('plugin/audio')"
+       class="audio-expand"
+       autoplay
+       controls>
+  <source [src]="ref.plugins?.['plugin/audio']?.url || ref.url">
+</audio>
 <qrcode *ngIf="expandPlugins.includes('plugin/qr')"
-        [qrdata]="ref.url"
+        [qrdata]="ref.plugins?.['plugin/qr']?.url || ref.url"
         [width]="256"
         [errorCorrectionLevel]="'M'"
         appResize></qrcode>

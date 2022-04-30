@@ -4,6 +4,7 @@ import { catchError, forkJoin, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';
 import { Template } from '../model/template';
+import { audioPlugin } from '../plugin/audio';
 import { commentPlugin } from '../plugin/comment';
 import { embedPlugin } from '../plugin/embed';
 import { emojiPlugin } from '../plugin/emoji';
@@ -45,8 +46,9 @@ export class AdminService {
       invoicePaid: invoicePaidPlugin,
       qr: qrPlugin,
       embed: embedPlugin,
-      image: imagePlugin,
+      audio: audioPlugin,
       video: videoPlugin,
+      image: imagePlugin,
     },
     templates: <Record<string, Template>> {
       root: rootTemplate,

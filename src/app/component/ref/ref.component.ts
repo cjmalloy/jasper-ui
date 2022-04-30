@@ -58,6 +58,7 @@ export class RefComponent implements OnInit {
   ) {
     if (this.admin.status.plugins.qr) this.expandable.push('plugin/qr');
     if (this.admin.status.plugins.embed) this.expandable.push('plugin/embed');
+    if (this.admin.status.plugins.audio) this.expandable.push('plugin/audio');
     if (this.admin.status.plugins.video) this.expandable.push('plugin/video');
     if (this.admin.status.plugins.image) this.expandable.push('plugin/image');
     this.editForm = fb.group({
