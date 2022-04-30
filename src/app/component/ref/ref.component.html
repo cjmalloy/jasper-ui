@@ -25,7 +25,7 @@
       </div>
       <div class="stack">
         <div class="info" [class.expanded]="!actionsExpanded">
-          submitted {{ ref.created?.fromNow() }}
+          <span [title]="ref.created?.toISOString()">submitted {{ ref.created?.fromNow() }}</span>
           <ng-container *ngIf="authors.length">
             by
             <ng-container *ngFor="let user of authors">
@@ -39,7 +39,7 @@
               <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
             </ng-container>
           </ng-container>
-          published {{ ref.published?.fromNow() }}
+          <span [title]="ref.published?.toISOString()">published {{ ref.published?.fromNow() }}</span>
         </div>
         <app-embed *ngIf="expanded && expandInline && !editing"
                    [ref]="ref"

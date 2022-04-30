@@ -7,7 +7,7 @@
 </div>
 <div class="stack">
   <div class="info">
-    modified {{ tag.modified?.fromNow() }}
+    <span [title]="tag.modified?.toISOString()">modified {{ tag.modified?.fromNow() }}</span>
   </div>
   <div class="actions" *ngIf="!tag.origin">
     <a *ngIf="writeAccess$ | async"

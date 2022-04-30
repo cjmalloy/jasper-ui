@@ -6,7 +6,7 @@
     </a>
   </ng-container>
   <span class="lock icon" *ngIf="locked" title="Locked">🔒️</span>
-  {{ ref.created?.fromNow() }}
+  <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
   {{ comments }}
 </div>
 
@@ -22,7 +22,7 @@
         {{ user.replace('+', '').replace('user/', '') }}
       </a>
     </ng-container>
-    {{ ref.created?.fromNow() }}
+    <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
     <ng-container *ngIf="tagged.length">
       tagged
       <ng-container *ngFor="let tag of tagged">

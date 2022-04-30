@@ -6,12 +6,12 @@
   <div class="stack">
     <div class="info">
       <ng-container *ngIf="feed.lastScrape">
-        last scraped {{ feed.lastScrape.fromNow() }}
+        <span [title]="feed.lastScrape.toISOString()">last scraped {{ feed.lastScrape.fromNow() }}</span>
       </ng-container>
       <ng-container *ngIf="!feed.lastScrape">
         not scraped yet
       </ng-container>
-      modified {{ feed.modified?.fromNow() }}
+      <span [title]="feed.modified?.toISOString()">modified {{ feed.modified?.fromNow() }}</span>
       <ng-container *ngIf="tags.length">
         tagged
         <ng-container *ngFor="let tag of tags">
