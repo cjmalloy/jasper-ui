@@ -24,6 +24,13 @@ export class FeedService {
     return this.http.post<void>(this.base, feed);
   }
 
+  exists(url: string, origin = ''): Observable<boolean> {
+    return this.http.get(`${this.base}/exists`, {
+      params: params({ url, origin }),
+      responseType: 'text',
+    }).pipe(map(v => v === 'true'));
+  }
+
   get(url: string, origin = ''): Observable<Feed> {
     return this.http.get(this.base, {
       params: params({ url, origin }),

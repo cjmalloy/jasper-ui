@@ -3,6 +3,7 @@ import { AbstractControl, AsyncValidatorFn, FormBuilder, FormControl, FormGroup,
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, mergeMap, Observable, of } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
+import { FeedService } from '../../service/api/feed.service';
 import { RefService } from '../../service/api/ref.service';
 import { ThemeService } from '../../service/theme.service';
 
@@ -30,7 +31,7 @@ export class SubmitPage implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private refs: RefService,
-    private feeds: RefService,
+    private feeds: FeedService,
     private fb: FormBuilder,
   ) {
     theme.setTitle('Submit: Link');
