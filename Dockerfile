@@ -17,3 +17,4 @@ ENV BASE_HREF=$BASE_HREF
 COPY docker/default.conf /etc/nginx/conf.d
 COPY docker/40-create-jasper-config.sh /docker-entrypoint.d
 COPY docker/50-set-base-href.sh /docker-entrypoint.d
+COPY docker/60-set-title.sh /docker-entrypoint.d
