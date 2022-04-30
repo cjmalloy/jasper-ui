@@ -43,7 +43,7 @@ export class SubmitFeedPage implements OnInit {
     this.addTag('public');
     if (this.admin.status.plugins.thumbnail) this.addTag('plugin/thumbnail');
     route.queryParams.subscribe(params => {
-      this.url.setValue(params['url']);
+      this.url.setValue(params['url'].trim());
       if (params['tag']) {
         this.addTag(params['tag']);
       }

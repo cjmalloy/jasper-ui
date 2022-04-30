@@ -47,7 +47,7 @@ export class SubmitWebPage implements OnInit {
       ]),
     });
     route.queryParams.subscribe(params => {
-      this.url = params['url'];
+      this.url = params['url'].trim();
       if (params['tag']) {
         this.addTag(params['tag']);
       }
