@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { AccountService } from '../../../service/account.service';
+import { AdminService } from '../../../service/admin.service';
 import { FeedService } from '../../../service/api/feed.service';
 import { ThemeService } from '../../../service/theme.service';
 import { TAG_REGEX } from '../../../util/format';
@@ -25,6 +26,7 @@ export class SubmitFeedPage implements OnInit {
     private theme: ThemeService,
     private router: Router,
     private route: ActivatedRoute,
+    private admin: AdminService,
     private account: AccountService,
     private feeds: FeedService,
     private fb: FormBuilder,
@@ -39,7 +41,7 @@ export class SubmitFeedPage implements OnInit {
       removeDescriptionIndent: [false],
     });
     this.addTag('public');
-    this.addTag('plugin/thumbnail');
+    if (this.admin.status.plugins.thumbnail) this.addTag('plugin/thumbnail');
     route.queryParams.subscribe(params => {
       this.url.setValue(params['url']);
       if (params['tag']) {
