@@ -40,6 +40,11 @@ export class CommentReplyComponent implements AfterViewInit {
     private refs: RefService,
   ) { }
 
+  get publicTag() {
+    if (!this.top.tags?.includes('public')) return [];
+    return ['public'];
+  }
+
   get plugins() {
     const result = [];
     if (this.emoji) result.push('plugin/emoji');
@@ -61,7 +66,10 @@ export class CommentReplyComponent implements AfterViewInit {
       sources: this.sources,
       title: 'Reply to: ' + this.top.title,
       comment: value,
-      tags: ['public', 'internal', 'plugin/comment',
+      tags: [
+        ...this.publicTag,
+        'internal',
+        'plugin/comment',
         this.account.tag,
         ...this.tags!,
         ...this.plugins,
