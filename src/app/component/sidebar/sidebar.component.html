@@ -29,7 +29,7 @@
   </div>
 </ng-container>
 <ng-container *ngIf="admin.status.plugins.inbox && user">
-  <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: ext?.tag }">
+  <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
     ✉️ &nbsp; Send Direct Message
   </div>
 </ng-container>
