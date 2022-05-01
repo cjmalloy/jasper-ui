@@ -19,7 +19,6 @@ export class CommentsComponent implements OnInit, OnDestroy {
   depth$!: Observable<number>;
   sort$!: Observable<string>;
   ref$ = new Subject<Ref>();
-  inboxes$!: Observable<string[]>;
   newComments$ = new Subject<Ref | null>();
 
   private depth = 7;
@@ -44,9 +43,6 @@ export class CommentsComponent implements OnInit, OnDestroy {
       switchMap(url => this.refs.get(url)),
       tap(ref => theme.setTitle('Comments: ' + (ref.title || ref.url))),
     ).subscribe(ref => this.ref$.next(ref));
-    this.inboxes$ = this.ref$.pipe(
-      map(ref => inboxes(ref, this.account.tag)),
-    );
   }
 
   ngOnInit(): void {
@@ -66,5 +62,9 @@ export class CommentsComponent implements OnInit, OnDestroy {
       switchMap(() => this.route.params),
       map(params => params['ref']),
     );
+  }
+
+  inboxes(ref: Ref) {
+    return inboxes(ref, this.account.tag);
   }
 }
