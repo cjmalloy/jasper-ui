@@ -23,7 +23,7 @@ export class SubmitDmPage implements OnInit {
   dmForm: FormGroup;
   serverError: string[] = [];
 
-  to?: string;
+  to = '';
   emoji = !!this.admin.status.plugins.emoji;
   latex = !!this.admin.status.plugins.latex;
 
@@ -42,7 +42,9 @@ export class SubmitDmPage implements OnInit {
       comment: [''],
     });
     route.queryParams.subscribe(params => {
-      this.to = params['to'];
+      if (params['to']) {
+        this.to = params['to'];
+      }
       this.title.setValue(`DM from ${account.tag}`)
     });
   }
