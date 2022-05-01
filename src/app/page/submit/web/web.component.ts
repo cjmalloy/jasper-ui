@@ -87,6 +87,7 @@ export class SubmitWebPage implements OnInit {
     if (this.admin.status.plugins.audio && isAudio(value)) this.addTag('plugin/audio');
     if (this.admin.status.plugins.video && isVideo(value)) this.addTag('plugin/video');
     if (this.admin.status.plugins.image && isImage(value)) this.addTag('plugin/image');
+    if (this.admin.status.plugins.thumbnail && (isImage(value) || isVideo(value))) this.addTag('plugin/thumbnail');
     this.webForm.get('url')?.setValue(value);
   }
 
