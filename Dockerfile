@@ -7,7 +7,7 @@ COPY . ./
 RUN ng build --configuration production
 
 FROM builder as test
-RUN ng test -c karma-ci.conf.js
+CMD ng test -c karma-ci.conf.js
 
 FROM nginx as deploy
 WORKDIR /usr/share/nginx/html/
