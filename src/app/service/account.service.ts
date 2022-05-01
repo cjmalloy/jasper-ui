@@ -8,7 +8,7 @@ import { HasTags } from '../model/tag';
 import { User } from '../model/user';
 import { getInbox } from '../plugin/inbox';
 import { defaultSubs } from '../template/user';
-import { capturesAny, isOwner, qualifyTags } from '../util/tag';
+import { capturesAny, isOwner, isOwnerTag, qualifyTags } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -149,6 +149,7 @@ export class AccountService {
     if (!this.signedIn) return of(false);
     if (ref.tags?.includes('locked')) return of(false);
     if (this.mod) return of(true);
+    if (isOwnerTag(this.tag, ref)) return of(true);
     return this.user$.pipe(
       map(user => isOwner(user, ref) || capturesAny(user.writeAccess, qualifyTags(ref.tags, ref.origin))),
     );

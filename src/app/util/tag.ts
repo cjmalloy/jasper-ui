@@ -36,6 +36,11 @@ export function isOwner(user: User, ref: HasTags) {
   return ref.tags?.includes(user.tag);
 }
 
+export function isOwnerTag(tag: string, ref: HasTags) {
+  if (ref.origin) return false;
+  return ref.tags?.includes(tag);
+}
+
 /**
  * Return local tag if origin is a wildcard.
  */
