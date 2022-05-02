@@ -1,11 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as moment from 'moment';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { mapRef, mapRefOrNull, Ref, writeRef } from '../../model/ref';
 import { params } from '../../util/http';
+import { AccountService } from '../account.service';
 import { ConfigService } from '../config.service';
+import { LoginService } from '../login.service';
 
 export type RefFilter = {
   responses?: string,
@@ -33,6 +35,7 @@ export class RefService {
   constructor(
     private http: HttpClient,
     private config: ConfigService,
+    private login: LoginService,
   ) { }
 
   private get base() {
@@ -40,20 +43,28 @@ export class RefService {
   }
 
   create(ref: Ref): Observable<void> {
-    return this.http.post<void>(this.base, ref);
+    return this.http.post<void>(this.base, ref).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   exists(url: string, origin = ''): Observable<boolean> {
     return this.http.get(`${this.base}/exists`, {
       params: params({ url, origin }),
       responseType: 'text',
-    }).pipe(map(v => v === 'true'));
+    }).pipe(
+      map(v => v === 'true'),
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   get(url: string, origin = ''): Observable<Ref> {
     return this.http.get(this.base, {
       params: params({ url, origin }),
-    }).pipe(map(mapRef));
+    }).pipe(
+      map(mapRef),
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   list(urls: string[], origin = ''): Observable<(Ref | null)[]> {
@@ -62,13 +73,17 @@ export class RefService {
     }).pipe(
       map(res => res as any[]),
       map(res => res.map(mapRefOrNull)),
+      catchError(err => this.login.handleHttpError(err)),
     );
   }
 
   page(args?: RefQueryArgs): Observable<Page<Ref>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
-    }).pipe(map(mapPage(mapRef)));
+    }).pipe(
+      map(mapPage(mapRef)),
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   count(args: {
@@ -82,23 +97,32 @@ export class RefService {
     return this.http.get(`${this.base}/count`, {
       responseType: 'text',
       params: params(args),
-    }).pipe(map(parseInt));
+    }).pipe(
+      map(parseInt),
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   update(ref: Ref): Observable<void> {
-    return this.http.put<void>(this.base, writeRef(ref));
+    return this.http.put<void>(this.base, writeRef(ref)).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   patch(url: string, origin: string, patch: any[]): Observable<void> {
     return this.http.patch<void>(this.base, patch, {
       headers: { 'Content-Type': 'application/json-patch+json' },
       params: params({ url, origin }),
-    });
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   delete(url: string, origin = ''): Observable<void> {
     return this.http.delete<void>(this.base, {
       params: params({ url, origin }),
-    });
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 }

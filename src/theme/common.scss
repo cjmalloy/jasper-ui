@@ -404,6 +404,17 @@ footer {
   text-align: center;
 }
 
+.login-popup {
+  position: fixed;
+  width: 100vw;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  & > * {
+    margin: 10px;
+  }
+}
+
 .md {
   max-width: 60em;
   overflow-wrap: break-word;

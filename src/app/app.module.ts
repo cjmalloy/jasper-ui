@@ -17,6 +17,7 @@ import { FeedListComponent } from './component/feed-list/feed-list.component';
 import { FeedComponent } from './component/feed/feed.component';
 import { ForceDirectedComponent } from './component/graph/force-directed/force-directed.component';
 import { LoadingComponent } from './component/loading/loading.component';
+import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { OriginListComponent } from './component/origin-list/origin-list.component';
 import { OriginComponent } from './component/origin/origin.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
@@ -30,6 +31,7 @@ import { TagListComponent } from './component/tag-list/tag-list.component';
 import { TagComponent } from './component/tag/tag.component';
 import { UserComponent } from './component/user/user.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
+import { ResizeDirective } from './directive/resize.directive';
 import { DebugInterceptor } from './http/debug.interceptor';
 import { AdminPage } from './page/admin/admin.component';
 import { AdminOriginPage } from './page/admin/origin/origin.component';
@@ -44,6 +46,7 @@ import { InboxPage } from './page/inbox/inbox.component';
 import { InboxInvoicesPage } from './page/inbox/invoices/invoices.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
 import { InboxUnreadPage } from './page/inbox/unread/unread.component';
+import { LoginPage } from './page/login/login.component';
 import { CommentsComponent } from './page/ref/comments/comments.component';
 import { GraphComponent } from './page/ref/graph/graph.component';
 import { RefPage } from './page/ref/ref.component';
@@ -61,13 +64,12 @@ import { SubmitTextPage } from './page/submit/text/text.component';
 import { SubmitWebPage } from './page/submit/web/web.component';
 import { EditTagPage } from './page/tag/edit/edit.component';
 import { TagPage } from './page/tag/tag.component';
+import { EmbedPipe } from './pipe/embed.pipe';
 import { SafePipe } from './pipe/safe.pipe';
+import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
-import { EmbedPipe } from './pipe/embed.pipe';
-import { ThumbnailPipe } from './pipe/thumbnail.pipe';
-import { ResizeDirective } from './directive/resize.directive';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -134,6 +136,8 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     EmbedPipe,
     ThumbnailPipe,
     ResizeDirective,
+    LoginPage,
+    LoginPopupComponent,
   ],
   imports: [
     BrowserModule,

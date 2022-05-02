@@ -1,7 +1,8 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, of, shareReplay, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
 import { HasTags } from '../model/tag';
@@ -25,7 +26,7 @@ export class AccountService {
   admin = false;
   mod = false;
   editor = false;
-  notifications = new BehaviorSubject(0);
+  notifications$ = new BehaviorSubject(0);
   watchSubs$ = new BehaviorSubject<string[]>(defaultSubs)
 
   private _user$?: Observable<User>;
@@ -130,7 +131,7 @@ export class AccountService {
         query: this.inbox,
         modifiedAfter: ext.config?.inbox?.lastNotified || moment().subtract(1, 'year'),
       })),
-    ).subscribe(count => this.notifications.next(count));
+    ).subscribe(count => this.notifications$.next(count));
   }
 
   clearNotifications() {

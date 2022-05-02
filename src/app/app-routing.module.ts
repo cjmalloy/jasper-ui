@@ -13,6 +13,7 @@ import { InboxPage } from './page/inbox/inbox.component';
 import { InboxInvoicesPage } from './page/inbox/invoices/invoices.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
 import { InboxUnreadPage } from './page/inbox/unread/unread.component';
+import { LoginPage } from './page/login/login.component';
 import { CommentsComponent } from './page/ref/comments/comments.component';
 import { GraphComponent } from './page/ref/graph/graph.component';
 import { RefPage } from './page/ref/ref.component';
@@ -35,6 +36,7 @@ const routes: Routes = [
   { path: '', redirectTo: 'home/published', pathMatch: 'full' },
   { path: 'all', redirectTo: 'tag/@*/published', pathMatch: 'full' },
 
+  { path: 'login', component: LoginPage },
   { path: 'home', redirectTo: 'home/published', pathMatch: 'full' },
   { path: 'home/:sort', component: HomePage },
   { path: 'tag', redirectTo: 'tag/@*/published', pathMatch: 'full' },

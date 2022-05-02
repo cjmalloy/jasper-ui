@@ -1,10 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { Feed, mapFeed } from '../../model/feed';
 import { mapPage, Page } from '../../model/page';
 import { params } from '../../util/http';
+import { AccountService } from '../account.service';
 import { ConfigService } from '../config.service';
+import { LoginService } from '../login.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +16,7 @@ export class FeedService {
   constructor(
     private http: HttpClient,
     private config: ConfigService,
+    private login: LoginService,
   ) { }
 
   private get base() {
@@ -21,20 +24,28 @@ export class FeedService {
   }
 
   create(feed: Feed): Observable<void> {
-    return this.http.post<void>(this.base, feed);
+    return this.http.post<void>(this.base, feed).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   exists(url: string, origin = ''): Observable<boolean> {
     return this.http.get(`${this.base}/exists`, {
       params: params({ url, origin }),
       responseType: 'text',
-    }).pipe(map(v => v === 'true'));
+    }).pipe(
+      map(v => v === 'true'),
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   get(url: string, origin = ''): Observable<Feed> {
     return this.http.get(this.base, {
       params: params({ url, origin }),
-    }).pipe(map(mapFeed));
+    }).pipe(
+      map(mapFeed),
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   page(args: {
@@ -46,29 +57,40 @@ export class FeedService {
   }): Observable<Page<Feed>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
-    }).pipe(map(mapPage(mapFeed)));
+    }).pipe(
+      map(mapPage(mapFeed)),
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   update(feed: Feed): Observable<void> {
-    return this.http.put<void>(this.base, feed);
+    return this.http.put<void>(this.base, feed).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   patch(url: string, origin: string, patch: any[]): Observable<void> {
     return this.http.patch<void>(this.base, patch, {
       headers: { 'Content-Type': 'application/json-patch+json' },
       params: params({ url, origin }),
-    });
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   delete(url: string, origin = ''): Observable<void> {
     return this.http.delete<void>(this.base, {
       params: params({ url, origin }),
-    });
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   scrape(url: string, origin = ''): Observable<void> {
     return this.http.get<void>(`${this.base}/scrape`, {
       params: params({ url, origin }),
-    });
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 }

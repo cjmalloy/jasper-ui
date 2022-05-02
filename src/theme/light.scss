@@ -8,6 +8,7 @@ $tag: navy;
 $border: black;
 $unselected-tab: #b3b9c4;
 $error: #da0000;
+$error-bg: #ffa9a9;
 $mod: #136500;
 body.light-theme {
   color-scheme: light;
@@ -186,6 +187,10 @@ body.light-theme {
   hr {
     border: none;
     border-top: 1px dotted $border;
+  }
+
+  .login-popup {
+    background-color: $error-bg;
   }
 
   .md {

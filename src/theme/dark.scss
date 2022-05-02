@@ -7,6 +7,7 @@ $tag: #af5800;
 $border: lightgrey;
 $unselected-tab: grey;
 $error: #dc5c5c;
+$error-bg: #231010;
 $mod: #4d9339;
 body.dark-theme {
   color-scheme: dark;
@@ -209,6 +210,10 @@ body.dark-theme {
   hr {
     border: none;
     border-top: 1px dotted $border;
+  }
+
+  .login-popup {
+    background-color: $error-bg;
   }
 
   .md {
