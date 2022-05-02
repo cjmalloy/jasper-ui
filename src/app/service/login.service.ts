@@ -14,6 +14,7 @@ export class LoginService {
   handleHttpError(res: HttpErrorResponse) {
     if (res.status === 0) {
       this.authError$.next(true);
+      return throwError({ message: 'Please log in again.' });
     }
     return throwError(res);
   }

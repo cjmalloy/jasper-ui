@@ -32,11 +32,11 @@ export function params(obj?: Record<string, any>): Record<string, any> | undefin
 export function printError(res: HttpErrorResponse): string[] {
   let result = [];
   const problem = res.error as Problem;
-  if (problem.message === 'error.validation') {
+  if (problem?.message === 'error.validation') {
     for (const fe of problem.fieldErrors) {
       result.push(`Error: ${fe.objectName} ${fe.field} ${fe.message}`);
     }
     return result;
   }
-  return [problem.detail || res.message];
+  return [problem?.detail || res.message];
 }
