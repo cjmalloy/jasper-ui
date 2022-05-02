@@ -36,8 +36,10 @@
       <span *ngIf="tagging" class="inline-tagging">
         <input #inlineTag
                (keydown)="$event.key === 'Enter' && addInlineTag() || true"
-               type="text"
+               type="email"
                [pattern]="tagRegex"
+               autocorrect="off"
+               autocapitalize="none"
                appAutofocus>
         <button (click)="addInlineTag()">+</button>
       </span>
@@ -59,7 +61,11 @@
 
     <div *ngFor="let tag of tagsForm.controls; let i=index">
       <label for="tags-{{ i }}">Tag:</label>
-      <input id="tags-{{ i }}" type="text" [formControl]="$any(tag)">
+      <input id="tags-{{ i }}"
+             type="email"
+             autocorrect="off"
+             autocapitalize="none"
+             [formControl]="$any(tag)">
       <button type="button" (click)="removeTag(i)">&ndash;</button>
       <div class="error" *ngIf="tagsForm.at(i).touched && tagsForm.at(i).errors?.['pattern']">
         Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private

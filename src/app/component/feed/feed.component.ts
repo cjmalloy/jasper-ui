@@ -72,7 +72,7 @@ export class FeedComponent implements OnInit {
 
   addInlineTag() {
     if (!this.inlineTag) return;
-    const tag = this.inlineTag.nativeElement.value;
+    const tag = (this.inlineTag.nativeElement.value as string).toLowerCase();
     this.feeds.patch(this.feed.url, this.feed.origin!, [{
       op: 'add',
       path: '/tags/-',

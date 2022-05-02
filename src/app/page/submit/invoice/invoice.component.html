@@ -7,7 +7,11 @@
 <form class="form" [formGroup]="invoiceForm" (ngSubmit)="submit()">
 
   <label for="to">Queue:</label>
-  <input id="to" type="text" [value]="queue || ''" (change)="queue = $any($event.target).value">
+  <input id="to"
+         type="email"
+         autocorrect="off"
+         autocapitalize="none"
+         [value]="queue || ''" (change)="queue = $any($event.target).value">
 
   <label for="qr">QR Code:</label>
   <input id="qr" type="text" [formControl]="url" (blur)="checkUrl()">

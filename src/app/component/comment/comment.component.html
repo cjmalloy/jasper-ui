@@ -63,8 +63,10 @@
     <span *ngIf="tagging" class="inline-tagging">
       <input #inlineTag
              (keydown)="$event.key === 'Enter' && addInlineTag() || true"
-             type="text"
+             type="email"
              [pattern]="tagRegex"
+             autocorrect="off"
+             autocapitalize="none"
              appAutofocus>
       <button (click)="addInlineTag()">+</button>
     </span>

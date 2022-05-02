@@ -140,7 +140,7 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   addInlineTag() {
     if (!this.inlineTag) return;
-    const tag = this.inlineTag.nativeElement.value;
+    const tag = (this.inlineTag.nativeElement.value as string).toLowerCase();
     this.tags.create(tag, this.ref.url, this.ref.origin!).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
     ).subscribe(ref => {

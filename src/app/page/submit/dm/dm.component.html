@@ -7,7 +7,11 @@
 <form class="form" [formGroup]="dmForm" (ngSubmit)="submit()">
 
   <label for="to">To:</label>
-  <input id="to" type="text" [value]="to" (change)="to = $any($event.target).value">
+  <input id="to"
+         type="email"
+         autocorrect="off"
+         autocapitalize="none"
+         [value]="to" (change)="to = $any($event.target).value">
 
   <label for="title">Title:</label>
   <input id="title" type="text" [formControl]="title">

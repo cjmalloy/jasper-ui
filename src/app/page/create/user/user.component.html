@@ -7,7 +7,11 @@
 <form class="form" [formGroup]="userForm" (ngSubmit)="create()">
 
   <label for="tag">Tag:</label>
-  <input id="tag" type="text" formControlName="tag">
+  <input id="tag"
+         type="email"
+         autocorrect="off"
+         autocapitalize="none"
+         formControlName="tag">
   <span><!-- Tag Errors --></span>
   <div>
     <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']">
@@ -30,7 +34,11 @@
 
     <div *ngFor="let tag of readAccess.controls; let i=index">
       <label for="readAccess-{{ i }}">Tag:</label>
-      <input id="readAccess-{{ i }}" type="text" [formControl]="$any(tag)">
+      <input id="readAccess-{{ i }}"
+             type="email"
+             autocorrect="off"
+             autocapitalize="none"
+             [formControl]="$any(tag)">
       <button type="button" (click)="removeReadAccess(i)">&ndash;</button>
       <div class="error" *ngIf="readAccess.at(i).touched && readAccess.at(i).errors?.['pattern']">
         Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
@@ -49,7 +57,11 @@
 
     <div *ngFor="let tag of writeAccess.controls; let i=index">
       <label for="writeAccess-{{ i }}">Tag:</label>
-      <input id="writeAccess-{{ i }}" type="text" [formControl]="$any(tag)">
+      <input id="writeAccess-{{ i }}"
+             type="email"
+             autocorrect="off"
+             autocapitalize="none"
+             [formControl]="$any(tag)">
       <button type="button" (click)="removeWriteAccess(i)">&ndash;</button>
       <div class="error" *ngIf="writeAccess.at(i).touched && writeAccess.at(i).errors?.['pattern']">
         Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain

@@ -37,7 +37,11 @@
 
       <div *ngFor="let sub of subscriptions.controls; let i=index">
         <label for="sub-{{ i }}">Tag:</label>
-        <input id="sub-{{ i }}" type="text" [formControl]="$any(sub)">
+        <input id="sub-{{ i }}"
+               type="email"
+               autocorrect="off"
+               autocapitalize="none"
+               [formControl]="$any(sub)">
         <button type="button" (click)="removeSub(i)">&ndash;</button>
         <div class="error" *ngIf="subscriptions.at(i).touched && subscriptions.at(i).errors?.['pattern']">
           Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
@@ -64,7 +68,11 @@
 
       <div *ngFor="let approver of approvers.controls; let i=index">
         <label for="approver-{{ i }}">User:</label>
-        <input id="approver-{{ i }}" type="text" [formControl]="$any(approver)">
+        <input id="approver-{{ i }}"
+               type="email"
+               autocorrect="off"
+               autocapitalize="none"
+               [formControl]="$any(approver)">
         <button type="button" (click)="removeApprover(i)">&ndash;</button>
         <div class="error" *ngIf="approvers.at(i).touched && approvers.at(i).errors?.['pattern']">
           User tags must start with the "user/" or "_user/" prefix.

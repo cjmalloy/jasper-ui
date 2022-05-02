@@ -44,7 +44,11 @@
 
     <div *ngFor="let tag of tags.controls; let i=index">
       <label for="tags-{{ i }}">Tag:</label>
-      <input id="tags-{{ i }}" type="text" [formControl]="$any(tag)">
+      <input id="tags-{{ i }}"
+             type="email"
+             autocorrect="off"
+             autocapitalize="none"
+             [formControl]="$any(tag)">
       <button type="button" (click)="removeTag(i)">&ndash;</button>
       <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['pattern']">
         Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private

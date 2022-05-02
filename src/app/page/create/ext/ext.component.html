@@ -7,7 +7,11 @@
 <form class="form" [formGroup]="extForm" (ngSubmit)="create()">
 
   <label for="tag">Tag:</label>
-  <input id="tag" type="text" formControlName="tag">
+  <input id="tag"
+         type="email"
+         autocorrect="off"
+         autocapitalize="none"
+         formControlName="tag">
   <span><!-- Tag Errors --></span>
   <div>
     <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']">
