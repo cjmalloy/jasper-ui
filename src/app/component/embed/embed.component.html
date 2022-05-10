@@ -1,7 +1,8 @@
-<iframe *ngIf="expandPlugins.includes('plugin/embed')"
+<iframe #iframe
+        *ngIf="expandPlugins.includes('plugin/embed')"
         [width]="ref.plugins?.['plugin/embed']?.width || 560"
         [height]="ref.plugins?.['plugin/embed']?.height || 315"
-        [src]="ref.plugins?.['plugin/embed']?.url || ref.url | embed | safe"
+        [src]="embed | embed | safe"
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen></iframe>

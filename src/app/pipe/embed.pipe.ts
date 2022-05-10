@@ -1,4 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
+import { EmbedService } from '../service/embed.service';
 import { youtubeHosts } from '../util/hosts';
 
 @Pipe({
@@ -7,15 +8,12 @@ import { youtubeHosts } from '../util/hosts';
 })
 export class EmbedPipe implements PipeTransform {
 
+  constructor(
+    private embed: EmbedService,
+  ) { }
+
   transform(value: string): unknown {
-    try {
-      const url = new URL(value);
-      if (youtubeHosts.includes(url.host) && url.searchParams.has('v')) {
-        const videoId = url.searchParams.get('v');
-        return 'https://www.youtube.com/embed/' + videoId;
-      }
-    } catch (e) {}
-    return value;
+    return this.embed.fixUrl(value);
   }
 
 }
