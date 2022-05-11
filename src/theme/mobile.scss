@@ -92,7 +92,7 @@ $mobile-width: 1024px;
     }
   }
 
-  .embed > * {
+  .embed > :not(.md) {
     margin: 0;
     width: 98vw;
   }

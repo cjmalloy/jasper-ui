@@ -25,7 +25,7 @@
 </audio>
 <qrcode *ngIf="expandPlugins.includes('plugin/qr')"
         [qrdata]="ref.plugins?.['plugin/qr']?.url || ref.url"
-        [width]="256"
+        [width]="qrWidth"
         [errorCorrectionLevel]="'M'"
         appResize></qrcode>
 <div *ngIf="ref.comment"

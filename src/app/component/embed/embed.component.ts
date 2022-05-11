@@ -40,6 +40,10 @@ export class EmbedComponent implements AfterViewInit {
     return this.ref.plugins?.['plugin/embed']?.url || this.ref.url;
   }
 
+  get qrWidth() {
+    return Math.min(256, window.innerWidth);
+  }
+
   cssUrl(url: string) {
     return `url("${url}")`;
   }
