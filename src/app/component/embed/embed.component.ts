@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { EmbedService } from '../../service/embed.service';
@@ -9,6 +9,7 @@ import { EmbedService } from '../../service/embed.service';
   styleUrls: ['./embed.component.scss']
 })
 export class EmbedComponent implements AfterViewInit {
+  @HostBinding('class') css = 'embed';
 
   @Input()
   ref!: Ref;
