@@ -3,8 +3,10 @@ import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
 import * as moment from 'moment';
 import { map } from 'rxjs';
+import { TweetData } from '../model/twitter';
 import { getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
 import { params } from '../util/http';
+import { CorsBusterService } from './api/cors-buster.service';
 import { ThemeService } from './theme.service';
 
 @Injectable({
@@ -15,6 +17,7 @@ export class EmbedService {
   constructor(
     private http: HttpClient,
     private theme: ThemeService,
+    private cors: CorsBusterService,
   ) { }
 
   private get twitterTheme() {
@@ -44,17 +47,7 @@ export class EmbedService {
     if (twitterHosts.includes(host)) {
       const width = 400;
       const height = 400;
-      this.http.get('https://publish.twitter.com/oembed?url=' + url, {
-        params: params({
-          dnt: true,
-          theme: this.twitterTheme,
-          maxwidth: width,
-          maxheight: height,
-        }),
-      }).pipe(
-        map(t => t as TweetData),
-        // catchError(err => console.log(err) || null)
-      ).subscribe((tweet: TweetData) => {
+      this.cors.twitter(url, this.twitterTheme, width, height).subscribe(tweet => {
         iFrame.width = tweet.width + 'px';
         iFrame.height = (tweet.height || '100') + 'px';
         const doc = iFrame.contentWindow!.document;
@@ -96,18 +89,4 @@ export function transparentIframe(content: string, bgColor: string) {
     <body>${content}</body>
   </html>
   `;
-}
-
-export interface TweetData {
-  url: string,
-  author_name: string,
-  author_url: string,
-  html: string,
-  width: number | null,
-  height: number | null,
-  type: string,
-  cache_age: string,
-  provider_name: string,
-  provider_url: string,
-  version: string
 }
