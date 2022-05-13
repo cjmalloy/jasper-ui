@@ -25,7 +25,9 @@ export class EmbedComponent implements AfterViewInit {
   ) { }
 
   ngAfterViewInit(): void {
-    this.embeds.writeIframe(this.embed, this.iframe.nativeElement);
+    if (this.iframe) {
+      this.embeds.writeIframe(this.embed, this.iframe.nativeElement);
+    }
   }
 
   get emoji() {
