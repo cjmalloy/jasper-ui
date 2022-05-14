@@ -38,7 +38,7 @@ export class SubmitWebPage implements OnInit {
     theme.setTitle('Submit: Web Link');
     this.webForm = fb.group({
       url: [''],
-      published: ['', [Validators.required]],
+      published: [moment().format('yyyy-MM-DD'), [Validators.required]],
       title: ['', [Validators.required]],
       comment: [''],
       sources: fb.array([]),
