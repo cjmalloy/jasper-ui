@@ -5,6 +5,9 @@ import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { addAlt } from '../../form/alts/alts.component';
+import { addSource } from '../../form/sources/sources.component';
+import { addTag } from '../../form/tags/tags.component';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -158,7 +161,6 @@ export class RefComponent implements OnInit {
     return this.editForm.get('alternateUrls') as FormArray;
   }
 
-
   get comments() {
     if (!this._ref.metadata) return '? comments';
     const commentCount = this._ref.metadata.plugins?.['plugin/comment']?.length;
@@ -204,30 +206,18 @@ export class RefComponent implements OnInit {
   }
 
   addTag(value = '') {
-    this.tagsForm.push(this.fb.control(value, [Validators.required, Validators.pattern(TAG_REGEX)]));
+    addTag(this.fb, this.tagsForm, value);
     this.submitted = false;
-  }
-
-  removeTag(index: number) {
-    this.tagsForm.removeAt(index);
   }
 
   addSource() {
-    this.sourcesForm.push(this.fb.control('', [Validators.required]));
+    addSource(this.fb, this.sourcesForm, '');
     this.submitted = false;
-  }
-
-  removeSource(index: number) {
-    this.sourcesForm.removeAt(index);
   }
 
   addAlt() {
-    this.altsForm.push(this.fb.control('', [Validators.required]));
+    addAlt(this.fb, this.altsForm, '');
     this.submitted = false;
-  }
-
-  removeAlt(index: number) {
-    this.altsForm.removeAt(index);
   }
 
   accept() {

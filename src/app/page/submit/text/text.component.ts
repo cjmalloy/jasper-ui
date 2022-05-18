@@ -4,6 +4,7 @@ import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@ang
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
+import { addTag, tags } from 'src/app/form/tags/tags.component';
 import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
@@ -40,10 +41,7 @@ export class SubmitTextPage implements OnInit {
     this.textForm = fb.group({
       title: ['', [Validators.required]],
       comment: [''],
-      tags: fb.array([
-        this.fb.control('public', [Validators.required, Validators.pattern(TAG_REGEX)]),
-        this.fb.control(account.tag, [Validators.required, Validators.pattern(TAG_REGEX)]),
-      ]),
+      tags: tags(fb, ['public', account.tag]),
     });
     route.queryParams.subscribe(params => {
       this.url = params['url'];
@@ -69,12 +67,8 @@ export class SubmitTextPage implements OnInit {
   }
 
   addTag(value = '') {
-    this.tags.push(this.fb.control(value, [Validators.required, Validators.pattern(TAG_REGEX)]));
+    addTag(this.fb, this.tags, value);
     this.submitted = false;
-  }
-
-  removeTag(index: number) {
-    this.tags.removeAt(index);
   }
 
   addPlugins(tags: string[]) {

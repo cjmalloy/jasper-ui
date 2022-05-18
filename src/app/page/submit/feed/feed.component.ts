@@ -4,10 +4,8 @@ import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@ang
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
-import { isAudio } from '../../../plugin/audio';
+import { addTag } from '../../../form/tags/tags.component';
 import { isEmbed } from '../../../plugin/embed';
-import { isImage } from '../../../plugin/image';
-import { isVideo } from '../../../plugin/video';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { FeedService } from '../../../service/api/feed.service';
@@ -71,12 +69,8 @@ export class SubmitFeedPage implements OnInit {
   }
 
   addTag(value = '') {
-    this.tags.push(this.fb.control(value, [Validators.required, Validators.pattern(TAG_REGEX)]));
+    addTag(this.fb, this.tags, value);
     this.submitted = false;
-  }
-
-  removeTag(index: number) {
-    this.tags.removeAt(index);
   }
 
   get scrapeInterval() {

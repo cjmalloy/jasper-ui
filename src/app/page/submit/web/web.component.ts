@@ -4,6 +4,8 @@ import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@ang
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
+import { addAlt } from '../../../form/alts/alts.component';
+import { addTag, tags } from '../../../form/tags/tags.component';
 import { isAudio } from '../../../plugin/audio';
 import { isEmbed } from '../../../plugin/embed';
 import { isImage } from '../../../plugin/image';
@@ -12,7 +14,6 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
-import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -43,10 +44,7 @@ export class SubmitWebPage implements OnInit {
       comment: [''],
       sources: fb.array([]),
       alternateUrls: fb.array([]),
-      tags: fb.array([
-        fb.control('public', [Validators.required, Validators.pattern(TAG_REGEX)]),
-        fb.control(account.tag, [Validators.required, Validators.pattern(TAG_REGEX)]),
-      ]),
+      tags: tags(fb, ['public', account.tag]),
     });
     route.queryParams.subscribe(params => {
       this.url = params['url'].trim();
@@ -98,13 +96,9 @@ export class SubmitWebPage implements OnInit {
     this.webForm.get('url')?.setValue(value);
   }
 
-  addTag(value = '') {
-    this.tags.push(this.fb.control(value, [Validators.required, Validators.pattern(TAG_REGEX)]));
+  addTag(value: string) {
+    addTag(this.fb, this.tags, value);
     this.submitted = false;
-  }
-
-  removeTag(index: number) {
-    this.tags.removeAt(index);
   }
 
   addSource() {
@@ -114,15 +108,6 @@ export class SubmitWebPage implements OnInit {
 
   removeSource(index: number) {
     this.sources.removeAt(index);
-  }
-
-  addAlt() {
-    this.alts.push(this.fb.control('', [Validators.required]));
-    this.submitted = false;
-  }
-
-  removeAlt(index: number) {
-    this.alts.removeAt(index);
   }
 
   submit() {

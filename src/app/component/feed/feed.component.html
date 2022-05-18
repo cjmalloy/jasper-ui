@@ -56,27 +56,7 @@
   <input type="text" id="name" formControlName="name">
 
   <label for="tags">Tags:</label>
-  <div id="tags" class="form-group" formArrayName="tags">
-    <button type="button" (click)="addTag()">+ Add another tag</button>
-
-    <div *ngFor="let tag of tagsForm.controls; let i=index">
-      <label for="tags-{{ i }}">Tag:</label>
-      <input id="tags-{{ i }}"
-             type="email"
-             autocorrect="off"
-             autocapitalize="none"
-             [formControl]="$any(tag)">
-      <button type="button" (click)="removeTag(i)">&ndash;</button>
-      <div class="error" *ngIf="tagsForm.at(i).touched && tagsForm.at(i).errors?.['pattern']">
-        Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-        tags start with an underscore.<br>
-        (i.e. "science", "my/tag", or "_my/private/tag")
-      </div>
-      <div class="error" *ngIf="tagsForm.at(i).touched && tagsForm.at(i).errors?.['required']">
-        Tag must not be blank.
-      </div>
-    </div>
-  </div>
+  <app-tags id="tags" [group]="editForm"></app-tags>
 
   <label for="scrapeInterval">Scrape Interval:</label>
   <input id="scrapeInterval" type="text" [formControl]="scrapeInterval">

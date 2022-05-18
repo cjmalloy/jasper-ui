@@ -32,6 +32,10 @@ import { TagComponent } from './component/tag/tag.component';
 import { UserComponent } from './component/user/user.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { ResizeDirective } from './directive/resize.directive';
+import { AltsComponent } from './form/alts/alts.component';
+import { QtagsComponent } from './form/qtags/qtags.component';
+import { SourcesComponent } from './form/sources/sources.component';
+import { TagsComponent } from './form/tags/tags.component';
 import { DebugInterceptor } from './http/debug.interceptor';
 import { AdminPage } from './page/admin/admin.component';
 import { AdminOriginPage } from './page/admin/origin/origin.component';
@@ -138,6 +142,10 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     ResizeDirective,
     LoginPage,
     LoginPopupComponent,
+    TagsComponent,
+    AltsComponent,
+    SourcesComponent,
+    QtagsComponent,
   ],
   imports: [
     BrowserModule,

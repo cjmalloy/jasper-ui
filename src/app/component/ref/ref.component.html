@@ -120,55 +120,13 @@
   <textarea id="comment" formControlName="comment"></textarea>
 
   <label for="sources">Sources:</label>
-  <div id="sources" class="form-group" formArrayName="sources">
-    <button type="button" (click)="addSource()">+ Add another source</button>
-
-    <div *ngFor="let source of sourcesForm.controls; let i=index">
-      <label for="sources-{{ i }}">Source:</label>
-      <input id="sources-{{ i }}" type="text" [formControl]="$any(source)">
-      <button type="button" (click)="removeSource(i)">&ndash;</button>
-      <div class="error" *ngIf="sourcesForm.at(i).touched && sourcesForm.at(i).errors?.['required']">
-        Source must not be blank.
-      </div>
-    </div>
-  </div>
+  <app-sources id="sources" [group]="editForm"></app-sources>
 
   <label for="alts">Alternate URLs:</label>
-  <div id="alts" class="form-group" formArrayName="alts">
-    <button type="button" (click)="addAlt()">+ Add another alt</button>
-
-    <div *ngFor="let alt of altsForm.controls; let i=index">
-      <label for="alt-{{ i }}">Alt:</label>
-      <input id="alt-{{ i }}" type="text" [formControl]="$any(alt)">
-      <button type="button" (click)="removeAlt(i)">&ndash;</button>
-      <div class="error" *ngIf="altsForm.at(i).touched && altsForm.at(i).errors?.['required']">
-        Alternate URL must not be blank.
-      </div>
-    </div>
-  </div>
+  <app-alts id="alts" [group]="editForm"></app-alts>
 
   <label for="tags">Tags:</label>
-  <div id="tags" class="form-group" formArrayName="tags">
-    <button type="button" (click)="addTag()">+ Add another tag</button>
-
-    <div *ngFor="let tag of tagsForm.controls; let i=index">
-      <label for="tags-{{ i }}">Tag:</label>
-      <input id="tags-{{ i }}"
-             type="email"
-             autocorrect="off"
-             autocapitalize="none"
-             [formControl]="$any(tag)">
-      <button type="button" (click)="removeTag(i)">&ndash;</button>
-      <div class="error" *ngIf="tagsForm.at(i).touched && tagsForm.at(i).errors?.['pattern']">
-        Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-        tags start with an underscore.<br>
-        (i.e. "science", "my/tag", or "_my/private/tag")
-      </div>
-      <div class="error" *ngIf="tagsForm.at(i).touched && tagsForm.at(i).errors?.['required']">
-        Tag must not be blank.
-      </div>
-    </div>
-  </div>
+  <app-tags id="tags" [group]="editForm"></app-tags>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>

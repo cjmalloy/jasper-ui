@@ -86,17 +86,9 @@ export class UserComponent implements OnInit {
     this.submitted = false;
   }
 
-  removeReadAccess(index: number) {
-    this.readAccess.removeAt(index);
-  }
-
   addWriteAccess() {
     this.writeAccess.push(this.fb.control('', [Validators.required, Validators.pattern(QUALIFIED_TAG_REGEX)]));
     this.submitted = false;
-  }
-
-  removeWriteAccess(index: number) {
-    this.writeAccess.removeAt(index);
   }
 
   addTagReadAccess(value = '') {
@@ -104,17 +96,9 @@ export class UserComponent implements OnInit {
     this.submitted = false;
   }
 
-  removeTagReadAccess(index: number) {
-    this.tagReadAccess.removeAt(index);
-  }
-
   addTagWriteAccess() {
     this.tagWriteAccess.push(this.fb.control('', [Validators.required, Validators.pattern(QUALIFIED_TAG_REGEX)]));
     this.submitted = false;
-  }
-
-  removeTagWriteAccess(index: number) {
-    this.tagWriteAccess.removeAt(index);
   }
 
   save() {
