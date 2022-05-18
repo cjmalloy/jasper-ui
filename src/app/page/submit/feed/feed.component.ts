@@ -4,6 +4,10 @@ import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@ang
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
+import { isAudio } from '../../../plugin/audio';
+import { isEmbed } from '../../../plugin/embed';
+import { isImage } from '../../../plugin/image';
+import { isVideo } from '../../../plugin/video';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { FeedService } from '../../../service/api/feed.service';
@@ -43,7 +47,7 @@ export class SubmitFeedPage implements OnInit {
     this.addTag('public');
     if (this.admin.status.plugins.thumbnail) this.addTag('plugin/thumbnail');
     route.queryParams.subscribe(params => {
-      this.url.setValue(params['url'].trim());
+      this.url = params['url'].trim();
       if (params['tag']) {
         this.addTag(params['tag']);
       }
@@ -53,16 +57,17 @@ export class SubmitFeedPage implements OnInit {
   ngOnInit(): void {
   }
 
-  get url() {
-    return this.feedForm.get('url') as FormControl;
-  }
-
   get title() {
     return this.feedForm.get('title') as FormControl;
   }
 
   get tags() {
     return this.feedForm.get('tags') as FormArray;
+  }
+
+  set url(value: string) {
+    if (this.admin.status.plugins.embed && isEmbed(value)) this.addTag('plugin/embed');
+    this.feedForm.get('url')?.setValue(value);
   }
 
   addTag(value = '') {
