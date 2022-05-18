@@ -42,6 +42,7 @@ export class SubmitWebPage implements OnInit {
       title: ['', [Validators.required]],
       comment: [''],
       sources: fb.array([]),
+      alternateUrls: fb.array([]),
       tags: fb.array([
         fb.control('public', [Validators.required, Validators.pattern(TAG_REGEX)]),
         fb.control(account.tag, [Validators.required, Validators.pattern(TAG_REGEX)]),
@@ -84,6 +85,10 @@ export class SubmitWebPage implements OnInit {
     return this.webForm.get('sources') as FormArray;
   }
 
+  get alts() {
+    return this.webForm.get('alternateUrls') as FormArray;
+  }
+
   set url(value: string) {
     if (this.admin.status.plugins.audio && isAudio(value)) this.addTag('plugin/audio');
     if (this.admin.status.plugins.video && isVideo(value)) this.addTag('plugin/video');
@@ -109,6 +114,15 @@ export class SubmitWebPage implements OnInit {
 
   removeSource(index: number) {
     this.sources.removeAt(index);
+  }
+
+  addAlt() {
+    this.alts.push(this.fb.control('', [Validators.required]));
+    this.submitted = false;
+  }
+
+  removeAlt(index: number) {
+    this.alts.removeAt(index);
   }
 
   submit() {

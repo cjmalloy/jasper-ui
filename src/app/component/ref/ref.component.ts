@@ -64,6 +64,7 @@ export class RefComponent implements OnInit {
     this.editForm = fb.group({
       comment: [''],
       sources: fb.array([]),
+      alternateUrls: fb.array([]),
       tags: fb.array([]),
     });
   }
@@ -80,6 +81,7 @@ export class RefComponent implements OnInit {
       this.expandPlugins = _.intersection(this._ref.tags, this.expandable);
     }
     while (this.sourcesForm.length < (this._ref?.sources?.length || 0)) this.addSource();
+    while (this.altsForm.length < (this._ref?.alternateUrls?.length || 0)) this.addAlt();
     while (this.tagsForm.length < (this._ref?.tags?.length || 0)) this.addTag();
     this.editForm.patchValue(this._ref);
   }
@@ -152,6 +154,11 @@ export class RefComponent implements OnInit {
     return this.editForm.get('sources') as FormArray;
   }
 
+  get altsForm() {
+    return this.editForm.get('alternateUrls') as FormArray;
+  }
+
+
   get comments() {
     if (!this._ref.metadata) return '? comments';
     const commentCount = this._ref.metadata.plugins?.['plugin/comment']?.length;
@@ -212,6 +219,15 @@ export class RefComponent implements OnInit {
 
   removeSource(index: number) {
     this.sourcesForm.removeAt(index);
+  }
+
+  addAlt() {
+    this.altsForm.push(this.fb.control('', [Validators.required]));
+    this.submitted = false;
+  }
+
+  removeAlt(index: number) {
+    this.altsForm.removeAt(index);
   }
 
   accept() {

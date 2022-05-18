@@ -44,6 +44,20 @@
     </div>
   </div>
 
+  <label for="alts">Alternate URLs:</label>
+  <div id="alts" class="form-group" formArrayName="alts">
+    <button type="button" (click)="addAlt()">+ Add another alt</button>
+
+    <div *ngFor="let alt of alts.controls; let i=index">
+      <label for="alt-{{ i }}">Alt:</label>
+      <input id="alt-{{ i }}" type="text" [formControl]="$any(alt)">
+      <button type="button" (click)="removeAlt(i)">&ndash;</button>
+      <div class="error" *ngIf="alts.at(i).touched && alts.at(i).errors?.['required']">
+        Alternate URL must not be blank.
+      </div>
+    </div>
+  </div>
+
   <label for="tags">Tags:</label>
   <div id="tags" class="form-group" formArrayName="tags">
     <button type="button" (click)="addTag()">+ Add another tag</button>
