@@ -53,7 +53,7 @@
 <form *ngIf="editing" class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
   <label for="name">Name:</label>
-  <textarea id="name" formControlName="name"></textarea>
+  <input type="text" id="name" formControlName="name">
 
   <label for="tags">Tags:</label>
   <div id="tags" class="form-group" formArrayName="tags">
