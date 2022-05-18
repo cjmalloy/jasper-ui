@@ -74,6 +74,52 @@
     </div>
   </div>
 
+  <label for="tagReadAccess">Tag Read Access:</label>
+  <div id="tagReadAccess" class="form-group" formArrayName="tagReadAccess">
+    <button type="button" (click)="addTagReadAccess()">+ Add another tag</button>
+
+    <div *ngFor="let tag of tagReadAccess.controls; let i=index">
+      <label for="tagReadAccess-{{ i }}">Tag:</label>
+      <input id="tagReadAccess-{{ i }}"
+             type="email"
+             autocorrect="off"
+             autocapitalize="none"
+             [formControl]="$any(tag)">
+      <button type="button" (click)="removeTagReadAccess(i)">&ndash;</button>
+      <div class="error" *ngIf="tagReadAccess.at(i).touched && tagReadAccess.at(i).errors?.['pattern']">
+        Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
+        two forward slashes in a row. Private tags start with an underscore.<br>
+        (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")
+      </div>
+      <div class="error" *ngIf="tagReadAccess.at(i).touched && tagReadAccess.at(i).errors?.['required']">
+        Tag must not be blank.
+      </div>
+    </div>
+  </div>
+
+  <label for="tagWriteAccess">Tag Write Access:</label>
+  <div id="tagWriteAccess" class="form-group" formArrayName="tagWriteAccess">
+    <button type="button" (click)="addTagWriteAccess()">+ Add another tag</button>
+
+    <div *ngFor="let tag of tagWriteAccess.controls; let i=index">
+      <label for="tagWriteAccess-{{ i }}">Tag:</label>
+      <input id="tagWriteAccess-{{ i }}"
+             type="email"
+             autocorrect="off"
+             autocapitalize="none"
+             [formControl]="$any(tag)">
+      <button type="button" (click)="removeTagWriteAccess(i)">&ndash;</button>
+      <div class="error" *ngIf="tagWriteAccess.at(i).touched && tagWriteAccess.at(i).errors?.['pattern']">
+        Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
+        two forward slashes in a row. Private tags start with an underscore.<br>
+        (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")
+      </div>
+      <div class="error" *ngIf="tagWriteAccess.at(i).touched && tagWriteAccess.at(i).errors?.['required']">
+        Tag must not be blank.
+      </div>
+    </div>
+  </div>
+
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>

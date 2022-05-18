@@ -58,3 +58,7 @@ export function prefix(prefix: string, tag: string) {
   }
   return prefix + tag.replace('+', '');
 }
+
+export function publicTag(tag: string) {
+  return !tag.startsWith("_") && !tag.startsWith("+");
+}

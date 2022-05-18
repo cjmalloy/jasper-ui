@@ -48,7 +48,7 @@ export class TagComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.writeAccess$ = this.account.writeAccessTag(this.tag.tag, this.tag.type);
+    this.writeAccess$ = this.account.tagWriteAccess(this.tag.tag, this.tag.type);
     this.editForm.patchValue(this.tag);
   }
 

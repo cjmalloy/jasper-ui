@@ -5,6 +5,8 @@ export interface User extends IsTag {
   type?: 'user';
   readAccess?: string[];
   writeAccess?: string[];
+  tagReadAccess?: string[];
+  tagWriteAccess?: string[];
   pubKey?: string;
 }
 

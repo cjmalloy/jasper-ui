@@ -57,7 +57,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         map(subs => subs.includes(value))
       );
       this.localTag = localTag(value);
-      this.writeAccess$ = this.account.writeAccessTag(value);
+      this.writeAccess$ = this.account.tagWriteAccess(value);
     } else {
       this.localTag = undefined;
       this.writeAccess$ = of(false);

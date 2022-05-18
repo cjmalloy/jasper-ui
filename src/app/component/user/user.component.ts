@@ -47,7 +47,7 @@ export class UserComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.writeAccess$ = this.account.writeAccessTag(this.user.tag, 'user');
+    this.writeAccess$ = this.account.tagWriteAccess(this.user.tag, 'user');
     while (this.readAccess.length < (this.user?.readAccess?.length || 0)) this.addReadAccess();
     while (this.writeAccess.length < (this.user?.writeAccess?.length || 0)) this.addWriteAccess();
     this.editForm.patchValue(this.user);
