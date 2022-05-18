@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Ref } from '../model/ref';
 
-export const URI_REGEX = /^([^:/?#]+):(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
+export const URI_REGEX = /^([^:/?#]+):(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
 export const TAG_REGEX = /^[_+]?[a-z]+(\/[a-z]+)*$/;
 export const TAG_REGEX_STRING = '^[_+]?[a-z]+(\/[a-z]+)*$';
 export const USER_REGEX = /^[_+]user\/[a-z]+(\/[a-z]+)*$/;
