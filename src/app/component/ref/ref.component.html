@@ -87,10 +87,14 @@
             <a *ngIf="!disputed && isAuthor"
                class="fake-link"
                (click)="dispute()">dispute</a>
+          </ng-container>
+          <ng-container *ngIf="invoice">
             <span *ngIf="paid">paid!</span>
             <a *ngIf="!paid && isRecipient"
                class="fake-link"
                (click)="markPaid()">paid</a>
+          </ng-container>
+          <ng-container *ngIf="invoice">
             <span *ngIf="rejected">rejected!</span>
             <a *ngIf="!rejected && isRecipient"
                class="fake-link"

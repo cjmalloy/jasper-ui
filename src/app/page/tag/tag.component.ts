@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash';
-import { catchError, combineLatest, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, combineLatest, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -10,6 +10,7 @@ import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
+import { LoginService } from '../../service/login.service';
 import { ThemeService } from '../../service/theme.service';
 import { filterListToObj, getArgs } from '../../util/query';
 import { localTag } from '../../util/tag';
@@ -38,9 +39,10 @@ export class TagPage implements OnInit {
     private route: ActivatedRoute,
     private refs: RefService,
     private exts: ExtService,
+    private login: LoginService,
   ) {
     this.page$ = combineLatest(
-      this.tag$, this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$,
+      this.tag$, this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$, login.loginCheck$,
     ).pipe(
       map(([tag, sort, filter, search, pageNumber, pageSize]) =>
         getArgs(tag, sort, {...filterListToObj(filter), notInternal: tag === '@*'}, search, pageNumber, pageSize ?? this.defaultPageSize)),

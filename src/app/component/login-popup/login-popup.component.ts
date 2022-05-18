@@ -22,7 +22,10 @@ export class LoginPopupComponent implements OnInit {
 
   doLogin() {
     this.authError = false;
-    window.open('/login', "_blank");
+    const loginWin = window.open('/login', "_blank");
+    loginWin!.onbeforeunload = (event: BeforeUnloadEvent) => {
+      this.login.loginCheck$.next(true);
+    }
   }
 
 }

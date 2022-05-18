@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, throwError } from 'rxjs';
+import { BehaviorSubject, Subject, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -8,6 +8,7 @@ import { BehaviorSubject, throwError } from 'rxjs';
 export class LoginService {
 
   authError$ = new BehaviorSubject(false);
+  loginCheck$ = new BehaviorSubject(true);
 
   constructor() { }
 
