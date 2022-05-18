@@ -12,11 +12,11 @@ import { ThemeService } from '../../../service/theme.service';
 import { filterListToObj, getArgs } from '../../../util/query';
 
 @Component({
-  selector: 'app-responses',
+  selector: 'app-ref-responses',
   templateUrl: './responses.component.html',
   styleUrls: ['./responses.component.scss'],
 })
-export class ResponsesComponent implements OnInit {
+export class RefResponsesComponent implements OnInit {
 
   page$: Observable<Page<Ref>>;
 

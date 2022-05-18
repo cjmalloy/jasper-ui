@@ -50,8 +50,8 @@ import { LoginPage } from './page/login/login.component';
 import { CommentsComponent } from './page/ref/comments/comments.component';
 import { GraphComponent } from './page/ref/graph/graph.component';
 import { RefPage } from './page/ref/ref.component';
-import { ResponsesComponent } from './page/ref/responses/responses.component';
-import { SourcesComponent } from './page/ref/sources/sources.component';
+import { RefResponsesComponent } from './page/ref/responses/responses.component';
+import { RefSourcesComponent } from './page/ref/sources/sources.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
 import { SettingsFeedPage } from './page/settings/feed/feed.component';
 import { SettingsPage } from './page/settings/settings.component';
@@ -87,8 +87,8 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     TagPage,
     RefPage,
     CommentsComponent,
-    ResponsesComponent,
-    SourcesComponent,
+    RefResponsesComponent,
+    RefSourcesComponent,
     GraphComponent,
     CommentComponent,
     SettingsComponent,
