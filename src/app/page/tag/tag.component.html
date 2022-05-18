@@ -24,7 +24,9 @@
              *ngIf="!graph"
              [tag]="tag$ | async"
              [ext]="ext$ | async"></app-sidebar>
-<app-ref-list [page]="page$ | async"
+<app-ref-list *ngIf="!accessDenied"
+              [page]="page$ | async"
               [pinned]="pinned$ | async"
               [tag]="localTag$ | async"
               [graph]="graph"></app-ref-list>
+<div *ngIf="accessDenied" class="error-403">Access Denied</div>

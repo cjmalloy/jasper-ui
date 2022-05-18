@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash';
-import { catchError, combineLatest, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, combineLatest, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -27,6 +27,7 @@ export class TagPage implements OnInit {
   page$: Observable<Page<Ref>>;
   pinned$: Observable<Ref[]>;
   graph = false;
+  accessDenied = false;
 
   private defaultPageSize = 20;
 
@@ -46,6 +47,12 @@ export class TagPage implements OnInit {
         getArgs(tag, sort, {...filterListToObj(filter), notInternal: tag === '@*'}, search, pageNumber, pageSize ?? this.defaultPageSize)),
       distinctUntilChanged(_.isEqual),
       switchMap(args => this.refs.page(args)),
+      catchError(err => {
+        if (err.status === 403) {
+          this.accessDenied = true;
+        }
+        return throwError(err);
+      }),
     );
     this.route.queryParams.pipe(
       map(params => params['graph']),
