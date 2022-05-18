@@ -20,17 +20,17 @@
       </ng-container>
     </div>
     <div class="actions">
-      <a *ngIf="account.mod"
+      <a *ngIf="account.editor"
          class="fake-link"
          (click)="editing = !editing">edit</a>
-      <a *ngIf="!deleting && account.mod"
+      <a *ngIf="!deleting && account.editor"
          class="fake-link"
          (click)="deleting = true">delete</a>
       <span *ngIf="deleting" class="delete-confirm"> are you sure?
         <a class="fake-link" (click)="delete()">yes</a> /
         <a class="fake-link" (click)="deleting = false">no</a>
       </span>
-      <a *ngIf="account.mod"
+      <a *ngIf="account.editor"
          class="fake-link"
          (click)="tagging = !tagging">tag</a>
       <span *ngIf="tagging" class="inline-tagging">

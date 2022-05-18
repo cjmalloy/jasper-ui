@@ -12,13 +12,15 @@
     📝️ &nbsp; Submit Text Post
   </div>
 </ng-container>
-<ng-container *ngIf="account.mod">
+<ng-container *ngIf="account.editor">
   <div class="submit-button" routerLink="/create/ext" [queryParams]="ext ? null : { tag: localTag }">
     🖌️ &nbsp; Create Tag Extension
   </div>
   <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag, linkType: 'feed' }">
     📰️ &nbsp; Submit Feed
   </div>
+</ng-container>
+<ng-container *ngIf="account.mod">
   <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag: localTag }">
     🗝️️ &nbsp; Create User Permissions
   </div>
