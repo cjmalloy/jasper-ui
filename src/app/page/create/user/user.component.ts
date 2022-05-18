@@ -114,8 +114,9 @@ export class CreateUserPage implements OnInit {
     this.serverError = [];
     this.submitted = true;
     this.userForm.markAllAsTouched();
-    if (this.admin.status.plugins.inbox) {
-      this.addReadAccess(prefix('plugin/inbox/', this.userForm.value.tag));
+    const inbox = prefix('plugin/inbox/', this.userForm.value.tag);
+    if (this.admin.status.plugins.inbox && !this.userForm.value.readAccess.includes) {
+      this.addReadAccess(inbox);
     }
     if (!this.userForm.valid) return;
     this.users.create(this.userForm.value).pipe(
