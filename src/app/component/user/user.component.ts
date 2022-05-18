@@ -43,6 +43,8 @@ export class UserComponent implements OnInit {
       name: [''],
       readAccess: fb.array([]),
       writeAccess: fb.array([]),
+      tagReadAccess: fb.array([]),
+      tagWriteAccess: fb.array([]),
     });
   }
 
@@ -50,6 +52,8 @@ export class UserComponent implements OnInit {
     this.writeAccess$ = this.account.tagWriteAccess(this.user.tag, 'user');
     while (this.readAccess.length < (this.user?.readAccess?.length || 0)) this.addReadAccess();
     while (this.writeAccess.length < (this.user?.writeAccess?.length || 0)) this.addWriteAccess();
+    while (this.tagReadAccess.length < (this.user?.tagReadAccess?.length || 0)) this.addTagReadAccess();
+    while (this.tagWriteAccess.length < (this.user?.tagWriteAccess?.length || 0)) this.addTagWriteAccess();
     this.editForm.patchValue(this.user);
   }
 
@@ -69,6 +73,14 @@ export class UserComponent implements OnInit {
     return this.editForm.get('writeAccess') as FormArray;
   }
 
+  get tagReadAccess() {
+    return this.editForm.get('tagReadAccess') as FormArray;
+  }
+
+  get tagWriteAccess() {
+    return this.editForm.get('tagWriteAccess') as FormArray;
+  }
+
   addReadAccess(value = '') {
     this.readAccess.push(this.fb.control(value, [Validators.required, Validators.pattern(QUALIFIED_TAG_REGEX)]));
     this.submitted = false;
@@ -85,6 +97,24 @@ export class UserComponent implements OnInit {
 
   removeWriteAccess(index: number) {
     this.writeAccess.removeAt(index);
+  }
+
+  addTagReadAccess(value = '') {
+    this.tagReadAccess.push(this.fb.control(value, [Validators.required, Validators.pattern(QUALIFIED_TAG_REGEX)]));
+    this.submitted = false;
+  }
+
+  removeTagReadAccess(index: number) {
+    this.tagReadAccess.removeAt(index);
+  }
+
+  addTagWriteAccess() {
+    this.tagWriteAccess.push(this.fb.control('', [Validators.required, Validators.pattern(QUALIFIED_TAG_REGEX)]));
+    this.submitted = false;
+  }
+
+  removeTagWriteAccess(index: number) {
+    this.tagWriteAccess.removeAt(index);
   }
 
   save() {
