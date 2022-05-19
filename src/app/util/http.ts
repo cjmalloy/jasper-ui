@@ -13,9 +13,9 @@ export class HttpUrlEncodingCodec implements HttpParameterCodec {
 const encoder = new HttpUrlEncodingCodec();
 
 /**
- * Format all non-empty properties for HTTP Query params.
+ * Jsonify object.
  */
-export function params(obj?: Record<string, any>): Record<string, any> | undefined {
+export function writeObj(obj?: Record<string, any>): Record<string, any> | undefined {
   if (!obj) return undefined;
   const result: Record<string, any> = {};
   for (const k in obj) {
@@ -25,8 +25,16 @@ export function params(obj?: Record<string, any>): Record<string, any> | undefin
       result[k] = v;
     }
   }
+  return result;
+}
+
+/**
+ * Format all non-empty properties for HTTP Query params.
+ */
+export function params(obj?: Record<string, any>): Record<string, any> | undefined {
+  if (!obj) return undefined;
   const params = new HttpParams({ encoder });
-  return params.appendAll(result);
+  return params.appendAll(writeObj(obj)!);
 }
 
 export function printError(res: HttpErrorResponse): string[] {

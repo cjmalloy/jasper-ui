@@ -1,5 +1,6 @@
-import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Input } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { writeObj } from '../../util/http';
 import { audioPluginForm } from '../plugin/audio/audio.component';
 import { commentPluginForm } from '../plugin/comment/comment.component';
 import { embedPluginForm } from '../plugin/embed/embed.component';
@@ -104,4 +105,11 @@ export function pluginForm(fb: FormBuilder, tag: string) {
     case 'plugin/comment': return commentPluginForm(fb);
   }
   return null;
+}
+
+export function writePlugins(plugins: any) {
+  for (const p in plugins) {
+    plugins[p] = writeObj(plugins[p]);
+  }
+  return plugins;
 }

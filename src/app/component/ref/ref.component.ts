@@ -6,7 +6,7 @@ import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { addAlt } from '../../form/alts/alts.component';
-import { pluginsForm } from '../../form/plugins/plugins.component';
+import { pluginsForm, writePlugins } from '../../form/plugins/plugins.component';
 import { addSource } from '../../form/sources/sources.component';
 import { addTag } from '../../form/tags/tags.component';
 import { Ref } from '../../model/ref';
@@ -295,6 +295,7 @@ export class RefComponent implements OnInit {
     this.refs.update({
       ...this.ref,
       ...this.editForm.value,
+      plugins: writePlugins(this.editForm.value.plugins),
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);

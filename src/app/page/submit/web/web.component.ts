@@ -4,8 +4,8 @@ import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@ang
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
-import { addAlt, altsForm } from '../../../form/alts/alts.component';
-import { pluginsForm } from '../../../form/plugins/plugins.component';
+import { altsForm } from '../../../form/alts/alts.component';
+import { pluginsForm, writePlugins } from '../../../form/plugins/plugins.component';
 import { sourcesForm } from '../../../form/sources/sources.component';
 import { addTag, tagsForm } from '../../../form/tags/tags.component';
 import { isAudio } from '../../../plugin/audio';
@@ -125,6 +125,7 @@ export class SubmitWebPage implements OnInit {
     this.refs.create({
       ...this.webForm.value,
       published: moment(this.webForm.value.published).toISOString(),
+      plugins: writePlugins(this.webForm.value.plugins),
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
