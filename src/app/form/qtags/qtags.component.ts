@@ -35,7 +35,7 @@ export class QtagsComponent implements OnInit {
   }
 }
 
-export function qtags(fb: FormBuilder, tags: string[]) {
+export function qtagsForm(fb: FormBuilder, tags: string[]) {
   return fb.array(tags.map(v => fb.control(v, QtagsComponent.validators)));
 }
 

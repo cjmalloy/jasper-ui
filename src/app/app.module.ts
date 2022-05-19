@@ -33,6 +33,14 @@ import { UserComponent } from './component/user/user.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { ResizeDirective } from './directive/resize.directive';
 import { AltsComponent } from './form/alts/alts.component';
+import { AudioFormComponent } from './form/plugin/audio/audio.component';
+import { CommentFormComponent } from './form/plugin/comment/comment.component';
+import { EmbedFormComponent } from './form/plugin/embed/embed.component';
+import { ImageFormComponent } from './form/plugin/image/image.component';
+import { QrFormComponent } from './form/plugin/qr/qr.component';
+import { ThumbnailFormComponent } from './form/plugin/thumbnail/thumbnail.component';
+import { VideoFormComponent } from './form/plugin/video/video.component';
+import { PluginsComponent } from './form/plugins/plugins.component';
 import { QtagsComponent } from './form/qtags/qtags.component';
 import { SourcesComponent } from './form/sources/sources.component';
 import { TagsComponent } from './form/tags/tags.component';
@@ -146,6 +154,14 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     AltsComponent,
     SourcesComponent,
     QtagsComponent,
+    AudioFormComponent,
+    PluginsComponent,
+    VideoFormComponent,
+    ImageFormComponent,
+    EmbedFormComponent,
+    QrFormComponent,
+    CommentFormComponent,
+    ThumbnailFormComponent,
   ],
   imports: [
     BrowserModule,

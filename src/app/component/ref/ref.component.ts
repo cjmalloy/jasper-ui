@@ -6,6 +6,7 @@ import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { addAlt } from '../../form/alts/alts.component';
+import { pluginsForm } from '../../form/plugins/plugins.component';
 import { addSource } from '../../form/sources/sources.component';
 import { addTag } from '../../form/tags/tags.component';
 import { Ref } from '../../model/ref';
@@ -69,6 +70,7 @@ export class RefComponent implements OnInit {
       sources: fb.array([]),
       alternateUrls: fb.array([]),
       tags: fb.array([]),
+      plugins: fb.group({})
     });
   }
 
@@ -86,6 +88,7 @@ export class RefComponent implements OnInit {
     while (this.sourcesForm.length < (this._ref?.sources?.length || 0)) this.addSource();
     while (this.altsForm.length < (this._ref?.alternateUrls?.length || 0)) this.addAlt();
     while (this.tagsForm.length < (this._ref?.tags?.length || 0)) this.addTag();
+    this.editForm.setControl('plugins', pluginsForm(this.fb, this._ref.tags || []));
     this.editForm.patchValue(this._ref);
   }
 
@@ -159,6 +162,10 @@ export class RefComponent implements OnInit {
 
   get altsForm() {
     return this.editForm.get('alternateUrls') as FormArray;
+  }
+
+  get pluginsForm() {
+    return this.editForm.get('plugins') as FormGroup;
   }
 
   get comments() {

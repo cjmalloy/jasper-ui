@@ -4,7 +4,7 @@ import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@ang
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
-import { addTag, tags } from 'src/app/form/tags/tags.component';
+import { addTag, tagsForm } from 'src/app/form/tags/tags.component';
 import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
@@ -41,7 +41,7 @@ export class SubmitTextPage implements OnInit {
     this.textForm = fb.group({
       title: ['', [Validators.required]],
       comment: [''],
-      tags: tags(fb, ['public', account.tag]),
+      tags: tagsForm(fb, ['public', account.tag]),
     });
     route.queryParams.subscribe(params => {
       this.url = params['url'];

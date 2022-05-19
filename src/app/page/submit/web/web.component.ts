@@ -4,8 +4,10 @@ import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@ang
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
-import { addAlt } from '../../../form/alts/alts.component';
-import { addTag, tags } from '../../../form/tags/tags.component';
+import { addAlt, altsForm } from '../../../form/alts/alts.component';
+import { pluginsForm } from '../../../form/plugins/plugins.component';
+import { sourcesForm } from '../../../form/sources/sources.component';
+import { addTag, tagsForm } from '../../../form/tags/tags.component';
 import { isAudio } from '../../../plugin/audio';
 import { isEmbed } from '../../../plugin/embed';
 import { isImage } from '../../../plugin/image';
@@ -42,9 +44,10 @@ export class SubmitWebPage implements OnInit {
       published: [moment().format('yyyy-MM-DD'), [Validators.required]],
       title: ['', [Validators.required]],
       comment: [''],
-      sources: fb.array([]),
-      alternateUrls: fb.array([]),
-      tags: tags(fb, ['public', account.tag]),
+      sources: sourcesForm(this.fb, []),
+      alternateUrls: altsForm(this.fb, []),
+      tags: tagsForm(fb, ['public', account.tag]),
+      plugins: pluginsForm(fb, []),
     });
     route.queryParams.subscribe(params => {
       this.url = params['url'].trim();
@@ -85,6 +88,10 @@ export class SubmitWebPage implements OnInit {
 
   get alts() {
     return this.webForm.get('alternateUrls') as FormArray;
+  }
+
+  get plugins() {
+    return this.webForm.get('plugins') as FormGroup;
   }
 
   set url(value: string) {

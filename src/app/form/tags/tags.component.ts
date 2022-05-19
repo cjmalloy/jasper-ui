@@ -36,7 +36,7 @@ export class TagsComponent implements OnInit {
   }
 }
 
-export function tags(fb: FormBuilder, tags: string[]) {
+export function tagsForm(fb: FormBuilder, tags: string[]) {
   return fb.array(tags.map(v => fb.control(v, TagsComponent.validators)));
 }
 

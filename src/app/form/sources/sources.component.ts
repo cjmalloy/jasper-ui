@@ -36,7 +36,7 @@ export class SourcesComponent implements OnInit {
   }
 }
 
-export function alts(fb: FormBuilder, urls: string[]) {
+export function sourcesForm(fb: FormBuilder, urls: string[]) {
   return fb.array(urls.map(v => fb.control(v, SourcesComponent.validators)));
 }
 

@@ -128,6 +128,11 @@
   <label for="tags">Tags:</label>
   <app-tags id="tags" [group]="editForm"></app-tags>
 
+  <label for="plugins">Plugins:</label>
+  <app-plugins id="plugins"
+               [tags]="editForm.value.tags"
+               [group]="editForm"></app-plugins>
+
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
