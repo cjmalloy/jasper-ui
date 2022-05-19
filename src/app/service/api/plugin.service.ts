@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { mapPlugin, Plugin, writePlugin } from '../../model/plugin';
 import { params } from '../../util/http';
@@ -45,6 +45,7 @@ export class PluginService {
     }).pipe(
       map(v => v === 'true'),
       catchError(err => this.login.handleHttpError(err)),
+      catchError(err => of(false)),
     );
   }
 

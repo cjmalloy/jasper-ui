@@ -16,6 +16,7 @@ import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
 import { CommentsComponent } from './page/ref/comments/comments.component';
 import { GraphComponent } from './page/ref/graph/graph.component';
+import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
@@ -54,6 +55,7 @@ const routes: Routes = [
       { path: 'responses/:sort', component: RefResponsesComponent },
       { path: 'sources', redirectTo: 'sources/published', pathMatch: 'full' },
       { path: 'sources/:sort', component: RefSourcesComponent },
+      { path: 'missing', component: RefMissingComponent },
       { path: 'graph', component: GraphComponent },
     ],
   }, {

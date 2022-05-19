@@ -1,11 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as moment from 'moment';
-import { catchError, map, Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { mapRef, mapRefOrNull, Ref, writeRef } from '../../model/ref';
 import { params } from '../../util/http';
-import { AccountService } from '../account.service';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -55,6 +54,7 @@ export class RefService {
     }).pipe(
       map(v => v === 'true'),
       catchError(err => this.login.handleHttpError(err)),
+      catchError(err => of(false)),
     );
   }
 

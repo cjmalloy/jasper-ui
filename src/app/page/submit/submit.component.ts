@@ -62,12 +62,10 @@ export class SubmitPage implements OnInit {
   exists(url: string) {
     const linkType = this.linkType(url);
     if (linkType === 'web') {
-      return this.refs.exists(url).pipe(
-        catchError(err => of(false)));
+      return this.refs.exists(url);
     }
     if (linkType === 'feed') {
-      return this.feeds.exists(url).pipe(
-        catchError(err => of(false)));
+      return this.feeds.exists(url);
     }
     return of(false);
   }

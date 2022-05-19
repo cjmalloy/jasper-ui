@@ -8,7 +8,7 @@ export interface Ref extends HasTags {
   alternateUrls?: string[];
   plugins?: Record<string, any>;
   metadata?: Metadata;
-  published: moment.Moment;
+  published?: moment.Moment;
   created?: moment.Moment;
 }
 

@@ -61,6 +61,7 @@ import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
 import { CommentsComponent } from './page/ref/comments/comments.component';
 import { GraphComponent } from './page/ref/graph/graph.component';
+import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
@@ -162,6 +163,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     QrFormComponent,
     CommentFormComponent,
     ThumbnailFormComponent,
+    RefMissingComponent,
   ],
   imports: [
     BrowserModule,

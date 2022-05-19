@@ -4,6 +4,7 @@
   </ng-container>
   <a routerLink="./responses" routerLinkActive="current-tab">responses</a>
   <a routerLink="./sources" routerLinkActive="current-tab">sources</a>
+  <a routerLink="./missing" routerLinkActive="current-tab">missing sources</a>
   <ng-container *ngIf="admin.status.plugins.graph">
     <a routerLink="./graph" [queryParams]="{ hideSearch: true }" routerLinkActive="current-tab">graph</a>
   </ng-container>
