@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RefResponsesComponent } from './ref-responses.component';
+import { RefResponsesComponent } from './responses.component';
 
 describe('ResponsesComponent', () => {
   let component: RefResponsesComponent;
