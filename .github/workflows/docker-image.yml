@@ -27,7 +27,7 @@ jobs:
       if: always()
       run: docker cp test:/tests tests
     - name: Publish Unit Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v1.36
+      uses: mikepenz/action-junit-report@v3
       if: always()
       with:
-        files: "tests/*.xml"
+        report_paths: "tests/*.xml"
