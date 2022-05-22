@@ -27,7 +27,9 @@ jobs:
       if: always()
       run: docker cp test:/tests tests
     - name: Publish Unit Test Results
-      uses: mikepenz/action-junit-report@v3
+      uses: dorny/test-reporter@v1
       if: always()
       with:
-        report_paths: "tests/*.xml"
+        name: Test Results
+        path: "tests/*.xml"
+        reporter: java-junit
