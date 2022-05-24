@@ -34,4 +34,4 @@
      [emoji]="emoji"
      [katex]="latex"
      [katexOptions]="{ throwOnError: false }"
-     [data]="ref.comment"></div>
+     [data]="ref.tags?.includes('plugin/wikitext') ? (ref.comment | wiki) : ref.comment"></div>

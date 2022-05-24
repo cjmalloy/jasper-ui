@@ -83,6 +83,7 @@ import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
+import { WikiPipe } from './pipe/wiki.pipe';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -164,6 +165,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     CommentFormComponent,
     ThumbnailFormComponent,
     RefMissingComponent,
+    WikiPipe,
   ],
   imports: [
     BrowserModule,
