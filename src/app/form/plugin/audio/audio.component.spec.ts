@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { AudioFormComponent } from './audio.component';
 
@@ -8,7 +9,10 @@ describe('AudioComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AudioFormComponent ]
+      declarations: [ AudioFormComponent ],
+      imports: [
+        ReactiveFormsModule,
+      ],
     })
     .compileComponents();
   });

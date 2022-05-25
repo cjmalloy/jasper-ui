@@ -59,8 +59,8 @@ import { InboxInvoicesPage } from './page/inbox/invoices/invoices.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
 import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
-import { CommentsComponent } from './page/ref/comments/comments.component';
-import { GraphComponent } from './page/ref/graph/graph.component';
+import { RefCommentsComponent } from './page/ref/comments/comments.component';
+import { RefGraphComponent } from './page/ref/graph/graph.component';
 import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
@@ -101,10 +101,10 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     RefComponent,
     TagPage,
     RefPage,
-    CommentsComponent,
+    RefCommentsComponent,
     RefResponsesComponent,
     RefSourcesComponent,
-    GraphComponent,
+    RefGraphComponent,
     CommentComponent,
     SettingsComponent,
     InboxPage,

@@ -1,14 +1,20 @@
+import { HttpClientModule } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { TagPage } from './tag.component';
 
-describe('TagComponent', () => {
+describe('TagPage', () => {
   let component: TagPage;
   let fixture: ComponentFixture<TagPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [TagPage],
+      imports: [
+        HttpClientModule,
+        RouterTestingModule,
+      ],
     })
     .compileComponents();
   });

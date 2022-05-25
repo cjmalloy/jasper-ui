@@ -15,6 +15,17 @@ describe('PageControlsComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(PageControlsComponent);
+    fixture.componentInstance.page = {
+      content: [],
+      empty: false,
+      first: false,
+      last: false,
+      number: 0,
+      numberOfElements: 0,
+      size: 0,
+      totalElements: 0,
+      totalPages: 0
+    };
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

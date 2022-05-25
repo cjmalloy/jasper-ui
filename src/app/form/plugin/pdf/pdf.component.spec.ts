@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { PdfFormComponent } from './pdf.component';
 
@@ -8,7 +9,10 @@ describe('PdfComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PdfFormComponent ]
+      declarations: [ PdfFormComponent ],
+      imports: [
+        ReactiveFormsModule,
+      ],
     })
     .compileComponents();
   });

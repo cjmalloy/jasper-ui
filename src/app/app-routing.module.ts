@@ -14,8 +14,8 @@ import { InboxInvoicesPage } from './page/inbox/invoices/invoices.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
 import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
-import { CommentsComponent } from './page/ref/comments/comments.component';
-import { GraphComponent } from './page/ref/graph/graph.component';
+import { RefCommentsComponent } from './page/ref/comments/comments.component';
+import { RefGraphComponent } from './page/ref/graph/graph.component';
 import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
@@ -50,13 +50,13 @@ const routes: Routes = [
     children: [
       { path: '', redirectTo: 'sources/published', pathMatch: 'full' },
       { path: 'comments', redirectTo: 'comments/published', pathMatch: 'full' },
-      { path: 'comments/:sort', component: CommentsComponent },
+      { path: 'comments/:sort', component: RefCommentsComponent },
       { path: 'responses', redirectTo: 'responses/published', pathMatch: 'full' },
       { path: 'responses/:sort', component: RefResponsesComponent },
       { path: 'sources', redirectTo: 'sources/published', pathMatch: 'full' },
       { path: 'sources/:sort', component: RefSourcesComponent },
       { path: 'missing', component: RefMissingComponent },
-      { path: 'graph', component: GraphComponent },
+      { path: 'graph', component: RefGraphComponent },
     ],
   }, {
     path: 'inbox',

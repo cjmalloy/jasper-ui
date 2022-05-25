@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { ImageFormComponent } from './image.component';
 
@@ -8,7 +9,10 @@ describe('ImageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ImageFormComponent ]
+      declarations: [ ImageFormComponent ],
+      imports: [
+        ReactiveFormsModule,
+      ],
     })
     .compileComponents();
   });

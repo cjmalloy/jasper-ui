@@ -1,3 +1,4 @@
+import { HttpClientModule } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { InboxPage } from './inbox.component';
@@ -9,6 +10,9 @@ describe('InboxComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [InboxPage],
+      imports: [
+        HttpClientModule,
+      ],
     })
     .compileComponents();
   });

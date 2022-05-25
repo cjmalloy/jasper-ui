@@ -8,11 +8,11 @@ import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
 
 @Component({
-  selector: 'app-graph',
+  selector: 'app-ref-graph',
   templateUrl: './graph.component.html',
   styleUrls: ['./graph.component.scss'],
 })
-export class GraphComponent implements OnInit {
+export class RefGraphComponent implements OnInit {
 
   filter$: Observable<string>;
   ref$: Observable<Ref>;

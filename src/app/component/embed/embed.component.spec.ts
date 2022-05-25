@@ -1,3 +1,4 @@
+import { HttpClientModule } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { EmbedComponent } from './embed.component';
@@ -8,13 +9,17 @@ describe('EmbedComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ EmbedComponent ]
+      declarations: [ EmbedComponent ],
+      imports: [
+        HttpClientModule,
+      ],
     })
     .compileComponents();
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(EmbedComponent);
+    fixture.componentInstance.ref = { url: '' };
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

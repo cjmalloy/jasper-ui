@@ -2,10 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { map } from 'rxjs';
-import { TweetData } from '../model/twitter';
 import { getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
-import { params } from '../util/http';
 import { CorsBusterService } from './api/cors-buster.service';
 import { ThemeService } from './theme.service';
 
@@ -15,7 +12,6 @@ import { ThemeService } from './theme.service';
 export class EmbedService {
 
   constructor(
-    private http: HttpClient,
     private theme: ThemeService,
     private cors: CorsBusterService,
   ) { }

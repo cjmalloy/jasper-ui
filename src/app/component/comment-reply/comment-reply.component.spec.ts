@@ -1,3 +1,4 @@
+import { HttpClientModule } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CommentReplyComponent } from './comment-reply.component';
@@ -9,6 +10,9 @@ describe('CommentReplyComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [CommentReplyComponent],
+      imports: [
+        HttpClientModule,
+      ],
     })
     .compileComponents();
   });

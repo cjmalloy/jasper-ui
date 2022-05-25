@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { TagListComponent } from './tag-list.component';
 
@@ -9,6 +10,9 @@ describe('TagListComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [TagListComponent],
+      imports: [
+        RouterTestingModule,
+      ],
     })
     .compileComponents();
   });

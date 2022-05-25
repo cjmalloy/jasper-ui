@@ -1,20 +1,26 @@
+import { HttpClientModule } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
-import { GraphComponent } from './graph.component';
+import { RefGraphComponent } from './graph.component';
 
-describe('GraphComponent', () => {
-  let component: GraphComponent;
-  let fixture: ComponentFixture<GraphComponent>;
+describe('RefGraphComponent', () => {
+  let component: RefGraphComponent;
+  let fixture: ComponentFixture<RefGraphComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [GraphComponent],
+      declarations: [RefGraphComponent],
+      imports: [
+        HttpClientModule,
+        RouterTestingModule,
+      ],
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GraphComponent);
+    fixture = TestBed.createComponent(RefGraphComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

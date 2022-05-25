@@ -9,11 +9,11 @@ import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
 
 @Component({
-  selector: 'app-comments',
+  selector: 'app-ref-comments',
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.scss'],
 })
-export class CommentsComponent implements OnInit, OnDestroy {
+export class RefCommentsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   depth$!: Observable<number>;
