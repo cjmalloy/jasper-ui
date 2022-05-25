@@ -104,13 +104,13 @@
                  class="fake-link"
                  (click)="reject()">reject</a>
             </ng-container>
+            <a *ngIf="pdf" target="_blank" [href]="pdf">pdf</a>
+            <a *ngIf="archive" target="_blank" [href]="archive">archive</a>
             <a *ngIf="account.mod && !approved && !locked"
                class="fake-link"
                (click)="approve()">approve</a>
             <span class="approved icon" *ngIf="account.mod && approved" title="Moderated">✔️</span>
           </ng-container>
-          <a *ngIf="pdf" target="_blank" [href]="pdf">pdf</a>
-          <a *ngIf="archive" target="_blank" [href]="archive">archive</a>
         </div>
       </div>
       <div class="toggle actions-toggle"
