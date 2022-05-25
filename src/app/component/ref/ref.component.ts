@@ -120,6 +120,20 @@ export class RefComponent implements OnInit {
     return this._ref.metadata?.plugins?.['plugin/invoice/rejected'].length;
   }
 
+  get pdf() {
+    return this.ref.plugins?.['plugin/pdf']?.url || this.findPdf;
+  }
+
+  get findPdf() {
+    if (!this.ref.alternateUrls) return null;
+    for (const s of this.ref.alternateUrls) {
+      if (new URL(s).pathname.endsWith('.pdf')) {
+        return s;
+      }
+    }
+    return null;
+  }
+
   get isAuthor() {
     return this._ref.tags?.includes(this.account.tag);
   }

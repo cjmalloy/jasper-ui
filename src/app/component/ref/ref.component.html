@@ -109,6 +109,7 @@
                (click)="approve()">approve</a>
             <span class="approved icon" *ngIf="account.mod && approved" title="Moderated">✔️</span>
           </ng-container>
+          <a *ngIf="pdf" target="_blank" [href]="pdf">pdf</a>
         </div>
       </div>
       <div class="toggle actions-toggle"
