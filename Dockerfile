@@ -6,7 +6,7 @@ RUN npm ci
 COPY . ./
 RUN ng build --configuration production
 
-FROM builder as test
+FROM node as test
 RUN apt-get update && apt-get install -y \
 	apt-transport-https \
 	ca-certificates \
@@ -28,6 +28,9 @@ RUN apt-get update && apt-get install -y \
 	--no-install-recommends \
 	&& apt-get purge --auto-remove -y curl gnupg \
 	&& rm -rf /var/lib/apt/lists/*
+WORKDIR app
+RUN npm i -g @angular/cli
+COPY --from=builder app ./
 CMD ng test --karma-config karma-ci.conf.js
 
 FROM nginx as deploy
