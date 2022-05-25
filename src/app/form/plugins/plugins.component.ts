@@ -1,10 +1,12 @@
 import { AfterViewInit, Component, Input } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { writeObj } from '../../util/http';
+import { archivePluginForm } from '../plugin/archive/archive.component';
 import { audioPluginForm } from '../plugin/audio/audio.component';
 import { commentPluginForm } from '../plugin/comment/comment.component';
 import { embedPluginForm } from '../plugin/embed/embed.component';
 import { imagePluginForm } from '../plugin/image/image.component';
+import { pdfPluginForm } from '../plugin/pdf/pdf.component';
 import { qrPluginForm } from '../plugin/qr/qr.component';
 import { thumbnailPluginForm } from '../plugin/thumbnail/thumbnail.component';
 import { videoPluginForm } from '../plugin/video/video.component';
@@ -97,6 +99,8 @@ export function pluginsForm(fb: FormBuilder, tags: string[]) {
 export function pluginForm(fb: FormBuilder, tag: string) {
   switch (tag) {
     case 'plugin/thumbnail': return thumbnailPluginForm(fb);
+    case 'plugin/archive': return archivePluginForm(fb);
+    case 'plugin/pdf': return pdfPluginForm(fb);
     case 'plugin/audio': return audioPluginForm(fb);
     case 'plugin/video': return videoPluginForm(fb);
     case 'plugin/image': return imagePluginForm(fb);

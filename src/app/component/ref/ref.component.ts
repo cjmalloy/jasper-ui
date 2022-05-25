@@ -121,6 +121,7 @@ export class RefComponent implements OnInit {
   }
 
   get pdf() {
+    if (!this.admin.status.plugins.pdf) return null;
     return this.ref.plugins?.['plugin/pdf']?.url || this.findPdf;
   }
 
@@ -132,6 +133,22 @@ export class RefComponent implements OnInit {
       }
     }
     return null;
+  }
+
+  get archive() {
+    if (!this.admin.status.plugins.archive) return null;
+    return this.ref.plugins?.['plugin/archive']?.url || this.findArchive;
+  }
+
+  get findArchive() {
+    if (this.ref.alternateUrls) {
+      for (const s of this.ref.alternateUrls) {
+        if (new URL(s).host === 'archive.ph') {
+          return s;
+        }
+      }
+    }
+    return 'https://archive.ph/' + this._ref.url;
   }
 
   get isAuthor() {

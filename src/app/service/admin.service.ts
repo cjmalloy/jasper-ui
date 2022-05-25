@@ -4,6 +4,7 @@ import { catchError, forkJoin, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';
 import { Template } from '../model/template';
+import { archivePlugin } from '../plugin/archive';
 import { audioPlugin } from '../plugin/audio';
 import { commentPlugin } from '../plugin/comment';
 import { embedPlugin } from '../plugin/embed';
@@ -13,6 +14,7 @@ import { imagePlugin } from '../plugin/image';
 import { inboxPlugin } from '../plugin/inbox';
 import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
 import { latexPlugin } from '../plugin/latex';
+import { pdfPlugin } from '../plugin/pdf';
 import { qrPlugin } from '../plugin/qr';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
@@ -37,6 +39,8 @@ export class AdminService {
       inbox: inboxPlugin,
       comment: commentPlugin,
       thumbnail: thumbnailPlugin,
+      pdf: pdfPlugin,
+      archive: archivePlugin,
       latex: latexPlugin,
       emoji: emojiPlugin,
       graph: graphPlugin,

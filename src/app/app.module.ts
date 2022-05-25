@@ -83,6 +83,8 @@ import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
+import { ArchiveFormComponent } from './form/plugin/archive/archive.component';
+import { PdfFormComponent } from './form/plugin/pdf/pdf.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -164,6 +166,8 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     CommentFormComponent,
     ThumbnailFormComponent,
     RefMissingComponent,
+    ArchiveFormComponent,
+    PdfFormComponent,
   ],
   imports: [
     BrowserModule,

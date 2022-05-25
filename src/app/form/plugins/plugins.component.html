@@ -1,4 +1,6 @@
 <app-form-thumbnail *ngIf="tags.includes('plugin/thumbnail')" [plugins]="plugins"></app-form-thumbnail>
+<app-form-archive *ngIf="tags.includes('plugin/archive')" [plugins]="plugins"></app-form-archive>
+<app-form-pdf *ngIf="tags.includes('plugin/pdf')" [plugins]="plugins"></app-form-pdf>
 <app-form-audio *ngIf="tags.includes('plugin/audio')" [plugins]="plugins"></app-form-audio>
 <app-form-video *ngIf="tags.includes('plugin/video')" [plugins]="plugins"></app-form-video>
 <app-form-image *ngIf="tags.includes('plugin/image')" [plugins]="plugins"></app-form-image>
