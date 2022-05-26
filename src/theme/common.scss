@@ -206,6 +206,10 @@ html, body {
   &.default-thumbnail {
     background-image: url("~/assets/default-thumbnail.png");
   }
+
+  &.person {
+    border-radius: 32px;
+  }
 }
 
 .full-page .thumbnail {

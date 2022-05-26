@@ -15,6 +15,7 @@ import { inboxPlugin } from '../plugin/inbox';
 import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
 import { latexPlugin } from '../plugin/latex';
 import { pdfPlugin } from '../plugin/pdf';
+import { personPlugin } from '../plugin/person';
 import { qrPlugin } from '../plugin/qr';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
@@ -43,6 +44,7 @@ export class AdminService {
       archive: archivePlugin,
       latex: latexPlugin,
       emoji: emojiPlugin,
+      person: personPlugin,
       graph: graphPlugin,
       invoice: invoicePlugin,
       invoiceRejected: invoiceRejectionPlugin,

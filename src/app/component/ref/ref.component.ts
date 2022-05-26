@@ -108,6 +108,11 @@ export class RefComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  get person() {
+    return this.admin.status.plugins.person &&
+      this.ref.tags?.includes('plugin/person');
+  }
+
   get canInvoice() {
     return this.admin.status.plugins.invoice &&
       this.isAuthor &&
