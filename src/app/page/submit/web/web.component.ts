@@ -41,7 +41,7 @@ export class SubmitWebPage implements OnInit {
     theme.setTitle('Submit: Web Link');
     this.webForm = fb.group({
       url: [''],
-      published: [moment().format('yyyy-MM-DD'), [Validators.required]],
+      published: [moment().format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS), [Validators.required]],
       title: ['', [Validators.required]],
       comment: [''],
       sources: sourcesForm(this.fb, []),
@@ -124,7 +124,7 @@ export class SubmitWebPage implements OnInit {
     if (!this.webForm.valid) return;
     this.refs.create({
       ...this.webForm.value,
-      published: moment(this.webForm.value.published).toISOString(),
+      published: moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
       plugins: writePlugins(this.webForm.value.plugins),
     }).pipe(
       catchError((res: HttpErrorResponse) => {

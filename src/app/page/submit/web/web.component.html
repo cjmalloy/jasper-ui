@@ -19,7 +19,7 @@
   </div>
 
   <label for="published">Published:</label>
-  <input id="published" type="date" [formControl]="published">
+  <input id="published" type="datetime-local" step="1" [formControl]="published">
   <span><!-- Published Errors --></span>
   <div>
     <div class="error" *ngIf="published.touched && published.errors?.['required']">

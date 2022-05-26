@@ -1,10 +1,12 @@
 <div class="row">
   <ng-container *ngIf="admin.status.plugins.thumbnail">
     <div class="thumbnail"
+         [class.person]="person"
          *ngIf="ref.tags?.includes('plugin/thumbnail') else defaultThumbnail"
          [style.background-image]="cssUrl(ref | thumbnail)"></div>
     <ng-template #defaultThumbnail>
-      <div class="thumbnail default-thumbnail"></div>
+      <div class="thumbnail default-thumbnail"
+           [class.person]="person"></div>
     </ng-template>
   </ng-container>
   <div class="stack">
@@ -126,6 +128,27 @@
            [expandPlugins]="expandPlugins"></app-embed>
 
 <form *ngIf="editing" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+
+  <label for="url">URL:</label>
+  <input id="url" type="text" formControlName="url" [attr.disabled]="true">
+
+  <label for="title">Title:</label>
+  <input id="title" type="text" [formControl]="titleForm">
+  <span><!-- Title Errors --></span>
+  <div>
+    <div class="error" *ngIf="titleForm.touched && titleForm.errors?.['required']">
+      Title must not be blank.
+    </div>
+  </div>
+
+  <label for="published">Published:</label>
+  <input id="published" type="datetime-local" step="1" [formControl]="publishedForm">
+  <span><!-- Published Errors --></span>
+  <div>
+    <div class="error" *ngIf="publishedForm.touched && publishedForm.errors?.['required']">
+      Published date is required.
+    </div>
+  </div>
 
   <label for="comment">Abstract:</label>
   <textarea id="comment" formControlName="comment"></textarea>

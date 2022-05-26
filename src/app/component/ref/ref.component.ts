@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
@@ -9,12 +9,19 @@ import { addAlt } from '../../form/alts/alts.component';
 import { pluginsForm, writePlugins } from '../../form/plugins/plugins.component';
 import { addSource } from '../../form/sources/sources.component';
 import { addTag } from '../../form/tags/tags.component';
-import { Ref } from '../../model/ref';
+import { Ref, writeRef } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
-import { authors, interestingTags, TAG_REGEX, TAG_REGEX_STRING, urlSummary, webLink } from '../../util/format';
+import {
+  authors,
+  interestingTags,
+  TAG_REGEX,
+  TAG_REGEX_STRING,
+  urlSummary,
+  webLink
+} from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -66,6 +73,9 @@ export class RefComponent implements OnInit {
     if (this.admin.status.plugins.video) this.expandable.push('plugin/video');
     if (this.admin.status.plugins.image) this.expandable.push('plugin/image');
     this.editForm = fb.group({
+      url: [''],
+      published: ['', [Validators.required]],
+      title: ['', [Validators.required]],
       comment: [''],
       sources: fb.array([]),
       alternateUrls: fb.array([]),
@@ -89,7 +99,10 @@ export class RefComponent implements OnInit {
     while (this.altsForm.length < (this._ref?.alternateUrls?.length || 0)) this.addAlt();
     while (this.tagsForm.length < (this._ref?.tags?.length || 0)) this.addTag();
     this.editForm.setControl('plugins', pluginsForm(this.fb, this._ref.tags || []));
-    this.editForm.patchValue(this._ref);
+    this.editForm.patchValue({
+      ...this._ref,
+      published: this._ref.published!.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
+    });
   }
 
   ngOnInit(): void {
@@ -181,6 +194,14 @@ export class RefComponent implements OnInit {
 
   get locked() {
     return this._ref.tags?.includes('locked');
+  }
+
+  get publishedForm() {
+    return this.editForm.get('published') as FormControl;
+  }
+
+  get titleForm() {
+    return this.editForm.get('title') as FormControl;
   }
 
   get tagsForm() {
@@ -326,6 +347,7 @@ export class RefComponent implements OnInit {
     this.refs.update({
       ...this.ref,
       ...this.editForm.value,
+      published: moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
       plugins: writePlugins(this.editForm.value.plugins),
     }).pipe(
       catchError((res: HttpErrorResponse) => {
