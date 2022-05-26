@@ -101,7 +101,7 @@ export class RefComponent implements OnInit {
     this.editForm.setControl('plugins', pluginsForm(this.fb, this._ref.tags || []));
     this.editForm.patchValue({
       ...this._ref,
-      published: this._ref.published!.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
+      published: this._ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
     });
   }
 
