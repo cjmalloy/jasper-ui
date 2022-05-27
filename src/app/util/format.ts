@@ -54,7 +54,16 @@ export function urlSummary(url: string) {
 }
 
 export function interestingTags(tags?: string[]): string[] {
-  return _.filter(tags, interestingTag);
+  return _.filter(_.filter(tags, interestingTag), value => !prefixTag(value, tags!));
+}
+
+export function prefixTag(tag: string, tags: string[]) {
+  if (tag.startsWith('_') || tag.startsWith('+')) return false;
+  for (const t of tags) {
+    if (t === tag) continue;
+    if (t.startsWith(tag)) return true;
+  }
+  return false;
 }
 
 export function interestingTag(tag: string) {
