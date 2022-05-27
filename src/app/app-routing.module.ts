@@ -34,11 +34,11 @@ import { EditTagPage } from './page/tag/edit/edit.component';
 import { TagPage } from './page/tag/tag.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'home/created', pathMatch: 'full' },
+  { path: '', redirectTo: 'home/published', pathMatch: 'full' },
   { path: 'all', redirectTo: 'tag/@*/published', pathMatch: 'full' },
 
   { path: 'login', component: LoginPage },
-  { path: 'home', redirectTo: 'home/created', pathMatch: 'full' },
+  { path: 'home', redirectTo: 'home/published', pathMatch: 'full' },
   { path: 'home/:sort', component: HomePage },
   { path: 'tag', redirectTo: 'tag/@*/created', pathMatch: 'full' },
   { path: 'tag/:tag', redirectTo: 'tag/:tag/created', pathMatch: 'full' },
