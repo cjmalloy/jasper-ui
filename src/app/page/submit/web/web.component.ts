@@ -54,6 +54,9 @@ export class SubmitWebPage implements OnInit {
       if (params['tag']) {
         this.addTag(params['tag']);
       }
+      if (params['source']) {
+        this.addSource(params['source']);
+      }
     });
     if (admin.status.plugins.emoji) {
       this.addTag('plugin/emoji');
@@ -108,8 +111,8 @@ export class SubmitWebPage implements OnInit {
     this.submitted = false;
   }
 
-  addSource() {
-    this.sources.push(this.fb.control('', [Validators.required]));
+  addSource(value: string) {
+    this.sources.push(this.fb.control(value, [Validators.required]));
     this.submitted = false;
   }
 
