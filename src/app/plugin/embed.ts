@@ -26,8 +26,22 @@ export const embedPlugin: Plugin = {
   },
 };
 
-export function isEmbed(url: string) {
+export function isKnownEmbed(url: string) {
   const host = getHost(url);
   if (!host) return false;
   return youtubeHosts.includes(host) || twitterHosts.includes(host);
+}
+
+
+export function isYoutubeEmbed(url: string) {
+  const host = getHost(url);
+  if (!host) return false;
+  return youtubeHosts.includes(host);
+}
+
+
+export function isTwitterEmbed(url: string) {
+  const host = getHost(url);
+  if (!host) return false;
+  return twitterHosts.includes(host);
 }

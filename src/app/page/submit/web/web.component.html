@@ -41,6 +41,7 @@
 
   <label for="plugins">Plugins:</label>
   <app-plugins id="plugins"
+               [ref]="webForm.value.url"
                [tags]="webForm.value.tags"
                [group]="webForm"></app-plugins>
 

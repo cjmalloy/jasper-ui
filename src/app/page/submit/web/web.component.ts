@@ -9,7 +9,7 @@ import { pluginsForm, writePlugins } from '../../../form/plugins/plugins.compone
 import { sourcesForm } from '../../../form/sources/sources.component';
 import { addTag, tagsForm } from '../../../form/tags/tags.component';
 import { isAudio } from '../../../plugin/audio';
-import { isEmbed } from '../../../plugin/embed';
+import { isKnownEmbed } from '../../../plugin/embed';
 import { isImage } from '../../../plugin/image';
 import { isVideo } from '../../../plugin/video';
 import { AccountService } from '../../../service/account.service';
@@ -102,7 +102,7 @@ export class SubmitWebPage implements OnInit {
     if (this.admin.status.plugins.video && isVideo(value)) this.addTag('plugin/video');
     if (this.admin.status.plugins.image && isImage(value)) this.addTag('plugin/image');
     if (this.admin.status.plugins.thumbnail && (isImage(value) || isVideo(value))) this.addTag('plugin/thumbnail');
-    if (this.admin.status.plugins.embed && isEmbed(value)) this.addTag('plugin/embed');
+    if (this.admin.status.plugins.embed && isKnownEmbed(value)) this.addTag('plugin/embed');
     this.webForm.get('url')?.setValue(value);
   }
 

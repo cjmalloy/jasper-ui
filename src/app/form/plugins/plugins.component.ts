@@ -18,6 +18,8 @@ import { videoPluginForm } from '../plugin/video/video.component';
 })
 export class PluginsComponent implements AfterViewInit {
   @Input()
+  ref = '';
+  @Input()
   fieldName = 'plugins';
 
   private _group: FormGroup;

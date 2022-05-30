@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { addTag } from '../../../form/tags/tags.component';
-import { isEmbed } from '../../../plugin/embed';
+import { isKnownEmbed } from '../../../plugin/embed';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { FeedService } from '../../../service/api/feed.service';
@@ -64,7 +64,7 @@ export class SubmitFeedPage implements OnInit {
   }
 
   set url(value: string) {
-    if (this.admin.status.plugins.embed && isEmbed(value)) this.addTag('plugin/embed');
+    if (this.admin.status.plugins.embed && isKnownEmbed(value)) this.addTag('plugin/embed');
     this.feedForm.get('url')?.setValue(value);
   }
 
