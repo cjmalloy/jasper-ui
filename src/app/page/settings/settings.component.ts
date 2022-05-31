@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AccountService } from '../../service/account.service';
 
 @Component({
   selector: 'app-settings-page',
@@ -7,7 +8,9 @@ import { Component, OnInit } from '@angular/core';
 })
 export class SettingsPage implements OnInit {
 
-  constructor() { }
+  constructor(
+    public account: AccountService,
+  ) { }
 
   ngOnInit(): void {
   }

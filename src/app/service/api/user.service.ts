@@ -4,7 +4,6 @@ import { catchError, map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { mapUser, Roles, User, writeUser } from '../../model/user';
 import { params } from '../../util/http';
-import { AccountService } from '../account.service';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 

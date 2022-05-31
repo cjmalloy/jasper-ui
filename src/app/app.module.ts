@@ -21,6 +21,8 @@ import { LoginPopupComponent } from './component/login-popup/login-popup.compone
 import { OriginListComponent } from './component/origin-list/origin-list.component';
 import { OriginComponent } from './component/origin/origin.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
+import { ProfileListComponent } from './component/profile-list/profile-list.component';
+import { ProfileComponent } from './component/profile/profile.component';
 import { RefListComponent } from './component/ref-list/ref-list.component';
 import { RefComponent } from './component/ref/ref.component';
 import { SearchFilterComponent } from './component/search-filter/search-filter.component';
@@ -33,10 +35,12 @@ import { UserComponent } from './component/user/user.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { ResizeDirective } from './directive/resize.directive';
 import { AltsComponent } from './form/alts/alts.component';
+import { ArchiveFormComponent } from './form/plugin/archive/archive.component';
 import { AudioFormComponent } from './form/plugin/audio/audio.component';
 import { CommentFormComponent } from './form/plugin/comment/comment.component';
 import { EmbedFormComponent } from './form/plugin/embed/embed.component';
 import { ImageFormComponent } from './form/plugin/image/image.component';
+import { PdfFormComponent } from './form/plugin/pdf/pdf.component';
 import { QrFormComponent } from './form/plugin/qr/qr.component';
 import { ThumbnailFormComponent } from './form/plugin/thumbnail/thumbnail.component';
 import { VideoFormComponent } from './form/plugin/video/video.component';
@@ -51,6 +55,7 @@ import { AdminPluginPage } from './page/admin/plugin/plugin.component';
 import { AdminSetupPage } from './page/admin/setup/setup.component';
 import { AdminTemplatePage } from './page/admin/template/template.component';
 import { CreateExtPage } from './page/create/ext/ext.component';
+import { CreateProfilePage } from './page/create/profile/profile.component';
 import { CreateUserPage } from './page/create/user/user.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAllPage } from './page/inbox/all/all.component';
@@ -67,6 +72,7 @@ import { RefResponsesComponent } from './page/ref/responses/responses.component'
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
 import { SettingsFeedPage } from './page/settings/feed/feed.component';
+import { SettingsProfilePage } from './page/settings/profile/profile.component';
 import { SettingsPage } from './page/settings/settings.component';
 import { SettingsUserPage } from './page/settings/user/user.component';
 import { SubmitDmPage } from './page/submit/dm/dm.component';
@@ -83,8 +89,6 @@ import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
-import { ArchiveFormComponent } from './form/plugin/archive/archive.component';
-import { PdfFormComponent } from './form/plugin/pdf/pdf.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -121,6 +125,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     SubmitFeedPage,
     AutofocusDirective,
     CreateExtPage,
+    CreateProfilePage,
     EditTagPage,
     LoadingComponent,
     AdminPage,
@@ -168,6 +173,9 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     RefMissingComponent,
     ArchiveFormComponent,
     PdfFormComponent,
+    SettingsProfilePage,
+    ProfileListComponent,
+    ProfileComponent,
   ],
   imports: [
     BrowserModule,

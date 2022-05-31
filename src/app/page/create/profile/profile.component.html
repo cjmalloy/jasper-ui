@@ -1,0 +1,44 @@
+<div class="tabs">
+  <h5>Create Profile</h5>
+  <div class="spacer"></div>
+  <app-settings></app-settings>
+</div>
+
+<form class="form" [formGroup]="profileForm" (ngSubmit)="create()">
+
+  <label for="tag">Tag:</label>
+  <input id="tag"
+         type="email"
+         autocorrect="off"
+         autocapitalize="none"
+         formControlName="tag">
+  <span><!-- Tag Errors --></span>
+  <div>
+    <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']">
+      User tags must start with the "user/" or "_user/" prefix.
+      Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+      tags start with an underscore.<br>
+      (i.e. "science", "my/tag", or "_my/private/tag")
+    </div>
+    <div class="error" *ngIf="tag.touched && tag.errors?.['required']">
+      Tag must not be blank.
+    </div>
+  </div>
+
+  <label for="password">Password:</label>
+  <input id="password" type="password" [formControl]="password">
+
+  <label for="role">Role:</label>
+  <input id="role" type="text" [formControl]="role">
+
+  <ng-container *ngFor="let e of serverError">
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  </ng-container>
+
+  <span><!-- Buttons --></span>
+  <span class="form-group">
+    <button type="submit" [disabled]="submitted && !profileForm.valid">Create</button>
+  </span>
+
+</form>

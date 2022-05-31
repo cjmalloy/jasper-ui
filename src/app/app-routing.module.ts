@@ -6,6 +6,7 @@ import { AdminPluginPage } from './page/admin/plugin/plugin.component';
 import { AdminSetupPage } from './page/admin/setup/setup.component';
 import { AdminTemplatePage } from './page/admin/template/template.component';
 import { CreateExtPage } from './page/create/ext/ext.component';
+import { CreateProfilePage } from './page/create/profile/profile.component';
 import { CreateUserPage } from './page/create/user/user.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAllPage } from './page/inbox/all/all.component';
@@ -22,6 +23,7 @@ import { RefResponsesComponent } from './page/ref/responses/responses.component'
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
 import { SettingsFeedPage } from './page/settings/feed/feed.component';
+import { SettingsProfilePage } from './page/settings/profile/profile.component';
 import { SettingsPage } from './page/settings/settings.component';
 import { SettingsUserPage } from './page/settings/user/user.component';
 import { SubmitDmPage } from './page/submit/dm/dm.component';
@@ -77,6 +79,7 @@ const routes: Routes = [
   { path: 'submit/invoice', component: SubmitInvoicePage },
   { path: 'create/ext', component: CreateExtPage },
   { path: 'create/user', component: CreateUserPage },
+  { path: 'create/profile', component: CreateProfilePage },
   {
     path: 'admin',
     component: AdminPage,
@@ -95,6 +98,7 @@ const routes: Routes = [
       { path: '', redirectTo: 'feed', pathMatch: 'full' },
       { path: 'feed', component: SettingsFeedPage },
       { path: 'user', component: SettingsUserPage },
+      { path: 'profile', component: SettingsProfilePage },
       { path: 'ext', component: SettingsExtPage },
     ],
   },

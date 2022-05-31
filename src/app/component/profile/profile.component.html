@@ -1,0 +1,47 @@
+<div class="link">
+  <a [routerLink]="['/tag', profile.tag]">{{ profile.tag }}</a>
+</div>
+<div class="stack">
+  <div class="info">
+    <span>{{ profile.role }}</span>
+  </div>
+  <div class="actions">
+    <a *ngIf="writeAccess$ | async"
+       class="fake-link"
+       (click)="changingPassword = !changingPassword">password</a>
+    <span *ngIf="changingPassword" class="inline-password">
+      <input #inlinePassword
+             (keydown)="$event.key === 'Enter' && setInlinePassword() || true"
+             type="email"
+             autocorrect="off"
+             autocapitalize="none"
+             appAutofocus>
+      <button (click)="setInlinePassword()">+</button>
+    </span>
+    <a *ngIf="account.mod"
+       class="fake-link"
+       (click)="changingRole = !changingRole">role</a>
+    <span *ngIf="changingRole" class="inline-role">
+              <input #inlineRole
+                     (keydown)="$event.key === 'Enter' && setInlineRole() || true"
+                     type="email"
+                     autocorrect="off"
+                     autocapitalize="none"
+                     appAutofocus>
+              <button (click)="setInlineRole()">+</button>
+            </span>
+    <a *ngIf="!deleting && (writeAccess$ | async)"
+       class="fake-link"
+       (click)="deleting = true">delete</a>
+    <span *ngIf="deleting" class="delete-confirm">are you sure?
+      <a class="fake-link" (click)="delete()">yes</a> /
+      <a class="fake-link" (click)="deleting = false">no</a>
+    </span>
+    <a *ngIf="!profile.active"
+       class="fake-link"
+       (click)="activate()">activate</a>
+    <a *ngIf="profile.active"
+       class="fake-link"
+       (click)="deactivate()">deactivate</a>
+  </div>
+</div>
