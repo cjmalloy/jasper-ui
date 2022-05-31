@@ -25,7 +25,6 @@ export class TagComponent implements OnInit {
 
   editForm: FormGroup;
   submitted = false;
-  tagging = false;
   _editing = false;
   deleting = false;
   @HostBinding('class.deleted')
@@ -85,11 +84,11 @@ export class TagComponent implements OnInit {
       ...this.tag,
       ...this.editForm.value,
     }).pipe(
+      switchMap(() => this.service.get(this.tag.tag)),
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-      switchMap(() => this.service.get(this.tag.tag)),
     ).subscribe(tag => {
       this.editing = false;
       this.tag = tag;
@@ -97,7 +96,12 @@ export class TagComponent implements OnInit {
   }
 
   delete() {
-    this.service.delete(this.tag.tag).subscribe(() => {
+    this.service.delete(this.tag.tag).pipe(
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(() => res);
+      }),
+    ).subscribe(() => {
       this.deleted = true;
     });
   }

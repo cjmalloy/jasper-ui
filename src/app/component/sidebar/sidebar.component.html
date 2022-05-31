@@ -21,6 +21,9 @@
   </div>
 </ng-container>
 <ng-container *ngIf="account.mod">
+  <div class="submit-button" routerLink="/create/profile" [queryParams]="{ tag: localTag }">
+    👤️ &nbsp; Create Profile
+  </div>
   <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag: localTag }">
     🗝️️ &nbsp; Create User Permissions
   </div>

@@ -2,15 +2,16 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
-import { mapUser, Roles, User, writeUser } from '../../model/user';
+import { Profile } from '../../model/profile';
+import { mapUser, User } from '../../model/user';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
-export class UserService {
+export class ProfileService {
 
   constructor(
     private http: HttpClient,
@@ -19,41 +20,44 @@ export class UserService {
   ) { }
 
   private get base() {
-    return this.config.api + '/api/v1/user';
+    return this.config.api + '/api/v1/profile';
   }
 
-  create(user: User): Observable<void> {
-    return this.http.post<void>(this.base, writeUser(user)).pipe(
+  create(profile: Profile): Observable<void> {
+    return this.http.post<void>(this.base, profile).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  get(tag: string): Observable<User> {
+  getRoles(tag: string): Observable<string[]> {
     return this.http.get(this.base, {
       params: params({ tag }),
     }).pipe(
-      map(mapUser),
+      map(res => res as string[]),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
   page(args: {
-    query?: string,
     page?: number,
     size?: number,
-    sort?: string,
-    direction?: 'asc' | 'desc',
-  }): Observable<Page<User>> {
+  }): Observable<Page<string>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(
-      map(mapPage(mapUser)),
+      map(mapPage(res => res as string)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  update(user: User): Observable<void> {
-    return this.http.put<void>(this.base, writeUser(user)).pipe(
+  changePassword(profile: Profile): Observable<void> {
+    return this.http.post<void>(`${this.base}/password`, profile).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  changeRole(profile: Profile): Observable<void> {
+    return this.http.post<void>(`${this.base}/role`, profile).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -62,12 +66,6 @@ export class UserService {
     return this.http.delete<void>(this.base, {
       params: params({ tag }),
     }).pipe(
-      catchError(err => this.login.handleHttpError(err)),
-    );
-  }
-
-  whoAmI(): Observable<Roles> {
-    return this.http.get<Roles>(`${this.base}/whoami`).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }

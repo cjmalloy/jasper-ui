@@ -250,7 +250,7 @@ export class RefComponent implements OnInit {
 
   addInlineTag() {
     if (!this.inlineTag) return;
-    const tag = (this.inlineTag.nativeElement.value as string).toLowerCase();
+    const tag = (this.inlineTag.nativeElement.value as string).toLowerCase().trim();
     this.ts.create(tag, this._ref.url, this._ref.origin!).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
     ).subscribe(ref => {
