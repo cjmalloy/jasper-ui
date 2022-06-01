@@ -50,8 +50,8 @@ export class EmbedFormComponent implements OnInit {
 export function embedPluginForm(fb: FormBuilder) {
   return fb.group({
     url: fb.control('', [Validators.pattern(URI_REGEX)]),
-    width: fb.control('560', [Validators.min(200)]),
-    height: fb.control('315', [Validators.min(200)]),
+    width: fb.control(560, [Validators.min(200)]),
+    height: fb.control(315, [Validators.min(200)]),
   });
 }
 
