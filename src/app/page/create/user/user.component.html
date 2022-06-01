@@ -15,10 +15,10 @@
   <span><!-- Tag Errors --></span>
   <div>
     <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']">
-      User tags must start with the "user/" or "_user/" prefix.
+      User tags must start with the "+user/" or "_user/" prefix.
       Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
       tags start with an underscore.<br>
-      (i.e. "science", "my/tag", or "_my/private/tag")
+      (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")
     </div>
     <div class="error" *ngIf="tag.touched && tag.errors?.['required']">
       Tag must not be blank.
