@@ -1,9 +1,10 @@
 <div class="tabs">
   <h5>Settings</h5>
   <a routerLink="./feed" routerLinkActive="current-tab">feeds</a>
+  <a routerLink="./ext" routerLinkActive="current-tab">extensions</a>
   <a routerLink="./user" routerLinkActive="current-tab">users</a>
   <a *ngIf="account.mod" routerLink="./profile" routerLinkActive="current-tab">profiles</a>
-  <a routerLink="./ext" routerLinkActive="current-tab">extensions</a>
+  <a *ngIf="account.signedIn" routerLink="./password" routerLinkActive="current-tab">password</a>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>

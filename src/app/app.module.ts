@@ -72,6 +72,7 @@ import { RefResponsesComponent } from './page/ref/responses/responses.component'
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
 import { SettingsFeedPage } from './page/settings/feed/feed.component';
+import { SettingsPasswordPage } from './page/settings/password/password.component';
 import { SettingsProfilePage } from './page/settings/profile/profile.component';
 import { SettingsPage } from './page/settings/settings.component';
 import { SettingsUserPage } from './page/settings/user/user.component';
@@ -176,6 +177,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     SettingsProfilePage,
     ProfileListComponent,
     ProfileComponent,
+    SettingsPasswordPage,
   ],
   imports: [
     BrowserModule,

@@ -23,6 +23,7 @@ import { RefResponsesComponent } from './page/ref/responses/responses.component'
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
 import { SettingsFeedPage } from './page/settings/feed/feed.component';
+import { SettingsPasswordPage } from './page/settings/password/password.component';
 import { SettingsProfilePage } from './page/settings/profile/profile.component';
 import { SettingsPage } from './page/settings/settings.component';
 import { SettingsUserPage } from './page/settings/user/user.component';
@@ -97,9 +98,10 @@ const routes: Routes = [
     children: [
       { path: '', redirectTo: 'feed', pathMatch: 'full' },
       { path: 'feed', component: SettingsFeedPage },
+      { path: 'ext', component: SettingsExtPage },
       { path: 'user', component: SettingsUserPage },
       { path: 'profile', component: SettingsProfilePage },
-      { path: 'ext', component: SettingsExtPage },
+      { path: 'password', component: SettingsPasswordPage },
     ],
   },
 ];
