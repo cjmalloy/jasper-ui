@@ -14,6 +14,7 @@ import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
+import { getAlts, getIfNew, getNotifications, getSources, getTags } from '../../util/editor';
 import {
   authors,
   interestingTags,
@@ -274,13 +275,13 @@ export class RefComponent implements OnInit {
     this.submitted = false;
   }
 
-  addSource() {
-    addSource(this.fb, this.sourcesForm, '');
+  addSource(value = '') {
+    addSource(this.fb, this.sourcesForm, value);
     this.submitted = false;
   }
 
-  addAlt() {
-    addAlt(this.fb, this.altsForm, '');
+  addAlt(value = '') {
+    addAlt(this.fb, this.altsForm, value);
     this.submitted = false;
   }
 
@@ -345,9 +346,28 @@ export class RefComponent implements OnInit {
     });
   }
 
+  syncEditor() {
+    const value = this.editForm.value.comment;
+    const newSources = _.uniq(_.difference(getSources(value), this.editForm.value.sources));
+    for (const s of newSources) {
+      this.addSource(s);
+    }
+    const newAlts = _.uniq(_.difference(getAlts(value), this.editForm.value.alternateUrls));
+    for (const a of newAlts) {
+      this.addAlt(a);
+    }
+    const newTags = _.uniq(_.difference([
+      ...getTags(value),
+      ...getNotifications(value)], this.editForm.value.tags));
+    for (const t of newTags) {
+      this.addTag(t);
+    }
+  }
+
   save() {
     this.submitted = true;
     this.editForm.markAllAsTouched();
+    this.syncEditor();
     if (!this.editForm.valid) return;
     this.refs.update({
       ...this.ref,

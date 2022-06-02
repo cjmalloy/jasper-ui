@@ -2,11 +2,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
-import { altsForm } from '../../../form/alts/alts.component';
+import { addAlt, altsForm } from '../../../form/alts/alts.component';
 import { pluginsForm, writePlugins } from '../../../form/plugins/plugins.component';
-import { sourcesForm } from '../../../form/sources/sources.component';
+import { addSource, sourcesForm } from '../../../form/sources/sources.component';
 import { addTag, tagsForm } from '../../../form/tags/tags.component';
 import { isAudio } from '../../../plugin/audio';
 import { isKnownEmbed } from '../../../plugin/embed';
@@ -17,6 +18,7 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
+import { getAlts, getNotifications, getSources, getTags } from '../../../util/editor';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -107,24 +109,44 @@ export class SubmitWebPage implements OnInit {
     this.webForm.get('url')?.setValue(value);
   }
 
-  addTag(value: string) {
+  addTag(value = '') {
     addTag(this.fb, this.tags, value);
     this.submitted = false;
   }
 
-  addSource(value: string) {
-    this.sources.push(this.fb.control(value, [Validators.required]));
+  addSource(value = '') {
+    addSource(this.fb, this.sources, value);
     this.submitted = false;
   }
 
-  removeSource(index: number) {
-    this.sources.removeAt(index);
+  addAlt(value = '') {
+    addAlt(this.fb, this.alts, value);
+    this.submitted = false;
+  }
+
+  syncEditor() {
+    const value = this.webForm.value.comment;
+    const newSources = _.uniq(_.difference(getSources(value), this.webForm.value.sources));
+    for (const s of newSources) {
+      this.addSource(s);
+    }
+    const newAlts = _.uniq(_.difference(getAlts(value), this.webForm.value.alternateUrls));
+    for (const a of newAlts) {
+      this.addAlt(a);
+    }
+    const newTags = _.uniq(_.difference([
+      ...getTags(value),
+      ...getNotifications(value)], this.webForm.value.tags));
+    for (const t of newTags) {
+      this.addTag(t);
+    }
   }
 
   submit() {
     this.serverError = [];
     this.submitted = true;
     this.webForm.markAllAsTouched();
+    this.syncEditor();
     if (!this.webForm.valid) return;
     this.refs.create({
       ...this.webForm.value,

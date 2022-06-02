@@ -28,7 +28,7 @@
   </div>
 
   <label for="comment">Abstract:</label>
-  <textarea id="comment" [formControl]="comment"></textarea>
+  <textarea id="comment" [formControl]="comment" (blur)="syncEditor()"></textarea>
 
   <label for="sources">Sources:</label>
   <app-sources id="sources" [group]="webForm"></app-sources>

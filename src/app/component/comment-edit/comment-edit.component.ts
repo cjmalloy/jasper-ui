@@ -6,6 +6,7 @@ import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { getAlts, getIfNew, getNotifications, getSources, getTags } from '../../util/editor';
 import { printError } from '../../util/http';
 
 @Component({
@@ -45,22 +46,30 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
     this.textbox.nativeElement.focus();
   }
 
-  get patchPluginTags() {
-    const hadEmoji = this.ref.tags?.includes('plugin/emoji') || false;
-    const hadLatex = this.ref.tags?.includes('plugin/latex') || false;
-    if (this.emoji === hadEmoji && this.latex === hadLatex) return null;
-    let tags = [...(this.ref.tags || [])];
-    if (!this.emoji) {
-      tags = _.without(tags, 'plugin/emoji');
-    } else if (!tags.includes('plugin/emoji')) {
-      tags.push('plugin/emoji');
-    }
-    if (!this.latex) {
-      tags = _.without(tags, 'plugin/latex');
-    } else if (!tags.includes('plugin/latex')) {
-      tags.push('plugin/latex');
-    }
-    return tags;
+  get plugins() {
+    let result = [];
+    if (this.emoji) result.push('plugin/emoji');
+    if (this.latex) result.push('plugin/latex');
+    return result;
+  }
+
+  get patchTags() {
+    return getIfNew([
+      ...getTags(this.editValue),
+      ...getNotifications(this.editValue),
+      ...this.plugins],
+      this.ref.tags);
+  }
+
+  get patchSources() {
+    return getIfNew(
+      getSources(this.editValue),
+      this.ref.sources);
+  }
+
+  get patchAlts() {
+    return getIfNew(getAlts(this.editValue),
+      this.ref.alternateUrls);
   }
 
   save() {
@@ -69,12 +78,28 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
       path: '/comment',
       value: this.editValue,
     }];
-    const tags = this.patchPluginTags;
+    const tags = this.patchTags;
     if (tags) {
       patches.push({
         op: 'add',
         path: '/tags',
         value: tags,
+      });
+    }
+    const sources = this.patchSources;
+    if (sources) {
+      patches.push({
+        op: 'add',
+        path: '/sources',
+        value: sources,
+      });
+    }
+    const alts = this.patchAlts;
+    if (alts) {
+      patches.push({
+        op: 'add',
+        path: '/alternateUrls',
+        value: alts,
       });
     }
     this.refs.patch(this.ref.url, this.ref.origin!, patches).pipe(
@@ -87,6 +112,12 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
         this.ref.tags = tags;
         this.emoji = tags.includes('plugin/emoji');
         this.latex = tags.includes('plugin/latex');
+      }
+      if (sources) {
+        this.ref.sources = sources;
+      }
+      if (alts) {
+        this.ref.alternateUrls = alts;
       }
       this.ref.comment = this.editValue;
       this.commentEdited$.next();

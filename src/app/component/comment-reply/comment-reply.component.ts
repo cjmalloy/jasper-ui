@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
+import * as _ from 'lodash';
 import * as moment from 'moment';
 import { Subject, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -6,6 +7,7 @@ import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { getAlts, getIfNew, getNotifications, getSources, getTags } from '../../util/editor';
 
 @Component({
   selector: 'app-comment-reply',
@@ -63,17 +65,23 @@ export class CommentReplyComponent implements AfterViewInit {
     const url = 'comment:' + uuid();
     this.refs.create({
       url,
-      sources: this.sources,
       title: 'Reply to: ' + this.top.title,
       comment: value,
-      tags: [
+      sources: _.uniq([
+        ...this.sources,
+        ...getSources(value),
+      ]),
+      alternateUrls: getAlts(value),
+      tags: _.uniq([
         ...this.publicTag,
         'internal',
         'plugin/comment',
         this.account.tag,
         ...this.tags!,
         ...this.plugins,
-      ],
+        ...getTags(value),
+        ...getNotifications(value),
+      ]),
       published: moment(),
     }).pipe(
       switchMap(() => this.refs.get(url)),

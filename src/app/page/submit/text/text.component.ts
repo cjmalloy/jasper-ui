@@ -2,14 +2,18 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { addTag, tagsForm } from 'src/app/form/tags/tags.component';
 import { v4 as uuid } from 'uuid';
+import { addAlt, altsForm } from '../../../form/alts/alts.component';
+import { addSource, sourcesForm } from '../../../form/sources/sources.component';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
+import { getAlts, getNotifications, getSources, getTags } from '../../../util/editor';
 import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
@@ -41,6 +45,8 @@ export class SubmitTextPage implements OnInit {
     this.textForm = fb.group({
       title: ['', [Validators.required]],
       comment: [''],
+      sources: sourcesForm(this.fb, []),
+      alternateUrls: altsForm(this.fb, []),
       tags: tagsForm(fb, ['public', account.tag]),
     });
     route.queryParams.subscribe(params => {
@@ -62,6 +68,14 @@ export class SubmitTextPage implements OnInit {
     return this.textForm.get('comment') as FormControl;
   }
 
+  get sources() {
+    return this.textForm.get('sources') as FormArray;
+  }
+
+  get alts() {
+    return this.textForm.get('alternateUrls') as FormArray;
+  }
+
   get tags() {
     return this.textForm.get('tags') as FormArray;
   }
@@ -71,11 +85,39 @@ export class SubmitTextPage implements OnInit {
     this.submitted = false;
   }
 
+  addSource(value = '') {
+    addSource(this.fb, this.sources, value);
+    this.submitted = false;
+  }
+
+  addAlt(value = '') {
+    addAlt(this.fb, this.alts, value);
+    this.submitted = false;
+  }
+
   addPlugins(tags: string[]) {
     const result = [...tags];
     if (this.emoji) result.push('plugin/emoji');
     if (this.latex) result.push('plugin/latex');
     return result;
+  }
+
+  syncEditor() {
+    const value = this.textForm.value.comment;
+    const newSources = _.uniq(_.difference(getSources(value), this.textForm.value.sources));
+    for (const s of newSources) {
+      this.addSource(s);
+    }
+    const newAlts = _.uniq(_.difference(getAlts(value), this.textForm.value.alternateUrls));
+    for (const a of newAlts) {
+      this.addAlt(a);
+    }
+    const newTags = _.uniq(_.difference([
+      ...getTags(value),
+      ...getNotifications(value)], this.textForm.value.tags));
+    for (const t of newTags) {
+      this.addTag(t);
+    }
   }
 
   submit() {

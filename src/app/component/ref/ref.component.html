@@ -152,7 +152,7 @@
   </div>
 
   <label for="comment">Abstract:</label>
-  <textarea id="comment" formControlName="comment"></textarea>
+  <textarea id="comment" formControlName="comment" (blur)="syncEditor()"></textarea>
 
   <label for="sources">Sources:</label>
   <app-sources id="sources" [group]="editForm"></app-sources>
