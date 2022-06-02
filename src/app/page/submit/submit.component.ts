@@ -6,6 +6,7 @@ import { scan, tap } from 'rxjs/operators';
 import { FeedService } from '../../service/api/feed.service';
 import { RefService } from '../../service/api/ref.service';
 import { ThemeService } from '../../service/theme.service';
+import { URI_REGEX } from '../../util/format';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
@@ -103,6 +104,7 @@ export class SubmitPage implements OnInit {
         return 'web';
       }
     } catch (e) {}
+    if (URI_REGEX.test(value)) return 'web';
     return null;
   }
 }
