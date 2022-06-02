@@ -2,9 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
-import { mapTemplate, Template, writeTemplate } from '../../model/template';
+import { maybePlugin, Plugin } from '../../model/plugin';
+import { mapTemplate, maybeTemplate, Template, writeTemplate } from '../../model/template';
 import { params } from '../../util/http';
-import { AccountService } from '../account.service';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -46,6 +46,16 @@ export class TemplateService {
       map(v => v === 'true'),
       catchError(err => this.login.handleHttpError(err)),
       catchError(err => of(false)),
+    );
+  }
+
+  list(tags: string[]): Observable<(Template | undefined)[]> {
+    return this.http.get(`${this.base}/list`, {
+      params: params({ tags }),
+    }).pipe(
+      map(res => res as any[]),
+      map(res => res.map(maybeTemplate)),
+      catchError(err => this.login.handleHttpError(err)),
     );
   }
 

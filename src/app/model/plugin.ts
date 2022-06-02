@@ -16,6 +16,11 @@ export function mapPlugin(obj: any): Plugin {
   return obj;
 }
 
+export function maybePlugin(obj: any): Plugin | undefined {
+  if (!obj) return undefined;
+  return mapPlugin(obj);
+}
+
 export function writePlugin(plugin: Plugin): Record<string, any> {
   const result = { ...plugin };
   delete result.type;

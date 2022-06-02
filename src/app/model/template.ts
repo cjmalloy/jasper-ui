@@ -15,6 +15,11 @@ export function mapTemplate(obj: any): Template {
   return obj;
 }
 
+export function maybeTemplate(obj: any): Template | undefined {
+  if (!obj) return undefined;
+  return mapTemplate(obj);
+}
+
 export function writeTemplate(template: Template): Record<string, any> {
   const result = { ...template };
   delete result.type;

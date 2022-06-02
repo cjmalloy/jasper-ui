@@ -47,6 +47,15 @@ export class RefService {
     );
   }
 
+  get(url: string, origin = ''): Observable<Ref> {
+    return this.http.get(this.base, {
+      params: params({ url, origin }),
+    }).pipe(
+      map(mapRef),
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
   exists(url: string, origin = ''): Observable<boolean> {
     return this.http.get(`${this.base}/exists`, {
       params: params({ url, origin }),
@@ -55,15 +64,6 @@ export class RefService {
       map(v => v === 'true'),
       catchError(err => this.login.handleHttpError(err)),
       catchError(err => of(false)),
-    );
-  }
-
-  get(url: string, origin = ''): Observable<Ref> {
-    return this.http.get(this.base, {
-      params: params({ url, origin }),
-    }).pipe(
-      map(mapRef),
-      catchError(err => this.login.handleHttpError(err)),
     );
   }
 

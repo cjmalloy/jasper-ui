@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';
 import { Template } from '../model/template';
@@ -63,23 +63,47 @@ export class AdminService {
     },
   };
 
+  pluginKeys = Object.keys(this.def.plugins);
+  templateKeys = Object.keys(this.def.templates);
+
   constructor(
     private plugins: PluginService,
     private templates: TemplateService,
   ) { }
 
   get init$() {
-    return forkJoin(
-      forkJoin(_.mapValues(this.def.plugins, p => this.plugins.get(p.tag).pipe(
-        catchError(err => of(undefined)),
-      ))).pipe(
-        tap(status => this.status.plugins = status),
-      ),
-      forkJoin(_.mapValues(this.def.templates, t => this.templates.get(t.tag).pipe(
-        catchError(err => of(undefined)),
-      ))).pipe(
-        tap(status => this.status.templates = status),
-      ),
-    );
+    if (this.pluginKeys.length + this.templateKeys.length < 1000) {
+      return forkJoin(
+        this.plugins.list(this.pluginKeys.map(k => this.def.plugins[k].tag)).pipe(
+          map(list => this.listToStatus(this.pluginKeys, list)),
+          tap(status => this.status.plugins = status),
+        ),
+        this.templates.list(this.templateKeys.map(k => this.def.templates[k].tag)).pipe(
+          map(list => this.listToStatus(this.templateKeys, list)),
+          tap(status => this.status.templates = status),
+        ),
+      );
+    } else {
+      return forkJoin(
+        forkJoin(_.mapValues(this.def.plugins, p => this.plugins.get(p.tag).pipe(
+          catchError(err => of(undefined)),
+        ))).pipe(
+          tap(status => this.status.plugins = status),
+        ),
+        forkJoin(_.mapValues(this.def.templates, t => this.templates.get(t.tag).pipe(
+          catchError(err => of(undefined)),
+        ))).pipe(
+          tap(status => this.status.templates = status),
+        ),
+      );
+    }
+  }
+
+  private listToStatus<T>(keys: string[], list: (T | undefined)[]): Record<string, T | undefined> {
+    const result = <Record<string, T | undefined>> {};
+    for (let i = 0; i < keys.length; i++) {
+      result[keys[i]] = list[i];
+    }
+    return result;
   }
 }
