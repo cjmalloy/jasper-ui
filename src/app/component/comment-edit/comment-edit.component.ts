@@ -1,10 +1,12 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import * as _ from 'lodash';
-import { Subject } from 'rxjs';
+import { catchError, Subject, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { printError } from '../../util/http';
 
 @Component({
   selector: 'app-comment-edit',
@@ -15,6 +17,7 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
   @HostBinding('class') css = 'comment-edit';
 
   editValue = '';
+  serverError: string[] = [];
 
   @Input()
   ref!: Ref;
@@ -74,7 +77,12 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
         value: tags,
       });
     }
-    this.refs.patch(this.ref.url, this.ref.origin!, patches).subscribe(() => {
+    this.refs.patch(this.ref.url, this.ref.origin!, patches).pipe(
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(() => res);
+      }),
+    ).subscribe(() => {
       if (tags) {
         this.ref.tags = tags;
         this.emoji = tags.includes('plugin/emoji');

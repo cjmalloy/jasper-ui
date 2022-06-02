@@ -1,5 +1,9 @@
 <textarea #textbox class="has-plugins" [(ngModel)]="editValue"></textarea>
 <br>
+<ng-container *ngFor="let e of serverError">
+  <span><!-- Unexpected Error --></span>
+  <div class="error">{{ e }}</div>
+</ng-container>
 <button (click)="save()">save</button>
 <button (click)="cancel()">cancel</button>
 
