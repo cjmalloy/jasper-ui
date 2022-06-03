@@ -9,7 +9,9 @@ export function getSources(markdown: string) {
 }
 
 export function getAlts(markdown: string) {
-  return extractPattern(markdown, /\[\[?alt\d*]?]:.*/g, /\[\[?alt\d*]?]:(.*)/, URI_REGEX);
+  return [
+    ...extractPattern(markdown, /\[\[?alt\d*]?]:.*/g, /\[\[?alt\d*]?]:(.*)/, URI_REGEX),
+    ...extractPattern(markdown, /\[\[?alt\d*]?]\(.*\)/g, /\[\[?alt\d*]?]\((.*)\)/, URI_REGEX)];
 }
 
 export function getNotifications(markdown: string) {
