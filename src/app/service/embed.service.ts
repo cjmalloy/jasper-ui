@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
+import { marked } from 'marked';
 import * as moment from 'moment';
+import { MarkdownService } from 'ngx-markdown';
 import { getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
 import { CorsBusterService } from './api/cors-buster.service';
 import { ThemeService } from './theme.service';
@@ -13,7 +15,65 @@ export class EmbedService {
   constructor(
     private theme: ThemeService,
     private cors: CorsBusterService,
-  ) { }
+    private markdownService: MarkdownService,
+  ) {
+    markdownService.options = {
+      gfm: true,
+      breaks: false,
+      pedantic: false,
+      smartLists: true,
+      smartypants: true,
+    };
+    marked.use({ extensions: this.extensions });
+  }
+
+  private get extensions() {
+    return [{
+      name: 'userTag',
+      level: 'inline',
+      start(src: string) { return src.match(/[+_]/)?.index; },
+      tokenizer(src: string, tokens: any) {
+        const rule = /^([+_]user\/[a-z]+(\/[a-z]+)*)/;
+        const match = rule.exec(src);
+        if (match) {
+          return {
+            type: 'userTag',
+            href: '/tag/' + encodeURIComponent(match[0]),
+            text: match[0],
+            title: 'User ' + match[0],
+            raw: match[0],
+            tokens: []
+          };
+        }
+        return undefined;
+      },
+      renderer(token: any): string {
+        return `<a href="${token.href}" title="${token.title}">${token.text}</a>`;
+      }
+    }, {
+      name: 'hashTag',
+      level: 'inline',
+      start(src: string) { return src.match(/#/)?.index; },
+      tokenizer(src: string, tokens: any) {
+        const rule = /^#([a-z]+(\/[a-z]+)*)/;
+        const match = rule.exec(src);
+        if (match) {
+          return {
+            type: 'hashTag',
+            href: '/tag/' + encodeURIComponent(match[1]),
+            text: match[0],
+            title: 'Hashtag ' + match[0],
+            raw: match[0],
+            tokens: []
+          };
+        }
+        return undefined;
+      },
+      renderer(token: any): string {
+        return `<a href="${token.href}" title="${token.title}">${token.text}</a>`;
+      }
+    }];
+  }
 
   private get twitterTheme() {
     return this.theme.getTheme() === 'dark-theme' ? 'dark' : undefined;
