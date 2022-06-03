@@ -61,7 +61,7 @@ export function prefixTag(tag: string, tags: string[]) {
   if (tag.startsWith('_') || tag.startsWith('+')) return false;
   for (const t of tags) {
     if (t === tag) continue;
-    if (t.startsWith(tag)) return true;
+    if (t.startsWith(tag + '/')) return true;
   }
   return false;
 }
