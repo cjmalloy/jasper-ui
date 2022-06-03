@@ -1,20 +1,18 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
-import { addTag, tagsForm } from 'src/app/form/tags/tags.component';
+import { addTag } from 'src/app/form/tags/tags.component';
 import { v4 as uuid } from 'uuid';
-import { addAlt, altsForm } from '../../../form/alts/alts.component';
+import { addAlt } from '../../../form/alts/alts.component';
 import { refForm, syncEditor } from '../../../form/ref/ref.component';
-import { addSource, sourcesForm } from '../../../form/sources/sources.component';
+import { addSource } from '../../../form/sources/sources.component';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
-import { getAlts, getNotifications, getSources, getTags } from '../../../util/editor';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -25,6 +23,7 @@ import { printError } from '../../../util/http';
 export class SubmitTextPage implements OnInit {
 
   url?: string;
+  wiki = false;
   submitted = false;
   textForm: FormGroup;
   serverError: string[] = [];
@@ -47,6 +46,11 @@ export class SubmitTextPage implements OnInit {
     addTag(fb, this.textForm, account.tag);
     route.queryParams.subscribe(params => {
       this.url = params['url'];
+      this.wiki = !!this.url?.startsWith('wiki:');
+      if (this.wiki) {
+        theme.setTitle('Submit: Wiki');
+        this.title.setValue(this.url?.substring('wiki:'.length).replace('_', ' '));
+      }
       if (params['tag']) {
         this.addTag(params['tag']);
       }

@@ -31,7 +31,7 @@ export class EmbedService {
     return [{
       name: 'userTag',
       level: 'inline',
-      start(src: string) { return src.match(/[+_]/)?.index; },
+      start: (src: string) => src.match(/[+_]/)?.index,
       tokenizer(src: string, tokens: any) {
         const rule = /^([+_]user\/[a-z]+(\/[a-z]+)*)/;
         const match = rule.exec(src);
@@ -53,7 +53,7 @@ export class EmbedService {
     }, {
       name: 'hashTag',
       level: 'inline',
-      start(src: string) { return src.match(/#/)?.index; },
+      start: (src: string) => src.match(/#/)?.index,
       tokenizer(src: string, tokens: any) {
         const rule = /^#([a-z]+(\/[a-z]+)*)/;
         const match = rule.exec(src);
@@ -71,6 +71,27 @@ export class EmbedService {
       },
       renderer(token: any): string {
         return `<a href="${token.href}" title="${token.title}">${token.text}</a>`;
+      }
+    }, {
+      name: 'wiki',
+      level: 'inline',
+      start: (src: string) => src.match(/\[\[/)?.index,
+      tokenizer(src: string, tokens: any) {
+        const rule = /^\[\[([^\]]+)]]/;
+        const match = rule.exec(src);
+        if (match) {
+          return {
+            type: 'wiki',
+            href: '/ref/wiki:' + encodeURIComponent(match[1].replace(/\s+/, '_')),
+            text: match[1],
+            raw: match[0],
+            tokens: []
+          };
+        }
+        return undefined;
+      },
+      renderer(token: any): string {
+        return `<a href="${token.href}">${token.text}</a>`;
       }
     }];
   }

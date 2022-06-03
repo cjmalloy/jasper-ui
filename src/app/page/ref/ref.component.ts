@@ -33,7 +33,7 @@ export class RefPage implements OnInit, OnDestroy {
   ) {
     this.url$ = this.route.params.pipe(
       map((params) => params['ref']),
-      tap(url => this.isTextPost = url.startsWith('comment:')),
+      tap(url => this.isTextPost = url.startsWith('comment:') || url.startsWith('wiki:')),
       distinctUntilChanged(),
     );
     this.ref$ = this.url$.pipe(

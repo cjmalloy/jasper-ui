@@ -1,13 +1,15 @@
 <div class="tabs">
-  <h5>Submit Text Post</h5>
+  <h5 *ngIf="!wiki">Submit Text Post</h5>
+  <h5 *ngIf="wiki">Submit Wiki</h5>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>
 
 <form class="form" [formGroup]="textForm" (ngSubmit)="submit()">
 
-  <label for="title">Title:</label>
-  <input id="title" type="text" [formControl]="title">
+  <label for="title" *ngIf="!wiki">Title:</label>
+  <label for="title" *ngIf="wiki">Wiki:</label>
+  <input id="title" type="text" [formControl]="title" [attr.disabled]="wiki">
   <span><!-- Title Errors --></span>
   <div>
     <div class="error" *ngIf="title.touched && title.errors?.['required']">
@@ -15,7 +17,8 @@
     </div>
   </div>
 
-  <label for="comment">Comment:</label>
+  <label for="comment" *ngIf="!wiki">Comment:</label>
+  <label for="comment" *ngIf="wiki">Entry:</label>
   <textarea id="comment" class="has-plugins" [formControl]="comment" (blur)="syncEditor()"></textarea>
 
   <span><!-- Comment Plugins --></span>
