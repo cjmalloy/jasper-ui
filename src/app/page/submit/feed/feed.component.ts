@@ -69,7 +69,7 @@ export class SubmitFeedPage implements OnInit {
   }
 
   addTag(value = '') {
-    addTag(this.fb, this.tags, value);
+    addTag(this.fb, this.feedForm, value);
     this.submitted = false;
   }
 

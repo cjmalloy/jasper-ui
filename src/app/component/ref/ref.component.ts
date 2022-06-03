@@ -7,6 +7,7 @@ import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { addAlt } from '../../form/alts/alts.component';
 import { pluginsForm, writePlugins } from '../../form/plugins/plugins.component';
+import { refForm, RefFormComponent, setRef, syncEditor } from '../../form/ref/ref.component';
 import { addSource } from '../../form/sources/sources.component';
 import { addTag } from '../../form/tags/tags.component';
 import { Ref, writeRef } from '../../model/ref';
@@ -73,16 +74,7 @@ export class RefComponent implements OnInit {
     if (this.admin.status.plugins.audio) this.expandable.push('plugin/audio');
     if (this.admin.status.plugins.video) this.expandable.push('plugin/video');
     if (this.admin.status.plugins.image) this.expandable.push('plugin/image');
-    this.editForm = fb.group({
-      url: [''],
-      published: ['', [Validators.required]],
-      title: ['', [Validators.required]],
-      comment: [''],
-      sources: fb.array([]),
-      alternateUrls: fb.array([]),
-      tags: fb.array([]),
-      plugins: fb.group({})
-    });
+    this.editForm = refForm(fb);
   }
 
   get ref(): Ref {
@@ -92,18 +84,11 @@ export class RefComponent implements OnInit {
   @Input()
   set ref(value: Ref) {
     this._ref = value;
-    this.writeAccess$ = this.account.writeAccess(this._ref);
-    if (this._ref.tags) {
-      this.expandPlugins = _.intersection(this._ref.tags, this.expandable);
+    this.writeAccess$ = this.account.writeAccess(value);
+    if (value.tags) {
+      this.expandPlugins = _.intersection(value.tags, this.expandable);
     }
-    while (this.sourcesForm.length < (this._ref?.sources?.length || 0)) this.addSource();
-    while (this.altsForm.length < (this._ref?.alternateUrls?.length || 0)) this.addAlt();
-    while (this.tagsForm.length < (this._ref?.tags?.length || 0)) this.addTag();
-    this.editForm.setControl('plugins', pluginsForm(this.fb, this._ref.tags || []));
-    this.editForm.patchValue({
-      ...this._ref,
-      published: this._ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
-    });
+    setRef(this.fb, this.editForm, value);
   }
 
   ngOnInit(): void {
@@ -202,30 +187,6 @@ export class RefComponent implements OnInit {
     return this._ref.tags?.includes('locked');
   }
 
-  get publishedForm() {
-    return this.editForm.get('published') as FormControl;
-  }
-
-  get titleForm() {
-    return this.editForm.get('title') as FormControl;
-  }
-
-  get tagsForm() {
-    return this.editForm.get('tags') as FormArray;
-  }
-
-  get sourcesForm() {
-    return this.editForm.get('sources') as FormArray;
-  }
-
-  get altsForm() {
-    return this.editForm.get('alternateUrls') as FormArray;
-  }
-
-  get pluginsForm() {
-    return this.editForm.get('plugins') as FormGroup;
-  }
-
   get comments() {
     if (!this._ref.metadata) return '? comments';
     const commentCount = this._ref.metadata.plugins?.['plugin/comment']?.length;
@@ -268,21 +229,6 @@ export class RefComponent implements OnInit {
     }]).pipe(
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
     ).subscribe(ref => this.ref = ref);
-  }
-
-  addTag(value = '') {
-    addTag(this.fb, this.tagsForm, value);
-    this.submitted = false;
-  }
-
-  addSource(value = '') {
-    addSource(this.fb, this.sourcesForm, value);
-    this.submitted = false;
-  }
-
-  addAlt(value = '') {
-    addAlt(this.fb, this.altsForm, value);
-    this.submitted = false;
   }
 
   accept() {
@@ -346,28 +292,10 @@ export class RefComponent implements OnInit {
     });
   }
 
-  syncEditor() {
-    const value = this.editForm.value.comment;
-    const newSources = _.uniq(_.difference(getSources(value), this.editForm.value.sources));
-    for (const s of newSources) {
-      this.addSource(s);
-    }
-    const newAlts = _.uniq(_.difference(getAlts(value), this.editForm.value.alternateUrls));
-    for (const a of newAlts) {
-      this.addAlt(a);
-    }
-    const newTags = _.uniq(_.difference([
-      ...getTags(value),
-      ...getNotifications(value)], this.editForm.value.tags));
-    for (const t of newTags) {
-      this.addTag(t);
-    }
-  }
-
   save() {
     this.submitted = true;
     this.editForm.markAllAsTouched();
-    this.syncEditor();
+    syncEditor(this.fb, this.editForm);
     if (!this.editForm.valid) return;
     this.refs.update({
       ...this.ref,

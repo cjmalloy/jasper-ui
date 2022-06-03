@@ -35,7 +35,7 @@
   </div>
 
   <span><!-- Message --></span>
-  <textarea class="has-plugins" [formControl]="comment"></textarea>
+  <textarea class="has-plugins" [formControl]="comment" (blur)="syncEditor()"></textarea>
 
   <span><!-- Comment Plugins --></span>
   <div class="no-margin">

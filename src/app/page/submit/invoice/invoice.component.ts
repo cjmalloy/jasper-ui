@@ -2,9 +2,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { syncEditor } from '../../../form/ref/ref.component';
 import { Ext } from '../../../model/ext';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
@@ -112,13 +114,18 @@ export class SubmitInvoicePage implements OnInit {
     }
     if (this.emoji) result.push('plugin/emoji');
     if (this.latex) result.push('plugin/latex');
-    return result;
+    return _.uniq(result);
+  }
+
+  syncEditor() {
+    syncEditor(this.fb, this.invoiceForm);
   }
 
   submit() {
     this.serverError = [];
     this.submitted = true;
     this.invoiceForm.markAllAsTouched();
+    this.syncEditor();
     if (!this.invoiceForm.valid) return;
     this.exts.get(this.queue!).pipe(
       switchMap(queueExt => this.refs.create({

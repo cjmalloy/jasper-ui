@@ -7,6 +7,7 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { addAlt, altsForm } from '../../../form/alts/alts.component';
 import { pluginsForm, writePlugins } from '../../../form/plugins/plugins.component';
+import { refForm, setRef, syncEditor } from '../../../form/ref/ref.component';
 import { addSource, sourcesForm } from '../../../form/sources/sources.component';
 import { addTag, tagsForm } from '../../../form/tags/tags.component';
 import { isAudio } from '../../../plugin/audio';
@@ -42,16 +43,9 @@ export class SubmitWebPage implements OnInit {
     private fb: FormBuilder,
   ) {
     theme.setTitle('Submit: Web Link');
-    this.webForm = fb.group({
-      url: [''],
-      published: [moment().format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS), [Validators.required]],
-      title: ['', [Validators.required]],
-      comment: [''],
-      sources: sourcesForm(this.fb, []),
-      alternateUrls: altsForm(this.fb, []),
-      tags: tagsForm(fb, ['public', account.tag]),
-      plugins: pluginsForm(fb, []),
-    });
+    this.webForm = refForm(fb);
+    addTag(fb, this.webForm, 'public');
+    addTag(fb, this.webForm, account.tag);
     route.queryParams.subscribe(params => {
       this.url = params['url'].trim();
       if (params['tag']) {
@@ -110,36 +104,22 @@ export class SubmitWebPage implements OnInit {
   }
 
   addTag(value = '') {
-    addTag(this.fb, this.tags, value);
+    addTag(this.fb, this.webForm, value);
     this.submitted = false;
   }
 
   addSource(value = '') {
-    addSource(this.fb, this.sources, value);
+    addSource(this.fb, this.webForm, value);
     this.submitted = false;
   }
 
   addAlt(value = '') {
-    addAlt(this.fb, this.alts, value);
+    addAlt(this.fb, this.webForm, value);
     this.submitted = false;
   }
 
   syncEditor() {
-    const value = this.webForm.value.comment;
-    const newSources = _.uniq(_.difference(getSources(value), this.webForm.value.sources));
-    for (const s of newSources) {
-      this.addSource(s);
-    }
-    const newAlts = _.uniq(_.difference(getAlts(value), this.webForm.value.alternateUrls));
-    for (const a of newAlts) {
-      this.addAlt(a);
-    }
-    const newTags = _.uniq(_.difference([
-      ...getTags(value),
-      ...getNotifications(value)], this.webForm.value.tags));
-    for (const t of newTags) {
-      this.addTag(t);
-    }
+    syncEditor(this.fb, this.webForm);
   }
 
   submit() {

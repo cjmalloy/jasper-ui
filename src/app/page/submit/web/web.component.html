@@ -6,44 +6,7 @@
 
 <form class="form" [formGroup]="webForm" (ngSubmit)="submit()">
 
-  <label for="url">URL:</label>
-  <input id="url" type="text" formControlName="url" [attr.disabled]="true">
-
-  <label for="title">Title:</label>
-  <input id="title" type="text" [formControl]="title">
-  <span><!-- Title Errors --></span>
-  <div>
-    <div class="error" *ngIf="title.touched && title.errors?.['required']">
-      Title must not be blank.
-    </div>
-  </div>
-
-  <label for="published">Published:</label>
-  <input id="published" type="datetime-local" step="1" [formControl]="published">
-  <span><!-- Published Errors --></span>
-  <div>
-    <div class="error" *ngIf="published.touched && published.errors?.['required']">
-      Published date is required.
-    </div>
-  </div>
-
-  <label for="comment">Abstract:</label>
-  <textarea id="comment" [formControl]="comment" (blur)="syncEditor()"></textarea>
-
-  <label for="sources">Sources:</label>
-  <app-sources id="sources" [group]="webForm"></app-sources>
-
-  <label for="alts">Alternate URLs:</label>
-  <app-alts id="alts" [group]="webForm"></app-alts>
-
-  <label for="tags">Tags:</label>
-  <app-tags id="tags" [group]="webForm"></app-tags>
-
-  <label for="plugins">Plugins:</label>
-  <app-plugins id="plugins"
-               [ref]="webForm.value.url"
-               [tags]="webForm.value.tags"
-               [group]="webForm"></app-plugins>
+  <app-ref-form [group]="webForm"></app-ref-form>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>

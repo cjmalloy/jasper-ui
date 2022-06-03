@@ -46,6 +46,7 @@ import { ThumbnailFormComponent } from './form/plugin/thumbnail/thumbnail.compon
 import { VideoFormComponent } from './form/plugin/video/video.component';
 import { PluginsComponent } from './form/plugins/plugins.component';
 import { QtagsComponent } from './form/qtags/qtags.component';
+import { RefFormComponent } from './form/ref/ref.component';
 import { SourcesComponent } from './form/sources/sources.component';
 import { TagsComponent } from './form/tags/tags.component';
 import { DebugInterceptor } from './http/debug.interceptor';
@@ -178,6 +179,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     ProfileListComponent,
     ProfileComponent,
     SettingsPasswordPage,
+    RefFormComponent,
   ],
   imports: [
     BrowserModule,

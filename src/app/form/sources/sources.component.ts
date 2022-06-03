@@ -28,7 +28,7 @@ export class SourcesComponent implements OnInit {
   }
 
   addSource(value = '') {
-    addSource(this.fb, this.sources, value);
+    addSource(this.fb, this.group, value);
   }
 
   removeSource(index: number) {
@@ -40,6 +40,6 @@ export function sourcesForm(fb: FormBuilder, urls: string[]) {
   return fb.array(urls.map(v => fb.control(v, SourcesComponent.validators)));
 }
 
-export function addSource(fb: FormBuilder, urls: FormArray, url: string) {
-  urls.push(fb.control(url, SourcesComponent.validators));
+export function addSource(fb: FormBuilder, group: FormGroup, url = '') {
+  (group.get('sources') as FormArray).push(fb.control(url, SourcesComponent.validators));
 }

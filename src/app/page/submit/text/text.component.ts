@@ -8,13 +8,13 @@ import { catchError, throwError } from 'rxjs';
 import { addTag, tagsForm } from 'src/app/form/tags/tags.component';
 import { v4 as uuid } from 'uuid';
 import { addAlt, altsForm } from '../../../form/alts/alts.component';
+import { refForm, syncEditor } from '../../../form/ref/ref.component';
 import { addSource, sourcesForm } from '../../../form/sources/sources.component';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
 import { getAlts, getNotifications, getSources, getTags } from '../../../util/editor';
-import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -42,13 +42,9 @@ export class SubmitTextPage implements OnInit {
     private fb: FormBuilder,
   ) {
     theme.setTitle('Submit: Text Post');
-    this.textForm = fb.group({
-      title: ['', [Validators.required]],
-      comment: [''],
-      sources: sourcesForm(this.fb, []),
-      alternateUrls: altsForm(this.fb, []),
-      tags: tagsForm(fb, ['public', account.tag]),
-    });
+    this.textForm = refForm(fb);
+    addTag(fb, this.textForm, 'public');
+    addTag(fb, this.textForm, account.tag);
     route.queryParams.subscribe(params => {
       this.url = params['url'];
       if (params['tag']) {
@@ -81,17 +77,17 @@ export class SubmitTextPage implements OnInit {
   }
 
   addTag(value = '') {
-    addTag(this.fb, this.tags, value);
+    addTag(this.fb, this.textForm, value);
     this.submitted = false;
   }
 
   addSource(value = '') {
-    addSource(this.fb, this.sources, value);
+    addSource(this.fb, this.textForm, value);
     this.submitted = false;
   }
 
   addAlt(value = '') {
-    addAlt(this.fb, this.alts, value);
+    addAlt(this.fb, this.textForm, value);
     this.submitted = false;
   }
 
@@ -103,27 +99,14 @@ export class SubmitTextPage implements OnInit {
   }
 
   syncEditor() {
-    const value = this.textForm.value.comment;
-    const newSources = _.uniq(_.difference(getSources(value), this.textForm.value.sources));
-    for (const s of newSources) {
-      this.addSource(s);
-    }
-    const newAlts = _.uniq(_.difference(getAlts(value), this.textForm.value.alternateUrls));
-    for (const a of newAlts) {
-      this.addAlt(a);
-    }
-    const newTags = _.uniq(_.difference([
-      ...getTags(value),
-      ...getNotifications(value)], this.textForm.value.tags));
-    for (const t of newTags) {
-      this.addTag(t);
-    }
+    syncEditor(this.fb, this.textForm);
   }
 
   submit() {
     this.serverError = [];
     this.submitted = true;
     this.textForm.markAllAsTouched();
+    this.syncEditor();
     if (!this.textForm.valid) return;
     const url = this.url || 'comment:' + uuid();
     this.refs.create({
