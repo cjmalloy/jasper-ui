@@ -94,6 +94,7 @@
   <div *ngIf="ext?.config?.sidebar"
        class="md"
        markdown
+       appMdPost
        [emoji]="!!admin.status.plugins.emoji"
        [katex]="!!admin.status.plugins.latex"
        [katexOptions]="{ throwOnError: false }"

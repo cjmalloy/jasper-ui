@@ -1,29 +1,18 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { addAlt } from '../../form/alts/alts.component';
-import { pluginsForm, writePlugins } from '../../form/plugins/plugins.component';
-import { refForm, RefFormComponent, setRef, syncEditor } from '../../form/ref/ref.component';
-import { addSource } from '../../form/sources/sources.component';
-import { addTag } from '../../form/tags/tags.component';
-import { Ref, writeRef } from '../../model/ref';
+import { writePlugins } from '../../form/plugins/plugins.component';
+import { refForm, setRef, syncEditor } from '../../form/ref/ref.component';
+import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
-import { getAlts, getIfNew, getNotifications, getSources, getTags } from '../../util/editor';
-import {
-  authors,
-  interestingTags,
-  TAG_REGEX,
-  TAG_REGEX_STRING,
-  urlSummary,
-  webLink
-} from '../../util/format';
+import { authors, interestingTags, TAG_REGEX_STRING, urlSummary, webLink } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({

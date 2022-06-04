@@ -1,10 +1,12 @@
-import { Injectable } from '@angular/core';
+import { Injectable, ViewContainerRef } from '@angular/core';
 import * as _ from 'lodash';
 import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
+import { RefComponent } from '../component/ref/ref.component';
 import { getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
 import { CorsBusterService } from './api/cors-buster.service';
+import { RefService } from './api/ref.service';
 import { ThemeService } from './theme.service';
 
 @Injectable({

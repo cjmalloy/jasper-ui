@@ -33,6 +33,7 @@ import { TagListComponent } from './component/tag-list/tag-list.component';
 import { TagComponent } from './component/tag/tag.component';
 import { UserComponent } from './component/user/user.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
+import { MdPostDirective } from './directive/md-post.directive';
 import { ResizeDirective } from './directive/resize.directive';
 import { AltsComponent } from './form/alts/alts.component';
 import { ArchiveFormComponent } from './form/plugin/archive/archive.component';
@@ -180,6 +181,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     ProfileComponent,
     SettingsPasswordPage,
     RefFormComponent,
+    MdPostDirective,
   ],
   imports: [
     BrowserModule,

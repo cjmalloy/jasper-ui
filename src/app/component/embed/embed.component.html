@@ -29,9 +29,9 @@
         [errorCorrectionLevel]="'M'"
         appResize></qrcode>
 <div *ngIf="ref.comment"
-     #md
      class="md expand"
      markdown
+     appMdPost
      [emoji]="emoji"
      [katex]="latex"
      [katexOptions]="{ throwOnError: false }"
