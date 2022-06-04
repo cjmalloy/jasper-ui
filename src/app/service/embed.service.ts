@@ -188,7 +188,7 @@ export class EmbedService {
     if (url.startsWith(this.refPrefix)) {
       let ending = url.substring(this.refPrefix.length);
       ending = ending.substring(0, ending.indexOf('/'))
-      return decodeURI(ending);
+      return decodeURIComponent(ending);
     }
     return url;
   }
