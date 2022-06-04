@@ -29,7 +29,7 @@ export class EmbedService {
     const renderLink = markdownService.renderer.link;
     markdownService.renderer.link = (href: string | null, title: string | null, text: string) => {
       let html = renderLink.call(markdownService.renderer, href, title, text);
-      if (href?.startsWith(document.baseURI)) {
+      if (href?.startsWith(document.baseURI) || href?.startsWith('/')) {
         html += `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x">✕</span></span>`;
       }
       return html;
@@ -182,17 +182,6 @@ export class EmbedService {
       return;
     }
   }
-
-  private refPrefix = document.baseURI + 'ref/';
-  getRefUrl(url: string): string {
-    if (url.startsWith(this.refPrefix)) {
-      let ending = url.substring(this.refPrefix.length);
-      ending = ending.substring(0, ending.indexOf('/'))
-      return decodeURIComponent(ending);
-    }
-    return url;
-  }
-
 }
 
 export function transparentIframe(content: string, bgColor: string) {
@@ -210,3 +199,17 @@ export function transparentIframe(content: string, bgColor: string) {
   </html>
   `;
 }
+ export function getRefUrl(url: string): string {
+   const refPrefix = document.baseURI + 'ref/';
+   if (url.startsWith(refPrefix)) {
+     let ending = url.substring(refPrefix.length);
+     ending = ending.substring(0, ending.indexOf('/'))
+     return decodeURIComponent(ending);
+   }
+   if (url.startsWith('/ref/')) {
+     let ending = url.substring('/ref/'.length);
+     ending = ending.substring(0, ending.indexOf('/'))
+     return decodeURIComponent(ending);
+   }
+   return url;
+ }

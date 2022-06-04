@@ -3,6 +3,7 @@ import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@ang
 import * as _ from 'lodash';
 import * as moment from 'moment';
 import { Ref } from '../../model/ref';
+import { getRefUrl } from '../../service/embed.service';
 import { getAlts, getNotifications, getSources, getTags } from '../../util/editor';
 import { addAlt } from '../alts/alts.component';
 import { pluginsForm } from '../plugins/plugins.component';
@@ -68,6 +69,8 @@ export function setRef(fb: FormBuilder, group: FormGroup, ref: Ref) {
 }
 
 export function syncEditor(fb: FormBuilder, group: FormGroup) {
+  group.value.comment = group.value.comment.replace('](' + document.baseURI, '](/');
+  group.value.comment = group.value.comment.replace(']: ' + document.baseURI, ']: /');
   const value = group.value.comment;
   const newSources = _.uniq(_.difference(getSources(value), group.value.sources));
   for (const s of newSources) {

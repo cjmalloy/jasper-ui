@@ -1,7 +1,7 @@
 import { AfterViewInit, Directive, Inject, OnDestroy, ViewContainerRef } from '@angular/core';
 import { RefComponent } from '../component/ref/ref.component';
 import { RefService } from '../service/api/ref.service';
-import { EmbedService } from '../service/embed.service';
+import { getRefUrl } from '../service/embed.service';
 
 @Directive({
   selector: '[appMdPost]'
@@ -11,7 +11,6 @@ export class MdPostDirective implements AfterViewInit, OnDestroy {
   private subscriptions: (() => void)[] = [];
 
   constructor(
-    private embeds: EmbedService,
     private refs: RefService,
     @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
   ) { }
@@ -33,7 +32,7 @@ export class MdPostDirective implements AfterViewInit, OnDestroy {
   postProcess(el: HTMLDivElement) {
     const inlineRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-ref');
     inlineRefs.forEach(t => {
-      this.refs.get(this.embeds.getRefUrl(t.href!)).subscribe(ref => {
+      this.refs.get(getRefUrl(t.href!)).subscribe(ref => {
         const c = this.viewContainerRef.createComponent(RefComponent);
         c.instance.ref = ref;
         c.instance.showToggle = true;
@@ -59,7 +58,7 @@ export class MdPostDirective implements AfterViewInit, OnDestroy {
           t.expanded = !t.expanded;
         } else {
           // TODO: Don't use title to store url
-          this.refs.get(this.embeds.getRefUrl(t.title!)).subscribe(ref => {
+          this.refs.get(getRefUrl(t.title!)).subscribe(ref => {
             const c = this.viewContainerRef.createComponent(RefComponent);
             c.instance.ref = ref;
             c.instance.showToggle = true;
