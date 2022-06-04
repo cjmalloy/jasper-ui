@@ -3,7 +3,6 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { isTwitterEmbed, isYoutubeEmbed } from '../../../plugin/embed';
 import { EmbedService } from '../../../service/embed.service';
 import { URI_REGEX } from '../../../util/format';
-import { youtubeHosts } from '../../../util/hosts';
 
 @Component({
   selector: 'app-form-embed',
@@ -25,7 +24,7 @@ export class EmbedFormComponent implements OnInit {
 
   ngOnInit(): void {
     const embedUrl = this.embeds.fixUrl(this.ref);
-    if (this.ref !== embedUrl) {
+    if (!this.url.value && this.ref !== embedUrl) {
       this.url.setValue(embedUrl);
     }
   }

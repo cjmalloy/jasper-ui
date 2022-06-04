@@ -1,12 +1,15 @@
-import { Injectable, ViewContainerRef } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
 import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
-import { RefComponent } from '../component/ref/ref.component';
-import { getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
+import { catchError, map, Observable, of } from 'rxjs';
+import { Oembed } from '../model/oembed';
+import { isKnownThumbnail } from '../plugin/thumbnail';
+import { bitchuteHosts, getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
+import { params } from '../util/http';
 import { CorsBusterService } from './api/cors-buster.service';
-import { RefService } from './api/ref.service';
 import { ThemeService } from './theme.service';
 
 @Injectable({
@@ -18,6 +21,7 @@ export class EmbedService {
     private theme: ThemeService,
     private cors: CorsBusterService,
     private markdownService: MarkdownService,
+    private http: HttpClient,
   ) {
     markdownService.options = {
       gfm: true,
@@ -144,6 +148,9 @@ export class EmbedService {
       const videoId = parsed.searchParams.get('v');
       return 'https://www.youtube.com/embed/' + videoId;
     }
+    if (bitchuteHosts.includes(parsed.host)) {
+      return url.replace('bitchute.com/video/', 'bitchute.com/embed/');
+    }
     if (twitterHosts.includes(parsed.host)) {
       return 'about:blank';
     }
@@ -161,7 +168,7 @@ export class EmbedService {
         iFrame.height = (tweet.height || '100') + 'px';
         const doc = iFrame.contentWindow!.document;
         doc.open();
-        doc.write(transparentIframe(tweet.html, this.iframeBg));
+        doc.write(transparentIframe(tweet.html!, this.iframeBg));
         doc.close();
         if (!tweet.height) {
           const start = moment();
@@ -181,6 +188,23 @@ export class EmbedService {
       })
       return;
     }
+  }
+
+  getThumbnail(ref: string): Observable<string | undefined> {
+    if (!isKnownThumbnail(ref)) return of(undefined);
+    const host = getHost(ref)!;
+    if (bitchuteHosts.includes(host)) {
+      return this.http.get<Oembed>('https://www.bitchute.com/oembed/', {
+        params: params({
+          url: ref,
+          format: 'json'
+        })
+      }).pipe(
+        map(embed => embed.thumbnail_url),
+        catchError(err => of(undefined)),
+      );
+    }
+    return of(ref);
   }
 }
 

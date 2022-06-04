@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
-import { getHost, twitterHosts, youtubeHosts } from '../util/hosts';
+import { bitchuteHosts, getHost, twitterHosts, youtubeHosts } from '../util/hosts';
 
 export const embedPlugin: Plugin = {
   tag: 'plugin/embed',
@@ -29,7 +29,7 @@ export const embedPlugin: Plugin = {
 export function isKnownEmbed(url: string) {
   const host = getHost(url);
   if (!host) return false;
-  return youtubeHosts.includes(host) || twitterHosts.includes(host);
+  return youtubeHosts.includes(host) || bitchuteHosts.includes(host) || twitterHosts.includes(host);
 }
 
 

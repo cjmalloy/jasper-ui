@@ -1,8 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable } from 'rxjs';
-import { Feed, mapFeed } from '../../model/feed';
-import { TweetData } from '../../model/twitter';
+import { Oembed } from '../../model/oembed';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -22,7 +21,7 @@ export class CorsBusterService {
     return this.config.api + '/api/v1/cors';
   }
 
-  twitter(url: string, theme?: string, maxwidth?: number, maxheight?: number): Observable<TweetData> {
+  twitter(url: string, theme?: string, maxwidth?: number, maxheight?: number): Observable<Oembed> {
     return this.http.get(this.base + '/twitter', {
       params: params({
         url,
@@ -31,7 +30,7 @@ export class CorsBusterService {
         maxheight,
       }),
     }).pipe(
-      map(t => t as TweetData),
+      map(t => t as Oembed),
       catchError(err => this.login.handleHttpError(err)),
     );
   }

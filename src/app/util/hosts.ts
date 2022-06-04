@@ -1,4 +1,5 @@
 export const youtubeHosts = ['www.youtube.com', 'm.youtube.com'];
+export const bitchuteHosts = ['www.bitchute.com'];
 export const twitterHosts = ['twitter.com', 'm.twitter.com', 'mobile.twitter.com'];
 export const imgurHosts = ['i.imgur.com'];
 

@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
-import { getHost, imgurHosts, twitterHosts, youtubeHosts } from '../util/hosts';
+import { bitchuteHosts, getHost, imgurHosts, twitterHosts, youtubeHosts } from '../util/hosts';
 import { isImage } from './image';
 import { isVideo } from './video';
 
@@ -25,5 +25,9 @@ export const thumbnailPlugin: Plugin = {
 export function isKnownThumbnail(url: string) {
   const host = getHost(url);
   if (!host) return false;
-  return isImage(url) || isVideo(url) || youtubeHosts.includes(host) || imgurHosts.includes(host);
+  return isImage(url) ||
+    isVideo(url) ||
+    youtubeHosts.includes(host) ||
+    bitchuteHosts.includes(host) ||
+    imgurHosts.includes(host);
 }

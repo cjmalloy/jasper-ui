@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { EmbedService } from '../../../service/embed.service';
 import { URI_REGEX } from '../../../util/format';
 
 @Component({
@@ -13,10 +14,17 @@ export class ThumbnailFormComponent implements OnInit {
   plugins!: FormGroup;
   @Input()
   fieldName = 'plugin/thumbnail';
+  @Input()
+  ref = '';
 
-  constructor() {}
+  constructor(
+    private embeds: EmbedService,
+  ) {}
 
   ngOnInit(): void {
+    if (!this.url.value) {
+      this.embeds.getThumbnail(this.ref).subscribe(url => this.url.setValue(url));
+    }
   }
 
   get plugin() {
