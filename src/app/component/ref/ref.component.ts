@@ -152,7 +152,7 @@ export class RefComponent implements OnInit {
         }
       }
     }
-    return 'https://archive.ph/' + this._ref.url;
+    return 'https://archive.ph/newest/' + this._ref.url;
   }
 
   get isAuthor() {
