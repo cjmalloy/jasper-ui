@@ -34,4 +34,19 @@ export class CorsBusterService {
       catchError(err => this.login.handleHttpError(err)),
     );
   }
+
+  bitChute(url: string, theme?: string, maxwidth?: number, maxheight?: number): Observable<Oembed> {
+    return this.http.get(this.base + '/bitChute', {
+      params: params({
+        url,
+        theme,
+        maxwidth,
+        maxheight,
+        format: 'json',
+      }),
+    }).pipe(
+      map(t => t as Oembed),
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
 }

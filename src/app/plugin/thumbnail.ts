@@ -21,7 +21,6 @@ export const thumbnailPlugin: Plugin = {
   },
 };
 
-
 export function isKnownThumbnail(url: string) {
   const host = getHost(url);
   if (!host) return false;

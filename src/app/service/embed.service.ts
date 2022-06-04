@@ -21,7 +21,6 @@ export class EmbedService {
     private theme: ThemeService,
     private cors: CorsBusterService,
     private markdownService: MarkdownService,
-    private http: HttpClient,
   ) {
     markdownService.options = {
       gfm: true,
@@ -194,12 +193,7 @@ export class EmbedService {
     if (!isKnownThumbnail(ref)) return of(undefined);
     const host = getHost(ref)!;
     if (bitchuteHosts.includes(host)) {
-      return this.http.get<Oembed>('https://www.bitchute.com/oembed/', {
-        params: params({
-          url: ref,
-          format: 'json'
-        })
-      }).pipe(
+      return this.cors.bitChute(ref).pipe(
         map(embed => embed.thumbnail_url),
         catchError(err => of(undefined)),
       );
