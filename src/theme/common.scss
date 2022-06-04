@@ -261,8 +261,13 @@ html, body {
     margin: 4px 0 4px 8px;
   }
 
-  &.comments{
+  &.comments {
     margin: 4px 8px 4px 8px;
+  }
+
+  &.inline {
+    display: inline-block;
+    margin: 4px;
   }
 }
 

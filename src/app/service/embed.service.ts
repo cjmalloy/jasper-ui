@@ -24,6 +24,14 @@ export class EmbedService {
       smartLists: true,
       smartypants: true,
     };
+    const renderLink = markdownService.renderer.link;
+    markdownService.renderer.link = (href: string | null, title: string | null, text: string) => {
+      let html = renderLink.call(markdownService.renderer, href, title, text);
+      if (href?.startsWith(document.baseURI)) {
+        html += `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x">✕</span></span>`;
+      }
+      return html;
+    }
     marked.use({ extensions: this.extensions });
   }
 
@@ -80,6 +88,8 @@ export class EmbedService {
         const rule = /^\[\[([^\]]+)]]/;
         const match = rule.exec(src);
         if (match) {
+          // Don't match on source or alt refs
+          if (/^(alt)?\d+$/.test(match[1])) return undefined;
           return {
             type: 'wiki',
             href: '/ref/wiki:' + encodeURIComponent(match[1].replace(/\s+/, '_')),
@@ -92,6 +102,27 @@ export class EmbedService {
       },
       renderer(token: any): string {
         return `<a href="${token.href}">${token.text}</a>`;
+      }
+    }, {
+      name: 'ref',
+      level: 'inline',
+      start: (src: string) => src.match(/\[ref]/)?.index,
+      tokenizer(src: string, tokens: any) {
+        const rule = /^\[ref]\(([^\]]+)\)/;
+        const match = rule.exec(src);
+        if (match) {
+          return {
+            type: 'ref',
+            href: match[1],
+            text: match[1],
+            raw: match[0],
+            tokens: []
+          };
+        }
+        return undefined;
+      },
+      renderer(token: any): string {
+        return `<a href="${token.href}" class="inline-ref">${token.text}</a>`;
       }
     }];
   }
@@ -149,6 +180,17 @@ export class EmbedService {
       return;
     }
   }
+
+  private refPrefix = document.baseURI + 'ref/';
+  getRefUrl(url: string): string {
+    if (url.startsWith(this.refPrefix)) {
+      let ending = url.substring(this.refPrefix.length);
+      ending = ending.substring(0, ending.indexOf('/'))
+      return decodeURI(ending);
+    }
+    return url;
+  }
+
 }
 
 export function transparentIframe(content: string, bgColor: string) {
