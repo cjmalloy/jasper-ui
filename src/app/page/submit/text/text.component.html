@@ -9,7 +9,7 @@
 
   <label for="title" *ngIf="!wiki">Title:</label>
   <label for="title" *ngIf="wiki">Wiki:</label>
-  <input id="title" type="text" [formControl]="title" [attr.disabled]="wiki">
+  <input id="title" type="text" [formControl]="title" [attr.disabled]="wiki || null">
   <span><!-- Title Errors --></span>
   <div>
     <div class="error" *ngIf="title.touched && title.errors?.['required']">
