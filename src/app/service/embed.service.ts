@@ -1,14 +1,11 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash';
 import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
 import { catchError, map, Observable, of } from 'rxjs';
-import { Oembed } from '../model/oembed';
 import { isKnownThumbnail } from '../plugin/thumbnail';
 import { bitchuteHosts, getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
-import { params } from '../util/http';
 import { CorsBusterService } from './api/cors-buster.service';
 import { ThemeService } from './theme.service';
 
@@ -198,7 +195,7 @@ export class EmbedService {
         catchError(err => of(undefined)),
       );
     }
-    return of(ref);
+    return of(undefined);
   }
 }
 
