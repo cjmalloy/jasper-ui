@@ -3,6 +3,8 @@ import { AbstractControl, AsyncValidatorFn, FormBuilder, FormControl, FormGroup,
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, mergeMap, Observable, of } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
+import { Feed } from '../../model/feed';
+import { Ref } from '../../model/ref';
 import { FeedService } from '../../service/api/feed.service';
 import { RefService } from '../../service/api/ref.service';
 import { ThemeService } from '../../service/theme.service';
@@ -26,6 +28,8 @@ export class SubmitPage implements OnInit {
   ];
 
   linkTypeOverride?: string;
+  existingRef?: Ref;
+  existingFeed?: Feed;
 
   constructor(
     private theme: ThemeService,
@@ -63,10 +67,22 @@ export class SubmitPage implements OnInit {
   exists(url: string) {
     const linkType = this.linkType(url);
     if (linkType === 'web') {
-      return this.refs.exists(url);
+      this.existingFeed = undefined;
+      if (this.existingRef?.url === url) return of(true);
+      return this.refs.get(url).pipe(
+        tap(ref => this.existingRef = ref),
+        map(ref => !!ref),
+        catchError(err => of(false)),
+      );
     }
     if (linkType === 'feed') {
-      return this.feeds.exists(url);
+      this.existingRef = undefined;
+      if (this.existingFeed?.url === url) return of(true);
+      return this.feeds.get(url).pipe(
+        tap(feed => this.existingFeed = feed),
+        map(feed => !!feed),
+        catchError(err => of(false)),
+      );
     }
     return of(false);
   }
