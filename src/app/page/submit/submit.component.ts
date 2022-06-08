@@ -120,6 +120,7 @@ export class SubmitPage implements OnInit {
         return 'web';
       }
     } catch (e) {}
+    if (value.startsWith('wiki:')) return 'text';
     if (URI_REGEX.test(value)) return 'web';
     return null;
   }

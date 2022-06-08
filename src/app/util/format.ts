@@ -83,3 +83,19 @@ export function interestingTag(tag: string) {
 export function isTextPost(ref: Ref) {
   return ref.url.startsWith('comment:') && (!ref.tags || !ref.tags?.includes('internal'));
 }
+
+export function wikiTitleFormat(title?: string) {
+  if (!title) return undefined;
+  return wikiUriFormat(title)
+    .substring('wiki:'.length)
+    .replace('_', ' ');
+}
+
+export function wikiUriFormat(uri: string) {
+  if (uri.startsWith('wiki:')) {
+    uri = uri.substring('wiki:'.length);
+  }
+  return 'wiki:' + (uri.substring(0, 1).toUpperCase() + uri.substring(1).toLowerCase())
+    .replace(/\s+/, '_')
+    .replace(/\W/, '');
+}

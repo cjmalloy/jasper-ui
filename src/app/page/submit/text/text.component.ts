@@ -13,6 +13,7 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
+import { wikiTitleFormat, wikiUriFormat } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -48,8 +49,9 @@ export class SubmitTextPage implements OnInit {
       this.url = params['url'];
       this.wiki = !!this.url?.startsWith('wiki:');
       if (this.wiki) {
+        this.url = wikiUriFormat(this.url!);
         theme.setTitle('Submit: Wiki');
-        this.title.setValue(this.url?.substring('wiki:'.length).replace('_', ' '));
+        this.title.setValue(wikiTitleFormat(this.url?.substring('wiki:'.length)));
       }
       if (params['tag']) {
         this.addTag(params['tag']);

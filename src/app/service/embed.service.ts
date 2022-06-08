@@ -5,6 +5,7 @@ import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
 import { catchError, map, Observable, of } from 'rxjs';
 import { isKnownThumbnail } from '../plugin/thumbnail';
+import { wikiTitleFormat, wikiUriFormat } from '../util/format';
 import { bitchuteHosts, getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
 import { CorsBusterService } from './api/cors-buster.service';
 import { ThemeService } from './theme.service';
@@ -94,7 +95,7 @@ export class EmbedService {
           if (/^(alt)?\d+$/.test(match[1])) return undefined;
           return {
             type: 'wiki',
-            href: '/ref/wiki:' + encodeURIComponent(match[1].replace(/\s+/, '_')),
+            href: '/ref/' + wikiUriFormat(match[1]),
             text: match[1],
             raw: match[0],
             tokens: []
