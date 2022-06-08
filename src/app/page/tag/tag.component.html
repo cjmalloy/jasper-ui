@@ -1,15 +1,15 @@
 <div class="tabs">
   <h5>{{ title$ | async }}</h5>
-  <a routerLink="../created" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by created date">new</a>
+  <a routerLink="../created" [queryParams]="{pageNumber: 0}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by created date">new</a>
   <ng-container *ngIf="admin.status.plugins.comment">
-    <a routerLink="../commentCount" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of comments">comments</a>
+    <a routerLink="../commentCount" [queryParams]="{pageNumber: 0}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of comments">comments</a>
   </ng-container>
-  <a routerLink="../sourceCount" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of sources">sources</a>
-  <a routerLink="../responseCount" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of responses">responses</a>
-  <a routerLink="../published" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by published date">published</a>
-  <a routerLink="../modified" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by modified date">modified</a>
-  <a routerLink="../title" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort alphabetically by title">title</a>
-  <a *ngIf="search$ | async" routerLink="../rank" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by search relevance">rank</a>
+  <a routerLink="../sourceCount" [queryParams]="{pageNumber: 0}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of sources">sources</a>
+  <a routerLink="../responseCount" [queryParams]="{pageNumber: 0}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of responses">responses</a>
+  <a routerLink="../published" [queryParams]="{pageNumber: 0}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by published date">published</a>
+  <a routerLink="../modified" [queryParams]="{pageNumber: 0}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by modified date">modified</a>
+  <a routerLink="../title" [queryParams]="{pageNumber: 0}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort alphabetically by title">title</a>
+  <a *ngIf="search$ | async" routerLink="../rank" [queryParams]="{pageNumber: 0}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by search relevance">rank</a>
   <ng-container *ngIf="admin.status.plugins.graph">
     <a routerLink="./"
        [class.current-tab]="graph"
