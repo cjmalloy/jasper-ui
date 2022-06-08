@@ -25,8 +25,6 @@ export class RefComponent implements OnInit {
   @HostBinding('attr.tabindex') tabIndex = 0;
   tagRegex = TAG_REGEX_STRING;
 
-  expandable: string[] = [];
-
   @Input()
   expanded = false;
   @Input()
@@ -58,11 +56,6 @@ export class RefComponent implements OnInit {
     private ts: TaggingService,
     private fb: FormBuilder,
   ) {
-    if (this.admin.status.plugins.qr) this.expandable.push('plugin/qr');
-    if (this.admin.status.plugins.embed) this.expandable.push('plugin/embed');
-    if (this.admin.status.plugins.audio) this.expandable.push('plugin/audio');
-    if (this.admin.status.plugins.video) this.expandable.push('plugin/video');
-    if (this.admin.status.plugins.image) this.expandable.push('plugin/image');
     this.editForm = refForm(fb);
   }
 
@@ -75,7 +68,7 @@ export class RefComponent implements OnInit {
     this._ref = value;
     this.writeAccess$ = this.account.writeAccess(value);
     if (value.tags) {
-      this.expandPlugins = _.intersection(value.tags, this.expandable);
+      this.expandPlugins = this.admin.getEmbeds(value);
     }
     setRef(this.fb, this.editForm, value);
   }

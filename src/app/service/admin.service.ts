@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import { catchError, forkJoin, map, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';
+import { Ref } from '../model/ref';
 import { Template } from '../model/template';
 import { archivePlugin } from '../plugin/archive';
 import { audioPlugin } from '../plugin/audio';
@@ -105,5 +106,22 @@ export class AdminService {
       result[keys[i]] = list[i];
     }
     return result;
+  }
+
+  private _embedable?: string[];
+  get embedable() {
+    if (!this._embedable) {
+      this._embedable = [];
+      if (this.status.plugins.qr) this._embedable.push('plugin/qr');
+      if (this.status.plugins.embed) this._embedable.push('plugin/embed');
+      if (this.status.plugins.audio) this._embedable.push('plugin/audio');
+      if (this.status.plugins.video) this._embedable.push('plugin/video');
+      if (this.status.plugins.image) this._embedable.push('plugin/image');
+    }
+    return this._embedable;
+  }
+
+  getEmbeds(ref: Ref) {
+    return _.intersection(ref.tags, this.embedable)
   }
 }
