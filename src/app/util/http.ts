@@ -21,11 +21,18 @@ export function writeObj(obj?: Record<string, any>): Record<string, any> | undef
   for (const k in obj) {
     let v = obj[k];
     if (isMoment(v)) v = v.toISOString();
-    if (v) {
+    if (v && !emptyObject(v)) {
       result[k] = v;
     }
   }
+  if (emptyObject(result)) return undefined;
   return result;
+}
+
+export function emptyObject(obj: any) {
+  return obj &&
+    Object.keys(obj).length === 0 &&
+    Object.getPrototypeOf(obj) === Object.prototype;
 }
 
 /**

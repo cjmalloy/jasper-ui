@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, Input } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { writeObj } from '../../util/http';
+import { emptyObject, writeObj } from '../../util/http';
 import { archivePluginForm } from '../plugin/archive/archive.component';
 import { audioPluginForm } from '../plugin/audio/audio.component';
 import { commentPluginForm } from '../plugin/comment/comment.component';
@@ -113,9 +113,11 @@ export function pluginForm(fb: FormBuilder, tag: string) {
   return null;
 }
 
-export function writePlugins(plugins: any) {
+export function writePlugins(plugins: any): Record<string, any> | undefined {
+  const result: Record<string, any> = {};
   for (const p in plugins) {
-    plugins[p] = writeObj(plugins[p]);
+    result[p] = writeObj(plugins[p]);
   }
-  return plugins;
+  if (emptyObject(result)) return undefined;
+  return result;
 }
