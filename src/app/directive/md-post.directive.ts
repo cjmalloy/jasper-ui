@@ -66,6 +66,7 @@ export class MdPostDirective implements AfterViewInit, OnDestroy {
       });
     });
     const toggles = el.querySelectorAll<HTMLDivElement>('.toggle');
+    const toggles = el.querySelectorAll<HTMLDivElement>('.toggle.inline');
     toggles.forEach(t => {
       // @ts-ignore
       t.expanded = false;
