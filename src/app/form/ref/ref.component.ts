@@ -25,7 +25,7 @@ export class RefFormComponent implements OnInit {
     private config: ConfigService,
     private editor: EditorService,
   ) {
-    RefFormComponent.base = config.baseHref;
+    RefFormComponent.base = config.base;
   }
 
   ngOnInit(): void {

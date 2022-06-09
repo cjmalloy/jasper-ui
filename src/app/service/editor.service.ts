@@ -19,7 +19,8 @@ export class EditorService {
   ) { }
 
   getRefUrl(url: string): string {
-    const refPrefix = this.config.baseHref + 'ref/';
+    if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
+    const refPrefix = this.config.base + 'ref/';
     if (url.startsWith(refPrefix)) {
       let ending = url.substring(refPrefix.length);
       ending = ending.substring(0, ending.indexOf('/'))

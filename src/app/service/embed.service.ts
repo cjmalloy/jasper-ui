@@ -32,7 +32,7 @@ export class EmbedService {
     const renderLink = markdownService.renderer.link;
     markdownService.renderer.link = (href: string | null, title: string | null, text: string) => {
       let html = renderLink.call(markdownService.renderer, href, title, text);
-      if (href?.startsWith(config.baseHref) || href?.startsWith('/')) {
+      if (href?.startsWith(config.base) || href?.startsWith('/')) {
         html += `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x">✕</span></span>`;
       }
       return html;
