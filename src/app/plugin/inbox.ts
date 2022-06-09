@@ -14,7 +14,19 @@ export const inboxPlugin: Plugin = {
 };
 
 export function inboxes(ref: Ref, myUserTag: string): string[] {
-  return _.filter(authors(ref), tag => tag !== myUserTag).map(getInbox);
+  return _.uniq([
+    ..._.filter(authors(ref), tag => tag !== myUserTag).map(getInbox),
+    ...notifications(ref),
+  ]);
+}
+
+export function notifications(ref: Ref): string[] {
+  return _.filter(ref.tags || [], isInbox);
+}
+
+export function isInbox(tag: string) {
+  return tag.startsWith('plugin/inbox') ||
+    tag.startsWith('_plugin/inbox');
 }
 
 export function getInbox(userTag: string): string {
