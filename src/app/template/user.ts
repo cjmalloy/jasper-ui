@@ -12,6 +12,7 @@ export const userTemplate: Template = {
   defaults: {
     inbox: {},
     subscriptions: defaultSubs,
+    bookmarks: [],
   },
   schema: {
     properties: {

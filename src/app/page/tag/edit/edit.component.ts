@@ -66,7 +66,7 @@ export class EditTagPage implements OnInit {
       }
       if (this.user) {
         while (this.subscriptions.length < (ext.config?.subscriptions?.length || 0)) this.addSub();
-        while (this.bookmarks.length < (ext.config?.bookmarks?.length || 0)) this.addSub();
+        while (this.bookmarks.length < (ext.config?.bookmarks?.length || 0)) this.addBook();
       }
       if (this.queue) {
         while (this.approvers.length < (ext.config?.approvers?.length || 0)) this.addApprover();
