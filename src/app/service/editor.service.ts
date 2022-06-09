@@ -33,6 +33,11 @@ export class EditorService {
       ending = ending.substring(0, ending.indexOf('/'))
       return decodeURIComponent(ending);
     }
+    if (url.startsWith('/ref/')) {
+      let ending = url.substring('/ref/'.length);
+      ending = ending.substring(0, ending.indexOf('/'))
+      return decodeURIComponent(ending);
+    }
     return url;
   }
 
