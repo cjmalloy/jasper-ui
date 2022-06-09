@@ -1,5 +1,6 @@
 import { AfterViewInit, Directive, Inject, Input, OnDestroy, ViewContainerRef } from '@angular/core';
 import { Subject } from 'rxjs';
+import { EmbedComponent } from '../component/embed/embed.component';
 import { RefComponent } from '../component/ref/ref.component';
 import { RefService } from '../service/api/ref.service';
 import { getRefUrl } from '../service/embed.service';
@@ -43,6 +44,15 @@ export class MdPostDirective implements AfterViewInit, OnDestroy {
         const c = this.viewContainerRef.createComponent(RefComponent);
         c.instance.ref = ref;
         c.instance.showToggle = true;
+        t.parentNode?.insertBefore(c.location.nativeElement, t);
+        t.remove();
+      });
+    });
+    const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.embed-ref');
+    embedRefs.forEach(t => {
+      this.refs.get(getRefUrl(t.href!)).subscribe(ref => {
+        const c = this.viewContainerRef.createComponent(EmbedComponent);
+        c.instance.ref = ref;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
         t.remove();
       });

@@ -127,6 +127,27 @@ export class EmbedService {
       renderer(token: any): string {
         return `<a href="${token.href}" class="inline-ref">${token.text}</a>`;
       }
+    }, {
+      name: 'embed',
+      level: 'inline',
+      start: (src: string) => src.match(/\[embed]/)?.index,
+      tokenizer(src: string, tokens: any) {
+        const rule = /^\[embed]\(([^\]]+)\)/;
+        const match = rule.exec(src);
+        if (match) {
+          return {
+            type: 'embed',
+            href: match[1],
+            text: match[1],
+            raw: match[0],
+            tokens: []
+          };
+        }
+        return undefined;
+      },
+      renderer(token: any): string {
+        return `<a href="${token.href}" class="embed-ref">${token.text}</a>`;
+      }
     }];
   }
 
