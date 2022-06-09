@@ -17,8 +17,7 @@
                     [tag]="tag"
                     [content]="page.content"></app-force-directed>
 <app-loading *ngIf="!page"></app-loading>
-<!-- TODO: allow paging with graph -->
-<app-page-controls *ngIf="page && !page.empty && !graph"
+<app-page-controls *ngIf="page && !page.empty && pageControls"
                    [page]="page"></app-page-controls>
 
 <p class="no-results" *ngIf="page && page.empty">

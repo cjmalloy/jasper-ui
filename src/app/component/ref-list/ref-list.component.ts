@@ -17,6 +17,8 @@ export class RefListComponent implements OnInit {
   tag?: string | null;
   @Input()
   graph = false;
+  @Input()
+  pageControls = true;
 
   private _page!: Page<Ref> | null;
 

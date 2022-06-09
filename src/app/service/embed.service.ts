@@ -232,6 +232,7 @@ export class EmbedService {
       this.refs.page({ query, sort: [sort] }).subscribe(page => {
         const c = vc.createComponent(RefListComponent);
         c.instance.page = page;
+        c.instance.pageControls = false;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
         t.remove();
       });
@@ -275,6 +276,7 @@ export class EmbedService {
             this.refs.page({ query, sort: [sort], ...Object.fromEntries(new URL(url).searchParams) }).subscribe(page => {
               const c = vc.createComponent(RefListComponent);
               c.instance.page = page;
+              c.instance.pageControls = false;
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
               t.expanded = !t.expanded;
