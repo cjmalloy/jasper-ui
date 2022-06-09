@@ -6,12 +6,12 @@ import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { syncEditor } from '../../../form/ref/ref.component';
 import { Ext } from '../../../model/ext';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
+import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { templates, URI_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
@@ -40,6 +40,7 @@ export class SubmitInvoicePage implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private account: AccountService,
+    private editor: EditorService,
     private refs: RefService,
     private exts: ExtService,
     private fb: FormBuilder,
@@ -118,7 +119,7 @@ export class SubmitInvoicePage implements OnInit {
   }
 
   syncEditor() {
-    syncEditor(this.fb, this.invoiceForm);
+    this.editor.syncEditor(this.fb, this.invoiceForm);
   }
 
   submit() {

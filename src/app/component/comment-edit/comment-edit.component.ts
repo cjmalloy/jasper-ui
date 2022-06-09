@@ -1,12 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import * as _ from 'lodash';
 import { catchError, Subject, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
-import { getAlts, getIfNew, getNotifications, getSources, getTags } from '../../util/editor';
+import { EditorService } from '../../service/editor.service';
+import { getIfNew, getNotifications, getTags } from '../../util/editor';
 import { printError } from '../../util/http';
 
 @Component({
@@ -33,6 +33,7 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
   constructor(
     public admin: AdminService,
     private account: AccountService,
+    private editor: EditorService,
     private refs: RefService,
   ) { }
 
@@ -63,12 +64,12 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
 
   get patchSources() {
     return getIfNew(
-      getSources(this.editValue),
+      this.editor.getSources(this.editValue),
       this.ref.sources);
   }
 
   get patchAlts() {
-    return getIfNew(getAlts(this.editValue),
+    return getIfNew(this.editor.getAlts(this.editValue),
       this.ref.alternateUrls);
   }
 

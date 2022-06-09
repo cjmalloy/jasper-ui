@@ -1,17 +1,17 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../form/plugins/plugins.component';
-import { refForm, setRef, syncEditor } from '../../form/ref/ref.component';
+import { refForm, setRef } from '../../form/ref/ref.component';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
+import { EditorService } from '../../service/editor.service';
 import { authors, interestingTags, TAG_REGEX_STRING, urlSummary, webLink } from '../../util/format';
 import { printError } from '../../util/http';
 
@@ -52,6 +52,7 @@ export class RefComponent implements OnInit {
   constructor(
     public admin: AdminService,
     public account: AccountService,
+    private editor: EditorService,
     private refs: RefService,
     private ts: TaggingService,
     private fb: FormBuilder,
@@ -277,7 +278,7 @@ export class RefComponent implements OnInit {
   save() {
     this.submitted = true;
     this.editForm.markAllAsTouched();
-    syncEditor(this.fb, this.editForm);
+    this.editor.syncEditor(this.fb, this.editForm);
     if (!this.editForm.valid) return;
     this.refs.update({
       ...this.ref,

@@ -1,10 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import * as _ from 'lodash';
 import * as moment from 'moment';
 import { Ref } from '../../model/ref';
-import { getRefUrl } from '../../service/embed.service';
-import { getAlts, getNotifications, getSources, getTags } from '../../util/editor';
+import { ConfigService } from '../../service/config.service';
+import { EditorService } from '../../service/editor.service';
 import { addAlt } from '../alts/alts.component';
 import { pluginsForm } from '../plugins/plugins.component';
 import { addSource } from '../sources/sources.component';
@@ -16,13 +15,18 @@ import { addTag } from '../tags/tags.component';
   styleUrls: ['./ref.component.scss']
 })
 export class RefFormComponent implements OnInit {
+  static base = '/';
 
   @Input()
   group!: FormGroup;
 
   constructor(
     private fb: FormBuilder,
-  ) {}
+    private config: ConfigService,
+    private editor: EditorService,
+  ) {
+    RefFormComponent.base = config.baseHref;
+  }
 
   ngOnInit(): void {
   }
@@ -40,7 +44,7 @@ export class RefFormComponent implements OnInit {
   }
 
   syncEditor() {
-    syncEditor(this.fb, this.group);
+    this.editor.syncEditor(this.fb, this.group);
   }
 
 }
@@ -70,24 +74,4 @@ export function setRef(fb: FormBuilder, group: FormGroup, ref: Ref) {
     ...ref,
     published: ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
   });
-}
-
-export function syncEditor(fb: FormBuilder, group: FormGroup) {
-  group.value.comment = group.value.comment.replace('](' + document.baseURI, '](/');
-  group.value.comment = group.value.comment.replace(']: ' + document.baseURI, ']: /');
-  const value = group.value.comment;
-  const newSources = _.uniq(_.difference(getSources(value), group.value.sources));
-  for (const s of newSources) {
-    addSource(fb, group, s);
-  }
-  const newAlts = _.uniq(_.difference(getAlts(value), group.value.alternateUrls));
-  for (const a of newAlts) {
-    addAlt(fb, group, a);
-  }
-  const newTags = _.uniq(_.difference([
-    ...getTags(value),
-    ...getNotifications(value)], group.value.tags));
-  for (const t of newTags) {
-    addTag(fb, group, t);
-  }
 }

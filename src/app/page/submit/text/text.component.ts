@@ -7,11 +7,12 @@ import { catchError, throwError } from 'rxjs';
 import { addTag } from 'src/app/form/tags/tags.component';
 import { v4 as uuid } from 'uuid';
 import { addAlt } from '../../../form/alts/alts.component';
-import { refForm, syncEditor } from '../../../form/ref/ref.component';
+import { refForm } from '../../../form/ref/ref.component';
 import { addSource } from '../../../form/sources/sources.component';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
+import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { wikiTitleFormat, wikiUriFormat } from '../../../util/format';
 import { printError } from '../../../util/http';
@@ -37,6 +38,7 @@ export class SubmitTextPage implements OnInit {
     public admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
+    private editor: EditorService,
     private account: AccountService,
     private refs: RefService,
     private fb: FormBuilder,
@@ -105,7 +107,7 @@ export class SubmitTextPage implements OnInit {
   }
 
   syncEditor() {
-    syncEditor(this.fb, this.textForm);
+    this.editor.syncEditor(this.fb, this.textForm);
   }
 
   submit() {

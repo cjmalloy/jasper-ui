@@ -5,9 +5,10 @@ import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
 import { catchError, map, Observable, of } from 'rxjs';
 import { isKnownThumbnail } from '../plugin/thumbnail';
-import { wikiTitleFormat, wikiUriFormat } from '../util/format';
+import { wikiUriFormat } from '../util/format';
 import { bitchuteHosts, getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
 import { CorsBusterService } from './api/cors-buster.service';
+import { ConfigService } from './config.service';
 import { ThemeService } from './theme.service';
 
 @Injectable({
@@ -17,6 +18,7 @@ export class EmbedService {
 
   constructor(
     private theme: ThemeService,
+    private config: ConfigService,
     private cors: CorsBusterService,
     private markdownService: MarkdownService,
   ) {
@@ -30,7 +32,7 @@ export class EmbedService {
     const renderLink = markdownService.renderer.link;
     markdownService.renderer.link = (href: string | null, title: string | null, text: string) => {
       let html = renderLink.call(markdownService.renderer, href, title, text);
-      if (href?.startsWith(document.baseURI) || href?.startsWith('/')) {
+      if (href?.startsWith(config.baseHref) || href?.startsWith('/')) {
         html += `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x">✕</span></span>`;
       }
       return html;
@@ -219,6 +221,7 @@ export class EmbedService {
     }
     return of(undefined);
   }
+
 }
 
 export function transparentIframe(content: string, bgColor: string) {
@@ -236,17 +239,3 @@ export function transparentIframe(content: string, bgColor: string) {
   </html>
   `;
 }
- export function getRefUrl(url: string): string {
-   const refPrefix = document.baseURI + 'ref/';
-   if (url.startsWith(refPrefix)) {
-     let ending = url.substring(refPrefix.length);
-     ending = ending.substring(0, ending.indexOf('/'))
-     return decodeURIComponent(ending);
-   }
-   if (url.startsWith('/ref/')) {
-     let ending = url.substring('/ref/'.length);
-     ending = ending.substring(0, ending.indexOf('/'))
-     return decodeURIComponent(ending);
-   }
-   return url;
- }

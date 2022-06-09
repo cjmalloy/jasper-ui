@@ -1,15 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
-import { addAlt, altsForm } from '../../../form/alts/alts.component';
-import { pluginsForm, writePlugins } from '../../../form/plugins/plugins.component';
-import { refForm, setRef, syncEditor } from '../../../form/ref/ref.component';
-import { addSource, sourcesForm } from '../../../form/sources/sources.component';
-import { addTag, tagsForm } from '../../../form/tags/tags.component';
+import { addAlt } from '../../../form/alts/alts.component';
+import { writePlugins } from '../../../form/plugins/plugins.component';
+import { refForm } from '../../../form/ref/ref.component';
+import { addSource } from '../../../form/sources/sources.component';
+import { addTag } from '../../../form/tags/tags.component';
 import { isAudio } from '../../../plugin/audio';
 import { isKnownEmbed } from '../../../plugin/embed';
 import { isImage } from '../../../plugin/image';
@@ -18,8 +17,8 @@ import { isVideo } from '../../../plugin/video';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
+import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
-import { getAlts, getNotifications, getSources, getTags } from '../../../util/editor';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -38,6 +37,7 @@ export class SubmitWebPage implements OnInit {
     private admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
+    private editor: EditorService,
     private account: AccountService,
     private refs: RefService,
     private fb: FormBuilder,
@@ -119,7 +119,7 @@ export class SubmitWebPage implements OnInit {
   }
 
   syncEditor() {
-    syncEditor(this.fb, this.webForm);
+    this.editor.syncEditor(this.fb, this.webForm);
   }
 
   submit() {

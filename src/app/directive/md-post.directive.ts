@@ -3,7 +3,8 @@ import { Subject } from 'rxjs';
 import { EmbedComponent } from '../component/embed/embed.component';
 import { RefComponent } from '../component/ref/ref.component';
 import { RefService } from '../service/api/ref.service';
-import { getRefUrl } from '../service/embed.service';
+import { EditorService } from '../service/editor.service';
+import { EmbedService } from '../service/embed.service';
 
 @Directive({
   selector: '[appMdPost]'
@@ -17,6 +18,7 @@ export class MdPostDirective implements AfterViewInit, OnDestroy {
 
   constructor(
     private refs: RefService,
+    private editor: EditorService,
     @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
   ) { }
 
@@ -40,7 +42,7 @@ export class MdPostDirective implements AfterViewInit, OnDestroy {
   postProcess(el: HTMLDivElement) {
     const inlineRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-ref');
     inlineRefs.forEach(t => {
-      this.refs.get(getRefUrl(t.href!)).subscribe(ref => {
+      this.refs.get(this.editor.getRefUrl(t.href!)).subscribe(ref => {
         const c = this.viewContainerRef.createComponent(RefComponent);
         c.instance.ref = ref;
         c.instance.showToggle = true;
@@ -50,7 +52,7 @@ export class MdPostDirective implements AfterViewInit, OnDestroy {
     });
     const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.embed-ref');
     embedRefs.forEach(t => {
-      this.refs.get(getRefUrl(t.href!)).subscribe(ref => {
+      this.refs.get(this.editor.getRefUrl(t.href!)).subscribe(ref => {
         const c = this.viewContainerRef.createComponent(EmbedComponent);
         c.instance.ref = ref;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
@@ -75,7 +77,7 @@ export class MdPostDirective implements AfterViewInit, OnDestroy {
           t.expanded = !t.expanded;
         } else {
           // TODO: Don't use title to store url
-          this.refs.get(getRefUrl(t.title!)).subscribe(ref => {
+          this.refs.get(this.editor.getRefUrl(t.title!)).subscribe(ref => {
             const c = this.viewContainerRef.createComponent(RefComponent);
             c.instance.ref = ref;
             c.instance.showToggle = true;

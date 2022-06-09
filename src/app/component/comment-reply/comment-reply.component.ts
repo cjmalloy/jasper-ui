@@ -7,7 +7,8 @@ import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
-import { getAlts, getNotifications, getSources, getTags } from '../../util/editor';
+import { EditorService } from '../../service/editor.service';
+import { getNotifications, getTags } from '../../util/editor';
 
 @Component({
   selector: 'app-comment-reply',
@@ -40,6 +41,7 @@ export class CommentReplyComponent implements AfterViewInit {
   constructor(
     public admin: AdminService,
     private account: AccountService,
+    private editor: EditorService,
     private refs: RefService,
   ) { }
 
@@ -70,9 +72,9 @@ export class CommentReplyComponent implements AfterViewInit {
       comment: value,
       sources: _.uniq([
         ...this.sources,
-        ...getSources(value),
+        ...this.editor.getSources(value),
       ]),
-      alternateUrls: getAlts(value),
+      alternateUrls: this.editor.getAlts(value),
       tags: _.uniq([
         ...this.publicTag,
         'internal',
