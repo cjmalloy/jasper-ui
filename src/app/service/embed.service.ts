@@ -1,14 +1,24 @@
-import { Injectable } from '@angular/core';
+import { Injectable, ViewContainerRef } from '@angular/core';
 import * as _ from 'lodash';
 import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
 import { catchError, map, Observable, of } from 'rxjs';
+import { EmbedComponent } from '../component/embed/embed.component';
+import { RefListComponent } from '../component/ref-list/ref-list.component';
+import { RefComponent } from '../component/ref/ref.component';
+import { isAudio } from '../plugin/audio';
+import { isKnownEmbed } from '../plugin/embed';
+import { isImage } from '../plugin/image';
 import { isKnownThumbnail } from '../plugin/thumbnail';
+import { isVideo } from '../plugin/video';
 import { wikiUriFormat } from '../util/format';
 import { bitchuteHosts, getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
+import { AdminService } from './admin.service';
 import { CorsBusterService } from './api/cors-buster.service';
+import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
+import { EditorService } from './editor.service';
 import { ThemeService } from './theme.service';
 
 @Injectable({
@@ -18,8 +28,11 @@ export class EmbedService {
 
   constructor(
     private theme: ThemeService,
+    private admin: AdminService,
     private config: ConfigService,
     private cors: CorsBusterService,
+    private editor: EditorService,
+    private refs: RefService,
     private markdownService: MarkdownService,
   ) {
     markdownService.options = {
@@ -32,10 +45,18 @@ export class EmbedService {
     const renderLink = markdownService.renderer.link;
     markdownService.renderer.link = (href: string | null, title: string | null, text: string) => {
       let html = renderLink.call(markdownService.renderer, href, title, text);
-      if (href?.startsWith(config.base) || href?.startsWith('/')) {
-        html += `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x">✕</span></span>`;
+      if (!href) return html;
+      if (href.startsWith(config.base) || href.startsWith('/')) {
+        return html + `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x">✕</span></span>`;
+      } else if (isKnownEmbed(href) || isImage(href) || isVideo(href) || isAudio(href)) {
+        return html + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x">✕</span></span>`;
       }
       return html;
+    }
+    const renderImage = markdownService.renderer.image;
+    markdownService.renderer.image = (href: string | null, title: string | null, text: string) => {
+      let html = renderImage.call(markdownService.renderer, href, title, text);
+      return html.replace('<img', '<img class="md-img"');
     }
     marked.use({ extensions: this.extensions });
   }
@@ -171,6 +192,135 @@ export class EmbedService {
         return `<a href="about:blank" class="inline-query">${token.text}</a>`;
       }
     }];
+  }
+
+  postProcess(el: HTMLDivElement, vc: ViewContainerRef, event: (type: string, el: Element, fn: () => void) => void) {
+    const images = el.querySelectorAll<HTMLImageElement>('.md-img');
+    images.forEach(t => {
+      const c = vc.createComponent(EmbedComponent);
+      c.instance.ref = { url: t.src };
+      c.instance.expandPlugins = ['plugin/image'];
+      t.parentNode?.insertBefore(c.location.nativeElement, t);
+      t.remove();
+    });
+    const inlineRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-ref');
+    inlineRefs.forEach(t => {
+      this.refs.get(this.editor.getRefUrl(t.innerText)).subscribe(ref => {
+        const c = vc.createComponent(RefComponent);
+        c.instance.ref = ref;
+        c.instance.showToggle = true;
+        t.parentNode?.insertBefore(c.location.nativeElement, t);
+        t.remove();
+      });
+    });
+    const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.embed-ref');
+    embedRefs.forEach(t => {
+      this.refs.get(this.editor.getRefUrl(t.innerText)).subscribe(ref => {
+        const expandPlugins = this.admin.getEmbeds(ref);
+        if (ref.comment || expandPlugins.length) {
+          const c = vc.createComponent(EmbedComponent);
+          c.instance.ref = ref;
+          c.instance.expandPlugins = expandPlugins;
+          t.parentNode?.insertBefore(c.location.nativeElement, t);
+        }
+        t.remove();
+      });
+    });
+    const inlineQueries = el.querySelectorAll<HTMLAnchorElement>('.inline-query');
+    inlineQueries.forEach(t => {
+      const [query, sort] = this.editor.getQueryUrl(t.innerText);
+      this.refs.page({ query, sort: [sort] }).subscribe(page => {
+        const c = vc.createComponent(RefListComponent);
+        c.instance.page = page;
+        t.parentNode?.insertBefore(c.location.nativeElement, t);
+        t.remove();
+      });
+    });
+    const inlineToggle = el.querySelectorAll<HTMLDivElement>('.toggle.inline');
+    inlineToggle.forEach(t => {
+      // @ts-ignore
+      if (t.postProcessed) return;
+      // @ts-ignore
+      t.postProcessed = true;
+      // @ts-ignore
+      t.expanded = false;
+      // @ts-ignore
+      t.querySelector('.toggle-x').style.display = 'none';
+      event('click', t, () => {
+        // @ts-ignore
+        t.querySelector('.toggle-plus').style.display = t.expanded ? 'block' : 'none';
+        // @ts-ignore
+        t.querySelector('.toggle-x').style.display = !t.expanded ? 'block' : 'none';
+        // @ts-ignore
+        if (t.expanded) {
+          t.nextSibling?.remove();
+          // @ts-ignore
+          t.expanded = !t.expanded;
+        } else {
+          // TODO: Don't use title to store url
+          const url = t.title!;
+          const type = this.editor.getUrlType(url);
+          if (type === 'ref') {
+            this.refs.get(this.editor.getRefUrl(url)).subscribe(ref => {
+              const c = vc.createComponent(RefComponent);
+              c.instance.ref = ref;
+              c.instance.showToggle = true;
+              t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
+              // @ts-ignore
+              t.expanded = !t.expanded;
+            });
+          } else if (type === 'tag') {
+            const [query, sort] = this.editor.getQueryUrl(url);
+            // @ts-ignore
+            this.refs.page({ query, sort: [sort], ...Object.fromEntries(new URL(url).searchParams) }).subscribe(page => {
+              const c = vc.createComponent(RefListComponent);
+              c.instance.page = page;
+              t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
+              // @ts-ignore
+              t.expanded = !t.expanded;
+            });
+          }
+        }
+      });
+    });
+    const embedToggle = el.querySelectorAll<HTMLDivElement>('.toggle.embed');
+    embedToggle.forEach(t => {
+      // @ts-ignore
+      if (t.postProcessed) return;
+      // @ts-ignore
+      t.postProcessed = true;
+      // @ts-ignore
+      t.expanded = false;
+      // @ts-ignore
+      t.querySelector('.toggle-x').style.display = 'none';
+      event('click', t, () => {
+        // @ts-ignore
+        t.querySelector('.toggle-plus').style.display = t.expanded ? 'block' : 'none';
+        // @ts-ignore
+        t.querySelector('.toggle-x').style.display = !t.expanded ? 'block' : 'none';
+        // @ts-ignore
+        if (t.expanded) {
+          t.nextSibling?.remove();
+        } else {
+          // TODO: Don't use title to store url
+          const url = t.title!;
+          const c = vc.createComponent(EmbedComponent);
+          c.instance.ref = { url };
+          if (isImage(url)) {
+            c.instance.expandPlugins = ['plugin/image'];
+          } else if (isVideo(url)) {
+            c.instance.expandPlugins = ['plugin/video'];
+          }  else if (isAudio(url)) {
+            c.instance.expandPlugins = ['plugin/audio'];
+          } else if (isKnownEmbed(url)) {
+            c.instance.expandPlugins = ['plugin/embed'];
+          }
+          t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
+        }
+        // @ts-ignore
+        t.expanded = !t.expanded;
+      });
+    });
   }
 
   private get twitterTheme() {

@@ -269,7 +269,7 @@ html, body {
     margin: 4px 8px 4px 8px;
   }
 
-  &.inline {
+  &.inline, &.embed {
     display: inline-block;
     margin: 4px;
   }
