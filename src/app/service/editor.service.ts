@@ -20,30 +20,36 @@ export class EditorService {
   ) { }
 
   getUrlType(url: string) {
-    url = url.substring(this.config.base.length);
+    if (url.startsWith(this.config.base)) {
+      url = url.substring(this.config.base.length);
+    }
+    const basePath = getPath(this.config.base)!;
+    if (url.startsWith(basePath)) {
+      url = url.substring(basePath.length);
+    }
+    if (url.startsWith('/')) {
+      url = url.substring(1);
+    }
     return url.substring(0, url.indexOf('/'));
   }
 
   getRefUrl(url: string): string {
     if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
     const refPrefix = this.config.base + 'ref/';
+    let ending = '';
     if (url.startsWith(refPrefix)) {
-      let ending = url.substring(refPrefix.length);
-      ending = ending.substring(0, ending.indexOf('/'))
-      return decodeURIComponent(ending);
+      ending = url.substring(refPrefix.length);
     }
     const relRefPrefix = getPath(refPrefix)!;
     if (url.startsWith(relRefPrefix)) {
-      let ending = url.substring(relRefPrefix.length);
-      ending = ending.substring(0, ending.indexOf('/'))
-      return decodeURIComponent(ending);
+      ending = url.substring(relRefPrefix.length);
     }
     if (url.startsWith('/ref/')) {
-      let ending = url.substring('/ref/'.length);
-      ending = ending.substring(0, ending.indexOf('/'))
-      return decodeURIComponent(ending);
+      ending = url.substring('/ref/'.length);
     }
-    return url;
+    if (!ending) return decodeURIComponent(url);
+    if (ending.indexOf('/') < 0) return decodeURIComponent(ending);
+    return decodeURIComponent(ending.substring(0, ending.indexOf('/')));
   }
 
   /**
