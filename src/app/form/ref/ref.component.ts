@@ -31,6 +31,10 @@ export class RefFormComponent implements OnInit {
     return this.group.get('title') as FormControl;
   }
 
+  get comment() {
+    return this.group.get('comment') as FormControl;
+  }
+
   get published() {
     return this.group.get('published') as FormControl;
   }

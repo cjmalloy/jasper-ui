@@ -21,7 +21,11 @@
   </div>
 
   <label for="comment">Abstract:</label>
-  <textarea id="comment" formControlName="comment" (blur)="syncEditor()"></textarea>
+  <div class="editor-preview">
+    <textarea id="comment" [formControl]="comment" (blur)="syncEditor()"></textarea>
+    <app-embed [ref]="group.value"></app-embed>
+  </div>
+
 
   <label for="sources">Sources:</label>
   <app-sources id="sources" [group]="group"></app-sources>

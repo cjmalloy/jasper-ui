@@ -13,7 +13,10 @@
 
   <ng-container *ngIf="root">
     <label for="sidebar">Sidebar:</label>
-    <textarea id="sidebar" [formControl]="sidebar"></textarea>
+    <div class="editor-preview">
+      <textarea id="sidebar" [formControl]="sidebar"></textarea>
+      <app-embed [comment]="sidebar.value"></app-embed>
+    </div>
 
     <label for="pinned">Pinned:</label>
     <div id="pinned" class="form-group">

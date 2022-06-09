@@ -1,4 +1,5 @@
-import { AfterViewInit, Directive, Inject, OnDestroy, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, Directive, Inject, Input, OnDestroy, ViewContainerRef } from '@angular/core';
+import { Subject } from 'rxjs';
 import { RefComponent } from '../component/ref/ref.component';
 import { RefService } from '../service/api/ref.service';
 import { getRefUrl } from '../service/embed.service';
@@ -7,6 +8,9 @@ import { getRefUrl } from '../service/embed.service';
   selector: '[appMdPost]'
 })
 export class MdPostDirective implements AfterViewInit, OnDestroy {
+
+  @Input("appMdPost")
+  load?: Subject<void> | string;
 
   private subscriptions: (() => void)[] = [];
 
@@ -17,6 +21,9 @@ export class MdPostDirective implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.postProcess(<HTMLDivElement>this.viewContainerRef.element.nativeElement);
+    if (this.load && typeof this.load !== 'string') {
+      this.load.subscribe(() => this.postProcess(<HTMLDivElement>this.viewContainerRef.element.nativeElement))
+    }
   }
 
   ngOnDestroy() {

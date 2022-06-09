@@ -7,7 +7,7 @@ import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
-import { getAlts, getIfNew, getNotifications, getSources, getTags } from '../../util/editor';
+import { getAlts, getNotifications, getSources, getTags } from '../../util/editor';
 
 @Component({
   selector: 'app-comment-reply',
@@ -35,6 +35,7 @@ export class CommentReplyComponent implements AfterViewInit {
 
   emoji = this.admin.status.plugins.emoji;
   latex = this.admin.status.plugins.latex;
+  textboxValue = '';
 
   constructor(
     public admin: AdminService,

@@ -8,6 +8,8 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
+import * as _ from 'lodash';
+import { Subject } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -24,10 +26,14 @@ export class EmbedComponent implements AfterViewInit {
   @Input()
   ref!: Ref;
   @Input()
+  comment?: string;
+  @Input()
   expandPlugins: string[] = [];
 
   @ViewChild('iframe')
   iframe!: ElementRef;
+
+  postProcessMarkdown: Subject<void> = new Subject();
 
   constructor(
     public admin: AdminService,
@@ -43,15 +49,15 @@ export class EmbedComponent implements AfterViewInit {
   }
 
   get emoji() {
-    return !!this.admin.status.plugins.emoji && !!this.ref.tags?.includes('plugin/emoji');
+    return !!this.admin.status.plugins.emoji && !!this.ref?.tags?.includes('plugin/emoji');
   }
 
   get latex() {
-    return !!this.admin.status.plugins.latex && !!this.ref.tags?.includes('plugin/latex');
+    return !!this.admin.status.plugins.latex && !!this.ref?.tags?.includes('plugin/latex');
   }
 
   get embed() {
-    return this.ref.plugins?.['plugin/embed']?.url || this.ref.url;
+    return this.ref.plugins?.['plugin/embed']?.url || this.ref?.url;
   }
 
   get qrWidth() {
@@ -61,4 +67,8 @@ export class EmbedComponent implements AfterViewInit {
   cssUrl(url: string) {
     return `url("${url}")`;
   }
+
+  onReady = _.debounce(() => {
+    this.postProcessMarkdown.next();
+  }, 3000);
 }

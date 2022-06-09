@@ -19,7 +19,10 @@
 
   <label for="comment" *ngIf="!wiki">Comment:</label>
   <label for="comment" *ngIf="wiki">Entry:</label>
-  <textarea id="comment" class="has-plugins" [formControl]="comment" (blur)="syncEditor()"></textarea>
+  <div class="editor-preview">
+    <textarea id="comment" class="has-plugins" [formControl]="comment" (blur)="syncEditor()"></textarea>
+    <app-embed [ref]="textForm.value"></app-embed>
+  </div>
 
   <span><!-- Comment Plugins --></span>
   <div class="no-margin">

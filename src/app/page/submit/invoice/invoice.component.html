@@ -35,7 +35,10 @@
   </div>
 
   <span><!-- Message --></span>
-  <textarea class="has-plugins" [formControl]="comment" (blur)="syncEditor()"></textarea>
+  <div class="editor-preview">
+    <textarea class="has-plugins" [formControl]="comment" (blur)="syncEditor()"></textarea>
+    <app-embed [ref]="invoiceForm.value"></app-embed>
+  </div>
 
   <span><!-- Comment Plugins --></span>
   <div class="no-margin">

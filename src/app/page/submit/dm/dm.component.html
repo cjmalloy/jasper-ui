@@ -17,7 +17,10 @@
   <input id="title" type="text" [formControl]="title">
 
   <span><!-- Message --></span>
-  <textarea class="has-plugins" [formControl]="comment"></textarea>
+  <div class="editor-preview">
+    <textarea class="has-plugins" [formControl]="comment"></textarea>
+    <app-embed [ref]="dmForm.value"></app-embed>
+  </div>
 
   <span><!-- Comment Plugins --></span>
   <div class="no-margin">
