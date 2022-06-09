@@ -46,10 +46,11 @@ export class EmbedService {
     markdownService.renderer.link = (href: string | null, title: string | null, text: string) => {
       let html = renderLink.call(markdownService.renderer, href, title, text);
       if (!href) return html;
-      if (href.startsWith(config.base) || href.startsWith('/')) {
-        return html + `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x">✕</span></span>`;
+      const type = this.editor.getUrlType(href);
+      if (type === 'ref' || type === 'tag') {
+        return html + `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span></span>`;
       } else if (isKnownEmbed(href) || isImage(href) || isVideo(href) || isAudio(href)) {
-        return html + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x">✕</span></span>`;
+        return html + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span></span>`;
       }
       return html;
     }
