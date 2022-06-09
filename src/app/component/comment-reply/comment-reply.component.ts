@@ -90,12 +90,12 @@ export class CommentReplyComponent implements AfterViewInit {
       switchMap(() => this.refs.get(url)),
     ).subscribe(ref => {
       this.newComments$.next(ref);
-      this.textbox.nativeElement.value = '';
+      this.textbox.nativeElement.value = this.textboxValue = '';
     });
   }
 
   cancel() {
     this.newComments$.next(null);
-    this.textbox.nativeElement.value = '';
+    this.textbox.nativeElement.value = this.textboxValue = '';
   }
 }
