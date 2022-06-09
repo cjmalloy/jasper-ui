@@ -150,6 +150,26 @@ export class EmbedService {
       renderer(token: any): string {
         return `<a href="${token.href}" class="embed-ref">${token.text}</a>`;
       }
+    }, {
+      name: 'query',
+      level: 'inline',
+      start: (src: string) => src.match(/\[query]/)?.index,
+      tokenizer(src: string, tokens: any) {
+        const rule = /^\[query]\(([^\]]+)\)/;
+        const match = rule.exec(src);
+        if (match) {
+          return {
+            type: 'query',
+            text: match[1],
+            raw: match[0],
+            tokens: []
+          };
+        }
+        return undefined;
+      },
+      renderer(token: any): string {
+        return `<a href="about:blank" class="inline-query">${token.text}</a>`;
+      }
     }];
   }
 

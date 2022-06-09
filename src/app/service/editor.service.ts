@@ -19,6 +19,11 @@ export class EditorService {
     private config: ConfigService,
   ) { }
 
+  getUrlType(url: string) {
+    url = url.substring(this.config.base.length);
+    return url.substring(0, url.indexOf('/'));
+  }
+
   getRefUrl(url: string): string {
     if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
     const refPrefix = this.config.base + 'ref/';
@@ -39,6 +44,39 @@ export class EditorService {
       return decodeURIComponent(ending);
     }
     return url;
+  }
+
+  /**
+   * Gets the query and sort for a query URL.
+   * @param url
+   */
+  getQueryUrl(url: string): [string, string] {
+    if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
+    const tagPrefix = this.config.base + 'tag/';
+    let ending = '';
+    if (url.startsWith(tagPrefix)) {
+      ending = url.substring(tagPrefix.length);
+    }
+    const relTagPrefix = getPath(tagPrefix)!;
+    if (url.startsWith(relTagPrefix)) {
+      ending = url.substring(relTagPrefix.length);
+    }
+    if (url.startsWith('/tag/')) {
+      ending = url.substring('/tag/'.length);
+    }
+    if (!ending) return [url, ''];
+    if (ending.indexOf('/') < 0) return [ending, ''];
+    const query = ending.substring(0, ending.indexOf('/'))
+    ending = ending.substring(query.length)
+    let sort = '';
+    if (ending.length) {
+      ending = ending.substring(1);
+      if (ending.indexOf('/') < 0 && ending.indexOf('?') < 0) {
+        sort = ending;
+      }
+      sort = ending.substring(0, Math.max(ending.indexOf('/'), ending.indexOf('?')))
+    }
+    return [decodeURIComponent(query), sort];
   }
 
   syncEditor(fb: FormBuilder, group: FormGroup) {
