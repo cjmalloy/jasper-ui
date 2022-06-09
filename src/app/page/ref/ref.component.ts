@@ -20,6 +20,7 @@ export class RefPage implements OnInit, OnDestroy {
   url$: Observable<string>;
   ref$: Observable<Ref | null>;
   isTextPost = false;
+  isWikiPost = false;
   error?: HttpErrorResponse;
   printError = printError;
   hideSearch$: Observable<boolean>;
@@ -33,7 +34,8 @@ export class RefPage implements OnInit, OnDestroy {
   ) {
     this.url$ = this.route.params.pipe(
       map((params) => params['ref']),
-      tap(url => this.isTextPost = url.startsWith('comment:') || url.startsWith('wiki:')),
+      tap(url => this.isTextPost = url.startsWith('comment:')),
+      tap(url => this.isWikiPost = url.startsWith('wiki:')),
       distinctUntilChanged(),
     );
     this.ref$ = this.url$.pipe(
