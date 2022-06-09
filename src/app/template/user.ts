@@ -21,6 +21,7 @@ export const userTemplate: Template = {
         },
       },
       subscriptions: { elements: { type: 'string' } },
+      bookmarks: { elements: { type: 'string' } },
     },
   },
 };

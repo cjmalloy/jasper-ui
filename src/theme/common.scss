@@ -132,6 +132,10 @@ html, body {
 
   .tag-header {
     text-align: center;
+
+    .subscribe, .bookmark {
+      margin: 10px;
+    }
   }
 
   .sidebar-link {

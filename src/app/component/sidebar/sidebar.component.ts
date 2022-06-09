@@ -27,6 +27,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   localTag?: string;
   writeAccess$ = of(false);
   inSubs$ = of(false);
+  inBookmarks$ = of(false);
 
   @HostBinding('class.expanded')
   private _expanded = false;
@@ -56,12 +57,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.inSubs$ =  this.account.subscriptions$.pipe(
         map(subs => subs.includes(value))
       );
+      this.inBookmarks$ =  this.account.bookmarks$.pipe(
+        map(books => books.includes(value))
+      );
       this.localTag = localTag(value);
       this.writeAccess$ = this.account.tagWriteAccess(value);
     } else {
       this.localTag = undefined;
       this.writeAccess$ = of(false);
       this.inSubs$ = of(false);
+      this.inBookmarks$ = of(false);
     }
   }
 
@@ -112,5 +117,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
   unsubscribe() {
     this.account.removeSub(this._tag!);
     this.inSubs$ = of(false);
+  }
+
+  bookmark() {
+    this.account.addBookmark(this._tag!);
+    this.inBookmarks$ = of(true);
+  }
+
+  removeBookmark() {
+    this.account.removeBookmark(this._tag!);
+    this.inBookmarks$ = of(false);
   }
 }

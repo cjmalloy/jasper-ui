@@ -27,6 +27,7 @@ export class AccountService {
   editor = false;
   notifications$ = new BehaviorSubject(0);
   watchSubs$ = new BehaviorSubject<string[]>(defaultSubs);
+  watchBookmarks$ = new BehaviorSubject<string[]>([]);
 
   private _user$?: Observable<User>;
   private _userExt$?: Observable<Ext>;
@@ -99,6 +100,14 @@ export class AccountService {
     );
   }
 
+  get bookmarks$(): Observable<string[]> {
+    if (!this.signedIn || !this.adminService.status.templates.user) return of([]);
+    return this.userExt$.pipe(
+      map(ext => ext.config.bookmarks),
+      tap(books => this.watchBookmarks$.next(books)),
+    );
+  }
+
   addSub(tag: string) {
     this.exts.patch(this.tag, [{
       op: 'add',
@@ -120,6 +129,30 @@ export class AccountService {
     ).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.subscriptions$),
+    ).subscribe();
+  }
+
+  addBookmark(tag: string) {
+    this.exts.patch(this.tag, [{
+      op: 'add',
+      path: '/config/bookmarks/-',
+      value: tag,
+    }]).pipe(
+      tap(() => this.clearCache()),
+      switchMap(() => this.bookmarks$),
+    ).subscribe();
+  }
+
+  removeBookmark(tag: string) {
+    this.bookmarks$.pipe(
+      map(subs => subs.indexOf(tag)),
+      switchMap(index => this.exts.patch(this.tag,[{
+        op: 'remove',
+        path: '/config/bookmarks/' + index,
+      }]))
+    ).pipe(
+      tap(() => this.clearCache()),
+      switchMap(() => this.bookmarks$),
     ).subscribe();
   }
 

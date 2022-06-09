@@ -7,7 +7,7 @@ import { Ext } from '../../../model/ext';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
-import { QUALIFIED_TAG_REGEX, USER_REGEX } from '../../../util/format';
+import { QUALIFIED_TAG_REGEX, QUERY_REGEX, USER_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { localTag } from '../../../util/tag';
 
@@ -45,6 +45,7 @@ export class EditTagPage implements OnInit {
         configControls = {
           ...configControls,
           subscriptions: fb.array([]),
+          bookmarks: fb.array([]),
         };
       }
       if (this.queue) {
@@ -65,6 +66,7 @@ export class EditTagPage implements OnInit {
       }
       if (this.user) {
         while (this.subscriptions.length < (ext.config?.subscriptions?.length || 0)) this.addSub();
+        while (this.bookmarks.length < (ext.config?.bookmarks?.length || 0)) this.addSub();
       }
       if (this.queue) {
         while (this.approvers.length < (ext.config?.approvers?.length || 0)) this.addApprover();
@@ -130,6 +132,10 @@ export class EditTagPage implements OnInit {
     return this.config.get('subscriptions') as FormArray;
   }
 
+  get bookmarks() {
+    return this.config.get('bookmarks') as FormArray;
+  }
+
   get bounty() {
     return this.config.get('bounty') as FormControl;
   }
@@ -152,12 +158,21 @@ export class EditTagPage implements OnInit {
   }
 
   addSub() {
-    this.subscriptions.push(this.fb.control('', [Validators.required, Validators.pattern(QUALIFIED_TAG_REGEX)]));
+    this.subscriptions.push(this.fb.control('', [Validators.required, Validators.pattern(QUERY_REGEX)]));
     this.submitted = false;
   }
 
   removeSub(index: number) {
     this.subscriptions.removeAt(index);
+  }
+
+  addBook() {
+    this.bookmarks.push(this.fb.control('', [Validators.required, Validators.pattern(QUERY_REGEX)]));
+    this.submitted = false;
+  }
+
+  removeBook(index: number) {
+    this.bookmarks.removeAt(index);
   }
 
   addApprover() {

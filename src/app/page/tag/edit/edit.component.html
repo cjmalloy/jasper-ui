@@ -39,7 +39,7 @@
       <button type="button" (click)="addSub()">+ Add another subscription</button>
 
       <div *ngFor="let sub of subscriptions.controls; let i=index">
-        <label for="sub-{{ i }}">Tag:</label>
+        <label for="sub-{{ i }}">Query:</label>
         <input id="sub-{{ i }}"
                type="email"
                autocorrect="off"
@@ -47,11 +47,36 @@
                [formControl]="$any(sub)">
         <button type="button" (click)="removeSub(i)">&ndash;</button>
         <div class="error" *ngIf="subscriptions.at(i).touched && subscriptions.at(i).errors?.['pattern']">
+          Queries support AND (:), OR (|) and grouping qualified tags (parentheses).
           Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
           two forward slashes in a row. Private tags start with an underscore.<br>
-          (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")
+          (i.e. "science:news", "science@origin science@other" "your/tag my/tag", or "news:_my/private/tag")
         </div>
         <div class="error" *ngIf="subscriptions.at(i).touched && subscriptions.at(i).errors?.['required']">
+          Tag must not be blank.
+        </div>
+      </div>
+    </div>
+
+    <label for="bookmarks">Bookmarks:</label>
+    <div id="bookmarks" class="form-group">
+      <button type="button" (click)="addBook()">+ Add another bookmark</button>
+
+      <div *ngFor="let book of bookmarks.controls; let i=index">
+        <label for="book-{{ i }}">Query:</label>
+        <input id="book-{{ i }}"
+               type="email"
+               autocorrect="off"
+               autocapitalize="none"
+               [formControl]="$any(book)">
+        <button type="button" (click)="removeBook(i)">&ndash;</button>
+        <div class="error" *ngIf="bookmarks.at(i).touched && bookmarks.at(i).errors?.['pattern']">
+          Queries support AND (:), OR (|) and grouping qualified tags (parentheses).
+          Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
+          two forward slashes in a row. Private tags start with an underscore.<br>
+          (i.e. "science:news", "science@origin science@other" "your/tag my/tag", or "news:_my/private/tag")
+        </div>
+        <div class="error" *ngIf="bookmarks.at(i).touched && bookmarks.at(i).errors?.['required']">
           Tag must not be blank.
         </div>
       </div>
