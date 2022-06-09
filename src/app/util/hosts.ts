@@ -15,3 +15,10 @@ export function getHost(url: string): string | null {
   if (!parsed) return null;
   return parsed.host;
 }
+
+
+export function getPath(url: string): string | null {
+  const parsed = getUrl(url);
+  if (!parsed) return null;
+  return parsed.pathname;
+}

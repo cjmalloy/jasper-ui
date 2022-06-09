@@ -7,6 +7,7 @@ import { addSource } from '../form/sources/sources.component';
 import { addTag } from '../form/tags/tags.component';
 import { extractPattern, getNotifications, getTags } from '../util/editor';
 import { URI_REGEX } from '../util/format';
+import { getPath } from '../util/hosts';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -26,8 +27,9 @@ export class EditorService {
       ending = ending.substring(0, ending.indexOf('/'))
       return decodeURIComponent(ending);
     }
-    if (url.startsWith('/ref/')) {
-      let ending = url.substring('/ref/'.length);
+    const relRefPrefix = getPath(refPrefix)!;
+    if (url.startsWith(relRefPrefix)) {
+      let ending = url.substring(relRefPrefix.length);
       ending = ending.substring(0, ending.indexOf('/'))
       return decodeURIComponent(ending);
     }
