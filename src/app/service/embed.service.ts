@@ -46,11 +46,12 @@ export class EmbedService {
     markdownService.renderer.link = (href: string | null, title: string | null, text: string) => {
       let html = renderLink.call(markdownService.renderer, href, title, text);
       if (!href) return html;
+      if (text.toLowerCase().trim() === 'toggle' || isKnownEmbed(href) || isImage(href) || isVideo(href) || isAudio(href)) {
+        return html + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
+      }
       const type = this.editor.getUrlType(href);
       if (type === 'ref' || type === 'tag') {
-        return html + `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span></span>`;
-      } else if (isKnownEmbed(href) || isImage(href) || isVideo(href) || isAudio(href)) {
-        return html + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span></span>`;
+        return html + `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span></span>`;
       }
       return html;
     }
@@ -131,38 +132,17 @@ export class EmbedService {
         return `<a href="${token.href}">${token.text}</a>`;
       }
     }, {
-      name: 'ref',
-      level: 'inline',
-      start: (src: string) => src.match(/\[ref]/)?.index,
-      tokenizer(src: string, tokens: any) {
-        const rule = /^\[ref]\(([^\]]+)\)/;
-        const match = rule.exec(src);
-        if (match) {
-          return {
-            type: 'ref',
-            href: match[1],
-            text: match[1],
-            raw: match[0],
-            tokens: []
-          };
-        }
-        return undefined;
-      },
-      renderer(token: any): string {
-        return `<a href="${token.href}" class="inline-ref">${token.text}</a>`;
-      }
-    }, {
       name: 'embed',
       level: 'inline',
-      start: (src: string) => src.match(/\[embed]/)?.index,
+      start: (src: string) => src.match(/\[(ref|embed|query)]/)?.index,
       tokenizer(src: string, tokens: any) {
-        const rule = /^\[embed]\(([^\]]+)\)/;
+        const rule = /^\[(ref|embed|query)]\(([^\]]+)\)/;
         const match = rule.exec(src);
         if (match) {
           return {
             type: 'embed',
-            href: match[1],
-            text: match[1],
+            css: match[1],
+            text: match[2],
             raw: match[0],
             tokens: []
           };
@@ -170,27 +150,7 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<a href="${token.href}" class="embed-ref">${token.text}</a>`;
-      }
-    }, {
-      name: 'query',
-      level: 'inline',
-      start: (src: string) => src.match(/\[query]/)?.index,
-      tokenizer(src: string, tokens: any) {
-        const rule = /^\[query]\(([^\]]+)\)/;
-        const match = rule.exec(src);
-        if (match) {
-          return {
-            type: 'query',
-            text: match[1],
-            raw: match[0],
-            tokens: []
-          };
-        }
-        return undefined;
-      },
-      renderer(token: any): string {
-        return `<a href="about:blank" class="inline-query">${token.text}</a>`;
+        return `<a href="${token.href}" class="inline-${token.css}">${token.text}</a>`;
       }
     }];
   }
@@ -214,7 +174,7 @@ export class EmbedService {
         t.remove();
       });
     });
-    const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.embed-ref');
+    const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-embed');
     embedRefs.forEach(t => {
       this.refs.get(this.editor.getRefUrl(t.innerText)).subscribe(ref => {
         const expandPlugins = this.admin.getEmbeds(ref);
@@ -238,12 +198,14 @@ export class EmbedService {
         t.remove();
       });
     });
+    const toggleFaces = '<span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span>';
     const inlineToggle = el.querySelectorAll<HTMLDivElement>('.toggle.inline');
     inlineToggle.forEach(t => {
       // @ts-ignore
       if (t.postProcessed) return;
       // @ts-ignore
       t.postProcessed = true;
+      t.innerHTML = toggleFaces;
       // @ts-ignore
       t.expanded = false;
       // @ts-ignore
@@ -292,6 +254,11 @@ export class EmbedService {
       if (t.postProcessed) return;
       // @ts-ignore
       t.postProcessed = true;
+      t.innerHTML = toggleFaces;
+      // @ts-ignore
+      if (t.previousSibling.innerText === 'toggle') {
+        t.previousSibling?.remove();
+      }
       // @ts-ignore
       t.expanded = false;
       // @ts-ignore
@@ -304,24 +271,53 @@ export class EmbedService {
         // @ts-ignore
         if (t.expanded) {
           t.nextSibling?.remove();
+          // @ts-ignore
+          t.expanded = false;
         } else {
           // TODO: Don't use title to store url
           const url = t.title!;
-          const c = vc.createComponent(EmbedComponent);
-          c.instance.ref = { url };
-          if (isImage(url)) {
-            c.instance.expandPlugins = ['plugin/image'];
-          } else if (isVideo(url)) {
-            c.instance.expandPlugins = ['plugin/video'];
-          }  else if (isAudio(url)) {
-            c.instance.expandPlugins = ['plugin/audio'];
-          } else if (isKnownEmbed(url)) {
-            c.instance.expandPlugins = ['plugin/embed'];
+          if (isKnownEmbed(url) || isImage(url) || isVideo(url) || isAudio(url)) {
+            const c = vc.createComponent(EmbedComponent);
+            c.instance.ref = { url };
+            if (isImage(url)) {
+              c.instance.expandPlugins = ['plugin/image'];
+            } else if (isVideo(url)) {
+              c.instance.expandPlugins = ['plugin/video'];
+            }  else if (isAudio(url)) {
+              c.instance.expandPlugins = ['plugin/audio'];
+            } else if (isKnownEmbed(url)) {
+              c.instance.expandPlugins = ['plugin/embed'];
+            }
+            t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
+            // @ts-ignore
+            t.expanded = !t.expanded;
+          } else {
+            const type = this.editor.getUrlType(url);
+            if (type === 'tag') {
+              const [query, sort] = this.editor.getQueryUrl(url);
+              this.refs.page({query, sort: [sort]}).subscribe(page => {
+                const c = vc.createComponent(RefListComponent);
+                c.instance.page = page;
+                c.instance.pageControls = false;
+                t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
+                // @ts-ignore
+                t.expanded = !t.expanded;
+              });
+            } else {
+              this.refs.get(this.editor.getRefUrl(url)).subscribe(ref => {
+                const expandPlugins = this.admin.getEmbeds(ref);
+                if (ref.comment || expandPlugins.length) {
+                  const c = vc.createComponent(EmbedComponent);
+                  c.instance.ref = ref;
+                  c.instance.expandPlugins = expandPlugins;
+                  t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
+                  // @ts-ignore
+                  t.expanded = !t.expanded;
+                }
+              });
+            }
           }
-          t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
         }
-        // @ts-ignore
-        t.expanded = !t.expanded;
       });
     });
   }
