@@ -54,6 +54,7 @@
             (click)="unsubscribe()">&ndash; unsubscribe</button>
     <ng-template #notInSubs>
       <button (click)="subscribe()"
+              title="Add to home screen"
               class="subscribe">+ subscribe</button>
     </ng-template>
     <button *ngIf="inBookmarks$ | async; else notBookmarked"
@@ -61,6 +62,7 @@
             (click)="removeBookmark()">&ndash; bookmark</button>
     <ng-template #notBookmarked>
       <button (click)="bookmark()"
+              title="Add to top bar"
               class="bookmark">+ bookmark</button>
     </ng-template>
   </ng-container>
