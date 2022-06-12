@@ -1,16 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
-import { addTag } from '../../../form/tags/tags.component';
+import { TagsComponent } from '../../../form/tags/tags.component';
 import { isKnownEmbed } from '../../../plugin/embed';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { FeedService } from '../../../service/api/feed.service';
 import { ThemeService } from '../../../service/theme.service';
-import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -18,11 +17,14 @@ import { printError } from '../../../util/http';
   templateUrl: './feed.component.html',
   styleUrls: ['./feed.component.scss'],
 })
-export class SubmitFeedPage implements OnInit {
+export class SubmitFeedPage implements AfterViewInit {
 
   submitted = false;
   feedForm: FormGroup;
   serverError: string[] = [];
+
+  @ViewChild(TagsComponent)
+  tags!: TagsComponent;
 
   constructor(
     private theme: ThemeService,
@@ -42,25 +44,21 @@ export class SubmitFeedPage implements OnInit {
       scrapeDescription: [true],
       removeDescriptionIndent: [false],
     });
-    this.addTag('public');
-    if (this.admin.status.plugins.thumbnail) this.addTag('plugin/thumbnail');
-    route.queryParams.subscribe(params => {
+  }
+
+  ngAfterViewInit(): void {
+    this.tags.addTag('public');
+    if (this.admin.status.plugins.thumbnail) this.tags.addTag('plugin/thumbnail');
+    this.route.queryParams.subscribe(params => {
       this.url = params['url'].trim();
       if (params['tag']) {
-        this.addTag(params['tag']);
+        this.tags.addTag(params['tag']);
       }
     });
   }
 
-  ngOnInit(): void {
-  }
-
   get title() {
     return this.feedForm.get('title') as FormControl;
-  }
-
-  get tags() {
-    return this.feedForm.get('tags') as FormArray;
   }
 
   set url(value: string) {
@@ -69,7 +67,7 @@ export class SubmitFeedPage implements OnInit {
   }
 
   addTag(value = '') {
-    addTag(this.fb, this.feedForm, value);
+    this.tags.addTag(value);
     this.submitted = false;
   }
 

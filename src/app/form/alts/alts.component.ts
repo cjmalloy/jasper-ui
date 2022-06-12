@@ -28,7 +28,7 @@ export class AltsComponent implements OnInit {
   }
 
   addAlt(value = '') {
-    addAlt(this.fb, this.group, value);
+    this.alts.push(this.fb.control(value, AltsComponent.validators));
   }
 
   removeAlt(index: number) {
@@ -38,8 +38,4 @@ export class AltsComponent implements OnInit {
 
 export function altsForm(fb: FormBuilder, urls: string[]) {
   return fb.array(urls.map(v => fb.control(v, AltsComponent.validators)));
-}
-
-export function addAlt(fb: FormBuilder, group: FormGroup, url = '') {
-  (group.get('alternateUrls') as FormArray).push(fb.control(url, AltsComponent.validators));
 }

@@ -1,14 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
-import { addAlt } from '../../../form/alts/alts.component';
 import { writePlugins } from '../../../form/plugins/plugins.component';
-import { refForm } from '../../../form/ref/ref.component';
-import { addSource } from '../../../form/sources/sources.component';
-import { addTag } from '../../../form/tags/tags.component';
+import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { isAudio } from '../../../plugin/audio';
 import { isKnownEmbed } from '../../../plugin/embed';
 import { isImage } from '../../../plugin/image';
@@ -26,11 +23,14 @@ import { printError } from '../../../util/http';
   templateUrl: './web.component.html',
   styleUrls: ['./web.component.scss'],
 })
-export class SubmitWebPage implements OnInit {
+export class SubmitWebPage implements AfterViewInit {
 
   submitted = false;
   webForm: FormGroup;
   serverError: string[] = [];
+
+  @ViewChild(RefFormComponent)
+  ref!: RefFormComponent;
 
   constructor(
     private theme: ThemeService,
@@ -44,9 +44,12 @@ export class SubmitWebPage implements OnInit {
   ) {
     theme.setTitle('Submit: Web Link');
     this.webForm = refForm(fb);
-    addTag(fb, this.webForm, 'public');
-    addTag(fb, this.webForm, account.tag);
-    route.queryParams.subscribe(params => {
+  }
+
+  ngAfterViewInit(): void {
+    this.ref.tags.addTag('public');
+    this.ref.tags.addTag(this.account.tag);
+    this.route.queryParams.subscribe(params => {
       this.url = params['url'].trim();
       if (params['tag']) {
         this.addTag(params['tag']);
@@ -55,15 +58,12 @@ export class SubmitWebPage implements OnInit {
         this.addSource(params['source']);
       }
     });
-    if (admin.status.plugins.emoji) {
+    if (this.admin.status.plugins.emoji) {
       this.addTag('plugin/emoji');
     }
-    if (admin.status.plugins.latex) {
+    if (this.admin.status.plugins.latex) {
       this.addTag('plugin/latex');
     }
-  }
-
-  ngOnInit(): void {
   }
 
   get published() {
@@ -104,17 +104,17 @@ export class SubmitWebPage implements OnInit {
   }
 
   addTag(value = '') {
-    addTag(this.fb, this.webForm, value);
+    this.ref.tags.addTag(value);
     this.submitted = false;
   }
 
   addSource(value = '') {
-    addSource(this.fb, this.webForm, value);
+    this.ref.sources.addSource(value);
     this.submitted = false;
   }
 
   addAlt(value = '') {
-    addAlt(this.fb, this.webForm, value);
+    this.ref.alts.addAlt(value);
     this.submitted = false;
   }
 

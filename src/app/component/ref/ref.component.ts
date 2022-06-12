@@ -1,11 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../form/plugins/plugins.component';
-import { refForm, setRef } from '../../form/ref/ref.component';
+import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -20,7 +20,7 @@ import { printError } from '../../util/http';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
 })
-export class RefComponent implements OnInit {
+export class RefComponent implements AfterViewInit {
   @HostBinding('class') css = 'ref list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
   tagRegex = TAG_REGEX_STRING;
@@ -34,6 +34,8 @@ export class RefComponent implements OnInit {
 
   @ViewChild('inlineTag')
   inlineTag?: ElementRef;
+  @ViewChild(RefFormComponent)
+  refForm?: RefFormComponent;
 
   editForm: FormGroup;
   submitted = false;
@@ -71,10 +73,11 @@ export class RefComponent implements OnInit {
     if (value.tags) {
       this.expandPlugins = this.admin.getEmbeds(value);
     }
-    setRef(this.fb, this.editForm, value);
+    this.refForm?.setRef(value);
   }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
+    this.refForm?.setRef(this._ref);
   }
 
   get person() {

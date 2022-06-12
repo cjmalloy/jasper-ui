@@ -27,7 +27,7 @@ export class QtagsComponent implements OnInit {
   }
 
   addTag(value = '') {
-    addQtag(this.fb, this.group, value);
+    this.tags.push(this.fb.control(value, QtagsComponent.validators));
   }
 
   removeTag(index: number) {
@@ -37,8 +37,4 @@ export class QtagsComponent implements OnInit {
 
 export function qtagsForm(fb: FormBuilder, tags: string[]) {
   return fb.array(tags.map(v => fb.control(v, QtagsComponent.validators)));
-}
-
-export function addQtag(fb: FormBuilder, group: FormGroup, tag: string) {
-  (group.get('tags') as FormArray).push(fb.control(tag, QtagsComponent.validators));
 }

@@ -1,13 +1,13 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { Ref } from '../../model/ref';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
-import { addAlt } from '../alts/alts.component';
+import { AltsComponent } from '../alts/alts.component';
 import { pluginsForm } from '../plugins/plugins.component';
-import { addSource } from '../sources/sources.component';
-import { addTag } from '../tags/tags.component';
+import { SourcesComponent } from '../sources/sources.component';
+import { TagsComponent } from '../tags/tags.component';
 
 @Component({
   selector: 'app-ref-form',
@@ -19,6 +19,13 @@ export class RefFormComponent implements OnInit {
 
   @Input()
   group!: FormGroup;
+
+  @ViewChild(TagsComponent)
+  tags!: TagsComponent;
+  @ViewChild(SourcesComponent)
+  sources!: SourcesComponent;
+  @ViewChild(AltsComponent)
+  alts!: AltsComponent;
 
   constructor(
     private fb: FormBuilder,
@@ -47,6 +54,21 @@ export class RefFormComponent implements OnInit {
     this.editor.syncEditor(this.fb, this.group);
   }
 
+  setRef(ref: Ref) {
+    const sourcesForm = this.group.get('sources') as FormArray;
+    const altsForm = this.group.get('alternateUrls') as FormArray;
+    const tagsForm = this.group.get('tags') as FormArray;
+    while (sourcesForm.length < (ref?.sources?.length || 0)) this.sources.addSource();
+    while (altsForm.length < (ref?.alternateUrls?.length || 0)) this.alts.addAlt();
+    while (tagsForm.length < (ref?.tags?.length || 0)) this.tags.addTag();
+    this.group.setControl('plugins', pluginsForm(this.fb, ref.tags || []));
+    this.group.patchValue({
+      ...ref,
+      published: ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
+    });
+  }
+
+
 }
 
 export function refForm(fb: FormBuilder) {
@@ -59,19 +81,5 @@ export function refForm(fb: FormBuilder) {
     alternateUrls: fb.array([]),
     tags: fb.array([]),
     plugins: fb.group({})
-  });
-}
-
-export function setRef(fb: FormBuilder, group: FormGroup, ref: Ref) {
-  const sourcesForm = group.get('sources') as FormArray;
-  const altsForm = group.get('alternateUrls') as FormArray;
-  const tagsForm = group.get('tags') as FormArray;
-  while (sourcesForm.length < (ref?.sources?.length || 0)) addSource(fb, group);
-  while (altsForm.length < (ref?.alternateUrls?.length || 0)) addAlt(fb, group);
-  while (tagsForm.length < (ref?.tags?.length || 0)) addTag(fb, group);
-  group.setControl('plugins', pluginsForm(fb, ref.tags || []));
-  group.patchValue({
-    ...ref,
-    published: ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
   });
 }
