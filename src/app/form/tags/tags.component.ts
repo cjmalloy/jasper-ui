@@ -28,7 +28,7 @@ export class TagsComponent implements OnInit {
   }
 
   addTag(value = '') {
-    addTag(this.fb, this.group, value);
+    this.tags.push(this.fb.control(value, TagsComponent.validators));
   }
 
   removeTag(index: number) {
@@ -38,8 +38,4 @@ export class TagsComponent implements OnInit {
 
 export function tagsForm(fb: FormBuilder, tags: string[]) {
   return fb.array(tags.map(v => fb.control(v, TagsComponent.validators)));
-}
-
-export function addTag(fb: FormBuilder, group: FormGroup, tag = '') {
-  (group.get('tags') as FormArray).push(fb.control(tag, TagsComponent.validators));
 }

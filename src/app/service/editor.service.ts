@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import * as _ from 'lodash';
-import { addAlt } from '../form/alts/alts.component';
+import { AltsComponent } from '../form/alts/alts.component';
 import { RefFormComponent } from '../form/ref/ref.component';
-import { addSource } from '../form/sources/sources.component';
-import { addTag } from '../form/tags/tags.component';
+import { SourcesComponent } from '../form/sources/sources.component';
+import { TagsComponent } from '../form/tags/tags.component';
 import { extractPattern, getNotifications, getTags } from '../util/editor';
 import { URI_REGEX } from '../util/format';
 import { getPath } from '../util/hosts';
@@ -91,17 +91,17 @@ export class EditorService {
     const value = group.value.comment;
     const newSources = _.uniq(_.difference(this.getSources(value), group.value.sources));
     for (const s of newSources) {
-      addSource(fb, group, s);
+      (group.get('sources') as FormArray).push(fb.control(value, SourcesComponent.validators));
     }
     const newAlts = _.uniq(_.difference(this.getAlts(value), group.value.alternateUrls));
     for (const a of newAlts) {
-      addAlt(fb, group, a);
+      (group.get('alternateUrls') as FormArray).push(fb.control(value, AltsComponent.validators));
     }
     const newTags = _.uniq(_.difference([
       ...getTags(value),
       ...getNotifications(value)], group.value.tags));
     for (const t of newTags) {
-      addTag(fb, group, t);
+      (group.get('tags') as FormArray).push(fb.control(value, TagsComponent.validators));
     }
   }
 

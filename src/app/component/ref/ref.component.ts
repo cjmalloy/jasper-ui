@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../form/plugins/plugins.component';
-import { refForm, setRef } from '../../form/ref/ref.component';
+import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -34,6 +34,8 @@ export class RefComponent implements OnInit {
 
   @ViewChild('inlineTag')
   inlineTag?: ElementRef;
+  @ViewChild(RefFormComponent)
+  refForm!: RefFormComponent;
 
   editForm: FormGroup;
   submitted = false;
@@ -71,7 +73,7 @@ export class RefComponent implements OnInit {
     if (value.tags) {
       this.expandPlugins = this.admin.getEmbeds(value);
     }
-    setRef(this.fb, this.editForm, value);
+    this.refForm.setRef(value);
   }
 
   ngOnInit(): void {

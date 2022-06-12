@@ -1,14 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
-import { addTag } from 'src/app/form/tags/tags.component';
 import { v4 as uuid } from 'uuid';
-import { addAlt } from '../../../form/alts/alts.component';
 import { refForm } from '../../../form/ref/ref.component';
-import { addSource } from '../../../form/sources/sources.component';
+import { TagsComponent } from '../../../form/tags/tags.component';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -22,7 +20,7 @@ import { printError } from '../../../util/http';
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
 })
-export class SubmitTextPage implements OnInit {
+export class SubmitTextPage implements AfterViewInit {
 
   url?: string;
   wiki = false;
@@ -32,6 +30,9 @@ export class SubmitTextPage implements OnInit {
 
   emoji = !!this.admin.status.plugins.emoji;
   latex = !!this.admin.status.plugins.latex;
+
+  @ViewChild(TagsComponent)
+  tags!: TagsComponent;
 
   constructor(
     private theme: ThemeService,
@@ -45,23 +46,23 @@ export class SubmitTextPage implements OnInit {
   ) {
     theme.setTitle('Submit: Text Post');
     this.textForm = refForm(fb);
-    addTag(fb, this.textForm, 'public');
-    addTag(fb, this.textForm, account.tag);
-    route.queryParams.subscribe(params => {
+  }
+
+  ngAfterViewInit(): void {
+    this.tags.addTag('public');
+    this.tags.addTag(this.account.tag);
+    this.route.queryParams.subscribe(params => {
       this.url = params['url'];
       this.wiki = !!this.url?.startsWith('wiki:');
       if (this.wiki) {
         this.url = wikiUriFormat(this.url!);
-        theme.setTitle('Submit: Wiki');
+        this.theme.setTitle('Submit: Wiki');
         this.title.setValue(wikiTitleFormat(this.url?.substring('wiki:'.length)));
       }
       if (params['tag']) {
         this.addTag(params['tag']);
       }
     });
-  }
-
-  ngOnInit(): void {
   }
 
   get title() {
@@ -72,30 +73,8 @@ export class SubmitTextPage implements OnInit {
     return this.textForm.get('comment') as FormControl;
   }
 
-  get sources() {
-    return this.textForm.get('sources') as FormArray;
-  }
-
-  get alts() {
-    return this.textForm.get('alternateUrls') as FormArray;
-  }
-
-  get tags() {
-    return this.textForm.get('tags') as FormArray;
-  }
-
   addTag(value = '') {
-    addTag(this.fb, this.textForm, value);
-    this.submitted = false;
-  }
-
-  addSource(value = '') {
-    addSource(this.fb, this.textForm, value);
-    this.submitted = false;
-  }
-
-  addAlt(value = '') {
-    addAlt(this.fb, this.textForm, value);
+    this.tags.addTag(value);
     this.submitted = false;
   }
 
