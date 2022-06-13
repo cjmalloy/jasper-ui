@@ -8,7 +8,7 @@ import { Ref } from '../../model/ref';
 import { FeedService } from '../../service/api/feed.service';
 import { RefService } from '../../service/api/ref.service';
 import { ThemeService } from '../../service/theme.service';
-import { URI_REGEX } from '../../util/format';
+import { URI_REGEX, wikiUriFormat } from '../../util/format';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
@@ -66,9 +66,10 @@ export class SubmitPage implements OnInit {
 
   exists(url: string) {
     const linkType = this.linkType(url);
-    if (linkType === 'web') {
+    if (linkType === 'web' || linkType === 'text') {
       this.existingFeed = undefined;
       if (this.existingRef?.url === url) return of(true);
+      if (url.startsWith('wiki:')) url = wikiUriFormat(url);
       return this.refs.get(url).pipe(
         tap(ref => this.existingRef = ref),
         map(ref => !!ref),
