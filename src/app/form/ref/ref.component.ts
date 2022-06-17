@@ -58,8 +58,11 @@ export class RefFormComponent implements OnInit {
     const sourcesForm = this.group.get('sources') as FormArray;
     const altsForm = this.group.get('alternateUrls') as FormArray;
     const tagsForm = this.group.get('tags') as FormArray;
+    while (sourcesForm.length > (ref?.sources?.length || 0)) this.sources.removeSource(0);
     while (sourcesForm.length < (ref?.sources?.length || 0)) this.sources.addSource();
+    while (altsForm.length > (ref?.alternateUrls?.length || 0)) this.alts.removeAlt(0);
     while (altsForm.length < (ref?.alternateUrls?.length || 0)) this.alts.addAlt();
+    while (tagsForm.length > (ref?.tags?.length || 0)) this.tags.removeTag(0);
     while (tagsForm.length < (ref?.tags?.length || 0)) this.tags.addTag();
     this.group.setControl('plugins', pluginsForm(this.fb, ref.tags || []));
     this.group.patchValue({
@@ -67,7 +70,6 @@ export class RefFormComponent implements OnInit {
       published: ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
     });
   }
-
 
 }
 
