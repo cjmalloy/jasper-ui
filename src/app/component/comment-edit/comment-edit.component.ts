@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { catchError, Subject, throwError } from 'rxjs';
+import { catchError, map, Subject, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -23,7 +23,7 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
   @Input()
   ref!: Ref;
   @Input()
-  commentEdited$!: Subject<void>;
+  commentEdited$!: Subject<Ref>;
   @ViewChild('textbox')
   textbox!: ElementRef;
 
@@ -104,28 +104,18 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
       });
     }
     this.refs.patch(this.ref.url, this.ref.origin!, patches).pipe(
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).subscribe(() => {
-      if (tags) {
-        this.ref.tags = tags;
-        this.emoji = tags.includes('plugin/emoji');
-        this.latex = tags.includes('plugin/latex');
-      }
-      if (sources) {
-        this.ref.sources = sources;
-      }
-      if (alts) {
-        this.ref.alternateUrls = alts;
-      }
-      this.ref.comment = this.editValue;
-      this.commentEdited$.next();
+    ).subscribe(res => {
+      this.ref = res;
+      this.commentEdited$.next(res);
     });
   }
 
   cancel() {
-    this.commentEdited$.next();
+    this.commentEdited$.next(this.ref);
   }
 }

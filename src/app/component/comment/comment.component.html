@@ -7,6 +7,7 @@
   </ng-container>
   <span class="lock icon" *ngIf="locked" title="Locked">🔒️</span>
   <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
+  <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="ref.modified?.fromNow()">*</span>
   {{ comments }}
 </div>
 
@@ -23,6 +24,7 @@
       </a>
     </ng-container>
     <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
+    <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="'last edited ' + ref.modified?.fromNow()">*</span>
     <ng-container *ngIf="tagged.length">
       tagged
       <ng-container *ngFor="let tag of tagged">
