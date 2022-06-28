@@ -41,6 +41,7 @@ export class RefComponent implements OnInit {
   expandPlugins: string[] = [];
   tagging = false;
   editing = false;
+  viewSource = false;
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;

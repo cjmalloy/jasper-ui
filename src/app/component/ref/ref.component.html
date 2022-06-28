@@ -63,9 +63,13 @@
             <ng-container *ngIf="admin.status.plugins.graph">
               <a [routerLink]="['/ref', ref.url, 'graph']">graph</a>
             </ng-container>
-            <a *ngIf="writeAccess$ | async"
+            <a *ngIf="writeAccess$ | async; else source"
                class="fake-link"
                (click)="editing = !editing">edit</a>
+            <ng-template #source>
+              <a class="fake-link"
+                 (click)="viewSource = !viewSource">source</a>
+            </ng-template>
             <a *ngIf="!deleting && (account.mod || (writeAccess$ | async))"
                class="fake-link"
                (click)="deleting = true">delete</a>
@@ -143,5 +147,9 @@
     <button type="submit" [disabled]="submitted && !editForm.valid">save</button>
     <button (click)="editing = false">cancel</button>
   </span>
+</form>
+
+<form *ngIf="viewSource" [formGroup]="editForm">
+  <app-ref-form [group]="editForm"></app-ref-form>
 </form>
 
