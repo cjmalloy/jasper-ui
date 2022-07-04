@@ -186,6 +186,14 @@ html, body {
   margin: 4px 4px 4px 0;
 }
 
+.form-array {
+  display: flex;
+
+  input {
+    flex: 1;
+  }
+}
+
 .page-controls {
   padding: 2px;
   margin-left: 10px;

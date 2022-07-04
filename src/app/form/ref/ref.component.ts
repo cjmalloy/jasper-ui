@@ -4,10 +4,10 @@ import * as moment from 'moment';
 import { Ref } from '../../model/ref';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
-import { AltsComponent } from '../alts/alts.component';
+import { AltsFormComponent } from '../alts/alts.component';
 import { pluginsForm } from '../plugins/plugins.component';
-import { SourcesComponent } from '../sources/sources.component';
-import { TagsComponent } from '../tags/tags.component';
+import { SourcesFormComponent } from '../sources/sources.component';
+import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
   selector: 'app-ref-form',
@@ -20,12 +20,12 @@ export class RefFormComponent implements OnInit {
   @Input()
   group!: FormGroup;
 
-  @ViewChild(TagsComponent)
-  tags!: TagsComponent;
-  @ViewChild(SourcesComponent)
-  sources!: SourcesComponent;
-  @ViewChild(AltsComponent)
-  alts!: AltsComponent;
+  @ViewChild(TagsFormComponent)
+  tags!: TagsFormComponent;
+  @ViewChild(SourcesFormComponent)
+  sources!: SourcesFormComponent;
+  @ViewChild(AltsFormComponent)
+  alts!: AltsFormComponent;
 
   constructor(
     private fb: FormBuilder,

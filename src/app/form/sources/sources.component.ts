@@ -1,15 +1,15 @@
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, HostBinding, Input, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { URI_REGEX } from '../../util/format';
 
 @Component({
   selector: 'app-sources',
   templateUrl: './sources.component.html',
-  styleUrls: ['./sources.component.scss'],
-  providers: [{provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => SourcesComponent), multi: true}]
+  styleUrls: ['./sources.component.scss']
 })
-export class SourcesComponent implements OnInit {
+export class SourcesFormComponent implements OnInit {
   static validators = [Validators.required, Validators.pattern(URI_REGEX)];
+  @HostBinding('class') css = 'form-group';
 
   @Input()
   group!: FormGroup;
@@ -28,7 +28,7 @@ export class SourcesComponent implements OnInit {
   }
 
   addSource(value = '') {
-    this.sources.push(this.fb.control(value, SourcesComponent.validators));
+    this.sources.push(this.fb.control(value, SourcesFormComponent.validators));
   }
 
   removeSource(index: number) {
@@ -37,5 +37,5 @@ export class SourcesComponent implements OnInit {
 }
 
 export function sourcesForm(fb: FormBuilder, urls: string[]) {
-  return fb.array(urls.map(v => fb.control(v, SourcesComponent.validators)));
+  return fb.array(urls.map(v => fb.control(v, SourcesFormComponent.validators)));
 }

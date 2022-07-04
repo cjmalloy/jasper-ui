@@ -1,15 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import { QtagsComponent } from './qtags.component';
+import { QtagsFormComponent } from './qtags.component';
 
 describe('QtagsComponent', () => {
-  let component: QtagsComponent;
-  let fixture: ComponentFixture<QtagsComponent>;
+  let component: QtagsFormComponent;
+  let fixture: ComponentFixture<QtagsFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ QtagsComponent ],
+      declarations: [ QtagsFormComponent ],
       imports: [
         ReactiveFormsModule,
       ],
@@ -18,7 +18,7 @@ describe('QtagsComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(QtagsComponent);
+    fixture = TestBed.createComponent(QtagsFormComponent);
     fixture.componentInstance.group = new FormGroup({ tags: new FormControl({}) });
     component = fixture.componentInstance;
     fixture.detectChanges();

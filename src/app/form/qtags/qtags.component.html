@@ -1,8 +1,8 @@
-<div [formGroup]="group">
-  <div class="form-group" [formArrayName]="fieldName">
+<ng-container [formGroup]="group">
+  <ng-container [formArrayName]="fieldName">
     <button type="button" (click)="addTag()">+ Add another tag</button>
 
-    <div *ngFor="let tag of tags.controls; let i=index">
+    <div class="form-array" *ngFor="let tag of tags.controls; let i=index">
       <label for="tags-{{ i }}">Tag:</label>
       <input id="tags-{{ i }}"
              type="email"
@@ -19,5 +19,5 @@
         Tag must not be blank.
       </div>
     </div>
-  </div>
-</div>
+  </ng-container>
+</ng-container>

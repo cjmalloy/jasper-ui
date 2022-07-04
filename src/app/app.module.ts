@@ -35,7 +35,7 @@ import { UserComponent } from './component/user/user.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { MdPostDirective } from './directive/md-post.directive';
 import { ResizeDirective } from './directive/resize.directive';
-import { AltsComponent } from './form/alts/alts.component';
+import { AltsFormComponent } from './form/alts/alts.component';
 import { ArchiveFormComponent } from './form/plugin/archive/archive.component';
 import { AudioFormComponent } from './form/plugin/audio/audio.component';
 import { CommentFormComponent } from './form/plugin/comment/comment.component';
@@ -46,10 +46,10 @@ import { QrFormComponent } from './form/plugin/qr/qr.component';
 import { ThumbnailFormComponent } from './form/plugin/thumbnail/thumbnail.component';
 import { VideoFormComponent } from './form/plugin/video/video.component';
 import { PluginsComponent } from './form/plugins/plugins.component';
-import { QtagsComponent } from './form/qtags/qtags.component';
+import { QtagsFormComponent } from './form/qtags/qtags.component';
 import { RefFormComponent } from './form/ref/ref.component';
-import { SourcesComponent } from './form/sources/sources.component';
-import { TagsComponent } from './form/tags/tags.component';
+import { SourcesFormComponent } from './form/sources/sources.component';
+import { TagsFormComponent } from './form/tags/tags.component';
 import { DebugInterceptor } from './http/debug.interceptor';
 import { AdminPage } from './page/admin/admin.component';
 import { AdminOriginPage } from './page/admin/origin/origin.component';
@@ -161,10 +161,10 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     ResizeDirective,
     LoginPage,
     LoginPopupComponent,
-    TagsComponent,
-    AltsComponent,
-    SourcesComponent,
-    QtagsComponent,
+    TagsFormComponent,
+    SourcesFormComponent,
+    AltsFormComponent,
+    QtagsFormComponent,
     AudioFormComponent,
     PluginsComponent,
     VideoFormComponent,

@@ -1,15 +1,15 @@
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, HostBinding, Input, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { TAG_REGEX, URI_REGEX } from '../../util/format';
 
 @Component({
   selector: 'app-alts',
   templateUrl: './alts.component.html',
-  styleUrls: ['./alts.component.scss'],
-  providers: [{provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => AltsComponent), multi: true}]
+  styleUrls: ['./alts.component.scss']
 })
-export class AltsComponent implements OnInit {
+export class AltsFormComponent implements OnInit {
   static validators = [Validators.required, Validators.pattern(URI_REGEX)];
+  @HostBinding('class') css = 'form-group';
 
   @Input()
   group!: FormGroup;
@@ -28,7 +28,7 @@ export class AltsComponent implements OnInit {
   }
 
   addAlt(value = '') {
-    this.alts.push(this.fb.control(value, AltsComponent.validators));
+    this.alts.push(this.fb.control(value, AltsFormComponent.validators));
   }
 
   removeAlt(index: number) {
@@ -37,5 +37,5 @@ export class AltsComponent implements OnInit {
 }
 
 export function altsForm(fb: FormBuilder, urls: string[]) {
-  return fb.array(urls.map(v => fb.control(v, AltsComponent.validators)));
+  return fb.array(urls.map(v => fb.control(v, AltsFormComponent.validators)));
 }

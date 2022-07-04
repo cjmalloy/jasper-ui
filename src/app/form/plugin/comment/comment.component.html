@@ -1,5 +1,5 @@
-<div *ngIf="plugins"
-     [formGroup]="plugins">
+<ng-container *ngIf="plugins"
+              [formGroup]="plugins">
   <label>Comment</label>
   <div class="form form-group" [formGroup]="plugin">
     <label for="{{fieldName}}-deleted">Deleted:</label>
@@ -9,4 +9,4 @@
            autocapitalize="none"
            formControlName="deleted">
   </div>
-</div>
+</ng-container>

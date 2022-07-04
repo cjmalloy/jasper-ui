@@ -1,14 +1,15 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { QUALIFIED_TAG_REGEX, TAG_REGEX } from '../../util/format';
+import { QUALIFIED_TAG_REGEX } from '../../util/format';
 
 @Component({
   selector: 'app-qtags',
   templateUrl: './qtags.component.html',
   styleUrls: ['./qtags.component.scss']
 })
-export class QtagsComponent implements OnInit {
+export class QtagsFormComponent implements OnInit {
   static validators = [Validators.required, Validators.pattern(QUALIFIED_TAG_REGEX)];
+  @HostBinding('class') css = 'form-group';
 
   @Input()
   group!: FormGroup;
@@ -27,7 +28,7 @@ export class QtagsComponent implements OnInit {
   }
 
   addTag(value = '') {
-    this.tags.push(this.fb.control(value, QtagsComponent.validators));
+    this.tags.push(this.fb.control(value, QtagsFormComponent.validators));
   }
 
   removeTag(index: number) {
@@ -36,5 +37,5 @@ export class QtagsComponent implements OnInit {
 }
 
 export function qtagsForm(fb: FormBuilder, tags: string[]) {
-  return fb.array(tags.map(v => fb.control(v, QtagsComponent.validators)));
+  return fb.array(tags.map(v => fb.control(v, QtagsFormComponent.validators)));
 }

@@ -1,4 +1,4 @@
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, HostBinding, Input, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { TAG_REGEX } from '../../util/format';
 
@@ -6,10 +6,11 @@ import { TAG_REGEX } from '../../util/format';
   selector: 'app-tags',
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss'],
-  providers: [{provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TagsComponent), multi: true}]
+  providers: [{provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TagsFormComponent), multi: true}]
 })
-export class TagsComponent implements OnInit {
+export class TagsFormComponent implements OnInit {
   static validators = [Validators.required, Validators.pattern(TAG_REGEX)];
+  @HostBinding('class') css = 'form-group';
 
   @Input()
   group!: FormGroup;
@@ -28,7 +29,7 @@ export class TagsComponent implements OnInit {
   }
 
   addTag(value = '') {
-    this.tags.push(this.fb.control(value, TagsComponent.validators));
+    this.tags.push(this.fb.control(value, TagsFormComponent.validators));
   }
 
   removeTag(index: number) {
@@ -37,5 +38,5 @@ export class TagsComponent implements OnInit {
 }
 
 export function tagsForm(fb: FormBuilder, tags: string[]) {
-  return fb.array(tags.map(v => fb.control(v, TagsComponent.validators)));
+  return fb.array(tags.map(v => fb.control(v, TagsFormComponent.validators)));
 }

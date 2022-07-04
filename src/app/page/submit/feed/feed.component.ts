@@ -4,7 +4,7 @@ import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
-import { TagsComponent } from '../../../form/tags/tags.component';
+import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { isKnownEmbed } from '../../../plugin/embed';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
@@ -23,8 +23,8 @@ export class SubmitFeedPage implements AfterViewInit {
   feedForm: FormGroup;
   serverError: string[] = [];
 
-  @ViewChild(TagsComponent)
-  tags!: TagsComponent;
+  @ViewChild(TagsFormComponent)
+  tags!: TagsFormComponent;
 
   constructor(
     private theme: ThemeService,

@@ -6,7 +6,7 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { refForm } from '../../../form/ref/ref.component';
-import { TagsComponent } from '../../../form/tags/tags.component';
+import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -31,8 +31,8 @@ export class SubmitTextPage implements AfterViewInit {
   emoji = !!this.admin.status.plugins.emoji;
   latex = !!this.admin.status.plugins.latex;
 
-  @ViewChild(TagsComponent)
-  tags!: TagsComponent;
+  @ViewChild(TagsFormComponent)
+  tags!: TagsFormComponent;
 
   constructor(
     private theme: ThemeService,

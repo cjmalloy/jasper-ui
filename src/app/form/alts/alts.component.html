@@ -1,10 +1,10 @@
-<div [formGroup]="group">
-  <div class="form-group" [formArrayName]="fieldName">
+<ng-container [formGroup]="group">
+  <ng-container [formArrayName]="fieldName">
     <button type="button" (click)="addAlt()">+ Add another alt</button>
 
-    <div *ngFor="let alt of alts.controls; let i=index">
+    <div class="form-array" *ngFor="let alt of alts.controls; let i=index">
       <label for="alt-{{ i }}">Alt:</label>
-      <input id="alt-{{ i }}" type="text" [formControl]="$any(alt)">
+      <input id="alt-{{ i }}" type="url" [formControl]="$any(alt)">
       <button type="button" (click)="removeAlt(i)">&ndash;</button>
       <div class="error" *ngIf="alts.at(i).touched && alts.at(i).errors?.['pattern']">
         Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
@@ -13,5 +13,5 @@
         Alternate URL must not be blank.
       </div>
     </div>
-  </div>
-</div>
+  </ng-container>
+</ng-container>
