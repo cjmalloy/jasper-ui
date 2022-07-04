@@ -92,6 +92,9 @@ import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
+import { MonacoEditorModule } from "ngx-monaco-editor";
+import { CodeComponent } from './form/code/code.component';
+import { ThemeComponent } from './page/settings/theme/theme.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -182,6 +185,8 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     SettingsPasswordPage,
     RefFormComponent,
     MdPostDirective,
+    CodeComponent,
+    ThemeComponent,
   ],
   imports: [
     BrowserModule,
@@ -191,6 +196,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     ReactiveFormsModule,
     MarkdownModule.forRoot(),
     QRCodeModule,
+    MonacoEditorModule.forRoot(),
   ],
   providers: [
     ConfigService,
