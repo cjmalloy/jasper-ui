@@ -185,12 +185,20 @@ html, body {
 .form-group * {
   margin: 4px 4px 4px 0;
 }
+.form-group > *:first-child {
+  margin-top: 0;
+}
 
 .form-array {
   display: flex;
+  flex-wrap: wrap;
 
   input {
     flex: 1;
+  }
+
+  .error {
+    flex-basis: 100%;
   }
 }
 
