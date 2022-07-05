@@ -19,68 +19,24 @@
     </div>
 
     <label for="pinned">Pinned:</label>
-    <div id="pinned" class="form-group">
-      <button type="button" (click)="addPinned()">+ Add another pinned link</button>
-
-      <div *ngFor="let pin of pinned.controls; let i=index">
-        <label for="pinned-{{ i }}">Link:</label>
-        <input id="pinned-{{ i }}" type="text" [formControl]="$any(pin)">
-        <button type="button" (click)="removePinned(i)">&ndash;</button>
-        <div class="error" *ngIf="pinned.at(i).touched && pinned.at(i).errors?.['required']">
-          Pinned link must not be blank.
-        </div>
-      </div>
-    </div>
+    <app-links id="pinned"
+               label="pinned link"
+               [group]="config"
+               fieldName="pinned"></app-links>
   </ng-container>
 
   <ng-container *ngIf="user">
     <label for="subscriptions">Subscriptions:</label>
-    <div id="subscriptions" class="form-group">
-      <button type="button" (click)="addSub()">+ Add another subscription</button>
-
-      <div *ngFor="let sub of subscriptions.controls; let i=index">
-        <label for="sub-{{ i }}">Query:</label>
-        <input id="sub-{{ i }}"
-               type="email"
-               autocorrect="off"
-               autocapitalize="none"
-               [formControl]="$any(sub)">
-        <button type="button" (click)="removeSub(i)">&ndash;</button>
-        <div class="error" *ngIf="subscriptions.at(i).touched && subscriptions.at(i).errors?.['pattern']">
-          Queries support AND (:), OR (|) and grouping qualified tags (parentheses).
-          Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
-          two forward slashes in a row. Private tags start with an underscore.<br>
-          (i.e. "science:news", "science@origin science@other" "your/tag my/tag", or "news:_my/private/tag")
-        </div>
-        <div class="error" *ngIf="subscriptions.at(i).touched && subscriptions.at(i).errors?.['required']">
-          Tag must not be blank.
-        </div>
-      </div>
-    </div>
+    <app-queries id="subscriptions"
+                 label="subscription"
+                 [group]="config"
+                 fieldName="subscriptions"></app-queries>
 
     <label for="bookmarks">Bookmarks:</label>
-    <div id="bookmarks" class="form-group">
-      <button type="button" (click)="addBook()">+ Add another bookmark</button>
-
-      <div *ngFor="let book of bookmarks.controls; let i=index">
-        <label for="book-{{ i }}">Query:</label>
-        <input id="book-{{ i }}"
-               type="email"
-               autocorrect="off"
-               autocapitalize="none"
-               [formControl]="$any(book)">
-        <button type="button" (click)="removeBook(i)">&ndash;</button>
-        <div class="error" *ngIf="bookmarks.at(i).touched && bookmarks.at(i).errors?.['pattern']">
-          Queries support AND (:), OR (|) and grouping qualified tags (parentheses).
-          Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
-          two forward slashes in a row. Private tags start with an underscore.<br>
-          (i.e. "science:news", "science@origin science@other" "your/tag my/tag", or "news:_my/private/tag")
-        </div>
-        <div class="error" *ngIf="bookmarks.at(i).touched && bookmarks.at(i).errors?.['required']">
-          Tag must not be blank.
-        </div>
-      </div>
-    </div>
+    <app-queries id="bookmarks"
+                 label="bookmark"
+                 [group]="config"
+                 fieldName="bookmarks"></app-queries>
   </ng-container>
 
   <ng-container *ngIf="queue">
@@ -91,28 +47,9 @@
     <input type="text" id="bounty" [formControl]="bounty">
 
     <label for="approvers">Approvers:</label>
-    <div id="approvers" class="form-group">
-      <button type="button" (click)="addApprover()">+ Add another approver</button>
-
-      <div *ngFor="let approver of approvers.controls; let i=index">
-        <label for="approver-{{ i }}">User:</label>
-        <input id="approver-{{ i }}"
-               type="email"
-               autocorrect="off"
-               autocapitalize="none"
-               [formControl]="$any(approver)">
-        <button type="button" (click)="removeApprover(i)">&ndash;</button>
-        <div class="error" *ngIf="approvers.at(i).touched && approvers.at(i).errors?.['pattern']">
-          User tags must start with the "user/" or "_user/" prefix.
-          Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-          tags start with an underscore.<br>
-          (i.e. "science", "my/tag", or "_my/private/tag")
-        </div>
-        <div class="error" *ngIf="approvers.at(i).touched && approvers.at(i).errors?.['required']">
-          Tag must not be blank.
-        </div>
-      </div>
-    </div>
+    <app-users id="approvers" [group]="config"
+               label="approver"
+               fieldName="approvers"></app-users>
   </ng-container>
 
   <ng-container *ngFor="let e of serverError">

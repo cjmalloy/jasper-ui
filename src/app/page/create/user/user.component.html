@@ -29,96 +29,24 @@
   <input id="name" type="text" formControlName="name">
 
   <label for="readAccess">Read Access:</label>
-  <div id="readAccess" class="form-group" formArrayName="readAccess">
-    <button type="button" (click)="addReadAccess()">+ Add another tag</button>
-
-    <div *ngFor="let tag of readAccess.controls; let i=index">
-      <label for="readAccess-{{ i }}">Tag:</label>
-      <input id="readAccess-{{ i }}"
-             type="email"
-             autocorrect="off"
-             autocapitalize="none"
-             [formControl]="$any(tag)">
-      <button type="button" (click)="removeReadAccess(i)">&ndash;</button>
-      <div class="error" *ngIf="readAccess.at(i).touched && readAccess.at(i).errors?.['pattern']">
-        Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
-        two forward slashes in a row. Private tags start with an underscore.<br>
-        (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")
-      </div>
-      <div class="error" *ngIf="readAccess.at(i).touched && readAccess.at(i).errors?.['required']">
-        Tag must not be blank.
-      </div>
-    </div>
-  </div>
+  <app-qtags id="readAccess"
+             fieldName="readAccess"
+             [group]="userForm"></app-qtags>
 
   <label for="writeAccess">Write Access:</label>
-  <div id="writeAccess" class="form-group" formArrayName="writeAccess">
-    <button type="button" (click)="addWriteAccess()">+ Add another tag</button>
-
-    <div *ngFor="let tag of writeAccess.controls; let i=index">
-      <label for="writeAccess-{{ i }}">Tag:</label>
-      <input id="writeAccess-{{ i }}"
-             type="email"
-             autocorrect="off"
-             autocapitalize="none"
-             [formControl]="$any(tag)">
-      <button type="button" (click)="removeWriteAccess(i)">&ndash;</button>
-      <div class="error" *ngIf="writeAccess.at(i).touched && writeAccess.at(i).errors?.['pattern']">
-        Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
-        two forward slashes in a row. Private tags start with an underscore.<br>
-        (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")
-      </div>
-      <div class="error" *ngIf="writeAccess.at(i).touched && writeAccess.at(i).errors?.['required']">
-        Tag must not be blank.
-      </div>
-    </div>
-  </div>
+  <app-qtags id="writeAccess"
+             fieldName="writeAccess"
+             [group]="userForm"></app-qtags>
 
   <label for="tagReadAccess">Tag Read Access:</label>
-  <div id="tagReadAccess" class="form-group" formArrayName="tagReadAccess">
-    <button type="button" (click)="addTagReadAccess()">+ Add another tag</button>
-
-    <div *ngFor="let tag of tagReadAccess.controls; let i=index">
-      <label for="tagReadAccess-{{ i }}">Tag:</label>
-      <input id="tagReadAccess-{{ i }}"
-             type="email"
-             autocorrect="off"
-             autocapitalize="none"
-             [formControl]="$any(tag)">
-      <button type="button" (click)="removeTagReadAccess(i)">&ndash;</button>
-      <div class="error" *ngIf="tagReadAccess.at(i).touched && tagReadAccess.at(i).errors?.['pattern']">
-        Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
-        two forward slashes in a row. Private tags start with an underscore.<br>
-        (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")
-      </div>
-      <div class="error" *ngIf="tagReadAccess.at(i).touched && tagReadAccess.at(i).errors?.['required']">
-        Tag must not be blank.
-      </div>
-    </div>
-  </div>
+  <app-qtags id="tagReadAccess"
+             fieldName="tagReadAccess"
+             [group]="userForm"></app-qtags>
 
   <label for="tagWriteAccess">Tag Write Access:</label>
-  <div id="tagWriteAccess" class="form-group" formArrayName="tagWriteAccess">
-    <button type="button" (click)="addTagWriteAccess()">+ Add another tag</button>
-
-    <div *ngFor="let tag of tagWriteAccess.controls; let i=index">
-      <label for="tagWriteAccess-{{ i }}">Tag:</label>
-      <input id="tagWriteAccess-{{ i }}"
-             type="email"
-             autocorrect="off"
-             autocapitalize="none"
-             [formControl]="$any(tag)">
-      <button type="button" (click)="removeTagWriteAccess(i)">&ndash;</button>
-      <div class="error" *ngIf="tagWriteAccess.at(i).touched && tagWriteAccess.at(i).errors?.['pattern']">
-        Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
-        two forward slashes in a row. Private tags start with an underscore.<br>
-        (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")
-      </div>
-      <div class="error" *ngIf="tagWriteAccess.at(i).touched && tagWriteAccess.at(i).errors?.['required']">
-        Tag must not be blank.
-      </div>
-    </div>
-  </div>
+  <app-qtags id="tagWriteAccess"
+             fieldName="tagWriteAccess"
+             [group]="userForm"></app-qtags>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>

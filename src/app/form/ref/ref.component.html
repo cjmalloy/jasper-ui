@@ -28,10 +28,18 @@
 
 
   <label for="sources">Sources:</label>
-  <app-sources id="sources" [group]="group"></app-sources>
+  <app-links #sources
+             id="sources"
+             label="source"
+             [group]="group"
+             fieldName="sources"></app-links>
 
   <label for="alts">Alternate URLs:</label>
-  <app-alts id="alts" [group]="group"></app-alts>
+  <app-links #alts
+             id="alts"
+             label="alternate URL"
+             [group]="group"
+             fieldName="alternateUrls"></app-links>
 
   <label for="tags">Tags:</label>
   <app-tags id="tags" [group]="group"></app-tags>

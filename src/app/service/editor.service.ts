@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import * as _ from 'lodash';
-import { AltsFormComponent } from '../form/alts/alts.component';
+import { LinksFormComponent } from '../form/links/links.component';
 import { RefFormComponent } from '../form/ref/ref.component';
-import { SourcesFormComponent } from '../form/sources/sources.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
 import { extractPattern, getNotifications, getTags } from '../util/editor';
 import { URI_REGEX } from '../util/format';
@@ -91,11 +90,11 @@ export class EditorService {
     const value = group.value.comment;
     const newSources = _.uniq(_.difference(this.getSources(value), group.value.sources));
     for (const s of newSources) {
-      (group.get('sources') as FormArray).push(fb.control(value, SourcesFormComponent.validators));
+      (group.get('sources') as FormArray).push(fb.control(value, LinksFormComponent.validators));
     }
     const newAlts = _.uniq(_.difference(this.getAlts(value), group.value.alternateUrls));
     for (const a of newAlts) {
-      (group.get('alternateUrls') as FormArray).push(fb.control(value, AltsFormComponent.validators));
+      (group.get('alternateUrls') as FormArray).push(fb.control(value, LinksFormComponent.validators));
     }
     const newTags = _.uniq(_.difference([
       ...getTags(value),

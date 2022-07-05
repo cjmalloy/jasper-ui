@@ -15,6 +15,8 @@ export class QtagsFormComponent implements OnInit {
   group!: FormGroup;
   @Input()
   fieldName = 'tags';
+  @Input()
+  label = 'tag';
 
   constructor(
     private fb: FormBuilder,

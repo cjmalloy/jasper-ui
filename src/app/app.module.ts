@@ -35,7 +35,7 @@ import { UserComponent } from './component/user/user.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { MdPostDirective } from './directive/md-post.directive';
 import { ResizeDirective } from './directive/resize.directive';
-import { AltsFormComponent } from './form/alts/alts.component';
+import { LinksFormComponent } from './form/links/links.component';
 import { ArchiveFormComponent } from './form/plugin/archive/archive.component';
 import { AudioFormComponent } from './form/plugin/audio/audio.component';
 import { CommentFormComponent } from './form/plugin/comment/comment.component';
@@ -47,9 +47,10 @@ import { ThumbnailFormComponent } from './form/plugin/thumbnail/thumbnail.compon
 import { VideoFormComponent } from './form/plugin/video/video.component';
 import { PluginsComponent } from './form/plugins/plugins.component';
 import { QtagsFormComponent } from './form/qtags/qtags.component';
+import { QueriesFormComponent } from './form/queries/queries.component';
 import { RefFormComponent } from './form/ref/ref.component';
-import { SourcesFormComponent } from './form/sources/sources.component';
 import { TagsFormComponent } from './form/tags/tags.component';
+import { UsersFormComponent } from './form/users/users.component';
 import { DebugInterceptor } from './http/debug.interceptor';
 import { AdminPage } from './page/admin/admin.component';
 import { AdminOriginPage } from './page/admin/origin/origin.component';
@@ -162,8 +163,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     LoginPage,
     LoginPopupComponent,
     TagsFormComponent,
-    SourcesFormComponent,
-    AltsFormComponent,
+    LinksFormComponent,
     QtagsFormComponent,
     AudioFormComponent,
     PluginsComponent,
@@ -182,6 +182,8 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     SettingsPasswordPage,
     RefFormComponent,
     MdPostDirective,
+    QueriesFormComponent,
+    UsersFormComponent,
   ],
   imports: [
     BrowserModule,

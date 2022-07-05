@@ -1,0 +1,24 @@
+<ng-container [formGroup]="group">
+  <ng-container [formArrayName]="fieldName">
+    <button type="button" (click)="addUser()">+ Add another {{ label }}</button>
+
+    <div class="form-array" *ngFor="let c of users.controls; let i=index">
+      <label for="tags-{{ i }}">User:</label>
+      <input id="tags-{{ i }}"
+             type="email"
+             autocorrect="off"
+             autocapitalize="none"
+             [formControl]="$any(c)">
+      <button type="button" (click)="removeUser(i)">&ndash;</button>
+      <div class="error" *ngIf="users.at(i).touched && users.at(i).errors?.['pattern']">
+        User tags must start with the "user/" or "_user/" prefix.
+        Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+        tags start with an underscore.<br>
+        (i.e. "science", "my/tag", or "_my/private/tag")
+      </div>
+      <div class="error" *ngIf="users.at(i).touched && users.at(i).errors?.['required']">
+        Tag must not be blank.
+      </div>
+    </div>
+  </ng-container>
+</ng-container>

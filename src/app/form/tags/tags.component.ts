@@ -5,8 +5,7 @@ import { TAG_REGEX } from '../../util/format';
 @Component({
   selector: 'app-tags',
   templateUrl: './tags.component.html',
-  styleUrls: ['./tags.component.scss'],
-  providers: [{provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TagsFormComponent), multi: true}]
+  styleUrls: ['./tags.component.scss']
 })
 export class TagsFormComponent implements OnInit {
   static validators = [Validators.required, Validators.pattern(TAG_REGEX)];

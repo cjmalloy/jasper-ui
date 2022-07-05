@@ -109,12 +109,12 @@ export class SubmitWebPage implements AfterViewInit {
   }
 
   addSource(value = '') {
-    this.ref.sources.addSource(value);
+    this.ref.sources.addLink(value);
     this.submitted = false;
   }
 
   addAlt(value = '') {
-    this.ref.alts.addAlt(value);
+    this.ref.alts.addLink(value);
     this.submitted = false;
   }
 

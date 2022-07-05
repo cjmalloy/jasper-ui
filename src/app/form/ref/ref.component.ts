@@ -4,9 +4,8 @@ import * as moment from 'moment';
 import { Ref } from '../../model/ref';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
-import { AltsFormComponent } from '../alts/alts.component';
+import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm } from '../plugins/plugins.component';
-import { SourcesFormComponent } from '../sources/sources.component';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
@@ -22,10 +21,10 @@ export class RefFormComponent implements OnInit {
 
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
-  @ViewChild(SourcesFormComponent)
-  sources!: SourcesFormComponent;
-  @ViewChild(AltsFormComponent)
-  alts!: AltsFormComponent;
+  @ViewChild('sources')
+  sources!: LinksFormComponent;
+  @ViewChild('alts')
+  alts!: LinksFormComponent;
 
   constructor(
     private fb: FormBuilder,
@@ -58,10 +57,10 @@ export class RefFormComponent implements OnInit {
     const sourcesForm = this.group.get('sources') as FormArray;
     const altsForm = this.group.get('alternateUrls') as FormArray;
     const tagsForm = this.group.get('tags') as FormArray;
-    while (sourcesForm.length > (ref?.sources?.length || 0)) this.sources.removeSource(0);
-    while (sourcesForm.length < (ref?.sources?.length || 0)) this.sources.addSource();
-    while (altsForm.length > (ref?.alternateUrls?.length || 0)) this.alts.removeAlt(0);
-    while (altsForm.length < (ref?.alternateUrls?.length || 0)) this.alts.addAlt();
+    while (sourcesForm.length > (ref?.sources?.length || 0)) this.sources.removeLink(0);
+    while (sourcesForm.length < (ref?.sources?.length || 0)) this.sources.addLink();
+    while (altsForm.length > (ref?.alternateUrls?.length || 0)) this.alts.removeLink(0);
+    while (altsForm.length < (ref?.alternateUrls?.length || 0)) this.alts.addLink();
     while (tagsForm.length > (ref?.tags?.length || 0)) this.tags.removeTag(0);
     while (tagsForm.length < (ref?.tags?.length || 0)) this.tags.addTag();
     this.group.setControl('plugins', pluginsForm(this.fb, ref.tags || []));

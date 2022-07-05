@@ -1,13 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, switchMap, throwError } from 'rxjs';
+import { linksForm } from '../../../form/links/links.component';
+import { queriesForm } from '../../../form/queries/queries.component';
+import { usersForm } from '../../../form/users/users.component';
 import { Ext } from '../../../model/ext';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
-import { QUALIFIED_TAG_REGEX, QUERY_REGEX, USER_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { localTag } from '../../../util/tag';
 
@@ -38,14 +40,14 @@ export class EditTagPage implements OnInit {
         configControls = {
           ...configControls,
           sidebar: [''],
-          pinned: fb.array([]),
+          pinned: linksForm(fb, ext.config?.pinned),
         };
       }
       if (this.user) {
         configControls = {
           ...configControls,
-          subscriptions: fb.array([]),
-          bookmarks: fb.array([]),
+          subscriptions: queriesForm(fb, ext.config?.subscriptions),
+          bookmarks: queriesForm(fb, ext.config?.bookmarks),
         };
       }
       if (this.queue) {
@@ -53,7 +55,7 @@ export class EditTagPage implements OnInit {
           ...configControls,
           bounty: [''],
           maxAge: [''],
-          approvers: fb.array([]),
+          approvers: usersForm(fb, ext.config?.approvers),
         };
       }
       this.editForm = fb.group({
@@ -61,16 +63,6 @@ export class EditTagPage implements OnInit {
         name: [''],
         config: fb.group(configControls),
       });
-      if (this.root) {
-        while (this.pinned.length < (ext.config?.pinned?.length || 0)) this.addPinned();
-      }
-      if (this.user) {
-        while (this.subscriptions.length < (ext.config?.subscriptions?.length || 0)) this.addSub();
-        while (this.bookmarks.length < (ext.config?.bookmarks?.length || 0)) this.addBook();
-      }
-      if (this.queue) {
-        while (this.approvers.length < (ext.config?.approvers?.length || 0)) this.addApprover();
-      }
       this.editForm.patchValue(ext);
     });
   }
@@ -124,64 +116,12 @@ export class EditTagPage implements OnInit {
     return this.config.get('sidebar') as FormControl;
   }
 
-  get pinned() {
-    return this.config.get('pinned') as FormArray;
-  }
-
-  get subscriptions() {
-    return this.config.get('subscriptions') as FormArray;
-  }
-
-  get bookmarks() {
-    return this.config.get('bookmarks') as FormArray;
-  }
-
   get bounty() {
     return this.config.get('bounty') as FormControl;
   }
 
   get maxAge() {
     return this.config.get('maxAge') as FormControl;
-  }
-
-  get approvers() {
-    return this.config.get('approvers') as FormArray;
-  }
-
-  addPinned() {
-    this.pinned.push(this.fb.control('', [Validators.required]));
-    this.submitted = false;
-  }
-
-  removePinned(index: number) {
-    this.pinned.removeAt(index);
-  }
-
-  addSub() {
-    this.subscriptions.push(this.fb.control('', [Validators.required, Validators.pattern(QUERY_REGEX)]));
-    this.submitted = false;
-  }
-
-  removeSub(index: number) {
-    this.subscriptions.removeAt(index);
-  }
-
-  addBook() {
-    this.bookmarks.push(this.fb.control('', [Validators.required, Validators.pattern(QUERY_REGEX)]));
-    this.submitted = false;
-  }
-
-  removeBook(index: number) {
-    this.bookmarks.removeAt(index);
-  }
-
-  addApprover() {
-    this.approvers.push(this.fb.control('', [Validators.required, Validators.pattern(USER_REGEX)]));
-    this.submitted = false;
-  }
-
-  removeApprover(index: number) {
-    this.approvers.removeAt(index);
   }
 
   save() {

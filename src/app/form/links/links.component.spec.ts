@@ -1,15 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import { AltsFormComponent } from './alts.component';
+import { LinksFormComponent } from './sources.component';
 
-describe('AltsComponent', () => {
-  let component: AltsFormComponent;
-  let fixture: ComponentFixture<AltsFormComponent>;
+describe('SourcesComponent', () => {
+  let component: LinksFormComponent;
+  let fixture: ComponentFixture<LinksFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AltsFormComponent ],
+      declarations: [ LinksFormComponent ],
       imports: [
         ReactiveFormsModule,
       ],
@@ -18,8 +18,8 @@ describe('AltsComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(AltsFormComponent);
-    fixture.componentInstance.group = new FormGroup({ alternateUrls: new FormControl({}) });
+    fixture = TestBed.createComponent(LinksFormComponent);
+    fixture.componentInstance.group = new FormGroup({ sources: new FormControl({}) });
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
