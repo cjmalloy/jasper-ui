@@ -1,5 +1,6 @@
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import * as _ from 'lodash';
 import { map } from 'rxjs';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -52,7 +53,8 @@ export class SearchFilterComponent implements OnInit {
   }
 
   setFilters() {
-    this.router.navigate([], {queryParams: {filter: this.filters, t: Math.random()}, queryParamsHandling: 'merge'});
+    const filters = _.filter(this.filters, f => !!f);
+    this.router.navigate([], { queryParams: { filter: filters.length ? filters : null }, queryParamsHandling: 'merge' });
   }
 
   get filter$() {
@@ -68,7 +70,7 @@ export class SearchFilterComponent implements OnInit {
   }
 
   search() {
-    this.router.navigate([], { queryParams: { search: this.searchValue}, queryParamsHandling: 'merge' });
+    this.router.navigate([], { queryParams: { search: this.searchValue }, queryParamsHandling: 'merge' });
   }
 
 }
