@@ -13,7 +13,7 @@
   <ng-container *ngIf="admin.status.plugins.graph">
     <a routerLink="./"
        [class.current-tab]="graph"
-       [queryParams]="{ graph: !graph }"
+       [queryParams]="{ graph: graph ? null : true }"
        queryParamsHandling="merge"
        title="Graph these results">graph</a>
   </ng-container>
