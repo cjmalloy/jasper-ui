@@ -15,7 +15,7 @@
     📔 &nbsp; Submit Wiki
   </div>
 </ng-container>
-<ng-container *ngIf="account.editor">
+<ng-container *ngIf="writeAccess$ | async">
   <div class="submit-button" routerLink="/create/ext" [queryParams]="ext ? null : { tag: localTag }">
     🖌️ &nbsp; Create Tag Extension
   </div>
@@ -70,13 +70,13 @@
 
 <ng-container *ngIf="queue">
   <div class="ext-text" *ngIf="ext?.config?.bounty">
-    Bounty: {{ ext?.config?.bounty }}
+    <b>Bounty:</b> {{ ext?.config?.bounty }}
   </div>
   <div class="ext-text" *ngIf="ext?.config?.maxAge">
-    Max Age: {{ ext?.config?.maxAge }}
+    <b>Max Age:</b> {{ ext?.config?.maxAge }}
   </div>
   <div class="ext-text" *ngIf="ext?.config?.approvers?.length">
-    Approvers:
+    <b>Approvers:</b>
     <br>
     <ng-container *ngFor="let a of ext!.config!.approvers!">
       <a class="tag" [routerLink]="['/tag', a]">
@@ -119,6 +119,12 @@
     <a *ngIf="ext"
        class="sidebar-link"
        [routerLink]="['/tag', localTag, 'edit']">
+      edit
+    </a>
+    <a *ngIf="!ext"
+       class="sidebar-link"
+       routerLink="/create/ext"
+       [queryParams]="{tag: localTag}">
       edit
     </a>
   </ng-container>

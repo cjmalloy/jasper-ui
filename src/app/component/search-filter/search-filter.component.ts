@@ -11,7 +11,7 @@ import { AdminService } from '../../service/admin.service';
   styleUrls: ['./search-filter.component.scss']
 })
 export class SearchFilterComponent implements OnInit {
-  @HostBinding('class') css = 'search-filter';
+  @HostBinding('class') css = 'search-filter form-group';
 
   searchValue = '';
   allFilters = ['uncited', 'unsourced', 'internal', 'rejected', 'unpaid', 'paid', 'disputed'];
