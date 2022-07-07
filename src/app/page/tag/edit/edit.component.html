@@ -23,6 +23,17 @@
                label="pinned link"
                [group]="config"
                fieldName="pinned"></app-links>
+
+    <label for="themes">Custom Themes:</label>
+    <app-themes id="themes"
+                [group]="config"
+                fieldName="themes"></app-themes>
+
+    <label for="theme">Tag Page Theme:</label>
+    <select id="theme" [formControl]="theme">
+      <option [ngValue]="undefined">default</option>
+      <option *ngFor="let t of themeValues" [ngValue]="t">{{ t }}</option>
+    </select>
   </ng-container>
 
   <ng-container *ngIf="user">
@@ -37,6 +48,17 @@
                  label="bookmark"
                  [group]="config"
                  fieldName="bookmarks"></app-queries>
+
+    <label for="userThemes">User Themes:</label>
+    <app-themes id="userThemes"
+                [group]="config"
+                fieldName="userThemes"></app-themes>
+
+    <label for="userTheme">Theme Override:</label>
+    <select id="userTheme" [formControl]="userTheme">
+      <option [ngValue]="undefined">default</option>
+      <option *ngFor="let t of userThemeValues" [ngValue]="t">{{ t }}</option>
+    </select>
   </ng-container>
 
   <ng-container *ngIf="queue">

@@ -1,7 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash';
-import { catchError, combineLatest, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
+import {
+  catchError,
+  combineLatest,
+  forkJoin,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  Subject,
+  switchMap,
+  takeUntil,
+  throwError
+} from 'rxjs';
 import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -19,7 +31,8 @@ import { localTag } from '../../util/tag';
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
 })
-export class TagPage implements OnInit {
+export class TagPage implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   title$: Observable<string>;
   localTag$: Observable<string>;
@@ -30,6 +43,8 @@ export class TagPage implements OnInit {
   accessDenied = false;
 
   private defaultPageSize = 20;
+  themes$: Observable<Record<string, string>>;
+  theme$: Observable<string>;
 
   constructor(
     public admin: AdminService,
@@ -63,6 +78,7 @@ export class TagPage implements OnInit {
     this.ext$ = this.localTag$.pipe(
       switchMap(tag => tag ? this.exts.get(tag).pipe(
         catchError(() => of(null))) : of(null)),
+      shareReplay(1),
     );
     this.title$ = this.ext$.pipe(
       switchMap(ext => ext
@@ -77,9 +93,33 @@ export class TagPage implements OnInit {
         forkJoin((ext!.config.pinned as string[]).map(pin => this.refs.get(pin))),
       ),
     );
+    this.themes$ = this.ext$.pipe(
+      map(ext => ext?.config?.themes),
+    );
+    this.theme$ = this.ext$.pipe(
+      map(ext => ext?.config?.theme),
+    );
+    if (!account.watchTheme$.value) {
+      this.ext$.pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(ext => {
+        const themes = ext?.config?.themes;
+        const t = ext?.config?.theme;
+        if (t && themes) {
+          theme.setCustomCss(themes[t]);
+        } else {
+          theme.setCustomCss();
+        }
+      });
+    }
   }
 
   ngOnInit(): void {
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get tag$() {

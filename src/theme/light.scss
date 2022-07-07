@@ -119,6 +119,14 @@ body.light-theme {
     }
   }
 
+  .listbox .selected {
+    border: 1px dotted $border;
+  }
+
+  ngx-monaco-editor {
+    border: 1px solid $border;
+  }
+
   .page-controls {
     .disabled {
       &:link, &:active, &:visited {

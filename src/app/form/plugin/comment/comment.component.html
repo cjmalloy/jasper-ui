@@ -1,7 +1,7 @@
 <ng-container *ngIf="plugins"
               [formGroup]="plugins">
   <label>Comment</label>
-  <div class="form form-group" [formGroup]="plugin">
+  <div class="form" [formGroup]="plugin">
     <label for="{{fieldName}}-deleted">Deleted:</label>
     <input id="{{fieldName}}-deleted"
            type="checkbox"

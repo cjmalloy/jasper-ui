@@ -9,7 +9,7 @@
   <ng-container *ngIf="!youtube && !twitter">
     <label>Embed</label>
   </ng-container>
-  <div class="form form-group" [formGroup]="plugin">
+  <div class="form" [formGroup]="plugin">
     <ng-container *ngIf="!twitter">
       <label for="{{fieldName}}-url">URL:</label>
       <input id="{{fieldName}}-url"

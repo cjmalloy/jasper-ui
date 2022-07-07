@@ -1,7 +1,7 @@
 <ng-container *ngIf="plugins"
               [formGroup]="plugins">
   <label>Video</label>
-  <div class="form form-group" [formGroup]="plugin">
+  <div class="form" [formGroup]="plugin">
     <label for="{{fieldName}}-url">URL:</label>
     <input id="{{fieldName}}-url"
            type="text"
