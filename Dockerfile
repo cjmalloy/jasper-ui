@@ -2,7 +2,7 @@ FROM node as builder
 WORKDIR app
 RUN npm i -g @angular/cli
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --force # use --force to ignore ngx-monaco-editor peer dependencies
 COPY . ./
 RUN ng build --configuration production
 
