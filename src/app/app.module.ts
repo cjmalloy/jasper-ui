@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { QRCodeModule } from 'angularx-qrcode';
 import { MarkdownModule } from 'ngx-markdown';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { switchMap } from 'rxjs';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -35,6 +36,7 @@ import { UserComponent } from './component/user/user.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { MdPostDirective } from './directive/md-post.directive';
 import { ResizeDirective } from './directive/resize.directive';
+import { CodeComponent } from './form/code/code.component';
 import { LinksFormComponent } from './form/links/links.component';
 import { ArchiveFormComponent } from './form/plugin/archive/archive.component';
 import { AudioFormComponent } from './form/plugin/audio/audio.component';
@@ -93,6 +95,8 @@ import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
+import { ThemesFormComponent } from './form/themes/themes.component';
+import { ListEditorComponent } from './component/list-editor/list-editor.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -182,8 +186,11 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     SettingsPasswordPage,
     RefFormComponent,
     MdPostDirective,
+    CodeComponent,
     QueriesFormComponent,
     UsersFormComponent,
+    ThemesFormComponent,
+    ListEditorComponent,
   ],
   imports: [
     BrowserModule,
@@ -193,6 +200,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     ReactiveFormsModule,
     MarkdownModule.forRoot(),
     QRCodeModule,
+    MonacoEditorModule.forRoot(),
   ],
   providers: [
     ConfigService,

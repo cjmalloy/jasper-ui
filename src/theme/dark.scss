@@ -134,6 +134,10 @@ body.dark-theme {
     }
   }
 
+  .listbox li span:focus {
+      border: 1px dotted $border;
+  }
+
   .page-controls {
     .disabled {
       &:link, &:active, &:visited {

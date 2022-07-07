@@ -1,6 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
+import { AccountService } from './account.service';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -16,8 +17,10 @@ export class ThemeService {
     @Inject(DOCUMENT) private document: Document,
     private config: ConfigService,
     private titleService: Title,
+    private account: AccountService,
   ) {
     this.setTheme(localStorage.getItem('theme'));
+    this.account.watchTheme$.subscribe(css => this.setCustomCss(css));
   }
 
   toggle() {
@@ -26,6 +29,17 @@ export class ThemeService {
     } else {
       this.setTheme('light-theme');
     }
+  }
+
+  setCustomCss(css?: string) {
+    const old = this.document.getElementById('custom-css')
+    if (old) old.remove();
+    if (!css) return;
+    const head = this.document.getElementsByTagName('head')[0];
+    const style = this.document.createElement('style');
+    style.id = 'custom-css';
+    style.innerHTML = css;
+    head.appendChild(style);
   }
 
   getTheme() {

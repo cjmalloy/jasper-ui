@@ -38,9 +38,9 @@ export class TemplateService {
     );
   }
 
-  exists(tag: string, origin = ''): Observable<boolean> {
+  exists(tag: string): Observable<boolean> {
     return this.http.get(`${this.base}/exists`, {
-      params: params({ tag }),
+      params: { tag },
       responseType: 'text',
     }).pipe(
       map(v => v === 'true'),
@@ -82,7 +82,7 @@ export class TemplateService {
 
   delete(tag: string): Observable<void> {
     return this.http.delete<void>(this.base, {
-      params: params({ tag }),
+      params: { tag },
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );

@@ -202,6 +202,15 @@ html, body {
   }
 }
 
+.listbox li {
+  display: flex;
+
+  span {
+    flex: 1;
+    border: 1px solid transparent;
+  }
+}
+
 .page-controls {
   padding: 2px;
   margin-left: 10px;

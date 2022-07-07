@@ -1,0 +1,10 @@
+<app-list-editor [list]="keys"
+                 (onAdd)="addTheme($event)"
+                 (onRemove)="removeTheme($event)"
+                 (selected)="edit($event)"></app-list-editor>
+<ng-container *ngFor="let theme of keys">
+  <app-code *ngIf="theme === selectedTheme"
+            [group]="themes"
+            language="css"
+            [fieldName]="theme"></app-code>
+</ng-container>

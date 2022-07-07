@@ -28,6 +28,7 @@ export class AccountService {
   notifications$ = new BehaviorSubject(0);
   watchSubs$ = new BehaviorSubject<string[]>(defaultSubs);
   watchBookmarks$ = new BehaviorSubject<string[]>([]);
+  watchTheme$ = new BehaviorSubject<string | undefined>(undefined);
 
   private _user$?: Observable<User>;
   private _userExt$?: Observable<Ext>;
@@ -53,6 +54,7 @@ export class AccountService {
       }),
       switchMap(tag => tag ? this.loadUserExt$ : of()),
       switchMap(() => this.subscriptions$),
+      switchMap(() => this.theme$),
     );
   }
 
@@ -105,6 +107,14 @@ export class AccountService {
     return this.userExt$.pipe(
       map(ext => ext.config.bookmarks),
       tap(books => this.watchBookmarks$.next(books)),
+    );
+  }
+
+  get theme$(): Observable<string | undefined> {
+    if (!this.signedIn || !this.adminService.status.templates.user) return of(undefined);
+    return this.userExt$.pipe(
+      map(ext => ext.config?.userThemes?.[ext.config.userTheme]),
+      tap(css => this.watchTheme$.next(css)),
     );
   }
 
