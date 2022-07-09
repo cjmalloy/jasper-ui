@@ -4,7 +4,7 @@ RUN npm i -g @angular/cli
 COPY package.json package-lock.json ./
 RUN npm ci --force # use --force to ignore ngx-monaco-editor peer dependencies
 COPY . ./
-RUN ng build --configuration production
+RUN ng build --configuration production --source-map
 
 FROM node as test
 RUN apt-get update && apt-get install -y \
