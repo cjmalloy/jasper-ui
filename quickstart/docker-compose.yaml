@@ -1,0 +1,26 @@
+services:
+  web:
+    image: ghcr.io/cjmalloy/jasper
+    ports:
+      - 8081:8081
+    environment:
+      SPRING_PROFILES_ACTIVE: dev,admin
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/jasper
+      SPRING_DATASOURCE_USERNAME: jasper
+      SPRING_DATASOURCE_PASSWORD: jasper
+    depends_on:
+      - db
+  db:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: jasper
+      POSTGRES_PASSWORD: jasper
+      POSTGRES_DB: jasper
+  client:
+    image: ghcr.io/cjmalloy/jasper-ui
+    ports:
+      - 8082:80
+    environment:
+      JASPER_API: //localhost:8081
