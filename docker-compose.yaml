@@ -2,6 +2,6 @@ services:
   client:
     build: .
     ports:
-      - 8082:8082
+      - 8082:80
     environment:
       JASPER_API: //localhost:8081
