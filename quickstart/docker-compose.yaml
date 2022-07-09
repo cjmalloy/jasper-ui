@@ -1,10 +1,13 @@
+# Requires docker compose
+# Run `dc up` to start all services
+# The web client will be on http://localhost:8082
 services:
   web:
     image: ghcr.io/cjmalloy/jasper
     ports:
       - 8081:8081
     environment:
-      SPRING_PROFILES_ACTIVE: dev,admin
+      SPRING_PROFILES_ACTIVE: dev,admin,feed-burst
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
