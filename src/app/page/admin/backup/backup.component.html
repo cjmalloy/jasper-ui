@@ -1,0 +1,21 @@
+
+<button (click)="backup()"
+        title="Create Backup"
+        class="backup">+ backup</button>
+
+<button (click)="showUpload()"
+  title="Upload Backup"
+          class="upload">+ upload</button>
+
+
+<input id="upload"
+       type="file"
+       class="upload"
+       (change)="upload($any($event)?.target?.files)">
+
+<ng-container *ngFor="let e of serverError">
+  <span><!-- Unexpected Error --></span>
+  <div class="error">{{ e }}</div>
+</ng-container>
+
+<app-backup-list [list]="list"></app-backup-list>

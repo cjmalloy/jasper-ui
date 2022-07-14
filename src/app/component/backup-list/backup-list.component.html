@@ -1,0 +1,11 @@
+<div class="list-container">
+  <ng-container *ngFor="let id of list; let i = index">
+    <div class="list-number">{{ i + 1 }}</div>
+    <app-backup [id]="id"></app-backup>
+  </ng-container>
+</div>
+<app-loading *ngIf="!list"></app-loading>
+
+<p class="no-results" *ngIf="list && list.length === 0">
+  No results found
+</p>

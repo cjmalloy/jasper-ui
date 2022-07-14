@@ -9,6 +9,7 @@ import { switchMap } from 'rxjs';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { BackupComponent } from './component/backup/backup.component';
 import { CommentEditComponent } from './component/comment-edit/comment-edit.component';
 import { CommentListComponent } from './component/comment-list/comment-list.component';
 import { CommentReplyComponent } from './component/comment-reply/comment-reply.component';
@@ -97,6 +98,8 @@ import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
 import { ThemesFormComponent } from './form/themes/themes.component';
 import { ListEditorComponent } from './component/list-editor/list-editor.component';
+import { AdminBackupPage } from './page/admin/backup/backup.component';
+import { BackupListComponent } from './component/backup-list/backup-list.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -191,6 +194,9 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     UsersFormComponent,
     ThemesFormComponent,
     ListEditorComponent,
+    AdminBackupPage,
+    BackupComponent,
+    BackupListComponent,
   ],
   imports: [
     BrowserModule,

@@ -5,9 +5,7 @@ import { combineLatest, map, Observable, switchMap } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { Page } from '../../../model/page';
 import { Profile } from '../../../model/profile';
-import { User } from '../../../model/user';
 import { ProfileService } from '../../../service/api/profile.service';
-import { UserService } from '../../../service/api/user.service';
 import { ThemeService } from '../../../service/theme.service';
 
 @Component({

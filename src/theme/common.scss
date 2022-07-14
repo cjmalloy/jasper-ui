@@ -471,6 +471,10 @@ footer {
   }
 }
 
+button.backup, input.upload {
+  margin: 10px;
+}
+
 .md {
   max-width: 60em;
   overflow-wrap: break-word;

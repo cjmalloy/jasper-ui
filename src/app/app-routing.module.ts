@@ -1,6 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { BackupComponent } from './component/backup/backup.component';
 import { AdminPage } from './page/admin/admin.component';
+import { AdminBackupPage } from './page/admin/backup/backup.component';
 import { AdminOriginPage } from './page/admin/origin/origin.component';
 import { AdminPluginPage } from './page/admin/plugin/plugin.component';
 import { AdminSetupPage } from './page/admin/setup/setup.component';
@@ -90,6 +92,7 @@ const routes: Routes = [
       { path: 'origin', component: AdminOriginPage },
       { path: 'plugin', component: AdminPluginPage },
       { path: 'template', component: AdminTemplatePage },
+      { path: 'backup', component: AdminBackupPage },
     ],
   },
   {

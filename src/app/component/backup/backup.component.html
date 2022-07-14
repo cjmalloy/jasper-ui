@@ -1,0 +1,20 @@
+<div class="link">
+  <a [href]="downloadLink">{{ id }}</a>
+</div>
+<div class="stack">
+  <div class="info">
+    <span></span>
+  </div>
+  <div class="actions">
+    <a [routerLink]="['/ref', downloadLink]">comment</a>
+    <a class="fake-link"
+       (click)="restore()">restore</a>
+    <a *ngIf="!deleting"
+       class="fake-link"
+       (click)="deleting = true">delete</a>
+    <span *ngIf="deleting" class="delete-confirm">are you sure?
+      <a class="fake-link" (click)="delete()">yes</a> /
+      <a class="fake-link" (click)="deleting = false">no</a>
+    </span>
+  </div>
+</div>
