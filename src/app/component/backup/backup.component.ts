@@ -33,6 +33,7 @@ export class BackupComponent implements OnInit {
   get downloadLink() {
     var link = this.backups.base + '/' + this.id;
     if (link.startsWith('//')) link = location.protocol + link;
+    if (link.startsWith("_")) link = link.substring(1);
     if (!link.endsWith(".zip")) link = link + '.zip';
     return link;
   }

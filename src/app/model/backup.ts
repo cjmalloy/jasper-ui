@@ -1,8 +1,3 @@
-export interface Backup {
-  id: string;
-  modified: string;
-}
-
 export interface BackupOptions {
   ref?: boolean;
   ext?: boolean;

@@ -7,12 +7,11 @@
     <span *ngIf="inProgress">in progress...</span>
   </div>
   <div class="actions">
-    <a [routerLink]="['/ref', downloadLink]"
-       *ngIf="!inProgress">comment</a>
+    <a [routerLink]="['/ref', downloadLink]">comment</a>
     <a class="fake-link"
        *ngIf="!inProgress"
        (click)="restore()">restore</a>
-    <a *ngIf="!deleting && !inProgress"
+    <a *ngIf="!deleting"
        class="fake-link"
        (click)="deleting = true">delete</a>
     <span *ngIf="deleting" class="delete-confirm">are you sure?

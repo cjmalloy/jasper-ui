@@ -52,7 +52,7 @@ export class BackupService {
   upload(file: File): Observable<string> {
     const formData: FormData = new FormData();
     formData.append('fileKey', file, file.name);
-    return this.http.post(`${this.base}/upload`, file, {
+    return this.http.post(`${this.base}/upload/${file.name}`, file, {
       responseType: 'text'
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
