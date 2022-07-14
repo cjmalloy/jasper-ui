@@ -23,7 +23,7 @@ export class AdminBackupPage implements OnInit {
   ) {
     theme.setTitle('Admin: Backup & Restore');
     backups.list()
-      .subscribe(list => this.list = list);
+      .subscribe(list => this.list = list.sort().reverse());
   }
 
   ngOnInit(): void {
