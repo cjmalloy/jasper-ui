@@ -24,7 +24,7 @@ export class EmbedFormComponent implements OnInit {
 
   ngOnInit(): void {
     const embedUrl = this.embeds.fixUrl(this.ref);
-    if (!this.url.value && this.ref !== embedUrl) {
+    if (!this.url.value && this.ref !== embedUrl && embedUrl !== 'about:blank') {
       this.url.setValue(embedUrl);
     }
   }
