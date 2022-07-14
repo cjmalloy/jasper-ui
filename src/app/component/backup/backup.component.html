@@ -1,15 +1,18 @@
 <div class="link">
-  <a [href]="downloadLink">{{ id }}</a>
+  <a [href]="downloadLink" *ngIf="!inProgress">{{ id }}</a>
+  <span *ngIf="inProgress">{{ id.substring(1) }}</span>
 </div>
 <div class="stack">
   <div class="info">
-    <span></span>
+    <span *ngIf="!inProgress">in progress...</span>
   </div>
   <div class="actions">
-    <a [routerLink]="['/ref', downloadLink]">comment</a>
+    <a [routerLink]="['/ref', downloadLink]"
+       *ngIf="!inProgress">comment</a>
     <a class="fake-link"
+       *ngIf="!inProgress"
        (click)="restore()">restore</a>
-    <a *ngIf="!deleting"
+    <a *ngIf="!deleting && !inProgress"
        class="fake-link"
        (click)="deleting = true">delete</a>
     <span *ngIf="deleting" class="delete-confirm">are you sure?

@@ -26,6 +26,10 @@ export class BackupComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  get inProgress() {
+    return this.id.startsWith('_');
+  }
+
   get downloadLink() {
     var link = this.backups.base + '/' + this.id;
     if (link.startsWith('//')) link = location.protocol + link;
