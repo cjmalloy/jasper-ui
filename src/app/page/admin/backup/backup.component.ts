@@ -37,7 +37,7 @@ export class AdminBackupPage implements OnInit {
         return throwError(() => res);
       }),
     ).subscribe(id => {
-      this.list?.push(id);
+      this.list?.push('_' + id);
     });
   }
 
