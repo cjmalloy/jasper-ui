@@ -37,7 +37,7 @@ export class AdminBackupPage implements OnInit {
         return throwError(() => res);
       }),
     ).subscribe(id => {
-      this.list?.push('_' + id);
+      this.list?.unshift('_' + id);
     });
   }
 
@@ -49,7 +49,7 @@ export class AdminBackupPage implements OnInit {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).subscribe(id => this.list?.push(id));
+    ).subscribe(id => this.list?.unshift(id));
   }
 
   showUpload() {
