@@ -2,8 +2,10 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router';
 import { map, of, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
+import { getInbox } from '../../plugin/inbox';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
+import { TAG_REGEX } from '../../util/format';
 import { localTag, prefix } from '../../util/tag';
 
 @Component({
@@ -47,6 +49,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   get tag(): string | null {
     return this._tag;
+  }
+
+  get modmail(): string | null {
+    if (!this._tag) return null;
+    if (!TAG_REGEX.test(this._tag)) return null;
+    if (this._tag.startsWith('plugin')) return null;
+    return getInbox(this._tag);
   }
 
   @Input()

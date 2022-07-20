@@ -38,10 +38,17 @@
     🔧️ &nbsp; Replicate Remote Origin
   </div>
 </ng-container>
-<ng-container *ngIf="admin.status.plugins.inbox && user && account.tag !== tag">
-  <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
-    ✉️ &nbsp; Send Direct Message
-  </div>
+<ng-container *ngIf="admin.status.plugins.inbox">
+  <ng-container *ngIf="user && account.tag !== tag">
+    <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
+      ✉️ &nbsp; Send Direct Message
+    </div>
+  </ng-container>
+  <ng-container *ngIf="!user && modmail">
+    <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: modmail }">
+      ✉️ &nbsp; Send Mod Mail
+    </div>
+  </ng-container>
 </ng-container>
 <ng-container *ngIf="account.signedIn && account.tag === tag">
   <div class="submit-button" routerLink="/settings/password">
@@ -105,6 +112,13 @@
       <br>
     </ng-container>
   </div>
+</ng-container>
+
+<ng-container *ngIf="(writeAccess$ | async) && modmail">
+  <a class="sidebar-link"
+     [routerLink]="['/tag', modmail]">
+    modmail
+  </a>
 </ng-container>
 
 <ng-container *ngIf="root">
