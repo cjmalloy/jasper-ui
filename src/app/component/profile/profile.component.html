@@ -12,7 +12,8 @@
     <span *ngIf="changingPassword" class="inline-password">
       <input #inlinePassword
              (keydown)="$event.key === 'Enter' && setInlinePassword() || true"
-             type="email"
+             type="text"
+             inputmode="email"
              autocorrect="off"
              autocapitalize="none"
              appAutofocus>
@@ -24,7 +25,8 @@
     <span *ngIf="changingRole" class="inline-role">
               <input #inlineRole
                      (keydown)="$event.key === 'Enter' && setInlineRole() || true"
-                     type="email"
+                     type="text"
+                     inputmode="email"
                      autocorrect="off"
                      autocapitalize="none"
                      appAutofocus>

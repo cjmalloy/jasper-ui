@@ -36,7 +36,8 @@
       <span *ngIf="tagging" class="inline-tagging">
         <input #inlineTag
                (keydown)="$event.key === 'Enter' && addInlineTag() || true"
-               type="email"
+               type="text"
+               inputmode="email"
                [pattern]="tagRegex"
                autocorrect="off"
                autocapitalize="none"
