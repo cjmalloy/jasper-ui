@@ -3,7 +3,8 @@
 </div>
 <div class="stack">
   <div class="info">
-    <span [title]="origin.modified?.toISOString()">modified {{ origin.modified?.fromNow() }}</span>
+    <span [title]="origin.modified?.toISOString()">modified {{ origin.modified?.fromNow() }}</span>&nbsp;
+    <span [title]="origin.lastScrape?.toISOString()">replicated to {{ origin.lastScrape?.fromNow() }}</span>
   </div>
   <div class="actions">
     <a *ngIf="account.admin"
