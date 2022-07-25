@@ -4,11 +4,13 @@ import * as moment from 'moment';
 import { Subject, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
+import { getInbox } from '../../plugin/inbox';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { EditorService } from '../../service/editor.service';
 import { getNotifications, getTags } from '../../util/editor';
+import { removeTag } from '../../util/tag';
 
 @Component({
   selector: 'app-comment-reply',
@@ -75,7 +77,7 @@ export class CommentReplyComponent implements AfterViewInit {
         ...this.editor.getSources(value),
       ]),
       alternateUrls: this.editor.getAlts(value),
-      tags: _.uniq([
+      tags: removeTag(getInbox(this.account.tag), _.uniq([
         ...this.publicTag,
         'internal',
         'plugin/comment',
@@ -84,7 +86,7 @@ export class CommentReplyComponent implements AfterViewInit {
         ...this.plugins,
         ...getTags(value),
         ...getNotifications(value),
-      ]),
+      ])),
       published: moment(),
     }).pipe(
       switchMap(() => this.refs.get(url)),

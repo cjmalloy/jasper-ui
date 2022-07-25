@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import { HasTags } from '../model/tag';
 import { User } from '../model/user';
 
@@ -61,4 +62,17 @@ export function prefix(prefix: string, tag: string) {
 
 export function publicTag(tag: string) {
   return !tag.startsWith("_") && !tag.startsWith("+");
+}
+
+export function parentTag(tag: string): string | undefined {
+  if (!tag.includes('/')) return undefined;
+  return tag.substring(0, tag.lastIndexOf('/'));
+}
+
+export function removeTag(tag: string | undefined, tags: string[]): string[] {
+  while (tag) {
+    tags = _.without(tags, tag);
+    tag = parentTag(tag);
+  }
+  return tags;
 }
