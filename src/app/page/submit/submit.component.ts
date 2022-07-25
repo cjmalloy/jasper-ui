@@ -1,5 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, AsyncValidatorFn, FormBuilder, FormControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  AsyncValidatorFn,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ValidationErrors,
+  Validators
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, mergeMap, Observable, of } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
@@ -21,10 +29,22 @@ export class SubmitPage implements OnInit {
 
   submitForm: FormGroup;
 
+  linkShorteners = [
+    '//bit.ly/',
+    '//ow.ly/',
+    '//tinyurl.com/',
+    '//is.gd/',
+    '//buff.ly/',
+    '//adf.ly/',
+    '//bit.do/',
+    '//mcaf.ee/',
+    '//su.pr/',
+  ];
+
   validations: Validation[] = [
     { name: 'Valid link', passed: false, test: url => of(this.linkType(url)) },
-    { name: 'Not submitted yet', passed: false, test: url => this.exists(url).pipe(map(exists => !exists)) },
-    { name: 'No link shorteners', passed: false, test: url => of(!url.includes('bit.ly')) },
+    { name: 'Not submitted yet', passed: true, test: url => this.exists(url).pipe(map(exists => !exists)) },
+    { name: 'No link shorteners', passed: true, test: url => of(!this.isShortener(url)) },
   ];
 
   linkTypeOverride?: string;
@@ -86,6 +106,14 @@ export class SubmitPage implements OnInit {
       );
     }
     return of(false);
+  }
+
+  isShortener(url: string) {
+    url = url.toLowerCase();
+    for (const frag of this.linkShorteners) {
+      if (url.includes(frag)) return true;
+    }
+    return false;
   }
 
   submit() {
