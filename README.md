@@ -93,6 +93,7 @@ pressed. Adds optional URL field to the Ref to use for the iframe, if this is un
 URL of the Ref will be used. Does not generate metadata. Currently implemented for:
     1. YouTube
     2. Twitter
+    3. BitChute
 13. **Audio:** Enables the audio embed when installed. When the plugin/audio is applied to a Ref,
 the Ref has a URL that points to an audio file. The audio player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the audio file, if this is unspecified
