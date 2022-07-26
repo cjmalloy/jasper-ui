@@ -87,7 +87,7 @@ $mobile-width: 1024px;
   .comment-reply, .comment-edit {
     textarea {
       margin: 0;
-      width: 100vw;
+      width: calc(100vw - 4px);
       border-left: none;
       border-right: none;
     }
