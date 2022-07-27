@@ -56,7 +56,7 @@ in `+user/charlie`'s notifications. Users also receive notifications for all tag
 access to (tag modmail). This tag is also the convention by which you may address a Ref "To:"
 another user. Does not add data to a Ref. Does not generate metadata.
 2. **Comment:** Enables comments and comment threads when installed. Allows sorting Refs by number
-of comments. Comments are created with plugin/comment and internal tags. (the internal tag
+of comments. Comments are created with `plugin/comment` and `internal` tags. (the `internal` tag
 prevents the comment from showing up on `@*`). Adds a deleted field to the ref to mark the
 comment as deleted. This is used to prevent breaking a comment thread by actually removing a
 node when a comment is deleted. Generates count metadata in parent.
@@ -73,7 +73,7 @@ installed.
 6. **Graph:** Enable the knowledge graph tab in the client UI when this is installed. Adds data
 to refs to override how they are graphed.
 7. **Invoice:** Enables invoice support in the client when installed. When invoices are created they
-will be tagged plugin/invoice. When the inbox plugin is installed there is a tab on the inbox
+will be tagged `plugin/invoice`. When the inbox plugin is installed there is a tab on the inbox
 page to show invoices addressed to you. Requires the QR plugin to send QR invoices. If the Work
 Queue template is installed, any invoices can include a Work Queue to address the invoice to all
 work queue approvers. Does not add data to a Ref. Generates count metadata in any sourced Refs.
@@ -83,7 +83,7 @@ data to a Ref. Generates count metadata in any sourced Refs.
 data to a Ref. Generates count metadata in any sourced Refs.
 10. **Invoice/Paid:** Used by the invoice plugin to mark responses to an invoice. Does not add data
 to a Ref. Generates count metadata in any sourced Refs.
-11. **QR:** Enables the QR embed when installed. When the plugin/qr is applied to a Ref, the Ref has
+11. **QR:** Enables the QR embed when installed. When the `plugin/qr` is applied to a Ref, the Ref has
 a URL to be converted into a QR code. The QR code is shown when the embed toggle is pressed. Adds
 optional URL field to the Ref to use for the QR code, if this is unspecified the URL of the Ref
 will be used. Does not generate metadata.
@@ -94,23 +94,23 @@ URL of the Ref will be used. Does not generate metadata. Currently implemented f
     1. YouTube
     2. Twitter
     3. BitChute
-13. **Audio:** Enables the audio embed when installed. When the plugin/audio is applied to a Ref,
+13. **Audio:** Enables the audio embed when installed. When the `plugin/audio` is applied to a Ref,
 the Ref has a URL that points to an audio file. The audio player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the audio file, if this is unspecified
 the URL of the Ref will be used. Does not generate metadata. This plugin will be suggested when
 you submit a link ending in an audio file extension.
-14. **Video:** Enables the video embed when installed. When the plugin/video is applied to a Ref,
+14. **Video:** Enables the video embed when installed. When the `plugin/video` is applied to a Ref,
 the Ref has a URL that points to a video file. The video player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the video file, if this is unspecified
 the URL of the Ref will be used. Does not generate metadata. This plugin will be suggested when
 you submit a link ending in a video file extension.
-15. **Image:** Enables the image embed when installed. When the plugin/image is applied to a Ref,
+15. **Image:** Enables the image embed when installed. When the `plugin/image` is applied to a Ref,
 the Ref has a URL that points to an image file. The image is shown when the embed toggle is
 pressed. Adds optional URL field to the Ref to use for the image file, if this is unspecified
 the URL of the Ref will be used. Does not generate metadata. This plugin will be suggested when
 you submit a link ending in an image file extension.
 16. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
-wiki://Page_name. You can link to a Wiki page using the double `[[bracket syntax]]` in all
+`wiki://Page_name`. You can link to a Wiki page using the double `[[bracket syntax]]` in all
 markdown fields. Does not add data to the Ref. Does not generate metadata.
 
 ## Coming Soon
@@ -118,13 +118,13 @@ markdown fields. Does not add data to the Ref. Does not generate metadata.
 1. **Delta:** (matches `delta/`) Apply a server side script to transform this Ref into a new Ref.
 Adds data to the tag Ext to contain the code or service reference and config.
 ### Plugins
-1. **Table:** Enabled the table embed when installed. When the plugin/table is applied to a Ref,
+1. **Table:** Enabled the table embed when installed. When the `plugin/table` is applied to a Ref,
 the Ref contains tabular data. The tabular data is shown when the embed toggle is pressed. Adds
 an optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
 Ref will be used to point to a TSV file. Does not generate metadata.
-2. **Graph:** Enabled the graph embed when installed. When the plugin/graph is applied to a Ref, the
+2. **Chart:** Enabled the graph embed when installed. When the `plugin/chart` is applied to a Ref, the
 Ref contains tabular data. The tabular data rendered in a graph is shown when the embed toggle is
-pressed. Adds fields to the ref for defining the graph type, labels, and location of the data in
+pressed. Adds fields to the ref for defining the chart type, labels, and location of the data in
 the table. Adds an optional field to the Ref to use for the tabular data, if this is unspecified
 the URL of the Ref will be used to point to a TSV file. Does not generate metadata.
 3. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user
