@@ -48,7 +48,7 @@
     <a [routerLink]="['/ref', ref.url, 'responses']">{{ responses.replace(' ', '&thinsp;') }}</a>
     <a [routerLink]="['/ref', ref.url, 'sources']">{{ sources.replace(' ', '&thinsp;')}}</a>
     <ng-container *ngIf="admin.status.plugins.graph">
-      <a [routerLink]="['/ref', ref.url, 'graph']">graph</a>
+      <a [routerLink]="['/ref', ref.url, 'graph']" [queryParams]="{hideSearch: true}">graph</a>
     </ng-container>
     <a class="fake-link"
        *ngIf="writeAccess$ | async"
