@@ -2,7 +2,6 @@
   <textarea #textbox class="has-plugins" (input)="textboxValue = textbox.value"></textarea>
   <app-embed [comment]="textboxValue"></app-embed>
 </div>
-<br>
 <button (click)="reply(textbox.value)">reply</button>
 <button *ngIf="showCancel" (click)="cancel()">cancel</button>
 
