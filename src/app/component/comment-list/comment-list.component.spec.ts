@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 
@@ -12,7 +12,7 @@ describe('CommentListComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [CommentListComponent],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
       ],
     })
     .compileComponents();
@@ -20,8 +20,8 @@ describe('CommentListComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CommentListComponent);
-    fixture.componentInstance.newComments$ = new Subject();
     component = fixture.componentInstance;
+    component.newComments$ = new Subject();
     fixture.detectChanges();
   });
 

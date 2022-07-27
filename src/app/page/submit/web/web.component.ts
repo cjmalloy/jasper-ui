@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { writePlugins } from '../../../form/plugins/plugins.component';
@@ -47,23 +48,25 @@ export class SubmitWebPage implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.ref.tags.addTag('public');
-    this.ref.tags.addTag(this.account.tag);
-    this.route.queryParams.subscribe(params => {
-      this.url = params['url'].trim();
-      if (params['tag']) {
-        this.addTag(params['tag']);
+    _.defer(() => {
+      this.addTag('public');
+      this.addTag(this.account.tag);
+      if (this.admin.status.plugins.emoji) {
+        this.addTag('plugin/emoji');
       }
-      if (params['source']) {
-        this.addSource(params['source']);
+      if (this.admin.status.plugins.latex) {
+        this.addTag('plugin/latex');
       }
+      this.route.queryParams.subscribe(params => {
+        this.url = params['url'].trim();
+        if (params['tag']) {
+          this.addTag(params['tag']);
+        }
+        if (params['source']) {
+          this.addSource(params['source']);
+        }
+      });
     });
-    if (this.admin.status.plugins.emoji) {
-      this.addTag('plugin/emoji');
-    }
-    if (this.admin.status.plugins.latex) {
-      this.addTag('plugin/latex');
-    }
   }
 
   get published() {

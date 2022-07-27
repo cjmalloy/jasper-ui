@@ -164,7 +164,6 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.tags.create('_moderated', this._ref.url, this._ref.origin!).pipe(
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
     ).subscribe(ref => {
-      this.tagging = false;
       this._ref = ref;
     });
   }

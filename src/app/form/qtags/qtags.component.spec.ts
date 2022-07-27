@@ -3,7 +3,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { QtagsFormComponent } from './qtags.component';
 
-describe('QtagsComponent', () => {
+describe('QtagsFormComponent', () => {
   let component: QtagsFormComponent;
   let fixture: ComponentFixture<QtagsFormComponent>;
 
@@ -19,8 +19,8 @@ describe('QtagsComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(QtagsFormComponent);
-    fixture.componentInstance.group = new FormGroup({ tags: new FormControl({}) });
     component = fixture.componentInstance;
+    component.group = new FormGroup({ tags: new FormControl({}) });
     fixture.detectChanges();
   });
 

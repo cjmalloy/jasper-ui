@@ -3,7 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { VideoFormComponent } from './video.component';
 
-describe('VideoComponent', () => {
+describe('VideoFormComponent', () => {
   let component: VideoFormComponent;
   let fixture: ComponentFixture<VideoFormComponent>;
 

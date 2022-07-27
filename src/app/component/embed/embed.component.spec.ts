@@ -1,5 +1,6 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { EmbedComponent } from './embed.component';
 
@@ -11,7 +12,8 @@ describe('EmbedComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ EmbedComponent ],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
+        MarkdownModule.forRoot(),
       ],
     })
     .compileComponents();
@@ -19,8 +21,8 @@ describe('EmbedComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(EmbedComponent);
-    fixture.componentInstance.ref = { url: '' };
     component = fixture.componentInstance;
+    component.ref = { url: '' };
     fixture.detectChanges();
   });
 

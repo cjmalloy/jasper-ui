@@ -1,10 +1,10 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { TagsFormComponent } from './tags.component';
 
-describe('TagsComponent', () => {
+describe('TagsFormComponent', () => {
   let component: TagsFormComponent;
   let fixture: ComponentFixture<TagsFormComponent>;
 
@@ -20,8 +20,8 @@ describe('TagsComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(TagsFormComponent);
-    fixture.componentInstance.group = new FormGroup({ tags: new FormControl({}) });
     component = fixture.componentInstance;
+    component.group = new FormGroup({ tags: new FormControl({}) });
     fixture.detectChanges();
   });
 

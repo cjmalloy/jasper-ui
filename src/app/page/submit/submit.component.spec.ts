@@ -1,11 +1,11 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { SubmitPage } from './submit.component';
 
-describe('SubmitComponent', () => {
+describe('SubmitPage', () => {
   let component: SubmitPage;
   let fixture: ComponentFixture<SubmitPage>;
 
@@ -13,7 +13,7 @@ describe('SubmitComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [SubmitPage],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
       ],

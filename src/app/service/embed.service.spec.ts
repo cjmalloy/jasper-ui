@@ -1,5 +1,6 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { EmbedService } from './embed.service';
 
@@ -9,7 +10,8 @@ describe('EmbedService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
+        MarkdownModule.forRoot(),
       ],
     });
     service = TestBed.inject(EmbedService);

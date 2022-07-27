@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import * as _ from 'lodash';
 import { LinksFormComponent } from '../form/links/links.component';
-import { RefFormComponent } from '../form/ref/ref.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
 import { extractPattern, getNotifications, getTags } from '../util/editor';
 import { URI_REGEX } from '../util/format';
@@ -85,8 +84,8 @@ export class EditorService {
   }
 
   syncEditor(fb: FormBuilder, group: FormGroup) {
-    group.value.comment = group.value.comment.replace('](' + RefFormComponent.base, '](/');
-    group.value.comment = group.value.comment.replace(']: ' + RefFormComponent.base, ']: /');
+    group.value.comment = group.value.comment.replace('](' + this.config.base, '](/');
+    group.value.comment = group.value.comment.replace(']: ' + this.config.base, ']: /');
     const value = group.value.comment;
     const newSources = _.uniq(_.difference(this.getSources(value), group.value.sources));
     for (const s of newSources) {

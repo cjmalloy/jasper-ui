@@ -3,7 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { AudioFormComponent } from './audio.component';
 
-describe('AudioComponent', () => {
+describe('AudioFormComponent', () => {
   let component: AudioFormComponent;
   let fixture: ComponentFixture<AudioFormComponent>;
 

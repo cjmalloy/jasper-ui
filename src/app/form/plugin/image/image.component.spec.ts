@@ -3,7 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { ImageFormComponent } from './image.component';
 
-describe('ImageComponent', () => {
+describe('ImageFormComponent', () => {
   let component: ImageFormComponent;
   let fixture: ComponentFixture<ImageFormComponent>;
 

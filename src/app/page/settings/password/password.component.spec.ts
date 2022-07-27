@@ -1,10 +1,11 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { SettingsPasswordPage } from './password.component';
 
-describe('PasswordComponent', () => {
+describe('SettingsPasswordPage', () => {
   let component: SettingsPasswordPage;
   let fixture: ComponentFixture<SettingsPasswordPage>;
 
@@ -12,8 +13,9 @@ describe('PasswordComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ SettingsPasswordPage ],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
         RouterTestingModule,
+        ReactiveFormsModule,
       ],
     })
     .compileComponents();

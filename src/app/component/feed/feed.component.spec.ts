@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import * as moment from 'moment';
@@ -13,7 +13,7 @@ describe('FeedComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [FeedComponent],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
         ReactiveFormsModule,
       ],
     })
@@ -22,14 +22,14 @@ describe('FeedComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(FeedComponent);
-    fixture.componentInstance.feed = {
+    component = fixture.componentInstance;
+    component.feed = {
       name: '',
       removeDurationIndent: false,
       scrapeDuration: false,
       scrapeInterval: moment.duration(15, 'minutes'),
       url: ''
     };
-    component = fixture.componentInstance;
     fixture.detectChanges();
   });
 

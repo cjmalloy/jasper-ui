@@ -1,10 +1,10 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { SettingsProfilePage } from './profile.component';
 
-describe('ProfileComponent', () => {
+describe('SettingsProfilePage', () => {
   let component: SettingsProfilePage;
   let fixture: ComponentFixture<SettingsProfilePage>;
 
@@ -12,7 +12,7 @@ describe('ProfileComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ SettingsProfilePage ],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
         RouterTestingModule,
       ],
     })

@@ -1,9 +1,11 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { EmbedFormComponent } from './embed.component';
 
-describe('EmbedComponent', () => {
+describe('EmbedFormComponent', () => {
   let component: EmbedFormComponent;
   let fixture: ComponentFixture<EmbedFormComponent>;
 
@@ -12,6 +14,8 @@ describe('EmbedComponent', () => {
       declarations: [ EmbedFormComponent ],
       imports: [
         ReactiveFormsModule,
+        HttpClientTestingModule,
+        MarkdownModule.forRoot(),
       ],
     })
     .compileComponents();
@@ -20,6 +24,11 @@ describe('EmbedComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(EmbedFormComponent);
     component = fixture.componentInstance;
+    component.plugins = new FormGroup({ 'plugin/embed': new FormGroup({
+        url: new FormControl(),
+        width: new FormControl(),
+        height: new FormControl(),
+      })});
     fixture.detectChanges();
   });
 

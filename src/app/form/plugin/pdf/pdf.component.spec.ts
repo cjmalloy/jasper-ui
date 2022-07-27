@@ -3,7 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { PdfFormComponent } from './pdf.component';
 
-describe('PdfComponent', () => {
+describe('PdfFormComponent', () => {
   let component: PdfFormComponent;
   let fixture: ComponentFixture<PdfFormComponent>;
 

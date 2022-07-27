@@ -1,7 +1,8 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
+import { TagsFormComponent } from '../../../form/tags/tags.component';
 
 import { SubmitTextPage } from './text.component';
 
@@ -11,9 +12,9 @@ describe('SubmitTextPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SubmitTextPage],
+      declarations: [SubmitTextPage, TagsFormComponent],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
         ReactiveFormsModule,
         RouterTestingModule,
       ],

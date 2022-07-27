@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ForceDirectedComponent } from './force-directed.component';
@@ -11,7 +11,7 @@ describe('ForceDirectedComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ ForceDirectedComponent ],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
       ],
     })
     .compileComponents();
@@ -19,8 +19,8 @@ describe('ForceDirectedComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ForceDirectedComponent);
-    fixture.componentInstance.content = [{ url: '' }];
     component = fixture.componentInstance;
+    component.content = [{ url: '' }];
     fixture.detectChanges();
   });
 

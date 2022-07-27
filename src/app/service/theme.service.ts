@@ -20,7 +20,7 @@ export class ThemeService {
     private account: AccountService,
   ) {
     this.setTheme(localStorage.getItem('theme'));
-    this.account.watchTheme$.subscribe(css => this.setCustomCss(css));
+    this.account.watchTheme$?.subscribe(css => this.setCustomCss(css));
   }
 
   toggle() {

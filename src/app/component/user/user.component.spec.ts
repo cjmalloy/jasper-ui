@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -13,7 +13,7 @@ describe('UserComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [UserComponent],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
       ],
@@ -23,8 +23,8 @@ describe('UserComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(UserComponent);
-    fixture.componentInstance.user = { tag: 'user/test' };
     component = fixture.componentInstance;
+    component.user = { tag: 'user/test' };
     fixture.detectChanges();
   });
 

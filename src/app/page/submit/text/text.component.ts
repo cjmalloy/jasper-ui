@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -49,19 +50,21 @@ export class SubmitTextPage implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.tags.addTag('public');
-    this.tags.addTag(this.account.tag);
-    this.route.queryParams.subscribe(params => {
-      this.url = params['url'];
-      this.wiki = !!this.url?.startsWith('wiki:');
-      if (this.wiki) {
-        this.url = wikiUriFormat(this.url!);
-        this.theme.setTitle('Submit: Wiki');
-        this.title.setValue(wikiTitleFormat(this.url?.substring('wiki:'.length)));
-      }
-      if (params['tag']) {
-        this.addTag(params['tag']);
-      }
+    _.defer(() => {
+      this.addTag('public');
+      this.addTag(this.account.tag);
+      this.route.queryParams.subscribe(params => {
+        this.url = params['url'];
+        this.wiki = !!this.url?.startsWith('wiki:');
+        if (this.wiki) {
+          this.url = wikiUriFormat(this.url!);
+          this.theme.setTitle('Submit: Wiki');
+          this.title.setValue(wikiTitleFormat(this.url?.substring('wiki:'.length)));
+        }
+        if (params['tag']) {
+          this.addTag(params['tag']);
+        }
+      });
     });
   }
 

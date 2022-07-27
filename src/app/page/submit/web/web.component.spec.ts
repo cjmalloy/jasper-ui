@@ -1,7 +1,11 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
+import { LinksFormComponent } from '../../../form/links/links.component';
+import { RefFormComponent } from '../../../form/ref/ref.component';
+import { TagsFormComponent } from '../../../form/tags/tags.component';
+import { Ref } from '../../../model/ref';
 
 import { SubmitWebPage } from './web.component';
 
@@ -11,9 +15,14 @@ describe('SubmitWebPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SubmitWebPage],
+      declarations: [
+        SubmitWebPage,
+        RefFormComponent,
+        TagsFormComponent,
+        LinksFormComponent,
+      ],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
         ReactiveFormsModule,
         RouterTestingModule,
       ],

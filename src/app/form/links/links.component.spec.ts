@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { LinksFormComponent } from './links.component';
 
-import { LinksFormComponent } from './sources.component';
 
-describe('SourcesComponent', () => {
+describe('LinksFormComponent', () => {
   let component: LinksFormComponent;
   let fixture: ComponentFixture<LinksFormComponent>;
 
@@ -19,8 +19,8 @@ describe('SourcesComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(LinksFormComponent);
-    fixture.componentInstance.group = new FormGroup({ sources: new FormControl({}) });
     component = fixture.componentInstance;
+    component.group = new FormGroup({ links: new FormControl({}) });
     fixture.detectChanges();
   });
 

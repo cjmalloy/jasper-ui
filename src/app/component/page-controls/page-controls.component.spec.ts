@@ -15,7 +15,8 @@ describe('PageControlsComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(PageControlsComponent);
-    fixture.componentInstance.page = {
+    component = fixture.componentInstance;
+    component.page = {
       content: [],
       empty: false,
       first: false,
@@ -26,7 +27,6 @@ describe('PageControlsComponent', () => {
       totalElements: 0,
       totalPages: 0
     };
-    component = fixture.componentInstance;
     fixture.detectChanges();
   });
 

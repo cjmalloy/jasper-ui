@@ -1,10 +1,10 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { InboxInvoicesPage } from './invoices.component';
 
-describe('InvoicesComponent', () => {
+describe('InboxInvoicesPage', () => {
   let component: InboxInvoicesPage;
   let fixture: ComponentFixture<InboxInvoicesPage>;
 
@@ -12,7 +12,7 @@ describe('InvoicesComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ InboxInvoicesPage ],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
         RouterTestingModule,
       ],
     })

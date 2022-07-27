@@ -14,7 +14,6 @@ import { TagsFormComponent } from '../tags/tags.component';
   styleUrls: ['./ref.component.scss']
 })
 export class RefFormComponent implements OnInit {
-  static base = '/';
 
   @Input()
   group!: FormGroup;
@@ -30,9 +29,7 @@ export class RefFormComponent implements OnInit {
     private fb: FormBuilder,
     private config: ConfigService,
     private editor: EditorService,
-  ) {
-    RefFormComponent.base = config.base;
-  }
+  ) { }
 
   ngOnInit(): void {
   }

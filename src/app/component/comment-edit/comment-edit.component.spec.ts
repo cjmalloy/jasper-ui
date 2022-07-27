@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CommentEditComponent } from './comment-edit.component';
@@ -11,7 +11,7 @@ describe('CommentEditComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [CommentEditComponent],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
       ],
     })
     .compileComponents();
@@ -19,8 +19,8 @@ describe('CommentEditComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CommentEditComponent);
-    fixture.componentInstance.ref = { url: '' };
     component = fixture.componentInstance;
+    component.ref = { url: '' };
     fixture.detectChanges();
   });
 

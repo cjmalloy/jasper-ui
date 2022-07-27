@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -13,7 +13,7 @@ describe('OriginComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [OriginComponent],
       imports: [
-        HttpClientModule,
+        HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
       ],
@@ -23,8 +23,8 @@ describe('OriginComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(OriginComponent);
-    fixture.componentInstance.origin = {name: '', origin: '', url: ''};
     component = fixture.componentInstance;
+    component.origin = {name: '', origin: '', url: ''};
     fixture.detectChanges();
   });
 

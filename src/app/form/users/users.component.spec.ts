@@ -1,14 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { UsersFormComponent } from './users.component';
 
-describe('UsersComponent', () => {
+describe('UsersFormComponent', () => {
   let component: UsersFormComponent;
   let fixture: ComponentFixture<UsersFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ UsersFormComponent ]
+      declarations: [ UsersFormComponent ],
+      imports: [
+        ReactiveFormsModule,
+      ],
     })
     .compileComponents();
   });
@@ -16,6 +20,7 @@ describe('UsersComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(UsersFormComponent);
     component = fixture.componentInstance;
+    component.group = new FormGroup({ users: new FormControl({}) });
     fixture.detectChanges();
   });
 

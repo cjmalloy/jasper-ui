@@ -1,14 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { QueriesFormComponent } from './queries.component';
 
-describe('QueriesComponent', () => {
+describe('QueriesFormComponent', () => {
   let component: QueriesFormComponent;
   let fixture: ComponentFixture<QueriesFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ QueriesFormComponent ]
+      declarations: [ QueriesFormComponent ],
+      imports: [
+        ReactiveFormsModule,
+      ],
     })
     .compileComponents();
   });
@@ -16,6 +20,7 @@ describe('QueriesComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(QueriesFormComponent);
     component = fixture.componentInstance;
+    component.group = new FormGroup({ tags: new FormControl({}) });
     fixture.detectChanges();
   });
 

@@ -3,7 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { QrFormComponent } from './qr.component';
 
-describe('QrComponent', () => {
+describe('QrFormComponent', () => {
   let component: QrFormComponent;
   let fixture: ComponentFixture<QrFormComponent>;
 

@@ -3,7 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { ArchiveFormComponent } from './archive.component';
 
-describe('ArchiveComponent', () => {
+describe('ArchiveFormComponent', () => {
   let component: ArchiveFormComponent;
   let fixture: ComponentFixture<ArchiveFormComponent>;
 
