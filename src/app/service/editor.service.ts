@@ -41,8 +41,7 @@ export class EditorService {
     const relRefPrefix = getPath(refPrefix)!;
     if (url.startsWith(relRefPrefix)) {
       ending = url.substring(relRefPrefix.length);
-    }
-    if (url.startsWith('/ref/')) {
+    } else if (url.startsWith('/ref/')) {
       ending = url.substring('/ref/'.length);
     }
     if (!ending) return decodeURIComponent(url);
@@ -64,8 +63,7 @@ export class EditorService {
     const relTagPrefix = getPath(tagPrefix)!;
     if (url.startsWith(relTagPrefix)) {
       ending = url.substring(relTagPrefix.length);
-    }
-    if (url.startsWith('/tag/')) {
+    } else if (url.startsWith('/tag/')) {
       ending = url.substring('/tag/'.length);
     }
     if (!ending) return [url, ''];
@@ -89,17 +87,17 @@ export class EditorService {
     const value = group.value.comment;
     const newSources = _.uniq(_.difference(this.getSources(value), group.value.sources));
     for (const s of newSources) {
-      (group.get('sources') as FormArray).push(fb.control(value, LinksFormComponent.validators));
+      (group.get('sources') as FormArray).push(fb.control(s, LinksFormComponent.validators));
     }
     const newAlts = _.uniq(_.difference(this.getAlts(value), group.value.alternateUrls));
     for (const a of newAlts) {
-      (group.get('alternateUrls') as FormArray).push(fb.control(value, LinksFormComponent.validators));
+      (group.get('alternateUrls') as FormArray).push(fb.control(a, LinksFormComponent.validators));
     }
     const newTags = _.uniq(_.difference([
       ...getTags(value),
       ...getNotifications(value)], group.value.tags));
     for (const t of newTags) {
-      (group.get('tags') as FormArray).push(fb.control(value, TagsFormComponent.validators));
+      (group.get('tags') as FormArray).push(fb.control(t, TagsFormComponent.validators));
     }
   }
 
