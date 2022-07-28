@@ -3,6 +3,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, Observable, of, Subject, switchMap } from 'rxjs';
 import { distinctUntilChanged, tap } from 'rxjs/operators';
+import { combineLatest } from 'rxjs';
+import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -17,10 +19,11 @@ import { printError } from '../../util/http';
 export class RefPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  url$: Observable<string>;
   ref$: Observable<Ref | null>;
+  refs$: Observable<Page<Ref> | null>;
   isTextPost = false;
   isWikiPost = false;
+  origin?: string;
   error?: HttpErrorResponse;
   printError = printError;
   hideSearch$: Observable<boolean>;
@@ -32,21 +35,21 @@ export class RefPage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private refs: RefService,
   ) {
-    this.url$ = this.route.params.pipe(
-      map((params) => params['ref']),
-      tap(url => this.isTextPost = url.startsWith('comment:')),
-      tap(url => this.isWikiPost = url.startsWith('wiki:')),
-      distinctUntilChanged(),
-    );
-    this.ref$ = this.url$.pipe(
-      switchMap(url => refs.get(url).pipe(
+    this.ref$ = combineLatest(this.url$, this.origin$).pipe(
+      switchMap(([url, origin]) => refs.get(url, origin).pipe(
         catchError(err => {
           this.error = err;
           return of(null);
         }),
       )),
     );
-
+    this.refs$ = this.url$.pipe(
+      switchMap(url => refs.page({url}).pipe(
+        catchError(err => {
+          return of(null);
+        }),
+      )),
+    );
     this.hideSearch$ = this.route.queryParams.pipe(
       map(params => params['hideSearch'] === 'true'),
     );
@@ -58,6 +61,23 @@ export class RefPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  get url$() {
+    return this.route.params.pipe(
+      map((params) => params['ref']),
+      tap(url => this.isTextPost = url.startsWith('comment:')),
+      tap(url => this.isWikiPost = url.startsWith('wiki:')),
+      distinctUntilChanged(),
+    );
+  }
+
+  get origin$() {
+    return this.route.queryParams.pipe(
+      map((params) => params['origin']),
+      tap(origin => this.origin = origin),
+      distinctUntilChanged(),
+    );
   }
 
 }

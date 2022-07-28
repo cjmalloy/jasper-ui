@@ -12,7 +12,7 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { printError } from '../../../util/http';
-import { localTag } from '../../../util/tag';
+import { removeOriginWildcard } from '../../../util/tag';
 
 @Component({
   selector: 'app-edit-tag-page',
@@ -94,7 +94,7 @@ export class EditTagPage implements OnInit {
 
   get tag$() {
     return this.route.params.pipe(
-      map(params => localTag(params['tag'])),
+      map(params => removeOriginWildcard(params['tag'])),
     );
   }
 

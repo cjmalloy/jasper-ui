@@ -6,31 +6,7 @@
 
 <form class="form" [formGroup]="feedForm" (ngSubmit)="submit()">
 
-  <label for="url">URL:</label>
-  <input id="url" type="text" formControlName="url" [attr.disabled]="true">
-
-  <label for="name">Name:</label>
-  <input id="name" type="text" formControlName="name">
-
-  <label for="tags">Tags:</label>
-  <app-tags id="tags" [group]="feedForm"></app-tags>
-
-  <label for="scrapeInterval">Scrape Interval:</label>
-  <input id="scrapeInterval" type="text" [formControl]="scrapeInterval">
-
-  <span><!-- Help --></span>
-  <div class="no-margin">
-    <span class="hints">
-          Use time spans (HH:MM:SS) or ISO 8601 Durations&nbsp;
-          <sup><a target="_blank" href="https://en.wikipedia.org/wiki/ISO_8601#Durations">help</a></sup>
-    </span>
-  </div>
-
-  <label for="scrapeDescription">Scrape Description:</label>
-  <input id="scrapeDescription" type="checkbox" [formControl]="scrapeDescription">
-
-  <label for="removeDescriptionIndent">Remove Description Indent:</label>
-  <input id="removeDescriptionIndent" type="checkbox" [formControl]="removeDescriptionIndent">
+  <app-feed-form [group]="feedForm"></app-feed-form>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>

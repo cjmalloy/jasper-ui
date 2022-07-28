@@ -6,7 +6,7 @@ import { getInbox } from '../../plugin/inbox';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { TAG_REGEX } from '../../util/format';
-import { localTag, prefix } from '../../util/tag';
+import { removeOriginWildcard, prefix } from '../../util/tag';
 
 @Component({
   selector: 'app-sidebar',
@@ -69,7 +69,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.inBookmarks$ =  this.account.bookmarks$.pipe(
         map(books => books.includes(value))
       );
-      this.localTag = localTag(value);
+      this.localTag = removeOriginWildcard(value);
       this.writeAccess$ = this.account.tagWriteAccess(value);
     } else {
       this.localTag = undefined;

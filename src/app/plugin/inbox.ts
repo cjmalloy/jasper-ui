@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { authors } from '../util/format';
-import { prefix } from '../util/tag';
+import { removeOriginWildcard, prefix, localTag } from '../util/tag';
 
 export const inboxPlugin: Plugin = {
   tag: 'plugin/inbox',
@@ -30,5 +30,5 @@ export function isInbox(tag: string) {
 }
 
 export function getInbox(userTag: string): string {
-  return prefix('plugin/inbox/', userTag);
+  return prefix('plugin/inbox/', localTag(userTag));
 }

@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { filter, map, Observable, startWith, Subject, switchMap, takeUntil } from 'rxjs';
+import { combineLatest, filter, map, Observable, startWith, Subject, switchMap, takeUntil } from 'rxjs';
 import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { inboxes } from '../../../plugin/inbox';
@@ -38,9 +38,9 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
       map(params => params['sort']),
       distinctUntilChanged(),
     );
-    this.url$.pipe(
+    combineLatest(this.url$, this.origin$).pipe(
       takeUntil(this.destroy$),
-      switchMap(url => this.refs.get(url)),
+      switchMap(([url, origin]) => refs.get(url, origin)),
       tap(ref => theme.setTitle('Comments: ' + (ref.title || ref.url))),
     ).subscribe(ref => this.ref$.next(ref));
   }
@@ -61,6 +61,13 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
       startWith(this.router),
       switchMap(() => this.route.params),
       map(params => params['ref']),
+    );
+  }
+
+  get origin$() {
+    return this.route.queryParams.pipe(
+      map((params) => params['origin']),
+      distinctUntilChanged(),
     );
   }
 

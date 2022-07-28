@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { emptyObject, writeObj } from '../../util/http';
 import { archivePluginForm } from '../plugin/archive/archive.component';
@@ -17,6 +17,7 @@ import { videoPluginForm } from '../plugin/video/video.component';
   styleUrls: ['./plugins.component.scss']
 })
 export class PluginsComponent implements AfterViewInit {
+
   @Input()
   ref = '';
   @Input()

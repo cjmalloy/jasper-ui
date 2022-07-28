@@ -6,47 +6,7 @@
 
 <form class="form" [formGroup]="userForm" (ngSubmit)="create()">
 
-  <label for="tag">Tag:</label>
-  <input id="tag"
-         type="email"
-         autocorrect="off"
-         autocapitalize="none"
-         formControlName="tag">
-  <span><!-- Tag Errors --></span>
-  <div>
-    <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']">
-      User tags must start with the "+user/" or "_user/" prefix.
-      Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-      tags start with an underscore.<br>
-      (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")
-    </div>
-    <div class="error" *ngIf="tag.touched && tag.errors?.['required']">
-      Tag must not be blank.
-    </div>
-  </div>
-
-  <label for="name">Name:</label>
-  <input id="name" type="text" formControlName="name">
-
-  <label for="readAccess">Read Access:</label>
-  <app-qtags id="readAccess"
-             fieldName="readAccess"
-             [group]="userForm"></app-qtags>
-
-  <label for="writeAccess">Write Access:</label>
-  <app-qtags id="writeAccess"
-             fieldName="writeAccess"
-             [group]="userForm"></app-qtags>
-
-  <label for="tagReadAccess">Tag Read Access:</label>
-  <app-qtags id="tagReadAccess"
-             fieldName="tagReadAccess"
-             [group]="userForm"></app-qtags>
-
-  <label for="tagWriteAccess">Tag Write Access:</label>
-  <app-qtags id="tagWriteAccess"
-             fieldName="tagWriteAccess"
-             [group]="userForm"></app-qtags>
+  <app-user-form [group]="userForm"></app-user-form>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>

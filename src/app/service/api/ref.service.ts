@@ -19,6 +19,7 @@ export type RefFilter = {
 
 export type RefQueryArgs = RefFilter & {
   query?: string,
+  url?: string,
   search?: string,
   page?: number,
   size?: number,

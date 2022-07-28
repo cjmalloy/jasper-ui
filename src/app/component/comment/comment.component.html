@@ -44,11 +44,11 @@
                     [ref]="ref"
                     [commentEdited$]="commentEdited$"></app-comment-edit>
   <div class="actions">
-    <a [routerLink]="['/ref', ref.url, 'comments']">permalink</a>
-    <a [routerLink]="['/ref', ref.url, 'responses']">{{ responses.replace(' ', '&thinsp;') }}</a>
-    <a [routerLink]="['/ref', ref.url, 'sources']">{{ sources.replace(' ', '&thinsp;')}}</a>
+    <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">permalink</a>
+    <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }">{{ responses.replace(' ', '&thinsp;') }}</a>
+    <a [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }">{{ sources.replace(' ', '&thinsp;')}}</a>
     <ng-container *ngIf="admin.status.plugins.graph">
-      <a [routerLink]="['/ref', ref.url, 'graph']" [queryParams]="{hideSearch: true}">graph</a>
+      <a [routerLink]="['/ref', ref.url, 'graph']" [queryParams]="{ origin, hideSearch: true }">graph</a>
     </ng-container>
     <a class="fake-link"
        *ngIf="writeAccess$ | async"
@@ -61,7 +61,7 @@
       <a class="fake-link" (click)="deleting = false">no</a>
     </span>
     <a class="fake-link"
-       *ngIf="account.editor || (writeAccess$ | async)"
+       *ngIf="!ref.origin && account.editor || (writeAccess$ | async)"
        (click)="tagging = !tagging">tag</a>
     <span *ngIf="tagging" class="inline-tagging">
       <input #inlineTag
@@ -78,7 +78,7 @@
        (click)="replying = !replying">reply</a>
     <ng-container *ngIf="canInvoice">
       <a [routerLink]="['/submit/invoice']"
-         [queryParams]="{url: ref.url}">invoice</a>
+         [queryParams]="{ url: ref.url }">invoice</a>
     </ng-container>
     <a *ngIf="account.mod && !approved"
        class="fake-link"
@@ -100,7 +100,7 @@
 </span>
 <a class="load-more"
    *ngIf="!collapsed && context >= maxContext && depth === 0 && ref.metadata!.plugins['plugin/comment'].length > 0"
-   [routerLink]="['/ref', ref.url, 'comments']">
+   [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">
   continue this thread
 </a>
 <div *ngIf="depth! > 0"

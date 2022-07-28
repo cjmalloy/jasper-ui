@@ -10,7 +10,7 @@ import { ExtService } from '../../../service/api/ext.service';
 import { ProfileService } from '../../../service/api/profile.service';
 import { QUALIFIED_TAG_REGEX, USER_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { localTag } from '../../../util/tag';
+import { removeOriginWildcard } from '../../../util/tag';
 
 @Component({
   selector: 'app-settings-password-page',

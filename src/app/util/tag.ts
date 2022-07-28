@@ -45,12 +45,16 @@ export function isOwnerTag(tag: string, ref: HasTags) {
 /**
  * Return local tag if origin is a wildcard.
  */
-export function localTag(tag: string) {
+export function removeOriginWildcard(tag: string) {
   if (tag.startsWith('@')) return '';
   if (tag.endsWith('@*')) {
     return tag.substring(0, tag.length - 2);
   }
   return tag;
+}
+export function localTag(tag: string) {
+  if (!tag.includes('@')) return tag;
+  return tag.substring(0, tag.indexOf('@'));
 }
 
 export function prefix(prefix: string, tag: string) {

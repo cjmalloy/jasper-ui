@@ -1,0 +1,41 @@
+<ng-container class="form" [formGroup]="group">
+
+  <label for="origin">Origin:</label>
+  <input id="origin"
+         type="email"
+         autocorrect="off"
+         autocapitalize="none"
+         [formControl]="origin">
+  <span><!-- Origin Errors --></span>
+  <div>
+    <div class="error" *ngIf="origin.touched && origin.errors?.['pattern']">
+      Origins must be lower case letters and start with @.
+    </div>
+  </div>
+
+  <label for="name">Name:</label>
+  <input id="name" type="text" formControlName="name">
+  <span><!-- Padding --></span>
+  <span><!-- Padding --></span>
+
+  <label for="url">URL:</label>
+  <input id="url" type="url" [formControl]="url">
+  <span><!-- URL Errors --></span>
+  <div>
+    <div class="error" *ngIf="url.touched && url.errors?.['pattern']">
+      Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986.</a>
+    </div>
+    <div class="error" *ngIf="url.touched && url.errors?.['required']">
+      URL must not be blank.
+    </div>
+  </div>
+
+  <label for="proxy">Proxy:</label>
+  <input id="proxy" type="url" [formControl]="proxy">
+  <span><!-- Proxy Errors --></span>
+  <div>
+    <div class="error" *ngIf="proxy.touched && proxy.errors?.['pattern']">
+      Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986.</a>
+    </div>
+  </div>
+</ng-container>

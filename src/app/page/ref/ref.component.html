@@ -1,18 +1,22 @@
 <div class="tabs">
   <ng-container *ngIf="admin.status.plugins.comment">
-    <a routerLink="./comments" routerLinkActive="current-tab">comments</a>
+    <a routerLink="./comments" [queryParams]="{origin}" routerLinkActive="current-tab">comments</a>
   </ng-container>
-  <a routerLink="./responses" routerLinkActive="current-tab">responses</a>
-  <a routerLink="./sources" routerLinkActive="current-tab">sources</a>
-  <a routerLink="./missing" routerLinkActive="current-tab">missing sources</a>
+  <a routerLink="./responses" [queryParams]="{origin}" routerLinkActive="current-tab">responses</a>
+  <a routerLink="./sources" [queryParams]="{origin}" routerLinkActive="current-tab">sources</a>
+  <a routerLink="./missing" [queryParams]="{origin}" routerLinkActive="current-tab">missing sources</a>
+  <a routerLink="./alts" [queryParams]="{origin}" routerLinkActive="current-tab">alts</a>
+  <ng-container *ngIf="refs$ | async as refs">
+    <a *ngIf="error && refs.totalElements || refs.totalElements > 1" routerLink="./remotes" [queryParams]="{origin}" routerLinkActive="current-tab">remotes</a>
+  </ng-container>
   <ng-container *ngIf="admin.status.plugins.graph">
-    <a routerLink="./graph" [queryParams]="{ hideSearch: true }" routerLinkActive="current-tab">graph</a>
+    <a routerLink="./graph" [queryParams]="{ origin, hideSearch: true }" routerLinkActive="current-tab">graph</a>
   </ng-container>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>
 <app-sidebar *ngIf="!(hideSearch$ | async)" class="aside"></app-sidebar>
-<div *ngIf="!error; else errorMessage">
+<ng-container *ngIf="!error; else errorMessage">
   <ng-container *ngIf="ref$ | async as ref; else loading">
     <app-ref class="full-page"
              [ref]="ref"
@@ -24,7 +28,7 @@
     <app-loading></app-loading>
   </ng-template>
   <router-outlet></router-outlet>
-</div>
+</ng-container>
 <ng-template #errorMessage>
   <ng-container *ngIf="error!.status === 404 && account.signedIn">
     <div class="stack">

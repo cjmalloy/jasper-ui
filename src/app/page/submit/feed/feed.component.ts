@@ -1,10 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
-import { TagsFormComponent } from '../../../form/tags/tags.component';
+import { feedForm, FeedFormComponent } from '../../../form/feed/feed.component';
 import { isKnownEmbed } from '../../../plugin/embed';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
@@ -23,8 +23,8 @@ export class SubmitFeedPage implements AfterViewInit {
   feedForm: FormGroup;
   serverError: string[] = [];
 
-  @ViewChild(TagsFormComponent)
-  tags!: TagsFormComponent;
+  @ViewChild(FeedFormComponent)
+  feed!: FeedFormComponent;
 
   constructor(
     private theme: ThemeService,
@@ -36,51 +36,23 @@ export class SubmitFeedPage implements AfterViewInit {
     private fb: FormBuilder,
   ) {
     theme.setTitle('Submit: Feed');
-    this.feedForm = fb.group({
-      url: [''],
-      name: [''],
-      tags: fb.array([]),
-      scrapeInterval: ['00:15:00'],
-      scrapeDescription: [true],
-      removeDescriptionIndent: [false],
-    });
+    this.feedForm = feedForm(fb);
   }
 
   ngAfterViewInit(): void {
-    this.tags.addTag('public');
-    if (this.admin.status.plugins.thumbnail) this.tags.addTag('plugin/thumbnail');
+    this.feed.tags.addTag('public');
+    if (this.admin.status.plugins.thumbnail) this.feed.tags.addTag('plugin/thumbnail');
     this.route.queryParams.subscribe(params => {
       this.url = params['url'].trim();
       if (params['tag']) {
-        this.tags.addTag(params['tag']);
+        this.feed.tags.addTag(params['tag']);
       }
     });
   }
 
-  get title() {
-    return this.feedForm.get('title') as FormControl;
-  }
-
   set url(value: string) {
-    if (this.admin.status.plugins.embed && isKnownEmbed(value)) this.addTag('plugin/embed');
-    this.feedForm.get('url')?.setValue(value);
-  }
-
-  addTag(value = '') {
-    this.tags.addTag(value);
-    this.submitted = false;
-  }
-
-  get scrapeInterval() {
-    return this.feedForm.get('scrapeInterval') as FormControl;
-  }
-
-  get scrapeDescription() {
-    return this.feedForm.get('scrapeDescription') as FormControl;
-  }
-
-  get removeDescriptionIndent() {
-    return this.feedForm.get('removeDescriptionIndent') as FormControl;
+    if (this.admin.status.plugins.embed && isKnownEmbed(value)) this.feed.tags.addTag('plugin/embed');
+    this.feed.url?.setValue(value);
   }
 
   submit() {

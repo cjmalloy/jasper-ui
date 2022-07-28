@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { BackupComponent } from './component/backup/backup.component';
 import { AdminPage } from './page/admin/admin.component';
 import { AdminBackupPage } from './page/admin/backup/backup.component';
 import { AdminOriginPage } from './page/admin/origin/origin.component';
@@ -8,6 +7,7 @@ import { AdminPluginPage } from './page/admin/plugin/plugin.component';
 import { AdminSetupPage } from './page/admin/setup/setup.component';
 import { AdminTemplatePage } from './page/admin/template/template.component';
 import { CreateExtPage } from './page/create/ext/ext.component';
+import { CreateOriginPage } from './page/create/origin/origin.component';
 import { CreateProfilePage } from './page/create/profile/profile.component';
 import { CreateUserPage } from './page/create/user/user.component';
 import { HomePage } from './page/home/home.component';
@@ -17,10 +17,12 @@ import { InboxInvoicesPage } from './page/inbox/invoices/invoices.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
 import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
+import { RefAltsComponent } from './page/ref/alts/alts.component';
 import { RefCommentsComponent } from './page/ref/comments/comments.component';
 import { RefGraphComponent } from './page/ref/graph/graph.component';
 import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
+import { RefRemotesComponent } from './page/ref/remotes/remotes.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
@@ -61,6 +63,8 @@ const routes: Routes = [
       { path: 'sources', redirectTo: 'sources/created', pathMatch: 'full' },
       { path: 'sources/:sort', component: RefSourcesComponent },
       { path: 'missing', component: RefMissingComponent },
+      { path: 'alts', component: RefAltsComponent },
+      { path: 'remotes', component: RefRemotesComponent },
       { path: 'graph', component: RefGraphComponent },
     ],
   }, {
@@ -83,6 +87,7 @@ const routes: Routes = [
   { path: 'create/ext', component: CreateExtPage },
   { path: 'create/user', component: CreateUserPage },
   { path: 'create/profile', component: CreateProfilePage },
+  { path: 'create/origin', component: CreateOriginPage },
   {
     path: 'admin',
     component: AdminPage,

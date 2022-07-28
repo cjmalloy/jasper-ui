@@ -7,7 +7,6 @@ export interface Page<T> {
   totalPages: number;
   size: number;
   totalElements: number;
-  numberOfElements: number;
 }
 
 export function mapPage<T>(contentMapper: (obj: any) => T): (obj: any) => Page<T> {

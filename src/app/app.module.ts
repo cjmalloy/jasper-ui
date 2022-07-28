@@ -38,7 +38,9 @@ import { AutofocusDirective } from './directive/autofocus.directive';
 import { MdPostDirective } from './directive/md-post.directive';
 import { ResizeDirective } from './directive/resize.directive';
 import { CodeComponent } from './form/code/code.component';
+import { FeedFormComponent } from './form/feed/feed.component';
 import { LinksFormComponent } from './form/links/links.component';
+import { OriginFormComponent } from './form/origin/origin.component';
 import { ArchiveFormComponent } from './form/plugin/archive/archive.component';
 import { AudioFormComponent } from './form/plugin/audio/audio.component';
 import { CommentFormComponent } from './form/plugin/comment/comment.component';
@@ -53,6 +55,7 @@ import { QtagsFormComponent } from './form/qtags/qtags.component';
 import { QueriesFormComponent } from './form/queries/queries.component';
 import { RefFormComponent } from './form/ref/ref.component';
 import { TagsFormComponent } from './form/tags/tags.component';
+import { UserFormComponent } from './form/user/user.component';
 import { UsersFormComponent } from './form/users/users.component';
 import { DebugInterceptor } from './http/debug.interceptor';
 import { AdminPage } from './page/admin/admin.component';
@@ -61,6 +64,7 @@ import { AdminPluginPage } from './page/admin/plugin/plugin.component';
 import { AdminSetupPage } from './page/admin/setup/setup.component';
 import { AdminTemplatePage } from './page/admin/template/template.component';
 import { CreateExtPage } from './page/create/ext/ext.component';
+import { CreateOriginPage } from './page/create/origin/origin.component';
 import { CreateProfilePage } from './page/create/profile/profile.component';
 import { CreateUserPage } from './page/create/user/user.component';
 import { HomePage } from './page/home/home.component';
@@ -100,6 +104,8 @@ import { ThemesFormComponent } from './form/themes/themes.component';
 import { ListEditorComponent } from './component/list-editor/list-editor.component';
 import { AdminBackupPage } from './page/admin/backup/backup.component';
 import { BackupListComponent } from './component/backup-list/backup-list.component';
+import { RefAltsComponent } from './page/ref/alts/alts.component';
+import { RefRemotesComponent } from './page/ref/remotes/remotes.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -137,6 +143,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     AutofocusDirective,
     CreateExtPage,
     CreateProfilePage,
+    CreateOriginPage,
     EditTagPage,
     LoadingComponent,
     AdminPage,
@@ -197,6 +204,11 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     AdminBackupPage,
     BackupComponent,
     BackupListComponent,
+    UserFormComponent,
+    OriginFormComponent,
+    FeedFormComponent,
+    RefAltsComponent,
+    RefRemotesComponent,
   ],
   imports: [
     BrowserModule,

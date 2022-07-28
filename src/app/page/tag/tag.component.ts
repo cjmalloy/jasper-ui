@@ -24,7 +24,7 @@ import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { ThemeService } from '../../service/theme.service';
 import { filterListToObj, getArgs } from '../../util/query';
-import { localTag } from '../../util/tag';
+import { removeOriginWildcard } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
@@ -73,7 +73,7 @@ export class TagPage implements OnInit, OnDestroy {
       map(params => params['graph']),
     ).subscribe(graph => this.graph = graph === 'true');
     this.localTag$ = this.tag$.pipe(
-      map(tag => localTag(tag)),
+      map(tag => removeOriginWildcard(tag)),
     );
     this.ext$ = this.localTag$.pipe(
       switchMap(tag => tag ? this.exts.get(tag).pipe(

@@ -69,7 +69,6 @@ export class TagComponent implements OnInit {
 
   get service() {
     switch (this.tag.type) {
-      case 'ext': return this.exts;
       case 'plugin': return this.plugins;
       case 'template': return this.templates;
     }

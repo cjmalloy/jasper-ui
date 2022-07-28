@@ -1,4 +1,4 @@
-<div class="form" [formGroup]="group">
+<ng-container [formGroup]="group">
   <label for="url">URL:</label>
   <input id="url" type="text" formControlName="url" [attr.disabled]="true">
 
@@ -50,4 +50,4 @@
                [tags]="group.value.tags"
                [group]="group"></app-plugins>
 
-</div>
+</ng-container>

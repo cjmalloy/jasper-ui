@@ -1,8 +1,7 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { Ref } from '../../model/ref';
-import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm } from '../plugins/plugins.component';
@@ -14,6 +13,7 @@ import { TagsFormComponent } from '../tags/tags.component';
   styleUrls: ['./ref.component.scss']
 })
 export class RefFormComponent implements OnInit {
+  @HostBinding('class') css = 'nested-form';
 
   @Input()
   group!: FormGroup;
@@ -27,7 +27,6 @@ export class RefFormComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private config: ConfigService,
     private editor: EditorService,
   ) { }
 

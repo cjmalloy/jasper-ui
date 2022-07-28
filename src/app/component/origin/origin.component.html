@@ -3,8 +3,13 @@
 </div>
 <div class="stack">
   <div class="info">
-    <span [title]="origin.modified?.toISOString()">modified {{ origin.modified?.fromNow() }}</span>&nbsp;
-    <span [title]="origin.lastScrape?.toISOString()">replicated to {{ origin.lastScrape?.fromNow() }}</span>
+    <span [title]="origin.modified?.toISOString()">modified {{ origin.modified?.fromNow() }}</span>
+    <ng-container *ngIf="origin.lastScrape">
+      <span [title]="origin.lastScrape.toISOString()"> last scraped {{ origin.lastScrape.fromNow() }} </span>
+    </ng-container>
+    <ng-container *ngIf="!origin.lastScrape">
+      not scraped yet
+    </ng-container>
   </div>
   <div class="actions">
     <a *ngIf="account.admin"
@@ -20,10 +25,9 @@
   </div>
 </div>
 
-<form *ngIf="editing" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+<form *ngIf="editing" [formGroup]="editForm" (ngSubmit)="save()">
 
-  <label for="name">Name:</label>
-  <input type="text" id="name" formControlName="name">
+  <app-origin-form [group]="editForm"></app-origin-form>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>

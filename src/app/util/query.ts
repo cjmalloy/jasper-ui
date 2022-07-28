@@ -68,6 +68,9 @@ export function getArgs(
     page: pageNumber,
     size: pageSize,
   };
+  if (filter?.url) {
+    args.url = filter.url;
+  }
   if (filter?.sources) {
     args.sources = filter.sources;
   }

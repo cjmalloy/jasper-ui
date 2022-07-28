@@ -1,12 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import * as _ from 'lodash';
 import { catchError, switchMap, throwError } from 'rxjs';
+import { feedForm, FeedFormComponent } from '../../form/feed/feed.component';
 import { Feed } from '../../model/feed';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { FeedService } from '../../service/api/feed.service';
-import { interestingTags, TAG_REGEX, TAG_REGEX_STRING, urlSummary } from '../../util/format';
+import { interestingTags, TAG_REGEX_STRING, urlSummary } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -44,18 +46,15 @@ export class FeedComponent implements OnInit {
     private feeds: FeedService,
     private fb: FormBuilder,
   ) {
-    this.editForm = fb.group({
-      name: [''],
-      tags: fb.array([]),
-      scrapeInterval: ['00:15:00'],
-      scrapeDescription: [true],
-      removeDescriptionIndent: [false],
-    });
+    this.editForm = feedForm(fb);
+  }
+
+  @ViewChild(FeedFormComponent)
+  set refForm(value: FeedFormComponent) {
+    _.defer(() => value?.setFeed(this.feed));
   }
 
   ngOnInit(): void {
-    while (this.tagsForm.length < (this.feed?.tags?.length || 0)) this.addTag();
-    this.editForm.patchValue(this.feed);
   }
 
   get tags() {
@@ -64,10 +63,6 @@ export class FeedComponent implements OnInit {
 
   get host() {
     return urlSummary(this.feed.url);
-  }
-
-  get tagsForm() {
-    return this.editForm.get('tags') as FormArray;
   }
 
   addInlineTag() {
@@ -83,27 +78,6 @@ export class FeedComponent implements OnInit {
       this.tagging = false;
       this.feed = ref;
     });
-  }
-
-  addTag(value = '') {
-    this.tagsForm.push(this.fb.control(value, [Validators.required, Validators.pattern(TAG_REGEX)]));
-    this.submitted = false;
-  }
-
-  removeTag(index: number) {
-    this.tagsForm.removeAt(index);
-  }
-
-  get scrapeInterval() {
-    return this.editForm.get('scrapeInterval') as FormControl;
-  }
-
-  get scrapeDescription() {
-    return this.editForm.get('scrapeDescription') as FormControl;
-  }
-
-  get removeDescriptionIndent() {
-    return this.editForm.get('removeDescriptionIndent') as FormControl;
   }
 
   save() {

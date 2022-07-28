@@ -167,7 +167,12 @@ html, body {
   grid-template-columns: min-content auto;
   padding: 10px;
 
-  & > * {
+  .nested-form {
+    margin: 0;
+    display: contents;
+  }
+
+  & > *, .nested-form > * {
     margin: 4px;
   }
 

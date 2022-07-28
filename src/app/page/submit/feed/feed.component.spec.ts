@@ -2,6 +2,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
+import { FeedFormComponent } from '../../../form/feed/feed.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 
 import { SubmitFeedPage } from './feed.component';
@@ -14,7 +15,8 @@ describe('SubmitFeedPage', () => {
     await TestBed.configureTestingModule({
       declarations: [
         SubmitFeedPage,
-        TagsFormComponent
+        FeedFormComponent,
+        TagsFormComponent,
       ],
       imports: [
         HttpClientTestingModule,

@@ -1,0 +1,21 @@
+<div class="tabs">
+  <h5>Replicate Remote Origin</h5>
+  <div class="spacer"></div>
+  <app-settings></app-settings>
+</div>
+
+<form class="form" [formGroup]="originForm" (ngSubmit)="create()">
+
+  <app-origin-form [group]="originForm"></app-origin-form>
+
+  <ng-container *ngFor="let e of serverError">
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  </ng-container>
+
+  <span><!-- Buttons --></span>
+  <span class="form-array">
+    <button type="submit" [disabled]="submitted && !originForm.valid">Create</button>
+  </span>
+
+</form>

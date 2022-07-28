@@ -8,6 +8,9 @@
 <div class="stack">
   <div class="info">
     <span [title]="tag.modified?.toISOString()">modified {{ tag.modified?.fromNow() }}</span>
+    <ng-container *ngIf="tag.origin">
+      on <a [routerLink]="['/tag', tag.origin]">{{ tag.origin }}</a>
+    </ng-container>
   </div>
   <div class="actions" *ngIf="!tag.origin">
     <a *ngIf="writeAccess$ | async"

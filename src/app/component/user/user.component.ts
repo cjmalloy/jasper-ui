@@ -1,13 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
+import * as _ from 'lodash';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { User } from '../../model/user';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { UserService } from '../../service/api/user.service';
-import { QUALIFIED_TAG_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -39,66 +40,20 @@ export class UserComponent implements OnInit {
     private users: UserService,
     private fb: FormBuilder,
   ) {
-    this.editForm = fb.group({
-      name: [''],
-      readAccess: fb.array([]),
-      writeAccess: fb.array([]),
-      tagReadAccess: fb.array([]),
-      tagWriteAccess: fb.array([]),
-    });
+    this.editForm = userForm(fb);
+  }
+
+  @ViewChild(UserFormComponent)
+  set refForm(value: UserFormComponent) {
+    _.defer(() => value?.setUser(this.user));
   }
 
   ngOnInit(): void {
     this.writeAccess$ = this.account.tagWriteAccess(this.user.tag, 'user');
-    while (this.readAccess.length < (this.user?.readAccess?.length || 0)) this.addReadAccess();
-    while (this.writeAccess.length < (this.user?.writeAccess?.length || 0)) this.addWriteAccess();
-    while (this.tagReadAccess.length < (this.user?.tagReadAccess?.length || 0)) this.addTagReadAccess();
-    while (this.tagWriteAccess.length < (this.user?.tagWriteAccess?.length || 0)) this.addTagWriteAccess();
-    this.editForm.patchValue(this.user);
   }
 
   get qualifiedTag() {
     return this.user.tag + this.user.origin;
-  }
-
-  get name() {
-    return this.editForm.get('name') as FormControl;
-  }
-
-  get readAccess() {
-    return this.editForm.get('readAccess') as FormArray;
-  }
-
-  get writeAccess() {
-    return this.editForm.get('writeAccess') as FormArray;
-  }
-
-  get tagReadAccess() {
-    return this.editForm.get('tagReadAccess') as FormArray;
-  }
-
-  get tagWriteAccess() {
-    return this.editForm.get('tagWriteAccess') as FormArray;
-  }
-
-  addReadAccess(value = '') {
-    this.readAccess.push(this.fb.control(value, [Validators.required, Validators.pattern(QUALIFIED_TAG_REGEX)]));
-    this.submitted = false;
-  }
-
-  addWriteAccess() {
-    this.writeAccess.push(this.fb.control('', [Validators.required, Validators.pattern(QUALIFIED_TAG_REGEX)]));
-    this.submitted = false;
-  }
-
-  addTagReadAccess(value = '') {
-    this.tagReadAccess.push(this.fb.control(value, [Validators.required, Validators.pattern(QUALIFIED_TAG_REGEX)]));
-    this.submitted = false;
-  }
-
-  addTagWriteAccess() {
-    this.tagWriteAccess.push(this.fb.control('', [Validators.required, Validators.pattern(QUALIFIED_TAG_REGEX)]));
-    this.submitted = false;
   }
 
   save() {

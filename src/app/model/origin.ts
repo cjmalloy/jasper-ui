@@ -11,7 +11,7 @@ export interface Origin extends HasOrigin {
 
 export function mapOrigin(obj: any): Origin {
   obj.modified = moment(obj.modified);
-  obj.lastScrape = moment(obj.lastScrape);
+  if (obj.lastScrape) obj.lastScrape = moment(obj.lastScrape);
   return obj;
 }
 

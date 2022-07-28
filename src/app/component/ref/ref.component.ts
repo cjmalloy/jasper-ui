@@ -66,6 +66,10 @@ export class RefComponent implements OnInit {
     return this._ref;
   }
 
+  get origin() {
+    return this._ref.origin || undefined;
+  }
+
   @Input()
   set ref(value: Ref) {
     this._ref = value;
@@ -89,11 +93,12 @@ export class RefComponent implements OnInit {
   }
 
   get canInvoice() {
-    return this.admin.status.plugins.invoice &&
-      this.isAuthor &&
-      (this._ref.tags?.includes('plugin/comment') ||
-        !this._ref.tags?.includes('internal')) &&
-      this._ref.sources;
+    if (this._ref.origin) return false;
+    if (!this.admin.status.plugins.invoice) return false;
+    if (!this.isAuthor) return false;
+    if (!this._ref.sources || !this._ref.sources.length) return false;
+    return this._ref.tags?.includes('plugin/comment') ||
+      !this._ref.tags?.includes('internal');
   }
 
   get invoice() {

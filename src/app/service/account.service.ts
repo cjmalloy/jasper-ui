@@ -190,6 +190,7 @@ export class AccountService {
 
   writeAccess(ref: HasTags): Observable<boolean> {
     if (!this.signedIn) return of(false);
+    if (ref.origin) return of(false);
     if (this.mod) return of(true);
     if (ref.tags?.includes('locked')) return of(false);
     if (isOwnerTag(this.tag, ref)) return of(true);

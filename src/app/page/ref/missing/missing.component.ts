@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { map, switchMap } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { combineLatest, map, Subject, switchMap, takeUntil } from 'rxjs';
+import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { AccountService } from '../../../service/account.service';
@@ -14,7 +14,8 @@ import { ThemeService } from '../../../service/theme.service';
   templateUrl: './missing.component.html',
   styleUrls: ['./missing.component.scss']
 })
-export class RefMissingComponent implements OnInit {
+export class RefMissingComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   page: Page<Ref> = {
     content: [],
@@ -22,7 +23,6 @@ export class RefMissingComponent implements OnInit {
     first: true,
     last: true,
     number: 0,
-    numberOfElements: 0,
     size: 0,
     totalElements: 0,
     totalPages: 1,
@@ -35,16 +35,17 @@ export class RefMissingComponent implements OnInit {
     private route: ActivatedRoute,
     private refs: RefService,
   ) {
-    this.url$.pipe(
-      switchMap(url => refs.get(url)),
+    combineLatest(this.url$, this.origin$).pipe(
+      takeUntil(this.destroy$),
+      switchMap(([url, origin]) => refs.get(url, origin)),
     ).subscribe(ref => {
       if (!ref.sources) return;
       for (const url of ref.sources) {
         this.refs.exists(url).subscribe(exists => {
           if (!exists) {
+            this.page.empty = false;
             this.page.content.push({ url });
             this.page.totalElements++;
-            this.page.numberOfElements++;
             this.page.size++;
           }
         });
@@ -55,10 +56,22 @@ export class RefMissingComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   get url$() {
     return this.route.params.pipe(
       map(params => params['ref']),
-      tap(url => this.refs.get(url).subscribe(ref => this.theme.setTitle('Sources: ' + (ref.title || ref.url)))),
+      tap(url => this.refs.get(url).subscribe(ref => this.theme.setTitle('Missing Sources: ' + (ref.title || ref.url)))),
+    );
+  }
+
+  get origin$() {
+    return this.route.queryParams.pipe(
+      map((params) => params['origin']),
+      distinctUntilChanged(),
     );
   }
 

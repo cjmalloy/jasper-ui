@@ -1,7 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import * as _ from 'lodash';
 import { catchError, switchMap, throwError } from 'rxjs';
+import { originForm, OriginFormComponent } from '../../form/origin/origin.component';
 import { Origin } from '../../model/origin';
 import { AccountService } from '../../service/account.service';
 import { OriginService } from '../../service/api/origin.service';
@@ -33,13 +35,15 @@ export class OriginComponent implements OnInit {
     private origins: OriginService,
     private fb: FormBuilder,
   ) {
-    this.editForm = fb.group({
-      name: [''],
-    });
+    this.editForm = originForm(fb);
+  }
+
+  @ViewChild(OriginFormComponent)
+  set refForm(value: OriginFormComponent) {
+    _.defer(() => value?.setOrigin(this.origin));
   }
 
   ngOnInit(): void {
-    this.editForm.patchValue(this.origin);
   }
 
   save() {
