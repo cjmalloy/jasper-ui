@@ -1,9 +1,9 @@
-# JasperUi
+# Jasper-UI
 Reference client for Jasper KMS.
 
 [![Build & Test](https://github.com/cjmalloy/jasper-ui/actions/workflows/docker-image.yml/badge.svg)](https://github.com/cjmalloy/jasper-ui/actions/workflows/docker-image.yml)
 
-JasperUI is the reference client for the
+Jasper-UI is the reference client for the
 [Jasper Knowledge Management System](https://github.com/cjmalloy/jasper)
 
 ## Quickstart
