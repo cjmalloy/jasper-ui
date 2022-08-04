@@ -1,5 +1,5 @@
 # Requires docker compose
-# Run `dc up` to start all services
+# Run `docker compose up` to start all services
 # The web client will be on http://localhost:8082
 services:
   web:
