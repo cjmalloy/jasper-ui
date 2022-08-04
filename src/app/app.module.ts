@@ -106,6 +106,9 @@ import { AdminBackupPage } from './page/admin/backup/backup.component';
 import { BackupListComponent } from './component/backup-list/backup-list.component';
 import { RefAltsComponent } from './page/ref/alts/alts.component';
 import { RefRemotesComponent } from './page/ref/remotes/remotes.component';
+import { KanbanComponent } from './component/kanban/kanban.component';
+import { KanbanColumnComponent } from './component/kanban-column/kanban-column.component';
+import { KanbanCardComponent } from './component/kanban-card/kanban-card.component';
 import { MdComponent } from './component/md/md.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
@@ -210,6 +213,9 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     FeedFormComponent,
     RefAltsComponent,
     RefRemotesComponent,
+    KanbanComponent,
+    KanbanColumnComponent,
+    KanbanCardComponent,
     MdComponent,
   ],
   imports: [

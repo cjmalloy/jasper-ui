@@ -1,0 +1,5 @@
+<ng-container *ngFor="let page of pages">
+  <app-kanban-card *ngFor="let ref of page.content"
+                   class="card"
+                   [ref]="ref"></app-kanban-card>
+</ng-container>

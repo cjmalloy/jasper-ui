@@ -20,6 +20,7 @@ import { personPlugin } from '../plugin/person';
 import { qrPlugin } from '../plugin/qr';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
+import { kanbanTemplate } from '../template/kanban';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
@@ -61,6 +62,7 @@ export class AdminService {
       root: rootTemplate,
       user: userTemplate,
       queue: queueTemplate,
+      kanban: kanbanTemplate,
     },
   };
 

@@ -74,6 +74,18 @@
                fieldName="approvers"></app-users>
   </ng-container>
 
+  <ng-container *ngIf="kanban">
+    <label for="columns">Columns:</label>
+    <app-qtags id="columns" [group]="config"
+               label="column"
+               fieldName="columns"></app-qtags>
+
+    <label for="swimLanes">Swim Lanes:</label>
+    <app-qtags id="swimLanes" [group]="config"
+               label="swim lane"
+               fieldName="swimLanes"></app-qtags>
+  </ng-container>
+
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>

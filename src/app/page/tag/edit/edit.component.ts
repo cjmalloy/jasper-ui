@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, switchMap, throwError } from 'rxjs';
 import { linksForm } from '../../../form/links/links.component';
+import { qtagsForm } from '../../../form/qtags/qtags.component';
 import { queriesForm } from '../../../form/queries/queries.component';
 import { themesForm } from '../../../form/themes/themes.component';
 import { usersForm } from '../../../form/users/users.component';
@@ -12,7 +13,7 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { printError } from '../../../util/http';
-import { removeOriginWildcard } from '../../../util/tag';
+import { hasPrefix, removeOriginWildcard } from '../../../util/tag';
 
 @Component({
   selector: 'app-edit-tag-page',
@@ -63,6 +64,13 @@ export class EditTagPage implements OnInit {
           approvers: usersForm(fb, ext.config?.approvers),
         };
       }
+      if (this.kanban) {
+        configControls = {
+          ...configControls,
+          columns: qtagsForm(fb, ext.config?.columns),
+          swimLanes: qtagsForm(fb, ext.config?.swimLanes || []),
+        };
+      }
       this.editForm = fb.group({
         tag: [''],
         name: [''],
@@ -86,10 +94,11 @@ export class EditTagPage implements OnInit {
   }
 
   get queue() {
-    return !!this.admin.status.templates.queue && (
-      this.ext.tag.startsWith('queue/') ||
-      this.ext.tag.startsWith('_queue/') ||
-      this.ext.tag.startsWith('+queue/'));
+    return !!this.admin.status.templates.queue && hasPrefix(this.ext.tag, 'queue');
+  }
+
+  get kanban() {
+    return !!this.admin.status.templates.kanban && hasPrefix(this.ext.tag, 'kanban');
   }
 
   get tag$() {

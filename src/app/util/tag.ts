@@ -64,6 +64,16 @@ export function prefix(prefix: string, tag: string) {
   return prefix + tag.replace('+', '');
 }
 
+export function hasPrefix(tag: string, prefix: string) {
+  return tag.startsWith(prefix) ||
+    tag.startsWith('_' + prefix) ||
+    tag.startsWith('+' + prefix);
+}
+
+export function isQuery(query: string) {
+  return /[:|!()]/g.test(query);
+}
+
 export function publicTag(tag: string) {
   return !tag.startsWith("_") && !tag.startsWith("+");
 }

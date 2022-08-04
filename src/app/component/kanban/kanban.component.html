@@ -1,0 +1,28 @@
+<app-loading *ngIf="!error && !ext else loaded"></app-loading>
+<ng-template #loaded>
+  <div *ngIf="ext else error"
+       class="kanban"
+       [style.grid-template-columns]="(swimLanes ? 'auto ' : '') + 'repeat(' + ext.config.columns.length + ', 1fr)'">
+    <div *ngIf="swimLanes"><!-- corner spacer --></div>
+    <a *ngFor="let col of ext.config.columns"
+       class="column-title tag"
+       [routerLink]="['/tag', ext.tag + ':' + col]"
+       [title]="col">{{ col }}</a>
+    <ng-container *ngIf="swimLanes else noSwimLanes">
+      <ng-container *ngFor="let sl of swimLanes">
+        <a class="swim-lane-title tag"
+           [routerLink]="['/tag', ext.tag + ':' + sl]"
+           [title]="sl">{{ sl }}</a>
+        <app-kanban-column *ngFor="let col of ext.config.columns"
+                           [query]="ext.tag + ':' + col + ':' + sl"></app-kanban-column>
+      </ng-container>
+    </ng-container>
+    <ng-template #noSwimLanes>
+      <app-kanban-column *ngFor="let col of ext.config.columns"
+                         [query]="ext.tag + ':' + col"></app-kanban-column>
+    </ng-template>
+  </div>
+  <ng-template #error>
+    <div class="error-404">Not Found</div>
+  </ng-template>
+</ng-template>

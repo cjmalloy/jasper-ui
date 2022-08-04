@@ -520,3 +520,25 @@ button.backup, input.upload {
     padding: 4px;
   }
 }
+
+.kanban {
+  grid-gap: 8px;
+
+  .column-title {
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .swim-lane-title {
+    font-weight: bold;
+    text-align: center;
+  }
+  .card {
+    padding: 4px;
+    margin-top: 2px;
+
+    .card-title {
+      margin-bottom: 4px;
+    }
+  }
+}

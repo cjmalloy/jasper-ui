@@ -1,0 +1,18 @@
+.kanban {
+  display: grid;
+
+  * {
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  .column-title {
+    max-width: 300px;
+    white-space: nowrap;
+  }
+
+  .swim-lane-title {
+    writing-mode: vertical-rl;
+    transform: rotate(-180deg);
+  }
+}

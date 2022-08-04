@@ -24,11 +24,16 @@
              *ngIf="!graph"
              [tag]="tag$ | async"
              [ext]="ext$ | async"></app-sidebar>
-<!-- TODO: allow paging with graph -->
-<app-ref-list *ngIf="!accessDenied"
-              [page]="page$ | async"
-              [pinned]="pinned$ | async"
-              [tag]="localTag$ | async"
-              [pageControls]="!graph"
-              [graph]="graph"></app-ref-list>
-<div *ngIf="accessDenied" class="error-403">Access Denied</div>
+<div *ngIf="accessDenied else accessGranted" class="error-403">Access Denied</div>
+<ng-template #accessGranted>
+  <app-kanban *ngIf="kanban$ | async else refList"
+              [tag]="tag$ | async"></app-kanban>
+  <ng-template #refList>
+    <!-- TODO: allow paging with graph -->
+    <app-ref-list [page]="page$ | async"
+                  [pinned]="pinned$ | async"
+                  [tag]="tag$ | async"
+                  [pageControls]="!graph"
+                  [graph]="graph"></app-ref-list>
+  </ng-template>
+</ng-template>

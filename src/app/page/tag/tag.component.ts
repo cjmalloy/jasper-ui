@@ -24,7 +24,7 @@ import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { ThemeService } from '../../service/theme.service';
 import { filterListToObj, getArgs } from '../../util/query';
-import { removeOriginWildcard } from '../../util/tag';
+import { hasPrefix, isQuery, removeOriginWildcard } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
@@ -156,6 +156,12 @@ export class TagPage implements OnInit, OnDestroy {
   get pageSize$() {
     return this.route.queryParams.pipe(
       map(params => params['pageSize']),
+    );
+  }
+
+  get kanban$() {
+    return this.tag$.pipe(
+      map(tag => !isQuery(tag) && hasPrefix(tag, 'kanban')),
     );
   }
 

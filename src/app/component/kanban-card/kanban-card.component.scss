@@ -1,0 +1,13 @@
+:host {
+  max-height: 160px;
+
+  .thumbnail {
+    min-height: 64px;
+  }
+
+  .card-title {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
