@@ -26,17 +26,12 @@ export class EmbedComponent implements AfterViewInit {
   @Input()
   ref!: Ref;
   @Input()
-  comment?: string;
-  @Input()
   expandPlugins: string[] = [];
 
   @ViewChild('iframe')
   iframe!: ElementRef;
 
-  postProcessMarkdown: Subject<void> = new Subject();
-
   constructor(
-    public admin: AdminService,
     private embeds: EmbedService,
     private refs: RefService,
     @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
@@ -46,14 +41,6 @@ export class EmbedComponent implements AfterViewInit {
     if (this.iframe) {
       this.embeds.writeIframe(this.embed, this.iframe.nativeElement);
     }
-  }
-
-  get emoji() {
-    return !!this.admin.status.plugins.emoji && !!this.ref?.tags?.includes('plugin/emoji');
-  }
-
-  get latex() {
-    return !!this.admin.status.plugins.latex && !!this.ref?.tags?.includes('plugin/latex');
   }
 
   get embed() {
@@ -67,8 +54,4 @@ export class EmbedComponent implements AfterViewInit {
   cssUrl(url: string) {
     return `url("${url}")`;
   }
-
-  onReady = _.debounce(() => {
-    this.postProcessMarkdown.next();
-  }, 3000);
 }

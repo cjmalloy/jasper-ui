@@ -106,6 +106,7 @@ import { AdminBackupPage } from './page/admin/backup/backup.component';
 import { BackupListComponent } from './component/backup-list/backup-list.component';
 import { RefAltsComponent } from './page/ref/alts/alts.component';
 import { RefRemotesComponent } from './page/ref/remotes/remotes.component';
+import { MdComponent } from './component/md/md.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -209,6 +210,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     FeedFormComponent,
     RefAltsComponent,
     RefRemotesComponent,
+    MdComponent,
   ],
   imports: [
     BrowserModule,

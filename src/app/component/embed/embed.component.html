@@ -28,12 +28,7 @@
         [width]="qrWidth"
         [errorCorrectionLevel]="'M'"
         appResize></qrcode>
-<div *ngIf="ref?.comment || comment"
-     class="md expand"
-     markdown
-     [appMdPost]="postProcessMarkdown"
-     [emoji]="emoji"
-     [katex]="latex"
-     [katexOptions]="{ throwOnError: false }"
-     [data]="ref?.comment || comment"
-     (ready)="onReady()"></div>
+<app-md *ngIf="ref?.comment"
+        class="expand"
+        [text]="ref.comment!"
+        [plugins]="ref.tags"></app-md>

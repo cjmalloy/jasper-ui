@@ -1,6 +1,7 @@
 <div class="editor-preview">
   <textarea #textbox class="has-plugins" [(ngModel)]="editValue"></textarea>
-  <app-embed [comment]="editValue"></app-embed>
+  <app-md [text]="editValue"
+          [plugins]="plugins"></app-md>
 </div>
 <br>
 <ng-container *ngFor="let e of serverError">

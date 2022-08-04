@@ -122,14 +122,8 @@
 </ng-container>
 
 <ng-container *ngIf="root">
-  <div *ngIf="ext?.config?.sidebar"
-       class="md"
-       markdown
-       appMdPost
-       [emoji]="!!admin.status.plugins.emoji"
-       [katex]="!!admin.status.plugins.latex"
-       [katexOptions]="{ throwOnError: false }"
-       [data]="ext?.config?.sidebar"></div>
+  <app-md *ngIf="ext?.config?.sidebar"
+          [text]="ext?.config?.sidebar"></app-md>
 
   <ng-container *ngIf="writeAccess$ | async">
     <a *ngIf="ext"

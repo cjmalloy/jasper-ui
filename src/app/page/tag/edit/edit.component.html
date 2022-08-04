@@ -15,7 +15,7 @@
     <label for="sidebar">Sidebar:</label>
     <div class="editor-preview">
       <textarea id="sidebar" [formControl]="sidebar"></textarea>
-      <app-embed [comment]="sidebar.value"></app-embed>
+      <app-md [text]="sidebar.value"></app-md>
     </div>
 
     <label for="pinned">Pinned:</label>
