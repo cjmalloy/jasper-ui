@@ -24,6 +24,12 @@
   &.cdk-drop-list-dragging .kanban-card {
     transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
   }
+
+  .fake-link {
+    display: block;
+    text-align: center;
+  }
+
 }
 
 .cdk-drag-animating {

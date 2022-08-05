@@ -1,5 +1,5 @@
 <div class="tabs">
-  <h5>{{ title$ | async }}</h5>
+  <h5 class="fake-link" routerLink=".." [queryParams]="{}">{{ title$ | async }}</h5>
   <a routerLink="../created" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by created date">new</a>
   <ng-container *ngIf="admin.status.plugins.comment">
     <a routerLink="../commentCount" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of comments">comments</a>
@@ -12,28 +12,36 @@
   <a *ngIf="search$ | async" routerLink="../rank" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by search relevance">rank</a>
   <ng-container *ngIf="admin.status.plugins.graph">
     <a routerLink="./"
-       [class.current-tab]="graph"
-       [queryParams]="{ graph: graph ? null : true }"
+       [class.current-tab]="graph$ | async"
+       [queryParams]="{ graph: (graph$ | async) ? null : true, list: null }"
        queryParamsHandling="merge"
        title="Graph these results">graph</a>
+  </ng-container>
+  <ng-container *ngIf="kanban$ | async">
+    <a routerLink="./"
+       [class.current-tab]="list$ | async"
+       [queryParams]="{ list: (list$ | async) ? null : true, graph: null }"
+       queryParamsHandling="merge"
+       title="View as list">list</a>
   </ng-container>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>
 <app-sidebar class="aside"
-             *ngIf="!graph"
+             *ngIf="!(graph$ | async)"
              [tag]="tag$ | async"
              [ext]="ext$ | async"></app-sidebar>
 <div *ngIf="accessDenied else accessGranted" class="error-403">Access Denied</div>
 <ng-template #accessGranted>
-  <app-kanban *ngIf="kanban$ | async else refList"
-              [tag]="tag$ | async"></app-kanban>
-  <ng-template #refList>
-    <!-- TODO: allow paging with graph -->
-    <app-ref-list [page]="page$ | async"
-                  [pinned]="pinned$ | async"
-                  [tag]="tag$ | async"
-                  [pageControls]="!graph"
-                  [graph]="graph"></app-ref-list>
+  <!-- TODO: allow paging with graph -->
+  <app-ref-list *ngIf="isList$ | async else special"
+                [page]="page$ | async"
+                [pinned]="pinned$ | async"
+                [tag]="tag$ | async"
+                [pageControls]="!(graph$ | async)"
+                [graph]="graph$ | async"></app-ref-list>
+  <ng-template #special>
+    <app-kanban *ngIf="kanban$ | async"
+                [tag]="tag$ | async"></app-kanban>
   </ng-template>
 </ng-template>

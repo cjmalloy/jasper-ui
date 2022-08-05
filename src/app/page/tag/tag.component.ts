@@ -37,9 +37,8 @@ export class TagPage implements OnInit, OnDestroy {
   title$: Observable<string>;
   localTag$: Observable<string>;
   ext$: Observable<Ext | null>;
-  page$: Observable<Page<Ref>>;
+  page$: Observable<Page<Ref> | null>;
   pinned$: Observable<Ref[]>;
-  graph = false;
   accessDenied = false;
 
   private defaultPageSize = 20;
@@ -55,23 +54,21 @@ export class TagPage implements OnInit, OnDestroy {
     private refs: RefService,
     private exts: ExtService,
   ) {
-    this.page$ = combineLatest(
-      this.tag$, this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$,
-    ).pipe(
-      map(([tag, sort, filter, search, pageNumber, pageSize]) =>
-        getArgs(tag, sort, {...filterListToObj(filter), notInternal: tag === '@*'}, search, pageNumber, pageSize ?? this.defaultPageSize)),
-      distinctUntilChanged(_.isEqual),
-      switchMap(args => this.refs.page(args)),
-      catchError(err => {
-        if (err.status === 403) {
-          this.accessDenied = true;
-        }
-        return throwError(err);
-      }),
-    );
-    this.route.queryParams.pipe(
-      map(params => params['graph']),
-    ).subscribe(graph => this.graph = graph === 'true');
+    this.page$ = this.isList$.pipe(
+      switchMap(isList => !isList ? of(null) : combineLatest(
+        this.tag$, this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$,
+      ).pipe(
+        map(([tag, sort, filter, search, pageNumber, pageSize]) =>
+          getArgs(tag, sort, {...filterListToObj(filter), notInternal: tag === '@*'}, search, pageNumber, pageSize ?? this.defaultPageSize)),
+        distinctUntilChanged(_.isEqual),
+        switchMap(args => this.refs.page(args)),
+        catchError(err => {
+          if (err.status === 403) {
+            this.accessDenied = true;
+          }
+          return throwError(err);
+        }),
+      )));
     this.localTag$ = this.tag$.pipe(
       map(tag => removeOriginWildcard(tag)),
     );
@@ -156,6 +153,24 @@ export class TagPage implements OnInit, OnDestroy {
   get pageSize$() {
     return this.route.queryParams.pipe(
       map(params => params['pageSize']),
+    );
+  }
+
+  get isList$() {
+    return combineLatest(this.list$, this.graph$, this.kanban$).pipe(
+      map(([list, graph, kanban]) => (list || graph) || (!kanban)),
+    );
+  }
+
+  get list$() {
+    return this.route.queryParams.pipe(
+      map(params => params['list']),
+    );
+  }
+
+  get graph$() {
+    return this.route.queryParams.pipe(
+      map(params => params['graph']),
     );
   }
 
