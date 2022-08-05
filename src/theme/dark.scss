@@ -11,6 +11,8 @@ $error: #dc5c5c;
 $error-bg: #231010;
 $mod: #4d9339;
 $card: #3d3d3d;
+$card-dragging: #4d4d4d;
+$placeholder: #2c2c2c;
 body.dark-theme {
   color-scheme: dark;
   background-color: $bg;
@@ -249,20 +251,26 @@ body.dark-theme {
 
   .kanban {
     .column-title, .swim-lane-title {
-      margin: 8px 2px;
-      padding: 4px;
-      border-radius: 12px;
       background-color: $bg-accent;
     }
-
-    .card {
+    .kanban-column {
       border: 1px solid transparent;
-      border-radius: 4px;
-      background-color: $card;
 
       &:hover {
-        border: 1px dotted $border;
+        border: 1px dashed $border;
       }
+    }
+  }
+
+  .kanban-card {
+    border-radius: 4px;
+    background-color: $card;
+    &.cdk-drag-preview {
+      background-color: $card-dragging;
+    }
+
+    &.cdk-drag-placeholder {
+      background-color: $placeholder;
     }
   }
 }

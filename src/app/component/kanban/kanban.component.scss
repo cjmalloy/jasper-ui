@@ -1,7 +1,7 @@
 .kanban {
   display: grid;
 
-  * {
+  .column-title, .swim-lane-title {
     text-overflow: ellipsis;
     overflow: hidden;
   }

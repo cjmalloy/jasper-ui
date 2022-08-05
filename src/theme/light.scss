@@ -11,6 +11,7 @@ $error: #da0000;
 $error-bg: #ffa9a9;
 $mod: #136500;
 $card: #f3ebc7;
+$placeholder: #efebdf;
 body.light-theme {
   color-scheme: light;
   background-color: $bg;
@@ -225,21 +226,27 @@ body.light-theme {
 
   .kanban {
     .column-title, .swim-lane-title {
-      margin: 8px 2px;
-      padding: 4px;
-      border-radius: 12px;
       border: 1px solid $border;
     }
-
-    .card {
+    .kanban-column {
       border: 1px solid transparent;
-      border-radius: 4px;
-      background-color: $card;
 
       &:hover {
-        border: 1px dotted $border;
+        border: 1px dashed $border;
       }
     }
   }
 
+  .kanban-card {
+    border-radius: 4px;
+    background-color: $card;
+    &.cdk-drag-preview {
+      box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+        0 8px 10px 1px rgba(0, 0, 0, 0.14),
+        0 3px 14px 2px rgba(0, 0, 0, 0.12);
+    }
+    &.cdk-drag-placeholder {
+      background-color: $placeholder;
+    }
+  }
 }

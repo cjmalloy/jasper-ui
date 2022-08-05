@@ -62,7 +62,7 @@ export class SubmitTextPage implements AfterViewInit {
           this.title.setValue(wikiTitleFormat(this.url?.substring('wiki:'.length)));
         }
         if (params['tag']) {
-          this.addTag(params['tag']);
+          this.addTag(...params['tag'].split(/[:|!()]/));
         }
       });
     });
@@ -76,8 +76,11 @@ export class SubmitTextPage implements AfterViewInit {
     return this.textForm.get('comment') as UntypedFormControl;
   }
 
-  addTag(value = '') {
-    this.tags.addTag(value);
+  addTag(...values: string[]) {
+    if (!values) values = [''];
+    for (const value of values) {
+      this.tags.addTag(value);
+    }
     this.submitted = false;
   }
 

@@ -1,3 +1,4 @@
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -227,6 +228,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     MarkdownModule.forRoot(),
     QRCodeModule,
     MonacoEditorModule.forRoot(),
+    DragDropModule,
   ],
   providers: [
     ConfigService,

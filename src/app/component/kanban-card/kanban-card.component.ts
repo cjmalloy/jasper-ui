@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 
@@ -8,6 +8,7 @@ import { AdminService } from '../../service/admin.service';
   styleUrls: ['./kanban-card.component.scss']
 })
 export class KanbanCardComponent implements OnInit {
+  @HostBinding('class') css = 'kanban-card';
 
   @Input()
   ref!: Ref;

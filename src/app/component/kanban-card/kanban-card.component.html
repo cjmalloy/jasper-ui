@@ -1,5 +1,5 @@
-<div class="card-title fake-link" [routerLink]="['/ref', ref.url]">
+<a class="card-title" [routerLink]="['/ref', ref.url]">
     {{ ref.title }}
-</div>
+</a>
 <app-md *ngIf="ref.comment"
         [text]="ref.comment!"></app-md>

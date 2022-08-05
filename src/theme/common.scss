@@ -522,23 +522,29 @@ button.backup, input.upload {
 }
 
 .kanban {
+  padding: 4px;
   grid-gap: 8px;
 
-  .column-title {
-    font-weight: bold;
-    text-align: center;
-  }
-
-  .swim-lane-title {
-    font-weight: bold;
-    text-align: center;
-  }
-  .card {
+  .column-title, .swim-lane-title {
+    margin: 8px 0;
     padding: 4px;
-    margin-top: 2px;
+    border-radius: 12px;
+    font-weight: bold;
+    text-align: center;
+  }
+}
 
-    .card-title {
-      margin-bottom: 4px;
+.kanban-card {
+  padding: 4px;
+  margin-top: 2px;
+
+  .card-title {
+    margin-bottom: 4px;
+  }
+
+  &.cdk-drag-placeholder {
+    * {
+      visibility: hidden !important;
     }
   }
 }

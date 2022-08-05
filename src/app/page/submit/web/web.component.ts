@@ -31,7 +31,7 @@ export class SubmitWebPage implements AfterViewInit {
   serverError: string[] = [];
 
   @ViewChild(RefFormComponent)
-  ref!: RefFormComponent;
+  refForm!: RefFormComponent;
 
   constructor(
     private theme: ThemeService,
@@ -60,41 +60,13 @@ export class SubmitWebPage implements AfterViewInit {
       this.route.queryParams.subscribe(params => {
         this.url = params['url'].trim();
         if (params['tag']) {
-          this.addTag(params['tag']);
+          this.addTag(...params['tag'].split(/[:|!()]/));
         }
         if (params['source']) {
           this.addSource(params['source']);
         }
       });
     });
-  }
-
-  get published() {
-    return this.webForm.get('published') as UntypedFormControl;
-  }
-
-  get title() {
-    return this.webForm.get('title') as UntypedFormControl;
-  }
-
-  get comment() {
-    return this.webForm.get('comment') as UntypedFormControl;
-  }
-
-  get tags() {
-    return this.webForm.get('tags') as UntypedFormArray;
-  }
-
-  get sources() {
-    return this.webForm.get('sources') as UntypedFormArray;
-  }
-
-  get alts() {
-    return this.webForm.get('alternateUrls') as UntypedFormArray;
-  }
-
-  get plugins() {
-    return this.webForm.get('plugins') as UntypedFormGroup;
   }
 
   set url(value: string) {
@@ -106,18 +78,21 @@ export class SubmitWebPage implements AfterViewInit {
     this.webForm.get('url')?.setValue(value);
   }
 
-  addTag(value = '') {
-    this.ref.tags.addTag(value);
+  addTag(...values: string[]) {
+    if (!values) values = [''];
+    for (const value of values) {
+      this.refForm.tags.addTag(value);
+    }
     this.submitted = false;
   }
 
   addSource(value = '') {
-    this.ref.sources.addLink(value);
+    this.refForm.sources.addLink(value);
     this.submitted = false;
   }
 
   addAlt(value = '') {
-    this.ref.alts.addLink(value);
+    this.refForm.alts.addLink(value);
     this.submitted = false;
   }
 

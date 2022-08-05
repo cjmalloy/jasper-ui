@@ -1,13 +1,19 @@
 :host {
+  display: block;
   max-height: 160px;
+  overflow: hidden;
+  user-select: none;
 
   .thumbnail {
     min-height: 64px;
   }
 
   .card-title {
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
     overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
   }
 }

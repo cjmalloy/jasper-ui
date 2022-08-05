@@ -2,6 +2,7 @@
 <ng-template #loaded>
   <div *ngIf="ext else error"
        class="kanban"
+       cdkDropListGroup
        [style.grid-template-columns]="(swimLanes ? 'auto ' : '') + 'repeat(' + ext.config.columns.length + ', 1fr)'">
     <div *ngIf="swimLanes"><!-- corner spacer --></div>
     <a *ngFor="let col of ext.config.columns"
@@ -14,11 +15,19 @@
            [routerLink]="['/tag', ext.tag + ':' + sl]"
            [title]="sl">{{ sl }}</a>
         <app-kanban-column *ngFor="let col of ext.config.columns"
+                           cdkDropList
+                           [cdkDropListData]="[col, sl]"
+                           (cdkDropListDropped)="drop($event)"
+                           [updates]="updates"
                            [query]="ext.tag + ':' + col + ':' + sl"></app-kanban-column>
       </ng-container>
     </ng-container>
     <ng-template #noSwimLanes>
       <app-kanban-column *ngFor="let col of ext.config.columns"
+                         cdkDropList
+                         [cdkDropListData]="[col]"
+                         (cdkDropListDropped)="drop($event)"
+                         [updates]="updates"
                          [query]="ext.tag + ':' + col"></app-kanban-column>
     </ng-template>
   </div>

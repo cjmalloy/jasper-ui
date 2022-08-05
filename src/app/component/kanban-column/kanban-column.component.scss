@@ -1,8 +1,31 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   max-width: 300px;
+  padding: 4px;
 
-  .card {
-    display: block;
+  input {
+    margin: 8px;
+    width: calc(100% - 24px);
+    height: 24px;
   }
+
+  &:hover input, input:focus {
+    display: block !important;
+  }
+
+  &.cdk-drop-list-dragging,
+  &.cdk-drop-list-receiving {
+    .spacer, input {
+      display: none !important;
+    }
+  }
+
+  &.cdk-drop-list-dragging .kanban-card {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }

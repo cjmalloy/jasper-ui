@@ -1,5 +1,13 @@
 <ng-container *ngFor="let page of pages">
   <app-kanban-card *ngFor="let ref of page.content"
-                   class="card"
+                   cdkDrag
+                   [cdkDragData]="ref"
                    [ref]="ref"></app-kanban-card>
 </ng-container>
+<div class="spacer"></div>
+<input type="text"
+       placeholder="Add..."
+       [(ngModel)]="addText"
+       [style.display]="addText ? 'block' : 'none'"
+       (keydown)="$event.key === 'Enter' && add() || true"
+       (blur)="add()">
