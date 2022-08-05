@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash';
 import { catchError, throwError } from 'rxjs';
@@ -20,7 +20,7 @@ import { prefix } from '../../../util/tag';
 export class CreateUserPage implements OnInit {
 
   submitted = false;
-  userForm: FormGroup;
+  userForm: UntypedFormGroup;
   serverError: string[] = [];
 
   @ViewChild(UserFormComponent)
@@ -33,7 +33,7 @@ export class CreateUserPage implements OnInit {
     private route: ActivatedRoute,
     private account: AccountService,
     private users: UserService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Create User Permissions');
     this.userForm = userForm(fb);
@@ -48,11 +48,11 @@ export class CreateUserPage implements OnInit {
   }
 
   get tag() {
-    return this.userForm.get('tag') as FormControl;
+    return this.userForm.get('tag') as UntypedFormControl;
   }
 
   get name() {
-    return this.userForm.get('name') as FormControl;
+    return this.userForm.get('name') as UntypedFormControl;
   }
 
   create() {

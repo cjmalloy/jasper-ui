@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { QUERY_REGEX } from '../../util/format';
 
 @Component({
@@ -12,21 +12,21 @@ export class QueriesFormComponent implements OnInit {
   @HostBinding('class') css = 'form-group';
 
   @Input()
-  group!: FormGroup;
+  group!: UntypedFormGroup;
   @Input()
   fieldName = 'tags';
   @Input()
   label = 'query';
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {}
 
   ngOnInit(): void {
   }
 
   get queries() {
-    return this.group.get(this.fieldName) as FormArray;
+    return this.group.get(this.fieldName) as UntypedFormArray;
   }
 
   addQuery(value = '') {
@@ -38,6 +38,6 @@ export class QueriesFormComponent implements OnInit {
   }
 }
 
-export function queriesForm(fb: FormBuilder, tags: string[]) {
+export function queriesForm(fb: UntypedFormBuilder, tags: string[]) {
   return fb.array(tags.map(v => fb.control(v, QueriesFormComponent.validators)));
 }

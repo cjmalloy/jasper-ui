@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   ValidationErrors,
   Validators
 } from '@angular/forms';
@@ -27,7 +27,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
 })
 export class SubmitPage implements OnInit {
 
-  submitForm: FormGroup;
+  submitForm: UntypedFormGroup;
 
   linkShorteners = [
     '//bit.ly/',
@@ -57,7 +57,7 @@ export class SubmitPage implements OnInit {
     private route: ActivatedRoute,
     private refs: RefService,
     private feeds: FeedService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Submit: Link');
     this.submitForm = fb.group({
@@ -77,7 +77,7 @@ export class SubmitPage implements OnInit {
   }
 
   get url() {
-    return this.submitForm.get('url') as FormControl;
+    return this.submitForm.get('url') as UntypedFormControl;
   }
 
   get validator(): AsyncValidatorFn {

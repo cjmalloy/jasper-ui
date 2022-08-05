@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
@@ -20,7 +20,7 @@ import { printError } from '../../../util/http';
 export class SubmitFeedPage implements AfterViewInit {
 
   submitted = false;
-  feedForm: FormGroup;
+  feedForm: UntypedFormGroup;
   serverError: string[] = [];
 
   @ViewChild(FeedFormComponent)
@@ -33,7 +33,7 @@ export class SubmitFeedPage implements AfterViewInit {
     private admin: AdminService,
     private account: AccountService,
     private feeds: FeedService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Submit: Feed');
     this.feedForm = feedForm(fb);

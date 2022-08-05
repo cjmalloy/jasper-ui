@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AccountService } from '../../../service/account.service';
@@ -18,7 +18,7 @@ import { printError } from '../../../util/http';
 export class CreateProfilePage implements OnInit {
 
   submitted = false;
-  profileForm: FormGroup;
+  profileForm: UntypedFormGroup;
   serverError: string[] = [];
 
   constructor(
@@ -28,7 +28,7 @@ export class CreateProfilePage implements OnInit {
     private route: ActivatedRoute,
     private account: AccountService,
     private profiles: ProfileService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Create Profile');
     this.profileForm = fb.group({
@@ -47,15 +47,15 @@ export class CreateProfilePage implements OnInit {
   }
 
   get tag() {
-    return this.profileForm.get('tag') as FormControl;
+    return this.profileForm.get('tag') as UntypedFormControl;
   }
 
   get password() {
-    return this.profileForm.get('password') as FormControl;
+    return this.profileForm.get('password') as UntypedFormControl;
   }
 
   get role() {
-    return this.profileForm.get('role') as FormControl;
+    return this.profileForm.get('role') as UntypedFormControl;
   }
 
   create() {

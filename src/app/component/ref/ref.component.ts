@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash';
 import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
@@ -36,7 +36,7 @@ export class RefComponent implements OnInit {
   @ViewChild('inlineTag')
   inlineTag?: ElementRef;
 
-  editForm: FormGroup;
+  editForm: UntypedFormGroup;
   submitted = false;
   expandPlugins: string[] = [];
   tagging = false;
@@ -57,7 +57,7 @@ export class RefComponent implements OnInit {
     private editor: EditorService,
     private refs: RefService,
     private ts: TaggingService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     this.editForm = refForm(fb);
   }

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { FormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash';
 import * as moment from 'moment';
@@ -26,7 +26,7 @@ export class SubmitTextPage implements AfterViewInit {
   url?: string;
   wiki = false;
   submitted = false;
-  textForm: FormGroup;
+  textForm: UntypedFormGroup;
   serverError: string[] = [];
 
   emoji = !!this.admin.status.plugins.emoji;
@@ -43,7 +43,7 @@ export class SubmitTextPage implements AfterViewInit {
     private editor: EditorService,
     private account: AccountService,
     private refs: RefService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Submit: Text Post');
     this.textForm = refForm(fb);
@@ -69,11 +69,11 @@ export class SubmitTextPage implements AfterViewInit {
   }
 
   get title() {
-    return this.textForm.get('title') as FormControl;
+    return this.textForm.get('title') as UntypedFormControl;
   }
 
   get comment() {
-    return this.textForm.get('comment') as FormControl;
+    return this.textForm.get('comment') as UntypedFormControl;
   }
 
   addTag(value = '') {

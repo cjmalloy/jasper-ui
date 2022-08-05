@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { OriginFormComponent } from './origin.component';
 
@@ -17,11 +17,11 @@ describe('OriginFormComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(OriginFormComponent);
     component = fixture.componentInstance;
-    component.group = new FormGroup({
-      origin: new FormControl(),
-      name: new FormControl(),
-      url: new FormControl(),
-      proxy: new FormControl(),
+    component.group = new UntypedFormGroup({
+      origin: new UntypedFormControl(),
+      name: new UntypedFormControl(),
+      url: new UntypedFormControl(),
+      proxy: new UntypedFormControl(),
     });
     fixture.detectChanges();
   });

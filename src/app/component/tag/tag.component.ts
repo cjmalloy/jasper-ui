@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { IsTag } from '../../model/tag';
@@ -23,7 +23,7 @@ export class TagComponent implements OnInit {
   @Input()
   tag!: IsTag;
 
-  editForm: FormGroup;
+  editForm: UntypedFormGroup;
   submitted = false;
   _editing = false;
   deleting = false;
@@ -39,7 +39,7 @@ export class TagComponent implements OnInit {
     private exts: ExtService,
     private plugins: PluginService,
     private templates: TemplateService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     this.editForm = fb.group({
       name: [''],

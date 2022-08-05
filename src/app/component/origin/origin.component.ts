@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { originForm, OriginFormComponent } from '../../form/origin/origin.component';
@@ -21,7 +21,7 @@ export class OriginComponent implements OnInit {
   @Input()
   origin!: Origin;
 
-  editForm: FormGroup;
+  editForm: UntypedFormGroup;
   submitted = false;
   tagging = false;
   editing = false;
@@ -33,7 +33,7 @@ export class OriginComponent implements OnInit {
   constructor(
     public account: AccountService,
     private origins: OriginService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     this.editForm = originForm(fb);
   }

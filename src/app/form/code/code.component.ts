@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormGroup } from "@angular/forms";
+import { UntypedFormGroup } from "@angular/forms";
 import { ThemeService } from "../../service/theme.service";
 
 @Component({
@@ -10,7 +10,7 @@ import { ThemeService } from "../../service/theme.service";
 export class CodeComponent implements OnInit {
 
   @Input()
-  group!: FormGroup;
+  group!: UntypedFormGroup;
   @Input()
   fieldName = 'source';
 

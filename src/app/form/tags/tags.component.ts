@@ -1,5 +1,5 @@
 import { Component, forwardRef, HostBinding, Input, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { TAG_REGEX } from '../../util/format';
 
 @Component({
@@ -12,19 +12,19 @@ export class TagsFormComponent implements OnInit {
   @HostBinding('class') css = 'form-group';
 
   @Input()
-  group!: FormGroup;
+  group!: UntypedFormGroup;
   @Input()
   fieldName = 'tags';
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {}
 
   ngOnInit(): void {
   }
 
   get tags() {
-    return this.group.get(this.fieldName) as FormArray;
+    return this.group.get(this.fieldName) as UntypedFormArray;
   }
 
   addTag(value = '') {
@@ -36,6 +36,6 @@ export class TagsFormComponent implements OnInit {
   }
 }
 
-export function tagsForm(fb: FormBuilder, tags: string[]) {
+export function tagsForm(fb: UntypedFormBuilder, tags: string[]) {
   return fb.array(tags.map(v => fb.control(v, TagsFormComponent.validators)));
 }

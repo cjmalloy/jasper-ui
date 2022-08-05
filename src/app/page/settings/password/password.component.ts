@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, switchMap, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
@@ -20,7 +20,7 @@ import { removeOriginWildcard } from '../../../util/tag';
 export class SettingsPasswordPage implements OnInit {
 
   submitted = false;
-  passwordForm!: FormGroup;
+  passwordForm!: UntypedFormGroup;
   serverError: string[] = [];
 
   constructor(
@@ -29,7 +29,7 @@ export class SettingsPasswordPage implements OnInit {
     private route: ActivatedRoute,
     private account: AccountService,
     private profiles: ProfileService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     this.passwordForm = fb.group({
       password: [''],
@@ -40,7 +40,7 @@ export class SettingsPasswordPage implements OnInit {
   }
 
   get password() {
-    return this.passwordForm.get('password') as FormControl;
+    return this.passwordForm.get('password') as UntypedFormControl;
   }
 
   save() {

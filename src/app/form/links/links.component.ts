@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { URI_REGEX } from '../../util/format';
 
 @Component({
@@ -12,21 +12,21 @@ export class LinksFormComponent implements OnInit {
   @HostBinding('class') css = 'form-group';
 
   @Input()
-  group!: FormGroup;
+  group!: UntypedFormGroup;
   @Input()
   fieldName = 'links';
   @Input()
   label = 'link';
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {}
 
   ngOnInit(): void {
   }
 
   get links() {
-    return this.group.get(this.fieldName) as FormArray;
+    return this.group.get(this.fieldName) as UntypedFormArray;
   }
 
   addLink(value = '') {
@@ -38,6 +38,6 @@ export class LinksFormComponent implements OnInit {
   }
 }
 
-export function linksForm(fb: FormBuilder, urls: string[]) {
+export function linksForm(fb: UntypedFormBuilder, urls: string[]) {
   return fb.array(urls.map(v => fb.control(v, LinksFormComponent.validators)));
 }

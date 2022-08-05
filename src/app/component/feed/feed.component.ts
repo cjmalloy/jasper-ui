@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { feedForm, FeedFormComponent } from '../../form/feed/feed.component';
@@ -31,7 +31,7 @@ export class FeedComponent implements OnInit {
   @ViewChild('inlineTag')
   inlineTag?: ElementRef;
 
-  editForm: FormGroup;
+  editForm: UntypedFormGroup;
   submitted = false;
   tagging = false;
   editing = false;
@@ -44,7 +44,7 @@ export class FeedComponent implements OnInit {
     public admin: AdminService,
     public account: AccountService,
     private feeds: FeedService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     this.editForm = feedForm(fb);
   }

@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { QueriesFormComponent } from './queries.component';
 
@@ -20,7 +20,7 @@ describe('QueriesFormComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(QueriesFormComponent);
     component = fixture.componentInstance;
-    component.group = new FormGroup({ tags: new FormControl({}) });
+    component.group = new UntypedFormGroup({ tags: new UntypedFormControl({}) });
     fixture.detectChanges();
   });
 

@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash';
 
 @Component({
@@ -15,19 +15,19 @@ export class ThemesFormComponent implements OnInit {
   @Input()
   label = 'theme';
 
-  _group!: FormGroup;
+  _group!: UntypedFormGroup;
   keys: string[] = [];
   selectedTheme?: string;
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) { }
 
   ngOnInit(): void {
   }
 
   @Input()
-  set group(value: FormGroup) {
+  set group(value: UntypedFormGroup) {
     this._group = value;
     this.keys = Object.keys(this.themes.value);
   }
@@ -36,7 +36,7 @@ export class ThemesFormComponent implements OnInit {
     if (!this._group.contains(this.fieldName)) {
       this._group.addControl(this.fieldName, this.fb.group({}));
     }
-    return this._group.get(this.fieldName) as FormGroup;
+    return this._group.get(this.fieldName) as UntypedFormGroup;
   }
 
   addTheme(name: string, value = '') {
@@ -52,6 +52,6 @@ export class ThemesFormComponent implements OnInit {
   }
 }
 
-export function themesForm(fb: FormBuilder, themes: Record<string, string>) {
+export function themesForm(fb: UntypedFormBuilder, themes: Record<string, string>) {
   return fb.group(_.mapValues(themes, v => fb.control(v)));
 }

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash';
 import * as moment from 'moment';
@@ -25,7 +25,7 @@ import { prefix } from '../../../util/tag';
 export class SubmitInvoicePage implements OnInit {
 
   submitted = false;
-  invoiceForm: FormGroup;
+  invoiceForm: UntypedFormGroup;
   serverError: string[] = [];
 
   refUrl?: string;
@@ -43,7 +43,7 @@ export class SubmitInvoicePage implements OnInit {
     private editor: EditorService,
     private refs: RefService,
     private exts: ExtService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Submit: Invoice');
     this.invoiceForm = fb.group({
@@ -90,15 +90,15 @@ export class SubmitInvoicePage implements OnInit {
   }
 
   get url() {
-    return this.invoiceForm.get('url') as FormControl;
+    return this.invoiceForm.get('url') as UntypedFormControl;
   }
 
   get title() {
-    return this.invoiceForm.get('title') as FormControl;
+    return this.invoiceForm.get('title') as UntypedFormControl;
   }
 
   get comment() {
-    return this.invoiceForm.get('comment') as FormControl;
+    return this.invoiceForm.get('comment') as UntypedFormControl;
   }
 
   getTags(queueExt: Ext) {

@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { User } from '../../model/user';
 import { USER_REGEX } from '../../util/format';
 import { QtagsFormComponent } from '../qtags/qtags.component';
@@ -13,7 +13,7 @@ export class UserFormComponent implements OnInit {
   @HostBinding('class') css = 'nested-form';
 
   @Input()
-  group!: FormGroup;
+  group!: UntypedFormGroup;
 
   @ViewChild('readAccess')
   readAccess!: QtagsFormComponent;
@@ -30,14 +30,14 @@ export class UserFormComponent implements OnInit {
   }
 
   get tag() {
-    return this.group.get('tag') as FormControl;
+    return this.group.get('tag') as UntypedFormControl;
   }
 
   setUser(user: User) {
-    const readAccess = this.group.get('readAccess') as FormArray;
-    const writeAccess = this.group.get('writeAccess') as FormArray;
-    const tagReadAccess = this.group.get('tagReadAccess') as FormArray;
-    const tagWriteAccess = this.group.get('tagWriteAccess') as FormArray;
+    const readAccess = this.group.get('readAccess') as UntypedFormArray;
+    const writeAccess = this.group.get('writeAccess') as UntypedFormArray;
+    const tagReadAccess = this.group.get('tagReadAccess') as UntypedFormArray;
+    const tagWriteAccess = this.group.get('tagWriteAccess') as UntypedFormArray;
     while (readAccess.length < (user.readAccess?.length || 0)) this.readAccess.addTag()
     while (writeAccess.length < (user.writeAccess?.length || 0)) this.writeAccess.addTag();
     while (tagReadAccess.length < (user.tagReadAccess?.length || 0)) this.tagReadAccess.addTag();
@@ -47,7 +47,7 @@ export class UserFormComponent implements OnInit {
 
 }
 
-export function userForm(fb: FormBuilder) {
+export function userForm(fb: UntypedFormBuilder) {
   return fb.group({
     tag: ['', [Validators.required, Validators.pattern(USER_REGEX)]],
     name: [''],

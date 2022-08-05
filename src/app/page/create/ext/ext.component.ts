@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AccountService } from '../../../service/account.service';
@@ -17,7 +17,7 @@ import { printError } from '../../../util/http';
 export class CreateExtPage implements OnInit {
 
   submitted = false;
-  extForm: FormGroup;
+  extForm: UntypedFormGroup;
   serverError: string[] = [];
 
   constructor(
@@ -26,7 +26,7 @@ export class CreateExtPage implements OnInit {
     private route: ActivatedRoute,
     private account: AccountService,
     private exts: ExtService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Create Tag Extension');
     this.extForm = fb.group({
@@ -44,11 +44,11 @@ export class CreateExtPage implements OnInit {
   }
 
   get tag() {
-    return this.extForm.get('tag') as FormControl;
+    return this.extForm.get('tag') as UntypedFormControl;
   }
 
   get name() {
-    return this.extForm.get('name') as FormControl;
+    return this.extForm.get('name') as UntypedFormControl;
   }
 
   create() {

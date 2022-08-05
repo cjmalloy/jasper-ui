@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash';
 import * as moment from 'moment';
@@ -27,7 +27,7 @@ import { printError } from '../../../util/http';
 export class SubmitWebPage implements AfterViewInit {
 
   submitted = false;
-  webForm: FormGroup;
+  webForm: UntypedFormGroup;
   serverError: string[] = [];
 
   @ViewChild(RefFormComponent)
@@ -41,7 +41,7 @@ export class SubmitWebPage implements AfterViewInit {
     private editor: EditorService,
     private account: AccountService,
     private refs: RefService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Submit: Web Link');
     this.webForm = refForm(fb);
@@ -70,31 +70,31 @@ export class SubmitWebPage implements AfterViewInit {
   }
 
   get published() {
-    return this.webForm.get('published') as FormControl;
+    return this.webForm.get('published') as UntypedFormControl;
   }
 
   get title() {
-    return this.webForm.get('title') as FormControl;
+    return this.webForm.get('title') as UntypedFormControl;
   }
 
   get comment() {
-    return this.webForm.get('comment') as FormControl;
+    return this.webForm.get('comment') as UntypedFormControl;
   }
 
   get tags() {
-    return this.webForm.get('tags') as FormArray;
+    return this.webForm.get('tags') as UntypedFormArray;
   }
 
   get sources() {
-    return this.webForm.get('sources') as FormArray;
+    return this.webForm.get('sources') as UntypedFormArray;
   }
 
   get alts() {
-    return this.webForm.get('alternateUrls') as FormArray;
+    return this.webForm.get('alternateUrls') as UntypedFormArray;
   }
 
   get plugins() {
-    return this.webForm.get('plugins') as FormGroup;
+    return this.webForm.get('plugins') as UntypedFormGroup;
   }
 
   set url(value: string) {

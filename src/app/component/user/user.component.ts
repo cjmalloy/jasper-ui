@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import * as _ from 'lodash';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
@@ -23,7 +23,7 @@ export class UserComponent implements OnInit {
   @Input()
   user!: User;
 
-  editForm: FormGroup;
+  editForm: UntypedFormGroup;
   submitted = false;
   tagging = false;
   editing = false;
@@ -38,7 +38,7 @@ export class UserComponent implements OnInit {
     private router: Router,
     private account: AccountService,
     private users: UserService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     this.editForm = userForm(fb);
   }

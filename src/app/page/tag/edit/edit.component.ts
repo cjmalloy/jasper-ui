@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, switchMap, throwError } from 'rxjs';
 import { linksForm } from '../../../form/links/links.component';
@@ -24,7 +24,7 @@ export class EditTagPage implements OnInit {
 
   ext!: Ext;
   submitted = false;
-  editForm!: FormGroup;
+  editForm!: UntypedFormGroup;
   serverError: string[] = [];
 
   constructor(
@@ -33,7 +33,7 @@ export class EditTagPage implements OnInit {
     private route: ActivatedRoute,
     private account: AccountService,
     private exts: ExtService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     this.ext$.subscribe(ext => {
       this.ext = ext;
@@ -114,27 +114,27 @@ export class EditTagPage implements OnInit {
   }
 
   get tag() {
-    return this.editForm.get('tag') as FormControl;
+    return this.editForm.get('tag') as UntypedFormControl;
   }
 
   get name() {
-    return this.editForm.get('name') as FormControl;
+    return this.editForm.get('name') as UntypedFormControl;
   }
 
   get config() {
-    return this.editForm.get('config') as FormGroup;
+    return this.editForm.get('config') as UntypedFormGroup;
   }
 
   get sidebar() {
-    return this.config.get('sidebar') as FormControl;
+    return this.config.get('sidebar') as UntypedFormControl;
   }
 
   get themes() {
-    return this.config.get('themes') as FormGroup;
+    return this.config.get('themes') as UntypedFormGroup;
   }
 
   get userThemes() {
-    return this.config.get('userThemes') as FormGroup;
+    return this.config.get('userThemes') as UntypedFormGroup;
   }
 
   get themeValues() {
@@ -146,19 +146,19 @@ export class EditTagPage implements OnInit {
   }
 
   get theme() {
-    return this.config.get('theme') as FormControl;
+    return this.config.get('theme') as UntypedFormControl;
   }
 
   get userTheme() {
-    return this.config.get('userTheme') as FormControl;
+    return this.config.get('userTheme') as UntypedFormControl;
   }
 
   get bounty() {
-    return this.config.get('bounty') as FormControl;
+    return this.config.get('bounty') as UntypedFormControl;
   }
 
   get maxAge() {
-    return this.config.get('maxAge') as FormControl;
+    return this.config.get('maxAge') as UntypedFormControl;
   }
 
   save() {

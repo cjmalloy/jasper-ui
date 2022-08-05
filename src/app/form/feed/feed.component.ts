@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, FormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Feed } from '../../model/feed';
 import { AdminService } from '../../service/admin.service';
@@ -15,7 +15,7 @@ export class FeedFormComponent implements OnInit {
   @HostBinding('class') css = 'nested-form';
 
   @Input()
-  group!: FormGroup;
+  group!: UntypedFormGroup;
 
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
@@ -30,14 +30,14 @@ export class FeedFormComponent implements OnInit {
   }
 
   setFeed(feed: Feed) {
-    const tags = this.group.get('tags') as FormArray;
+    const tags = this.group.get('tags') as UntypedFormArray;
     while (tags.length < (feed.tags?.length || 0)) this.tags.addTag()
     this.group.patchValue(feed);
   }
 
 }
 
-export function feedForm(fb: FormBuilder) {
+export function feedForm(fb: UntypedFormBuilder) {
   return fb.group({
     url: [''],
     name: [''],

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
@@ -20,7 +20,7 @@ import { printError } from '../../../util/http';
 export class SubmitDmPage implements OnInit {
 
   submitted = false;
-  dmForm: FormGroup;
+  dmForm: UntypedFormGroup;
   serverError: string[] = [];
 
   to = '';
@@ -34,7 +34,7 @@ export class SubmitDmPage implements OnInit {
     private route: ActivatedRoute,
     private account: AccountService,
     private refs: RefService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Submit: Direct Message');
     this.dmForm = fb.group({
@@ -53,11 +53,11 @@ export class SubmitDmPage implements OnInit {
   }
 
   get title() {
-    return this.dmForm.get('title') as FormControl;
+    return this.dmForm.get('title') as UntypedFormControl;
   }
 
   get comment() {
-    return this.dmForm.get('comment') as FormControl;
+    return this.dmForm.get('comment') as UntypedFormControl;
   }
 
   get tags() {

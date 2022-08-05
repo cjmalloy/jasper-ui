@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { emptyObject, writeObj } from '../../util/http';
 import { archivePluginForm } from '../plugin/archive/archive.component';
 import { audioPluginForm } from '../plugin/audio/audio.component';
@@ -23,11 +23,11 @@ export class PluginsComponent implements AfterViewInit {
   @Input()
   fieldName = 'plugins';
 
-  private _group: FormGroup;
+  private _group: UntypedFormGroup;
   private _tags: string[] = [];
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     this._group = fb.group({
       [this.fieldName]: pluginsForm(fb, [])
@@ -38,12 +38,12 @@ export class PluginsComponent implements AfterViewInit {
     this.updateForm();
   }
 
-  get group(): FormGroup {
+  get group(): UntypedFormGroup {
     return this._group;
   }
 
   @Input()
-  set group(value: FormGroup) {
+  set group(value: UntypedFormGroup) {
     this._group = value;
     this.updateForm();
   }
@@ -59,7 +59,7 @@ export class PluginsComponent implements AfterViewInit {
   }
 
   get plugins() {
-    return this._group.get(this.fieldName) as FormGroup;
+    return this._group.get(this.fieldName) as UntypedFormGroup;
   }
 
   get empty() {
@@ -89,7 +89,7 @@ export class PluginsComponent implements AfterViewInit {
   }
 }
 
-export function pluginsForm(fb: FormBuilder, tags: string[]) {
+export function pluginsForm(fb: UntypedFormBuilder, tags: string[]) {
   return fb.group(tags.reduce((plugins: any, tag: string) => {
     const form = pluginForm(fb, tag)
     if (form) {
@@ -99,7 +99,7 @@ export function pluginsForm(fb: FormBuilder, tags: string[]) {
   }, {}));
 }
 
-export function pluginForm(fb: FormBuilder, tag: string) {
+export function pluginForm(fb: UntypedFormBuilder, tag: string) {
   switch (tag) {
     case 'plugin/thumbnail': return thumbnailPluginForm(fb);
     case 'plugin/archive': return archivePluginForm(fb);

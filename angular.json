@@ -148,5 +148,7 @@
       }
     }
   },
-  "defaultProject": "jasper-ui"
+  "cli": {
+    "analytics": false
+  }
 }

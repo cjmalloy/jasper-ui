@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash';
 import { LinksFormComponent } from '../form/links/links.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
@@ -81,23 +81,23 @@ export class EditorService {
     return [decodeURIComponent(query), sort];
   }
 
-  syncEditor(fb: FormBuilder, group: FormGroup) {
+  syncEditor(fb: UntypedFormBuilder, group: UntypedFormGroup) {
     group.value.comment = group.value.comment.replace('](' + this.config.base, '](/');
     group.value.comment = group.value.comment.replace(']: ' + this.config.base, ']: /');
     const value = group.value.comment;
     const newSources = _.uniq(_.difference(this.getSources(value), group.value.sources));
     for (const s of newSources) {
-      (group.get('sources') as FormArray).push(fb.control(s, LinksFormComponent.validators));
+      (group.get('sources') as UntypedFormArray).push(fb.control(s, LinksFormComponent.validators));
     }
     const newAlts = _.uniq(_.difference(this.getAlts(value), group.value.alternateUrls));
     for (const a of newAlts) {
-      (group.get('alternateUrls') as FormArray).push(fb.control(a, LinksFormComponent.validators));
+      (group.get('alternateUrls') as UntypedFormArray).push(fb.control(a, LinksFormComponent.validators));
     }
     const newTags = _.uniq(_.difference([
       ...getTags(value),
       ...getNotifications(value)], group.value.tags));
     for (const t of newTags) {
-      (group.get('tags') as FormArray).push(fb.control(t, TagsFormComponent.validators));
+      (group.get('tags') as UntypedFormArray).push(fb.control(t, TagsFormComponent.validators));
     }
   }
 

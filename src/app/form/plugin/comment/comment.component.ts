@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 
 @Component({
   selector: 'app-form-comment',
@@ -9,7 +9,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 export class CommentFormComponent implements OnInit {
 
   @Input()
-  plugins!: FormGroup;
+  plugins!: UntypedFormGroup;
   @Input()
   fieldName = 'plugin/comment';
 
@@ -19,11 +19,11 @@ export class CommentFormComponent implements OnInit {
   }
 
   get plugin() {
-    return this.plugins.get(this.fieldName) as FormGroup;
+    return this.plugins.get(this.fieldName) as UntypedFormGroup;
   }
 }
 
-export function commentPluginForm(fb: FormBuilder) {
+export function commentPluginForm(fb: UntypedFormBuilder) {
   return fb.group({
     deleted: fb.control(false),
   });

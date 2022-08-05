@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash';
 import { catchError, forkJoin, switchMap, throwError } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
@@ -17,7 +17,7 @@ import { printError } from '../../../util/http';
 export class AdminSetupPage implements OnInit {
 
   submitted = false;
-  adminForm: FormGroup;
+  adminForm: UntypedFormGroup;
   serverError: string[] = [];
   installMessages: string[] = [];
 
@@ -26,7 +26,7 @@ export class AdminSetupPage implements OnInit {
     private theme: ThemeService,
     private plugins: PluginService,
     private templates: TemplateService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Admin: Setup');
     this.adminForm = fb.group({

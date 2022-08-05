@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { URI_REGEX } from '../../../util/format';
 
 @Component({
@@ -10,7 +10,7 @@ import { URI_REGEX } from '../../../util/format';
 export class ArchiveFormComponent implements OnInit {
 
   @Input()
-  plugins!: FormGroup;
+  plugins!: UntypedFormGroup;
   @Input()
   fieldName = 'plugin/archive';
 
@@ -20,15 +20,15 @@ export class ArchiveFormComponent implements OnInit {
   }
 
   get plugin() {
-    return this.plugins.get(this.fieldName) as FormGroup;
+    return this.plugins.get(this.fieldName) as UntypedFormGroup;
   }
 
   get url() {
-    return this.plugin.get('url') as FormControl;
+    return this.plugin.get('url') as UntypedFormControl;
   }
 }
 
-export function archivePluginForm(fb: FormBuilder) {
+export function archivePluginForm(fb: UntypedFormBuilder) {
   return fb.group({
     url: fb.control('', [Validators.pattern(URI_REGEX)]),
   });

@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { USER_REGEX } from '../../util/format';
 
 @Component({
@@ -12,21 +12,21 @@ export class UsersFormComponent implements OnInit {
   @HostBinding('class') css = 'form-group';
 
   @Input()
-  group!: FormGroup;
+  group!: UntypedFormGroup;
   @Input()
   fieldName = 'users';
   @Input()
   label = 'user';
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {}
 
   ngOnInit(): void {
   }
 
   get users() {
-    return this.group.get(this.fieldName) as FormArray;
+    return this.group.get(this.fieldName) as UntypedFormArray;
   }
 
   addUser(value = '') {
@@ -38,6 +38,6 @@ export class UsersFormComponent implements OnInit {
   }
 }
 
-export function usersForm(fb: FormBuilder, tags: string[]) {
+export function usersForm(fb: UntypedFormBuilder, tags: string[]) {
   return fb.array(tags.map(v => fb.control(v, UsersFormComponent.validators)));
 }

@@ -1,6 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import * as moment from 'moment';
 
 import { refForm, RefFormComponent } from './ref.component';
@@ -23,15 +23,15 @@ describe('RefFormComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(RefFormComponent);
     component = fixture.componentInstance;
-    component.group = new FormGroup({
-      url: new FormControl(),
-      published: new FormControl(),
-      title: new FormControl(),
-      comment: new FormControl(),
-      sources: new FormControl(),
-      alternateUrls: new FormControl(),
-      tags: new FormControl(),
-      plugins: new FormControl(),
+    component.group = new UntypedFormGroup({
+      url: new UntypedFormControl(),
+      published: new UntypedFormControl(),
+      title: new UntypedFormControl(),
+      comment: new UntypedFormControl(),
+      sources: new UntypedFormControl(),
+      alternateUrls: new UntypedFormControl(),
+      tags: new UntypedFormControl(),
+      plugins: new UntypedFormControl(),
     });
     fixture.detectChanges();
   });

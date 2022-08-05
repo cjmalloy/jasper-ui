@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { originForm } from '../../../form/origin/origin.component';
@@ -18,7 +18,7 @@ import { printError } from '../../../util/http';
 export class CreateOriginPage implements OnInit {
 
   submitted = false;
-  originForm: FormGroup;
+  originForm: UntypedFormGroup;
   serverError: string[] = [];
 
   constructor(
@@ -28,7 +28,7 @@ export class CreateOriginPage implements OnInit {
     private route: ActivatedRoute,
     private account: AccountService,
     private origins: OriginService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Replicate Remote Origin');
     this.originForm = originForm(fb);

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { EmbedService } from '../../../service/embed.service';
 import { URI_REGEX } from '../../../util/format';
 
@@ -11,7 +11,7 @@ import { URI_REGEX } from '../../../util/format';
 export class ThumbnailFormComponent implements OnInit {
 
   @Input()
-  plugins!: FormGroup;
+  plugins!: UntypedFormGroup;
   @Input()
   fieldName = 'plugin/thumbnail';
   @Input()
@@ -28,23 +28,23 @@ export class ThumbnailFormComponent implements OnInit {
   }
 
   get plugin() {
-    return this.plugins.get(this.fieldName) as FormGroup;
+    return this.plugins.get(this.fieldName) as UntypedFormGroup;
   }
 
   get url() {
-    return this.plugin.get('url') as FormControl;
+    return this.plugin.get('url') as UntypedFormControl;
   }
 
   get width() {
-    return this.plugin.get('width') as FormControl;
+    return this.plugin.get('width') as UntypedFormControl;
   }
 
   get height() {
-    return this.plugin.get('height') as FormControl;
+    return this.plugin.get('height') as UntypedFormControl;
   }
 }
 
-export function thumbnailPluginForm(fb: FormBuilder) {
+export function thumbnailPluginForm(fb: UntypedFormBuilder) {
   return fb.group({
     url: fb.control('', [Validators.pattern(URI_REGEX)]),
     width: fb.control('', [Validators.min(1)]),

@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Origin } from '../../model/origin';
 import { ORIGIN_REGEX, URI_REGEX } from '../../util/format';
 
@@ -12,7 +12,7 @@ export class OriginFormComponent implements OnInit {
   @HostBinding('class') css = 'nested-form';
 
   @Input()
-  group!: FormGroup;
+  group!: UntypedFormGroup;
 
   constructor() { }
 
@@ -20,19 +20,19 @@ export class OriginFormComponent implements OnInit {
   }
 
   get origin() {
-    return this.group.get('origin') as FormControl;
+    return this.group.get('origin') as UntypedFormControl;
   }
 
   get name() {
-    return this.group.get('name') as FormControl;
+    return this.group.get('name') as UntypedFormControl;
   }
 
   get url() {
-    return this.group.get('url') as FormControl;
+    return this.group.get('url') as UntypedFormControl;
   }
 
   get proxy() {
-    return this.group.get('proxy') as FormControl;
+    return this.group.get('proxy') as UntypedFormControl;
   }
 
   setOrigin(origin: Origin) {
@@ -41,7 +41,7 @@ export class OriginFormComponent implements OnInit {
 
 }
 
-export function originForm(fb: FormBuilder) {
+export function originForm(fb: UntypedFormBuilder) {
   return fb.group({
     origin: ['', [Validators.pattern(ORIGIN_REGEX)]],
     name: [''],
