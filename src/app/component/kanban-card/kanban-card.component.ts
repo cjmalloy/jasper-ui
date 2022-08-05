@@ -29,4 +29,8 @@ export class KanbanCardComponent implements OnInit {
       this.ref.tags?.includes('plugin/person');
   }
 
+  get refView() {
+    return this.admin.status.plugins.comment ? 'comments' : undefined;
+  }
+
 }
