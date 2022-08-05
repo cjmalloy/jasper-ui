@@ -48,5 +48,12 @@
     "karma-jasmine-html-reporter": "~1.7.0",
     "karma-junit-reporter": "^2.0.1",
     "typescript": "~4.6.2"
+  },
+  "overrides": {
+    "ngx-monaco-editor": {
+      "@angular/common": "$@angular/common",
+      "@angular/core": "$@angular/core",
+      "monaco-editor": "$monaco-editor"
+    }
   }
 }
