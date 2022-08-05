@@ -28,7 +28,7 @@
       <div class="stack">
         <div class="info" [class.expanded]="!actionsExpanded">
           <ng-container *ngIf="ref.created">
-            <span [title]="ref.created?.toISOString()">submitted {{ ref.created?.fromNow() }}</span>
+            <span [title]="ref.created.toISOString()">submitted {{ ref.created.fromNow() }}</span>
             <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="'last edited ' + ref.modified?.fromNow()">*</span>
           </ng-container>
           <ng-container *ngIf="authors.length">
@@ -45,7 +45,7 @@
             </ng-container>
           </ng-container>
           <ng-container *ngIf="ref.published">
-            <span [title]="ref.published?.toISOString()">published {{ ref.published?.fromNow() }}</span>
+            <span [title]="ref.published.toISOString()">published {{ ref.published.fromNow() }}</span>
           </ng-container>
           <ng-container *ngIf="ref.origin">
             on <a [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
