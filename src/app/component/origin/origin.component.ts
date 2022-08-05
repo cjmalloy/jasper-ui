@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { originForm, OriginFormComponent } from '../../form/origin/origin.component';
 import { Origin } from '../../model/origin';

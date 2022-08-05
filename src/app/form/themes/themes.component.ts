@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 
 @Component({
   selector: 'app-themes',

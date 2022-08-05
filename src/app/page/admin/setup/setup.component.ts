@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { catchError, forkJoin, switchMap, throwError } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';

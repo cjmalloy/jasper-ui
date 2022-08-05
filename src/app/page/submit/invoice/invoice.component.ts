@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';

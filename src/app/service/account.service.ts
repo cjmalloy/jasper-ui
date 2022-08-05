@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import * as moment from 'moment';
 import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';

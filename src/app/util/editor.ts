@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { getInbox } from '../plugin/inbox';
 import { TAG_REGEX, USER_REGEX } from './format';
 

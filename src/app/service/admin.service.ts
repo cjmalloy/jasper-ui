@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { catchError, forkJoin, map, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';

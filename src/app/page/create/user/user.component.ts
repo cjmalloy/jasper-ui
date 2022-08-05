@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { catchError, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../../form/user/user.component';
 import { AccountService } from '../../../service/account.service';

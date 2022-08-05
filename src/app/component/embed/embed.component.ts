@@ -8,7 +8,7 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { Subject } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';

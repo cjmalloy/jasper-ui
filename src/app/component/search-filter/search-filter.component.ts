@@ -1,6 +1,6 @@
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { map } from 'rxjs';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';

@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { writePlugins } from '../../../form/plugins/plugins.component';

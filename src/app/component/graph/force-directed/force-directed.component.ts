@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
 import { Simulation, SimulationNodeDatum } from 'd3';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { catchError, Observable, of, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { LinksFormComponent } from '../form/links/links.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
 import { extractPattern, getNotifications, getTags } from '../util/editor';

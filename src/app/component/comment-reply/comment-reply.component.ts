@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import * as moment from 'moment';
 import { Subject, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';

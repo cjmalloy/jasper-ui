@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { combineLatest, map, Observable, switchMap } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { Origin } from '../../../model/origin';

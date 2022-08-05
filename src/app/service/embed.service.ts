@@ -1,5 +1,5 @@
 import { Injectable, ViewContainerRef } from '@angular/core';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
