@@ -3,32 +3,65 @@
   <div *ngIf="ext else error"
        class="kanban"
        cdkDropListGroup
-       [style.grid-template-columns]="(swimLanes ? 'auto ' : '') + 'repeat(' + ext.config.columns.length + ', 1fr)'">
+       [style.grid-template-columns]="(swimLanes ? 'auto ' : '') + (ext.config.showNoColumn ? '1fr ' : '') + 'repeat(' + ext.config.columns.length + ', 1fr)'">
     <div *ngIf="swimLanes"><!-- corner spacer --></div>
-    <a *ngFor="let col of ext.config.columns"
+    <a *ngIf="ext.config.showNoColumn"
+       class="column-title tag"
+       [routerLink]="['/tag', getQuery({})]"
+       title="No matching column tag">{{ ext.config.noColumnTitle || 'untagged' }}</a>
+    <a *ngFor="let col of columns"
        class="column-title tag"
        [routerLink]="['/tag', ext.tag + ':' + col]"
        [title]="col">{{ col }}</a>
     <ng-container *ngIf="swimLanes else noSwimLanes">
+      <ng-container *ngIf="ext.config.showNoSwimLane">
+        <a class="swim-lane-title tag"
+           [routerLink]="['/tag', getQuery({})]"
+           title="No matching swim lane">{{ ext.config.noSwimLaneTitle || 'untagged' }}</a>
+        <app-kanban-column *ngIf="ext.config.showNoColumn"
+                           cdkDropList
+                           [cdkDropListData]="{}"
+                           (cdkDropListDropped)="drop($any($event))"
+                           [updates]="updates"
+                           [query]="getQuery({})"></app-kanban-column>
+        <app-kanban-column *ngFor="let col of columns"
+                           cdkDropList
+                           [cdkDropListData]="{col}"
+                           (cdkDropListDropped)="drop($any($event))"
+                           [updates]="updates"
+                           [query]="getQuery({col})"></app-kanban-column>
+      </ng-container>
       <ng-container *ngFor="let sl of swimLanes">
         <a class="swim-lane-title tag"
            [routerLink]="['/tag', ext.tag + ':' + sl]"
            [title]="sl">{{ sl }}</a>
-        <app-kanban-column *ngFor="let col of ext.config.columns"
+        <app-kanban-column *ngIf="ext.config.showNoColumn"
                            cdkDropList
-                           [cdkDropListData]="[col, sl]"
-                           (cdkDropListDropped)="drop($event)"
+                           [cdkDropListData]="{sl}"
+                           (cdkDropListDropped)="drop($any($event))"
                            [updates]="updates"
-                           [query]="ext.tag + ':' + col + ':' + sl"></app-kanban-column>
+                           [query]="ext.tag + ':' + sl + ':!' + ext.config.columns.join(':!')"></app-kanban-column>
+        <app-kanban-column *ngFor="let col of columns"
+                           cdkDropList
+                           [cdkDropListData]="{col, sl}"
+                           (cdkDropListDropped)="drop($any($event))"
+                           [updates]="updates"
+                           [query]="getQuery({col, sl})"></app-kanban-column>
       </ng-container>
     </ng-container>
     <ng-template #noSwimLanes>
-      <app-kanban-column *ngFor="let col of ext.config.columns"
+      <app-kanban-column *ngIf="ext.config.showNoColumn"
                          cdkDropList
-                         [cdkDropListData]="[col]"
-                         (cdkDropListDropped)="drop($event)"
+                         [cdkDropListData]="{}"
+                         (cdkDropListDropped)="drop($any($event))"
                          [updates]="updates"
-                         [query]="ext.tag + ':' + col"></app-kanban-column>
+                         [query]="getQuery({})"></app-kanban-column>
+      <app-kanban-column *ngFor="let col of columns"
+                         cdkDropList
+                         [cdkDropListData]="{col}"
+                         (cdkDropListDropped)="drop($any($event))"
+                         [updates]="updates"
+                         [query]="getQuery({col})"></app-kanban-column>
     </ng-template>
   </div>
   <ng-template #error>

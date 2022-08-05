@@ -11,7 +11,8 @@
   <label for="name">Name:</label>
   <input id="name" type="text" formControlName="name">
 
-  <ng-container *ngIf="root">
+  <ng-container *ngIf="root"
+                [formGroup]="config">
     <label for="sidebar">Sidebar:</label>
     <div class="editor-preview">
       <textarea id="sidebar" [formControl]="sidebar"></textarea>
@@ -36,7 +37,8 @@
     </select>
   </ng-container>
 
-  <ng-container *ngIf="user">
+  <ng-container *ngIf="user"
+                [formGroup]="config">
     <label for="subscriptions">Subscriptions:</label>
     <app-queries id="subscriptions"
                  label="subscription"
@@ -55,35 +57,58 @@
                 fieldName="userThemes"></app-themes>
 
     <label for="userTheme">Theme Override:</label>
-    <select id="userTheme" [formControl]="userTheme">
+    <select id="userTheme" formControlName="userTheme">
       <option [ngValue]="undefined">default</option>
       <option *ngFor="let t of userThemeValues" [ngValue]="t">{{ t }}</option>
     </select>
   </ng-container>
 
-  <ng-container *ngIf="queue">
+  <ng-container *ngIf="queue"
+                [formGroup]="config">
     <label for="maxAge">Max Age:</label>
-    <input type="text" id="maxAge" [formControl]="maxAge">
+    <input type="text" id="maxAge" formControlName="maxAge">
 
     <label for="bounty">Bounty:</label>
-    <input type="text" id="bounty" [formControl]="bounty">
+    <input type="text" id="bounty" formControlName="bounty">
 
     <label for="approvers">Approvers:</label>
-    <app-users id="approvers" [group]="config"
+    <app-users id="approvers"
+               [group]="config"
                label="approver"
                fieldName="approvers"></app-users>
   </ng-container>
 
-  <ng-container *ngIf="kanban">
+  <ng-container *ngIf="kanban"
+                [formGroup]="config">
     <label for="columns">Columns:</label>
-    <app-qtags id="columns" [group]="config"
+    <app-qtags id="columns"
+               [group]="config"
                label="column"
                fieldName="columns"></app-qtags>
 
+    <label for="showNoColumn">Extra column for untagged Refs:</label>
+    <div>
+      <input id="showNoColumn" type="checkbox" formControlName="showNoColumn">
+    </div>
+    <ng-container *ngIf="config.get('showNoColumn')!.value">
+      <label for="noColumnTitle">Extra Column Title:</label>
+      <input type="text" id="noColumnTitle" formControlName="noColumnTitle">
+    </ng-container>
+
     <label for="swimLanes">Swim Lanes:</label>
-    <app-qtags id="swimLanes" [group]="config"
+    <app-qtags id="swimLanes"
+               [group]="config"
                label="swim lane"
                fieldName="swimLanes"></app-qtags>
+
+    <label for="showNoSwimLane">Extra swim lane for untagged Refs:</label>
+    <div>
+      <input id="showNoSwimLane" type="checkbox" formControlName="showNoSwimLane">
+    </div>
+    <ng-container *ngIf="config.get('showNoSwimLane')!.value">
+      <label for="noSwimLaneTitle">Extra Swim Lane Title:</label>
+      <input type="text" id="noSwimLaneTitle" formControlName="noSwimLaneTitle">
+    </ng-container>
   </ng-container>
 
   <ng-container *ngFor="let e of serverError">

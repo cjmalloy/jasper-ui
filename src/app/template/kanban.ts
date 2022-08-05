@@ -16,6 +16,10 @@ export const kanbanTemplate: Template = {
     },
     optionalProperties: {
       swimLanes: { elements: { type: 'string' } },
+      showNoColumn: { type: 'boolean'},
+      noColumnTitle: { type: 'string'},
+      showNoSwimLane: { type: 'boolean'},
+      noSwimLaneTitle: { type: 'string'},
     },
   },
 };

@@ -49,27 +49,55 @@ export class KanbanComponent implements OnInit, OnDestroy {
     ).subscribe(ext => this.ext = ext);
   }
 
-  get swimLanes() {
+  get columns(): string[] {
+    return this.ext?.config.columns;
+  }
+
+  get swimLanes(): string[] | undefined {
     if (this.disableSwimLanes) return undefined;
     if (!this.ext?.config.swimLanes) return undefined;
     if (!this.ext?.config.swimLanes.length) return undefined;
     return this.ext?.config.swimLanes;
   }
 
-  drop(event: CdkDragDrop<string[]>) {
+  getQuery(tags: { col?: string, sl?: string }) {
+    const kanbanTag = this.ext!.tag;
+    const columns = this.ext!.config.columns;
+    const swimLanes = this.swimLanes;
+    if (swimLanes) {
+      if (!tags.col && !tags.sl) {
+        return kanbanTag + ':!' + columns.join(':!') + ':!' + swimLanes.join(':!');
+      }
+      if (!tags.col) {
+        return kanbanTag + ':' + tags.sl + ':!' + columns.join(':!');
+      }
+      if (!tags.sl) {
+        return kanbanTag + ':' + tags.col + ':!' + swimLanes.join(':!');
+      }
+      return kanbanTag + ':' + tags.col + ':' + tags.sl;
+    } else {
+      if (!tags.col) {
+        return kanbanTag + ':!' + columns.join(':!');
+      }
+      return kanbanTag + ':' + tags.col;
+    }
+  }
+
+  drop(event: CdkDragDrop<{ sl?: string, col?: string }>) {
     const ref = event.item.data as Ref;
-    const from = event.previousContainer.data;
-    const to = event.container.data;
-    const both = _.intersection(from, to);
-    const remove = _.filter(from, t => !both.includes(t));
-    const add = _.filter(to, t => !both.includes(t));
+    const from = Object.values(event.previousContainer.data);
+    const to = Object.values(event.container.data);
+    const remove = from.filter(t => !to.includes(t));
+    const add = to.filter(t => !from.includes(t));
 
     // Optimistically update, revert in case of error
-    ref.tags = _.filter(ref.tags, t => !remove.includes(t));
-    for (const t of add) ref.tags.push(t);
+    const oldTags = ref.tags;
+    ref.tags = [
+      ...(ref.tags || []).filter(t => !remove.includes(t)),
+      ...add];
     this.updates.next({
-      from: this.ext!.tag + ':' + from.join(':'),
-      to: this.ext!.tag + ':' + to.join(':'),
+      from: this.getQuery(event.previousContainer.data),
+      to: this.getQuery(event.container.data),
       ref,
       index: event.currentIndex,
     });
@@ -79,9 +107,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.tags.patch(tags, ref.url, ref.origin).pipe(
       catchError(() => {
         // Revert
+        ref.tags = oldTags;
         this.updates.next({
-          from: this.ext!.tag + ':' + to.join(':'),
-          to: this.ext!.tag + ':' + from.join(':'),
+          from: this.getQuery(event.container.data),
+          to: this.getQuery(event.previousContainer.data),
           ref,
           index: event.previousIndex,
         });

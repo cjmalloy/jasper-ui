@@ -7,6 +7,7 @@ import { v4 as uuid } from 'uuid';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
+import { TAG_REGEX } from '../../util/format';
 import { filterListToObj, getArgs } from '../../util/query';
 import { KanbanDrag } from '../kanban/kanban.component';
 
@@ -125,7 +126,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     const ref = {
       url: 'comment:' + uuid(),
       title: this.addText,
-      tags: this._query?.split(':'),
+      tags: this._query?.split(':').filter(t => TAG_REGEX.test(t)),
     };
     this.refs.create(ref).subscribe(() => {
       this.mutated = true;

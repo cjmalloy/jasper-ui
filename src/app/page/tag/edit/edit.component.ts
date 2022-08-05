@@ -68,7 +68,11 @@ export class EditTagPage implements OnInit {
         configControls = {
           ...configControls,
           columns: qtagsForm(fb, ext.config?.columns),
+          showNoColumn: [false],
+          noColumnTitle: [''],
           swimLanes: qtagsForm(fb, ext.config?.swimLanes || []),
+          showNoSwimLane: [false],
+          noSwimLaneTitle: [''],
         };
       }
       this.editForm = fb.group({
@@ -113,14 +117,6 @@ export class EditTagPage implements OnInit {
     );
   }
 
-  get tag() {
-    return this.editForm.get('tag') as UntypedFormControl;
-  }
-
-  get name() {
-    return this.editForm.get('name') as UntypedFormControl;
-  }
-
   get config() {
     return this.editForm.get('config') as UntypedFormGroup;
   }
@@ -151,14 +147,6 @@ export class EditTagPage implements OnInit {
 
   get userTheme() {
     return this.config.get('userTheme') as UntypedFormControl;
-  }
-
-  get bounty() {
-    return this.config.get('bounty') as UntypedFormControl;
-  }
-
-  get maxAge() {
-    return this.config.get('maxAge') as UntypedFormControl;
   }
 
   save() {
