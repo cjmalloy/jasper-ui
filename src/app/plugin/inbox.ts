@@ -32,3 +32,6 @@ export function isInbox(tag: string) {
 export function getInbox(userTag: string): string {
   return prefix('plugin/inbox/', localTag(userTag));
 }
+export function newest(refs: Ref[]) {
+  return _.maxBy(refs, r => r.modified!.valueOf());
+}

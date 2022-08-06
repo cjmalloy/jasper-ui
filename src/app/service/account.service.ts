@@ -176,12 +176,12 @@ export class AccountService {
     ).subscribe(count => this.notifications$.next(count));
   }
 
-  clearNotifications() {
+  clearNotifications(readDate: moment.Moment) {
     if (!this.signedIn) throw 'Not signed in';
     this.exts.patch(this.tag, [{
       op: 'add',
       path: '/config/inbox/lastNotified',
-      value: moment().toISOString(),
+      value: readDate.add(1, 'millisecond').toISOString(),
     }]).subscribe(() => {
       this.clearCache();
       this.checkNotifications();

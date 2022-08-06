@@ -5,6 +5,7 @@ import { Observable, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
+import { newest } from '../../../plugin/inbox';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
@@ -31,7 +32,7 @@ export class InboxUnreadPage implements OnInit {
         modifiedAfter: ext.config.inbox.lastNotified || moment().subtract(1, 'year'),
       })),
       tap(page => {
-        if (!page.empty) this.account.clearNotifications();
+        if (!page.empty) this.account.clearNotifications(newest(page.content)!.modified!);
       }),
     );
   }
