@@ -26,7 +26,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   query$ = new Subject<string>();
   _query?: string;
   size = 20;
-  pages: Page<Ref>[] = [];
+  pages?: Page<Ref>[];
   mutated = false;
   addText = '';
   sort = '';
@@ -94,6 +94,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   }
 
   update(event: KanbanDrag) {
+    if (!this.pages) return;
     if (event.from === this._query) {
       for (const p of this.pages) {
         if (p.content.includes(event.ref)) {
@@ -108,15 +109,16 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   }
 
   loadMore() {
-    if (this.mutated) {
-      this.mutated = false;
+    if (this.pages && this.mutated) {
       for (let i = 0; i < this.pages.length; i++) {
         this.refreshPage(i);
       }
     }
+    this.mutated = false;
     this.refs.page(getArgs(
-      this._query, this.sort, {...filterListToObj(this.filter)}, this.search, this.pages.length, this.size
+      this._query, this.sort, {...filterListToObj(this.filter)}, this.search, this.pages?.length || 0, this.size
     )).subscribe(page => {
+      if (!this.pages) this.pages = [];
       this.pages.push(page);
     });
   }
@@ -130,6 +132,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     };
     this.refs.create(ref).subscribe(() => {
       this.mutated = true;
+      if (!this.pages) this.pages = [];
       this.pages[this.pages.length - 1].content.push(ref)
     });
     this.addText = '';
@@ -139,6 +142,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     this.refs.page(getArgs(
       this._query, this.sort, {...filterListToObj(this.filter)}, this.search, i, this.size
     )).subscribe(page => {
+      if (!this.pages) this.pages = [];
       this.pages[i] = page;
     });
   }
