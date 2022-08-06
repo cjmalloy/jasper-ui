@@ -7,25 +7,26 @@
 
 <form class="form" [formGroup]="textForm" (ngSubmit)="submit()">
 
-  <label for="title" *ngIf="!wiki">Title:</label>
-  <label for="title" *ngIf="wiki">Wiki:</label>
-  <input id="title" type="text" [formControl]="title" [attr.disabled]="wiki || null">
-  <span><!-- Title Errors --></span>
-  <div>
-    <div class="error" *ngIf="title.touched && title.errors?.['required']">
-      Title must not be blank.
+  <ng-container *ngIf="!advanced">
+    <label for="title" *ngIf="!wiki">Title:</label>
+    <label for="title" *ngIf="wiki">Wiki:</label>
+    <input id="title" type="text" [formControl]="title" [attr.disabled]="wiki || null">
+    <span><!-- Title Errors --></span>
+    <div>
+      <div class="error" *ngIf="title.touched && title.errors?.['required']">
+        Title must not be blank.
+      </div>
     </div>
-  </div>
 
-  <label for="comment" *ngIf="!wiki">Comment:</label>
-  <label for="comment" *ngIf="wiki">Entry:</label>
-  <div class="editor-preview">
-    <textarea id="comment" class="has-plugins" [formControl]="comment" (blur)="syncEditor()"></textarea>
-    <app-embed [ref]="textForm.value"></app-embed>
-  </div>
+    <label for="comment" *ngIf="!wiki">Comment:</label>
+    <label for="comment" *ngIf="wiki">Entry:</label>
+    <div class="editor-preview">
+      <textarea id="comment" class="has-plugins" [formControl]="comment" (blur)="syncEditor()"></textarea>
+      <app-embed [ref]="textForm.value"></app-embed>
+    </div>
 
-  <span><!-- Comment Plugins --></span>
-  <div class="no-margin">
+    <span><!-- Comment Plugins --></span>
+    <div class="no-margin">
     <span class="hints">
       <ng-container *ngIf="admin.status.plugins.emoji">
         <input id="emoji" type="checkbox" [checked]="emoji" (change)="emoji = !emoji">
@@ -42,10 +43,24 @@
         </label>
       </ng-container>
     </span>
-  </div>
+    </div>
 
-  <label for="tags">Tags</label>
-  <app-tags id="tags" [group]="textForm"></app-tags>
+    <label for="sources">Sources:</label>
+    <app-links id="sources"
+               label="source"
+               [group]="textForm"
+               fieldName="sources"></app-links>
+
+    <label for="tags">Tags</label>
+    <app-tags id="tags" [group]="textForm"></app-tags>
+
+    <span><!-- Advanced --></span>
+    <a class="fake-link" (click)="setAdvanced()">show advanced</a>
+  </ng-container>
+
+  <ng-container *ngIf="advanced">
+    <app-ref-form [group]="textForm"></app-ref-form>
+  </ng-container>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>

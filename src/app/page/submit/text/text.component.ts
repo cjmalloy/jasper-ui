@@ -23,10 +23,10 @@ import { printError } from '../../../util/http';
 })
 export class SubmitTextPage implements AfterViewInit {
 
-  url?: string;
   wiki = false;
   submitted = false;
   textForm: UntypedFormGroup;
+  advanced = false;
   serverError: string[] = [];
 
   emoji = !!this.admin.status.plugins.emoji;
@@ -54,18 +54,23 @@ export class SubmitTextPage implements AfterViewInit {
       this.addTag('public');
       this.addTag(this.account.tag);
       this.route.queryParams.subscribe(params => {
-        this.url = params['url'];
-        this.wiki = !!this.url?.startsWith('wiki:');
+        let url = params['url'] || 'comment:' + uuid();
+        this.wiki = !!url.startsWith('wiki:');
         if (this.wiki) {
-          this.url = wikiUriFormat(this.url!);
+          url = wikiUriFormat(url);
           this.theme.setTitle('Submit: Wiki');
-          this.title.setValue(wikiTitleFormat(this.url?.substring('wiki:'.length)));
+          this.title.setValue(wikiTitleFormat(url.substring('wiki:'.length)));
         }
+        this.url.setValue(url);
         if (params['tag']) {
           this.addTag(...params['tag'].split(/[:|!()]/));
         }
       });
     });
+  }
+
+  get url() {
+    return this.textForm.get('url') as UntypedFormControl;
   }
 
   get title() {
@@ -85,6 +90,7 @@ export class SubmitTextPage implements AfterViewInit {
   }
 
   addPlugins(tags: string[]) {
+    if (this.advanced) return tags;
     const result = [...tags];
     if (this.emoji) result.push('plugin/emoji');
     if (this.latex) result.push('plugin/latex');
@@ -95,17 +101,21 @@ export class SubmitTextPage implements AfterViewInit {
     this.editor.syncEditor(this.fb, this.textForm);
   }
 
+  setAdvanced() {
+    this.advanced = true;
+    if (this.emoji) this.addTag('plugin/emoji');
+    if (this.latex) this.addTag('plugin/latex');
+  }
+
   submit() {
     this.serverError = [];
     this.submitted = true;
     this.textForm.markAllAsTouched();
     this.syncEditor();
     if (!this.textForm.valid) return;
-    const url = this.url || 'comment:' + uuid();
     this.refs.create({
       ...this.textForm.value,
       tags: this.addPlugins(this.textForm.value.tags),
-      url,
       published: moment(),
     }).pipe(
       catchError((res: HttpErrorResponse) => {
@@ -113,7 +123,7 @@ export class SubmitTextPage implements AfterViewInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/ref', url]);
+      this.router.navigate(['/ref', this.textForm.value.url]);
     });
   }
 }
