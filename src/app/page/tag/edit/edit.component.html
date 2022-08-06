@@ -16,7 +16,9 @@
     <label for="sidebar">Sidebar:</label>
     <div class="editor-preview">
       <textarea id="sidebar" [formControl]="sidebar"></textarea>
-      <app-md [text]="sidebar.value"></app-md>
+      <app-md *ngIf="sidebar.value"
+              [text]="sidebar.value"
+              class="expand"></app-md>
     </div>
 
     <label for="pinned">Pinned:</label>
