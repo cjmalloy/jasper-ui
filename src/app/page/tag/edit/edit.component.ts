@@ -170,4 +170,13 @@ export class EditTagPage implements OnInit {
       this.router.navigate(['/tag', this.ext.tag]);
     });
   }
+
+  delete() {
+    if (window.confirm("Are you sure you want to delete this tag extension?")) {
+      this.exts.delete(this.ext.tag + this.ext.origin)
+        .subscribe(() => {
+          this.router.navigate(['/tag', this.ext.tag]);
+        });
+    }
+  }
 }
