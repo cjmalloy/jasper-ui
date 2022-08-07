@@ -7,6 +7,7 @@ import { v4 as uuid } from 'uuid';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
+import { TaggingService } from '../../service/api/tagging.service';
 import { TAG_REGEX, URI_REGEX } from '../../util/format';
 import { filterListToObj, getArgs } from '../../util/query';
 import { KanbanDrag } from '../kanban/kanban.component';
@@ -38,6 +39,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private refs: RefService,
+    private tags: TaggingService,
   ) {
     combineLatest(
       this.query$, this.sort$, this.filter$, this.search$
@@ -136,7 +138,18 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
       title: this.addText,
       tags: this.addTags,
     };
-    this.refs.create(ref).subscribe(() => {
+    this.refs.create(ref).pipe(
+      map(() => ref),
+      catchError(err => {
+        if (err.status === 409) {
+          // Ref already exists, just tag it
+          return this.tags.patch(this.addTags, ref.url).pipe(
+            switchMap(() => this.refs.get(ref.url)),
+          );
+        }
+        return throwError(err);
+      }),
+    ).subscribe(ref => {
       this.mutated = true;
       if (!this.pages) this.pages = [];
       this.pages[this.pages.length - 1].content.push(ref)
