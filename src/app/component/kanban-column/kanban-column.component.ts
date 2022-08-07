@@ -6,10 +6,12 @@ import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { TAG_REGEX, URI_REGEX } from '../../util/format';
 import { filterListToObj, getArgs } from '../../util/query';
+import { userTag } from '../../util/tag';
 import { KanbanDrag } from '../kanban/kanban.component';
 
 @Component({
@@ -38,6 +40,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
+    private account: AccountService,
     private refs: RefService,
     private tags: TaggingService,
   ) {
@@ -130,13 +133,15 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   add() {
     this.addText = this.addText.trim();
     if (!this.addText) return;
+    const tags = [...this.addTags];
+    if (!tags.includes(this.account.tag)) tags.push(this.account.tag);
     const ref = URI_REGEX.test(this.addText) ? {
       url: this.addText,
-      tags: this.addTags,
+      tags,
     } : {
       url: 'comment:' + uuid(),
       title: this.addText,
-      tags: this.addTags,
+      tags,
     };
     this.refs.create(ref).pipe(
       map(() => ref),
