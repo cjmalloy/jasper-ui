@@ -1,7 +1,7 @@
-import { AfterViewInit, Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, Input, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash-es';
-import { catchError, combineLatest, map, Observable, of, Subject, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, combineLatest, map, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Page } from '../../model/page';
@@ -9,9 +9,8 @@ import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
-import { TAG_REGEX, URI_REGEX } from '../../util/format';
+import { URI_REGEX } from '../../util/format';
 import { filterListToObj, getArgs } from '../../util/query';
-import { userTag } from '../../util/tag';
 import { KanbanDrag } from '../kanban/kanban.component';
 
 @Component({
