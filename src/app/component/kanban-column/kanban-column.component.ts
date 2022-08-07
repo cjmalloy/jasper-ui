@@ -126,6 +126,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   }
 
   add() {
+    this.addText = this.addText.trim();
     if (!this.addText) return;
     const ref = URI_REGEX.test(this.addText) ? {
       url: this.addText,
