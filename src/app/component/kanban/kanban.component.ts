@@ -4,6 +4,7 @@ import * as _ from 'lodash-es';
 import { catchError, of, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
 import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
 
@@ -27,6 +28,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   updates = new Subject<KanbanDrag>();
 
   constructor(
+    private account: AccountService,
     private exts: ExtService,
     private tags: TaggingService,
   ) { }
@@ -58,6 +60,21 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (!this.ext?.config.swimLanes) return undefined;
     if (!this.ext?.config.swimLanes.length) return undefined;
     return this.ext?.config.swimLanes;
+  }
+
+  /**
+   * Tags to apply to new Refs created on the board.
+   */
+  addingTags(tags: { col?: string, sl?: string }) {
+    const result = [];
+    if (!this.ext!.tag.startsWith('_')) {
+      result.push('public');
+    }
+    result.push(this.account.tag);
+    result.push(this.ext!.tag);
+    if (tags.col && !result.includes(tags.col)) result.push(tags.col);
+    if (tags.sl && !result.includes(tags.sl)) result.push(tags.sl);
+    return result;
   }
 
   getQuery(tags: { col?: string, sl?: string }) {

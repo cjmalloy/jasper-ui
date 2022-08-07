@@ -7,7 +7,7 @@ import { v4 as uuid } from 'uuid';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
-import { TAG_REGEX } from '../../util/format';
+import { TAG_REGEX, URI_REGEX } from '../../util/format';
 import { filterListToObj, getArgs } from '../../util/query';
 import { KanbanDrag } from '../kanban/kanban.component';
 
@@ -22,6 +22,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
 
   @Input()
   updates?: Observable<KanbanDrag>;
+  @Input()
+  addTags: string[] = [];
 
   query$ = new Subject<string>();
   _query?: string;
@@ -125,10 +127,13 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
 
   add() {
     if (!this.addText) return;
-    const ref = {
+    const ref = URI_REGEX.test(this.addText) ? {
+      url: this.addText,
+      tags: this.addTags,
+    } : {
       url: 'comment:' + uuid(),
       title: this.addText,
-      tags: this._query?.split(':').filter(t => TAG_REGEX.test(t)),
+      tags: this.addTags,
     };
     this.refs.create(ref).subscribe(() => {
       this.mutated = true;

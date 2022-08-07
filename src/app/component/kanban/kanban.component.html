@@ -23,13 +23,15 @@
                            [cdkDropListData]="{}"
                            (cdkDropListDropped)="drop($any($event))"
                            [updates]="updates"
-                           [query]="getQuery({})"></app-kanban-column>
+                           [query]="getQuery({})"
+                           [addTags]="addingTags({})"></app-kanban-column>
         <app-kanban-column *ngFor="let col of columns"
                            cdkDropList
                            [cdkDropListData]="{col}"
                            (cdkDropListDropped)="drop($any($event))"
                            [updates]="updates"
-                           [query]="getQuery({col})"></app-kanban-column>
+                           [query]="getQuery({col})"
+                           [addTags]="addingTags({col})"></app-kanban-column>
       </ng-container>
       <ng-container *ngFor="let sl of swimLanes">
         <a class="swim-lane-title tag"
@@ -40,13 +42,15 @@
                            [cdkDropListData]="{sl}"
                            (cdkDropListDropped)="drop($any($event))"
                            [updates]="updates"
-                           [query]="ext.tag + ':' + sl + ':!' + ext.config.columns.join(':!')"></app-kanban-column>
+                           [query]="getQuery({sl})"
+                           [addTags]="addingTags({sl})"></app-kanban-column>
         <app-kanban-column *ngFor="let col of columns"
                            cdkDropList
                            [cdkDropListData]="{col, sl}"
                            (cdkDropListDropped)="drop($any($event))"
                            [updates]="updates"
-                           [query]="getQuery({col, sl})"></app-kanban-column>
+                           [query]="getQuery({col, sl})"
+                           [addTags]="addingTags({col, sl})"></app-kanban-column>
       </ng-container>
     </ng-container>
     <ng-template #noSwimLanes>
@@ -55,13 +59,15 @@
                          [cdkDropListData]="{}"
                          (cdkDropListDropped)="drop($any($event))"
                          [updates]="updates"
-                         [query]="getQuery({})"></app-kanban-column>
+                         [query]="getQuery({})"
+                         [addTags]="addingTags({})"></app-kanban-column>
       <app-kanban-column *ngFor="let col of columns"
                          cdkDropList
                          [cdkDropListData]="{col}"
                          (cdkDropListDropped)="drop($any($event))"
                          [updates]="updates"
-                         [query]="getQuery({col})"></app-kanban-column>
+                         [query]="getQuery({col})"
+                         [addTags]="addingTags({col})"></app-kanban-column>
     </ng-template>
   </div>
   <ng-template #error>

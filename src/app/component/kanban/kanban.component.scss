@@ -4,6 +4,7 @@
   .column-title, .swim-lane-title {
     text-overflow: ellipsis;
     overflow: hidden;
+    user-select: none;
   }
 
   .column-title {

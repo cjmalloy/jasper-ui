@@ -1,5 +1,5 @@
 <a class="card-title" [routerLink]="['/ref', ref.url, refView]">
-    {{ ref.title }}
+    {{ ref.title || ref.url }}
 </a>
 <app-md *ngIf="ref.comment"
         [text]="ref.comment!"></app-md>
