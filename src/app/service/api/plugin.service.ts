@@ -3,9 +3,7 @@ import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { mapPlugin, maybePlugin, Plugin, writePlugin } from '../../model/plugin';
-import { mapRefOrNull, Ref } from '../../model/ref';
 import { params } from '../../util/http';
-import { AccountService } from '../account.service';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 

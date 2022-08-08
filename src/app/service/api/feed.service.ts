@@ -4,7 +4,6 @@ import { catchError, map, Observable, of } from 'rxjs';
 import { Feed, mapFeed } from '../../model/feed';
 import { mapPage, Page } from '../../model/page';
 import { params } from '../../util/http';
-import { AccountService } from '../account.service';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 

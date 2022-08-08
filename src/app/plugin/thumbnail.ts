@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
-import { bitchuteHosts, getHost, imgurHosts, twitterHosts, youtubeHosts } from '../util/hosts';
+import { bitchuteHosts, getHost, imgurHosts, youtubeHosts } from '../util/hosts';
 import { isImage } from './image';
 import { isVideo } from './video';
 

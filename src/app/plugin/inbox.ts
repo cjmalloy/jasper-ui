@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { authors } from '../util/format';
-import { removeOriginWildcard, prefix, localTag } from '../util/tag';
+import { localTag, prefix } from '../util/tag';
 
 export const inboxPlugin: Plugin = {
   tag: 'plugin/inbox',

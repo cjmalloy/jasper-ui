@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
+import { AfterViewInit, Component, Input } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { emptyObject, writeObj } from '../../util/http';
 import { archivePluginForm } from '../plugin/archive/archive.component';

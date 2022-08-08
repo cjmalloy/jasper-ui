@@ -1,9 +1,8 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { UntypedFormControl, UntypedFormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import * as moment from 'moment';
+import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
-import { refForm, RefFormComponent } from './ref.component';
+import { RefFormComponent } from './ref.component';
 
 describe('RefFormComponent', () => {
   let component: RefFormComponent;

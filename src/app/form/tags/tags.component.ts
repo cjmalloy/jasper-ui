@@ -1,5 +1,5 @@
-import { Component, forwardRef, HostBinding, Input, OnInit } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { TAG_REGEX } from '../../util/format';
 
 @Component({

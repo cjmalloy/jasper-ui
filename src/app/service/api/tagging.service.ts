@@ -2,7 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, Observable } from 'rxjs';
 import { params } from '../../util/http';
-import { AccountService } from '../account.service';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 

@@ -1,9 +1,6 @@
-import { AfterViewInit, Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, FormControl, UntypedFormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Feed } from '../../model/feed';
-import { AdminService } from '../../service/admin.service';
-import { ThemeService } from '../../service/theme.service';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({

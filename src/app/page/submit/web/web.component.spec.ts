@@ -5,7 +5,6 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
-import { Ref } from '../../../model/ref';
 
 import { SubmitWebPage } from './web.component';
 

@@ -6,7 +6,7 @@ import { getInbox } from '../../plugin/inbox';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { TAG_REGEX } from '../../util/format';
-import { removeOriginWildcard, prefix } from '../../util/tag';
+import { prefix, removeOriginWildcard } from '../../util/tag';
 
 @Component({
   selector: 'app-sidebar',

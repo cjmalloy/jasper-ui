@@ -1,9 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, map, Observable, of, Subject, switchMap } from 'rxjs';
+import { catchError, combineLatest, map, Observable, of, Subject, switchMap } from 'rxjs';
 import { distinctUntilChanged, tap } from 'rxjs/operators';
-import { combineLatest } from 'rxjs';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';

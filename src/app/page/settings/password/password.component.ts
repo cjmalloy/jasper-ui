@@ -1,16 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, map, switchMap, throwError } from 'rxjs';
-import { Ext } from '../../../model/ext';
+import { catchError, throwError } from 'rxjs';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
-import { ExtService } from '../../../service/api/ext.service';
 import { ProfileService } from '../../../service/api/profile.service';
-import { QUALIFIED_TAG_REGEX, USER_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { removeOriginWildcard } from '../../../util/tag';
 
 @Component({
   selector: 'app-settings-password-page',

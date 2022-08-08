@@ -1,6 +1,5 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { BackupService } from '../../service/api/backup.service';
 
 import { BackupComponent } from './backup.component';
 

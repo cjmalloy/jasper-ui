@@ -1,6 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { EmbedService } from '../service/embed.service';
-import { youtubeHosts } from '../util/hosts';
 
 @Pipe({
   name: 'embed',

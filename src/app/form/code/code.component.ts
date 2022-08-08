@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { UntypedFormGroup } from "@angular/forms";
-import { ThemeService } from "../../service/theme.service";
+import { UntypedFormGroup } from '@angular/forms';
+import { ThemeService } from '../../service/theme.service';
 
 @Component({
   selector: 'app-code',
