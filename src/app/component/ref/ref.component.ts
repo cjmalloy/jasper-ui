@@ -72,6 +72,13 @@ export class RefComponent implements OnInit {
 
   @Input()
   set ref(value: Ref) {
+    this.submitted = false;
+    this.deleted = false;
+    this.deleting = false;
+    this.editing = false;
+    this.viewSource = false;
+    this.tagging = false;
+    this.actionsExpanded = false;
     this._ref = value;
     this.writeAccess$ = this.account.writeAccess(value);
     if (value.tags) {
