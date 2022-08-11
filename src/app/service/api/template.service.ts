@@ -38,13 +38,12 @@ export class TemplateService {
   }
 
   exists(tag: string): Observable<boolean> {
-    return this.http.get(`${this.base}/exists`, {
-      params: { tag },
-      responseType: 'text',
+    return this.http.head(this.base, {
+      params: params({ tag }),
     }).pipe(
-      map(v => v === 'true'),
+      map(() => true),
       catchError(err => this.login.handleHttpError(err)),
-      catchError(err => of(false)),
+      catchError(() => of(false)),
     );
   }
 

@@ -29,13 +29,12 @@ export class FeedService {
   }
 
   exists(url: string, origin = ''): Observable<boolean> {
-    return this.http.get(`${this.base}/exists`, {
+    return this.http.head(this.base, {
       params: params({ url, origin }),
-      responseType: 'text',
     }).pipe(
-      map(v => v === 'true'),
+      map(() => true),
       catchError(err => this.login.handleHttpError(err)),
-      catchError(err => of(false)),
+      catchError(() => of(false)),
     );
   }
 

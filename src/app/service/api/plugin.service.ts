@@ -38,13 +38,12 @@ export class PluginService {
   }
 
   exists(tag: string): Observable<boolean> {
-    return this.http.get(`${this.base}/exists`, {
+    return this.http.head(this.base, {
       params: params({ tag }),
-      responseType: 'text',
     }).pipe(
-      map(v => v === 'true'),
+      map(() => true),
       catchError(err => this.login.handleHttpError(err)),
-      catchError(err => of(false)),
+      catchError(() => of(false)),
     );
   }
 
