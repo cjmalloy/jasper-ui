@@ -137,7 +137,7 @@
            [ref]="ref"
            [expandPlugins]="expandPlugins"></app-embed>
 
-<form *ngIf="editing" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+<form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
   <app-ref-form [group]="editForm"></app-ref-form>
 
@@ -157,3 +157,8 @@
   <app-ref-form [group]="editForm"></app-ref-form>
 </form>
 
+<ng-template #showErrors>
+  <ng-container *ngFor="let e of serverError">
+    <div class="error">{{ e }}</div>
+  </ng-container>
+</ng-template>

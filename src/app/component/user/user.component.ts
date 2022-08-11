@@ -64,9 +64,9 @@ export class UserComponent implements OnInit {
       ...this.user,
       ...this.editForm.value,
     }).pipe(
-      catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        return throwError(() => res);
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
       }),
       switchMap(() => this.users.get(this.qualifiedTag)),
     ).subscribe(user => {
@@ -76,7 +76,12 @@ export class UserComponent implements OnInit {
   }
 
   delete() {
-    this.users.delete(this.user.tag).subscribe(() => {
+    this.users.delete(this.user.tag).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(() => {
       this.deleted = true;
     });
   }

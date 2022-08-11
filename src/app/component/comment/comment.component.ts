@@ -1,5 +1,6 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Observable, Subject, switchMap, takeUntil } from 'rxjs';
+import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { inboxes } from '../../plugin/inbox';
 import { AccountService } from '../../service/account.service';
@@ -7,6 +8,7 @@ import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { authors, interestingTags, TAG_REGEX_STRING } from '../../util/format';
+import { printError } from '../../util/http';
 
 @Component({
   selector: 'app-comment',
@@ -42,6 +44,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   tagging = false;
   deleting = false;
   writeAccess$?: Observable<boolean>;
+  serverError: string[] = [];
 
   constructor(
     public admin: AdminService,
@@ -158,6 +161,10 @@ export class CommentComponent implements OnInit, OnDestroy {
     if (!this.inlineTag) return;
     const tag = (this.inlineTag.nativeElement.value as string).toLowerCase();
     this.tags.create(tag, this._ref.url, this._ref.origin!).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
     ).subscribe(ref => {
       this.tagging = false;
@@ -167,6 +174,10 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   approve() {
     this.tags.create('_moderated', this._ref.url, this._ref.origin!).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
     ).subscribe(ref => {
       this._ref = ref;
@@ -179,6 +190,10 @@ export class CommentComponent implements OnInit, OnDestroy {
       path: '/plugins/plugin~1comment/deleted',
       value: true,
     }]).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
     ).subscribe(ref => this._ref = ref);
   }

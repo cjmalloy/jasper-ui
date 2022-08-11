@@ -216,6 +216,10 @@ export class RefComponent implements OnInit {
     const tag = (this.inlineTag.nativeElement.value as string).toLowerCase().trim();
     this.ts.create(tag, this._ref.url, this._ref.origin!).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
     ).subscribe(ref => {
       this.tagging = false;
       this.ref = ref;
@@ -229,12 +233,20 @@ export class RefComponent implements OnInit {
       value: '_moderated',
     }]).pipe(
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
     ).subscribe(ref => this.ref = ref);
   }
 
   accept() {
     this.refs.delete(this._ref.metadata!.plugins['plugin/invoice/disputed'][0]).pipe(
       switchMap(() => this.refs.get(this._ref.url)),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
     ).subscribe(ref => {
       this.ref = ref;
     });
@@ -248,6 +260,10 @@ export class RefComponent implements OnInit {
       sources: [this._ref.url],
     }).pipe(
       switchMap(() => this.refs.get(this._ref.url)),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
     ).subscribe(ref => {
       this.ref = ref;
     });
@@ -257,6 +273,10 @@ export class RefComponent implements OnInit {
     if (this._ref.metadata?.plugins?.['plugin/invoice/rejected']?.length) {
       this.refs.delete(this._ref.metadata!.plugins['plugin/invoice/rejected'][0]).pipe(
         switchMap(() => this.refs.get(this._ref.url)),
+        catchError((err: HttpErrorResponse) => {
+          this.serverError = printError(err);
+          return throwError(() => err);
+        }),
       ).subscribe(ref => {
         this.ref = ref;
       });
@@ -268,6 +288,10 @@ export class RefComponent implements OnInit {
       sources: [this._ref.url],
     }).pipe(
       switchMap(() => this.refs.get(this._ref.url)),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
     ).subscribe(ref => {
       this.ref = ref;
     });
@@ -277,6 +301,10 @@ export class RefComponent implements OnInit {
     if (this._ref.metadata?.plugins?.['plugin/invoice/paid']?.length) {
       this.refs.delete(this._ref.metadata!.plugins['plugin/invoice/paid'][0]).pipe(
         switchMap(() => this.refs.get(this._ref.url)),
+        catchError((err: HttpErrorResponse) => {
+          this.serverError = printError(err);
+          return throwError(() => err);
+        }),
       ).subscribe(ref => {
         this.ref = ref;
       });
@@ -288,6 +316,10 @@ export class RefComponent implements OnInit {
       sources: [this._ref.url],
     }).pipe(
       switchMap(() => this.refs.get(this._ref.url)),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
     ).subscribe(ref => {
       this.ref = ref;
     });
@@ -304,11 +336,11 @@ export class RefComponent implements OnInit {
       published: moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
       plugins: writePlugins(this.editForm.value.plugins),
     }).pipe(
-      catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        return throwError(res);
-      }),
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin)),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
     ).subscribe(ref => {
       this.editing = false;
       this.ref = ref;
@@ -316,7 +348,12 @@ export class RefComponent implements OnInit {
   }
 
   delete() {
-    this.refs.delete(this._ref.url, this._ref.origin!).subscribe(() => {
+    this.refs.delete(this._ref.url, this._ref.origin!).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(() => {
       this.deleted = true;
     });
   }

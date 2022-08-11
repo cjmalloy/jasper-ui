@@ -25,7 +25,7 @@
   </div>
 </div>
 
-<form *ngIf="editing" [formGroup]="editForm" (ngSubmit)="save()">
+<form *ngIf="editing else showErrors" [formGroup]="editForm" (ngSubmit)="save()">
 
   <app-origin-form [group]="editForm"></app-origin-form>
 
@@ -41,3 +41,8 @@
   </span>
 </form>
 
+<ng-template #showErrors>
+  <ng-container *ngFor="let e of serverError">
+    <div class="error">{{ e }}</div>
+  </ng-container>
+</ng-template>

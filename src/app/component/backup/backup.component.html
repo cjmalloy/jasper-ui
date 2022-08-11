@@ -8,9 +8,13 @@
   </div>
   <div class="actions">
     <a [routerLink]="['/ref', downloadLink]">comment</a>
-    <a class="fake-link"
-       *ngIf="!inProgress"
-       (click)="restore()">restore</a>
+    <a *ngIf="!restoring && !inProgress"
+       class="fake-link"
+       (click)="restoring = true">restore</a>
+    <span *ngIf="restoring" class="restore-confirm">are you sure?
+      <a class="fake-link" (click)="restore()">yes</a> /
+      <a class="fake-link" (click)="restoring = false">no</a>
+    </span>
     <a *ngIf="!deleting"
        class="fake-link"
        (click)="deleting = true">delete</a>
@@ -20,3 +24,7 @@
     </span>
   </div>
 </div>
+
+<ng-container *ngFor="let e of serverError">
+  <div class="error">{{ e }}</div>
+</ng-container>

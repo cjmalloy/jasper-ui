@@ -54,9 +54,9 @@ export class OriginComponent implements OnInit {
       ...this.origin,
       ...this.editForm.value,
     }).pipe(
-      catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        return throwError(() => res);
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
       }),
       switchMap(() => this.origins.get(this.origin.origin)),
     ).subscribe(origin => {
@@ -66,7 +66,12 @@ export class OriginComponent implements OnInit {
   }
 
   delete() {
-    this.origins.delete(this.origin.origin).subscribe(() => {
+    this.origins.delete(this.origin.origin).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(() => {
       this.deleted = true;
     });
   }

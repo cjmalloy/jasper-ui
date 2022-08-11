@@ -14,6 +14,7 @@ export class BackupComponent implements OnInit {
   @Input()
   id!: string;
 
+  restoring = false;
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
@@ -39,15 +40,21 @@ export class BackupComponent implements OnInit {
   }
 
   restore() {
-    this.backups.restore(this.id)
-      .subscribe();
+    this.backups.restore(this.id).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(() =>{
+        this.restoring = false;
+    });
   }
 
   delete() {
     this.backups.delete(this.id).pipe(
-      catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        return throwError(() => res);
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
       }),
     ).subscribe(() => {
       this.deleted = true;

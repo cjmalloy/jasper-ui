@@ -73,6 +73,10 @@ export class FeedComponent implements OnInit {
       path: '/tags/-',
       value: tag,
     }]).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
       switchMap(() => this.feeds.get(this.feed.url, this.feed.origin!)),
     ).subscribe(ref => {
       this.tagging = false;
@@ -88,9 +92,9 @@ export class FeedComponent implements OnInit {
       ...this.feed,
       ...this.editForm.value,
     }).pipe(
-      catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        return throwError(() => res);
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
       }),
       switchMap(() => this.feeds.get(this.feed.url, this.feed.origin)),
     ).subscribe(ref => {
@@ -100,16 +104,21 @@ export class FeedComponent implements OnInit {
   }
 
   delete() {
-    this.feeds.delete(this.feed.url, this.feed.origin!).subscribe(() => {
+    this.feeds.delete(this.feed.url, this.feed.origin!).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(() => {
       this.deleted = true;
     });
   }
 
   scrape() {
     this.feeds.scrape(this.feed.url, this.feed.origin!).pipe(
-      catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        return throwError(() => res);
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
       }),
       switchMap(() => this.feeds.get(this.feed.url, this.feed.origin)),
     ).subscribe(ref => {

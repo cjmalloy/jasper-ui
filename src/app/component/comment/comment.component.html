@@ -113,3 +113,7 @@
                     [context]="context + 1"
                     [newComments$]="newComments$"></app-comment-list>
 </div>
+
+<ng-container *ngFor="let e of serverError">
+  <div class="error">{{ e }}</div>
+</ng-container>

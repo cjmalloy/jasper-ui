@@ -84,9 +84,9 @@ export class TagComponent implements OnInit {
       ...this.editForm.value,
     }).pipe(
       switchMap(() => this.service.get(this.tag.tag)),
-      catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        return throwError(() => res);
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
       }),
     ).subscribe(tag => {
       this.editing = false;
@@ -96,9 +96,9 @@ export class TagComponent implements OnInit {
 
   delete() {
     this.service.delete(this.tag.tag).pipe(
-      catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        return throwError(() => res);
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
       }),
     ).subscribe(() => {
       this.deleted = true;
