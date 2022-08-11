@@ -54,6 +54,7 @@ export class AccountService {
       }),
       switchMap(tag => tag ? this.loadUserExt$ : of()),
       switchMap(() => this.subscriptions$),
+      switchMap(() => this.bookmarks$),
       switchMap(() => this.theme$),
     );
   }
