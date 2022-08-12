@@ -1,13 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { combineLatest, map, Subject, switchMap, takeUntil } from 'rxjs';
-import { distinctUntilChanged, tap } from 'rxjs/operators';
-import { Page } from '../../../model/page';
-import { Ref } from '../../../model/ref';
-import { AccountService } from '../../../service/account.service';
+import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
+import { QueryStore } from '../../../store/query';
+import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-ref-missing',
@@ -15,64 +12,51 @@ import { ThemeService } from '../../../service/theme.service';
   styleUrls: ['./missing.component.scss']
 })
 export class RefMissingComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
 
-  page: Page<Ref> = {
-    content: [],
-    empty: true,
-    first: true,
-    last: true,
-    number: 0,
-    size: 0,
-    totalElements: 0,
-    totalPages: 1,
-  };
+  private disposers: IReactionDisposer[] = [];
 
   constructor(
     private theme: ThemeService,
     public admin: AdminService,
-    public account: AccountService,
-    private route: ActivatedRoute,
+    public store: Store,
+    public query: QueryStore,
     private refs: RefService,
   ) {
-    combineLatest(this.url$, this.origin$).pipe(
-      takeUntil(this.destroy$),
-      switchMap(([url, origin]) => refs.get(url, origin)),
-    ).subscribe(ref => {
-      if (!ref.sources) return;
-      for (const url of ref.sources) {
-        this.refs.exists(url).subscribe(exists => {
-          if (!exists) {
-            this.page.empty = false;
-            this.page.content.push({ url });
-            this.page.totalElements++;
-            this.page.size++;
-          }
-        });
-      }
-    });
+    query.clear();
   }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => {
+      runInAction(() => this.query.page = {
+        content: [],
+        empty: true,
+        first: true,
+        last: true,
+        number: 0,
+        size: 0,
+        totalElements: 0,
+        totalPages: 1,
+      });
+      this.theme.setTitle('Missing Sources: ' + (this.store.view.ref?.title || this.store.view.url));
+      if (!this.store.view.ref?.sources) return;
+      for (const url of this.store.view.ref.sources) {
+        this.refs.exists(url).subscribe(exists => {
+          if (!exists) {
+            runInAction(() => {
+              this.query.page!.empty = false;
+              this.query.page!.content.push({ url });
+              this.query.page!.totalElements++;
+              this.query.page!.size++;
+            });
+          }
+        });
+      }
+    }));
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  get url$() {
-    return this.route.params.pipe(
-      map(params => params['ref']),
-      tap(url => this.refs.get(url).subscribe(ref => this.theme.setTitle('Missing Sources: ' + (ref.title || ref.url)))),
-    );
-  }
-
-  get origin$() {
-    return this.route.queryParams.pipe(
-      map((params) => params['origin']),
-      distinctUntilChanged(),
-    );
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
 }

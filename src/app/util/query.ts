@@ -1,4 +1,4 @@
-import { RefFilter, RefQueryArgs } from '../service/api/ref.service';
+import { RefFilter, RefPageArgs, RefSort } from '../model/ref';
 
 export function filterListToObj(filter?: string[] | string | {}): RefFilter | undefined {
   if (!filter) return undefined;
@@ -35,12 +35,12 @@ export const defaultDesc = ['created', 'published', 'modified', 'rank', 'comment
 
 export function getArgs(
   tagOrSimpleQuery?: string,
-  sort?: string | string[],
+  sort?: RefSort | RefSort[],
   filterOrList?: (Record<string, any> & RefFilter) | string[] | string,
   search?: string,
   pageNumber?: number,
   pageSize?: number
-): RefQueryArgs {
+): RefPageArgs {
   let filter: (Record<string, any> & RefFilter) | undefined = filterListToObj(filterOrList);
   let queryFilter = '';
   if (filter?.notInternal) {
@@ -55,13 +55,13 @@ export function getArgs(
     for (let i = 0; i < sort.length; i++) {
       const s = sort[i];
       if (defaultDesc.includes(s)) {
-        sort[i] = s + ',desc';
+        sort[i] = s + ',DESC' as RefSort;
       }
     }
   } else {
-    sort = ['created,desc'];
+    sort = ['created,DESC'];
   }
-  const args: RefQueryArgs = {
+  const args: RefPageArgs = {
     query,
     sort,
     search,

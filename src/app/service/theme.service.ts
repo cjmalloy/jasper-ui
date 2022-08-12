@@ -1,7 +1,8 @@
 import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { AccountService } from './account.service';
+import { autorun } from 'mobx';
+import { Store } from '../store/store';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -16,11 +17,11 @@ export class ThemeService {
   constructor(
     @Inject(DOCUMENT) private document: Document,
     private config: ConfigService,
+    private store: Store,
     private titleService: Title,
-    private account: AccountService,
   ) {
     this.setTheme(localStorage.getItem('theme'));
-    this.account.watchTheme$?.subscribe(css => this.setCustomCss(css));
+    autorun(() => this.setCustomCss(store.account.theme || store.view.ext?.config?.themes?.[store.view.ext?.config?.theme]));
   }
 
   toggle() {

@@ -4,3 +4,8 @@ export interface Profile {
   password?: string;
   role?: string;
 }
+
+export type ProfilePageArgs = {
+  page?: number,
+  size?: number,
+};

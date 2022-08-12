@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable } from 'rxjs';
-import { mapOrigin, Origin } from '../../model/origin';
+import { mapOrigin, Origin, OriginPageArgs } from '../../model/origin';
 import { mapPage, Page } from '../../model/page';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
@@ -37,13 +37,7 @@ export class OriginService {
     );
   }
 
-  page(args: {
-    query?: string,
-    page?: number,
-    size?: number,
-    sort?: string,
-    direction?: 'asc' | 'desc',
-  }): Observable<Page<Origin>> {
+  page(args: OriginPageArgs): Observable<Page<Origin>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(

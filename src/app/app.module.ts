@@ -4,6 +4,7 @@ import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { QRCodeModule } from 'angularx-qrcode';
+import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { switchMap } from 'rxjs';
@@ -225,6 +226,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    MobxAngularModule,
     MarkdownModule.forRoot(),
     QRCodeModule,
     MonacoEditorModule.forRoot(),

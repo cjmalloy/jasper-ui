@@ -66,21 +66,21 @@
             <ng-container *ngIf="admin.status.plugins.graph">
               <a [routerLink]="['/ref', ref.url, 'graph']" [queryParams]="{ origin, hideSearch: true }">graph</a>
             </ng-container>
-            <a *ngIf="writeAccess$ | async; else source"
+            <a *ngIf="writeAccess else source"
                class="fake-link"
                (click)="editing = !editing">edit</a>
             <ng-template #source>
               <a class="fake-link"
                  (click)="viewSource = !viewSource">source</a>
             </ng-template>
-            <a *ngIf="!deleting && (writeAccess$ | async)"
+            <a *ngIf="!deleting && writeAccess"
                class="fake-link"
                (click)="deleting = true">delete</a>
             <span *ngIf="deleting" class="delete-confirm"> are you sure?&nbsp;
               <a class="fake-link" (click)="delete()">yes</a>&nbsp;/&nbsp;
               <a class="fake-link" (click)="deleting = false">no</a>&nbsp;
             </span>
-            <a *ngIf="!ref.origin && (account.editor || (writeAccess$ | async))"
+            <a *ngIf="!ref.origin && (store.account.editor || writeAccess)"
                class="fake-link"
                (click)="tagging = !tagging">tag</a>
             <span *ngIf="tagging" class="inline-tagging">
@@ -118,10 +118,10 @@
             <a *ngIf="pdf" target="_blank" [href]="pdf">pdf</a>
             <a *ngIf="archive" target="_blank" [href]="archive">archive</a>
             <a routerLink="/submit" [queryParams]="{source: ref.url}">reply</a>
-            <a *ngIf="!ref.origin && account.mod && !approved && !locked"
+            <a *ngIf="!ref.origin && store.account.mod && !approved && !locked"
                class="fake-link"
                (click)="approve()">approve</a>
-            <span class="approved icon" *ngIf="account.mod && approved" title="Moderated">✔️</span>
+            <span class="approved icon" *ngIf="store.account.mod && approved" title="Moderated">✔️</span>
           </ng-container>
         </div>
       </div>

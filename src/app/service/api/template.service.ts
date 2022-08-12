@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
+import { TagPageArgs } from '../../model/tag';
 import { mapTemplate, maybeTemplate, Template, writeTemplate } from '../../model/template';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
@@ -57,13 +58,7 @@ export class TemplateService {
     );
   }
 
-  page(args?: {
-    query?: string,
-    page?: number,
-    size?: number,
-    sort?: string,
-    direction?: 'asc' | 'desc',
-  }): Observable<Page<Template>> {
+  page(args?: TagPageArgs): Observable<Page<Template>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(

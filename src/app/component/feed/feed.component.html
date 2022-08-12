@@ -23,17 +23,17 @@
       </ng-container>
     </div>
     <div class="actions">
-      <a *ngIf="account.editor"
+      <a *ngIf="store.account.editor"
          class="fake-link"
          (click)="editing = !editing">edit</a>
-      <a *ngIf="!deleting && account.editor"
+      <a *ngIf="!deleting && store.account.editor"
          class="fake-link"
          (click)="deleting = true">delete</a>
       <span *ngIf="deleting" class="delete-confirm"> are you sure?
         <a class="fake-link" (click)="delete()">yes</a> /
         <a class="fake-link" (click)="deleting = false">no</a>
       </span>
-      <a *ngIf="account.editor"
+      <a *ngIf="store.account.editor"
          class="fake-link"
          (click)="tagging = !tagging">tag</a>
       <span *ngIf="tagging" class="inline-tagging">
@@ -47,7 +47,7 @@
                appAutofocus>
         <button (click)="addInlineTag()">+</button>
       </span>
-      <a *ngIf="account.mod"
+      <a *ngIf="store.account.mod"
          class="fake-link"
          (click)="scrape()">scrape</a>
     </div>

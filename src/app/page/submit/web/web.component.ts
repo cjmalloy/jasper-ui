@@ -12,11 +12,11 @@ import { isKnownEmbed } from '../../../plugin/embed';
 import { isImage } from '../../../plugin/image';
 import { isKnownThumbnail } from '../../../plugin/thumbnail';
 import { isVideo } from '../../../plugin/video';
-import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
+import { Store } from '../../../store/store';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -38,8 +38,8 @@ export class SubmitWebPage implements AfterViewInit {
     private admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
+    private store: Store,
     private editor: EditorService,
-    private account: AccountService,
     private refs: RefService,
     private fb: UntypedFormBuilder,
   ) {
@@ -50,7 +50,7 @@ export class SubmitWebPage implements AfterViewInit {
   ngAfterViewInit(): void {
     _.defer(() => {
       this.addTag('public');
-      this.addTag(this.account.tag);
+      this.addTag(this.store.account.tag!);
       if (this.admin.status.plugins.emoji) {
         this.addTag('plugin/emoji');
       }

@@ -45,7 +45,8 @@ export function isOwnerTag(tag: string, ref: HasTags) {
 /**
  * Return local tag if origin is a wildcard.
  */
-export function removeOriginWildcard(tag: string) {
+export function removeOriginWildcard(tag?: string) {
+  if (!tag) return undefined;
   if (tag.startsWith('@')) return '';
   if (tag.endsWith('@*')) {
     return tag.substring(0, tag.length - 2);
@@ -64,13 +65,15 @@ export function prefix(prefix: string, tag: string) {
   return prefix + tag.replace('+', '');
 }
 
-export function hasPrefix(tag: string, prefix: string) {
+export function hasPrefix(tag?: string, prefix?: string) {
+  if (!tag || !prefix) return false;
   return tag.startsWith(prefix) ||
     tag.startsWith('_' + prefix) ||
     tag.startsWith('+' + prefix);
 }
 
-export function isQuery(query: string) {
+export function isQuery(query?: string) {
+  if (!query) return false;
   return /[:|!()]/g.test(query);
 }
 

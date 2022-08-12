@@ -1,31 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import * as moment from 'moment';
 import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
-import { mapRef, mapRefOrNull, Ref, writeRef } from '../../model/ref';
+import { mapRef, mapRefOrNull, Ref, RefPageArgs, RefQueryArgs, writeRef } from '../../model/ref';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
-
-export type RefFilter = {
-  responses?: string,
-  sources?: string,
-  uncited?: boolean,
-  unsourced?: boolean,
-  pluginResponse?: string;
-  noPluginResponse?: string;
-};
-
-export type RefQueryArgs = RefFilter & {
-  query?: string,
-  url?: string,
-  search?: string,
-  page?: number,
-  size?: number,
-  sort?: string[],
-  modifiedAfter?: moment.Moment,
-};
 
 @Injectable({
   providedIn: 'root',
@@ -77,7 +57,7 @@ export class RefService {
     );
   }
 
-  page(args?: RefQueryArgs): Observable<Page<Ref>> {
+  page(args?: RefPageArgs): Observable<Page<Ref>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(
@@ -86,14 +66,7 @@ export class RefService {
     );
   }
 
-  count(args: {
-    query?: string,
-    modifiedAfter?: moment.Moment,
-    responses?: string,
-    sources?: string,
-    uncited?: boolean,
-    unsourced?: boolean,
-  }): Observable<number> {
+  count(args?: RefQueryArgs): Observable<number> {
     return this.http.get(`${this.base}/count`, {
       responseType: 'text',
       params: params(args),

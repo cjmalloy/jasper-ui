@@ -3,16 +3,17 @@ import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@a
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Ref } from '../../model/ref';
-import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
+import { AuthService } from '../../service/auth.service';
 import { EditorService } from '../../service/editor.service';
+import { Store } from '../../store/store';
 import { authors, interestingTags, TAG_REGEX_STRING, urlSummary, webLink } from '../../util/format';
 import { printError } from '../../util/http';
 
@@ -46,14 +47,15 @@ export class RefComponent implements OnInit {
   @HostBinding('class.deleted')
   deleted = false;
   actionsExpanded = false;
-  writeAccess$?: Observable<boolean>;
+  writeAccess = false;
   serverError: string[] = [];
 
   private _ref!: Ref;
 
   constructor(
     public admin: AdminService,
-    public account: AccountService,
+    public store: Store,
+    private auth: AuthService,
     private editor: EditorService,
     private refs: RefService,
     private ts: TaggingService,
@@ -80,7 +82,7 @@ export class RefComponent implements OnInit {
     this.tagging = false;
     this.actionsExpanded = false;
     this._ref = value;
-    this.writeAccess$ = this.account.writeAccess(value);
+    this.writeAccess = this.auth.writeAccess(value);
     if (value.tags) {
       this.expandPlugins = this.admin.getEmbeds(value);
     }
@@ -157,11 +159,11 @@ export class RefComponent implements OnInit {
   }
 
   get isAuthor() {
-    return this._ref.tags?.includes(this.account.tag);
+    return this._ref.tags?.includes(this.store.account.tag!);
   }
 
   get isRecipient() {
-    return this._ref.tags?.includes(this.account.inbox);
+    return this._ref.tags?.includes(this.store.account.inbox!);
   }
 
   get authors() {
@@ -256,7 +258,7 @@ export class RefComponent implements OnInit {
     this.refs.create({
       url: 'internal://' + uuid(),
       published: moment(),
-      tags: ['internal', this.account.tag, 'plugin/invoice/disputed'],
+      tags: ['internal', this.store.account.tag!, 'plugin/invoice/disputed'],
       sources: [this._ref.url],
     }).pipe(
       switchMap(() => this.refs.get(this._ref.url)),
@@ -284,7 +286,7 @@ export class RefComponent implements OnInit {
     this.refs.create({
       url: 'internal://' + uuid(),
       published: moment(),
-      tags: ['internal', this.account.tag, 'plugin/invoice/paid'],
+      tags: ['internal', this.store.account.tag!, 'plugin/invoice/paid'],
       sources: [this._ref.url],
     }).pipe(
       switchMap(() => this.refs.get(this._ref.url)),
@@ -312,7 +314,7 @@ export class RefComponent implements OnInit {
     this.refs.create({
       url: 'internal://' + uuid(),
       published: moment(),
-      tags: ['internal', this.account.tag, 'plugin/invoice/rejected'],
+      tags: ['internal', this.store.account.tag!, 'plugin/invoice/rejected'],
       sources: [this._ref.url],
     }).pipe(
       switchMap(() => this.refs.get(this._ref.url)),

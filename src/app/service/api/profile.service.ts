@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
-import { Profile } from '../../model/profile';
+import { Profile, ProfilePageArgs } from '../../model/profile';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -37,10 +37,7 @@ export class ProfileService {
     );
   }
 
-  page(args: {
-    page?: number,
-    size?: number,
-  }): Observable<Page<Profile>> {
+  page(args: ProfilePageArgs): Observable<Page<Profile>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(

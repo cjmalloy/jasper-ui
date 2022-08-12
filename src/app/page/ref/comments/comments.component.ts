@@ -1,12 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { combineLatest, filter, map, Observable, startWith, Subject, switchMap, takeUntil } from 'rxjs';
-import { distinctUntilChanged, tap } from 'rxjs/operators';
+import { autorun, IReactionDisposer } from 'mobx';
+import { filter, map, startWith, Subject, switchMap } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { inboxes } from '../../../plugin/inbox';
-import { AccountService } from '../../../service/account.service';
-import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
+import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-ref-comments',
@@ -14,45 +13,28 @@ import { ThemeService } from '../../../service/theme.service';
   styleUrls: ['./comments.component.scss'],
 })
 export class RefCommentsComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
 
-  depth$!: Observable<number>;
-  sort$!: Observable<string>;
-  ref$ = new Subject<Ref>();
+  private disposers: IReactionDisposer[] = [];
   newComments$ = new Subject<Ref | null>();
-
-  private depth = 7;
 
   constructor(
     private theme: ThemeService,
     private router: Router,
     private route: ActivatedRoute,
-    private account: AccountService,
-    private refs: RefService,
+    public store: Store,
   ) {
-    this.depth$ = this.route.queryParams.pipe(
-      map(queryParams => queryParams['depth'] || this.depth),
-      distinctUntilChanged(),
-    );
-    this.sort$ = this.route.params.pipe(
-      map(params => params['sort']),
-      distinctUntilChanged(),
-    );
-    combineLatest(this.url$, this.origin$).pipe(
-      takeUntil(this.destroy$),
-      switchMap(([url, origin]) => refs.get(url, origin)),
-      tap(ref => theme.setTitle('Comments: ' + (ref.title || ref.url))),
-    ).subscribe(ref => this.ref$.next(ref));
   }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => {
+      this.theme.setTitle('Comments: ' + (this.store.view.ref?.title || this.store.view.url));
+    }));
   }
 
   ngOnDestroy() {
-    this.ref$.complete();
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
     this.newComments$.complete();
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   get url$() {
@@ -64,14 +46,11 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
     );
   }
 
-  get origin$() {
-    return this.route.queryParams.pipe(
-      map((params) => params['origin']),
-      distinctUntilChanged(),
-    );
+  get depth() {
+    return this.store.view.depth || 7;
   }
 
   inboxes(ref: Ref) {
-    return inboxes(ref, this.account.tag);
+    return inboxes(ref, this.store.account.tag);
   }
 }

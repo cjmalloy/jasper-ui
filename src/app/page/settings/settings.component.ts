@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AccountService } from '../../service/account.service';
+import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-settings-page',
@@ -9,7 +9,7 @@ import { AccountService } from '../../service/account.service';
 export class SettingsPage implements OnInit {
 
   constructor(
-    public account: AccountService,
+    public store: Store,
   ) { }
 
   ngOnInit(): void {

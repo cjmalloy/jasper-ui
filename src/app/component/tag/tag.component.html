@@ -13,10 +13,10 @@
     </ng-container>
   </div>
   <div class="actions" *ngIf="!tag.origin">
-    <a *ngIf="writeAccess$ | async"
+    <a *ngIf="writeAccess"
        class="fake-link"
        (click)="editing = !editing">edit</a>
-    <a *ngIf="!deleting && (writeAccess$ | async)"
+    <a *ngIf="!deleting && writeAccess"
        class="fake-link"
        (click)="deleting = true">delete</a>
     <span *ngIf="deleting" class="delete-confirm">are you sure?

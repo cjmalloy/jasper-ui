@@ -52,7 +52,7 @@ const routes: Routes = [
   { path: 'tag/:tag/edit', component: EditTagPage },
   { path: 'tag/:tag/:sort', component: TagPage },
   {
-    path: 'ref/:ref',
+    path: 'ref/:url',
     component: RefPage,
     children: [
       { path: '', redirectTo: 'sources/created', pathMatch: 'full' },

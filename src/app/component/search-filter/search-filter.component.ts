@@ -2,8 +2,8 @@ import { Component, HostBinding, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash-es';
 import { map } from 'rxjs';
-import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
+import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-search-filter',
@@ -21,9 +21,9 @@ export class SearchFilterComponent implements OnInit {
     public router: Router,
     public route: ActivatedRoute,
     public admin: AdminService,
-    public account: AccountService,
+    public store: Store,
   ) {
-    if (account.mod) {
+    if (store.account.mod) {
       this.allFilters.push('modlist');
     }
     this.filter$.subscribe(filter => {

@@ -1,50 +1,50 @@
-<div class="tabs">
-  <ng-container *ngIf="admin.status.plugins.comment">
-    <a routerLink="./comments" [queryParams]="{origin}" routerLinkActive="current-tab">comments</a>
+<ng-container *mobxAutorun>
+  <div class="tabs">
+    <ng-container *ngIf="admin.status.plugins.comment">
+      <a routerLink="./comments" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">comments</a>
+    </ng-container>
+    <a routerLink="./responses" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">responses</a>
+    <a routerLink="./sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">sources</a>
+    <a routerLink="./missing" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">missing sources</a>
+    <a routerLink="./alts" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">alts</a>
+    <a *ngIf="error && store.view.remoteCount || store.view.remoteCount > 1" routerLink="./remotes" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">remotes</a>
+    <ng-container *ngIf="admin.status.plugins.graph">
+      <a routerLink="./graph" [queryParams]="{ origin: store.view.origin, hideSearch: true }" routerLinkActive="current-tab">graph</a>
+    </ng-container>
+    <div class="spacer"></div>
+    <app-settings></app-settings>
+  </div>
+  <app-sidebar *ngIf="!store.view.hideSearch" class="aside"></app-sidebar>
+  <ng-container *ngIf="!error; else errorMessage">
+    <ng-container *ngIf="store.view.ref else loading">
+      <app-ref class="full-page"
+               [ref]="store.view.ref"
+               [showToggle]="true"
+               [expandInline]="true"
+               [expanded]="store.view.isTextPost || store.view.isWikiPost"></app-ref>
+    </ng-container>
+    <ng-template #loading>
+      <app-loading></app-loading>
+    </ng-template>
+    <router-outlet></router-outlet>
   </ng-container>
-  <a routerLink="./responses" [queryParams]="{origin}" routerLinkActive="current-tab">responses</a>
-  <a routerLink="./sources" [queryParams]="{origin}" routerLinkActive="current-tab">sources</a>
-  <a routerLink="./missing" [queryParams]="{origin}" routerLinkActive="current-tab">missing sources</a>
-  <a routerLink="./alts" [queryParams]="{origin}" routerLinkActive="current-tab">alts</a>
-  <ng-container *ngIf="refs$ | async as refs">
-    <a *ngIf="error && refs.totalElements || refs.totalElements > 1" routerLink="./remotes" [queryParams]="{origin}" routerLinkActive="current-tab">remotes</a>
-  </ng-container>
-  <ng-container *ngIf="admin.status.plugins.graph">
-    <a routerLink="./graph" [queryParams]="{ origin, hideSearch: true }" routerLinkActive="current-tab">graph</a>
-  </ng-container>
-  <div class="spacer"></div>
-  <app-settings></app-settings>
-</div>
-<app-sidebar *ngIf="!(hideSearch$ | async)" class="aside"></app-sidebar>
-<ng-container *ngIf="!error; else errorMessage">
-  <ng-container *ngIf="ref$ | async as ref; else loading">
-    <app-ref class="full-page"
-             [ref]="ref"
-             [showToggle]="true"
-             [expandInline]="true"
-             [expanded]="isTextPost || isWikiPost"></app-ref>
-  </ng-container>
-  <ng-template #loading>
-    <app-loading></app-loading>
+  <ng-template #errorMessage>
+    <ng-container *ngIf="error!.status === 404">
+      <div class="stack">
+        <div class="error-404">Not Found</div>
+        <ng-container *ngIf="store.account.signedIn">
+          <div *ngIf="!store.view.isTextPost && !store.view.isWikiPost" class="error-404 submit-button" routerLink="/submit" [queryParams]="{ url: store.view.url }">
+            🔗 Submit Link
+          </div>
+          <div *ngIf="store.view.isTextPost" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }">
+            📝 Submit Text Post
+          </div>
+          <div *ngIf="store.view.isWikiPost" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }">
+            📔 &nbsp; Submit Wiki
+          </div>
+        </ng-container>
+      </div>
+    </ng-container>
+    <div *ngIf="error!.status !== 404" class="error">{{ printError(error!) }}</div>
   </ng-template>
-  <router-outlet></router-outlet>
 </ng-container>
-<ng-template #errorMessage>
-  <ng-container *ngIf="error!.status === 404 && account.signedIn">
-    <div class="stack">
-      <div class="error-404">Not Found</div>
-      <ng-container *ngIf="account.signedIn">
-        <div *ngIf="!isTextPost && !isWikiPost" class="error-404 submit-button" routerLink="/submit" [queryParams]="{ url: url$ | async }">
-          🔗 Submit Link
-        </div>
-        <div *ngIf="isTextPost" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: url$ | async }">
-          📝 Submit Text Post
-        </div>
-        <div *ngIf="isWikiPost" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: url$ | async }">
-          📔 &nbsp; Submit Wiki
-        </div>
-      </ng-container>
-    </div>
-  </ng-container>
-  <div *ngIf="error!.status !== 404" class="error">{{ printError(error!) }}</div>
-</ng-template>

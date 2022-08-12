@@ -1,14 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import * as _ from 'lodash-es';
-import { combineLatest, map, Observable, switchMap } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
-import { Page } from '../../../model/page';
-import { Ref } from '../../../model/ref';
-import { AccountService } from '../../../service/account.service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { autorun, IReactionDisposer } from 'mobx';
 import { AdminService } from '../../../service/admin.service';
-import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
+import { QueryStore } from '../../../store/query';
+import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
@@ -16,60 +11,36 @@ import { getArgs } from '../../../util/query';
   templateUrl: './all.component.html',
   styleUrls: ['./all.component.scss'],
 })
-export class InboxAllPage implements OnInit {
+export class InboxAllPage implements OnInit, OnDestroy {
 
-  page$: Observable<Page<Ref>>;
-
+  private disposers: IReactionDisposer[] = [];
   private defaultPageSize = 20;
 
   constructor(
     private theme: ThemeService,
     public admin: AdminService,
-    public account: AccountService,
-    private route: ActivatedRoute,
-    private refs: RefService,
+    public store: Store,
+    public query: QueryStore,
   ) {
     theme.setTitle('Inbox: All');
-    this.page$ = combineLatest(
-      this.sort$, this.filter$, this.search$, this.pageNumber$, this.pageSize$,
-    ).pipe(
-      map(([sort, filter, search, pageNumber, pageSize]) =>
-        getArgs(account.inbox, sort, filter, search, pageNumber, pageSize ?? this.defaultPageSize)),
-      distinctUntilChanged(_.isEqual),
-      switchMap(args => this.refs.page(args)),
-    );
+    query.clear();
   }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => {
+      this.query.setArgs(getArgs(
+        this.store.account.inbox,
+        this.store.view.sort,
+        this.store.view.filter,
+        this.store.view.search,
+        this.store.view.pageNumber,
+        this.store.view.pageSize ?? this.defaultPageSize
+      ));
+    }));
   }
 
-  get sort$() {
-    return this.route.params.pipe(
-      map(params => params['sort']),
-    );
-  }
-
-  get filter$() {
-    return this.route.queryParams.pipe(
-      map(queryParams => queryParams['filter']),
-    );
-  }
-
-  get search$() {
-    return this.route.queryParams.pipe(
-      map(queryParams => queryParams['search']),
-    );
-  }
-
-  get pageNumber$() {
-    return this.route.queryParams.pipe(
-      map(params => params['pageNumber']),
-    );
-  }
-
-  get pageSize$() {
-    return this.route.queryParams.pipe(
-      map(params => params['pageSize']),
-    );
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 }

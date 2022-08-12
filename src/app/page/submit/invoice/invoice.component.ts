@@ -7,12 +7,12 @@ import * as moment from 'moment';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext } from '../../../model/ext';
-import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
+import { Store } from '../../../store/store';
 import { templates, URI_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { prefix } from '../../../util/tag';
@@ -39,7 +39,7 @@ export class SubmitInvoicePage implements OnInit {
     public admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
-    private account: AccountService,
+    private store: Store,
     private editor: EditorService,
     private refs: RefService,
     private exts: ExtService,
@@ -108,7 +108,7 @@ export class SubmitInvoicePage implements OnInit {
       'plugin/invoice',
       prefix('plugin/invoice/', queueExt.tag),
       'plugin/qr',
-      this.account.tag,
+      this.store.account.tag,
     ];
     for (const approver of queueExt.config.approvers) {
       result.push(prefix('plugin/inbox/', approver));

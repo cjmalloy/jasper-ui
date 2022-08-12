@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import { Feed, mapFeed } from '../../model/feed';
 import { mapPage, Page } from '../../model/page';
+import { RefPageArgs } from '../../model/ref';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -47,13 +48,7 @@ export class FeedService {
     );
   }
 
-  page(args: {
-    query?: string,
-    page?: number,
-    size?: number,
-    sort?: string,
-    direction?: 'asc' | 'desc',
-  }): Observable<Page<Feed>> {
+  page(args: RefPageArgs): Observable<Page<Feed>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(

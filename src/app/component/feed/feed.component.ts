@@ -5,9 +5,9 @@ import * as _ from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { feedForm, FeedFormComponent } from '../../form/feed/feed.component';
 import { Feed } from '../../model/feed';
-import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { FeedService } from '../../service/api/feed.service';
+import { Store } from '../../store/store';
 import { interestingTags, TAG_REGEX_STRING, urlSummary } from '../../util/format';
 import { printError } from '../../util/http';
 
@@ -42,7 +42,7 @@ export class FeedComponent implements OnInit {
 
   constructor(
     public admin: AdminService,
-    public account: AccountService,
+    public store: Store,
     private feeds: FeedService,
     private fb: UntypedFormBuilder,
   ) {

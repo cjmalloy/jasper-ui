@@ -107,7 +107,7 @@ export class EditTagPage implements OnInit {
 
   get tag$() {
     return this.route.params.pipe(
-      map(params => removeOriginWildcard(params['tag'])),
+      map(params => removeOriginWildcard(params['tag'])!),
     );
   }
 

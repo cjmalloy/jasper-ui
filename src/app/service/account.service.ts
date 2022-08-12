@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash-es';
+import { runInAction } from 'mobx';
 import * as moment from 'moment';
-import { BehaviorSubject, catchError, map, Observable, of, shareReplay } from 'rxjs';
+import { catchError, combineLatest, map, Observable, of, shareReplay } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
-import { HasTags } from '../model/tag';
 import { User } from '../model/user';
-import { getInbox } from '../plugin/inbox';
+import { Store } from '../store/store';
 import { defaultSubs } from '../template/user';
-import { capturesAny, isOwner, isOwnerTag, publicTag, qualifyTags } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -21,51 +20,34 @@ export const CACHE_MS = 15 * 1000;
 })
 export class AccountService {
 
-  tag = '';
-  admin = false;
-  mod = false;
-  editor = false;
-  notifications$ = new BehaviorSubject(0);
-  watchSubs$ = new BehaviorSubject<string[]>(defaultSubs);
-  watchBookmarks$ = new BehaviorSubject<string[]>([]);
-  watchTheme$ = new BehaviorSubject<string | undefined>(undefined);
-
   private _user$?: Observable<User>;
   private _userExt$?: Observable<Ext>;
 
   constructor(
+    private store: Store,
     private adminService: AdminService,
     private users: UserService,
     private exts: ExtService,
     private refs: RefService,
   ) { }
 
-  get inbox() {
-    return getInbox(this.tag);
-  }
-
   get init$() {
     return this.users.whoAmI().pipe(
-      tap(roles => {
-        this.tag = roles.tag;
-        this.admin = roles.admin;
-        this.mod = roles.mod;
-        this.editor = roles.editor;
-      }),
-      switchMap(tag => tag ? this.loadUserExt$ : of()),
-      switchMap(() => this.subscriptions$),
-      switchMap(() => this.bookmarks$),
-      switchMap(() => this.theme$),
+      tap(roles => this.store.account.setRoles(roles)),
+      switchMap(roles => !roles.tag ? of() :
+        this.loadUserExt$.pipe(
+          switchMap(() => this.user$),
+          switchMap(() => this.subscriptions$),
+          switchMap(() => this.bookmarks$),
+          switchMap(() => this.theme$),
+        )),
     );
   }
 
-  get loadUserExt$() {
+  private get loadUserExt$() {
+    if (!this.store.account.signedIn) return of();
     if (!this.adminService.status.templates.user) return of();
-    return this.userExt$.pipe(catchError(err => this.exts.create({ tag: this.tag })));
-  }
-
-  get signedIn() {
-    return !!this.tag;
+    return this.userExt$.pipe(catchError(err => this.exts.create({ tag: this.store.account.tag! })));
   }
 
   clearCache() {
@@ -73,10 +55,11 @@ export class AccountService {
     this._user$ = undefined;
   }
 
-  get user$(): Observable<User> {
-    if (!this.signedIn) throw 'Not signed in';
+  private get user$(): Observable<User> {
+    if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this._user$) {
-      this._user$ = this.users.get(this.tag).pipe(
+      this._user$ = this.users.get(this.store.account.tag!).pipe(
+        tap(user => runInAction(() => this.store.account.user = user)),
         shareReplay(1),
       );
       _.delay(() => this._user$ = undefined, CACHE_MS);
@@ -84,10 +67,11 @@ export class AccountService {
     return this._user$;
   }
 
-  get userExt$(): Observable<Ext> {
-    if (!this.signedIn) throw 'Not signed in';
+  private get userExt$(): Observable<Ext> {
+    if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this._userExt$) {
-      this._userExt$ = this.exts.get(this.tag).pipe(
+      this._userExt$ = this.exts.get(this.store.account.tag!).pipe(
+        tap(ext => runInAction(() => this.store.account.ext = ext)),
         shareReplay(1),
       );
       _.delay(() => this._userExt$ = undefined, CACHE_MS);
@@ -96,31 +80,33 @@ export class AccountService {
   }
 
   get subscriptions$(): Observable<string[]> {
-    if (!this.signedIn || !this.adminService.status.templates.user) return of(defaultSubs);
+    if (!this.store.account.signedIn || !this.adminService.status.templates.user) return of(defaultSubs);
     return this.userExt$.pipe(
       map(ext => ext.config.subscriptions),
-      tap(subs => this.watchSubs$.next(subs)),
+      tap(subs => runInAction(() => this.store.account.subs = subs)),
     );
   }
 
   get bookmarks$(): Observable<string[]> {
-    if (!this.signedIn || !this.adminService.status.templates.user) return of([]);
+    if (!this.store.account.signedIn || !this.adminService.status.templates.user) return of([]);
     return this.userExt$.pipe(
       map(ext => ext.config.bookmarks),
-      tap(books => this.watchBookmarks$.next(books)),
+      tap(books => runInAction(() => this.store.account.bookmarks = books)),
     );
   }
 
   get theme$(): Observable<string | undefined> {
-    if (!this.signedIn || !this.adminService.status.templates.user) return of(undefined);
+    if (!this.store.account.signedIn || !this.adminService.status.templates.user) return of(undefined);
     return this.userExt$.pipe(
       map(ext => ext.config?.userThemes?.[ext.config.userTheme]),
-      tap(css => this.watchTheme$.next(css)),
+      tap(css => runInAction(() => this.store.account.theme = css)),
     );
   }
 
   addSub(tag: string) {
-    this.exts.patch(this.tag, [{
+    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.adminService.status.templates.user) throw 'User template not installed';
+    this.exts.patch(this.store.account.tag!, [{
       op: 'add',
       path: '/config/subscriptions/-',
       value: tag,
@@ -131,9 +117,11 @@ export class AccountService {
   }
 
   removeSub(tag: string) {
+    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.adminService.status.templates.user) throw 'User template not installed';
     this.subscriptions$.pipe(
       map(subs => subs.indexOf(tag)),
-      switchMap(index => this.exts.patch(this.tag,[{
+      switchMap(index => this.exts.patch(this.store.account.tag!,[{
         op: 'remove',
         path: '/config/subscriptions/' + index,
       }]))
@@ -144,7 +132,9 @@ export class AccountService {
   }
 
   addBookmark(tag: string) {
-    this.exts.patch(this.tag, [{
+    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.adminService.status.templates.user) throw 'User template not installed';
+    this.exts.patch(this.store.account.tag!, [{
       op: 'add',
       path: '/config/bookmarks/-',
       value: tag,
@@ -155,9 +145,11 @@ export class AccountService {
   }
 
   removeBookmark(tag: string) {
+    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.adminService.status.templates.user) throw 'User template not installed';
     this.bookmarks$.pipe(
       map(subs => subs.indexOf(tag)),
-      switchMap(index => this.exts.patch(this.tag,[{
+      switchMap(index => this.exts.patch(this.store.account.tag!,[{
         op: 'remove',
         path: '/config/bookmarks/' + index,
       }]))
@@ -168,18 +160,20 @@ export class AccountService {
   }
 
   checkNotifications() {
-    if (!this.signedIn) throw 'Not signed in';
-    return this.userExt$.pipe(
-      switchMap(ext => this.refs.count({
-        query: this.inbox,
+    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.adminService.status.templates.user) throw 'User template not installed';
+    return combineLatest(this.user$, this.userExt$).pipe(
+      switchMap(([_, ext]) => this.refs.count({
+        query: this.store.account.notificationsQuery,
         modifiedAfter: ext.config?.inbox?.lastNotified || moment().subtract(1, 'year'),
       })),
-    ).subscribe(count => this.notifications$.next(count));
+    ).subscribe(count => runInAction(() => this.store.account.notifications = count));
   }
 
   clearNotifications(readDate: moment.Moment) {
-    if (!this.signedIn) throw 'Not signed in';
-    this.exts.patch(this.tag, [{
+    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.adminService.status.templates.user) throw 'User template not installed';
+    this.exts.patch(this.store.account.tag!, [{
       op: 'add',
       path: '/config/inbox/lastNotified',
       value: readDate.add(1, 'millisecond').toISOString(),
@@ -187,31 +181,5 @@ export class AccountService {
       this.clearCache();
       this.checkNotifications();
     });
-  }
-
-  writeAccess(ref: HasTags): Observable<boolean> {
-    if (!this.signedIn) return of(false);
-    if (ref.origin) return of(false);
-    if (this.mod) return of(true);
-    if (ref.tags?.includes('locked')) return of(false);
-    if (isOwnerTag(this.tag, ref)) return of(true);
-    return this.user$.pipe(
-      map(user => isOwner(user, ref) || capturesAny(user.writeAccess, qualifyTags(ref.tags, ref.origin))),
-    );
-  }
-
-  tagWriteAccess(tag: string, type = 'ext'): Observable<boolean> {
-    if (type === 'plugin' || type === 'template')  {
-      return of(this.admin);
-    }
-    if (!tag) return of(false);
-    if (!tag.endsWith('@*') && tag.includes('@')) return of(false);
-    if (!this.signedIn) return of(false);
-    if (tag === 'locked') return of(false);
-    if (this.editor && publicTag(tag)) return of(true);
-    if (this.mod) return of(true);
-    return this.user$.pipe(
-      map(user => tag === user.tag || capturesAny(user.tagWriteAccess, [tag])),
-    );
   }
 }

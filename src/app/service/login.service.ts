@@ -1,19 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, throwError } from 'rxjs';
+import { runInAction } from 'mobx';
+import { throwError } from 'rxjs';
+import { Store } from '../store/store';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LoginService {
 
-  authError$ = new BehaviorSubject(false);
-
-  constructor() { }
+  constructor(
+    private store: Store,
+  ) { }
 
   handleHttpError(res: HttpErrorResponse) {
     if (res.status === 0) {
-      this.authError$.next(true);
+      runInAction(() => this.store.account.authError = true);
       return throwError({ message: 'Please log in again.' });
     }
     return throwError(res);

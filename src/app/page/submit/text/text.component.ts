@@ -8,11 +8,11 @@ import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { refForm } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
-import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
+import { Store } from '../../../store/store';
 import { wikiTitleFormat, wikiUriFormat } from '../../../util/format';
 import { printError } from '../../../util/http';
 
@@ -40,8 +40,8 @@ export class SubmitTextPage implements AfterViewInit {
     public admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
+    private store: Store,
     private editor: EditorService,
-    private account: AccountService,
     private refs: RefService,
     private fb: UntypedFormBuilder,
   ) {
@@ -52,7 +52,7 @@ export class SubmitTextPage implements AfterViewInit {
   ngAfterViewInit(): void {
     _.defer(() => {
       this.addTag('public');
-      this.addTag(this.account.tag);
+      this.addTag(this.store.account.tag!);
       this.route.queryParams.subscribe(params => {
         let url = params['url'] || 'comment:' + uuid();
         this.wiki = !!url.startsWith('wiki:');

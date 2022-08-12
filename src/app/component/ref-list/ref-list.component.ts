@@ -20,15 +20,15 @@ export class RefListComponent implements OnInit {
   @Input()
   pageControls = true;
 
-  private _page!: Page<Ref> | null;
+  private _page?: Page<Ref>;
 
   constructor(private router: Router) { }
 
-  get page(): Page<Ref> | null {
+  get page(): Page<Ref> | undefined {
     return this._page;
   }
   @Input()
-  set page(value: Page<Ref> | null) {
+  set page(value: Page<Ref> | undefined) {
     this._page = value;
     if (this._page) {
       if (this._page.number > 0 && this._page.number >= this._page.totalPages) {

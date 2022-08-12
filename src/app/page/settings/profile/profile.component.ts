@@ -1,54 +1,39 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import * as _ from 'lodash-es';
-import { combineLatest, map, Observable, switchMap } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
-import { Page } from '../../../model/page';
-import { Profile } from '../../../model/profile';
-import { ProfileService } from '../../../service/api/profile.service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { autorun, IReactionDisposer } from 'mobx';
 import { ThemeService } from '../../../service/theme.service';
+import { ProfileStore } from '../../../store/profile';
+import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-settings-profile-page',
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })
-export class SettingsProfilePage implements OnInit {
+export class SettingsProfilePage implements OnInit, OnDestroy {
 
-  page$: Observable<Page<Profile>>;
-
+  private disposers: IReactionDisposer[] = [];
   private defaultPageSize = 20;
 
   constructor(
     private theme: ThemeService,
-    private route: ActivatedRoute,
-    private profiles: ProfileService,
+    public store: Store,
+    public query: ProfileStore,
   ) {
     theme.setTitle('Settings: User Profiles');
-    this.page$ = combineLatest(
-      this.pageNumber$, this.pageSize$,
-    ).pipe(
-      distinctUntilChanged(_.isEqual),
-      switchMap(([pageNumber, pageSize]) => {
-        return this.profiles.page({
-          page: pageNumber,
-          size: pageSize ?? this.defaultPageSize,
-        });
-      }));
+    query.clear();
   }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => {
+      this.query.setArgs({
+        page: this.store.view.pageNumber,
+        size: this.store.view.pageSize ?? this.defaultPageSize,
+      });
+    }));
   }
 
-  get pageNumber$() {
-    return this.route.queryParams.pipe(
-      map(params => params['pageNumber']),
-    );
-  }
-
-  get pageSize$() {
-    return this.route.queryParams.pipe(
-      map(params => params['pageSize']),
-    );
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 }

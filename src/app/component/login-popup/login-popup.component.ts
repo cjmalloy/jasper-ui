@@ -1,5 +1,6 @@
 import { Component, HostBinding, OnInit } from '@angular/core';
-import { LoginService } from '../../service/login.service';
+import { runInAction } from 'mobx';
+import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-login-popup',
@@ -9,19 +10,19 @@ import { LoginService } from '../../service/login.service';
 export class LoginPopupComponent implements OnInit {
   @HostBinding('class') css = 'login-popup';
 
-  authError = false;
-
   constructor(
-    private login: LoginService,
-  ) {
-    login.authError$.subscribe(authError => this.authError = authError);
-  }
+    public store: Store,
+  ) { }
 
   ngOnInit(): void {
   }
 
+  clear() {
+    runInAction(() => this.store.account.authError = false);
+  }
+
   doLogin() {
-    this.authError = false;
+    this.clear();
     window.open('/login', "_blank");
   }
 

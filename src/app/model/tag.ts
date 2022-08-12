@@ -18,3 +18,20 @@ export interface IsTag extends HasOrigin {
   tag: string;
   name?: string;
 }
+
+export type TagQueryArgs = {
+  query?: string,
+  modifiedAfter?: moment.Moment,
+};
+
+export type TagPageArgs = TagQueryArgs & {
+  page?: number,
+  size?: number,
+  sort?: TagSort[],
+};
+
+export type TagSort = '' |
+  'modified' | 'modified,ASC' | 'modified,DESC' |
+  'tag' | 'tag,ASC' | 'tag,DESC' |
+  'name' | 'name,ASC' | 'name,DESC' |
+  'origin' | 'origin,ASC' | 'origin,DESC';

@@ -3,6 +3,7 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular
 import * as _ from 'lodash-es';
 import { LinksFormComponent } from '../form/links/links.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
+import { RefSort } from '../model/ref';
 import { extractPattern, getNotifications, getTags } from '../util/editor';
 import { URI_REGEX } from '../util/format';
 import { getPath } from '../util/hosts';
@@ -53,7 +54,7 @@ export class EditorService {
    * Gets the query and sort for a query URL.
    * @param url
    */
-  getQueryUrl(url: string): [string, string] {
+  getQueryUrl(url: string): [string, RefSort] {
     if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
     const tagPrefix = this.config.base + 'tag/';
     let ending = '';
@@ -78,7 +79,7 @@ export class EditorService {
       }
       sort = ending.substring(0, Math.max(ending.indexOf('/'), ending.indexOf('?')))
     }
-    return [decodeURIComponent(query), sort];
+    return [decodeURIComponent(query), sort as RefSort];
   }
 
   syncEditor(fb: UntypedFormBuilder, group: UntypedFormGroup) {

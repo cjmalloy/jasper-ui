@@ -1,11 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { Profile } from '../../model/profile';
-import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProfileService } from '../../service/api/profile.service';
+import { AuthService } from '../../service/auth.service';
+import { Store } from '../../store/store';
 import { printError } from '../../util/http';
 
 @Component({
@@ -30,18 +31,19 @@ export class ProfileComponent implements OnInit {
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
-  writeAccess$?: Observable<boolean>;
+  writeAccess = false;
   serverError: string[] = [];
 
   constructor(
     public admin: AdminService,
-    public account: AccountService,
+    public store: Store,
     private router: Router,
+    private auth: AuthService,
     private profiles: ProfileService,
   ) { }
 
   ngOnInit(): void {
-    this.writeAccess$ = this.account.tagWriteAccess(this.profile.tag, 'user');
+    this.writeAccess = this.auth.tagWriteAccess(this.profile.tag, 'user');
   }
 
   setInlinePassword() {

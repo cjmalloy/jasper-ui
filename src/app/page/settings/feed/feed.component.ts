@@ -1,54 +1,39 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import * as _ from 'lodash-es';
-import { combineLatest, map, Observable, switchMap } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
-import { Feed } from '../../../model/feed';
-import { Page } from '../../../model/page';
-import { FeedService } from '../../../service/api/feed.service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { autorun, IReactionDisposer } from 'mobx';
 import { ThemeService } from '../../../service/theme.service';
+import { FeedStore } from '../../../store/feed';
+import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-settings-feed-page',
   templateUrl: './feed.component.html',
   styleUrls: ['./feed.component.scss'],
 })
-export class SettingsFeedPage implements OnInit {
+export class SettingsFeedPage implements OnInit, OnDestroy {
 
-  page$: Observable<Page<Feed>>;
-
+  private disposers: IReactionDisposer[] = [];
   private defaultPageSize = 20;
 
   constructor(
     private theme: ThemeService,
-    private route: ActivatedRoute,
-    private feeds: FeedService,
+    public store: Store,
+    public query: FeedStore,
   ) {
     theme.setTitle('Settings: Feeds');
-    this.page$ = combineLatest(
-      this.pageNumber$, this.pageSize$,
-    ).pipe(
-      distinctUntilChanged(_.isEqual),
-      switchMap(([pageNumber, pageSize]) => {
-        return this.feeds.page({
-          page: pageNumber,
-          size: pageSize ?? this.defaultPageSize,
-        });
-      }));
+    query.clear();
   }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => {
+      this.query.setArgs({
+        page: this.store.view.pageNumber,
+        size: this.store.view.pageSize ?? this.defaultPageSize,
+      });
+    }));
   }
 
-  get pageNumber$() {
-    return this.route.queryParams.pipe(
-      map(params => params['pageNumber']),
-    );
-  }
-
-  get pageSize$() {
-    return this.route.queryParams.pipe(
-      map(params => params['pageSize']),
-    );
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 }

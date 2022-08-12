@@ -2,6 +2,7 @@ import { Component, HostBinding, OnInit } from '@angular/core';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
+import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-settings',
@@ -14,9 +15,10 @@ export class SettingsComponent implements OnInit {
   constructor(
     public admin: AdminService,
     public config: ConfigService,
-    public account: AccountService,
+    public store: Store,
+    private account: AccountService,
   ) {
-    if (admin.status.plugins.inbox && account.signedIn) {
+    if (admin.status.plugins.inbox && store.account.signedIn) {
       account.checkNotifications();
     }
   }

@@ -1,43 +1,52 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import * as moment from 'moment';
-import { Observable, switchMap } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { Page } from '../../../model/page';
-import { Ref } from '../../../model/ref';
+import { autorun, IReactionDisposer } from 'mobx';
 import { newest } from '../../../plugin/inbox';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
+import { QueryStore } from '../../../store/query';
+import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-unread',
   templateUrl: './unread.component.html',
   styleUrls: ['./unread.component.scss'],
 })
-export class InboxUnreadPage implements OnInit {
+export class InboxUnreadPage implements OnInit, OnDestroy {
 
-  page$: Observable<Page<Ref>>;
+  private disposers: IReactionDisposer[] = [];
 
   constructor(
     private theme: ThemeService,
     private route: ActivatedRoute,
-    private account: AccountService,
+    public store: Store,
+    public query: QueryStore,
     private refs: RefService,
+    private account: AccountService,
   ) {
     theme.setTitle('Inbox: Unread');
-    this.page$ = this.account.userExt$.pipe(
-      switchMap(ext => this.refs.page({
-        query: account.inbox,
-        modifiedAfter: ext.config.inbox.lastNotified || moment().subtract(1, 'year'),
-      })),
-      tap(page => {
-        if (!page.empty) this.account.clearNotifications(newest(page.content)!.modified!);
-      }),
-    );
+    query.clear();
   }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => {
+      this.query.setArgs({
+        query: this.store.account.notificationsQuery,
+        modifiedAfter: this.store.account.ext?.config.inbox.lastNotified,
+        sort: ['modified,ASC']
+      });
+    }));
+    this.disposers.push(autorun(() => {
+      if (this.query.page && !this.query.page!.empty) {
+        this.account.clearNotifications(newest(this.query.page!.content)!.modified!);
+      }
+    }));
+  }
+
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
 }

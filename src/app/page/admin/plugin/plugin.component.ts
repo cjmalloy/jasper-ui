@@ -1,55 +1,39 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import * as _ from 'lodash-es';
-import { combineLatest, map, Observable, switchMap } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
-import { Page } from '../../../model/page';
-import { Plugin } from '../../../model/plugin';
-import { PluginService } from '../../../service/api/plugin.service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { autorun, IReactionDisposer } from 'mobx';
 import { ThemeService } from '../../../service/theme.service';
+import { PluginStore } from '../../../store/plugin';
+import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-admin-plugin-page',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
 })
-export class AdminPluginPage implements OnInit {
+export class AdminPluginPage implements OnInit, OnDestroy {
 
-  page$: Observable<Page<Plugin>>;
-
+  private disposers: IReactionDisposer[] = [];
   private defaultPageSize = 20;
 
   constructor(
     private theme: ThemeService,
-    private route: ActivatedRoute,
-    private plugins: PluginService,
+    public store: Store,
+    public query: PluginStore,
   ) {
     theme.setTitle('Admin: Plugins');
-    this.page$ = combineLatest(
-      this.pageNumber$, this.pageSize$,
-    ).pipe(
-      distinctUntilChanged(_.isEqual),
-      switchMap(([pageNumber, pageSize]) => {
-        return this.plugins.page({
-          page: pageNumber,
-          size: pageSize ?? this.defaultPageSize,
-        });
-      }));
+    query.clear();
   }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => {
+      this.query.setArgs({
+        page: this.store.view.pageNumber,
+        size: this.store.view.pageSize ?? this.defaultPageSize,
+      });
+    }));
   }
 
-  get pageNumber$() {
-    return this.route.queryParams.pipe(
-      map(params => params['pageNumber']),
-    );
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
-
-  get pageSize$() {
-    return this.route.queryParams.pipe(
-      map(params => params['pageSize']),
-    );
-  }
-
 }

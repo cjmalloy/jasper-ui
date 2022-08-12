@@ -3,12 +3,12 @@ import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core'
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import * as _ from 'lodash-es';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { User } from '../../model/user';
-import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { UserService } from '../../service/api/user.service';
+import { AuthService } from '../../service/auth.service';
 import { printError } from '../../util/http';
 
 @Component({
@@ -30,13 +30,13 @@ export class UserComponent implements OnInit {
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
-  writeAccess$?: Observable<boolean>;
+  writeAccess = false;
   serverError: string[] = [];
 
   constructor(
     public admin: AdminService,
     private router: Router,
-    private account: AccountService,
+    private auth: AuthService,
     private users: UserService,
     private fb: UntypedFormBuilder,
   ) {
@@ -49,7 +49,7 @@ export class UserComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.writeAccess$ = this.account.tagWriteAccess(this.user.tag, 'user');
+    this.writeAccess = this.auth.tagWriteAccess(this.user.tag, 'user');
   }
 
   get qualifiedTag() {

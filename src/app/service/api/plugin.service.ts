@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { mapPlugin, maybePlugin, Plugin, writePlugin } from '../../model/plugin';
+import { TagPageArgs } from '../../model/tag';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -57,13 +58,7 @@ export class PluginService {
     );
   }
 
-  page(args: {
-    query?: string,
-    page?: number,
-    size?: number,
-    sort?: string,
-    direction?: 'asc' | 'desc',
-  }): Observable<Page<Plugin>> {
+  page(args: TagPageArgs): Observable<Page<Plugin>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(

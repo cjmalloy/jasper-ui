@@ -5,8 +5,8 @@ import * as _ from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { originForm, OriginFormComponent } from '../../form/origin/origin.component';
 import { Origin } from '../../model/origin';
-import { AccountService } from '../../service/account.service';
 import { OriginService } from '../../service/api/origin.service';
+import { Store } from '../../store/store';
 import { printError } from '../../util/http';
 
 @Component({
@@ -31,7 +31,7 @@ export class OriginComponent implements OnInit {
   serverError: string[] = [];
 
   constructor(
-    public account: AccountService,
+    public store: Store,
     private origins: OriginService,
     private fb: UntypedFormBuilder,
   ) {

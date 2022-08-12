@@ -1,8 +1,10 @@
-<hr>
-<ng-container *ngIf="ref$ | async as ref; else loading">
-  <app-force-directed [content]="[ref]"
-                      [filter]="filter$ | async"></app-force-directed>
+<ng-container *mobxAutorun>
+  <hr>
+  <ng-container *ngIf="store.view.ref; else loading">
+    <app-force-directed [content]="[store.view.ref]"
+                        [filter]="store.view.filter"></app-force-directed>
+  </ng-container>
+  <ng-template #loading>
+    <app-loading></app-loading>
+  </ng-template>
 </ng-container>
-<ng-template #loading>
-  <app-loading></app-loading>
-</ng-template>

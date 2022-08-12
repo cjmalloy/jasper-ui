@@ -11,16 +11,16 @@ import { Profile } from '../../model/profile';
 export class ProfileListComponent implements OnInit {
   @HostBinding('class') css = 'profile-list';
 
-  private _page!: Page<Profile> | null;
+  private _page?: Page<Profile>;
 
   constructor(private router: Router) { }
 
-  get page(): Page<Profile> | null {
+  get page() {
     return this._page;
   }
 
   @Input()
-  set page(value: Page<Profile> | null) {
+  set page(value: Page<Profile> | undefined) {
     this._page = value;
     if (this._page) {
       if (this._page.number > 0 && this._page.number >= this._page.totalPages) {

@@ -1,15 +1,17 @@
-<hr>
-<ng-container *ngIf="ref$ | async as ref; else loading">
-  <app-comment-reply [top]="ref"
-                     [sources]="[ref.url]"
-                     [tags]="inboxes(ref)"
-                     [newComments$]="newComments$"></app-comment-reply>
-  <app-comment-list [top]="ref"
-                    [sort]="sort$ | async"
-                    [source]="ref.url"
-                    [newComments$]="newComments$"
-                    [depth]="depth$ | async"></app-comment-list>
+<ng-container *mobxAutorun>
+  <hr>
+  <ng-container *ngIf="store.view.ref; else loading">
+    <app-comment-reply [top]="store.view.ref"
+                       [sources]="[store.view.ref.url]"
+                       [tags]="inboxes(store.view.ref)"
+                       [newComments$]="newComments$"></app-comment-reply>
+    <app-comment-list [top]="store.view.ref"
+                      [sort]="store.view.sort"
+                      [source]="store.view.ref.url"
+                      [newComments$]="newComments$"
+                      [depth]="depth"></app-comment-list>
+  </ng-container>
+  <ng-template #loading>
+    <app-loading></app-loading>
+  </ng-template>
 </ng-container>
-<ng-template #loading>
-  <app-loading></app-loading>
-</ng-template>

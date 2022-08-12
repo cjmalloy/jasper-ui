@@ -1,6 +1,6 @@
 import { Component, HostBinding, OnInit } from '@angular/core';
-import { AccountService } from '../../service/account.service';
 import { ThemeService } from '../../service/theme.service';
+import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-subscription-bar',
@@ -11,7 +11,7 @@ export class SubscriptionBarComponent implements OnInit {
   @HostBinding('class') css = 'subscription-bar';
 
   constructor(
-    public account: AccountService,
+    public store: Store,
     public themes: ThemeService,
   ) { }
 

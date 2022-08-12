@@ -1,54 +1,31 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { combineLatest, map, Observable, switchMap } from 'rxjs';
-import { distinctUntilChanged, tap } from 'rxjs/operators';
-import { Ref } from '../../../model/ref';
-import { AccountService } from '../../../service/account.service';
-import { RefService } from '../../../service/api/ref.service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { autorun, IReactionDisposer } from 'mobx';
 import { ThemeService } from '../../../service/theme.service';
+import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-ref-graph',
   templateUrl: './graph.component.html',
   styleUrls: ['./graph.component.scss'],
 })
-export class RefGraphComponent implements OnInit {
+export class RefGraphComponent implements OnInit, OnDestroy {
 
-  filter$: Observable<string>;
-  ref$: Observable<Ref>;
+  private disposers: IReactionDisposer[] = [];
 
   constructor(
     private theme: ThemeService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private account: AccountService,
-    private refs: RefService,
-  ) {
-    this.filter$ = this.route.params.pipe(
-      map(params => params['filter']),
-      distinctUntilChanged(),
-    );
-    this.ref$ = combineLatest(this.url$, this.origin$).pipe(
-      switchMap(([url, origin]) => this.refs.get(url, origin)),
-      tap(ref => theme.setTitle('Graph: ' + (ref.title || ref.url))),
-    );
-  }
+    public store: Store,
+  ) { }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => {
+      this.theme.setTitle('Graph: ' + (this.store.view.ref?.title || this.store.view.url));
+    }));
   }
 
-  get url$() {
-    return this.route.params.pipe(
-      map(params => params['ref']),
-      distinctUntilChanged(),
-    );
-  }
-
-  get origin$() {
-    return this.route.queryParams.pipe(
-      map((params) => params['origin']),
-      distinctUntilChanged(),
-    );
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
 }

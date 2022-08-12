@@ -11,16 +11,16 @@ import { Page } from '../../model/page';
 export class OriginListComponent implements OnInit {
   @HostBinding('class') css = 'origin-list';
 
-  private _page!: Page<Origin> | null;
+  private _page?: Page<Origin>;
 
   constructor(private router: Router) { }
 
-  get page(): Page<Origin> | null {
+  get page() {
     return this._page;
   }
 
   @Input()
-  set page(value: Page<Origin> | null) {
+  set page(value: Page<Origin> | undefined) {
     this._page = value;
     if (this._page) {
       if (this._page.number > 0 && this._page.number >= this._page.totalPages) {

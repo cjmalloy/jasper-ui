@@ -6,7 +6,7 @@
     <span>{{ profile.role }}</span>
   </div>
   <div class="actions">
-    <a *ngIf="writeAccess$ | async"
+    <a *ngIf="writeAccess"
        class="fake-link"
        (click)="changingPassword = !changingPassword">password</a>
     <span *ngIf="changingPassword" class="inline-password">
@@ -19,7 +19,7 @@
              appAutofocus>
       <button (click)="setInlinePassword()">+</button>
     </span>
-    <a *ngIf="account.mod"
+    <a *ngIf="store.account.mod"
        class="fake-link"
        (click)="changingRole = !changingRole">role</a>
     <span *ngIf="changingRole" class="inline-role">
@@ -32,7 +32,7 @@
                      appAutofocus>
               <button (click)="setInlineRole()">+</button>
             </span>
-    <a *ngIf="!deleting && (writeAccess$ | async)"
+    <a *ngIf="!deleting && writeAccess"
        class="fake-link"
        (click)="deleting = true">delete</a>
     <span *ngIf="deleting" class="delete-confirm">are you sure?

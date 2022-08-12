@@ -51,17 +51,17 @@
       <a [routerLink]="['/ref', ref.url, 'graph']" [queryParams]="{ origin, hideSearch: true }">graph</a>
     </ng-container>
     <a class="fake-link"
-       *ngIf="writeAccess$ | async"
+       *ngIf="writeAccess"
        (click)="editing = !editing">edit</a>
     <a class="fake-link"
-       *ngIf="!deleting && (writeAccess$ | async)"
+       *ngIf="!deleting && writeAccess"
        (click)="deleting = true">delete</a>
     <span *ngIf="deleting" class="delete-confirm"> are you sure?
       <a class="fake-link" (click)="delete()">yes</a> /
       <a class="fake-link" (click)="deleting = false">no</a>
     </span>
     <a class="fake-link"
-       *ngIf="!ref.origin && account.editor || (writeAccess$ | async)"
+       *ngIf="!ref.origin && store.account.editor || writeAccess"
        (click)="tagging = !tagging">tag</a>
     <span *ngIf="tagging" class="inline-tagging">
       <input #inlineTag
@@ -80,10 +80,10 @@
       <a [routerLink]="['/submit/invoice']"
          [queryParams]="{ url: ref.url }">invoice</a>
     </ng-container>
-    <a *ngIf="account.mod && !approved"
+    <a *ngIf="store.account.mod && !approved"
        class="fake-link"
        (click)="approve()">approve</a>
-    <span class="approved icon" *ngIf="account.mod && approved">✔️</span>
+    <span class="approved icon" *ngIf="store.account.mod && approved">✔️</span>
   </div>
 </div>
 <app-comment-reply *ngIf="replying"

@@ -1,7 +1,7 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Page } from '../../model/page';
-import { Ref } from '../../model/ref';
+import { Ref, RefSort } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { getArgs } from '../../util/query';
 
@@ -26,7 +26,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
     this.loadMore();
   }
   @Input()
-  sort?: string | null;
+  sort?: RefSort;
   @Input()
   depth?: number | null = 7;
   @Input()

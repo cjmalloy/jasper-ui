@@ -1,10 +1,11 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map, of, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
-import { getInbox } from '../../plugin/inbox';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
+import { AuthService } from '../../service/auth.service';
+import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
 import { prefix, removeOriginWildcard } from '../../util/tag';
 
@@ -27,9 +28,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   _tag: string | null = null;
   localTag?: string;
-  writeAccess$ = of(false);
-  inSubs$ = of(false);
-  inBookmarks$ = of(false);
+  writeAccess = false;
 
   @HostBinding('class.expanded')
   private _expanded = false;
@@ -38,7 +37,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     public router: Router,
     public route: ActivatedRoute,
     public admin: AdminService,
-    public account: AccountService,
+    public store: Store,
+    private auth: AuthService,
+    private account: AccountService,
   ) {
     if (localStorage.getItem('sidebar-expanded') !== null) {
       this._expanded = localStorage.getItem('sidebar-expanded') === 'true';
@@ -55,7 +56,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (!this._tag) return null;
     if (!TAG_REGEX.test(this._tag)) return null;
     if (this._tag.startsWith('plugin')) return null;
-    return getInbox(this._tag);
+    return this._tag;
   }
 
   @Input()
@@ -63,19 +64,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (this._tag === value) return;
     this._tag = value;
     if (value) {
-      this.inSubs$ =  this.account.subscriptions$.pipe(
-        map(subs => subs.includes(value))
-      );
-      this.inBookmarks$ =  this.account.bookmarks$.pipe(
-        map(books => books.includes(value))
-      );
       this.localTag = removeOriginWildcard(value);
-      this.writeAccess$ = this.account.tagWriteAccess(value);
+      this.writeAccess = this.auth.tagWriteAccess(value);
     } else {
       this.localTag = undefined;
-      this.writeAccess$ = of(false);
-      this.inSubs$ = of(false);
-      this.inBookmarks$ = of(false);
+      this.writeAccess = false;
     }
   }
 
@@ -102,7 +95,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get isApprover() {
-    return this.ext?.config?.approvers?.includes(this.account.tag);
+    return this.ext?.config?.approvers?.includes(this.store.account.tag);
   }
 
   get user() {
@@ -120,21 +113,25 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   subscribe() {
     this.account.addSub(this._tag!);
-    this.inSubs$ = of(true);
   }
 
   unsubscribe() {
     this.account.removeSub(this._tag!);
-    this.inSubs$ = of(false);
   }
 
   bookmark() {
     this.account.addBookmark(this._tag!);
-    this.inBookmarks$ = of(true);
   }
 
   removeBookmark() {
     this.account.removeBookmark(this._tag!);
-    this.inBookmarks$ = of(false);
+  }
+
+  get inSubs() {
+    return this.store.account.subs.includes(this._tag!);
+  }
+
+  get inBookmarks() {
+    return this.store.account.bookmarks.includes(this._tag!);
   }
 }

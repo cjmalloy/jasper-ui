@@ -5,10 +5,10 @@ import { Subject, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
 import { getInbox } from '../../plugin/inbox';
-import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { EditorService } from '../../service/editor.service';
+import { Store } from '../../store/store';
 import { getNotifications, getTags } from '../../util/editor';
 import { removeTag } from '../../util/tag';
 
@@ -42,7 +42,7 @@ export class CommentReplyComponent implements AfterViewInit {
 
   constructor(
     public admin: AdminService,
-    private account: AccountService,
+    private store: Store,
     private editor: EditorService,
     private refs: RefService,
   ) { }
@@ -77,11 +77,11 @@ export class CommentReplyComponent implements AfterViewInit {
         ...this.editor.getSources(value),
       ]),
       alternateUrls: this.editor.getAlts(value),
-      tags: removeTag(getInbox(this.account.tag), _.uniq([
+      tags: removeTag(getInbox(this.store.account.tag), _.uniq([
         ...this.publicTag,
         'internal',
         'plugin/comment',
-        this.account.tag,
+        this.store.account.tag,
         ...this.tags!,
         ...this.plugins,
         ...getTags(value),

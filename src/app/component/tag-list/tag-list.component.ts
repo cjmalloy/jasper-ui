@@ -11,16 +11,16 @@ import { IsTag } from '../../model/tag';
 export class TagListComponent implements OnInit {
   @HostBinding('class') css = 'tag-list';
 
-  private _page!: Page<IsTag> | null;
+  private _page?: Page<IsTag>;
 
   constructor(private router: Router) { }
 
-  get page(): Page<IsTag> | null {
+  get page() {
     return this._page;
   }
 
   @Input()
-  set page(value: Page<IsTag> | null) {
+  set page(value: Page<IsTag> | undefined) {
     this._page = value;
     if (this._page) {
       if (this._page.number > 0 && this._page.number >= this._page.totalPages) {

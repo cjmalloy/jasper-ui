@@ -1,29 +1,31 @@
-<ng-container *ngIf="!account.signedIn">
-  <ng-container *ngIf="config.login">
-    <a [href]="config.login">login</a>
-  </ng-container>
-  <span *ngIf="config.login && config.signup"> or </span>
-  <ng-container *ngIf="config.signup">
-    <a [href]="config.signup">sign up</a>
-  </ng-container>
-  <span *ngIf="config.login || config.signup"> | </span>
-  <a routerLink="/settings">settings</a>
-</ng-container>
-<ng-container *ngIf="account.signedIn">
-  <a class="author" [routerLink]="['/tag', account.tag]">{{ account.tag.replace('+', '').replace('user/', '') }}</a>
-  <ng-container *ngIf="admin.status.plugins.inbox">
-    <ng-container *ngIf="account.notifications$ | async as n; else noNotifications">
-      | {{ n }} <a class="notification" routerLink="/inbox/unread">📧</a>
+<ng-container *mobxAutorun>
+  <ng-container *ngIf="!store.account.signedIn">
+    <ng-container *ngIf="config.login">
+      <a [href]="config.login">login</a>
     </ng-container>
-    <ng-template #noNotifications>
-      | <a routerLink="/inbox">📧</a>
-    </ng-template>
+    <span *ngIf="config.login && config.signup"> or </span>
+    <ng-container *ngIf="config.signup">
+      <a [href]="config.signup">sign up</a>
+    </ng-container>
+    <span *ngIf="config.login || config.signup"> | </span>
+    <a routerLink="/settings">settings</a>
   </ng-container>
+  <ng-container *ngIf="store.account.signedIn">
+    <a class="author" [routerLink]="['/tag', store.account.tag]">{{ store.account.tag.replace('+', '').replace('user/', '') }}</a>
+    <ng-container *ngIf="admin.status.plugins.inbox">
+      <ng-container *ngIf="store.account.notifications as n; else noNotifications">
+        | {{ n }} <a class="notification" routerLink="/inbox/unread">📧</a>
+      </ng-container>
+      <ng-template #noNotifications>
+        | <a routerLink="/inbox">📧</a>
+      </ng-template>
+    </ng-container>
     | <a routerLink="/settings">settings</a>
-  <ng-container *ngIf="account.admin">
-    | <a routerLink="/admin">admin</a>
-  </ng-container>
-  <ng-container *ngIf="config.logout">
-    | <a [href]="config.logout">logout</a>
+    <ng-container *ngIf="store.account.admin">
+      | <a routerLink="/admin">admin</a>
+    </ng-container>
+    <ng-container *ngIf="config.logout">
+      | <a [href]="config.logout">logout</a>
+    </ng-container>
   </ng-container>
 </ng-container>

@@ -12,10 +12,10 @@
     </ng-container>
   </div>
   <div class="actions">
-    <a *ngIf="account.admin"
+    <a *ngIf="store.account.admin"
        class="fake-link"
        (click)="editing = true">edit</a>
-    <a *ngIf="!deleting && account.admin"
+    <a *ngIf="!deleting && store.account.admin"
        class="fake-link"
        (click)="deleting = true">delete</a>
     <span *ngIf="deleting" class="delete-confirm"> are you sure?

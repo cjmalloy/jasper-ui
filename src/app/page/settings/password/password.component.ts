@@ -3,9 +3,9 @@ import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ProfileService } from '../../../service/api/profile.service';
+import { Store } from '../../../store/store';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -23,7 +23,7 @@ export class SettingsPasswordPage implements OnInit {
     public admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
-    private account: AccountService,
+    private store: Store,
     private profiles: ProfileService,
     private fb: UntypedFormBuilder,
   ) {
@@ -46,14 +46,14 @@ export class SettingsPasswordPage implements OnInit {
     if (!this.passwordForm.valid) return;
     this.profiles.changePassword({
       ...this.passwordForm.value,
-      tag: this.account.tag
+      tag: this.store.account.tag
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/tag', this.account.tag]);
+      this.router.navigate(['/tag', this.store.account.tag]);
     });
   }
 }

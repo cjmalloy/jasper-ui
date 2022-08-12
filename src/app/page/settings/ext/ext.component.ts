@@ -1,54 +1,39 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import * as _ from 'lodash-es';
-import { combineLatest, map, Observable, switchMap } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
-import { Ext } from '../../../model/ext';
-import { Page } from '../../../model/page';
-import { ExtService } from '../../../service/api/ext.service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { autorun, IReactionDisposer } from 'mobx';
 import { ThemeService } from '../../../service/theme.service';
+import { ExtStore } from '../../../store/ext';
+import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-settings-ext-page',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
 })
-export class SettingsExtPage implements OnInit {
+export class SettingsExtPage implements OnInit, OnDestroy {
 
-  page$: Observable<Page<Ext>>;
-
+  private disposers: IReactionDisposer[] = [];
   private defaultPageSize = 20;
 
   constructor(
     private theme: ThemeService,
-    private route: ActivatedRoute,
-    private exts: ExtService,
+    public store: Store,
+    public query: ExtStore,
   ) {
     theme.setTitle('Settings: Tag Extensions');
-    this.page$ = combineLatest(
-      this.pageNumber$, this.pageSize$,
-    ).pipe(
-      distinctUntilChanged(_.isEqual),
-      switchMap(([pageNumber, pageSize]) => {
-        return this.exts.page({
-          page: pageNumber,
-          size: pageSize ?? this.defaultPageSize,
-        });
-      }));
+    query.clear();
   }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => {
+      this.query.setArgs({
+        page: this.store.view.pageNumber,
+        size: this.store.view.pageSize ?? this.defaultPageSize,
+      });
+    }));
   }
 
-  get pageNumber$() {
-    return this.route.queryParams.pipe(
-      map(params => params['pageNumber']),
-    );
-  }
-
-  get pageSize$() {
-    return this.route.queryParams.pipe(
-      map(params => params['pageSize']),
-    );
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 }

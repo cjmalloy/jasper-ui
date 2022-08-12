@@ -2,13 +2,13 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { IsTag } from '../../model/tag';
-import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { TemplateService } from '../../service/api/template.service';
+import { AuthService } from '../../service/auth.service';
 import { printError } from '../../util/http';
 
 @Component({
@@ -17,7 +17,7 @@ import { printError } from '../../util/http';
   styleUrls: ['./tag.component.scss'],
 })
 export class TagComponent implements OnInit {
-  @HostBinding('class') css = 'tag list-item';
+  @HostBinding('class') css = 'tag-like list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
@@ -29,13 +29,13 @@ export class TagComponent implements OnInit {
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
-  writeAccess$?: Observable<boolean>;
+  writeAccess = false;
   serverError: string[] = [];
 
   constructor(
     public admin: AdminService,
     private router: Router,
-    private account: AccountService,
+    private auth: AuthService,
     private exts: ExtService,
     private plugins: PluginService,
     private templates: TemplateService,
@@ -47,7 +47,7 @@ export class TagComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.writeAccess$ = this.account.tagWriteAccess(this.tag.tag, this.tag.type);
+    this.writeAccess = this.auth.tagWriteAccess(this.tag.tag, this.tag.type);
     this.editForm.patchValue(this.tag);
   }
 

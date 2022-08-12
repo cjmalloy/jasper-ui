@@ -6,7 +6,6 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { feedForm, FeedFormComponent } from '../../../form/feed/feed.component';
 import { isKnownEmbed } from '../../../plugin/embed';
-import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { FeedService } from '../../../service/api/feed.service';
 import { ThemeService } from '../../../service/theme.service';
@@ -31,7 +30,6 @@ export class SubmitFeedPage implements AfterViewInit {
     private router: Router,
     private route: ActivatedRoute,
     private admin: AdminService,
-    private account: AccountService,
     private feeds: FeedService,
     private fb: UntypedFormBuilder,
   ) {

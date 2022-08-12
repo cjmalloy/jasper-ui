@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
+import { TagPageArgs } from '../../model/tag';
 import { mapUser, Roles, User, writeUser } from '../../model/user';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
@@ -37,13 +38,7 @@ export class UserService {
     );
   }
 
-  page(args: {
-    query?: string,
-    page?: number,
-    size?: number,
-    sort?: string,
-    direction?: 'asc' | 'desc',
-  }): Observable<Page<User>> {
+  page(args: TagPageArgs): Observable<Page<User>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(

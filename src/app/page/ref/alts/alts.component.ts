@@ -1,13 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { combineLatest, map, Subject, switchMap, takeUntil } from 'rxjs';
-import { distinctUntilChanged, tap } from 'rxjs/operators';
-import { Page } from '../../../model/page';
-import { Ref } from '../../../model/ref';
-import { AccountService } from '../../../service/account.service';
+import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { AdminService } from '../../../service/admin.service';
-import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
+import { QueryStore } from '../../../store/query';
+import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-ref-alts',
@@ -15,61 +11,46 @@ import { ThemeService } from '../../../service/theme.service';
   styleUrls: ['./alts.component.scss']
 })
 export class RefAltsComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
 
-  page: Page<Ref> = {
-    content: [],
-    empty: true,
-    first: true,
-    last: true,
-    number: 0,
-    size: 0,
-    totalElements: 0,
-    totalPages: 1,
-  };
+  private disposers: IReactionDisposer[] = [];
 
   constructor(
     private theme: ThemeService,
     public admin: AdminService,
-    public account: AccountService,
-    private route: ActivatedRoute,
-    private refs: RefService,
+    public store: Store,
+    public query: QueryStore,
   ) {
-    combineLatest(this.url$, this.origin$).pipe(
-      takeUntil(this.destroy$),
-      switchMap(([url, origin]) => refs.get(url, origin)),
-    ).subscribe(ref => {
-      if (!ref.alternateUrls) return;
-      for (const url of ref.alternateUrls) {
-        this.page.empty = false;
-        this.page.content.push({ url });
-        this.page.totalElements++;
-        this.page.size++;
-      }
-    });
+    query.clear();
   }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => {
+      runInAction(() => this.query.page = {
+        content: [],
+        empty: true,
+        first: true,
+        last: true,
+        number: 0,
+        size: 0,
+        totalElements: 0,
+        totalPages: 1,
+      });
+      this.theme.setTitle('Alts: ' + (this.store.view.ref?.title || this.store.view.url))
+      if (!this.store.view.ref?.alternateUrls) return;
+      runInAction(() => {
+        for (const url of this.store.view.ref!.alternateUrls!) {
+            this.query.page!.empty = false;
+            this.query.page!.content.push({ url });
+            this.query.page!.totalElements++;
+            this.query.page!.size++;
+        }
+      });
+    }));
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  get url$() {
-    return this.route.params.pipe(
-      map(params => params['ref']),
-      distinctUntilChanged(),
-      tap(url => this.refs.get(url).subscribe(ref => this.theme.setTitle('Alts: ' + (ref.title || ref.url)))),
-    );
-  }
-
-  get origin$() {
-    return this.route.queryParams.pipe(
-      map((params) => params['origin']),
-      distinctUntilChanged(),
-    );
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
 }

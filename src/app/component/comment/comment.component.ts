@@ -1,12 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
-import { Ref } from '../../model/ref';
+import { catchError, Subject, switchMap, takeUntil, throwError } from 'rxjs';
+import { Ref, RefSort } from '../../model/ref';
 import { inboxes } from '../../plugin/inbox';
-import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
+import { AuthService } from '../../service/auth.service';
+import { Store } from '../../store/store';
 import { authors, interestingTags, TAG_REGEX_STRING } from '../../util/format';
 import { printError } from '../../util/http';
 
@@ -26,7 +27,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   @Input()
   top!: Ref;
   @Input()
-  sort?: string | null;
+  sort?: RefSort;
   @Input()
   depth?: number | null = 7;
   @Input()
@@ -43,12 +44,13 @@ export class CommentComponent implements OnInit, OnDestroy {
   editing = false;
   tagging = false;
   deleting = false;
-  writeAccess$?: Observable<boolean>;
+  writeAccess = false;
   serverError: string[] = [];
 
   constructor(
     public admin: AdminService,
-    public account: AccountService,
+    public store: Store,
+    private auth: AuthService,
     private refs: RefService,
     private tags: TaggingService,
   ) { }
@@ -64,7 +66,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   @Input()
   set ref(value: Ref) {
     this._ref = value;
-    this.writeAccess$ = this.account.writeAccess(this._ref);
+    this.writeAccess = this.auth.writeAccess(this._ref);
   }
 
   ngOnInit(): void {
@@ -111,7 +113,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get isAuthor() {
-    return this.authors.includes(this.account.tag);
+    return this.authors.includes(this.store.account.tag);
   }
 
   get authors() {
@@ -119,7 +121,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get inboxes() {
-    return inboxes(this._ref, this.account.tag);
+    return inboxes(this._ref, this.store.account.tag);
   }
 
   get tagged() {

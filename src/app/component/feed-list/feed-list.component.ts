@@ -11,16 +11,16 @@ import { Page } from '../../model/page';
 export class FeedListComponent implements OnInit {
   @HostBinding('class') css = 'feed-list';
 
-  private _page!: Page<Feed> | null;
+  private _page?: Page<Feed>;
 
   constructor(private router: Router) { }
 
-  get page(): Page<Feed> | null {
+  get page() {
     return this._page;
   }
 
   @Input()
-  set page(value: Page<Feed> | null) {
+  set page(value: Page<Feed> | undefined) {
     this._page = value;
     if (this._page) {
       if (this._page.number > 0 && this._page.number >= this._page.totalPages) {

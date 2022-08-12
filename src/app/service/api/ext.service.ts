@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { catchError, map, Observable } from 'rxjs';
 import { Ext, mapTag, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
+import { TagPageArgs } from '../../model/tag';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -37,13 +38,7 @@ export class ExtService {
     );
   }
 
-  page(args?: {
-    query?: string,
-    page?: number,
-    size?: number,
-    sort?: string,
-    direction?: 'asc' | 'desc',
-  }): Observable<Page<Ext>> {
+  page(args?: TagPageArgs): Observable<Page<Ext>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(

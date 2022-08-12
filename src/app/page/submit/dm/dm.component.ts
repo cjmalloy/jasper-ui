@@ -6,11 +6,12 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { getInbox } from '../../../plugin/inbox';
-import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
+import { Store } from '../../../store/store';
 import { printError } from '../../../util/http';
+import { hasPrefix } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-dm',
@@ -32,7 +33,7 @@ export class SubmitDmPage implements OnInit {
     public admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
-    private account: AccountService,
+    private store: Store,
     private refs: RefService,
     private fb: UntypedFormBuilder,
   ) {
@@ -45,7 +46,11 @@ export class SubmitDmPage implements OnInit {
       if (params['to']) {
         this.to = params['to'];
       }
-      this.title.setValue(`DM from ${account.tag}`)
+      if (hasPrefix(this.to, 'user')) {
+        this.title.setValue(`DM from ${store.account.tag}`)
+      } else {
+        this.title.setValue(`Message to Moderators of ${this.to}`)
+      }
     });
   }
 
@@ -63,7 +68,7 @@ export class SubmitDmPage implements OnInit {
   get tags() {
     const result = [
       'locked',
-      this.account.tag,
+      this.store.account.tag,
       getInbox(this.to!),
     ];
     if (this.emoji) result.push('plugin/emoji');
@@ -75,7 +80,7 @@ export class SubmitDmPage implements OnInit {
     this.serverError = [];
     this.submitted = true;
     this.dmForm.markAllAsTouched();
-    if (this.to === this.account.tag) {
+    if (this.to === this.store.account.tag) {
       this.serverError = ['You cannot sent messages to yourself.'];
       return;
     }

@@ -1,1 +1,3 @@
-<app-ref-list [page]="page$ | async"></app-ref-list>
+<ng-container *mobxAutorun>
+  <app-ref-list [page]="query.page"></app-ref-list>
+</ng-container>
