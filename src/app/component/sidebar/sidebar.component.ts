@@ -94,6 +94,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return !!this.admin.status.templates.root && !!this._tag;
   }
 
+  get feed() {
+    return this.admin.status.plugins.feed && this.auth.tagReadAccess('+plugin/feed');
+  }
+
   get isApprover() {
     return this.ext?.config?.approvers?.includes(this.store.account.tag);
   }

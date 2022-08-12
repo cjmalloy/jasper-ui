@@ -1,3 +1,4 @@
+<app-form-feed *ngIf="tags.includes('+plugin/feed')" [plugins]="plugins"></app-form-feed>
 <app-form-thumbnail *ngIf="tags.includes('plugin/thumbnail')" [plugins]="plugins" [ref]="ref"></app-form-thumbnail>
 <app-form-archive *ngIf="tags.includes('plugin/archive')" [plugins]="plugins"></app-form-archive>
 <app-form-pdf *ngIf="tags.includes('plugin/pdf')" [plugins]="plugins"></app-form-pdf>

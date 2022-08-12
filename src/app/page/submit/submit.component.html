@@ -5,7 +5,7 @@
 </div>
 <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
 
-  <ng-container *ngIf="linkTypeOverride">
+  <ng-container *ngIf="feed">
     <span>Type:</span>
     <span>RSS / Atom Feed</span>
   </ng-container>

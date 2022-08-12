@@ -21,8 +21,8 @@
       🖌️ &nbsp; Create Tag Extension
     </div>
   </ng-container>
-  <ng-container *ngIf="store.account.editor">
-    <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag, linkType: 'feed' }">
+  <ng-container *ngIf="feed">
+    <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: ['+plugin/feed'].concat(localTag ? [localTag] : []) }">
       📰️ &nbsp; Submit Feed
     </div>
   </ng-container>

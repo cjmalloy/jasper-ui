@@ -10,6 +10,7 @@ import { audioPlugin } from '../plugin/audio';
 import { commentPlugin } from '../plugin/comment';
 import { embedPlugin } from '../plugin/embed';
 import { emojiPlugin } from '../plugin/emoji';
+import { feedPlugin } from '../plugin/feed';
 import { graphPlugin } from '../plugin/graph';
 import { imagePlugin } from '../plugin/image';
 import { inboxPlugin } from '../plugin/inbox';
@@ -39,6 +40,7 @@ export class AdminService {
 
   def = {
     plugins: <Record<string, Plugin>> {
+      feed: feedPlugin,
       inbox: inboxPlugin,
       comment: commentPlugin,
       thumbnail: thumbnailPlugin,

@@ -2,11 +2,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
+import * as moment from 'moment';
 import { catchError, switchMap, throwError } from 'rxjs';
-import { feedForm, FeedFormComponent } from '../../form/feed/feed.component';
-import { Feed } from '../../model/feed';
+import { feedForm, FeedFormComponent } from '../../form/plugin/feed/feed.component';
+import { refForm, RefFormComponent } from '../../form/ref/ref.component';
+import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
-import { FeedService } from '../../service/api/feed.service';
+import { ScrapeService } from '../../service/api/scrape.service';
+import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
 import { interestingTags, TAG_REGEX_STRING, urlSummary } from '../../util/format';
 import { printError } from '../../util/http';
@@ -22,7 +25,7 @@ export class FeedComponent implements OnInit {
   tagRegex = TAG_REGEX_STRING;
 
   @Input()
-  feed!: Feed;
+  feed!: Ref;
   @Input()
   expanded = false;
   @Input()
@@ -43,15 +46,16 @@ export class FeedComponent implements OnInit {
   constructor(
     public admin: AdminService,
     public store: Store,
-    private feeds: FeedService,
+    private refs: RefService,
+    private feeds: ScrapeService,
     private fb: UntypedFormBuilder,
   ) {
-    this.editForm = feedForm(fb);
+    this.editForm = refForm(fb);
   }
 
-  @ViewChild(FeedFormComponent)
-  set refForm(value: FeedFormComponent) {
-    _.defer(() => value?.setFeed(this.feed));
+  @ViewChild(RefFormComponent)
+  set refForm(value: RefFormComponent) {
+    _.defer(() => value?.setRef(this.feed));
   }
 
   ngOnInit(): void {
@@ -65,10 +69,14 @@ export class FeedComponent implements OnInit {
     return urlSummary(this.feed.url);
   }
 
+  get lastScrape() {
+    return moment(this.feed.plugins!['+plugin/feed'].lastScrape);
+  }
+
   addInlineTag() {
     if (!this.inlineTag) return;
     const tag = (this.inlineTag.nativeElement.value as string).toLowerCase();
-    this.feeds.patch(this.feed.url, this.feed.origin!, [{
+    this.refs.patch(this.feed.url, this.feed.origin!, [{
       op: 'add',
       path: '/tags/-',
       value: tag,
@@ -77,7 +85,7 @@ export class FeedComponent implements OnInit {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-      switchMap(() => this.feeds.get(this.feed.url, this.feed.origin!)),
+      switchMap(() => this.refs.get(this.feed.url, this.feed.origin!)),
     ).subscribe(ref => {
       this.serverError = [];
       this.tagging = false;
@@ -89,7 +97,7 @@ export class FeedComponent implements OnInit {
     this.submitted = true;
     this.editForm.markAllAsTouched();
     if (!this.editForm.valid) return;
-    this.feeds.update({
+    this.refs.update({
       ...this.feed,
       ...this.editForm.value,
     }).pipe(
@@ -97,7 +105,7 @@ export class FeedComponent implements OnInit {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-      switchMap(() => this.feeds.get(this.feed.url, this.feed.origin)),
+      switchMap(() => this.refs.get(this.feed.url, this.feed.origin)),
     ).subscribe(ref => {
       this.serverError = [];
       this.editing = false;
@@ -106,7 +114,7 @@ export class FeedComponent implements OnInit {
   }
 
   delete() {
-    this.feeds.delete(this.feed.url, this.feed.origin!).pipe(
+    this.refs.delete(this.feed.url, this.feed.origin!).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -123,7 +131,7 @@ export class FeedComponent implements OnInit {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-      switchMap(() => this.feeds.get(this.feed.url, this.feed.origin)),
+      switchMap(() => this.refs.get(this.feed.url, this.feed.origin)),
     ).subscribe(ref => {
       this.serverError = [];
       this.feed = ref;

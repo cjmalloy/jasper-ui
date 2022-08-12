@@ -58,23 +58,44 @@ export class SubmitWebPage implements AfterViewInit {
         this.addTag('plugin/latex');
       }
       this.route.queryParams.subscribe(params => {
-        this.url = params['url'].trim();
         if (params['tag']) {
-          this.addTag(...params['tag'].split(/[:|!()]/));
+          const tags = _.flatten([params['tag']]);
+          for (const tag of tags) {
+            this.addTag(...tag.split(/[:|!()]/));
+          }
         }
-        if (params['source']) {
-          this.addSource(params['source']);
-        }
+        _.defer(() => {
+          if (this.feed) {
+            this.feedForm!.tags.addTag('public');
+            if (this.admin.status.plugins.thumbnail) this.feedForm!.tags.addTag('plugin/thumbnail');
+          }
+          this.url = params['url'].trim();
+          if (params['source']) {
+            this.addSource(params['source']);
+          }
+        });
       });
     });
   }
 
+  get feed() {
+    return !!this.webForm.value.tags.includes('+plugin/feed');
+  }
+
+  get feedForm() {
+    return this.refForm.plugins.feed;
+  }
+
   set url(value: string) {
-    if (this.admin.status.plugins.audio && isAudio(value)) this.addTag('plugin/audio');
-    if (this.admin.status.plugins.video && isVideo(value)) this.addTag('plugin/video');
-    if (this.admin.status.plugins.image && isImage(value)) this.addTag('plugin/image');
-    if (this.admin.status.plugins.thumbnail && isKnownThumbnail(value)) this.addTag('plugin/thumbnail');
-    if (this.admin.status.plugins.embed && isKnownEmbed(value)) this.addTag('plugin/embed');
+    if (this.feed) {
+      if (this.admin.status.plugins.embed && isKnownEmbed(value)) this.feedForm!.tags.addTag('plugin/embed');
+    } else {
+      if (this.admin.status.plugins.audio && isAudio(value)) this.addTag('plugin/audio');
+      if (this.admin.status.plugins.video && isVideo(value)) this.addTag('plugin/video');
+      if (this.admin.status.plugins.image && isImage(value)) this.addTag('plugin/image');
+      if (this.admin.status.plugins.thumbnail && isKnownThumbnail(value)) this.addTag('plugin/thumbnail');
+      if (this.admin.status.plugins.embed && isKnownEmbed(value)) this.addTag('plugin/embed');
+    }
     this.webForm.get('url')?.setValue(value);
   }
 

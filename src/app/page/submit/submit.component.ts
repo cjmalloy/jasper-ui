@@ -9,11 +9,11 @@ import {
   Validators
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import * as _ from 'lodash-es';
 import { catchError, forkJoin, map, mergeMap, Observable, of } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
-import { Feed } from '../../model/feed';
 import { Ref } from '../../model/ref';
-import { FeedService } from '../../service/api/feed.service';
+import { ScrapeService } from '../../service/api/scrape.service';
 import { RefService } from '../../service/api/ref.service';
 import { ThemeService } from '../../service/theme.service';
 import { URI_REGEX, wikiUriFormat } from '../../util/format';
@@ -48,15 +48,16 @@ export class SubmitPage implements OnInit {
   ];
 
   linkTypeOverride?: string;
+  tags: string[] = [];
   existingRef?: Ref;
-  existingFeed?: Feed;
+  existingFeed?: Ref;
 
   constructor(
     private theme: ThemeService,
     private router: Router,
     private route: ActivatedRoute,
     private refs: RefService,
-    private feeds: FeedService,
+    private feeds: ScrapeService,
     private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Submit: Link');
@@ -64,6 +65,9 @@ export class SubmitPage implements OnInit {
       url: ['', [Validators.required], [this.validator]],
     });
     route.queryParams.subscribe(params => {
+      if (params['tag']) {
+        this.tags = _.flatten([params['tag']]);
+      }
       if (params['linkType']) {
         this.linkTypeOverride = params['linkType'];
       }
@@ -74,6 +78,10 @@ export class SubmitPage implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  get feed() {
+    return this.tags.includes('+plugin/feed');
   }
 
   get url() {
@@ -99,7 +107,7 @@ export class SubmitPage implements OnInit {
     if (linkType === 'feed') {
       this.existingRef = undefined;
       if (this.existingFeed?.url === url) return of(true);
-      return this.feeds.get(url).pipe(
+      return this.refs.get(url).pipe(
         tap(feed => this.existingFeed = feed),
         map(feed => !!feed),
         catchError(err => of(false)),
@@ -143,9 +151,6 @@ export class SubmitPage implements OnInit {
     try {
       const url = new URL(value);
       if (url.protocol === 'http:' || url.protocol === 'https:') {
-        if (url.pathname.endsWith('.rss') || url.pathname.endsWith('.xml')) {
-          return 'feed';
-        }
         return 'web';
       }
     } catch (e) {}

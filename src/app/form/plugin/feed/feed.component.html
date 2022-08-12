@@ -1,0 +1,39 @@
+<ng-container *ngIf="plugins">
+  <label>Feed</label>
+  <div class="form" [formGroup]="plugin">
+    <label for="addTags">Tags:</label>
+    <app-tags id="addTags"
+              [group]="plugin"
+              fieldName="addTags"></app-tags>
+
+    <label for="scrapeInterval">Scrape Interval:</label>
+    <input id="scrapeInterval"
+           type="text"
+           [formControl]="scrapeInterval"
+           (blur)="convertInterval()">
+    <span><!-- Scrape Interval Errors --></span>
+    <div>
+      <div class="error" *ngIf="scrapeInterval.touched && scrapeInterval.errors?.['interval']">
+        Scrape Duration must be valid time span (HH:MM:SS) or ISO 8601 Duration.
+      </div>
+    </div>
+
+    <span><!-- Help --></span>
+    <div class="no-margin">
+    <span class="hints">
+          Use time spans (HH:MM:SS) or ISO 8601 Durations&nbsp;
+          <sup><a target="_blank" href="https://en.wikipedia.org/wiki/ISO_8601#Durations">help</a></sup>
+    </span>
+    </div>
+
+    <label for="scrapeDescription">Scrape Description:</label>
+    <div>
+      <input id="scrapeDescription" type="checkbox" formControlName="scrapeDescription">
+    </div>
+
+    <label for="removeDescriptionIndent">Remove Indent:</label>
+    <div>
+      <input id="removeDescriptionIndent" type="checkbox" formControlName="removeDescriptionIndent">
+    </div>
+  </div>
+</ng-container>

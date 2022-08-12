@@ -68,5 +68,7 @@ export function writeRef(ref: Ref): Record<string, any> {
   const result = { ...ref };
   delete result.metadata;
   delete result.created;
+  result.published = moment(result.published);
+  result.published = moment(result.published);
   return result;
 }

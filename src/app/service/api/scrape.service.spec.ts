@@ -2,10 +2,10 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { FeedService } from './feed.service';
+import { ScrapeService } from './scrape.service';
 
-describe('FeedService', () => {
-  let service: FeedService;
+describe('ScrapeService', () => {
+  let service: ScrapeService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -14,7 +14,7 @@ describe('FeedService', () => {
         RouterTestingModule,
       ],
     });
-    service = TestBed.inject(FeedService);
+    service = TestBed.inject(ScrapeService);
   });
 
   it('should be created', () => {

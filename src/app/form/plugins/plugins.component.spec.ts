@@ -1,15 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 
-import { PluginsComponent } from './plugins.component';
+import { PluginsFormComponent } from './plugins.component';
 
-describe('PluginsComponent', () => {
-  let component: PluginsComponent;
-  let fixture: ComponentFixture<PluginsComponent>;
+describe('PluginsFormComponent', () => {
+  let component: PluginsFormComponent;
+  let fixture: ComponentFixture<PluginsFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PluginsComponent ],
+      declarations: [ PluginsFormComponent ],
       imports: [
         ReactiveFormsModule,
       ],
@@ -18,7 +18,7 @@ describe('PluginsComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(PluginsComponent);
+    fixture = TestBed.createComponent(PluginsFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

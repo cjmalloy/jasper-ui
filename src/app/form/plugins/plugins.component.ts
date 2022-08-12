@@ -1,10 +1,11 @@
-import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { emptyObject, writeObj } from '../../util/http';
 import { archivePluginForm } from '../plugin/archive/archive.component';
 import { audioPluginForm } from '../plugin/audio/audio.component';
 import { commentPluginForm } from '../plugin/comment/comment.component';
 import { embedPluginForm } from '../plugin/embed/embed.component';
+import { feedForm, FeedFormComponent } from '../plugin/feed/feed.component';
 import { imagePluginForm } from '../plugin/image/image.component';
 import { pdfPluginForm } from '../plugin/pdf/pdf.component';
 import { qrPluginForm } from '../plugin/qr/qr.component';
@@ -12,17 +13,20 @@ import { thumbnailPluginForm } from '../plugin/thumbnail/thumbnail.component';
 import { videoPluginForm } from '../plugin/video/video.component';
 
 @Component({
-  selector: 'app-plugins',
+  selector: 'app-form-plugins',
   templateUrl: './plugins.component.html',
   styleUrls: ['./plugins.component.scss']
 })
-export class PluginsComponent implements AfterViewInit {
+export class PluginsFormComponent implements AfterViewInit {
   @HostBinding('class') css = 'plugins-form';
 
   @Input()
   ref = '';
   @Input()
   fieldName = 'plugins';
+
+  @ViewChild(FeedFormComponent)
+  feed?: FeedFormComponent;
 
   private _group: UntypedFormGroup;
   private _tags: string[] = [];
@@ -67,6 +71,13 @@ export class PluginsComponent implements AfterViewInit {
     return !Object.keys(this.plugins.controls).length;
   }
 
+  setValue(value: any) {
+    if (this.feed) {
+      this.feed.setValue(value['+plugin/feed']);
+    }
+    this.group.patchValue(value);
+  }
+
   updateForm() {
     if (this.plugins) {
       for (const p in this.plugins.value) {
@@ -92,7 +103,7 @@ export class PluginsComponent implements AfterViewInit {
 
 export function pluginsForm(fb: UntypedFormBuilder, tags: string[]) {
   return fb.group(tags.reduce((plugins: any, tag: string) => {
-    const form = pluginForm(fb, tag)
+    const form = pluginForm(fb, tag);
     if (form) {
       plugins[tag] = form;
     }
@@ -102,6 +113,7 @@ export function pluginsForm(fb: UntypedFormBuilder, tags: string[]) {
 
 export function pluginForm(fb: UntypedFormBuilder, tag: string) {
   switch (tag) {
+    case '+plugin/feed': return feedForm(fb);
     case 'plugin/thumbnail': return thumbnailPluginForm(fb);
     case 'plugin/archive': return archivePluginForm(fb);
     case 'plugin/pdf': return pdfPluginForm(fb);

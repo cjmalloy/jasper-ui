@@ -46,7 +46,7 @@ import { AutofocusDirective } from './directive/autofocus.directive';
 import { MdPostDirective } from './directive/md-post.directive';
 import { ResizeDirective } from './directive/resize.directive';
 import { CodeComponent } from './form/code/code.component';
-import { FeedFormComponent } from './form/feed/feed.component';
+import { FeedFormComponent } from './form/plugin/feed/feed.component';
 import { LinksFormComponent } from './form/links/links.component';
 import { OriginFormComponent } from './form/origin/origin.component';
 import { ArchiveFormComponent } from './form/plugin/archive/archive.component';
@@ -58,7 +58,7 @@ import { PdfFormComponent } from './form/plugin/pdf/pdf.component';
 import { QrFormComponent } from './form/plugin/qr/qr.component';
 import { ThumbnailFormComponent } from './form/plugin/thumbnail/thumbnail.component';
 import { VideoFormComponent } from './form/plugin/video/video.component';
-import { PluginsComponent } from './form/plugins/plugins.component';
+import { PluginsFormComponent } from './form/plugins/plugins.component';
 import { QtagsFormComponent } from './form/qtags/qtags.component';
 import { QueriesFormComponent } from './form/queries/queries.component';
 import { RefFormComponent } from './form/ref/ref.component';
@@ -99,7 +99,6 @@ import { SettingsProfilePage } from './page/settings/profile/profile.component';
 import { SettingsPage } from './page/settings/settings.component';
 import { SettingsUserPage } from './page/settings/user/user.component';
 import { SubmitDmPage } from './page/submit/dm/dm.component';
-import { SubmitFeedPage } from './page/submit/feed/feed.component';
 import { SubmitInvoicePage } from './page/submit/invoice/invoice.component';
 import { SubmitPage } from './page/submit/submit.component';
 import { SubmitTextPage } from './page/submit/text/text.component';
@@ -145,7 +144,6 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     SubmitPage,
     SubmitWebPage,
     SubmitTextPage,
-    SubmitFeedPage,
     AutofocusDirective,
     CreateExtPage,
     CreateProfilePage,
@@ -186,7 +184,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     LinksFormComponent,
     QtagsFormComponent,
     AudioFormComponent,
-    PluginsComponent,
+    PluginsFormComponent,
     VideoFormComponent,
     ImageFormComponent,
     EmbedFormComponent,

@@ -1,10 +1,11 @@
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import * as _ from 'lodash-es';
 import * as moment from 'moment';
 import { Ref } from '../../model/ref';
 import { EditorService } from '../../service/editor.service';
 import { LinksFormComponent } from '../links/links.component';
-import { pluginsForm } from '../plugins/plugins.component';
+import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
@@ -24,6 +25,8 @@ export class RefFormComponent implements OnInit {
   sources!: LinksFormComponent;
   @ViewChild('alts')
   alts!: LinksFormComponent;
+  @ViewChild(PluginsFormComponent)
+  plugins!: PluginsFormComponent;
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -64,6 +67,7 @@ export class RefFormComponent implements OnInit {
       ...ref,
       published: ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
     });
+    _.defer(() => this.plugins.setValue(ref.plugins));
   }
 
 }

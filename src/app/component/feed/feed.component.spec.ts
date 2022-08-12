@@ -26,11 +26,15 @@ describe('FeedComponent', () => {
     fixture = TestBed.createComponent(FeedComponent);
     component = fixture.componentInstance;
     component.feed = {
-      name: '',
-      removeDurationIndent: false,
-      scrapeDuration: false,
-      scrapeInterval: moment.duration(15, 'minutes'),
-      url: ''
+      url: '',
+      title: '',
+      plugins: {
+        '+plugin/feed': {
+          removeDurationIndent: false,
+          scrapeDuration: false,
+          scrapeInterval: moment.duration(15, 'minutes'),
+        }
+      }
     };
     fixture.detectChanges();
   });
