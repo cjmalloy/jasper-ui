@@ -14,31 +14,5 @@
         Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986.</a>
       </div>
     </div>
-
-    <label for="{{fieldName}}-width">Width:</label>
-    <input id="{{fieldName}}-width"
-           type="text"
-           autocorrect="off"
-           autocapitalize="none"
-           formControlName="width">
-    <span><!-- Width Errors --></span>
-    <div>
-      <div class="error" *ngIf="width.touched && width.errors?.['min']">
-        Must be greater than 0.
-      </div>
-    </div>
-
-    <label for="{{fieldName}}-height">Height:</label>
-    <input id="{{fieldName}}-height"
-           type="text"
-           autocorrect="off"
-           autocapitalize="none"
-           formControlName="height">
-    <span><!-- Height Errors --></span>
-    <div>
-      <div class="error" *ngIf="height.touched && height.errors?.['min']">
-        Must be greater than 0.
-      </div>
-    </div>
   </div>
 </ng-container>

@@ -14,9 +14,6 @@ export const thumbnailPlugin: Plugin = {
   schema: {
     optionalProperties: {
       url: { type: 'string' },
-      height: { type: 'int32', nullable: true },
-      width: { type: 'int32', nullable: true },
-      time: { type: 'timestamp', nullable: true },
     },
   },
 };

@@ -34,21 +34,11 @@ export class ThumbnailFormComponent implements OnInit {
   get url() {
     return this.plugin.get('url') as UntypedFormControl;
   }
-
-  get width() {
-    return this.plugin.get('width') as UntypedFormControl;
-  }
-
-  get height() {
-    return this.plugin.get('height') as UntypedFormControl;
-  }
 }
 
 export function thumbnailPluginForm(fb: UntypedFormBuilder) {
   return fb.group({
     url: fb.control('', [Validators.pattern(URI_REGEX)]),
-    width: fb.control('', [Validators.min(1)]),
-    height: fb.control('', [Validators.min(1)]),
   });
 }
 
