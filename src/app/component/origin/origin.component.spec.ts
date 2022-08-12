@@ -24,7 +24,7 @@ describe('OriginComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(OriginComponent);
     component = fixture.componentInstance;
-    component.origin = {name: '', origin: '', url: ''};
+    component.remote = {name: '', origin: '', url: ''};
     fixture.detectChanges();
   });
 

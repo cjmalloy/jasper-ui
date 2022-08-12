@@ -1,13 +1,13 @@
 <div class="link">
-  <a [routerLink]="['/tag', origin.origin]">{{ origin.name || origin.origin || 'local' }}</a>
+  <a [routerLink]="['/tag', remote.origin]">{{ remote.title || remote.origin || 'local' }}</a>
 </div>
 <div class="stack">
   <div class="info">
-    <span [title]="origin.modified?.toISOString()">modified {{ origin.modified?.fromNow() }}</span>
-    <ng-container *ngIf="origin.lastScrape">
-      <span [title]="origin.lastScrape.toISOString()"> last scraped {{ origin.lastScrape.fromNow() }} </span>
+    <span [title]="remote.modified?.toISOString()">modified {{ remote.modified?.fromNow() }}</span>
+    <ng-container *ngIf="lastScrape">
+      <span [title]="lastScrape.toISOString()"> last scraped {{ lastScrape.fromNow() }} </span>
     </ng-container>
-    <ng-container *ngIf="!origin.lastScrape">
+    <ng-container *ngIf="!lastScrape">
       not scraped yet
     </ng-container>
   </div>
@@ -27,7 +27,7 @@
 
 <form *ngIf="editing else showErrors" [formGroup]="editForm" (ngSubmit)="save()">
 
-  <app-origin-form [group]="editForm"></app-origin-form>
+  <app-ref-form [group]="editForm"></app-ref-form>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>

@@ -7,7 +7,6 @@ import { AdminPluginPage } from './page/admin/plugin/plugin.component';
 import { AdminSetupPage } from './page/admin/setup/setup.component';
 import { AdminTemplatePage } from './page/admin/template/template.component';
 import { CreateExtPage } from './page/create/ext/ext.component';
-import { CreateOriginPage } from './page/create/origin/origin.component';
 import { CreateProfilePage } from './page/create/profile/profile.component';
 import { CreateUserPage } from './page/create/user/user.component';
 import { HomePage } from './page/home/home.component';
@@ -85,7 +84,6 @@ const routes: Routes = [
   { path: 'create/ext', component: CreateExtPage },
   { path: 'create/user', component: CreateUserPage },
   { path: 'create/profile', component: CreateProfilePage },
-  { path: 'create/origin', component: CreateOriginPage },
   {
     path: 'admin',
     component: AdminPage,

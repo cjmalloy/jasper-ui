@@ -1,20 +1,20 @@
-import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import * as moment from 'moment';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import * as moment from 'moment/moment';
 import { intervalValidator } from '../../../util/form';
-import { tagsForm, TagsFormComponent } from '../../tags/tags.component';
+import { TagsFormComponent } from '../../tags/tags.component';
 
 @Component({
-  selector: 'app-form-feed',
-  templateUrl: './feed.component.html',
-  styleUrls: ['./feed.component.scss']
+  selector: 'app-origin-form',
+  templateUrl: './origin.component.html',
+  styleUrls: ['./origin.component.scss']
 })
-export class FeedFormComponent implements OnInit {
+export class OriginFormComponent implements OnInit {
 
   @Input()
   plugins!: UntypedFormGroup;
   @Input()
-  fieldName = '+plugin/feed';
+  fieldName = '+plugin/origin';
 
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
@@ -26,6 +26,10 @@ export class FeedFormComponent implements OnInit {
 
   get plugin() {
     return this.plugins.get(this.fieldName) as UntypedFormGroup;
+  }
+
+  get proxy() {
+    return this.plugin.get('proxy') as UntypedFormControl;
   }
 
   get scrapeInterval() {
@@ -42,11 +46,13 @@ export class FeedFormComponent implements OnInit {
   }
 }
 
-export function feedForm(fb: UntypedFormBuilder) {
+export function originForm(fb: UntypedFormBuilder) {
   return fb.group({
+    query: [''],
+    proxy: [''],
     addTags: fb.array([]),
+    mapTags: fb.group({}),
     scrapeInterval: ['PT15M', [intervalValidator()]],
-    scrapeDescription: [true],
-    removeDescriptionIndent: [false],
+    lastScrape: [''],
   });
 }

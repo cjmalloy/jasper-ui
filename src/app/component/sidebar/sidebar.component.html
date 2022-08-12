@@ -35,7 +35,7 @@
     </div>
   </ng-container>
   <ng-container *ngIf="store.account.admin">
-    <div class="submit-button" routerLink="/create/origin">
+    <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: ['+plugin/origin'].concat(localTag ? [localTag] : []) }">
       🔧️ &nbsp; Replicate Remote Origin
     </div>
   </ng-container>

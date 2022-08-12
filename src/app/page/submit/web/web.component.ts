@@ -27,6 +27,7 @@ import { printError } from '../../../util/http';
 export class SubmitWebPage implements AfterViewInit {
 
   submitted = false;
+  title = '';
   webForm: UntypedFormGroup;
   serverError: string[] = [];
 
@@ -43,7 +44,7 @@ export class SubmitWebPage implements AfterViewInit {
     private refs: RefService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle('Submit: Web Link');
+    this.setTitle('Submit: Web Link');
     this.webForm = refForm(fb);
   }
 
@@ -64,6 +65,12 @@ export class SubmitWebPage implements AfterViewInit {
             this.addTag(...tag.split(/[:|!()]/));
           }
         }
+        if (this.feed) {
+          this.setTitle('Submit: Feed');
+        }
+        if (this.origin) {
+          this.setTitle('Replicate Remote Origin');
+        }
         _.defer(() => {
           if (this.feed) {
             this.feedForm!.tags.addTag('public');
@@ -82,6 +89,10 @@ export class SubmitWebPage implements AfterViewInit {
     return !!this.webForm.value.tags.includes('+plugin/feed');
   }
 
+  get origin() {
+    return !!this.webForm.value.tags.includes('+plugin/origin');
+  }
+
   get feedForm() {
     return this.refForm.plugins.feed;
   }
@@ -97,6 +108,11 @@ export class SubmitWebPage implements AfterViewInit {
       if (this.admin.status.plugins.embed && isKnownEmbed(value)) this.addTag('plugin/embed');
     }
     this.webForm.get('url')?.setValue(value);
+  }
+
+  setTitle(title: string) {
+    this.title = title;
+    this.theme.setTitle(title);
   }
 
   addTag(...values: string[]) {

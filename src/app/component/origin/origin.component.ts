@@ -2,10 +2,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
+import * as moment from 'moment/moment';
 import { catchError, switchMap, throwError } from 'rxjs';
-import { originForm, OriginFormComponent } from '../../form/origin/origin.component';
-import { Origin } from '../../model/origin';
-import { OriginService } from '../../service/api/origin.service';
+import { originForm } from '../../form/plugin/origin/origin.component';
+import { RefFormComponent } from '../../form/ref/ref.component';
+import { Ref } from '../../model/ref';
+import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
 import { printError } from '../../util/http';
 
@@ -19,7 +21,7 @@ export class OriginComponent implements OnInit {
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
-  origin!: Origin;
+  remote!: Ref;
 
   editForm: UntypedFormGroup;
   submitted = false;
@@ -32,42 +34,46 @@ export class OriginComponent implements OnInit {
 
   constructor(
     public store: Store,
-    private origins: OriginService,
+    private refs: RefService,
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = originForm(fb);
   }
 
-  @ViewChild(OriginFormComponent)
-  set refForm(value: OriginFormComponent) {
-    _.defer(() => value?.setOrigin(this.origin));
+  @ViewChild(RefFormComponent)
+  set refForm(value: RefFormComponent) {
+    _.defer(() => value?.setRef(this.remote));
   }
 
   ngOnInit(): void {
+  }
+
+  get lastScrape() {
+    return moment(this.remote.plugins!['+plugin/origin'].lastScrape);
   }
 
   save() {
     this.submitted = true;
     this.editForm.markAllAsTouched();
     if (!this.editForm.valid) return;
-    this.origins.update({
-      ...this.origin,
+    this.refs.update({
+      ...this.remote,
       ...this.editForm.value,
     }).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-      switchMap(() => this.origins.get(this.origin.origin)),
+      switchMap(() => this.refs.get(this.remote.origin!)),
     ).subscribe(origin => {
       this.serverError = [];
       this.editing = false;
-      this.origin = origin;
+      this.remote = origin;
     });
   }
 
   delete() {
-    this.origins.delete(this.origin.origin).pipe(
+    this.refs.delete(this.remote.origin!).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

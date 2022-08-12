@@ -1,7 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Origin } from '../../model/origin';
 import { Page } from '../../model/page';
+import { Ref } from '../../model/ref';
 
 @Component({
   selector: 'app-origin-list',
@@ -11,7 +11,7 @@ import { Page } from '../../model/page';
 export class OriginListComponent implements OnInit {
   @HostBinding('class') css = 'origin-list';
 
-  private _page?: Page<Origin>;
+  private _page?: Page<Ref>;
 
   constructor(private router: Router) { }
 
@@ -20,7 +20,7 @@ export class OriginListComponent implements OnInit {
   }
 
   @Input()
-  set page(value: Page<Origin> | undefined) {
+  set page(value: Page<Ref> | undefined) {
     this._page = value;
     if (this._page) {
       if (this._page.number > 0 && this._page.number >= this._page.totalPages) {

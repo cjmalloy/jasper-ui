@@ -1,8 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { ThemeService } from '../../../service/theme.service';
-import { OriginStore } from '../../../store/origin';
+import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { getArgs } from '../../../util/query';
 
 @Component({
   selector: 'app-admin-origin-page',
@@ -17,7 +18,7 @@ export class AdminOriginPage implements OnInit, OnDestroy {
   constructor(
     private theme: ThemeService,
     public store: Store,
-    public query: OriginStore,
+    public query: QueryStore,
   ) {
     theme.setTitle('Admin: Origins');
     query.clear();
@@ -25,10 +26,14 @@ export class AdminOriginPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.query.setArgs({
-        page: this.store.view.pageNumber,
-        size: this.store.view.pageSize ?? this.defaultPageSize,
-      });
+      this.query.setArgs(getArgs(
+        '+plugin/origin',
+        this.store.view.sort,
+        this.store.view.filter,
+        this.store.view.search,
+        this.store.view.pageNumber,
+        this.store.view.pageSize ?? this.defaultPageSize
+    ));
     }));
   }
 

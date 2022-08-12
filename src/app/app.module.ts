@@ -48,7 +48,7 @@ import { ResizeDirective } from './directive/resize.directive';
 import { CodeComponent } from './form/code/code.component';
 import { FeedFormComponent } from './form/plugin/feed/feed.component';
 import { LinksFormComponent } from './form/links/links.component';
-import { OriginFormComponent } from './form/origin/origin.component';
+import { OriginFormComponent } from './form/plugin/origin/origin.component';
 import { ArchiveFormComponent } from './form/plugin/archive/archive.component';
 import { AudioFormComponent } from './form/plugin/audio/audio.component';
 import { CommentFormComponent } from './form/plugin/comment/comment.component';
@@ -74,7 +74,6 @@ import { AdminPluginPage } from './page/admin/plugin/plugin.component';
 import { AdminSetupPage } from './page/admin/setup/setup.component';
 import { AdminTemplatePage } from './page/admin/template/template.component';
 import { CreateExtPage } from './page/create/ext/ext.component';
-import { CreateOriginPage } from './page/create/origin/origin.component';
 import { CreateProfilePage } from './page/create/profile/profile.component';
 import { CreateUserPage } from './page/create/user/user.component';
 import { HomePage } from './page/home/home.component';
@@ -147,7 +146,6 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     AutofocusDirective,
     CreateExtPage,
     CreateProfilePage,
-    CreateOriginPage,
     EditTagPage,
     LoadingComponent,
     AdminPage,

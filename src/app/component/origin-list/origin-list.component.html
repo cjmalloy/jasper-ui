@@ -1,7 +1,7 @@
 <div class="list-container">
   <ng-container *ngFor="let origin of page?.content; let i = index">
     <div class="list-number">{{ i + page!.number * page!.size + 1 }}</div>
-    <app-origin [origin]="origin"></app-origin>
+    <app-origin [remote]="origin"></app-origin>
   </ng-container>
 </div>
 <app-loading *ngIf="!page"></app-loading>

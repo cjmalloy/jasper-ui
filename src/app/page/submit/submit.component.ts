@@ -84,6 +84,10 @@ export class SubmitPage implements OnInit {
     return this.tags.includes('+plugin/feed');
   }
 
+  get origin() {
+    return this.tags.includes('+plugin/origin');
+  }
+
   get url() {
     return this.submitForm.get('url') as UntypedFormControl;
   }
