@@ -1,5 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 import { MarkdownModule } from 'ngx-markdown';
 
 import { EmbedComponent } from './embed.component';
@@ -13,6 +14,7 @@ describe('EmbedComponent', () => {
       declarations: [ EmbedComponent ],
       imports: [
         HttpClientTestingModule,
+        RouterTestingModule,
         MarkdownModule.forRoot(),
       ],
     })

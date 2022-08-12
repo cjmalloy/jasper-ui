@@ -1,5 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { CorsBusterService } from './cors-buster.service';
 
@@ -10,6 +11,7 @@ describe('CorsBusterService', () => {
     TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,
+        RouterTestingModule,
       ],
     });
     service = TestBed.inject(CorsBusterService);

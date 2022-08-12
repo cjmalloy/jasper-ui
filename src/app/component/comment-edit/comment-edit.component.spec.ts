@@ -1,5 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { CommentEditComponent } from './comment-edit.component';
 
@@ -12,6 +13,7 @@ describe('CommentEditComponent', () => {
       declarations: [CommentEditComponent],
       imports: [
         HttpClientTestingModule,
+        RouterTestingModule,
       ],
     })
     .compileComponents();
