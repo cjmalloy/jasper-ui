@@ -223,6 +223,7 @@ export class RefComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(ref => {
+      this.serverError = [];
       this.tagging = false;
       this.ref = ref;
     });
@@ -239,7 +240,10 @@ export class RefComponent implements OnInit {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-    ).subscribe(ref => this.ref = ref);
+    ).subscribe(ref => {
+      this.serverError = [];
+      this.ref = ref;
+    });
   }
 
   accept() {
@@ -250,6 +254,7 @@ export class RefComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(ref => {
+      this.serverError = [];
       this.ref = ref;
     });
   }
@@ -267,6 +272,7 @@ export class RefComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(ref => {
+      this.serverError = [];
       this.ref = ref;
     });
   }
@@ -280,6 +286,7 @@ export class RefComponent implements OnInit {
           return throwError(() => err);
         }),
       ).subscribe(ref => {
+        this.serverError = [];
         this.ref = ref;
       });
     }
@@ -295,6 +302,7 @@ export class RefComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(ref => {
+      this.serverError = [];
       this.ref = ref;
     });
   }
@@ -308,6 +316,7 @@ export class RefComponent implements OnInit {
           return throwError(() => err);
         }),
       ).subscribe(ref => {
+        this.serverError = [];
         this.ref = ref;
       });
     }
@@ -323,6 +332,7 @@ export class RefComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(ref => {
+      this.serverError = [];
       this.ref = ref;
     });
   }
@@ -344,6 +354,7 @@ export class RefComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(ref => {
+      this.serverError = [];
       this.editing = false;
       this.ref = ref;
     });
@@ -356,6 +367,7 @@ export class RefComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(() => {
+      this.serverError = [];
       this.deleted = true;
     });
   }

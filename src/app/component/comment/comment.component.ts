@@ -169,6 +169,7 @@ export class CommentComponent implements OnInit, OnDestroy {
       }),
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
     ).subscribe(ref => {
+      this.serverError = [];
       this.tagging = false;
       this._ref = ref;
     });
@@ -182,6 +183,7 @@ export class CommentComponent implements OnInit, OnDestroy {
       }),
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
     ).subscribe(ref => {
+      this.serverError = [];
       this._ref = ref;
     });
   }
@@ -197,6 +199,9 @@ export class CommentComponent implements OnInit, OnDestroy {
         return throwError(() => err);
       }),
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
-    ).subscribe(ref => this._ref = ref);
+    ).subscribe(ref => {
+      this.serverError = [];
+      this._ref = ref;
+    });
   }
 }

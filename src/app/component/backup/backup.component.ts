@@ -45,7 +45,8 @@ export class BackupComponent implements OnInit {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-    ).subscribe(() =>{
+    ).subscribe(() => {
+      this.serverError = [];
         this.restoring = false;
     });
   }
@@ -57,6 +58,7 @@ export class BackupComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(() => {
+      this.serverError = [];
       this.deleted = true;
     });
   }

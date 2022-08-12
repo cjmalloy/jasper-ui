@@ -60,6 +60,7 @@ export class OriginComponent implements OnInit {
       }),
       switchMap(() => this.origins.get(this.origin.origin)),
     ).subscribe(origin => {
+      this.serverError = [];
       this.editing = false;
       this.origin = origin;
     });
@@ -72,6 +73,7 @@ export class OriginComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(() => {
+      this.serverError = [];
       this.deleted = true;
     });
   }

@@ -89,6 +89,7 @@ export class TagComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(tag => {
+      this.serverError = [];
       this.editing = false;
       this.tag = tag;
     });
@@ -101,6 +102,7 @@ export class TagComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(() => {
+      this.serverError = [];
       this.deleted = true;
     });
   }

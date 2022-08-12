@@ -79,6 +79,7 @@ export class FeedComponent implements OnInit {
       }),
       switchMap(() => this.feeds.get(this.feed.url, this.feed.origin!)),
     ).subscribe(ref => {
+      this.serverError = [];
       this.tagging = false;
       this.feed = ref;
     });
@@ -98,6 +99,7 @@ export class FeedComponent implements OnInit {
       }),
       switchMap(() => this.feeds.get(this.feed.url, this.feed.origin)),
     ).subscribe(ref => {
+      this.serverError = [];
       this.editing = false;
       this.feed = ref;
     });
@@ -110,6 +112,7 @@ export class FeedComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(() => {
+      this.serverError = [];
       this.deleted = true;
     });
   }
@@ -122,6 +125,7 @@ export class FeedComponent implements OnInit {
       }),
       switchMap(() => this.feeds.get(this.feed.url, this.feed.origin)),
     ).subscribe(ref => {
+      this.serverError = [];
       this.feed = ref;
     });
   }

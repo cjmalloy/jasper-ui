@@ -70,6 +70,7 @@ export class UserComponent implements OnInit {
       }),
       switchMap(() => this.users.get(this.qualifiedTag)),
     ).subscribe(user => {
+      this.serverError = [];
       this.editing = false;
       this.user = user;
     });
@@ -82,6 +83,7 @@ export class UserComponent implements OnInit {
         return throwError(() => err);
       }),
     ).subscribe(() => {
+      this.serverError = [];
       this.deleted = true;
     });
   }
