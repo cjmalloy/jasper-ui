@@ -1,6 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { add } from 'lodash-es';
 import { TAG_REGEX } from '../../util/format';
 
 @Component({

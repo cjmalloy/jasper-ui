@@ -16,6 +16,7 @@ import { imagePlugin } from '../plugin/image';
 import { inboxPlugin } from '../plugin/inbox';
 import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
 import { latexPlugin } from '../plugin/latex';
+import { originPlugin } from '../plugin/origin';
 import { pdfPlugin } from '../plugin/pdf';
 import { personPlugin } from '../plugin/person';
 import { qrPlugin } from '../plugin/qr';
@@ -40,6 +41,7 @@ export class AdminService {
 
   def = {
     plugins: <Record<string, Plugin>> {
+      origin: originPlugin,
       feed: feedPlugin,
       inbox: inboxPlugin,
       comment: commentPlugin,

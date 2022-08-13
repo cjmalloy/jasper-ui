@@ -1,10 +1,6 @@
 <ng-container *ngIf="plugins">
   <label>Feed</label>
   <div class="form" [formGroup]="plugin">
-    <label for="addTags">Tags:</label>
-    <app-tags id="addTags"
-              [group]="plugin"
-              fieldName="addTags"></app-tags>
 
     <label for="scrapeInterval">Scrape Interval:</label>
     <input id="scrapeInterval"
@@ -35,5 +31,10 @@
     <div>
       <input id="removeDescriptionIndent" type="checkbox" formControlName="removeDescriptionIndent">
     </div>
+
+    <label for="addTags">Add Tags:</label>
+    <app-tags id="addTags"
+              [group]="plugin"
+              fieldName="addTags"></app-tags>
   </div>
 </ng-container>

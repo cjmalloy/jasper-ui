@@ -22,6 +22,9 @@
       <a class="fake-link" (click)="delete()">yes</a> /
       <a class="fake-link" (click)="deleting = false">no</a>
     </span>
+    <a *ngIf="store.account.mod"
+       class="fake-link"
+       (click)="scrape()">scrape</a>
   </div>
 </div>
 

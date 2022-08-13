@@ -8,6 +8,7 @@ import { originForm } from '../../form/plugin/origin/origin.component';
 import { RefFormComponent } from '../../form/ref/ref.component';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
+import { ScrapeService } from '../../service/api/scrape.service';
 import { Store } from '../../store/store';
 import { printError } from '../../util/http';
 
@@ -35,6 +36,7 @@ export class OriginComponent implements OnInit {
   constructor(
     public store: Store,
     private refs: RefService,
+    private feeds: ScrapeService,
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = originForm(fb);
@@ -81,6 +83,19 @@ export class OriginComponent implements OnInit {
     ).subscribe(() => {
       this.serverError = [];
       this.deleted = true;
+    });
+  }
+
+  scrape() {
+    this.feeds.scrape(this.remote.url, this.remote.origin!).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+      switchMap(() => this.refs.get(this.remote.url, this.remote.origin)),
+    ).subscribe(ref => {
+      this.serverError = [];
+      this.remote = ref;
     });
   }
 }

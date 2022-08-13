@@ -7,6 +7,7 @@ import { commentPluginForm } from '../plugin/comment/comment.component';
 import { embedPluginForm } from '../plugin/embed/embed.component';
 import { feedForm, FeedFormComponent } from '../plugin/feed/feed.component';
 import { imagePluginForm } from '../plugin/image/image.component';
+import { originForm } from '../plugin/origin/origin.component';
 import { pdfPluginForm } from '../plugin/pdf/pdf.component';
 import { qrPluginForm } from '../plugin/qr/qr.component';
 import { thumbnailPluginForm } from '../plugin/thumbnail/thumbnail.component';
@@ -113,6 +114,7 @@ export function pluginsForm(fb: UntypedFormBuilder, tags: string[]) {
 
 export function pluginForm(fb: UntypedFormBuilder, tag: string) {
   switch (tag) {
+    case '+plugin/origin': return originForm(fb);
     case '+plugin/feed': return feedForm(fb);
     case 'plugin/thumbnail': return thumbnailPluginForm(fb);
     case 'plugin/archive': return archivePluginForm(fb);

@@ -17,12 +17,6 @@ describe('OriginFormComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(OriginFormComponent);
     component = fixture.componentInstance;
-    component.group = new UntypedFormGroup({
-      origin: new UntypedFormControl(),
-      name: new UntypedFormControl(),
-      url: new UntypedFormControl(),
-      proxy: new UntypedFormControl(),
-    });
     fixture.detectChanges();
   });
 

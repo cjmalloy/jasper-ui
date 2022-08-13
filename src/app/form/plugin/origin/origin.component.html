@@ -1,10 +1,53 @@
 <ng-container *ngIf="plugins">
   <label>Origin</label>
   <div class="form" [formGroup]="plugin">
-    <label for="addTags">Tags:</label>
-    <app-tags id="addTags"
-              [group]="plugin"
-              fieldName="addTags"></app-tags>
+
+    <label for="origin">Origin:</label>
+    <input id="origin" type="url" [formControl]="origin">
+    <div><!-- Origin Errors --></div>
+    <div>
+      <div class="error" *ngIf="origin.touched && origin.errors?.['required']">
+        Origin is required
+      </div>
+      <div class="error" *ngIf="origin.touched && origin.errors?.['pattern']">
+        Origins must be lower case letters and start with @.
+      </div>
+    </div>
+
+    <label for="remote">Remote Origin:</label>
+    <input id="remote" type="url" [formControl]="remote">
+    <div><!-- Remote Origin Errors --></div>
+    <div>
+      <div class="error" *ngIf="remote.touched && remote.errors?.['pattern']">
+        Origins must be lower case letters and start with @.
+      </div>
+    </div>
+
+    <label for="overwriteOrigins">Overwrite Origin:</label>
+    <div>
+      <input id="overwriteOrigins" type="checkbox" formControlName="overwriteOrigins">
+    </div>
+
+    <label for="proxy">Proxy:</label>
+    <input id="proxy" type="url" [formControl]="proxy">
+    <span><!-- Proxy Errors --></span>
+    <div>
+      <div class="error" *ngIf="proxy.touched && proxy.errors?.['pattern']">
+        Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986.</a>
+      </div>
+    </div>
+
+    <label for="query">Query:</label>
+    <input id="query" type="email" [formControl]="query">
+    <span><!-- Query Errors --></span>
+    <div>
+      <div class="error" *ngIf="query.touched && query.errors?.['pattern']">
+        Queries support AND (:), OR (|) and grouping qualified tags (parentheses).
+        Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
+        two forward slashes in a row. Private tags start with an underscore.<br>
+        (i.e. "science:news", "science@origin science@other" "your/tag my/tag", or "news:_my/private/tag")
+      </div>
+    </div>
 
     <label for="scrapeInterval">Scrape Interval:</label>
     <input id="scrapeInterval"
@@ -26,13 +69,19 @@
     </span>
     </div>
 
-    <label for="proxy">Proxy:</label>
-    <input id="proxy" type="url" [formControl]="proxy">
-    <span><!-- Proxy Errors --></span>
-    <div>
-      <div class="error" *ngIf="proxy.touched && proxy.errors?.['pattern']">
-        Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986.</a>
-      </div>
-    </div>
+    <label for="removeTags">Remove Tags:</label>
+    <app-tags id="removeTags"
+              [group]="plugin"
+              fieldName="removeTags"></app-tags>
+
+    <label for="addTags">Add Tags:</label>
+    <app-tags id="addTags"
+              [group]="plugin"
+              fieldName="addTags"></app-tags>
+
+<!--    <label for="mapTags">Map Tags:</label>-->
+<!--    <app-tags id="mapTags"-->
+<!--              [group]="plugin"-->
+<!--              fieldName="mapTags"></app-tags>-->
   </div>
 </ng-container>

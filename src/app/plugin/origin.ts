@@ -12,13 +12,17 @@ export const originPlugin: Plugin = {
   },
   schema: {
     properties: {
+      origin: { type: 'string' },
       scrapeInterval: { type: 'string' },
     },
     optionalProperties: {
+      remote: { type: 'string' },
       query: { type: 'string' },
       proxy: { type: 'string' },
+      removeTags: { elements: { type: 'string' } },
       mapTags: { values: { type: 'string' } },
       addTags: { elements: { type: 'string' } },
+      mapOrigins: { values: { type: 'string' } },
       lastScrape: { type: 'string' },
     },
   },
