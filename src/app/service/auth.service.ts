@@ -14,8 +14,8 @@ export class AuthService {
 
   writeAccess(ref: HasTags): boolean {
     if (!this.store.account.signedIn) return false;
-    if (ref.origin) return false;
     if (this.store.account.mod) return true;
+    if (ref.origin) return false;
     if (ref.tags?.includes('locked')) return false;
     if (isOwnerTag(this.store.account.tag!, ref)) return true;
     if (isOwner(this.store.account.user!, ref)) return true;
