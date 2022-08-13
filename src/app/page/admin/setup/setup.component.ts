@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
-import { catchError, forkJoin, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
@@ -50,7 +50,7 @@ export class AdminSetupPage implements OnInit {
       const def = this.admin.def.plugins[plugin];
       if (this.adminForm.value.plugins[plugin]) {
         this.installMessages.push(`Installing ${def.name || def.tag} plugin...`);
-        installs.push(this.plugins.create(def));
+        installs.push(this.plugins.create(def).pipe(retry(10)));
       } else {
         this.installMessages.push(`Deleting ${def.name || def.tag} plugin...`);
         installs.push(this.plugins.delete(def.tag));
@@ -61,7 +61,7 @@ export class AdminSetupPage implements OnInit {
       const def = this.admin.def.templates[template];
       if (this.adminForm.value.templates[template]) {
         this.installMessages.push(`Installing ${def.name || def.tag} template...`);
-        installs.push(this.templates.create(def));
+        installs.push(this.templates.create(def).pipe(retry(10)));
       } else {
         this.installMessages.push(`Deleting ${def.name || def.tag} template...`);
         installs.push(this.templates.delete(def.tag));
