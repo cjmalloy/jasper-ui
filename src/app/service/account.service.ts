@@ -36,7 +36,7 @@ export class AccountService {
       tap(roles => this.store.account.setRoles(roles)),
       switchMap(roles => !roles.tag ? of() :
         this.loadUserExt$.pipe(
-          switchMap(() => this.user$),
+          switchMap(() => this.user$.pipe(catchError(() => of()))),
           switchMap(() => this.subscriptions$),
           switchMap(() => this.bookmarks$),
           switchMap(() => this.theme$),
