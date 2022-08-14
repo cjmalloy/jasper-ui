@@ -12,6 +12,10 @@
     </ng-container>
   </div>
   <div class="actions">
+    <a *ngIf="admin.status.plugins.comment"
+       [routerLink]="['/ref', remote.url, 'comments']">comment</a>
+    <a *ngIf="!admin.status.plugins.comment"
+       [routerLink]="['/ref', remote.url]">ref</a>
     <a *ngIf="store.account.admin"
        class="fake-link"
        (click)="editing = true">edit</a>
