@@ -65,11 +65,12 @@ export class SubmitWebPage implements AfterViewInit {
             this.addTag(...tag.split(/[:|!()]/));
           }
         }
-        if (this.feed) {
-          this.setTitle('Submit: Feed');
-        }
         if (this.origin) {
+          this.addTag('internal');
           this.setTitle('Replicate Remote Origin');
+        } else if (this.feed) {
+          this.addTag('internal');
+          this.setTitle('Submit: Feed');
         }
         _.defer(() => {
           this.url = params['url'].trim();
