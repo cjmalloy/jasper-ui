@@ -49,7 +49,7 @@ export class AdminBackupPage implements OnInit {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).subscribe(id => this.list?.unshift(id));
+    ).subscribe(() => this.list?.unshift(files[0].name));
   }
 
   showUpload() {
