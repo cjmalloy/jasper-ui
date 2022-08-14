@@ -23,6 +23,7 @@
       </ng-container>
     </div>
     <div class="actions">
+      <a [routerLink]="['/ref', feed.url, 'responses']">{{ responses.replace(' ', '&thinsp;') }}</a>
       <a *ngIf="store.account.editor"
          class="fake-link"
          (click)="editing = !editing">edit</a>

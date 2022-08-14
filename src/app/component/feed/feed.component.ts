@@ -60,6 +60,13 @@ export class FeedComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  get responses() {
+    if (!this.feed.metadata) return '? scraped';
+    const responseCount = this.feed.metadata.responses?.length;
+    if (responseCount === 0) return 'none scraped';
+    return responseCount + ' scraped';
+  }
+
   get tags() {
     return interestingTags(this.feed.tags);
   }
