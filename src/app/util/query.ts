@@ -43,7 +43,9 @@ export function getArgs(
 ): RefPageArgs {
   let filter: (Record<string, any> & RefFilter) | undefined = filterListToObj(filterOrList);
   let queryFilter = '';
-  if (filter?.notInternal) {
+  if (filter?.internal) {
+    queryFilter += 'internal@*';
+  } else if (filter?.notInternal) {
     queryFilter += '!internal@*';
   }
   if (filter?.modlist) {
