@@ -29,7 +29,7 @@
         <div class="info" [class.expanded]="!actionsExpanded">
           <ng-container *ngIf="ref.created">
             <span [title]="ref.created.toISOString()">submitted {{ ref.created.fromNow() }}</span>
-            <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="'last edited ' + ref.modified?.fromNow()">*</span>
+            <span *ngIf="ref.modified!.diff(ref.created, 'seconds') > 5" [title]="'last edited ' + ref.modified!.fromNow()">*</span>
           </ng-container>
           <ng-container *ngIf="authors.length">
             by
