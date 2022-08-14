@@ -8,8 +8,10 @@ import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { ScrapeService } from '../../service/api/scrape.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthService } from '../../service/auth.service';
 import { EditorService } from '../../service/editor.service';
@@ -58,6 +60,7 @@ export class RefComponent implements OnInit {
     private auth: AuthService,
     private editor: EditorService,
     private refs: RefService,
+    private feeds: ScrapeService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
@@ -145,6 +148,11 @@ export class RefComponent implements OnInit {
   get archive() {
     if (!this.admin.status.plugins.archive) return null;
     return this.ref.plugins?.['plugin/archive']?.url || this.findArchive;
+  }
+
+  get scrapeable() {
+    return this.admin.status.plugins.feed && this.ref.plugins?.['+plugin/feed'] ||
+      this.admin.status.plugins.origin && this.ref.plugins?.['+plugin/origin'];
   }
 
   get findArchive() {
@@ -331,6 +339,19 @@ export class RefComponent implements OnInit {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
+    ).subscribe(ref => {
+      this.serverError = [];
+      this.ref = ref;
+    });
+  }
+
+  scrape() {
+    this.feeds.scrape(this.ref.url, this.ref.origin!).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin)),
     ).subscribe(ref => {
       this.serverError = [];
       this.ref = ref;
