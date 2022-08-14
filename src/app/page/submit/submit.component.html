@@ -26,17 +26,17 @@
     </ng-container>
   </div>
 
-  <ng-container *ngIf="existingRef">
-    <br>
-    <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
-  </ng-container>
-  <ng-container *ngIf="existingFeed">
-    <br>
-    <app-feed [feed]="existingFeed" [showToggle]="true"></app-feed>
-  </ng-container>
-
   <span><!-- Buttons --></span>
   <span class="form-array">
     <button type="submit" [disabled]="!submitForm.valid">Next</button>
   </span>
 </form>
+
+<ng-container *ngIf="existingRef">
+  <br>
+  <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
+</ng-container>
+<ng-container *ngIf="existingFeed">
+  <br>
+  <app-feed [feed]="existingFeed" [showToggle]="true"></app-feed>
+</ng-container>
