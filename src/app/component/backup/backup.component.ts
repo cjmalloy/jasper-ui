@@ -1,7 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
+import { AdminService } from '../../service/admin.service';
 import { BackupService } from '../../service/api/backup.service';
+import { Store } from '../../store/store';
 import { printError } from '../../util/http';
 
 @Component({
@@ -21,7 +23,9 @@ export class BackupComponent implements OnInit {
   serverError: string[] = [];
 
   constructor(
+    public admin: AdminService,
     public backups: BackupService,
+    public store: Store,
   ) { }
 
   ngOnInit(): void {
