@@ -8,12 +8,7 @@ export interface HasOrigin extends HasModified {
   origin?: string;
 }
 
-export interface HasTags extends HasOrigin {
-  url: string;
-  tags?: string[];
-}
-
-export interface IsTag extends HasOrigin {
+export interface Tag extends HasOrigin {
   type?: 'ext' | 'user' | 'plugin' | 'template';
   tag: string;
   name?: string;

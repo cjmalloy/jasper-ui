@@ -10,6 +10,7 @@ import { AuthService } from '../../service/auth.service';
 import { Store } from '../../store/store';
 import { authors, interestingTags, TAG_REGEX_STRING } from '../../util/format';
 import { printError } from '../../util/http';
+import { hasTag } from '../../util/tag';
 
 @Component({
   selector: 'app-comment',
@@ -96,11 +97,11 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get emoji() {
-    return !!this.admin.status.plugins.emoji && !!this._ref.tags?.includes('plugin/emoji');
+    return !!this.admin.status.plugins.emoji && hasTag('plugin/emoji', this._ref);
   }
 
   get latex() {
-    return !!this.admin.status.plugins.latex && !!this._ref.tags?.includes('plugin/latex');
+    return !!this.admin.status.plugins.latex && hasTag('plugin/latex', this._ref);
   }
 
   get canInvoice() {
@@ -108,8 +109,8 @@ export class CommentComponent implements OnInit, OnDestroy {
     if (!this.admin.status.plugins.invoice) return false;
     if (!this.isAuthor) return false;
     if (!this._ref.sources || !this._ref.sources.length) return false;
-    return this._ref.tags?.includes('plugin/comment') ||
-      !this._ref.tags?.includes('internal');
+    return hasTag('plugin/comment', this._ref) ||
+      !hasTag('internal', this._ref);
   }
 
   get isAuthor() {
@@ -129,11 +130,11 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get approved() {
-    return this._ref.tags?.includes('_moderated');
+    return hasTag('_moderated', this._ref);
   }
 
   get locked() {
-    return this._ref.tags?.includes('locked');
+    return hasTag('locked', this._ref);
   }
 
   get comments() {

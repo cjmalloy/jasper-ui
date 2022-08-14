@@ -1,7 +1,7 @@
 import * as moment from 'moment';
-import { IsTag } from './tag';
+import { Tag } from './tag';
 
-export interface User extends IsTag {
+export interface User extends Tag {
   type?: 'user';
   readAccess?: string[];
   writeAccess?: string[];

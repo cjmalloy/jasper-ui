@@ -1,8 +1,8 @@
 import { Schema } from 'jtd';
 import * as moment from 'moment';
-import { IsTag } from './tag';
+import { Tag } from './tag';
 
-export interface Template extends IsTag {
+export interface Template extends Tag {
   type?: 'template';
   config?: any;
   defaults?: any;

@@ -3,7 +3,7 @@ import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
-import { IsTag } from '../../model/tag';
+import { Tag } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { PluginService } from '../../service/api/plugin.service';
@@ -21,7 +21,7 @@ export class TagComponent implements OnInit {
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
-  tag!: IsTag;
+  tag!: Tag;
 
   editForm: UntypedFormGroup;
   submitted = false;

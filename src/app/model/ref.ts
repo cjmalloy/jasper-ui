@@ -1,7 +1,9 @@
 import * as moment from 'moment';
-import { HasTags } from './tag';
+import { HasOrigin } from './tag';
 
-export interface Ref extends HasTags {
+export interface Ref extends HasOrigin {
+  url: string;
+  tags?: string[];
   title?: string;
   comment?: string;
   sources?: string[];

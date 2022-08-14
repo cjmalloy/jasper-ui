@@ -1,7 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Page } from '../../model/page';
-import { IsTag } from '../../model/tag';
+import { Tag } from '../../model/tag';
 
 @Component({
   selector: 'app-tag-list',
@@ -11,7 +11,7 @@ import { IsTag } from '../../model/tag';
 export class TagListComponent implements OnInit {
   @HostBinding('class') css = 'tag-list';
 
-  private _page?: Page<IsTag>;
+  private _page?: Page<Tag>;
 
   constructor(private router: Router) { }
 
@@ -20,7 +20,7 @@ export class TagListComponent implements OnInit {
   }
 
   @Input()
-  set page(value: Page<IsTag> | undefined) {
+  set page(value: Page<Tag> | undefined) {
     this._page = value;
     if (this._page) {
       if (this._page.number > 0 && this._page.number >= this._page.totalPages) {

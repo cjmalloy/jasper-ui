@@ -17,6 +17,7 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { authors, interestingTags, TAG_REGEX_STRING, urlSummary, webLink } from '../../util/format';
 import { printError } from '../../util/http';
+import { hasTag } from '../../util/tag';
 
 @Component({
   selector: 'app-ref',
@@ -98,9 +99,14 @@ export class RefComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  get thumbnail() {
+    return this.admin.status.plugins.thumbnail &&
+      hasTag('plugin/thumbnail', this._ref);
+  }
+
   get person() {
     return this.admin.status.plugins.person &&
-      this.ref.tags?.includes('plugin/person');
+      hasTag('plugin/person', this._ref);
   }
 
   get canInvoice() {
@@ -108,13 +114,13 @@ export class RefComponent implements OnInit {
     if (!this.admin.status.plugins.invoice) return false;
     if (!this.isAuthor) return false;
     if (!this._ref.sources || !this._ref.sources.length) return false;
-    return this._ref.tags?.includes('plugin/comment') ||
-      !this._ref.tags?.includes('internal');
+    return hasTag('plugin/comment', this._ref) ||
+      !hasTag('internal', this._ref);
   }
 
   get invoice() {
     return this.admin.status.plugins.invoice &&
-      this._ref.tags?.includes('plugin/invoice');
+      hasTag('plugin/invoice', this._ref);
   }
 
   get disputed() {
@@ -166,11 +172,11 @@ export class RefComponent implements OnInit {
   }
 
   get isAuthor() {
-    return this._ref.tags?.includes(this.store.account.tag!);
+    return hasTag(this.store.account.tag, this._ref);
   }
 
   get isRecipient() {
-    return this._ref.tags?.includes(this.store.account.inbox!);
+    return hasTag(this.store.account.inbox, this._ref);
   }
 
   get authors() {
@@ -190,11 +196,11 @@ export class RefComponent implements OnInit {
   }
 
   get approved() {
-    return this._ref.tags?.includes('_moderated');
+    return hasTag('_moderated', this._ref);
   }
 
   get locked() {
-    return this._ref.tags?.includes('locked');
+    return hasTag('locked', this._ref);
   }
 
   get comments() {

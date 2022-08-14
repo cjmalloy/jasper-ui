@@ -8,6 +8,7 @@ import { RefService } from '../../service/api/ref.service';
 import { EditorService } from '../../service/editor.service';
 import { getIfNew, getNotifications, getTags } from '../../util/editor';
 import { printError } from '../../util/http';
+import { hasTag } from '../../util/tag';
 
 @Component({
   selector: 'app-comment-edit',
@@ -39,8 +40,8 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.editValue = this.ref.comment || '';
-    this.emoji &&= this.ref.tags?.includes('plugin/emoji') || false;
-    this.latex &&= this.ref.tags?.includes('plugin/latex') || false;
+    this.emoji &&= hasTag('plugin/emoji', this.ref);
+    this.latex &&= hasTag('plugin/latex', this.ref);
   }
 
   ngAfterViewInit(): void {

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HasTags } from '../model/tag';
+import { Ref } from '../model/ref';
 import { Store } from '../store/store';
-import { capturesAny, isOwner, isOwnerTag, publicTag, qualifyTags } from '../util/tag';
+import { capturesAny, hasTag, isOwner, isOwnerTag, publicTag, qualifyTags } from '../util/tag';
 
 @Injectable({
   providedIn: 'root'
@@ -12,11 +12,11 @@ export class AuthService {
     private store: Store,
   ) { }
 
-  writeAccess(ref: HasTags): boolean {
+  writeAccess(ref: Ref): boolean {
     if (!this.store.account.signedIn) return false;
     if (this.store.account.mod) return true;
     if (ref.origin) return false;
-    if (ref.tags?.includes('locked')) return false;
+    if (hasTag('locked', ref)) return false;
     if (isOwnerTag(this.store.account.tag, ref)) return true;
     if (!this.store.account.user) return false;
     if (isOwner(this.store.account.user, ref)) return true;

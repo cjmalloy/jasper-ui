@@ -1,5 +1,5 @@
 import * as _ from 'lodash-es';
-import { HasTags } from '../model/tag';
+import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
 export function qualifyTags(tags?: string[], origin?: string): string[] | undefined {
@@ -32,14 +32,20 @@ export function capturesAny(selectors?: string[], target?: string[]): boolean {
   return false;
 }
 
-export function isOwner(user: User, ref: HasTags) {
-  if (user.origin !== ref.origin) return false;
-  return ref.tags?.includes(user.tag);
+export function hasTag(tag?: string, ref?: Ref)  {
+  if (!tag) return false;
+  if (!ref?.tags) return false;
+  return !!_.find(ref.tags, t => hasPrefix(t, tag));
 }
 
-export function isOwnerTag(tag: string, ref: HasTags) {
+export function isOwner(user: User, ref: Ref) {
+  if (user.origin !== ref.origin) return false;
+  return hasTag(user.tag, ref);
+}
+
+export function isOwnerTag(tag: string, ref: Ref) {
   if (ref.origin) return false;
-  return ref.tags?.includes(tag);
+  return hasTag(tag, ref);
 }
 
 /**

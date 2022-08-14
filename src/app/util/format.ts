@@ -1,5 +1,6 @@
 import * as _ from 'lodash-es';
 import { Ref } from '../model/ref';
+import { hasTag } from './tag';
 
 export const URI_REGEX = /^([^:/?#]+):(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
 export const TAG_REGEX = /^[_+]?[a-z]+(\/[a-z]+)*$/;
@@ -81,7 +82,7 @@ export function interestingTag(tag: string) {
 }
 
 export function isTextPost(ref: Ref) {
-  return ref.url.startsWith('comment:') && (!ref.tags || !ref.tags?.includes('internal'));
+  return ref.url.startsWith('comment:') && !hasTag('internal', ref);
 }
 
 export function wikiTitleFormat(title?: string) {

@@ -10,7 +10,7 @@ import { RefService } from '../../service/api/ref.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { getNotifications, getTags } from '../../util/editor';
-import { removeTag } from '../../util/tag';
+import { hasTag, removeTag } from '../../util/tag';
 
 @Component({
   selector: 'app-comment-reply',
@@ -48,7 +48,7 @@ export class CommentReplyComponent implements AfterViewInit {
   ) { }
 
   get publicTag() {
-    if (!this.top.tags?.includes('public')) return [];
+    if (!hasTag('public', this.top)) return [];
     return ['public'];
   }
 

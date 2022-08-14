@@ -1,7 +1,7 @@
 import * as moment from 'moment';
-import { IsTag } from './tag';
+import { Tag } from './tag';
 
-export interface Ext extends IsTag {
+export interface Ext extends Tag {
   type?: 'ext';
   tag: string;
   origin?: string;

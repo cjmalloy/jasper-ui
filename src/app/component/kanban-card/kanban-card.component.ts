@@ -1,6 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
+import { hasTag } from '../../util/tag';
 
 @Component({
   selector: 'app-kanban-card',
@@ -26,7 +27,7 @@ export class KanbanCardComponent implements OnInit {
 
   get person() {
     return this.admin.status.plugins.person &&
-      this.ref.tags?.includes('plugin/person');
+      hasTag('plugin/person', this.ref);
   }
 
   get refView() {
