@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { autorun, makeAutoObservable, runInAction } from 'mobx';
+import { action, autorun, makeAutoObservable, makeObservable, observable, runInAction } from 'mobx';
 import { catchError, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { Plugin } from '../model/plugin';
@@ -19,7 +19,13 @@ export class PluginStore {
   constructor(
     private plugins: PluginService,
   ) {
-    makeAutoObservable(this);
+    makeObservable(this, {
+      args: observable.struct,
+      page: observable,
+      error: observable,
+      clear: action,
+      setArgs: action,
+    });
     this.clear(); // Initial observables may not be null for MobX
     autorun(() => {
       this.page = undefined;
