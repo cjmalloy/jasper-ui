@@ -87,7 +87,7 @@ const routes: Routes = [
     path: 'settings',
     component: SettingsPage,
     children: [
-      { path: '', redirectTo: 'users', pathMatch: 'full' },
+      { path: '', redirectTo: 'user', pathMatch: 'full' },
       { path: 'user', component: SettingsUserPage },
       { path: 'feed', component: SettingsFeedPage },
       { path: 'ext', component: SettingsExtPage },
