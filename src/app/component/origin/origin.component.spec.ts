@@ -24,7 +24,16 @@ describe('OriginComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(OriginComponent);
     component = fixture.componentInstance;
-    component.remote = {name: '', origin: '', url: ''};
+    component.remote = {
+      url: '',
+      plugins: {
+        '+plugin/origin': {
+          origin: '',
+          scrapeInterval: 'PT15M',
+          lastScrape: '2022-01-02T01:01:01Z',
+        },
+      },
+    };
     fixture.detectChanges();
   });
 
