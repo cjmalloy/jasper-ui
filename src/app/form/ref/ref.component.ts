@@ -3,6 +3,7 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGr
 import * as _ from 'lodash-es';
 import * as moment from 'moment';
 import { Ref } from '../../model/ref';
+import { AdminService } from '../../service/admin.service';
 import { EditorService } from '../../service/editor.service';
 import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component';
@@ -30,6 +31,7 @@ export class RefFormComponent implements OnInit {
 
   constructor(
     private fb: UntypedFormBuilder,
+    private admin: AdminService,
     private editor: EditorService,
   ) { }
 
@@ -62,7 +64,7 @@ export class RefFormComponent implements OnInit {
     while (altsForm.length < (ref?.alternateUrls?.length || 0)) this.alts.addLink();
     while (tagsForm.length > (ref?.tags?.length || 0)) this.tags.removeTag(0);
     while (tagsForm.length < (ref?.tags?.length || 0)) this.tags.addTag();
-    this.group.setControl('plugins', pluginsForm(this.fb, ref.tags || []));
+    this.group.setControl('plugins', pluginsForm(this.fb, this.admin, ref.tags || []));
     this.group.patchValue({
       ...ref,
       published: ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),

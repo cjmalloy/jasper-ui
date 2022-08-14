@@ -72,10 +72,6 @@ export class SubmitWebPage implements AfterViewInit {
           this.setTitle('Replicate Remote Origin');
         }
         _.defer(() => {
-          if (this.feed) {
-            this.feedForm!.tags.addTag('public');
-            if (this.admin.status.plugins.thumbnail) this.feedForm!.tags.addTag('plugin/thumbnail');
-          }
           this.url = params['url'].trim();
           if (params['source']) {
             this.addSource(params['source']);

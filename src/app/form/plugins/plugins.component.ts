@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { AdminService } from '../../service/admin.service';
 import { emptyObject, writeObj } from '../../util/http';
 import { archivePluginForm } from '../plugin/archive/archive.component';
 import { audioPluginForm } from '../plugin/audio/audio.component';
@@ -33,10 +34,11 @@ export class PluginsFormComponent implements AfterViewInit {
   private _tags: string[] = [];
 
   constructor(
+    private admin: AdminService,
     private fb: UntypedFormBuilder,
   ) {
     this._group = fb.group({
-      [this.fieldName]: pluginsForm(fb, [])
+      [this.fieldName]: pluginsForm(fb, admin, [])
     });
   }
 
@@ -88,11 +90,11 @@ export class PluginsFormComponent implements AfterViewInit {
       }
     }
     if (!this.plugins) {
-      this._group.addControl(this.fieldName, pluginsForm(this.fb, this._tags || []));
+      this._group.addControl(this.fieldName, pluginsForm(this.fb, this.admin, this._tags || []));
     } else if (this._tags) {
       for (const t of this._tags) {
         if (!this.plugins.contains(t)) {
-          const form = pluginForm(this.fb, t);
+          const form = pluginForm(this.fb, this.admin, t);
           if (form) {
             this.plugins.addControl(t, form);
           }
@@ -102,9 +104,9 @@ export class PluginsFormComponent implements AfterViewInit {
   }
 }
 
-export function pluginsForm(fb: UntypedFormBuilder, tags: string[]) {
+export function pluginsForm(fb: UntypedFormBuilder, admin: AdminService, tags: string[]) {
   return fb.group(tags.reduce((plugins: any, tag: string) => {
-    const form = pluginForm(fb, tag);
+    const form = pluginForm(fb, admin, tag);
     if (form) {
       plugins[tag] = form;
     }
@@ -112,10 +114,10 @@ export function pluginsForm(fb: UntypedFormBuilder, tags: string[]) {
   }, {}));
 }
 
-export function pluginForm(fb: UntypedFormBuilder, tag: string) {
+export function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
   switch (tag) {
     case '+plugin/origin': return originForm(fb);
-    case '+plugin/feed': return feedForm(fb);
+    case '+plugin/feed': return feedForm(fb, admin);
     case 'plugin/thumbnail': return thumbnailPluginForm(fb);
     case 'plugin/archive': return archivePluginForm(fb);
     case 'plugin/pdf': return pdfPluginForm(fb);
