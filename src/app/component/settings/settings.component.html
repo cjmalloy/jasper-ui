@@ -21,9 +21,6 @@
       </ng-template>
     </ng-container>
     | <a routerLink="/settings">settings</a>
-    <ng-container *ngIf="store.account.admin">
-      | <a routerLink="/admin">admin</a>
-    </ng-container>
     <ng-container *ngIf="config.logout">
       | <a [href]="config.logout">logout</a>
     </ng-container>

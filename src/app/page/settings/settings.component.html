@@ -1,8 +1,13 @@
 <div class="tabs">
   <h5>Settings</h5>
-  <a routerLink="./feed" routerLinkActive="current-tab">feeds</a>
-  <a routerLink="./ext" routerLinkActive="current-tab">extensions</a>
   <a routerLink="./user" routerLinkActive="current-tab">users</a>
+  <a *ngIf="admin.status.plugins.feed" routerLink="./feed" routerLinkActive="current-tab">feeds</a>
+  <a routerLink="./ext" routerLinkActive="current-tab">extensions</a>
+  <a *ngIf="admin.status.plugins.origin" routerLink="./origin" routerLinkActive="current-tab">origins</a>
+  <a routerLink="./plugin" routerLinkActive="current-tab">plugins</a>
+  <a routerLink="./template" routerLinkActive="current-tab">templates</a>
+  <a *ngIf="store.account.admin" routerLink="./setup" routerLinkActive="current-tab">setup</a>
+  <a routerLink="./backup" routerLinkActive="current-tab">backup</a>
   <a *ngIf="store.account.mod" routerLink="./profile" routerLinkActive="current-tab">profiles</a>
   <a *ngIf="store.account.signedIn" routerLink="./password" routerLinkActive="current-tab">password</a>
   <div class="spacer"></div>

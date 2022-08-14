@@ -1,15 +1,15 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { ThemeService } from '../../../service/theme.service';
-import { PluginStore } from '../../../store/plugin';
 import { Store } from '../../../store/store';
+import { TemplateStore } from '../../../store/template';
 
 @Component({
-  selector: 'app-admin-plugin-page',
-  templateUrl: './plugin.component.html',
-  styleUrls: ['./plugin.component.scss'],
+  selector: 'app-settings-template-page',
+  templateUrl: './template.component.html',
+  styleUrls: ['./template.component.scss'],
 })
-export class AdminPluginPage implements OnInit, OnDestroy {
+export class SettingsTemplatePage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
   private defaultPageSize = 20;
@@ -17,9 +17,9 @@ export class AdminPluginPage implements OnInit, OnDestroy {
   constructor(
     private theme: ThemeService,
     public store: Store,
-    public query: PluginStore,
+    public query: TemplateStore,
   ) {
-    theme.setTitle('Admin: Plugins');
+    theme.setTitle('Admin: Templates');
     query.clear();
   }
 

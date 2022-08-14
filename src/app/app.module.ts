@@ -67,12 +67,11 @@ import { ThemesFormComponent } from './form/themes/themes.component';
 import { UserFormComponent } from './form/user/user.component';
 import { UsersFormComponent } from './form/users/users.component';
 import { DebugInterceptor } from './http/debug.interceptor';
-import { AdminPage } from './page/admin/admin.component';
-import { AdminBackupPage } from './page/admin/backup/backup.component';
-import { AdminOriginPage } from './page/admin/origin/origin.component';
-import { AdminPluginPage } from './page/admin/plugin/plugin.component';
-import { AdminSetupPage } from './page/admin/setup/setup.component';
-import { AdminTemplatePage } from './page/admin/template/template.component';
+import { SettingsBackupPage } from './page/settings/backup/backup.component';
+import { SettingsOriginPage } from './page/settings/origin/origin.component';
+import { SettingsPluginPage } from './page/settings/plugin/plugin.component';
+import { SettingsSetupPage } from './page/settings/setup/setup.component';
+import { SettingsTemplatePage } from './page/settings/template/template.component';
 import { CreateExtPage } from './page/create/ext/ext.component';
 import { CreateProfilePage } from './page/create/profile/profile.component';
 import { CreateUserPage } from './page/create/user/user.component';
@@ -148,15 +147,14 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     CreateProfilePage,
     EditTagPage,
     LoadingComponent,
-    AdminPage,
     SettingsPage,
     SettingsFeedPage,
     SettingsUserPage,
     SettingsExtPage,
-    AdminSetupPage,
-    AdminOriginPage,
-    AdminPluginPage,
-    AdminTemplatePage,
+    SettingsSetupPage,
+    SettingsOriginPage,
+    SettingsPluginPage,
+    SettingsTemplatePage,
     TagListComponent,
     TagComponent,
     OriginListComponent,
@@ -203,7 +201,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     UsersFormComponent,
     ThemesFormComponent,
     ListEditorComponent,
-    AdminBackupPage,
+    SettingsBackupPage,
     BackupComponent,
     BackupListComponent,
     UserFormComponent,

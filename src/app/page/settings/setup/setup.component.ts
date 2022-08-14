@@ -10,11 +10,11 @@ import { ThemeService } from '../../../service/theme.service';
 import { printError } from '../../../util/http';
 
 @Component({
-  selector: 'app-admin-setup-page',
+  selector: 'app-settings-setup-page',
   templateUrl: './setup.component.html',
   styleUrls: ['./setup.component.scss'],
 })
-export class AdminSetupPage implements OnInit {
+export class SettingsSetupPage implements OnInit {
 
   submitted = false;
   adminForm: UntypedFormGroup;

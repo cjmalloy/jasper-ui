@@ -3,15 +3,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { AdminSetupPage } from './setup.component';
+import { SettingsSetupPage } from './setup.component';
 
-describe('AdminSetupPage', () => {
-  let component: AdminSetupPage;
-  let fixture: ComponentFixture<AdminSetupPage>;
+describe('SettingsSetupPage', () => {
+  let component: SettingsSetupPage;
+  let fixture: ComponentFixture<SettingsSetupPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [AdminSetupPage],
+      declarations: [SettingsSetupPage],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
@@ -22,7 +22,7 @@ describe('AdminSetupPage', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(AdminSetupPage);
+    fixture = TestBed.createComponent(SettingsSetupPage);
     component = fixture.componentInstance;
     component.admin.def = {plugins: {}, templates: {}};
     component.admin.status = {plugins: {}, templates: {}};

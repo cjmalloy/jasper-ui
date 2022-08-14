@@ -2,15 +2,15 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { AdminTemplatePage } from './template.component';
+import { SettingsBackupPage } from './backup.component';
 
-describe('AdminTemplatePage', () => {
-  let component: AdminTemplatePage;
-  let fixture: ComponentFixture<AdminTemplatePage>;
+describe('SettingsBackupPage', () => {
+  let component: SettingsBackupPage;
+  let fixture: ComponentFixture<SettingsBackupPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [AdminTemplatePage],
+      declarations: [ SettingsBackupPage ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
@@ -20,7 +20,7 @@ describe('AdminTemplatePage', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(AdminTemplatePage);
+    fixture = TestBed.createComponent(SettingsBackupPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

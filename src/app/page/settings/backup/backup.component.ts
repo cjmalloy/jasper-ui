@@ -7,11 +7,11 @@ import { ThemeService } from '../../../service/theme.service';
 import { printError } from '../../../util/http';
 
 @Component({
-  selector: 'app-admin-backup-page',
+  selector: 'app-settings-backup-page',
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss']
 })
-export class AdminBackupPage implements OnInit {
+export class SettingsBackupPage implements OnInit {
 
   list?: string[];
   serverError: string[] = [];

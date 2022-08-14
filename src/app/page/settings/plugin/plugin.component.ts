@@ -1,16 +1,15 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { ThemeService } from '../../../service/theme.service';
-import { QueryStore } from '../../../store/query';
+import { PluginStore } from '../../../store/plugin';
 import { Store } from '../../../store/store';
-import { getArgs } from '../../../util/query';
 
 @Component({
-  selector: 'app-admin-origin-page',
-  templateUrl: './origin.component.html',
-  styleUrls: ['./origin.component.scss'],
+  selector: 'app-settings-plugin-page',
+  templateUrl: './plugin.component.html',
+  styleUrls: ['./plugin.component.scss'],
 })
-export class AdminOriginPage implements OnInit, OnDestroy {
+export class SettingsPluginPage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
   private defaultPageSize = 20;
@@ -18,22 +17,18 @@ export class AdminOriginPage implements OnInit, OnDestroy {
   constructor(
     private theme: ThemeService,
     public store: Store,
-    public query: QueryStore,
+    public query: PluginStore,
   ) {
-    theme.setTitle('Admin: Origins');
+    theme.setTitle('Admin: Plugins');
     query.clear();
   }
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.query.setArgs(getArgs(
-        '+plugin/origin',
-        this.store.view.sort,
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize ?? this.defaultPageSize
-    ));
+      this.query.setArgs({
+        page: this.store.view.pageNumber,
+        size: this.store.view.pageSize ?? this.defaultPageSize,
+      });
     }));
   }
 

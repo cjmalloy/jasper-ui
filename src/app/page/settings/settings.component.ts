@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 
 @Component({
@@ -9,6 +10,7 @@ import { Store } from '../../store/store';
 export class SettingsPage implements OnInit {
 
   constructor(
+    public admin: AdminService,
     public store: Store,
   ) { }
 
