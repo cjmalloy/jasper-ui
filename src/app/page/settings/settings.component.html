@@ -7,7 +7,7 @@
   <a routerLink="./plugin" routerLinkActive="current-tab">plugins</a>
   <a routerLink="./template" routerLinkActive="current-tab">templates</a>
   <a *ngIf="store.account.admin" routerLink="./setup" routerLinkActive="current-tab">setup</a>
-  <a routerLink="./backup" routerLinkActive="current-tab">backup</a>
+  <a *ngIf="store.account.mod" routerLink="./backup" routerLinkActive="current-tab">backup</a>
   <a *ngIf="store.account.mod" routerLink="./profile" routerLinkActive="current-tab">profiles</a>
   <a *ngIf="store.account.signedIn" routerLink="./password" routerLinkActive="current-tab">password</a>
   <div class="spacer"></div>
