@@ -15,11 +15,11 @@
     <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag, url: 'wiki:' }">
       📔 &nbsp; Submit Wiki
     </div>
-  </ng-container>
-  <ng-container *ngIf="!localTag || writeAccess">
-    <div class="submit-button" routerLink="/create/ext" [queryParams]="ext ? null : { tag: localTag }">
-      🖌️ &nbsp; Create Tag Extension
-    </div>
+    <ng-container *ngIf="!localTag || writeAccess">
+      <div class="submit-button" routerLink="/create/ext" [queryParams]="ext ? null : { tag: localTag }">
+        🖌️ &nbsp; Create Tag Extension
+      </div>
+    </ng-container>
   </ng-container>
   <ng-container *ngIf="feed">
     <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: ['+plugin/feed'].concat(localTag ? [localTag] : []) }">
