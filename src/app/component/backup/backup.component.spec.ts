@@ -1,6 +1,5 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { UrlSerializer } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { BackupComponent } from './backup.component';

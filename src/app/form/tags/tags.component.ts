@@ -18,7 +18,7 @@ export class TagsFormComponent implements OnInit {
 
   constructor(
     private fb: UntypedFormBuilder,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
   }

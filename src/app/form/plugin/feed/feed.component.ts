@@ -1,8 +1,8 @@
-import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import * as moment from 'moment';
 import { intervalValidator } from '../../../util/form';
-import { tagsForm, TagsFormComponent } from '../../tags/tags.component';
+import { TagsFormComponent } from '../../tags/tags.component';
 
 @Component({
   selector: 'app-form-feed',

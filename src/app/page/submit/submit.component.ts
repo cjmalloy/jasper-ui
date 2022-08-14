@@ -13,8 +13,8 @@ import * as _ from 'lodash-es';
 import { catchError, forkJoin, map, mergeMap, Observable, of } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
-import { ScrapeService } from '../../service/api/scrape.service';
 import { RefService } from '../../service/api/ref.service';
+import { ScrapeService } from '../../service/api/scrape.service';
 import { ThemeService } from '../../service/theme.service';
 import { URI_REGEX, wikiUriFormat } from '../../util/format';
 
