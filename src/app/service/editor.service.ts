@@ -68,7 +68,7 @@ export class EditorService {
       ending = url.substring('/tag/'.length);
     }
     if (!ending) return [url, ''];
-    if (ending.indexOf('/') < 0) return [ending, ''];
+    if (ending.indexOf('/') < 0) return [decodeURIComponent(ending), ''];
     const query = ending.substring(0, ending.indexOf('/'))
     ending = ending.substring(query.length)
     let sort = '';
