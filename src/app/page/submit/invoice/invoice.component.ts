@@ -105,7 +105,6 @@ export class SubmitInvoicePage implements OnInit {
     const result = [
       'locked',
       'internal',
-      'plugin/invoice',
       prefix('plugin/invoice/', queueExt.tag),
       'plugin/qr',
       this.store.account.tag,
