@@ -274,7 +274,7 @@ export class RefComponent implements OnInit {
 
   dispute() {
     this.refs.create({
-      url: 'internal://' + uuid(),
+      url: 'internal:' + uuid(),
       published: moment(),
       tags: ['internal', this.store.account.tag!, 'plugin/invoice/disputed'],
       sources: [this._ref.url],
@@ -304,7 +304,7 @@ export class RefComponent implements OnInit {
       });
     }
     this.refs.create({
-      url: 'internal://' + uuid(),
+      url: 'internal:' + uuid(),
       published: moment(),
       tags: ['internal', this.store.account.tag!, 'plugin/invoice/paid'],
       sources: [this._ref.url],
@@ -334,7 +334,7 @@ export class RefComponent implements OnInit {
       });
     }
     this.refs.create({
-      url: 'internal://' + uuid(),
+      url: 'internal:' + uuid(),
       published: moment(),
       tags: ['internal', this.store.account.tag!, 'plugin/invoice/rejected'],
       sources: [this._ref.url],
