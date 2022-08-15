@@ -1,10 +1,30 @@
 import {app, BrowserWindow, screen} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
 let win: BrowserWindow | null = null;
 const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve');
+
+function startServer() {
+  const server = spawn('docker', ['compose', '-f', serve ? 'app/docker-compose.yaml' : '.', 'up']);
+  // const server = spawn('ls', ['-al']);
+  server.stdout.on('data', (data: string) => {
+    console.log(`${data}`);
+  });
+  server.stderr.on('data', (data: string) => {
+    console.log(`${data}`);
+  });
+  server.on('close', (code: any) => {
+    console.log(`child process exited with code ${code}`);
+  });
+  return server;
+}
+
+function stopServer() {
+  const server = spawn('docker', ['compose', '-f', serve ? 'app/docker-compose.yaml' : '.', 'down']);
+}
 
 function createWindow(): BrowserWindow {
 
@@ -53,31 +73,34 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
-try {
-  // This method will be called when Electron has finished
-  // initialization and is ready to create browser windows.
-  // Some APIs can only be used after this event occurs.
-  // Added 400 ms to fix the black background issue while using transparent window. More details at https://github.com/electron/electron/issues/15947
-  app.on('ready', () => setTimeout(createWindow, 400));
+let server: ChildProcessWithoutNullStreams;
 
-  // Quit when all windows are closed.
-  app.on('window-all-closed', () => {
-    // On OS X it is common for applications and their menu bar
-    // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform !== 'darwin') {
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+// Added 400 ms to fix the black background issue while using transparent window. More details at https://github.com/electron/electron/issues/15947
+app.on('ready', () => {
+  server = startServer();
+  setTimeout(createWindow, 400);
+});
+
+// Quit when all windows are closed.
+app.on('window-all-closed', () => {
+  // On OS X it is common for applications and their menu bar
+  // to stay active until the user quits explicitly with Cmd + Q
+  if (process.platform !== 'darwin') {
+    stopServer();
+    setTimeout(() => {
+      server.kill();
       app.quit();
-    }
-  });
+    }, 10000);
+  }
+});
 
-  app.on('activate', () => {
-    // On OS X it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (win === null) {
-      createWindow();
-    }
-  });
-
-} catch (e) {
-  // Catch Error
-  // throw e;
-}
+app.on('activate', () => {
+  // On OS X it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  if (win === null) {
+    createWindow();
+  }
+});
