@@ -5,12 +5,13 @@ import * as _ from 'lodash-es';
 import * as moment from 'moment/moment';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { originForm } from '../../form/plugin/origin/origin.component';
-import { RefFormComponent } from '../../form/ref/ref.component';
+import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { Store } from '../../store/store';
+import { interestingTags } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -41,7 +42,7 @@ export class OriginComponent implements OnInit {
     private feeds: ScrapeService,
     private fb: UntypedFormBuilder,
   ) {
-    this.editForm = originForm(fb);
+    this.editForm = refForm(fb);
   }
 
   @ViewChild(RefFormComponent)
@@ -54,6 +55,18 @@ export class OriginComponent implements OnInit {
 
   get lastScrape() {
     return moment(this.remote.plugins!['+plugin/origin'].lastScrape);
+  }
+
+  get tags() {
+    return interestingTags(this.remote.tags);
+  }
+
+  get addTags() {
+    return interestingTags(this.remote.plugins!['+plugin/origin'].addTags);
+  }
+
+  get addOrigin() {
+    return this.remote.plugins!['+plugin/origin'].origin;
   }
 
   save() {

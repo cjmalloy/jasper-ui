@@ -10,6 +10,25 @@
     <ng-container *ngIf="!lastScrape">
       not scraped yet
     </ng-container>
+    <span [title]="remote.modified?.toISOString()"> modified {{ remote.modified?.fromNow() }} </span>
+    <ng-container *ngIf="tags.length">
+      tagged
+      <ng-container *ngFor="let tag of tags">
+        <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
+      </ng-container>
+    </ng-container>
+    <ng-container *ngIf="remote.origin">
+      on <a [routerLink]="['/tag', remote.origin]">{{ remote.origin }}</a>
+    </ng-container>
+    <ng-container *ngIf="addTags.length">
+      tagging refs
+      <ng-container *ngFor="let tag of addTags">
+        <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
+      </ng-container>
+    </ng-container>
+    <ng-container *ngIf="addOrigin">
+      to <a [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
+    </ng-container>
   </div>
   <div class="actions">
     <a *ngIf="admin.status.plugins.comment"
@@ -32,7 +51,7 @@
   </div>
 </div>
 
-<form *ngIf="editing else showErrors" [formGroup]="editForm" (ngSubmit)="save()">
+<form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
   <app-ref-form [group]="editForm"></app-ref-form>
 
