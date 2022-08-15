@@ -5,6 +5,9 @@
 /tmp
 /out-tsc
 /bazel-out
+/release
+/app/main.js
+/app/main.js.map
 
 # Node
 /node_modules
