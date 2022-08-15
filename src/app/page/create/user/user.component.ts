@@ -8,6 +8,7 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { UserService } from '../../../service/api/user.service';
 import { ThemeService } from '../../../service/theme.service';
+import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { prefix } from '../../../util/tag';
 
@@ -62,7 +63,10 @@ export class CreateUserPage implements OnInit {
     if (this.admin.status.plugins.inbox && !this.userForm.value.readAccess.includes) {
       this.user.readAccess.addTag(inbox);
     }
-    if (!this.userForm.valid) return;
+    if (!this.userForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     this.users.create(this.userForm.value).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);

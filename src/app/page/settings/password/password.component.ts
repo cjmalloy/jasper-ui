@@ -6,6 +6,7 @@ import { catchError, throwError } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
 import { ProfileService } from '../../../service/api/profile.service';
 import { Store } from '../../../store/store';
+import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -43,7 +44,10 @@ export class SettingsPasswordPage implements OnInit {
     this.serverError = [];
     this.submitted = true;
     this.passwordForm.markAllAsTouched();
-    if (!this.passwordForm.valid) return;
+    if (!this.passwordForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     this.profiles.changePassword({
       ...this.passwordForm.value,
       tag: this.store.account.tag

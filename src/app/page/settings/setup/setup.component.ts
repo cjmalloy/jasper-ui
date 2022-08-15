@@ -7,6 +7,7 @@ import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
 import { ThemeService } from '../../../service/theme.service';
+import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -43,7 +44,10 @@ export class SettingsSetupPage implements OnInit {
     this.installMessages = [];
     this.submitted = true;
     this.adminForm.markAllAsTouched();
-    if (!this.adminForm.valid) return;
+    if (!this.adminForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     const installs = [];
     for (const plugin in this.admin.status.plugins) {
       if (!!this.admin.status.plugins[plugin] === !!this.adminForm.value.plugins[plugin]) continue;

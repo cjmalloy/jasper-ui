@@ -11,6 +11,7 @@ import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { Store } from '../../store/store';
+import { scrollToFirstInvalid } from '../../util/form';
 import { interestingTags } from '../../util/format';
 import { printError } from '../../util/http';
 
@@ -72,7 +73,10 @@ export class OriginComponent implements OnInit {
   save() {
     this.submitted = true;
     this.editForm.markAllAsTouched();
-    if (!this.editForm.valid) return;
+    if (!this.editForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     this.refs.update({
       ...this.remote,
       ...this.editForm.value,

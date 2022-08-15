@@ -13,6 +13,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
+import { scrollToFirstInvalid } from '../../../util/form';
 import { wikiTitleFormat, wikiUriFormat } from '../../../util/format';
 import { printError } from '../../../util/http';
 
@@ -112,7 +113,10 @@ export class SubmitTextPage implements AfterViewInit {
     this.submitted = true;
     this.textForm.markAllAsTouched();
     this.syncEditor();
-    if (!this.textForm.valid) return;
+    if (!this.textForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     this.refs.create({
       ...this.textForm.value,
       tags: this.addPlugins(this.textForm.value.tags),

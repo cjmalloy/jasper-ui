@@ -9,6 +9,7 @@ import { User } from '../../model/user';
 import { AdminService } from '../../service/admin.service';
 import { UserService } from '../../service/api/user.service';
 import { AuthService } from '../../service/auth.service';
+import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
 @Component({
@@ -59,7 +60,10 @@ export class UserComponent implements OnInit {
   save() {
     this.submitted = true;
     this.editForm.markAllAsTouched();
-    if (!this.editForm.valid) return;
+    if (!this.editForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     this.users.update({
       ...this.user,
       ...this.editForm.value,

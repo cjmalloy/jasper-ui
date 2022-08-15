@@ -15,6 +15,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { AuthService } from '../../service/auth.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
+import { scrollToFirstInvalid } from '../../util/form';
 import { authors, interestingTags, TAG_REGEX_STRING, urlSummary, webLink } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag } from '../../util/tag';
@@ -367,7 +368,10 @@ export class RefComponent implements OnInit {
     this.submitted = true;
     this.editForm.markAllAsTouched();
     this.editor.syncEditor(this.fb, this.editForm);
-    if (!this.editForm.valid) return;
+    if (!this.editForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     this.refs.update({
       ...this.ref,
       ...this.editForm.value,

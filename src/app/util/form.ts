@@ -7,3 +7,13 @@ export function intervalValidator(): ValidatorFn {
     return interval.isValid() && interval.valueOf() > 0 ? null : { interval: { value: control.value } };
   };
 }
+export function scrollToFirstInvalid() {
+  const control = document.querySelector("form .ng-invalid");
+  if (!control) return;
+
+  window.scroll({
+    top: control.getBoundingClientRect().top + window.scrollY,
+    left: 0,
+    behavior: "smooth"
+  });
+}

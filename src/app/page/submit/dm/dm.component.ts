@@ -10,6 +10,7 @@ import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
+import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { hasPrefix } from '../../../util/tag';
 
@@ -84,7 +85,10 @@ export class SubmitDmPage implements OnInit {
       this.serverError = ['You cannot sent messages to yourself.'];
       return;
     }
-    if (!this.dmForm.valid) return;
+    if (!this.dmForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     const url = 'comment:' + uuid();
     this.refs.create({
       ...this.dmForm.value,

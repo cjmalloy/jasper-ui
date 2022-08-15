@@ -6,6 +6,7 @@ import { catchError, throwError } from 'rxjs';
 import { AccountService } from '../../../service/account.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { ThemeService } from '../../../service/theme.service';
+import { scrollToFirstInvalid } from '../../../util/form';
 import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
@@ -55,7 +56,10 @@ export class CreateExtPage implements OnInit {
     this.serverError = [];
     this.submitted = true;
     this.extForm.markAllAsTouched();
-    if (!this.extForm.valid) return;
+    if (!this.extForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     this.exts.create(this.extForm.value).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);

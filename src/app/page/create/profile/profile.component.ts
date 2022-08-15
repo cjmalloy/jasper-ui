@@ -7,6 +7,7 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ProfileService } from '../../../service/api/profile.service';
 import { ThemeService } from '../../../service/theme.service';
+import { scrollToFirstInvalid } from '../../../util/form';
 import { USER_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
@@ -62,7 +63,10 @@ export class CreateProfilePage implements OnInit {
     this.serverError = [];
     this.submitted = true;
     this.profileForm.markAllAsTouched();
-    if (!this.profileForm.valid) return;
+    if (!this.profileForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     this.profiles.create(this.profileForm.value).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);

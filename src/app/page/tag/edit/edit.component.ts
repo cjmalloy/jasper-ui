@@ -12,6 +12,7 @@ import { Ext } from '../../../model/ext';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
+import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { hasPrefix, removeOriginWildcard } from '../../../util/tag';
 
@@ -153,7 +154,10 @@ export class EditTagPage implements OnInit {
     this.serverError = [];
     this.submitted = true;
     this.editForm.markAllAsTouched();
-    if (!this.editForm.valid) return;
+    if (!this.editForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     this.exts.update({
       ...this.ext,
       ...this.editForm.value,
@@ -173,8 +177,12 @@ export class EditTagPage implements OnInit {
 
   delete() {
     if (window.confirm("Are you sure you want to delete this tag extension?")) {
-      this.exts.delete(this.ext.tag + this.ext.origin)
-        .subscribe(() => {
+      this.exts.delete(this.ext.tag + this.ext.origin).pipe(
+        catchError((res: HttpErrorResponse) => {
+          this.serverError = printError(res);
+          return throwError(() => res);
+        }),
+      ).subscribe(() => {
           this.router.navigate(['/tag', this.ext.tag]);
         });
     }

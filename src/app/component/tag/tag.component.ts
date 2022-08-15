@@ -9,6 +9,7 @@ import { ExtService } from '../../service/api/ext.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { TemplateService } from '../../service/api/template.service';
 import { AuthService } from '../../service/auth.service';
+import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
 @Component({
@@ -78,7 +79,10 @@ export class TagComponent implements OnInit {
   save() {
     this.submitted = true;
     this.editForm.markAllAsTouched();
-    if (!this.editForm.valid) return;
+    if (!this.editForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     this.service.update({
       ...this.tag,
       ...this.editForm.value,

@@ -13,6 +13,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
+import { scrollToFirstInvalid } from '../../../util/form';
 import { templates, URI_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { prefix } from '../../../util/tag';
@@ -126,7 +127,10 @@ export class SubmitInvoicePage implements OnInit {
     this.submitted = true;
     this.invoiceForm.markAllAsTouched();
     this.syncEditor();
-    if (!this.invoiceForm.valid) return;
+    if (!this.invoiceForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     this.exts.get(this.queue!).pipe(
       switchMap(queueExt => this.refs.create({
         ...this.invoiceForm.value,

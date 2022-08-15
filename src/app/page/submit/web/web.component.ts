@@ -17,6 +17,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
+import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -139,7 +140,10 @@ export class SubmitWebPage implements AfterViewInit {
     this.submitted = true;
     this.webForm.markAllAsTouched();
     this.syncEditor();
-    if (!this.webForm.valid) return;
+    if (!this.webForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
     this.refs.create({
       ...this.webForm.value,
       published: moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
