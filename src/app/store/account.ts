@@ -27,6 +27,15 @@ export class AccountStore {
     return !!this.tag;
   }
 
+  get role() {
+    if (!this.signedIn) return '';
+    if (this.admin) return 'admin';
+    if (this.mod) return 'mod';
+    if (this.editor) return 'editor';
+    if (this.user) return 'user';
+    return 'viewer';
+  }
+
   get inbox() {
     if (!this.signedIn) return undefined;
     return getInbox(this.tag);

@@ -26,4 +26,12 @@ export class SettingsComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  get fullUserTagAndRole() {
+    return this.store.account.tag + ' (' + this.store.account.role + ')';
+  }
+
+  get shortUserTag() {
+    return this.store.account.tag.replace('+', '').replace('user/', '');
+  }
+
 }

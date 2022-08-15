@@ -11,7 +11,9 @@
     <a routerLink="/settings">settings</a>
   </ng-container>
   <ng-container *ngIf="store.account.signedIn">
-    <a class="author" [routerLink]="['/tag', store.account.tag]">{{ store.account.tag.replace('+', '').replace('user/', '') }}</a>
+    <a class="author"
+       [title]="fullUserTagAndRole"
+       [routerLink]="['/tag', store.account.tag]">{{ shortUserTag }}</a>
     <ng-container *ngIf="admin.status.plugins.inbox">
       <ng-container *ngIf="store.account.notifications as n; else noNotifications">
         | {{ n }} <a class="notification" routerLink="/inbox/unread">📧</a>
