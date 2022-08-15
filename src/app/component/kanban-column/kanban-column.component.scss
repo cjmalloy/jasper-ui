@@ -2,12 +2,16 @@
   display: flex;
   flex-direction: column;
   max-width: 300px;
-  padding: 4px;
+  padding: 4px 4px 50px;
 
   input {
     margin: 8px;
     width: calc(100% - 24px);
     height: 24px;
+  }
+
+  &:hover, &:focus-visible {
+    padding-bottom: 4px;
   }
 
   &:hover input, input:focus {
@@ -16,6 +20,7 @@
 
   &.cdk-drop-list-dragging,
   &.cdk-drop-list-receiving {
+    padding-bottom: 50px;
     .spacer, input {
       display: none !important;
     }
