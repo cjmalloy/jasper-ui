@@ -8,6 +8,7 @@ import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Ref } from '../../model/ref';
+import { deleteNotice } from '../../plugin/delete';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -391,7 +392,10 @@ export class RefComponent implements OnInit {
   }
 
   delete() {
-    this.refs.delete(this._ref.url, this._ref.origin!).pipe(
+    (this.admin.status.plugins.delete
+      ? this.refs.update(deleteNotice(this._ref))
+      : this.refs.delete(this._ref.url, this._ref.origin)
+    ).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

@@ -8,6 +8,7 @@ import { Template } from '../model/template';
 import { archivePlugin } from '../plugin/archive';
 import { audioPlugin } from '../plugin/audio';
 import { commentPlugin } from '../plugin/comment';
+import { deletePlugin } from '../plugin/delete';
 import { embedPlugin } from '../plugin/embed';
 import { emojiPlugin } from '../plugin/emoji';
 import { feedPlugin } from '../plugin/feed';
@@ -43,6 +44,7 @@ export class AdminService {
     plugins: <Record<string, Plugin>> {
       origin: originPlugin,
       feed: feedPlugin,
+      delete: deletePlugin,
       inbox: inboxPlugin,
       comment: commentPlugin,
       thumbnail: thumbnailPlugin,

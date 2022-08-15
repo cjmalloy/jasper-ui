@@ -7,6 +7,7 @@ import { catchError, switchMap, throwError } from 'rxjs';
 import { originForm } from '../../form/plugin/origin/origin.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Ref } from '../../model/ref';
+import { deleteNotice } from '../../plugin/delete';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -85,7 +86,7 @@ export class OriginComponent implements OnInit {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-      switchMap(() => this.refs.get(this.remote.origin!)),
+      switchMap(() => this.refs.get(this.remote.url, this.remote.origin)),
     ).subscribe(origin => {
       this.serverError = [];
       this.editing = false;
@@ -94,7 +95,10 @@ export class OriginComponent implements OnInit {
   }
 
   delete() {
-    this.refs.delete(this.remote.origin!).pipe(
+    (this.admin.status.plugins.delete
+        ? this.refs.update(deleteNotice(this.remote))
+        : this.refs.delete(this.remote.url, this.remote.origin)
+    ).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

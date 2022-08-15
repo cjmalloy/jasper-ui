@@ -6,6 +6,7 @@ import * as moment from 'moment';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Ref } from '../../model/ref';
+import { deleteNotice } from '../../plugin/delete';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -132,7 +133,10 @@ export class FeedComponent implements OnInit {
   }
 
   delete() {
-    this.refs.delete(this.feed.url, this.feed.origin!).pipe(
+    (this.admin.status.plugins.delete
+        ? this.refs.update(deleteNotice(this.feed))
+        : this.refs.delete(this.feed.url, this.feed.origin)
+    ).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
