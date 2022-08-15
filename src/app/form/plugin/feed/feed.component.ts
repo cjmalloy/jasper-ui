@@ -1,8 +1,9 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { AdminService } from '../../../service/admin.service';
 import { intervalValidator } from '../../../util/form';
+import { ORIGIN_REGEX } from '../../../util/format';
 import { tagsForm, TagsFormComponent } from '../../tags/tags.component';
 
 @Component({
@@ -29,6 +30,10 @@ export class FeedFormComponent implements OnInit {
     return this.plugins.get(this.fieldName) as UntypedFormGroup;
   }
 
+  get origin() {
+    return this.plugin.get('origin') as UntypedFormControl;
+  }
+
   get scrapeInterval() {
     return this.plugin.get('scrapeInterval') as UntypedFormControl;
   }
@@ -47,6 +52,7 @@ export function feedForm(fb: UntypedFormBuilder, admin: AdminService) {
   const defaultTags = ['public'];
   if (admin.status.plugins.thumbnail) defaultTags.push('plugin/thumbnail');
   return fb.group({
+    origin: ['', [Validators.pattern(ORIGIN_REGEX)]],
     addTags: tagsForm(fb, defaultTags),
     scrapeInterval: ['PT15M', [intervalValidator()]],
     scrapeDescription: [true],

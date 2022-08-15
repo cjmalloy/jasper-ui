@@ -2,6 +2,15 @@
   <label>Feed</label>
   <div class="form" [formGroup]="plugin">
 
+    <label for="origin">Origin:</label>
+    <input id="origin" type="url" [formControl]="origin">
+    <div><!-- Origin Errors --></div>
+    <div>
+      <div class="error" *ngIf="origin.touched && origin.errors?.['pattern']">
+        Origins must be lower case letters and start with @.
+      </div>
+    </div>
+
     <label for="scrapeInterval">Scrape Interval:</label>
     <input id="scrapeInterval"
            type="text"

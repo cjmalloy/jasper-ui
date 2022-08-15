@@ -18,14 +18,17 @@
           <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
         </ng-container>
       </ng-container>
+      <ng-container *ngIf="feed.origin">
+        on <a [routerLink]="['/tag', feed.origin]">{{ feed.origin }}</a>
+      </ng-container>
       <ng-container *ngIf="addTags.length">
         tagging refs
         <ng-container *ngFor="let tag of addTags">
           <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
         </ng-container>
       </ng-container>
-      <ng-container *ngIf="feed.origin">
-        on <a [routerLink]="['/tag', feed.origin]">{{ feed.origin }}</a>
+      <ng-container *ngIf="addOrigin">
+        to <a [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
       </ng-container>
     </div>
     <div class="actions">

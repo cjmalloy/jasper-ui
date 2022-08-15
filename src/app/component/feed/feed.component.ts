@@ -75,6 +75,10 @@ export class FeedComponent implements OnInit {
     return interestingTags(this.feed.plugins!['+plugin/feed'].addTags);
   }
 
+  get addOrigin() {
+    return this.feed.plugins!['+plugin/feed'].origin;
+  }
+
   get host() {
     return urlSummary(this.feed.url);
   }
