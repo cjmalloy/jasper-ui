@@ -537,6 +537,18 @@ button.backup, input.upload {
     font-weight: bold;
     text-align: center;
   }
+
+  .kanban-header {
+    margin-top: 8px;
+
+    .kanban-remove {
+      border-radius: 4px;
+    }
+
+    .cdk-drag-placeholder {
+      display: none;
+    }
+  }
 }
 
 .kanban-card {

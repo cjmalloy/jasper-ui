@@ -75,6 +75,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   getQuery(tags: { col?: string, sl?: string }) {
+    if (!tags) return '';
     const kanbanTag = this.ext!.tag;
     const columns = this.ext!.config.columns;
     const swimLanes = this.swimLanes;
@@ -100,7 +101,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   drop(event: CdkDragDrop<{ sl?: string, col?: string }>) {
     const ref = event.item.data as Ref;
     const from = Object.values(event.previousContainer.data);
-    const to = Object.values(event.container.data);
+    const to = Object.values(event.container.data || {});
     const remove = from.filter(t => !to.includes(t));
     const add = to.filter(t => !from.includes(t));
 
@@ -117,6 +118,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
     });
 
     const tags = [...remove.map(t => `-${t}`), ...add];
+    if (!to.length) {
+      // Empty tags set represents the remove drop area, also remove the board tag
+      tags.push('-' + this.ext!.tag);
+    }
     if (!tags.length) return;
     this.tags.patch(tags, ref.url, ref.origin).pipe(
       catchError(() => {

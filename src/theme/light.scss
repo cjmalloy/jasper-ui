@@ -12,6 +12,7 @@ $error-bg: #ffa9a9;
 $mod: #136500;
 $card: #f3ebc7;
 $placeholder: #efebdf;
+$deleting: #ffa9a9;
 body.light-theme {
   color-scheme: light;
   background-color: $bg;
@@ -250,6 +251,18 @@ body.light-theme {
 
       &:hover {
         border: 1px dashed $border;
+      }
+    }
+
+    .kanban-header {
+      .kanban-remove {
+        background-color: $placeholder;
+      }
+
+      &.cdk-drop-list-dragging {
+        .kanban-remove {
+          background-color: $deleting;
+        }
       }
     }
   }
