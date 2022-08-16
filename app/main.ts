@@ -12,6 +12,16 @@ function getEntry() {
   return path.join(__dirname, 'jasper-ui/index.html');
 }
 const serverConfig = path.join(__dirname, 'docker-compose.yaml');
+const initPath = path.join(app.getPath('userData'), 'init.json');
+
+let data: any = {};
+try {
+  data = JSON.parse(fs.readFileSync(initPath, 'utf8'));
+}
+catch(e) { }
+function writeData() {
+  fs.writeFileSync(initPath, JSON.stringify(data));
+}
 
 function startServer() {
   process.env.JASPER_DATABASE_PASSWORD = 'jasper';
@@ -30,6 +40,7 @@ function startServer() {
 }
 
 function shutdown() {
+  writeData();
   if (win) {
     win.close()
     win = null;
@@ -47,19 +58,24 @@ function createWindow() {
   }
 
   const size = screen.getPrimaryDisplay().workAreaSize;
+  const bounds = data && data.bounds ? data.bounds : {
+    width: size.width * 0.8,
+    height: size.height * 0.8,
+  };
 
   // Create the browser window.
   win = new BrowserWindow({
-    x: 0,
-    y: 0,
-    width: size.width,
-    height: size.height,
+    ...bounds,
+
     webPreferences: {
-      nodeIntegration: true,
-      allowRunningInsecureContent: (serve),
-      contextIsolation: false,  // false if you want to run e2e test with Spectron
+      allowRunningInsecureContent: serve,
+      contextIsolation: !serve,
     },
   });
+
+  if (data.maximized) {
+    win.maximize();
+  }
 
   if (serve) {
     require('electron-debug')();
@@ -69,7 +85,36 @@ function createWindow() {
     win.loadFile(getEntry());
   }
 
+  win.on('resize', () => {
+    if (!win) return;
+    if (data.maximized) return;
+    data.bounds = {
+      ...data.bounds,
+      ...win.getBounds(),
+    };
+  });
+
+  win.on('move', () => {
+    if (!win) return;
+    if (data.maximized) return;
+    data.bounds = {
+      ...data.bounds,
+      ...win.getPosition(),
+    };
+  });
+
+  win.on('maximize', () => {
+    if (!win) return;
+    data.maximized = true;
+  });
+
+  win.on('unmaximize', () => {
+    if (!win) return;
+    data.maximized = false;
+  });
+
   win.on('closed', () => {
+    if (!win) return;
     win = null;
   });
 }
