@@ -7,7 +7,7 @@ import { QRCodeModule } from 'angularx-qrcode';
 import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { switchMap } from 'rxjs';
+import { retry, switchMap } from 'rxjs';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -114,6 +114,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
   config.load$.pipe(
     switchMap(() => admin.init$),
     switchMap(() => account.init$),
+    retry({ delay: 1000 }),
   );
 
 @NgModule({
