@@ -14,5 +14,7 @@ services:
     image: postgres
     environment:
       POSTGRES_USER: jasper
-      POSTGRES_PASSWORD: "${JASPER_DATABASE_PASSWORD-jasper}"
+      POSTGRES_PASSWORD: "${JASPER_DATABASE_PASSWORD:-jasper}"
       POSTGRES_DB: jasper
+    volumes:
+      - "${JASPER_DATA_DIR:?Must Set Data Dir}:/var/lib/postgresql/data"

@@ -3,8 +3,7 @@ import { app, BrowserWindow, Menu, nativeImage, screen, Tray } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const args = process.argv.slice(1),
-  serve = args.some(val => val === '--serve');
+const serve = process.argv.some(val => val === '--serve');
 
 function getEntry() {
   if (fs.existsSync(path.join(__dirname, '../dist'))) {
@@ -15,6 +14,8 @@ function getEntry() {
 const serverConfig = path.join(__dirname, 'docker-compose.yaml');
 
 function startServer() {
+  process.env.JASPER_DATABASE_PASSWORD = 'jasper';
+  process.env.JASPER_DATA_DIR = path.join(app.getPath('userData'), 'data');
   const server = spawn('docker', ['compose', '-f', serverConfig, 'up']);
   server.stdout.on('data', (data: string) => {
     console.log(`${data}`);
