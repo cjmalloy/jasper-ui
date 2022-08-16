@@ -1,15 +1,21 @@
-import {app, BrowserWindow, screen} from 'electron';
-import * as path from 'path';
+import { ChildProcessWithoutNullStreams, exec, spawn } from 'child_process';
+import { app, BrowserWindow, Menu, nativeImage, screen, Tray } from 'electron';
 import * as fs from 'fs';
-import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
+import * as path from 'path';
 
-let win: BrowserWindow | null = null;
 const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve');
 
+function getEntry() {
+  if (fs.existsSync(path.join(__dirname, '../dist'))) {
+    return path.join(__dirname, '../dist/jasper-ui/index.html');
+  }
+  return path.join(__dirname, 'jasper-ui/index.html');
+}
+const serverConfig = path.join(__dirname, 'docker-compose.yaml');
+
 function startServer() {
-  const server = spawn('docker', ['compose', '-f', serve ? 'app/docker-compose.yaml' : '.', 'up']);
-  // const server = spawn('ls', ['-al']);
+  const server = spawn('docker', ['compose', '-f', serverConfig, 'up']);
   server.stdout.on('data', (data: string) => {
     console.log(`${data}`);
   });
@@ -22,11 +28,22 @@ function startServer() {
   return server;
 }
 
-function stopServer() {
-  const server = spawn('docker', ['compose', '-f', serve ? 'app/docker-compose.yaml' : '.', 'down']);
+function shutdown() {
+  if (win) {
+    win.close()
+    win = null;
+  }
+  if (tray) {
+    tray.setContextMenu(Menu.buildFromTemplate([{ label: 'Shutting down...' }]));
+  }
+  exec('docker compose -f app/docker-compose.yaml down', () => app.quit());
 }
 
-function createWindow(): BrowserWindow {
+function createWindow() {
+  if (win) {
+    win.show();
+    return;
+  }
 
   const size = screen.getPrimaryDisplay().workAreaSize;
 
@@ -44,35 +61,34 @@ function createWindow(): BrowserWindow {
   });
 
   if (serve) {
-    const debug = require('electron-debug');
-    debug();
-
+    require('electron-debug')();
     require('electron-reloader')(module);
     win.loadURL('http://localhost:4200');
   } else {
-    // Path when running electron executable
-    let pathIndex = './jasper-ui/index.html';
-
-    if (fs.existsSync(path.join(__dirname, '../dist/jasper-ui/index.html'))) {
-      // Path when running electron in local folder
-      pathIndex = '../dist/jasper-ui/index.html';
-    }
-
-    const url = new URL(path.join('file:', __dirname, pathIndex));
-    win.loadURL(url.href);
+    win.loadFile(getEntry());
   }
 
-  // Emitted when the window is closed.
   win.on('closed', () => {
-    // Dereference the window object, usually you would store window
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
     win = null;
   });
-
-  return win;
 }
 
+function createTray() {
+  const icon = path.join(__dirname, serve ? 'app.png' : 'app.png');
+  const trayIcon = nativeImage.createFromPath(icon);
+  const tray = new Tray(trayIcon.resize({width: 16}));
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Show Window', click: createWindow },
+    { label: 'Quit', click: shutdown },
+  ]);
+  tray.setTitle('Jasper');
+  tray.setToolTip('Jasper');
+  tray.setContextMenu(contextMenu);
+  return tray;
+}
+
+let tray: Tray | null;
+let win: BrowserWindow | null;
 let server: ChildProcessWithoutNullStreams;
 
 // This method will be called when Electron has finished
@@ -80,20 +96,14 @@ let server: ChildProcessWithoutNullStreams;
 // Some APIs can only be used after this event occurs.
 // Added 400 ms to fix the black background issue while using transparent window. More details at https://github.com/electron/electron/issues/15947
 app.on('ready', () => {
+  tray = createTray();
   server = startServer();
   setTimeout(createWindow, 400);
 });
 
-// Quit when all windows are closed.
 app.on('window-all-closed', () => {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    stopServer();
-    setTimeout(() => {
-      server.kill();
-      app.quit();
-    }, 10000);
+  if (process.platform === 'darwin') {
+    app.dock.hide();
   }
 });
 
