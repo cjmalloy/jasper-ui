@@ -2,6 +2,7 @@
 Reference client for Jasper KMS.
 
 [![Build & Test](https://github.com/cjmalloy/jasper-ui/actions/workflows/docker-image.yml/badge.svg)](https://github.com/cjmalloy/jasper-ui/actions/workflows/docker-image.yml)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/jasper)](https://artifacthub.io/packages/search?repo=jasper)
 
 Jasper-UI is the reference client for the
 [Jasper Knowledge Management System](https://github.com/cjmalloy/jasper)
