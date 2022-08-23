@@ -38,14 +38,15 @@ export class EditorService {
     let ending = '';
     if (url.startsWith(refPrefix)) {
       ending = url.substring(refPrefix.length);
+    } else {
+      const relRefPrefix = getPath(refPrefix)!;
+      if (url.startsWith(relRefPrefix)) {
+        ending = url.substring(relRefPrefix.length);
+      } else if (url.startsWith('/ref/')) {
+        ending = url.substring('/ref/'.length);
+      }
     }
-    const relRefPrefix = getPath(refPrefix)!;
-    if (url.startsWith(relRefPrefix)) {
-      ending = url.substring(relRefPrefix.length);
-    } else if (url.startsWith('/ref/')) {
-      ending = url.substring('/ref/'.length);
-    }
-    if (!ending) return decodeURIComponent(url);
+    if (!ending) return url;
     if (ending.indexOf('/') < 0) return decodeURIComponent(ending);
     return decodeURIComponent(ending.substring(0, ending.indexOf('/')));
   }
@@ -60,12 +61,13 @@ export class EditorService {
     let ending = '';
     if (url.startsWith(tagPrefix)) {
       ending = url.substring(tagPrefix.length);
-    }
-    const relTagPrefix = getPath(tagPrefix)!;
-    if (url.startsWith(relTagPrefix)) {
-      ending = url.substring(relTagPrefix.length);
-    } else if (url.startsWith('/tag/')) {
-      ending = url.substring('/tag/'.length);
+    } else {
+      const relTagPrefix = getPath(tagPrefix)!;
+      if (url.startsWith(relTagPrefix)) {
+        ending = url.substring(relTagPrefix.length);
+      } else if (url.startsWith('/tag/')) {
+        ending = url.substring('/tag/'.length);
+      }
     }
     if (!ending) return [url, ''];
     if (ending.indexOf('/') < 0) return [decodeURIComponent(ending), ''];
