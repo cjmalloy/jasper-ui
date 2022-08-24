@@ -91,7 +91,7 @@ export class EditorService {
     // Make URLs to this site relative so that they work on multiple sites
     group.value.comment = group.value.comment.replace('](' + this.config.base, '](/');
     group.value.comment = group.value.comment.replace(']: ' + this.config.base, ']: /');
-    // Store last synced comment in the form so we can track what was already synced.
+    // Store last synced comment in the form so that we can track what was already synced.
     // This will allow the user to remove a source, alt or tag without it being re-added
     // @ts-ignore
     const previousComment = group.previousComment || '';
