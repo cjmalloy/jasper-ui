@@ -31,6 +31,14 @@ body.dark-theme {
     color: $text;
   }
 
+  .context-menu {
+    background-color: $card;
+
+    div:hover {
+      background-color: $bg-accent;
+    }
+  }
+
   .error {
     font-size: 80%;
     color: $error;

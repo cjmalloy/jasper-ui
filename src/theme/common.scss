@@ -30,6 +30,19 @@ html, body {
   cursor: pointer;
 }
 
+.context-menu {
+  border-radius: 2px;
+  padding: 4px;
+  white-space: nowrap;
+
+  div {
+    border-radius: 2px;
+    margin: 4px;
+    padding: 4px;
+    cursor: pointer;
+  }
+}
+
 .error-404, .error-403 {
   font-size: 300%;
   text-align: center;

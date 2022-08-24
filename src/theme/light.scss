@@ -1,5 +1,6 @@
 $mobile-width: 1024px;
 $bg: white;
+$bg-accent: rgba(0, 0, 0, 0.05);
 $text: black;
 $blue: #c7d5f3;
 $active: #da0000;
@@ -24,6 +25,14 @@ body.light-theme {
 
   :active {
     color: $text;
+  }
+
+  .context-menu {
+    background-color: $card;
+
+    div:hover {
+      background-color: $bg-accent;
+    }
   }
 
   .error {

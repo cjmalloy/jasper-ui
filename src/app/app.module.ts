@@ -1,4 +1,5 @@
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { OverlayModule } from '@angular/cdk/overlay';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -226,6 +227,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     QRCodeModule,
     MonacoEditorModule.forRoot(),
     DragDropModule,
+    OverlayModule,
   ],
   providers: [
     ConfigService,
