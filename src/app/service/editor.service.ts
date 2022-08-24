@@ -4,8 +4,7 @@ import * as _ from 'lodash-es';
 import { LinksFormComponent } from '../form/links/links.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
 import { RefSort } from '../model/ref';
-import { extractPattern, getNotifications, getTags } from '../util/editor';
-import { URI_REGEX } from '../util/format';
+import { getLinks, getNotifications, getTags } from '../util/editor';
 import { getPath } from '../util/hosts';
 import { ConfigService } from './config.service';
 
@@ -84,42 +83,53 @@ export class EditorService {
     return [decodeURIComponent(query), sort as RefSort];
   }
 
+  /**
+   * Extract sources, alternate urls and tags from the comment field and add
+   * them to the form.
+   */
   syncEditor(fb: UntypedFormBuilder, group: UntypedFormGroup) {
+    // Make URLs to this site relative so that they work on multiple sites
     group.value.comment = group.value.comment.replace('](' + this.config.base, '](/');
     group.value.comment = group.value.comment.replace(']: ' + this.config.base, ']: /');
-    const value = group.value.comment;
-    const newSources = _.uniq(_.difference(this.getSources(value), group.value.sources));
-    for (const s of newSources) {
-      (group.get('sources') as UntypedFormArray).push(fb.control(s, LinksFormComponent.validators));
-    }
-    const newAlts = _.uniq(_.difference(this.getAlts(value), group.value.alternateUrls));
+    // Store last synced comment in the form so we can track what was already synced.
+    // This will allow the user to remove a source, alt or tag without it being re-added
+    // @ts-ignore
+    const previousComment = group.previousComment || '';
+    // @ts-ignore
+    group.previousComment = group.value.comment;
+    const existing = [
+      ...getLinks(previousComment).map(url => this.getRefUrl(url)),
+      ...group.value.sources,
+      ...group.value.alternateUrls,
+    ];
+    const newAlts = _.uniq(_.difference(this.getAlts(group.value.comment), existing));
     for (const a of newAlts) {
       (group.get('alternateUrls') as UntypedFormArray).push(fb.control(a, LinksFormComponent.validators));
     }
+    existing.push(...newAlts);
+    const newSources = _.uniq(_.difference(this.getSources(group.value.comment), existing));
+    for (const s of newSources) {
+      (group.get('sources') as UntypedFormArray).push(fb.control(s, LinksFormComponent.validators));
+    }
+    const existingTags = [
+      ...getTags(previousComment),
+      ...getNotifications(previousComment),
+      ...group.value.tags,
+    ]
     const newTags = _.uniq(_.difference([
-      ...getTags(value),
-      ...getNotifications(value)], group.value.tags));
+      ...getTags(group.value.comment),
+      ...getNotifications(group.value.comment)], existingTags));
     for (const t of newTags) {
       (group.get('tags') as UntypedFormArray).push(fb.control(t, TagsFormComponent.validators));
     }
   }
 
   getSources(markdown: string) {
-    return [
-      ...extractPattern(markdown, /\[\[?\d+]?]:.*/g, /\[\[?\d+]?]:\s*(.*)/, URI_REGEX),
-      ...extractPattern(markdown, /\[\[?\d+]?]:\s*\/ref\/.*/g, /\[\[?\d+]?]:\s*(\/ref\/.*)/).map(url => this.getRefUrl(url)),
-      ...extractPattern(markdown, /\[\[?\d+]?]\(.*\)/g, /\[\[?\d+]?]\((.*)\)/, URI_REGEX),
-      ...extractPattern(markdown, /\[\[?\d+]?]\(\/ref\/.*\)/g, /\[\[?\d+]?]\((\/ref\/.*)\)/).map(url => this.getRefUrl(url)),
-    ];
+    return _.difference(getLinks(markdown), this.getAlts(markdown)).map(url => this.getRefUrl(url));
   }
 
   getAlts(markdown: string) {
-    return [
-      ...extractPattern(markdown, /\[\[?alt\d*]?]:.*/g, /\[\[?alt\d*]?]:\s*(.*)/, URI_REGEX),
-      ...extractPattern(markdown, /\[\[?alt\d+]?]:\s*\/ref\/.*/g, /\[\[?alt\d+]?]:\s*(\/ref\/.*)/).map(url => this.getRefUrl(url)),
-      ...extractPattern(markdown, /\[\[?alt\d*]?]\(.*\)/g, /\[\[?alt\d*]?]\((.*)\)/, URI_REGEX),
-      ...extractPattern(markdown, /\[\[?alt\d+]?]\(\/ref\/.*\)/g, /\[\[?alt\d+]?]\((\/ref\/.*)\)/).map(url => this.getRefUrl(url)),
-    ];
+    return getLinks(markdown, /\[?alt\d*]?/).map(url => this.getRefUrl(url));
   }
 
 }
