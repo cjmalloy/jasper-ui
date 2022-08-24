@@ -12,6 +12,7 @@ import { Ext } from '../../../model/ext';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
+import { ThemeService } from '../../../service/theme.service';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { hasPrefix, removeOriginWildcard } from '../../../util/tag';
@@ -30,12 +31,14 @@ export class EditTagPage implements OnInit {
 
   constructor(
     public admin: AdminService,
+    private themeService: ThemeService,
     private router: Router,
     private route: ActivatedRoute,
     private account: AccountService,
     private exts: ExtService,
     private fb: UntypedFormBuilder,
   ) {
+    themeService.setTitle('Exit Tag Extension');
     this.ext$.subscribe(ext => {
       this.ext = ext;
       let configControls = {};
