@@ -17,7 +17,7 @@ docker compose file.
 ### Text Editor
 Markdown editor with support for rendering both markdown and HTML.
 * Use `#tag` to create a tag link `[tag](/tag/politics)` (add a space for the usual markdown
-H1 "# Title")
+H1 "# Title"). The tag will automatically be added to the Ref.
 * Any links in markdown will automatically be added to either sources or alternate URLs
 * Use `[1]` to reference sources. The number will be the 1-based index of the source.
 * Use `[alt1]` to reference alternate URLs. Use `[alt1](url)` to add an alternate URL. The number will be
