@@ -129,7 +129,7 @@ export class EditorService {
   }
 
   getAlts(markdown: string) {
-    return getLinks(markdown, /\[?alt\d*]?/).map(url => this.getRefUrl(url));
+    return getLinks(markdown, /^\[?alt\d*]?$/).map(url => this.getRefUrl(url));
   }
 
 }
