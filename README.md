@@ -18,7 +18,8 @@ docker compose file.
 Markdown editor with support for rendering both markdown and HTML.
 * Use `#tag` to create a tag link `[tag](/tag/politics)` (add a space for the usual markdown
 H1 "# Title")
-* Use `^[1]` to reference sources. Use `^[1](url)` to add source.
+* Any links in markdown will automatically be added to either sources or alternate URLs
+* Use `^[1]` to reference sources.
 * Use `^[alt1]` to reference alternate URLs. Use `^[alt1](url)` to add an alternate URL.
 * Using `#+user/charlie` with the inbox plugin installed will add `plugin/inbox/user/charlie`
 to the tags. Will remove `#+user/` prefix when displaying.
