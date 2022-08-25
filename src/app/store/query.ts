@@ -27,12 +27,14 @@ export class QueryStore {
     });
     this.clear(); // Initial observables may not be null for MobX
     autorun(() => {
-      this.page = undefined;
-      this.error = undefined;
+      runInAction(() => {
+        this.page = undefined;
+        this.error = undefined;
+      });
       if (this.args) {
         this.refs.page(this.args).pipe(
           catchError((err: HttpErrorResponse) => {
-            this.error = err;
+            runInAction(() => this.error = err);
             return throwError(() => err);
           }),
         ).subscribe(p => runInAction(() => this.page = p));
