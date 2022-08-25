@@ -283,11 +283,19 @@ export class EmbedService {
           const url = t.title!;
           const type = this.editor.getUrlType(url);
           if (type === 'ref') {
-            this.refs.get(this.editor.getRefUrl(url)).subscribe(ref => {
-              const c = vc.createComponent(RefComponent);
-              c.instance.ref = ref;
-              c.instance.showToggle = true;
-              t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
+            this.refs.get(this.editor.getRefUrl(url)).pipe(
+              catchError(() => of(null)),
+            ).subscribe(ref => {
+              if (ref) {
+                const c = vc.createComponent(RefComponent);
+                c.instance.ref = ref;
+                c.instance.showToggle = true;
+                t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
+              } else {
+                el = document.createElement('div');
+                el.innerHTML = `<span class="error">Ref ${url} not found.</span>`;
+                t.parentNode?.insertBefore(el, t.nextSibling);
+              }
               // @ts-ignore
               t.expanded = !t.expanded;
             });
@@ -352,16 +360,28 @@ export class EmbedService {
                 t.expanded = !t.expanded;
               });
             } else {
-              this.refs.get(this.editor.getRefUrl(url)).subscribe(ref => {
-                const expandPlugins = this.admin.getEmbeds(ref);
-                if (ref.comment || expandPlugins.length) {
-                  const c = vc.createComponent(EmbedComponent);
-                  c.instance.ref = ref;
-                  c.instance.expandPlugins = expandPlugins;
-                  t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
-                  // @ts-ignore
-                  t.expanded = !t.expanded;
+              this.refs.get(this.editor.getRefUrl(url)).pipe(
+                catchError(() => of(null)),
+              ).subscribe(ref => {
+                if (ref) {
+                  const expandPlugins = this.admin.getEmbeds(ref);
+                  if (ref.comment || expandPlugins.length) {
+                    const c = vc.createComponent(EmbedComponent);
+                    c.instance.ref = ref;
+                    c.instance.expandPlugins = expandPlugins;
+                    t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
+                  } else {
+                    el = document.createElement('div');
+                    el.innerHTML = `<span class="error">Ref ${ref.title || ref.url} does not contain any embeds.</span>`;
+                    t.parentNode?.insertBefore(el, t.nextSibling);
+                  }
+                } else {
+                  el = document.createElement('div');
+                  el.innerHTML = `<span class="error">Ref ${url} not found and could not embed directly.</span>`;
+                  t.parentNode?.insertBefore(el, t.nextSibling);
                 }
+                // @ts-ignore
+                t.expanded = !t.expanded;
               });
             }
           }
