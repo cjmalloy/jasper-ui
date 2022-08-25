@@ -184,6 +184,13 @@ export class EmbedService {
     }];
   }
 
+  /**
+   * Post process a markdown render.
+   * @param ref ref to grab sources and alternate URLs from
+   * @param el the div containing the rendered markdown
+   * @param vc injector reference to create new components with
+   * @param event callback to add event handlers without memory leaks
+   */
   postProcess(el: HTMLDivElement, vc: ViewContainerRef, event: (type: string, el: Element, fn: () => void) => void) {
     const images = el.querySelectorAll<HTMLImageElement>('.md-img');
     images.forEach(t => {
