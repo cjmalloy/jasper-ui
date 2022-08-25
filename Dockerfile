@@ -38,7 +38,9 @@ WORKDIR /usr/share/nginx/html/
 COPY --from=builder app/dist/jasper-ui ./
 ARG BASE_HREF="/"
 ENV BASE_HREF=$BASE_HREF
+COPY docker/security-headers.conf /etc/nginx/conf.d
 COPY docker/default.conf /etc/nginx/conf.d
 COPY docker/40-create-jasper-config.sh /docker-entrypoint.d
 COPY docker/50-set-base-href.sh /docker-entrypoint.d
 COPY docker/60-set-title.sh /docker-entrypoint.d
+COPY docker/70-csp-default-src.sh /docker-entrypoint.d
