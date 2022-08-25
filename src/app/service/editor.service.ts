@@ -87,12 +87,12 @@ export class EditorService {
    * Extract sources, alternate urls and tags from the comment field and add
    * them to the Ref form.
    */
-  syncEditor(fb: UntypedFormBuilder, group: UntypedFormGroup) {
+  syncEditor(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
     let comment = group.value.comment;
     // Store last synced comment in the form so that we can track what was already synced.
     // This will allow the user to remove a source, alt or tag without it being re-added
     // @ts-ignore
-    const previousComment = group.previousComment || '';
+    previousComment ||= group.previousComment || '';
     // @ts-ignore
     group.previousComment = comment;
     // Make URLs to this site relative so that they work on multiple sites

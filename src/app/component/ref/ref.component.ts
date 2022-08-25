@@ -95,7 +95,10 @@ export class RefComponent implements OnInit {
 
   @ViewChild(RefFormComponent)
   set refForm(value: RefFormComponent) {
-    _.defer(() => value?.setRef(this._ref));
+    _.defer(() => {
+      value?.setRef(this._ref);
+      this.editor.syncEditor(this.fb, this.editForm, this._ref.comment);
+    });
   }
 
   ngOnInit(): void {
