@@ -85,18 +85,25 @@ export class EditorService {
 
   /**
    * Extract sources, alternate urls and tags from the comment field and add
-   * them to the form.
+   * them to the Ref form.
    */
   syncEditor(fb: UntypedFormBuilder, group: UntypedFormGroup) {
-    // Make URLs to this site relative so that they work on multiple sites
-    group.value.comment = group.value.comment.replace('](' + this.config.base, '](/');
-    group.value.comment = group.value.comment.replace(']: ' + this.config.base, ']: /');
+    let comment = group.value.comment;
     // Store last synced comment in the form so that we can track what was already synced.
     // This will allow the user to remove a source, alt or tag without it being re-added
     // @ts-ignore
     const previousComment = group.previousComment || '';
     // @ts-ignore
-    group.previousComment = group.value.comment;
+    group.previousComment = comment;
+    // Make URLs to this site relative so that they work on multiple sites
+    comment = comment.replace('](' + this.config.base, '](/');
+    comment = comment.replace(']: ' + this.config.base, ']: /');
+    this.syncUrls(fb, group, previousComment);
+    this.syncTags(fb, group, previousComment);
+    group.get('comment')?.setValue(comment);
+  }
+
+  private syncUrls(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
     const existing = [
       ...getLinks(previousComment).map(url => this.getRefUrl(url)),
       ...group.value.sources,
@@ -111,11 +118,14 @@ export class EditorService {
     for (const s of newSources) {
       (group.get('sources') as UntypedFormArray).push(fb.control(s, LinksFormComponent.validators));
     }
+  }
+
+  private syncTags(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
     const existingTags = [
       ...getTags(previousComment),
       ...getNotifications(previousComment),
       ...group.value.tags,
-    ]
+    ];
     const newTags = _.uniq(_.difference([
       ...getTags(group.value.comment),
       ...getNotifications(group.value.comment)], existingTags));
