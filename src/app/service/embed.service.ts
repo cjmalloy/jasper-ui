@@ -157,7 +157,7 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<a href="${token.href}" class="inline-${token.css}">${token.text}</a>`;
+        return `<a class="inline-${token.css}">${token.text}</a>`;
       }
     }, {
       name: 'superscript',
@@ -203,23 +203,44 @@ export class EmbedService {
     });
     const inlineRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-ref');
     inlineRefs.forEach(t => {
-      this.refs.get(this.editor.getRefUrl(t.innerText)).subscribe(ref => {
-        const c = vc.createComponent(RefComponent);
-        c.instance.ref = ref;
-        c.instance.showToggle = true;
-        t.parentNode?.insertBefore(c.location.nativeElement, t);
+      const url = t.innerText;
+      this.refs.get(this.editor.getRefUrl(url)).pipe(
+        catchError(() => of(null)),
+      ).subscribe(ref => {
+        if (ref) {
+          const c = vc.createComponent(RefComponent);
+          c.instance.ref = ref;
+          c.instance.showToggle = true;
+          t.parentNode?.insertBefore(c.location.nativeElement, t);
+        } else {
+          el = document.createElement('div');
+          el.innerHTML = `<span class="error">Ref ${url} not found.</span>`;
+          t.parentNode?.insertBefore(el, t);
+        }
         t.remove();
       });
     });
     const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-embed');
     embedRefs.forEach(t => {
-      this.refs.get(this.editor.getRefUrl(t.innerText)).subscribe(ref => {
-        const expandPlugins = this.admin.getEmbeds(ref);
-        if (ref.comment || expandPlugins.length) {
-          const c = vc.createComponent(EmbedComponent);
-          c.instance.ref = ref;
-          c.instance.expandPlugins = expandPlugins;
+      const url = t.innerText;
+      this.refs.get(this.editor.getRefUrl(url)).pipe(
+        catchError(() => of(null)),
+      ).subscribe(ref => {
+        if (ref) {
+          const expandPlugins = this.admin.getEmbeds(ref);
+          if (ref.comment || expandPlugins.length) {
+            const c = vc.createComponent(EmbedComponent);
+            c.instance.ref = ref;
+            c.instance.expandPlugins = expandPlugins;
+            t.parentNode?.insertBefore(c.location.nativeElement, t);
+          }
+        } else if (isKnownEmbed(url) || isImage(url) || isVideo(url) || isAudio(url)) {
+          const c = this.createEmbed(url, vc);
           t.parentNode?.insertBefore(c.location.nativeElement, t);
+        } else {
+          el = document.createElement('div');
+          el.innerHTML = `<span class="error">Ref ${url} not found and could not embed directly.</span>`;
+          t.parentNode?.insertBefore(el, t);
         }
         t.remove();
       });
@@ -314,17 +335,7 @@ export class EmbedService {
           // TODO: Don't use title to store url
           const url = t.title!;
           if (isKnownEmbed(url) || isImage(url) || isVideo(url) || isAudio(url)) {
-            const c = vc.createComponent(EmbedComponent);
-            c.instance.ref = { url };
-            if (isImage(url)) {
-              c.instance.expandPlugins = ['plugin/image'];
-            } else if (isVideo(url)) {
-              c.instance.expandPlugins = ['plugin/video'];
-            }  else if (isAudio(url)) {
-              c.instance.expandPlugins = ['plugin/audio'];
-            } else if (isKnownEmbed(url)) {
-              c.instance.expandPlugins = ['plugin/embed'];
-            }
+            const c = this.createEmbed(url, vc);
             t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
             // @ts-ignore
             t.expanded = !t.expanded;
@@ -357,6 +368,21 @@ export class EmbedService {
         }
       });
     });
+  }
+
+  private createEmbed(url: string, vc: ViewContainerRef) {
+    const result = vc.createComponent(EmbedComponent);
+    result.instance.ref = { url };
+    if (isImage(url)) {
+      result.instance.expandPlugins = ['plugin/image'];
+    } else if (isVideo(url)) {
+      result.instance.expandPlugins = ['plugin/video'];
+    }  else if (isAudio(url)) {
+      result.instance.expandPlugins = ['plugin/audio'];
+    } else if (isKnownEmbed(url)) {
+      result.instance.expandPlugins = ['plugin/embed'];
+    }
+    return result;
   }
 
   private get twitterTheme() {
