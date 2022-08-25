@@ -86,6 +86,8 @@ export class EditorService {
   /**
    * Extract sources, alternate urls and tags from the comment field and add
    * them to the Ref form.
+   * Fix the numbering of sources and alts linked with the form [1](url)
+   * or [alt1](url).
    */
   syncEditor(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
     let comment = group.value.comment;
@@ -100,6 +102,8 @@ export class EditorService {
     comment = comment.replace(']: ' + this.config.base, ']: /');
     this.syncUrls(fb, group, previousComment);
     this.syncTags(fb, group, previousComment);
+    comment = this.reNumberSources(comment, group.value.sources);
+    comment = this.reNumberAlts(comment, group.value.alternateUrls);
     group.get('comment')?.setValue(comment);
   }
 
@@ -132,6 +136,30 @@ export class EditorService {
     for (const t of newTags) {
       (group.get('tags') as UntypedFormArray).push(fb.control(t, TagsFormComponent.validators));
     }
+  }
+
+  private reNumberSources(markdown: string, sources: string[]) {
+    let i = 0;
+    for (const s of sources) {
+      i++;
+      markdown = markdown.replace(new RegExp(`\\[\\d+]\\(${s}\\)`, 'g'), `[${i}](${s})`);
+      markdown = markdown.replace(new RegExp(`\\[\\[\\d+]]\\(${s}\\)`, 'g'), `[[${i}]](${s})`);
+      markdown = markdown.replace(new RegExp(`(^|[^[])\\[${i}]([^[(]|$)`, 'g'), `$1[${i}](${s})$2`);
+      markdown = markdown.replace(new RegExp(`\\[\\[${i}]]([^(]|$)`, 'g'), `[[${i}]](${s})$1`);
+    }
+    return markdown;
+  }
+
+  private reNumberAlts(markdown: string, sources: string[]) {
+    let i = 0;
+    for (const s of sources) {
+      i++;
+      markdown = markdown.replace(new RegExp(`\\[alt\\d+]\\(${s}\\)`, 'g'), `[alt${i}](${s})`);
+      markdown = markdown.replace(new RegExp(`\\[\\[alt\\d+]]\\(${s}\\)`, 'g'), `[[alt${i}]](${s})`);
+      markdown = markdown.replace(new RegExp(`(^|[^[])\\[alt${i}]([^[(]|$)`, 'g'), `$1[alt${i}](${s})$2`);
+      markdown = markdown.replace(new RegExp(`\\[\\[alt${i}]]([^(]|$)`, 'g'), `[[alt${i}]](${s})$1`);
+    }
+    return markdown;
   }
 
   getSources(markdown: string) {
