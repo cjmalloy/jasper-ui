@@ -68,17 +68,19 @@ export class EmbedService {
       name: 'userTag',
       level: 'inline',
       start: (src: string) => src.match(/[+_]/)?.index,
-      tokenizer(src: string, tokens: any) {
+      tokenizer(src: string, tokens: any): any {
         const rule = /^([+_]user\/[a-z]+(\/[a-z]+)*)/;
         const match = rule.exec(src);
         if (match) {
+          const text = match[0]
+          const title = 'User ' + text;
           return {
             type: 'userTag',
-            href: '/tag/' + encodeURIComponent(match[0]),
-            text: match[0],
-            title: 'User ' + match[0],
-            raw: match[0],
-            tokens: []
+            href: '/tag/' + encodeURIComponent(text),
+            text,
+            title,
+            raw: text,
+            tokens: [],
           };
         }
         return undefined;
@@ -90,17 +92,19 @@ export class EmbedService {
       name: 'hashTag',
       level: 'inline',
       start: (src: string) => src.match(/#/)?.index,
-      tokenizer(src: string, tokens: any) {
+      tokenizer(src: string, tokens: any): any {
         const rule = /^#([a-z]+(\/[a-z]+)*)/;
         const match = rule.exec(src);
         if (match) {
+          const text = match[0];
+          const title = 'Hashtag ' + text;
           return {
             type: 'hashTag',
             href: '/tag/' + encodeURIComponent(match[1]),
-            text: match[0],
-            title: 'Hashtag ' + match[0],
-            raw: match[0],
-            tokens: []
+            text,
+            title,
+            raw: text,
+            tokens: [],
           };
         }
         return undefined;
@@ -111,19 +115,20 @@ export class EmbedService {
     }, {
       name: 'wiki',
       level: 'inline',
-      start: (src: string) => src.match(/\[\[/)?.index,
-      tokenizer(src: string, tokens: any) {
+      start: (src: string) => src.match(/\[\[?[a-zA-Z]/)?.index,
+      tokenizer(src: string, tokens: any): any {
         const rule = /^\[\[([^\]]+)]]/;
         const match = rule.exec(src);
         if (match) {
           // Don't match on source or alt refs
           if (/^(alt)?\d+$/.test(match[1])) return undefined;
+          const text = match[1];
           return {
             type: 'wiki',
-            href: '/ref/' + wikiUriFormat(match[1]),
-            text: match[1],
+            href: '/ref/' + wikiUriFormat(text),
+            text,
             raw: match[0],
-            tokens: []
+            tokens: [],
           };
         }
         return undefined;
@@ -135,22 +140,46 @@ export class EmbedService {
       name: 'embed',
       level: 'inline',
       start: (src: string) => src.match(/\[(ref|embed|query)]/)?.index,
-      tokenizer(src: string, tokens: any) {
+      tokenizer(src: string, tokens: any): any {
         const rule = /^\[(ref|embed|query)]\(([^\]]+)\)/;
         const match = rule.exec(src);
         if (match) {
+          const css = match[1];
+          const text = match[2];
           return {
             type: 'embed',
-            css: match[1],
-            text: match[2],
+            css,
+            text,
             raw: match[0],
-            tokens: []
+            tokens: [],
           };
         }
         return undefined;
       },
       renderer(token: any): string {
         return `<a href="${token.href}" class="inline-${token.css}">${token.text}</a>`;
+      }
+    }, {
+      name: 'superscript',
+      level: 'inline',
+      start: (src: string) => src.match(/\^/)?.index,
+      tokenizer(src: string, tokens: any): any {
+        const rule = /^\^(\S+)/;
+        const match = rule.exec(src);
+        if (match) {
+          const text = match[1];
+          return {
+            type: 'superscript',
+            text,
+            raw: match[0],
+            // @ts-ignore
+            tokens: this.lexer.inlineTokens(text, []),
+          };
+        }
+        return undefined;
+      },
+      renderer(token: any): string {
+        return `<sup>${token.text}</sup>`;
       }
     }];
   }
