@@ -179,7 +179,8 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<sup>${token.text}</sup>`;
+        // @ts-ignore
+        return `<sup>${this.parser.parseInline(token.tokens)}</sup>`;
       }
     }];
   }
