@@ -2,11 +2,6 @@
 <a class="fake-link" (click)="drawMore()">load more</a>
 <br>
 Selected:
-<app-ref *ngIf="selected; else refNotFound"
-         class="full-page"
-         [ref]="selected"
+<app-ref class="full-page"
+         [ref]="selected || { url: selectedNotFound! }"
          [showToggle]="true"></app-ref>
-<ng-template #refNotFound>
-  Not Found (<pre>{{ selectedNotFound }}</pre>)
-  <a routerLink="/submit" [queryParams]="{ url: selectedNotFound }">Submit this link</a>
-</ng-template>
