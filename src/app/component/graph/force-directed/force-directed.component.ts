@@ -418,6 +418,31 @@ export class ForceDirectedComponent implements AfterViewInit {
             .attr('fill', ref => this.color(ref));
         });
 
+    function drag(simulation: Simulation<SimulationNodeDatum, undefined>) {
+      return d3.drag()
+        .on('start', event => {
+          if (!event.active) simulation.alphaTarget(0.3).restart();
+          event.subject.fx = event.subject.x;
+          event.subject.fy = event.subject.y;
+        })
+        .on('drag', event => {
+          event.subject.fx = event.x;
+          event.subject.fy = event.y;
+        })
+        .on('end', event => {
+          if (!event.active) simulation.alphaTarget(0);
+          if (!event.subject.pinned) {
+            event.subject.fx = null;
+            event.subject.fy = null;
+          }
+        });
+    }
+
+    this.simulation
+      .nodes(this.nodes as any)
+      .force('link', d3.forceLink(this.links).id((l: any) => l.url))
+      .restart();
+
     if (this.timeline) {
       let minPublished = _.min(this.nodes.map(r => r.published).filter(p => !!p));
       let maxPublished = _.max(this.nodes.map(r => r.published).filter(p => !!p));
@@ -442,30 +467,6 @@ export class ForceDirectedComponent implements AfterViewInit {
     } else {
       this.yAxis?.remove();
       this.yAxis = undefined;
-    }
-    this.simulation
-      .nodes(this.nodes as any)
-      .force('link', d3.forceLink(this.links).id((l: any) => l.url))
-      .restart();
-
-    function drag(simulation: Simulation<SimulationNodeDatum, undefined>) {
-      return d3.drag()
-        .on('start', event => {
-          if (!event.active) simulation.alphaTarget(0.3).restart();
-          event.subject.fx = event.subject.x;
-          event.subject.fy = event.subject.y;
-        })
-        .on('drag', event => {
-          event.subject.fx = event.x;
-          event.subject.fy = event.y;
-        })
-        .on('end', event => {
-          if (!event.active) simulation.alphaTarget(0);
-          if (!event.subject.pinned) {
-            event.subject.fx = null;
-            event.subject.fy = null;
-          }
-        });
     }
   }
 
