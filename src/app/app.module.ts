@@ -1,5 +1,5 @@
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { OverlayModule } from '@angular/cdk/overlay';
+import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from '@angular/cdk/overlay';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -231,6 +231,7 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
   ],
   providers: [
     ConfigService,
+    { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
     {
       provide: APP_INITIALIZER,
       useFactory: loadFactory,

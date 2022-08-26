@@ -19,6 +19,10 @@ body.light-theme {
   background-color: $bg;
   color: $text;
 
+  ::backdrop {
+    background-color: $bg;
+  }
+
   .link-style {
     color: blue;
   }

@@ -1,7 +1,42 @@
-<figure id="force-directed-graph" #figure></figure>
+<figure id="force-directed-graph"
+        #figure
+        (contextmenu)="contextMenu(null, $event)"></figure>
+<ng-template #nodeMenu let-ref>
+  <div class="context-menu" (click)="$event.stopPropagation()">
+    <ng-container *ngIf="ref">
+      <div (click)="pin(ref)">
+        <input id="pinned"
+               type="checkbox"
+               [checked]="ref.pinned">
+        <label for="pinned">Pinned</label>
+      </div>
+      <hr>
+      <div (click)="unload(ref)">Unload</div>
+      <hr>
+      <div (click)="restart(ref)">Restart from here</div>
+      <hr>
+    </ng-container>
+    <div (click)="toggleTimeline()">
+      <input id="timeline"
+             type="checkbox"
+             [checked]="timeline">
+      <label for="timeline">Timeline force on X-axis</label>
+    </div>
+    <hr>
+    <div (click)="toggleArrows()">
+      <input id="arrows"
+             type="checkbox"
+             [checked]="arrows">
+      <label for="timeline">Show arrows to source</label>
+    </div>
+    <hr>
+    <div (click)="fullscreen()">Fullscreen</div>
+  </div>
+</ng-template>
 <a class="fake-link" (click)="drawMore()">load more</a>
 <br>
 Selected:
-<app-ref class="full-page"
-         [ref]="selected || { url: selectedNotFound! }"
+<app-ref *ngIf="selected"
+         class="full-page"
+         [ref]="selected"
          [showToggle]="true"></app-ref>

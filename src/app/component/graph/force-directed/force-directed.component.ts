@@ -1,26 +1,48 @@
-import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  TemplateRef,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import * as d3 from 'd3';
-import { Simulation, SimulationNodeDatum } from 'd3';
+import { ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import * as _ from 'lodash-es';
-import { catchError, Observable, of, throwError } from 'rxjs';
+import { toJS } from 'mobx';
+import * as moment from 'moment';
+import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { isTextPost } from '../../../util/format';
 import { capturesAny, hasTag } from '../../../util/tag';
 
-type GraphNode = { id: string, loaded?: boolean, notFound?: boolean, tags?: string[], title?: string };
-type GraphLink = { source: string, target: string };
+type GraphNode = Ref & {
+  unloaded?: boolean,
+  notFound?: boolean,
+  pinned?: boolean,
+  x?: number,
+  y?: number,
+  fx?: number,
+  fy?: number,
+};
+type GraphLink = {
+  source: string | GraphNode,
+  target: string | GraphNode,
+};
 
 @Component({
   selector: 'app-force-directed',
   templateUrl: './force-directed.component.html',
   styleUrls: ['./force-directed.component.scss']
 })
-export class ForceDirectedComponent implements OnInit, AfterViewInit {
+export class ForceDirectedComponent implements AfterViewInit {
 
-  @Input()
-  content!: Ref[];
   @Input()
   filter?: string | null;
   @Input()
@@ -55,98 +77,104 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
   @Input()
   linkStrength?: number;
 
-  nodes!: GraphNode[];
-  links!: GraphLink[];
+  nodes: GraphNode[] = [];
+  links: GraphLink[] = [];
   selected?: Ref;
-  selectedNotFound?: string;
-  unloaded: GraphNode[] = [];
+  unloaded: string[] = [];
+  timeline = false;
+  arrows = false;
 
   @ViewChild('figure')
   figure!: ElementRef;
+  @ViewChild('nodeMenu')
+  nodeMenu!: TemplateRef<any>;
+
+  overlayRef?: OverlayRef;
+  sub?: Subscription;
 
   private simulation?: Simulation<SimulationNodeDatum, undefined>;
-  private node?: any;
+  private node?: Selection<any, any, any, any>;
+  private link?: Selection<any, any, any, any>;
+  private svg?: Selection<any, unknown, HTMLElement, any>;
+  private yAxis?: Selection<any, any, any, any>;
+  private timelineScale?: ScaleTime<number, number, never>;
 
   constructor(
     private refs: RefService,
+    private overlay: Overlay,
+    private viewContainerRef: ViewContainerRef,
   ) { }
 
-  ngOnInit(): void {
-    this.selected = this.content[0];
-  }
-
-  ngAfterViewInit(): void {
-    this.nodes = this.content.map((s: any) => {
-      s.id = s.url;
-      s.loaded = true;
-      return s;
-    });
-    this.links = this.content.flatMap(r => this.references([r]).map(s => ({ source: r.url, target: s })));
-    this.unloaded = this.unloadedReferences().map(s => ({ url: s,  id: s }));
-    this.nodes = this.nodes.concat(this.unloaded);
+  @Input()
+  set content(refs: Ref[]) {
+    refs = toJS(refs);
+    this.selected = refs[0];
+    this.nodes = refs;
+    this.links = this.getLinks(...refs);
+    this.unloaded = this.unloadedReferences(...this.nodes);
+    this.nodes.push(...this.unloaded.map(url => ({ url, unloaded: true })));
     if (this.depth > 0) {
       let init: Observable<any> = of(1);
       for (let i = 0; i< this.depth; i++) {
         init = init.pipe(switchMap(() => this.loadMore$));
       }
-      init.subscribe(() => this.draw());
-    } else {
-      this.draw();
+      init.subscribe(() => {
+        if (this.figure) {
+          this.update()
+        }
+      });
+    } else if (this.figure) {
+      this.update();
     }
+  }
+
+  ngAfterViewInit(): void {
+    this.init();
+    this.update();
   }
 
   @HostListener('window:resize', ['$event'])
   onResize() {
-    this.draw();
+    this.update();
+  }
+
+  @HostListener('window:click', ['$event'])
+  onWindowClick() {
+    this.close();
   }
 
   get loadMore$() {
     if (!this.unloaded.length) return of([]);
     const more = this.unloaded.splice(0, Math.min(this.unloaded.length, 30));
-    return this.refs.list(more.map(m => m.id)).pipe(
+    return this.refs.list(more).pipe(
       tap((moreLoaded: (Ref|null)[]) => {
         for (let i = 0; i < more.length; i++) {
+          const ref = this.find(more[i])!;
           if (!moreLoaded[i]) {
-            more[i].loaded = true;
-            more[i].notFound = true;
+            ref.unloaded = false;
+            ref.notFound = true;
           } else {
-            Object.assign(more[i], moreLoaded[i]);
-            more[i].loaded = true;
-            this.links.push(...this.references(<any>[more[i]]).map(s => ({ source: more[i].id, target: s })));
-            const moreUnloaded = this.unloadedReferences().map(s => ({ ...more[i], url: s, id: s, loaded: false, sources: null, metadata: null }));
+            _.assign(ref, moreLoaded[i]);
+            ref.unloaded = false;
+            this.links.push(...this.getLinks(ref));
+            const moreUnloaded = this.unloadedReferences(ref);
             this.unloaded = this.unloaded.concat(moreUnloaded);
-            this.nodes = this.nodes.concat(moreUnloaded);
+            this.nodes.push(...moreUnloaded.map(url => ({ url,  unloaded: true })));
           }
         }
       }),
     );
   }
 
-  drawMore() {
-    this.loadMore$.subscribe(more => {
-      if (more.length) this.draw();
-    });
+  getLinks(...refs: Ref[]) {
+    return [
+      ...refs.flatMap(r => r.sources?.map(s => ({ target: s, source: r.url })) || []),
+      ...refs.flatMap(r => r.metadata?.responses?.map(s => ({ target: r.url, source: s })) || []),
+      ...refs.flatMap(r => r.metadata?.internalResponses?.map(s => ({ target: r.url, source: s })) || []),
+    ];
   }
 
-  color(ref: GraphNode) {
-    if (ref.notFound) return '#e54a4a';
-    if (!ref.loaded) return '#e38a35';
-    if (hasTag('plugin/comment', ref as any)) return '#4a8de5';
-    if (isTextPost(ref as any)) return '#4ae552';
-    if (!ref.tags || !ref.title || hasTag('internal', ref as any)) return '#857979';
-    if (this.tag && capturesAny([this.tag!], ref.tags)) return '#c34ae5';
-    return '#1c378c';
-  }
-
-  title(ref: GraphNode) {
-    return ref.title || ref.id;
-  }
-
-  contains(id: string): boolean {
-    return !!_.find(this.nodes, r => r.id === id);
-  }
-
-  references(list: Ref[]): string[] {
+  references(list: GraphNode[]): string[] {
     return _.uniq([
       ...list.flatMap(r => r.sources || []),
       ...list.flatMap(r => r.metadata?.responses || []),
@@ -154,43 +182,129 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
     ]);
   }
 
-  unloadedReferences(): string[] {
-    const refs = this.references(<any>this.nodes);
-    return refs.filter(s => !this.contains(s));
+  unloadedReferences(...refs: GraphNode[]): string[] {
+    return this.references(refs).filter(s => !this.find(s));
   }
 
-  clickNode(event: PointerEvent) {
-    const url = (event.target as any).__data__.id;
-    const node: any = this.nodes.find(n => n.id === url);
-    if (node.notFound) {
-      this.selectedNotFound = url;
-      this.selected = undefined;
-      return;
-    }
-    if (node.loaded) {
-      this.selected = node;
-      return;
-    }
+  find(url: string) {
+    return _.find(this.nodes, r => r.url === url);
+  }
+
+  drawMore() {
+    this.loadMore$.subscribe(more => {
+      if (more.length) {
+        this.simulation?.alpha(0.1);
+        this.update();
+      }
+    });
+  }
+
+  clickNode(ref: GraphNode) {
+    const url = ref.url;
+    this.selected = ref;
+    if (!ref.unloaded) return;
+    ref.unloaded = false;
+    _.remove(this.unloaded, url);
     this.refs.get(url).pipe(
       catchError(err => {
-        node.notFound = true;
-        this.unloaded = _.filter(this.unloaded, n => n.id !== url);
-        this.selectedNotFound = url;
-        this.draw();
+        ref.notFound = true;
+        this.update();
         return throwError(() => err);
       }),
     )
-    .subscribe(ref => {
-      this.links.push(...this.references([ref]).map(s => ({ source: ref.url, target: s })));
-      Object.assign(node, ref);
-      node.loaded = true;
-      this.selected = <any>node;
-      this.unloaded = _.filter(this.unloaded, n => n.id !== url);
-      const moreUnloaded = this.unloadedReferences().map(s => ({ ...node, url: s, id: s, loaded: false, sources: null, metadata: null }));
-      this.unloaded = this.unloaded.concat(moreUnloaded);
-      this.nodes = this.nodes.concat(moreUnloaded);
-      this.draw();
+    .subscribe(res => {
+      Object.assign(ref, res);
+      this.links.push(...this.getLinks(ref));
+      const moreUnloaded = this.unloadedReferences(ref);
+      this.unloaded.push(...moreUnloaded);
+      this.nodes.push(...moreUnloaded.map(url => ({ url,  unloaded: true })));
+      this.update();
     });
+  }
+
+  contextMenu(ref: GraphNode | null, event: MouseEvent) {
+    event.stopPropagation();
+    event.preventDefault();
+    this.close();
+    const positionStrategy = this.overlay.position()
+      .flexibleConnectedTo({x: event.x, y: event.y})
+      .withPositions([{
+        originX: 'center',
+        originY: 'center',
+        overlayX: 'start',
+        overlayY: 'top',
+      }]);
+    this.overlayRef = this.overlay.create({
+      positionStrategy,
+      scrollStrategy: this.overlay.scrollStrategies.close()
+    });
+    this.overlayRef.attach(new TemplatePortal(this.nodeMenu, this.viewContainerRef, {
+      $implicit: ref
+    }));
+  }
+
+  close() {
+    this.sub?.unsubscribe();
+    this.sub = undefined;
+    this.overlayRef?.dispose();
+    this.overlayRef = undefined;
+    this.update();
+  }
+
+  pin(ref: GraphNode) {
+    ref.pinned = !ref.pinned;
+    ref.fx = ref.pinned ? ref.x ?? 0 : undefined;
+    ref.fy = ref.pinned ? ref.y ?? 0 : undefined;
+    this.close();
+  }
+
+  unload(ref: GraphNode) {
+    this.simulation?.alpha(0.3);
+    _.remove(this.unloaded, ref.url);
+    _.remove(this.nodes, ref);
+    _.remove(this.links, l =>
+      l.target === ref.url || (l.target as any).url === ref.url ||
+      l.source === ref.url || (l.source as any).url === ref.url);
+    this.close();
+  }
+
+  restart(ref: GraphNode) {
+    this.content = [ref];
+    this.close();
+  }
+
+  toggleTimeline() {
+    this.simulation?.alpha(0.5);
+    this.timeline = !this.timeline;
+    this.close();
+  }
+
+  toggleArrows() {
+    this.arrows = !this.arrows;
+    this.close();
+  }
+
+  fullscreen() {
+    if (window.innerHeight == screen.height) {
+      document.exitFullscreen();
+    } else {
+      this.figure.nativeElement.requestFullscreen();
+    }
+    this.close();
+  }
+
+  title(ref: GraphNode) {
+    return ref.title || ref.url;
+  }
+
+  color(ref: GraphNode) {
+    if (ref.notFound) return '#e54a4a';
+    if (ref.unloaded) return '#e38a35';
+    if (hasTag('plugin/comment', ref)) return '#4a8de5';
+    if (isTextPost(ref)) return '#4ae552';
+    if (!ref.tags || !ref.title || hasTag('internal', ref)) return '#857979';
+    if (this.tag && capturesAny([this.tag!], ref.tags)) return '#c34ae5';
+    return '#1c378c';
   }
 
   get figWidth() {
@@ -201,90 +315,155 @@ export class ForceDirectedComponent implements OnInit, AfterViewInit {
     return this.figure.nativeElement.offsetHeight;
   }
 
-  draw() {
-    if (this.simulation) {
-      this.simulation.stop();
-    }
-    this.simulation = d3.forceSimulation(this.nodes as SimulationNodeDatum[])
-      .force('link', d3.forceLink(this.links).id(node => (node as GraphNode).id))
-      .force('charge', d3.forceManyBody())
-      .force('x', d3.forceX())
-      .force('y', d3.forceY())
-      .on('tick', () => {
-        link
-          .attr('x1', (d: any) => d.source.x)
-          .attr('y1', (d: any) => d.source.y)
-          .attr('x2', (d: any) => d.target.x)
-          .attr('y2', (d: any) => d.target.y);
+  init() {
 
-        this.node
-          .attr('cx', (d: any) => d.x)
-          .attr('cy', (d: any) => d.y);
-      });
-
-    this.figure.nativeElement.innerHTML = '';
-    const svg = d3.select('figure#force-directed-graph').append('svg')
+    this.svg = d3.select('figure#force-directed-graph').append('svg')
       .attr('width', this.figWidth)
       .attr('height', this.figHeight)
       .attr('viewBox', [-this.figWidth / 2, -this.figHeight / 2, this.figWidth, this.figHeight])
       .attr('style', 'max-width: 100%; height: auto; height: intrinsic;');
 
-    const link = svg.append('g')
+    this.svg.append('defs').append('marker')
+      .attr('id', 'arrow')
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 20)
+      .attr('refY', -0.5)
+      .attr('markerWidth', 6)
+      .attr('markerHeight', 6)
+      .attr('orient', 'auto')
+      .append('path')
+        .attr('fill', this.linkStroke)
+        .attr('d', 'M0,-5L10,0L0,5');
+
+    this.link = this.svg.append('g')
       .attr('stroke', this.linkStroke)
       .attr('stroke-opacity', this.linkStrokeOpacity)
       .attr('stroke-width', this.linkStrokeWidth)
-      .attr('stroke-linecap', this.linkStrokeLinecap)
-    .selectAll('line')
+      .attr('stroke-linecap', this.linkStrokeLinecap);
+
+    this.node = this.svg.append('g');
+
+    this.simulation = d3.forceSimulation()
+      .force('charge', d3.forceManyBody().distanceMax(300))
+      .force('x', d3.forceX(d => {
+        if (!this.timeline) return 0;
+        if (!(d as Ref).published) return 0;
+        return this.timelineScale!((d as Ref).published!.valueOf());
+      }).strength(d => {
+        if (!this.timeline) return 0.1;
+        if (!(d as Ref).published) return 0;
+        return 0.1;
+      }))
+      .force('y', d3.forceY())
+      .on('tick', () => {
+        this.link!
+          .selectAll('line')
+          .attr('x1', (d: any) => d.source.x)
+          .attr('y1', (d: any) => d.source.y)
+          .attr('x2', (d: any) => d.target.x)
+          .attr('y2', (d: any) => d.target.y);
+
+        this.node!
+          .selectAll('circle')
+          .attr('cx', (d: any) => d.x)
+          .attr('cy', (d: any) => d.y);
+      });
+  }
+
+  update() {
+    if (!this.svg || !this.simulation ||!this.link || !this.node) return;
+
+    this.svg
+      .attr('width', this.figWidth)
+      .attr('height', this.figHeight)
+      .attr('viewBox', [-this.figWidth / 2, -this.figHeight / 2, this.figWidth, this.figHeight])
+
+    this.link
+      .selectAll('line')
       .data(this.links)
-      .join('line');
+      .join('line')
+      .attr('marker-end', this.arrows ? 'url(#arrow)' : null);
 
     const self = this;
-    this.node = svg.append('g')
-      .attr('stroke', this.nodeStroke)
-      .attr('stroke-opacity', this.nodeStrokeOpacity)
-      .attr('stroke-width', this.nodeStrokeWidth)
-    .selectAll('circle')
-      .data(this.nodes)
-      .join('circle')
-      .attr('r', this.nodeRadius)
-      .attr('fill', node => this.color(node))
-      .call(drag(this.simulation) as any)
-      .on('click', function(event) {
-        d3.selectAll('circle')
-          .attr('stroke', self.nodeStroke)
-          .attr('stroke-opacity', self.nodeStrokeOpacity)
-          .attr('stroke-width', self.nodeStrokeWidth)
-        d3.select(this)
-          .attr('stroke', self.selectedStroke)
-          .attr('stroke-opacity', self.selectedStrokeOpacity)
-          .attr('stroke-width', self.selectedStrokeWidth)
-        self.clickNode(event);
-      });
+    this.node
+      .selectAll('circle')
+      .data(this.nodes, (d: any) => d.url)
+      .join(
+        enter => {
+          const circle = enter.append('circle')
+            .attr('r', this.nodeRadius)
+            .attr('fill', ref => this.color(ref))
+            .attr('stroke', this.nodeStroke)
+            .attr('stroke-opacity', this.nodeStrokeOpacity)
+            .attr('stroke-width', this.nodeStrokeWidth)
+            .call(drag(this.simulation!) as any)
+            .on('click', function(event) {
+              self.clickNode((this as any).__data__);
+            })
+            .on('contextmenu', function(event) {
+              self.contextMenu((this as any).__data__, event);
+            });
+          circle.append('title');
+          return circle;
+        },
+        update => {
+          update.select('title')
+            .text(ref => this.title(ref));
+          return update
+            .attr('stroke', ref => this.selected === ref ? this.selectedStroke : this.nodeStroke)
+            .attr('stroke-opacity', ref => this.selected === ref ? this.selectedStrokeOpacity : this.nodeStrokeOpacity)
+            .attr('stroke-width', ref => this.selected === ref ? this.selectedStrokeWidth : this.nodeStrokeOpacity)
+            .attr('fill', ref => this.color(ref));
+        });
 
-    this.node.append('title').text((node: any) => this.title(node));
+    if (this.timeline) {
+      let minPublished = _.min(this.nodes.map(r => r.published).filter(p => !!p));
+      let maxPublished = _.max(this.nodes.map(r => r.published).filter(p => !!p));
+      const totalDiff = maxPublished?.diff(minPublished) || 0;
+      const minDiff = moment.duration(1, 'day').asMilliseconds();
+      if (totalDiff < minDiff) {
+        const half = moment((minPublished || maxPublished || moment()).valueOf() / 2 + (maxPublished || minPublished || moment()).valueOf() / 2);
+        minPublished = moment(half).subtract(minDiff / 2);
+        maxPublished = moment(half).add(minDiff / 2);
+      }
+      const height = 20;
+      const padding = 40;
+      this.timelineScale = d3
+        .scaleTime()
+        .domain([minPublished!.valueOf(), maxPublished!.valueOf()])
+        .range([-this.figWidth / 2 + padding, this.figWidth / 2 - padding])
+        .nice();
+      this.yAxis ??= this.svg.append('g');
+      this.yAxis
+        .attr('transform', 'translate(0, ' + (this.figHeight / 2 - height) + ')')
+        .call(d3.axisBottom(this.timelineScale));
+    } else {
+      this.yAxis?.remove();
+      this.yAxis = undefined;
+    }
+    this.simulation
+      .nodes(this.nodes as any)
+      .force('link', d3.forceLink(this.links).id((l: any) => l.url))
+      .restart();
 
     function drag(simulation: Simulation<SimulationNodeDatum, undefined>) {
-      function dragstarted(event: any) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        event.subject.fx = event.subject.x;
-        event.subject.fy = event.subject.y;
-      }
-
-      function dragged(event: any) {
-        event.subject.fx = event.x;
-        event.subject.fy = event.y;
-      }
-
-      function dragended(event: any) {
-        if (!event.active) simulation.alphaTarget(0);
-        event.subject.fx = null;
-        event.subject.fy = null;
-      }
-
       return d3.drag()
-        .on('start', dragstarted)
-        .on('drag', dragged)
-        .on('end', dragended);
+        .on('start', event => {
+          if (!event.active) simulation.alphaTarget(0.3).restart();
+          event.subject.fx = event.subject.x;
+          event.subject.fy = event.subject.y;
+        })
+        .on('drag', event => {
+          event.subject.fx = event.x;
+          event.subject.fy = event.y;
+        })
+        .on('end', event => {
+          if (!event.active) simulation.alphaTarget(0);
+          if (!event.subject.pinned) {
+            event.subject.fx = null;
+            event.subject.fy = null;
+          }
+        });
     }
   }
 
