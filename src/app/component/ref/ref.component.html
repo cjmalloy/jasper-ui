@@ -27,10 +27,13 @@
       </div>
       <div class="stack">
         <div class="info" [class.expanded]="!actionsExpanded">
-          <ng-container *ngIf="ref.created">
+          <ng-container *ngIf="ref.created else notSubmitted">
             <span [title]="ref.created.toISOString()">submitted {{ ref.created.fromNow() }}</span>
             <span *ngIf="ref.modified!.diff(ref.created, 'seconds') > 5" [title]="'last edited ' + ref.modified!.fromNow()">*</span>
           </ng-container>
+          <ng-template #notSubmitted>
+            <span>not found</span>
+          </ng-template>
           <ng-container *ngIf="authors.length">
             by
             <ng-container *ngFor="let user of authors">
