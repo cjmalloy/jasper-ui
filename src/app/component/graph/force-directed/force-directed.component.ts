@@ -244,6 +244,7 @@ export class ForceDirectedComponent implements AfterViewInit {
   }
 
   close() {
+    if (!this.sub && !this.overlayRef) return;
     this.sub?.unsubscribe();
     this.sub = undefined;
     this.overlayRef?.dispose();
@@ -269,6 +270,7 @@ export class ForceDirectedComponent implements AfterViewInit {
   }
 
   restart(ref: GraphNode) {
+    this.simulation?.alpha(0.3);
     this.content = [ref];
     this.close();
   }
