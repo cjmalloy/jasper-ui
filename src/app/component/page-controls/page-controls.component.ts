@@ -1,5 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Page } from '../../model/page';
+import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-page-controls',
@@ -12,7 +14,10 @@ export class PageControlsComponent implements OnInit {
   @Input()
   page!: Page<any>;
 
-  constructor() { }
+  constructor(
+    private store: Store,
+    private router: Router,
+  ) { }
 
   get hasQuery() {
     return !!window.location.search;
@@ -28,6 +33,14 @@ export class PageControlsComponent implements OnInit {
 
   get last() {
     return Math.max(0, this.page.totalPages - 1);
+  }
+
+  get pageSize() {
+    return this.store.view.pageSize;
+  }
+
+  set pageSize(value: number) {
+    this.router.navigate([], { queryParams: { pageSize: value }, queryParamsHandling: 'merge' });
   }
 
   ngOnInit(): void {

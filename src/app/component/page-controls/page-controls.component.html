@@ -1,4 +1,4 @@
-more results:
+<label>more results: </label>
 
 <ng-container *ngIf="hasQuery">
   <a class="first-page"
@@ -26,3 +26,12 @@ more results:
    routerLinkActive="disabled"
    [queryParams]="{ pageNumber: last }"
    queryParamsHandling="merge">last</a>
+
+<label for="pageSize"> size: </label>
+<select id="pageSize" [(ngModel)]="pageSize">
+  <option [value]="5">5</option>
+  <option [value]="20">20</option>
+  <option [value]="50">50</option>
+  <option [value]="100">100</option>
+  <option [value]="500">500</option>
+</select>
