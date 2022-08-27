@@ -11,12 +11,31 @@
                [checked]="ref.pinned">
         <label for="pinned">Pinned</label>
       </div>
+      <ng-container *ngIf="hasUnloaded(ref)">
+        <hr>
+        <div (click)="load(ref)">Load <span *ngIf="store.graph.selected.length > 1 && store.graph.selected.includes(ref)">(max 30)</span></div>
+      </ng-container>
+      <ng-container *ngIf="hasUnloadedSource(ref)">
+        <hr>
+        <div (click)="loadSources(ref)">Load sources (max 30)</div>
+      </ng-container>
+      <ng-container *ngIf="hasUnloadedResponse(ref)">
+        <hr>
+        <div (click)="loadResponses(ref)">Load responses (max 30)</div>
+      </ng-container>
       <hr>
       <div (click)="remove(ref)">Remove</div>
       <hr>
       <div (click)="restart(ref)">Restart from here</div>
       <hr>
     </ng-container>
+    <div (click)="toggleUnloaded()">
+      <input id="unloaded"
+             type="checkbox"
+             [checked]="store.graph.showUnloaded">
+      <label for="unloaded">Show unloaded references</label>
+    </div>
+    <hr>
     <div (click)="toggleTimeline()">
       <input id="timeline"
              type="checkbox"

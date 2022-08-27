@@ -1,9 +1,9 @@
 import * as _ from 'lodash-es';
-import { action, computed, makeObservable, observable } from 'mobx';
+import { action, computed, makeAutoObservable, makeObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
-import { find, GraphLink, GraphNode, links, references, unloadedReferences } from '../util/graph';
+import { find, GraphLink, GraphNode, links, linkSources, references, unloadedReferences } from '../util/graph';
 
 export class GraphStore {
 
@@ -13,36 +13,16 @@ export class GraphStore {
   loading: string[] = [];
   timeline = false;
   arrows = false;
+  showUnloaded = true;
 
   constructor(
     public route: RouterStore,
   ) {
-    makeObservable(this, {
+    makeAutoObservable(this, {
       selected: observable.shallow,
       nodes: observable.shallow,
       links: observable.shallow,
-      loading: observable,
-      timeline: observable,
-      arrows: observable,
-      references: computed,
-      unloaded: computed,
-      selectedPage: computed,
-      minPublished: computed,
-      maxPublished: computed,
-      publishedDiff: computed,
-      set: action,
-      select: action,
-      clearSelection: action,
-      load: action,
-      getLoading: action,
-      startLoading: action,
-      notFound: action,
-      remove: action,
     });
-  }
-
-  get references(): string[] {
-    return references(this.nodes);
   }
 
   get unloaded(): string[] {
@@ -73,8 +53,10 @@ export class GraphStore {
     this.loading = [];
     this.nodes = [...refs];
     this.selected = [...refs];
-    this.links = links(...refs);
-    this.nodes.push(...unloadedReferences(this.nodes, ...refs).map(url => ({ url, unloaded: true })));
+    if (this.showUnloaded) {
+      this.nodes.push(...unloadedReferences(this.nodes, ...refs).map(url => ({ url, unloaded: true })));
+    }
+    this.links = links(this.nodes, ...this.nodes);
   }
 
   load(...refs: Ref[]) {
@@ -89,13 +71,16 @@ export class GraphStore {
     }
     // Trigger shallow observable
     this.nodes = [...this.nodes];
-    this.links.push(...links(...refs));
-    this.nodes.push(..._.difference(unloadedReferences(this.nodes, ...refs), this.unloaded).map(url => ({ url, unloaded: true })));
+    if (this.showUnloaded) {
+      this.nodes.push(..._.difference(unloadedReferences(this.nodes, ...refs), this.unloaded).map(url => ({ url, unloaded: true })));
+    }
+    this.links.push(...links(this.nodes, ...refs));
     _.pullAll(this.loading, refs.map(r => r.url));
   }
 
   remove(refs: Ref[]) {
     _.pullAll(this.nodes, refs);
+    _.pullAll(this.selected, refs);
     for (const ref of refs) {
       _.remove(this.links, l =>
         l.target === ref.url || (l.target as any).url === ref.url ||
@@ -103,7 +88,19 @@ export class GraphStore {
     }
   }
 
-  select(refs: Ref[]) {
+  toggleShowUnloaded() {
+    this.showUnloaded = !this.showUnloaded;
+    if (this.showUnloaded) {
+      if (this.showUnloaded) {
+        this.nodes.push(...unloadedReferences(this.nodes, ...this.nodes).map(url => ({ url, unloaded: true })));
+      }
+    } else {
+      _.remove(this.nodes, n => n.unloaded);
+    }
+    this.links = links(this.nodes, ...this.nodes);
+  }
+
+  select(...refs: Ref[]) {
     this.selected = [...refs];
   }
 
@@ -118,20 +115,30 @@ export class GraphStore {
     return more;
   }
 
-  startLoading(url: string) {
-    this.loading.push(url);
+  startLoading(...url: string[]) {
+    this.loading.push(...url);
   }
 
   notFound(url: string) {
-    const ref = this.find(url)!;
+    let ref = find(this.nodes, url);
+    if (!ref) {
+      ref = { url, notFound: true };
+      this.nodes.push(ref);
+    }
     ref.notFound = true;
     ref.unloaded = false;
     _.pull(this.loading, url);
+    if (!this.showUnloaded) {
+      this.links.push(...linkSources(this.nodes, url));
+    }
     return ref;
   }
 
-  find(url: string) {
-    return find(this.nodes, url);
+  grabNodeOrSelection(ref: Ref) {
+    if (!this.selected.includes(ref)) {
+      this.selected = [ref];
+    }
+    return [...this.selected];
   }
 }
 

@@ -15,24 +15,34 @@ export type GraphLink = {
   target: string | GraphNode,
 };
 
-export function links(...nodes: GraphNode[]) {
+export function links(allNodes: GraphNode[], ...nodes: GraphNode[]) {
   return [
-    ...nodes.flatMap(r => r.sources?.map(s => ({ source: s, target: r.url })) || []),
-    ...nodes.flatMap(r => r.metadata?.responses?.map(s => ({ source: r.url, target: s })) || []),
-    ...nodes.flatMap(r => r.metadata?.internalResponses?.map(s => ({ source: r.url, target: s })) || []),
+    ...nodes.flatMap(n => sources(n).filter(url => find(allNodes, url)).map(url => ({ source: url, target: n.url })) || []),
+    ...nodes.flatMap(n => responses(n).filter(url => find(allNodes, url)).map(url => ({ source: n.url, target: url })) || []),
   ];
 }
 
-export function references(nodes: GraphNode[]): string[] {
-  return _.uniq([
-    ...nodes.flatMap(r => r.sources || []),
+export function linkSources(allNodes: GraphNode[], url: string) {
+  return _.filter(allNodes, n => !!n.sources?.includes(url)).map((n: GraphNode) => ({ source: url, target: n.url }));
+}
+
+export function references(...nodes: GraphNode[]): string[] {
+  return _.uniq([...sources(...nodes), ...responses(...nodes)]);
+}
+
+export function sources(...nodes: GraphNode[]): string[] {
+  return nodes.flatMap(r => r.sources || []);
+}
+
+export function responses(...nodes: GraphNode[]): string[] {
+  return [
     ...nodes.flatMap(r => r.metadata?.responses || []),
     ...nodes.flatMap(r => r.metadata?.internalResponses || []),
-  ]);
+  ];
 }
 
 export function unloadedReferences(allNodes: GraphNode[], ...nodes: GraphNode[]): string[] {
-  return references(nodes).filter(s => !find(allNodes, s));
+  return references(...nodes).filter(s => !find(allNodes, s));
 }
 
 export function find(nodes: GraphNode[], url: string) {

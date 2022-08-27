@@ -18,12 +18,8 @@ export class QueryStore {
   constructor(
     private refs: RefService,
   ) {
-    makeObservable(this, {
+    makeAutoObservable(this, {
       args: observable.struct,
-      page: observable,
-      error: observable,
-      clear: action,
-      setArgs: action,
     });
     this.clear(); // Initial observables may not be null for MobX
     autorun(() => {

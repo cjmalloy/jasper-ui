@@ -19,12 +19,8 @@ export class ExtStore {
   constructor(
     private exts: ExtService,
   ) {
-    makeObservable(this, {
+    makeAutoObservable(this, {
       args: observable.struct,
-      page: observable,
-      error: observable,
-      clear: action,
-      setArgs: action,
     });
     this.clear(); // Initial observables may not be null for MobX
     autorun(() => {

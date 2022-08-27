@@ -19,12 +19,8 @@ export class PluginStore {
   constructor(
     private plugins: PluginService,
   ) {
-    makeObservable(this, {
+    makeAutoObservable(this, {
       args: observable.struct,
-      page: observable,
-      error: observable,
-      clear: action,
-      setArgs: action,
     });
     this.clear(); // Initial observables may not be null for MobX
     autorun(() => {

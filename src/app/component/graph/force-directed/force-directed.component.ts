@@ -17,13 +17,13 @@ import { ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
-import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
+import { catchError, forkJoin, Observable, of, Subscription, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { isTextPost } from '../../../util/format';
-import { GraphNode } from '../../../util/graph';
+import { GraphNode, responses, sources, find } from '../../../util/graph';
 import { Point, Rect } from '../../../util/math';
 import { capturesAny, hasTag } from '../../../util/tag';
 
@@ -145,9 +145,8 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     this.close();
   }
 
-  get loadMore$() {
-    if (!this.store.graph.unloaded.length) return of([]);
-    const more = this.store.graph.getLoading(30);
+  load$(more: string[]) {
+    if (!more.length) return of([]);
     return this.refs.list(more).pipe(
       tap((moreLoaded: (Ref|null)[]) => {
         for (let i = 0; i < more.length; i++) {
@@ -160,6 +159,10 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     );
   }
 
+  get loadMore$() {
+    return this.load$(this.store.graph.getLoading(30));
+  }
+
   drawMore() {
     this.loadMore$.subscribe(more => {
       if (more.length) {
@@ -169,31 +172,58 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  clickNode(ref: GraphNode, event: MouseEvent) {
-    event.stopPropagation();
-    const url = ref.url;
+  find(url: string) {
+    return find(this.store.graph.nodes, url);
+  }
+
+  hasUnloaded(ref: Ref) {
+    const refs = this.store.graph.grabNodeOrSelection(ref);
+    for (const ref of refs) {
+      if (ref.unloaded) return true;
+    }
+    return false;
+  }
+
+  hasUnloadedSource(ref: Ref) {
+    const refs = this.store.graph.grabNodeOrSelection(ref);
+    for (const ref of refs) {
+      if (!ref.sources) continue;
+      for (const url of ref.sources) {
+        const s = this.find(url);
+        if (!s || s.unloaded) return true;
+      }
+    }
+    return false;
+  }
+
+  hasUnloadedResponse(ref: Ref) {
+    const refs = this.store.graph.grabNodeOrSelection(ref);
+    for (const ref of refs) {
+      if (!ref.metadata) continue;
+      const responses = [
+        ...(ref.metadata?.responses || []),
+        ...(ref.metadata?.internalResponses || []),
+      ];
+      for (const url of responses) {
+        const r = this.find(url);
+        if (!r || r.unloaded) return true;
+      }
+    }
+    return false;
+  }
+
+  clickNode(ref: GraphNode, event?: MouseEvent) {
+    event?.stopPropagation();
+    this.store.graph.select(ref);
     if (!ref.unloaded) {
-      runInAction(() => this.store.graph.selected = [ref]);
       this.update();
       return;
     }
-    this.store.graph.startLoading(url);
-    this.refs.get(url).pipe(
-      catchError(err => {
-        const ref = this.store.graph.notFound(url);
-        runInAction(() => this.store.graph.selected = [ref]);
-        this.update();
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.store.graph.load(ref);
-      runInAction(() => this.store.graph.selected = [this.store.graph.find(ref.url)!]);
-      this.update();
-    });
+    this.load(ref);
   }
 
   select(rect?: Rect) {
-    this.store.graph.select(_.filter(this.store.graph.nodes, n => Rect.contains(rect, n as Point)));
+    this.store.graph.select(..._.filter(this.store.graph.nodes, n => Rect.contains(rect, n as Point)));
     this.update();
   }
 
@@ -229,10 +259,10 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
   pin(ref: GraphNode) {
     ref.pinned = !ref.pinned;
-    if (!this.store.graph.selected.includes(ref)) {
-      this.store.graph.selected = [ref];
+    if (!ref.pinned) {
+      this.simulation?.alpha(0.1);
     }
-    this.store.graph.selected.forEach(s => {
+    this.store.graph.grabNodeOrSelection(ref).forEach(s => {
       s.pinned = ref.pinned;
       s.fx = s.pinned ? s.x ?? 0 : undefined;
       s.fy = s.pinned ? s.y ?? 0 : undefined;
@@ -240,25 +270,53 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     this.close();
   }
 
+  loadSources(ref: GraphNode) {
+    this.load$(sources(...this.store.graph.grabNodeOrSelection(ref)).slice(0, 30)).subscribe(more => {
+      if (more.length) {
+        this.simulation?.alpha(0.1);
+        this.update();
+      }
+    });
+    this.close();
+  }
+
+  loadResponses(ref: GraphNode) {
+    this.load$(responses(...this.store.graph.grabNodeOrSelection(ref)).slice(0, 30)).subscribe(more => {
+      if (more.length) {
+        this.simulation?.alpha(0.1);
+        this.update();
+      }
+    });
+    this.close();
+  }
+
+  load(ref: GraphNode) {
+    const urls = this.store.graph.grabNodeOrSelection(ref).filter(r => r.unloaded).map(r => r.url).slice(0, 30);
+    this.store.graph.startLoading(...urls);
+    this.load$(urls).subscribe(more => {
+      if (more.length) {
+        this.simulation?.alpha(0.1);
+        this.update();
+      }
+    });
+    this.close();
+  }
+
   remove(ref: GraphNode) {
     this.simulation?.alpha(0.3);
-    runInAction(() => {
-      if (!this.store.graph.selected.includes(ref)) {
-        this.store.graph.selected = [ref];
-      }
-      this.store.graph.remove(this.store.graph.selected);
-      this.store.graph.selected = [];
-    });
+    this.store.graph.remove(this.store.graph.grabNodeOrSelection(ref));
     this.close();
   }
 
   restart(ref: GraphNode) {
     this.simulation?.alpha(0.3);
-    if (!this.store.graph.selected.includes(ref)) {
-      this.content = [ref];
-    } else {
-      this.content = [...this.store.graph.selected];
-    }
+    this.content = [...this.store.graph.grabNodeOrSelection(ref)];
+    this.close();
+  }
+
+  toggleUnloaded() {
+    this.simulation?.alpha(0.5);
+    this.store.graph.toggleShowUnloaded();
     this.close();
   }
 
