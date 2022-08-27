@@ -13,6 +13,14 @@ pre {
   margin-left: 10px;
 }
 
+.loading-container {
+  margin-top: -30px;
+  height: 40px;
+  app-loading {
+    padding: 0;
+  }
+}
+
 .fake-link {
   display: block;
   text-align: center;

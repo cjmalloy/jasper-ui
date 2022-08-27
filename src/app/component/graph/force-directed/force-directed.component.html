@@ -38,7 +38,9 @@
   <a *ngIf="store.graph.unloaded.length"
      class="load-more fake-link"
      (click)="drawMore()">load more</a>
-  <br>
+  <div class="loading-container">
+    <app-loading *ngIf="store.graph.loading.length"></app-loading>
+  </div>
   <label class="graph-selected">Selected:</label>
   <app-ref-list [page]="store.graph.selectedPage"
                 emptyMessage="Empty selection"
