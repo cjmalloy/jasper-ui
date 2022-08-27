@@ -37,6 +37,6 @@
 <a class="fake-link" (click)="drawMore()">load more</a>
 <br>
 Selected:
-<app-ref-list [page]="$any({ content: selected })"
+<app-ref-list [page]="$any({ content: selectedAndLoaded })"
               emptyMessage=""
               [pageControls]="false"></app-ref-list>

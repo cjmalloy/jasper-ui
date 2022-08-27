@@ -144,6 +144,10 @@ export class ForceDirectedComponent implements AfterViewInit {
     }
   }
 
+  get selectedAndLoaded() {
+    return this.selected.filter(s => !s.unloaded);
+  }
+
   ngAfterViewInit(): void {
     this.init();
     this.update();
