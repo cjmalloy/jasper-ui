@@ -86,11 +86,12 @@ export class GraphStore {
       } else {
         this.nodes.push(ref);
       }
-      this.links.push(...links(ref));
-      this.nodes.push(..._.difference(unloadedReferences(this.nodes, ref), this.unloaded).map(url => ({ url, unloaded: true })));
     }
     // Trigger shallow observable
     this.nodes = [...this.nodes];
+    this.links.push(...links(...refs));
+    this.nodes.push(..._.difference(unloadedReferences(this.nodes, ...refs), this.unloaded).map(url => ({ url, unloaded: true })));
+    _.pullAll(this.loading, refs.map(r => r.url));
   }
 
   remove(refs: Ref[]) {
