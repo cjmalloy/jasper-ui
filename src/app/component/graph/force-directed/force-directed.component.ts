@@ -364,6 +364,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
   init() {
 
+    const viewBox = [-this.figWidth / 2, -this.figHeight / 2, this.figWidth, this.figHeight];
     this.svg = d3.select('figure#force-directed-graph').append('svg')
       .attr('width', this.figWidth)
       .attr('height', this.figHeight)
