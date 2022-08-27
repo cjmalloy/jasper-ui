@@ -125,7 +125,7 @@ export class GraphStore {
     const ref = this.find(url)!;
     ref.notFound = true;
     ref.unloaded = false;
-    _.remove(this.loading, url);
+    _.pull(this.loading, url);
     return ref;
   }
 
