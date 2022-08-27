@@ -17,9 +17,9 @@ export type GraphLink = {
 
 export function links(...nodes: GraphNode[]) {
   return [
-    ...nodes.flatMap(r => r.sources?.map(s => ({ target: s, source: r.url })) || []),
-    ...nodes.flatMap(r => r.metadata?.responses?.map(s => ({ target: r.url, source: s })) || []),
-    ...nodes.flatMap(r => r.metadata?.internalResponses?.map(s => ({ target: r.url, source: s })) || []),
+    ...nodes.flatMap(r => r.sources?.map(s => ({ source: s, target: r.url })) || []),
+    ...nodes.flatMap(r => r.metadata?.responses?.map(s => ({ source: r.url, target: s })) || []),
+    ...nodes.flatMap(r => r.metadata?.internalResponses?.map(s => ({ source: r.url, target: s })) || []),
   ];
 }
 
