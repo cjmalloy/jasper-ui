@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { ThemeService } from '../../service/theme.service';
+import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-code',
@@ -19,9 +20,9 @@ export class CodeComponent implements OnInit {
   };
 
   constructor(
-    private themes: ThemeService,
+    private store: Store,
   ) {
-    this.options.theme = themes.getTheme() === 'dark-theme' ? 'vs-dark' : 'vs';
+    this.options.theme = store.darkTheme ? 'vs-dark' : 'vs';
   }
 
   @Input()

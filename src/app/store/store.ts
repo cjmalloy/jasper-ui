@@ -11,10 +11,15 @@ export class Store {
 
   account = new AccountStore();
   view = new ViewStore(this.route);
+  theme = 'init-theme';
 
   constructor(
     private route: RouterStore,
   ) {
     makeAutoObservable(this);
+  }
+
+  get darkTheme() {
+    return this.theme === 'dark-theme';
   }
 }

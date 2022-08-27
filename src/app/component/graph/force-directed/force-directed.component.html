@@ -1,5 +1,6 @@
 <figure id="force-directed-graph"
         #figure
+        (click)="selected.length = 0"
         (contextmenu)="contextMenu(null, $event)"></figure>
 <ng-template #nodeMenu let-ref>
   <div class="context-menu" (click)="$event.stopPropagation()">
@@ -36,7 +37,6 @@
 <a class="fake-link" (click)="drawMore()">load more</a>
 <br>
 Selected:
-<app-ref *ngIf="selected"
-         class="full-page"
-         [ref]="selected"
-         [showToggle]="true"></app-ref>
+<app-ref-list [page]="$any({ content: selected })"
+              emptyMessage=""
+              [pageControls]="false"></app-ref-list>

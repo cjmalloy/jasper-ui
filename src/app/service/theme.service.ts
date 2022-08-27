@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { autorun } from 'mobx';
+import { autorun, runInAction } from 'mobx';
 import { Store } from '../store/store';
 import { ConfigService } from './config.service';
 
@@ -9,10 +9,6 @@ import { ConfigService } from './config.service';
   providedIn: 'root',
 })
 export class ThemeService {
-
-  public static THEMES = ['light-theme', 'dark-theme'];
-
-  private theme = 'init-theme';
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -25,7 +21,7 @@ export class ThemeService {
   }
 
   toggle() {
-    if (this.getTheme() === 'light-theme') {
+    if (this.store.theme === 'light-theme') {
       this.setTheme('dark-theme');
     } else {
       this.setTheme('light-theme');
@@ -43,11 +39,6 @@ export class ThemeService {
     head.appendChild(style);
   }
 
-  getTheme() {
-    if (this.theme) return this.theme;
-    return this.getSystemTheme();
-  }
-
   getSystemTheme(): string {
     const darkThemeMq = window.matchMedia('(prefers-color-scheme: dark)');
     return darkThemeMq.matches ? 'dark-theme' : 'light-theme';
@@ -56,15 +47,15 @@ export class ThemeService {
   setTheme(theme?: string | null) {
     const sysDefault = this.getSystemTheme();
     theme ??= sysDefault;
-    if (this.theme === theme) return;
+    if (this.store.theme === theme) return;
     if (theme !== sysDefault) {
       localStorage.setItem('theme', theme);
     } else {
       localStorage.removeItem('theme');
     }
     document.body.classList.add(theme);
-    document.body.classList.remove(this.theme);
-    this.theme = theme;
+    document.body.classList.remove(this.store.theme);
+    runInAction(() => this.store.theme = theme!);
   }
 
   setTitle(title: string) {

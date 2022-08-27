@@ -7,7 +7,7 @@
              [expanded]="false"></app-ref>
   </ng-container>
   <ng-container *ngFor="let ref of page?.content; let i = index">
-    <div class="list-number">{{ i + page!.number * page!.size + 1 }}</div>
+    <div class="list-number">{{ i + (page?.number || 0) * (page?.size || 0) + 1 }}</div>
     <app-ref [ref]="ref"
              [showToggle]="true"
              [expanded]="false"></app-ref>
@@ -21,5 +21,5 @@
                    [page]="page"></app-page-controls>
 
 <p class="no-results" *ngIf="page && page.empty">
-  No results found
+  {{ emptyMessage }}
 </p>

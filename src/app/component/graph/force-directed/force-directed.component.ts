@@ -13,13 +13,15 @@ import {
 import * as d3 from 'd3';
 import { ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import * as _ from 'lodash-es';
-import { toJS } from 'mobx';
+import { autorun, toJS } from 'mobx';
 import * as moment from 'moment';
 import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
+import { Store } from '../../../store/store';
 import { isTextPost } from '../../../util/format';
+import { Point, Rect } from '../../../util/math';
 import { capturesAny, hasTag } from '../../../util/tag';
 
 type GraphNode = Ref & {
@@ -53,13 +55,20 @@ export class ForceDirectedComponent implements AfterViewInit {
   @Input()
   nodeStroke = '#d0d0d0';
   @Input()
+  nodeStrokeDashedArray = '';
+  @Input()
   nodeStrokeWidth = 1.5;
   @Input()
   nodeStrokeOpacity = 1;
   @Input()
-  selectedStroke = '#e15c46';
+  selectedStrokeDarkTheme = '#f6f6f6';
   @Input()
-  selectedStrokeWidth = 3;
+  selectedStrokeLightTheme = '#101010';
+  selectedStroke = this.selectedStrokeLightTheme;
+  @Input()
+  selectedStrokeWidth = 1.5;
+  @Input()
+  selectedStrokeDashedArray = '1.5,2';
   @Input()
   selectedStrokeOpacity = 1;
   @Input()
@@ -79,7 +88,7 @@ export class ForceDirectedComponent implements AfterViewInit {
 
   nodes: GraphNode[] = [];
   links: GraphLink[] = [];
-  selected?: Ref;
+  selected: GraphNode[] = [];
   unloaded: string[] = [];
   timeline = false;
   arrows = false;
@@ -98,18 +107,25 @@ export class ForceDirectedComponent implements AfterViewInit {
   private svg?: Selection<any, unknown, HTMLElement, any>;
   private yAxis?: Selection<any, any, any, any>;
   private timelineScale?: ScaleTime<number, number, never>;
+  private dragRect?: Selection<any, unknown, any, any>;
 
   constructor(
     private refs: RefService,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
-  ) { }
+    private store: Store,
+  ) {
+    autorun(() => {
+      this.selectedStroke = store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
+      this.update();
+    });
+  }
 
   @Input()
   set content(refs: Ref[]) {
     refs = toJS(refs);
-    this.selected = refs[0];
-    this.nodes = refs;
+    this.selected = [...refs];
+    this.nodes = [...refs];
     this.links = this.getLinks(...refs);
     this.unloaded = this.unloadedReferences(...this.nodes);
     this.nodes.push(...this.unloaded.map(url => ({ url, unloaded: true })));
@@ -199,10 +215,14 @@ export class ForceDirectedComponent implements AfterViewInit {
     });
   }
 
-  clickNode(ref: GraphNode) {
+  clickNode(ref: GraphNode, event: MouseEvent) {
+    event.stopPropagation();
     const url = ref.url;
-    this.selected = ref;
-    if (!ref.unloaded) return;
+    this.selected = [ref];
+    if (!ref.unloaded) {
+      this.update();
+      return;
+    }
     ref.unloaded = false;
     _.remove(this.unloaded, url);
     this.refs.get(url).pipe(
@@ -220,6 +240,11 @@ export class ForceDirectedComponent implements AfterViewInit {
       this.nodes.push(...moreUnloaded.map(url => ({ url,  unloaded: true })));
       this.update();
     });
+  }
+
+  select(rect?: Rect) {
+    this.selected = _.filter(this.nodes, n => Rect.contains(rect, n as Point));
+    this.update();
   }
 
   contextMenu(ref: GraphNode | null, event: MouseEvent) {
@@ -254,24 +279,38 @@ export class ForceDirectedComponent implements AfterViewInit {
 
   pin(ref: GraphNode) {
     ref.pinned = !ref.pinned;
-    ref.fx = ref.pinned ? ref.x ?? 0 : undefined;
-    ref.fy = ref.pinned ? ref.y ?? 0 : undefined;
+    if (!this.selected.includes(ref)) {
+      this.selected = [ref];
+    }
+    this.selected.forEach(s => {
+      s.pinned = ref.pinned;
+      s.fx = s.pinned ? s.x ?? 0 : undefined;
+      s.fy = s.pinned ? s.y ?? 0 : undefined;
+    });
     this.close();
   }
 
   unload(ref: GraphNode) {
     this.simulation?.alpha(0.3);
-    _.remove(this.unloaded, ref.url);
-    _.remove(this.nodes, ref);
-    _.remove(this.links, l =>
-      l.target === ref.url || (l.target as any).url === ref.url ||
-      l.source === ref.url || (l.source as any).url === ref.url);
+    if (!this.selected.includes(ref)) {
+      this.selected = [ref];
+    }
+    this.selected.forEach(ref => {
+      _.remove(this.unloaded, ref.url);
+      _.remove(this.nodes, ref);
+      _.remove(this.links, l =>
+        l.target === ref.url || (l.target as any).url === ref.url ||
+        l.source === ref.url || (l.source as any).url === ref.url);
+    });
     this.close();
   }
 
   restart(ref: GraphNode) {
     this.simulation?.alpha(0.3);
-    this.content = [ref];
+    if (!this.selected.includes(ref)) {
+      this.selected = [ref];
+    }
+    this.content = [...this.selected];
     this.close();
   }
 
@@ -322,8 +361,9 @@ export class ForceDirectedComponent implements AfterViewInit {
     this.svg = d3.select('figure#force-directed-graph').append('svg')
       .attr('width', this.figWidth)
       .attr('height', this.figHeight)
-      .attr('viewBox', [-this.figWidth / 2, -this.figHeight / 2, this.figWidth, this.figHeight])
-      .attr('style', 'max-width: 100%; height: auto; height: intrinsic;');
+      .attr('viewBox', viewBox)
+      .attr('style', 'max-width: 100%; height: auto; height: intrinsic;')
+      .call(dragSelection() as any);
 
     this.svg.append('defs').append('marker')
       .attr('id', 'arrow')
@@ -370,6 +410,50 @@ export class ForceDirectedComponent implements AfterViewInit {
           .attr('cx', (d: any) => d.x)
           .attr('cy', (d: any) => d.y);
       });
+
+    this.dragRect = this.svg.append('g')
+      .append('rect')
+      .style('display', 'none')
+      .attr('fill', 'transparent')
+      .attr('stroke', this.selectedStroke)
+      .attr('stroke-dasharray', this.selectedStrokeDashedArray)
+      .attr('stroke-opacity', this.selectedStrokeOpacity)
+      .attr('stroke-width', this.selectedStrokeWidth);
+
+    const self = this;
+    function dragSelection() {
+      let rect: Rect;
+      return d3.drag()
+        .on('start', event => {
+          rect = {
+            x1: event.x + viewBox[0],
+            y1: event.y + viewBox[1],
+            x2: event.x + viewBox[0],
+            y2: event.y + viewBox[1],
+          };
+          self.dragRect!
+            .style('display', 'inline')
+            .attr('stroke', self.selectedStroke)
+            .attr('x', Math.min(rect.x1, rect.x2))
+            .attr('y', Math.min(rect.y1, rect.y2))
+            .attr('width', Math.abs(rect.x1 - rect.x2))
+            .attr('height', Math.abs(rect.y1 - rect.y2));
+        })
+        .on('drag', event => {
+          rect.x2 = event.x + viewBox[0];
+          rect.y2 = event.y + viewBox[1];
+          self.dragRect!
+            .attr('x', Math.min(rect.x1, rect.x2))
+            .attr('y', Math.min(rect.y1, rect.y2))
+            .attr('width', Math.abs(rect.x1 - rect.x2))
+            .attr('height', Math.abs(rect.y1 - rect.y2));
+        })
+        .on('end', event => {
+          self.select(rect);
+          self.dragRect!
+            .style('display', 'none');
+        });
+    }
   }
 
   update() {
@@ -400,7 +484,7 @@ export class ForceDirectedComponent implements AfterViewInit {
             .attr('stroke-width', this.nodeStrokeWidth)
             .call(drag(this.simulation!) as any)
             .on('click', function(event) {
-              self.clickNode((this as any).__data__);
+              self.clickNode((this as any).__data__, event);
             })
             .on('contextmenu', function(event) {
               self.contextMenu((this as any).__data__, event);
@@ -412,9 +496,10 @@ export class ForceDirectedComponent implements AfterViewInit {
           update.select('title')
             .text(ref => this.title(ref));
           return update
-            .attr('stroke', ref => this.selected === ref ? this.selectedStroke : this.nodeStroke)
-            .attr('stroke-opacity', ref => this.selected === ref ? this.selectedStrokeOpacity : this.nodeStrokeOpacity)
-            .attr('stroke-width', ref => this.selected === ref ? this.selectedStrokeWidth : this.nodeStrokeOpacity)
+            .attr('stroke', ref => this.selected.includes(ref) ? this.selectedStroke : this.nodeStroke)
+            .attr('stroke-dasharray', ref => this.selected.includes(ref) ? this.selectedStrokeDashedArray : this.nodeStrokeDashedArray)
+            .attr('stroke-opacity', ref => this.selected.includes(ref) ? this.selectedStrokeOpacity : this.nodeStrokeOpacity)
+            .attr('stroke-width', ref => this.selected.includes(ref) ? this.selectedStrokeWidth : this.nodeStrokeOpacity)
             .attr('fill', ref => this.color(ref));
         });
 
@@ -437,11 +522,6 @@ export class ForceDirectedComponent implements AfterViewInit {
           }
         });
     }
-
-    this.simulation
-      .nodes(this.nodes as any)
-      .force('link', d3.forceLink(this.links).id((l: any) => l.url))
-      .restart();
 
     if (this.timeline) {
       let minPublished = _.min(this.nodes.map(r => r.published).filter(p => !!p));
@@ -468,6 +548,11 @@ export class ForceDirectedComponent implements AfterViewInit {
       this.yAxis?.remove();
       this.yAxis = undefined;
     }
+
+    this.simulation
+      .nodes(this.nodes as any)
+      .force('link', d3.forceLink(this.links).id((l: any) => l.url))
+      .restart();
   }
 
 }

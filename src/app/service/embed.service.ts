@@ -12,6 +12,7 @@ import { isKnownEmbed } from '../plugin/embed';
 import { isImage } from '../plugin/image';
 import { isKnownThumbnail } from '../plugin/thumbnail';
 import { isVideo } from '../plugin/video';
+import { Store } from '../store/store';
 import { wikiUriFormat } from '../util/format';
 import { bitchuteHosts, getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
 import { AdminService } from './admin.service';
@@ -27,7 +28,7 @@ import { ThemeService } from './theme.service';
 export class EmbedService {
 
   constructor(
-    private theme: ThemeService,
+    private store: Store,
     private admin: AdminService,
     private config: ConfigService,
     private cors: CorsBusterService,
@@ -406,7 +407,7 @@ export class EmbedService {
   }
 
   private get twitterTheme() {
-    return this.theme.getTheme() === 'dark-theme' ? 'dark' : undefined;
+    return this.store.darkTheme ? 'dark' : undefined;
   }
 
   private get iframeBg() {

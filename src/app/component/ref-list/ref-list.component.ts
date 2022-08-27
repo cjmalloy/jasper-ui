@@ -19,6 +19,8 @@ export class RefListComponent implements OnInit {
   graph = false;
   @Input()
   pageControls = true;
+  @Input()
+  emptyMessage = 'No results found';
 
   private _page?: Page<Ref>;
 
