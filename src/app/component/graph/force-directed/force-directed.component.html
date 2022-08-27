@@ -34,7 +34,9 @@
     <div (click)="fullscreen()">Fullscreen</div>
   </div>
 </ng-template>
-<a class="fake-link" (click)="drawMore()">load more</a>
+<a *ngIf="unloaded.length"
+   class="fake-link"
+   (click)="drawMore()">load more</a>
 <br>
 Selected:
 <app-ref-list [page]="$any({ content: selectedAndLoaded })"
