@@ -16,11 +16,10 @@ import { Store } from '../store/store';
 import { wikiUriFormat } from '../util/format';
 import { bitchuteHosts, getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
 import { AdminService } from './admin.service';
-import { CorsBusterService } from './api/cors-buster.service';
+import { OEmbedService } from './api/oembed.service';
 import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
 import { EditorService } from './editor.service';
-import { ThemeService } from './theme.service';
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +30,7 @@ export class EmbedService {
     private store: Store,
     private admin: AdminService,
     private config: ConfigService,
-    private cors: CorsBusterService,
+    private oembed: OEmbedService,
     private editor: EditorService,
     private refs: RefService,
     private markdownService: MarkdownService,
@@ -436,7 +435,7 @@ export class EmbedService {
     if (twitterHosts.includes(host)) {
       const width = 400;
       const height = 400;
-      this.cors.twitter(url, this.twitterTheme, width, height).subscribe(tweet => {
+      this.oembed.twitter(url, this.twitterTheme, width, height).subscribe(tweet => {
         iFrame.width = tweet.width + 'px';
         iFrame.height = (tweet.height || '100') + 'px';
         const doc = iFrame.contentWindow!.document;
@@ -467,7 +466,7 @@ export class EmbedService {
     if (!isKnownThumbnail(ref)) return of(undefined);
     const host = getHost(ref)!;
     if (bitchuteHosts.includes(host)) {
-      return this.cors.bitChute(ref).pipe(
+      return this.oembed.bitChute(ref).pipe(
         map(embed => embed.thumbnail_url),
         catchError(err => of(undefined)),
       );

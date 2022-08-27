@@ -2,10 +2,10 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { CorsBusterService } from './cors-buster.service';
+import { OEmbedService } from './oembed.service';
 
-describe('CorsBusterService', () => {
-  let service: CorsBusterService;
+describe('OEmbedService', () => {
+  let service: OEmbedService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -14,7 +14,7 @@ describe('CorsBusterService', () => {
         RouterTestingModule,
       ],
     });
-    service = TestBed.inject(CorsBusterService);
+    service = TestBed.inject(OEmbedService);
   });
 
   it('should be created', () => {

@@ -9,7 +9,7 @@ import { LoginService } from '../login.service';
 @Injectable({
   providedIn: 'root'
 })
-export class CorsBusterService {
+export class OEmbedService {
 
   constructor(
     private http: HttpClient,
@@ -18,7 +18,7 @@ export class CorsBusterService {
   ) { }
 
   private get base() {
-    return this.config.api + '/api/v1/cors';
+    return this.config.api + '/api/v1/oembed';
   }
 
   twitter(url: string, theme?: string, maxwidth?: number, maxheight?: number): Observable<Oembed> {
