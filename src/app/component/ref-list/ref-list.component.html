@@ -7,19 +7,24 @@
              [expanded]="false"></app-ref>
   </ng-container>
   <ng-container *ngFor="let ref of page?.content; let i = index">
-    <div class="list-number">{{ i + (page?.number || 0) * (page?.size || 0) + 1 }}</div>
+    <div class="list-number">{{ i + page!.number * page!.size + 1 }}</div>
     <app-ref [ref]="ref"
              [showToggle]="true"
              [expanded]="false"></app-ref>
   </ng-container>
 </div>
-<app-force-directed *ngIf="graph && page"
-                    [tag]="tag"
-                    [content]="page.content"></app-force-directed>
-<app-loading *ngIf="!page"></app-loading>
-<app-page-controls *ngIf="page && !page.empty && pageControls"
-                   [page]="page"></app-page-controls>
-
-<p class="no-results" *ngIf="page && page.empty">
-  {{ emptyMessage }}
-</p>
+<ng-container *ngIf="page else loading">
+  <p class="no-results" *ngIf="page.empty else results">
+    {{ emptyMessage }}
+  </p>
+  <ng-template #results>
+    <app-force-directed *ngIf="graph"
+                        [tag]="tag"
+                        [content]="page.content"></app-force-directed>
+    <app-page-controls *ngIf="pageControls && !graph"
+                       [page]="page"></app-page-controls>
+  </ng-template>
+</ng-container>
+<ng-template #loading>
+  <app-loading></app-loading>
+</ng-template>

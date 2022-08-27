@@ -2,10 +2,12 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
   Input,
+  OnDestroy,
   TemplateRef,
   ViewChild,
   ViewContainerRef
@@ -13,7 +15,7 @@ import {
 import * as d3 from 'd3';
 import { ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import * as _ from 'lodash-es';
-import { autorun, toJS } from 'mobx';
+import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
 import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
@@ -21,29 +23,19 @@ import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { isTextPost } from '../../../util/format';
+import { GraphNode } from '../../../util/graph';
 import { Point, Rect } from '../../../util/math';
 import { capturesAny, hasTag } from '../../../util/tag';
-
-type GraphNode = Ref & {
-  unloaded?: boolean,
-  notFound?: boolean,
-  pinned?: boolean,
-  x?: number,
-  y?: number,
-  fx?: number,
-  fy?: number,
-};
-type GraphLink = {
-  source: string | GraphNode,
-  target: string | GraphNode,
-};
 
 @Component({
   selector: 'app-force-directed',
   templateUrl: './force-directed.component.html',
-  styleUrls: ['./force-directed.component.scss']
+  styleUrls: ['./force-directed.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ForceDirectedComponent implements AfterViewInit {
+export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
+
+  private disposers: IReactionDisposer[] = [];
 
   @Input()
   filter?: string | null;
@@ -86,13 +78,6 @@ export class ForceDirectedComponent implements AfterViewInit {
   @Input()
   linkStrength?: number;
 
-  nodes: GraphNode[] = [];
-  links: GraphLink[] = [];
-  selected: GraphNode[] = [];
-  unloaded: string[] = [];
-  timeline = false;
-  arrows = false;
-
   @ViewChild('figure')
   figure!: ElementRef;
   @ViewChild('nodeMenu')
@@ -110,25 +95,26 @@ export class ForceDirectedComponent implements AfterViewInit {
   private dragRect?: Selection<any, unknown, any, any>;
 
   constructor(
+    public store: Store,
     private refs: RefService,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
-    private store: Store,
   ) {
-    autorun(() => {
+    this.disposers.push(autorun(() => {
       this.selectedStroke = store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
       this.update();
-    });
+    }));
+  }
+
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
+    this.store.graph.set([]);
   }
 
   @Input()
   set content(refs: Ref[]) {
-    refs = toJS(refs);
-    this.selected = [...refs];
-    this.nodes = [...refs];
-    this.links = this.getLinks(...refs);
-    this.unloaded = this.unloadedReferences(...this.nodes);
-    this.nodes.push(...this.unloaded.map(url => ({ url, unloaded: true })));
+    this.store.graph.set(refs.map(r => toJS(r)));
     if (this.depth > 0) {
       let init: Observable<any> = of(1);
       for (let i = 0; i< this.depth; i++) {
@@ -142,10 +128,6 @@ export class ForceDirectedComponent implements AfterViewInit {
     } else if (this.figure) {
       this.update();
     }
-  }
-
-  get selectedAndLoaded() {
-    return this.selected.filter(s => !s.unloaded);
   }
 
   ngAfterViewInit(): void {
@@ -164,50 +146,18 @@ export class ForceDirectedComponent implements AfterViewInit {
   }
 
   get loadMore$() {
-    if (!this.unloaded.length) return of([]);
-    const more = this.unloaded.splice(0, Math.min(this.unloaded.length, 30));
+    if (!this.store.graph.unloaded.length) return of([]);
+    const more = this.store.graph.getLoading(30);
     return this.refs.list(more).pipe(
       tap((moreLoaded: (Ref|null)[]) => {
         for (let i = 0; i < more.length; i++) {
-          const ref = this.find(more[i])!;
           if (!moreLoaded[i]) {
-            ref.unloaded = false;
-            ref.notFound = true;
-          } else {
-            _.assign(ref, moreLoaded[i]);
-            ref.unloaded = false;
-            this.links.push(...this.getLinks(ref));
-            const moreUnloaded = this.unloadedReferences(ref);
-            this.unloaded = this.unloaded.concat(moreUnloaded);
-            this.nodes.push(...moreUnloaded.map(url => ({ url,  unloaded: true })));
+            this.store.graph.notFound(more[i]);
           }
         }
+        this.store.graph.load(...moreLoaded.filter(n => !!n) as Ref[]);
       }),
     );
-  }
-
-  getLinks(...refs: Ref[]) {
-    return [
-      ...refs.flatMap(r => r.sources?.map(s => ({ target: s, source: r.url })) || []),
-      ...refs.flatMap(r => r.metadata?.responses?.map(s => ({ target: r.url, source: s })) || []),
-      ...refs.flatMap(r => r.metadata?.internalResponses?.map(s => ({ target: r.url, source: s })) || []),
-    ];
-  }
-
-  references(list: GraphNode[]): string[] {
-    return _.uniq([
-      ...list.flatMap(r => r.sources || []),
-      ...list.flatMap(r => r.metadata?.responses || []),
-      ...list.flatMap(r => r.metadata?.internalResponses || []),
-    ]);
-  }
-
-  unloadedReferences(...refs: GraphNode[]): string[] {
-    return this.references(refs).filter(s => !this.find(s));
-  }
-
-  find(url: string) {
-    return _.find(this.nodes, r => r.url === url);
   }
 
   drawMore() {
@@ -222,32 +172,28 @@ export class ForceDirectedComponent implements AfterViewInit {
   clickNode(ref: GraphNode, event: MouseEvent) {
     event.stopPropagation();
     const url = ref.url;
-    this.selected = [ref];
     if (!ref.unloaded) {
+      runInAction(() => this.store.graph.selected = [ref]);
       this.update();
       return;
     }
-    ref.unloaded = false;
-    _.remove(this.unloaded, url);
+    this.store.graph.startLoading(url);
     this.refs.get(url).pipe(
       catchError(err => {
-        ref.notFound = true;
+        const ref = this.store.graph.notFound(url);
+        runInAction(() => this.store.graph.selected = [ref]);
         this.update();
         return throwError(() => err);
       }),
-    )
-    .subscribe(res => {
-      Object.assign(ref, res);
-      this.links.push(...this.getLinks(ref));
-      const moreUnloaded = this.unloadedReferences(ref);
-      this.unloaded.push(...moreUnloaded);
-      this.nodes.push(...moreUnloaded.map(url => ({ url,  unloaded: true })));
+    ).subscribe(ref => {
+      this.store.graph.load(ref);
+      runInAction(() => this.store.graph.selected = [this.store.graph.find(ref.url)!]);
       this.update();
     });
   }
 
   select(rect?: Rect) {
-    this.selected = _.filter(this.nodes, n => Rect.contains(rect, n as Point));
+    this.store.graph.select(_.filter(this.store.graph.nodes, n => Rect.contains(rect, n as Point)));
     this.update();
   }
 
@@ -283,10 +229,10 @@ export class ForceDirectedComponent implements AfterViewInit {
 
   pin(ref: GraphNode) {
     ref.pinned = !ref.pinned;
-    if (!this.selected.includes(ref)) {
-      this.selected = [ref];
+    if (!this.store.graph.selected.includes(ref)) {
+      this.store.graph.selected = [ref];
     }
-    this.selected.forEach(s => {
+    this.store.graph.selected.forEach(s => {
       s.pinned = ref.pinned;
       s.fx = s.pinned ? s.x ?? 0 : undefined;
       s.fy = s.pinned ? s.y ?? 0 : undefined;
@@ -294,38 +240,36 @@ export class ForceDirectedComponent implements AfterViewInit {
     this.close();
   }
 
-  unload(ref: GraphNode) {
+  remove(ref: GraphNode) {
     this.simulation?.alpha(0.3);
-    if (!this.selected.includes(ref)) {
-      this.selected = [ref];
-    }
-    this.selected.forEach(ref => {
-      _.remove(this.unloaded, ref.url);
-      _.remove(this.nodes, ref);
-      _.remove(this.links, l =>
-        l.target === ref.url || (l.target as any).url === ref.url ||
-        l.source === ref.url || (l.source as any).url === ref.url);
+    runInAction(() => {
+      if (!this.store.graph.selected.includes(ref)) {
+        this.store.graph.selected = [ref];
+      }
+      this.store.graph.remove(this.store.graph.selected);
+      this.store.graph.selected = [];
     });
     this.close();
   }
 
   restart(ref: GraphNode) {
     this.simulation?.alpha(0.3);
-    if (!this.selected.includes(ref)) {
-      this.selected = [ref];
+    if (!this.store.graph.selected.includes(ref)) {
+      this.content = [ref];
+    } else {
+      this.content = [...this.store.graph.selected];
     }
-    this.content = [...this.selected];
     this.close();
   }
 
   toggleTimeline() {
     this.simulation?.alpha(0.5);
-    this.timeline = !this.timeline;
+    runInAction(() => this.store.graph.timeline = !this.store.graph.timeline);
     this.close();
   }
 
   toggleArrows() {
-    this.arrows = !this.arrows;
+    runInAction(() => this.store.graph.arrows = !this.store.graph.arrows);
     this.close();
   }
 
@@ -392,11 +336,11 @@ export class ForceDirectedComponent implements AfterViewInit {
     this.simulation = d3.forceSimulation()
       .force('charge', d3.forceManyBody().distanceMax(300))
       .force('x', d3.forceX(d => {
-        if (!this.timeline) return 0;
+        if (!this.store.graph.timeline) return 0;
         if (!(d as Ref).published) return 0;
         return this.timelineScale!((d as Ref).published!.valueOf());
       }).strength(d => {
-        if (!this.timeline) return 0.1;
+        if (!this.store.graph.timeline) return 0.1;
         if (!(d as Ref).published) return 0;
         return 0.1;
       }))
@@ -470,14 +414,14 @@ export class ForceDirectedComponent implements AfterViewInit {
 
     this.link
       .selectAll('line')
-      .data(this.links)
+      .data(this.store.graph.links)
       .join('line')
-      .attr('marker-end', this.arrows ? 'url(#arrow)' : null);
+      .attr('marker-end', this.store.graph.arrows ? 'url(#arrow)' : null);
 
     const self = this;
     this.node
       .selectAll('circle')
-      .data(this.nodes, (d: any) => d.url)
+      .data(this.store.graph.nodes, (d: any) => d.url)
       .join(
         enter => {
           const circle = enter.append('circle')
@@ -500,10 +444,10 @@ export class ForceDirectedComponent implements AfterViewInit {
           update.select('title')
             .text(ref => this.title(ref));
           return update
-            .attr('stroke', ref => this.selected.includes(ref) ? this.selectedStroke : this.nodeStroke)
-            .attr('stroke-dasharray', ref => this.selected.includes(ref) ? this.selectedStrokeDashedArray : this.nodeStrokeDashedArray)
-            .attr('stroke-opacity', ref => this.selected.includes(ref) ? this.selectedStrokeOpacity : this.nodeStrokeOpacity)
-            .attr('stroke-width', ref => this.selected.includes(ref) ? this.selectedStrokeWidth : this.nodeStrokeOpacity)
+            .attr('stroke', ref => this.store.graph.selected.includes(ref) ? this.selectedStroke : this.nodeStroke)
+            .attr('stroke-dasharray', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeDashedArray : this.nodeStrokeDashedArray)
+            .attr('stroke-opacity', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeOpacity : this.nodeStrokeOpacity)
+            .attr('stroke-width', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeWidth : this.nodeStrokeOpacity)
             .attr('fill', ref => this.color(ref));
         });
 
@@ -527,12 +471,11 @@ export class ForceDirectedComponent implements AfterViewInit {
         });
     }
 
-    if (this.timeline) {
-      let minPublished = _.min(this.nodes.map(r => r.published).filter(p => !!p));
-      let maxPublished = _.max(this.nodes.map(r => r.published).filter(p => !!p));
-      const totalDiff = maxPublished?.diff(minPublished) || 0;
+    if (this.store.graph.timeline) {
+      let minPublished = this.store.graph.minPublished;
+      let maxPublished = this.store.graph.maxPublished;
       const minDiff = moment.duration(1, 'day').asMilliseconds();
-      if (totalDiff < minDiff) {
+      if (this.store.graph.publishedDiff < minDiff) {
         const half = moment((minPublished || maxPublished || moment()).valueOf() / 2 + (maxPublished || minPublished || moment()).valueOf() / 2);
         minPublished = moment(half).subtract(minDiff / 2);
         maxPublished = moment(half).add(minDiff / 2);
@@ -554,8 +497,8 @@ export class ForceDirectedComponent implements AfterViewInit {
     }
 
     this.simulation
-      .nodes(this.nodes as any)
-      .force('link', d3.forceLink(this.links).id((l: any) => l.url))
+      .nodes(this.store.graph.nodes as any)
+      .force('link', d3.forceLink(this.store.graph.links).id((l: any) => l.url))
       .restart();
   }
 

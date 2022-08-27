@@ -8,7 +8,13 @@ pre {
   display: inline;
 }
 
+.graph-selected {
+  padding: 2px;
+  margin-left: 10px;
+}
+
 .fake-link {
   display: block;
   text-align: center;
+  user-select: none;
 }

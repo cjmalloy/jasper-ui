@@ -18,3 +18,18 @@ export function mapPage<T>(contentMapper: (obj: any) => T): (obj: any) => Page<T
     return page;
   };
 }
+
+export namespace Page {
+  export function of<T>(content: T[]): Page<T> {
+    return {
+      content,
+      empty: content.length === 0,
+      first: true,
+      last: true,
+      number: 0,
+      totalPages: 1,
+      size: content.length,
+      totalElements: content.length,
+    }
+  }
+}

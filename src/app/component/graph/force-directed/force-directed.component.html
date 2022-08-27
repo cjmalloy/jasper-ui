@@ -1,6 +1,6 @@
 <figure id="force-directed-graph"
         #figure
-        (click)="selected.length = 0"
+        (click)="store.graph.clearSelection()"
         (contextmenu)="contextMenu(null, $event)"></figure>
 <ng-template #nodeMenu let-ref>
   <div class="context-menu" (click)="$event.stopPropagation()">
@@ -12,7 +12,7 @@
         <label for="pinned">Pinned</label>
       </div>
       <hr>
-      <div (click)="unload(ref)">Unload</div>
+      <div (click)="remove(ref)">Remove</div>
       <hr>
       <div (click)="restart(ref)">Restart from here</div>
       <hr>
@@ -20,25 +20,27 @@
     <div (click)="toggleTimeline()">
       <input id="timeline"
              type="checkbox"
-             [checked]="timeline">
+             [checked]="store.graph.timeline">
       <label for="timeline">Timeline force on X-axis</label>
     </div>
     <hr>
     <div (click)="toggleArrows()">
       <input id="arrows"
              type="checkbox"
-             [checked]="arrows">
+             [checked]="store.graph.arrows">
       <label for="timeline">Show arrows to source</label>
     </div>
     <hr>
     <div (click)="fullscreen()">Fullscreen</div>
   </div>
 </ng-template>
-<a *ngIf="unloaded.length"
-   class="fake-link"
-   (click)="drawMore()">load more</a>
-<br>
-Selected:
-<app-ref-list [page]="$any({ content: selectedAndLoaded })"
-              emptyMessage=""
-              [pageControls]="false"></app-ref-list>
+<ng-container *mobxAutorun>
+  <a *ngIf="store.graph.unloaded.length"
+     class="load-more fake-link"
+     (click)="drawMore()">load more</a>
+  <br>
+  <label class="graph-selected">Selected:</label>
+  <app-ref-list [page]="store.graph.selectedPage"
+                emptyMessage="Empty selection"
+                [pageControls]="false"></app-ref-list>
+</ng-container>

@@ -29,6 +29,7 @@ export class RefListComponent implements OnInit {
   get page(): Page<Ref> | undefined {
     return this._page;
   }
+
   @Input()
   set page(value: Page<Ref> | undefined) {
     this._page = value;

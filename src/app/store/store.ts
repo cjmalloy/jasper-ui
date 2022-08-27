@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { AccountStore } from './account';
+import { GraphStore } from './graph';
 import { ViewStore } from './view';
 
 @Injectable({
@@ -11,6 +12,7 @@ export class Store {
 
   account = new AccountStore();
   view = new ViewStore(this.route);
+  graph = new GraphStore(this.route);
   theme = 'init-theme';
 
   constructor(
