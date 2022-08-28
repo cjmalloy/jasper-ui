@@ -73,7 +73,10 @@ export class RefFormComponent implements OnInit {
 
   scrapeAll() {
     this.scrape$.subscribe(ref => {
-      this.setRef(ref);
+      this.group.patchValue({
+        ...ref,
+        published: ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
+      });
     });
   }
 
