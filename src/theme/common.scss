@@ -194,6 +194,12 @@ html, body {
     margin: 4px;
   }
 
+  & > div:empty, .nested-form > div:empty,
+  & > span:empty, .nested-form > span:empty{
+    height: 0;
+    margin: 0;
+  }
+
   .no-margin {
     margin: 0;
   }
