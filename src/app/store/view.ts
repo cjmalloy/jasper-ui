@@ -53,6 +53,7 @@ export class ViewStore {
   get name() {
     const title = this.ext?.name || this.ext?.tag || this.tag;
     if (title === '@*') return 'All';
+    if (title === '*') return 'Local';
     return title;
   }
 

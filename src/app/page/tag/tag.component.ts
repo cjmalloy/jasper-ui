@@ -43,7 +43,7 @@ export class TagPage implements OnInit, OnDestroy {
       this.query.setArgs(getArgs(
         this.store.view.tag,
         this.store.view.sort,
-        {...filterListToObj(this.store.view.filter), notInternal: this.store.view.tag === '@*'},
+        {...filterListToObj(this.store.view.filter), notInternal: this.wildcard},
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize ?? this.defaultPageSize
@@ -73,6 +73,11 @@ export class TagPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  get wildcard() {
+    return this.store.view.tag === '@*' ||
+      this.store.view.tag === '*';
   }
 
   get isList() {
