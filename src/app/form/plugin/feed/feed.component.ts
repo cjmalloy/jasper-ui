@@ -55,6 +55,7 @@ export function feedForm(fb: UntypedFormBuilder, admin: AdminService) {
     origin: ['', [Validators.pattern(ORIGIN_REGEX)]],
     addTags: tagsForm(fb, defaultTags),
     scrapeInterval: ['PT15M', [intervalValidator()]],
+    disableEtag: [false],
     scrapeDescription: [true],
     removeDescriptionIndent: [false],
   });

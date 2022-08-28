@@ -18,6 +18,8 @@ export const feedPlugin: Plugin = {
       origin: { type: 'string' },
       addTags: { elements: { type: 'string' } },
       lastScrape: { type: 'string' },
+      disableEtag: { type: 'boolean' },
+      etag: { type: 'string' },
       scrapeDescription: { type: 'boolean' },
       removeDescriptionIndent: { type: 'boolean' },
     },
