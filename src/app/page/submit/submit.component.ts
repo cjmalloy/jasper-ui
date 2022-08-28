@@ -51,6 +51,7 @@ export class SubmitPage implements OnInit {
   tags: string[] = [];
   existingRef?: Ref;
   existingFeed?: Ref;
+  scrape = true;
 
   constructor(
     private theme: ThemeService,
@@ -63,10 +64,14 @@ export class SubmitPage implements OnInit {
     theme.setTitle('Submit: Link');
     this.submitForm = fb.group({
       url: ['', [Validators.required], [this.validator]],
+      scrape: [true],
     });
     route.queryParams.subscribe(params => {
       if (params['tag']) {
         this.tags = _.flatten([params['tag']]);
+        if (this.tags.includes('+plugin/feed')) {
+          this.scrape = false;
+        }
       }
       if (params['linkType']) {
         this.linkTypeOverride = params['linkType'];
@@ -131,7 +136,7 @@ export class SubmitPage implements OnInit {
   submit() {
     const url = this.submitForm.value.url;
     this.router.navigate(['./submit', this.linkType(url)], {
-      queryParams: { url },
+      queryParams: { url, scrape: this.scrape },
       queryParamsHandling: 'merge',
     });
   }

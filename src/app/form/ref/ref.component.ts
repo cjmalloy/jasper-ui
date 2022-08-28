@@ -2,8 +2,11 @@ import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core'
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import * as _ from 'lodash-es';
 import * as moment from 'moment';
+import { of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
+import { ScrapeService } from '../../service/api/scrape.service';
 import { EditorService } from '../../service/editor.service';
 import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component';
@@ -29,13 +32,20 @@ export class RefFormComponent implements OnInit {
   @ViewChild(PluginsFormComponent)
   plugins!: PluginsFormComponent;
 
+  scraped?: Ref;
+
   constructor(
     private fb: UntypedFormBuilder,
     private admin: AdminService,
     private editor: EditorService,
+    private scrape: ScrapeService,
   ) { }
 
   ngOnInit(): void {
+  }
+
+  get url() {
+    return this.group.get('url') as UntypedFormControl;
   }
 
   get title() {
@@ -52,6 +62,31 @@ export class RefFormComponent implements OnInit {
 
   syncEditor() {
     this.editor.syncEditor(this.fb, this.group);
+  }
+
+  get scrape$() {
+    if (this.scraped) return of(this.scraped);
+    return this.scrape.webScrape(this.url.value).pipe(
+      tap(ref => this.scraped = ref),
+    );
+  }
+
+  scrapeAll() {
+    this.scrape$.subscribe(ref => {
+      this.setRef(ref);
+    });
+  }
+
+  scrapeTitle() {
+    this.scrape$.subscribe(ref => {
+      this.title.setValue(ref.title);
+    });
+  }
+
+  scrapePublished() {
+    this.scrape$.subscribe(ref => {
+      this.published.setValue(ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS));
+    });
   }
 
   setRef(ref: Ref) {

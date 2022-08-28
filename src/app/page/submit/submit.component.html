@@ -29,6 +29,10 @@
   <span><!-- Buttons --></span>
   <span class="form-array">
     <button type="submit" [disabled]="!submitForm.valid">Next</button>
+    <div>
+    <input id="scrape" type="checkbox" [checked]="scrape" (input)="scrape = $any($event.target).value">
+    <label for="scrape">Scrape</label>
+    </div>
   </span>
 </form>
 

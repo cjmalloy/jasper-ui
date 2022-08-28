@@ -41,7 +41,7 @@ export class OriginComponent implements OnInit {
     public admin: AdminService,
     public store: Store,
     private refs: RefService,
-    private feeds: ScrapeService,
+    private scraper: ScrapeService,
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = refForm(fb);
@@ -110,7 +110,7 @@ export class OriginComponent implements OnInit {
   }
 
   scrape() {
-    this.feeds.scrape(this.remote.url, this.remote.origin!).pipe(
+    this.scraper.feed(this.remote.url, this.remote.origin!).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

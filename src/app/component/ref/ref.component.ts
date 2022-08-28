@@ -62,7 +62,7 @@ export class RefComponent implements OnInit {
     private auth: AuthService,
     private editor: EditorService,
     private refs: RefService,
-    private feeds: ScrapeService,
+    private scraper: ScrapeService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
@@ -356,7 +356,7 @@ export class RefComponent implements OnInit {
   }
 
   scrape() {
-    this.feeds.scrape(this.ref.url, this.ref.origin!).pipe(
+    this.scraper.feed(this.ref.url, this.ref.origin!).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

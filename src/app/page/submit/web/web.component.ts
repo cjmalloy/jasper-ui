@@ -78,6 +78,9 @@ export class SubmitWebPage implements AfterViewInit {
           if (params['source']) {
             this.addSource(params['source']);
           }
+          if (params['scrape'] === 'true') {
+            this.refForm.scrapeAll();
+          }
         });
       });
     });
