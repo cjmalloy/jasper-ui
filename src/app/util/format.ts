@@ -4,7 +4,7 @@ import { hasTag } from './tag';
 
 export const URI_REGEX = /^([^:/?#]+):(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
 export const TAG_REGEX = /^[_+]?[a-z]+(\/[a-z]+)*$/;
-export const TAG_REGEX_STRING = '^[_+]?[a-z]+(\/[a-z]+)*$';
+export const TAG_REGEX_STRING = '^([_+]?[a-z]+(\/[a-z]+)*\s*)*$';
 export const USER_REGEX = /^[_+]user\/[a-z]+(\/[a-z]+)*$/;
 export const PLUGIN_REGEX = /^[_+]?plugin\/[a-z]+(\/[a-z]+)*$/;
 export const ORIGIN_NOT_BLANK_REGEX = /^@[a-z]+(\.[a-z]+)*$/;
