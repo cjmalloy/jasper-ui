@@ -46,6 +46,10 @@ export class ProfileComponent implements OnInit {
     this.writeAccess = this.auth.tagWriteAccess(this.profile.tag, 'user');
   }
 
+  get role() {
+    return this.profile.role?.toLowerCase().replace('role_', '');
+  }
+
   setInlinePassword() {
     if (!this.inlinePassword) return;
     const password = (this.inlinePassword.nativeElement.value as string);
