@@ -1,8 +1,8 @@
 <div class="tabs">
   <h5>Settings</h5>
-  <a routerLink="./user" routerLinkActive="current-tab">users</a>
-  <a *ngIf="admin.status.plugins.feed" routerLink="./feed" routerLinkActive="current-tab">feeds</a>
   <a routerLink="./ext" routerLinkActive="current-tab">extensions</a>
+  <a routerLink="./user" routerLinkActive="current-tab">permissions</a>
+  <a *ngIf="admin.status.plugins.feed" routerLink="./feed" routerLinkActive="current-tab">feeds</a>
   <a *ngIf="admin.status.plugins.origin" routerLink="./origin" routerLinkActive="current-tab">origins</a>
   <a routerLink="./plugin" routerLinkActive="current-tab">plugins</a>
   <a routerLink="./template" routerLinkActive="current-tab">templates</a>
