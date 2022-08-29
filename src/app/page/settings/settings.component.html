@@ -8,8 +8,8 @@
   <a routerLink="./template" routerLinkActive="current-tab">templates</a>
   <a *ngIf="store.account.admin" routerLink="./setup" routerLinkActive="current-tab">setup</a>
   <a *ngIf="store.account.mod" routerLink="./backup" routerLinkActive="current-tab">backup</a>
-  <a *ngIf="store.account.mod" routerLink="./profile" routerLinkActive="current-tab">profiles</a>
-  <a *ngIf="store.account.signedIn" routerLink="./password" routerLinkActive="current-tab">password</a>
+  <a *ngIf="config.scim && store.account.mod" routerLink="./profile" routerLinkActive="current-tab">profiles</a>
+  <a *ngIf="config.scim && store.account.signedIn" routerLink="./password" routerLinkActive="current-tab">password</a>
   <div class="spacer"></div>
   <app-settings></app-settings>
 </div>

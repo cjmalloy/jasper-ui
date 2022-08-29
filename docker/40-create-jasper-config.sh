@@ -7,7 +7,8 @@ config="
   \"api\": \"$JASPER_API\",
   \"logout\": \"$JASPER_LOGOUT\",
   \"login\": \"$JASPER_LOGIN\",
-  \"signup\": \"$JASPER_SIGNUP\"
+  \"signup\": \"$JASPER_SIGNUP\",
+  \"scim\": $JASPER_SCIM
 }
 "
 echo "$config"
