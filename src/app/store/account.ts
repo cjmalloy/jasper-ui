@@ -13,6 +13,7 @@ export class AccountStore {
   admin = false;
   mod = false;
   editor = false;
+  user = false;
   notifications = 0;
   subs: string[] = defaultSubs;
   bookmarks: string[] = [];
@@ -62,5 +63,6 @@ export class AccountStore {
     this.admin = roles.admin;
     this.mod = roles.mod;
     this.editor = roles.editor;
+    this.user = roles.user;
   }
 }
