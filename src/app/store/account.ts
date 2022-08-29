@@ -8,7 +8,7 @@ import { hasPrefix } from '../util/tag';
 export class AccountStore {
 
   tag = '';
-  user?: User;
+  permissions?: User;
   ext?: Ext;
   admin = false;
   mod = false;
@@ -32,7 +32,7 @@ export class AccountStore {
     if (this.admin) return 'admin';
     if (this.mod) return 'mod';
     if (this.editor) return 'editor';
-    if (this.user) return 'user';
+    if (this.permissions) return 'user';
     return 'viewer';
   }
 
@@ -42,7 +42,7 @@ export class AccountStore {
   }
 
   get modmail() {
-    return this.user?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox'));
+    return this.permissions?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox'));
   }
 
   get notificationsQuery() {
