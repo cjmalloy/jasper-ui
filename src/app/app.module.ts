@@ -114,8 +114,8 @@ import { ConfigService } from './service/config.service';
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
     switchMap(() => admin.init$),
-    switchMap(() => account.init$),
     retry({ delay: 1000 }),
+    switchMap(() => account.init$),
   );
 
 @NgModule({
