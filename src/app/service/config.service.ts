@@ -12,6 +12,7 @@ export class ConfigService {
   logout = '';
   login = '';
   signup = '';
+  scim = false;
 
   constructor(
     public http: HttpClient,
@@ -30,6 +31,7 @@ export class ConfigService {
         this.logout = result['logout'];
         this.login = result['login'];
         this.signup = result['signup'];
+        this.scim = result['scim'] === 'true';
       }),
     );
   }
