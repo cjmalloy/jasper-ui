@@ -160,6 +160,25 @@ export class EmbedService {
         return `<a class="inline-${token.css}">${token.text}</a>`;
       }
     }, {
+      name: 'preserveMath',
+      level: 'inline',
+      start: (src: string) => src.match(/\$/)?.index,
+      tokenizer(src: string, tokens: any): any {
+        const rule = /^(\$\$[^$]+\$\$|\$[^$]+\$)/;
+        let match = rule.exec(src);
+        if (match) {
+          return {
+            type: 'preserveMath',
+            raw: match[0],
+            tokens: [],
+          };
+        }
+        return undefined;
+      },
+      renderer(token: any): string {
+        return token.raw;
+      }
+    }, {
       name: 'superscript',
       level: 'inline',
       start: (src: string) => src.match(/\^/)?.index,
