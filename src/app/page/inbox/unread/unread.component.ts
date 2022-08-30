@@ -1,6 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { RefPageArgs } from '../../../model/ref';
 import { newest } from '../../../plugin/inbox';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -31,11 +33,12 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.query.setArgs({
+      const args: RefPageArgs = {
         query: this.store.account.notificationsQuery,
         modifiedAfter: this.store.account.ext?.config.inbox.lastNotified,
-        sort: ['modified,ASC']
-      });
+        sort: ['modified,ASC'],
+      };
+      _.defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
       if (this.query.page && !this.query.page!.empty) {

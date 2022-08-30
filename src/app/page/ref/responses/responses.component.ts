@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { AdminService } from '../../../service/admin.service';
 import { ThemeService } from '../../../service/theme.service';
@@ -27,14 +28,15 @@ export class RefResponsesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.query.setArgs(getArgs(
+      const args = getArgs(
         '',
         this.store.view.sort,
         {...filterListToObj(this.store.view.filter), responses: this.store.view.url},
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize ?? this.defaultPageSize
-      ));
+      );
+      _.defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
       this.theme.setTitle('Responses: ' + (this.store.view.ref?.title || this.store.view.url));

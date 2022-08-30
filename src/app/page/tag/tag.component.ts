@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, of } from 'rxjs';
 import { AccountService } from '../../service/account.service';
@@ -39,15 +40,16 @@ export class TagPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       this.theme.setTitle(this.store.view.name);
-      if (!this.isList) return;
-      this.query.setArgs(getArgs(
+      if (!this.fetchPage) return;
+      const args = getArgs(
         this.store.view.tag,
         this.store.view.sort,
         {...filterListToObj(this.store.view.filter), notInternal: this.wildcard},
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize ?? this.defaultPageSize
-      ));
+      );
+      _.defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
       const tag = removeOriginWildcard(this.store.view.tag);

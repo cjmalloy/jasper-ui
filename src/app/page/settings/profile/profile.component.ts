@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { ThemeService } from '../../../service/theme.service';
 import { ProfileStore } from '../../../store/profile';
@@ -25,10 +26,11 @@ export class SettingsProfilePage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.query.setArgs({
+      const args = {
         page: this.store.view.pageNumber,
         size: this.store.view.pageSize ?? this.defaultPageSize,
-      });
+      };
+      _.defer(() => this.query.setArgs(args));
     }));
   }
 

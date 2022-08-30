@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
@@ -26,14 +27,15 @@ export class SettingsFeedPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.query.setArgs(getArgs(
+      const args = getArgs(
         '+plugin/feed',
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize ?? this.defaultPageSize
-      ));
+      );
+      _.defer(() => this.query.setArgs(args));
     }));
   }
 
