@@ -23,7 +23,6 @@ export class TagPage implements OnInit, OnDestroy {
   query = new QueryStore(this.refs);
 
   private disposers: IReactionDisposer[] = [];
-  private defaultPageSize = 20;
 
   constructor(
     public admin: AdminService,
@@ -47,7 +46,7 @@ export class TagPage implements OnInit, OnDestroy {
         {...filterListToObj(this.store.view.filter), notInternal: this.wildcard},
         this.store.view.search,
         this.store.view.pageNumber,
-        this.store.view.pageSize ?? this.defaultPageSize
+        this.store.view.pageSize,
       );
       _.defer(() => this.query.setArgs(args));
     }));

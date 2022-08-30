@@ -7,6 +7,7 @@ import { hasPrefix, isQuery } from '../util/tag';
 export class ViewStore {
 
   defaultPageSize = 20;
+  defaultBlogPageSize = 5;
   ref?: Ref = {} as any;
   remoteCount = 0;
   ext?: Ext = {} as any;
@@ -74,7 +75,7 @@ export class ViewStore {
   }
 
   get pageSize() {
-    return parseInt(this.route.routeSnapshot?.queryParams['pageSize'] ?? this.defaultPageSize);
+    return parseInt(this.route.routeSnapshot?.queryParams['pageSize'] ?? (this.blog ? this.defaultBlogPageSize : this.defaultPageSize));
   }
 
   get hideSearch() {
