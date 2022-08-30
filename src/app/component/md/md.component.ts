@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import * as _ from 'lodash-es';
 import { Subject } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
+import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-md',
@@ -16,6 +17,14 @@ export class MdComponent implements OnInit {
   plugins? = ['plugin/emoji', 'plugin/latex'];
 
   postProcessMarkdown: Subject<void> = new Subject();
+
+  katexOptions = {
+    throwOnError: false,
+    delimiters: [
+      {left: "$$", right: "$$", display: true},
+      {left: "$", right: "$", display: false},
+    ],
+  };
 
   constructor(
     public admin: AdminService,

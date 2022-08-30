@@ -32,14 +32,10 @@
       </ng-container>
     </ng-container>
   </div>
-  <div *ngIf="!editing"
-       class="md comment-body"
-       markdown
-       appMdPost
-       [emoji]="emoji"
-       [katex]="latex"
-       [katexOptions]="{ throwOnError: false }"
-       [data]="ref.comment"></div>
+  <app-md *ngIf="!editing"
+          class="comment-body"
+          [plugins]="ref.tags"
+          [text]="ref.comment || ''"></app-md>
   <app-comment-edit *ngIf="editing"
                     [ref]="ref"
                     [commentEdited$]="commentEdited$"></app-comment-edit>
