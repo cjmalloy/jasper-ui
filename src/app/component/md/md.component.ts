@@ -28,6 +28,7 @@ export class MdComponent implements OnInit {
 
   constructor(
     public admin: AdminService,
+    public store: Store,
   ) { }
 
   ngOnInit(): void {

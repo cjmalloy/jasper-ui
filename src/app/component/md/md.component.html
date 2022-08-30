@@ -4,5 +4,7 @@
      [emoji]="emoji"
      [katex]="latex"
      [katexOptions]="katexOptions"
+     mermaid
+     [mermaidOptions]="$any({ theme: store.darkTheme ? 'dark' : 'default' })"
      [data]="text"
      (ready)="onReady()"></div>
