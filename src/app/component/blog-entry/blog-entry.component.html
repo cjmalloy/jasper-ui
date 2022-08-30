@@ -10,19 +10,19 @@
           <ng-container *ngIf="authors.length">
             by
             <ng-container *ngFor="let user of authors">
-              <a [routerLink]="['/tag', user]">
+              <a class="user tag" [routerLink]="['/tag', user]">
                 {{ user.replace('+', '').replace('user/', '') }}</a>&nbsp;
             </ng-container>
           </ng-container>
           <ng-container *ngIf="tags.length">
             tagged
             <ng-container *ngFor="let tag of tags">
-              <a [routerLink]="['/tag', tag + ref.origin]">{{ tag }}</a>&nbsp;
+              <a class="tag" [routerLink]="['/tag', tag + ref.origin]">{{ tag }}</a>&nbsp;
             </ng-container>
           </ng-container>
           <span [title]="ref.published!.toISOString()">{{ ref.published!.fromNow() }}</span>
           <ng-container *ngIf="ref.origin">
-            on <a [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
+            on <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
           </ng-container>
         </div>
         <div class="actions">

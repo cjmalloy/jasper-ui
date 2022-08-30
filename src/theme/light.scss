@@ -5,8 +5,10 @@ $text: black;
 $blue: #c7d5f3;
 $active: #da0000;
 $info: gray;
-$tag: navy;
+$tag: #3d3dbb;
+$tag-accent: #f3ebc7;
 $border: black;
+$border-light: rgba(0, 0, 0, 0.2);
 $unselected-tab: #b3b9c4;
 $error: #da0000;
 $error-bg: #ffa9a9;
@@ -50,6 +52,9 @@ body.light-theme {
 
   .tag {
     color: $tag;
+    background-color: $tag-accent;
+    padding: 0 2px;
+    border-radius: 2px;
   }
 
   .subscription-bar {
@@ -114,11 +119,13 @@ body.light-theme {
   }
 
   .sidebar {
+    border-left: 1px dashed $border;
+    border-bottom: 1px dashed $border;
     .submit-button {
       border: 1px solid $border;
 
       &:hover {
-        background-color: rgba(0, 0, 0, 0.2);
+        background-color: $bg-accent;
       }
     }
   }
@@ -257,7 +264,10 @@ body.light-theme {
 
   .kanban {
     .column-title, .swim-lane-title {
-      border: 1px solid $border;
+      border-radius: 12px;
+      padding: 4px;
+      background-color: transparent;
+      border: 0.5px solid $border-light;
     }
     .kanban-column {
       border: 1px solid transparent;
