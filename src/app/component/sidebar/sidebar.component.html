@@ -56,8 +56,12 @@
       🔑️️ &nbsp; Change Password
     </div>
   </ng-container>
-  <div class="tag-header">
-    <h3><a class="tag" [routerLink]="['/tag', tag]">{{ ext?.name || tag }}</a></h3>
+
+  <div class="tag-header" *ngIf="home">
+    <h3><a [routerLink]="['/home']">Home</a></h3>
+  </div>
+  <div class="tag-header" *ngIf="!home">
+    <h3><a [routerLink]="['/tag', tag]">{{ ext?.name || tag }}</a></h3>
     <ng-container *ngIf="store.account.signedIn && tag && admin.status.templates.user">
       <button *ngIf="inSubs; else notInSubs"
               class="subscribe"
@@ -102,7 +106,18 @@
     </div>
   </ng-container>
 
-  <ng-container *ngIf="user">
+  <ng-container *ngIf="user || home">
+    <div class="ext-text" *ngIf="ext?.config?.bookmarks?.length">
+      My Bookmarks:
+      <br>
+      <ng-container *ngFor="let book of ext!.config!.bookmarks!">
+        <a class="tag" [routerLink]="['/tag', book]">
+          {{ book }}
+        </a>
+        <br>
+      </ng-container>
+      <br *ngIf="ext?.config?.subscriptions?.length">
+    </div>
     <div class="ext-text" *ngIf="ext?.config?.subscriptions?.length">
       Subscribed to:
       <br>

@@ -161,6 +161,14 @@ html, body {
     text-align: center;
     font-size: 80%;
   }
+
+  .ext-text {
+    padding: 4px;
+    a {
+      display: inline-block;
+      margin: 2px 10px;
+    }
+  }
 }
 
 .row {

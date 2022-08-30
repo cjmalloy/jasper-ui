@@ -21,7 +21,10 @@
     <div class="spacer"></div>
     <app-settings></app-settings>
   </div>
-  <app-sidebar class="aside" *ngIf="!store.view.graph"></app-sidebar>
+  <app-sidebar class="aside"
+               *ngIf="!store.view.graph"
+               [home]="true"
+               [ext]="store.account.ext"></app-sidebar>
   <app-ref-list [page]="query.page"
                 [graph]="store.view.graph"></app-ref-list>
 </ng-container>
