@@ -110,6 +110,8 @@ import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
+import { BlogComponent } from './component/blog/blog.component';
+import { BlogEntryComponent } from './component/blog-entry/blog-entry.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -215,6 +217,8 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     KanbanColumnComponent,
     KanbanCardComponent,
     MdComponent,
+    BlogComponent,
+    BlogEntryComponent,
   ],
   imports: [
     BrowserModule,

@@ -18,7 +18,7 @@
          queryParamsHandling="merge"
          title="Graph these results">graph</a>
     </ng-container>
-    <ng-container *ngIf="store.view.kanban">
+    <ng-container *ngIf="showListButton">
       <a routerLink="./"
          [class.current-tab]="store.view.list"
          [queryParams]="{ list: store.view.list ? null : true, graph: null }"
@@ -43,6 +43,10 @@
     <ng-template #special>
       <app-kanban *ngIf="store.view.kanban"
                   [tag]="store.view.tag!"></app-kanban>
+      <app-blog *ngIf="store.view.blog"
+                [tag]="store.view.tag!"
+                [page]="query.page"
+                [pinned]="store.view.pinned"></app-blog>
     </ng-template>
   </ng-template>
 

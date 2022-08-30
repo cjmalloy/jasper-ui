@@ -292,4 +292,14 @@ body.light-theme {
       background-color: $placeholder;
     }
   }
+
+  .blog {
+    .blog-entry {
+      .blog-body {
+        .expand {
+          border: none;
+        }
+      }
+    }
+  }
 }

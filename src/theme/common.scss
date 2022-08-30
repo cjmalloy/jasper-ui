@@ -589,3 +589,23 @@ button.backup, input.upload {
     }
   }
 }
+
+.blog {
+
+  .blog-entry {
+    display: block;
+    max-width: calc(100vw - 8px);
+    overflow: hidden;
+    border: 1px solid transparent;
+    margin: 2px;
+    padding: 2px;
+
+    .row {
+      margin-left: 10px;
+    }
+
+    .link-below {
+      display: flex;
+    }
+  }
+}

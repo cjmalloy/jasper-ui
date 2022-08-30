@@ -114,6 +114,19 @@
     </ng-container>
   </ng-container>
 
+  <ng-container *ngIf="blog"
+                [formGroup]="config">
+    <label for="filterTags">Only show selected tags:</label>
+    <div>
+      <input id="filterTags" type="checkbox" formControlName="filterTags" >
+    </div>
+    <ng-container *ngIf="config.get('filterTags')!.value">
+      <label for="tags">Tags:</label>
+      <app-qtags id="tags"
+                 [group]="config"></app-qtags>
+    </ng-container>
+  </ng-container>
+
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>

@@ -124,9 +124,9 @@
                  (click)="reject()">reject</a>
             </ng-container>
             <a *ngIf="pdf" target="_blank" [href]="pdf">pdf</a>
-            <a *ngIf="archive" target="_blank" [href]="archive">archive</a>
+            <a *ngIf="webLink && archive" target="_blank" [href]="archive">archive</a>
             <a *ngIf="store.account.mod && scrapeable" class="fake-link" (click)="scrape()">scrape</a>
-            <a routerLink="/submit" [queryParams]="{source: ref.url}">reply</a>
+            <a *ngIf="store.account.user" routerLink="/submit" [queryParams]="{source: ref.url}">reply</a>
             <a *ngIf="!ref.origin && store.account.mod && !approved && !locked"
                class="fake-link"
                (click)="approve()">approve</a>

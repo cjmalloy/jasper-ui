@@ -1,0 +1,126 @@
+<div class="row">
+  <div class="stack">
+    <h2 class="link">
+      <a *ngIf="webLink" [href]="ref.url">{{ ref.title || ref.url }}</a>
+      <span *ngIf="!webLink">{{ ref.title || ref.url }}</span>
+    </h2>
+    <div class="link-below">
+      <div class="stack">
+        <div class="info">
+          <ng-container *ngIf="authors.length">
+            by
+            <ng-container *ngFor="let user of authors">
+              <a [routerLink]="['/tag', user]">
+                {{ user.replace('+', '').replace('user/', '') }}</a>&nbsp;
+            </ng-container>
+          </ng-container>
+          <ng-container *ngIf="tags.length">
+            tagged
+            <ng-container *ngFor="let tag of tags">
+              <a [routerLink]="['/tag', tag + ref.origin]">{{ tag }}</a>&nbsp;
+            </ng-container>
+          </ng-container>
+          <span [title]="ref.published!.toISOString()">{{ ref.published!.fromNow() }}</span>
+          <ng-container *ngIf="ref.origin">
+            on <a [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
+          </ng-container>
+        </div>
+        <div class="actions">
+          <a *ngIf="admin.status.plugins.comment"
+             [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ comments.replace(' ', '&thinsp;') }}</a>
+          <a *ngIf="!admin.status.plugins.comment"
+             [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">permalink</a>
+          <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }">{{ responses.replace(' ', '&thinsp;') }}</a>
+          <a [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }">{{ sources.replace(' ', '&thinsp;') }}</a>
+          <a *ngIf="writeAccess else source"
+             class="fake-link"
+             (click)="editing = !editing">edit</a>
+          <ng-template #source>
+            <a class="fake-link"
+               (click)="viewSource = !viewSource">source</a>
+          </ng-template>
+          <a *ngIf="!deleting && writeAccess"
+             class="fake-link"
+             (click)="deleting = true">delete</a>
+          <span *ngIf="deleting" class="delete-confirm"> are you sure?&nbsp;
+              <a class="fake-link" (click)="delete()">yes</a>&nbsp;/&nbsp;
+              <a class="fake-link" (click)="deleting = false">no</a>&nbsp;
+            </span>
+          <a *ngIf="!ref.origin && (store.account.editor || writeAccess)"
+             class="fake-link"
+             (click)="tagging = !tagging">tag</a>
+          <span *ngIf="tagging" class="inline-tagging">
+              <input #inlineTag
+                     (keydown)="$event.key === 'Enter' && addInlineTag() || true"
+                     type="text"
+                     inputmode="email"
+                     [pattern]="tagRegex"
+                     autocorrect="off"
+                     autocapitalize="none"
+                     appAutofocus>
+              <button (click)="addInlineTag()">+</button>
+            </span>
+          <ng-container *ngIf="canInvoice">
+            <a [routerLink]="['/submit/invoice']"
+               [queryParams]="{url: ref.url}">invoice</a>
+          </ng-container>
+          <ng-container *ngIf="invoice">
+            <span *ngIf="disputed">disputed!&nbsp;</span>
+            <a *ngIf="disputed && isAuthor"
+               class="fake-link"
+               (click)="accept()">accept</a>
+            <a *ngIf="!disputed && isAuthor"
+               class="fake-link"
+               (click)="dispute()">dispute</a>
+            <span *ngIf="paid">paid!&nbsp;</span>
+            <a *ngIf="!paid && isRecipient"
+               class="fake-link"
+               (click)="markPaid()">paid</a>
+            <span *ngIf="rejected">rejected!&nbsp;</span>
+            <a *ngIf="!rejected && isRecipient"
+               class="fake-link"
+               (click)="reject()">reject</a>
+          </ng-container>
+          <a *ngIf="pdf" target="_blank" [href]="pdf">pdf</a>
+          <a *ngIf="webLink && archive" target="_blank" [href]="archive">archive</a>
+          <a *ngIf="store.account.user" routerLink="/submit" [queryParams]="{source: ref.url}">reply</a>
+          <a *ngIf="!ref.origin && store.account.mod && !approved && !locked"
+             class="fake-link"
+             (click)="approve()">approve</a>
+          <span class="approved icon" *ngIf="store.account.mod && approved" title="Moderated">✔️</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<app-embed *ngIf="!editing"
+           class="blog-body"
+           [ref]="ref"
+           [expandPlugins]="expandPlugins"></app-embed>
+
+<form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+
+  <app-ref-form [group]="editForm"></app-ref-form>
+
+  <ng-container *ngFor="let e of serverError">
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  </ng-container>
+
+  <span><!-- Buttons --></span>
+  <span class="form-array">
+    <button type="submit" [disabled]="submitted && !editForm.valid">save</button>
+    <button (click)="editing = false">cancel</button>
+  </span>
+</form>
+
+<form *ngIf="viewSource" [formGroup]="editForm">
+  <app-ref-form [group]="editForm"></app-ref-form>
+</form>
+
+<ng-template #showErrors>
+  <ng-container *ngFor="let e of serverError">
+    <div class="error">{{ e }}</div>
+  </ng-container>
+</ng-template>
+<hr>

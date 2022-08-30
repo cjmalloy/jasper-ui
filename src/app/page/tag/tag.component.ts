@@ -84,7 +84,20 @@ export class TagPage implements OnInit, OnDestroy {
     if (this.store.view.list) return true;
     if (this.store.view.graph) return true;
     if (this.store.view.kanban) return false;
+    if (this.store.view.blog) return false;
     return true;
+  }
+
+  get showListButton() {
+    if (this.store.view.kanban) return true;
+    if (this.store.view.blog) return true;
+    return false;
+  }
+
+  get fetchPage() {
+    if (this.isList) return true;
+    if (this.store.view.blog) return true;
+    return false;
   }
 
 }

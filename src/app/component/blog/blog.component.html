@@ -1,0 +1,16 @@
+<ng-container *ngIf="ext && page else loading">
+  <app-blog-entry *ngFor="let ref of pinned"
+                  class="pinned"
+                  [ref]="ref"></app-blog-entry>
+  <app-blog-entry *ngFor="let ref of page?.content"
+                  [ref]="ref"
+                  [blog]="ext"></app-blog-entry>
+  <p class="no-results" *ngIf="page.empty">
+    {{ emptyMessage }}
+  </p>
+  <app-page-controls *ngIf="!page.empty"
+                     [page]="page"></app-page-controls>
+</ng-container>
+<ng-template #loading>
+  <app-loading></app-loading>
+</ng-template>

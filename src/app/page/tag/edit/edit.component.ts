@@ -79,6 +79,13 @@ export class EditTagPage implements OnInit {
           noSwimLaneTitle: [''],
         };
       }
+      if (this.blog) {
+        configControls = {
+          ...configControls,
+          filterTags: [false],
+          tags: qtagsForm(fb, ext.config?.tags || []),
+        };
+      }
       this.editForm = fb.group({
         tag: [''],
         name: [''],
@@ -107,6 +114,10 @@ export class EditTagPage implements OnInit {
 
   get kanban() {
     return !!this.admin.status.templates.kanban && hasPrefix(this.ext.tag, 'kanban');
+  }
+
+  get blog() {
+    return !!this.admin.status.templates.blog && hasPrefix(this.ext.tag, 'blog');
   }
 
   get tag$() {

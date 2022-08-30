@@ -97,6 +97,10 @@ export class ViewStore {
     return !isQuery(this.tag) && hasPrefix(this.tag, 'kanban');
   }
 
+  get blog() {
+    return !isQuery(this.tag) && hasPrefix(this.tag, 'blog');
+  }
+
   get queue() {
     return !isQuery(this.tag) && hasPrefix(this.tag, 'queue');
   }
