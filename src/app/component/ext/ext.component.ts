@@ -42,7 +42,7 @@ export class ExtComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.writeAccess = this.auth.tagWriteAccess(this.ext.tag);
+    this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);
   }
 
   @ViewChild(ExtFormComponent)

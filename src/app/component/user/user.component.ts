@@ -50,7 +50,7 @@ export class UserComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.writeAccess = this.auth.tagWriteAccess(this.user.tag);
+    this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);
   }
 
   get qualifiedTag() {

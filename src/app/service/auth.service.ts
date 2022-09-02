@@ -23,7 +23,7 @@ export class AuthService {
     return capturesAny(this.store.account.user.writeAccess, qualifyTags(ref.tags, ref.origin));
   }
 
-  tagReadAccess(tag: string): boolean {
+  tagReadAccess(tag?: string): boolean {
     if (!this.store.account.signedIn) return false;
     if (!tag) return false;
     if (!tag.endsWith('@*') && tag.includes('@')) return false;
@@ -35,7 +35,7 @@ export class AuthService {
     return capturesAny(this.store.account.user.tagReadAccess, [tag]);
   }
 
-  tagWriteAccess(tag: string): boolean {
+  tagWriteAccess(tag?: string): boolean {
     if (!this.store.account.signedIn) return false;
     if (!tag) return false;
     if (!tag.endsWith('@*') && tag.includes('@')) return false;
