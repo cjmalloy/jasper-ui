@@ -116,7 +116,7 @@ export class RefComponent implements OnInit {
     if (this.feed) {
       return interestingTags(this.ref.plugins!['+plugin/feed'].addTags);
     }
-    if (this.origin) {
+    if (this.remote) {
       return interestingTags(this.ref.plugins!['+plugin/origin'].addTags);
     }
     return undefined;
@@ -126,10 +126,30 @@ export class RefComponent implements OnInit {
     if (this.feed) {
       return this.ref.plugins!['+plugin/feed'].origin;
     }
-    if (this.origin) {
+    if (this.remote) {
       return this.ref.plugins!['+plugin/origin'].origin;
     }
     return undefined;
+  }
+
+  get scraped() {
+    if (this.feed) {
+      return !!this.ref.plugins!['+plugin/feed'].lastScrape;
+    }
+    if (this.remote) {
+      return !!this.ref.plugins!['+plugin/origin'].lastScrape;
+    }
+    return false;
+  }
+
+  get lastScrape() {
+    if (this.feed) {
+      return moment(this.ref.plugins!['+plugin/feed'].lastScrape);
+    }
+    if (this.remote) {
+      return moment(this.ref.plugins!['+plugin/origin'].lastScrape);
+    }
+    throw "Not scraped";
   }
 
   get thumbnail() {

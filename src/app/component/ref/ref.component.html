@@ -47,7 +47,15 @@
               <a class="tag" [routerLink]="['/tag', tag + ref.origin]">{{ tag }}</a>&nbsp;
             </ng-container>
           </ng-container>
-          <ng-container *ngIf="ref.published">
+          <ng-container *ngIf="scrapeable">
+            <ng-container *ngIf="scraped">
+              <span [title]="lastScrape.toISOString()"> last scraped {{ lastScrape.fromNow() }} </span>
+            </ng-container>
+            <ng-container *ngIf="!lastScrape">
+              not scraped yet
+            </ng-container>
+          </ng-container>
+          <ng-container *ngIf="!scrapeable && ref.published">
             <ng-container *ngIf="person">
               <span [title]="ref.published.toISOString()">
                 born
