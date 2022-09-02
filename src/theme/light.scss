@@ -50,6 +50,13 @@ body.light-theme {
     color: $error;
   }
 
+  .error-404.submit-button {
+    display: inline-block;
+    margin: auto;
+    color: $text;
+    border: 1px solid $border;
+  }
+
   .tag {
     color: $tag;
     background-color: $tag-accent;
