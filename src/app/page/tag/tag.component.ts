@@ -66,7 +66,9 @@ export class TagPage implements OnInit, OnDestroy {
         return;
       }
       forkJoin((this.store.view.ext.config.pinned as string[])
-        .map(pin => this.refs.get(pin)))
+        .map(pin => this.refs.get(pin).pipe(
+          catchError(err => of({url: pin}))
+        )))
         .subscribe(pinned => runInAction(() => this.store.view.pinned = pinned));
     }));
   }
