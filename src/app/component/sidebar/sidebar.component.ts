@@ -7,7 +7,7 @@ import { AdminService } from '../../service/admin.service';
 import { AuthService } from '../../service/auth.service';
 import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
-import { prefix, removeOriginWildcard } from '../../util/tag';
+import { localTag, prefix, removeWildcard } from '../../util/tag';
 
 @Component({
   selector: 'app-sidebar',
@@ -66,8 +66,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (this._tag === value) return;
     this._tag = value;
     if (value) {
-      this.localTag = removeOriginWildcard(value);
-      this.writeAccess = this.auth.tagWriteAccess(value);
+      this.localTag = localTag(removeWildcard(value));
+      this.writeAccess = this.auth.tagWriteAccess(removeWildcard(value));
     } else {
       this.localTag = undefined;
       this.writeAccess = false;

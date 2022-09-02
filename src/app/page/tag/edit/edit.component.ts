@@ -16,7 +16,7 @@ import { ExtService } from '../../../service/api/ext.service';
 import { ThemeService } from '../../../service/theme.service';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
-import { hasPrefix, removeOriginWildcard } from '../../../util/tag';
+import { hasPrefix, removeWildcard } from '../../../util/tag';
 
 @Component({
   selector: 'app-edit-tag-page',
@@ -52,7 +52,7 @@ export class EditTagPage implements OnInit {
 
   get tag$() {
     return this.route.params.pipe(
-      map(params => removeOriginWildcard(params['tag'])!),
+      map(params => removeWildcard(params['tag'])!),
     );
   }
 

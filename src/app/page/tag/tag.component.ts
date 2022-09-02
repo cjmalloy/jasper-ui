@@ -11,7 +11,7 @@ import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { filterListToObj, getArgs } from '../../util/query';
-import { removeOriginWildcard } from '../../util/tag';
+import { removeWildcard } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
@@ -51,7 +51,7 @@ export class TagPage implements OnInit, OnDestroy {
       _.defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
-      const tag = removeOriginWildcard(this.store.view.tag);
+      const tag = removeWildcard(this.store.view.tag);
       if (!tag) {
         runInAction(() => this.store.view.ext = undefined);
       } else {
