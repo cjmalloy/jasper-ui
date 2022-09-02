@@ -6,7 +6,10 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "e2e": "ng e2e",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
   "private": true,
   "dependencies": {
@@ -39,6 +42,7 @@
     "@angular-devkit/build-angular": "^14.1.1",
     "@angular/cli": "^14.1.1",
     "@angular/compiler-cli": "^14.1.1",
+    "@cypress/schematic": "^2.1.1",
     "@types/d3": "^7.1.0",
     "@types/jasmine": "~4.0.3",
     "@types/lodash-es": "^4.17.6",
@@ -50,7 +54,8 @@
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "~1.7.0",
     "karma-junit-reporter": "^2.0.1",
-    "typescript": "~4.6.2"
+    "typescript": "~4.6.2",
+    "cypress": "latest"
   },
   "overrides": {
     "ngx-monaco-editor": {

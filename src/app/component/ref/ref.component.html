@@ -19,7 +19,7 @@
       <span class="lock icon" *ngIf="locked" title="Locked">🔒️</span>
     </div>
     <div class="link-below">
-      <div class="toggle"
+      <div class="toggle toggle-comment"
            *ngIf="showToggle && (ref.comment || expandPlugins.length) && !editing"
            (click)="expanded = !expanded">
         <span class="toggle-plus" *ngIf="!expanded">＋</span>
