@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash-es';
 import { map } from 'rxjs';
@@ -12,6 +12,9 @@ import { Store } from '../../store/store';
 })
 export class SearchFilterComponent implements OnInit {
   @HostBinding('class') css = 'search-filter form-group';
+
+  @Input()
+  showFilter = true;
 
   searchValue = '';
   allFilters = ['uncited', 'unsourced', 'internal', 'rejected', 'unpaid', 'paid', 'disputed'];

@@ -24,9 +24,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @Input()
   showToggle = true;
   @Input()
-  searchable = true;
-  @Input()
   home = false;
+  @Input()
+  showSearch = true;
+  @Input()
+  showFilter = true;
 
   _tag: string | null = null;
   localTag?: string;

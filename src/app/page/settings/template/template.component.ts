@@ -27,6 +27,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = {
+        search: this.store.view.search,
         page: this.store.view.pageNumber,
         size: this.store.view.pageSize ?? this.defaultPageSize,
       };

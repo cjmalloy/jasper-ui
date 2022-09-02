@@ -3,7 +3,7 @@
     <div class="toggle dont-hide"
          *ngIf="showToggle"
          (click)="expanded = !expanded">📚️</div>
-    <app-search-filter *ngIf="searchable" class="dont-hide"></app-search-filter>
+    <app-search-filter *ngIf="showSearch" class="dont-hide" [showFilter]="showFilter"></app-search-filter>
   </div>
   <ng-container *ngIf="store.account.poster">
     <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
