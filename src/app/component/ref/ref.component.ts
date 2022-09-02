@@ -256,14 +256,14 @@ export class RefComponent implements OnInit {
   }
 
   get comments() {
-    const commentCount = this._ref.metadata?.plugins?.['plugin/comment']?.length || '?';
+    const commentCount = this._ref.metadata?.plugins?.['plugin/comment']?.length ?? '?';
     if (commentCount === 0) return 'comment';
     if (commentCount === 1) return '1 comment';
     return commentCount + ' comments';
   }
 
   get responses() {
-    const responseCount = this._ref.metadata?.responses?.length || '?';
+    const responseCount = this._ref.metadata?.responses?.length ?? '?';
     if (this.feed) {
       return responseCount + ' scraped';
     }
