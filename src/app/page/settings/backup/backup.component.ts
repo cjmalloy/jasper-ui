@@ -21,7 +21,7 @@ export class SettingsBackupPage implements OnInit {
     private route: ActivatedRoute,
     private backups: BackupService,
   ) {
-    theme.setTitle('Admin: Backup & Restore');
+    theme.setTitle('Settings: Backup & Restore');
     backups.list()
       .subscribe(list => this.list = list.sort().reverse());
   }

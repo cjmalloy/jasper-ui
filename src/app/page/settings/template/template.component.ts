@@ -20,7 +20,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
     public store: Store,
     public query: TemplateStore,
   ) {
-    theme.setTitle('Admin: Templates');
+    theme.setTitle('Settings: Templates');
     query.clear();
   }
 

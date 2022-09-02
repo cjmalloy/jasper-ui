@@ -20,7 +20,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
     public store: Store,
     public query: PluginStore,
   ) {
-    theme.setTitle('Admin: Plugins');
+    theme.setTitle('Settings: Plugins');
     query.clear();
   }
 
