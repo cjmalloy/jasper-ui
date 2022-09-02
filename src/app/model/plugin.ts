@@ -21,7 +21,7 @@ export function maybePlugin(obj: any): Plugin | undefined {
   return mapPlugin(obj);
 }
 
-export function writePlugin(plugin: Plugin): Record<string, any> {
+export function writePlugin(plugin: Partial<Plugin>): Partial<Plugin> {
   const result = { ...plugin };
   delete result.type;
   return result;

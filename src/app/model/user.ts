@@ -24,7 +24,7 @@ export function mapUser(obj: any): User {
   return obj;
 }
 
-export function writeUser(user: User): Record<string, any> {
+export function writeUser(user: Partial<User>): Partial<User> {
   const result = { ...user };
   delete result.type;
   return result;

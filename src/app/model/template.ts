@@ -20,7 +20,7 @@ export function maybeTemplate(obj: any): Template | undefined {
   return mapTemplate(obj);
 }
 
-export function writeTemplate(template: Template): Record<string, any> {
+export function writeTemplate(template: Partial<Template>): Partial<Template> {
   const result = { ...template };
   delete result.type;
   return result;

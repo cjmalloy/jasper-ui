@@ -66,11 +66,10 @@ export function mapRefOrNull(obj: any): Ref | null {
   return mapRef(obj);
 }
 
-export function writeRef(ref: Ref): Record<string, any> {
+export function writeRef(ref: Partial<Ref>): Partial<Ref> {
   const result = { ...ref };
   delete result.metadata;
   delete result.created;
-  result.published = moment(result.published);
   result.published = moment(result.published);
   return result;
 }
