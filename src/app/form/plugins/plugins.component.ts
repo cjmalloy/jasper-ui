@@ -2,17 +2,17 @@ import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angula
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AdminService } from '../../service/admin.service';
 import { emptyObject, writeObj } from '../../util/http';
-import { archivePluginForm } from '../plugin/archive/archive.component';
-import { audioPluginForm } from '../plugin/audio/audio.component';
-import { commentPluginForm } from '../plugin/comment/comment.component';
-import { embedPluginForm } from '../plugin/embed/embed.component';
-import { feedForm, FeedFormComponent } from '../plugin/feed/feed.component';
-import { imagePluginForm } from '../plugin/image/image.component';
-import { originForm } from '../plugin/origin/origin.component';
-import { pdfPluginForm } from '../plugin/pdf/pdf.component';
-import { qrPluginForm } from '../plugin/qr/qr.component';
-import { thumbnailPluginForm } from '../plugin/thumbnail/thumbnail.component';
-import { videoPluginForm } from '../plugin/video/video.component';
+import { archivePluginForm } from './archive/archive.component';
+import { audioPluginForm } from './audio/audio.component';
+import { commentPluginForm } from './comment/comment.component';
+import { embedPluginForm } from './embed/embed.component';
+import { feedForm, FeedFormComponent } from './feed/feed.component';
+import { imagePluginForm } from './image/image.component';
+import { originForm } from './origin/origin.component';
+import { pdfPluginForm } from './pdf/pdf.component';
+import { qrPluginForm } from './qr/qr.component';
+import { thumbnailPluginForm } from './thumbnail/thumbnail.component';
+import { videoPluginForm } from './video/video.component';
 
 @Component({
   selector: 'app-form-plugins',
