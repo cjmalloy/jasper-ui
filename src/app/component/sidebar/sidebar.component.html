@@ -5,7 +5,7 @@
          (click)="expanded = !expanded">📚️</div>
     <app-search-filter *ngIf="searchable" class="dont-hide"></app-search-filter>
   </div>
-  <ng-container *ngIf="store.account.user">
+  <ng-container *ngIf="store.account.poster">
     <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
       🔗️ &nbsp; Submit Link
     </div>
@@ -45,7 +45,7 @@
         ✉️ &nbsp; Send Direct Message
       </div>
     </ng-container>
-    <ng-container *ngIf="store.account.user && !user && modmail">
+    <ng-container *ngIf="store.account.poster && !user && modmail">
       <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: modmail }">
         ✉️ &nbsp; Send Mod Mail
       </div>

@@ -8,12 +8,12 @@ import { hasPrefix } from '../util/tag';
 export class AccountStore {
 
   tag = '';
-  permissions?: User;
+  user?: User;
   ext?: Ext;
   admin = false;
   mod = false;
   editor = false;
-  user = false;
+  poster = false;
   notifications = 0;
   subs: string[] = defaultSubs;
   bookmarks: string[] = [];
@@ -33,7 +33,7 @@ export class AccountStore {
     if (this.admin) return 'admin';
     if (this.mod) return 'mod';
     if (this.editor) return 'editor';
-    if (this.permissions) return 'user';
+    if (this.poster) return 'user';
     return 'viewer';
   }
 
@@ -43,7 +43,7 @@ export class AccountStore {
   }
 
   get modmail() {
-    return this.permissions?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox'));
+    return this.user?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox'));
   }
 
   get notificationsQuery() {
@@ -63,6 +63,6 @@ export class AccountStore {
     this.admin = roles.admin;
     this.mod = roles.mod;
     this.editor = roles.editor;
-    this.user = roles.user;
+    this.poster = roles.user;
   }
 }
