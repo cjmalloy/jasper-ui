@@ -104,6 +104,34 @@ export class RefComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  get feed() {
+    return !!this.admin.status.plugins.feed && hasTag('+plugin/feed', this.ref);
+  }
+
+  get remote() {
+    return !!this.admin.status.plugins.origin && hasTag('+plugin/origin', this.ref);
+  }
+
+  get addTags() {
+    if (this.feed) {
+      return interestingTags(this.ref.plugins!['+plugin/feed'].addTags);
+    }
+    if (this.origin) {
+      return interestingTags(this.ref.plugins!['+plugin/origin'].addTags);
+    }
+    return undefined;
+  }
+
+  get addOrigin() {
+    if (this.feed) {
+      return this.ref.plugins!['+plugin/feed'].origin;
+    }
+    if (this.origin) {
+      return this.ref.plugins!['+plugin/origin'].origin;
+    }
+    return undefined;
+  }
+
   get thumbnail() {
     return this.admin.status.plugins.thumbnail &&
       hasTag('plugin/thumbnail', this._ref);
@@ -161,8 +189,7 @@ export class RefComponent implements OnInit {
   }
 
   get scrapeable() {
-    return this.admin.status.plugins.feed && this.ref.plugins?.['+plugin/feed'] ||
-      this.admin.status.plugins.origin && this.ref.plugins?.['+plugin/origin'];
+    return this.feed || this.remote;
   }
 
   get findArchive() {
@@ -209,16 +236,17 @@ export class RefComponent implements OnInit {
   }
 
   get comments() {
-    if (!this._ref.metadata) return '? comments';
-    const commentCount = this._ref.metadata.plugins?.['plugin/comment']?.length;
+    const commentCount = this._ref.metadata?.plugins?.['plugin/comment']?.length || '?';
     if (commentCount === 0) return 'comment';
     if (commentCount === 1) return '1 comment';
     return commentCount + ' comments';
   }
 
   get responses() {
-    if (!this._ref.metadata) return '? citations';
-    const responseCount = this._ref.metadata.responses?.length;
+    const responseCount = this._ref.metadata?.responses?.length || '?';
+    if (this.feed) {
+      return responseCount + ' scraped';
+    }
     if (responseCount === 0) return 'uncited';
     if (responseCount === 1) return '1 citation';
     return responseCount + ' citations';

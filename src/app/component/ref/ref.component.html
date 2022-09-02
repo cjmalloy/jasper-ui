@@ -49,14 +49,27 @@
           </ng-container>
           <ng-container *ngIf="ref.published">
             <ng-container *ngIf="person">
-              <span [title]="ref.published.toISOString()">born {{ ref.published.fromNow() }}</span>
+              <span [title]="ref.published.toISOString()">
+                born
+                {{ ref.published.fromNow() }}</span>
             </ng-container>
             <ng-container *ngIf="!person">
-              <span [title]="ref.published.toISOString()">published {{ ref.published.fromNow() }}</span>
+              <span [title]="ref.published.toISOString()">
+                published
+                {{ ref.published.fromNow() }}</span>
             </ng-container>
           </ng-container>
           <ng-container *ngIf="ref.origin">
             on <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
+          </ng-container>
+          <ng-container *ngIf="addTags?.length">
+            tagging refs
+            <ng-container *ngFor="let tag of addTags">
+              <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
+            </ng-container>
+          </ng-container>
+          <ng-container *ngIf="addOrigin">
+            to <a [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
           </ng-container>
         </div>
         <app-embed *ngIf="expanded && expandInline && !editing"

@@ -23,8 +23,6 @@ import { CommentComponent } from './component/comment/comment.component';
 import { EmbedComponent } from './component/embed/embed.component';
 import { ExtListComponent } from './component/ext-list/ext-list.component';
 import { ExtComponent } from './component/ext/ext.component';
-import { FeedListComponent } from './component/feed-list/feed-list.component';
-import { FeedComponent } from './component/feed/feed.component';
 import { ForceDirectedComponent } from './component/graph/force-directed/force-directed.component';
 import { KanbanCardComponent } from './component/kanban-card/kanban-card.component';
 import { KanbanColumnComponent } from './component/kanban-column/kanban-column.component';
@@ -33,8 +31,6 @@ import { ListEditorComponent } from './component/list-editor/list-editor.compone
 import { LoadingComponent } from './component/loading/loading.component';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { MdComponent } from './component/md/md.component';
-import { OriginListComponent } from './component/origin-list/origin-list.component';
-import { OriginComponent } from './component/origin/origin.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
 import { ProfileListComponent } from './component/profile-list/profile-list.component';
 import { ProfileComponent } from './component/profile/profile.component';
@@ -164,10 +160,6 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     SettingsTemplatePage,
     TagListComponent,
     TagComponent,
-    OriginListComponent,
-    OriginComponent,
-    FeedComponent,
-    FeedListComponent,
     UserComponent,
     CreateUserPage,
     ForceDirectedComponent,

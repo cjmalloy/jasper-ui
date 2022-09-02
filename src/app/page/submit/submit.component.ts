@@ -50,7 +50,6 @@ export class SubmitPage implements OnInit {
   linkTypeOverride?: string;
   tags: string[] = [];
   existingRef?: Ref;
-  existingFeed?: Ref;
   scrape = true;
 
   constructor(
@@ -104,21 +103,11 @@ export class SubmitPage implements OnInit {
   exists(url: string) {
     const linkType = this.linkType(url);
     if (linkType === 'web' || linkType === 'text') {
-      this.existingFeed = undefined;
       if (this.existingRef?.url === url) return of(true);
       if (url.startsWith('wiki:')) url = wikiUriFormat(url);
       return this.refs.get(url).pipe(
         tap(ref => this.existingRef = ref),
         map(ref => !!ref),
-        catchError(err => of(false)),
-      );
-    }
-    if (linkType === 'feed') {
-      this.existingRef = undefined;
-      if (this.existingFeed?.url === url) return of(true);
-      return this.refs.get(url).pipe(
-        tap(feed => this.existingFeed = feed),
-        map(feed => !!feed),
         catchError(err => of(false)),
       );
     }
