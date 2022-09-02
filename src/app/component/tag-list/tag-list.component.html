@@ -1,12 +1,9 @@
 <div class="list-container">
   <ng-container *ngFor="let tag of page?.content; let i = index">
     <div class="list-number">{{ i + page!.number * page!.size + 1 }}</div>
-    <ng-container *ngIf="tag.type === 'user'; else generic">
-      <app-user [user]="$any(tag)"></app-user>
-    </ng-container>
-    <ng-template #generic>
-      <app-tag [tag]="tag"></app-tag>
-    </ng-template>
+    <app-user *ngIf="tag.type === 'user'" [user]="$any(tag)"></app-user>
+    <app-plugin *ngIf="tag.type === 'plugin'" [plugin]="$any(tag)"></app-plugin>
+    <app-template *ngIf="tag.type === 'template'" [template]="$any(tag)"></app-template>
   </ng-container>
 </div>
 <app-loading *ngIf="!page"></app-loading>

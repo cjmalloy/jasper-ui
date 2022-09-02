@@ -1,22 +1,22 @@
 <div class="link">
-  <a *ngIf="tag.tag" [routerLink]="['/tag', qualifiedTag]">{{ tag.name || tag.tag }}</a>
-  <a *ngIf="!tag.tag" routerLink="/all">{{ tag.name || 'root' }}</a>
-  <span *ngIf="!tag.tag" class="host">(root: "")</span>
-  <span *ngIf="tag.name && tag.tag" class="host">({{ tag.tag + tag.origin }})</span>
-  <span *ngIf="!tag.tag && !tag.name && tag.origin" class="host">({{ tag.origin }})</span>
+  <a *ngIf="plugin.tag" [routerLink]="['/tag', qualifiedTag]">{{ plugin.name || plugin.tag }}</a>
+  <a *ngIf="!plugin.tag" routerLink="/all">{{ plugin.name || 'root' }}</a>
+  <span *ngIf="!plugin.tag" class="host">(root: "")</span>
+  <span *ngIf="plugin.name && plugin.tag" class="host">({{ plugin.tag + plugin.origin }})</span>
+  <span *ngIf="!plugin.tag && !plugin.name && plugin.origin" class="host">({{ plugin.origin }})</span>
 </div>
 <div class="stack">
   <div class="info">
-    <span [title]="tag.modified?.toISOString()">modified {{ tag.modified?.fromNow() }}</span>
-    <ng-container *ngIf="tag.origin">
-      on <a [routerLink]="['/tag', tag.origin]">{{ tag.origin }}</a>
+    <span [title]="plugin.modified?.toISOString()">modified {{ plugin.modified?.fromNow() }}</span>
+    <ng-container *ngIf="plugin.origin">
+      on <a [routerLink]="['/tag', plugin.origin]">{{ plugin.origin }}</a>
     </ng-container>
   </div>
-  <div class="actions" *ngIf="!tag.origin">
-    <a *ngIf="writeAccess"
+  <div class="actions" *ngIf="!plugin.origin">
+    <a *ngIf="store.account.admin"
        class="fake-link"
        (click)="editing = !editing">edit</a>
-    <a *ngIf="!deleting && writeAccess"
+    <a *ngIf="!deleting && store.account.admin"
        class="fake-link"
        (click)="deleting = true">delete</a>
     <span *ngIf="deleting" class="delete-confirm">are you sure?

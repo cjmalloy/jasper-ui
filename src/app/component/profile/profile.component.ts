@@ -43,7 +43,7 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.writeAccess = this.auth.tagWriteAccess(this.profile.tag, 'user');
+    this.writeAccess = this.auth.tagWriteAccess(this.profile.tag);
   }
 
   get role() {

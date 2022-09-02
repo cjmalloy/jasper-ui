@@ -1,44 +1,37 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
-import { Tag } from '../../model/tag';
+import { Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
-import { ExtService } from '../../service/api/ext.service';
-import { PluginService } from '../../service/api/plugin.service';
 import { TemplateService } from '../../service/api/template.service';
-import { AuthService } from '../../service/auth.service';
+import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
 @Component({
-  selector: 'app-tag',
-  templateUrl: './tag.component.html',
-  styleUrls: ['./tag.component.scss'],
+  selector: 'app-template',
+  templateUrl: './template.component.html',
+  styleUrls: ['./template.component.scss']
 })
-export class TagComponent implements OnInit {
-  @HostBinding('class') css = 'tag-like list-item';
+export class TemplateComponent implements OnInit {
+  @HostBinding('class') css = 'template list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
-  tag!: Tag;
+  template!: Template;
 
   editForm: UntypedFormGroup;
   submitted = false;
-  _editing = false;
+  editing = false;
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
-  writeAccess = false;
   serverError: string[] = [];
 
   constructor(
     public admin: AdminService,
-    private router: Router,
-    private auth: AuthService,
-    private exts: ExtService,
-    private plugins: PluginService,
+    public store: Store,
     private templates: TemplateService,
     private fb: UntypedFormBuilder,
   ) {
@@ -48,32 +41,11 @@ export class TagComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.writeAccess = this.auth.tagWriteAccess(this.tag.tag, this.tag.type);
-    this.editForm.patchValue(this.tag);
-  }
-
-  get editing() {
-    return this._editing;
-  }
-
-  set editing(value: boolean) {
-    if (value && this.tag.type === 'ext') {
-      this.router.navigate(['/tag', this.tag.tag, 'edit']);
-    } else {
-      this._editing = value;
-    }
+    this.editForm.patchValue(this.template);
   }
 
   get qualifiedTag() {
-    return this.tag.tag + this.tag.origin;
-  }
-
-  get service() {
-    switch (this.tag.type) {
-      case 'plugin': return this.plugins;
-      case 'template': return this.templates;
-    }
-    throw 'Missing tag type!';
+    return this.template.tag + this.template.origin;
   }
 
   save() {
@@ -83,24 +55,24 @@ export class TagComponent implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    this.service.update({
-      ...this.tag,
+    this.templates.update({
+      ...this.template,
       ...this.editForm.value,
     }).pipe(
-      switchMap(() => this.service.get(this.tag.tag)),
+      switchMap(() => this.templates.get(this.template.tag)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-    ).subscribe(tag => {
+    ).subscribe(template => {
       this.serverError = [];
       this.editing = false;
-      this.tag = tag;
+      this.template = template;
     });
   }
 
   delete() {
-    this.service.delete(this.tag.tag).pipe(
+    this.templates.delete(this.template.tag).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

@@ -1,58 +1,51 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
-import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
-import { Ext } from '../../model/ext';
+import { Plugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
-import { ExtService } from '../../service/api/ext.service';
 import { PluginService } from '../../service/api/plugin.service';
-import { TemplateService } from '../../service/api/template.service';
-import { AuthService } from '../../service/auth.service';
+import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
 @Component({
-  selector: 'app-ext',
-  templateUrl: './ext.component.html',
-  styleUrls: ['./ext.component.scss']
+  selector: 'app-plugin',
+  templateUrl: './plugin.component.html',
+  styleUrls: ['./plugin.component.scss']
 })
-export class ExtComponent implements OnInit {
-  @HostBinding('class') css = 'ext list-item';
+export class PluginComponent implements OnInit {
+  @HostBinding('class') css = 'plugin list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
-  ext!: Ext;
+  plugin!: Plugin;
 
-  editForm!: UntypedFormGroup;
+  editForm: UntypedFormGroup;
   submitted = false;
   editing = false;
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
-  writeAccess = false;
   serverError: string[] = [];
 
   constructor(
     public admin: AdminService,
-    private auth: AuthService,
-    private exts: ExtService,
+    public store: Store,
+    private plugins: PluginService,
     private fb: UntypedFormBuilder,
-  ) { }
-
-  ngOnInit(): void {
-    this.writeAccess = this.auth.tagWriteAccess(this.ext.tag);
+  ) {
+    this.editForm = fb.group({
+      name: [''],
+    });
   }
 
-  @ViewChild(ExtFormComponent)
-  set extForm(value: ExtFormComponent) {
-    this.editForm = extForm(this.fb, this.ext, this.admin);
-    this.editForm.patchValue(this.ext);
+  ngOnInit(): void {
+    this.editForm.patchValue(this.plugin);
   }
 
   get qualifiedTag() {
-    return this.ext.tag + this.ext.origin;
+    return this.plugin.tag + this.plugin.origin;
   }
 
   save() {
@@ -62,11 +55,11 @@ export class ExtComponent implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    this.exts.update({
-      ...this.ext,
+    this.plugins.update({
+      ...this.plugin,
       ...this.editForm.value,
     }).pipe(
-      switchMap(() => this.exts.get(this.ext.tag)),
+      switchMap(() => this.plugins.get(this.plugin.tag)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -74,12 +67,12 @@ export class ExtComponent implements OnInit {
     ).subscribe(tag => {
       this.serverError = [];
       this.editing = false;
-      this.ext = tag;
+      this.plugin = tag;
     });
   }
 
   delete() {
-    this.exts.delete(this.ext.tag).pipe(
+    this.plugins.delete(this.plugin.tag).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

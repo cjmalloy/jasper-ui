@@ -35,11 +35,8 @@ export class AuthService {
     return capturesAny(this.store.account.permissions.tagReadAccess, [tag]);
   }
 
-  tagWriteAccess(tag: string, type = 'ext'): boolean {
+  tagWriteAccess(tag: string): boolean {
     if (!this.store.account.signedIn) return false;
-    if (type === 'plugin' || type === 'template')  {
-      return this.store.account.admin;
-    }
     if (!tag) return false;
     if (!tag.endsWith('@*') && tag.includes('@')) return false;
     if (tag === 'locked') return false;

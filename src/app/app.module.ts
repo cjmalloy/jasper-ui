@@ -32,6 +32,7 @@ import { LoadingComponent } from './component/loading/loading.component';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { MdComponent } from './component/md/md.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
+import { PluginComponent } from './component/plugin/plugin.component';
 import { ProfileListComponent } from './component/profile-list/profile-list.component';
 import { ProfileComponent } from './component/profile/profile.component';
 import { RefListComponent } from './component/ref-list/ref-list.component';
@@ -41,7 +42,7 @@ import { SettingsComponent } from './component/settings/settings.component';
 import { SidebarComponent } from './component/sidebar/sidebar.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { TagListComponent } from './component/tag-list/tag-list.component';
-import { TagComponent } from './component/tag/tag.component';
+import { TemplateComponent } from './component/template/template.component';
 import { UserComponent } from './component/user/user.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { MdPostDirective } from './directive/md-post.directive';
@@ -159,7 +160,6 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     SettingsPluginPage,
     SettingsTemplatePage,
     TagListComponent,
-    TagComponent,
     UserComponent,
     CreateUserPage,
     ForceDirectedComponent,
@@ -217,6 +217,8 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     ExtFormComponent,
     ExtComponent,
     ExtListComponent,
+    PluginComponent,
+    TemplateComponent,
   ],
   imports: [
     BrowserModule,
