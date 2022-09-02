@@ -39,7 +39,7 @@ export class EditTagPage implements OnInit {
     private exts: ExtService,
     private fb: UntypedFormBuilder,
   ) {
-    themeService.setTitle('Exit Tag Extension');
+    themeService.setTitle('Edit Tag Extension');
     this.ext$.subscribe(ext => {
       this.ext = ext;
       this.editForm = extForm(fb, ext, admin);
