@@ -13,9 +13,13 @@
     </ng-container>
   </div>
   <div class="actions" *ngIf="!plugin.origin">
-    <a *ngIf="store.account.admin"
+    <a *ngIf="store.account.admin else source"
        class="fake-link"
        (click)="editing = !editing">edit</a>
+    <ng-template #source>
+      <a class="fake-link"
+         (click)="viewSource = !viewSource">source</a>
+    </ng-template>
     <a *ngIf="!deleting && store.account.admin"
        class="fake-link"
        (click)="deleting = true">delete</a>
@@ -28,8 +32,7 @@
 
 <form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-  <label for="name">Name:</label>
-  <input type="text" id="name" formControlName="name">
+  <app-plugin-form [group]="editForm"></app-plugin-form>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>
@@ -41,6 +44,10 @@
     <button type="submit" [disabled]="submitted && !editForm.valid">save</button>
     <button (click)="editing = false">cancel</button>
   </span>
+</form>
+
+<form *ngIf="viewSource" class="form" [formGroup]="editForm">
+  <app-plugin-form [group]="editForm"></app-plugin-form>
 </form>
 
 <ng-template #showErrors>

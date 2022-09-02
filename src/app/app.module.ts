@@ -50,6 +50,7 @@ import { ResizeDirective } from './directive/resize.directive';
 import { CodeComponent } from './form/code/code.component';
 import { ExtFormComponent } from './form/ext/ext.component';
 import { LinksFormComponent } from './form/links/links.component';
+import { PluginFormComponent } from './form/plugin/plugin.component';
 import { ArchiveFormComponent } from './form/plugins/archive/archive.component';
 import { AudioFormComponent } from './form/plugins/audio/audio.component';
 import { CommentFormComponent } from './form/plugins/comment/comment.component';
@@ -66,6 +67,7 @@ import { QtagsFormComponent } from './form/qtags/qtags.component';
 import { QueriesFormComponent } from './form/queries/queries.component';
 import { RefFormComponent } from './form/ref/ref.component';
 import { TagsFormComponent } from './form/tags/tags.component';
+import { TemplateFormComponent } from './form/template/template.component';
 import { ThemesFormComponent } from './form/themes/themes.component';
 import { UserFormComponent } from './form/user/user.component';
 import { UsersFormComponent } from './form/users/users.component';
@@ -112,6 +114,7 @@ import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
+import { JsonComponent } from './form/json/json.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -219,6 +222,9 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     ExtListComponent,
     PluginComponent,
     TemplateComponent,
+    PluginFormComponent,
+    TemplateFormComponent,
+    JsonComponent,
   ],
   imports: [
     BrowserModule,

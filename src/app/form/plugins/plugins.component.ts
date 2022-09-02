@@ -114,7 +114,7 @@ export function pluginsForm(fb: UntypedFormBuilder, admin: AdminService, tags: s
   }, {}));
 }
 
-export function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
+function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
   switch (tag) {
     case '+plugin/origin': return originForm(fb);
     case '+plugin/feed': return feedForm(fb, admin);

@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { catchError, switchMap, throwError } from 'rxjs';
+import { pluginForm } from '../../form/plugin/plugin.component';
 import { Plugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
 import { PluginService } from '../../service/api/plugin.service';
@@ -24,6 +25,7 @@ export class PluginComponent implements OnInit {
   editForm: UntypedFormGroup;
   submitted = false;
   editing = false;
+  viewSource = false;
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
@@ -35,13 +37,16 @@ export class PluginComponent implements OnInit {
     private plugins: PluginService,
     private fb: UntypedFormBuilder,
   ) {
-    this.editForm = fb.group({
-      name: [''],
-    });
+    this.editForm = pluginForm(fb);
   }
 
   ngOnInit(): void {
-    this.editForm.patchValue(this.plugin);
+    this.editForm.patchValue({
+      ...this.plugin,
+      config: this.plugin.config ? JSON.stringify(this.plugin.config, null, 2) : undefined,
+      defaults: this.plugin.defaults ? JSON.stringify(this.plugin.defaults, null, 2) : undefined,
+      schema: this.plugin.schema ? JSON.stringify(this.plugin.schema, null, 2) : undefined,
+    });
   }
 
   get qualifiedTag() {
@@ -55,10 +60,17 @@ export class PluginComponent implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    this.plugins.update({
+    const plugin = {
       ...this.plugin,
       ...this.editForm.value,
-    }).pipe(
+    };
+    if (!plugin.config) delete plugin.config;
+    if (plugin.config) plugin.config = JSON.parse(plugin.config);
+    if (!plugin.defaults) delete plugin.defaults;
+    if (plugin.defaults) plugin.defaults = JSON.parse(plugin.defaults);
+    if (!plugin.schema) delete plugin.schema;
+    if (plugin.schema) plugin.schema = JSON.parse(plugin.schema);
+    this.plugins.update(plugin).pipe(
       switchMap(() => this.plugins.get(this.plugin.tag)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
