@@ -1,8 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, switchMap, throwError } from 'rxjs';
+import { extForm, ExtFormComponent } from '../../../form/ext/ext.component';
 import { linksForm } from '../../../form/links/links.component';
 import { qtagsForm } from '../../../form/qtags/qtags.component';
 import { queriesForm } from '../../../form/queries/queries.component';
@@ -41,83 +42,12 @@ export class EditTagPage implements OnInit {
     themeService.setTitle('Exit Tag Extension');
     this.ext$.subscribe(ext => {
       this.ext = ext;
-      let configControls = {};
-      if (this.root) {
-        configControls = {
-          ...configControls,
-          sidebar: [''],
-          pinned: linksForm(fb, ext.config?.pinned),
-          themes: themesForm(fb, ext.config?.themes),
-          theme: [''],
-        };
-      }
-      if (this.user) {
-        configControls = {
-          ...configControls,
-          subscriptions: queriesForm(fb, ext.config?.subscriptions),
-          bookmarks: queriesForm(fb, ext.config?.bookmarks),
-          userThemes: themesForm(fb, ext.config?.userThemes),
-          userTheme: [''],
-        };
-      }
-      if (this.queue) {
-        configControls = {
-          ...configControls,
-          bounty: [''],
-          maxAge: [''],
-          approvers: usersForm(fb, ext.config?.approvers),
-        };
-      }
-      if (this.kanban) {
-        configControls = {
-          ...configControls,
-          columns: qtagsForm(fb, ext.config?.columns),
-          showNoColumn: [false],
-          noColumnTitle: [''],
-          swimLanes: qtagsForm(fb, ext.config?.swimLanes || []),
-          showNoSwimLane: [false],
-          noSwimLaneTitle: [''],
-        };
-      }
-      if (this.blog) {
-        configControls = {
-          ...configControls,
-          filterTags: [false],
-          tags: qtagsForm(fb, ext.config?.tags || []),
-        };
-      }
-      this.editForm = fb.group({
-        tag: [''],
-        name: [''],
-        config: fb.group(configControls),
-      });
+      this.editForm = extForm(fb, ext, admin);
       this.editForm.patchValue(ext);
     });
   }
 
   ngOnInit(): void {
-  }
-
-  get root() {
-    return !!this.admin.status.templates.root;
-  }
-
-  get user() {
-    return !!this.admin.status.templates.user && (
-      this.ext.tag.startsWith('_user/') ||
-      this.ext.tag.startsWith('+user/'));
-  }
-
-  get queue() {
-    return !!this.admin.status.templates.queue && hasPrefix(this.ext.tag, 'queue');
-  }
-
-  get kanban() {
-    return !!this.admin.status.templates.kanban && hasPrefix(this.ext.tag, 'kanban');
-  }
-
-  get blog() {
-    return !!this.admin.status.templates.blog && hasPrefix(this.ext.tag, 'blog');
   }
 
   get tag$() {
@@ -130,38 +60,6 @@ export class EditTagPage implements OnInit {
     return this.tag$.pipe(
       switchMap(tag => this.exts.get(tag)),
     );
-  }
-
-  get config() {
-    return this.editForm.get('config') as UntypedFormGroup;
-  }
-
-  get sidebar() {
-    return this.config.get('sidebar') as UntypedFormControl;
-  }
-
-  get themes() {
-    return this.config.get('themes') as UntypedFormGroup;
-  }
-
-  get userThemes() {
-    return this.config.get('userThemes') as UntypedFormGroup;
-  }
-
-  get themeValues() {
-    return Object.keys(this.themes?.value);
-  }
-
-  get userThemeValues() {
-    return Object.keys(this.userThemes?.value);
-  }
-
-  get theme() {
-    return this.config.get('theme') as UntypedFormControl;
-  }
-
-  get userTheme() {
-    return this.config.get('userTheme') as UntypedFormControl;
   }
 
   save() {

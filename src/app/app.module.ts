@@ -14,11 +14,15 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BackupListComponent } from './component/backup-list/backup-list.component';
 import { BackupComponent } from './component/backup/backup.component';
+import { BlogEntryComponent } from './component/blog-entry/blog-entry.component';
+import { BlogComponent } from './component/blog/blog.component';
 import { CommentEditComponent } from './component/comment-edit/comment-edit.component';
 import { CommentListComponent } from './component/comment-list/comment-list.component';
 import { CommentReplyComponent } from './component/comment-reply/comment-reply.component';
 import { CommentComponent } from './component/comment/comment.component';
 import { EmbedComponent } from './component/embed/embed.component';
+import { ExtListComponent } from './component/ext-list/ext-list.component';
+import { ExtComponent } from './component/ext/ext.component';
 import { FeedListComponent } from './component/feed-list/feed-list.component';
 import { FeedComponent } from './component/feed/feed.component';
 import { ForceDirectedComponent } from './component/graph/force-directed/force-directed.component';
@@ -47,6 +51,7 @@ import { AutofocusDirective } from './directive/autofocus.directive';
 import { MdPostDirective } from './directive/md-post.directive';
 import { ResizeDirective } from './directive/resize.directive';
 import { CodeComponent } from './form/code/code.component';
+import { ExtFormComponent } from './form/ext/ext.component';
 import { LinksFormComponent } from './form/links/links.component';
 import { ArchiveFormComponent } from './form/plugin/archive/archive.component';
 import { AudioFormComponent } from './form/plugin/audio/audio.component';
@@ -110,8 +115,6 @@ import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
-import { BlogComponent } from './component/blog/blog.component';
-import { BlogEntryComponent } from './component/blog-entry/blog-entry.component';
 
 const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -219,6 +222,9 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     MdComponent,
     BlogComponent,
     BlogEntryComponent,
+    ExtFormComponent,
+    ExtComponent,
+    ExtListComponent,
   ],
   imports: [
     BrowserModule,

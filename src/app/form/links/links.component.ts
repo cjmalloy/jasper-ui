@@ -1,5 +1,6 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import * as _ from 'lodash-es';
 import { URI_REGEX } from '../../util/format';
 
 @Component({
@@ -39,5 +40,5 @@ export class LinksFormComponent implements OnInit {
 }
 
 export function linksForm(fb: UntypedFormBuilder, urls: string[]) {
-  return fb.array(urls.map(v => fb.control(v, LinksFormComponent.validators)));
+  return fb.array(_.map(urls, v => fb.control(v, LinksFormComponent.validators)));
 }

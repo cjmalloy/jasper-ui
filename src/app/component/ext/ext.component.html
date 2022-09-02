@@ -1,0 +1,49 @@
+<div class="link">
+  <a *ngIf="ext.tag" [routerLink]="['/tag', qualifiedTag]">{{ ext.name || ext.tag }}</a>
+  <a *ngIf="!ext.tag" routerLink="/all">{{ ext.name || 'root' }}</a>
+  <span *ngIf="!ext.tag" class="host">(root: "")</span>
+  <span *ngIf="ext.name && ext.tag" class="host">({{ ext.tag + ext.origin }})</span>
+  <span *ngIf="!ext.tag && !ext.name && ext.origin" class="host">({{ ext.origin }})</span>
+</div>
+<div class="stack">
+  <div class="info">
+    <span [title]="ext.modified?.toISOString()">modified {{ ext.modified?.fromNow() }}</span>
+    <ng-container *ngIf="ext.origin">
+      on <a [routerLink]="['/tag', ext.origin]">{{ ext.origin }}</a>
+    </ng-container>
+  </div>
+  <div class="actions" *ngIf="!ext.origin">
+    <a *ngIf="writeAccess"
+       class="fake-link"
+       (click)="editing = !editing">edit</a>
+    <a *ngIf="!deleting && writeAccess"
+       class="fake-link"
+       (click)="deleting = true">delete</a>
+    <span *ngIf="deleting" class="delete-confirm">are you sure?
+      <a class="fake-link" (click)="delete()">yes</a> /
+      <a class="fake-link" (click)="deleting = false">no</a>
+    </span>
+  </div>
+</div>
+
+<form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+
+  <app-ext-form [group]="editForm"></app-ext-form>
+
+  <ng-container *ngFor="let e of serverError">
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  </ng-container>
+
+  <span><!-- Buttons --></span>
+  <span class="form-array">
+    <button type="submit" [disabled]="submitted && !editForm.valid">save</button>
+    <button (click)="editing = false">cancel</button>
+  </span>
+</form>
+
+<ng-template #showErrors>
+  <ng-container *ngFor="let e of serverError">
+    <div class="error">{{ e }}</div>
+  </ng-container>
+</ng-template>
