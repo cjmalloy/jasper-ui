@@ -28,6 +28,7 @@ export class UserComponent implements OnInit {
   submitted = false;
   tagging = false;
   editing = false;
+  viewSource = false;
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;

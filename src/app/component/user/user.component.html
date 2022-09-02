@@ -10,10 +10,14 @@
       on <a [routerLink]="['/tag', user.origin]">{{ user.origin }}</a>
     </ng-container>
   </div>
-  <div class="actions" *ngIf="!user.origin">
-    <a *ngIf="writeAccess"
+  <div class="actions">
+    <a *ngIf="writeAccess else source"
        class="fake-link"
        (click)="editing = !editing">edit</a>
+    <ng-template #source>
+      <a class="fake-link"
+         (click)="viewSource = !viewSource">source</a>
+    </ng-template>
     <a *ngIf="!deleting && writeAccess"
        class="fake-link"
        (click)="deleting = true">delete</a>
@@ -38,6 +42,10 @@
     <button type="submit" [disabled]="submitted && !editForm.valid">save</button>
     <button (click)="editing = false">cancel</button>
   </span>
+</form>
+
+<form *ngIf="viewSource" class="form" [formGroup]="editForm">
+  <app-user-form [group]="editForm"></app-user-form>
 </form>
 
 <ng-template #showErrors>
