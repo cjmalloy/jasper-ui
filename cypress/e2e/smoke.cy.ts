@@ -4,7 +4,7 @@ describe('Smoke Tests', () => {
     cy.contains('Home');
   });
   it('creates a ref', () => {
-    cy.visit('/');
+    cy.visit('/?debug=USER');
     cy.contains('Submit Link').click();
     cy.get('#url').type('https://www.jasper-kms.info/');
     cy.get('#scrape').click();
@@ -14,7 +14,7 @@ describe('Smoke Tests', () => {
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
     cy.get('.full-page.ref .actions a').contains('delete').click();
     cy.get('.full-page.ref .actions a').contains('yes').click();
-    cy.reload();
+    cy.visit(`/ref/${encodeURIComponent('https://www.jasper-kms.info/')}?debug=USER`);
     cy.contains('Not Found');
   });
 });

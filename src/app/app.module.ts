@@ -49,6 +49,7 @@ import { MdPostDirective } from './directive/md-post.directive';
 import { ResizeDirective } from './directive/resize.directive';
 import { CodeComponent } from './form/code/code.component';
 import { ExtFormComponent } from './form/ext/ext.component';
+import { JsonComponent } from './form/json/json.component';
 import { LinksFormComponent } from './form/links/links.component';
 import { PluginFormComponent } from './form/plugin/plugin.component';
 import { ArchiveFormComponent } from './form/plugins/archive/archive.component';
@@ -71,7 +72,7 @@ import { TemplateFormComponent } from './form/template/template.component';
 import { ThemesFormComponent } from './form/themes/themes.component';
 import { UserFormComponent } from './form/user/user.component';
 import { UsersFormComponent } from './form/users/users.component';
-import { DebugInterceptor } from './http/debug.interceptor';
+import { AuthInterceptor } from './http/auth.interceptor';
 import { CreateExtPage } from './page/create/ext/ext.component';
 import { CreateProfilePage } from './page/create/profile/profile.component';
 import { CreateUserPage } from './page/create/user/user.component';
@@ -114,10 +115,11 @@ import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
-import { JsonComponent } from './form/json/json.component';
+import { DebugService } from './service/debug.service';
 
-const loadFactory = (config: ConfigService, admin: AdminService, account: AccountService) => () =>
+const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
+    switchMap(() => debug.init$),
     switchMap(() => admin.init$),
     retry({ delay: 1000 }),
     switchMap(() => account.init$),
@@ -240,17 +242,16 @@ const loadFactory = (config: ConfigService, admin: AdminService, account: Accoun
     OverlayModule,
   ],
   providers: [
-    ConfigService,
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
     {
       provide: APP_INITIALIZER,
       useFactory: loadFactory,
-      deps: [ConfigService, AdminService, AccountService],
+      deps: [ConfigService, DebugService, AdminService, AccountService],
       multi: true,
     },
     {
       provide: HTTP_INTERCEPTORS,
-      useClass: DebugInterceptor,
+      useClass: AuthInterceptor,
       multi: true,
     },
   ],

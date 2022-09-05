@@ -4,7 +4,7 @@ describe('Ref Actions', () => {
     cy.contains('Home');
   });
   it('creates a ref', () => {
-    cy.visit('/');
+    cy.visit('/?debug=USER');
     cy.contains('Submit Text Post').click();
     cy.get('#title').type('Title');
     cy.get('button').contains('Submit').click();
@@ -25,9 +25,8 @@ describe('Ref Actions', () => {
     cy.get('button').contains('save').click();
     cy.get('form .md').should('contain', 'Comment field');
     cy.get('.full-page.ref  .toggle-comment').click();
-    cy.get('.full-page.ref ').should('not.contain', 'Comment field');
+    cy.get('.full-page.ref').should('not.contain', 'Comment field');
 
-    cy.wait(20);
     cy.get('.actions a').contains('tag').click();
     cy.get('.inline-tagging input').type('cool{enter}');
     cy.get('.full-page.ref .tag:not(.user)').contains('cool').should('exist');

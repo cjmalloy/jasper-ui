@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
-import * as moment from 'moment/moment';
+import * as moment from 'moment';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../form/plugins/plugins.component';

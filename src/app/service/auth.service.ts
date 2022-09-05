@@ -8,6 +8,8 @@ import { capturesAny, hasTag, isOwner, isOwnerTag, publicTag, qualifyTags } from
 })
 export class AuthService {
 
+  bearerToken?: string;
+
   constructor(
     private store: Store,
   ) { }
