@@ -237,7 +237,7 @@ html, body {
 
 .form-array {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 
   input {
     flex: 1;
