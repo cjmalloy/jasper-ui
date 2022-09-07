@@ -5,6 +5,7 @@
     <div class="form-array" *ngFor="let c of users.controls; let i=index">
       <label for="tags-{{ i }}">User:</label>
       <input id="tags-{{ i }}"
+             size="10"
              type="email"
              autocorrect="off"
              autocapitalize="none"
