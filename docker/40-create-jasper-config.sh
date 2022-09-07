@@ -8,7 +8,7 @@ config="
   \"logout\": \"$JASPER_LOGOUT\",
   \"login\": \"$JASPER_LOGIN\",
   \"signup\": \"$JASPER_SIGNUP\",
-  \"scim\": $JASPER_SCIM
+  \"scim\": ${JASPER_SCIM-false}
 }
 "
 echo "$config"
