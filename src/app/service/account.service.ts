@@ -20,7 +20,7 @@ export const CACHE_MS = 15 * 1000;
 })
 export class AccountService {
 
-  private _user$?: Observable<User>;
+  private _user$?: Observable<User | undefined>;
   private _userExt$?: Observable<Ext>;
 
   constructor(
@@ -36,7 +36,7 @@ export class AccountService {
       tap(roles => this.store.account.setRoles(roles)),
       switchMap(roles => !roles.tag ? of() :
         this.loadUserExt$.pipe(
-          switchMap(() => this.user$.pipe(catchError(() => of()))),
+          switchMap(() => this.user$),
           switchMap(() => this.subscriptions$),
           switchMap(() => this.bookmarks$),
           switchMap(() => this.theme$),
@@ -55,12 +55,13 @@ export class AccountService {
     this._user$ = undefined;
   }
 
-  private get user$(): Observable<User> {
+  private get user$(): Observable<User | undefined> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this._user$) {
       this._user$ = this.users.get(this.store.account.tag!).pipe(
         tap(user => runInAction(() => this.store.account.user = user)),
         shareReplay(1),
+        catchError(() => of(undefined)),
       );
       _.delay(() => this._user$ = undefined, CACHE_MS);
     }
