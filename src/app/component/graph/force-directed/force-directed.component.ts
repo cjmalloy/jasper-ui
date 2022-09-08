@@ -45,6 +45,8 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   tag?: string | null = 'science';
 
   @Input()
+  maxLoad = 30;
+  @Input()
   nodeStroke = '#d0d0d0';
   @Input()
   nodeStrokeDashedArray = '';
@@ -160,7 +162,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   get loadMore$() {
-    return this.load$(this.store.graph.getLoading(30));
+    return this.load$(this.store.graph.getLoading(this.maxLoad));
   }
 
   drawMore() {
@@ -176,40 +178,33 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     return find(this.store.graph.nodes, url);
   }
 
-  hasUnloaded(ref: Ref) {
-    const refs = this.store.graph.grabNodeOrSelection(ref);
-    for (const ref of refs) {
-      if (ref.unloaded) return true;
-    }
-    return false;
+  max(loadCount: number) {
+    return loadCount > this.maxLoad ? `(max ${this.maxLoad})` : `(${loadCount})`;
   }
 
-  hasUnloadedSource(ref: Ref) {
+  countRefUnloaded(ref: Ref) {
     const refs = this.store.graph.grabNodeOrSelection(ref);
-    for (const ref of refs) {
-      if (!ref.sources) continue;
-      for (const url of ref.sources) {
-        const s = this.find(url);
-        if (!s || s.unloaded) return true;
-      }
-    }
-    return false;
+    return refs.filter(r => r.unloaded).length;
   }
 
-  hasUnloadedResponse(ref: Ref) {
+  countUnloadedSource(ref: Ref) {
     const refs = this.store.graph.grabNodeOrSelection(ref);
-    for (const ref of refs) {
-      if (!ref.metadata) continue;
-      const responses = [
-        ...(ref.metadata?.responses || []),
-        ...(ref.metadata?.internalResponses || []),
-      ];
-      for (const url of responses) {
-        const r = this.find(url);
-        if (!r || r.unloaded) return true;
-      }
-    }
-    return false;
+    return this.countUnloaded(..._.flatMap(refs, r => r.sources || []));
+  }
+
+  countUnloadedResponse(ref: Ref) {
+    const refs = this.store.graph.grabNodeOrSelection(ref);
+    return this.countUnloaded(..._.flatMap(refs, r => [
+      ...(r.metadata?.responses || []),
+      ...(r.metadata?.internalResponses || []),
+    ]));
+  }
+
+  countUnloaded(...urls: string[]) {
+    return urls.filter((url: string) => {
+      const r = this.find(url);
+      return !r || r.unloaded;
+    }).length;
   }
 
   clickNode(ref: GraphNode, event?: MouseEvent) {
@@ -231,6 +226,9 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     event.stopPropagation();
     event.preventDefault();
     this.close();
+    if (ref && !this.store.graph.selected.includes(ref)) {
+      this.store.graph.select(ref);
+    }
     const positionStrategy = this.overlay.position()
       .flexibleConnectedTo({x: event.x, y: event.y})
       .withPositions([{
@@ -271,7 +269,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   loadSources(ref: GraphNode) {
-    this.load$(sources(...this.store.graph.grabNodeOrSelection(ref)).slice(0, 30)).subscribe(more => {
+    this.load$(sources(...this.store.graph.grabNodeOrSelection(ref)).slice(0, this.maxLoad)).subscribe(more => {
       if (more.length) {
         this.simulation?.alpha(0.1);
         this.update();
@@ -281,7 +279,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   loadResponses(ref: GraphNode) {
-    this.load$(responses(...this.store.graph.grabNodeOrSelection(ref)).slice(0, 30)).subscribe(more => {
+    this.load$(responses(...this.store.graph.grabNodeOrSelection(ref)).slice(0, this.maxLoad)).subscribe(more => {
       if (more.length) {
         this.simulation?.alpha(0.1);
         this.update();
@@ -291,7 +289,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   load(ref: GraphNode) {
-    const urls = this.store.graph.grabNodeOrSelection(ref).filter(r => r.unloaded).map(r => r.url).slice(0, 30);
+    const urls = this.store.graph.grabNodeOrSelection(ref).filter(r => r.unloaded).map(r => r.url).slice(0, this.maxLoad);
     this.store.graph.startLoading(...urls);
     this.load$(urls).subscribe(more => {
       if (more.length) {

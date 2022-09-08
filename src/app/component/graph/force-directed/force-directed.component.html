@@ -11,17 +11,17 @@
                [checked]="ref.pinned">
         <label for="pinned">Pinned</label>
       </div>
-      <ng-container *ngIf="hasUnloaded(ref)">
+      <ng-container *ngIf="countRefUnloaded(ref) as uc">
         <hr>
-        <div (click)="load(ref)">Load <span *ngIf="store.graph.selected.length > 1 && store.graph.selected.includes(ref)">(max 30)</span></div>
+        <div (click)="load(ref)">Load <span *ngIf="uc > 1">{{ max(uc) }}</span></div>
       </ng-container>
-      <ng-container *ngIf="hasUnloadedSource(ref)">
+      <ng-container *ngIf="countUnloadedSource(ref) as sc">
         <hr>
-        <div (click)="loadSources(ref)">Load sources (max 30)</div>
+        <div (click)="loadSources(ref)">Load sources <span *ngIf="sc > 1">{{ max(sc) }}</span></div>
       </ng-container>
-      <ng-container *ngIf="hasUnloadedResponse(ref)">
+      <ng-container *ngIf="countUnloadedResponse(ref) as rc">
         <hr>
-        <div (click)="loadResponses(ref)">Load responses (max 30)</div>
+        <div (click)="loadResponses(ref)">Load responses <span *ngIf="rc > 1">{{ max(rc) }}</span></div>
       </ng-container>
       <hr>
       <div (click)="remove(ref)">Remove</div>
