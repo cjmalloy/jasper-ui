@@ -413,7 +413,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
       }).strength(d => {
         if (!this.store.graph.timeline) return 0.1;
         if (!isGraphable(d as GraphNode)) return 0;
-        return 0.1;
+        return 0.5;
       }))
       .force('y', d3.forceY())
       .on('tick', () => {
