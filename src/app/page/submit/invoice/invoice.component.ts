@@ -134,7 +134,7 @@ export class SubmitInvoicePage implements OnInit {
     this.exts.get(this.queue!).pipe(
       switchMap(queueExt => this.refs.create({
         ...this.invoiceForm.value,
-        published: moment(),
+        published: moment(this.invoiceForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
         tags: this.getTags(queueExt),
         sources: [this.refUrl],
       })),

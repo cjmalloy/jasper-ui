@@ -6,27 +6,25 @@ describe('Ref Actions', () => {
   it('creates a ref', () => {
     cy.contains('Submit Text Post').click();
     cy.get('#title').type('Title');
+    cy.contains('show advanced').click();
+    cy.get('#published').type('2020-01-01T00:00').blur();
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
-  it('shows graph', () => {
-    cy.get('.actions a').contains('graph').click();
-    cy.title().should('equals', 'Jasper ± Graph: Title');
-  });
   it('shows responses', () => {
     cy.get('.actions a').contains('uncited').click();
-    cy.title().should('equals', 'Jasper ± Responses: Title');
+    cy.title().should('equals', 'DEBUG ± Responses: Title');
   });
   it('shows sources', () => {
     cy.get('.actions a').contains('unsourced').click();
-    cy.title().should('equals', 'Jasper ± Sources: Title');
+    cy.title().should('equals', 'DEBUG ± Sources: Title');
   });
   it('edits comments field', () => {
     cy.get('.actions a').contains('edit').click();
     cy.get('#comment').type('Comment field');
     cy.get('form .md').should('contain', 'Comment field');
     cy.get('button').contains('save').click();
-    cy.get('form .md').should('contain', 'Comment field');
+    cy.get('.full-page.ref').should('contain', 'Comment field');
     cy.get('.full-page.ref  .toggle-comment').click();
     cy.get('.full-page.ref').should('not.contain', 'Comment field');
   });
@@ -41,20 +39,17 @@ describe('Ref Actions', () => {
     cy.get('#scrape').click();
     cy.contains('Next').click();
     cy.get('#title').type('Reply');
+    cy.get('#published').type('2020-01-02T00:00');
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Reply');
   });
-  it('graphs reply', () => {
-    cy.get('.actions a').contains('graph').click();
-    cy.title().should('equals', 'Jasper ± Graph: Reply');
-  });
   it('shows reply responses', () => {
     cy.get('.actions a').contains('uncited').click();
-    cy.title().should('equals', 'Jasper ± Responses: Reply');
+    cy.title().should('equals', 'DEBUG ± Responses: Reply');
   });
   it('shows reply sources', () => {
     cy.get('.actions a').contains('1 source').click();
-    cy.title().should('equals', 'Jasper ± Sources: Reply');
+    cy.title().should('equals', 'DEBUG ± Sources: Reply');
     cy.get('.ref-list .ref .link a').contains('Title');
   });
   it('should delete reply', () => {

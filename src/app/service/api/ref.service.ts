@@ -23,7 +23,7 @@ export class RefService {
   }
 
   create(ref: Ref): Observable<void> {
-    return this.http.post<void>(this.base, ref).pipe(
+    return this.http.post<void>(this.base, writeRef(ref)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }

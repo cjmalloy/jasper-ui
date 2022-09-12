@@ -93,7 +93,7 @@ export class SubmitDmPage implements OnInit {
     this.refs.create({
       ...this.dmForm.value,
       url,
-      published: moment(),
+      published: moment(this.dmForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
       tags: this.tags,
     }).pipe(
       catchError((res: HttpErrorResponse) => {
