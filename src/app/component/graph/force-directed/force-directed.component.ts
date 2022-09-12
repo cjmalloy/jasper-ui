@@ -13,7 +13,7 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import * as d3 from 'd3';
-import { ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
+import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
@@ -23,7 +23,16 @@ import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { isTextPost } from '../../../util/format';
-import { GraphNode, responses, sources, find } from '../../../util/graph';
+import {
+  GraphNode,
+  responses,
+  sources,
+  find,
+  graphable,
+  GraphLink,
+  isGraphable,
+  isInternal
+} from '../../../util/graph';
 import { Point, Rect } from '../../../util/math';
 import { capturesAny, hasTag } from '../../../util/tag';
 
@@ -95,6 +104,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   private yAxis?: Selection<any, any, any, any>;
   private timelineScale?: ScaleTime<number, number, never>;
   private dragRect?: Selection<any, unknown, any, any>;
+  private forceLink?: ForceLink<SimulationNodeDatum, any>;
 
   constructor(
     public store: Store,
@@ -188,16 +198,11 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   countUnloadedSource(ref: Ref) {
-    const refs = this.store.graph.grabNodeOrSelection(ref);
-    return this.countUnloaded(..._.flatMap(refs, r => r.sources || []));
+    return this.countUnloaded(...sources(...this.store.graph.grabNodeOrSelection(ref)));
   }
 
   countUnloadedResponse(ref: Ref) {
-    const refs = this.store.graph.grabNodeOrSelection(ref);
-    return this.countUnloaded(..._.flatMap(refs, r => [
-      ...(r.metadata?.responses || []),
-      ...(r.metadata?.internalResponses || []),
-    ]));
+    return this.countUnloaded(...responses(...this.store.graph.grabNodeOrSelection(ref)));
   }
 
   countUnloaded(...urls: string[]) {
@@ -269,7 +274,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   loadSources(ref: GraphNode) {
-    this.load$(sources(...this.store.graph.grabNodeOrSelection(ref)).slice(0, this.maxLoad)).subscribe(more => {
+    this.load$(sources(...this.store.graph.grabNodeOrSelection(ref)).filter(url => !this.find(url)).slice(0, this.maxLoad)).subscribe(more => {
       if (more.length) {
         this.simulation?.alpha(0.1);
         this.update();
@@ -279,7 +284,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   loadResponses(ref: GraphNode) {
-    this.load$(responses(...this.store.graph.grabNodeOrSelection(ref)).slice(0, this.maxLoad)).subscribe(more => {
+    this.load$(responses(...this.store.graph.grabNodeOrSelection(ref)).filter(url => !this.find(url)).slice(0, this.maxLoad)).subscribe(more => {
       if (more.length) {
         this.simulation?.alpha(0.1);
         this.update();
@@ -390,15 +395,24 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
     this.node = this.svg.append('g');
 
+    this.forceLink = d3.forceLink()
+      .id((l: any) => l.url);
+    const defaultStrength = this.forceLink.strength();
+    this.forceLink.strength((l, i , links) => {
+      const strength = defaultStrength.call(this, l, i, links);
+      if (isInternal(l.source) || isInternal(l.target)) return strength * 0.1;
+      return strength;
+    })
     this.simulation = d3.forceSimulation()
+      .force('link', this.forceLink)
       .force('charge', d3.forceManyBody().distanceMax(300))
       .force('x', d3.forceX(d => {
         if (!this.store.graph.timeline) return 0;
-        if (!(d as Ref).published) return 0;
+        if (!isGraphable(d as GraphNode)) return 0;
         return this.timelineScale!((d as Ref).published!.valueOf());
       }).strength(d => {
         if (!this.store.graph.timeline) return 0.1;
-        if (!(d as Ref).published) return 0;
+        if (!isGraphable(d as GraphNode)) return 0;
         return 0.1;
       }))
       .force('y', d3.forceY())
@@ -555,7 +569,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
     this.simulation
       .nodes(this.store.graph.nodes as any)
-      .force('link', d3.forceLink(this.store.graph.links).id((l: any) => l.url))
+      .force('link', this.forceLink!.links(this.store.graph.links))
       .restart();
   }
 

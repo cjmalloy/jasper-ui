@@ -1,9 +1,9 @@
 import * as _ from 'lodash-es';
-import { action, computed, makeAutoObservable, makeObservable, observable } from 'mobx';
+import { makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
-import { find, GraphLink, GraphNode, links, linkSources, references, unloadedReferences } from '../util/graph';
+import { find, graphable, GraphLink, GraphNode, links, linkSources, unloadedReferences } from '../util/graph';
 
 export class GraphStore {
 
@@ -29,6 +29,10 @@ export class GraphStore {
     return this.nodes.filter(n => n.unloaded).map(n => n.url);
   }
 
+  get graphable(): GraphNode[] {
+    return graphable(...this.nodes);
+  }
+
   get unloadedNotLoading(): string[] {
     return _.difference(this.unloaded, this.loading);
   }
@@ -38,11 +42,11 @@ export class GraphStore {
   }
 
   get minPublished() {
-    return _.min(this.nodes.map(r => r.published).filter(p => !!p));
+    return _.min(this.graphable.map(r => r.published).filter(p => !!p));
   }
 
   get maxPublished() {
-    return _.max(this.nodes.map(r => r.published).filter(p => !!p));
+    return _.max(this.graphable.map(r => r.published).filter(p => !!p));
   }
 
   get publishedDiff() {
@@ -82,9 +86,7 @@ export class GraphStore {
     _.pullAll(this.nodes, refs);
     _.pullAll(this.selected, refs);
     for (const ref of refs) {
-      _.remove(this.links, l =>
-        l.target === ref.url || (l.target as any).url === ref.url ||
-        l.source === ref.url || (l.source as any).url === ref.url);
+      _.remove(this.links, l => l.target === ref || l.source === ref);
     }
   }
 

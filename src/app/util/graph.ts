@@ -1,5 +1,6 @@
 import * as _ from 'lodash-es';
 import { Ref } from '../model/ref';
+import { hasTag } from './tag';
 
 export type GraphNode = Ref & {
   unloaded?: boolean,
@@ -14,6 +15,18 @@ export type GraphLink = {
   source: string | GraphNode,
   target: string | GraphNode,
 };
+
+export function graphable(...nodes: GraphNode[]) {
+  return nodes.filter(n => isGraphable(n));
+}
+
+export function isGraphable(node: GraphNode) {
+  return node.published && !isInternal(node);
+}
+
+export function isInternal(node: GraphNode) {
+  return hasTag('internal', node);
+}
 
 export function links(allNodes: GraphNode[], ...nodes: GraphNode[]) {
   return [
@@ -35,14 +48,11 @@ export function sources(...nodes: GraphNode[]): string[] {
 }
 
 export function responses(...nodes: GraphNode[]): string[] {
-  return [
-    ...nodes.flatMap(r => r.metadata?.responses || []),
-    ...nodes.flatMap(r => r.metadata?.internalResponses || []),
-  ];
+  return nodes.flatMap(r => r.metadata?.responses || []);
 }
 
 export function unloadedReferences(allNodes: GraphNode[], ...nodes: GraphNode[]): string[] {
-  return references(...nodes).filter(s => !find(allNodes, s));
+  return references(...graphable(...nodes)).filter(s => !find(allNodes, s));
 }
 
 export function find(nodes: GraphNode[], url: string) {
