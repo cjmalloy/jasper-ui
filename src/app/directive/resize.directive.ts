@@ -23,6 +23,7 @@ export class ResizeDirective {
   dragStart?: {x: number, y: number};
   startDim?: {x: number, y: number};
   dragging = false;
+  wasDragging = false;
 
   constructor(private el: ElementRef) {}
 
@@ -40,8 +41,16 @@ export class ResizeDirective {
     };
   }
 
+  @HostListener('click', ['$event'])
+  mouseup(e: MouseEvent) {
+    if (this.wasDragging) {
+      e.preventDefault();
+    }
+    this.wasDragging = false;
+  }
+
   @HostListener('window:mousemove', ['$event'])
-  mousemove(e: MouseEvent) {
+  windowMousemove(e: MouseEvent) {
     if (!this.dragStart || !this.startDim) return;
     if (!this.dragging) {
       if (Math.abs(e.clientX - this.dragStart.x) < this.minPx &&
@@ -49,6 +58,7 @@ export class ResizeDirective {
         return;
       }
       this.dragging = true;
+      this.wasDragging = true;
     }
     e.preventDefault();
     const dx = (e.clientX - this.dragStart.x) / this.startDim.x;
@@ -60,7 +70,7 @@ export class ResizeDirective {
   }
 
   @HostListener('window:mouseup', ['$event'])
-  mouseup(e: MouseEvent) {
+  windowMouseup(e: MouseEvent) {
     delete this.dragStart;
     if (this.dragging) {
       this.dragging = false;
