@@ -1,5 +1,6 @@
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from '@angular/cdk/overlay';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -16,6 +17,8 @@ import { BackupListComponent } from './component/backup-list/backup-list.compone
 import { BackupComponent } from './component/backup/backup.component';
 import { BlogEntryComponent } from './component/blog-entry/blog-entry.component';
 import { BlogComponent } from './component/blog/blog.component';
+import { ChatEntryComponent } from './component/chat-entry/chat-entry.component';
+import { ChatComponent } from './component/chat/chat.component';
 import { CommentEditComponent } from './component/comment-edit/comment-edit.component';
 import { CommentListComponent } from './component/comment-list/comment-list.component';
 import { CommentReplyComponent } from './component/comment-reply/comment-reply.component';
@@ -226,6 +229,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     PluginFormComponent,
     TemplateFormComponent,
     JsonComponent,
+    ChatComponent,
+    ChatEntryComponent,
   ],
   imports: [
     BrowserModule,
@@ -239,6 +244,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     MonacoEditorModule.forRoot(),
     DragDropModule,
     OverlayModule,
+    ScrollingModule,
   ],
   providers: [
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },

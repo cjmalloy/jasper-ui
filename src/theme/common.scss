@@ -624,3 +624,19 @@ button.backup, input.upload {
     }
   }
 }
+
+.chat {
+  .gutter {
+    opacity: 0.5;
+  }
+
+  .messages {
+    height: 1000px;
+    max-height: 80vh;
+
+    .cdk-virtual-scroll-content-wrapper {
+      display: grid;
+      grid-template-columns: min-content auto;
+    }
+  }
+}

@@ -33,7 +33,8 @@ export type RefQueryArgs = RefFilter & {
   query?: string,
   url?: string,
   search?: string,
-  modifiedAfter?: moment.Moment,
+  modifiedAfter?: string,
+  modifiedBefore?: string,
 };
 
 export type RefPageArgs = RefQueryArgs & {
@@ -57,6 +58,7 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
 export function mapRef(obj: any): Ref {
   obj.published = moment(obj.published);
   obj.created = moment(obj.created);
+  obj.modifiedString = obj.modified;
   obj.modified = moment(obj.modified);
   return obj;
 }
@@ -68,8 +70,10 @@ export function mapRefOrNull(obj: any): Ref | null {
 
 export function writeRef(ref: Partial<Ref>): Partial<Ref> {
   const result = { ...ref };
-  delete result.metadata;
-  delete result.created;
   result.published = moment(result.published);
+  result.modified = result.modifiedString as any;
+  delete result.metadata;
+  delete result.modifiedString;
+  delete result.created;
   return result;
 }

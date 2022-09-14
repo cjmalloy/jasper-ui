@@ -1,0 +1,17 @@
+<app-loading *ngIf="!messages || loadingPrev"></app-loading>
+<a *ngIf="messages && !loadingPrev" class="load-more fake-link" (click)="loadPrev()">load prev</a>
+<cdk-virtual-scroll-viewport class="messages" itemSize="18.5">
+  <app-chat-entry *cdkVirtualFor="let ref of messages" [ref]="ref"></app-chat-entry>
+</cdk-virtual-scroll-viewport>
+<div class="spacer"></div>
+<div class="input-box">
+  <input type="text"
+         placeholder="chat..."
+         size="10"
+         [(ngModel)]="addText"
+         (keydown)="$event.key === 'Enter' && add() || true">
+  <button type="button" (click)="add()">+</button>
+</div>
+<div class="list-container">
+  <app-chat-entry *ngFor="let ref of sending" [ref]="ref"></app-chat-entry>
+</div>

@@ -24,6 +24,7 @@ import { qrPlugin } from '../plugin/qr';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
 import { blogTemplate } from '../template/blog';
+import { chatTemplate } from '../template/chat';
 import { kanbanTemplate } from '../template/kanban';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
@@ -71,6 +72,7 @@ export class AdminService {
       queue: queueTemplate,
       kanban: kanbanTemplate,
       blog: blogTemplate,
+      chat: chatTemplate,
     },
   };
 

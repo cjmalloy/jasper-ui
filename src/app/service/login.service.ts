@@ -16,8 +16,8 @@ export class LoginService {
   handleHttpError(res: HttpErrorResponse) {
     if (this.store.account.signedIn && res.status === 0) {
       runInAction(() => this.store.account.authError = true);
-      return throwError({ message: 'Please log in again.' });
+      return throwError(() => ({ message: 'Please log in again.' }));
     }
-    return throwError(res);
+    return throwError(() => res);
   }
 }

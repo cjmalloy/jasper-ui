@@ -43,6 +43,9 @@
     <ng-template #special>
       <app-kanban *ngIf="store.view.kanban"
                   [tag]="store.view.tag!"></app-kanban>
+      <app-chat *ngIf="store.view.chat"
+                [query]="store.view.tag!"
+                [addTags]="['public', store.view.localTag]"></app-chat>
       <app-blog *ngIf="store.view.blog"
                 [tag]="store.view.tag!"
                 [page]="query.page"

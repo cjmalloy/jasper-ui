@@ -20,13 +20,16 @@ export interface Roles {
 
 export function mapUser(obj: any): User {
   obj.type = 'user';
+  obj.modifiedString = obj.modified;
   obj.modified = moment(obj.modified);
   return obj;
 }
 
 export function writeUser(user: Partial<User>): Partial<User> {
   const result = { ...user };
+  result.modified = result.modifiedString as any;
   delete result.type;
+  delete result.modifiedString;
   return result;
 }
 

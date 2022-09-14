@@ -22,7 +22,7 @@
           </ng-container>
           <span [title]="ref.published!.toISOString()">{{ ref.published!.fromNow() }}</span>
           <ng-container *ngIf="ref.origin">
-            on <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
+            on <a class="origin tag" [routerLink]="['/tag', ref.origin]">@{{ ref.origin }}</a>
           </ng-container>
         </div>
         <div class="actions">

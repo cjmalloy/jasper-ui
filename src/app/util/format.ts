@@ -28,7 +28,7 @@ export function hasTemplate(tags: string[], template: string) {
 }
 
 export function authors(ref: Ref) {
-  return templates(ref.tags || [], 'user').map(t => t + ref.origin);
+  return templates(ref.tags || [], 'user').map(t => t + (ref.origin ? '@' + ref.origin : ''));
 }
 
 export function webLink(ref: Ref) {

@@ -19,17 +19,15 @@ import { removeWildcard } from '../../util/tag';
   styleUrls: ['./tag.component.scss'],
 })
 export class TagPage implements OnInit, OnDestroy {
-
-  query = new QueryStore(this.refs);
-
   private disposers: IReactionDisposer[] = [];
 
   constructor(
     public admin: AdminService,
     public account: AccountService,
+    public store: Store,
+    public query: QueryStore,
     private theme: ThemeService,
     private router: Router,
-    public store: Store,
     private refs: RefService,
     private exts: ExtService,
   ) {
@@ -87,6 +85,7 @@ export class TagPage implements OnInit, OnDestroy {
     if (this.store.view.list) return true;
     if (this.store.view.graph) return true;
     if (this.store.view.kanban) return false;
+    if (this.store.view.chat) return false;
     if (this.store.view.blog) return false;
     return true;
   }

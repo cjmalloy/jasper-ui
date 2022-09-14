@@ -11,6 +11,7 @@ export interface Template extends Tag {
 
 export function mapTemplate(obj: any): Template {
   obj.type = 'template';
+  obj.modifiedString = obj.modified;
   obj.modified = moment(obj.modified);
   return obj;
 }
@@ -22,7 +23,9 @@ export function maybeTemplate(obj: any): Template | undefined {
 
 export function writeTemplate(template: Partial<Template>): Partial<Template> {
   const result = { ...template };
+  result.modified = result.modifiedString as any;
   delete result.type;
+  delete result.modifiedString;
   return result;
 }
 

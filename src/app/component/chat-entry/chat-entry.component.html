@@ -1,0 +1,57 @@
+<div *ngIf="!ref.created" class="loading-container"><app-loading></app-loading></div>
+<span *ngIf="ref.created" class="gutter" [class.deleted]="deleted">
+  <a *ngIf="ref.origin && !authors.length"
+     class="origin tag"
+     [routerLink]="['/tag', ref.origin]">
+    @{{ ref.origin }}</a>
+  <ng-container *ngFor="let user of authors">
+    <a class="user tag"
+       [routerLink]="['/tag', user]">
+      {{ user.replace('+', '').replace('user/', '') }}</a>&nbsp;
+  </ng-container>
+  <span class="timestamp" [title]="ref.modified?.toISOString()">{{ ref.modified?.fromNow() }}</span>
+  &nbsp;|&nbsp;
+</span>
+<span class="message"
+      [class.deleted]="deleted"
+      [class.sending]="!ref.created"
+      [class.deleting]="deleting"
+      [class.tagging]="tagging">
+  <a *ngIf="webLink" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
+  <span *ngIf="!webLink">{{ ref.title || ref.url }}</span>
+  <div class="actions" *ngIf="ref.created">
+    <a *ngIf="admin.status.plugins.comment"
+       [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ comments.replace(' ', '&thinsp;') }}</a>
+    <a *ngIf="!admin.status.plugins.comment"
+       [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">permalink</a>
+    <a *ngIf="!deleting && writeAccess"
+       class="fake-link"
+       (click)="deleting = true">delete</a>
+    <span *ngIf="deleting" class="delete-confirm"> are you sure?&nbsp;
+        <a class="fake-link" (click)="delete()">yes</a>&nbsp;/&nbsp;
+        <a class="fake-link" (click)="deleting = false">no</a>&nbsp;
+      </span>
+    <a *ngIf="!ref.origin && (store.account.editor || writeAccess)"
+       class="fake-link"
+       (click)="tagging = !tagging">tag</a>
+    <span *ngIf="tagging" class="inline-tagging">
+        <input #inlineTag
+               (keydown)="$event.key === 'Enter' && addInlineTag() || true"
+               type="text"
+               inputmode="email"
+               [pattern]="tagRegex"
+               autocorrect="off"
+               autocapitalize="none"
+               appAutofocus>
+        <button (click)="addInlineTag()">+</button>
+      </span>
+    <a *ngIf="!ref.origin && store.account.mod && !approved && !locked"
+       class="fake-link"
+       (click)="approve()">approve</a>
+    <span class="approved icon" *ngIf="store.account.mod && approved" title="Moderated">✔️</span>
+  </div>
+</span>
+<ng-container *ngFor="let e of serverError">
+  <span><!-- Server Error --></span>
+  <div class="error">{{ e }}</div>
+</ng-container>

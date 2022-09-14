@@ -1,0 +1,46 @@
+:host {
+  display: contents;
+  white-space: nowrap;
+}
+
+.sending {
+  opacity: 0.5;
+}
+
+.loading-container {
+  margin-top: -25px;
+  height: 40px;
+  app-loading {
+    padding: 0 4px;
+  }
+}
+
+.gutter {
+  text-align: right;
+
+  .timestamp {
+    display: none;
+  }
+  &:focus-within, &:hover {
+    .timestamp {
+      display: inline;
+    }
+  }
+}
+
+.message {
+  display: flex;
+
+  :first-child {
+    flex: 1;
+  }
+
+  .actions {
+    display: none;
+  }
+  &:focus-within, &:hover, &.deleting, &.tagging {
+    .actions {
+      display: inline;
+    }
+  }
+}

@@ -12,6 +12,7 @@ export interface Plugin extends Tag {
 
 export function mapPlugin(obj: any): Plugin {
   obj.type = 'plugin';
+  obj.modifiedString = obj.modified;
   obj.modified = moment(obj.modified);
   return obj;
 }
@@ -23,6 +24,8 @@ export function maybePlugin(obj: any): Plugin | undefined {
 
 export function writePlugin(plugin: Partial<Plugin>): Partial<Plugin> {
   const result = { ...plugin };
+  result.modified = result.modifiedString as any;
   delete result.type;
+  delete result.modifiedString;
   return result;
 }

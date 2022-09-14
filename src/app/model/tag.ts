@@ -2,6 +2,7 @@ import * as moment from 'moment';
 
 export interface HasModified {
   modified?: moment.Moment;
+  modifiedString?: string;
 }
 
 export interface HasOrigin extends HasModified {

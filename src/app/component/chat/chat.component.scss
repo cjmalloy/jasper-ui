@@ -1,0 +1,18 @@
+.input-box {
+  display: flex;
+  flex-wrap: wrap;
+
+  * {
+    margin: 4px;
+  }
+
+  input {
+    flex: 1;
+  }
+}
+
+.fake-link {
+  display: block;
+  text-align: center;
+  user-select: none;
+}

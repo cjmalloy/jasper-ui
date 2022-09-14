@@ -2,7 +2,7 @@ import { makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Ref } from '../model/ref';
-import { hasPrefix, isQuery } from '../util/tag';
+import { hasPrefix, isQuery, localTag } from '../util/tag';
 
 export class ViewStore {
 
@@ -51,6 +51,10 @@ export class ViewStore {
     return this.route.routeSnapshot?.firstChild?.params['tag'];
   }
 
+  get localTag() {
+    return localTag(this.tag);
+  }
+
   get name() {
     const title = this.ext?.name || this.ext?.tag || this.tag;
     if (title === '@*') return 'All';
@@ -96,6 +100,10 @@ export class ViewStore {
 
   get kanban() {
     return !isQuery(this.tag) && hasPrefix(this.tag, 'kanban');
+  }
+
+  get chat() {
+    return !isQuery(this.tag) && hasPrefix(this.tag, 'chat');
   }
 
   get blog() {
