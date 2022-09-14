@@ -33,7 +33,7 @@ export class BlogEntryComponent implements OnInit {
   tagRegex = TAG_REGEX_STRING;
 
   @Input()
-  blog!: Ext;
+  blog?: Ext;
 
   @ViewChild('inlineTag')
   inlineTag?: ElementRef;
@@ -170,7 +170,7 @@ export class BlogEntryComponent implements OnInit {
 
   get tags() {
     let result = interestingTags(this._ref.tags);
-    if (this.blog.config.filterTags) {
+    if (this.blog?.config.filterTags) {
       result = _.intersection(result, this.blog.config.tags || []);
     }
     return result;

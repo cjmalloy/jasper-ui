@@ -1,4 +1,4 @@
-<ng-container *ngIf="ext && page else loading">
+<ng-container *ngIf="page else loading">
   <app-blog-entry *ngFor="let ref of pinned"
                   class="pinned"
                   [ref]="ref"></app-blog-entry>
