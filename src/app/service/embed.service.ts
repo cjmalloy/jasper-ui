@@ -55,11 +55,6 @@ export class EmbedService {
       }
       return html;
     }
-    const renderImage = markdownService.renderer.image;
-    markdownService.renderer.image = (href: string | null, title: string | null, text: string) => {
-      let html = renderImage.call(markdownService.renderer, href, title, text);
-      return html.replace('<img', '<img class="md-img"');
-    }
     marked.use({ extensions: this.extensions });
   }
 
@@ -212,7 +207,7 @@ export class EmbedService {
    * @param event callback to add event handlers without memory leaks
    */
   postProcess(el: HTMLDivElement, vc: ViewContainerRef, event: (type: string, el: Element, fn: () => void) => void) {
-    const images = el.querySelectorAll<HTMLImageElement>('.md-img');
+    const images = el.querySelectorAll<HTMLImageElement>('img');
     images.forEach(t => {
       const c = vc.createComponent(EmbedComponent);
       c.instance.ref = { url: t.src };
