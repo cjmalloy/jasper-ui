@@ -1,7 +1,7 @@
 <div class="row">
   <div class="stack">
     <h2 class="link">
-      <a *ngIf="webLink" [href]="ref.url">{{ ref.title || ref.url }}</a>
+      <a *ngIf="webLink" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
       <span *ngIf="!webLink">{{ ref.title || ref.url }}</span>
     </h2>
     <div class="link-below">

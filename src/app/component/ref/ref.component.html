@@ -11,7 +11,7 @@
   </ng-container>
   <div class="stack">
     <div class="link">
-      <a *ngIf="webLink" [href]="ref.url">{{ ref.title || ref.url }}</a>
+      <a *ngIf="webLink" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
       <a *ngIf="!webLink && admin.status.plugins.comment" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
       <a *ngIf="!webLink && !admin.status.plugins.comment" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
       <span class="host">({{ host }})</span>
