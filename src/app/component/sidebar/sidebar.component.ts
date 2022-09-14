@@ -7,7 +7,7 @@ import { AdminService } from '../../service/admin.service';
 import { AuthService } from '../../service/auth.service';
 import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
-import { localTag, prefix, removeWildcard } from '../../util/tag';
+import { breadcrumbs, localTag, prefix, removeWildcard } from '../../util/tag';
 
 @Component({
   selector: 'app-sidebar',
@@ -84,6 +84,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   set expanded(value: boolean) {
     localStorage.setItem('sidebar-expanded', ""+value);
     this._expanded = value;
+  }
+
+  get breadcrumbs() {
+    return breadcrumbs(this.tag!);
   }
 
   ngOnInit(): void {

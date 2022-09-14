@@ -139,6 +139,13 @@ html, body {
     width: 256px;
   }
 
+  .breadcrumbs {
+    text-align: center;
+    * {
+      margin: 2px;
+    }
+  }
+
   .submit-button {
     white-space: nowrap;
     text-transform: capitalize;

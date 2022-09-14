@@ -64,6 +64,11 @@ export function localTag(tag: string) {
   return tag.substring(0, tag.indexOf('@'));
 }
 
+export function tagOrigin(tag: string) {
+  if (!tag.includes('@')) return '';
+  return tag.substring(tag.indexOf('@'));
+}
+
 export function prefix(prefix: string, tag: string) {
   if (tag.startsWith('_')) {
     return prefix + tag.substring(1);
@@ -76,6 +81,29 @@ export function hasPrefix(tag?: string, prefix?: string) {
   return tag.startsWith(prefix) ||
     tag.startsWith('_' + prefix) ||
     tag.startsWith('+' + prefix);
+}
+
+export type Crumb = {text: string, tag?: string};
+export function breadcrumbs(tag: string) {
+  if (!tag) return [];
+  return tag.split(/([:|()])/g).flatMap(t => {
+    if (/[:|()]/.test(t)) return [{ text: t }];
+    const htags: Crumb[] = localTag(t).split(/(\/)/g).map(t => ({ text: t }));
+    for (let i = 0; i < htags.length; i++) {
+      const previous = i > 1 ? htags[i-2].tag + '/' : '';
+      if (htags[i].text !== '/') {
+        htags[i].tag = previous + htags[i].text;
+      }
+    }
+    const origin = tagOrigin(t);
+    if (origin) {
+      for (const t of htags) {
+        if (t.tag) t.tag += origin;
+      }
+      htags.push({text: origin, tag: origin });
+    }
+    return htags;
+  });
 }
 
 export function isQuery(query?: string) {
