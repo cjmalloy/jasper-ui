@@ -27,13 +27,15 @@ jobs:
           path: "cypress/results/results-*.xml"
           reporter: java-junit
 
-      - uses: actions/upload-artifact@v2
+      - name: Publish Screenshots
+        uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: cypress-screenshots
           path: cypress/screenshots
 
-      - uses: actions/upload-artifact@v2
+      - name: Publish Videos
+        uses: actions/upload-artifact@v2
         if: always()
         with:
           name: cypress-videos
