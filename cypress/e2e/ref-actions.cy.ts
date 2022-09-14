@@ -1,7 +1,7 @@
 describe('Ref Actions', () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Home');
+    cy.contains('Home', { timeout: 30000 });
   });
   it('creates a ref', () => {
     cy.contains('Submit Text Post').click();
@@ -13,11 +13,11 @@ describe('Ref Actions', () => {
   });
   it('shows responses', () => {
     cy.get('.actions a').contains('uncited').click();
-    cy.title().should('equals', 'DEBUG ± Responses: Title');
+    cy.title().should('equals', 'CYPRESS ± Responses: Title');
   });
   it('shows sources', () => {
     cy.get('.actions a').contains('unsourced').click();
-    cy.title().should('equals', 'DEBUG ± Sources: Title');
+    cy.title().should('equals', 'CYPRESS ± Sources: Title');
   });
   it('edits comments field', () => {
     cy.get('.actions a').contains('edit').click();
@@ -45,11 +45,11 @@ describe('Ref Actions', () => {
   });
   it('shows reply responses', () => {
     cy.get('.actions a').contains('uncited').click();
-    cy.title().should('equals', 'DEBUG ± Responses: Reply');
+    cy.title().should('equals', 'CYPRESS ± Responses: Reply');
   });
   it('shows reply sources', () => {
     cy.get('.actions a').contains('1 source').click();
-    cy.title().should('equals', 'DEBUG ± Sources: Reply');
+    cy.title().should('equals', 'CYPRESS ± Sources: Reply');
     cy.get('.ref-list .ref .link a').contains('Title');
   });
   it('should delete reply', () => {

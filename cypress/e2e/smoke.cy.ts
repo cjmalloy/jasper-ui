@@ -1,7 +1,7 @@
 describe('Smoke Tests', () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Home');
+    cy.contains('Home', { timeout: 30000 });
   });
   it('creates a ref', () => {
     cy.contains('Submit Link').click();

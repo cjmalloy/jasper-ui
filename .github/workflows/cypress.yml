@@ -9,26 +9,15 @@ on:
 jobs:
   cypress-run:
     runs-on: ubuntu-latest
-    # Docker image with Cypress pre-installed
-    # https://github.com/cypress-io/cypress-docker-images/tree/master/included
-    container: cypress/included:10.7.0
     steps:
-      - name: Checkout 🛎
+      - name: Checkout
         uses: actions/checkout@v1
 
-      - name: Start containers
-        run: docker compose --profile repl up -d --build
-
-      # normally we would NOT need to install NPM dependencies
-      # but in this repo we are using additional plugins listed in package.json
-      # thus we need to install them
-      - name: Install dependencies 📦
-        # we could simply run "npm ci" but that would not cache dependencies
-        # thus we can use this 3rd party action
+      - name: Install dependencies
         uses: bahmutov/npm-install@v1
 
-      - name: Run tests 🧪
-        run: cypress run --reporter junit --config baseUrl=http://localhost:8082
+      - name: Start containers
+        run: docker compose -f "cypress/docker-compose.yaml" up --build --exit-code-from cypress
 
       - name: Publish Unit Test Results
         uses: dorny/test-reporter@v1
@@ -38,6 +27,14 @@ jobs:
           path: "cypress/results/results-*.xml"
           reporter: java-junit
 
-      - name: Stop containers
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+
+      - uses: actions/upload-artifact@v2
         if: always()
-        run: docker-compose --profile repl -f "docker-compose.yml" down
+        with:
+          name: cypress-videos
+          path: cypress/videos

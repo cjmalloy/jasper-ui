@@ -1,7 +1,7 @@
 describe('Graph', () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Home');
+    cy.contains('Home', { timeout: 30000 });
   });
   it('turn on graphing', () => {
     cy.visit('/?debug=ADMIN');
@@ -21,7 +21,7 @@ describe('Graph', () => {
   });
   it('shows graph', () => {
     cy.get('.actions a').contains('graph').click();
-    cy.title().should('equals', 'DEBUG ± Graph: Title');
+    cy.title().should('equals', 'CYPRESS ± Graph: Title');
     cy.get('figure').contains('Title');
   });
   it('creates reply', () => {
@@ -36,7 +36,7 @@ describe('Graph', () => {
   });
   it('graphs reply', () => {
     cy.get('.actions a').contains('graph').click();
-    cy.title().should('equals', 'DEBUG ± Graph: Reply');
+    cy.title().should('equals', 'CYPRESS ± Graph: Reply');
     cy.contains('load more').click();
     cy.get('figure').contains('Title');
     cy.get('figure').contains('Reply');

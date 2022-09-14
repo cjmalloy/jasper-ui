@@ -1,16 +1,29 @@
 services:
+  cypress:
+    image: cypress/included:10.7.0
+    depends_on:
+      - client
+      - web
+    network_mode: host
+    environment:
+      CYPRESS_baseUrl: http://localhost:8082
+      CYPRESS_reporter: junit
+#      ELECTRON_ENABLE_LOGGING: 1
+    working_dir: /e2e
+    volumes:
+      - ../:/e2e
   client:
-    build: .
+    build: ..
     ports:
       - 8082:80
     environment:
       JASPER_API: //localhost:8081
       CSP_DEFAULT_SRC: http://localhost:8081
-      JASPER_TITLE: DEBUG
+      JASPER_TITLE: CYPRESS
+    depends_on:
+      - web
   web:
     image: ghcr.io/cjmalloy/jasper
-    profiles:
-      - server
     ports:
       - 8081:8081
     environment:
@@ -22,8 +35,6 @@ services:
       - db
   db:
     image: postgres
-    profiles:
-      - server
     environment:
       POSTGRES_USER: jasper
       POSTGRES_PASSWORD: jasper
