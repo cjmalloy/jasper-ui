@@ -6,7 +6,7 @@ describe('Smoke Tests', () => {
   it('creates a ref', () => {
     cy.contains('Submit Link').click();
     cy.get('#url').type('https://www.jasper-kms.info/');
-    cy.get('#scrape').click();
+    cy.get('#scrape').uncheck();
     cy.contains('Next').click();
     cy.get('#title').type('Title');
     cy.get('button').contains('Submit').click();
