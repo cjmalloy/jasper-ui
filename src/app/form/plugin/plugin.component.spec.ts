@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { PluginFormComponent } from './plugin.component';
 
@@ -14,6 +15,14 @@ describe('PluginFormComponent', () => {
 
     fixture = TestBed.createComponent(PluginFormComponent);
     component = fixture.componentInstance;
+    component.group = new UntypedFormGroup({
+      tag: new UntypedFormControl(),
+      name: new UntypedFormControl(),
+      generateMetadata: new UntypedFormControl(),
+      config: new UntypedFormControl(),
+      defaults: new UntypedFormControl(),
+      schema: new UntypedFormControl(),
+    });
     fixture.detectChanges();
   });
 

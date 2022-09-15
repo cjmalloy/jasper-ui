@@ -1,4 +1,6 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { JsonComponent } from './json.component';
 
@@ -8,7 +10,10 @@ describe('JsonComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ JsonComponent ]
+      declarations: [ JsonComponent ],
+      imports: [
+        RouterTestingModule,
+      ],
     })
     .compileComponents();
 

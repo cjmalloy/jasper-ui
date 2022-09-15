@@ -2,6 +2,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
+import { PluginsFormComponent } from '../plugins/plugins.component';
 
 import { RefFormComponent } from './ref.component';
 
@@ -11,12 +12,17 @@ describe('RefFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ RefFormComponent ],
+      declarations: [
+        RefFormComponent,
+      ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
       ],
+      providers: [
+        PluginsFormComponent,
+      ]
     })
     .compileComponents();
   });
