@@ -1,14 +1,25 @@
-import { AfterViewInit, Directive, Inject, Input, OnDestroy, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, ComponentRef, Directive, Inject, Input, OnDestroy, ViewContainerRef } from '@angular/core';
+import * as _ from 'lodash-es';
 import { Subject } from 'rxjs';
+import { EmbedComponent } from '../component/embed/embed.component';
+import { RefListComponent } from '../component/ref-list/ref-list.component';
+import { RefComponent } from '../component/ref/ref.component';
+import { Page } from '../model/page';
+import { Ref } from '../model/ref';
+import { isAudio } from '../plugin/audio';
+import { isKnownEmbed } from '../plugin/embed';
+import { isImage } from '../plugin/image';
+import { isVideo } from '../plugin/video';
 import { AdminService } from '../service/admin.service';
 import { RefService } from '../service/api/ref.service';
 import { EditorService } from '../service/editor.service';
 import { EmbedService } from '../service/embed.service';
+import { Embed } from '../util/embed';
 
 @Directive({
   selector: '[appMdPost]'
 })
-export class MdPostDirective implements AfterViewInit, OnDestroy {
+export class MdPostDirective implements AfterViewInit, OnDestroy, Embed {
 
   @Input("appMdPost")
   load?: Subject<void> | string;
@@ -43,7 +54,41 @@ export class MdPostDirective implements AfterViewInit, OnDestroy {
   postProcess() {
     this.embeds.postProcess(
       <HTMLDivElement>this.viewContainerRef.element.nativeElement,
-      this.viewContainerRef,
+      this,
       (type, el, fn) => this.event(type, el, fn))
+  }
+
+  createEmbed(ref: Ref | string, expandPlugins: string[] = []): ComponentRef<EmbedComponent> {
+    const c = this.viewContainerRef.createComponent(EmbedComponent);
+    if (_.isString(ref)) {
+      const url = ref as string;
+      ref = { url };
+      if (isImage(url)) {
+        expandPlugins = ['plugin/image'];
+      } else if (isVideo(url)) {
+        expandPlugins = ['plugin/video'];
+      }  else if (isAudio(url)) {
+        expandPlugins = ['plugin/audio'];
+      } else if (isKnownEmbed(url)) {
+        expandPlugins = ['plugin/embed'];
+      }
+    }
+    c.instance.ref = ref;
+    c.instance.expandPlugins = expandPlugins;
+    return c;
+  }
+
+  createRef(ref: Ref, showToggle?: boolean): ComponentRef<RefComponent> {
+    const c = this.viewContainerRef.createComponent(RefComponent);
+    c.instance.ref = ref;
+    c.instance.showToggle = !!showToggle;
+    return c;
+  }
+
+  createRefList(page: Page<Ref>, pageControls?: boolean): ComponentRef<RefListComponent> {
+    const c = this.viewContainerRef.createComponent(RefListComponent);
+    c.instance.page = page;
+    c.instance.pageControls = !!pageControls;
+    return c;
   }
 }

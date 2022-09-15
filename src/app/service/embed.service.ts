@@ -1,18 +1,16 @@
-import { Injectable, ViewContainerRef } from '@angular/core';
+import { Injectable } from '@angular/core';
 import * as _ from 'lodash-es';
 import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
 import { catchError, map, Observable, of } from 'rxjs';
-import { EmbedComponent } from '../component/embed/embed.component';
-import { RefListComponent } from '../component/ref-list/ref-list.component';
-import { RefComponent } from '../component/ref/ref.component';
 import { isAudio } from '../plugin/audio';
 import { isKnownEmbed } from '../plugin/embed';
 import { isImage } from '../plugin/image';
 import { isKnownThumbnail } from '../plugin/thumbnail';
 import { isVideo } from '../plugin/video';
 import { Store } from '../store/store';
+import { Embed } from '../util/embed';
 import { wikiUriFormat } from '../util/format';
 import { bitchuteHosts, getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
 import { AdminService } from './admin.service';
@@ -201,17 +199,14 @@ export class EmbedService {
 
   /**
    * Post process a markdown render.
-   * @param ref ref to grab sources and alternate URLs from
    * @param el the div containing the rendered markdown
-   * @param vc injector reference to create new components with
+   * @param embed interface that injects components
    * @param event callback to add event handlers without memory leaks
    */
-  postProcess(el: HTMLDivElement, vc: ViewContainerRef, event: (type: string, el: Element, fn: () => void) => void) {
+  postProcess(el: HTMLDivElement, embed: Embed, event: (type: string, el: Element, fn: () => void) => void) {
     const images = el.querySelectorAll<HTMLImageElement>('img');
     images.forEach(t => {
-      const c = vc.createComponent(EmbedComponent);
-      c.instance.ref = { url: t.src };
-      c.instance.expandPlugins = ['plugin/image'];
+      const c = embed.createEmbed({ url: t.src }, ['plugin/image']);
       t.parentNode?.insertBefore(c.location.nativeElement, t);
       t.remove();
     });
@@ -222,9 +217,7 @@ export class EmbedService {
         catchError(() => of(null)),
       ).subscribe(ref => {
         if (ref) {
-          const c = vc.createComponent(RefComponent);
-          c.instance.ref = ref;
-          c.instance.showToggle = true;
+          const c = embed.createRef(ref, true);
           t.parentNode?.insertBefore(c.location.nativeElement, t);
         } else {
           el = document.createElement('div');
@@ -243,13 +236,11 @@ export class EmbedService {
         if (ref) {
           const expandPlugins = this.admin.getEmbeds(ref);
           if (ref.comment || expandPlugins.length) {
-            const c = vc.createComponent(EmbedComponent);
-            c.instance.ref = ref;
-            c.instance.expandPlugins = expandPlugins;
+            const c = embed.createEmbed(ref, expandPlugins);
             t.parentNode?.insertBefore(c.location.nativeElement, t);
           }
         } else if (isKnownEmbed(url) || isImage(url) || isVideo(url) || isAudio(url)) {
-          const c = this.createEmbed(url, vc);
+          const c = embed.createEmbed(url);
           t.parentNode?.insertBefore(c.location.nativeElement, t);
         } else {
           el = document.createElement('div');
@@ -263,9 +254,7 @@ export class EmbedService {
     inlineQueries.forEach(t => {
       const [query, sort] = this.editor.getQueryUrl(t.innerText);
       this.refs.page({ query, sort: [sort] }).subscribe(page => {
-        const c = vc.createComponent(RefListComponent);
-        c.instance.page = page;
-        c.instance.pageControls = false;
+        const c = embed.createRefList(page);
         t.parentNode?.insertBefore(c.location.nativeElement, t);
         t.remove();
       });
@@ -301,9 +290,7 @@ export class EmbedService {
               catchError(() => of(null)),
             ).subscribe(ref => {
               if (ref) {
-                const c = vc.createComponent(RefComponent);
-                c.instance.ref = ref;
-                c.instance.showToggle = true;
+                const c = embed.createRef(ref, true);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               } else {
                 el = document.createElement('div');
@@ -317,9 +304,7 @@ export class EmbedService {
             const [query, sort] = this.editor.getQueryUrl(url);
             // @ts-ignore
             this.refs.page({ query, sort: [sort], ...Object.fromEntries(new URL(url).searchParams) }).subscribe(page => {
-              const c = vc.createComponent(RefListComponent);
-              c.instance.page = page;
-              c.instance.pageControls = false;
+              const c = embed.createRefList(page);
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
               t.expanded = !t.expanded;
@@ -357,7 +342,7 @@ export class EmbedService {
           // TODO: Don't use title to store url
           const url = t.title!;
           if (isKnownEmbed(url) || isImage(url) || isVideo(url) || isAudio(url)) {
-            const c = this.createEmbed(url, vc);
+            const c = embed.createEmbed(url);
             t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
             // @ts-ignore
             t.expanded = !t.expanded;
@@ -366,9 +351,7 @@ export class EmbedService {
             if (type === 'tag') {
               const [query, sort] = this.editor.getQueryUrl(url);
               this.refs.page({query, sort: [sort]}).subscribe(page => {
-                const c = vc.createComponent(RefListComponent);
-                c.instance.page = page;
-                c.instance.pageControls = false;
+                const c = embed.createRefList(page);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                 // @ts-ignore
                 t.expanded = !t.expanded;
@@ -380,9 +363,7 @@ export class EmbedService {
                 if (ref) {
                   const expandPlugins = this.admin.getEmbeds(ref);
                   if (ref.comment || expandPlugins.length) {
-                    const c = vc.createComponent(EmbedComponent);
-                    c.instance.ref = ref;
-                    c.instance.expandPlugins = expandPlugins;
+                    const c = embed.createEmbed(ref, expandPlugins);
                     t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                   } else {
                     el = document.createElement('div');
@@ -402,21 +383,6 @@ export class EmbedService {
         }
       });
     });
-  }
-
-  private createEmbed(url: string, vc: ViewContainerRef) {
-    const result = vc.createComponent(EmbedComponent);
-    result.instance.ref = { url };
-    if (isImage(url)) {
-      result.instance.expandPlugins = ['plugin/image'];
-    } else if (isVideo(url)) {
-      result.instance.expandPlugins = ['plugin/video'];
-    }  else if (isAudio(url)) {
-      result.instance.expandPlugins = ['plugin/audio'];
-    } else if (isKnownEmbed(url)) {
-      result.instance.expandPlugins = ['plugin/embed'];
-    }
-    return result;
   }
 
   private get twitterTheme() {
