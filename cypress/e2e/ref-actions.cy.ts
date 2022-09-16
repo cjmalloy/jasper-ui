@@ -13,11 +13,11 @@ describe('Ref Actions', () => {
   });
   it('shows responses', () => {
     cy.get('.actions a').contains('uncited').click();
-    cy.title().should('equals', 'CYPRESS ± Responses: Title');
+    cy.title().should('includes', 'Responses: Title');
   });
   it('shows sources', () => {
     cy.get('.actions a').contains('unsourced').click();
-    cy.title().should('equals', 'CYPRESS ± Sources: Title');
+    cy.title().should('includes', 'Sources: Title');
   });
   it('edits comments field', () => {
     cy.get('.actions a').contains('edit').click();
@@ -45,11 +45,11 @@ describe('Ref Actions', () => {
   });
   it('shows reply responses', () => {
     cy.get('.actions a').contains('uncited').click();
-    cy.title().should('equals', 'CYPRESS ± Responses: Reply');
+    cy.title().should('includes', 'Responses: Reply');
   });
   it('shows reply sources', () => {
     cy.get('.actions a').contains('1 source').click();
-    cy.title().should('equals', 'CYPRESS ± Sources: Reply');
+    cy.title().should('includes', 'Sources: Reply');
     cy.get('.ref-list .ref .link a').contains('Title');
   });
   it('should delete reply', () => {

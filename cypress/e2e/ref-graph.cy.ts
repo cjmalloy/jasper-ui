@@ -21,7 +21,7 @@ describe('Graph', () => {
   });
   it('shows graph', () => {
     cy.get('.actions a').contains('graph').click();
-    cy.title().should('equals', 'CYPRESS ± Graph: Title');
+    cy.title().should('include', 'Graph: Title');
     cy.get('figure').contains('Title');
   });
   it('creates reply', () => {
@@ -36,7 +36,7 @@ describe('Graph', () => {
   });
   it('graphs reply', () => {
     cy.get('.actions a').contains('graph').click();
-    cy.title().should('equals', 'CYPRESS ± Graph: Reply');
+    cy.title().should('include', 'Graph: Reply');
     cy.contains('load more').click();
     cy.get('figure').contains('Title');
     cy.get('figure').contains('Reply');

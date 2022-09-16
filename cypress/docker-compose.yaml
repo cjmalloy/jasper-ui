@@ -1,6 +1,8 @@
 services:
   cypress:
     image: cypress/included:10.7.0
+    profiles:
+      - ci
     depends_on:
       - client
       - web

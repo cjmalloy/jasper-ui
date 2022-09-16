@@ -1,4 +1,10 @@
 node_modules/
+dist/
+cypress/
 .idea
 .angular
 .vscode
+.github
+quickstart
+cypress.config.ts
+docker-compose.yaml

@@ -17,7 +17,7 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Start containers
-        run: docker compose -f "cypress/docker-compose.yaml" up --build --exit-code-from cypress
+        run: npm run cy:ci
 
       - name: Publish Unit Test Results
         uses: dorny/test-reporter@v1.5.0
