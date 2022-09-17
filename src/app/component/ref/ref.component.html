@@ -68,7 +68,7 @@
             </ng-container>
           </ng-container>
           <ng-container *ngIf="ref.origin">
-            on <a class="origin tag" [routerLink]="['/tag', ref.origin]">@{{ ref.origin }}</a>
+            on <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
           </ng-container>
           <ng-container *ngIf="addTags?.length">
             tagging refs
