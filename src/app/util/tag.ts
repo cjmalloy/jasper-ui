@@ -84,25 +84,25 @@ export function hasPrefix(tag?: string, prefix?: string) {
 }
 
 export type Crumb = {text: string, tag?: string};
-export function breadcrumbs(tag: string) {
+export function breadcrumbs(tag: string): Crumb[] {
   if (!tag) return [];
   return tag.split(/([:|()])/g).flatMap(t => {
     if (/[:|()]/.test(t)) return [{ text: t }];
-    const htags: Crumb[] = localTag(t).split(/(\/)/g).map(t => ({ text: t }));
-    for (let i = 0; i < htags.length; i++) {
-      const previous = i > 1 ? htags[i-2].tag + '/' : '';
-      if (htags[i].text !== '/') {
-        htags[i].tag = previous + htags[i].text;
+    const crumbs: Crumb[] = localTag(t).split(/(\/)/g).map(t => ({ text: t }));
+    for (let i = 0; i < crumbs.length; i++) {
+      const previous = i > 1 ? crumbs[i-2].tag + '/' : '';
+      if (crumbs[i].text !== '/') {
+        crumbs[i].tag = previous + crumbs[i].text;
       }
     }
     const origin = tagOrigin(t);
     if (origin) {
-      for (const t of htags) {
+      for (const t of crumbs) {
         if (t.tag) t.tag += origin;
       }
-      htags.push({text: origin, tag: origin });
+      crumbs.push({text: origin, tag: origin });
     }
-    return htags;
+    return crumbs;
   });
 }
 
