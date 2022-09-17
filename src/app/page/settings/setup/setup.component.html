@@ -12,8 +12,8 @@
   <span>Templates:</span>
   <div formGroupName="templates">
     <div *ngFor="let template of admin.def.templates | keyvalue">
-      <input id="plugin-{{ template.key }}" type="checkbox" [formControlName]="$any(template.key)">
-      <label for="plugin-{{ template.key }}">{{ template.value.name || template.key }}</label>
+      <input id="template-{{ template.key }}" type="checkbox" [formControlName]="$any(template.key)">
+      <label for="template-{{ template.key }}">{{ template.value.name || template.key }}</label>
     </div>
   </div>
 
