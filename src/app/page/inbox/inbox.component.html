@@ -1,7 +1,9 @@
 <div class="tabs">
   <h5>Inbox</h5>
   <a routerLink="./all" routerLinkActive="current-tab">all</a>
-  <a routerLink="./unread" routerLinkActive="current-tab">unread</a>
+  <ng-container *ngIf="admin.status.templates.user">
+    <a routerLink="./unread" routerLinkActive="current-tab">unread</a>
+  </ng-container>
   <ng-container *ngIf="admin.status.plugins.invoice">
     <a routerLink="./invoices" routerLinkActive="current-tab">invoices</a>
   </ng-container>

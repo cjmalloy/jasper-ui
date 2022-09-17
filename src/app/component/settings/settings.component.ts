@@ -18,7 +18,7 @@ export class SettingsComponent implements OnInit {
     public store: Store,
     private account: AccountService,
   ) {
-    if (admin.status.plugins.inbox && store.account.signedIn) {
+    if (admin.status.templates.user && admin.status.plugins.inbox && store.account.signedIn) {
       account.checkNotifications();
     }
   }
