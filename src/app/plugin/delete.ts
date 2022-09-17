@@ -15,5 +15,6 @@ export function deleteNotice(ref: Ref) {
     url: ref.url,
     origin: ref.origin,
     tags: ['plugin/delete', 'internal'],
+    modifiedString: ref.modifiedString,
   };
 }
