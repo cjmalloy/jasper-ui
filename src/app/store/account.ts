@@ -46,10 +46,20 @@ export class AccountStore {
     return this.user?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox'));
   }
 
+  get outboxes() {
+    return this.user?.readAccess?.filter(t => hasPrefix(t, 'plugin/outbox'));
+  }
+
   get notificationsQuery() {
     if (!this.signedIn) return undefined;
-    if (!this.modmail?.length) return this.mailbox;
-    return this.mailbox + '|' + this.modmail!.join('|');
+    let result = this.mailbox;
+    if (this.modmail?.length) {
+      result += '|' + this.modmail!.join('|');
+    }
+    if (this.outboxes?.length) {
+      result += '|' + this.outboxes!.join('|');
+    }
+    return result;
   }
 
   get subscriptionQuery() {

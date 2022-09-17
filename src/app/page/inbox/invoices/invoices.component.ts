@@ -32,7 +32,7 @@ export class InboxInvoicesPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        this.store.account.mailbox + ':plugin/invoice',
+        this.store.account.notificationsQuery + ':plugin/invoice',
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,
