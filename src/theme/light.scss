@@ -29,7 +29,7 @@ body.light-theme {
     color: blue;
   }
 
-  :active {
+  a:active {
     color: $text;
   }
 
@@ -68,7 +68,7 @@ body.light-theme {
     background-color: $bg;
     border-bottom: 1px solid black;
 
-    :link, :visited, :active {
+    :link, :visited, a:active {
       color: $text;
     }
 
@@ -211,12 +211,12 @@ body.light-theme {
   .info {
     color: $info;
 
-    :link, :visited, :active {
+    :link, :visited, a:active {
       color: $tag;
     }
 
     .collapsed {
-      :link, :visited, :active {
+      :link, :visited, a:active {
         color: $info;
       }
     }
@@ -227,7 +227,7 @@ body.light-theme {
   }
 
   .actions {
-    :link, :visited, :active, .fake-link {
+    :link, :visited, a:active, .fake-link {
       color: $info;
     }
     input:invalid {

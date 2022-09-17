@@ -31,7 +31,7 @@ body.dark-theme {
     color: #c66acb;
   }
 
-  :active {
+  a:active {
     color: $text;
   }
 
@@ -67,7 +67,7 @@ body.dark-theme {
     background-color: $bg;
     border-bottom: 1px solid black;
 
-    :link, :visited, :active {
+    :link, :visited, a:active {
       color: $text;
     }
 
@@ -221,12 +221,12 @@ body.dark-theme {
   .info {
     color: $info;
 
-    :link, :visited, :active {
+    :link, :visited, a:active {
       color: $tag;
     }
 
     .collapsed {
-      :link, :visited, :active {
+      :link, :visited, a:active {
         color: $info;
       }
     }
@@ -237,7 +237,7 @@ body.dark-theme {
   }
 
   .actions {
-    :link, :visited, :active, .fake-link {
+    :link, :visited, a:active, .fake-link {
       color: $info;
     }
     input:invalid {
