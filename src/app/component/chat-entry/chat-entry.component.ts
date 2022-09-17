@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { deleteNotice } from '../../plugin/delete';
@@ -8,7 +8,7 @@ import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthService } from '../../service/auth.service';
 import { Store } from '../../store/store';
-import { authors, TAG_REGEX_STRING, webLink } from '../../util/format';
+import { authors, TAGS_REGEX, webLink } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag } from '../../util/tag';
 
@@ -20,7 +20,7 @@ import { hasTag } from '../../util/tag';
 export class ChatEntryComponent {
   @HostBinding('class') css = 'chat-entry';
   @HostBinding('attr.tabindex') tabIndex = 0;
-  tagRegex = TAG_REGEX_STRING;
+  tagRegex = TAGS_REGEX.source;
 
   _ref!: Ref;
 

@@ -4,12 +4,12 @@ import * as moment from 'moment';
 import { Subject, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
-import { getInbox } from '../../plugin/inbox';
+import { getMailbox } from '../../plugin/mailbox';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
-import { getNotifications, getTags } from '../../util/editor';
+import { getMailboxes, getTags } from '../../util/editor';
 import { hasTag, removeTag } from '../../util/tag';
 
 @Component({
@@ -77,7 +77,7 @@ export class CommentReplyComponent implements AfterViewInit {
         ...this.editor.getSources(value),
       ]),
       alternateUrls: this.editor.getAlts(value),
-      tags: removeTag(getInbox(this.store.account.tag), _.uniq([
+      tags: removeTag(getMailbox(this.store.account.tag), _.uniq([
         ...this.publicTag,
         'internal',
         'plugin/comment',
@@ -85,7 +85,7 @@ export class CommentReplyComponent implements AfterViewInit {
         ...this.tags!,
         ...this.plugins,
         ...getTags(value),
-        ...getNotifications(value),
+        ...getMailboxes(value),
       ])),
       published: moment(),
     }).pipe(

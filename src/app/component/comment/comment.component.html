@@ -87,7 +87,7 @@
                    [top]="top"
                    [showCancel]="true"
                    [sources]="[ref.url]"
-                   [tags]="inboxes"
+                   [tags]="mailboxes"
                    [newComments$]="newComments$"></app-comment-reply>
 <span class="fake-link load-more"
       *ngIf="!collapsed && context < maxContext && depth === 0 && ref.metadata!.plugins['plugin/comment'].length > 0"

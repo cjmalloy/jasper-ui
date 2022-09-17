@@ -62,7 +62,7 @@ export class EmbedService {
       level: 'inline',
       start: (src: string) => src.match(/[+_]/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^([+_]user\/[a-z]+(\/[a-z]+)*)/;
+        const rule = /^([+_]user\/[a-z]+([./][a-z]+)*(@[a-z]+(\.[a-z])*)?)/;
         const match = rule.exec(src);
         if (match) {
           const text = match[0]
@@ -86,7 +86,7 @@ export class EmbedService {
       level: 'inline',
       start: (src: string) => src.match(/#/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^#([a-z]+(\/[a-z]+)*)/;
+        const rule = /^#([a-z]+([./][a-z]+)*)/;
         const match = rule.exec(src);
         if (match) {
           const text = match[0];

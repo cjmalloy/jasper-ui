@@ -6,7 +6,7 @@ import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { EditorService } from '../../service/editor.service';
-import { getIfNew, getNotifications, getTags } from '../../util/editor';
+import { getIfNew, getMailboxes, getTags } from '../../util/editor';
 import { printError } from '../../util/http';
 import { hasTag } from '../../util/tag';
 
@@ -58,7 +58,7 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
   get patchTags() {
     return getIfNew([
       ...getTags(this.editValue),
-      ...getNotifications(this.editValue),
+      ...getMailboxes(this.editValue),
       ...this.plugins],
       this.ref.tags);
   }

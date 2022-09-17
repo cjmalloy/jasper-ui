@@ -14,9 +14,9 @@ import { emojiPlugin } from '../plugin/emoji';
 import { feedPlugin } from '../plugin/feed';
 import { graphPlugin } from '../plugin/graph';
 import { imagePlugin } from '../plugin/image';
-import { inboxPlugin } from '../plugin/inbox';
 import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
 import { latexPlugin } from '../plugin/latex';
+import { inboxPlugin, outboxPlugin } from '../plugin/mailbox';
 import { originPlugin } from '../plugin/origin';
 import { pdfPlugin } from '../plugin/pdf';
 import { personPlugin } from '../plugin/person';
@@ -48,6 +48,7 @@ export class AdminService {
       feed: feedPlugin,
       delete: deletePlugin,
       inbox: inboxPlugin,
+      outbox: outboxPlugin,
       comment: commentPlugin,
       thumbnail: thumbnailPlugin,
       pdf: pdfPlugin,

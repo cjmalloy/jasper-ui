@@ -17,7 +17,7 @@ import { AuthService } from '../../service/auth.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
-import { authors, interestingTags, TAG_REGEX_STRING, urlSummary, webLink } from '../../util/format';
+import { authors, interestingTags, TAGS_REGEX, urlSummary, webLink } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag } from '../../util/tag';
 
@@ -29,7 +29,7 @@ import { hasTag } from '../../util/tag';
 export class RefComponent implements OnInit {
   @HostBinding('class') css = 'ref list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
-  tagRegex = TAG_REGEX_STRING;
+  tagRegex = TAGS_REGEX.source;
 
   @Input()
   expanded = false;
@@ -228,7 +228,7 @@ export class RefComponent implements OnInit {
   }
 
   get isRecipient() {
-    return hasTag(this.store.account.inbox, this._ref);
+    return hasTag(this.store.account.mailbox, this._ref);
   }
 
   get authors() {

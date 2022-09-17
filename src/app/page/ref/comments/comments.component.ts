@@ -3,7 +3,7 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
 import { filter, map, startWith, Subject, switchMap } from 'rxjs';
 import { Ref } from '../../../model/ref';
-import { inboxes } from '../../../plugin/inbox';
+import { mailboxes } from '../../../plugin/mailbox';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 
@@ -50,7 +50,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
     return this.store.view.depth || 7;
   }
 
-  inboxes(ref: Ref) {
-    return inboxes(ref, this.store.account.tag);
+  mailboxes(ref: Ref) {
+    return mailboxes(ref, this.store.account.tag);
   }
 }

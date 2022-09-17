@@ -3,7 +3,7 @@
   <ng-container *ngIf="store.view.ref; else loading">
     <app-comment-reply [top]="store.view.ref"
                        [sources]="[store.view.ref.url]"
-                       [tags]="inboxes(store.view.ref)"
+                       [tags]="mailboxes(store.view.ref)"
                        [newComments$]="newComments$"></app-comment-reply>
     <app-comment-list [top]="store.view.ref"
                       [sort]="store.view.sort"

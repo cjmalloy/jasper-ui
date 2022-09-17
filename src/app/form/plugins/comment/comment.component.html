@@ -2,10 +2,12 @@
   <label>Comment</label>
   <div class="form" [formGroup]="plugin">
     <label for="{{fieldName}}-deleted">Deleted:</label>
-    <input id="{{fieldName}}-deleted"
-           type="checkbox"
-           autocorrect="off"
-           autocapitalize="none"
-           formControlName="deleted">
+    <div>
+      <input id="{{fieldName}}-deleted"
+             type="checkbox"
+             autocorrect="off"
+             autocapitalize="none"
+             formControlName="deleted">
+    </div>
   </div>
 </ng-container>

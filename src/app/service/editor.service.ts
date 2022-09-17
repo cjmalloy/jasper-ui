@@ -4,7 +4,7 @@ import * as _ from 'lodash-es';
 import { LinksFormComponent } from '../form/links/links.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
 import { RefSort } from '../model/ref';
-import { getLinks, getNotifications, getTags } from '../util/editor';
+import { getLinks, getMailboxes, getTags } from '../util/editor';
 import { getPath } from '../util/hosts';
 import { ConfigService } from './config.service';
 
@@ -127,12 +127,12 @@ export class EditorService {
   private syncTags(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
     const existingTags = [
       ...getTags(previousComment),
-      ...getNotifications(previousComment),
+      ...getMailboxes(previousComment),
       ...group.value.tags,
     ];
     const newTags = _.uniq(_.difference([
       ...getTags(group.value.comment),
-      ...getNotifications(group.value.comment)], existingTags));
+      ...getMailboxes(group.value.comment)], existingTags));
     for (const t of newTags) {
       (group.get('tags') as UntypedFormArray).push(fb.control(t, TagsFormComponent.validators));
     }

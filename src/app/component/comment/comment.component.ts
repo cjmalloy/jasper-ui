@@ -2,13 +2,13 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { catchError, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { Ref, RefSort } from '../../model/ref';
-import { inboxes } from '../../plugin/inbox';
+import { mailboxes } from '../../plugin/mailbox';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthService } from '../../service/auth.service';
 import { Store } from '../../store/store';
-import { authors, interestingTags, TAG_REGEX_STRING } from '../../util/format';
+import { authors, interestingTags, TAGS_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag } from '../../util/tag';
 
@@ -21,7 +21,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'comment';
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
-  tagRegex = TAG_REGEX_STRING;
+  tagRegex = TAGS_REGEX.source;
 
   maxContext = 20;
 
@@ -121,8 +121,8 @@ export class CommentComponent implements OnInit, OnDestroy {
     return authors(this._ref);
   }
 
-  get inboxes() {
-    return inboxes(this._ref, this.store.account.tag);
+  get mailboxes() {
+    return mailboxes(this._ref, this.store.account.tag);
   }
 
   get tagged() {

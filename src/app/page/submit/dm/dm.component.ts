@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { getInbox } from '../../../plugin/inbox';
+import { getMailbox } from '../../../plugin/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
@@ -70,7 +70,7 @@ export class SubmitDmPage implements OnInit {
     const result = [
       'locked',
       this.store.account.tag,
-      getInbox(this.to!),
+      getMailbox(this.to!),
     ];
     if (this.emoji) result.push('plugin/emoji');
     if (this.latex) result.push('plugin/latex');

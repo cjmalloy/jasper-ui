@@ -1,15 +1,15 @@
 import * as _ from 'lodash-es';
 import { marked } from 'marked';
-import { getInbox } from '../plugin/inbox';
-import { TAG_REGEX, USER_REGEX } from './format';
+import { getMailbox } from '../plugin/mailbox';
+import { QUALIFIED_USER_REGEX, TAG_REGEX } from './format';
 
-export function getNotifications(markdown: string) {
-  return extractPattern(markdown, /[_+]user\/[a-z]+(\/[a-z]+)*/g, /([_+]user\/[a-z]+(\/[a-z]+)*)/, USER_REGEX)
-    .map(u => getInbox(u));
+export function getMailboxes(markdown: string) {
+  return extractPattern(markdown, /[_+]user\/[a-z]+([./][a-z]+)*(@[a-z]+(\.[a-z])*)?/g, undefined, QUALIFIED_USER_REGEX)
+    .map(u => getMailbox(u));
 }
 
 export function getTags(markdown: string) {
-  return extractPattern(markdown, /#[a-z]+(\/[a-z]+)*/g, /#([a-z]+(\/[a-z]+)*)/, TAG_REGEX);
+  return extractPattern(markdown, /#[a-z]+([./][a-z]+)*/g, /#([a-z]+([./][a-z]+)*)/, TAG_REGEX);
 }
 
 export function extractPattern(markdown: string, pattern: RegExp, extractor?: RegExp, validator?: RegExp) {

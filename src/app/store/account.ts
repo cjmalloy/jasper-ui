@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
-import { getInbox } from '../plugin/inbox';
+import { getMailbox } from '../plugin/mailbox';
 import { defaultSubs } from '../template/user';
 import { hasPrefix } from '../util/tag';
 
@@ -37,9 +37,9 @@ export class AccountStore {
     return 'viewer';
   }
 
-  get inbox() {
+  get mailbox() {
     if (!this.signedIn) return undefined;
-    return getInbox(this.tag);
+    return getMailbox(this.tag);
   }
 
   get modmail() {
@@ -48,8 +48,8 @@ export class AccountStore {
 
   get notificationsQuery() {
     if (!this.signedIn) return undefined;
-    if (!this.modmail?.length) return this.inbox;
-    return this.inbox + '|' + this.modmail!.join('|');
+    if (!this.modmail?.length) return this.mailbox;
+    return this.mailbox + '|' + this.modmail!.join('|');
   }
 
   get subscriptionQuery() {
