@@ -1,4 +1,4 @@
-describe('Graph', () => {
+describe('Graph Plugin', () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 30000 });
