@@ -34,6 +34,7 @@
   </div>
   <app-md *ngIf="!editing"
           class="comment-body"
+          [origin]="ref.origin"
           [plugins]="ref.tags"
           [text]="ref.comment || ''"></app-md>
   <app-comment-edit *ngIf="editing"

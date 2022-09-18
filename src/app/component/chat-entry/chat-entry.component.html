@@ -3,7 +3,7 @@
   <a *ngIf="ref.origin && !authors.length"
      class="origin tag"
      [routerLink]="['/tag', ref.origin]">
-    @{{ ref.origin }}</a>
+    {{ ref.origin }}</a>
   <ng-container *ngFor="let user of authors">
     <a class="user tag"
        [routerLink]="['/tag', user]">

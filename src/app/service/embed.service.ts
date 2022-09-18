@@ -13,6 +13,7 @@ import { Store } from '../store/store';
 import { Embed } from '../util/embed';
 import { wikiUriFormat } from '../util/format';
 import { bitchuteHosts, getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
+import { tagOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
 import { OEmbedService } from './api/oembed.service';
 import { RefService } from './api/ref.service';
@@ -79,7 +80,7 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<a href="${token.href}" title="${token.title}">${token.text}</a>`;
+        return `<a class="user tag" href="${token.href}" title="${token.title}">${token.text}</a>`;
       }
     }, {
       name: 'hashTag',
@@ -103,7 +104,7 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<a href="${token.href}" title="${token.title}">${token.text}</a>`;
+        return `<a class="tag" href="${token.href}" title="${token.title}">${token.text}</a>`;
       }
     }, {
       name: 'wiki',
@@ -127,7 +128,7 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<a href="${token.href}">${token.text}</a>`;
+        return `<a class="wiki ref" href="${token.href}">${token.text}</a>`;
       }
     }, {
       name: 'embed',
@@ -202,8 +203,17 @@ export class EmbedService {
    * @param el the div containing the rendered markdown
    * @param embed interface that injects components
    * @param event callback to add event handlers without memory leaks
+   * @param origin origin to append to user links without existing origins
    */
-  postProcess(el: HTMLDivElement, embed: Embed, event: (type: string, el: Element, fn: () => void) => void) {
+  postProcess(el: HTMLDivElement, embed: Embed, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
+    if (origin) {
+      const userTags = el.querySelectorAll<HTMLAnchorElement>('.tag');
+      userTags.forEach(t => {
+        if (tagOrigin(t.innerText)) return;
+        t.href += origin;
+        t.innerText += origin;
+      });
+    }
     const images = el.querySelectorAll<HTMLImageElement>('img');
     images.forEach(t => {
       const c = embed.createEmbed({ url: t.src }, ['plugin/image']);

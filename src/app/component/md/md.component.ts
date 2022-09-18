@@ -12,6 +12,8 @@ import { Store } from '../../store/store';
 export class MdComponent implements OnInit {
 
   @Input()
+  origin? = '';
+  @Input()
   text = '';
   @Input()
   plugins? = ['plugin/emoji', 'plugin/latex'];

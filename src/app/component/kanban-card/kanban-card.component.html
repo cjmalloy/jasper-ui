@@ -2,4 +2,5 @@
     {{ ref.title || ref.url }}
 </a>
 <app-md *ngIf="ref.comment"
+        [origin]="ref.origin"
         [text]="ref.comment"></app-md>

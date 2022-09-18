@@ -23,6 +23,8 @@ export class MdPostDirective implements AfterViewInit, OnDestroy, Embed {
 
   @Input("appMdPost")
   load?: Subject<void> | string;
+  @Input()
+  origin? = '';
 
   private subscriptions: (() => void)[] = [];
 
@@ -55,14 +57,15 @@ export class MdPostDirective implements AfterViewInit, OnDestroy, Embed {
     this.embeds.postProcess(
       <HTMLDivElement>this.viewContainerRef.element.nativeElement,
       this,
-      (type, el, fn) => this.event(type, el, fn))
+      (type, el, fn) => this.event(type, el, fn),
+    this.origin)
   }
 
   createEmbed(ref: Ref | string, expandPlugins: string[] = []): ComponentRef<EmbedComponent> {
     const c = this.viewContainerRef.createComponent(EmbedComponent);
     if (_.isString(ref)) {
       const url = ref as string;
-      ref = { url };
+      ref = { url, origin: this.origin };
       if (isImage(url)) {
         expandPlugins = ['plugin/image'];
       } else if (isVideo(url)) {

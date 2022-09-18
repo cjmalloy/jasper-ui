@@ -30,5 +30,6 @@
         appResize></qrcode>
 <app-md *ngIf="ref?.comment"
         class="expand"
+        [origin]="ref.origin"
         [text]="ref.comment!"
         [plugins]="ref.tags"></app-md>

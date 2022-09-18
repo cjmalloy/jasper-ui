@@ -144,7 +144,8 @@
 
   <ng-container *ngIf="root">
     <app-md *ngIf="ext?.config?.sidebar"
-            [text]="ext?.config?.sidebar"></app-md>
+            [origin]="ext?.origin"
+            [text]="ext!.config!.sidebar"></app-md>
 
     <ng-container *ngIf="writeAccess">
       <a *ngIf="ext"
