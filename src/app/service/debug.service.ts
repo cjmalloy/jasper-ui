@@ -24,6 +24,9 @@ export class DebugService {
   }
 
   private async getDebugToken(tag: string, ...roles: string[]) {
+    if (!tag.startsWith('_') && !tag.startsWith('+')) {
+      tag = '+user/' + tag;
+    }
     if (tag.startsWith('_') && !roles.includes('ROLE_PRIVATE')) {
       roles.push('ROLE_PRIVATE');
     }
