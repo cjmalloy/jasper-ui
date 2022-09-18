@@ -1,9 +1,10 @@
-<div class="link">
+<div class="link" [class.remote]="!!ext.origin">
+  <a *ngIf="!ext.tag" routerLink="/all">{{ ext.name || qualifiedTag || 'root' }}</a>
+  <span *ngIf="!ext.tag && !ext.origin" class="host">(root: "")</span>
+  <span *ngIf="!ext.tag && ext.origin" class="host">(root: {{ ext.origin }})</span>
   <a *ngIf="ext.tag" [routerLink]="['/tag', qualifiedTag]">{{ ext.name || ext.tag }}</a>
-  <a *ngIf="!ext.tag" routerLink="/all">{{ ext.name || 'root' }}</a>
-  <span *ngIf="!ext.tag" class="host">(root: "")</span>
-  <span *ngIf="ext.name && ext.tag" class="host">({{ ext.tag + ext.origin }})</span>
-  <span *ngIf="!ext.tag && !ext.name && ext.origin" class="host">({{ ext.origin }})</span>
+  <span *ngIf="ext.tag && ext.name" class="host">({{ qualifiedTag }})</span>
+  <span *ngIf="ext.tag && !ext.name && ext.origin" class="host">({{ ext.origin }})</span>
 </div>
 <div class="stack">
   <div class="info">

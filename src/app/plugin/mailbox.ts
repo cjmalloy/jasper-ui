@@ -28,7 +28,7 @@ export const outboxPlugin: Plugin = {
 export function mailboxes(ref: Ref, myUserTag: string): string[] {
   return _.uniq([
     ..._.filter(authors(ref), tag => tag !== myUserTag).map(getMailbox),
-    ...notifications(ref),
+    ...notifications(ref).map(m => getLocalMailbox(m, ref.origin || '')),
   ]);
 }
 
@@ -39,6 +39,11 @@ export function notifications(ref: Ref): string[] {
 export function isMailbox(tag: string) {
   return hasPrefix(tag, 'plugin/inbox') ||
     hasPrefix(tag, 'plugin/outbox');
+}
+
+export function getLocalMailbox(mailbox: string, origin: string) {
+  if (hasPrefix('plugin/outbox')) return mailbox;
+  return mailbox.replace('plugin/inbox', `plugin/outbox/${origin.substring(1)}`)
 }
 
 export function getMailbox(userTag: string): string {

@@ -10,7 +10,7 @@
     </ng-template>
   </ng-container>
   <div class="stack">
-    <div class="link">
+    <div class="link" [class.remote]="!!ref.origin">
       <a *ngIf="webLink" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
       <a *ngIf="!webLink && admin.status.plugins.comment" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
       <a *ngIf="!webLink && !admin.status.plugins.comment" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>

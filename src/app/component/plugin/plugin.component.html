@@ -1,9 +1,7 @@
-<div class="link">
-  <a *ngIf="plugin.tag" [routerLink]="['/tag', qualifiedTag]">{{ plugin.name || plugin.tag }}</a>
-  <a *ngIf="!plugin.tag" routerLink="/all">{{ plugin.name || 'root' }}</a>
-  <span *ngIf="!plugin.tag" class="host">(root: "")</span>
-  <span *ngIf="plugin.name && plugin.tag" class="host">({{ plugin.tag + plugin.origin }})</span>
-  <span *ngIf="!plugin.tag && !plugin.name && plugin.origin" class="host">({{ plugin.origin }})</span>
+<div class="link" [class.remote]="!!plugin.origin">
+  <a [routerLink]="['/tag', qualifiedTag]">{{ plugin.name || plugin.tag }}</a>
+  <span *ngIf="plugin.name" class="host">({{ qualifiedTag }})</span>
+  <span *ngIf="!plugin.name && plugin.origin" class="host">({{ plugin.origin }})</span>
 </div>
 <div class="stack">
   <div class="info">
