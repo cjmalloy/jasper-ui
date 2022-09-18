@@ -1,8 +1,9 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import * as moment from 'moment/moment';
+import { AdminService } from '../../../service/admin.service';
 import { intervalValidator } from '../../../util/form';
-import { ORIGIN_REGEX } from '../../../util/format';
+import { ORIGIN_REGEX, ORIGIN_WILDCARD_REGEX } from '../../../util/format';
 import { TagsFormComponent } from '../../tags/tags.component';
 
 @Component({
@@ -59,10 +60,10 @@ export class OriginFormComponent implements OnInit {
   }
 }
 
-export function originForm(fb: UntypedFormBuilder) {
-  return fb.group({
+export function originForm(fb: UntypedFormBuilder, admin: AdminService) {
+  const result = fb.group({
     origin: ['', [Validators.required, Validators.pattern(ORIGIN_REGEX)]],
-    remote: ['', [Validators.pattern(ORIGIN_REGEX)]],
+    remote: ['', [Validators.pattern(ORIGIN_WILDCARD_REGEX)]],
     overwriteOrigins: [false],
     query: [''],
     proxy: [''],
@@ -73,4 +74,6 @@ export function originForm(fb: UntypedFormBuilder) {
     scrapeInterval: ['PT15M', [intervalValidator()]],
     lastScrape: [''],
   });
+  result.patchValue(admin.status.plugins.origin?.defaults);
+  return result;
 }

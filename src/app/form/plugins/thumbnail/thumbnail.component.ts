@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AdminService } from '../../../service/admin.service';
 import { EmbedService } from '../../../service/embed.service';
 import { URI_REGEX } from '../../../util/format';
 
@@ -36,9 +37,11 @@ export class ThumbnailFormComponent implements OnInit {
   }
 }
 
-export function thumbnailPluginForm(fb: UntypedFormBuilder) {
-  return fb.group({
+export function thumbnailPluginForm(fb: UntypedFormBuilder, admin: AdminService) {
+  const result = fb.group({
     url: fb.control('', [Validators.pattern(URI_REGEX)]),
   });
+  result.patchValue(admin.status.plugins.thumbnail?.defaults);
+  return result;
 }
 

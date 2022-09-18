@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { isTwitterEmbed, isYoutubeEmbed } from '../../../plugin/embed';
+import { AdminService } from '../../../service/admin.service';
 import { EmbedService } from '../../../service/embed.service';
 import { URI_REGEX } from '../../../util/format';
 
@@ -46,11 +47,13 @@ export class EmbedFormComponent implements OnInit {
   }
 }
 
-export function embedPluginForm(fb: UntypedFormBuilder) {
-  return fb.group({
+export function embedPluginForm(fb: UntypedFormBuilder, admin: AdminService) {
+  const result = fb.group({
     url: fb.control('', [Validators.pattern(URI_REGEX)]),
     width: fb.control(560, [Validators.min(200)]),
     height: fb.control(315, [Validators.min(200)]),
   });
+  result.patchValue(admin.status.plugins.embed?.defaults);
+  return result;
 }
 

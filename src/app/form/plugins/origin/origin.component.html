@@ -19,7 +19,7 @@
     <div><!-- Remote Origin Errors --></div>
     <div>
       <div class="error" *ngIf="remote.touched && remote.errors?.['pattern']">
-        Origins must be lower case letters and start with @.
+        Origins must be lower case letters and start with @, or '@*' to match all origins.
       </div>
     </div>
 

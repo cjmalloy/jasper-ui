@@ -51,7 +51,7 @@ export class FeedFormComponent implements OnInit {
 export function feedForm(fb: UntypedFormBuilder, admin: AdminService) {
   const defaultTags = ['public'];
   if (admin.status.plugins.thumbnail) defaultTags.push('plugin/thumbnail');
-  return fb.group({
+  const result =  fb.group({
     origin: ['', [Validators.pattern(ORIGIN_REGEX)]],
     addTags: tagsForm(fb, defaultTags),
     scrapeInterval: ['PT15M', [intervalValidator()]],
@@ -59,4 +59,6 @@ export function feedForm(fb: UntypedFormBuilder, admin: AdminService) {
     scrapeDescription: [true],
     removeDescriptionIndent: [false],
   });
+  result.patchValue(admin.status.plugins.feed?.defaults);
+  return result;
 }

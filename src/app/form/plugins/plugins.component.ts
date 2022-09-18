@@ -116,17 +116,17 @@ export function pluginsForm(fb: UntypedFormBuilder, admin: AdminService, tags: s
 
 function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
   switch (tag) {
-    case '+plugin/origin': return originForm(fb);
+    case '+plugin/origin': return originForm(fb, admin);
     case '+plugin/feed': return feedForm(fb, admin);
-    case 'plugin/thumbnail': return thumbnailPluginForm(fb);
-    case 'plugin/archive': return archivePluginForm(fb);
-    case 'plugin/pdf': return pdfPluginForm(fb);
-    case 'plugin/audio': return audioPluginForm(fb);
-    case 'plugin/video': return videoPluginForm(fb);
-    case 'plugin/image': return imagePluginForm(fb);
-    case 'plugin/embed': return embedPluginForm(fb);
-    case 'plugin/qr': return qrPluginForm(fb);
-    case 'plugin/comment': return commentPluginForm(fb);
+    case 'plugin/thumbnail': return thumbnailPluginForm(fb, admin);
+    case 'plugin/archive': return archivePluginForm(fb, admin);
+    case 'plugin/pdf': return pdfPluginForm(fb, admin);
+    case 'plugin/audio': return audioPluginForm(fb, admin);
+    case 'plugin/video': return videoPluginForm(fb, admin);
+    case 'plugin/image': return imagePluginForm(fb, admin);
+    case 'plugin/embed': return embedPluginForm(fb, admin);
+    case 'plugin/qr': return qrPluginForm(fb, admin);
+    case 'plugin/comment': return commentPluginForm(fb, admin);
   }
   return null;
 }

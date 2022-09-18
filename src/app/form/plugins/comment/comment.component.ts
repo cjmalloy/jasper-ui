@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { AdminService } from '../../../service/admin.service';
 
 @Component({
   selector: 'app-form-comment',
@@ -23,9 +24,11 @@ export class CommentFormComponent implements OnInit {
   }
 }
 
-export function commentPluginForm(fb: UntypedFormBuilder) {
-  return fb.group({
+export function commentPluginForm(fb: UntypedFormBuilder, admin: AdminService) {
+  const result = fb.group({
     deleted: fb.control(false),
   });
+  result.patchValue(admin.status.plugins.comment?.defaults);
+  return result;
 }
 

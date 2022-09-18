@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AdminService } from '../../../service/admin.service';
 import { URI_REGEX } from '../../../util/format';
 
 @Component({
@@ -28,9 +29,11 @@ export class VideoFormComponent implements OnInit {
   }
 }
 
-export function videoPluginForm(fb: UntypedFormBuilder) {
-  return fb.group({
+export function videoPluginForm(fb: UntypedFormBuilder, admin: AdminService) {
+  const result = fb.group({
     url: fb.control('', [Validators.pattern(URI_REGEX)]),
   });
+  result.patchValue(admin.status.plugins.video?.defaults);
+  return result;
 }
 
