@@ -91,6 +91,7 @@ export class TemplateComponent implements OnInit {
       }),
     ).subscribe(() => {
       this.serverError = [];
+      this.deleting = false;
       this.deleted = true;
     });
   }

@@ -203,6 +203,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     ).subscribe(ref => {
       this.serverError = [];
       this._ref = ref;
+      this.deleting = false;
     });
   }
 }

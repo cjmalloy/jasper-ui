@@ -109,6 +109,7 @@ export class ProfileComponent implements OnInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
+      this.deleting = false;
       this.deleted = true;
     });
   }
