@@ -2,7 +2,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
+import { isAudio } from '../../plugin/audio';
 import { deleteNotice } from '../../plugin/delete';
+import { isImage } from '../../plugin/image';
+import { isVideo } from '../../plugin/video';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
@@ -27,7 +30,6 @@ export class ChatEntryComponent {
   @ViewChild('inlineTag')
   inlineTag?: ElementRef;
 
-  expandPlugins: string[] = [];
   tagging = false;
   deleting = false;
   deleted = false;
@@ -46,9 +48,6 @@ export class ChatEntryComponent {
   set ref(ref: Ref) {
     this._ref = ref;
     this.writeAccess = this.auth.writeAccess(ref);
-    if (ref.tags) {
-      this.expandPlugins = this.admin.getEmbeds(ref);
-    }
   }
 
   get ref() {
@@ -75,12 +74,40 @@ export class ChatEntryComponent {
     return hasTag('locked', this.ref);
   }
 
+  get qr() {
+    return hasTag('plugin/qr', this.ref);
+  }
+
+  get audio() {
+    return isAudio(this.ref.url) || hasTag('plugin/audio', this.ref);
+  }
+
+  get video() {
+    return isVideo(this.ref.url) || hasTag('plugin/video', this.ref);
+  }
+
+  get image() {
+    return isImage(this.ref.url) || hasTag('plugin/image', this.ref);
+  }
+
+  get media() {
+    return this.qr || this.audio || this.video || this.image;
+  }
+
+  get expand() {
+    return this.ref.comment || this.media;
+  }
+
   get comments() {
     if (!this.ref.metadata) return '? comments';
     const commentCount = this.ref.metadata.plugins?.['plugin/comment']?.length;
     if (commentCount === 0) return 'thread';
     if (commentCount === 1) return '1 comment';
     return commentCount + ' comments';
+  }
+
+  get qrWidth() {
+    return Math.min(256, window.innerWidth);
   }
 
   addInlineTag() {
@@ -130,6 +157,10 @@ export class ChatEntryComponent {
       this.deleting = false;
       this.deleted = true;
     });
+  }
+
+  cssUrl(url: string) {
+    return `url("${url}")`;
   }
 
 }

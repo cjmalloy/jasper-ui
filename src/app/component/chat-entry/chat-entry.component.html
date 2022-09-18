@@ -18,12 +18,32 @@
       [class.deleting]="deleting"
       [class.tagging]="tagging">
   <div [class.has-title]="webLink || ref.title">
-    <a *ngIf="webLink" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
-    <span *ngIf="!webLink && (ref.title || !ref.comment)">{{ ref.title || ref.url }}</span>
+    <a *ngIf="webLink && (ref.title || !media)" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
+    <span *ngIf="!webLink && (ref.title || !expand)">{{ ref.title || ref.url }}</span>
     <app-md *ngIf="ref.comment"
             [origin]="ref.origin"
             [text]="ref.comment"
             [plugins]="ref.tags"></app-md>
+    <div *ngIf="image"
+         class="image-expand"
+         [style.background-image]="cssUrl(ref.plugins?.['plugin/image']?.url || ref.url)"
+         appResize></div>
+    <video *ngIf="video"
+           class="video-expand"
+           controls
+           appResize>
+      <source [src]="ref.plugins?.['plugin/video']?.url || ref.url">
+    </video>
+    <audio *ngIf="audio"
+           class="audio-expand"
+           controls>
+      <source [src]="ref.plugins?.['plugin/audio']?.url || ref.url">
+    </audio>
+    <qrcode *ngIf="qr"
+            [qrdata]="ref.plugins?.['plugin/qr']?.url || ref.url"
+            [width]="qrWidth"
+            [errorCorrectionLevel]="'M'"
+            appResize></qrcode>
   </div>
   <div class="actions" *ngIf="ref.created">
     <a *ngIf="admin.status.plugins.comment"
