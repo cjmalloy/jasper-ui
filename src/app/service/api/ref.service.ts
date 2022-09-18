@@ -19,7 +19,6 @@ export class RefService {
     private http: HttpClient,
     private config: ConfigService,
     private login: LoginService,
-    private tags: TaggingService,
   ) { }
 
   private get base() {
@@ -101,29 +100,5 @@ export class RefService {
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
-  }
-
-  createOrTag(user: string, text: string, ...tags: string[]) {
-    const tagsWithAuthor = !tags.includes(user) ? [...tags, user] : tags;
-    const ref = URI_REGEX.test(text) ? {
-      url: text,
-      tags: tagsWithAuthor,
-    } : {
-      url: 'comment:' + uuid(),
-      title: text,
-      tags: tagsWithAuthor,
-    };
-    return this.create(ref).pipe(
-      map(() => ref),
-      catchError(err => {
-        if (err.status === 409) {
-          // Ref already exists, just tag it
-          return this.tags.patch(tags, ref.url).pipe(
-            switchMap(() => this.get(ref.url)),
-          );
-        }
-        return throwError(err);
-      }),
-    )
   }
 }

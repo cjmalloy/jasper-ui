@@ -2,10 +2,14 @@ import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { Component, HostBinding, Input, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash-es';
-import { catchError, throwError } from 'rxjs';
+import { catchError, map, switchMap, throwError } from 'rxjs';
+import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
+import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
+import { URI_REGEX } from '../../util/format';
 import { getArgs } from '../../util/query';
 
 @Component({
@@ -30,13 +34,19 @@ export class ChatComponent {
   messages?: Ref[];
   addText = '';
   sending: Ref[] = [];
+
+  emoji = this.admin.status.plugins.emoji;
+  latex = this.admin.status.plugins.latex;
+
   private timeoutId?: number;
   private pollInterval = 1000;
 
   constructor(
+    public admin: AdminService,
     private route: ActivatedRoute,
     private store: Store,
     private refs: RefService,
+    private tags: TaggingService,
   ) { }
 
   @Input()
@@ -47,6 +57,13 @@ export class ChatComponent {
 
   get query() {
     return this._query;
+  }
+
+  get plugins() {
+    const result = [];
+    if (this.emoji) result.push('plugin/emoji');
+    if (this.latex) result.push('plugin/latex');
+    return result;
   }
 
   clear() {
@@ -129,7 +146,30 @@ export class ChatComponent {
   add() {
     this.addText = this.addText.trim();
     if (!this.addText) return;
-    this.refs.createOrTag(this.store.account.tag, this.addText, ...this.addTags).subscribe(ref => {
+    const newTags = _.uniq([
+      ...this.addTags,
+      ...this.plugins,
+      this.store.account.tag]);
+    const ref = URI_REGEX.test(this.addText) ? {
+      url: this.addText,
+      tags: newTags,
+    } : {
+      url: 'comment:' + uuid(),
+      comment: this.addText,
+      tags: newTags,
+    };
+    this.refs.create(ref).pipe(
+      map(() => ref),
+      catchError(err => {
+        if (err.status === 409) {
+          // Ref already exists, just tag it
+          return this.tags.patch(this.addTags, ref.url).pipe(
+            switchMap(() => this.refs.get(ref.url)),
+          );
+        }
+        return throwError(err);
+      }),
+    ).subscribe(ref => {
       this.sending.push(ref);
     });
     this.addText = '';

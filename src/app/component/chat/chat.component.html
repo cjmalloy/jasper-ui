@@ -1,7 +1,9 @@
 <app-loading *ngIf="!messages || loadingPrev"></app-loading>
 <a *ngIf="messages && !loadingPrev" class="load-more fake-link" (click)="loadPrev()">load prev</a>
 <cdk-virtual-scroll-viewport class="messages" itemSize="18.5">
-  <app-chat-entry *cdkVirtualFor="let ref of messages" [ref]="ref"></app-chat-entry>
+  <app-chat-entry *cdkVirtualFor="let ref of messages; let odd = odd"
+                  [ref]="ref"
+                  [class.odd]="odd"></app-chat-entry>
 </cdk-virtual-scroll-viewport>
 <div class="spacer"></div>
 <div class="input-box">
@@ -12,6 +14,22 @@
          (keydown)="$event.key === 'Enter' && add() || true">
   <button type="button" (click)="add()">+</button>
 </div>
+<span class="hints">
+  <ng-container *ngIf="admin.status.plugins.emoji">
+    <input id="emoji" type="checkbox" [(ngModel)]="emoji">
+    <label for="emoji">
+      Emoji plugin
+      <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
+    </label>
+  </ng-container>
+  <ng-container *ngIf="admin.status.plugins.latex">
+    <input id="latex" type="checkbox" [(ngModel)]="latex">
+    <label for="latex">
+      LaTeX plugin
+      <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
+    </label>
+  </ng-container>
+</span>
 <div class="list-container">
   <app-chat-entry *ngFor="let ref of sending" [ref]="ref"></app-chat-entry>
 </div>

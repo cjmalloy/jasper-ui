@@ -17,8 +17,14 @@
       [class.sending]="!ref.created"
       [class.deleting]="deleting"
       [class.tagging]="tagging">
-  <a *ngIf="webLink" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
-  <span *ngIf="!webLink">{{ ref.title || ref.url }}</span>
+  <div [class.has-title]="webLink || ref.title">
+    <a *ngIf="webLink" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
+    <span *ngIf="!webLink && (ref.title || !ref.comment)">{{ ref.title || ref.url }}</span>
+    <app-md *ngIf="ref.comment"
+            [origin]="ref.origin"
+            [text]="ref.comment"
+            [plugins]="ref.tags"></app-md>
+  </div>
   <div class="actions" *ngIf="ref.created">
     <a *ngIf="admin.status.plugins.comment"
        [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ comments.replace(' ', '&thinsp;') }}</a>

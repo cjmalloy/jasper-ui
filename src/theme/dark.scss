@@ -325,4 +325,10 @@ body.dark-theme {
       }
     }
   }
+
+  .chat {
+    .odd > * {
+      background-color: $bg-accent;
+    }
+  }
 }

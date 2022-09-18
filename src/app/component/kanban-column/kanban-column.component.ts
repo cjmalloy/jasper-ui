@@ -41,6 +41,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     private route: ActivatedRoute,
     private store: Store,
     private refs: RefService,
+    private tags: TaggingService,
   ) {
     combineLatest(
       this.query$, this.sort$, this.filter$, this.search$
@@ -131,7 +132,27 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   add() {
     this.addText = this.addText.trim();
     if (!this.addText) return;
-    this.refs.createOrTag(this.store.account.tag, this.addText, ...this.addTags).subscribe(ref => {
+    const tagsWithAuthor = !this.addTags.includes(this.store.account.tag) ? [...this.addTags, this.store.account.tag] : this.addTags;
+    const ref = URI_REGEX.test(this.addText) ? {
+      url: this.addText,
+      tags: tagsWithAuthor,
+    } : {
+      url: 'comment:' + uuid(),
+      title: this.addText,
+      tags: tagsWithAuthor,
+    };
+    this.refs.create(ref).pipe(
+      map(() => ref),
+      catchError(err => {
+        if (err.status === 409) {
+          // Ref already exists, just tag it
+          return this.tags.patch(this.addTags, ref.url).pipe(
+            switchMap(() => this.refs.get(ref.url)),
+          );
+        }
+        return throwError(err);
+      }),
+    ).subscribe(ref => {
       this.mutated = true;
       if (!this.pages) this.pages = [];
       this.pages[this.pages.length - 1].content.push(ref)

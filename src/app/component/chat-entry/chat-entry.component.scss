@@ -35,12 +35,29 @@
     flex: 1;
   }
 
+  .has-title {
+    height: 18.5px;
+    overflow: hidden;
+
+    app-md {
+      padding: 0 12px;
+      display: inline-block;
+      text-overflow: ellipsis;
+    }
+  }
   .actions {
     display: none;
   }
   &:focus-within, &:hover, &.deleting, &.tagging {
     .actions {
       display: inline;
+    }
+    .has-title {
+      height: unset;
+      app-md {
+        display: block;
+        white-space: normal;
+      }
     }
   }
 }
