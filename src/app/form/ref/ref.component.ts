@@ -8,6 +8,7 @@ import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { EditorService } from '../../service/editor.service';
+import { hasTag } from '../../util/tag';
 import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
@@ -93,6 +94,9 @@ export class RefFormComponent implements OnInit {
   }
 
   setRef(ref: Ref) {
+    if (hasTag('chat', ref)) {
+      this.title.setValidators([]);
+    }
     const sourcesForm = this.group.get('sources') as UntypedFormArray;
     const altsForm = this.group.get('alternateUrls') as UntypedFormArray;
     const tagsForm = this.group.get('tags') as UntypedFormArray;
