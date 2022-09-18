@@ -3,6 +3,7 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGr
 import { User } from '../../model/user';
 import { USER_REGEX } from '../../util/format';
 import { QtagsFormComponent } from '../qtags/qtags.component';
+import { SelectorsFormComponent } from '../selectors/selectors.component';
 
 @Component({
   selector: 'app-user-form',
@@ -16,13 +17,13 @@ export class UserFormComponent implements OnInit {
   group!: UntypedFormGroup;
 
   @ViewChild('readAccess')
-  readAccess!: QtagsFormComponent;
+  readAccess!: SelectorsFormComponent;
   @ViewChild('writeAccess')
-  writeAccess!: QtagsFormComponent;
+  writeAccess!: SelectorsFormComponent;
   @ViewChild('tagReadAccess')
-  tagReadAccess!: QtagsFormComponent;
+  tagReadAccess!: SelectorsFormComponent;
   @ViewChild('tagWriteAccess')
-  tagWriteAccess!: QtagsFormComponent;
+  tagWriteAccess!: SelectorsFormComponent;
 
   constructor() { }
 

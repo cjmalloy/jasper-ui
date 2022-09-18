@@ -119,6 +119,7 @@ import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
+import { SelectorsFormComponent } from './form/selectors/selectors.component';
 
 const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -231,6 +232,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     JsonComponent,
     ChatComponent,
     ChatEntryComponent,
+    SelectorsFormComponent,
   ],
   imports: [
     BrowserModule,

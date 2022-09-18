@@ -23,27 +23,27 @@
   <input id="name" type="text" formControlName="name">
 
   <label for="readAccess">Read Access:</label>
-  <app-qtags #readAccess
-             id="readAccess"
-             fieldName="readAccess"
-             [group]="group"></app-qtags>
+  <app-selectors #readAccess
+                 id="readAccess"
+                 fieldName="readAccess"
+                 [group]="group"></app-selectors>
 
   <label for="writeAccess">Write Access:</label>
-  <app-qtags #writeAccess
-             id="writeAccess"
-             fieldName="writeAccess"
-             [group]="group"></app-qtags>
+  <app-selectors #writeAccess
+                 id="writeAccess"
+                 fieldName="writeAccess"
+                 [group]="group"></app-selectors>
 
   <label for="tagReadAccess">Tag Read Access:</label>
-  <app-qtags #tagReadAccess
-             id="tagReadAccess"
-             fieldName="tagReadAccess"
-             [group]="group"></app-qtags>
+  <app-selectors #tagReadAccess
+                 id="tagReadAccess"
+                 fieldName="tagReadAccess"
+                 [group]="group"></app-selectors>
 
   <label for="tagWriteAccess">Tag Write Access:</label>
-  <app-qtags #tagWriteAccess
-             id="tagWriteAccess"
-             fieldName="tagWriteAccess"
-             [group]="group"></app-qtags>
+  <app-selectors #tagWriteAccess
+                 id="tagWriteAccess"
+                 fieldName="tagWriteAccess"
+                 [group]="group"></app-selectors>
 
 </ng-container>
