@@ -5,6 +5,7 @@ import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { AuthService } from '../../service/auth.service';
+import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
 import { breadcrumbs, localTag, prefix, removeWildcard } from '../../util/tag';
@@ -42,6 +43,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     public route: ActivatedRoute,
     public admin: AdminService,
     public store: Store,
+    public config: ConfigService,
     private auth: AuthService,
     private account: AccountService,
   ) {

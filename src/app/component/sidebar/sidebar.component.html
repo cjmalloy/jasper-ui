@@ -32,10 +32,12 @@
       📰️ &nbsp; Submit Feed
     </div>
   </ng-container>
-  <ng-container *ngIf="store.account.mod">
+  <ng-container *ngIf="config.scim && store.account.mod">
     <div class="submit-button" routerLink="/create/profile" [queryParams]="{ tag: localTag }">
       👤️ &nbsp; Create Profile
     </div>
+  </ng-container>
+  <ng-container *ngIf="store.account.mod">
     <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag: localTag }">
       🗝️️ &nbsp; Create User Permissions
     </div>
