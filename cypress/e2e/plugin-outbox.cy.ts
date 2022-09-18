@@ -111,8 +111,10 @@ describe('Outbox Plugin: Remote Notifications', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('origins').click();
+    cy.get('input[type=search]').type(replApi + '{enter}');
+    cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
     cy.intercept({pathname: '/api/v1/scrape/feed'}).as('scrape');
-    cy.get('.actions').contains('scrape').click();
+    cy.get('@other').find('.actions').contains('scrape').click();
     cy.wait('@scrape');
     cy.wait(100);
   });
@@ -126,7 +128,7 @@ describe('Outbox Plugin: Remote Notifications', () => {
   });
   it('@main: reply to remote message', () => {
     cy.visit('/?debug=USER&tag=alice');
-    cy.get('.settings .notification').click();
+    cy.get('.settings .inbox').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Ref from other').parent().parent().as('ref');
     cy.get('@ref').find('.actions').contains('comment').click();
@@ -137,8 +139,10 @@ describe('Outbox Plugin: Remote Notifications', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('origins').click();
+    cy.get('input[type=search]').type(mainApi + '{enter}');
+    cy.get('.link:not(.remote)').contains('@main').parent().parent().as('main');
     cy.intercept({pathname: '/api/v1/scrape/feed'}).as('scrape');
-    cy.get('.actions').contains('scrape').click();
+    cy.get('@main').find('.actions').contains('scrape').click();
     cy.wait('@scrape');
   });
   it('@other: check reply was scraped', () => {

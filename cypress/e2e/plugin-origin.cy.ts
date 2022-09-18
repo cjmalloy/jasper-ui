@@ -22,7 +22,7 @@ describe('Origin Plugin: Remote Replication', () => {
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');
   });
   it('creates ref on remote', () => {
-    cy.visit(replUrl + '/?debug=USER&tag=+user/bob');
+    cy.visit(replUrl + '/?debug=USER&tag=bob');
     cy.contains('Submit Text Post').click();
     cy.get('#title').type('Ref from other');
     cy.get('button').contains('Submit').click();
@@ -32,21 +32,26 @@ describe('Origin Plugin: Remote Replication', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('origins').click();
-    cy.get('.actions').contains('scrape').click();
-    cy.reload();
-    cy.get('.info').contains('last scraped');
+    cy.get('input[type=search]').type(replApi + '{enter}');
+    cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
+    cy.intercept({pathname: '/api/v1/scrape/feed'}).as('scrape');
+    cy.get('@other').find('.actions').contains('scrape').click();
+    cy.wait('@scrape');
+    cy.wait(100);
   });
   it('check ref was scraped', () => {
     cy.visit('/tag/@other?debug=USER');
-    cy.get('.ref-list').contains('Ref from other');
-    cy.get('.user.tag').contains('bob@other');
-    cy.get('.origin.tag').contains('@other');
+    cy.get('.ref-list .link.remote').contains('Ref from other').parent().parent().as('ref');
+    cy.get('@ref').find('.user.tag').contains('bob@other');
+    cy.get('@ref').find('.origin.tag').contains('@other');
   });
-  it('delete remote @other', () => {
+  it('@main: delete remote @other', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('origins').click();
-    cy.get('.actions').contains('delete').click();
-    cy.get('.actions').contains('yes').click();
+    cy.get('input[type=search]').type(replApi + '{enter}');
+    cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
+    cy.get('@other').find('.actions').contains('delete').click();
+    cy.get('@other').find('.actions').contains('yes').click();
   });
 });
