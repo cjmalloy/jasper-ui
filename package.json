@@ -8,8 +8,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "e2e": "ng e2e",
-    "cy:open": "docker compose -f 'cypress/docker-compose.yaml' up --build -d || wait-on http://localhost:8081/management/health/readiness && cypress open --config baseUrl=http://localhost:8082 && docker compose -f 'cypress/docker-compose.yaml' down",
-    "cy:ci": "docker compose --profile ci -f 'cypress/docker-compose.yaml' up --build --exit-code-from cypress"
+    "cy:open": "docker compose -f 'cypress/docker-compose.yaml' up --build -d || wait-on http://localhost:8081/management/health/readiness && cypress open --config baseUrl=http://localhost:8080 && docker compose -f 'cypress/docker-compose.yaml' down",
+    "cy:ci": "docker compose -f 'cypress/docker-compose.yaml' up --build -d || wait-on http://localhost:8081/management/health/readiness && docker compose --profile ci -f 'cypress/docker-compose.yaml' up --exit-code-from cypress"
   },
   "private": true,
   "dependencies": {

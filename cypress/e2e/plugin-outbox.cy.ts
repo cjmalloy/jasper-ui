@@ -1,6 +1,6 @@
 describe('Outbox Plugin: Remote Notifications', () => {
   const mainApi = Cypress.env('CYPRESS_mainApi') || 'http://localhost:8081';
-  const replUrl = Cypress.env('CYPRESS_replUrl') || 'http://localhost:8084';
+  const replUrl = Cypress.env('CYPRESS_replUrl') || 'http://localhost:8082';
   const replApi = Cypress.env('CYPRESS_replApi') || 'http://localhost:8083';
   it('loads the page', () => {
     cy.visit('/?debug=ADMIN');
