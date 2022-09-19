@@ -1,6 +1,6 @@
 describe('Origin Plugin: Remote Replication', () => {
   const replUrl = Cypress.env('CYPRESS_replUrl') || 'http://localhost:8082';
-  const replApi = Cypress.env('CYPRESS_replApi') || 'http://localhost:8083';
+  const replApi = Cypress.env('CYPRESS_replApi') || 'http://repl-web';
   it('loads the page', () => {
     cy.visit('/?debug=ADMIN');
     cy.contains('Home', { timeout: 30000 });
