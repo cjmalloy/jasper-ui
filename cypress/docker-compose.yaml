@@ -32,7 +32,7 @@ services:
     ports:
       - 8081:80
     environment:
-      SPRING_PROFILES_ACTIVE: dev,jwt,feed-burst,repl-burst,storage
+      SPRING_PROFILES_ACTIVE: prod,jwt,feed-burst,repl-burst,storage
       SPRING_DATASOURCE_URL: jdbc:postgresql://db/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
@@ -60,7 +60,7 @@ services:
     ports:
       - 8083:80
     environment:
-      SPRING_PROFILES_ACTIVE: dev,jwt,feed-burst,repl-burst,storage
+      SPRING_PROFILES_ACTIVE: prod,jwt,feed-burst,repl-burst,storage
       SPRING_DATASOURCE_URL: jdbc:postgresql://repl-db/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
