@@ -1,12 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import * as FileSaver from 'file-saver';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { pluginForm } from '../../form/plugin/plugin.component';
 import { Plugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { Store } from '../../store/store';
+import { download } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
@@ -94,5 +96,9 @@ export class PluginComponent implements OnInit {
       this.deleting = false;
       this.deleted = true;
     });
+  }
+
+  download() {
+    download(this.plugin);
   }
 }

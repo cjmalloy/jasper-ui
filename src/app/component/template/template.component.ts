@@ -1,12 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import * as FileSaver from 'file-saver';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { templateForm } from '../../form/template/template.component';
 import { Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
+import { download } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
@@ -94,5 +96,9 @@ export class TemplateComponent implements OnInit {
       this.deleting = false;
       this.deleted = true;
     });
+  }
+
+  download() {
+    download(this.template);
   }
 }
