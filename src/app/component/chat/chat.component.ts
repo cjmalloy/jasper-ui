@@ -140,7 +140,7 @@ export class ChatComponent {
 
   setPoll() {
     this.clearPoll();
-    this.timeoutId = setTimeout(() => this.loadMore(), this.pollInterval);
+    this.timeoutId = window.setTimeout(() => this.loadMore(), this.pollInterval);
   }
 
   add() {
