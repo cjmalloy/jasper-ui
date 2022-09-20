@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { SelectorsFormComponent } from './selectors.component';
 
@@ -18,6 +18,7 @@ describe('SelectorsFormComponent', () => {
 
     fixture = TestBed.createComponent(SelectorsFormComponent);
     component = fixture.componentInstance;
+    component.group = new UntypedFormGroup({ tags: new UntypedFormControl({}) });
     fixture.detectChanges();
   });
 
