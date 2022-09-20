@@ -29,12 +29,7 @@ export class PluginStore {
         this.error = undefined;
       });
       if (this.args) {
-        this.plugins.page(this.args).pipe(
-          catchError((err: HttpErrorResponse) => {
-            runInAction(() => this.error = err);
-            return throwError(() => err);
-          }),
-        ).subscribe(p => runInAction(() => this.page = p));
+        this.refresh();
       }
     });
   }
@@ -47,6 +42,16 @@ export class PluginStore {
 
   setArgs(args: TagPageArgs) {
     this.args = args;
+  }
+
+  refresh() {
+    this.plugins.page(this.args || {}).pipe(
+      catchError((err: HttpErrorResponse) => {
+        runInAction(() => this.error = err);
+        return throwError(() => err);
+      }),
+    ).subscribe(p => runInAction(() => this.page = p));
+
   }
 
 }

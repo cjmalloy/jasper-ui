@@ -1,1 +1,16 @@
+<ng-container *ngIf="store.account.admin">
+  <button (click)="showUpload()"
+          title="Upload Template"
+          class="upload">+ upload dev template</button>
+
+  <input id="upload"
+         type="file"
+         class="upload"
+         (change)="upload($any($event)?.target?.files)">
+
+  <ng-container *ngFor="let e of serverError">
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  </ng-container>
+</ng-container>
 <app-tag-list [page]="query.page"></app-tag-list>
