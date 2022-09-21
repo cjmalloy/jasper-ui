@@ -3,7 +3,7 @@
 <ng-container *ngIf="hasQuery">
   <a class="first-page"
      routerLink="./"
-     routerLinkActive="disabled"
+     [class.disabled]="page.first"
      [queryParams]="{ pageNumber: null }"
      queryParamsHandling="merge">first</a>
   |
