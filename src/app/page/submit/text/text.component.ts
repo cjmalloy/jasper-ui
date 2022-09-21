@@ -120,7 +120,7 @@ export class SubmitTextPage implements AfterViewInit {
     this.refs.create({
       ...this.textForm.value,
       tags: this.addPlugins(this.textForm.value.tags),
-      published: moment(this.textForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
+      published: this.textForm.value.published ? moment(this.textForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment(),
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
