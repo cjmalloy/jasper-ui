@@ -33,3 +33,8 @@
         [origin]="ref.origin"
         [text]="ref.comment!"
         [plugins]="ref.tags"></app-md>
+<ng-container *ngFor="let ui of uis">
+  <div [appPluginUi]="ui"
+       [ref]="ref"
+       appResize></div>
+</ng-container>

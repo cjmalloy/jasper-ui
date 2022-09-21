@@ -90,6 +90,11 @@
     </ng-container>
   </div>
 
+  <ng-container *ngIf="ui && ext">
+    <div [appTemplateUi]="ui"
+         [ext]="ext"></div>
+  </ng-container>
+
   <ng-container *ngIf="queue">
     <div class="ext-text" *ngIf="ext?.config?.bounty">
       <b>Bounty:</b> {{ ext?.config?.bounty }}

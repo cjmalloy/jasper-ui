@@ -89,7 +89,7 @@ export class RefComponent implements OnInit {
     this._ref = value;
     this.writeAccess = this.auth.writeAccess(value);
     if (value.tags) {
-      this.expandPlugins = this.admin.getEmbeds(value);
+      this.expandPlugins = this.admin.getEmbeds(value.tags);
     }
   }
 

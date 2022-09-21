@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import * as _ from 'lodash-es';
-import { catchError, forkJoin, map, of } from 'rxjs';
+import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';
-import { Ref } from '../model/ref';
+import { Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { archivePlugin } from '../plugin/archive';
 import { audioPlugin } from '../plugin/audio';
@@ -29,6 +29,7 @@ import { kanbanTemplate } from '../template/kanban';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
+import { prefixTag } from '../util/format';
 import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
 
@@ -77,8 +78,8 @@ export class AdminService {
     },
   };
 
-  pluginKeys = Object.keys(this.def.plugins);
-  templateKeys = Object.keys(this.def.templates);
+  private _embeddable?: string[];
+  private fetchBatch = 50;
 
   constructor(
     private plugins: PluginService,
@@ -86,55 +87,84 @@ export class AdminService {
   ) { }
 
   get init$() {
-    if (this.pluginKeys.length + this.templateKeys.length < 1000) {
-      return forkJoin(
-        this.plugins.list(this.pluginKeys.map(k => this.def.plugins[k].tag)).pipe(
-          map(list => this.listToStatus(this.pluginKeys, list)),
-          tap(status => this.status.plugins = status),
-        ),
-        this.templates.list(this.templateKeys.map(k => this.def.templates[k].tag)).pipe(
-          map(list => this.listToStatus(this.templateKeys, list)),
-          tap(status => this.status.templates = status),
-        ),
-      );
-    } else {
-      return forkJoin(
-        forkJoin(_.mapValues(this.def.plugins, p => this.plugins.get(p.tag).pipe(
-          catchError(err => of(undefined)),
-        ))).pipe(
-          tap(status => this.status.plugins = status),
-        ),
-        forkJoin(_.mapValues(this.def.templates, t => this.templates.get(t.tag).pipe(
-          catchError(err => of(undefined)),
-        ))).pipe(
-          tap(status => this.status.templates = status),
-        ),
-      );
+    this._embeddable = undefined;
+    this.status.plugins =  _.mapValues(this.def.plugins, () => undefined);
+    this.status.templates = _.mapValues(this.def.templates, () => undefined);
+    return forkJoin(this.loadPlugins$(), this.loadTemplates$());
+  }
+
+  private loadPlugins$(page = 0): Observable<null> {
+    return this.plugins.page({query: '*', page, size: this.fetchBatch}).pipe(
+      tap(batch => this.pluginToStatus(batch.content)),
+      switchMap(batch => batch.last ? of(null) : this.loadPlugins$(page + 1)),
+    );
+  }
+
+  private loadTemplates$(page = 0): Observable<null> {
+    return this.templates.page({query: '*', page, size: this.fetchBatch}).pipe(
+      tap(batch => this.templateToStatus(batch.content)),
+      switchMap(batch => batch.last ? of(null) : this.loadTemplates$(page + 1)),
+    );
+  }
+
+  private pluginToStatus(list: Plugin[]) {
+    for (const t of list) {
+      this.status.plugins[this.keyOf(this.def.plugins, t.tag)] = t;
     }
   }
 
-  private listToStatus<T>(keys: string[], list: (T | undefined)[]): Record<string, T | undefined> {
-    const result = <Record<string, T | undefined>> {};
-    for (let i = 0; i < keys.length; i++) {
-      result[keys[i]] = list[i];
+  private templateToStatus(list: Template[]) {
+    for (const t of list) {
+      this.status.templates[this.keyOf(this.def.templates, t.tag)] = t;
     }
-    return result;
   }
 
-  private _embedable?: string[];
-  get embedable() {
-    if (!this._embedable) {
-      this._embedable = [];
-      if (this.status.plugins.qr) this._embedable.push('plugin/qr');
-      if (this.status.plugins.embed) this._embedable.push('plugin/embed');
-      if (this.status.plugins.audio) this._embedable.push('plugin/audio');
-      if (this.status.plugins.video) this._embedable.push('plugin/video');
-      if (this.status.plugins.image) this._embedable.push('plugin/image');
-    }
-    return this._embedable;
+  keyOf(dict: Record<string, Tag>, tag: string) {
+    return _.findKey(dict, p => p.tag === tag) || tag;
   }
 
-  getEmbeds(ref: Ref) {
-    return _.intersection(ref.tags, this.embedable)
+  get embeddable() {
+    if (!this._embeddable) {
+      this._embeddable = Object.values(this.status.plugins)
+        .filter(p => {
+          if (!p) return false;
+          if (p?.config?.ui) return true;
+          if (p === this.status.plugins.qr) return true;
+          if (p === this.status.plugins.embed) return true;
+          if (p === this.status.plugins.audio) return true;
+          if (p === this.status.plugins.video) return true;
+          if (p === this.status.plugins.image) return true;
+          return false;
+        }).map(p => p!.tag);
+    }
+    return this._embeddable;
+  }
+
+  getEmbeds(tags: string[] = []) {
+    return _.intersection(tags, this.embeddable);
+  }
+
+  getPluginUi(tags: string[] = []) {
+    return Object.values(this.status.plugins)
+      .filter(p => p?.config?.ui)
+      .filter(p => tags?.includes(p!.tag)) as Plugin[];
+  }
+
+  getTemplate(tag: string) {
+    tag = tag.replace('+', '');
+    if (this.status.templates[tag]) return this.status.templates[tag];
+    return Object.values(this.status.templates).find(t => t?.tag === tag);
+  }
+
+  getTemplateUi(tag = ''): Template[] {
+    const template = this.getTemplate(tag);
+    const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
+    if (template) {
+      if (!tag || template.config?.overrideUi) return [template];
+      return [...this.getTemplateUi(parent!), template]
+    } else if (tag) {
+      return this.getTemplateUi(parent!);
+    }
+    return [];
   }
 }

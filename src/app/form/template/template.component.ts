@@ -29,7 +29,7 @@ export class TemplateFormComponent implements OnInit {
 
 export function templateForm(fb: UntypedFormBuilder) {
   return fb.group({
-    tag: ['', [Validators.required]],
+    tag: ['', []],
     name: ['', [Validators.required]],
     config: [],
     defaults: [],

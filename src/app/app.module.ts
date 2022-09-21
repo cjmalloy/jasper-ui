@@ -49,7 +49,9 @@ import { TemplateComponent } from './component/template/template.component';
 import { UserComponent } from './component/user/user.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { MdPostDirective } from './directive/md-post.directive';
+import { PluginUiDirective } from './directive/plugin-ui.directive';
 import { ResizeDirective } from './directive/resize.directive';
+import { TemplateUiDirective } from './directive/template-ui.directive';
 import { CodeComponent } from './form/code/code.component';
 import { ExtFormComponent } from './form/ext/ext.component';
 import { JsonComponent } from './form/json/json.component';
@@ -70,6 +72,7 @@ import { VideoFormComponent } from './form/plugins/video/video.component';
 import { QtagsFormComponent } from './form/qtags/qtags.component';
 import { QueriesFormComponent } from './form/queries/queries.component';
 import { RefFormComponent } from './form/ref/ref.component';
+import { SelectorsFormComponent } from './form/selectors/selectors.component';
 import { TagsFormComponent } from './form/tags/tags.component';
 import { TemplateFormComponent } from './form/template/template.component';
 import { ThemesFormComponent } from './form/themes/themes.component';
@@ -119,7 +122,6 @@ import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
-import { SelectorsFormComponent } from './form/selectors/selectors.component';
 
 const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -233,6 +235,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     ChatComponent,
     ChatEntryComponent,
     SelectorsFormComponent,
+    PluginUiDirective,
+    TemplateUiDirective,
   ],
   imports: [
     BrowserModule,

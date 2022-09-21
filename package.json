@@ -25,6 +25,7 @@
     "angularx-qrcode": "^14.0.0",
     "d3": "^7.6.1",
     "file-saver": "^2.0.5",
+    "handlebars": "^4.7.7",
     "jszip": "^3.10.1",
     "jtd": "^0.1.1",
     "lodash-es": "^4.17.21",
@@ -66,5 +67,10 @@
       "@angular/core": "$@angular/core",
       "monaco-editor": "$monaco-editor"
     }
+  },
+  "browser": {
+    "fs": false,
+    "os": false,
+    "path": false
   }
 }

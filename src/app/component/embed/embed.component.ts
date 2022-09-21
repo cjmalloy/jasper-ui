@@ -9,6 +9,7 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { Ref } from '../../model/ref';
+import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { EmbedService } from '../../service/embed.service';
 
@@ -29,6 +30,7 @@ export class EmbedComponent implements AfterViewInit {
   iframe!: ElementRef;
 
   constructor(
+    public admin: AdminService,
     private embeds: EmbedService,
     private refs: RefService,
     @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
@@ -42,6 +44,10 @@ export class EmbedComponent implements AfterViewInit {
 
   get embed() {
     return this.ref.plugins?.['plugin/embed']?.url || this.ref?.url;
+  }
+
+  get uis() {
+    return this.admin.getPluginUi(this.expandPlugins);
   }
 
   get qrWidth() {

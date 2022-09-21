@@ -31,7 +31,7 @@ export class TemplateService {
 
   get(tag = ''): Observable<Template> {
     return this.http.get(this.base, {
-      params: params({ tag }),
+      params: { tag },
     }).pipe(
       map(mapTemplate),
       catchError(err => this.login.handleHttpError(err)),
@@ -40,7 +40,7 @@ export class TemplateService {
 
   exists(tag: string): Observable<boolean> {
     return this.http.head(this.base, {
-      params: params({ tag }),
+      params: { tag },
     }).pipe(
       map(() => true),
       catchError(err => this.login.handleHttpError(err)),

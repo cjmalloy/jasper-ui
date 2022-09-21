@@ -1,6 +1,13 @@
 <form class="form" [formGroup]="adminForm" (ngSubmit)="install()">
   <span><!-- Title --></span>
   <h3>Install Plugins and Templates</h3>
+  <span><!-- Description --></span>
+  <p>
+    Quickly turn on and off templates bundled with this client.
+    Visit the <a routerLink="./plugin">plugins</a> or
+    <a routerLink="./template">templates</a> settings page to manage all
+    plugins and templates.
+  </p>
   <span>Plugins:</span>
   <div formGroupName="plugins">
     <div *ngFor="let plugin of admin.def.plugins | keyvalue">

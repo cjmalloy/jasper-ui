@@ -1,5 +1,7 @@
+import * as Handlebars from 'handlebars';
 import { Schema } from 'jtd';
 import * as moment from 'moment';
+import { Ext } from './ext';
 import { Tag } from './tag';
 
 export interface Template extends Tag {
@@ -7,6 +9,9 @@ export interface Template extends Tag {
   config?: any;
   defaults?: any;
   schema?: Schema;
+
+  // Cache
+  _ui?: HandlebarsTemplateDelegate;
 }
 
 export function mapTemplate(obj: any): Template {
@@ -29,3 +34,18 @@ export function writeTemplate(template: Partial<Template>): Partial<Template> {
   return result;
 }
 
+export function renderTemplates(templates: Template[], ext: Ext) {
+  return templates.map(t => renderTemplate(t, ext)).join();
+}
+
+export function renderTemplate(template: Template, ext: Ext) {
+  if (!template.config.ui) return '';
+  if (!template._ui) {
+    template._ui = Handlebars.compile(template.config.ui);
+  }
+  return template._ui({
+    ext,
+    template,
+    ...(ext.config || {}),
+  });
+}
