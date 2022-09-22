@@ -120,4 +120,10 @@
                  [group]="config"></app-qtags>
     </ng-container>
   </ng-container>
+
+  <formly-form *ngIf="form"
+               class="nested-form"
+               [form]="config"
+               [fields]="form"
+               [options]="options"></formly-form>
 </ng-container>

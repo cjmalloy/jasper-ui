@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as _ from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -29,7 +30,6 @@ import { kanbanTemplate } from '../template/kanban';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
-import { prefixTag } from '../util/format';
 import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
 
@@ -144,10 +144,20 @@ export class AdminService {
     return _.intersection(tags, this.embeddable);
   }
 
+  getPlugin(tag: string) {
+    return Object.values(this.status.plugins).find(p => p?.tag === tag);
+  }
+
   getPluginUi(tags: string[] = []) {
-    return Object.values(this.status.plugins)
-      .filter(p => p?.config?.ui)
-      .filter(p => tags?.includes(p!.tag)) as Plugin[];
+    return tags
+      .map(t => this.getPlugin(t))
+      .filter(p => p?.config?.ui) as Plugin[];
+  }
+
+  getPluginForms(tags: string[] = []) {
+    return tags
+      .map(t => this.getPlugin(t))
+      .filter(p => p?.config?.form) as Plugin[];
   }
 
   getTemplate(tag: string) {
@@ -159,11 +169,24 @@ export class AdminService {
   getTemplateUi(tag = ''): Template[] {
     const template = this.getTemplate(tag);
     const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
-    if (template) {
+    if (template?.config.ui) {
       if (!tag || template.config?.overrideUi) return [template];
       return [...this.getTemplateUi(parent!), template]
     } else if (tag) {
       return this.getTemplateUi(parent!);
+    }
+    return [];
+  }
+
+  getTemplateForm(tag = ''): FormlyFieldConfig[] {
+    const template = this.getTemplate(tag);
+    const form = template?.config.form as FormlyFieldConfig[] | undefined;
+    const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
+    if (form) {
+      if (!tag || template!.config?.overrideForm) return form;
+      return [...this.getTemplateForm(parent!), ...form]
+    } else if (tag) {
+      return this.getTemplateForm(parent!);
     }
     return [];
   }

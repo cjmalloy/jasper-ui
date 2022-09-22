@@ -9,6 +9,9 @@
 <app-form-embed *ngIf="tags.includes('plugin/embed')" [plugins]="plugins" [ref]="ref"></app-form-embed>
 <app-form-qr *ngIf="tags.includes('plugin/qr')" [plugins]="plugins"></app-form-qr>
 <app-form-comment *ngIf="tags.includes('plugin/comment')" [plugins]="plugins"></app-form-comment>
+<ng-container *ngFor="let plugin of admin.getPluginForms(tags)">
+  <app-form-gen [plugins]="plugins" [plugin]="plugin"></app-form-gen>
+</ng-container>
 <div class="empty-plugins" *ngIf="empty">
   no plugins
 </div>

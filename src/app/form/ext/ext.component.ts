@@ -1,5 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormlyFieldConfig, FormlyFormOptions } from '@ngx-formly/core';
+import * as _ from 'lodash-es';
 import { Ext } from '../../model/ext';
 import { AdminService } from '../../service/admin.service';
 import { hasPrefix } from '../../util/tag';
@@ -19,6 +21,11 @@ export class ExtFormComponent implements OnInit {
 
   @Input()
   group!: UntypedFormGroup;
+
+  form?: FormlyFieldConfig[];
+
+  options: FormlyFormOptions = {
+  };
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -80,7 +87,12 @@ export class ExtFormComponent implements OnInit {
     return this.config.get('userTheme') as UntypedFormControl;
   }
 
-
+  setValue(ext: Ext) {
+    if (!this.form) {
+      this.form = this.admin.getTemplateForm(ext.tag);
+    }
+    _.defer(() => this.group.patchValue(ext));
+  }
 }
 
 export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService) {
@@ -120,6 +132,13 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService) {
       swimLanes: qtagsForm(fb, ext.config?.swimLanes || []),
       showNoSwimLane: [false],
       noSwimLaneTitle: [''],
+    };
+  }
+  if (blog(ext.tag, admin)) {
+    configControls = {
+      ...configControls,
+      filterTags: [false],
+      tags: qtagsForm(fb, ext.config?.tags || []),
     };
   }
   if (blog(ext.tag, admin)) {

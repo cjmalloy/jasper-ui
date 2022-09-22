@@ -200,17 +200,26 @@ html, body {
   grid-template-columns: min-content auto;
   padding: 10px;
 
-  .nested-form {
+  .nested-form, formly-field, formly-group, formly-wrapper-form-field, formly-field-textarea, formly-field-input, formly-field-select {
     margin: 0;
     display: contents;
+    & > * {
+      margin: 4px;
+    }
+
+    & > div:empty,
+    & > span:empty {
+      height: 0;
+      margin: 0;
+    }
   }
 
-  & > *, .nested-form > * {
+  & > * {
     margin: 4px;
   }
 
-  & > div:empty, .nested-form > div:empty,
-  & > span:empty, .nested-form > span:empty{
+  & > div:empty,
+  & > span:empty {
     height: 0;
     margin: 0;
   }
@@ -223,6 +232,18 @@ html, body {
     white-space: nowrap;
     vertical-align: center;
     text-align: right;
+  }
+
+  formly-field-radio, formly-field-multicheckbox {
+    margin: 0;
+    display: grid;
+    grid-template-columns: min-content auto;
+    * {
+      margin: 4px;
+    }
+    label {
+      text-align: left;
+    }
   }
 }
 

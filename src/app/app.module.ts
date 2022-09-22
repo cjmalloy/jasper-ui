@@ -5,6 +5,7 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
+import { FormlyModule } from '@ngx-formly/core';
 import { QRCodeModule } from 'angularx-qrcode';
 import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
@@ -62,6 +63,7 @@ import { AudioFormComponent } from './form/plugins/audio/audio.component';
 import { CommentFormComponent } from './form/plugins/comment/comment.component';
 import { EmbedFormComponent } from './form/plugins/embed/embed.component';
 import { FeedFormComponent } from './form/plugins/feed/feed.component';
+import { GenFormComponent } from './form/plugins/gen/gen.component';
 import { ImageFormComponent } from './form/plugins/image/image.component';
 import { OriginFormComponent } from './form/plugins/origin/origin.component';
 import { PdfFormComponent } from './form/plugins/pdf/pdf.component';
@@ -78,6 +80,7 @@ import { TemplateFormComponent } from './form/template/template.component';
 import { ThemesFormComponent } from './form/themes/themes.component';
 import { UserFormComponent } from './form/user/user.component';
 import { UsersFormComponent } from './form/users/users.component';
+import { JasperFormlyModule } from './formly/formly.module';
 import { AuthInterceptor } from './http/auth.interceptor';
 import { CreateExtPage } from './page/create/ext/ext.component';
 import { CreateProfilePage } from './page/create/profile/profile.component';
@@ -237,6 +240,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     SelectorsFormComponent,
     PluginUiDirective,
     TemplateUiDirective,
+    GenFormComponent,
   ],
   imports: [
     BrowserModule,
@@ -251,6 +255,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     DragDropModule,
     OverlayModule,
     ScrollingModule,
+    FormlyModule,
+    JasperFormlyModule,
   ],
   providers: [
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },

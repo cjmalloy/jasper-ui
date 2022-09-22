@@ -1,14 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { toJS } from 'mobx';
 import { catchError, map, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../../form/ext/ext.component';
-import { linksForm } from '../../../form/links/links.component';
-import { qtagsForm } from '../../../form/qtags/qtags.component';
-import { queriesForm } from '../../../form/queries/queries.component';
-import { themesForm } from '../../../form/themes/themes.component';
-import { usersForm } from '../../../form/users/users.component';
 import { Ext } from '../../../model/ext';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
@@ -16,7 +12,7 @@ import { ExtService } from '../../../service/api/ext.service';
 import { ThemeService } from '../../../service/theme.service';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
-import { hasPrefix, removeWildcard } from '../../../util/tag';
+import { removeWildcard } from '../../../util/tag';
 
 @Component({
   selector: 'app-edit-tag-page',
@@ -43,11 +39,15 @@ export class EditTagPage implements OnInit {
     this.ext$.subscribe(ext => {
       this.ext = ext;
       this.editForm = extForm(fb, ext, admin);
-      this.editForm.patchValue(ext);
     });
   }
 
   ngOnInit(): void {
+  }
+
+  @ViewChild(ExtFormComponent)
+  set extForm(value: ExtFormComponent) {
+    value?.setValue(toJS(this.ext));
   }
 
   get tag$() {

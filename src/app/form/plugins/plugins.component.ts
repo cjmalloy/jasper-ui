@@ -34,7 +34,7 @@ export class PluginsFormComponent implements AfterViewInit {
   private _tags: string[] = [];
 
   constructor(
-    private admin: AdminService,
+    public admin: AdminService,
     private fb: UntypedFormBuilder,
   ) {
     this._group = fb.group({
@@ -78,7 +78,7 @@ export class PluginsFormComponent implements AfterViewInit {
     if (this.feed) {
       this.feed.setValue(value['+plugin/feed']);
     }
-    this.group.patchValue(value);
+    this.plugins.patchValue(value);
   }
 
   updateForm() {
@@ -127,6 +127,9 @@ function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
     case 'plugin/embed': return embedPluginForm(fb, admin);
     case 'plugin/qr': return qrPluginForm(fb, admin);
     case 'plugin/comment': return commentPluginForm(fb, admin);
+  }
+  if (admin.getPlugin(tag)?.config?.form) {
+    return fb.group({});
   }
   return null;
 }

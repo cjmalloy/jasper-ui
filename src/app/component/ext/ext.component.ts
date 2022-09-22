@@ -1,14 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
+import { toJS } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { Ext } from '../../model/ext';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
-import { PluginService } from '../../service/api/plugin.service';
-import { TemplateService } from '../../service/api/template.service';
 import { AuthService } from '../../service/auth.service';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
@@ -42,13 +40,13 @@ export class ExtComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.editForm = extForm(this.fb, this.ext, this.admin);
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);
   }
 
   @ViewChild(ExtFormComponent)
   set extForm(value: ExtFormComponent) {
-    this.editForm = extForm(this.fb, this.ext, this.admin);
-    this.editForm.patchValue(this.ext);
+    value?.setValue(toJS(this.ext));
   }
 
   get qualifiedTag() {
