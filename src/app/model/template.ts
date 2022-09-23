@@ -1,3 +1,4 @@
+import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as Handlebars from 'handlebars';
 import { Schema } from 'jtd';
 import * as moment from 'moment';
@@ -6,7 +7,27 @@ import { Tag } from './tag';
 
 export interface Template extends Tag {
   type?: 'template';
-  config?: any;
+  config?: {
+    [record: string]: any,
+    /**
+     * Optional handlebars template to use as a sidebar UI.
+     */
+    ui?: string,
+    /**
+     * Do not render UIs from inherited Templates. If unset UIs
+     * will stack from abstract to specific inheritance.
+     */
+    overrideUi?: boolean;
+    /**
+     * Optional formly config for editing a form defined by the schema.
+     */
+    form?: FormlyFieldConfig[],
+    /**
+     * Do not render forms from inherited Templates. If unset forms
+     * will stack from abstract to specific inheritance.
+     */
+    overrideForm?: boolean;
+  };
   defaults?: any;
   schema?: Schema;
 
@@ -39,7 +60,7 @@ export function renderTemplates(templates: Template[], ext: Ext) {
 }
 
 export function renderTemplate(template: Template, ext: Ext) {
-  if (!template.config.ui) return '';
+  if (!template.config?.ui) return '';
   if (!template._ui) {
     template._ui = Handlebars.compile(template.config.ui);
   }

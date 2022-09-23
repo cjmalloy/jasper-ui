@@ -47,7 +47,9 @@ export class EditTagPage implements OnInit {
 
   @ViewChild(ExtFormComponent)
   set extForm(value: ExtFormComponent) {
-    value?.setValue(toJS(this.ext));
+    if (this.ext && value) {
+      value.setValue(toJS(this.ext));
+    }
   }
 
   get tag$() {

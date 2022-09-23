@@ -169,7 +169,7 @@ export class AdminService {
   getTemplateUi(tag = ''): Template[] {
     const template = this.getTemplate(tag);
     const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
-    if (template?.config.ui) {
+    if (template?.config?.ui) {
       if (!tag || template.config?.overrideUi) return [template];
       return [...this.getTemplateUi(parent!), template]
     } else if (tag) {
@@ -180,7 +180,7 @@ export class AdminService {
 
   getTemplateForm(tag = ''): FormlyFieldConfig[] {
     const template = this.getTemplate(tag);
-    const form = template?.config.form as FormlyFieldConfig[] | undefined;
+    const form = template?.config?.form;
     const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
     if (form) {
       if (!tag || template!.config?.overrideForm) return form;
