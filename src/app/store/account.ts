@@ -1,3 +1,4 @@
+import * as _ from 'lodash-es';
 import { makeAutoObservable } from 'mobx';
 import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
@@ -28,6 +29,11 @@ export class AccountStore {
     return !!this.tag;
   }
 
+  get origin() {
+    if (!this.tag.includes('@')) return '';
+    return this.tag.substring(this.tag.indexOf('@'));
+  }
+
   get role() {
     if (!this.signedIn) return '';
     if (this.admin) return 'admin';
@@ -43,23 +49,23 @@ export class AccountStore {
   }
 
   get modmail() {
-    return this.user?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox'));
+    return this.user?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => t + (this.origin || '@*'));
   }
 
   get outboxes() {
-    return this.user?.readAccess?.filter(t => hasPrefix(t, 'plugin/outbox'));
+    return this.user?.readAccess?.filter(t => hasPrefix(t, 'plugin/outbox')).map(t => t + (this.origin || '@*'));
   }
 
   get notificationsQuery() {
     if (!this.signedIn) return undefined;
-    let result = this.mailbox;
+    let tags = [this.mailbox];
     if (this.modmail?.length) {
-      result += '|' + this.modmail!.join('|');
+      tags.push(...this.modmail);
     }
     if (this.outboxes?.length) {
-      result += '|' + this.outboxes!.join('|');
+      tags.push(...this.outboxes);
     }
-    return result;
+    return _.uniq(tags).join('|');
   }
 
   get subscriptionQuery() {

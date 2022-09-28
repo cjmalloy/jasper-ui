@@ -37,8 +37,8 @@ describe('Outbox Plugin: Remote Notifications', () => {
     cy.contains('Create User Permissions').click();
     cy.get('#tag').type('+user/alice');
     cy.get('#readAccess button').click().click();
-    cy.get('#selector-readAccess-0').type('plugin/inbox/user/alice');
-    cy.get('#selector-readAccess-1').type('plugin/outbox/main/user/alice@*');
+    cy.get('#tags-readAccess-0').type('plugin/inbox/user/alice');
+    cy.get('#tags-readAccess-1').type('plugin/outbox/main/user/alice');
     cy.get('button').contains('Create').click();
     cy.get('.tag-list .link:not(.remote)').contains('+user/alice');
   });
@@ -69,8 +69,8 @@ describe('Outbox Plugin: Remote Notifications', () => {
     cy.contains('Create User Permissions').click();
     cy.get('#tag').type('+user/bob');
     cy.get('#readAccess button').click().click();
-    cy.get('#selector-readAccess-0').type('plugin/inbox/user/bob');
-    cy.get('#selector-readAccess-1').type('plugin/outbox/other/user/bob@*');
+    cy.get('#tags-readAccess-0').type('plugin/inbox/user/bob');
+    cy.get('#tags-readAccess-1').type('plugin/outbox/other/user/bob');
     cy.get('button').contains('Create').click();
     cy.get('.tag-list .link:not(.remote)').contains('+user/bob');
   });
@@ -83,8 +83,8 @@ describe('Outbox Plugin: Remote Notifications', () => {
     cy.contains('Create User Permissions').click();
     cy.get('#tag').type('+user/charlie');
     cy.get('#readAccess button').click().click();
-    cy.get('#selector-readAccess-0').type('plugin/inbox/user/charlie');
-    cy.get('#selector-readAccess-1').type('plugin/outbox/other/user/charlie@*');
+    cy.get('#tags-readAccess-0').type('plugin/inbox/user/charlie');
+    cy.get('#tags-readAccess-1').type('plugin/outbox/other/user/charlie');
     cy.get('button').contains('Create').click();
     cy.get('.tag-list .link:not(.remote)').contains('+user/charlie');
   });

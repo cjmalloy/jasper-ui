@@ -5,7 +5,7 @@ services:
       - ci
     depends_on:
       - client
-      - web
+      - repl-client
     network_mode: host
     environment:
       CYPRESS_baseUrl: http://localhost:8080
