@@ -118,10 +118,6 @@ export class KanbanComponent implements OnInit, OnDestroy {
     });
 
     const tags = [...remove.map(t => `-${t}`), ...add];
-    if (!to.length) {
-      // Empty tags set represents the remove drop area, also remove the board tag
-      tags.push('-' + this.ext!.tag);
-    }
     if (!tags.length) return;
     this.tags.patch(tags, ref.url, ref.origin).pipe(
       catchError(() => {

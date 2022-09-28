@@ -6,6 +6,7 @@
        [style.grid-template-columns]="(swimLanes ? 'auto ' : '') + (ext.config.showNoColumn ? '1fr ' : '') + 'repeat(' + ext.config.columns.length + ', 1fr)'">
     <div class="kanban-header"
          cdkDropList
+         [cdkDropListData]="{col: '-'+ext.tag}"
          (cdkDropListDropped)="drop($any($event))"
          [style.grid-column]="'1 / ' + (1 + (swimLanes ? 1 : 0) + (ext.config.showNoColumn ? 1 : 0) + ext.config.columns.length)">
       <div class="kanban-options">
