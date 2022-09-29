@@ -6,6 +6,7 @@ export default defineConfig({
     'baseUrl': 'http://localhost:4200'
   },
   reporterOptions: {
-    mochaFile: 'cypress/results/results-[hash].xml'
+    mochaFile: 'cypress/results/results-[hash].xml',
+    jenkinsMode: true,
   }
 })
