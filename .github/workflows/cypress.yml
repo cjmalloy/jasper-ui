@@ -24,7 +24,7 @@ jobs:
         if: always()
         with:
           name: Test Results
-          path: "cypress/results/results-*.xml"
+          path: "cypress/results-combined.xml"
           reporter: java-junit
 
       - name: Publish Screenshots

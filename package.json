@@ -8,8 +8,9 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "e2e": "ng e2e",
-    "cy:open": "(cd cypress; docker compose pull && docker compose up --build -d) && cypress open --config baseUrl=http://localhost:8080 && docker compose -f 'cypress/docker-compose.yaml' down",
-    "cy:ci": "docker compose --profile ci -f 'cypress/docker-compose.yaml' up --exit-code-from cypress"
+    "cy:open": "(cd cypress; docker compose pull && docker compose up --build -d) && cypress open --config baseUrl=http://localhost:8080 && (cd cypress; docker compose down)",
+    "cy:ci": "docker compose --profile ci -f 'cypress/docker-compose.yaml' up --exit-code-from cypress; npm run cy:merge",
+    "cy:merge": "jrm cypress/results-combined.xml 'cypress/results/*.xml'"
   },
   "private": true,
   "dependencies": {
@@ -56,6 +57,7 @@
     "cypress": "^10.8.0",
     "cypress-real-events": "^1.7.1",
     "jasmine-core": "~4.0.0",
+    "junit-report-merger": "^4.0.0",
     "karma": "~6.3.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage": "~2.1.0",
