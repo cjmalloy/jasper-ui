@@ -9,7 +9,7 @@
     "test": "ng test",
     "e2e": "ng e2e",
     "cy:open": "(cd cypress; docker compose pull && docker compose up --build -d) && cypress open --config baseUrl=http://localhost:8080 && (cd cypress; docker compose down)",
-    "cy:ci": "docker compose --profile ci -f 'cypress/docker-compose.yaml' up --exit-code-from cypress; npm run cy:merge",
+    "cy:ci": "docker compose --profile ci -f 'cypress/docker-compose.yaml' up --build --exit-code-from cypress; npm run cy:merge",
     "cy:merge": "jrm cypress/results-combined.xml 'cypress/results/*.xml'"
   },
   "private": true,
