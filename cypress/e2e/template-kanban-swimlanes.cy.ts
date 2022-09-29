@@ -263,7 +263,7 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('deletes board', () => {
     cy.visit('/tag/kanban%2fsl?debug=MOD');
-    cy.get('.sidebar-link').contains('edit').click();
+    cy.get('.sidebar-link.edit').click();
     cy.get('button').contains('Delete').click();
     cy.contains('Not Found');
   });

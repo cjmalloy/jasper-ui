@@ -156,12 +156,12 @@
 
     <ng-container *ngIf="writeAccess">
       <a *ngIf="ext"
-         class="sidebar-link"
+         class="sidebar-link edit"
          [routerLink]="['/tag', localTag, 'edit']">
         edit
       </a>
       <a *ngIf="!ext"
-         class="sidebar-link"
+         class="sidebar-link edit"
          routerLink="/create/ext"
          [queryParams]="{tag: localTag}">
         edit
