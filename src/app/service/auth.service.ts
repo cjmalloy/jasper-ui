@@ -42,8 +42,8 @@ export class AuthService {
     if (!tag) return false;
     if (!tag.endsWith('@*') && tag.includes('@')) return false;
     if (tag === 'locked') return false;
-    if (this.store.account.editor && publicTag(tag)) return true;
     if (this.store.account.mod) return true;
+    if (this.store.account.editor && publicTag(tag)) return true;
     if (!this.store.account.user) return false;
     if (tag === this.store.account.user.tag) return true;
     return capturesAny(this.store.account.user.tagWriteAccess, [tag]);
