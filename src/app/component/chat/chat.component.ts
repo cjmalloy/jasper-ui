@@ -1,5 +1,5 @@
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { Component, HostBinding, Input, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash-es';
 import { catchError, map, switchMap, throwError } from 'rxjs';
@@ -17,7 +17,7 @@ import { getArgs } from '../../util/query';
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss']
 })
-export class ChatComponent {
+export class ChatComponent implements OnDestroy {
   @HostBinding('class') css = 'chat';
 
   @Input()
@@ -64,6 +64,10 @@ export class ChatComponent {
     if (this.emoji) result.push('plugin/emoji');
     if (this.latex) result.push('plugin/latex');
     return result;
+  }
+
+  ngOnDestroy(): void {
+    this.clearPoll();
   }
 
   clear() {
