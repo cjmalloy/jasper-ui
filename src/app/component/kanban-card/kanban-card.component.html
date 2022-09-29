@@ -1,4 +1,4 @@
-<a class="card-title" [routerLink]="['/ref', ref.url, refView]">
+<a class="card-title" [routerLink]="routerLink">
     {{ ref.title || ref.url }}
 </a>
 <app-md *ngIf="ref.comment"

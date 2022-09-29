@@ -30,8 +30,12 @@ export class KanbanCardComponent implements OnInit {
       hasTag('plugin/person', this.ref);
   }
 
-  get refView() {
-    return this.admin.status.plugins.comment ? 'comments' : undefined;
+  get routerLink() {
+    const route = ['/ref', this.ref.url];
+    if (this.admin.status.plugins.comment) {
+      route.push('comments');
+    }
+    return route;
   }
 
 }
