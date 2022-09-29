@@ -44,7 +44,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column:nth-of-type(7) a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(8)' )
+    cy.get('.kanban-column:nth-of-type(8)')
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
@@ -61,7 +61,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column:nth-of-type(8) a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(9)' )
+    cy.get('.kanban-column:nth-of-type(9)')
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
@@ -78,7 +78,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column:nth-of-type(9) a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(7)' )
+    cy.get('.kanban-column:nth-of-type(7)')
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
@@ -95,7 +95,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column:nth-of-type(7) a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column' )
+    cy.get('.kanban-column')
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
@@ -112,7 +112,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(2)' )
+    cy.get('.kanban-column:nth-of-type(2)')
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
@@ -129,7 +129,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column:nth-of-type(2) a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(3)' )
+    cy.get('.kanban-column:nth-of-type(3)')
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
@@ -146,7 +146,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column:nth-of-type(3) a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column' )
+    cy.get('.kanban-column')
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
@@ -163,7 +163,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(2)' )
+    cy.get('.kanban-column:nth-of-type(2)')
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
@@ -180,7 +180,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column:nth-of-type(2) a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(4)' )
+    cy.get('.kanban-column:nth-of-type(4)')
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
@@ -197,7 +197,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column:nth-of-type(4) a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(5)' )
+    cy.get('.kanban-column:nth-of-type(5)')
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
@@ -214,7 +214,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column:nth-of-type(5) a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(6)' )
+    cy.get('.kanban-column:nth-of-type(6)')
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
@@ -231,7 +231,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column:nth-of-type(6) a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-remove' ).parent()
+    cy.get('.kanban-remove').parent()
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
@@ -248,13 +248,13 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.full-page.ref .tag:not(.user)').contains('doing').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'done');
   });
-  it('move to trash', () => {
+  it('move to trash again', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
     cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
     cy.get('.kanban-column a')
       .realMouseDown({ button: 'left', position: 'center' })
       .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-remove' ).parent()
+    cy.get('.kanban-remove').parent()
       .realMouseMove(30, 30, { position: 'topLeft' })
       .realMouseUp();
     cy.wait('@tag');
