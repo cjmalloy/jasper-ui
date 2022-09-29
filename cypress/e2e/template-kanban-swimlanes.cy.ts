@@ -262,8 +262,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.get('.kanban-column').contains("first step").should('not.exist');
   });
   it('deletes board', () => {
-    cy.visit('/tag/kanban%2fsl?debug=MOD');
-    cy.get('.sidebar-link.edit').click({force: true});
+    cy.visit('/tag/kanban%2fsl/edit?debug=MOD');
     cy.get('button').contains('Delete').click();
     cy.contains('Not Found');
   });
