@@ -92,7 +92,7 @@ describe('Kanban Template', () => {
   });
   it('deletes board', () => {
     cy.visit('/tag/kanban%2ftest?debug=MOD');
-    cy.get('.sidebar-link.edit').click();
+    cy.get('.sidebar-link.edit').click({force: true});
     cy.get('button').contains('Delete').click();
     cy.contains('Not Found');
   });
