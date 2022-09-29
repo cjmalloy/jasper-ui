@@ -18,4 +18,74 @@ describe('Smoke Tests', () => {
     cy.visit(`/ref/${encodeURIComponent('https://www.jasper-kms.info/')}?debug=USER`);
     cy.contains('Not Found');
   });
+  it('loads the ADMIN user', () => {
+    cy.intercept({method: 'GET', pathname: '/api/v1/user/whoami'}).as('whoami');
+    cy.visit('/?debug=ADMIN');
+    cy.wait('@whoami');
+    cy.get('@whoami').should(({ request, response }: any) => {
+      expect(response.body).deep.equal({
+        tag: '+user/debug/admin',
+        admin: true,
+        mod: true,
+        editor: true,
+        user: true,
+      });
+    });
+  });
+  it('loads the MOD user', () => {
+    cy.intercept({method: 'GET', pathname: '/api/v1/user/whoami'}).as('whoami');
+    cy.visit('/?debug=MOD');
+    cy.wait('@whoami');
+    cy.get('@whoami').should(({ request, response }: any) => {
+      expect(response.body).deep.equal({
+        tag: '+user/debug/mod',
+        admin: false,
+        mod: true,
+        editor: true,
+        user: true,
+      });
+    });
+  });
+  it('loads the EDITOR user', () => {
+    cy.intercept({method: 'GET', pathname: '/api/v1/user/whoami'}).as('whoami');
+    cy.visit('/?debug=EDITOR');
+    cy.wait('@whoami');
+    cy.get('@whoami').should(({ request, response }: any) => {
+      expect(response.body).deep.equal({
+        tag: '+user/debug/editor',
+        admin: false,
+        mod: false,
+        editor: true,
+        user: true,
+      });
+    });
+  });
+  it('loads the USER user', () => {
+    cy.intercept({method: 'GET', pathname: '/api/v1/user/whoami'}).as('whoami');
+    cy.visit('/?debug=USER');
+    cy.wait('@whoami');
+    cy.get('@whoami').should(({ request, response }: any) => {
+      expect(response.body).deep.equal({
+        tag: '+user/debug/user',
+        admin: false,
+        mod: false,
+        editor: false,
+        user: true,
+      });
+    });
+  });
+  it('loads the VIEWER user', () => {
+    cy.intercept({method: 'GET', pathname: '/api/v1/user/whoami'}).as('whoami');
+    cy.visit('/?debug=VIEWER');
+    cy.wait('@whoami');
+    cy.get('@whoami').should(({ request, response }: any) => {
+      expect(response.body).deep.equal({
+        tag: '+user/debug/viewer',
+        admin: false,
+        mod: false,
+        editor: false,
+        user: false,
+      });
+    });
+  });
 });
