@@ -153,19 +153,19 @@
     <app-md *ngIf="ext?.config?.sidebar"
             [origin]="ext?.origin"
             [text]="ext!.config!.sidebar"></app-md>
+  </ng-container>
 
-    <ng-container *ngIf="writeAccess">
-      <a *ngIf="ext"
-         class="sidebar-link edit"
-         [routerLink]="['/tag', localTag, 'edit']">
-        edit
-      </a>
-      <a *ngIf="!ext"
-         class="sidebar-link edit"
-         routerLink="/create/ext"
-         [queryParams]="{tag: localTag}">
-        edit
-      </a>
-    </ng-container>
+  <ng-container *ngIf="writeAccess">
+    <a *ngIf="ext"
+       class="sidebar-link edit"
+       [routerLink]="['/tag', localTag, 'edit']">
+      edit
+    </a>
+    <a *ngIf="!ext"
+       class="sidebar-link edit"
+       routerLink="/create/ext"
+       [queryParams]="{tag: localTag}">
+      edit
+    </a>
   </ng-container>
 </ng-container>
