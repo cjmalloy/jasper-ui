@@ -1,4 +1,4 @@
-describe('Kanban Template', () => {
+describe('Kanban Template with Swim Lanes', () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 30000 });
