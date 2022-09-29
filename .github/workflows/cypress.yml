@@ -19,20 +19,11 @@ jobs:
       - name: Start containers
         run: npm run cy:ci
 
-      - name: Publish Unit Test Results
-        uses: dorny/test-reporter@v1.5.0
-        if: always()
+      - name: Publish Report
+        uses: actions/upload-artifact@v3
         with:
-          name: Test Results
-          path: "cypress/results-combined.xml"
-          reporter: java-junit
-
-      - name: Publish Screenshots
-        uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: cypress-screenshots
-          path: cypress/screenshots
+          name: cypress
+          path: cypress/reports/html
 
       - name: Publish Videos
         uses: actions/upload-artifact@v2

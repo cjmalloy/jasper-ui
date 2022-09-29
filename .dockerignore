@@ -7,4 +7,5 @@ cypress/
 .github
 quickstart
 cypress.config.ts
+cypress.config.js
 docker-compose.yaml
