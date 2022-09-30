@@ -21,6 +21,7 @@ jobs:
 
       - name: Publish Report
         uses: actions/upload-artifact@v3
+        if: always()
         with:
           name: cypress
           path: cypress/reports/html
