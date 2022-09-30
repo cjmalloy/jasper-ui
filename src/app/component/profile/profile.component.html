@@ -25,7 +25,7 @@
     <span *ngIf="changingRole" class="inline-role">
       <select #inlineRole
               [value]="profile.role"
-             (change)="setInlineRole()">
+              (change)="setInlineRole()">
         <option value="ROLE_ADMIN">admin</option>
         <option value="ROLE_MOD">mod</option>
         <option value="ROLE_EDITOR">editor</option>

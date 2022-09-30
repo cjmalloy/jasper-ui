@@ -29,7 +29,13 @@
   <input id="password" type="password" [formControl]="password">
 
   <label for="role">Role:</label>
-  <input id="role" type="text" [formControl]="role">
+  <select id="role" [formControl]="role">
+    <option value="ROLE_ADMIN">admin</option>
+    <option value="ROLE_MOD">mod</option>
+    <option value="ROLE_EDITOR">editor</option>
+    <option value="ROLE_USER">user</option>
+    <option value="ROLE_VIEWER">viewer</option>
+  </select>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>
