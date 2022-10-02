@@ -10,12 +10,14 @@ describe('Outbox Plugin: Remote Notifications', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
+    cy.get('input[type=checkbox]').uncheck();
     cy.get('#plugin-comment').check();
     cy.get('#plugin-inbox').check();
     cy.get('#plugin-outbox').check();
     cy.get('#plugin-origin').check();
     cy.get('#template-user').check();
     cy.get('button').contains('Save').click();
+    cy.wait(200);
   });
   it('@main: replicate @other', () => {
     cy.visit('/?debug=ADMIN');
@@ -128,7 +130,7 @@ describe('Outbox Plugin: Remote Notifications', () => {
   });
   it('@main: reply to remote message', () => {
     cy.visit('/?debug=USER&tag=alice');
-    cy.get('.settings .inbox').click();
+    cy.get('.settings .inbox').click({force: true});
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Ref from other').parent().parent().as('ref');
     cy.get('@ref').find('.actions').contains('comment').click();

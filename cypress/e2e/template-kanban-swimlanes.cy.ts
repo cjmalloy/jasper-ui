@@ -1,3 +1,5 @@
+import { addToBoard, dragCol } from './template-kanban.cy';
+
 describe('Kanban Template with Swim Lanes', () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
@@ -7,6 +9,7 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
+    cy.get('input[type=checkbox]').uncheck();
     cy.get('#template-kanban').check();
     cy.get('button').contains('Save').click();
   });
@@ -30,8 +33,8 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('add to board', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.get('.kanban-column:nth-of-type(7)').first().find('input').focus().type("first step{enter}", {force: true});
-    cy.get('.kanban-column a').contains("first step").click();
+    addToBoard(7, 'first step');
+    cy.get('.kanban-column:nth-of-type(7) a').contains('first step').click();
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
@@ -40,15 +43,8 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('move to doing', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column:nth-of-type(7) a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(8)')
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
-    cy.get('.kanban-column:nth-of-type(8) a').contains("first step").click({force: true});
+    dragCol(7, 8);
+    cy.get('.kanban-column:nth-of-type(8) a').contains('first step').click({force: true});
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
@@ -57,15 +53,8 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('move to done', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column:nth-of-type(8) a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(9)')
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
-    cy.get('.kanban-column:nth-of-type(9) a').contains("first step").click({force: true});
+    dragCol(8, 9);
+    cy.get('.kanban-column:nth-of-type(9) a').contains('first step').click({force: true});
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
@@ -74,15 +63,8 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('move to untagged col', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column:nth-of-type(9) a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(7)')
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
-    cy.get('.kanban-column:nth-of-type(7) a').contains("first step").click({force: true});
+    dragCol(9, 7);
+    cy.get('.kanban-column:nth-of-type(7) a').contains('first step').click({force: true});
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
@@ -91,15 +73,8 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('assign to alice', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column:nth-of-type(7) a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column')
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
-    cy.get('.kanban-column a').contains("first step").click({force: true});
+    dragCol(7, 1);
+    cy.get('.kanban-column:nth-of-type(1) a').contains('first step').click({force: true});
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('alice').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
@@ -108,15 +83,8 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('move to alice doing', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(2)')
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
-    cy.get('.kanban-column:nth-of-type(2) a').contains("first step").click({force: true});
+    dragCol(1, 2);
+    cy.get('.kanban-column:nth-of-type(2) a').contains('first step').click({force: true});
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('alice').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
@@ -125,15 +93,8 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('move to alice done', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column:nth-of-type(2) a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(3)')
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
-    cy.get('.kanban-column:nth-of-type(3) a').contains("first step").click({force: true});
+    dragCol(2, 3);
+    cy.get('.kanban-column:nth-of-type(3) a').contains('first step').click({force: true});
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('alice').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
@@ -142,15 +103,8 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('move to alice todo', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column:nth-of-type(3) a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column')
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
-    cy.get('.kanban-column a').contains("first step").click({force: true});
+    dragCol(3, 1);
+    cy.get('.kanban-column:nth-of-type(1) a').contains('first step').click({force: true});
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('alice').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
@@ -159,15 +113,8 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('move to alice doing again', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(2)')
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
-    cy.get('.kanban-column:nth-of-type(2) a').contains("first step").click({force: true});
+    dragCol(1, 2);
+    cy.get('.kanban-column:nth-of-type(2) a').contains('first step').click({force: true});
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('alice').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
@@ -176,15 +123,8 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('assign to bob', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column:nth-of-type(2) a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(4)')
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
-    cy.get('.kanban-column:nth-of-type(4) a').contains("first step").click({force: true});
+    dragCol(2, 4);
+    cy.get('.kanban-column:nth-of-type(4) a').contains('first step').click({force: true});
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').contains('bob').should('exist');
@@ -194,14 +134,8 @@ describe('Kanban Template with Swim Lanes', () => {
   it('move to bob doing', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
     cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column:nth-of-type(4) a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(5)')
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
-    cy.get('.kanban-column:nth-of-type(5) a').contains("first step").click({force: true});
+    dragCol(4, 5);
+    cy.get('.kanban-column:nth-of-type(5) a').contains('first step').click({force: true});
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').contains('bob').should('exist');
@@ -210,15 +144,8 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('move to bob done', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column:nth-of-type(5) a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-column:nth-of-type(6)')
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
-    cy.get('.kanban-column:nth-of-type(6) a').contains("first step").click({force: true});
+    dragCol(5, 6);
+    cy.get('.kanban-column:nth-of-type(6) a').contains('first step').click({force: true});
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').contains('bob').should('exist');
@@ -227,21 +154,14 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('move to trash', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column:nth-of-type(6) a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-remove').parent()
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
+    dragCol(6);
     cy.reload();
-    cy.get('.kanban-column').contains("first step").should('not.exist');
+    cy.get('.kanban-column').contains('first step').should('not.exist');
   });
   it('add to alice doing', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.get('.kanban-column:nth-of-type(2)').first().find('input').focus().type("first step{enter}", {force: true});
-    cy.get('.kanban-column a').contains("first step").click();
+    addToBoard(2, 'second step');
+    cy.get('.kanban-column:nth-of-type(2) a').contains('second step').click();
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('alice').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
@@ -250,16 +170,9 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('move to trash again', () => {
     cy.visit('/tag/kanban%2fsl?debug=USER');
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-    cy.get('.kanban-column a')
-      .realMouseDown({ button: 'left', position: 'center' })
-      .realMouseMove(0, 10, { position: 'center' });
-    cy.get('.kanban-remove').parent()
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-    cy.wait('@tag');
+    dragCol(2);
     cy.reload();
-    cy.get('.kanban-column').contains("first step").should('not.exist');
+    cy.get('.kanban-column').contains('second step').should('not.exist');
   });
   it('deletes board', () => {
     cy.visit('/tag/kanban%2fsl/edit?debug=MOD');
