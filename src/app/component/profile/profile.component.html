@@ -12,10 +12,7 @@
     <span *ngIf="changingPassword" class="inline-password">
       <input #inlinePassword
              (keydown)="$event.key === 'Enter' && setInlinePassword() || true"
-             type="text"
-             inputmode="email"
-             autocorrect="off"
-             autocapitalize="none"
+             type="password"
              appAutofocus>
       <button (click)="setInlinePassword()">+</button>
     </span>
