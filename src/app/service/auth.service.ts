@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Ref } from '../model/ref';
 import { Store } from '../store/store';
-import { capturesAny, hasTag, isOwner, isOwnerTag, publicTag, qualifyTags } from '../util/tag';
+import { capturesAny, hasTag, isOwner, isOwnerTag, publicTag, qualifyTags, tagOrigin } from '../util/tag';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +17,7 @@ export class AuthService {
   writeAccess(ref: Ref): boolean {
     if (!this.store.account.signedIn) return false;
     if (this.store.account.mod) return true;
-    if (ref.origin) return false;
+    if (ref.origin !== this.store.account.origin) return false;
     if (hasTag('locked', ref)) return false;
     if (isOwnerTag(this.store.account.tag, ref)) return true;
     if (!this.store.account.user) return false;
@@ -28,7 +28,7 @@ export class AuthService {
   tagReadAccess(tag?: string): boolean {
     if (!this.store.account.signedIn) return false;
     if (!tag) return false;
-    if (!tag.endsWith('@*') && tag.includes('@')) return false;
+    if (!tag.endsWith('@*') && tagOrigin(tag) !== this.store.account.origin) return false;
     if (publicTag(tag)) return true;
     if (this.store.account.mod) return true;
     if (!this.store.account.user) return false;
@@ -40,7 +40,7 @@ export class AuthService {
   tagWriteAccess(tag?: string): boolean {
     if (!this.store.account.signedIn) return false;
     if (!tag) return false;
-    if (!tag.endsWith('@*') && tag.includes('@')) return false;
+    if (!tag.endsWith('@*') && tagOrigin(tag) !== this.store.account.origin) return false;
     if (tag === 'locked') return false;
     if (this.store.account.mod) return true;
     if (this.store.account.editor && publicTag(tag)) return true;

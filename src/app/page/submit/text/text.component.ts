@@ -53,7 +53,7 @@ export class SubmitTextPage implements AfterViewInit {
   ngAfterViewInit(): void {
     _.defer(() => {
       this.addTag('public');
-      this.addTag(this.store.account.tag!);
+      this.addTag(this.store.account.localTag);
       this.route.queryParams.subscribe(params => {
         let url = params['url'] || 'comment:' + uuid();
         this.wiki = !!url.startsWith('wiki:');
@@ -119,6 +119,7 @@ export class SubmitTextPage implements AfterViewInit {
     }
     this.refs.create({
       ...this.textForm.value,
+      origin: this.store.account.origin,
       tags: this.addPlugins(this.textForm.value.tags),
       published: this.textForm.value.published ? moment(this.textForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment(),
     }).pipe(

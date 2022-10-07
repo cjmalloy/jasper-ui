@@ -113,7 +113,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get isApprover() {
-    return this.ext?.config?.approvers?.includes(this.store.account.tag);
+    return this.ext?.config?.approvers?.includes(this.store.account.localTag);
   }
 
   get user() {

@@ -1,18 +1,19 @@
-<div class="link" [class.remote]="!!template.origin">
+<div class="link" [class.remote]="!local">
   <a *ngIf="template.tag" [routerLink]="['/tag', qualifiedTag]">{{ template.name || template.tag }}</a>
   <a *ngIf="!template.tag" routerLink="/all">{{ template.name || 'root' }}</a>
-  <span *ngIf="!template.tag" class="host">(root: "")</span>
-  <span *ngIf="template.name && template.tag" class="host">({{ template.tag + template.origin }})</span>
+  <span *ngIf="!qualifiedTag" class="host">(root: "")</span>
+  <span *ngIf="!template.tag && template.origin" class="host">(root: {{ template.origin }})</span>
+  <span *ngIf="template.name && template.tag" class="host">({{ qualifiedTag }})</span>
   <span *ngIf="!template.tag && !template.name && template.origin" class="host">({{ template.origin }})</span>
 </div>
 <div class="stack">
   <div class="info">
     <span [title]="template.modified?.toISOString()">modified {{ template.modified?.fromNow() }}</span>
-    <ng-container *ngIf="template.origin">
+    <ng-container *ngIf="!local">
       on <a [routerLink]="['/tag', template.origin]">{{ template.origin }}</a>
     </ng-container>
   </div>
-  <div class="actions" *ngIf="!template.origin">
+  <div class="actions" *ngIf="local">
     <a *ngIf="store.account.admin else source"
        class="fake-link"
        (click)="editing = !editing">edit</a>

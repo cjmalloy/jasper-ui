@@ -108,7 +108,7 @@ export class SubmitInvoicePage implements OnInit {
       'internal',
       prefix('plugin/invoice/', queueExt.tag),
       'plugin/qr',
-      this.store.account.tag,
+      this.store.account.localTag,
     ];
     for (const approver of queueExt.config.approvers) {
       result.push(prefix('plugin/inbox/', approver));
@@ -134,6 +134,7 @@ export class SubmitInvoicePage implements OnInit {
     this.exts.get(this.queue!).pipe(
       switchMap(queueExt => this.refs.create({
         ...this.invoiceForm.value,
+        origin: this.store.account.origin,
         published: this.invoiceForm.value.published ? moment(this.invoiceForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment(),
         tags: this.getTags(queueExt),
         sources: [this.refUrl],

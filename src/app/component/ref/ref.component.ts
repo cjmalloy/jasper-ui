@@ -19,7 +19,7 @@ import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { authors, interestingTags, TAGS_REGEX, urlSummary, webLink } from '../../util/format';
 import { printError } from '../../util/http';
-import { hasTag } from '../../util/tag';
+import { hasTag, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-ref',
@@ -102,6 +102,10 @@ export class RefComponent implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  get local() {
+    return this.ref.origin === this.store.account.origin;
   }
 
   get feed() {
@@ -279,6 +283,15 @@ export class RefComponent implements OnInit {
     return sourceCount + ' sources';
   }
 
+  formatAuthor(user: string) {
+    if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
+      user = user.replace(this.store.account.origin, '');
+    }
+    return user
+      .replace('+', '')
+      .replace('user/', '');
+  }
+
   addInlineTag() {
     if (!this.inlineTag) return;
     const tag = (this.inlineTag.nativeElement.value as string).toLowerCase().trim();
@@ -329,7 +342,7 @@ export class RefComponent implements OnInit {
     this.refs.create({
       url: 'internal:' + uuid(),
       published: moment(),
-      tags: ['internal', this.store.account.tag!, 'plugin/invoice/disputed'],
+      tags: ['internal', this.store.account.localTag, 'plugin/invoice/disputed'],
       sources: [this._ref.url],
     }).pipe(
       switchMap(() => this.refs.get(this._ref.url)),
@@ -359,7 +372,7 @@ export class RefComponent implements OnInit {
     this.refs.create({
       url: 'internal:' + uuid(),
       published: moment(),
-      tags: ['internal', this.store.account.tag!, 'plugin/invoice/paid'],
+      tags: ['internal', this.store.account.localTag, 'plugin/invoice/paid'],
       sources: [this._ref.url],
     }).pipe(
       switchMap(() => this.refs.get(this._ref.url)),
@@ -389,7 +402,7 @@ export class RefComponent implements OnInit {
     this.refs.create({
       url: 'internal:' + uuid(),
       published: moment(),
-      tags: ['internal', this.store.account.tag!, 'plugin/invoice/rejected'],
+      tags: ['internal', this.store.account.localTag, 'plugin/invoice/rejected'],
       sources: [this._ref.url],
     }).pipe(
       switchMap(() => this.refs.get(this._ref.url)),

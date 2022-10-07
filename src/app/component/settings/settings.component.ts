@@ -31,7 +31,7 @@ export class SettingsComponent implements OnInit {
   }
 
   get shortUserTag() {
-    return this.store.account.tag.replace('+', '').replace('user/', '');
+    return this.store.account.localTag.replace('+', '').replace('user/', '');
   }
 
 }

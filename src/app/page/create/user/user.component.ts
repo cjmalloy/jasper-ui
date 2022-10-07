@@ -8,6 +8,7 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { UserService } from '../../../service/api/user.service';
 import { ThemeService } from '../../../service/theme.service';
+import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { prefix } from '../../../util/tag';
@@ -31,6 +32,7 @@ export class CreateUserPage implements OnInit {
     private admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
+    private store: Store,
     private account: AccountService,
     private users: UserService,
     private fb: UntypedFormBuilder,
@@ -67,7 +69,10 @@ export class CreateUserPage implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    this.users.create(this.userForm.value).pipe(
+    this.users.create({
+      ...this.userForm.value,
+      origin: this.store.account.origin,
+    }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);

@@ -1,4 +1,4 @@
-<div class="link" [class.remote]="!!user.origin">
+<div class="link" [class.remote]="!local">
   <a [routerLink]="['/tag', qualifiedTag]">{{ user.name || user.tag || 'root' }}</a>
   <span *ngIf="user.name" class="host">({{ qualifiedTag }})</span>
   <span *ngIf="!user.name && user.origin" class="host">({{ user.origin }})</span>
@@ -6,7 +6,7 @@
 <div class="stack">
   <div class="info">
     <span [title]="user.modified?.toISOString()">modified {{ user.modified?.fromNow() }}</span>
-    <ng-container *ngIf="user.origin">
+    <ng-container *ngIf="!local">
       on <a [routerLink]="['/tag', user.origin]">{{ user.origin }}</a>
     </ng-container>
   </div>

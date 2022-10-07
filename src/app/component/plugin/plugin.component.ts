@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import * as FileSaver from 'file-saver';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { pluginForm } from '../../form/plugin/plugin.component';
 import { Plugin } from '../../model/plugin';
@@ -55,6 +54,10 @@ export class PluginComponent implements OnInit {
     return this.plugin.tag + this.plugin.origin;
   }
 
+  get local() {
+    return this.plugin.origin === this.store.account.origin;
+  }
+
   save() {
     this.submitted = true;
     this.editForm.markAllAsTouched();
@@ -86,7 +89,7 @@ export class PluginComponent implements OnInit {
   }
 
   delete() {
-    this.plugins.delete(this.plugin.tag).pipe(
+    this.plugins.delete(this.qualifiedTag).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

@@ -44,7 +44,7 @@ export function isOwner(user: User, ref: Ref) {
 }
 
 export function isOwnerTag(tag: string, ref: Ref) {
-  if (ref.origin) return false;
+  if (ref.origin !== tagOrigin(tag)) return false;
   return hasTag(tag, ref);
 }
 

@@ -31,23 +31,26 @@ export class AccountService {
     private refs: RefService,
   ) { }
 
-  get init$() {
+  get whoAmI$() {
     return this.users.whoAmI().pipe(
       tap(roles => this.store.account.setRoles(roles)),
-      switchMap(roles => !roles.tag ? of() :
-        this.loadUserExt$.pipe(
-          switchMap(() => this.user$),
-          switchMap(() => this.subscriptions$),
-          switchMap(() => this.bookmarks$),
-          switchMap(() => this.theme$),
-        )),
     );
+  }
+
+  get init$() {
+    if (!this.store.account.signedIn) return of();
+    return this.loadUserExt$.pipe(
+      switchMap(() => this.user$),
+      switchMap(() => this.subscriptions$),
+      switchMap(() => this.bookmarks$),
+      switchMap(() => this.theme$),
+    )
   }
 
   private get loadUserExt$() {
     if (!this.store.account.signedIn) return of();
     if (!this.adminService.status.templates.user) return of();
-    return this.userExt$.pipe(catchError(err => this.exts.create({ tag: this.store.account.tag! })));
+    return this.userExt$.pipe(catchError(err => this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin })));
   }
 
   clearCache() {
@@ -58,7 +61,7 @@ export class AccountService {
   private get user$(): Observable<User | undefined> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this._user$) {
-      this._user$ = this.users.get(this.store.account.tag!).pipe(
+      this._user$ = this.users.get(this.store.account.tag).pipe(
         tap(user => runInAction(() => this.store.account.user = user)),
         shareReplay(1),
         catchError(() => of(undefined)),
@@ -71,7 +74,7 @@ export class AccountService {
   private get userExt$(): Observable<Ext> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this._userExt$) {
-      this._userExt$ = this.exts.get(this.store.account.tag!).pipe(
+      this._userExt$ = this.exts.get(this.store.account.tag).pipe(
         tap(ext => runInAction(() => this.store.account.ext = ext)),
         shareReplay(1),
       );
@@ -83,7 +86,7 @@ export class AccountService {
   get subscriptions$(): Observable<string[]> {
     if (!this.store.account.signedIn || !this.adminService.status.templates.user) return of(defaultSubs);
     return this.userExt$.pipe(
-      map(ext => ext.config.subscriptions),
+      map(ext => ext.config?.subscriptions || []),
       tap(subs => runInAction(() => this.store.account.subs = subs)),
     );
   }
@@ -91,7 +94,7 @@ export class AccountService {
   get bookmarks$(): Observable<string[]> {
     if (!this.store.account.signedIn || !this.adminService.status.templates.user) return of([]);
     return this.userExt$.pipe(
-      map(ext => ext.config.bookmarks),
+      map(ext => ext.config?.bookmarks || []),
       tap(books => runInAction(() => this.store.account.bookmarks = books)),
     );
   }
@@ -107,7 +110,7 @@ export class AccountService {
   addSub(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.adminService.status.templates.user) throw 'User template not installed';
-    this.exts.patch(this.store.account.tag!, [{
+    this.exts.patch(this.store.account.tag, [{
       op: 'add',
       path: '/config/subscriptions/-',
       value: tag,
@@ -122,7 +125,7 @@ export class AccountService {
     if (!this.adminService.status.templates.user) throw 'User template not installed';
     this.subscriptions$.pipe(
       map(subs => subs.indexOf(tag)),
-      switchMap(index => this.exts.patch(this.store.account.tag!,[{
+      switchMap(index => this.exts.patch(this.store.account.tag,[{
         op: 'remove',
         path: '/config/subscriptions/' + index,
       }]))
@@ -135,7 +138,7 @@ export class AccountService {
   addBookmark(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.adminService.status.templates.user) throw 'User template not installed';
-    this.exts.patch(this.store.account.tag!, [{
+    this.exts.patch(this.store.account.tag, [{
       op: 'add',
       path: '/config/bookmarks/-',
       value: tag,
@@ -150,7 +153,7 @@ export class AccountService {
     if (!this.adminService.status.templates.user) throw 'User template not installed';
     this.bookmarks$.pipe(
       map(subs => subs.indexOf(tag)),
-      switchMap(index => this.exts.patch(this.store.account.tag!,[{
+      switchMap(index => this.exts.patch(this.store.account.tag,[{
         op: 'remove',
         path: '/config/bookmarks/' + index,
       }]))
@@ -174,7 +177,7 @@ export class AccountService {
   clearNotifications(readDate: moment.Moment) {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.adminService.status.templates.user) throw 'User template not installed';
-    this.exts.patch(this.store.account.tag!, [{
+    this.exts.patch(this.store.account.tag, [{
       op: 'add',
       path: '/config/inbox/lastNotified',
       value: readDate.add(1, 'millisecond').toISOString(),

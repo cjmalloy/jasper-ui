@@ -69,7 +69,7 @@ export class SubmitDmPage implements OnInit {
   get tags() {
     const result = [
       'locked',
-      this.store.account.tag,
+      this.store.account.localTag,
       getMailbox(this.to!),
     ];
     if (this.emoji) result.push('plugin/emoji');
@@ -93,6 +93,7 @@ export class SubmitDmPage implements OnInit {
     this.refs.create({
       ...this.dmForm.value,
       url,
+      origin: this.store.account.origin,
       published: this.dmForm.value.published ? moment(this.dmForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment(),
       tags: this.tags,
     }).pipe(

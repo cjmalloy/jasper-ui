@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import * as FileSaver from 'file-saver';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { templateForm } from '../../form/template/template.component';
 import { Template } from '../../model/template';
@@ -55,6 +54,10 @@ export class TemplateComponent implements OnInit {
     return this.template.tag + this.template.origin;
   }
 
+  get local() {
+    return this.template.origin === this.store.account.origin;
+  }
+
   save() {
     this.submitted = true;
     this.editForm.markAllAsTouched();
@@ -86,7 +89,7 @@ export class TemplateComponent implements OnInit {
   }
 
   delete() {
-    this.templates.delete(this.template.tag).pipe(
+    this.templates.delete(this.qualifiedTag).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

@@ -52,7 +52,7 @@ export class SubmitWebPage implements AfterViewInit {
   ngAfterViewInit(): void {
     _.defer(() => {
       this.addTag('public');
-      this.addTag(this.store.account.tag!);
+      this.addTag(this.store.account.localTag);
       if (this.admin.status.plugins.emoji) {
         this.addTag('plugin/emoji');
       }
@@ -149,6 +149,7 @@ export class SubmitWebPage implements AfterViewInit {
     }
     this.refs.create({
       ...this.webForm.value,
+      origin: this.store.account.origin,
       published: moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
       plugins: writePlugins(this.webForm.value.plugins),
     }).pipe(

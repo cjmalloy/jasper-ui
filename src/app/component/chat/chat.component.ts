@@ -153,7 +153,7 @@ export class ChatComponent implements OnDestroy {
     const newTags = _.uniq([
       ...this.addTags,
       ...this.plugins,
-      this.store.account.tag]);
+      this.store.account.localTag]);
     const ref = URI_REGEX.test(this.addText) ? {
       url: this.addText,
       tags: newTags,

@@ -9,6 +9,7 @@ import { User } from '../../model/user';
 import { AdminService } from '../../service/admin.service';
 import { UserService } from '../../service/api/user.service';
 import { AuthService } from '../../service/auth.service';
+import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
@@ -38,6 +39,7 @@ export class UserComponent implements OnInit {
   constructor(
     public admin: AdminService,
     private router: Router,
+    private store: Store,
     private auth: AuthService,
     private users: UserService,
     private fb: UntypedFormBuilder,
@@ -56,6 +58,10 @@ export class UserComponent implements OnInit {
 
   get qualifiedTag() {
     return this.user.tag + this.user.origin;
+  }
+
+  get local() {
+    return this.user.origin === this.store.account.origin;
   }
 
   save() {
@@ -82,7 +88,7 @@ export class UserComponent implements OnInit {
   }
 
   delete() {
-    this.users.delete(this.user.tag).pipe(
+    this.users.delete(this.qualifiedTag).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

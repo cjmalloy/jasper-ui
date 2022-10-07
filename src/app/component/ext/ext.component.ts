@@ -8,6 +8,7 @@ import { Ext } from '../../model/ext';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthService } from '../../service/auth.service';
+import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
@@ -34,6 +35,7 @@ export class ExtComponent implements OnInit {
 
   constructor(
     public admin: AdminService,
+    private store: Store,
     private auth: AuthService,
     private exts: ExtService,
     private fb: UntypedFormBuilder,
@@ -53,6 +55,10 @@ export class ExtComponent implements OnInit {
     return this.ext.tag + this.ext.origin;
   }
 
+  get local() {
+    return this.ext.origin === this.store.account.origin;
+  }
+
   save() {
     this.submitted = true;
     this.editForm.markAllAsTouched();
@@ -64,7 +70,7 @@ export class ExtComponent implements OnInit {
       ...this.ext,
       ...this.editForm.value,
     }).pipe(
-      switchMap(() => this.exts.get(this.ext.tag)),
+      switchMap(() => this.exts.get(this.qualifiedTag)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -77,7 +83,7 @@ export class ExtComponent implements OnInit {
   }
 
   delete() {
-    this.exts.delete(this.ext.tag).pipe(
+    this.exts.delete(this.qualifiedTag).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

@@ -129,6 +129,7 @@ import { DebugService } from './service/debug.service';
 const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
     switchMap(() => debug.init$),
+    switchMap(() => account.whoAmI$),
     switchMap(() => admin.init$.pipe(retry({ delay: 1000 }))),
     switchMap(() => account.init$),
   );

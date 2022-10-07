@@ -7,6 +7,7 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ProfileService } from '../../../service/api/profile.service';
 import { ThemeService } from '../../../service/theme.service';
+import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { USER_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
@@ -27,6 +28,7 @@ export class CreateProfilePage implements OnInit {
     private admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
+    private store: Store,
     private account: AccountService,
     private profiles: ProfileService,
     private fb: UntypedFormBuilder,
@@ -67,7 +69,10 @@ export class CreateProfilePage implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    this.profiles.create(this.profileForm.value).pipe(
+    this.profiles.create({
+      ...this.profileForm.value,
+      tag: this.profileForm.value.tag + this.store.account.origin,
+    }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);

@@ -1,4 +1,4 @@
-<div class="link" [class.remote]="!!plugin.origin">
+<div class="link" [class.remote]="!local">
   <a [routerLink]="['/tag', qualifiedTag]">{{ plugin.name || plugin.tag }}</a>
   <span *ngIf="plugin.name" class="host">({{ qualifiedTag }})</span>
   <span *ngIf="!plugin.name && plugin.origin" class="host">({{ plugin.origin }})</span>
@@ -6,11 +6,11 @@
 <div class="stack">
   <div class="info">
     <span [title]="plugin.modified?.toISOString()">modified {{ plugin.modified?.fromNow() }}</span>
-    <ng-container *ngIf="plugin.origin">
+    <ng-container *ngIf="!local">
       on <a [routerLink]="['/tag', plugin.origin]">{{ plugin.origin }}</a>
     </ng-container>
   </div>
-  <div class="actions" *ngIf="!plugin.origin">
+  <div class="actions" *ngIf="local">
     <a *ngIf="store.account.admin else source"
        class="fake-link"
        (click)="editing = !editing">edit</a>

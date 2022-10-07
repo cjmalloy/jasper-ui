@@ -109,8 +109,8 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService) {
   if (user(ext.tag, admin)) {
     configControls = {
       ...configControls,
-      subscriptions: queriesForm(fb, ext.config?.subscriptions),
-      bookmarks: queriesForm(fb, ext.config?.bookmarks),
+      subscriptions: queriesForm(fb, ext.config?.subscriptions || []),
+      bookmarks: queriesForm(fb, ext.config?.bookmarks || []),
       userThemes: themesForm(fb, ext.config?.userThemes),
       userTheme: [''],
     };

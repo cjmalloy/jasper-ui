@@ -1,19 +1,16 @@
-<div class="link" [class.remote]="!!ext.origin">
-  <a *ngIf="!ext.tag" routerLink="/all">{{ ext.name || qualifiedTag || 'root' }}</a>
-  <span *ngIf="!ext.tag && !ext.origin" class="host">(root: "")</span>
-  <span *ngIf="!ext.tag && ext.origin" class="host">(root: {{ ext.origin }})</span>
-  <a *ngIf="ext.tag" [routerLink]="['/tag', qualifiedTag]">{{ ext.name || ext.tag }}</a>
-  <span *ngIf="ext.tag && ext.name" class="host">({{ qualifiedTag }})</span>
-  <span *ngIf="ext.tag && !ext.name && ext.origin" class="host">({{ ext.origin }})</span>
+<div class="link" [class.remote]="!local">
+  <a [routerLink]="['/tag', qualifiedTag]">{{ ext.name || ext.tag }}</a>
+  <span *ngIf="ext.name" class="host">({{ qualifiedTag }})</span>
+  <span *ngIf="!ext.name && ext.origin" class="host">({{ ext.origin }})</span>
 </div>
 <div class="stack">
   <div class="info">
     <span [title]="ext.modified?.toISOString()">modified {{ ext.modified?.fromNow() }}</span>
-    <ng-container *ngIf="ext.origin">
+    <ng-container *ngIf="!local">
       on <a [routerLink]="['/tag', ext.origin]">{{ ext.origin }}</a>
     </ng-container>
   </div>
-  <div class="actions" *ngIf="!ext.origin">
+  <div class="actions" *ngIf="local">
     <a *ngIf="writeAccess"
        class="fake-link"
        (click)="editing = !editing">edit</a>

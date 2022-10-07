@@ -70,6 +70,7 @@ export class CommentReplyComponent implements AfterViewInit {
     const url = 'comment:' + uuid();
     this.refs.create({
       url,
+      origin: this.store.account.origin,
       title: 'Reply to: ' + this.top.title,
       comment: value,
       sources: _.uniq([
@@ -81,7 +82,7 @@ export class CommentReplyComponent implements AfterViewInit {
         ...this.publicTag,
         'internal',
         'plugin/comment',
-        this.store.account.tag,
+        this.store.account.localTag,
         ...this.tags!,
         ...this.plugins,
         ...getTags(value),

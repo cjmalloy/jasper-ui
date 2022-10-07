@@ -29,6 +29,11 @@ export class AccountStore {
     return !!this.tag;
   }
 
+  get localTag() {
+    if (!this.tag.includes('@')) return this.tag;
+    return this.tag.substring(0, this.tag.indexOf('@'));
+  }
+
   get origin() {
     if (!this.tag.includes('@')) return '';
     return this.tag.substring(this.tag.indexOf('@'));

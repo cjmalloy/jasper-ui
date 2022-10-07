@@ -24,6 +24,7 @@ import { personPlugin } from '../plugin/person';
 import { qrPlugin } from '../plugin/qr';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
+import { Store } from '../store/store';
 import { blogTemplate } from '../template/blog';
 import { chatTemplate } from '../template/chat';
 import { kanbanTemplate } from '../template/kanban';
@@ -84,6 +85,7 @@ export class AdminService {
   constructor(
     private plugins: PluginService,
     private templates: TemplateService,
+    private store: Store,
   ) { }
 
   get init$() {
@@ -93,15 +95,19 @@ export class AdminService {
     return forkJoin(this.loadPlugins$(), this.loadTemplates$());
   }
 
+  get originQuery() {
+    return this.store.account.origin || '*';
+  }
+
   private loadPlugins$(page = 0): Observable<null> {
-    return this.plugins.page({query: '*', page, size: this.fetchBatch}).pipe(
+    return this.plugins.page({query: this.originQuery, page, size: this.fetchBatch}).pipe(
       tap(batch => this.pluginToStatus(batch.content)),
       switchMap(batch => batch.last ? of(null) : this.loadPlugins$(page + 1)),
     );
   }
 
   private loadTemplates$(page = 0): Observable<null> {
-    return this.templates.page({query: '*', page, size: this.fetchBatch}).pipe(
+    return this.templates.page({query: this.originQuery, page, size: this.fetchBatch}).pipe(
       tap(batch => this.templateToStatus(batch.content)),
       switchMap(batch => batch.last ? of(null) : this.loadTemplates$(page + 1)),
     );

@@ -7,6 +7,7 @@ import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
 import { ThemeService } from '../../../service/theme.service';
+import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 
@@ -25,6 +26,7 @@ export class SettingsSetupPage implements OnInit {
   constructor(
     public admin: AdminService,
     private theme: ThemeService,
+    private store: Store,
     private plugins: PluginService,
     private templates: TemplateService,
     private fb: UntypedFormBuilder,
@@ -54,10 +56,14 @@ export class SettingsSetupPage implements OnInit {
       const def = this.admin.def.plugins[plugin];
       if (this.adminForm.value.plugins[plugin]) {
         this.installMessages.push(`Installing ${def.name || def.tag} plugin...`);
-        installs.push(this.plugins.create(def).pipe(retry(10)));
+        installs.push(this.plugins.create({
+          ...def,
+          origin: this.store.account.origin,
+        }).pipe(retry(10)));
       } else {
-        this.installMessages.push(`Deleting ${def.name || def.tag} plugin...`);
-        installs.push(this.plugins.delete(def.tag));
+        const status = this.admin.status.plugins[plugin]!;
+        this.installMessages.push(`Deleting ${status.name || status.tag} plugin...`);
+        installs.push(this.plugins.delete(status.tag + status.origin));
       }
     }
     for (const template in this.admin.status.templates) {
@@ -65,10 +71,14 @@ export class SettingsSetupPage implements OnInit {
       const def = this.admin.def.templates[template];
       if (this.adminForm.value.templates[template]) {
         this.installMessages.push(`Installing ${def.name || def.tag} template...`);
-        installs.push(this.templates.create(def).pipe(retry(10)));
+        installs.push(this.templates.create({
+          ...def,
+          origin: this.store.account.origin,
+        }).pipe(retry(10)));
       } else {
-        this.installMessages.push(`Deleting ${def.name || def.tag} template...`);
-        installs.push(this.templates.delete(def.tag));
+        const status = this.admin.status.templates[template]!;
+        this.installMessages.push(`Deleting ${status.name || status.tag} template...`);
+        installs.push(this.templates.delete(status.tag + status.origin));
       }
     }
     forkJoin(installs).pipe(

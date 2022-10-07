@@ -10,7 +10,7 @@
     </ng-template>
   </ng-container>
   <div class="stack">
-    <div class="link" [class.remote]="!!ref.origin">
+    <div class="link" [class.remote]="!local">
       <a *ngIf="webLink" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
       <a *ngIf="!webLink && admin.status.plugins.comment" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
       <a *ngIf="!webLink && !admin.status.plugins.comment" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
@@ -38,7 +38,7 @@
             by
             <ng-container *ngFor="let user of authors">
               <a class="user tag" [routerLink]="['/tag', user]">
-                {{ user.replace('+', '').replace('user/', '') }}</a>&nbsp;
+                {{ formatAuthor(user) }}</a>&nbsp;
             </ng-container>
           </ng-container>
           <ng-container *ngIf="tags.length">
@@ -67,7 +67,7 @@
                 {{ ref.published.fromNow() }}</span>
             </ng-container>
           </ng-container>
-          <ng-container *ngIf="ref.origin">
+          <ng-container *ngIf="!local">
             on <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
           </ng-container>
           <ng-container *ngIf="addTags?.length">
@@ -84,7 +84,7 @@
                    [ref]="ref"
                    [expandPlugins]="expandPlugins"></app-embed>
         <div class="actions" [class.expanded]="actionsExpanded">
-          <ng-container *ngIf="ref.origin || !ref.created">
+          <ng-container *ngIf="!local || !ref.created">
             <a routerLink="/submit" [queryParams]="{ url: ref.url }">submit</a>
           </ng-container>
           <ng-container *ngIf="ref.created">
@@ -109,7 +109,7 @@
               <a class="fake-link" (click)="delete()">yes</a>&nbsp;/&nbsp;
               <a class="fake-link" (click)="deleting = false">no</a>&nbsp;
             </span>
-            <a *ngIf="!ref.origin && (store.account.editor || writeAccess)"
+            <a *ngIf="local && (store.account.editor || writeAccess)"
                class="fake-link"
                (click)="tagging = !tagging">tag</a>
             <span *ngIf="tagging" class="inline-tagging">
@@ -148,7 +148,7 @@
             <a *ngIf="webLink && archive" target="_blank" [href]="archive">archive</a>
             <a *ngIf="store.account.mod && scrapeable" class="fake-link" (click)="scrape()">scrape</a>
             <a *ngIf="store.account.poster" routerLink="/submit" [queryParams]="{source: ref.url}">reply</a>
-            <a *ngIf="!ref.origin && store.account.mod && !approved && !locked"
+            <a *ngIf="local && store.account.mod && !approved && !locked"
                class="fake-link"
                (click)="approve()">approve</a>
             <span class="approved icon" *ngIf="store.account.mod && approved" title="Moderated">✔️</span>
