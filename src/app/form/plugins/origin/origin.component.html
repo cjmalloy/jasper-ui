@@ -28,6 +28,11 @@
       <input id="overwriteOrigins" type="checkbox" formControlName="overwriteOrigins">
     </div>
 
+    <label for="generateMetadata">Generate Metadata:</label>
+    <div>
+      <input id="generateMetadata" type="checkbox" formControlName="generateMetadata">
+    </div>
+
     <label for="proxy">Proxy:</label>
     <input id="proxy" type="url" [formControl]="proxy">
     <span><!-- Proxy Errors --></span>

@@ -9,6 +9,7 @@ export const originPlugin: Plugin = {
   },
   defaults: {
     scrapeInterval: 'PT15M',
+    generateMetadata: true,
   },
   schema: {
     properties: {
@@ -19,6 +20,7 @@ export const originPlugin: Plugin = {
       remote: { type: 'string' },
       query: { type: 'string' },
       proxy: { type: 'string' },
+      generateMetadata: { type: 'boolean' },
       removeTags: { elements: { type: 'string' } },
       mapTags: { values: { type: 'string' } },
       addTags: { elements: { type: 'string' } },
