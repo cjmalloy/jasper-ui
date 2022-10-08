@@ -1,3 +1,9 @@
+export function loadBoard() {
+  cy.intercept({pathname: '/api/v1/ref/page'}).as('page');
+  cy.visit('/tag/kanban%2ftest?debug=USER');
+  cy.wait(new Array(3).fill('@page'));
+}
+
 export function addToBoard(col: number, text: string) {
   cy.intercept({method: 'POST', pathname: '/api/v1/ref'}).as('add');
   cy.get(`.kanban-column:nth-of-type(${col})`).first().find('input').focus().type(text + '{enter}', {force: true});
@@ -50,7 +56,7 @@ describe('Kanban Template', () => {
     cy.get('h2').should('have.text', 'Kanban Test');
   });
   it('add to board', () => {
-    cy.visit('/tag/kanban%2ftest?debug=USER');
+    loadBoard();
     addToBoard(1, 'first step');
     cy.get('.kanban-column:nth-of-type(1) a').contains('first step').click();
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/test').should('exist');
@@ -58,31 +64,31 @@ describe('Kanban Template', () => {
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'done');
   });
   it('move to doing', () => {
-    cy.visit('/tag/kanban%2ftest?debug=USER');
+    loadBoard();
     dragCol(1, 2);
-    cy.get('.kanban-column:nth-of-type(2) a').contains('first step').click({force: true});
+    cy.get('.kanban-column:nth-of-type(2) a').contains('first step').click();
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('doing').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'done');
   });
   it('move to done', () => {
-    cy.visit('/tag/kanban%2ftest?debug=USER');
+    loadBoard();
     dragCol(2, 3);
-    cy.get('.kanban-column:nth-of-type(3) a').contains('first step').click({force: true});
+    cy.get('.kanban-column:nth-of-type(3) a').contains('first step').click();
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'doing');
     cy.get('.full-page.ref .tag:not(.user)').contains('done').should('exist');
   });
   it('move to untagged col', () => {
-    cy.visit('/tag/kanban%2ftest?debug=USER');
+    loadBoard();
     dragCol(3, 1);
-    cy.get('.kanban-column:nth-of-type(1) a').contains('first step').click({force: true});
+    cy.get('.kanban-column:nth-of-type(1) a').contains('first step').click();
     cy.get('.full-page.ref .tag:not(.user)').contains('kanban/test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'doing');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'done');
   });
   it('move to trash', () => {
-    cy.visit('/tag/kanban%2ftest?debug=USER');
+    loadBoard();
     dragCol(1);
     cy.get('.kanban-column').contains('first step').should('not.exist');
   });
