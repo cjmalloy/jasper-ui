@@ -3,7 +3,7 @@ import { addToBoard, dragCol } from './template-kanban.cy';
 describe('Kanban Template with Swim Lanes', () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Home', { timeout: 30000 });
+    cy.contains('Home', { timeout: 1000 * 60 });
   });
   it('turn on kanban', () => {
     cy.visit('/?debug=ADMIN');

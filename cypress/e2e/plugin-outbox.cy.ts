@@ -4,7 +4,7 @@ describe('Outbox Plugin: Remote Notifications', () => {
   const replApi = Cypress.env('CYPRESS_replApi') || 'http://repl-web';
   it('loads the page', () => {
     cy.visit('/?debug=ADMIN');
-    cy.contains('Home', { timeout: 30000 });
+    cy.contains('Home', { timeout: 1000 * 60 });
   });
   it('@main: turn on inbox, outbox and remote origins', () => {
     cy.visit('/?debug=ADMIN');

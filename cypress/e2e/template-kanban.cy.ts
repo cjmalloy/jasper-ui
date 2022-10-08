@@ -25,7 +25,7 @@ export function dragCol(from: number, to?: number) {
 describe('Kanban Template', () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Home', { timeout: 30000 });
+    cy.contains('Home', { timeout: 1000 * 60 });
   });
   it('turn on kanban', () => {
     cy.visit('/?debug=ADMIN');
