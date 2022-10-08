@@ -10,7 +10,7 @@ import { QRCodeModule } from 'angularx-qrcode';
 import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { retry, switchMap } from 'rxjs';
+import { retry, switchMap, timer } from 'rxjs';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -129,7 +129,13 @@ import { DebugService } from './service/debug.service';
 const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
     switchMap(() => debug.init$),
-    switchMap(() => account.whoAmI$.pipe(retry({ delay: 1000 }))),
+    switchMap(() => account.whoAmI$.pipe(
+      retry({
+        delay: (_, retryCount: number) =>
+          // 1 second to 17 minutes in 10 steps
+          timer(1000 * Math.pow(2, Math.min(10, retryCount)))
+      })
+    )),
     switchMap(() => admin.init$),
     switchMap(() => account.init$),
   );
