@@ -39,7 +39,7 @@ export class ChatComponent implements OnDestroy {
   latex = this.admin.status.plugins.latex;
 
   private timeoutId?: number;
-  private pollInterval = 1000;
+  private retries = 0;
 
   constructor(
     public admin: AdminService,
@@ -93,11 +93,11 @@ export class ChatComponent implements OnDestroy {
       ),
       modifiedAfter: this.cursor,
     }).pipe(catchError(err => {
-      this.setPoll();
+      this.setPoll(true);
       return throwError(() => err);
     })).subscribe(page => {
-      this.setPoll();
-      if (page.empty && this.messages) return;
+      this.setPoll(page.empty);
+      if (page.empty) return;
       if (!this.messages) this.messages = [];
       this.messages = [...this.messages, ...page.content];
       this.cursor = page.content[page.content.length - 1]?.modifiedString;
@@ -121,17 +121,18 @@ export class ChatComponent implements OnDestroy {
       modifiedBefore: this.messages?.[0]?.modifiedString,
     }).pipe(catchError(err => {
       this.loadingPrev = false;
-      this.setPoll();
+      this.setPoll(true);
       return throwError(() => err);
     })).subscribe(page => {
       this.loadingPrev = false;
-      this.setPoll();
-      if (page.empty && this.messages) return;
+      this.setPoll(page.empty);
+      if (page.empty) return;
       if (!this.messages) this.messages = [];
       this.cursor ??= page.content[0]?.modifiedString;
       this.messages = [...page.content.reverse(), ...this.messages];
       if (scroll) _.defer(() => this.viewport.scrollToIndex(this.messages!.length - 1, 'smooth'));
       _.pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
+      this.retries = 0;
     });
   }
 
@@ -142,9 +143,16 @@ export class ChatComponent implements OnDestroy {
     }
   }
 
-  setPoll() {
+  setPoll(backoff: boolean) {
+    if (backoff) {
+      this.retries++;
+    } else {
+      this.retries = 0;
+    }
     this.clearPoll();
-    this.timeoutId = window.setTimeout(() => this.loadMore(), this.pollInterval);
+    this.timeoutId = window.setTimeout(() => this.loadMore(),
+      // 1 second to ~4 minutes in 8 steps
+      1000 * Math.pow(2, Math.min(8, this.retries)));
   }
 
   add() {
@@ -175,6 +183,7 @@ export class ChatComponent implements OnDestroy {
       }),
     ).subscribe(ref => {
       this.sending.push(ref);
+      this.setPoll(false);
     });
     this.addText = '';
   }
