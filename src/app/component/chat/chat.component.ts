@@ -171,8 +171,8 @@ export class ChatComponent implements OnDestroy {
     }
     this.clearPoll();
     this.timeoutId = window.setTimeout(() => this.loadMore(),
-      // 1 second to ~4 minutes in 8 steps
-      1000 * Math.pow(2, Math.min(8, this.retries)));
+      // 1 second to ~4 minutes in 10 steps
+      Math.max(1000, 250 * Math.pow(2, Math.min(10, this.retries))));
   }
 
   add() {
