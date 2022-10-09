@@ -17,7 +17,8 @@
          placeholder="chat..."
          size="10"
          [(ngModel)]="addText"
-         (keydown)="$event.key === 'Enter' && add() || true">
+         (keydown)="$event.key === 'Enter' && add() || true"
+         appAutofocus>
   <button type="button" (click)="add()">+</button>
 </div>
 <span class="hints">
