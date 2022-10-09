@@ -10,7 +10,7 @@ $mobile-width: 1024px;
     &:not(.expanded) {
       width: 40px;
 
-      .tag-header, .md, .sidebar-link, .ext-text, .breadcrumbs {
+      .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs {
         display: none;
       }
     }
