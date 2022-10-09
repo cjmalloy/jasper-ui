@@ -1,4 +1,4 @@
-<div *ngIf="!ref.created" class="loading-container"><app-loading></app-loading></div>
+<div *ngIf="!ref.created && loading" class="loading-container"><app-loading></app-loading></div>
 <span *ngIf="ref.created" class="gutter" [class.deleted]="deleted">
   <a *ngIf="ref.origin && !authors.length"
      class="origin tag"

@@ -35,6 +35,7 @@ export class ChatComponent implements OnDestroy {
   messages?: Ref[];
   addText = '';
   sending: Ref[] = [];
+  errored: Ref[] = [];
   scrollLock?: number;
 
   emoji = this.admin.status.plugins.emoji;
@@ -190,6 +191,12 @@ export class ChatComponent implements OnDestroy {
       comment: this.addText,
       tags: newTags,
     };
+    this.addText = '';
+    this.send(ref);
+  }
+
+  private send(ref: Ref) {
+    this.sending.push(ref);
     this.refs.create(ref).pipe(
       map(() => ref),
       catchError(err => {
@@ -198,14 +205,20 @@ export class ChatComponent implements OnDestroy {
           return this.tags.patch(this.addTags, ref.url).pipe(
             switchMap(() => this.refs.get(ref.url)),
           );
+        } else {
+          _.pull(this.sending, ref);
+          this.errored.push(ref);
         }
         return throwError(err);
       }),
     ).subscribe(ref => {
-      this.sending.push(ref);
       this.setPoll(false);
     });
-    this.addText = '';
+  }
+
+  retry(ref: Ref) {
+    _.pull(this.errored, ref);
+    this.send(ref);
   }
 
 }

@@ -38,5 +38,9 @@
   </ng-container>
 </span>
 <div class="list-container">
+  <ng-container *ngFor="let ref of errored">
+    <button (click)="retry(ref)">retry</button>
+    <app-chat-entry [ref]="ref" [loading]="false"></app-chat-entry>
+  </ng-container>
   <app-chat-entry *ngFor="let ref of sending" [ref]="ref"></app-chat-entry>
 </div>
