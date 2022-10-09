@@ -17,7 +17,9 @@
       [class.deleted]="deleted"
       [class.sending]="!ref.created"
       [class.deleting]="deleting"
-      [class.tagging]="tagging">
+      [class.tagging]="tagging"
+      (pointerenter)="allowActions = true"
+      (pointerleave)="allowActions = false">
   <div [class.has-title]="webLink || ref.title">
     <a *ngIf="webLink && (ref.title || !media)" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
     <span *ngIf="!webLink && (ref.title || !expand)">{{ ref.title || ref.url }}</span>
@@ -46,7 +48,9 @@
             [errorCorrectionLevel]="'M'"
             appResize></qrcode>
   </div>
-  <div class="actions" *ngIf="ref.created">
+  <div class="actions"
+       *ngIf="ref.created"
+       [style.pointer-events]="allowActions ? 'auto' : 'none'">
     <a *ngIf="admin.status.plugins.comment"
        [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ comments.replace(' ', '&thinsp;') }}</a>
     <a *ngIf="!admin.status.plugins.comment"

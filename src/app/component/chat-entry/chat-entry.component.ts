@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
+import * as _ from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { isAudio } from '../../plugin/audio';
@@ -35,6 +36,7 @@ export class ChatEntryComponent {
   @ViewChild('inlineTag')
   inlineTag?: ElementRef;
 
+  private _allowActions = false;
   tagging = false;
   deleting = false;
   deleted = false;
@@ -57,6 +59,19 @@ export class ChatEntryComponent {
 
   get ref() {
     return this._ref;
+  }
+
+  get allowActions(): boolean {
+    return this._allowActions || this.focused || this.tagging || this.deleting;
+  }
+
+  set allowActions(value: boolean) {
+    if (value === this._allowActions) return;
+    if (value) {
+      _.defer(() => this._allowActions = value);
+    } else {
+      this._allowActions = false;
+    }
   }
 
   get origin() {
