@@ -26,6 +26,10 @@ $mobile-width: 1024px;
 @media (max-width: $mobile-width) {
   .aside {
 
+    input[type=search] {
+      width: 100%;
+    }
+
     & > * {
       max-height: 1000px;
       overflow: hidden;
