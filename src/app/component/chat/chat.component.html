@@ -13,13 +13,20 @@
 </cdk-virtual-scroll-viewport>
 <div class="spacer"></div>
 <div class="input-box">
+  <button type="button"
+          class="refresh"
+          [title]="'last polled ' + lastPoll.fromNow()"
+          (click)="loadMore()">🔄</button>
   <input type="text"
          placeholder="chat..."
          size="10"
          [(ngModel)]="addText"
          (keydown)="$event.key === 'Enter' && add() || true"
          appAutofocus>
-  <button type="button" (click)="add()">+</button>
+  <button type="button"
+          class="add"
+          title="Send"
+          (click)="add()">📤</button>
 </div>
 <span class="hints">
   <ng-container *ngIf="admin.status.plugins.emoji">
@@ -39,7 +46,7 @@
 </span>
 <div class="list-container">
   <ng-container *ngFor="let ref of errored">
-    <button (click)="retry(ref)">retry</button>
+    <button type="button" class="retry" (click)="retry(ref)">retry</button>
     <app-chat-entry [ref]="ref" [loading]="false"></app-chat-entry>
   </ng-container>
   <app-chat-entry *ngFor="let ref of sending" [ref]="ref"></app-chat-entry>

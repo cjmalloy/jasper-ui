@@ -2,6 +2,7 @@ import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { Component, HostBinding, Input, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash-es';
+import * as moment from 'moment';
 import { catchError, map, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
@@ -30,6 +31,7 @@ export class ChatComponent implements OnDestroy {
   _query!: string;
   cursor?: string;
   loadingPrev = false;
+  lastPoll = moment();
   initialSize = 50;
   defaultPageSize = 20;
   messages?: Ref[];
@@ -89,6 +91,7 @@ export class ChatComponent implements OnDestroy {
       this.loadPrev(true);
       return;
     }
+    this.lastPoll = moment();
     this.refs.page({
       ...getArgs(
         this.query,
@@ -117,6 +120,7 @@ export class ChatComponent implements OnDestroy {
   loadPrev(scrollDown = false) {
     if (this.loadingPrev) return;
     this.loadingPrev = true;
+    this.lastPoll = moment();
     this.refs.page({
       ...getArgs(
         this.query,
