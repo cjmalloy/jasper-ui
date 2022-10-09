@@ -652,12 +652,11 @@ button.backup, button.upload, input.upload {
   }
 
   .messages {
-    height: 1000px;
     max-height: 80vh;
-
     .cdk-virtual-scroll-content-wrapper {
       display: grid;
       grid-template-columns: min-content auto;
+      width: 100%;
     }
   }
 }

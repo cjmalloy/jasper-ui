@@ -68,6 +68,10 @@ export class ChatComponent implements OnDestroy {
     return result;
   }
 
+  get containerHeight() {
+    return Math.max(300, Math.min(1000, this.itemSize * (this.messages?.length || 1)));
+  }
+
   ngOnDestroy(): void {
     this.clearPoll();
   }
@@ -104,6 +108,7 @@ export class ChatComponent implements OnDestroy {
       this.messages = [...this.messages, ...page.content];
       this.cursor = page.content[page.content.length - 1]?.modifiedString;
       _.pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
+      _.defer(() => this.viewport.checkViewportSize());
       if (!this.scrollLock) this.scrollDown();
     });
   }
@@ -133,6 +138,7 @@ export class ChatComponent implements OnDestroy {
       this.cursor ??= page.content[0]?.modifiedString;
       this.messages = [...page.content.reverse(), ...this.messages];
       _.pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
+      _.defer(() => this.viewport.checkViewportSize());
       if (scrollDown) {
         this.retries = 0;
         this.scrollDown();
