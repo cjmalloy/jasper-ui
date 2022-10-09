@@ -30,6 +30,8 @@
 
 .message {
   display: flex;
+  height: 18.5px;
+  overflow: hidden;
 
   :first-child {
     flex: 1;
@@ -49,6 +51,7 @@
     display: none;
   }
   &:focus-within, &:hover, &.deleting, &.tagging, &.focused {
+    height: unset;
     .actions {
       display: inline;
     }
