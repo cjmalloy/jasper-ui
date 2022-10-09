@@ -48,7 +48,7 @@
   .actions {
     display: none;
   }
-  &:focus-within, &:hover, &.deleting, &.tagging {
+  &:focus-within, &:hover, &.deleting, &.tagging, &.focused {
     .actions {
       display: inline;
     }

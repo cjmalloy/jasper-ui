@@ -1,9 +1,14 @@
 <app-loading *ngIf="!messages || loadingPrev"></app-loading>
 <a *ngIf="messages && !loadingPrev" class="load-more fake-link" (click)="loadPrev()">load prev</a>
-<cdk-virtual-scroll-viewport class="messages" itemSize="18.5">
-  <app-chat-entry *cdkVirtualFor="let ref of messages; let odd = odd"
+<cdk-virtual-scroll-viewport class="messages"
+                             [class.scroll-lock]="scrollLock"
+                             [itemSize]="itemSize"
+                             (scrolledIndexChange)="scrollLock = undefined">
+  <app-chat-entry *cdkVirtualFor="let ref of messages; let index = index; let odd = odd"
                   [ref]="ref"
-                  [class.odd]="odd"></app-chat-entry>
+                  [class.odd]="odd"
+                  (click)="scrollLock = index"
+                  [focused]="scrollLock === index"></app-chat-entry>
 </cdk-virtual-scroll-viewport>
 <div class="spacer"></div>
 <div class="input-box">

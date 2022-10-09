@@ -27,6 +27,9 @@ export class ChatEntryComponent {
 
   _ref!: Ref;
 
+  @Input()
+  focused = false;
+
   @ViewChild('inlineTag')
   inlineTag?: ElementRef;
 

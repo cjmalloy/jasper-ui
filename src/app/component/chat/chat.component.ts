@@ -19,6 +19,7 @@ import { getArgs } from '../../util/query';
 })
 export class ChatComponent implements OnDestroy {
   @HostBinding('class') css = 'chat';
+  itemSize = 18.5;
 
   @Input()
   addTags = ['public'];
@@ -34,6 +35,7 @@ export class ChatComponent implements OnDestroy {
   messages?: Ref[];
   addText = '';
   sending: Ref[] = [];
+  scrollLock?: number;
 
   emoji = this.admin.status.plugins.emoji;
   latex = this.admin.status.plugins.latex;
@@ -101,12 +103,12 @@ export class ChatComponent implements OnDestroy {
       if (!this.messages) this.messages = [];
       this.messages = [...this.messages, ...page.content];
       this.cursor = page.content[page.content.length - 1]?.modifiedString;
-      _.defer(() => this.viewport.scrollToIndex(this.messages!.length - 1, 'smooth'));
       _.pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
+      if (!this.scrollLock) this.scrollDown();
     });
   }
 
-  loadPrev(scroll = false) {
+  loadPrev(scrollDown = false) {
     if (this.loadingPrev) return;
     this.loadingPrev = true;
     this.refs.page({
@@ -130,9 +132,20 @@ export class ChatComponent implements OnDestroy {
       if (!this.messages) this.messages = [];
       this.cursor ??= page.content[0]?.modifiedString;
       this.messages = [...page.content.reverse(), ...this.messages];
-      if (scroll) _.defer(() => this.viewport.scrollToIndex(this.messages!.length - 1, 'smooth'));
       _.pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
-      this.retries = 0;
+      if (scrollDown) {
+        this.retries = 0;
+        this.scrollDown();
+      } else {
+        this.viewport.scrollToIndex(0, 'smooth');
+      }
+    });
+  }
+
+  scrollDown() {
+    _.defer(() => {
+      this.viewport.scrollToIndex(Math.floor(this.messages!.length/2), 'smooth');
+      _.delay(() => this.viewport.scrollToIndex(this.messages!.length - 1, 'smooth'), 300);
     });
   }
 
@@ -158,6 +171,7 @@ export class ChatComponent implements OnDestroy {
   add() {
     this.addText = this.addText.trim();
     if (!this.addText) return;
+    this.scrollLock = undefined;
     const newTags = _.uniq([
       ...this.addTags,
       ...this.plugins,

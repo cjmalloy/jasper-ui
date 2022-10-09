@@ -16,3 +16,7 @@
   text-align: center;
   user-select: none;
 }
+
+.scroll-lock::-webkit-scrollbar {
+  display: none;
+}

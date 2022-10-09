@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import * as moment from 'moment/moment';
+import * as moment from 'moment';
 import { AdminService } from '../../../service/admin.service';
 import { intervalValidator } from '../../../util/form';
 import { ORIGIN_REGEX, ORIGIN_WILDCARD_REGEX } from '../../../util/format';
