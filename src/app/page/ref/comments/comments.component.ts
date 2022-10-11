@@ -19,11 +19,8 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
 
   constructor(
     private theme: ThemeService,
-    private router: Router,
-    private route: ActivatedRoute,
     public store: Store,
-  ) {
-  }
+  ) { }
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
@@ -35,15 +32,6 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.newComments$.complete();
-  }
-
-  get url$() {
-    return this.router.events.pipe(
-      filter((event) => event instanceof NavigationEnd),
-      startWith(this.router),
-      switchMap(() => this.route.params),
-      map(params => params['ref']),
-    );
   }
 
   get depth() {

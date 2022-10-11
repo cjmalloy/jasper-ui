@@ -47,7 +47,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
-  filter?: string | null;
+  filter?: string[];
   @Input()
   depth = 0;
   @Input()

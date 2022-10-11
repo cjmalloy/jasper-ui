@@ -26,7 +26,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
     this.loadMore();
   }
   @Input()
-  sort?: RefSort;
+  sort: RefSort[] = [];
   @Input()
   depth?: number | null = 7;
   @Input()
@@ -57,7 +57,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
   loadMore() {
     if (!this._source) return;
     this.refs.page({
-      ...getArgs('plugin/comment@*', this.sort!),
+      ...getArgs('plugin/comment@*', this.sort),
       responses: this._source,
       page: this.pages.length,
     }).subscribe(page => {

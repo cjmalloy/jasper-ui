@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, of } from 'rxjs';
+import { RefSort } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -32,12 +33,13 @@ export class TagPage implements OnInit, OnDestroy {
     private exts: ExtService,
   ) {
     store.view.clear();
+    store.view.defaultSort = 'created';
   }
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       this.theme.setTitle(this.store.view.name);
-      if (!this.fetchPage) return;
+      if (!this.fetchPage && !this.store.view.list) return;
       const args = getArgs(
         this.store.view.tag,
         this.store.view.sort,
@@ -81,6 +83,13 @@ export class TagPage implements OnInit, OnDestroy {
       this.store.view.tag === '*';
   }
 
+  get isSpecial() {
+    if (this.store.view.kanban) return true;
+    if (this.store.view.chat) return true;
+    if (this.store.view.blog) return true;
+    return false;
+  }
+
   get isList() {
     if (this.store.view.list) return true;
     if (this.store.view.graph) return true;
@@ -90,16 +99,10 @@ export class TagPage implements OnInit, OnDestroy {
     return true;
   }
 
-  get showListButton() {
-    if (this.store.view.kanban) return true;
-    if (this.store.view.blog) return true;
-    return false;
-  }
-
   get fetchPage() {
-    if (this.isList) return true;
+    if (this.store.view.graph) return true;
     if (this.store.view.blog) return true;
-    return false;
+    return !this.isSpecial;
   }
 
 }

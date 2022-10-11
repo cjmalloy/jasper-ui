@@ -125,6 +125,8 @@ import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
+import { SortComponent } from './component/sort/sort.component';
+import { FilterComponent } from './component/filter/filter.component';
 
 const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -248,6 +250,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     PluginUiDirective,
     TemplateUiDirective,
     GenFormComponent,
+    SortComponent,
+    FilterComponent,
   ],
   imports: [
     BrowserModule,

@@ -38,27 +38,22 @@ import { EditTagPage } from './page/tag/edit/edit.component';
 import { TagPage } from './page/tag/tag.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'home/published', pathMatch: 'full' },
-  { path: 'all', redirectTo: 'tag/@*/published', pathMatch: 'full' },
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: 'all', redirectTo: 'tag/@*', pathMatch: 'full' },
 
   { path: 'login', component: LoginPage },
-  { path: 'home', redirectTo: 'home/published', pathMatch: 'full' },
-  { path: 'home/:sort', component: HomePage },
-  { path: 'tag', redirectTo: 'tag/@*/created', pathMatch: 'full' },
-  { path: 'tag/:tag', redirectTo: 'tag/:tag/created', pathMatch: 'full' },
+  { path: 'home', component: HomePage },
+  { path: 'tag', redirectTo: 'tag/@*', pathMatch: 'full' },
+  { path: 'tag/:tag', component: TagPage },
   { path: 'tag/:tag/edit', component: EditTagPage },
-  { path: 'tag/:tag/:sort', component: TagPage },
   {
     path: 'ref/:url',
     component: RefPage,
     children: [
-      { path: '', redirectTo: 'sources/created', pathMatch: 'full' },
-      { path: 'comments', redirectTo: 'comments/created', pathMatch: 'full' },
-      { path: 'comments/:sort', component: RefCommentsComponent },
-      { path: 'responses', redirectTo: 'responses/created', pathMatch: 'full' },
-      { path: 'responses/:sort', component: RefResponsesComponent },
-      { path: 'sources', redirectTo: 'sources/created', pathMatch: 'full' },
-      { path: 'sources/:sort', component: RefSourcesComponent },
+      { path: '', redirectTo: 'sources', pathMatch: 'full' },
+      { path: 'comments', component: RefCommentsComponent },
+      { path: 'responses', component: RefResponsesComponent },
+      { path: 'sources', component: RefSourcesComponent },
       { path: 'missing', component: RefMissingComponent },
       { path: 'alts', component: RefAltsComponent },
       { path: 'remotes', component: RefRemotesComponent },

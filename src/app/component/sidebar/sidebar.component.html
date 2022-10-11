@@ -3,7 +3,10 @@
     <div class="toggle dont-hide"
          *ngIf="showToggle"
          (click)="expanded = !expanded">☰</div>
-    <app-search-filter *ngIf="showSearch" class="dont-hide" [showFilter]="showFilter"></app-search-filter>
+    <app-search-filter *ngIf="showSearch"
+                       class="dont-hide"
+                       [showFilter]="showFilter"
+                       [showSort]="showSort"></app-search-filter>
   </div>
   <div *ngIf="!home" class="breadcrumbs">
       <span *ngFor="let breadcrumb of breadcrumbs">

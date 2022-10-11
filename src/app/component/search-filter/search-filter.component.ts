@@ -1,8 +1,7 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as _ from 'lodash-es';
-import { map } from 'rxjs';
-import { AdminService } from '../../service/admin.service';
+import { autorun, IReactionDisposer, toJS } from 'mobx';
+import { RefSort } from '../../model/ref';
 import { Store } from '../../store/store';
 
 @Component({
@@ -10,66 +9,33 @@ import { Store } from '../../store/store';
   templateUrl: './search-filter.component.html',
   styleUrls: ['./search-filter.component.scss']
 })
-export class SearchFilterComponent implements OnInit {
+export class SearchFilterComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'search-filter form-group';
+
+  private disposers: IReactionDisposer[] = [];
 
   @Input()
   showFilter = true;
+  @Input()
+  showSort = true;
 
   searchValue = '';
-  allFilters = ['uncited', 'unsourced', 'internal', 'rejected', 'unpaid', 'paid', 'disputed'];
-  filters: string[] = [];
 
   constructor(
     public router: Router,
-    public route: ActivatedRoute,
-    public admin: AdminService,
     public store: Store,
   ) {
-    if (store.account.mod) {
-      this.allFilters.push('modlist');
-    }
-    this.filter$.subscribe(filter => {
-      if (!filter) filter = [];
-      if (!Array.isArray(filter)) filter = [filter];
-      this.filters = filter;
-    });
-    this.search$.subscribe(search => this.searchValue = search);
+    this.disposers.push(autorun(() => {
+      this.searchValue = toJS(this.store.view.search);
+    }));
   }
 
   ngOnInit(): void {
   }
 
-  addFilter() {
-    if (!this.filters) this.filters = [];
-    this.filters.push('');
-  }
-
-  setFilter(index: number, value: string) {
-    this.filters[index] = value;
-    this.setFilters();
-  }
-
-  removeFilter(index: number) {
-    this.filters.splice(index, 1);
-    this.setFilters();
-  }
-
-  setFilters() {
-    const filters = _.filter(this.filters, f => !!f);
-    this.router.navigate([], { queryParams: { filter: filters.length ? filters : null }, queryParamsHandling: 'merge' });
-  }
-
-  get filter$() {
-    return this.route.queryParams.pipe(
-      map(queryParams => queryParams['filter']),
-    );
-  }
-
-  get search$() {
-    return this.route.queryParams.pipe(
-      map(queryParams => queryParams['search']),
-    );
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   search() {

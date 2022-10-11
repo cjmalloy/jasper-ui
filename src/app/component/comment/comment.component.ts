@@ -28,7 +28,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   @Input()
   top!: Ref;
   @Input()
-  sort?: RefSort;
+  sort: RefSort[] = [];
   @Input()
   depth?: number | null = 7;
   @Input()

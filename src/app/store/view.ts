@@ -1,13 +1,14 @@
 import { makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
-import { Ref } from '../model/ref';
+import { Ref, RefSort } from '../model/ref';
 import { hasPrefix, isQuery, localTag } from '../util/tag';
 
 export class ViewStore {
 
   defaultPageSize = 20;
   defaultBlogPageSize = 5;
+  defaultSort: RefSort = 'published';
   ref?: Ref = {} as any;
   remoteCount = 0;
   ext?: Ext = {} as any;
@@ -63,11 +64,17 @@ export class ViewStore {
   }
 
   get sort() {
-    return this.route.routeSnapshot?.firstChild?.params['sort'];
+    const sort = this.route.routeSnapshot?.queryParams['sort'];
+    if (!sort) return [this.search ? 'rank' : this.defaultSort];
+    if (!Array.isArray(sort)) return [sort]
+    return sort;
   }
 
   get filter() {
-    return this.route.routeSnapshot?.queryParams['filter'];
+    const filter = this.route.routeSnapshot?.queryParams['filter'];
+    if (!filter) return undefined;
+    if (!Array.isArray(filter)) return [filter]
+    return filter;
   }
 
   get search() {
@@ -86,12 +93,16 @@ export class ViewStore {
     return this.route.routeSnapshot?.queryParams['hideSearch'];
   }
 
+  get noView() {
+    return !this.route.routeSnapshot?.queryParams['view'];
+  }
+
   get list() {
-    return this.route.routeSnapshot?.queryParams['list'] === 'true';
+    return this.route.routeSnapshot?.queryParams['view'] === 'list';
   }
 
   get graph() {
-    return this.route.routeSnapshot?.queryParams['graph'] === 'true';
+    return this.route.routeSnapshot?.queryParams['view'] === 'graph';
   }
 
   get user() {

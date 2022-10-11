@@ -2,6 +2,7 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
+import { RefSort } from '../../model/ref';
 import { Template } from '../../model/template';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -31,6 +32,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   showSearch = true;
   @Input()
   showFilter = true;
+  @Input()
+  showSort = true;
 
   _tag: string | null = null;
   localTag?: string;

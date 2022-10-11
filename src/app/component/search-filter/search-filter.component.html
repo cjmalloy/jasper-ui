@@ -1,17 +1,14 @@
 <input type="search"
        class="dont-hide"
        placeholder="Search"
-       [ngModel]="search$ | async"
+       [ngModel]="searchValue"
        (input)="searchValue = $any($event.target).value"
        (keydown)="$event.key === 'Enter' && search() || true">
 <ng-container *ngIf="showFilter">
   <br>
-  <button type="button" (click)="addFilter()">+ Add filter</button>
-  <span class="form-array" *ngFor="let f of filters; let i=index">
-  <label for="filter-{{ i }}">Filter:</label>
-  <select id="filter-{{ i }}" [ngModel]="filters[i]" (ngModelChange)="setFilter(i, $event)">
-    <option *ngFor="let opt of allFilters" [value]="opt">{{ opt }}</option>
-  </select>
-  <button type="button" (click)="removeFilter(i)">&ndash;</button>
-</span>
+  <app-filter></app-filter>
+</ng-container>
+<ng-container *ngIf="showSort">
+  <br>
+  <app-sort></app-sort>
 </ng-container>

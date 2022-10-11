@@ -1,29 +1,33 @@
 <ng-container *mobxAutorun>
   <div class="tabs">
     <h5 class="fake-link" routerLink=".." [queryParams]="{}">{{ store.view.name }}</h5>
-    <a routerLink="../created" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by created date">new</a>
-    <ng-container *ngIf="admin.status.plugins.comment">
-      <a routerLink="../commentCount" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of comments">comments</a>
+    <ng-container *ngIf="store.view.kanban">
+      <a routerLink="./"
+         [class.current-tab]="store.view.noView"
+         [queryParams]="{view: null}"
+         queryParamsHandling="merge">kanban</a>
     </ng-container>
-    <a routerLink="../sourceCount" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of sources">sources</a>
-    <a routerLink="../responseCount" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of responses">responses</a>
-    <a routerLink="../published" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by published date">published</a>
-    <a routerLink="../modified" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by modified date">modified</a>
-    <a routerLink="../title" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort alphabetically by title">title</a>
-    <a *ngIf="store.view.search" routerLink="../rank" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by search relevance">rank</a>
+    <ng-container *ngIf="store.view.blog">
+      <a routerLink="./"
+         [class.current-tab]="store.view.noView"
+         [queryParams]="{view: null}"
+         queryParamsHandling="merge">blog</a>
+    </ng-container>
+    <ng-container *ngIf="store.view.chat">
+      <a routerLink="./"
+         [class.current-tab]="store.view.noView"
+         [queryParams]="{view: null}"
+         queryParamsHandling="merge">chat</a>
+    </ng-container>
+    <a routerLink="./"
+       [class.current-tab]="isSpecial ? store.view.list : store.view.noView"
+       [queryParams]="{view: isSpecial ? 'list' : null}"
+       queryParamsHandling="merge">list</a>
     <ng-container *ngIf="admin.status.plugins.graph">
       <a routerLink="./"
          [class.current-tab]="store.view.graph"
-         [queryParams]="{ graph: store.view.graph ? null : true, list: null }"
-         queryParamsHandling="merge"
-         title="Graph these results">graph</a>
-    </ng-container>
-    <ng-container *ngIf="showListButton">
-      <a routerLink="./"
-         [class.current-tab]="store.view.list"
-         [queryParams]="{ list: store.view.list ? null : true, graph: null }"
-         queryParamsHandling="merge"
-         title="View as list">list</a>
+         [queryParams]="{view: 'graph'}"
+         queryParamsHandling="merge" >graph</a>
     </ng-container>
     <div class="spacer"></div>
     <app-settings></app-settings>
@@ -31,7 +35,8 @@
   <app-sidebar class="aside"
                *ngIf="!store.view.graph"
                [tag]="store.view.tag!"
-               [ext]="store.view.ext"></app-sidebar>
+               [ext]="store.view.ext"
+               [showSort]="!(store.view.chat && store.view.noView)"></app-sidebar>
   <div *ngIf="query.error?.status === 403 else accessGranted" class="error-403">Access Denied</div>
   <ng-template #accessGranted>
     <!-- TODO: allow paging with graph -->

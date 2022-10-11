@@ -53,7 +53,7 @@ export function getArgs(
   }
   const query = queryFilter && tagOrSimpleQuery ? `(${tagOrSimpleQuery}):${queryFilter}` : tagOrSimpleQuery || queryFilter;
   if (sort) {
-    if (!Array.isArray(sort)) sort = [sort];
+    sort = Array.isArray(sort) ? [...sort] : [sort];
     for (let i = 0; i < sort.length; i++) {
       const s = sort[i];
       if (defaultDesc.includes(s)) {
@@ -61,7 +61,7 @@ export function getArgs(
       }
     }
   } else {
-    sort = ['created,DESC'];
+    sort = [];
   }
   const args: RefPageArgs = {
     query,

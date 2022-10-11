@@ -1,22 +1,15 @@
 <ng-container *mobxAutorun>
   <div class="tabs">
     <h5>Home</h5>
-    <a routerLink="../created" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by created date">new</a>
-    <ng-container *ngIf="admin.status.plugins.comment">
-      <a routerLink="../commentCount" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of comments">comments</a>
-    </ng-container>
-    <a routerLink="../sourceCount" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of sources">sources</a>
-    <a routerLink="../responseCount" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by number of responses">responses</a>
-    <a routerLink="../published" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by published date">published</a>
-    <a routerLink="../modified" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by modified date">modified</a>
-    <a routerLink="../title" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort alphabetically by title">title</a>
-    <a *ngIf="store.view.search" routerLink="../rank" [queryParams]="{pageNumber: null}" queryParamsHandling="merge" routerLinkActive="current-tab" title="Sort by search relevance">rank</a>
+    <a routerLink="./"
+       [class.current-tab]="store.view.noView"
+       [queryParams]="{view: null}"
+       queryParamsHandling="merge">list</a>
     <ng-container *ngIf="admin.status.plugins.graph">
       <a routerLink="./"
          [class.current-tab]="store.view.graph"
-         [queryParams]="{ graph: store.view.graph ? null : true }"
-         queryParamsHandling="merge"
-         title="Graph these results">graph</a>
+         [queryParams]="{view: 'graph'}"
+         queryParamsHandling="merge" >graph</a>
     </ng-container>
     <div class="spacer"></div>
     <app-settings></app-settings>
