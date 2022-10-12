@@ -1,9 +1,7 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
-import { map } from 'rxjs';
-import { RefSort } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 

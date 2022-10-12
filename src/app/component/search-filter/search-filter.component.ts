@@ -1,7 +1,6 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
-import { RefSort } from '../../model/ref';
 import { Store } from '../../store/store';
 
 @Component({

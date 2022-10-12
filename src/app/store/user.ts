@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { action, autorun, makeAutoObservable, makeObservable, observable, runInAction } from 'mobx';
+import { autorun, makeAutoObservable, observable, runInAction } from 'mobx';
 import { catchError, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { TagPageArgs } from '../model/tag';

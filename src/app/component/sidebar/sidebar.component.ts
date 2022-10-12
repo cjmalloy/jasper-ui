@@ -2,7 +2,6 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
-import { RefSort } from '../../model/ref';
 import { Template } from '../../model/template';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';

@@ -3,7 +3,6 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, throwError } from 'rxjs';
-import { Plugin } from '../../../model/plugin';
 import { Template } from '../../../model/template';
 import { TemplateService } from '../../../service/api/template.service';
 import { ThemeService } from '../../../service/theme.service';

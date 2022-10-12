@@ -2,7 +2,6 @@ import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core'
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { User } from '../../model/user';
 import { USER_REGEX } from '../../util/format';
-import { QtagsFormComponent } from '../qtags/qtags.component';
 import { SelectorsFormComponent } from '../selectors/selectors.component';
 
 @Component({

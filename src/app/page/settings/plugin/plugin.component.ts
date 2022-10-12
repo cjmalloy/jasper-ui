@@ -8,8 +8,8 @@ import { PluginService } from '../../../service/api/plugin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { PluginStore } from '../../../store/plugin';
 import { Store } from '../../../store/store';
-import { getZipOrTextFile, getModels } from '../../../util/zip';
 import { printError } from '../../../util/http';
+import { getModels, getZipOrTextFile } from '../../../util/zip';
 
 @Component({
   selector: 'app-settings-plugin-page',

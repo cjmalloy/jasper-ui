@@ -17,22 +17,13 @@ import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
-import { catchError, forkJoin, Observable, of, Subscription, throwError } from 'rxjs';
+import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { isTextPost } from '../../../util/format';
-import {
-  GraphNode,
-  responses,
-  sources,
-  find,
-  graphable,
-  GraphLink,
-  isGraphable,
-  isInternal
-} from '../../../util/graph';
+import { find, GraphNode, isGraphable, isInternal, responses, sources } from '../../../util/graph';
 import { Point, Rect } from '../../../util/math';
 import { capturesAny, hasTag } from '../../../util/tag';
 

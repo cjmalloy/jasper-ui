@@ -1,14 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, of, switchMap, throwError } from 'rxjs';
-import { v4 as uuid } from 'uuid';
+import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { mapRef, mapRefOrNull, Ref, RefPageArgs, RefQueryArgs, writeRef } from '../../model/ref';
-import { URI_REGEX } from '../../util/format';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
-import { TaggingService } from './tagging.service';
 
 @Injectable({
   providedIn: 'root',
