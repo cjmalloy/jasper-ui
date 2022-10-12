@@ -6,7 +6,6 @@
                        [tags]="mailboxes(store.view.ref)"
                        [newComments$]="newComments$"></app-comment-reply>
     <app-comment-list [top]="store.view.ref"
-                      [sort]="store.view.sort"
                       [source]="store.view.ref.url"
                       [newComments$]="newComments$"
                       [depth]="depth"></app-comment-list>

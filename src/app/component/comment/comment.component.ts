@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { catchError, Subject, switchMap, takeUntil, throwError } from 'rxjs';
-import { Ref, RefSort } from '../../model/ref';
+import { Ref } from '../../model/ref';
 import { mailboxes } from '../../plugin/mailbox';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -27,8 +27,6 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   @Input()
   top!: Ref;
-  @Input()
-  sort: RefSort[] = [];
   @Input()
   depth?: number | null = 7;
   @Input()

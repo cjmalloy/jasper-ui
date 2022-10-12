@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
-import { Ref, RefFilter, RefSort } from '../model/ref';
+import { Ref, RefSort } from '../model/ref';
 import { TagSort } from '../model/tag';
 import { hasPrefix, isQuery, localTag } from '../util/tag';
 
@@ -74,9 +74,9 @@ export class ViewStore {
     return sort;
   }
 
-  get filter(): RefFilter[] | undefined {
+  get filter(): string[] {
     const filter = this.route.routeSnapshot?.queryParams['filter'];
-    if (!filter) return undefined;
+    if (!filter) return [];
     if (!Array.isArray(filter)) return [filter]
     return filter;
   }
