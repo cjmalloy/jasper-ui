@@ -34,11 +34,10 @@ import { capturesAny, hasTag } from '../../../util/tag';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
-
   private disposers: IReactionDisposer[] = [];
 
   @Input()
-  filter?: RefFilter[];
+  filter?: string[];
   @Input()
   depth = 0;
   @Input()
