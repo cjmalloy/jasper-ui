@@ -1,16 +1,15 @@
 import { AfterViewInit, Component, HostBinding, Input, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import * as _ from 'lodash-es';
-import { catchError, combineLatest, map, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
-import { distinctUntilChanged, tap } from 'rxjs/operators';
+import { autorun, IReactionDisposer } from 'mobx';
+import { catchError, map, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Page } from '../../model/page';
-import { Ref, RefSort } from '../../model/ref';
+import { Ref, RefFilter, RefPageArgs, RefSort } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
-import { filterListToObj, getArgs } from '../../util/query';
+import { getArgs } from '../../util/query';
 import { KanbanDrag } from '../kanban/kanban.component';
 
 @Component({
@@ -21,20 +20,20 @@ import { KanbanDrag } from '../kanban/kanban.component';
 export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   @HostBinding('class') css = 'kanban-column';
   private destroy$ = new Subject<void>();
+  private disposers: IReactionDisposer[] = [];
 
   @Input()
   updates?: Observable<KanbanDrag>;
   @Input()
   addTags: string[] = [];
 
-  query$ = new Subject<string>();
-  _query?: string;
+  _query = '';
   size = 20;
   pages?: Page<Ref>[];
   mutated = false;
   addText = '';
-  sort?: RefSort;
-  filter = [];
+  sort: RefSort[] = [];
+  filter?: RefFilter[] = [];
   search = '';
 
   constructor(
@@ -43,16 +42,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     private refs: RefService,
     private tags: TaggingService,
   ) {
-    combineLatest(
-      this.query$, this.sort$, this.filter$, this.search$
-    ).pipe(
-      map(([query, sort, filter, search]) =>
-        getArgs(query, sort, {...filterListToObj(filter)}, search, 0, this.size)),
-      distinctUntilChanged(_.isEqual),
-      switchMap(args => this.refs.page(args)),
-    ).subscribe(page => {
-      this.pages = [page];
-    });
+    this.disposers.push(autorun(() => {
+      this.sort = this.store.view.sort;
+      this.filter = this.store.view.filter;
+      this.search = this.store.view.search;
+      if (this._query) this.clear();
+    }));
   }
 
   get hasMore() {
@@ -69,34 +64,28 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   @Input()
   set query(value: string) {
     if (this._query === value) return;
     this._query = value;
-    this.query$.next(value);
+    this.clear();
   }
 
-  get sort$() {
-    return this.route.params.pipe(
-      map(params => params['sort']),
-      tap(sort => this.sort = sort),
-    );
-  }
-
-  get filter$() {
-    return this.route.queryParams.pipe(
-      map(queryParams => queryParams['filter']),
-      tap(filter => this.filter = filter),
-    );
-  }
-
-  get search$() {
-    return this.route.queryParams.pipe(
-      map(queryParams => queryParams['search']),
-      tap(search => this.search = search),
-    );
+  clear() {
+    this.refs.page(getArgs(
+      this._query,
+      this.sort,
+      this.filter,
+      this.search,
+      0,
+      this.size
+    )).subscribe(page => {
+      this.pages = [page];
+    });
   }
 
   update(event: KanbanDrag) {
@@ -122,7 +111,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     }
     this.mutated = false;
     this.refs.page(getArgs(
-      this._query, this.sort, {...filterListToObj(this.filter)}, this.search, this.pages?.length || 0, this.size
+      this._query,
+      this.sort,
+      this.filter,
+      this.search,
+      this.pages?.length || 0,
+      this.size
     )).subscribe(page => {
       if (!this.pages) this.pages = [];
       this.pages.push(page);
@@ -162,7 +156,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
 
   private refreshPage(i: number) {
     this.refs.page(getArgs(
-      this._query, this.sort, {...filterListToObj(this.filter)}, this.search, i, this.size
+      this._query,
+      this.sort,
+      this.filter,
+      this.search,
+      i,
+      this.size
     )).subscribe(page => {
       if (!this.pages) this.pages = [];
       this.pages[i] = page;

@@ -2,6 +2,7 @@ import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
+import { RefFilter } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 
@@ -16,7 +17,7 @@ export class FilterComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   allFilters = ['uncited', 'unsourced', 'internal'];
-  filters: string[] = [];
+  filters: RefFilter[] = [];
 
   constructor(
     public router: Router,
@@ -51,10 +52,10 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   addFilter() {
     if (!this.filters) this.filters = [];
-    this.filters.push('');
+    this.filters.push('' as any);
   }
 
-  setFilter(index: number, value: string) {
+  setFilter(index: number, value: RefFilter) {
     this.filters[index] = value;
     this.setFilters();
   }
