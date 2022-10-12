@@ -71,7 +71,7 @@
   <div class="tag-header" *ngIf="home">
     <h3><a [routerLink]="['/home']">Home</a></h3>
   </div>
-  <div class="tag-header" *ngIf="!home">
+  <div class="tag-header" *ngIf="!home && ext?.name || tag">
     <h3>{{ ext?.name || tag }}</h3>
     <ng-container *ngIf="store.account.signedIn && tag && admin.status.templates.user">
       <button *ngIf="inSubs; else notInSubs"
