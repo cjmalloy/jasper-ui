@@ -28,11 +28,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @Input()
   home = false;
   @Input()
-  showSearch = true;
-  @Input()
-  showFilter = true;
-  @Input()
   showSort = true;
+  @Input()
+  type?: 'ref' | 'tag' = 'ref';
 
   _tag: string | null = null;
   localTag?: string;

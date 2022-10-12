@@ -11,16 +11,14 @@ import { Store } from '../../store/store';
 })
 export class SettingsPage implements OnInit {
 
-  searchablePages = [
+  tagPages = [
     'ext',
     'user',
-    'feed',
-    'origin',
     'plugin',
     'template',
   ];
 
-  filterablePages = [
+  refPages = [
     'feed',
     'origin',
   ];
@@ -39,12 +37,10 @@ export class SettingsPage implements OnInit {
     return this.route.snapshot.firstChild?.url?.[0].path!;
   }
 
-  get searchable() {
-    return this.searchablePages.includes(this.currentPage);
-  }
-
-  get filterable() {
-    return this.filterablePages.includes(this.currentPage);
+  get type() {
+    if (this.refPages.includes(this.currentPage)) return 'ref';
+    if (this.tagPages.includes(this.currentPage)) return 'tag';
+    return undefined;
   }
 
 }

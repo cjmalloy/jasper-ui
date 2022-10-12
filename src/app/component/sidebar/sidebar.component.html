@@ -3,9 +3,9 @@
     <div class="toggle dont-hide"
          *ngIf="showToggle"
          (click)="expanded = !expanded">☰</div>
-    <app-search-filter *ngIf="showSearch"
+    <app-search-filter *ngIf="!!type"
                        class="dont-hide"
-                       [showFilter]="showFilter"
+                       [type]="type"
                        [showSort]="showSort"></app-search-filter>
   </div>
   <div *ngIf="!home" class="breadcrumbs">

@@ -2,6 +2,8 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { Router } from '@angular/router';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
+import { RefSort } from '../../model/ref';
+import { TagSort } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 
@@ -15,14 +17,8 @@ export class SortComponent implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
-  allSorts = [
-    { value: 'created', label: 'new' },
-    { value: 'sourceCount', label: 'source' },
-    { value: 'responseCount', label: 'responses' },
-    { value: 'published', label: 'published' },
-    { value: 'published' },
+  allSorts: {value: RefSort | TagSort, label?: string}[] = [
     { value: 'modified' },
-    { value: 'title' },
   ];
   sorts: string[] = [];
 
@@ -31,16 +27,42 @@ export class SortComponent implements OnInit, OnDestroy {
     public admin: AdminService,
     public store: Store,
   ) {
-    if (admin.status.plugins.comment) {
-      this.allSorts.splice(1, 0, { value: 'commentCount', label: 'comments' });
-    }
-    if (store.view.search) {
-      this.allSorts.push({ value: 'rank', label: 'relevance' });
-    }
+    this.type = 'ref';
     this.disposers.push(autorun(() => {
       this.sorts = toJS(this.store.view.sort);
       if (!Array.isArray(this.sorts)) this.sorts = [this.sorts];
     }));
+  }
+
+  @Input()
+  set type(value: 'ref' | 'tag') {
+    if (value === 'ref') {
+      this.allSorts = [
+        { value: 'url' },
+        { value: 'origin' },
+        { value: 'title' },
+        { value: 'comment' },
+        { value: 'created', label: 'new' },
+        { value: 'sourceCount', label: 'source' },
+        { value: 'responseCount', label: 'responses' },
+        { value: 'published' },
+        { value: 'modified' },
+      ]
+      if (this.admin.status.plugins.comment) {
+        this.allSorts.splice(1, 0, { value: 'commentCount', label: 'comments' });
+      }
+      if (this.store.view.search) {
+        this.allSorts.unshift({ value: 'rank', label: 'relevance' });
+      }
+    }
+    if (value === 'tag') {
+      this.allSorts = [
+        { value: 'tag' },
+        { value: 'origin' },
+        { value: 'name' },
+        { value: 'modified' },
+      ]
+    }
   }
 
   ngOnInit(): void {

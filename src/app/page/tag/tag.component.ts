@@ -33,6 +33,7 @@ export class TagPage implements OnInit, OnDestroy {
   ) {
     store.view.clear();
     store.view.defaultSort = 'created';
+    store.view.defaultSearchSort = 'rank';
   }
 
   ngOnInit(): void {

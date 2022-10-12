@@ -14,9 +14,9 @@ export class SearchFilterComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
-  showFilter = true;
-  @Input()
   showSort = true;
+  @Input()
+  type?: 'ref' | 'tag' = 'ref'
 
   searchValue = '';
 

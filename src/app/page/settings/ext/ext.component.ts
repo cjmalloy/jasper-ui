@@ -21,6 +21,9 @@ export class SettingsExtPage implements OnInit, OnDestroy {
     public query: ExtStore,
   ) {
     theme.setTitle('Settings: Tag Extensions');
+    store.view.clear();
+    store.view.defaultSort = 'modified';
+    store.view.defaultSearchSort = 'tag';
     query.clear();
   }
 
@@ -28,6 +31,7 @@ export class SettingsExtPage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       const args = {
         search: this.store.view.search,
+        sort: this.store.view.sort,
         page: this.store.view.pageNumber,
         size: this.store.view.pageSize ?? this.defaultPageSize,
       };
