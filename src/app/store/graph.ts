@@ -75,6 +75,7 @@ export class GraphStore {
     }
     // Trigger shallow observable
     this.nodes = [...this.nodes];
+    this.selected = [...this.selected];
     if (this.showUnloaded) {
       this.nodes.push(..._.difference(unloadedReferences(this.nodes, ...refs), this.unloaded).map(url => ({ url, unloaded: true })));
     }
@@ -133,6 +134,8 @@ export class GraphStore {
     if (!this.showUnloaded) {
       this.links.push(...linkSources(this.nodes, url));
     }
+    // Trigger shallow observable
+    this.selected = [...this.selected];
     return ref;
   }
 

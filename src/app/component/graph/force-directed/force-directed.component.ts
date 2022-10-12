@@ -206,11 +206,11 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   clickNode(ref: GraphNode, event?: MouseEvent) {
     event?.stopPropagation();
     this.store.graph.select(ref);
-    if (!ref.unloaded) {
+    if (ref.unloaded) {
+      this.load(ref);
+    } else {
       this.update();
-      return;
     }
-    this.load(ref);
   }
 
   select(rect?: Rect) {
@@ -357,7 +357,6 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   init() {
-
     const viewBox = [-this.figWidth / 2, -this.figHeight / 2, this.figWidth, this.figHeight];
     this.svg = d3.select('figure#force-directed-graph').append('svg')
       .attr('width', this.figWidth)
@@ -467,7 +466,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   update() {
-    if (!this.svg || !this.simulation ||!this.link || !this.node) return;
+    if (!this.svg || !this.simulation || !this.link || !this.node) return;
 
     this.svg
       .attr('width', this.figWidth)
