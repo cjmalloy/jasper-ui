@@ -37,7 +37,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       const args = {
         search: this.store.view.search,
-        sort: this.store.view.sort,
+        sort: [...this.store.view.sort],
         page: this.store.view.pageNumber,
         size: this.store.view.pageSize,
       };
