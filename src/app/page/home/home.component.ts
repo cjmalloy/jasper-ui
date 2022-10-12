@@ -25,8 +25,6 @@ export class HomePage implements OnInit, OnDestroy {
   ) {
     theme.setTitle('Home');
     store.view.clear();
-    store.view.defaultSort = 'published';
-    store.view.defaultSearchSort = 'rank';
     query.clear();
   }
 

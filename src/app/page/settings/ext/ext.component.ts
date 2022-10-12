@@ -21,9 +21,7 @@ export class SettingsExtPage implements OnInit, OnDestroy {
     public query: ExtStore,
   ) {
     theme.setTitle('Settings: Tag Extensions');
-    store.view.clear();
-    store.view.defaultSort = 'modified';
-    store.view.defaultSearchSort = 'tag';
+    store.view.clear('modified', 'tag');
     query.clear();
   }
 

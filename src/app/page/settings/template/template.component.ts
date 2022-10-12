@@ -30,9 +30,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
     private templates: TemplateService,
   ) {
     theme.setTitle('Settings: Templates');
-    store.view.clear();
-    store.view.defaultSort = 'modified';
-    store.view.defaultSearchSort = 'tag';
+    store.view.clear('modified', 'tag');
     query.clear();
   }
 

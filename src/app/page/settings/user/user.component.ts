@@ -21,9 +21,7 @@ export class SettingsUserPage implements OnInit, OnDestroy {
     public query: UserStore,
   ) {
     theme.setTitle('Settings: User Permissions');
-    store.view.clear();
-    store.view.defaultSort = 'modified';
-    store.view.defaultSearchSort = 'tag';
+    store.view.clear('modified', 'tag');
     query.clear();
   }
 

@@ -23,11 +23,13 @@ export class ViewStore {
     this.clear(); // Initial observables may not be null for MobX
   }
 
-  clear() {
+  clear(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {
     this.ref = undefined;
     this.remoteCount = 0;
     this.ext = undefined;
     this.pinned = undefined;
+    this.defaultSort = defaultSort;
+    this.defaultSearchSort = defaultSearchSort;
   }
 
   get url() {

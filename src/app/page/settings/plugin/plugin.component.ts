@@ -30,9 +30,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
     private plugins: PluginService,
   ) {
     theme.setTitle('Settings: Plugins');
-    store.view.clear();
-    store.view.defaultSort = 'modified';
-    store.view.defaultSearchSort = 'tag';
+    store.view.clear('modified', 'tag');
     query.clear();
   }
 
