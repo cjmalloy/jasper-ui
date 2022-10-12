@@ -19,7 +19,7 @@ import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
-import { Ref } from '../../../model/ref';
+import { Ref, RefFilter } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { isTextPost } from '../../../util/format';
@@ -38,7 +38,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
-  filter?: string[];
+  filter?: RefFilter[];
   @Input()
   depth = 0;
   @Input()
