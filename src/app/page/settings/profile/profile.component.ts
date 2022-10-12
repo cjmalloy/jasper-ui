@@ -13,7 +13,6 @@ import { Store } from '../../../store/store';
 export class SettingsProfilePage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
-  private defaultPageSize = 20;
 
   constructor(
     private theme: ThemeService,
@@ -28,7 +27,7 @@ export class SettingsProfilePage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       const args = {
         page: this.store.view.pageNumber,
-        size: this.store.view.pageSize ?? this.defaultPageSize,
+        size: this.store.view.pageSize,
       };
       _.defer(() => this.query.setArgs(args));
     }));

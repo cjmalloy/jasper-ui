@@ -14,7 +14,6 @@ import { getArgs } from '../../../util/query';
 export class SettingsOriginPage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
-  private defaultPageSize = 20;
 
   constructor(
     private theme: ThemeService,
@@ -34,7 +33,7 @@ export class SettingsOriginPage implements OnInit, OnDestroy {
         this.store.view.filter,
         this.store.view.search,
         this.store.view.pageNumber,
-        this.store.view.pageSize ?? this.defaultPageSize
+        this.store.view.pageSize,
       );
       _.defer(() => this.query.setArgs(args));
     }));

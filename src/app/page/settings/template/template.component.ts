@@ -21,7 +21,6 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
   serverError: string[] = [];
 
   private disposers: IReactionDisposer[] = [];
-  private defaultPageSize = 20;
 
   constructor(
     private theme: ThemeService,
@@ -40,7 +39,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
         search: this.store.view.search,
         sort: this.store.view.sort,
         page: this.store.view.pageNumber,
-        size: this.store.view.pageSize ?? this.defaultPageSize,
+        size: this.store.view.pageSize,
       };
       _.defer(() => this.query.setArgs(args));
     }));
