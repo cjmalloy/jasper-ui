@@ -27,6 +27,7 @@ import { CommentComponent } from './component/comment/comment.component';
 import { EmbedComponent } from './component/embed/embed.component';
 import { ExtListComponent } from './component/ext-list/ext-list.component';
 import { ExtComponent } from './component/ext/ext.component';
+import { FilterComponent } from './component/filter/filter.component';
 import { ForceDirectedComponent } from './component/graph/force-directed/force-directed.component';
 import { KanbanCardComponent } from './component/kanban-card/kanban-card.component';
 import { KanbanColumnComponent } from './component/kanban-column/kanban-column.component';
@@ -44,6 +45,7 @@ import { RefComponent } from './component/ref/ref.component';
 import { SearchFilterComponent } from './component/search-filter/search-filter.component';
 import { SettingsComponent } from './component/settings/settings.component';
 import { SidebarComponent } from './component/sidebar/sidebar.component';
+import { SortComponent } from './component/sort/sort.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { TagListComponent } from './component/tag-list/tag-list.component';
 import { TemplateComponent } from './component/template/template.component';
@@ -125,8 +127,6 @@ import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
-import { SortComponent } from './component/sort/sort.component';
-import { FilterComponent } from './component/filter/filter.component';
 
 const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
