@@ -27,6 +27,7 @@ export class ExtComponent implements OnInit {
   editForm!: UntypedFormGroup;
   submitted = false;
   editing = false;
+  viewSource = false;
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;

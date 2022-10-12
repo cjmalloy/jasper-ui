@@ -10,15 +10,15 @@
       on <a [routerLink]="['/tag', plugin.origin]">{{ plugin.origin }}</a>
     </ng-container>
   </div>
-  <div class="actions" *ngIf="local">
-    <a *ngIf="store.account.admin else source"
+  <div class="actions">
+    <a *ngIf="local && store.account.admin else source"
        class="fake-link"
        (click)="editing = !editing">edit</a>
     <ng-template #source>
       <a class="fake-link"
          (click)="viewSource = !viewSource">source</a>
     </ng-template>
-    <a *ngIf="!deleting && store.account.admin"
+    <a *ngIf="local && !deleting && store.account.admin"
        class="fake-link"
        (click)="deleting = true">delete</a>
     <span *ngIf="deleting" class="delete-confirm">are you sure?
