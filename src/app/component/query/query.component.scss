@@ -1,0 +1,13 @@
+:host {
+  display: flex;
+  & > :first-child {
+    flex-grow: 1;
+    flex-shrink: 1;
+  }
+}
+
+div {
+  align-self: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

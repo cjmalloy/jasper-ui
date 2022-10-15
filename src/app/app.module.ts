@@ -40,6 +40,7 @@ import { PageControlsComponent } from './component/page-controls/page-controls.c
 import { PluginComponent } from './component/plugin/plugin.component';
 import { ProfileListComponent } from './component/profile-list/profile-list.component';
 import { ProfileComponent } from './component/profile/profile.component';
+import { QueryComponent } from './component/query/query.component';
 import { RefListComponent } from './component/ref-list/ref-list.component';
 import { RefComponent } from './component/ref/ref.component';
 import { SearchComponent } from './component/search/search.component';
@@ -252,6 +253,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     GenFormComponent,
     SortComponent,
     FilterComponent,
+    QueryComponent,
   ],
   imports: [
     BrowserModule,

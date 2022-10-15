@@ -15,12 +15,7 @@
       </ng-container>
     </div>
   </div>
-  <div *ngIf="!home" class="breadcrumbs">
-      <span *ngFor="let breadcrumb of breadcrumbs">
-        <a *ngIf="breadcrumb.tag" class="tag" [routerLink]="['/tag', breadcrumb.tag]">{{ breadcrumb.text }}</a>
-        <span *ngIf="!breadcrumb.tag">{{ breadcrumb.text }}</span>
-      </span>
-  </div>
+  <app-query [query]="tag" class="breadcrumbs"></app-query>
   <ng-container *ngIf="store.account.poster">
     <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
       🔗️ &nbsp; Submit Link

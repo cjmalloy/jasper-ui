@@ -1,0 +1,16 @@
+<ng-container *ngIf="editing || !query">
+  <input type="email"
+         #editor
+         autocorrect="off"
+         autocapitalize="none"
+         placeholder="Tag Query"
+         [ngModel]="query"
+         (keydown)="$event.key === 'Enter' && search(editor.value) || true">
+</ng-container>
+<div *ngIf="!editing && query">
+  <span *ngFor="let breadcrumb of breadcrumbs">
+    <a *ngIf="breadcrumb.tag" class="tag" [routerLink]="['/tag', breadcrumb.tag]">{{ breadcrumb.text }}</a>
+    <span *ngIf="!breadcrumb.tag">{{ breadcrumb.text }}</span>
+  </span>
+</div>
+<button *ngIf="query" (click)="editing = !editing">✏️</button>

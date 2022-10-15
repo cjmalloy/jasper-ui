@@ -9,7 +9,7 @@ import { AuthService } from '../../service/auth.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
-import { breadcrumbs, localTag, prefix, removeWildcard } from '../../util/tag';
+import { localTag, prefix, removeWildcard } from '../../util/tag';
 
 @Component({
   selector: 'app-sidebar',
@@ -32,7 +32,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @Input()
   type?: 'ref' | 'tag' = 'ref';
 
-  _tag: string | null = null;
+  _tag = '';
   localTag?: string;
   writeAccess = false;
   ui: Template[] = [];
@@ -56,19 +56,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
   }
 
-  get tag(): string | null {
-    return this._tag;
-  }
-
-  get modmail(): string | null {
-    if (!this._tag) return null;
-    if (!TAG_REGEX.test(this._tag)) return null;
-    if (this._tag.startsWith('plugin')) return null;
+  get tag() {
     return this._tag;
   }
 
   @Input()
-  set tag(value: string | null) {
+  set tag(value: string) {
     if (this._tag === value) return;
     this._tag = value;
     if (value) {
@@ -92,10 +85,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this._expanded = value;
   }
 
-  get breadcrumbs() {
-    return breadcrumbs(this.tag!);
-  }
-
   ngOnInit(): void {
   }
 
@@ -110,6 +99,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   get feed() {
     return this.admin.status.plugins.feed && (this.store.account.mod || this.auth.tagReadAccess('+plugin/feed'));
+  }
+
+  get modmail(): string | null {
+    if (!this._tag) return null;
+    if (!TAG_REGEX.test(this._tag)) return null;
+    if (this._tag.startsWith('plugin')) return null;
+    return this._tag;
   }
 
   get isApprover() {
