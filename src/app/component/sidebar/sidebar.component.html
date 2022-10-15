@@ -3,14 +3,13 @@
     <div class="toggle dont-hide"
          *ngIf="showToggle"
          (click)="expanded = !expanded">☰</div>
-    <div class="dont-hide">
-      <app-search-filter *ngIf="!!type"
-                         [showSort]="showSort"></app-search-filter>
+    <div *ngIf="!!type" class="dont-hide">
+      <app-search></app-search>
       <ng-container *ngIf="type === 'ref'">
         <br>
         <app-filter></app-filter>
       </ng-container>
-      <ng-container *ngIf="showSort && !!type">
+      <ng-container *ngIf="showSort">
         <br>
         <app-sort [type]="type"></app-sort>
       </ng-container>

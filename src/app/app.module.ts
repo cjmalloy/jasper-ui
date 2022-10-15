@@ -42,7 +42,7 @@ import { ProfileListComponent } from './component/profile-list/profile-list.comp
 import { ProfileComponent } from './component/profile/profile.component';
 import { RefListComponent } from './component/ref-list/ref-list.component';
 import { RefComponent } from './component/ref/ref.component';
-import { SearchFilterComponent } from './component/search-filter/search-filter.component';
+import { SearchComponent } from './component/search/search.component';
 import { SettingsComponent } from './component/settings/settings.component';
 import { SidebarComponent } from './component/sidebar/sidebar.component';
 import { SortComponent } from './component/sort/sort.component';
@@ -189,7 +189,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     SubmitInvoicePage,
     InboxInvoicesPage,
     InboxSentPage,
-    SearchFilterComponent,
+    SearchComponent,
     EmbedComponent,
     SafePipe,
     EmbedPipe,

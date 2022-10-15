@@ -4,17 +4,14 @@ import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { Store } from '../../store/store';
 
 @Component({
-  selector: 'app-search-filter',
-  templateUrl: './search-filter.component.html',
-  styleUrls: ['./search-filter.component.scss']
+  selector: 'app-search',
+  templateUrl: './search.component.html',
+  styleUrls: ['./search.component.scss']
 })
-export class SearchFilterComponent implements OnInit, OnDestroy {
-  @HostBinding('class') css = 'search-filter form-group';
+export class SearchComponent implements OnInit, OnDestroy {
+  @HostBinding('class') css = 'search form-group';
 
   private disposers: IReactionDisposer[] = [];
-
-  @Input()
-  showSort = true;
 
   searchValue = '';
 
