@@ -4,11 +4,3 @@
        [ngModel]="searchValue"
        (input)="searchValue = $any($event.target).value"
        (keydown)="$event.key === 'Enter' && search() || true">
-<ng-container *ngIf="type === 'ref'">
-  <br>
-  <app-filter></app-filter>
-</ng-container>
-<ng-container *ngIf="showSort && !!type">
-  <br>
-  <app-sort [type]="type"></app-sort>
-</ng-container>

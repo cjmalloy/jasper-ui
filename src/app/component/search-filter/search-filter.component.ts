@@ -15,8 +15,6 @@ export class SearchFilterComponent implements OnInit, OnDestroy {
 
   @Input()
   showSort = true;
-  @Input()
-  type?: 'ref' | 'tag' = 'ref'
 
   searchValue = '';
 
