@@ -15,7 +15,13 @@
     <span>Replicate Remote Origin</span>
   </ng-container>
 
-  <label for="url">URL:</label>
+  <ng-container *ngIf="wiki">
+    <span>Type:</span>
+    <span>Wiki</span>
+  </ng-container>
+
+  <label for="url" *ngIf="!wiki">URL:</label>
+  <label for="url" *ngIf="wiki">Title:</label>
   <input id="url" type="text" formControlName="url" appAutofocus>
 
   <br>
@@ -29,9 +35,9 @@
   <span><!-- Buttons --></span>
   <span class="form-array">
     <button type="submit" [disabled]="!submitForm.valid">Next</button>
-    <div>
-    <input id="scrape" type="checkbox" [checked]="scrape" (input)="scrape = $any($event.target).value">
-    <label for="scrape">Scrape</label>
+    <div *ngIf="web">
+      <input id="scrape" type="checkbox" [checked]="scrape" (input)="scrape = $any($event.target).value">
+      <label for="scrape">Scrape</label>
     </div>
   </span>
 </form>

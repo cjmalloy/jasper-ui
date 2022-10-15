@@ -42,15 +42,16 @@ export class SubmitPage implements OnInit {
   ];
 
   validations: Validation[] = [
-    { name: 'Valid link', passed: false, test: url => of(this.linkType(url)) },
-    { name: 'Not submitted yet', passed: true, test: url => this.exists(url).pipe(map(exists => !exists)) },
-    { name: 'No link shorteners', passed: true, test: url => of(!this.isShortener(url)) },
+    { name: 'Valid link', passed: false, test: url => of(this.linkType(this.fixed(url))) },
+    { name: 'Not submitted yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) },
+    { name: 'No link shorteners', passed: true, test: url => of(!this.isShortener(this.fixed(url))) },
   ];
 
   linkTypeOverride?: string;
   tags: string[] = [];
   existingRef?: Ref;
   scrape = true;
+  wiki = false;
 
   constructor(
     private theme: ThemeService,
@@ -76,7 +77,16 @@ export class SubmitPage implements OnInit {
         this.linkTypeOverride = params['linkType'];
       }
       if (params['url']) {
-        this.url.setValue(params['url']);
+        this.wiki = params['url'] === 'wiki:';
+        if (this.wiki) {
+          this.scrape = false;
+          this.validations = [
+            { name: 'Valid title', passed: false, test: url => of(this.linkType(this.fixed(url))) },
+            { name: 'Not created yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) },
+          ];
+        } else {
+          this.url.setValue(params['url']);
+        }
       }
     });
   }
@@ -100,11 +110,19 @@ export class SubmitPage implements OnInit {
     return (control: AbstractControl) => this.validLink(control);
   }
 
+  get web() {
+    return this.linkType(this.url.value) === 'web';
+  }
+
+  fixed(url: string) {
+    if (this.wiki) return wikiUriFormat(url);
+    return url;
+  }
+
   exists(url: string) {
     const linkType = this.linkType(url);
     if (linkType === 'web' || linkType === 'text') {
       if (this.existingRef?.url === url) return of(true);
-      if (url.startsWith('wiki:')) url = wikiUriFormat(url);
       return this.refs.get(url).pipe(
         tap(ref => this.existingRef = ref),
         map(ref => !!ref),
@@ -123,9 +141,9 @@ export class SubmitPage implements OnInit {
   }
 
   submit() {
-    const url = this.submitForm.value.url;
+    const url = this.fixed(this.url.value);
     this.router.navigate(['./submit', this.linkType(url)], {
-      queryParams: { url, scrape: this.scrape },
+      queryParams: { url, scrape: this.web && this.scrape },
       queryParamsHandling: 'merge',
     });
   }
