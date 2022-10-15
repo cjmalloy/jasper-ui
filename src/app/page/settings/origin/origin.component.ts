@@ -21,7 +21,7 @@ export class SettingsOriginPage implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     theme.setTitle('Settings: Origins');
-    store.view.clear('modified', 'tag');
+    store.view.clear('modified');
     query.clear();
   }
 

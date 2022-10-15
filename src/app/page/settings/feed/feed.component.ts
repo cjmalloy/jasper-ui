@@ -21,7 +21,7 @@ export class SettingsFeedPage implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     theme.setTitle('Settings: Feeds');
-    store.view.clear('modified', 'tag');
+    store.view.clear('modified');
     query.clear();
   }
 
