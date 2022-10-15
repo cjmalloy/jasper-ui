@@ -222,8 +222,10 @@ body.light-theme {
     }
   }
 
-  .expand {
-    border: 1px solid $border;
+  .ref {
+    .expand {
+      border: 1px solid $border;
+    }
   }
 
   .actions {

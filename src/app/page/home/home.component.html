@@ -18,6 +18,9 @@
                *ngIf="!store.view.graph"
                [home]="true"
                [ext]="store.account.ext"></app-sidebar>
+  <app-embed *ngIf="homeRef"
+             [ref]="homeRef"
+             [expandPlugins]="expandPlugins"></app-embed>
   <app-ref-list [page]="query.page"
                 [graph]="store.view.graph"></app-ref-list>
 </ng-container>

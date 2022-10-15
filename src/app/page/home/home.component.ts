@@ -1,7 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
+import { RefService } from '../../service/api/ref.service';
 import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
@@ -17,15 +19,25 @@ export class HomePage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
   private defaultPageSize = 20;
 
+  homeRef?: Ref;
+  expandPlugins: string[] = [];
+
   constructor(
     private theme: ThemeService,
     public admin: AdminService,
     public store: Store,
     public query: QueryStore,
+    private refs: RefService,
   ) {
     theme.setTitle('Home');
     store.view.clear();
     query.clear();
+    if (admin.status.templates.home) {
+      refs.page({query: '+home', sort: ['published,DESC'], size: 1}).subscribe(page => {
+        this.homeRef = page.content[0];
+        this.expandPlugins = this.admin.getEmbeds(this.homeRef.tags);
+      });
+    }
   }
 
   ngOnInit(): void {

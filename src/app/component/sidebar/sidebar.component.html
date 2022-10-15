@@ -174,4 +174,12 @@
       edit
     </a>
   </ng-container>
+
+  <ng-container *ngIf="homeWriteAccess">
+    <a *ngIf="admin.status.templates.home"
+       class="sidebar-link edit"
+       [routerLink]="['/tag', '+home']">
+      edit
+    </a>
+  </ng-container>
 </ng-container>

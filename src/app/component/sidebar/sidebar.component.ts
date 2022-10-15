@@ -125,6 +125,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this._tag?.startsWith('+queue/'));
   }
 
+  get homeWriteAccess() {
+    return this.home && this.auth.tagWriteAccess('+home');
+  }
+
   subscribe() {
     this.account.addSub(this._tag!);
   }

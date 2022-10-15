@@ -27,6 +27,7 @@ import { videoPlugin } from '../plugin/video';
 import { Store } from '../store/store';
 import { blogTemplate } from '../template/blog';
 import { chatTemplate } from '../template/chat';
+import { homeTemplate } from '../template/home';
 import { kanbanTemplate } from '../template/kanban';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
@@ -72,6 +73,7 @@ export class AdminService {
     templates: <Record<string, Template>> {
       root: rootTemplate,
       user: userTemplate,
+      home: homeTemplate,
       queue: queueTemplate,
       kanban: kanbanTemplate,
       blog: blogTemplate,
