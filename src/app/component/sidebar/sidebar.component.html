@@ -1,15 +1,15 @@
 <ng-container *mobxAutorun>
-  <div class="row dont-hide">
+  <div *ngIf="!!type" class="row dont-hide">
     <div class="toggle dont-hide"
          *ngIf="showToggle"
          (click)="expanded = !expanded">☰</div>
-    <div *ngIf="!!type" class="dont-hide">
-      <app-search></app-search>
-      <ng-container *ngIf="type === 'ref'">
+    <div class="wide dont-hide">
+      <app-search class="dont-hide"></app-search>
+      <ng-container *ngIf="expanded && type === 'ref'">
         <br>
         <app-filter></app-filter>
       </ng-container>
-      <ng-container *ngIf="showSort">
+      <ng-container *ngIf="expanded && showSort">
         <br>
         <app-sort [type]="type"></app-sort>
       </ng-container>
