@@ -11,7 +11,6 @@
     <ng-container *ngIf="admin.status.plugins.graph">
       <a routerLink="./graph" [queryParams]="{ origin: store.view.origin, hideSearch: true }" routerLinkActive="current-tab">graph</a>
     </ng-container>
-    <div class="spacer"></div>
     <app-settings></app-settings>
   </div>
   <app-sidebar *ngIf="!store.view.hideSearch" class="aside"></app-sidebar>

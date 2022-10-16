@@ -84,7 +84,9 @@ html, body {
 
 .tabs {
   display: flex;
-  height: 60px;
+  flex-wrap: wrap;
+  min-height: 60px;
+  height: auto;
   padding-left: 120px;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -120,9 +122,10 @@ html, body {
   }
 
   .settings {
-    margin-left: 8px;
+    margin-left: auto;
     border-top-left-radius: 8px;
     display: inline-block;
+    justify-self: flex-end;
 
     font-size: 80%;
     padding: 4px;

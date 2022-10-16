@@ -1,16 +1,15 @@
 <div class="tabs">
   <h5>Settings</h5>
-  <a routerLink="./ext" routerLinkActive="current-tab">extensions</a>
-  <a routerLink="./user" routerLinkActive="current-tab">users</a>
-  <a *ngIf="admin.status.plugins.feed" routerLink="./feed" routerLinkActive="current-tab">feeds</a>
-  <a *ngIf="admin.status.plugins.origin" routerLink="./origin" routerLinkActive="current-tab">origins</a>
-  <a routerLink="./plugin" routerLinkActive="current-tab">plugins</a>
-  <a routerLink="./template" routerLinkActive="current-tab">templates</a>
-  <a *ngIf="store.account.admin" routerLink="./setup" routerLinkActive="current-tab">setup</a>
-  <a *ngIf="store.account.mod" routerLink="./backup" routerLinkActive="current-tab">backup</a>
-  <a *ngIf="config.scim && store.account.mod" routerLink="./profile" routerLinkActive="current-tab">profiles</a>
-  <a *ngIf="config.scim && store.account.signedIn" routerLink="./password" routerLinkActive="current-tab">password</a>
-  <div class="spacer"></div>
+  <a routerLink="./ext" routerLinkActive="current-tab" title="Tag Extensions">ext</a>
+  <a routerLink="./user" routerLinkActive="current-tab">user</a>
+  <a *ngIf="admin.status.plugins.feed" routerLink="./feed" routerLinkActive="current-tab" title="RSS Feeds">feed</a>
+  <a *ngIf="admin.status.plugins.origin" routerLink="./origin" routerLinkActive="current-tab" title="Remote Origins">origin</a>
+  <a routerLink="./plugin" routerLinkActive="current-tab" title="Ref Plugins">plugin</a>
+  <a routerLink="./template" routerLinkActive="current-tab" title="Ext Templates">template</a>
+  <a *ngIf="store.account.admin" routerLink="./setup" routerLinkActive="current-tab" title="Setup">setup</a>
+  <a *ngIf="store.account.mod" routerLink="./backup" routerLinkActive="current-tab" title="Backup">backup</a>
+  <a *ngIf="config.scim && store.account.mod" routerLink="./profile" routerLinkActive="current-tab" title="Profiles">profile</a>
+  <a *ngIf="config.scim && store.account.signedIn" routerLink="./password" routerLinkActive="current-tab" title="Change Password">password</a>
   <app-settings></app-settings>
 </div>
 <app-sidebar class="aside"
