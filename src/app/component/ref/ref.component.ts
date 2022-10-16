@@ -38,9 +38,6 @@ export class RefComponent implements OnInit {
   @Input()
   showToggle = false;
 
-  @ViewChild('inlineTag')
-  inlineTag?: ElementRef;
-
   editForm: UntypedFormGroup;
   submitted = false;
   expandPlugins: string[] = [];
@@ -292,9 +289,8 @@ export class RefComponent implements OnInit {
       .replace('user/', '');
   }
 
-  addInlineTag() {
-    if (!this.inlineTag) return;
-    const tag = (this.inlineTag.nativeElement.value as string).toLowerCase().trim();
+  addInlineTag(tag: string) {
+    tag = tag.toLowerCase().trim();
     this.ts.create(tag, this._ref.url, this._ref.origin!).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
       catchError((err: HttpErrorResponse) => {
