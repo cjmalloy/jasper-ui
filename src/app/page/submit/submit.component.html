@@ -21,7 +21,11 @@
 
   <label for="url" *ngIf="!wiki">URL:</label>
   <label for="url" *ngIf="wiki">Title:</label>
-  <input id="url" type="text" formControlName="url" appAutofocus>
+  <input id="url"
+         type="text"
+         autocomplete="off"
+         formControlName="url"
+         appAutofocus>
 
   <br>
   <div class="validations">
