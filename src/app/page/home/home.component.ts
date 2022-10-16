@@ -34,8 +34,10 @@ export class HomePage implements OnInit, OnDestroy {
     query.clear();
     if (admin.status.templates.home) {
       refs.page({query: '+home', sort: ['published,DESC'], size: 1}).subscribe(page => {
-        this.homeRef = page.content[0];
-        this.expandPlugins = this.admin.getEmbeds(this.homeRef.tags);
+        if (!page.empty) {
+          this.homeRef = page.content[0];
+          this.expandPlugins = this.admin.getEmbeds(this.homeRef.tags);
+        }
       });
     }
   }
