@@ -53,7 +53,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
   upload(files?: FileList) {
     this.serverError = [];
     if (!files || !files.length) return;
-    getZipOrTextFile(files[0]!, '/plugin.json')
+    getZipOrTextFile(files[0]!, 'plugin.json')
       .then(json => getModels<Plugin>(json))
       .then(plugins => plugins.map(p => this.uploadPlugin(p)))
       .catch(err => this.serverError = [err]);

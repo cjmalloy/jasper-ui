@@ -1,21 +1,33 @@
 
-<button (click)="backup()"
-        title="Create Backup"
-        class="backup">+ backup</button>
+<ng-container *ngIf="store.account.mod">
+  <button (click)="backup()"
+          title="Create Backup"
+          class="backup">+ backup</button>
 
-<button (click)="showUpload()"
+  <button (click)="showUpload()"
+          title="Upload Backup"
+          class="upload">+ upload</button>
+
+  <input id="upload"
+         type="file"
+         class="upload"
+         (change)="upload($any($event)?.target?.files)">
+</ng-container>
+
+<button (click)="showRestore()"
         title="Upload Backup"
-        class="upload">+ upload</button>
+        class="upload">+ restore</button>
 
-
-<input id="upload"
+<input id="restore"
        type="file"
-       class="upload"
-       (change)="upload($any($event)?.target?.files)">
+       class="restore"
+       (change)="restore($any($event)?.target?.files)">
 
 <ng-container *ngFor="let e of serverError">
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
 </ng-container>
 
-<app-backup-list [list]="list"></app-backup-list>
+<ng-container *ngIf="store.account.mod">
+  <app-backup-list [list]="list"></app-backup-list>
+</ng-container>

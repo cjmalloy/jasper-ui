@@ -7,7 +7,7 @@
   <a routerLink="./plugin" routerLinkActive="current-tab" title="Ref Plugins">plugin</a>
   <a routerLink="./template" routerLinkActive="current-tab" title="Ext Templates">template</a>
   <a *ngIf="store.account.admin" routerLink="./setup" routerLinkActive="current-tab" title="Setup">setup</a>
-  <a *ngIf="store.account.mod" routerLink="./backup" routerLinkActive="current-tab" title="Backup">backup</a>
+  <a *ngIf="store.account.poster" routerLink="./backup" routerLinkActive="current-tab" title="Backup">backup</a>
   <a *ngIf="config.scim && store.account.mod" routerLink="./profile" routerLinkActive="current-tab" title="Profiles">profile</a>
   <a *ngIf="config.scim && store.account.signedIn" routerLink="./password" routerLinkActive="current-tab" title="Change Password">password</a>
   <app-settings></app-settings>

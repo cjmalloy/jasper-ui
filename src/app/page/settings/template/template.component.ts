@@ -53,7 +53,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
   upload(files?: FileList) {
     this.serverError = [];
     if (!files || !files.length) return;
-    getZipOrTextFile(files[0]!, '/template.json')
+    getZipOrTextFile(files[0]!, 'template.json')
       .then(json => getModels<Template>(json))
       .then(plugins => plugins.map(p => this.uploadTemplate(p)))
       .catch(err => this.serverError = [err]);
