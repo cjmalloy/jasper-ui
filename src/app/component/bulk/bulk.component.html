@@ -1,5 +1,5 @@
 <details>
-  <summary>Bulk tools</summary>
+  <summary>Bulk tools <app-loading *ngIf="batchRunning"></app-loading></summary>
   <span *ngIf="empty">no results</span>
   <ng-container *ngIf="!empty">
     <span class="fake-link"

@@ -1,13 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import * as _ from 'lodash-es';
-import { runInAction } from 'mobx';
 import * as moment from 'moment/moment';
-import { catchError, forkJoin, Observable, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, Observable, of } from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { Page } from '../../model/page';
-import { Ref } from '../../model/ref';
-import { Tag } from '../../model/tag';
 import { deleteNotice } from '../../plugin/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -40,6 +36,7 @@ export class BulkComponent implements OnInit {
   @Input()
   type: 'ref' | 'ext' | 'user' | 'plugin' | 'template' = 'ref';
 
+  batchRunning = false;
   tagging = false;
   deleting = false;
   serverError: string[] = [];
@@ -70,12 +67,17 @@ export class BulkComponent implements OnInit {
   }
 
   batch(fn: (e: any) => Observable<any>) {
+    if (this.batchRunning) return;
+    this.batchRunning = true;
     forkJoin(this.queryStore.page!.content.map(e => fn(e).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.push(...printError(err));
         return of(null);
       }),
-    ))).subscribe(() => this.queryStore.refresh());
+    ))).subscribe(() => {
+      this.queryStore.refresh();
+      this.batchRunning = false;
+    });
   }
 
   get queryStore() {
