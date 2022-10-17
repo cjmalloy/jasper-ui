@@ -16,6 +16,7 @@
     </div>
   </div>
   <app-query [query]="tag" class="breadcrumbs"></app-query>
+  <app-bulk *ngIf="expanded && type" [type]="type"></app-bulk>
   <ng-container *ngIf="store.account.poster">
     <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
       🔗️ &nbsp; Submit Link

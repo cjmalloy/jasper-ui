@@ -1,0 +1,67 @@
+<details>
+  <summary>Bulk tools</summary>
+  <span *ngIf="empty">no results</span>
+  <ng-container *ngIf="!empty">
+    <span class="fake-link"
+          (click)="download()">download</span>
+    <ng-container *ngIf="type === 'ref'">
+      <a class="fake-link"
+         (click)="tagging = !tagging">tag</a>
+      <span *ngIf="tagging" class="inline-tagging">
+        <input #inlineTag
+               (keydown)="$event.key === 'Enter' && tag(inlineTag.value) || true"
+               type="text"
+               inputmode="email"
+               [pattern]="tagRegex"
+               autocorrect="off"
+               autocapitalize="none"
+               appAutofocus>
+        <button (click)="tag(inlineTag.value)">+</button>
+      </span>
+    </ng-container>
+    <a *ngIf="!deleting"
+       class="fake-link"
+       (click)="deleting = true">delete</a>
+    <span *ngIf="deleting"
+          class="delete-confirm"> are you sure?&nbsp;
+      <a class="fake-link"
+         (click)="delete()">yes</a>&nbsp;/&nbsp;
+      <a class="fake-link"
+         (click)="deleting = false">no</a>&nbsp;
+    </span>
+    <ng-container *ngIf="type === 'ref'">
+      <ng-container *ngIf="admin.status.plugins.invoice">
+        <a routerLink="/submit/invoice"
+           [queryParams]="{url: urls}">invoice</a>
+      </ng-container>
+      <ng-container *ngIf="admin.status.plugins.invoice">
+        <a *ngIf="admin.status.plugins.invoiceDisputed"
+           class="fake-link"
+           (click)="accept()">accept</a>
+        <a *ngIf="admin.status.plugins.invoiceDisputed"
+           class="fake-link"
+           (click)="dispute()">dispute</a>
+        <a *ngIf="admin.status.plugins.invoicePaid"
+           class="fake-link"
+           (click)="markPaid()">paid</a>
+        <a *ngIf="admin.status.plugins.invoiceRejected"
+           class="fake-link"
+           (click)="reject()">reject</a>
+      </ng-container>
+      <a *ngIf="store.account.mod"
+         class="fake-link"
+         (click)="scrape()">scrape</a>
+      <a *ngIf="store.account.poster"
+         class="fake-link"
+         routerLink="/submit"
+         [queryParams]="{source: urls}">reply</a>
+      <a *ngIf="store.account.mod"
+         class="fake-link"
+         (click)="approve()">approve</a>
+    </ng-container>
+  </ng-container>
+
+  <ng-container *ngFor="let e of serverError">
+    <div class="error">{{ e }}</div>
+  </ng-container>
+</details>

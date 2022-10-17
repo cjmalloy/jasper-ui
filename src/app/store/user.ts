@@ -28,14 +28,7 @@ export class UserStore {
         this.page = undefined;
         this.error = undefined;
       });
-      if (this.args) {
-        this.users.page(this.args).pipe(
-          catchError((err: HttpErrorResponse) => {
-            runInAction(() => this.error = err);
-            return throwError(() => err);
-          }),
-        ).subscribe(p => runInAction(() => this.page = p));;
-      }
+      this.refresh();
     });
   }
 
@@ -47,6 +40,17 @@ export class UserStore {
 
   setArgs(args: TagPageArgs) {
     this.args = args;
+  }
+
+  refresh() {
+    if (this.args) {
+      this.users.page(this.args).pipe(
+        catchError((err: HttpErrorResponse) => {
+          runInAction(() => this.error = err);
+          return throwError(() => err);
+        }),
+      ).subscribe(p => runInAction(() => this.page = p));;
+    }
   }
 
 }

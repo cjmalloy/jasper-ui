@@ -18,6 +18,7 @@ import { BackupListComponent } from './component/backup-list/backup-list.compone
 import { BackupComponent } from './component/backup/backup.component';
 import { BlogEntryComponent } from './component/blog-entry/blog-entry.component';
 import { BlogComponent } from './component/blog/blog.component';
+import { BulkComponent } from './component/bulk/bulk.component';
 import { ChatEntryComponent } from './component/chat-entry/chat-entry.component';
 import { ChatComponent } from './component/chat/chat.component';
 import { CommentEditComponent } from './component/comment-edit/comment-edit.component';
@@ -254,6 +255,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     SortComponent,
     FilterComponent,
     QueryComponent,
+    BulkComponent,
   ],
   imports: [
     BrowserModule,

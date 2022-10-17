@@ -74,6 +74,11 @@ export class ViewStore {
     return sort;
   }
 
+  get isSorted() {
+    if (this.sort.length > 1) return true;
+    return this.sort[0] !== (this.search ? this.defaultSearchSort : this.defaultSort);
+  }
+
   get filter(): string[] {
     const filter = this.route.routeSnapshot?.queryParams['filter'];
     if (!filter) return [];

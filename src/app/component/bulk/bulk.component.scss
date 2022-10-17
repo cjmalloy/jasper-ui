@@ -1,0 +1,14 @@
+:host {
+  margin: 0;
+}
+
+details {
+  text-align: right;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+
+  summary {
+    text-align: left;
+  }
+}

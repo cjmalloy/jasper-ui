@@ -35,7 +35,7 @@ export class SortComponent implements OnInit, OnDestroy {
   }
 
   @Input()
-  set type(value: 'ref' | 'tag') {
+  set type(value: 'ref' | 'ext' | 'user' | 'plugin' | 'template') {
     if (value === 'ref') {
       this.allSorts = [
         { value: 'url' },
@@ -55,7 +55,7 @@ export class SortComponent implements OnInit, OnDestroy {
         this.allSorts.unshift({ value: 'rank', label: 'relevance' });
       }
     }
-    if (value === 'tag') {
+    if (value !== 'ref') {
       this.allSorts = [
         { value: 'tag' },
         { value: 'origin' },

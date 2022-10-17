@@ -4,6 +4,7 @@ import { Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { mailboxes } from '../../../plugin/mailbox';
 import { ThemeService } from '../../../service/theme.service';
+import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 
 @Component({
@@ -19,7 +20,10 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
   constructor(
     private theme: ThemeService,
     public store: Store,
-  ) { }
+    public query: QueryStore,
+  ) {
+    query.clear();
+  }
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {

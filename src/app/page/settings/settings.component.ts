@@ -34,12 +34,12 @@ export class SettingsPage implements OnInit {
   }
 
   get currentPage() {
-    return this.route.snapshot.firstChild?.url?.[0].path!;
+    return this.route.snapshot.firstChild?.url?.[0].path as 'ext' | 'user' | 'plugin' | 'template';
   }
 
   get type() {
     if (this.refPages.includes(this.currentPage)) return 'ref';
-    if (this.tagPages.includes(this.currentPage)) return 'tag';
+    if (this.tagPages.includes(this.currentPage)) return this.currentPage;
     return undefined;
   }
 

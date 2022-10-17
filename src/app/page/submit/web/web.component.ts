@@ -76,7 +76,7 @@ export class SubmitWebPage implements AfterViewInit {
         _.defer(() => {
           this.url = params['url'].trim();
           if (params['source']) {
-            this.addSource(params['source']);
+            _.flatten([params['source']]).map(s => this.addSource(s));
           }
           if (params['scrape'] === 'true') {
             this.refForm.scrapeAll();

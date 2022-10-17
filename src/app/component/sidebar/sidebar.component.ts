@@ -30,7 +30,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @Input()
   showSort = true;
   @Input()
-  type?: 'ref' | 'tag' = 'ref';
+  type?: 'ref' | 'ext' | 'user' | 'plugin' | 'template' = 'ref';
 
   _tag = '';
   localTag?: string;
