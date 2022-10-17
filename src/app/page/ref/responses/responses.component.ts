@@ -31,7 +31,7 @@ export class RefResponsesComponent implements OnInit, OnDestroy {
       const args = getArgs(
         '',
         this.store.view.sort,
-        {...filterListToObj(this.store.view.filter), responses: this.store.view.url},
+        {...filterListToObj(['notInternal', ...this.store.view.filter]), responses: this.store.view.url},
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize ?? this.defaultPageSize
