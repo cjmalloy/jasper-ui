@@ -30,6 +30,7 @@ export class QueriesFormComponent implements OnInit {
   }
 
   addQuery(value = '') {
+    if (value && this.queries.value.includes(value)) return;
     this.queries.push(this.fb.control(value, QueriesFormComponent.validators));
   }
 

@@ -30,6 +30,7 @@ export class SelectorsFormComponent implements OnInit {
   }
 
   addTag(value = '') {
+    if (value && this.tags.value.includes(value)) return;
     this.tags.push(this.fb.control(value, SelectorsFormComponent.validators));
   }
 

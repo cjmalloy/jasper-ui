@@ -31,6 +31,7 @@ export class LinksFormComponent implements OnInit {
   }
 
   addLink(value = '') {
+    if (value && this.links.value.includes(value)) return;
     this.links.push(this.fb.control(value, LinksFormComponent.validators));
   }
 

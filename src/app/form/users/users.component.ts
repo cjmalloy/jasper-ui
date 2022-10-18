@@ -30,6 +30,7 @@ export class UsersFormComponent implements OnInit {
   }
 
   addUser(value = '') {
+    if (value && this.users.value.includes(value)) return;
     this.users.push(this.fb.control(value, UsersFormComponent.validators));
   }
 
