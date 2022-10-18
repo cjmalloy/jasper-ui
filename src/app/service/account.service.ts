@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import * as _ from 'lodash-es';
 import { runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, combineLatest, map, Observable, of, shareReplay } from 'rxjs';
+import { catchError, combineLatest, map, Observable, of, shareReplay, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
-import { User } from '../model/user';
+import { Roles, User } from '../model/user';
 import { Store } from '../store/store';
 import { defaultSubs } from '../template/user';
 import { AdminService } from './admin.service';
@@ -33,6 +33,14 @@ export class AccountService {
 
   get whoAmI$() {
     return this.users.whoAmI().pipe(
+      catchError(err => {
+        if (err.status === 302) {
+          return of({
+            tag: '',
+          } as Roles);
+        }
+        return throwError(() => err);
+      }),
       tap(roles => this.store.account.setRoles(roles)),
     );
   }
