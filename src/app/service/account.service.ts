@@ -2,16 +2,17 @@ import { Injectable } from '@angular/core';
 import * as _ from 'lodash-es';
 import { runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, combineLatest, map, Observable, of, shareReplay } from 'rxjs';
+import { catchError, combineLatest, map, Observable, of, shareReplay, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
-import { User } from '../model/user';
+import { Roles, User } from '../model/user';
 import { Store } from '../store/store';
 import { defaultSubs } from '../template/user';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { UserService } from './api/user.service';
+import { ConfigService } from './config.service';
 
 export const CACHE_MS = 15 * 1000;
 
@@ -25,6 +26,7 @@ export class AccountService {
 
   constructor(
     private store: Store,
+    private config: ConfigService,
     private adminService: AdminService,
     private users: UserService,
     private exts: ExtService,
@@ -33,6 +35,14 @@ export class AccountService {
 
   get whoAmI$() {
     return this.users.whoAmI().pipe(
+      catchError(err => {
+        if ([0, 200, 403].includes(err.status)) {
+          // Requires auth to access at all
+          // @ts-ignore
+          window.location = this.config.loginLink;
+        }
+        return throwError(() => err);
+      }),
       tap(roles => this.store.account.setRoles(roles)),
     );
   }

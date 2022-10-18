@@ -22,6 +22,10 @@ export class ConfigService {
     return document.getElementsByTagName('base')[0].href
   }
 
+  get loginLink() {
+    return this.login + '?rd=' + encodeURIComponent(''+window.location);
+  }
+
   get load$() {
     return this.http.get(this.base + 'assets/config.json').pipe(
       tap((result: any) => {
