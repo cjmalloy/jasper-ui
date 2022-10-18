@@ -1,9 +1,9 @@
 <ng-container *mobxAutorun>
-  <div *ngIf="!!type" class="row dont-hide">
+  <div class="row dont-hide">
     <div class="toggle dont-hide"
          *ngIf="showToggle"
          (click)="expanded = !expanded">☰</div>
-    <div class="wide dont-hide">
+    <div *ngIf="!!type" class="wide dont-hide">
       <app-search class="dont-hide"></app-search>
       <ng-container *ngIf="expanded && type === 'ref'">
         <br>
