@@ -80,7 +80,7 @@ export class AccountStore {
   }
 
   setRoles(roles: Roles) {
-    this.tag = roles.tag;
+    this.tag = roles.tag || '';
     this.admin = roles.admin;
     this.mod = roles.mod;
     this.editor = roles.editor;
