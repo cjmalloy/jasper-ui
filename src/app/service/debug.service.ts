@@ -40,6 +40,7 @@ export class DebugService {
       typ: 'JWT'
     };
     const payload = {
+      aud: '',
       sub: tag.match(/[+_]user\/(.*)/)![1],
       auth: {} as any,
     };
