@@ -1,13 +1,17 @@
 <ng-container *mobxAutorun>
   <ng-container *ngIf="!store.account.signedIn">
-    <ng-container *ngIf="config.login">
-      <a [href]="config.login">login</a>
+    <ng-container *ngIf="config.clientAuth">
+      <a class="fake-link" (click)="oauth.initLoginFlow()">login</a>
+      <span *ngIf="config.signup"> or </span>
     </ng-container>
-    <span *ngIf="config.login && config.signup"> or </span>
+    <ng-container *ngIf="!config.clientAuth && config.login">
+      <a [href]="config.loginLink">login</a>
+      <span *ngIf="config.signup"> or </span>
+    </ng-container>
     <ng-container *ngIf="config.signup">
       <a [href]="config.signup">sign up</a>
     </ng-container>
-    <span *ngIf="config.login || config.signup"> | </span>
+    <span *ngIf="config.clientAuth || config.login || config.signup"> | </span>
     <a routerLink="/settings">settings</a>
   </ng-container>
   <ng-container *ngIf="store.account.signedIn">
@@ -23,7 +27,10 @@
       </ng-template>
     </ng-container>
     | <a routerLink="/settings">settings</a>
-    <ng-container *ngIf="config.logout">
+    <ng-container *ngIf="config.clientAuth">
+      | <a class="fake-link" (click)="config.logOut()">logout</a>
+    </ng-container>
+    <ng-container *ngIf="!config.clientAuth && config.logout">
       | <a [href]="config.logout">logout</a>
     </ng-container>
   </ng-container>

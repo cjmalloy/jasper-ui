@@ -116,7 +116,7 @@ body.dark-theme {
       }
 
       & > a {
-        &:link, &:visited, &:active {
+        &:link, &:visited, &:active, &.fake-link {
           color: black;
         }
       }

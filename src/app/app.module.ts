@@ -1,11 +1,12 @@
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from '@angular/cdk/overlay';
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormlyModule } from '@ngx-formly/core';
+import { OAuthModule } from 'angular-oauth2-oidc';
 import { QRCodeModule } from 'angularx-qrcode';
 import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
@@ -85,7 +86,6 @@ import { ThemesFormComponent } from './form/themes/themes.component';
 import { UserFormComponent } from './form/user/user.component';
 import { UsersFormComponent } from './form/users/users.component';
 import { JasperFormlyModule } from './formly/formly.module';
-import { AuthInterceptor } from './http/auth.interceptor';
 import { CreateExtPage } from './page/create/ext/ext.component';
 import { CreateProfilePage } from './page/create/profile/profile.component';
 import { CreateUserPage } from './page/create/user/user.component';
@@ -272,6 +272,11 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     ScrollingModule,
     FormlyModule,
     JasperFormlyModule,
+    OAuthModule.forRoot({
+      resourceServer: {
+        sendAccessToken: false,
+      }
+    })
   ],
   providers: [
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
@@ -279,11 +284,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
       provide: APP_INITIALIZER,
       useFactory: loadFactory,
       deps: [ConfigService, DebugService, AdminService, AccountService],
-      multi: true,
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: AuthInterceptor,
       multi: true,
     },
   ],
