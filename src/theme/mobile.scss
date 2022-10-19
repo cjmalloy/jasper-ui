@@ -100,7 +100,7 @@ $mobile-width: 640px;
     overflow-x: auto;
     white-space: nowrap;
 
-    a {
+    a, .fake-link {
       font-size: 16px;
       line-height: 28px;
     }
