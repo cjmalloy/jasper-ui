@@ -4,7 +4,7 @@ RUN npm i -g @angular/cli
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . ./
-RUN ng build --configuration production --source-map
+RUN npm run build
 
 FROM node as test
 RUN apt-get update && apt-get install -y \
