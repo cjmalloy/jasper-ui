@@ -48,7 +48,7 @@ export class AccountService {
   }
 
   get init$() {
-    if (!this.store.account.signedIn) return of();
+    if (!this.store.account.signedIn) return this.subscriptions$;
     return this.loadUserExt$.pipe(
       switchMap(() => this.user$),
       switchMap(() => this.subscriptions$),
@@ -69,7 +69,7 @@ export class AccountService {
   }
 
   private get user$(): Observable<User | undefined> {
-    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.store.account.signedIn) return throwError('Not signed in');
     if (!this._user$) {
       this._user$ = this.users.get(this.store.account.tag).pipe(
         tap(user => runInAction(() => this.store.account.user = user)),
@@ -82,7 +82,7 @@ export class AccountService {
   }
 
   private get userExt$(): Observable<Ext> {
-    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.store.account.signedIn) return throwError('Not signed in');
     if (!this._userExt$) {
       this._userExt$ = this.exts.get(this.store.account.tag).pipe(
         tap(ext => runInAction(() => this.store.account.ext = ext)),
@@ -94,10 +94,11 @@ export class AccountService {
   }
 
   get subscriptions$(): Observable<string[]> {
-    if (!this.adminService.status.templates.user) return of(defaultSubs);
-    if (!this.store.account.signedIn) return of(this.adminService.status.templates.user.defaults.subscriptions);
+    if (!this.adminService.status.templates.user) return of(this.store.account.subs);
     return this.userExt$.pipe(
-      map(ext => ext.config?.subscriptions || []),
+      map(ext => ext.config),
+      catchError(() => of(this.adminService.status.templates.user!.defaults)),
+      map(config => config?.subscriptions || []),
       tap(subs => runInAction(() => this.store.account.subs = subs)),
     );
   }
@@ -111,9 +112,12 @@ export class AccountService {
   }
 
   get theme$(): Observable<string | undefined> {
-    if (!this.store.account.signedIn || !this.adminService.status.templates.user) return of(undefined);
+    if (!this.adminService.status.templates.user) return of(this.store.account.theme);
+    if (!this.store.account.signedIn) return of(runInAction(() => this.store.account.subs = this.adminService.status.templates.user!.defaults.userTheme));
     return this.userExt$.pipe(
-      map(ext => ext.config?.userThemes?.[ext.config.userTheme]),
+      map(ext => ext.config),
+      catchError(() => of(this.adminService.status.templates.user!.defaults)),
+      map(config => config?.userThemes?.[config.userTheme]),
       tap(css => runInAction(() => this.store.account.theme = css)),
     );
   }
