@@ -94,8 +94,8 @@ export class AccountService {
   }
 
   get subscriptions$(): Observable<string[]> {
-    if (!this.adminService.status.templates.user) return of(defaultSubs);
-    if (!this.store.account.signedIn) return of(this.adminService.status.templates.user.defaults.subscriptions);
+    if (!this.adminService.status.templates.user) return of(this.store.account.subs);
+    if (!this.store.account.signedIn) return of(runInAction(() => this.store.account.subs = this.adminService.status.templates.user!.defaults.subscriptions));
     return this.userExt$.pipe(
       map(ext => ext.config?.subscriptions || []),
       tap(subs => runInAction(() => this.store.account.subs = subs)),
