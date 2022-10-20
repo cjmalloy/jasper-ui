@@ -8,7 +8,12 @@ config="
   \"logout\": \"$JASPER_LOGOUT\",
   \"login\": \"$JASPER_LOGIN\",
   \"signup\": \"$JASPER_SIGNUP\",
-  \"scim\": ${JASPER_SCIM-false}
+  \"scim\": ${JASPER_SCIM-false},
+  \"codeFlow\": ${JASPER_CODE_FLOW-false},
+  \"implicitFlow\": ${JASPER_IMPLICIT_FLOW-false},
+  \"issuer\": \"$JASPER_ISSUER\",
+  \"clientId\": \"$JASPER_CLIENT_ID\",
+  \"scope\": \"$JASPER_SCOPE\"
 }
 "
 echo "$config"
