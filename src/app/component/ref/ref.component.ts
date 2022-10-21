@@ -13,7 +13,7 @@ import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { TaggingService } from '../../service/api/tagging.service';
-import { AuthService } from '../../service/auth.service';
+import { AuthzService } from '../../service/authz.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
@@ -56,7 +56,7 @@ export class RefComponent implements OnInit {
   constructor(
     public admin: AdminService,
     public store: Store,
-    private auth: AuthService,
+    private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
     private scraper: ScrapeService,

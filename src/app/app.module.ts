@@ -127,12 +127,14 @@ import { SafePipe } from './pipe/safe.pipe';
 import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
+import { AuthnService } from './service/authn.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
 
-const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService) => () =>
+const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
     switchMap(() => debug.init$),
+    switchMap(() => authn.init$),
     switchMap(() => account.whoAmI$.pipe(
       retry({
         delay: (_, retryCount: number) =>
@@ -283,7 +285,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     {
       provide: APP_INITIALIZER,
       useFactory: loadFactory,
-      deps: [ConfigService, DebugService, AdminService, AccountService],
+      deps: [ConfigService, DebugService, AuthnService, AdminService, AccountService],
       multi: true,
     },
   ],

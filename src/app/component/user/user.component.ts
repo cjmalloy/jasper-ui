@@ -8,7 +8,7 @@ import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { User } from '../../model/user';
 import { AdminService } from '../../service/admin.service';
 import { UserService } from '../../service/api/user.service';
-import { AuthService } from '../../service/auth.service';
+import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
@@ -40,7 +40,7 @@ export class UserComponent implements OnInit {
     public admin: AdminService,
     private router: Router,
     private store: Store,
-    private auth: AuthService,
+    private auth: AuthzService,
     private users: UserService,
     private fb: UntypedFormBuilder,
   ) {

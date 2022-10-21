@@ -7,7 +7,7 @@ import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { Ext } from '../../model/ext';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
-import { AuthService } from '../../service/auth.service';
+import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
@@ -37,7 +37,7 @@ export class ExtComponent implements OnInit {
   constructor(
     public admin: AdminService,
     private store: Store,
-    private auth: AuthService,
+    private auth: AuthzService,
     private exts: ExtService,
     private fb: UntypedFormBuilder,
   ) { }

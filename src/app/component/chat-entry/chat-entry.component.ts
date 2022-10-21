@@ -10,7 +10,7 @@ import { isVideo } from '../../plugin/video';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
-import { AuthService } from '../../service/auth.service';
+import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { authors, TAGS_REGEX, webLink } from '../../util/format';
 import { printError } from '../../util/http';
@@ -46,7 +46,7 @@ export class ChatEntryComponent {
   constructor(
     public admin: AdminService,
     public store: Store,
-    private auth: AuthService,
+    private auth: AuthzService,
     private ts: TaggingService,
     private refs: RefService,
   ) { }

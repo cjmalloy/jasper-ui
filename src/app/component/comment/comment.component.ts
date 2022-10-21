@@ -6,7 +6,7 @@ import { mailboxes } from '../../plugin/mailbox';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
-import { AuthService } from '../../service/auth.service';
+import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { authors, interestingTags, TAGS_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
@@ -49,7 +49,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   constructor(
     public admin: AdminService,
     public store: Store,
-    private auth: AuthService,
+    private auth: AuthzService,
     private refs: RefService,
     private tags: TaggingService,
   ) { }

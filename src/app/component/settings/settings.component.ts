@@ -2,6 +2,7 @@ import { Component, HostBinding, OnInit } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
+import { AuthnService } from '../../service/authn.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
@@ -16,7 +17,7 @@ export class SettingsComponent implements OnInit {
   constructor(
     public admin: AdminService,
     public config: ConfigService,
-    public oauth: OAuthService,
+    public authn: AuthnService,
     public store: Store,
     private account: AccountService,
   ) {

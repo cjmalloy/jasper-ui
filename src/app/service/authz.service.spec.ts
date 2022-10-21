@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { AuthService } from './auth.service';
+import { AuthzService } from './authz.service';
 
-describe('AuthService', () => {
-  let service: AuthService;
+describe('AuthzService', () => {
+  let service: AuthzService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -12,7 +12,7 @@ describe('AuthService', () => {
         RouterTestingModule,
       ],
     });
-    service = TestBed.inject(AuthService);
+    service = TestBed.inject(AuthzService);
   });
 
   it('should be created', () => {

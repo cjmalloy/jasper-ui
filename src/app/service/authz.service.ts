@@ -6,7 +6,7 @@ import { capturesAny, hasTag, isOwner, isOwnerTag, publicTag, qualifyTags, tagOr
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService {
+export class AuthzService {
 
   constructor(
     private store: Store,

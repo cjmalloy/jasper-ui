@@ -5,7 +5,7 @@ import { Ext } from '../../model/ext';
 import { Template } from '../../model/template';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
-import { AuthService } from '../../service/auth.service';
+import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
@@ -46,7 +46,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     public admin: AdminService,
     public store: Store,
     public config: ConfigService,
-    private auth: AuthService,
+    private auth: AuthzService,
     private account: AccountService,
   ) {
     if (localStorage.getItem('sidebar-expanded') !== null) {

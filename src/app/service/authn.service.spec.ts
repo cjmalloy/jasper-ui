@@ -1,23 +1,23 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
 
-import { DebugService } from './debug.service';
+import { AuthnService } from './authn.service';
 
-describe('DebugService', () => {
-  let service: DebugService;
+describe('AuthnService', () => {
+  let service: AuthnService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule,
+        HttpClientTestingModule,
       ],
       providers: [
         { provide: OAuthService, useValue: {} },
         { provide: OAuthStorage, useValue: {} },
       ],
     });
-    service = TestBed.inject(DebugService);
+    service = TestBed.inject(AuthnService);
   });
 
   it('should be created', () => {

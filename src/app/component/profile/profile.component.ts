@@ -5,7 +5,7 @@ import { catchError, switchMap, throwError } from 'rxjs';
 import { Profile } from '../../model/profile';
 import { AdminService } from '../../service/admin.service';
 import { ProfileService } from '../../service/api/profile.service';
-import { AuthService } from '../../service/auth.service';
+import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { printError } from '../../util/http';
 
@@ -38,7 +38,7 @@ export class ProfileComponent implements OnInit {
     public admin: AdminService,
     public store: Store,
     private router: Router,
-    private auth: AuthService,
+    private auth: AuthzService,
     private profiles: ProfileService,
   ) { }
 
