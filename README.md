@@ -168,12 +168,13 @@ is unspecified the URL of the Ref will be used to point to a GeoPackage file. Do
 metadata.
 
 ## Deployment
-Jasper-UI is available as a
-[Docker image](https://github.com/users/cjmalloy/packages/container/package/jasper-ui) and a
-[Helm chart](https://artifacthub.io/packages/helm/jasper/jasper-ui) and a
-[zip of static files](https://github.com/cjmalloy/jasper-ui/releases/latest). Config settings
-are loaded at runtime from assets/config.json. When using a docker image, a config file will be
-generated from environment variables:
+Jasper-UI is available in the following distributions:
+ - [Docker image](https://github.com/users/cjmalloy/packages/container/package/jasper-ui) 
+ - [Helm chart](https://artifacthub.io/packages/helm/jasper/jasper-ui)
+ - [Zip](https://github.com/cjmalloy/jasper-ui/releases/latest)
+
+Config settings are loaded at runtime from assets/config.json. When using a docker image, a config
+file will be generated from environment variables:
 
 | Config field   | Docker Env             | Description                                                                                                                       | Example Value                                                                                           |
 |----------------|------------------------|-----------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
