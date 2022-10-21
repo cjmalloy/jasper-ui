@@ -8,7 +8,7 @@ env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
-  RELEASE_FILE: jasper-ui_${{ github.ref_name }}.zip
+  RELEASE_FILE: jasper-ui-${{ github.ref_name }}.zip
 
 jobs:
   release:
