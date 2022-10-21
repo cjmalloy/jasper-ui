@@ -167,6 +167,31 @@ embed toggle is pressed. Adds an optional field to the Ref to use for the GeoPac
 is unspecified the URL of the Ref will be used to point to a GeoPackage file. Does not generate
 metadata.
 
+## Deployment
+Jasper-UI is available as a
+[Docker image](https://github.com/users/cjmalloy/packages/container/package/jasper-ui) and a
+[Helm chart](https://artifacthub.io/packages/helm/jasper/jasper-ui) and a
+[zip of static files](https://github.com/cjmalloy/jasper-ui/releases/latest). Config settings
+are loaded at runtime from assets/config.json. When using a docker image, a config file will be
+generated from environment variables:
+
+| Config field   | Docker Env             | Description                                                                                                                       | Example Value                                                                                           |
+|----------------|------------------------|-----------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| `title`        | `JASPER_TITLE`         | Name to display in the title bar.                                                                                                 | `Jasper`                                                                                                |
+| `version`      | `JASPER_VERSION`       | Version string to display as a tooltip in the footer.                                                                             | `v1.0.0`                                                                                                |
+| `api`          | `JASPER_API`           | URL of the API server (no trailing slash)                                                                                         | `//jasperkm.info`                                                                                       |
+| `logout`       | `JASPER_LOGOUT`        | Optional URL to log out. (ignored when using codeFlow or implicitFlow)                                                            | `//jasperkm.info/oauth2/sign_out?rd=https%3A%2F%2Fauth.jasperkm.info%2Fauthn%2Fauthentication%2Flogout` |
+| `login`        | `JASPER_LOGIN`         | Optional URL to log in. A redirect (`?rd=`) will be appended with the current page. (ignored when using codeFlow or implicitFlow) | `//jasperkm.info/oauth2/sign_in`                                                                        |
+| `signup`       | `JASPER_SIGNUP`        | Optional URL to sign up. (ignored when using codeFlow or implicitFlow)                                                            | `https://auth.jasperkm.info/authn/registration/form`                                                    |
+| `scim`         | `JASPER_SCIM`          | Enable SCIM user management interface.                                                                                            | `false`                                                                                                 |
+| `codeFlow`     | `JASPER_CODE_FLOW`     | Enable client side OIDC authorization using PKCE.                                                                                 | `false`                                                                                                 |
+| `implicitFlow` | `JASPER_IMPLICIT_FLOW` | Enable client side OIDC authorization using the implicit flow.                                                                    | `false`                                                                                                 |
+| `issuer`       | `JASPER_ISSUER`        | IDP issuer. (used for codeFlow and implicitFlow)                                                                                  | `https://accounts.google.com`                                                                           |
+| `clientId`     | `JASPER_CLIENT_ID`     | IDP client ID. (used for codeFlow and implicitFlow)                                                                               | `123-abc.apps.googleusercontent.com`                                                                    |
+| `scope`        | `JASPER_SCOPE`         | OAuth2 Scopes. (used for codeFlow and implicitFlow)                                                                               | `openid email`                                                                                          |
+|                | `BASE_HREF`            | Set the base href for the SPA.                                                                                                    | `/j/`                                                                                                   |
+|                | `CSP_DEFAULT_SRC`      | Additional URLS to add to the default content security policy.                                                                    | `https://accounts.google.com https://www.googleapis.com`                                                |
+
 ## Developing
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.0.
 
