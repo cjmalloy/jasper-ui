@@ -35,7 +35,16 @@ export function capturesAny(selectors?: string[], target?: string[]): boolean {
 export function hasTag(tag?: string, ref?: Ref)  {
   if (!tag) return false;
   if (!ref?.tags) return false;
-  return !!_.find(ref.tags, t => hasPrefix(t, tag));
+  return !!_.find(ref.tags, t => expandedTagsInclude(t, tag));
+}
+
+export function includesTag(tag: string, tags: string[])  {
+  if (!tag) return false;
+  return !!_.find(tags, t => expandedTagsInclude(t, tag));
+}
+
+export function expandedTagsInclude(tag: string, target: string) {
+  return tag === target || tag.startsWith(target + '/');
 }
 
 export function isOwner(user: User, ref: Ref) {

@@ -2,6 +2,7 @@ import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angula
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AdminService } from '../../service/admin.service';
 import { emptyObject, writeObj } from '../../util/http';
+import { includesTag } from '../../util/tag';
 import { archivePluginForm } from './archive/archive.component';
 import { audioPluginForm } from './audio/audio.component';
 import { commentPluginForm } from './comment/comment.component';
@@ -134,10 +135,10 @@ function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
   return null;
 }
 
-export function writePlugins(plugins: any): Record<string, any> | undefined {
+export function writePlugins(tags: string[], plugins: any): Record<string, any> | undefined {
   const result: Record<string, any> = {};
   for (const p in plugins) {
-    result[p] = writeObj(plugins[p]);
+    if (includesTag(p, tags)) result[p] = writeObj(plugins[p]);
   }
   if (emptyObject(result)) return undefined;
   return result;

@@ -437,7 +437,10 @@ export class RefComponent implements OnInit {
       ...this.ref,
       ...this.editForm.value,
       published: moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
-      plugins: writePlugins(this.editForm.value.plugins),
+      plugins: writePlugins(this.editForm.value.tags, {
+        ...this.ref.plugins,
+        ...this.editForm.value.plugins,
+      }),
     }).pipe(
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin)),
       catchError((err: HttpErrorResponse) => {

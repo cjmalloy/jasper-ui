@@ -151,7 +151,7 @@ export class SubmitWebPage implements AfterViewInit {
       ...this.webForm.value,
       origin: this.store.account.origin,
       published: moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
-      plugins: writePlugins(this.webForm.value.plugins),
+      plugins: writePlugins(this.webForm.value.tags, this.webForm.value.plugins),
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);

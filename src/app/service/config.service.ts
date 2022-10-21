@@ -1,8 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, Optional } from '@angular/core';
-import { OAuthModuleConfig, OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
-import { filter, from, of, take } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import { Injectable } from '@angular/core';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
