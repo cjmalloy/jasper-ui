@@ -71,9 +71,10 @@ export class ExtComponent implements OnInit {
       ...this.ext,
       ...this.editForm.value,
       config: {
+        ...this.admin.getDefaults(this.ext.tag),
         ...this.ext.config,
         ...this.editForm.value.config,
-      }
+      },
     }).pipe(
       switchMap(() => this.exts.get(this.qualifiedTag)),
       catchError((err: HttpErrorResponse) => {

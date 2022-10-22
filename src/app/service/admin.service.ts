@@ -3,6 +3,7 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as _ from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
@@ -197,5 +198,21 @@ export class AdminService {
       return this.getTemplateForm(parent!);
     }
     return [];
+  }
+
+  getDefaults(tag = ''): any {
+    const template = this.getTemplate(tag);
+    const defaults = template?.defaults;
+    const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
+    if (defaults) {
+      if (!tag || template!.config?.overrideForm) return defaults;
+      return {
+        ...this.getTemplateForm(parent!),
+        ...defaults
+      };
+    } else if (tag) {
+      return this.getDefaults(parent!);
+    }
+    return {};
   }
 }
