@@ -3,9 +3,10 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular
 import * as _ from 'lodash-es';
 import { LinksFormComponent } from '../form/links/links.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
-import { RefSort } from '../model/ref';
+import { RefFilter, RefQueryArgs, RefSort } from '../model/ref';
 import { getLinks, getMailboxes, getTags } from '../util/editor';
 import { getPath } from '../util/hosts';
+import { getArgs } from '../util/query';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -51,10 +52,9 @@ export class EditorService {
   }
 
   /**
-   * Gets the query and sort for a query URL.
-   * @param url
+   * Gets the query for a query URL.
    */
-  getQueryUrl(url: string): [string, RefSort] {
+  getQueryUrl(url: string): string {
     if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
     const tagPrefix = this.config.base + 'tag/';
     let ending = '';
@@ -68,19 +68,10 @@ export class EditorService {
         ending = url.substring('/tag/'.length);
       }
     }
-    if (!ending) return [url, ''];
-    if (ending.indexOf('/') < 0) return [decodeURIComponent(ending), ''];
-    const query = ending.substring(0, ending.indexOf('/'))
-    ending = ending.substring(query.length)
-    let sort = '';
-    if (ending.length) {
-      ending = ending.substring(1);
-      if (ending.indexOf('/') < 0 && ending.indexOf('?') < 0) {
-        sort = ending;
-      }
-      sort = ending.substring(0, Math.max(ending.indexOf('/'), ending.indexOf('?')))
-    }
-    return [decodeURIComponent(query), sort as RefSort];
+    if (!ending) return url;
+    if (ending.indexOf('?') < 0) return ending;
+    const query = ending.substring(0, ending.indexOf('?'))
+    return decodeURIComponent(query);
   }
 
   /**

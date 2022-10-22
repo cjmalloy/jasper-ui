@@ -262,8 +262,8 @@ export class EmbedService {
     });
     const inlineQueries = el.querySelectorAll<HTMLAnchorElement>('.inline-query');
     inlineQueries.forEach(t => {
-      const [query, sort] = this.editor.getQueryUrl(t.innerText);
-      this.refs.page({ query, sort: [sort] }).subscribe(page => {
+      const query = this.editor.getQueryUrl(t.innerText);
+      this.refs.page({ query, ...Object.fromEntries(new URL(t.innerText).searchParams) }).subscribe(page => {
         const c = embed.createRefList(page);
         t.parentNode?.insertBefore(c.location.nativeElement, t);
         t.remove();
@@ -311,9 +311,9 @@ export class EmbedService {
               t.expanded = !t.expanded;
             });
           } else if (type === 'tag') {
-            const [query, sort] = this.editor.getQueryUrl(url);
+            const query = this.editor.getQueryUrl(url);
             // @ts-ignore
-            this.refs.page({ query, sort: [sort], ...Object.fromEntries(new URL(url).searchParams) }).subscribe(page => {
+            this.refs.page({ query, ...Object.fromEntries(new URL(url).searchParams) }).subscribe(page => {
               const c = embed.createRefList(page);
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
@@ -359,8 +359,8 @@ export class EmbedService {
           } else {
             const type = this.editor.getUrlType(url);
             if (type === 'tag') {
-              const [query, sort] = this.editor.getQueryUrl(url);
-              this.refs.page({query, sort: [sort]}).subscribe(page => {
+              const query = this.editor.getQueryUrl(url);
+              this.refs.page({ query, ...Object.fromEntries(new URL(url).searchParams) }).subscribe(page => {
                 const c = embed.createRefList(page);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                 // @ts-ignore
