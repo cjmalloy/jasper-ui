@@ -1,5 +1,6 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import * as _ from 'lodash-es';
 import { QUERY_REGEX } from '../../util/format';
 
 @Component({
@@ -40,5 +41,5 @@ export class QueriesFormComponent implements OnInit {
 }
 
 export function queriesForm(fb: UntypedFormBuilder, tags: string[]) {
-  return fb.array(tags.map(v => fb.control(v, QueriesFormComponent.validators)));
+  return fb.array(_.map(tags, v => fb.control(v, QueriesFormComponent.validators)));
 }

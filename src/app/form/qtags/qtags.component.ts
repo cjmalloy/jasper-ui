@@ -1,5 +1,6 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import * as _ from 'lodash-es';
 import { QUALIFIED_TAG_REGEX } from '../../util/format';
 
 @Component({
@@ -40,5 +41,5 @@ export class QtagsFormComponent implements OnInit {
 }
 
 export function qtagsForm(fb: UntypedFormBuilder, tags: string[]) {
-  return fb.array(tags.map(v => fb.control(v, QtagsFormComponent.validators)));
+  return fb.array(_.map(tags, v => fb.control(v, QtagsFormComponent.validators)));
 }
