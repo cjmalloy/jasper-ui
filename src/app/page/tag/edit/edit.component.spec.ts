@@ -2,6 +2,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
+import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
 
 import { EditTagPage } from './edit.component';
 
@@ -16,6 +17,10 @@ describe('EditTagPage', () => {
         HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
+      ],
+      providers: [
+        { provide: OAuthService, useValue: {} },
+        { provide: OAuthStorage, useValue: {} },
       ],
     })
     .compileComponents();
