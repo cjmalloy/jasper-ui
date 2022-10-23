@@ -25,6 +25,7 @@ $mobile-width: 640px;
 /* Small Screens */
 @media (max-width: $mobile-width) {
   .aside {
+    border: none !important;
 
     input[type=search] {
       width: 100%;
@@ -54,6 +55,12 @@ $mobile-width: 640px;
       opacity: 0 !important;
       padding: 0 !important;
       border: 0 !important;
+    }
+  }
+
+  .tabs {
+    h5 {
+      flex-basis: 100%;
     }
   }
 

@@ -69,7 +69,10 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   @Input()
   nodeStrength?: number;
   @Input()
-  linkStroke = '#cbcbcb';
+  linkStrokeLightTheme  = '#444444';
+  @Input()
+  linkStrokeDarkTheme  = '#cbcbcb';
+  linkStroke = this.linkStrokeLightTheme ;
   @Input()
   linkStrokeOpacity = 0.6;
   @Input()
@@ -104,6 +107,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   ) {
     this.disposers.push(autorun(() => {
       this.selectedStroke = store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
+      this.linkStroke = store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;
       this.update();
     }));
   }
@@ -139,6 +143,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
   @HostListener('window:resize', ['$event'])
   onResize() {
+    this.simulation?.alpha(0.3);
     this.update();
   }
 
@@ -377,7 +382,6 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
         .attr('d', 'M0,-5L10,0L0,5');
 
     this.link = this.svg.append('g')
-      .attr('stroke', this.linkStroke)
       .attr('stroke-opacity', this.linkStrokeOpacity)
       .attr('stroke-width', this.linkStrokeWidth)
       .attr('stroke-linecap', this.linkStrokeLinecap);
@@ -476,6 +480,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
       .selectAll('line')
       .data(this.store.graph.links)
       .join('line')
+      .attr('stroke', () => this.linkStroke)
       .attr('marker-end', this.store.graph.arrows ? 'url(#arrow)' : null);
 
     const self = this;

@@ -1,10 +1,11 @@
-$bg: #242424;
+$bg: #343434;
 $bg-accent: rgba(255, 255, 255, 0.05);
 $text: #c9c9c9;
 $active: #dc5c5c;
 $info: #969696;
 $tag: #af5800;
 $border: lightgrey;
+$border-accent: rgba(255, 255, 255, 0.4);
 $unselected-tab: grey;
 $error: #dc5c5c;
 $error-bg: #231010;
@@ -15,11 +16,16 @@ $placeholder: #2c2c2c;
 $deleting: #dc5c5c;
 body.dark-theme {
   color-scheme: dark;
-  background-color: $bg;
   color: $text;
 
-  ::backdrop {
+  &, ::backdrop {
     background-color: $bg;
+    background-image: url("~/assets/bg-dark.png");
+    background-blend-mode: soft-light;
+  }
+
+  .container {
+    background: radial-gradient(transparent 0, rgba(0, 0, 0, 0.3));
   }
 
   :link, .link-style {
@@ -100,11 +106,13 @@ body.dark-theme {
 
       &.current-tab {
         color: $active;
-        background-color: $bg;
+        background-color: #292929;
+        background-image: url("~/assets/bg-dark.png");
+        background-blend-mode: soft-light;
         border-top: 1px solid $border;
         border-left: 1px solid $border;
         border-right: 1px solid $border;
-        border-bottom: 1px solid $bg;
+        border-bottom: 1px solid transparent;
       }
     }
 
@@ -125,6 +133,7 @@ body.dark-theme {
 
   .sidebar {
     background-color: $bg-accent;
+    backdrop-filter: blur(1px);
     .submit-button {
       border: 1px solid $border;
 
@@ -227,7 +236,7 @@ body.dark-theme {
     }
   }
 
-  .ref, .form {
+  .ref, .form, .editor-preview {
     .expand {
       border: 1px solid $border;
     }
@@ -248,7 +257,7 @@ body.dark-theme {
 
   hr {
     border: none;
-    border-top: 1px dotted $border;
+    border-top: 1px groove $border-accent;
   }
 
   .login-popup {
@@ -279,6 +288,7 @@ body.dark-theme {
   .kanban {
     .column-title, .swim-lane-title {
       background-color: $bg-accent;
+      backdrop-filter: blur(1px);
     }
     .kanban-column {
       border: 1px solid transparent;
@@ -326,6 +336,7 @@ body.dark-theme {
   .chat {
     .odd > * {
       background-color: $bg-accent;
+      backdrop-filter: blur(1px);
     }
   }
 }

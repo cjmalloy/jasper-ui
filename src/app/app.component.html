@@ -1,9 +1,12 @@
-<app-login-popup></app-login-popup>
-<app-subscription-bar></app-subscription-bar>
-<router-outlet></router-outlet>
-<footer>
-  <hr>
-  <p [title]="config.version">
-    Powered by Jasper
-  </p>
-</footer>
+<div class="container">
+  <app-login-popup></app-login-popup>
+  <app-subscription-bar></app-subscription-bar>
+  <router-outlet></router-outlet>
+  <div class="spacer"></div>
+  <footer>
+    <hr>
+    <p [title]="config.version">
+      Powered by Jasper
+    </p>
+  </footer>
+</div>
