@@ -196,7 +196,7 @@ body.dark-theme {
     filter: none;
   }
 
-  .list-item {
+  .list-item:not(.full-page) {
     &:focus {
       border: 1px dashed $border;
     }
@@ -257,9 +257,16 @@ body.dark-theme {
 
   hr {
     border: none;
-    border-top: 1px groove $border-accent;
-    box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.3),
-                0 6px 5px 1px rgba(0, 0, 0, 0.1);
+    border-top: 1px groove $border;
+  }
+
+  footer {
+    hr {
+      border: none;
+      border-top: 1px groove $border-accent;
+      box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.3),
+      0 6px 5px 1px rgba(0, 0, 0, 0.1);
+    }
   }
 
   .login-popup {
