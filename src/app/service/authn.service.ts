@@ -46,6 +46,9 @@ export class AuthnService {
   logIn() {
     if (this.clientAuth) {
       this.oauth.initLoginFlow()
+    } else if (this.config.login) {
+      // @ts-ignore
+      window.location = this.config.loginLink;
     }
   }
 
