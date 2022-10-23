@@ -4,9 +4,11 @@
           title="Create Backup"
           class="backup">+ backup</button>
 
-  <button (click)="showUpload()"
+  <button *ngIf="!uploading"
+          (click)="showUpload()"
           title="Upload Backup"
           class="upload">+ upload</button>
+  <app-loading *ngIf="uploading"></app-loading>
 
   <input id="upload"
          type="file"
@@ -14,9 +16,11 @@
          (change)="upload($any($event)?.target?.files)">
 </ng-container>
 
-<button (click)="showRestore()"
+<button *ngIf="!restoring"
+        (click)="showRestore()"
         title="Upload Backup"
         class="upload">+ restore</button>
+<app-loading *ngIf="restoring"></app-loading>
 
 <input id="restore"
        type="file"
