@@ -26,7 +26,7 @@ export class AccountService {
   constructor(
     private store: Store,
     private config: ConfigService,
-    private adminService: AdminService,
+    private admin: AdminService,
     private users: UserService,
     private exts: ExtService,
     private refs: RefService,
@@ -58,7 +58,7 @@ export class AccountService {
 
   private get loadUserExt$() {
     if (!this.store.account.signedIn) return of();
-    if (!this.adminService.status.templates.user) return of();
+    if (!this.admin.status.templates.user) return of();
     return this.userExt$.pipe(catchError(err => this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin })));
   }
 
@@ -93,17 +93,17 @@ export class AccountService {
   }
 
   get subscriptions$(): Observable<string[]> {
-    if (!this.adminService.status.templates.user) return of(this.store.account.subs);
+    if (!this.admin.status.templates.user) return of(this.store.account.subs);
     return this.userExt$.pipe(
       map(ext => ext.config),
-      catchError(() => of(this.adminService.status.templates.user!.defaults)),
+      catchError(() => of(this.admin.status.templates.user!.defaults)),
       map(config => config?.subscriptions || []),
       tap(subs => runInAction(() => this.store.account.subs = subs)),
     );
   }
 
   get bookmarks$(): Observable<string[]> {
-    if (!this.store.account.signedIn || !this.adminService.status.templates.user) return of([]);
+    if (!this.store.account.signedIn || !this.admin.status.templates.user) return of([]);
     return this.userExt$.pipe(
       map(ext => ext.config?.bookmarks || []),
       tap(books => runInAction(() => this.store.account.bookmarks = books)),
@@ -111,11 +111,11 @@ export class AccountService {
   }
 
   get theme$(): Observable<string | undefined> {
-    if (!this.adminService.status.templates.user) return of(this.store.account.theme);
-    if (!this.store.account.signedIn) return of(runInAction(() => this.store.account.subs = this.adminService.status.templates.user!.defaults.userTheme));
+    if (!this.admin.status.templates.user) return of(this.store.account.theme);
+    if (!this.store.account.signedIn) return of(runInAction(() => this.store.account.subs = this.admin.status.templates.user!.defaults.userTheme));
     return this.userExt$.pipe(
       map(ext => ext.config),
-      catchError(() => of(this.adminService.status.templates.user!.defaults)),
+      catchError(() => of(this.admin.status.templates.user!.defaults)),
       map(config => config?.userThemes?.[config.userTheme]),
       tap(css => runInAction(() => this.store.account.theme = css)),
     );
@@ -123,7 +123,7 @@ export class AccountService {
 
   addSub(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.adminService.status.templates.user) throw 'User template not installed';
+    if (!this.admin.status.templates.user) throw 'User template not installed';
     this.exts.patch(this.store.account.tag, [{
       op: 'add',
       path: '/config/subscriptions/-',
@@ -136,7 +136,7 @@ export class AccountService {
 
   removeSub(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.adminService.status.templates.user) throw 'User template not installed';
+    if (!this.admin.status.templates.user) throw 'User template not installed';
     this.subscriptions$.pipe(
       map(subs => subs.indexOf(tag)),
       switchMap(index => this.exts.patch(this.store.account.tag,[{
@@ -151,7 +151,7 @@ export class AccountService {
 
   addBookmark(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.adminService.status.templates.user) throw 'User template not installed';
+    if (!this.admin.status.templates.user) throw 'User template not installed';
     this.exts.patch(this.store.account.tag, [{
       op: 'add',
       path: '/config/bookmarks/-',
@@ -164,7 +164,7 @@ export class AccountService {
 
   removeBookmark(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.adminService.status.templates.user) throw 'User template not installed';
+    if (!this.admin.status.templates.user) throw 'User template not installed';
     this.bookmarks$.pipe(
       map(subs => subs.indexOf(tag)),
       switchMap(index => this.exts.patch(this.store.account.tag,[{
@@ -179,7 +179,7 @@ export class AccountService {
 
   checkNotifications() {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.adminService.status.templates.user) throw 'User template not installed';
+    if (!this.admin.status.templates.user) throw 'User template not installed';
     return combineLatest(this.user$, this.userExt$).pipe(
       switchMap(([_, ext]) => this.refs.count({
         query: this.store.account.notificationsQuery,
@@ -190,7 +190,7 @@ export class AccountService {
 
   clearNotifications(readDate: moment.Moment) {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.adminService.status.templates.user) throw 'User template not installed';
+    if (!this.admin.status.templates.user) throw 'User template not installed';
     this.exts.patch(this.store.account.tag, [{
       op: 'add',
       path: '/config/inbox/lastNotified',
