@@ -82,7 +82,7 @@ body.dark-theme {
   }
 
   .tabs {
-    background-color: #383838;
+    background-color: rgba(100, 100, 100, 0.3);
     border-bottom: 1px solid $border;
     background-image: url("~/assets/jasper-dark.png");
     background-position: 4px 0;
@@ -258,6 +258,8 @@ body.dark-theme {
   hr {
     border: none;
     border-top: 1px groove $border-accent;
+    box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.3),
+                0 6px 5px 1px rgba(0, 0, 0, 0.1);
   }
 
   .login-popup {

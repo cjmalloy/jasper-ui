@@ -247,6 +247,9 @@ body.light-theme {
   hr {
     border: none;
     border-top: 1px groove $border-accent;
+    box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.08),
+                0 5px 5px 1px rgba(0, 0, 0, 0.1),
+                0 4px 0.5px 0 white;
   }
 
   .login-popup {
