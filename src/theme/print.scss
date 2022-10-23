@@ -1,0 +1,17 @@
+
+@media print {
+  .login-popup,
+  .subscription-bar,
+  .tabs,
+  .sidebar,
+  .toggle.actions-toggle,
+  .toggle.comments,
+  app-comment-reply {
+    display: none !important;
+  }
+
+  hr {
+    box-shadow: none !important;
+  }
+
+}

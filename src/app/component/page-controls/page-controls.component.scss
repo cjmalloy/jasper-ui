@@ -1,3 +1,16 @@
 :host {
   display: block;
 }
+
+.print-view {
+  display: none
+}
+
+@media print {
+  .controls {
+    display: none;
+  }
+  .print-view {
+    display: block;
+  }
+}

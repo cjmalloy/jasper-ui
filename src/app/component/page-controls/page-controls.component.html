@@ -1,37 +1,42 @@
-<label>more results: </label>
+<div class="controls">
+  <label>more results: </label>
 
-<ng-container *ngIf="hasQuery">
-  <a class="first-page"
-     routerLink="./"
-     [class.disabled]="page.first"
-     [queryParams]="{ pageNumber: null }"
-     queryParamsHandling="merge">first</a>
-  |
-  <a class="prev-page"
+  <ng-container *ngIf="hasQuery">
+    <a class="first-page"
+       routerLink="./"
+       [class.disabled]="page.first"
+       [queryParams]="{ pageNumber: null }"
+       queryParamsHandling="merge">first</a>
+    |
+    <a class="prev-page"
+       routerLink="./"
+       routerLinkActive="disabled"
+       [queryParams]="{ pageNumber: prev }"
+       queryParamsHandling="merge">prev</a>
+    |
+  </ng-container>
+  <a class="next-page"
      routerLink="./"
      routerLinkActive="disabled"
-     [queryParams]="{ pageNumber: prev }"
-     queryParamsHandling="merge">prev</a>
+     [queryParams]="{ pageNumber: next }"
+     (click)="scrollUp()"
+     queryParamsHandling="merge">next</a>
   |
-</ng-container>
-<a class="next-page"
-   routerLink="./"
-   routerLinkActive="disabled"
-   [queryParams]="{ pageNumber: next }"
-   (click)="scrollUp()"
-   queryParamsHandling="merge">next</a>
-|
-<a class="last-page"
-   routerLink="./"
-   routerLinkActive="disabled"
-   [queryParams]="{ pageNumber: last }"
-   queryParamsHandling="merge">last</a>
+  <a class="last-page"
+     routerLink="./"
+     routerLinkActive="disabled"
+     [queryParams]="{ pageNumber: last }"
+     queryParamsHandling="merge">last</a>
 
-<label for="pageSize"> size: </label>
-<select id="pageSize" [(ngModel)]="pageSize">
-  <option [value]="5">5</option>
-  <option [value]="20">20</option>
-  <option [value]="50">50</option>
-  <option [value]="100">100</option>
-  <option [value]="500">500</option>
-</select>
+  <label for="pageSize"> size: </label>
+  <select id="pageSize" [(ngModel)]="pageSize">
+    <option [value]="5">5</option>
+    <option [value]="20">20</option>
+    <option [value]="50">50</option>
+    <option [value]="100">100</option>
+    <option [value]="500">500</option>
+  </select>
+</div>
+<div class="print-view">
+  Page {{ page.number + 1 }} of {{ page.totalPages }} (size: {{ page.size }})
+</div>
