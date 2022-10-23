@@ -45,6 +45,7 @@ export class ChatComponent implements OnDestroy {
 
   private timeoutId?: number;
   private retries = 0;
+  private lastScrolled = 0;
 
   constructor(
     public admin: AdminService,
@@ -155,8 +156,16 @@ export class ChatComponent implements OnDestroy {
 
   scrollDown() {
     _.defer(() => {
-      this.viewport.scrollToIndex(Math.floor(this.messages!.length/2), 'smooth');
-      _.delay(() => this.viewport.scrollToIndex(this.messages!.length - 1, 'smooth'), 300);
+      let wait = 0;
+      if (this.lastScrolled < this.messages!.length / 2) {
+        this.lastScrolled = Math.floor((this.lastScrolled + this.messages!.length) / 2);
+        this.viewport.scrollToIndex(this.lastScrolled, 'smooth');
+        wait += 400;
+      }
+      if (this.lastScrolled < this.messages!.length - 1) {
+        this.lastScrolled = this.messages!.length - 1;
+        _.delay(() => this.viewport.scrollToIndex(this.lastScrolled, 'smooth'), wait);
+      }
     });
   }
 
