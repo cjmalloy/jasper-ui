@@ -94,12 +94,23 @@ $mobile-width: 640px;
       }
     }
 
-    .embed > :not(.md) {
+    .embed {
+      position: relative;
+      left: 0;
       margin: 0;
-      width: 98vw;
+      width: 100vw;
+    }
+
+    .full-page {
+      .embed {
+        transform: translateX(-112px);
+        width: 100vw;
+      }
     }
 
     .info, .actions {
+      font-size: 16px;
+      line-height: 28px;
       height: 28px;
       padding-top: 0;
       padding-bottom: 0;
@@ -109,7 +120,6 @@ $mobile-width: 640px;
       white-space: nowrap;
 
       a, .fake-link {
-        font-size: 16px;
         line-height: 28px;
       }
     }
@@ -123,6 +133,10 @@ $mobile-width: 640px;
           padding-bottom: 10px;
         }
       }
+    }
+
+    .expand {
+      border: none !important;
     }
 
     .full-page {
