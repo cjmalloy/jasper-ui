@@ -20,7 +20,7 @@
                [ref]="store.view.ref"
                [showToggle]="true"
                [expandInline]="true"
-               [expanded]="store.view.isTextPost || store.view.isWikiPost"></app-ref>
+               [expanded]="!!store.view.ref.comment"></app-ref>
     </ng-container>
     <ng-template #loading>
       <app-loading></app-loading>
