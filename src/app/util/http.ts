@@ -21,7 +21,7 @@ export function writeObj(obj?: Record<string, any>): Record<string, any> | undef
   for (const k in obj) {
     let v = obj[k];
     if (isMoment(v)) v = v.toISOString();
-    if (v && !emptyObject(v)) {
+    if ((v || v === false) && !emptyObject(v)) {
       result[k] = v;
     }
   }
