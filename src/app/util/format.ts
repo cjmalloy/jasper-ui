@@ -6,14 +6,14 @@ export const URI_REGEX = /^([^:/?#]+):(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*
 export const TAG_REGEX = /^[_+]?[a-z]+([./][a-z]+)*$/;
 export const TAGS_REGEX = /^([_+]?[a-z]+([./][a-z]+)*\s*)*$/;
 export const USER_REGEX = /^[_+]user\/[a-z]+([./][a-z]+)*$/;
-export const QUALIFIED_USER_REGEX = /^[_+]user\/[a-z]+([./][a-z]+)*(@[a-z]+(\.[a-z])*)?$/;
+export const QUALIFIED_USER_REGEX = /^[_+]user\/[a-z]+([./][a-z]+)*(@[a-z]+(\.[a-z]+)*)?$/;
 export const PLUGIN_REGEX = /^[_+]?plugin\/[a-z]+([./][a-z]+)*$/;
 export const ORIGIN_NOT_BLANK_REGEX = /^@[a-z]+(\.[a-z]+)*$/;
 export const ORIGIN_REGEX = /^(@[a-z]+(\.[a-z]+)*)?$/;
 export const ORIGIN_WILDCARD_REGEX = /^(@[a-z]+(\.[a-z]+)*|@\*)?$/;
-export const QUALIFIED_TAG_REGEX = /^[_+]?[a-z]+([./][a-z]+)*(@[a-z]+(\.[a-z])*)?$/;
-export const SELECTOR_REGEX = /^!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))$/;
-export const QUERY_REGEX = /^(!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))|\(!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |]!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*\))([ |:&](!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))|\(!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |]!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*\)))*$/;
+export const QUALIFIED_TAG_REGEX = /^[_+]?[a-z]+([./][a-z]+)*(@[a-z]+(\.[a-z]+)*)?$/;
+export const SELECTOR_REGEX = /^!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z]+)*|@\*))$/;
+export const QUERY_REGEX = /^(!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z]+)*|@\*))|\(!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |]!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*\))([ |:&](!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))|\(!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |]!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*\)))*$/;
 
 export function isTemplate(tag: string, template?: string) {
   return tag.startsWith(template + '/') ||

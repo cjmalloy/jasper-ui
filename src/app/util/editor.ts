@@ -4,7 +4,7 @@ import { getMailbox } from '../plugin/mailbox';
 import { QUALIFIED_USER_REGEX, TAG_REGEX } from './format';
 
 export function getMailboxes(markdown: string) {
-  return extractPattern(markdown, /[_+]user\/[a-z]+([./][a-z]+)*(@[a-z]+(\.[a-z])*)?/g, undefined, QUALIFIED_USER_REGEX)
+  return extractPattern(markdown, /[_+]user\/[a-z]+([./][a-z]+)*(@[a-z]+(\.[a-z]+)*)?/g, undefined, QUALIFIED_USER_REGEX)
     .map(u => getMailbox(u));
 }
 
