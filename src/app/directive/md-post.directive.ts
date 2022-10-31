@@ -65,6 +65,7 @@ export class MdPostDirective implements AfterViewInit, OnDestroy, Embed {
     const c = this.viewContainerRef.createComponent(EmbedComponent);
     if (_.isString(ref)) {
       const url = ref as string;
+      // TODO: tag link
       ref = { url, origin: this.origin };
       if (isImage(url)) {
         expandPlugins = ['plugin/image'];
