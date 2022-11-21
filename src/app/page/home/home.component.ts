@@ -28,7 +28,7 @@ export class HomePage implements OnInit, OnDestroy {
     private refs: RefService,
   ) {
     theme.setTitle($localize`Home`);
-    store.view.clear();
+    store.view.clear(!!this.admin.status.plugins.voteUp ? 'voteScoreDecay' : 'published');
     query.clear();
     if (admin.status.templates.home) {
       refs.page({query: '+home', sort: ['published,DESC'], size: 1}).subscribe(page => {

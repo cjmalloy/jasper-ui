@@ -4,7 +4,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, Observable, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
@@ -350,6 +350,18 @@ export class RefComponent implements OnInit {
     if (this.active(a) && !a.labelOn) return false;
     if (!this.active(a) && !a.labelOff) return false;
     return true;
+  }
+
+  voteUp() {
+    this.runAndLoad(forkJoin([
+      this.ts.deleteResponse('plugin/vote/down', this.ref.url, this.ref.origin),
+      this.ts.createResponse('plugin/vote/up', this.ref.url, this.ref.origin)]));
+  }
+
+  voteDown() {
+    this.runAndLoad(forkJoin([
+      this.ts.deleteResponse('plugin/vote/up', this.ref.url, this.ref.origin),
+      this.ts.createResponse('plugin/vote/down', this.ref.url, this.ref.origin)]));
   }
 
   doAction(a: Action) {

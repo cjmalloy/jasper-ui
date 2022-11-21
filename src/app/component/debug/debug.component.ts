@@ -1,9 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, isDevMode } from '@angular/core';
 import { catchError, concatMap, forkJoin, generate, Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { TaggingService } from '../../service/api/tagging.service';
 import { ExtStore } from '../../store/ext';
 import { PluginStore } from '../../store/plugin';
 import { QueryStore } from '../../store/query';
@@ -33,6 +35,7 @@ export class DebugComponent {
     public plugin: PluginStore,
     public template: TemplateStore,
     private refs: RefService,
+    private ts: TaggingService,
   ) { }
 
   ngOnInit(): void {
@@ -72,12 +75,21 @@ export class DebugComponent {
 
   gen(n: any = 100) {
     this.generating = false;
-    this.repeat(i => this.refs.create({
-      url: 'comment:' + uuid(),
-      title: 'Generated: ' + i,
-      comment: uuid(),
-      tags: ['public', 'gen']
-    }), n);
+    this.repeat(i => {
+      const url = 'comment:' + uuid();
+      return this.refs.create({
+        url,
+        title: 'Generated: ' + i,
+        comment: uuid(),
+        tags: ['public', 'gen']
+      }).pipe(
+        tap(() => {
+          if (this.admin.def.plugins.voteUp) {
+            this.ts.createResponse('plugin/vote/up', url);
+          }
+        }),
+      );
+    }, n);
   }
 
   source(url: string) {

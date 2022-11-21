@@ -6,6 +6,7 @@ import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
@@ -13,6 +14,7 @@ import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { wikiTitleFormat, wikiUriFormat } from '../../../plugin/wiki';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
 import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
@@ -49,6 +51,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
     public store: Store,
     private editor: EditorService,
     private refs: RefService,
+    private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
     theme.setTitle($localize`Submit: Text Post`);
@@ -137,6 +140,11 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
       published,
       tags,
     }).pipe(
+      tap(() => {
+        if (this.admin.def.plugins.voteUp) {
+          this.ts.createResponse('plugin/vote/up', this.url.value, this.store.account.origin);
+        }
+      }),
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);

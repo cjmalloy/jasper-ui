@@ -7,7 +7,7 @@
              [expanded]="expanded"></app-ref>
   </ng-container>
   <ng-container *ngFor="let ref of page?.content; let i = index">
-    <div class="list-number">{{ i + page!.number * page!.size + 1 }}</div>
+    <div class="list-number">{{ getNumber(i) }}</div>
     <app-ref [ref]="ref"
              [showToggle]="true"
              [expanded]="expanded"></app-ref>

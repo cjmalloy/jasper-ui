@@ -153,6 +153,10 @@ export class ViewStore {
     return this.sort[0] !== (this.search ? this.defaultSearchSort : this.defaultSort);
   }
 
+  get isVoteSorted() {
+    return this.sort[0].startsWith('vote');
+  }
+
   get filter(): UrlFilter[] {
     const filter = this.route.routeSnapshot?.queryParams['filter'];
     if (!filter) return [];

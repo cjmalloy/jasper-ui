@@ -1,7 +1,9 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import * as moment from 'moment';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
+import { score } from '../../plugin/vote';
 
 @Component({
   selector: 'app-ref-list',
@@ -23,6 +25,10 @@ export class RefListComponent implements OnInit {
   pageControls = true;
   @Input()
   emptyMessage = 'No results found';
+  @Input()
+  showVotes = false;
+  @Input()
+  hideNewZeroVoteScores = true;
 
   private _page?: Page<Ref>;
 
@@ -41,8 +47,8 @@ export class RefListComponent implements OnInit {
           queryParams: {
             pageNumber: this._page.totalPages - 1
           },
-          queryParamsHandling: "merge",
-        })
+          queryParamsHandling: 'merge',
+        });
       }
     }
   }
@@ -50,4 +56,16 @@ export class RefListComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  getNumber(i: number) {
+    if (this.showVotes) {
+      const votes = score(this.page!.content[i]);
+      if (votes < 100 &&
+        this.hideNewZeroVoteScores &&
+        moment().diff(this.page!.content[i].created!, 'minutes') < 5) {
+        return '•';
+      }
+      return votes;
+    }
+    return i + this.page!.number * this.page!.size + 1;
+  }
 }
