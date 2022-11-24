@@ -20,6 +20,7 @@ export interface Roles {
 
 export function mapUser(obj: any): User {
   obj.type = 'user';
+  obj.origin ||= '';
   obj.modifiedString = obj.modified;
   obj.modified = moment(obj.modified);
   return obj;

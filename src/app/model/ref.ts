@@ -15,6 +15,7 @@ export interface Ref extends HasOrigin {
 }
 
 export interface Metadata {
+  modified: string;
   responses: string[];
   internalResponses: string[];
   plugins: Record<string, string[]>;
@@ -56,6 +57,7 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
   'commentCount' | 'commentCount,ASC' | 'commentCount,DESC';
 
 export function mapRef(obj: any): Ref {
+  obj.origin ||= '';
   obj.published = moment(obj.published);
   obj.created = moment(obj.created);
   obj.modifiedString = obj.modified;

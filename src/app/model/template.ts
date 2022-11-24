@@ -37,6 +37,7 @@ export interface Template extends Tag {
 
 export function mapTemplate(obj: any): Template {
   obj.type = 'template';
+  obj.origin ||= '';
   obj.modifiedString = obj.modified;
   obj.modified = moment(obj.modified);
   return obj;
