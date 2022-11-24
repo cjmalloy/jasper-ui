@@ -64,7 +64,6 @@ export function originForm(fb: UntypedFormBuilder, admin: AdminService) {
   const result = fb.group({
     origin: ['', [Validators.required, Validators.pattern(ORIGIN_REGEX)]],
     remote: ['', [Validators.pattern(ORIGIN_WILDCARD_REGEX)]],
-    overwriteOrigins: [false],
     generateMetadata: [true],
     query: [''],
     proxy: [''],
