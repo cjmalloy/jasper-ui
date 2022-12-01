@@ -12,6 +12,7 @@ $border-light: rgba(0, 0, 0, 0.2);
 $unselected-tab: #b3b9c4;
 $error: #da0000;
 $error-bg: #ffa9a9;
+$warning: #c1c500;
 $mod: #136500;
 $card: #f3ebc7;
 $placeholder: #efebdf;
@@ -43,6 +44,10 @@ body.light-theme {
     div:hover {
       background-color: $bg-accent;
     }
+  }
+
+  .warning {
+    text-shadow: 0 0 2px $warning;
   }
 
   .error {

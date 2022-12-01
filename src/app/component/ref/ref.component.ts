@@ -4,6 +4,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, switchMap, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
@@ -50,6 +51,7 @@ export class RefComponent implements OnInit {
   actionsExpanded = false;
   writeAccess = false;
   serverError: string[] = [];
+  publishChanged = false;
 
   private _ref!: Ref;
 
@@ -435,16 +437,18 @@ export class RefComponent implements OnInit {
       scrollToFirstInvalid();
       return;
     }
+    const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.update({
       ...this.ref,
       ...this.editForm.value,
-      published: moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
+      published,
       plugins: writePlugins(this.editForm.value.tags, {
         ...this.ref.plugins,
         ...this.editForm.value.plugins,
       }),
     }).pipe(
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin)),
+      tap(ref => this.publishChanged = !published.isSame(ref.published)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

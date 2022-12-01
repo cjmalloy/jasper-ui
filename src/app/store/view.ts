@@ -98,6 +98,10 @@ export class ViewStore {
     return parseInt(this.route.routeSnapshot?.queryParams['pageSize'] ?? (this.blog ? this.defaultBlogPageSize : this.defaultPageSize));
   }
 
+  get published() {
+    return this.route.routeSnapshot?.queryParams['published'];
+  }
+
   get hideSearch() {
     return this.route.routeSnapshot?.queryParams['hideSearch'];
   }

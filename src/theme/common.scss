@@ -50,6 +50,12 @@ html, body {
   }
 }
 
+.warning {
+  font-size: 80%;
+  font-style: italic;
+  padding: 10px;
+}
+
 .error-404, .error-403 {
   font-size: 300%;
   text-align: center;

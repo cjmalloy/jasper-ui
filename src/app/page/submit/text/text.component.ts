@@ -117,18 +117,19 @@ export class SubmitTextPage implements AfterViewInit {
       scrollToFirstInvalid();
       return;
     }
+    const published = this.textForm.value.published ? moment(this.textForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
     this.refs.create({
       ...this.textForm.value,
       origin: this.store.account.origin,
       tags: this.addPlugins(this.textForm.value.tags),
-      published: this.textForm.value.published ? moment(this.textForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment(),
+      published,
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/ref', this.textForm.value.url]);
+      this.router.navigate(['/ref', this.textForm.value.url], { queryParams: { published }});
     });
   }
 }

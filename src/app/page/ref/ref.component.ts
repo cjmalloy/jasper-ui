@@ -26,6 +26,10 @@ export class RefPage implements OnInit, OnDestroy {
     store.view.clear();
   }
 
+  get refWarning() {
+    return (this.store.view.ref?.sources?.length || 0) > 0 && this.store.view.published && !this.store.view.ref!.published!.isSame(this.store.view.published);
+  }
+
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const url = this.store.view.url;

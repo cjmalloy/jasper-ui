@@ -9,6 +9,7 @@ $border-accent: rgba(255, 255, 255, 0.4);
 $unselected-tab: grey;
 $error: #dc5c5c;
 $error-bg: #231010;
+$warning: #967f46;
 $mod: #4d9339;
 $card: #3d3d3d;
 $card-dragging: #4d4d4d;
@@ -46,6 +47,10 @@ body.dark-theme {
     div:hover {
       background-color: $bg-accent;
     }
+  }
+
+  .warning {
+    color: $warning;
   }
 
   .error {

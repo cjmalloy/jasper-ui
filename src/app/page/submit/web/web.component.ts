@@ -147,10 +147,11 @@ export class SubmitWebPage implements AfterViewInit {
       scrollToFirstInvalid();
       return;
     }
+    const published = moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.create({
       ...this.webForm.value,
       origin: this.store.account.origin,
-      published: moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
+      published,
       plugins: writePlugins(this.webForm.value.tags, this.webForm.value.plugins),
     }).pipe(
       catchError((res: HttpErrorResponse) => {
@@ -158,7 +159,7 @@ export class SubmitWebPage implements AfterViewInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/ref', this.webForm.value.url]);
+      this.router.navigate(['/ref', this.webForm.value.url], { queryParams: { published }});
     });
   }
 }

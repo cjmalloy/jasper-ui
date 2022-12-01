@@ -90,11 +90,12 @@ export class SubmitDmPage implements OnInit {
       return;
     }
     const url = 'comment:' + uuid();
+    const published = this.dmForm.value.published ? moment(this.dmForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
     this.refs.create({
       ...this.dmForm.value,
       url,
       origin: this.store.account.origin,
-      published: this.dmForm.value.published ? moment(this.dmForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment(),
+      published,
       tags: this.tags,
     }).pipe(
       catchError((res: HttpErrorResponse) => {
@@ -102,7 +103,7 @@ export class SubmitDmPage implements OnInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/ref', url]);
+      this.router.navigate(['/ref', url], { queryParams: { published }});
     });
   }
 }

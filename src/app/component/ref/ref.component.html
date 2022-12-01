@@ -191,4 +191,8 @@
   <ng-container *ngFor="let e of serverError">
     <div class="error">{{ e }}</div>
   </ng-container>
+  <div *ngIf="publishChanged"
+       class="warning">
+    * Published date was changed to be after source published date.
+  </div>
 </ng-template>
