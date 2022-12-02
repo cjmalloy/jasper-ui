@@ -5,6 +5,13 @@ describe('Origin Plugin: Remote Replication', () => {
     cy.visit('/?debug=ADMIN');
     cy.contains('Home', { timeout: 1000 * 60 });
   });
+  it('clear plugins', () => {
+    cy.visit('/?debug=ADMIN');
+    cy.get('.settings').contains('settings').click();
+    cy.get('.tabs').contains('setup').click();
+    cy.get('input[type=checkbox]').uncheck();
+    cy.get('button').contains('Save').click();
+  });
   it('turn on remote origins', () => {
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
@@ -32,7 +39,7 @@ describe('Origin Plugin: Remote Replication', () => {
   it('scrape @other', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('origins').click();
+    cy.get('.tabs').contains('origin').click();
     cy.get('input[type=search]').type(replApi + '{enter}');
     cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
     cy.intercept({pathname: '/api/v1/scrape/feed'}).as('scrape');
@@ -49,7 +56,7 @@ describe('Origin Plugin: Remote Replication', () => {
   it('@main: delete remote @other', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('origins').click();
+    cy.get('.tabs').contains('origin').click();
     cy.get('input[type=search]').type(replApi + '{enter}');
     cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
     cy.get('@other').find('.actions').contains('delete').click();

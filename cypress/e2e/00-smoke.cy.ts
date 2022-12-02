@@ -3,6 +3,13 @@ describe('Smoke Tests', () => {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 1000 * 60 });
   });
+  it('clear plugins', () => {
+    cy.visit('/?debug=ADMIN');
+    cy.get('.settings').contains('settings').click();
+    cy.get('.tabs').contains('setup').click();
+    cy.get('input[type=checkbox]').uncheck();
+    cy.get('button').contains('Save').click();
+  });
   it('creates a ref', () => {
     cy.contains('Submit Link').click();
     cy.get('#url').type('https://www.jasper-kms.info/');

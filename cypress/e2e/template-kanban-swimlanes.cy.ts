@@ -11,6 +11,13 @@ describe('Kanban Template with Swim Lanes', () => {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 1000 * 60 });
   });
+  it('clear plugins', () => {
+    cy.visit('/?debug=ADMIN');
+    cy.get('.settings').contains('settings').click();
+    cy.get('.tabs').contains('setup').click();
+    cy.get('input[type=checkbox]').uncheck();
+    cy.get('button').contains('Save').click();
+  });
   it('turn on kanban', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();

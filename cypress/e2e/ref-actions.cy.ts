@@ -3,6 +3,13 @@ describe('Ref Actions', () => {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 1000 * 60 });
   });
+  it('clear plugins', () => {
+    cy.visit('/?debug=ADMIN');
+    cy.get('.settings').contains('settings').click();
+    cy.get('.tabs').contains('setup').click();
+    cy.get('input[type=checkbox]').uncheck();
+    cy.get('button').contains('Save').click();
+  });
   it('creates a ref', () => {
     cy.contains('Submit Text Post').click();
     cy.get('#title').type('Title');
@@ -24,9 +31,9 @@ describe('Ref Actions', () => {
     cy.get('#comment').type('Comment field');
     cy.get('form .md').should('contain', 'Comment field');
     cy.get('button').contains('save').click();
-    cy.get('.full-page.ref').should('contain', 'Comment field');
-    cy.get('.full-page.ref  .toggle-comment').click();
     cy.get('.full-page.ref').should('not.contain', 'Comment field');
+    cy.get('.full-page.ref  .toggle-comment').click();
+    cy.get('.full-page.ref').should('contain', 'Comment field');
   });
   it('adds tag inline', () => {
     cy.get('.actions a').contains('tag').click();
@@ -55,7 +62,7 @@ describe('Ref Actions', () => {
   it('should delete reply', () => {
     cy.get('.full-page.ref .actions a').contains('delete').click();
     cy.get('.full-page.ref .actions a').contains('yes').click();
-    cy.get('.ref-list .ref .actions a').contains('1 citation').click();
+    cy.get('.ref-list .ref .actions a').contains('uncited').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
 });

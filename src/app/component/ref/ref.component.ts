@@ -259,16 +259,20 @@ export class RefComponent implements OnInit {
   }
 
   get comments() {
-    if (!this._ref.metadata?.modified) return '?';
-    const commentCount = this._ref.metadata?.plugins?.['plugin/comment']?.length || 0;
+    let commentCount : number | string = '?';
+    if (this._ref.metadata?.modified) {
+      commentCount = this._ref.metadata?.plugins?.['plugin/comment']?.length || 0;
+    }
     if (commentCount === 0) return 'comment';
     if (commentCount === 1) return '1 comment';
     return commentCount + ' comments';
   }
 
   get responses() {
-    if (!this._ref.metadata?.modified) return '?';
-    const responseCount = this._ref.metadata?.responses?.length || 0;
+    let responseCount : number | string = '?';
+    if (this._ref.metadata?.modified) {
+      responseCount = this._ref.metadata?.plugins?.responses?.length || 0;
+    }
     if (this.feed) {
       return responseCount + ' scraped';
     }
