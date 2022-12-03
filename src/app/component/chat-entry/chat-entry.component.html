@@ -42,11 +42,9 @@
            controls>
       <source [src]="ref.plugins?.['plugin/audio']?.url || ref.url">
     </audio>
-    <qrcode *ngIf="qr"
-            [qrdata]="ref.plugins?.['plugin/qr']?.url || ref.url"
-            [width]="qrWidth"
-            [errorCorrectionLevel]="'M'"
-            appResize></qrcode>
+    <app-qr *ngIf="qr"
+            [url]="ref.plugins?.['plugin/qr']?.url || ref.url"
+            appResize></app-qr>
   </div>
   <div class="actions"
        *ngIf="ref.created"

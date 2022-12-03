@@ -50,10 +50,6 @@ export class EmbedComponent implements AfterViewInit {
     return this.admin.getPluginUi(this.expandPlugins);
   }
 
-  get qrWidth() {
-    return Math.min(256, window.innerWidth);
-  }
-
   cssUrl(url: string) {
     return `url("${url}")`;
   }

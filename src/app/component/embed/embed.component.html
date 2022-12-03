@@ -23,11 +23,9 @@
        controls>
   <source [src]="ref.plugins?.['plugin/audio']?.url || ref.url">
 </audio>
-<qrcode *ngIf="expandPlugins.includes('plugin/qr')"
-        [qrdata]="ref.plugins?.['plugin/qr']?.url || ref.url"
-        [width]="qrWidth"
-        [errorCorrectionLevel]="'M'"
-        appResize></qrcode>
+<app-qr *ngIf="expandPlugins.includes('plugin/qr')"
+        [url]="ref.plugins?.['plugin/qr']?.url || ref.url"
+        appResize></app-qr>
 <app-md *ngIf="ref?.comment"
         class="expand"
         [origin]="ref.origin"

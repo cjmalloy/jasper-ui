@@ -126,10 +126,6 @@ export class ChatEntryComponent {
     return commentCount + ' comments';
   }
 
-  get qrWidth() {
-    return Math.min(256, window.innerWidth);
-  }
-
   addInlineTag() {
     if (!this.inlineTag) return;
     const tag = (this.inlineTag.nativeElement.value as string).toLowerCase().trim();

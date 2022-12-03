@@ -7,7 +7,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormlyModule } from '@ngx-formly/core';
 import { OAuthModule } from 'angular-oauth2-oidc';
-import { QRCodeModule } from 'angularx-qrcode';
 import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
@@ -42,6 +41,7 @@ import { PageControlsComponent } from './component/page-controls/page-controls.c
 import { PluginComponent } from './component/plugin/plugin.component';
 import { ProfileListComponent } from './component/profile-list/profile-list.component';
 import { ProfileComponent } from './component/profile/profile.component';
+import { QrComponent } from './component/qr/qr.component';
 import { QueryComponent } from './component/query/query.component';
 import { RefListComponent } from './component/ref-list/ref-list.component';
 import { RefComponent } from './component/ref/ref.component';
@@ -258,6 +258,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     FilterComponent,
     QueryComponent,
     BulkComponent,
+    QrComponent,
   ],
   imports: [
     BrowserModule,
@@ -267,7 +268,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     ReactiveFormsModule,
     MobxAngularModule,
     MarkdownModule.forRoot(),
-    QRCodeModule,
     MonacoEditorModule.forRoot(),
     DragDropModule,
     OverlayModule,
