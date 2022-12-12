@@ -282,17 +282,13 @@ html, body {
   }
 }
 
-.form-array > * {
-  margin-right: 4px;
-
-  &:last-child {
-    margin-right: 0;
-  }
-}
-
 .form-array {
   display: flex;
   flex-wrap: wrap;
+
+  :not([type=button]) {
+    margin-right: 4px;
+  }
 
   input {
     flex: 1;
