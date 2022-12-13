@@ -4,14 +4,18 @@
 
     <div class="form-array" *ngFor="let c of links.controls; let i=index">
       <label for="sources-{{ fieldName }}-{{ i }}">Link:</label>
-      <input id="sources-{{ fieldName }}-{{ i }}" type="url" [formControl]="$any(c)">
+      <div class="grow">
+        <input id="sources-{{ fieldName }}-{{ i }}"
+               type="url"
+               [formControl]="$any(c)">
+        <div class="error" *ngIf="links.at(i).touched && links.at(i).errors?.['pattern']">
+          Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986.</a>
+        </div>
+        <div class="error" *ngIf="links.at(i).touched && links.at(i).errors?.['required']">
+          Link must not be blank.
+        </div>
+      </div>
       <button type="button" (click)="removeLink(i)">&ndash;</button>
-      <div class="error" *ngIf="links.at(i).touched && links.at(i).errors?.['pattern']">
-        Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986.</a>
-      </div>
-      <div class="error" *ngIf="links.at(i).touched && links.at(i).errors?.['required']">
-        Link must not be blank.
-      </div>
     </div>
   </ng-container>
 </ng-container>

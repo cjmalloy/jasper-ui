@@ -4,23 +4,25 @@
 
     <div class="form-array" *ngFor="let tag of tags.controls; let i=index">
       <label for="selector-{{ fieldName }}-{{ i }}">Selector:</label>
-      <input id="selector-{{ fieldName }}-{{ i }}"
-             size="10"
-             type="email"
-             autocorrect="off"
-             autocapitalize="none"
-             [formControl]="$any(tag)">
+      <div class="grow">
+        <input id="selector-{{ fieldName }}-{{ i }}"
+               size="10"
+               type="email"
+               autocorrect="off"
+               autocapitalize="none"
+               [formControl]="$any(tag)">
+        <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['pattern']">
+          Selectors must be lower case letters and forward slashes. Selectors may
+          be qualified with an origin or wildcard '@*'. Use '*' wildcard for all
+          local tags. Must start with a letter and must not contain two
+          non-letters slashes in a row. Private tags start with an underscore.<br>
+          (i.e. "*", "science", "science@origin" "my/tag@*", or "_my/private/tag")
+        </div>
+        <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['required']">
+          Selector must not be blank.
+        </div>
+      </div>
       <button type="button" (click)="removeTag(i)">&ndash;</button>
-      <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['pattern']">
-        Selectors must be lower case letters and forward slashes. Selectors may
-        be qualified with an origin or wildcard '@*'. Use '*' wildcard for all
-        local tags. Must start with a letter and must not contain two
-        non-letters slashes in a row. Private tags start with an underscore.<br>
-        (i.e. "*", "science", "science@origin" "my/tag@*", or "_my/private/tag")
-      </div>
-      <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['required']">
-        Selector must not be blank.
-      </div>
     </div>
   </ng-container>
 </ng-container>

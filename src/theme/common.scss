@@ -221,6 +221,16 @@ html, body {
   }
 }
 
+.grow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  * {
+    flex: 1;
+    flex-basis: 100%;
+  }
+}
+
 .no-margin {
   margin: 0;
 }
@@ -284,18 +294,13 @@ html, body {
 
 .form-array {
   display: flex;
-  flex-wrap: wrap;
 
-  :not([type=button]) {
+  & > :not(:last-child) {
     margin-right: 4px;
   }
 
   input {
     flex: 1;
-  }
-
-  .error {
-    flex-basis: 100%;
   }
 }
 

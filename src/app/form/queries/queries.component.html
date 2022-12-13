@@ -4,22 +4,24 @@
 
     <div class="form-array" *ngFor="let c of queries.controls; let i=index">
       <label for="tags-{{ i }}">Query:</label>
-      <input id="tags-{{ i }}"
-             size="10"
-             type="email"
-             autocorrect="off"
-             autocapitalize="none"
-             [formControl]="$any(c)">
+      <div class="grow">
+        <input id="tags-{{ i }}"
+               size="10"
+               type="email"
+               autocorrect="off"
+               autocapitalize="none"
+               [formControl]="$any(c)">
+        <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['pattern']">
+          Queries support AND (:), OR (|) and grouping qualified tags (parentheses).
+          Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
+          two forward slashes in a row. Private tags start with an underscore.<br>
+          (i.e. "science:news", "science@origin science@other" "your/tag my/tag", or "news:_my/private/tag")
+        </div>
+        <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['required']">
+          Query must not be blank.
+        </div>
+      </div>
       <button type="button" (click)="removeQuery(i)">&ndash;</button>
-      <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['pattern']">
-        Queries support AND (:), OR (|) and grouping qualified tags (parentheses).
-        Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
-        two forward slashes in a row. Private tags start with an underscore.<br>
-        (i.e. "science:news", "science@origin science@other" "your/tag my/tag", or "news:_my/private/tag")
-      </div>
-      <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['required']">
-        Query must not be blank.
-      </div>
     </div>
   </ng-container>
 </ng-container>

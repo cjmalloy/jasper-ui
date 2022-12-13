@@ -4,21 +4,23 @@
 
     <div class="form-array" *ngFor="let tag of tags.controls; let i=index">
       <label for="tags-{{ fieldName }}-{{ i }}">Tag:</label>
-      <input id="tags-{{ fieldName }}-{{ i }}"
-             size="10"
-             type="email"
-             autocorrect="off"
-             autocapitalize="none"
-             [formControl]="$any(tag)">
+      <div class="grow">
+        <input id="tags-{{ fieldName }}-{{ i }}"
+               size="10"
+               type="email"
+               autocorrect="off"
+               autocapitalize="none"
+               [formControl]="$any(tag)">
+        <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['pattern']">
+          Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+          tags start with an underscore.<br>
+          (i.e. "science", "my/tag", or "_my/private/tag")
+        </div>
+        <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['required']">
+          Tag must not be blank.
+        </div>
+      </div>
       <button type="button" (click)="removeTag(i)">&ndash;</button>
-      <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['pattern']">
-        Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-        tags start with an underscore.<br>
-        (i.e. "science", "my/tag", or "_my/private/tag")
-      </div>
-      <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['required']">
-        Tag must not be blank.
-      </div>
     </div>
   </ng-container>
 </ng-container>
