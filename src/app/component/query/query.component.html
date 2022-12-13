@@ -13,4 +13,5 @@
     <span *ngIf="!breadcrumb.tag">{{ breadcrumb.text }}</span>
   </span>
 </div>
-<button *ngIf="query" (click)="editing = !editing">✏️</button>
+<button *ngIf="query && editing" (click)="editing = false">🔍</button>
+<button *ngIf="query && !editing" (click)="editing = true">✏️</button>
