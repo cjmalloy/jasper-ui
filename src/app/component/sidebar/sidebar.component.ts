@@ -97,10 +97,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return !!this.admin.status.templates.root && !!this._tag;
   }
 
-  get feed() {
-    return this.admin.status.plugins.feed && (this.store.account.mod || this.auth.tagReadAccess('+plugin/feed'));
-  }
-
   get modmail(): string | null {
     if (!this._tag) return null;
     if (!TAG_REGEX.test(this._tag)) return null;

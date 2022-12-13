@@ -47,7 +47,7 @@ export class SubmitDmPage implements OnInit {
       if (params['to']) {
         this.to = params['to'];
       }
-      if (hasPrefix(this.to, 'user')) {
+      if (!this.to || hasPrefix(this.to, 'user')) {
         this.title.setValue(`DM from ${store.account.tag}`)
       } else {
         this.title.setValue(`Message to Moderators of ${this.to}`)

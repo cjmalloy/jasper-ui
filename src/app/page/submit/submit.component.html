@@ -1,51 +1,60 @@
-<div class="tabs">
-  <h5>Submit</h5>
-  <app-settings></app-settings>
-</div>
-<form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
-
-  <ng-container *ngIf="feed">
-    <span>Type:</span>
-    <span>RSS / Atom Feed</span>
-  </ng-container>
-
-  <ng-container *ngIf="origin">
-    <span>Type:</span>
-    <span>Replicate Remote Origin</span>
-  </ng-container>
-
-  <ng-container *ngIf="wiki">
-    <span>Type:</span>
-    <span>Wiki</span>
-  </ng-container>
-
-  <label for="url" *ngIf="!wiki">URL:</label>
-  <label for="url" *ngIf="wiki">Title:</label>
-  <input id="url"
-         type="text"
-         autocomplete="off"
-         formControlName="url"
-         appAutofocus>
-
-  <br>
-  <div class="validations">
-    <ng-container *ngFor="let v of validations">
-      <div *ngIf="v.passed">✔️ &nbsp;{{ v.name }}</div>
-      <div *ngIf="!v.passed">❌️ &nbsp;{{ v.name }}</div>
-    </ng-container>
+<ng-container *mobxAutorun>
+  <div class="tabs">
+    <h5>Submit</h5>
+    <a routerLink="/submit" [class.current-tab]="store.submit.link" *ngIf="!store.submit.noPlugins.length" [queryParams]="{ tag: null, url: url.value }" [replaceUrl]="true">link</a>
+    <a routerLink="/submit" [class.current-tab]="store.submit.link" *ngIf="store.submit.noPlugins.length" [queryParams]="{ tag: store.submit.noPlugins, url: url.value }" [replaceUrl]="true">{{ store.submit.noPlugins.join(', ') }}</a>
+    <a routerLink="/submit/text" [queryParams]="{ tag: store.submit.noPlugins, url: null }">text</a>
+    <a routerLink="/submit/dm" [queryParams]="{ tag: store.submit.noPlugins, url: null }">dm</a>
+    <a routerLink="/submit" [class.current-tab]="store.submit.wiki" [queryParams]="{ tag: store.submit.noPlugins, url: 'wiki:' }" [replaceUrl]="true">wiki</a>
+    <a routerLink="/submit" [class.current-tab]="store.submit.tags.includes(plugin)" *ngFor="let plugin of store.submit.plugins" [queryParams]="{ tag: addPlugin(plugin), url: url.value }" [replaceUrl]="true">{{ plugin }}</a>
+    <app-settings></app-settings>
   </div>
+  <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
 
-  <span><!-- Buttons --></span>
-  <span class="form-array">
+    <ng-container *ngIf="store.submit.feed">
+      <span>Type:</span>
+      <span>RSS / Atom Feed</span>
+    </ng-container>
+
+    <ng-container *ngIf="store.submit.origin">
+      <span>Type:</span>
+      <span>Replicate Remote Origin</span>
+    </ng-container>
+
+    <ng-container *ngIf="store.submit.wiki">
+      <span>Type:</span>
+      <span>Wiki</span>
+    </ng-container>
+
+    <label for="url" *ngIf="!store.submit.wiki">URL:</label>
+    <label for="url" *ngIf="store.submit.wiki">Title:</label>
+    <input id="url"
+           type="text"
+           autocomplete="off"
+           formControlName="url"
+           appAutofocus>
+
+    <br>
+    <div class="validations">
+      <ng-container *ngFor="let v of validations">
+        <div *ngIf="v.passed">✔️ &nbsp;{{ v.name }}</div>
+        <div *ngIf="!v.passed">❌️ &nbsp;{{ v.name }}</div>
+      </ng-container>
+    </div>
+
+    <span><!-- Buttons --></span>
+    <span class="form-array">
     <button type="submit" [disabled]="!submitForm.valid">Next</button>
-    <div *ngIf="web">
+    <div *ngIf="store.submit.link">
       <input id="scrape" type="checkbox" [checked]="scrape" (input)="scrape = $any($event.target).value">
       <label for="scrape">Scrape</label>
     </div>
   </span>
-</form>
+  </form>
 
-<ng-container *ngIf="existingRef">
-  <br>
-  <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
+  <ng-container *ngIf="existingRef">
+    <br>
+    <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
+  </ng-container>
+
 </ng-container>
