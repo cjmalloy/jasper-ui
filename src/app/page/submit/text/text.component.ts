@@ -129,7 +129,7 @@ export class SubmitTextPage implements AfterViewInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/ref', this.textForm.value.url], { queryParams: { published }});
+      this.router.navigate(['/ref', this.textForm.value.url, 'sources'], { queryParams: { published }});
     });
   }
 }
