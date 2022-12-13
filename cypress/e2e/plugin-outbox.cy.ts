@@ -110,8 +110,10 @@ describe('Outbox Plugin: Remote Notifications', () => {
     cy.get('.full-page.ref .link a').should('have.text', 'Ref from other');
   });
   it('@other: local user notified', () => {
+    cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=USER&tag=charlie');
-    cy.get('.settings .notification').click({ force: true });
+    cy.wait('@notifications');
+    cy.get('.settings .notification').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link:not(.remote)').contains('Ref from other').parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('bob');
@@ -128,16 +130,20 @@ describe('Outbox Plugin: Remote Notifications', () => {
     cy.wait(100);
   });
   it('@main: check ref was scraped', () => {
+    cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit('/?debug=USER&tag=alice');
-    cy.get('.settings .notification').click({ force: true });
+    cy.wait('@notifications');
+    cy.get('.settings .notification').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Ref from other').parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('bob@other');
     cy.get('@ref').find('.origin.tag').contains('@other');
   });
   it('@main: reply to remote message', () => {
+    cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit('/?debug=USER&tag=alice');
-    cy.get('.settings .inbox').click({force: true});
+    cy.wait('@notifications');
+    cy.get('.settings .inbox').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Ref from other').parent().parent().as('ref');
     cy.get('@ref').find('.actions').contains('comment').click();
@@ -155,16 +161,20 @@ describe('Outbox Plugin: Remote Notifications', () => {
     cy.wait('@scrape');
   });
   it('@other: check reply was scraped', () => {
+    cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=USER&tag=bob');
-    cy.get('.settings .notification').click({ force: true });
+    cy.wait('@notifications');
+    cy.get('.settings .notification').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Reply to: Ref from other').parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice@main');
     cy.get('@ref').find('.origin.tag').contains('@main');
   });
   it('@other: check inbox was converted to outbox', () => {
+    cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=USER&tag=charlie');
-    cy.get('.settings .notification').click({ force: true });
+    cy.wait('@notifications');
+    cy.get('.settings .notification').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Reply to: Ref from other').parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice@main');
