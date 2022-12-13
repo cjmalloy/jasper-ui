@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, OnInit, Output } from '@angular/core';
 
 @Component({
   selector: 'app-list-editor',
@@ -6,6 +6,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
   styleUrls: ['./list-editor.component.scss']
 })
 export class ListEditorComponent implements OnInit {
+  @HostBinding('class') css = 'listbox form-group';
 
   @Input()
   list: string[] = [];
