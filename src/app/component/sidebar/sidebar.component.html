@@ -22,9 +22,14 @@
       📝️ &nbsp; Submit
     </div>
   </ng-container>
-  <ng-container *ngIf="store.account.editor || writeAccess">
-    <div class="submit-button" routerLink="/create/ext" [queryParams]="ext ? null : { tag: writeAccess ? localTag : '' }">
-      🖌️ &nbsp; Create Tag Extension
+  <ng-container *ngIf="!ext && (store.account.editor || writeAccess)">
+    <div class="submit-button" routerLink="/create/ext" [queryParams]="{ tag: writeAccess ? localTag : '' }">
+      🖌️ &nbsp; Extend Tag
+    </div>
+  </ng-container>
+  <ng-container *ngIf="ext && writeAccess">
+    <div class="submit-button" [routerLink]="['/tag', localTag, 'edit']">
+      🖌️ &nbsp; Extend Tag
     </div>
   </ng-container>
   <ng-container *ngIf="config.scim && store.account.mod">
