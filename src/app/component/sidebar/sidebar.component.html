@@ -62,6 +62,14 @@
 
   <div class="tag-header" *ngIf="home">
     <h3><a [routerLink]="['/home']">Home</a></h3>
+
+    <ng-container *ngIf="homeWriteAccess">
+      <a *ngIf="admin.status.templates.home"
+         class="sidebar-link edit"
+         [routerLink]="['/tag', '+home']">
+        edit
+      </a>
+    </ng-container>
   </div>
   <div class="tag-header" *ngIf="!home && ext?.name || tag">
     <h3>{{ ext?.name || tag }}</h3>
@@ -138,38 +146,9 @@
     </div>
   </ng-container>
 
-  <ng-container *ngIf="writeAccess && modmail">
-    <a class="sidebar-link"
-       [routerLink]="['/tag', modmail]">
-      modmail
-    </a>
-  </ng-container>
-
   <ng-container *ngIf="root">
     <app-md *ngIf="ext?.config?.sidebar"
             [origin]="ext?.origin"
             [text]="ext!.config!.sidebar"></app-md>
-  </ng-container>
-
-  <ng-container *ngIf="writeAccess">
-    <a *ngIf="ext"
-       class="sidebar-link edit"
-       [routerLink]="['/tag', localTag, 'edit']">
-      edit
-    </a>
-    <a *ngIf="!ext"
-       class="sidebar-link edit"
-       routerLink="/create/ext"
-       [queryParams]="{tag: localTag}">
-      edit
-    </a>
-  </ng-container>
-
-  <ng-container *ngIf="homeWriteAccess">
-    <a *ngIf="admin.status.templates.home"
-       class="sidebar-link edit"
-       [routerLink]="['/tag', '+home']">
-      edit
-    </a>
   </ng-container>
 </ng-container>
