@@ -5,6 +5,7 @@
          [placeholder]="placeholder"
          [(ngModel)]="addingText">
   <button type="button" (click)="add()">+</button>
+  <div class="error" *ngIf="error">{{ error }}</div>
 </span>
 <span class="form-array" *ngFor="let l of list; let i = index">
   <span tabindex="0"

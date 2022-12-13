@@ -24,13 +24,20 @@ export class ListEditorComponent implements OnInit {
   addingText = '';
   selectedIndex = -1;
 
+  error = '';
+
   constructor() { }
 
   ngOnInit(): void {
   }
 
   add() {
+    this.error = '';
     if (!this.addingText) return;
+    if (this.list.includes(this.addingText)) {
+      this.error = 'Duplicate name';
+      return;
+    }
     this.list.push(this.addingText);
     this.onAdd.emit(this.addingText);
     this.addingText = '';
