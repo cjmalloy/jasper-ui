@@ -30,6 +30,14 @@ html, body {
   cursor: pointer;
 }
 
+label.big {
+  padding-top: 5px
+}
+
+input.big {
+  height: 24px;
+}
+
 .wide {
   width: 100%;
 }

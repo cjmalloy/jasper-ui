@@ -26,9 +26,10 @@
       <span>Wiki</span>
     </ng-container>
 
-    <label for="url" *ngIf="!store.submit.wiki">URL:</label>
-    <label for="url" *ngIf="store.submit.wiki">Title:</label>
+    <label for="url" class="big" *ngIf="!store.submit.wiki">URL:</label>
+    <label for="url" class="big" *ngIf="store.submit.wiki">Title:</label>
     <input id="url"
+           class="big"
            type="text"
            autocomplete="off"
            formControlName="url"
