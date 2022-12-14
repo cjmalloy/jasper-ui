@@ -136,6 +136,7 @@ body.light-theme {
     border-left: 1px dashed $border;
     border-bottom: 1px dashed $border;
     backdrop-filter: blur(1px);
+    box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
     .submit-button {
       border: 1px solid $border;
 
@@ -163,7 +164,8 @@ body.light-theme {
     padding: 8px;
     border-radius: 8px;
     border: 1px dashed transparent;
-    background-color: $placeholder;
+    backdrop-filter: blur(1px) sepia(5%);
+    box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
 
     &:first-child {
       margin: 0;
@@ -294,7 +296,7 @@ body.light-theme {
       border-radius: 12px;
       padding: 4px;
       background-color: transparent;
-      backdrop-filter: blur(1px);
+      backdrop-filter: blur(1px) sepia(5%);
       border: 0.5px solid $border-light;
     }
     .kanban-column {
