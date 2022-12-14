@@ -13,8 +13,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install dependencies
-        uses: bahmutov/npm-install@v1
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      - run: npm ci
 
       - name: Start containers
         run: npm run cy:ci
