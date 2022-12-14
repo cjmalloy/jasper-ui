@@ -8,11 +8,10 @@ import {
   ValidationErrors,
   Validators
 } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import * as _ from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
-import { RouterStore } from 'mobx-angular';
-import { catchError, forkJoin, map, mergeMap, Observable, of } from 'rxjs';
+import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
@@ -21,7 +20,7 @@ import { ScrapeService } from '../../service/api/scrape.service';
 import { AuthzService } from '../../service/authz.service';
 import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
-import { URI_REGEX, wikiTitleFormat, wikiUriFormat } from '../../util/format';
+import { URI_REGEX, wikiUriFormat } from '../../util/format';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
@@ -131,7 +130,8 @@ export class SubmitPage implements OnInit, OnDestroy {
     const linkType = this.linkType(url);
     if (linkType === 'web' || linkType === 'text') {
       if (this.existingRef?.url === url) return of(true);
-      return this.refs.get(url).pipe(
+      return timer(400).pipe(
+        switchMap(() => this.refs.get(url)),
         tap(ref => this.existingRef = ref),
         map(ref => !!ref),
         catchError(err => of(false)),
