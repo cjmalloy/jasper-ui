@@ -28,7 +28,9 @@ export function dragCol(from: number, to?: number) {
   cy.wait('@tag');
 }
 
-describe('Kanban Template', () => {
+describe('Kanban Template', {
+  testIsolation: false
+}, () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 1000 * 60 });
@@ -50,7 +52,7 @@ describe('Kanban Template', () => {
   });
   it('creates a board', () => {
     cy.visit('/?debug=MOD');
-    cy.contains('Create Tag Extension').click();
+    cy.contains('Extend Tag').click();
     cy.get('#tag').type('kanban/test');
     cy.get('#name').type('Kanban Test');
     cy.get('button').contains('Create').click();

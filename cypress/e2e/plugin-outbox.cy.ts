@@ -1,4 +1,6 @@
-describe('Outbox Plugin: Remote Notifications', () => {
+describe('Outbox Plugin: Remote Notifications', {
+  testIsolation: false
+}, () => {
   const mainApi = Cypress.env('CYPRESS_mainApi') || 'http://web';
   const replUrl = Cypress.env('CYPRESS_replUrl') || 'http://localhost:8082';
   const replApi = Cypress.env('CYPRESS_replApi') || 'http://repl-web';
@@ -28,9 +30,9 @@ describe('Outbox Plugin: Remote Notifications', () => {
   });
   it('@main: replicate @other', () => {
     cy.visit('/?debug=ADMIN');
-    cy.contains('Replicate Remote Origin').click();
-    cy.get('#url').type(replApi);
-    cy.get('#scrape').uncheck();
+    cy.contains('Submit').click();
+    cy.get('.tabs').contains('+plugin/origin').click();
+    cy.get('#url').type(replApi).blur();
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
     cy.get('#origin').type('@other');
@@ -43,7 +45,7 @@ describe('Outbox Plugin: Remote Notifications', () => {
   });
   it('@main: subscribe to remote notifications', () => {
     cy.visit('/?debug=ADMIN');
-    cy.contains('Create User Permissions').click();
+    cy.contains('User Permissions').click();
     cy.get('#tag').type('+user/alice');
     cy.get('#readAccess button').click().click();
     cy.get('#tags-readAccess-0').type('plugin/inbox/user/alice');
@@ -64,9 +66,9 @@ describe('Outbox Plugin: Remote Notifications', () => {
   });
   it('@other: replicate @main', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
-    cy.contains('Replicate Remote Origin').click();
-    cy.get('#url').type(mainApi);
-    cy.get('#scrape').uncheck();
+    cy.contains('Submit').click();
+    cy.get('.tabs').contains('+plugin/origin').click();
+    cy.get('#url').type(mainApi).blur();
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @main');
     cy.get('#origin').type('@main');
@@ -75,7 +77,7 @@ describe('Outbox Plugin: Remote Notifications', () => {
   });
   it('@other: subscribe to remote notifications for bob', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
-    cy.contains('Create User Permissions').click();
+    cy.contains('User Permissions').click();
     cy.get('#tag').type('+user/bob');
     cy.get('#readAccess button').click().click();
     cy.get('#tags-readAccess-0').type('plugin/inbox/user/bob');
@@ -89,7 +91,7 @@ describe('Outbox Plugin: Remote Notifications', () => {
   });
   it('@other: subscribe to remote notifications for charlie', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
-    cy.contains('Create User Permissions').click();
+    cy.contains('User Permissions').click();
     cy.get('#tag').type('+user/charlie');
     cy.get('#readAccess button').click().click();
     cy.get('#tags-readAccess-0').type('plugin/inbox/user/charlie');
@@ -103,7 +105,8 @@ describe('Outbox Plugin: Remote Notifications', () => {
   });
   it('@other: creates ref', () => {
     cy.visit(replUrl + '/?debug=USER&tag=bob');
-    cy.contains('Submit Text Post').click();
+    cy.contains('Submit').click();
+    cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Ref from other');
     cy.get('#comment').type('Hi +user/alice@main! How\'s it going? You should also see this +user/charlie.').blur();
     cy.get('button').contains('Submit').click();

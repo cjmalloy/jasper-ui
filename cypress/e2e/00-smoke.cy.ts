@@ -1,4 +1,6 @@
-describe('Smoke Tests', () => {
+describe('Smoke Tests', {
+  testIsolation: false
+}, () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 1000 * 60 });
@@ -11,7 +13,7 @@ describe('Smoke Tests', () => {
     cy.get('button').contains('Save').click();
   });
   it('creates a ref', () => {
-    cy.contains('Submit Link').click();
+    cy.contains('Submit').click();
     cy.get('#url').type('https://www.jasper-kms.info/');
     cy.get('#scrape').uncheck();
     cy.contains('Next').click();

@@ -6,7 +6,9 @@ export function loadBoard() {
   cy.wait(new Array(9).fill('@page'));
 }
 
-describe('Kanban Template with Swim Lanes', () => {
+describe('Kanban Template with Swim Lanes', {
+  testIsolation: false
+}, () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 1000 * 60 });
@@ -28,7 +30,7 @@ describe('Kanban Template with Swim Lanes', () => {
   });
   it('creates a board with swim lanes', () => {
     cy.visit('/?debug=MOD');
-    cy.contains('Create Tag Extension').click();
+    cy.contains('Extend Tag').click();
     cy.get('#tag').type('kanban/sl');
     cy.get('#name').type('Kanban Test');
     cy.get('button').contains('Create').click();

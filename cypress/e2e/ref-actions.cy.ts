@@ -1,4 +1,6 @@
-describe('Ref Actions', () => {
+describe('Ref Actions', {
+  testIsolation: false
+}, () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 1000 * 60 });
@@ -11,7 +13,8 @@ describe('Ref Actions', () => {
     cy.get('button').contains('Save').click();
   });
   it('creates a ref', () => {
-    cy.contains('Submit Text Post').click();
+    cy.contains('Submit').click();
+    cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Title');
     cy.contains('show advanced').click();
     cy.get('#published').type('2020-01-01T00:00').blur();

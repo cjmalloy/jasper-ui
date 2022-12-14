@@ -1,4 +1,6 @@
-describe('Origin Plugin: Remote Replication', () => {
+describe('Origin Plugin: Remote Replication', {
+  testIsolation: false
+}, () => {
   const replUrl = Cypress.env('CYPRESS_replUrl') || 'http://localhost:8082';
   const replApi = Cypress.env('CYPRESS_replApi') || 'http://repl-web';
   it('loads the page', () => {
@@ -20,9 +22,9 @@ describe('Origin Plugin: Remote Replication', () => {
     cy.get('button').contains('Save').click();
   });
   it('creates a remote origin', () => {
-    cy.contains('Replicate Remote Origin').click();
+    cy.contains('Submit').click();
+    cy.get('.tabs').contains('+plugin/origin').click();
     cy.get('#url').type(replApi);
-    cy.get('#scrape').uncheck();
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
     cy.get('#origin').type('@other');
@@ -31,7 +33,8 @@ describe('Origin Plugin: Remote Replication', () => {
   });
   it('creates ref on remote', () => {
     cy.visit(replUrl + '/?debug=USER&tag=bob');
-    cy.contains('Submit Text Post').click();
+    cy.contains('Submit').click();
+    cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Ref from other');
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Ref from other');
