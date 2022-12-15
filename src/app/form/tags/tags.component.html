@@ -3,7 +3,7 @@
     <button type="button" (click)="addTag()">+ Add another tag</button>
 
     <div class="form-array" *ngFor="let tag of tags.controls; let i=index">
-      <label for="tags-{{ fieldName }}-{{ i }}">Tag:</label>
+      <label for="tags-{{ fieldName }}-{{ i }}">🏷️</label>
       <div class="grow">
         <input id="tags-{{ fieldName }}-{{ i }}"
                size="10"
