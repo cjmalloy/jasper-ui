@@ -38,7 +38,7 @@
     <br>
     <div class="validations">
       <ng-container *ngFor="let v of validations">
-        <div *ngIf="v.passed">✔️ &nbsp;{{ v.name }}</div>
+        <div *ngIf="v.passed">✅️ &nbsp;{{ v.name }}</div>
         <div *ngIf="!v.passed">❌️ &nbsp;{{ v.name }}</div>
       </ng-container>
     </div>
