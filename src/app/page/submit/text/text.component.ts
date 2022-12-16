@@ -1,8 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash-es';
+import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -22,7 +23,8 @@ import { printError } from '../../../util/http';
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
 })
-export class SubmitTextPage implements AfterViewInit {
+export class SubmitTextPage implements AfterViewInit, OnDestroy {
+  private disposers: IReactionDisposer[] = [];
 
   wiki = false;
   submitted = false;
@@ -40,8 +42,7 @@ export class SubmitTextPage implements AfterViewInit {
     private theme: ThemeService,
     public admin: AdminService,
     private router: Router,
-    private route: ActivatedRoute,
-    private store: Store,
+    public store: Store,
     private editor: EditorService,
     private refs: RefService,
     private fb: UntypedFormBuilder,
@@ -54,20 +55,24 @@ export class SubmitTextPage implements AfterViewInit {
     _.defer(() => {
       this.addTag('public');
       this.addTag(this.store.account.localTag);
-      this.route.queryParams.subscribe(params => {
-        let url = params['url'] || 'comment:' + uuid();
-        this.wiki = !!url.startsWith('wiki:');
-        if (this.wiki) {
+      this.disposers.push(autorun(() => {
+        let url = this.store.submit.url || 'comment:' + uuid();
+        if (this.store.submit.wiki) {
           url = wikiUriFormat(url);
           this.theme.setTitle('Submit: Wiki');
           this.title.setValue(wikiTitleFormat(url.substring('wiki:'.length)));
         }
         this.url.setValue(url);
-        if (params['tag']) {
-          this.addTag(...params['tag'].split(/[:|!()]/));
+        for (const tag of this.store.submit.tags) {
+          this.addTag(...tag.split(/[:|!()]/));
         }
-      });
+      }));
     });
+  }
+
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   get url() {

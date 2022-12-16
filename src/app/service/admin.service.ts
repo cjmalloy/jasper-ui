@@ -7,6 +7,7 @@ import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
+import { aprioriPlugin } from '../plugin/apriori';
 import { archivePlugin } from '../plugin/archive';
 import { audioPlugin } from '../plugin/audio';
 import { commentPlugin } from '../plugin/comment';
@@ -61,6 +62,7 @@ export class AdminService {
       emoji: emojiPlugin,
       person: personPlugin,
       graph: graphPlugin,
+      apriori: aprioriPlugin,
       invoice: invoicePlugin,
       invoiceRejected: invoiceRejectionPlugin,
       invoiceDisputed: invoiceDisputedPlugin,
@@ -161,6 +163,11 @@ export class AdminService {
     return tags
       .map(t => this.getPlugin(t))
       .filter(p => p?.config?.ui) as Plugin[];
+  }
+
+  getSubmitPlugins() {
+    return Object.values(this.status.plugins)
+      .filter(p => p?.config?.submit) as Plugin[];
   }
 
   getPluginForms(tags: string[] = []) {

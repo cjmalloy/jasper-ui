@@ -30,7 +30,6 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   styleUrls: ['./submit.component.scss'],
 })
 export class SubmitPage implements OnInit, OnDestroy {
-
   private disposers: IReactionDisposer[] = [];
 
   submitForm: UntypedFormGroup;
@@ -47,16 +46,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     '//su.pr/',
   ];
 
-  validations: Validation[] = [
-    { name: 'Valid link', passed: false, test: url => of(this.linkType(this.fixed(url))) },
-    { name: 'Not submitted yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) },
-    { name: 'No link shorteners', passed: true, test: url => of(!this.isShortener(this.fixed(url))) },
-  ];
-
-  wikiValidations: Validation[] = [
-    { name: 'Valid title', passed: false, test: url => of(this.linkType(this.fixed(url))) },
-    { name: 'Not created yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) },
-  ];
+  validations: Validation[] = [];
 
   existingRef?: Ref;
   scrape = true;
@@ -80,37 +70,32 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     runInAction(() => {
-      this.store.submit.plugins = [];
-      if (this.showFeed) {
-        this.store.submit.plugins.push('+plugin/feed');
-      }
-      if (this.showOrigin) {
-        this.store.submit.plugins.push('+plugin/origin');
-      }
+      this.store.submit.plugins = this.admin.getSubmitPlugins();
     });
     this.disposers.push(autorun(() => {
-      if (this.store.submit.feed) {
-        this.scrape = false;
-      }
+      this.validations.length = 0;
       if (this.store.submit.wiki) {
         this.scrape = false;
+        this.validations.push({ name: 'Valid title', passed: false, test: url => of(this.linkType(this.fixed(url))) });
+        this.validations.push({ name: 'Not created yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
       } else {
         this.url.setValue(this.store.submit.url);
+        if (this.store.submit.feed || this.store.submit.origin) {
+          this.scrape = false;
+          this.validations.push({ name: 'Valid Web link', passed: false, test: url => of('web' === this.linkType(this.fixed(url))) });
+        } else {
+          this.validations.push({ name: 'Valid link', passed: false, test: url => of(this.linkType(this.fixed(url))) });
+        }
+        this.validations.push({ name: 'Not submitted yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
+        this.validations.push({ name: 'No link shorteners', passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
       }
+      this.url.updateValueAndValidity();
     }));
   }
 
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-  }
-
-  get showFeed() {
-    return this.admin.status.plugins.feed && (this.store.account.mod || this.auth.tagReadAccess('+plugin/feed'));
-  }
-
-  get showOrigin() {
-    return this.admin.status.plugins.origin && this.store.account.admin;
   }
 
   get url() {
@@ -158,8 +143,7 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   validLink(control: AbstractControl): Observable<ValidationErrors | null> {
     const vs: Observable<ValidationErrors | null>[] = [];
-    const validations = this.store.submit.wiki ? this.wikiValidations : this.validations;
-    for (const v of validations) {
+    for (const v of this.validations) {
       vs.push(v.test(control.value).pipe(
         tap(result => v.passed = !!result),
         map(res => res ? null : { error: v.name }),
@@ -180,7 +164,7 @@ export class SubmitPage implements OnInit, OnDestroy {
       }
     } catch (e) {}
     if (value.startsWith('wiki:')) return 'text';
-    if (URI_REGEX.test(value)) return 'web';
+    if (URI_REGEX.test(value)) return 'other';
     return null;
   }
 
