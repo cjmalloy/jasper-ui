@@ -18,6 +18,8 @@ export class LinksFormComponent implements OnInit {
   fieldName = 'links';
   @Input()
   label = 'link';
+  @Input()
+  alt = false;
 
   constructor(
     private fb: UntypedFormBuilder,

@@ -3,7 +3,7 @@
     <button type="button" (click)="addLink()">+ Add another {{ label }}</button>
 
     <div class="form-array" *ngFor="let c of links.controls; let i=index">
-      <label for="sources-{{ fieldName }}-{{ i }}">🔗</label>
+      <label for="sources-{{ fieldName }}-{{ i }}">{{ alt ? '📎' : '🔗'}}</label>
       <div class="grow">
         <input id="sources-{{ fieldName }}-{{ i }}"
                type="url"
