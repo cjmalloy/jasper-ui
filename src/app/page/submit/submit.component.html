@@ -6,24 +6,29 @@
     <a routerLink="/submit/text" [queryParams]="{ tag: store.submit.noPlugins, url: null }">text</a>
     <a routerLink="/submit/dm" [queryParams]="{ tag: store.submit.noPlugins, url: null }">dm</a>
     <a routerLink="/submit" [class.current-tab]="store.submit.wiki" [queryParams]="{ tag: store.submit.noPlugins, url: 'wiki:' }" [replaceUrl]="true">wiki</a>
-    <a routerLink="/submit" [class.current-tab]="store.submit.tags.includes(plugin)" *ngFor="let plugin of store.submit.plugins" [queryParams]="{ tag: addPlugin(plugin), url: url.value }" [replaceUrl]="true">{{ plugin }}</a>
+    <a routerLink="/submit" [class.current-tab]="store.submit.tags.includes(plugin.tag)" *ngFor="let plugin of store.submit.plugins" [queryParams]="{ tag: addPlugin(plugin.tag), url: url.value }" [replaceUrl]="true">{{ plugin.config?.submit || plugin.tag }}</a>
     <app-settings></app-settings>
   </div>
   <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
 
-    <ng-container *ngIf="store.submit.feed">
+    <ng-container *ngFor="let plugin of store.submit.activePlugins">
       <span>Type:</span>
-      <span>RSS / Atom Feed</span>
-    </ng-container>
-
-    <ng-container *ngIf="store.submit.origin">
-      <span>Type:</span>
-      <span>Replicate Remote Origin</span>
+      <div>
+        <span>{{ plugin.name }}</span>
+        <p *ngIf="plugin.config?.description" class="description">
+          {{ plugin.config!.description }}
+        </p>
+      </div>
     </ng-container>
 
     <ng-container *ngIf="store.submit.wiki">
       <span>Type:</span>
-      <span>Wiki</span>
+      <div>
+        <span>Wiki</span>
+        <p class="description">
+          Create a text post that can be linked to via double bracket [[Wiki]] style.
+        </p>
+      </div>
     </ng-container>
 
     <label for="url" class="big" *ngIf="!store.submit.wiki">URL:</label>
@@ -34,6 +39,11 @@
            autocomplete="off"
            formControlName="url"
            appAutofocus>
+
+    <span><!-- Tags --></span>
+    <div class="form-array right">
+      <span *ngFor="let tag of store.submit.tags">🏷️{{ tag }}</span>
+    </div>
 
     <br>
     <div class="validations">

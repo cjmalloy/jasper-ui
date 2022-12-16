@@ -1,10 +1,12 @@
 import * as _ from 'lodash-es';
 import { makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
+import { map, Observable, of } from 'rxjs';
+import { Plugin } from '../model/plugin';
 
 export class SubmitStore {
 
-  plugins: string[] = [];
+  plugins: Plugin[] = [];
 
   constructor(
     public route: RouterStore,
@@ -47,10 +49,14 @@ export class SubmitStore {
   }
 
   get link() {
-    return !this.wiki && !_.find(this.tags, t => this.plugins.includes(t));
+    return !this.wiki && !_.find(this.tags, t => this.plugins.find(p => p.tag === t));
   }
 
   get noPlugins() {
-    return _.without(this.tags, ...this.plugins);
+    return _.filter(this.tags, t => !this.plugins.find(p => p.tag === t));
+  }
+
+  get activePlugins() {
+    return this.plugins.filter(p => this.tags.includes(p.tag));
   }
 }
