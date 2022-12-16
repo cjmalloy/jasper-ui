@@ -245,6 +245,7 @@ input.big {
 
 .form {
   max-width: 600px;
+  margin: auto;
   display: grid;
   grid-template-columns: min-content auto;
   padding: 10px;
@@ -302,6 +303,10 @@ input.big {
 
 .form-array {
   display: flex;
+
+  &.right {
+    justify-content: right;
+  }
 
   & > :not(:last-child) {
     margin-right: 4px;
