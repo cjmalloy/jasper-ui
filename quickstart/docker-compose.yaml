@@ -25,3 +25,4 @@ services:
       - 8082:80
     environment:
       JASPER_API: //localhost:8081
+      CSP_DEFAULT_SRC: http://localhost:8081
