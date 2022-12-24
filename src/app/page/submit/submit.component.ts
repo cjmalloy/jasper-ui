@@ -168,7 +168,11 @@ export class SubmitPage implements OnInit, OnDestroy {
     return null;
   }
 
-  addPlugin(plugin: string) {
-    return _.uniq([plugin].concat(this.store.submit.tags));
+  togglePlugin(plugin: string) {
+    if (this.store.submit.tags.includes(plugin)) {
+      return _.without(this.store.submit.tags, plugin);
+    } else {
+      return _.uniq([plugin].concat(this.store.submit.tags));
+    }
   }
 }

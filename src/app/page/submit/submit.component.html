@@ -6,7 +6,7 @@
     <a routerLink="/submit/text" [queryParams]="{ tag: store.submit.noPlugins, url: null }">text</a>
     <a routerLink="/submit/dm" [queryParams]="{ tag: store.submit.noPlugins, url: null }">dm</a>
     <a routerLink="/submit" [class.current-tab]="store.submit.wiki" [queryParams]="{ tag: store.submit.noPlugins, url: 'wiki:' }" [replaceUrl]="true">wiki</a>
-    <a routerLink="/submit" [class.current-tab]="store.submit.tags.includes(plugin.tag)" *ngFor="let plugin of store.submit.plugins" [queryParams]="{ tag: addPlugin(plugin.tag), url: url.value }" [replaceUrl]="true">{{ plugin.config?.submit || plugin.tag }}</a>
+    <a routerLink="/submit" [class.current-tab]="store.submit.tags.includes(plugin.tag)" *ngFor="let plugin of store.submit.plugins" [queryParams]="{ tag: togglePlugin(plugin.tag), url: url.value }" [replaceUrl]="true">{{ plugin.config?.submit || plugin.tag }}</a>
     <app-settings></app-settings>
   </div>
   <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
