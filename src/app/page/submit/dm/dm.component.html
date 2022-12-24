@@ -10,7 +10,9 @@
          type="email"
          autocorrect="off"
          autocapitalize="none"
-         [value]="to" (change)="to = $any($event.target).value">
+         [value]="to"
+         (change)="to = $any($event.target).value"
+         appAutofocus>
 
   <label for="title">Title:</label>
   <input id="title" type="text" [formControl]="title">

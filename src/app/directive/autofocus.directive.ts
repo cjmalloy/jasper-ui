@@ -1,4 +1,4 @@
-import { Directive, ElementRef } from '@angular/core';
+import { Directive, ElementRef, Input } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
@@ -6,6 +6,9 @@ import { filter } from 'rxjs';
   selector: '[appAutofocus]',
 })
 export class AutofocusDirective {
+
+  @Input('appAutofocus')
+  enabled: boolean | '' = true;
 
   constructor(
     private elementRef: ElementRef,
@@ -21,6 +24,7 @@ export class AutofocusDirective {
   }
 
   focus() {
+    if (this.enabled === false) return;
     this.elementRef.nativeElement.focus();
   }
 

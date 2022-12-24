@@ -1,67 +1,79 @@
-<div class="tabs">
-  <h5 *ngIf="!wiki">Submit Text Post</h5>
-  <h5 *ngIf="wiki">Submit Wiki</h5>
-  <app-settings></app-settings>
-</div>
+<ng-container *mobxAutorun>
+  <div class="tabs">
+    <h5 *ngIf="!store.submit.wiki">Submit Text Post</h5>
+    <h5 *ngIf="store.submit.wiki">Submit Wiki</h5>
+    <app-settings></app-settings>
+  </div>
 
-<form class="form" [formGroup]="textForm" (ngSubmit)="submit()">
+  <form class="form" [formGroup]="textForm" (ngSubmit)="submit()">
 
-  <ng-container *ngIf="!advanced">
-    <label for="title" *ngIf="!wiki">Title:</label>
-    <label for="title" *ngIf="wiki">Wiki:</label>
-    <input id="title" type="text" [formControl]="title" [attr.disabled]="wiki || null">
-    <span><!-- Title Errors --></span>
-    <div>
-      <div class="error" *ngIf="title.touched && title.errors?.['required']">
-        Title must not be blank.
+    <ng-container *ngIf="!advanced">
+      <label for="title" *ngIf="!store.submit.wiki">Title:</label>
+      <label for="title" *ngIf="store.submit.wiki">Wiki:</label>
+      <input id="title"
+             type="text"
+             [formControl]="title"
+             [appAutofocus]="!store.submit.wiki">
+      <span><!-- Title Errors --></span>
+      <div>
+        <div class="error" *ngIf="title.touched && title.errors?.['required']">
+          Title must not be blank.
+        </div>
       </div>
-    </div>
 
-    <label for="comment" *ngIf="!wiki">Comment:</label>
-    <label for="comment" *ngIf="wiki">Entry:</label>
-    <div class="editor-preview">
-      <textarea id="comment" class="has-plugins" [formControl]="comment" (blur)="syncEditor()"></textarea>
-      <app-embed [ref]="textForm.value"></app-embed>
-    </div>
+      <label for="comment" *ngIf="!store.submit.wiki">Comment:</label>
+      <label for="comment" *ngIf="store.submit.wiki">Entry:</label>
+      <div class="editor-preview">
+        <textarea id="comment"
+                  class="has-plugins"
+                  [formControl]="comment"
+                  (blur)="syncEditor()"
+                  [appAutofocus]="store.submit.wiki"></textarea>
+        <app-md *ngIf="textForm.value.comment"
+                class="expand"
+                [text]="textForm.value.comment"
+                [plugins]="addPlugins([])"></app-md>
+      </div>
 
-    <span><!-- Comment Plugins --></span>
-    <div class="no-margin">
-    <span class="hints">
-      <ng-container *ngIf="admin.status.plugins.emoji">
-        <input id="emoji" type="checkbox" [checked]="emoji" (change)="emoji = !emoji">
-        <label for="emoji">
-          Emoji plugin
-          <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
-        </label>
-      </ng-container>
-      <ng-container *ngIf="admin.status.plugins.latex">
-        <input id="latex" type="checkbox" [checked]="latex" (change)="latex = !latex">
-        <label for="latex">
-          LaTeX plugin
-          <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
-        </label>
-      </ng-container>
+      <span><!-- Comment Plugins --></span>
+      <div class="no-margin">
+      <span class="hints">
+        <ng-container *ngIf="admin.status.plugins.emoji">
+          <input id="emoji" type="checkbox" [checked]="emoji" (change)="emoji = !emoji">
+          <label for="emoji">
+            Emoji plugin
+            <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
+          </label>
+        </ng-container>
+        <ng-container *ngIf="admin.status.plugins.latex">
+          <input id="latex" type="checkbox" [checked]="latex" (change)="latex = !latex">
+          <label for="latex">
+            LaTeX plugin
+            <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
+          </label>
+        </ng-container>
+      </span>
+      </div>
+
+      <label for="tags">Tags</label>
+      <app-tags id="tags" [group]="textForm"></app-tags>
+
+      <span><!-- Advanced --></span>
+      <a class="fake-link" (click)="setAdvanced()">show advanced</a>
+    </ng-container>
+
+    <ng-container *ngIf="advanced">
+      <app-ref-form [group]="textForm"></app-ref-form>
+    </ng-container>
+
+    <ng-container *ngFor="let e of serverError">
+      <span><!-- Unexpected Error --></span>
+      <div class="error">{{ e }}</div>
+    </ng-container>
+
+    <span><!-- Buttons --></span>
+    <span class="form-array right">
+      <button type="submit" [disabled]="submitted && !textForm.valid">Submit</button>
     </span>
-    </div>
-
-    <label for="tags">Tags</label>
-    <app-tags id="tags" [group]="textForm"></app-tags>
-
-    <span><!-- Advanced --></span>
-    <a class="fake-link" (click)="setAdvanced()">show advanced</a>
-  </ng-container>
-
-  <ng-container *ngIf="advanced">
-    <app-ref-form [group]="textForm"></app-ref-form>
-  </ng-container>
-
-  <ng-container *ngFor="let e of serverError">
-    <span><!-- Unexpected Error --></span>
-    <div class="error">{{ e }}</div>
-  </ng-container>
-
-  <span><!-- Buttons --></span>
-  <span class="form-array right">
-    <button type="submit" [disabled]="submitted && !textForm.valid">Submit</button>
-  </span>
-</form>
+  </form>
+</ng-container>

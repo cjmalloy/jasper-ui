@@ -26,7 +26,6 @@ import { printError } from '../../../util/http';
 export class SubmitTextPage implements AfterViewInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
-  wiki = false;
   submitted = false;
   textForm: UntypedFormGroup;
   advanced = false;
@@ -61,6 +60,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
           url = wikiUriFormat(url);
           this.theme.setTitle('Submit: Wiki');
           this.title.setValue(wikiTitleFormat(url.substring('wiki:'.length)));
+          this.title.disable();
         }
         this.url.setValue(url);
         for (const tag of this.store.submit.tags) {
