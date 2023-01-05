@@ -42,7 +42,7 @@ export function isMailbox(tag: string) {
 }
 
 export function getLocalMailbox(mailbox: string, origin: string) {
-  if (hasPrefix('plugin/outbox')) return mailbox;
+  if (!origin || hasPrefix('plugin/outbox')) return mailbox;
   return mailbox.replace('plugin/inbox', `plugin/outbox/${origin.substring(1)}`)
 }
 
