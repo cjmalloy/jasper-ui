@@ -136,16 +136,20 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get comments() {
-    if (!this._ref.metadata) return '? comments';
-    const commentCount = this._ref.metadata.plugins['plugin/comment'].length;
+    let commentCount : number | string = '?';
+    if (this._ref.metadata?.modified) {
+      commentCount = this._ref.metadata?.plugins?.['plugin/comment']?.length || 0;
+    }
     if (commentCount === 0) return 'comment';
     if (commentCount === 1) return '1 comment';
     return commentCount + ' comments';
   }
 
   get responses() {
-    if (!this._ref.metadata) return '? citations';
-    const responseCount = this._ref.metadata.responses.length;
+    let responseCount : number | string = '?';
+    if (this._ref.metadata?.modified) {
+      responseCount = this._ref.metadata?.plugins?.responses?.length || 0;
+    }
     if (responseCount === 0) return 'uncited';
     if (responseCount === 1) return '1 citation';
     return responseCount + ' citations';
@@ -154,7 +158,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   get sources() {
     const sourceCount = this._ref.sources?.length || 0;
     if (sourceCount === 0) return 'unsourced';
-    if (sourceCount === 1) return '1 source';
+    if (sourceCount === 1) return 'parent';
     return sourceCount + ' sources';
   }
 

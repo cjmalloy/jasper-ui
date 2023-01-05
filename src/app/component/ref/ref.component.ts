@@ -111,6 +111,10 @@ export class RefComponent implements OnInit {
     return !!this.admin.status.plugins.feed && hasTag('+plugin/feed', this.ref);
   }
 
+  get comment() {
+    return !!this.admin.status.plugins.comment && hasTag('plugin/comment', this.ref);
+  }
+
   get remote() {
     return !!this.admin.status.plugins.origin && hasTag('+plugin/origin', this.ref);
   }
@@ -284,7 +288,10 @@ export class RefComponent implements OnInit {
   get sources() {
     const sourceCount = this._ref.sources?.length || 0;
     if (sourceCount === 0) return 'unsourced';
-    if (sourceCount === 1) return '1 source';
+    if (sourceCount === 1) {
+      if (this.comment) return 'parent';
+      return '1 source';
+    }
     return sourceCount + ' sources';
   }
 

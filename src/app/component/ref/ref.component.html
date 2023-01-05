@@ -91,7 +91,8 @@
             <a *ngIf="admin.status.plugins.comment"
                [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ comments.replace(' ', '&thinsp;') }}</a>
             <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }">{{ responses.replace(' ', '&thinsp;') }}</a>
-            <a [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }">{{ sources.replace(' ', '&thinsp;') }}</a>
+            <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0], 'comments']" [queryParams]="{ origin }">parent</a>
+            <a *ngIf="sources !== 'parent'" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }">{{ sources.replace(' ', '&thinsp;')}}</a>
             <ng-container *ngIf="admin.status.plugins.graph">
               <a [routerLink]="['/ref', ref.url, 'graph']" [queryParams]="{ origin, hideSearch: true }">graph</a>
             </ng-container>
