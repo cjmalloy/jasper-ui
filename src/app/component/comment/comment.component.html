@@ -86,9 +86,8 @@
 </div>
 <app-comment-reply *ngIf="replying"
                    [autofocus]="true"
-                   [top]="top"
+                   [to]="ref"
                    [showCancel]="true"
-                   [sources]="[ref.url]"
                    [tags]="mailboxes"
                    [newComments$]="newComments$"></app-comment-reply>
 <span class="fake-link load-more"

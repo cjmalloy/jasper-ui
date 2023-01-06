@@ -21,9 +21,7 @@ export class CommentReplyComponent implements AfterViewInit {
   @HostBinding('class') css = 'comment-reply';
 
   @Input()
-  top!: Ref;
-  @Input()
-  sources!: string[];
+  to!: Ref;
   @Input()
   tags: string[] = [];
   @Input()
@@ -42,13 +40,13 @@ export class CommentReplyComponent implements AfterViewInit {
 
   constructor(
     public admin: AdminService,
-    private store: Store,
+    public store: Store,
     private editor: EditorService,
     private refs: RefService,
   ) { }
 
   get publicTag() {
-    if (!hasTag('public', this.top)) return [];
+    if (!hasTag('public', this.to)) return [];
     return ['public'];
   }
 
@@ -71,10 +69,10 @@ export class CommentReplyComponent implements AfterViewInit {
     this.refs.create({
       url,
       origin: this.store.account.origin,
-      title: 'Reply to: ' + this.top.title,
+      title: 'Reply to: ' + this.to.title,
       comment: value,
       sources: _.uniq([
-        ...this.sources,
+        this.to.url,
         ...this.editor.getSources(value),
       ]),
       alternateUrls: this.editor.getAlts(value),
