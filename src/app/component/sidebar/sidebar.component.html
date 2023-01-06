@@ -16,6 +16,7 @@
     </div>
   </div>
   <app-query [query]="tag" class="breadcrumbs"></app-query>
+  <app-debug *ngIf="expanded"></app-debug>
   <app-bulk *ngIf="expanded && type" [type]="type"></app-bulk>
   <ng-container *ngIf="store.account.poster">
     <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
@@ -39,7 +40,7 @@
   </ng-container>
   <ng-container *ngIf="store.account.mod">
     <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag: localTag }">
-      🗝️️ &nbsp; Create User Permissions
+      🗝️️ &nbsp; User Permissions
     </div>
   </ng-container>
   <ng-container *ngIf="admin.status.plugins.inbox">

@@ -1,0 +1,15 @@
+<details *ngIf="debug">
+  <summary>Debug <app-loading *ngIf="batchRunning"></app-loading></summary>
+  <span>
+    generate refs
+    <input #inlineGen
+           value="100"
+           (keydown)="$event.key === 'Enter' && gen(inlineGen.value) || true"
+           type="number">
+    <button (click)="gen(inlineGen.value)">⏎</button>
+  </span>
+
+  <ng-container *ngFor="let e of serverError">
+    <div class="error">{{ e }}</div>
+  </ng-container>
+</details>

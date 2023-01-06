@@ -130,6 +130,7 @@ import { AdminService } from './service/admin.service';
 import { AuthnService } from './service/authn.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
+import { DebugComponent } from './component/debug/debug.component';
 
 const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -259,6 +260,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     QueryComponent,
     BulkComponent,
     QrComponent,
+    DebugComponent,
   ],
   imports: [
     BrowserModule,
