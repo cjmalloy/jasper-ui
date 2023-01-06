@@ -10,6 +10,6 @@
   </span>
 
   <ng-container *ngFor="let e of serverError">
-    <div class="error">{{ e }}</div>
+    <div class="error" [title]="e">{{ e }}</div>
   </ng-container>
 </details>
