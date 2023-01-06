@@ -1,15 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, isDevMode } from '@angular/core';
-import { catchError, concatMap, forkJoin, generate, map, mergeMap, Observable, of } from 'rxjs';
+import { catchError, concatMap, forkJoin, generate, Observable, of } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { AdminService } from '../../service/admin.service';
-import { ExtService } from '../../service/api/ext.service';
-import { PluginService } from '../../service/api/plugin.service';
 import { RefService } from '../../service/api/ref.service';
-import { ScrapeService } from '../../service/api/scrape.service';
-import { TaggingService } from '../../service/api/tagging.service';
-import { TemplateService } from '../../service/api/template.service';
-import { UserService } from '../../service/api/user.service';
 import { ExtStore } from '../../store/ext';
 import { PluginStore } from '../../store/plugin';
 import { QueryStore } from '../../store/query';
@@ -25,6 +19,8 @@ import { printError } from '../../util/http';
 export class DebugComponent {
   @HostBinding('class') css = 'debug actions';
 
+  generating = false;
+  sourcing = false;
   batchRunning = false;
   serverError: string[] = [];
   debug = isDevMode();
@@ -37,19 +33,30 @@ export class DebugComponent {
     public plugin: PluginStore,
     public template: TemplateStore,
     private refs: RefService,
-    private exts: ExtService,
-    private users: UserService,
-    private plugins: PluginService,
-    private templates: TemplateService,
-    private ts: TaggingService,
-    private scraper: ScrapeService,
   ) { }
 
   ngOnInit(): void {
   }
 
+  get empty() {
+    return !this.query.page?.content?.length;
+  }
 
-  batch(fn: (i: number) => Observable<any>, n = 100) {
+  batch(fn: (e: any) => Observable<any>) {
+    if (this.batchRunning) return;
+    this.batchRunning = true;
+    forkJoin(this.query.page!.content.map(e => fn(e).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError.push(...printError(err));
+        return of(null);
+      }),
+    ))).subscribe(() => {
+      this.query.refresh();
+      this.batchRunning = false;
+    });
+  }
+
+  repeat(fn: (i: number) => Observable<any>, n = 100) {
     if (this.batchRunning) return;
     this.batchRunning = true;
     generate(0, x => x < n, x => x + 1).pipe(
@@ -64,7 +71,8 @@ export class DebugComponent {
   }
 
   gen(n: any = 100) {
-    this.batch(i => this.refs.create({
+    this.generating = false;
+    this.repeat(i => this.refs.create({
       url: 'comment:' + uuid(),
       title: 'Generated: ' + i,
       comment: uuid(),
@@ -72,5 +80,27 @@ export class DebugComponent {
     }), n);
   }
 
+  source(url: string) {
+    this.sourcing = false;
+    this.batch(ref => {
+      if (!ref.sources?.includes(url)) {
+        if (ref.sources) {
+          return this.refs.patch(ref.url, ref.origin!, [{
+            op: 'add',
+            path: '/sources/-',
+            value: url,
+          }]);
+        } else {
+          return this.refs.patch(ref.url, ref.origin!, [{
+            op: 'add',
+            path: '/sources',
+            value: [url],
+          }]);
+        }
+      } else {
+        return of(null);
+      }
+    });
+  }
 
 }

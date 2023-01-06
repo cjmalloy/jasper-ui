@@ -1,13 +1,25 @@
 <details *ngIf="debug">
   <summary>Debug <app-loading *ngIf="batchRunning"></app-loading></summary>
-  <span>
-    generate refs
+  <a class="fake-link"
+     (click)="generating = !generating">gen</a>
+  <span *ngIf="generating">
     <input #inlineGen
            value="100"
            (keydown)="$event.key === 'Enter' && gen(inlineGen.value) || true"
            type="number">
     <button (click)="gen(inlineGen.value)">⏎</button>
   </span>
+  <ng-container *ngIf="!empty">
+    <a class="fake-link"
+       (click)="sourcing = !sourcing">source</a>
+    <span *ngIf="sourcing">
+      <input #inlineUrl
+             placeholder="url"
+             (keydown)="$event.key === 'Enter' && source(inlineUrl.value) || true"
+             type="url">
+      <button (click)="source(inlineUrl.value)">⏎</button>
+    </span>
+  </ng-container>
 
   <ng-container *ngFor="let e of serverError">
     <div class="error" [title]="e">{{ e }}</div>
