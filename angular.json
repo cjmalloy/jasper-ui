@@ -26,6 +26,13 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "allowedCommonJsDependencies": [
+              "handlebars/dist/cjs/handlebars",
+              "moment",
+              "file-saver",
+              "jszip",
+              "qrcode"
+            ],
             "assets": [
               "src/favicon.ico",
               "src/assets",

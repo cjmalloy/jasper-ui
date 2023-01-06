@@ -1,5 +1,5 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import * as Handlebars from 'handlebars';
+import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
 import * as moment from 'moment';
 import { Ext } from './ext';
