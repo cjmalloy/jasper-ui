@@ -205,13 +205,13 @@ body.dark-theme {
   }
 
   .list-item:not(.full-page) {
-    &:focus {
+    &:focus-within {
       border: 1px dashed $border;
     }
   }
 
   .comment-container {
-    &:focus {
+    &:focus-visible {
       border: 1px dashed $border;
     }
   }

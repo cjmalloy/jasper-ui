@@ -193,13 +193,13 @@ body.light-theme {
   }
 
   .list-item:not(.full-page) {
-    &:focus {
+    &:focus-visible {
       border: 1px dashed $border;
     }
   }
 
   .comment-container {
-    &:focus {
+    &:focus-visible {
       border: 1px dashed $border;
     }
   }
