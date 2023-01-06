@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import * as _ from 'lodash-es';
-import * as moment from 'moment/moment';
+import * as moment from 'moment';
 import { catchError, forkJoin, Observable, of } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { deleteNotice } from '../../plugin/delete';
