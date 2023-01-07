@@ -275,7 +275,7 @@ export class RefComponent implements OnInit {
   get responses() {
     let responseCount : number | string = '?';
     if (this._ref.metadata?.modified) {
-      responseCount = this._ref.metadata?.plugins?.responses?.length || 0;
+      responseCount = this._ref.metadata?.responses?.length || 0;
     }
     if (this.feed) {
       return responseCount + ' scraped';

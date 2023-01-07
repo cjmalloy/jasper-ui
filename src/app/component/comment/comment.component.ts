@@ -148,7 +148,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   get responses() {
     let responseCount : number | string = '?';
     if (this._ref.metadata?.modified) {
-      responseCount = this._ref.metadata?.plugins?.responses?.length || 0;
+      responseCount = this._ref.metadata?.responses?.length || 0;
     }
     if (responseCount === 0) return 'uncited';
     if (responseCount === 1) return '1 citation';
