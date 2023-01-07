@@ -66,7 +66,7 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   setFilters() {
     const filters = _.filter(this.filters, f => !!f);
-    this.router.navigate([], { queryParams: { filter: filters.length ? filters : null }, queryParamsHandling: 'merge' });
+    this.router.navigate([], { queryParams: { filter: filters.length ? filters : null, pageNumber: null }, queryParamsHandling: 'merge' });
   }
 
 }
