@@ -9,7 +9,7 @@ import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
-import { getArgs } from '../../util/query';
+import { getArgs, UrlFilter } from '../../util/query';
 import { KanbanDrag } from '../kanban/kanban.component';
 
 @Component({
@@ -33,7 +33,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   mutated = false;
   addText = '';
   sort: RefSort[] = [];
-  filter: string[] = [];
+  filter: UrlFilter[] = [];
   search = '';
 
   constructor(

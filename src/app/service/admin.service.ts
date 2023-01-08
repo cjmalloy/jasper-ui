@@ -3,7 +3,6 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as _ from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';

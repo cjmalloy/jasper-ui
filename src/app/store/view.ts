@@ -3,6 +3,7 @@ import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Ref, RefSort } from '../model/ref';
 import { TagSort } from '../model/tag';
+import { UrlFilter } from '../util/query';
 import { hasPrefix, isQuery, localTag } from '../util/tag';
 
 export class ViewStore {
@@ -79,7 +80,7 @@ export class ViewStore {
     return this.sort[0] !== (this.search ? this.defaultSearchSort : this.defaultSort);
   }
 
-  get filter(): string[] {
+  get filter(): UrlFilter[] {
     const filter = this.route.routeSnapshot?.queryParams['filter'];
     if (!filter) return [];
     if (!Array.isArray(filter)) return [filter]

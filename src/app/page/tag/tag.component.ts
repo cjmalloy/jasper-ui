@@ -10,7 +10,7 @@ import { RefService } from '../../service/api/ref.service';
 import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
-import { filterListToObj, getArgs } from '../../util/query';
+import { getArgs, UrlFilter } from '../../util/query';
 import { removeWildcard } from '../../util/tag';
 
 @Component({
@@ -41,7 +41,7 @@ export class TagPage implements OnInit, OnDestroy {
       const args = getArgs(
         this.store.view.tag,
         this.store.view.sort,
-        {...filterListToObj(this.store.view.filter), notInternal: this.wildcard},
+        _.uniq([...(this.wildcard ? ['notInternal'] : []), ...this.store.view.filter]) as UrlFilter[],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,

@@ -1,54 +1,29 @@
-import { RefFilter, RefPageArgs, RefSort } from '../model/ref';
+import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 
-export function filterListToObj(filter?: string[] | string | {}): RefFilter | undefined {
-  if (!filter) return undefined;
-  let result: Record<string, any> = {};
-  if (typeof filter === 'string' || filter instanceof String) filter = [filter];
-  if (Array.isArray(filter)) {
-    for (const f of filter) {
-      result[f] = true;
-    }
-  } else {
-    // is obj
-    result = {...filter};
-  }
-  if (result.paid) {
-    delete result.paid;
-    result.pluginResponse = 'plugin/invoice/paid';
-  }
-  if (result.unpaid) {
-    delete result.unpaid;
-    result.noPluginResponse = 'plugin/invoice/paid';
-  }
-  if (result.rejected) {
-    delete result.rejected;
-    result.pluginResponse = 'plugin/invoice/rejected';
-  }
-  if (result.disputed) {
-    delete result.disputed;
-    result.pluginResponse = 'plugin/invoice/disputed';
-  }
-  return result;
-}
+export const defaultDesc = ['created', 'published', 'modified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount'];
 
-export const defaultDesc = ['created', 'published', 'modified', 'rank', 'commentCount', 'sourceCount', 'responseCount'];
+export type UrlFilter = Filter |
+  'internal' |
+  'notInternal' |
+  'modlist' |
+  `plugin/${string}` |
+  `-plugin/${string}`;
 
 export function getArgs(
   tagOrSimpleQuery?: string,
   sort?: RefSort | RefSort[],
-  filterOrList?: (Record<string, any> & RefFilter) | string[] | string,
+  filters?: UrlFilter[],
   search?: string,
   pageNumber?: number,
   pageSize?: number
 ): RefPageArgs {
-  let filter: (Record<string, any> & RefFilter) | undefined = filterListToObj(filterOrList);
   let queryFilter = '';
-  if (filter?.internal) {
+  if (filters?.includes('internal')) {
     queryFilter += 'internal@*';
-  } else if (filter?.notInternal) {
+  } else if (filters?.includes('notInternal')) {
     queryFilter += '!internal@*';
   }
-  if (filter?.modlist) {
+  if (filters?.includes('modlist')) {
     queryFilter += (queryFilter ? ':' : '') +  '!_moderated@*';
   }
   const query = queryFilter && tagOrSimpleQuery ? `(${tagOrSimpleQuery}):${queryFilter}` : tagOrSimpleQuery || queryFilter;
@@ -63,33 +38,29 @@ export function getArgs(
   } else {
     sort = [];
   }
-  const args: RefPageArgs = {
+  return {
     query,
     sort,
     search,
     page: pageNumber,
     size: pageSize,
+    ...getRefFilter(filters),
   };
-  if (filter?.url) {
-    args.url = filter.url;
+}
+
+function getRefFilter(filter?: UrlFilter[]): RefFilter | undefined {
+  if (!filter) return undefined;
+  let result: any = {};
+  for (const i of filter) {
+    if (['internal', 'notInternal', 'modlist'].includes(i)) continue;
+    const f = i as Filter;
+    if (f.startsWith('plugin/')) {
+      result.pluginResponse = f;
+    } else if (f.startsWith('-plugin/')) {
+      result.noPluginResponse = f.substring(1);
+    } else {
+      result[f] = true;
+    }
   }
-  if (filter?.sources) {
-    args.sources = filter.sources;
-  }
-  if (filter?.responses) {
-    args.responses = filter.responses;
-  }
-  if (filter?.uncited) {
-    args.uncited = true;
-  }
-  if (filter?.unsourced) {
-    args.unsourced = true;
-  }
-  if (filter?.pluginResponse) {
-    args.pluginResponse = filter.pluginResponse;
-  }
-  if (filter?.noPluginResponse) {
-    args.noPluginResponse = filter.noPluginResponse;
-  }
-  return args;
+  return result;
 }

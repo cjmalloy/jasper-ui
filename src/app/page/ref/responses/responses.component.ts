@@ -5,7 +5,7 @@ import { AdminService } from '../../../service/admin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
-import { filterListToObj, getArgs } from '../../../util/query';
+import { getArgs } from '../../../util/query';
 
 @Component({
   selector: 'app-ref-responses',
@@ -31,11 +31,12 @@ export class RefResponsesComponent implements OnInit, OnDestroy {
       const args = getArgs(
         '',
         this.store.view.sort,
-        {...filterListToObj(['notInternal', ...this.store.view.filter]), responses: this.store.view.url},
+        _.uniq(['notInternal', ...this.store.view.filter]),
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize ?? this.defaultPageSize
       );
+      args.responses = this.store.view.url;
       _.defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {

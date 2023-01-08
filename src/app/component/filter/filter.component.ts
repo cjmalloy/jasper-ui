@@ -2,8 +2,12 @@ import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
+import { Filter } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
+import { UrlFilter } from '../../util/query';
+
+type FilterItem = { filter: UrlFilter, label?: string };
 
 @Component({
   selector: 'app-filter',
@@ -15,8 +19,17 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
-  allFilters = ['uncited', 'unsourced', 'internal'];
-  filters: string[] = [];
+  allFilters: { filters: FilterItem[], label: string }[] = [
+    { label: 'Filters',
+      filters : [
+        { filter: 'uncited' },
+        { filter: 'unsourced' },
+        { filter: 'untagged' },
+        { filter: 'internal' },
+      ]
+    }
+  ];
+  filters: UrlFilter[] = [];
 
   constructor(
     public router: Router,
@@ -24,16 +37,30 @@ export class FilterComponent implements OnInit, OnDestroy {
     public store: Store,
   ) {
     if (store.account.mod) {
-      this.allFilters.push('modlist');
+      this.allFilters.push({
+        label: 'Mod Tools',
+        filters: [
+          { filter: 'modlist' }
+        ],
+      });
     }
+    const invoiceFilters = {
+      label: 'Invoices',
+      filters: [] as FilterItem[],
+    };
     if (admin.status.plugins.invoicePaid) {
-      this.allFilters.push('unpaid', 'paid')
+      invoiceFilters.filters.push(
+        { filter: '-plugin/invoice/paid', label: 'unpaid'},
+        { filter: 'plugin/invoice/paid', label: 'paid'});
     }
     if (admin.status.plugins.invoiceRejected) {
-      this.allFilters.push('rejected')
+      invoiceFilters.filters.push({ filter: 'plugin/invoice/rejected', label: 'rejected'});
     }
     if (admin.status.plugins.invoiceDisputed) {
-      this.allFilters.push('disputed')
+      invoiceFilters.filters.push({ filter: 'plugin/invoice/disputed', label: 'disputed'});
+    }
+    if (invoiceFilters.filters.length) {
+      this.allFilters.push(invoiceFilters);
     }
     this.disposers.push(autorun(() => {
       this.filters = toJS(this.store.view.filter);
@@ -54,7 +81,7 @@ export class FilterComponent implements OnInit, OnDestroy {
     this.filters.push('' as any);
   }
 
-  setFilter(index: number, value: string) {
+  setFilter(index: number, value: Filter) {
     this.filters[index] = value;
     this.setFilters();
   }

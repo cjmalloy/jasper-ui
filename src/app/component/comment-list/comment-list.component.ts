@@ -5,7 +5,7 @@ import { Page } from '../../model/page';
 import { Ref, RefSort } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
-import { getArgs } from '../../util/query';
+import { getArgs, UrlFilter } from '../../util/query';
 
 @Component({
   selector: 'app-comment-list',
@@ -31,7 +31,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
   hasMore = false;
   private _source?: string;
   private sort?: RefSort[];
-  private filter?: string[];
+  private filter?: UrlFilter[];
 
   constructor(
     private refs: RefService,

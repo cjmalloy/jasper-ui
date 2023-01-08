@@ -21,21 +21,28 @@ export interface Metadata {
   plugins: Record<string, string[]>;
 }
 
-export type RefFilter = {
-  responses?: string,
-  sources?: string,
-  uncited?: boolean,
-  unsourced?: boolean,
+export type Filter =
+  'untagged' |
+  'uncited' |
+  'unsourced';
+
+type FilterObj = {
+  [name in Filter]?: boolean;
+};
+
+export type RefFilter = FilterObj & {
   pluginResponse?: string;
   noPluginResponse?: string;
 };
 
 export type RefQueryArgs = RefFilter & {
-  query?: string,
-  url?: string,
-  search?: string,
-  modifiedAfter?: string,
-  modifiedBefore?: string,
+  query?: string;
+  url?: string;
+  responses?: string;
+  sources?: string;
+  search?: string;
+  modifiedAfter?: string;
+  modifiedBefore?: string;
 };
 
 export type RefPageArgs = RefQueryArgs & {
@@ -52,6 +59,7 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
   'title' | 'title,ASC' | 'title,DESC' |
   'origin' | 'origin,ASC' | 'origin,DESC' |
   'comment' | 'comment,ASC' | 'comment,DESC' |
+  'tagCount' | 'tagCount,ASC' | 'tagCount,DESC' |
   'sourceCount' | 'sourceCount,ASC' | 'sourceCount,DESC' |
   'responseCount' | 'responseCount,ASC' | 'responseCount,DESC' |
   'commentCount' | 'commentCount,ASC' | 'commentCount,DESC';
