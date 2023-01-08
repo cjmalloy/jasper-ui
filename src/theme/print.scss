@@ -4,14 +4,17 @@
   .subscription-bar,
   .tabs,
   .sidebar,
-  .toggle.actions-toggle,
-  .toggle.comments,
+  .toggle,
   app-comment-reply {
     display: none !important;
   }
 
   hr {
     box-shadow: none !important;
+  }
+
+  body, .container {
+      background: none !important;
   }
 
 }
