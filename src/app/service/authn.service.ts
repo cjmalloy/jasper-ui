@@ -19,7 +19,16 @@ export class AuthnService {
     return this.config.codeFlow || this.config.implicitFlow;
   }
 
+  set token(token: string) {
+    this.storage.setItem('access_token', token);
+    this.moduleConfig.resourceServer.sendAccessToken = true;
+  }
+
   get init$() {
+    if (this.config.token) {
+      this.token = this.config.token;
+      return of(null);
+    }
     if (!this.clientAuth) return of(null);
     this.moduleConfig.resourceServer.sendAccessToken = true;
     this.moduleConfig.resourceServer.allowedUrls = [this.config.api];

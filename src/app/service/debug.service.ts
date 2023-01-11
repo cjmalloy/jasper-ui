@@ -1,6 +1,6 @@
-import { Injectable, isDevMode, Optional } from '@angular/core';
-import { OAuthModuleConfig, OAuthStorage } from 'angular-oauth2-oidc';
+import { Injectable, isDevMode } from '@angular/core';
 import { from, of } from 'rxjs';
+import { AuthnService } from './authn.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,25 +9,19 @@ export class DebugService {
   loading?: Promise<string>;
 
   constructor(
-    private authStorage: OAuthStorage,
-    @Optional() private moduleConfig: OAuthModuleConfig,
+    private auth: AuthnService,
   ) { }
 
   get init$() {
     if (location.search.includes('debug=')) {
       const debugRole = location.search.match(/debug=([^&]+)/)![1];
       const debugTag = location.search.match(/tag=([^&]+)/)?.[1] || '+user/debug/' + debugRole.toLowerCase();
-      return from(this.getDebugToken(debugTag, 'ROLE_' + debugRole.toUpperCase()).then(jwt => this.token = jwt));
+      return from(this.getDebugToken(debugTag, 'ROLE_' + debugRole.toUpperCase()).then(jwt => this.auth.token = jwt));
     }
     if (isDevMode() && !location.search.includes('anon=')) {
-      return from(this.getDebugToken('+user/chris', 'ROLE_ADMIN').then(jwt => this.token = jwt));
+      return from(this.getDebugToken('+user/chris', 'ROLE_ADMIN').then(jwt => this.auth.token = jwt));
     }
     return of(null)
-  }
-
-  private set token(token: string) {
-    this.authStorage.setItem('access_token', token);
-    this.moduleConfig.resourceServer.sendAccessToken = true;
   }
 
   private async getDebugToken(tag: string, ...roles: string[]) {

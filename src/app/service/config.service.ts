@@ -15,6 +15,7 @@ export class ConfigService {
   scim = false;
 
   // Enables client side auth
+  token = '';
   codeFlow = false;
   implicitFlow = false;
   issuer = '';

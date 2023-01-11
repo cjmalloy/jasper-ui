@@ -9,6 +9,7 @@ config="
   \"login\": \"$JASPER_LOGIN\",
   \"signup\": \"$JASPER_SIGNUP\",
   \"scim\": ${JASPER_SCIM-false},
+  \"token\": \"${JASPER_TOKEN}\",
   \"codeFlow\": ${JASPER_CODE_FLOW-false},
   \"implicitFlow\": ${JASPER_IMPLICIT_FLOW-false},
   \"issuer\": \"$JASPER_ISSUER\",
