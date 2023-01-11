@@ -6,6 +6,7 @@
          placeholder="Tag Query"
          [ngModel]="query"
          (keydown)="$event.key === 'Enter' && search(editor.value) || true">
+  <button *ngIf="query && editing" (click)="search(editor.value)">🔎️</button>
 </ng-container>
 <div *ngIf="!editing && query">
   <span *ngFor="let breadcrumb of breadcrumbs">
@@ -13,5 +14,4 @@
     <span *ngIf="!breadcrumb.tag">{{ breadcrumb.text }}</span>
   </span>
 </div>
-<button *ngIf="query && editing" (click)="editing = false">🔎️</button>
 <button *ngIf="query && !editing" (click)="editing = true">✏️</button>
