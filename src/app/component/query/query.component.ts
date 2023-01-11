@@ -28,7 +28,7 @@ export class QueryComponent implements OnInit {
 
   search(query: string) {
     this.editing = false;
-    this.router.navigate(['/tag', query]);
+    this.router.navigate(['/tag', query], { queryParams: { pageNumber: null },  queryParamsHandling: 'merge'});
   }
 
 }
