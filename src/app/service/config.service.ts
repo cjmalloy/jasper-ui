@@ -36,18 +36,9 @@ export class ConfigService {
   get load$() {
     return this.http.get(this.base + 'assets/config.json').pipe(
       tap((result: any) => {
-        this.version = result['version'];
-        this.title = result['title'];
-        this.api = result['api'];
-        this.logout = result['logout'];
-        this.login = result['login'];
-        this.signup = result['signup'];
-        this.scim = result['scim'];
-        this.codeFlow = result['codeFlow'];
-        this.implicitFlow = result['implicitFlow'];
-        this.issuer = result['issuer'];
-        this.clientId = result['clientId'];
-        this.scope = result['scope'];
+        for (const k in this) {
+          this[k] = result[k] || this[k];
+        }
       }),
     );
   }
