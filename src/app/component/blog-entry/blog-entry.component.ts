@@ -18,7 +18,7 @@ import { AuthzService } from '../../service/authz.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
-import { authors, interestingTags, TAGS_REGEX, webLink } from '../../util/format';
+import { authors, formatAuthor, interestingTags, TAGS_REGEX, webLink } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag, tagOrigin } from '../../util/tag';
 
@@ -215,13 +215,12 @@ export class BlogEntryComponent implements OnInit {
     return sourceCount + ' sources';
   }
 
+
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
       user = user.replace(this.store.account.origin, '');
     }
-    return user
-      .replace('+', '')
-      .replace('user/', '');
+    return formatAuthor(user);
   }
 
   addInlineTag() {

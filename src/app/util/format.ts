@@ -16,7 +16,9 @@ export const SELECTOR_REGEX = /^!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-
 export const QUERY_REGEX = /^(!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z]+)*|@\*))|\(!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |]!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*\))([ |:&](!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))|\(!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |]!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*\)))*$/;
 
 export function isTemplate(tag: string, template?: string) {
-  return tag.startsWith(template + '/') ||
+  return tag === template ||
+    tag === '+' + template ||
+    tag.startsWith(template + '/') ||
     tag.startsWith('_' + template + '/') ||
     tag.startsWith('+' + template + '/');
 }
@@ -80,7 +82,16 @@ export function interestingTag(tag: string) {
   if (tag.startsWith('user/')) return false;
   if (tag.startsWith('_user/')) return false;
   if (tag.startsWith('+user/')) return false;
+  if (tag === '+user') return false;
+  if (tag === '_user') return false;
   return true;
+}
+
+export function formatAuthor(tag: string) {
+  return tag
+    .replace('+user@', '@')
+    .replace('+', '')
+    .replace('user/', '');
 }
 
 export function isTextPost(ref: Ref) {

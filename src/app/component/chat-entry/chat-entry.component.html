@@ -7,7 +7,7 @@
   <ng-container *ngFor="let user of authors">
     <a class="user tag"
        [routerLink]="['/tag', user]">
-      {{ user.replace('+', '').replace('user/', '') }}</a>&nbsp;
+      {{ formatAuthor(user) }}</a>&nbsp;
   </ng-container>
   <span class="timestamp" [title]="ref.modified?.toISOString()">{{ ref.modified?.fromNow() }}</span>
   &nbsp;|&nbsp;

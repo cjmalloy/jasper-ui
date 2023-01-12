@@ -8,9 +8,9 @@ import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
-import { authors, interestingTags, TAGS_REGEX } from '../../util/format';
+import { authors, formatAuthor, interestingTags, TAGS_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
-import { hasTag } from '../../util/tag';
+import { hasTag, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-comment',
@@ -160,6 +160,13 @@ export class CommentComponent implements OnInit, OnDestroy {
     if (sourceCount === 0) return 'unsourced';
     if (sourceCount === 1) return 'parent';
     return sourceCount + ' sources';
+  }
+
+  formatAuthor(user: string) {
+    if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
+      user = user.replace(this.store.account.origin, '');
+    }
+    return formatAuthor(user);
   }
 
   addInlineTag() {

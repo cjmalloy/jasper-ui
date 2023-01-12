@@ -12,9 +12,9 @@ import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
-import { authors, TAGS_REGEX, webLink } from '../../util/format';
+import { authors, formatAuthor, TAGS_REGEX, webLink } from '../../util/format';
 import { printError } from '../../util/http';
-import { hasTag } from '../../util/tag';
+import { hasTag, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-chat-entry',
@@ -124,6 +124,13 @@ export class ChatEntryComponent {
     if (commentCount === 0) return 'thread';
     if (commentCount === 1) return '1 comment';
     return commentCount + ' comments';
+  }
+
+  formatAuthor(user: string) {
+    if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
+      user = user.replace(this.store.account.origin, '');
+    }
+    return formatAuthor(user);
   }
 
   addInlineTag() {
