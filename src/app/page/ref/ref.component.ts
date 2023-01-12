@@ -46,7 +46,7 @@ export class RefPage implements OnInit, OnDestroy {
           this.error = err;
           return of(0);
         }),
-      ).subscribe(count => runInAction(() => this.store.view.remoteCount = count));
+      ).subscribe(count => runInAction(() => this.store.view.versions = count));
     }));
   }
 

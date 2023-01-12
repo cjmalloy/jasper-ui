@@ -13,7 +13,7 @@ export class ViewStore {
   defaultSort: RefSort | TagSort = 'published';
   defaultSearchSort: RefSort | TagSort = 'rank';
   ref?: Ref = {} as any;
-  remoteCount = 0;
+  versions = 0;
   ext?: Ext = {} as any;
   pinned?: Ref[] = [];
 
@@ -26,7 +26,7 @@ export class ViewStore {
 
   clear(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {
     this.ref = undefined;
-    this.remoteCount = 0;
+    this.versions = 0;
     this.ext = undefined;
     this.pinned = undefined;
     this.defaultSort = defaultSort;

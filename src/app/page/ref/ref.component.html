@@ -7,7 +7,7 @@
     <a routerLink="./sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">sources</a>
     <a routerLink="./missing" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">missing sources</a>
     <a routerLink="./alts" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">alts</a>
-    <a *ngIf="error && store.view.remoteCount || store.view.remoteCount > 1" routerLink="./remotes" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">remotes</a>
+    <a *ngIf="error && store.view.versions || store.view.versions > 1" routerLink="./versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">versions</a>
     <ng-container *ngIf="admin.status.plugins.graph">
       <a routerLink="./graph" [queryParams]="{ origin: store.view.origin, hideSearch: true }" routerLinkActive="current-tab">graph</a>
     </ng-container>

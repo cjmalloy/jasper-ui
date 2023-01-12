@@ -2,15 +2,15 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { RefRemotesComponent } from './remotes.component';
+import { RefVersionsComponent } from './versions.component';
 
-describe('RemotesComponent', () => {
-  let component: RefRemotesComponent;
-  let fixture: ComponentFixture<RefRemotesComponent>;
+describe('RefVersionsComponent', () => {
+  let component: RefVersionsComponent;
+  let fixture: ComponentFixture<RefVersionsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ RefRemotesComponent ],
+      declarations: [ RefVersionsComponent ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
@@ -20,7 +20,7 @@ describe('RemotesComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(RefRemotesComponent);
+    fixture = TestBed.createComponent(RefVersionsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

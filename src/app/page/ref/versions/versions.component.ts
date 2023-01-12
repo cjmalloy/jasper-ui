@@ -8,11 +8,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  selector: 'app-ref-remotes',
-  templateUrl: './remotes.component.html',
-  styleUrls: ['./remotes.component.scss']
+  selector: 'app-ref-versions',
+  templateUrl: './versions.component.html',
+  styleUrls: ['./versions.component.scss']
 })
-export class RefRemotesComponent implements OnInit, OnDestroy {
+export class RefVersionsComponent implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
   private defaultPageSize = 20;

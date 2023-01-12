@@ -15,9 +15,9 @@ import { RefCommentsComponent } from './page/ref/comments/comments.component';
 import { RefGraphComponent } from './page/ref/graph/graph.component';
 import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
-import { RefRemotesComponent } from './page/ref/remotes/remotes.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
+import { RefVersionsComponent } from './page/ref/versions/versions.component';
 import { SettingsBackupPage } from './page/settings/backup/backup.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
 import { SettingsFeedPage } from './page/settings/feed/feed.component';
@@ -56,7 +56,7 @@ const routes: Routes = [
       { path: 'sources', component: RefSourcesComponent },
       { path: 'missing', component: RefMissingComponent },
       { path: 'alts', component: RefAltsComponent },
-      { path: 'remotes', component: RefRemotesComponent },
+      { path: 'versions', component: RefVersionsComponent },
       { path: 'graph', component: RefGraphComponent },
     ],
   }, {

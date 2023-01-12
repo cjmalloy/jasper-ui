@@ -25,6 +25,7 @@ import { CommentEditComponent } from './component/comment-edit/comment-edit.comp
 import { CommentListComponent } from './component/comment-list/comment-list.component';
 import { CommentReplyComponent } from './component/comment-reply/comment-reply.component';
 import { CommentComponent } from './component/comment/comment.component';
+import { DebugComponent } from './component/debug/debug.component';
 import { EmbedComponent } from './component/embed/embed.component';
 import { ExtListComponent } from './component/ext-list/ext-list.component';
 import { ExtComponent } from './component/ext/ext.component';
@@ -101,9 +102,9 @@ import { RefCommentsComponent } from './page/ref/comments/comments.component';
 import { RefGraphComponent } from './page/ref/graph/graph.component';
 import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
-import { RefRemotesComponent } from './page/ref/remotes/remotes.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
+import { RefVersionsComponent } from './page/ref/versions/versions.component';
 import { SettingsBackupPage } from './page/settings/backup/backup.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
 import { SettingsFeedPage } from './page/settings/feed/feed.component';
@@ -130,7 +131,6 @@ import { AdminService } from './service/admin.service';
 import { AuthnService } from './service/authn.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
-import { DebugComponent } from './component/debug/debug.component';
 
 const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService) => () =>
   config.load$.pipe(
@@ -234,7 +234,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     OriginFormComponent,
     FeedFormComponent,
     RefAltsComponent,
-    RefRemotesComponent,
+    RefVersionsComponent,
     KanbanComponent,
     KanbanColumnComponent,
     KanbanCardComponent,
