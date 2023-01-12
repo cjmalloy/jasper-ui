@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { FormGroup, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
 import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
@@ -18,6 +18,7 @@ import { printError } from '../../../util/http';
 })
 export class SettingsSetupPage implements OnInit {
 
+  selectAllToggle = false;
   submitted = false;
   adminForm: UntypedFormGroup;
   serverError: string[] = [];
@@ -92,6 +93,13 @@ export class SettingsSetupPage implements OnInit {
       this.adminForm.reset(this.admin.status);
       this.installMessages.push('Success.');
     });
+  }
+
+  selectAll() {
+    this.selectAllToggle = !this.selectAllToggle;
+    const sa = (fg: UntypedFormGroup) => _.forOwn(fg.controls, c => c.setValue(this.selectAllToggle));
+    sa(this.adminForm.get('plugins') as UntypedFormGroup);
+    sa(this.adminForm.get('templates') as UntypedFormGroup);
   }
 
 }
