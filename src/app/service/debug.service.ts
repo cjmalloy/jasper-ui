@@ -15,7 +15,7 @@ export class DebugService {
   get init$() {
     if (location.search.includes('debug=')) {
       const debugRole = location.search.match(/debug=([^&]+)/)![1];
-      const debugTag = location.search.match(/tag=([^&]+)/)?.[1] || '+user/debug/' + debugRole.toLowerCase();
+      const debugTag = location.search.match(/tag=([^&]+)/)?.[1] || '+user';
       return from(this.getDebugToken(debugTag, 'ROLE_' + debugRole.toUpperCase()).then(jwt => this.auth.token = jwt));
     }
     if (isDevMode() && !location.search.includes('anon=')) {
@@ -26,7 +26,7 @@ export class DebugService {
 
   private async getDebugToken(tag: string, ...roles: string[]) {
     if (!tag.startsWith('_') && !tag.startsWith('+')) {
-      tag = '+user/' + tag;
+      tag = '+user' + (tag ? '/' + tag : '');
     }
     if (tag.startsWith('_') && !roles.includes('ROLE_PRIVATE')) {
       roles.push('ROLE_PRIVATE');
@@ -42,7 +42,7 @@ export class DebugService {
     };
     const payload = {
       aud: '',
-      sub: tag.match(/[+_]user\/(.*)/)![1],
+      sub: '+user'.length === tag.length ? '' : tag.substring('+user/'.length),
       auth: {} as any,
     };
     if (origin) {
