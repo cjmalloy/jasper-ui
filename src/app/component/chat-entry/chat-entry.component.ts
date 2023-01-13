@@ -12,7 +12,7 @@ import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
-import { authors, formatAuthor, TAGS_REGEX, webLink } from '../../util/format';
+import { authors, formatAuthor, TAGS_REGEX, clickableLink } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag, tagOrigin } from '../../util/tag';
 
@@ -83,7 +83,7 @@ export class ChatEntryComponent {
   }
 
   get webLink() {
-    return webLink(this.ref);
+    return clickableLink(this.ref);
   }
 
   get approved() {

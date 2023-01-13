@@ -2,6 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { tap } from 'rxjs/operators';
 
+export function config(): ConfigService {
+  // @ts-ignore
+  return window.configService;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -13,6 +18,7 @@ export class ConfigService {
   login = '';
   signup = '';
   scim = false;
+  blockedSchemes = ['comment:', 'internal:'];
 
   // Enables client side auth
   token = '';
@@ -24,7 +30,10 @@ export class ConfigService {
 
   constructor(
     private http: HttpClient,
-  ) { }
+  ) {
+    // @ts-ignore
+    window.configService = this;
+  }
 
   get base() {
     return document.getElementsByTagName('base')[0].href

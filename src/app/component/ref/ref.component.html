@@ -11,9 +11,9 @@
   </ng-container>
   <div class="stack">
     <div class="link" [class.remote]="!local">
-      <a *ngIf="webLink" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
-      <a *ngIf="!webLink && admin.status.plugins.comment" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
-      <a *ngIf="!webLink && !admin.status.plugins.comment" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
+      <a *ngIf="clickableLink" [href]="ref.url | safe" target="_blank">{{ ref.title || ref.url }}</a>
+      <a *ngIf="!clickableLink && admin.status.plugins.comment" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
+      <a *ngIf="!clickableLink && !admin.status.plugins.comment" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
       <span class="host">({{ host }})</span>
       <span class="invoice icon" *ngIf="invoice" title="Invoice">🧾️</span>
       <span class="lock icon" *ngIf="locked" title="Locked">🔒️</span>
@@ -146,7 +146,7 @@
                  (click)="reject()">reject</a>
             </ng-container>
             <a *ngIf="pdf" target="_blank" [href]="pdf">pdf</a>
-            <a *ngIf="webLink && archive" target="_blank" [href]="archive">archive</a>
+            <a *ngIf="clickableLink && archive" target="_blank" [href]="archive">archive</a>
             <a *ngIf="store.account.mod && scrapeable" class="fake-link" (click)="scrape()">scrape</a>
             <a *ngIf="store.account.poster" routerLink="/submit" [queryParams]="{source: ref.url}">reply</a>
             <a *ngIf="local && store.account.mod && !approved && !locked"

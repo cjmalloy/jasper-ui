@@ -1,5 +1,6 @@
 import * as _ from 'lodash-es';
 import { Ref } from '../model/ref';
+import { config } from '../service/config.service';
 import { hasTag } from './tag';
 
 export const URI_REGEX = /^([^:/?#]+):(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
@@ -35,13 +36,15 @@ export function authors(ref: Ref) {
   return templates(ref.tags || [], 'user').map(t => t + ref.origin);
 }
 
-export function webLink(ref: Ref) {
+export function clickableLink(ref: Ref) {
   try {
     const url = new URL(ref.url);
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch (e) {
-    return false;
+    if (url.protocol === 'http:' || url.protocol === 'https:') return true;
+  } catch (e) { }
+  for (const v of config().blockedSchemes) {
+    if (ref.url.startsWith(v)) return false;
   }
+  return true;
 }
 
 export function urlSummary(url: string) {

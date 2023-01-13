@@ -18,7 +18,7 @@ import { AuthzService } from '../../service/authz.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
-import { authors, formatAuthor, interestingTags, TAGS_REGEX, webLink } from '../../util/format';
+import { authors, formatAuthor, interestingTags, TAGS_REGEX, clickableLink } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag, tagOrigin } from '../../util/tag';
 
@@ -181,7 +181,7 @@ export class BlogEntryComponent implements OnInit {
   }
 
   get webLink() {
-    return webLink(this._ref);
+    return clickableLink(this._ref);
   }
 
   get approved() {

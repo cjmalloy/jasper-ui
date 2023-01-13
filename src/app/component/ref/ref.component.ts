@@ -18,7 +18,7 @@ import { AuthzService } from '../../service/authz.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
-import { authors, formatAuthor, interestingTags, TAGS_REGEX, urlSummary, webLink } from '../../util/format';
+import { authors, formatAuthor, interestingTags, TAGS_REGEX, urlSummary, clickableLink } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag, tagOrigin } from '../../util/tag';
 
@@ -250,8 +250,8 @@ export class RefComponent implements OnInit {
     return urlSummary(this._ref.url);
   }
 
-  get webLink() {
-    return webLink(this._ref);
+  get clickableLink() {
+    return clickableLink(this._ref);
   }
 
   get approved() {
