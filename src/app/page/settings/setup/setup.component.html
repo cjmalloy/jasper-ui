@@ -31,7 +31,7 @@
 
   <span><!-- Buttons --></span>
   <span class="form-array right">
-    <button (click)="selectAll()">{{ selectAllToggle ? 'Select None' : 'Select All' }}</button>
+    <button type="button" (click)="selectAll()">{{ selectAllToggle ? 'Select None' : 'Select All' }}</button>
     <button type="submit" [disabled]="submitted && !adminForm.valid">Save</button>
   </span>
 
