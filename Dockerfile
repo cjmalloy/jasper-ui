@@ -1,4 +1,4 @@
-FROM node as builder
+FROM node:lts as builder
 WORKDIR app
 RUN npm i -g @angular/cli
 COPY package.json package-lock.json ./
@@ -6,7 +6,7 @@ RUN npm ci
 COPY . ./
 RUN npm run build
 
-FROM node as test
+FROM node:lts as test
 RUN apt-get update && apt-get install -y \
 	apt-transport-https \
 	ca-certificates \
