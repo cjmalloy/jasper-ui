@@ -34,6 +34,7 @@ import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
 import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
+import { ConfigService } from './config.service';
 
 @Injectable({
   providedIn: 'root',
@@ -82,9 +83,9 @@ export class AdminService {
   };
 
   private _embeddable?: string[];
-  private fetchBatch = 50;
 
   constructor(
+    private config: ConfigService,
     private plugins: PluginService,
     private templates: TemplateService,
     private store: Store,
@@ -97,19 +98,29 @@ export class AdminService {
     return forkJoin(this.loadPlugins$(), this.loadTemplates$());
   }
 
-  get originQuery() {
+  get localOriginQuery() {
     return this.store.account.origin || '*';
   }
 
   private loadPlugins$(page = 0): Observable<null> {
-    return this.plugins.page({query: this.originQuery, page, size: this.fetchBatch}).pipe(
+    const alreadyLoaded = page * this.config.fetchBatch;
+    if (alreadyLoaded >= this.config.maxPlugins) {
+      console.error(`Too many plugins to load, only loaded ${alreadyLoaded}. Increase maxPlugins to load more.`)
+      return of(null);
+    }
+    return this.plugins.page({query: this.localOriginQuery, page, size: this.config.fetchBatch}).pipe(
       tap(batch => this.pluginToStatus(batch.content)),
       switchMap(batch => batch.last ? of(null) : this.loadPlugins$(page + 1)),
     );
   }
 
   private loadTemplates$(page = 0): Observable<null> {
-    return this.templates.page({query: this.originQuery, page, size: this.fetchBatch}).pipe(
+    const alreadyLoaded = page * this.config.fetchBatch;
+    if (alreadyLoaded >= this.config.maxTemplates) {
+      console.error(`Too many templates to load, only loaded ${alreadyLoaded}. Increase maxTemplates to load more.`)
+      return of(null);
+    }
+    return this.templates.page({query: this.localOriginQuery, page, size: this.config.fetchBatch}).pipe(
       tap(batch => this.templateToStatus(batch.content)),
       switchMap(batch => batch.last ? of(null) : this.loadTemplates$(page + 1)),
     );

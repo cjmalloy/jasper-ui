@@ -20,6 +20,10 @@ export class ConfigService {
   scim = false;
   blockedSchemes = ['comment:', 'internal:'];
 
+  maxPlugins = 1000;
+  maxTemplates = 1000;
+  fetchBatch = 50;
+
   // Enables client side auth
   token = '';
   codeFlow = false;
