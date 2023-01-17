@@ -2,6 +2,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
+import { SafePipe } from '../../pipe/safe.pipe';
 
 import { RefComponent } from './ref.component';
 
@@ -11,7 +12,10 @@ describe('RefComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [RefComponent],
+      declarations: [
+        RefComponent,
+        SafePipe,
+      ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
