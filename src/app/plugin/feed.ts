@@ -24,7 +24,8 @@ export const feedPlugin: Plugin = {
       disableEtag: { type: 'boolean' },
       etag: { type: 'string' },
       scrapeDescription: { type: 'boolean' },
-      removeDescriptionIndent: { type: 'boolean' },
+      scrapeContents: { type: 'boolean' },
+      scrapeAuthors: { type: 'boolean' },
     },
   },
 };

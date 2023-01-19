@@ -57,7 +57,8 @@ export function feedForm(fb: UntypedFormBuilder, admin: AdminService) {
     scrapeInterval: ['PT15M', [intervalValidator()]],
     disableEtag: [false],
     scrapeDescription: [true],
-    removeDescriptionIndent: [false],
+    scrapeContents: [true],
+    scrapeAuthors: [true],
   });
   result.patchValue(admin.status.plugins.feed?.defaults);
   return result;
