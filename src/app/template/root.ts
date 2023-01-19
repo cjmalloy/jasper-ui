@@ -16,6 +16,7 @@ export const rootTemplate: Template = {
     },
     optionalProperties: {
       sidebar: { type: 'string' },
+      modmail: { type: 'boolean' },
       themes: { values: { type: 'string' } },
       theme: { type: 'string' },
     },

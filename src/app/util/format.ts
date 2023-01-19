@@ -1,7 +1,7 @@
 import * as _ from 'lodash-es';
 import { Ref } from '../model/ref';
 import { config } from '../service/config.service';
-import { hasTag } from './tag';
+import { hasPrefix, hasTag } from './tag';
 
 export const URI_REGEX = /^([^:/?#]+):(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
 export const TAG_REGEX = /^[_+]?[a-z]+([./][a-z]+)*$/;
@@ -79,12 +79,8 @@ export function interestingTag(tag: string) {
   if (tag === 'locked') return false;
   if (tag === 'internal') return false;
   if (tag === '_moderated') return false;
-  if (tag.startsWith('plugin/')) return false;
-  if (tag.startsWith('_plugin/')) return false;
-  if (tag.startsWith('+plugin/')) return false;
-  if (tag.startsWith('user/')) return false;
-  if (tag.startsWith('_user/')) return false;
-  if (tag.startsWith('+user/')) return false;
+  if (hasPrefix(tag, 'plugin')) return false;
+  if (hasPrefix(tag, 'user')) return false;
   if (tag === '+user') return false;
   if (tag === '_user') return false;
   return true;

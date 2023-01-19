@@ -87,9 +87,12 @@ export function prefix(prefix: string, tag: string) {
 
 export function hasPrefix(tag?: string, prefix?: string) {
   if (!tag || !prefix) return false;
-  return tag.startsWith(prefix) ||
-    tag.startsWith('_' + prefix) ||
-    tag.startsWith('+' + prefix);
+  return tag === prefix ||
+    tag === '_' + prefix ||
+    tag === '+' + prefix ||
+    tag.startsWith(prefix + '/') ||
+    tag.startsWith('_' + prefix + '/') ||
+    tag.startsWith('+' + prefix + '/');
 }
 
 export type Crumb = {text: string, tag?: string};

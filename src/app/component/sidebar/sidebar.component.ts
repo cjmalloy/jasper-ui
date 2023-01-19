@@ -9,7 +9,7 @@ import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
-import { localTag, prefix, removeWildcard } from '../../util/tag';
+import { hasPrefix, localTag, prefix, removeWildcard } from '../../util/tag';
 
 @Component({
   selector: 'app-sidebar',
@@ -97,11 +97,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return !!this.admin.status.templates.root && !!this._tag;
   }
 
-  get modmail(): string | null {
-    if (!this._tag) return null;
-    if (!TAG_REGEX.test(this._tag)) return null;
-    if (this._tag.startsWith('plugin')) return null;
-    return this._tag;
+  get modmail() {
+    return this.ext?.config?.modmail;
   }
 
   get isApprover() {
@@ -109,16 +106,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get user() {
-    return !!this.admin.status.templates.user && (
-      this._tag?.startsWith('+user/') ||
-      this._tag?.startsWith('_user/'));
+    return !!this.admin.status.templates.user && hasPrefix(this._tag, 'user');
   }
 
   get queue() {
-    return !!this.admin.status.templates.queue && (
-      this._tag?.startsWith('queue/') ||
-      this._tag?.startsWith('_queue/') ||
-      this._tag?.startsWith('+queue/'));
+    return !!this.admin.status.templates.queue && hasPrefix(this._tag, 'queue');
   }
 
   get homeWriteAccess() {

@@ -8,6 +8,15 @@
 
   <ng-container *ngIf="root"
                 [formGroup]="config">
+
+    <ng-container *ngIf="!user">
+      <label for="modmail">Enable Modmail:</label>
+      <div>
+        <input id="modmail" type="checkbox" formControlName="modmail">
+        <a class="tag" [routerLink]="['/tag', modmail]">{{ modmail }}</a>
+      </div>
+    </ng-container>
+
     <label for="sidebar">Sidebar:</label>
     <div class="editor-preview">
       <textarea id="sidebar" [formControl]="sidebar"></textarea>

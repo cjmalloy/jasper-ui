@@ -50,8 +50,8 @@
       </div>
     </ng-container>
     <ng-container *ngIf="store.account.poster && !user && modmail">
-      <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: modmail }">
-        ✉️ &nbsp; Mod Mail {{ modmail }}
+      <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
+        ✉️ &nbsp; Mod Mail {{ tag }}
       </div>
     </ng-container>
   </ng-container>

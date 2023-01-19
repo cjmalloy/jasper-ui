@@ -3,6 +3,7 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angul
 import { FormlyFieldConfig, FormlyFormOptions } from '@ngx-formly/core';
 import * as _ from 'lodash-es';
 import { Ext } from '../../model/ext';
+import { getMailbox } from '../../plugin/mailbox';
 import { AdminService } from '../../service/admin.service';
 import { hasPrefix } from '../../util/tag';
 import { linksForm } from '../links/links.component';
@@ -59,6 +60,10 @@ export class ExtFormComponent implements OnInit {
     return this.group.get('config') as UntypedFormGroup;
   }
 
+  get modmail() {
+    return getMailbox(this.group.value.tag);
+  }
+
   get sidebar() {
     return this.config.get('sidebar') as UntypedFormControl;
   }
@@ -101,6 +106,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService) {
     configControls = {
       ...configControls,
       sidebar: [''],
+      modmail: [true],
       pinned: linksForm(fb, ext.config?.pinned || []),
       themes: themesForm(fb, ext.config?.themes || []),
       theme: [''],
@@ -160,9 +166,7 @@ function root(tag: string, admin: AdminService) {
 }
 
 function user(tag: string, admin: AdminService) {
-  return !!admin.status.templates.user && (
-    tag.startsWith('_user/') ||
-    tag.startsWith('+user/'));
+  return !!admin.status.templates.user && hasPrefix(tag, 'user');
 }
 
 function queue(tag: string, admin: AdminService) {
