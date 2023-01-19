@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -30,6 +30,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   styleUrls: ['./submit.component.scss'],
 })
 export class SubmitPage implements OnInit, OnDestroy {
+  @HostBinding('class') css = 'submit';
   private disposers: IReactionDisposer[] = [];
 
   submitForm: UntypedFormGroup;

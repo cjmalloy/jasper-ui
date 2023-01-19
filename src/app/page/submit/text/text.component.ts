@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
@@ -24,6 +24,7 @@ import { printError } from '../../../util/http';
   styleUrls: ['./text.component.scss'],
 })
 export class SubmitTextPage implements AfterViewInit, OnDestroy {
+  @HostBinding('class') css = 'submit';
   private disposers: IReactionDisposer[] = [];
 
   submitted = false;

@@ -19,6 +19,16 @@ $mobile-width: 640px;
   .toggle.actions-toggle, .toggle.comments {
     display: none;
   }
+
+  .submit {
+    app-ref {
+      max-width: 80%;
+      margin: auto;
+    }
+    .form {
+      margin: auto;
+    }
+  }
 }
 
 

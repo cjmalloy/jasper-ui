@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash-es';
@@ -26,6 +26,7 @@ import { printError } from '../../../util/http';
   styleUrls: ['./web.component.scss'],
 })
 export class SubmitWebPage implements AfterViewInit {
+  @HostBinding('class') css = 'submit';
 
   submitted = false;
   title = '';

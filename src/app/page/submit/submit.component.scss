@@ -1,9 +1,0 @@
-$mobile-width: 640px;
-
-/* Big Screens */
-@media (min-width: $mobile-width) {
-  app-ref {
-    max-width: 80%;
-    margin: auto;
-  }
-}

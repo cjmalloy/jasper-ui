@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostBinding, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
@@ -20,6 +20,7 @@ import { hasPrefix } from '../../../util/tag';
   styleUrls: ['./dm.component.scss']
 })
 export class SubmitDmPage implements OnInit {
+  @HostBinding('class') css = 'submit';
 
   submitted = false;
   dmForm: UntypedFormGroup;
