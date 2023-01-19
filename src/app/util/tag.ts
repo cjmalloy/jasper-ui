@@ -98,6 +98,10 @@ export function hasPrefix(tag?: string, prefix?: string) {
     tag.startsWith('+' + prefix + '/');
 }
 
+export function removePrefix(tag: string, count = 1) {
+  return tag.split('/').slice(count).join('/');
+}
+
 export type Crumb = {text: string, tag?: string};
 export function breadcrumbs(tag: string): Crumb[] {
   if (!tag) return [];

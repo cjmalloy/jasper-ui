@@ -12,6 +12,7 @@ config="
   \"blockedSchemes\": ${JASPER_BLOCKED_SCHEMES-[\"comment:\", \"internal:\"]},
   \"maxPlugins\": ${JASPER_MAX_PLUGINS-0},
   \"maxTemplates\": ${JASPER_MAX_TEMPLATES-0},
+  \"maxOrigins\": ${JASPER_MAX_ORIGINS-0},
   \"fetchBatch\": ${JASPER_FETCH_BATCH-0},
   \"token\": \"${JASPER_TOKEN}\",
   \"codeFlow\": ${JASPER_CODE_FLOW-false},

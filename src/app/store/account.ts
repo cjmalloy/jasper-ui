@@ -3,8 +3,10 @@ import { makeAutoObservable } from 'mobx';
 import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../plugin/mailbox';
+import { ConfigService } from '../service/config.service';
 import { defaultSubs } from '../template/user';
-import { hasPrefix } from '../util/tag';
+import { hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
+import { OriginStore } from './origin';
 
 export class AccountStore {
 
@@ -21,7 +23,11 @@ export class AccountStore {
   theme?: string;
   authError = false;
 
-  constructor() {
+  origins = new OriginStore(this.config, this);
+
+  constructor(
+    private config: ConfigService,
+  ) {
     makeAutoObservable(this);
   }
 
@@ -30,13 +36,11 @@ export class AccountStore {
   }
 
   get localTag() {
-    if (!this.tag.includes('@')) return this.tag;
-    return this.tag.substring(0, this.tag.indexOf('@'));
+    return localTag(this.tag);
   }
 
   get origin() {
-    if (!this.tag.includes('@')) return '';
-    return this.tag.substring(this.tag.indexOf('@'));
+    return tagOrigin(this.tag);
   }
 
   get role() {
@@ -58,7 +62,8 @@ export class AccountStore {
   }
 
   get outboxes() {
-    return this.user?.readAccess?.filter(t => hasPrefix(t, 'plugin/outbox')).map(t => t + (this.origin || '@*'));
+    return Array.from(this.origins.reverseLookup)
+      .map(([remote, localAlias]) => prefix('plugin/outbox', localAlias, this.localTag) + remote);
   }
 
   get notificationsQuery() {

@@ -4,6 +4,7 @@ import * as _ from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';
+import { Ref } from '../model/ref';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { archivePlugin } from '../plugin/archive';
@@ -33,6 +34,7 @@ import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
 import { PluginService } from './api/plugin.service';
+import { RefService } from './api/ref.service';
 import { TemplateService } from './api/template.service';
 import { ConfigService } from './config.service';
 
@@ -82,11 +84,14 @@ export class AdminService {
     },
   };
 
+  origins: Ref[] = [];
+
   private _embeddable?: string[];
 
   constructor(
     private config: ConfigService,
     private plugins: PluginService,
+    private refs: RefService,
     private templates: TemplateService,
     private store: Store,
   ) { }
@@ -95,11 +100,23 @@ export class AdminService {
     this._embeddable = undefined;
     this.status.plugins =  _.mapValues(this.def.plugins, () => undefined);
     this.status.templates = _.mapValues(this.def.templates, () => undefined);
-    return forkJoin(this.loadPlugins$(), this.loadTemplates$());
+    return forkJoin(this.loadPlugins$(), this.loadTemplates$(), this.loadOrigins$());
   }
 
   get localOriginQuery() {
     return this.store.account.origin || '*';
+  }
+
+  private loadOrigins$(page = 0): Observable<null> {
+    const alreadyLoaded = page * this.config.fetchBatch;
+    if (alreadyLoaded >= this.config.maxOrigins) {
+      console.error(`Too many origins to load, only loaded ${alreadyLoaded}. Increase maxOrigins to load more.`)
+      return of(null);
+    }
+    return this.refs.page({query: '+plugin/origin@*', page, size: this.config.fetchBatch}).pipe(
+      tap(batch => this.origins.push(...batch.content)),
+      switchMap(batch => batch.last ? of(null) : this.loadOrigins$(page + 1)),
+    );
   }
 
   private loadPlugins$(page = 0): Observable<null> {

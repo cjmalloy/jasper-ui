@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Ref } from '../model/ref';
 
 export const originPlugin: Plugin = {
   tag: '+plugin/origin',
@@ -34,3 +35,8 @@ export const originPlugin: Plugin = {
     },
   },
 };
+
+export function isReplicating(remote: Ref, url: string, origin = '') {
+  const plugin = remote.plugins!['+plugin/origin'];
+  return remote.url === url && (plugin.remote || '') === origin;
+}
