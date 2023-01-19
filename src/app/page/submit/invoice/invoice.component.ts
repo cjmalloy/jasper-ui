@@ -107,12 +107,12 @@ export class SubmitInvoicePage implements OnInit {
     const result = [
       'locked',
       'internal',
-      prefix('plugin/invoice/', queueExt.tag),
+      prefix('plugin/invoice', queueExt.tag),
       'plugin/qr',
       this.store.account.localTag,
     ];
     for (const approver of queueExt.config.approvers) {
-      result.push(prefix('plugin/inbox/', approver));
+      result.push(prefix('plugin/inbox', approver));
     }
     if (this.emoji) result.push('plugin/emoji');
     if (this.latex) result.push('plugin/latex');

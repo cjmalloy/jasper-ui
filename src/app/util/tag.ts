@@ -78,11 +78,14 @@ export function tagOrigin(tag: string) {
   return tag.substring(tag.indexOf('@'));
 }
 
-export function prefix(prefix: string, tag: string) {
-  if (tag.startsWith('_')) {
-    return prefix + tag.substring(1);
-  }
-  return prefix + tag.replace('+', '');
+/**
+ * Join multiple tags together, ignoring visibility modifiers '+' and '_' and
+ * origin markers '@' for all but the first tag.
+ */
+export function prefix(prefix: string, ...rest: string[]) {
+  return prefix + '/' + rest.join('/')
+    .replace(/[+_@]/, '')
+    .replace('//', '/');
 }
 
 export function hasPrefix(tag?: string, prefix?: string) {
