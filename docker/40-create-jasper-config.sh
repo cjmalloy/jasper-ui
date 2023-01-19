@@ -9,7 +9,7 @@ config="
   \"login\": \"$JASPER_LOGIN\",
   \"signup\": \"$JASPER_SIGNUP\",
   \"scim\": ${JASPER_SCIM-false},
-  \"blockedSchemes\": ${JASPER_BLOCKED_SCHEMES-['comment:', 'internal:']},
+  \"blockedSchemes\": ${JASPER_BLOCKED_SCHEMES-[\"comment:\", \"internal:\"]},
   \"maxPlugins\": ${JASPER_MAX_PLUGINS-0},
   \"maxTemplates\": ${JASPER_MAX_TEMPLATES-0},
   \"fetchBatch\": ${JASPER_FETCH_BATCH-0},
