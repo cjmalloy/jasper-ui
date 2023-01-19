@@ -20,7 +20,7 @@ import { hasPrefix } from '../../../util/tag';
   styleUrls: ['./dm.component.scss']
 })
 export class SubmitDmPage implements OnInit {
-  @HostBinding('class') css = 'submit';
+  @HostBinding('class') css = 'full-page-form';
 
   submitted = false;
   dmForm: UntypedFormGroup;

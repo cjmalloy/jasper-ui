@@ -26,7 +26,7 @@ import { printError } from '../../../util/http';
   styleUrls: ['./web.component.scss'],
 })
 export class SubmitWebPage implements AfterViewInit {
-  @HostBinding('class') css = 'submit';
+  @HostBinding('class') css = 'full-page-form';
 
   submitted = false;
   title = '';

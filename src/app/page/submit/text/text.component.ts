@@ -24,7 +24,7 @@ import { printError } from '../../../util/http';
   styleUrls: ['./text.component.scss'],
 })
 export class SubmitTextPage implements AfterViewInit, OnDestroy {
-  @HostBinding('class') css = 'submit';
+  @HostBinding('class') css = 'full-page-form';
   private disposers: IReactionDisposer[] = [];
 
   submitted = false;

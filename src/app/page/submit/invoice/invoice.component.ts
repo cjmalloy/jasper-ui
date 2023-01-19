@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostBinding, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash-es';
@@ -24,6 +24,7 @@ import { prefix } from '../../../util/tag';
   styleUrls: ['./invoice.component.scss']
 })
 export class SubmitInvoicePage implements OnInit {
+  @HostBinding('class') css = 'full-page-form';
 
   submitted = false;
   invoiceForm: UntypedFormGroup;

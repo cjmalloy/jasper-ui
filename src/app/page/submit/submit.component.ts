@@ -30,7 +30,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   styleUrls: ['./submit.component.scss'],
 })
 export class SubmitPage implements OnInit, OnDestroy {
-  @HostBinding('class') css = 'submit';
+  @HostBinding('class') css = 'full-page-form';
   private disposers: IReactionDisposer[] = [];
 
   submitForm: UntypedFormGroup;

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostBinding, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
@@ -18,6 +18,7 @@ import { printError } from '../../../util/http';
   styleUrls: ['./profile.component.scss']
 })
 export class CreateProfilePage implements OnInit {
+  @HostBinding('class') css = 'full-page-form';
 
   submitted = false;
   profileForm: UntypedFormGroup;

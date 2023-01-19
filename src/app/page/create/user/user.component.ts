@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
@@ -19,6 +19,7 @@ import { prefix } from '../../../util/tag';
   styleUrls: ['./user.component.scss'],
 })
 export class CreateUserPage implements OnInit {
+  @HostBinding('class') css = 'full-page-form';
 
   submitted = false;
   userForm: UntypedFormGroup;

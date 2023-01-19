@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toJS } from 'mobx';
@@ -20,6 +20,7 @@ import { removeWildcard } from '../../../util/tag';
   styleUrls: ['./edit.component.scss'],
 })
 export class EditTagPage implements OnInit {
+  @HostBinding('class') css = 'full-page-form';
 
   ext!: Ext;
   submitted = false;
