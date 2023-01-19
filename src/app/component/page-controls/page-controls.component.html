@@ -17,14 +17,14 @@
   </ng-container>
   <a class="next-page"
      routerLink="./"
-     routerLinkActive="disabled"
+     [class.disabled]="page.last"
      [queryParams]="{ pageNumber: next }"
      (click)="scrollUp()"
      queryParamsHandling="merge">next</a>
   |
   <a class="last-page"
      routerLink="./"
-     routerLinkActive="disabled"
+     [class.disabled]="page.last"
      [queryParams]="{ pageNumber: last }"
      queryParamsHandling="merge">last</a>
 

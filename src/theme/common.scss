@@ -332,7 +332,7 @@ input.big {
   margin: 10px;
 
   .disabled {
-    cursor: default;
+    pointer-events: none;
     text-decoration: none;
 
     &:link, &:active, &:visited {
