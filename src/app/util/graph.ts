@@ -1,8 +1,8 @@
 import * as _ from 'lodash-es';
-import { Ref } from '../model/ref';
+import { RefNode } from '../model/ref';
 import { hasTag } from './tag';
 
-export type GraphNode = Ref & {
+export type GraphNode = RefNode & {
   unloaded?: boolean,
   notFound?: boolean,
   pinned?: boolean,
@@ -48,7 +48,7 @@ export function sources(...nodes: GraphNode[]): string[] {
 }
 
 export function responses(...nodes: GraphNode[]): string[] {
-  return nodes.flatMap(r => r.metadata?.responses || []);
+  return nodes.flatMap(r => r.responses || []);
 }
 
 export function unloadedReferences(allNodes: GraphNode[], ...nodes: GraphNode[]): string[] {

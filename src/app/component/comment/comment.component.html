@@ -91,12 +91,12 @@
                    [tags]="mailboxes"
                    [newComments$]="newComments$"></app-comment-reply>
 <span class="fake-link load-more"
-      *ngIf="!collapsed && context < maxContext && depth === 0 && ref.metadata!.plugins['plugin/comment'].length > 0"
+      *ngIf="!collapsed && context < maxContext && depth === 0 && ref.metadata!.plugins['plugin/comment'] > 0"
       (click)="depth = depth + 1">
   load more comments
 </span>
 <a class="load-more"
-   *ngIf="!collapsed && context >= maxContext && depth === 0 && ref.metadata!.plugins['plugin/comment'].length > 0"
+   *ngIf="!collapsed && context >= maxContext && depth === 0 && ref.metadata!.plugins['plugin/comment'] > 0"
    [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">
   continue this thread
 </a>

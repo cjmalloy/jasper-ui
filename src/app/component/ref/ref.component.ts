@@ -3,7 +3,7 @@ import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core'
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, mergeMap, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../form/plugins/plugins.component';
@@ -18,7 +18,7 @@ import { AuthzService } from '../../service/authz.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
-import { authors, formatAuthor, interestingTags, TAGS_REGEX, urlSummary, clickableLink } from '../../util/format';
+import { authors, clickableLink, formatAuthor, interestingTags, TAGS_REGEX, urlSummary } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag, tagOrigin } from '../../util/tag';
 
@@ -184,15 +184,15 @@ export class RefComponent implements OnInit {
   }
 
   get disputed() {
-    return this._ref.metadata?.plugins?.['plugin/invoice/disputed'].length;
+    return this._ref.metadata?.plugins?.['plugin/invoice/disputed'];
   }
 
   get paid() {
-    return this._ref.metadata?.plugins?.['plugin/invoice/paid'].length;
+    return this._ref.metadata?.plugins?.['plugin/invoice/paid'];
   }
 
   get rejected() {
-    return this._ref.metadata?.plugins?.['plugin/invoice/rejected'].length;
+    return this._ref.metadata?.plugins?.['plugin/invoice/rejected'];
   }
 
   get pdf() {
@@ -265,7 +265,7 @@ export class RefComponent implements OnInit {
   get comments() {
     let commentCount : number | string = '?';
     if (this._ref.metadata?.modified) {
-      commentCount = this._ref.metadata?.plugins?.['plugin/comment']?.length || 0;
+      commentCount = this._ref.metadata?.plugins?.['plugin/comment'] || 0;
     }
     if (commentCount === 0) return 'comment';
     if (commentCount === 1) return '1 comment';
@@ -275,7 +275,7 @@ export class RefComponent implements OnInit {
   get responses() {
     let responseCount : number | string = '?';
     if (this._ref.metadata?.modified) {
-      responseCount = this._ref.metadata?.responses?.length || 0;
+      responseCount = this._ref.metadata?.responses || 0;
     }
     if (this.feed) {
       return responseCount + ' scraped';
@@ -335,7 +335,15 @@ export class RefComponent implements OnInit {
   }
 
   accept() {
-    this.refs.delete(this._ref.metadata!.plugins['plugin/invoice/disputed'][0]).pipe(
+    if (this._ref.metadata!.plugins?.['plugin/invoice/disputed'] > 1) {
+      console.warn('Multiple disputes found');
+    }
+    this.refs.page({
+      responses: this._ref.url,
+      query: 'plugin/invoice/disputed:' + this.store.account.localTag,
+      size: 1
+    }).pipe(
+      mergeMap(page => this.refs.delete(page.content[0].url)),
       switchMap(() => this.refs.get(this._ref.url)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
@@ -366,8 +374,16 @@ export class RefComponent implements OnInit {
   }
 
   markPaid() {
-    if (this._ref.metadata?.plugins?.['plugin/invoice/rejected']?.length) {
-      this.refs.delete(this._ref.metadata!.plugins['plugin/invoice/rejected'][0]).pipe(
+    if (this._ref.metadata?.plugins?.['plugin/invoice/rejected']) {
+      if (this._ref.metadata?.plugins?.['plugin/invoice/rejected'] > 1) {
+        console.warn('Multiple rejections found');
+      }
+      this.refs.page({
+        responses: this._ref.url,
+        query: 'plugin/invoice/rejected:' + this.store.account.localTag,
+        size: 1
+      }).pipe(
+        mergeMap(page => this.refs.delete(page.content[0].url)),
         switchMap(() => this.refs.get(this._ref.url)),
         catchError((err: HttpErrorResponse) => {
           this.serverError = printError(err);
@@ -396,8 +412,16 @@ export class RefComponent implements OnInit {
   }
 
   reject() {
-    if (this._ref.metadata?.plugins?.['plugin/invoice/paid']?.length) {
-      this.refs.delete(this._ref.metadata!.plugins['plugin/invoice/paid'][0]).pipe(
+    if (this._ref.metadata?.plugins?.['plugin/invoice/paid']) {
+      if (this._ref.metadata?.plugins?.['plugin/invoice/paid'] > 1) {
+        console.warn('Multiple paid approvals found');
+      }
+      this.refs.page({
+        responses: this._ref.url,
+        query: 'plugin/invoice/paid:' + this.store.account.localTag,
+        size: 1
+      }).pipe(
+        mergeMap(page => this.refs.delete(page.content[0].url)),
         switchMap(() => this.refs.get(this._ref.url)),
         catchError((err: HttpErrorResponse) => {
           this.serverError = printError(err);

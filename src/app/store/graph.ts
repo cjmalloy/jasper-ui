@@ -2,7 +2,7 @@ import * as _ from 'lodash-es';
 import { makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Page } from '../model/page';
-import { Ref } from '../model/ref';
+import { RefNode } from '../model/ref';
 import { find, graphable, GraphLink, GraphNode, links, linkSources, unloadedReferences } from '../util/graph';
 
 export class GraphStore {
@@ -53,7 +53,7 @@ export class GraphStore {
     return this.maxPublished?.diff(this.minPublished) || 0;
   }
 
-  set(refs: Ref[]) {
+  set(refs: RefNode[]) {
     this.loading = [];
     this.nodes = [...refs];
     this.selected = [...refs];
@@ -63,7 +63,7 @@ export class GraphStore {
     this.links = links(this.nodes, ...this.nodes);
   }
 
-  load(...refs: Ref[]) {
+  load(...refs: RefNode[]) {
     for (const ref of refs) {
       const found = find(this.nodes, ref.url);
       if (found) {
@@ -83,7 +83,7 @@ export class GraphStore {
     _.pullAll(this.loading, refs.map(r => r.url));
   }
 
-  remove(refs: Ref[]) {
+  remove(refs: RefNode[]) {
     _.pullAll(this.nodes, refs);
     _.pullAll(this.selected, refs);
     for (const ref of refs) {
@@ -103,7 +103,7 @@ export class GraphStore {
     this.links = links(this.nodes, ...this.nodes);
   }
 
-  select(...refs: Ref[]) {
+  select(...refs: RefNode[]) {
     this.selected = [...refs];
   }
 
@@ -139,7 +139,7 @@ export class GraphStore {
     return ref;
   }
 
-  grabNodeOrSelection(ref: Ref) {
+  grabNodeOrSelection(ref: RefNode) {
     if (!this.selected.includes(ref)) {
       this.selected = [ref];
     }

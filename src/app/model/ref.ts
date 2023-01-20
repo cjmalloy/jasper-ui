@@ -14,11 +14,15 @@ export interface Ref extends HasOrigin {
   created?: moment.Moment;
 }
 
+export interface RefNode extends Ref {
+  responses?: string[]
+}
+
 export interface Metadata {
   modified: string;
-  responses: string[];
-  internalResponses: string[];
-  plugins: Record<string, string[]>;
+  responses: number;
+  internalResponses: number;
+  plugins: Record<string, number>;
 }
 
 export type Filter =

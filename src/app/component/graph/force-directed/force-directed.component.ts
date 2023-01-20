@@ -15,12 +15,12 @@ import {
 import * as d3 from 'd3';
 import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import * as _ from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
+import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
-import { Ref } from '../../../model/ref';
-import { RefService } from '../../../service/api/ref.service';
+import { Ref, RefNode } from '../../../model/ref';
+import { GraphService } from '../../../service/api/graph.service';
 import { Store } from '../../../store/store';
 import { isTextPost } from '../../../util/format';
 import { find, GraphNode, isGraphable, isInternal, responses, sources } from '../../../util/graph';
@@ -101,7 +101,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     public store: Store,
-    private refs: RefService,
+    private graphs: GraphService,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
   ) {
@@ -120,20 +120,23 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
   @Input()
   set content(refs: Ref[]) {
-    this.store.graph.set(refs.map(r => toJS(r)));
-    if (this.depth > 0) {
-      let init: Observable<any> = of(1);
-      for (let i = 0; i< this.depth; i++) {
-        init = init.pipe(switchMap(() => this.loadMore$));
-      }
-      init.subscribe(() => {
-        if (this.figure) {
-          this.update()
+    this.graphs.list(refs.map(r => r.url))
+      .subscribe(nodes => {
+        this.store.graph.set(nodes.filter(n => !!n) as RefNode[]);
+        if (this.depth > 0) {
+          let init: Observable<any> = of(1);
+          for (let i = 0; i< this.depth; i++) {
+            init = init.pipe(switchMap(() => this.loadMore$));
+          }
+          init.subscribe(() => {
+            if (this.figure) {
+              this.update()
+            }
+          });
+        } else if (this.figure) {
+          this.update();
         }
       });
-    } else if (this.figure) {
-      this.update();
-    }
   }
 
   ngAfterViewInit(): void {
@@ -154,14 +157,14 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
   load$(more: string[]) {
     if (!more.length) return of([]);
-    return this.refs.list(more).pipe(
-      tap((moreLoaded: (Ref|null)[]) => {
+    return this.graphs.list(more).pipe(
+      tap((moreLoaded: (RefNode|null)[]) => {
         for (let i = 0; i < more.length; i++) {
           if (!moreLoaded[i]) {
             this.store.graph.notFound(more[i]);
           }
         }
-        this.store.graph.load(...moreLoaded.filter(n => !!n) as Ref[]);
+        this.store.graph.load(...moreLoaded.filter(n => !!n) as RefNode[]);
       }),
     );
   }
@@ -187,16 +190,16 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     return loadCount > this.maxLoad ? `(max ${this.maxLoad})` : `(${loadCount})`;
   }
 
-  countRefUnloaded(ref: Ref) {
+  countRefUnloaded(ref: RefNode) {
     const refs = this.store.graph.grabNodeOrSelection(ref);
     return refs.filter(r => r.unloaded).length;
   }
 
-  countUnloadedSource(ref: Ref) {
+  countUnloadedSource(ref: RefNode) {
     return this.countUnloaded(...sources(...this.store.graph.grabNodeOrSelection(ref)));
   }
 
-  countUnloadedResponse(ref: Ref) {
+  countUnloadedResponse(ref: RefNode) {
     return this.countUnloaded(...responses(...this.store.graph.grabNodeOrSelection(ref)));
   }
 
@@ -402,7 +405,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
       .force('x', d3.forceX(d => {
         if (!this.store.graph.timeline) return 0;
         if (!isGraphable(d as GraphNode)) return 0;
-        return this.timelineScale!((d as Ref).published!.valueOf());
+        return this.timelineScale!((d as RefNode).published!.valueOf());
       }).strength(d => {
         if (!this.store.graph.timeline) return 0.1;
         if (!isGraphable(d as GraphNode)) return 0;

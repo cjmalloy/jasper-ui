@@ -12,7 +12,7 @@ import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
-import { authors, formatAuthor, TAGS_REGEX, clickableLink } from '../../util/format';
+import { authors, clickableLink, formatAuthor, TAGS_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag, tagOrigin } from '../../util/tag';
 
@@ -120,7 +120,7 @@ export class ChatEntryComponent {
 
   get comments() {
     if (!this.ref.metadata) return '? comments';
-    const commentCount = this.ref.metadata.plugins?.['plugin/comment']?.length;
+    const commentCount = this.ref.metadata.plugins?.['plugin/comment'];
     if (commentCount === 0) return 'thread';
     if (commentCount === 1) return '1 comment';
     return commentCount + ' comments';

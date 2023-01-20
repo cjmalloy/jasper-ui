@@ -4,7 +4,7 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } 
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, map, of, switchMap, throwError } from 'rxjs';
+import { catchError, map, mergeMap, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext } from '../../../model/ext';
 import { AdminService } from '../../../service/admin.service';
@@ -31,7 +31,6 @@ export class SubmitInvoicePage implements OnInit {
   serverError: string[] = [];
 
   refUrl?: string;
-  validQueues?: string[];
   queue?: string;
   emoji = !!this.admin.status.plugins.emoji;
   latex = !!this.admin.status.plugins.latex;
@@ -54,13 +53,12 @@ export class SubmitInvoicePage implements OnInit {
       comment: [''],
     });
     this.ref$.pipe(
-      map(ref => ref.sources),
-      switchMap(sources => sources ? this.refs.list(sources) : of([]))
-    ).subscribe(sources => {
-      this.validQueues = sources
-        .filter(s => !!s)
-        .flatMap(s => templates(s!.tags, 'queue'));
-      if (this.validQueues?.length) this.queue = this.validQueues[0];
+      mergeMap(ref => this.refs.page({ sources: ref.url, query: 'queue', size: 1}))
+      // TODO: support multiple valid queues
+    ).subscribe(page => {
+      if (page.content.length) {
+        this.queue = templates(page.content[0].tags, 'queue')[0];
+      }
     });
   }
 

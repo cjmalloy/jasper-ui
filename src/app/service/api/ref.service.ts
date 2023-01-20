@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
-import { mapRef, mapRefOrNull, Ref, RefPageArgs, RefQueryArgs, writeRef } from '../../model/ref';
+import { mapRef, Ref, RefPageArgs, RefQueryArgs, writeRef } from '../../model/ref';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -44,16 +44,6 @@ export class RefService {
       map(() => true),
       catchError(err => this.login.handleHttpError(err)),
       catchError(err => of(false)),
-    );
-  }
-
-  list(urls: string[], origin = ''): Observable<(Ref | null)[]> {
-    return this.http.get(`${this.base}/list`, {
-      params: params({ urls, origin }),
-    }).pipe(
-      map(res => res as any[]),
-      map(res => res.map(mapRefOrNull)),
-      catchError(err => this.login.handleHttpError(err)),
     );
   }
 

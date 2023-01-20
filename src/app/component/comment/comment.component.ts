@@ -74,8 +74,8 @@ export class CommentComponent implements OnInit, OnDestroy {
     ).subscribe(ref => {
       this.replying = false;
       if (ref?.metadata) {
-        this._ref.metadata!.plugins['plugin/comment'].push(ref.url);
-        this._ref.metadata!.responses.push(ref.url);
+        this._ref.metadata!.plugins['plugin/comment']++;
+        this._ref.metadata!.responses++;
         if (this.depth === 0) this.depth = 1;
       }
     });
@@ -138,7 +138,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   get comments() {
     let commentCount : number | string = '?';
     if (this._ref.metadata?.modified) {
-      commentCount = this._ref.metadata?.plugins?.['plugin/comment']?.length || 0;
+      commentCount = this._ref.metadata?.plugins?.['plugin/comment'] || 0;
     }
     if (commentCount === 0) return 'comment';
     if (commentCount === 1) return '1 comment';
@@ -148,7 +148,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   get responses() {
     let responseCount : number | string = '?';
     if (this._ref.metadata?.modified) {
-      responseCount = this._ref.metadata?.responses?.length || 0;
+      responseCount = this._ref.metadata?.responses || 0;
     }
     if (responseCount === 0) return 'uncited';
     if (responseCount === 1) return '1 citation';
