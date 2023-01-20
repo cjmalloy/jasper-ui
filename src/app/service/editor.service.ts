@@ -3,10 +3,8 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular
 import * as _ from 'lodash-es';
 import { LinksFormComponent } from '../form/links/links.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
-import { RefFilter, RefQueryArgs, RefSort } from '../model/ref';
 import { getLinks, getMailboxes, getTags } from '../util/editor';
 import { getPath } from '../util/hosts';
-import { getArgs } from '../util/query';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -101,8 +99,8 @@ export class EditorService {
   private syncUrls(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
     const existing = [
       ...getLinks(previousComment).map(url => this.getRefUrl(url)),
-      ...group.value.sources,
-      ...group.value.alternateUrls,
+      ...(group.value.sources || []),
+      ...(group.value.alternateUrls || []),
     ];
     const newAlts = _.uniq(_.difference(this.getAlts(group.value.comment), existing));
     for (const a of newAlts) {
@@ -119,7 +117,7 @@ export class EditorService {
     const existingTags = [
       ...getTags(previousComment),
       ...getMailboxes(previousComment),
-      ...group.value.tags,
+      ...(group.value.tags || []),
     ];
     const newTags = _.uniq(_.difference([
       ...getTags(group.value.comment),
@@ -130,6 +128,7 @@ export class EditorService {
   }
 
   private reNumberSources(markdown: string, sources: string[]) {
+    if (!sources) return markdown;
     let i = 0;
     for (const s of sources) {
       i++;
@@ -141,9 +140,10 @@ export class EditorService {
     return markdown;
   }
 
-  private reNumberAlts(markdown: string, sources: string[]) {
+  private reNumberAlts(markdown: string, alts: string[]) {
+    if (!alts) return markdown;
     let i = 0;
-    for (const s of sources) {
+    for (const s of alts) {
       i++;
       markdown = markdown.replace(new RegExp(`\\[alt\\d+]\\(${s}\\)`, 'g'), `[alt${i}](${s})`);
       markdown = markdown.replace(new RegExp(`\\[\\[alt\\d+]]\\(${s}\\)`, 'g'), `[[alt${i}]](${s})`);
