@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { AdminService } from '../../../service/admin.service';
-import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
@@ -23,7 +22,6 @@ export class InboxSentPage implements OnInit, OnDestroy {
     public admin: AdminService,
     public store: Store,
     public query: QueryStore,
-    private refs: RefService,
   ) {
     theme.setTitle('Inbox: Sent');
     query.clear();

@@ -1,7 +1,6 @@
 import * as _ from 'lodash-es';
 import { makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
-import { map, Observable, of } from 'rxjs';
 import { Plugin } from '../model/plugin';
 
 export class SubmitStore {

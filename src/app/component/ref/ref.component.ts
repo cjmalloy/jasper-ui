@@ -20,7 +20,7 @@ import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags, TAGS_REGEX, urlSummary } from '../../util/format';
 import { printError } from '../../util/http';
-import { hasTag, tagOrigin } from '../../util/tag';
+import { hasTag, isOwnerTag, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-ref',
@@ -231,7 +231,7 @@ export class RefComponent implements OnInit {
   }
 
   get isAuthor() {
-    return hasTag(this.store.account.tag, this._ref);
+    return isOwnerTag(this.store.account.tag, this._ref);
   }
 
   get isRecipient() {

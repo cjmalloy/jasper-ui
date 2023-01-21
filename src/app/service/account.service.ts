@@ -67,7 +67,7 @@ export class AccountService {
   }
 
   private get user$(): Observable<User | undefined> {
-    if (!this.store.account.signedIn) return throwError('Not signed in');
+    if (!this.store.account.signedIn) return throwError(() => 'Not signed in');
     if (!this._user$) {
       this._user$ = this.users.get(this.store.account.tag).pipe(
         tap(user => runInAction(() => this.store.account.user = user)),
@@ -80,7 +80,7 @@ export class AccountService {
   }
 
   private get userExt$(): Observable<Ext> {
-    if (!this.store.account.signedIn) return throwError('Not signed in');
+    if (!this.store.account.signedIn) return throwError(() => 'Not signed in');
     if (!this._userExt$) {
       this._userExt$ = this.exts.get(this.store.account.tag).pipe(
         tap(ext => runInAction(() => this.store.account.ext = ext)),
