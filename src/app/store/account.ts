@@ -3,7 +3,6 @@ import { makeAutoObservable } from 'mobx';
 import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../plugin/mailbox';
-import { ConfigService } from '../service/config.service';
 import { defaultSubs } from '../template/user';
 import { hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
@@ -23,10 +22,8 @@ export class AccountStore {
   theme?: string;
   authError = false;
 
-  origins = new OriginStore(this.config, this);
-
   constructor(
-    private config: ConfigService,
+    private origins: OriginStore,
   ) {
     makeAutoObservable(this);
   }

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
-import { ConfigService } from '../service/config.service';
 import { AccountStore } from './account';
 import { GraphStore } from './graph';
+import { OriginStore } from './origin';
 import { SubmitStore } from './submit';
 import { ViewStore } from './view';
 
@@ -12,7 +12,8 @@ import { ViewStore } from './view';
 })
 export class Store {
 
-  account = new AccountStore(this.config);
+  origins = new OriginStore();
+  account = new AccountStore(this.origins);
   view = new ViewStore(this.route);
   submit = new SubmitStore(this.route);
   graph = new GraphStore(this.route);
@@ -20,7 +21,6 @@ export class Store {
 
   constructor(
     private route: RouterStore,
-    private config: ConfigService,
   ) {
     makeAutoObservable(this);
   }

@@ -131,8 +131,9 @@ import { AdminService } from './service/admin.service';
 import { AuthnService } from './service/authn.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
+import { OriginService } from './service/origin.service';
 
-const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService) => () =>
+const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginService) => () =>
   config.load$.pipe(
     switchMap(() => debug.init$),
     switchMap(() => authn.init$),
@@ -145,6 +146,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     )),
     switchMap(() => admin.init$),
     switchMap(() => account.init$),
+    switchMap(() => origins.init$),
   );
 
 @NgModule({
@@ -287,7 +289,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     {
       provide: APP_INITIALIZER,
       useFactory: loadFactory,
-      deps: [ConfigService, DebugService, AuthnService, AdminService, AccountService],
+      deps: [ConfigService, DebugService, AuthnService, AdminService, AccountService, OriginService],
       multi: true,
     },
   ],

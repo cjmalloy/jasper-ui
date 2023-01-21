@@ -120,7 +120,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get mailboxes() {
-    return mailboxes(this._ref, this.store.account.tag, this.store.account.origins.originMap);
+    return mailboxes(this._ref, this.store.account.tag, this.store.origins.originMap);
   }
 
   get tagged() {
