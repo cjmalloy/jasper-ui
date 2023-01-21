@@ -54,7 +54,7 @@
     "@types/lodash-es": "^4.17.6",
     "@types/qrcode": "^1.5.0",
     "@types/uuid": "^9.0.0",
-    "cypress": "^12.1.0",
+    "cypress": "^12.3.0",
     "cypress-mochawesome-reporter": "^3.2.3",
     "cypress-real-events": "^1.7.4",
     "jasmine-core": "~4.0.0",

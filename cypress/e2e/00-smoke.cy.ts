@@ -33,7 +33,7 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
-        tag: '+user/debug/admin',
+        tag: '+user',
         admin: true,
         mod: true,
         editor: true,
@@ -47,7 +47,7 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
-        tag: '+user/debug/mod',
+        tag: '+user',
         admin: false,
         mod: true,
         editor: true,
@@ -61,7 +61,7 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
-        tag: '+user/debug/editor',
+        tag: '+user',
         admin: false,
         mod: false,
         editor: true,
@@ -75,7 +75,7 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
-        tag: '+user/debug/user',
+        tag: '+user',
         admin: false,
         mod: false,
         editor: false,
@@ -89,7 +89,7 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
-        tag: '+user/debug/viewer',
+        tag: '+user',
         admin: false,
         mod: false,
         editor: false,

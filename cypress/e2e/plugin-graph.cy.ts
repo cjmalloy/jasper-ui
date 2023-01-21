@@ -37,7 +37,7 @@ describe('Graph Plugin', {
   });
   it('creates reply', () => {
     cy.get('.full-page .actions a').contains('reply').click();
-    cy.get('#url').type('comment:test-reply' + Math.random());
+    cy.get('#url').type('test:reply' + Math.random());
     cy.get('#scrape').uncheck();
     cy.contains('Next').click();
     cy.get('#title').type('Reply');

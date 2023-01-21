@@ -45,7 +45,7 @@ describe('Ref Actions', {
   });
   it('creates reply', () => {
     cy.get('.actions a').contains('reply').click();
-    cy.get('#url').type('comment:test-reply' + Math.random());
+    cy.get('#url').type('test:reply' + Math.random());
     cy.get('#scrape').uncheck();
     cy.contains('Next').click();
     cy.get('#title').type('Reply');
@@ -65,7 +65,7 @@ describe('Ref Actions', {
   it('should delete reply', () => {
     cy.get('.full-page.ref .actions a').contains('delete').click();
     cy.get('.full-page.ref .actions a').contains('yes').click();
-    cy.get('.ref-list .ref .actions a').contains('uncited').click();
+    cy.get('.ref-list .ref .actions a').contains('1 citation').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
 });

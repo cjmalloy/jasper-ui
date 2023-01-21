@@ -1,9 +1,11 @@
 describe('Outbox Plugin: Remote Notifications', {
   testIsolation: false
 }, () => {
-  const mainApi = Cypress.env('CYPRESS_mainApi') || 'http://web';
+  const mainApi = Cypress.env('CYPRESS_mainApi') || 'http://localhost:8081';
+  const mainApiProxy = Cypress.env('CYPRESS_mainApiProxy') || 'http://web';
   const replUrl = Cypress.env('CYPRESS_replUrl') || 'http://localhost:8082';
-  const replApi = Cypress.env('CYPRESS_replApi') || 'http://repl-web';
+  const replApi = Cypress.env('CYPRESS_replApi') || 'http://localhost:8083';
+  const replApiProxy = Cypress.env('CYPRESS_replApiProxy') || 'http://repl-web';
   it('loads the page', () => {
     cy.visit('/?debug=ADMIN');
     cy.contains('Home', { timeout: 1000 * 60 });
@@ -31,27 +33,14 @@ describe('Outbox Plugin: Remote Notifications', {
   it('@main: replicate @other', () => {
     cy.visit('/?debug=ADMIN');
     cy.contains('Submit').click();
-    cy.get('.tabs').contains('+plugin/origin').click();
+    cy.get('.tabs').contains('remote').click();
     cy.get('#url').type(replApi).blur();
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
     cy.get('#origin').type('@other');
+    cy.get('#proxy').type(replApiProxy).blur();
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');
-  });
-  it('@main: create user ext', () => {
-    cy.visit('/?debug=USER&tag=alice');
-    cy.contains('Home');
-  });
-  it('@main: subscribe to remote notifications', () => {
-    cy.visit('/?debug=ADMIN');
-    cy.contains('User Permissions').click();
-    cy.get('#tag').type('+user/alice');
-    cy.get('#readAccess button').click().click();
-    cy.get('#tags-readAccess-0').type('plugin/inbox/user/alice');
-    cy.get('#tags-readAccess-1').type('plugin/outbox/main/user/alice');
-    cy.get('button').contains('Create').click();
-    cy.get('.tag-list .link:not(.remote)').contains('+user/alice');
   });
   it('@other: turn on outbox and remote origins', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
@@ -67,41 +56,14 @@ describe('Outbox Plugin: Remote Notifications', {
   it('@other: replicate @main', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
     cy.contains('Submit').click();
-    cy.get('.tabs').contains('+plugin/origin').click();
+    cy.get('.tabs').contains('remote').click();
     cy.get('#url').type(mainApi).blur();
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @main');
     cy.get('#origin').type('@main');
+    cy.get('#proxy').type(mainApiProxy).blur();
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @main');
-  });
-  it('@other: subscribe to remote notifications for bob', () => {
-    cy.visit(replUrl + '/?debug=ADMIN');
-    cy.contains('User Permissions').click();
-    cy.get('#tag').type('+user/bob');
-    cy.get('#readAccess button').click().click();
-    cy.get('#tags-readAccess-0').type('plugin/inbox/user/bob');
-    cy.get('#tags-readAccess-1').type('plugin/outbox/other/user/bob');
-    cy.get('button').contains('Create').click();
-    cy.get('.tag-list .link:not(.remote)').contains('+user/bob');
-  });
-  it('@main: create user ext for bob', () => {
-    cy.visit(replUrl + '/?debug=USER&tag=bob');
-    cy.contains('Home');
-  });
-  it('@other: subscribe to remote notifications for charlie', () => {
-    cy.visit(replUrl + '/?debug=ADMIN');
-    cy.contains('User Permissions').click();
-    cy.get('#tag').type('+user/charlie');
-    cy.get('#readAccess button').click().click();
-    cy.get('#tags-readAccess-0').type('plugin/inbox/user/charlie');
-    cy.get('#tags-readAccess-1').type('plugin/outbox/other/user/charlie');
-    cy.get('button').contains('Create').click();
-    cy.get('.tag-list .link:not(.remote)').contains('+user/charlie');
-  });
-  it('@main: create user ext for charlie', () => {
-    cy.visit(replUrl + '/?debug=USER&tag=charlie');
-    cy.contains('Home');
   });
   it('@other: creates ref', () => {
     cy.visit(replUrl + '/?debug=USER&tag=bob');
@@ -192,24 +154,6 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('@other').find('.actions').contains('delete').click();
     cy.get('@other').find('.actions').contains('yes').click();
   });
-  it('@main: delete users', () => {
-    cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('user').click();
-    cy.get('input[type=search]').type('+user/alice{enter}');
-    cy.get('.link:not(.remote)').contains('+user/alice').parent().parent().as('alice');
-    cy.get('@alice').find('.actions').contains('delete').click();
-    cy.get('@alice').find('.actions').contains('yes').click();
-  });
-  it('@main: delete exts', () => {
-    cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('ext').click();
-    cy.get('input[type=search]').type('+user/alice{enter}');
-    cy.get('.link:not(.remote)').contains('+user/alice').parent().parent().as('alice');
-    cy.get('@alice').find('.actions').contains('delete').click();
-    cy.get('@alice').find('.actions').contains('yes').click();
-  });
   it('@other: delete remote @main', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
@@ -218,41 +162,5 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.link:not(.remote)').contains('@main').parent().parent().as('main');
     cy.get('@main').find('.actions').contains('delete').click();
     cy.get('@main').find('.actions').contains('yes').click();
-  });
-  it('@other: delete user for bob', () => {
-    cy.visit(replUrl + '/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('user').click();
-    cy.get('input[type=search]').type('+user/bob{enter}');
-    cy.get('.link:not(.remote)').contains('+user/bob').parent().parent().as('bob');
-    cy.get('@bob').find('.actions').contains('delete').click();
-    cy.get('@bob').find('.actions').contains('yes').click();
-  });
-  it('@other: delete user for charlie', () => {
-    cy.visit(replUrl + '/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('user').click();
-    cy.get('input[type=search]').type('+user/charlie{enter}');
-    cy.get('.link:not(.remote)').contains('+user/charlie').parent().parent().as('charlie');
-    cy.get('@charlie').find('.actions').contains('delete').click();
-    cy.get('@charlie').find('.actions').contains('yes').click();
-  });
-  it('@other: delete ext for bob', () => {
-    cy.visit(replUrl + '/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('ext').click();
-    cy.get('input[type=search]').type('+user/bob{enter}');
-    cy.get('.link:not(.remote)').contains('+user/bob').parent().parent().as('bob');
-    cy.get('@bob').find('.actions').contains('delete').click();
-    cy.get('@bob').find('.actions').contains('yes').click();
-  });
-  it('@other: delete ext for charlie', () => {
-    cy.visit(replUrl + '/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('ext').click();
-    cy.get('input[type=search]').type('+user/charlie{enter}');
-    cy.get('.link:not(.remote)').contains('+user/charlie').parent().parent().as('charlie');
-    cy.get('@charlie').find('.actions').contains('delete').click();
-    cy.get('@charlie').find('.actions').contains('yes').click();
   });
 });

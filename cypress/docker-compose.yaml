@@ -1,6 +1,6 @@
 services:
   cypress:
-    image: cypress/included:12.1.0
+    image: cypress/included:12.3.0
     profiles:
       - ci
     depends_on:
@@ -9,9 +9,11 @@ services:
     network_mode: host
     environment:
       CYPRESS_baseUrl: http://localhost:8080
-      CYPRESS_mainApi: http://web
+      CYPRESS_mainApi: http://localhost:8081
+      CYPRESS_mainApiProxy: http://web
       CYPRESS_replUrl: http://localhost:8082
-      CYPRESS_replApi: http://repl-web
+      CYPRESS_replApi: http://localhost:8083
+      CYPRESS_replApiProxy: http://repl-web
       CYPRESS_reporter: cypress-mochawesome-reporter
 #      ELECTRON_ENABLE_LOGGING: 1
     working_dir: /e2e
@@ -22,13 +24,13 @@ services:
     ports:
       - 8080:80
     environment:
-      JASPER_API: //localhost:8081
+      JASPER_API: http://localhost:8081
       CSP_DEFAULT_SRC: http://localhost:8081
       JASPER_TITLE: CYPRESS
     depends_on:
       - web
   web:
-    image: ghcr.io/cjmalloy/jasper
+    image: ghcr.io/cjmalloy/jasper:master
     ports:
       - 8081:80
     environment:
@@ -53,13 +55,13 @@ services:
     ports:
       - 8082:80
     environment:
-      JASPER_API: //localhost:8083
+      JASPER_API: http://localhost:8083
       CSP_DEFAULT_SRC: http://localhost:8083
       JASPER_TITLE: REPL
     depends_on:
       - repl-web
   repl-web:
-    image: ghcr.io/cjmalloy/jasper
+    image: ghcr.io/cjmalloy/jasper:master
     ports:
       - 8083:80
     environment:
