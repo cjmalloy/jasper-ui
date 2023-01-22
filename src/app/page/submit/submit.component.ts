@@ -113,8 +113,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   exists(url: string) {
-    const linkType = this.linkType(url);
-    if (linkType === 'web' || linkType === 'text') {
+    if (this.linkType(url)) {
       if (this.existingRef?.url === url) return of(true);
       return timer(400).pipe(
         switchMap(() => this.refs.get(url)),
@@ -136,7 +135,7 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   submit() {
     const url = this.fixed(this.url.value);
-    this.router.navigate(['./submit', this.linkType(url)], {
+    this.router.navigate(['./submit', this.editor(this.linkType(url))], {
       queryParams: { url, scrape: this.store.submit.link && this.scrape },
       queryParamsHandling: 'merge',
     });
@@ -165,6 +164,7 @@ export class SubmitPage implements OnInit, OnDestroy {
       }
     } catch (e) {}
     if (value.startsWith('wiki:')) return 'text';
+    if (value.startsWith('comment:')) return 'text';
     if (URI_REGEX.test(value)) return 'other';
     return null;
   }
@@ -175,5 +175,11 @@ export class SubmitPage implements OnInit, OnDestroy {
     } else {
       return _.uniq([plugin].concat(this.store.submit.tags));
     }
+  }
+
+  private editor(linkType: any) {
+    if (!linkType) throw 'invalid link';
+    if (linkType === 'other') return 'web';
+    return linkType;
   }
 }
