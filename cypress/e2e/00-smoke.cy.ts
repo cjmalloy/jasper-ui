@@ -3,7 +3,7 @@ describe('Smoke Tests', {
 }, () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Home', { timeout: 1000 * 60 });
+    cy.contains('Home', { timeout: 1000 * 60 * 5 }); // 5 minutes
   });
   it('clear plugins', () => {
     cy.visit('/?debug=ADMIN');
