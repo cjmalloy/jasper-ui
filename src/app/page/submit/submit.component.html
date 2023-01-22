@@ -57,7 +57,7 @@
     <span class="form-array right">
     <button type="submit" [disabled]="!submitForm.valid">Next</button>
     <div *ngIf="store.submit.link">
-      <input id="scrape" type="checkbox" [checked]="scrape" (input)="scrape = $any($event.target).value">
+      <input id="scrape" type="checkbox" [checked]="scrape" (input)="scrape = !scrape">
       <label for="scrape">Scrape</label>
     </div>
   </span>
