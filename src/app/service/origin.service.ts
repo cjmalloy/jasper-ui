@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
+import { runInAction } from 'mobx';
 import { Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
+import { isReplicating, originPlugin } from '../plugin/origin';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
@@ -12,7 +14,7 @@ import { ConfigService } from './config.service';
 })
 export class OriginService {
 
-  origins: Ref[] = [];
+  private origins: Ref[] = [];
 
   constructor(
     private config: ConfigService,
@@ -25,7 +27,11 @@ export class OriginService {
     this.origins = [];
     if (!this.admin.status.plugins.origin) return of();
     return this.loadOrigins$().pipe(
-      tap(() => this.store.origins.setOrigins(this.origins, this.config.api, this.store.account.origin)),
+      tap(() => runInAction(() => {
+        this.store.origins.origins = this.origins;
+        this.store.origins.reverseLookup = this.reverseLookup;
+        this.store.origins.originMap = this.originMap;
+      })),
     );
   }
 
@@ -39,5 +45,27 @@ export class OriginService {
       tap(batch => this.origins.push(...batch.content)),
       switchMap(batch => batch.last ? of(null) : this.loadOrigins$(page + 1)),
     );
+  }
+
+  private get reverseLookup(): Map<string, string> {
+    return new Map(this.origins
+      .filter(remote => isReplicating(remote, this.config.api, this.store.account.origin))
+      .map(remote => [remote.origin || '', remote.plugins!['+plugin/origin'].origin]));
+  }
+
+  private get originMap(): Map<string, Map<string, string>> {
+    const config = (remote: Ref): typeof originPlugin => remote.plugins!['+plugin/origin'];
+    const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
+    const findLocalAlias = (url: string) => remotesForOrigin(this.store.account.origin)
+      .filter(remote => remote.url === url)
+      .map(remote => config(remote).origin)
+      .find(() => true) || '';
+    const originMapFor = (origin: string) => new Map(
+      remotesForOrigin(origin)
+        .map(remote => [config(remote).origin || '', findLocalAlias(remote.url)]));
+    return new Map(
+      remotesForOrigin(this.store.account.origin)
+        .map(remote => remote.origin || '')
+        .map(origin => [origin, originMapFor(origin)]));
   }
 }

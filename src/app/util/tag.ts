@@ -84,8 +84,8 @@ export function tagOrigin(tag: string) {
  */
 export function prefix(prefix: string, ...rest: string[]) {
   return prefix + '/' + rest.join('/')
-    .replace(/[+_@]/, '')
-    .replace('//', '/');
+    .replace(/[+_@]/g, '')
+    .replace(/\/\//g, '/');
 }
 
 export function hasPrefix(tag?: string, prefix?: string) {
