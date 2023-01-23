@@ -522,6 +522,7 @@ textarea.has-plugins {
   border-radius: 4px;
   margin: 2px;
   padding: 8px;
+  max-width: min(100vw - 16px, 60em);
 }
 
 .image-expand {
@@ -600,6 +601,7 @@ button.backup, button.upload, input.upload {
 
 .md {
   max-width: 60em;
+  text-align: justify;
   overflow-wrap: break-word;
   word-wrap: break-word;
 
