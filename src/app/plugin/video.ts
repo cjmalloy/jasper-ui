@@ -15,7 +15,7 @@ export const videoPlugin: Plugin = {
   },
 };
 
-export const videoExtensions = ['.3gp', '.mpg', '.mpeg', '.mp4', '.m4v', '.m4p', '.webm', '.ogv', '.m3u8', '.mov', '.ts'];
+export const videoExtensions = ['.3gp', '.mpg', '.mpeg', '.mp4', '.m4v', '.m4p', '.webm', '.ogv', '.m3u8', '.mov'];
 
 export function isVideo(url: string) {
   return videoExtensions.includes(url.slice(url.lastIndexOf('.')).toLowerCase());
