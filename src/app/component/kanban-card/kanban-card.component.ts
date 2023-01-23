@@ -1,6 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
+import { AuthzService } from '../../service/authz.service';
 import { hasTag } from '../../util/tag';
 
 @Component({
@@ -16,6 +17,7 @@ export class KanbanCardComponent implements OnInit {
 
   constructor(
     private admin: AdminService,
+    private auth: AuthzService,
   ) { }
 
   ngOnInit(): void {
@@ -23,6 +25,11 @@ export class KanbanCardComponent implements OnInit {
 
   cssUrl(url: string) {
     return `url("${url}")`;
+  }
+
+  @HostBinding('class.no-write')
+  get noWrite() {
+    return !this.auth.writeAccess(this.ref);
   }
 
   get person() {
