@@ -138,6 +138,10 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     this.refs.create(ref).pipe(
       map(() => ref),
       catchError(err => {
+        if (err.status === 403) {
+          // TODO: better error message
+          window.alert('Not allowed to use required tags. Ask admin for permission.');
+        }
         if (err.status === 409) {
           // Ref already exists, just tag it
           return this.tags.patch(this.addTags, ref.url).pipe(
