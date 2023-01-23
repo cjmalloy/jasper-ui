@@ -6,6 +6,7 @@ export type UrlFilter = Filter |
   'internal' |
   'notInternal' |
   'modlist' |
+  'comments' |
   `plugin/${string}` |
   `-plugin/${string}`;
 
@@ -21,7 +22,11 @@ export function getArgs(
   if (filters?.includes('internal')) {
     queryFilter += 'internal@*';
   } else if (filters?.includes('notInternal')) {
-    queryFilter += '!internal@*';
+    if (filters?.includes('comments')) {
+      queryFilter += '(!internal@*|plugin/comment@*)';
+    } else {
+      queryFilter += '!internal@*';
+    }
   }
   if (filters?.includes('modlist')) {
     queryFilter += (queryFilter ? ':' : '') +  '!_moderated@*';
