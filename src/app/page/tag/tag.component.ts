@@ -41,7 +41,7 @@ export class TagPage implements OnInit, OnDestroy {
       const args = getArgs(
         this.store.view.tag,
         this.store.view.sort,
-        _.uniq([...(this.wildcard ? ['notInternal'] : []), ...this.store.view.filter]) as UrlFilter[],
+        _.uniq(['notInternal', ...this.store.view.filter]) as UrlFilter[],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
@@ -74,11 +74,6 @@ export class TagPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-  }
-
-  get wildcard() {
-    return this.store.view.tag === '@*' ||
-      this.store.view.tag === '*';
   }
 
   get isSpecial() {
