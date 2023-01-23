@@ -4,17 +4,17 @@ import { config } from '../service/config.service';
 import { hasPrefix, hasTag } from './tag';
 
 export const URI_REGEX = /^([^:/?#]+):(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
-export const TAG_REGEX = /^[_+]?[a-z]+([./][a-z]+)*$/;
-export const TAGS_REGEX = /^([_+]?[a-z]+([./][a-z]+)*\s*)*$/;
-export const USER_REGEX = /^[_+]user\/[a-z]+([./][a-z]+)*$/;
-export const QUALIFIED_USER_REGEX = /^[_+]user\/[a-z]+([./][a-z]+)*(@[a-z]+(\.[a-z]+)*)?$/;
-export const PLUGIN_REGEX = /^[_+]?plugin\/[a-z]+([./][a-z]+)*$/;
-export const ORIGIN_NOT_BLANK_REGEX = /^@[a-z]+(\.[a-z]+)*$/;
-export const ORIGIN_REGEX = /^(@[a-z]+(\.[a-z]+)*)?$/;
-export const ORIGIN_WILDCARD_REGEX = /^(@[a-z]+(\.[a-z]+)*|@\*)?$/;
-export const QUALIFIED_TAG_REGEX = /^[_+]?[a-z]+([./][a-z]+)*(@[a-z]+(\.[a-z]+)*)?$/;
-export const SELECTOR_REGEX = /^!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z]+)*|@\*))$/;
-export const QUERY_REGEX = /^(!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z]+)*|@\*))|\(!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |]!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*\))([ |:&](!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))|\(!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*))([ |]!?([_+]?[a-z]+([./][a-z]+)*|([_+]?[a-z]+([./][a-z]+)*)?(@[a-z]+(\.[a-z])*|@\*)))*\)))*$/;
+export const TAG_REGEX = /^[_+]?[a-z0-9]+([./][a-z0-9]+)*$/;
+export const TAGS_REGEX = /^([_+]?[a-z0-9]+([./][a-z0-9]+)*\s*)*$/;
+export const USER_REGEX = /^[_+]user\/[a-z0-9]+([./][a-z0-9]+)*$/;
+export const QUALIFIED_USER_REGEX = /^[_+]user\/[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?$/;
+export const PLUGIN_REGEX = /^[_+]?plugin\/[a-z0-9]+([./][a-z0-9]+)*$/;
+export const ORIGIN_NOT_BLANK_REGEX = /^@[a-z0-9]+(\.[a-z0-9]+)*$/;
+export const ORIGIN_REGEX = /^(@[a-z0-9]+(\.[a-z0-9]+)*)?$/;
+export const ORIGIN_WILDCARD_REGEX = /^(@[a-z0-9]+(\.[a-z0-9]+)*|@\*)?$/;
+export const QUALIFIED_TAG_REGEX = /^[_+]?[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?$/;
+export const SELECTOR_REGEX = /^!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9]+)*|@\*))$/;
+export const QUERY_REGEX = /^(!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9]+)*|@\*))|\(!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*))([ |]!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*)))*\))([ |:&](!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*))|\(!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*))([ |]!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*)))*\)))*$/;
 
 export function templates(tags?: string[], template?: string) {
   return _.filter(tags, t => hasPrefix(t, template));
