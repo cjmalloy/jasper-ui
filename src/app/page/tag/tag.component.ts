@@ -46,6 +46,9 @@ export class TagPage implements OnInit, OnDestroy {
         this.store.view.pageNumber,
         this.store.view.pageSize,
       );
+      if (this.admin.status.plugins.comment) {
+        args.query += '|plugin/comment@*'
+      }
       _.defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
