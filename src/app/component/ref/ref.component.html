@@ -13,7 +13,7 @@
     <div class="link" [class.remote]="!local">
       <a *ngIf="clickableLink" [href]="ref.url | safe" target="_blank">{{ ref.title || ref.url }}</a>
       <a *ngIf="!clickableLink && admin.status.plugins.comment" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
-      <a *ngIf="!clickableLink && !admin.status.plugins.comment" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
+      <a *ngIf="!clickableLink && !admin.status.plugins.comment" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a><wbr>
       <span class="host">({{ host }})</span>
       <span class="invoice icon" *ngIf="invoice" title="Invoice">🧾️</span>
       <span class="lock icon" *ngIf="locked" title="Locked">🔒️</span>
