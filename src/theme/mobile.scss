@@ -96,11 +96,10 @@ $mobile-width: 640px;
     }
 
     .comment-reply, .comment-edit {
+      width: calc(100vw - 8px);
       textarea {
+        width: 100%;
         margin: 0;
-        width: calc(100vw - 4px);
-        border-left: none;
-        border-right: none;
       }
     }
 
