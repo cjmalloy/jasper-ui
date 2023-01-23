@@ -9,7 +9,7 @@ config="
   \"login\": \"$JASPER_LOGIN\",
   \"signup\": \"$JASPER_SIGNUP\",
   \"scim\": ${JASPER_SCIM-false},
-  \"blockedSchemes\": ${JASPER_BLOCKED_SCHEMES-[\"comment:\", \"internal:\"]},
+  \"blockedSchemes\": ${JASPER_BLOCKED_SCHEMES-[\"comment:\", \"internal:\", \"wiki:\"]},
   \"maxPlugins\": ${JASPER_MAX_PLUGINS-0},
   \"maxTemplates\": ${JASPER_MAX_TEMPLATES-0},
   \"maxOrigins\": ${JASPER_MAX_ORIGINS-0},

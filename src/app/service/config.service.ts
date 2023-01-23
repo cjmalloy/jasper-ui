@@ -18,7 +18,7 @@ export class ConfigService {
   login = '';
   signup = '';
   scim = false;
-  blockedSchemes = ['comment:', 'internal:'];
+  blockedSchemes = ['comment:', 'internal:', 'config:'];
 
   maxPlugins = 1000;
   maxTemplates = 1000;
