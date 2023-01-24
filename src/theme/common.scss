@@ -425,6 +425,12 @@ input.big {
 }
 
 .comment {
+  margin-left: 10px;
+
+  .comment-children {
+    margin-left: 18px;
+  }
+
   .comment-container {
     padding: 2px;
     border: 1px solid transparent;

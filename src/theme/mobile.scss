@@ -90,9 +90,16 @@ $mobile-width: 640px;
         white-space: normal;
       }
     }
+    .comment {
+      margin-left: 0;
 
-    .comment-container {
-      max-width: calc(100% - 8px);
+      .comment-children {
+        margin-left: 2px;
+      }
+
+      .comment-container {
+        max-width: calc(100% - 8px);
+      }
     }
 
     .comment-reply, .comment-edit {
