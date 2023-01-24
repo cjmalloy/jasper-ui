@@ -20,7 +20,7 @@
                [ref]="store.view.ref"
                [showToggle]="true"
                [expandInline]="true"
-               [expanded]="!!store.view.ref.comment"></app-ref>
+               [expanded]="store.local.isRefToggled(store.view.url, !!store.view.ref.comment)"></app-ref>
       <div *ngIf="refWarning"
            class="warning">
         * Published date was changed to be after source published date.

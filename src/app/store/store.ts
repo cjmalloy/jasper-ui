@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { AccountStore } from './account';
 import { GraphStore } from './graph';
+import { LocalStore } from './local';
 import { OriginStore } from './origin';
 import { SubmitStore } from './submit';
 import { ViewStore } from './view';
@@ -12,6 +13,7 @@ import { ViewStore } from './view';
 })
 export class Store {
 
+  local = new LocalStore();
   origins = new OriginStore();
   account = new AccountStore(this.origins);
   view = new ViewStore(this.route);
@@ -22,7 +24,9 @@ export class Store {
   constructor(
     private route: RouterStore,
   ) {
-    makeAutoObservable(this);
+    makeAutoObservable(this, {
+      local: observable.ref,
+    });
   }
 
   get darkTheme() {

@@ -65,6 +65,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   @Input()
   set ref(value: Ref) {
     this._ref = value;
+    this.collapsed = this.store.local.isRefToggled(this._ref.url, false);
     this.writeAccess = this.auth.writeAccess(this._ref);
   }
 

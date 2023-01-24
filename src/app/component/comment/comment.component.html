@@ -1,5 +1,5 @@
 <div class="comment-container info collapsed" tabindex="0" *ngIf="collapsed">
-  <span class="comment-expand fake-link" (click)="collapsed = false">[+]</span>&nbsp;
+  <span class="comment-expand fake-link" (click)="store.local.setRefToggled(ref.url, collapsed = false)">[+]</span>&nbsp;
   <ng-container *ngFor="let user of authors">
     <a class="author" [routerLink]="['/tag', user]">
       {{ formatAuthor(user) }}
@@ -17,7 +17,7 @@
 
 <div class="comment-container" tabindex="0" *ngIf="!collapsed && !ref.plugins?.['plugin/comment']?.deleted">
   <div class="info">
-    <span class="comment-collapse fake-link" (click)="collapsed = true">[&ndash;]</span>&nbsp;
+    <span class="comment-collapse fake-link" (click)="store.local.setRefToggled(ref.url, collapsed = true)">[&ndash;]</span>&nbsp;
     <ng-container *ngFor="let user of authors">
       <a class="author" [routerLink]="['/tag', user]">
         {{ formatAuthor(user) }}
