@@ -36,13 +36,13 @@
       <div class="stack">
         <div class="error-404">Not Found</div>
         <ng-container *ngIf="store.account.signedIn">
-          <div *ngIf="!store.view.isTextPost && !store.view.isWikiPost" class="error-404 submit-button" routerLink="/submit" [queryParams]="{ url: store.view.url }">
+          <div *ngIf="!store.view.isTextPost && !isWiki(store.view.url)" class="error-404 submit-button" routerLink="/submit" [queryParams]="{ url: store.view.url }">
             🔗 Submit Link
           </div>
           <div *ngIf="store.view.isTextPost" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }">
             📝 Submit Text Post
           </div>
-          <div *ngIf="store.view.isWikiPost" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }">
+          <div *ngIf="isWiki(store.view.url)" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }">
             📔 &nbsp; Submit Wiki
           </div>
         </ng-container>

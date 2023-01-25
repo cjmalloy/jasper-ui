@@ -2,10 +2,12 @@ import * as _ from 'lodash-es';
 import { makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Plugin } from '../model/plugin';
+import { DEFAULT_WIKI_PREFIX } from '../plugin/wiki';
 
 export class SubmitStore {
 
   plugins: Plugin[] = [];
+  wikiPrefix = DEFAULT_WIKI_PREFIX;
 
   constructor(
     public route: RouterStore,
@@ -28,7 +30,7 @@ export class SubmitStore {
 
   get wiki() {
     if (this.linkTypeOverride) return this.linkTypeOverride === 'wiki';
-    return this.url?.startsWith('wiki:');
+    return this.url?.startsWith(this.wikiPrefix);
   }
 
   get tag() {

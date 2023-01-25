@@ -84,20 +84,3 @@ export function formatAuthor(tag: string) {
 export function isTextPost(ref: Ref) {
   return ref.url.startsWith('comment:') && !hasTag('internal', ref);
 }
-
-export function wikiTitleFormat(title?: string) {
-  if (!title) return undefined;
-  return wikiUriFormat(title)
-    .substring('wiki:'.length)
-    .replace(/_/g, ' ');
-}
-
-export function wikiUriFormat(uri: string) {
-  uri = uri.trim();
-  if (uri.startsWith('wiki:')) {
-    uri = uri.substring('wiki:'.length);
-  }
-  return 'wiki:' + (uri.substring(0, 1).toUpperCase() + uri.substring(1).toLowerCase())
-    .replace(/\s+/g, '_')
-    .replace(/\W+/g, '');
-}

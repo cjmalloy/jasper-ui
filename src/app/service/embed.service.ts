@@ -9,9 +9,9 @@ import { isKnownEmbed } from '../plugin/embed';
 import { isImage } from '../plugin/image';
 import { isKnownThumbnail } from '../plugin/thumbnail';
 import { isVideo } from '../plugin/video';
+import { wikiUriFormat } from '../plugin/wiki';
 import { Store } from '../store/store';
 import { Embed } from '../util/embed';
-import { wikiUriFormat } from '../util/format';
 import { bitchuteHosts, getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
 import { tagOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
@@ -58,6 +58,7 @@ export class EmbedService {
   }
 
   private get extensions() {
+    const self = this;
     return [{
       name: 'userTag',
       level: 'inline',
@@ -117,9 +118,10 @@ export class EmbedService {
           // Don't match on source or alt refs
           if (/^(alt)?\d+$/.test(match[1])) return undefined;
           const text = match[1];
+          const href = (self.admin.isWikiExternal() ? '' : '/ref/') + wikiUriFormat(text, self.admin.getWikiPrefix());
           return {
             type: 'wiki',
-            href: '/ref/' + wikiUriFormat(text),
+            href,
             text,
             raw: match[0],
             tokens: [],
@@ -128,7 +130,11 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<a class="wiki ref" href="${token.href}">${token.text}</a>`;
+        if (self.admin.isWikiExternal()) {
+          return `<a target="_blank" href="${token.href}">${token.text}</a>`;
+        } else {
+          return `<a class="wiki ref" href="${token.href}">${token.text}</a>`;
+        }
       }
     }, {
       name: 'embed',

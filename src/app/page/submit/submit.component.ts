@@ -14,13 +14,14 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
+import { isWiki, wikiUriFormat } from '../../plugin/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { AuthzService } from '../../service/authz.service';
 import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
-import { URI_REGEX, wikiUriFormat } from '../../util/format';
+import { URI_REGEX } from '../../util/format';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
@@ -53,7 +54,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   scrape = true;
 
   constructor(
-    private admin: AdminService,
+    public admin: AdminService,
     private theme: ThemeService,
     private router: Router,
     public store: Store,
@@ -67,6 +68,7 @@ export class SubmitPage implements OnInit, OnDestroy {
       url: ['', [Validators.required], [this.validator]],
       scrape: [true],
     });
+    runInAction(() => store.submit.wikiPrefix = admin.getWikiPrefix());
   }
 
   ngOnInit(): void {
@@ -75,7 +77,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     });
     this.disposers.push(autorun(() => {
       this.validations.length = 0;
-      if (this.store.submit.wiki) {
+      if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
         this.scrape = false;
         this.validations.push({ name: 'Valid title', passed: false, test: url => of(this.linkType(this.fixed(url))) });
         this.validations.push({ name: 'Not created yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
@@ -103,12 +105,18 @@ export class SubmitPage implements OnInit, OnDestroy {
     return this.submitForm.get('url') as UntypedFormControl;
   }
 
+  get wikify() {
+    return wikiUriFormat(this.url.value);
+  }
+
   get validator(): AsyncValidatorFn {
     return (control: AbstractControl) => this.validLink(control);
   }
 
   fixed(url: string) {
-    if (this.store.submit.wiki) return wikiUriFormat(url);
+    if (this.store.submit.wiki) {
+      return wikiUriFormat(url, this.admin.getWikiPrefix());
+    }
     return url;
   }
 
@@ -163,7 +171,7 @@ export class SubmitPage implements OnInit, OnDestroy {
         return 'web';
       }
     } catch (e) {}
-    if (value.startsWith('wiki:')) return 'text';
+    if (!this.admin.isWikiExternal() && isWiki(value, this.admin.getWikiPrefix())) return 'text';
     if (value.startsWith('comment:')) return 'text';
     if (URI_REGEX.test(value)) return 'other';
     return null;

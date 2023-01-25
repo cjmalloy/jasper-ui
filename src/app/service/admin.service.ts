@@ -24,6 +24,7 @@ import { personPlugin } from '../plugin/person';
 import { qrPlugin } from '../plugin/qr';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
+import { DEFAULT_WIKI_PREFIX, wikiPlugin } from '../plugin/wiki';
 import { Store } from '../store/store';
 import { blogTemplate } from '../template/blog';
 import { chatTemplate } from '../template/chat';
@@ -70,6 +71,7 @@ export class AdminService {
       audio: audioPlugin,
       video: videoPlugin,
       image: imagePlugin,
+      wiki: wikiPlugin,
     },
     templates: <Record<string, Template>> {
       root: rootTemplate,
@@ -229,5 +231,13 @@ export class AdminService {
       return this.getDefaults(parent!);
     }
     return {};
+  }
+
+  isWikiExternal() {
+    return !!this.status.plugins.wiki?.config?.external;
+  }
+
+  getWikiPrefix() {
+    return this.status.plugins.wiki?.config?.prefix || DEFAULT_WIKI_PREFIX;
   }
 }

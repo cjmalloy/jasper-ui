@@ -49,10 +49,6 @@ export class ViewStore {
     return this.url?.startsWith('comment:');
   }
 
-  get isWikiPost() {
-    return this.url?.startsWith('wiki:');
-  }
-
   get tag() {
     return this.route.routeSnapshot?.firstChild?.params['tag'];
   }

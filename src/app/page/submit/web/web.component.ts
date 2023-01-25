@@ -110,6 +110,11 @@ export class SubmitWebPage implements AfterViewInit {
       if (this.admin.status.plugins.embed && isKnownEmbed(value)) this.addTag('plugin/embed');
     }
     this.webForm.get('url')?.setValue(value);
+    this.webForm.get('url')?.disable();
+  }
+
+  get url() {
+    return this.webForm.get('url')?.value;
   }
 
   setTitle(title: string) {
@@ -151,6 +156,7 @@ export class SubmitWebPage implements AfterViewInit {
     const published = moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.create({
       ...this.webForm.value,
+      url: this.url, // Need to pull separately since control is locked
       origin: this.store.account.origin,
       published,
       plugins: writePlugins(this.webForm.value.tags, this.webForm.value.plugins),
@@ -160,7 +166,7 @@ export class SubmitWebPage implements AfterViewInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/ref', this.webForm.value.url, 'responses'], { queryParams: { published }});
+      this.router.navigate(['/ref', this.url, 'responses'], { queryParams: { published }});
     });
   }
 }

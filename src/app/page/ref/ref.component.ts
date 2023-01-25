@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, of } from 'rxjs';
+import { isWiki } from '../../plugin/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
@@ -55,4 +56,7 @@ export class RefPage implements OnInit, OnDestroy {
     this.disposers.length = 0;
   }
 
+  isWiki(url: string) {
+    return !this.admin.isWikiExternal() && isWiki(url, this.admin.getWikiPrefix());
+  }
 }

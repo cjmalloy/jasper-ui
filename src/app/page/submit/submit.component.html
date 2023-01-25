@@ -1,12 +1,37 @@
 <ng-container *mobxAutorun>
   <div class="tabs">
     <h5>Submit</h5>
-    <a routerLink="/submit" [class.current-tab]="store.submit.link" *ngIf="!store.submit.noPlugins.length" [queryParams]="{ tag: null, url: url.value }" [replaceUrl]="true">link</a>
-    <a routerLink="/submit" [class.current-tab]="store.submit.link" *ngIf="store.submit.noPlugins.length" [queryParams]="{ tag: store.submit.noPlugins, url: url.value }" [replaceUrl]="true">{{ store.submit.noPlugins.join(', ') }}</a>
-    <a routerLink="/submit/text" [queryParams]="{ tag: store.submit.noPlugins, url: null }">text</a>
-    <a routerLink="/submit/dm" [queryParams]="{ tag: store.submit.noPlugins, url: null }">dm</a>
-    <a routerLink="/submit" [class.current-tab]="store.submit.wiki" [queryParams]="{ tag: store.submit.noPlugins, url: 'wiki:' }" [replaceUrl]="true">wiki</a>
-    <a routerLink="/submit" [class.current-tab]="store.submit.tags.includes(plugin.tag)" *ngFor="let plugin of store.submit.plugins" [queryParams]="{ tag: togglePlugin(plugin.tag), url: url.value }" [replaceUrl]="true">{{ plugin.config?.submit || plugin.tag }}</a>
+    <a *ngIf="!store.submit.noPlugins.length"
+       routerLink="/submit"
+       [class.current-tab]="store.submit.link"
+       [queryParams]="{ tag: null, url: url.value }"
+       [replaceUrl]="true"
+       queryParamsHandling="merge">link</a>
+    <a *ngIf="store.submit.noPlugins.length"
+       routerLink="/submit"
+       [class.current-tab]="store.submit.link"
+       [queryParams]="{ tag: store.submit.noPlugins, url: url.value }"
+       [replaceUrl]="true"
+       queryParamsHandling="merge">{{ store.submit.noPlugins.join(', ') }}</a>
+    <a routerLink="/submit/text"
+       [queryParams]="{ tag: store.submit.noPlugins, url: null }"
+       queryParamsHandling="merge">text</a>
+    <ng-container *ngIf="!admin.isWikiExternal()">
+      <a routerLink="/submit"
+         [class.current-tab]="store.submit.wiki"
+         [queryParams]="{ tag: store.submit.noPlugins, url: wikify }"
+         [replaceUrl]="true"
+         queryParamsHandling="merge">wiki</a>
+    </ng-container>
+    <a routerLink="/submit/dm"
+       [queryParams]="{ tag: store.submit.noPlugins, url: null }"
+       queryParamsHandling="merge">dm</a>
+    <a routerLink="/submit"
+       [class.current-tab]="store.submit.tags.includes(plugin.tag)"
+       *ngFor="let plugin of store.submit.plugins"
+       [queryParams]="{ tag: togglePlugin(plugin.tag), url: url.value }"
+       [replaceUrl]="true"
+       queryParamsHandling="merge">{{ plugin.config?.submit || plugin.tag }}</a>
     <app-settings></app-settings>
   </div>
   <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
