@@ -82,10 +82,10 @@ const routes: Routes = [
     path: 'settings',
     component: SettingsPage,
     children: [
-      { path: '', redirectTo: 'user', pathMatch: 'full' },
+      { path: '', redirectTo: 'ext', pathMatch: 'full' },
+      { path: 'ext', component: SettingsExtPage },
       { path: 'user', component: SettingsUserPage },
       { path: 'feed', component: SettingsFeedPage },
-      { path: 'ext', component: SettingsExtPage },
       { path: 'plugin', component: SettingsPluginPage },
       { path: 'template', component: SettingsTemplatePage },
       { path: 'profile', component: SettingsProfilePage },
