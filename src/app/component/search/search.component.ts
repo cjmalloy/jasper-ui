@@ -40,6 +40,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   viewName(view?: View) {
     switch (view) {
       case 'tag': return this.store.view.ext?.name || this.store.view.tag;
+      case 'query': return 'query results';
       case 'home': return 'subscriptions';
       case 'ref/comments': return 'comments';
       case 'ref/responses': return 'responses';
