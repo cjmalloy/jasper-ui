@@ -72,8 +72,8 @@
       </a>
     </ng-container>
   </div>
-  <div class="tag-header" *ngIf="!home && ext?.name || tag">
-    <h3>{{ ext?.name || tag }}</h3>
+  <div class="tag-header" *ngIf="!home && store.view.tag">
+    <h3 *ngIf="store.view.current === 'tag'">{{ ext?.name || tag }}</h3>
     <ng-container *ngIf="store.account.signedIn && tag && admin.status.templates.user">
       <button *ngIf="inSubs; else notInSubs"
               class="subscribe"
