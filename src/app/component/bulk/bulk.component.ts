@@ -19,6 +19,7 @@ import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { TemplateStore } from '../../store/template';
 import { UserStore } from '../../store/user';
+import { Type } from '../../store/view';
 import { downloadPage } from '../../util/download';
 import { TAGS_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
@@ -34,7 +35,7 @@ export class BulkComponent implements OnInit {
   tagRegex = TAGS_REGEX.source;
 
   @Input()
-  type: 'ref' | 'ext' | 'user' | 'plugin' | 'template' = 'ref';
+  type: Type = 'ref';
 
   batchRunning = false;
   tagging = false;

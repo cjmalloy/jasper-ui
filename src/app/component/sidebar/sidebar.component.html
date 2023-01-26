@@ -3,21 +3,21 @@
     <div class="toggle dont-hide"
          *ngIf="showToggle"
          (click)="expanded = !expanded">☰</div>
-    <div *ngIf="!!type" class="wide dont-hide">
+    <div *ngIf="store.view.current" class="wide dont-hide">
+      <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
       <app-search class="dont-hide"></app-search>
-      <ng-container *ngIf="expanded && type === 'ref'">
+      <ng-container *ngIf="expanded && store.view.type === 'ref'">
         <br>
         <app-filter></app-filter>
       </ng-container>
       <ng-container *ngIf="expanded && showSort">
         <br>
-        <app-sort [type]="type"></app-sort>
+        <app-sort [type]="store.view.type!"></app-sort>
       </ng-container>
     </div>
   </div>
-  <app-query [query]="tag" class="breadcrumbs"></app-query>
   <app-debug *ngIf="expanded"></app-debug>
-  <app-bulk *ngIf="expanded && type" [type]="type"></app-bulk>
+  <app-bulk *ngIf="expanded && store.view.current" [type]="store.view.type!"></app-bulk>
   <ng-container *ngIf="store.account.poster">
     <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
       📝️ &nbsp; Submit

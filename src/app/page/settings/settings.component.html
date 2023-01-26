@@ -12,6 +12,5 @@
   <a *ngIf="config.scim && store.account.signedIn" routerLink="./password" routerLinkActive="current-tab" title="Change Password">password</a>
   <app-settings></app-settings>
 </div>
-<app-sidebar class="aside"
-             [type]="type"></app-sidebar>
+<app-sidebar class="aside"></app-sidebar>
 <router-outlet></router-outlet>

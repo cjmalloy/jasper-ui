@@ -11,36 +11,13 @@ import { Store } from '../../store/store';
 })
 export class SettingsPage implements OnInit {
 
-  tagPages = [
-    'ext',
-    'user',
-    'plugin',
-    'template',
-  ];
-
-  refPages = [
-    'feed',
-    'origin',
-  ];
-
   constructor(
     public admin: AdminService,
     public config: ConfigService,
     public store: Store,
-    private route: ActivatedRoute,
   ) { }
 
   ngOnInit(): void {
-  }
-
-  get currentPage() {
-    return this.route.snapshot.firstChild?.url?.[0].path as 'ext' | 'user' | 'plugin' | 'template';
-  }
-
-  get type() {
-    if (this.refPages.includes(this.currentPage)) return 'ref';
-    if (this.tagPages.includes(this.currentPage)) return this.currentPage;
-    return undefined;
   }
 
 }

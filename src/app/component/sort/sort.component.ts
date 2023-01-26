@@ -6,6 +6,7 @@ import { RefSort } from '../../model/ref';
 import { TagSort } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
+import { Type } from '../../store/view';
 
 @Component({
   selector: 'app-sort',
@@ -35,7 +36,7 @@ export class SortComponent implements OnInit, OnDestroy {
   }
 
   @Input()
-  set type(value: 'ref' | 'ext' | 'user' | 'plugin' | 'template') {
+  set type(value: Type) {
     if (value === 'ref') {
       this.allSorts = [
         { value: 'url' },

@@ -29,8 +29,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   home = false;
   @Input()
   showSort = true;
-  @Input()
-  type?: 'ref' | 'ext' | 'user' | 'plugin' | 'template' = 'ref';
 
   _tag = '';
   localTag?: string;

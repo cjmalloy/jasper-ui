@@ -2,6 +2,7 @@ import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { Store } from '../../store/store';
+import { View } from '../../store/view';
 
 @Component({
   selector: 'app-search',
@@ -36,4 +37,23 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.router.navigate([], { queryParams: { search: this.searchValue }, queryParamsHandling: 'merge' });
   }
 
+  viewName(view?: View) {
+    switch (view) {
+      case 'tag': return this.store.view.tag;
+      case 'home': return 'subscriptions';
+      case 'ref/comments': return 'comments';
+      case 'ref/responses': return 'responses';
+      case 'ref/sources': return 'sources';
+      case 'ref/versions': return 'versions';
+      case 'plugin/feed': return 'feeds';
+      case 'plugin/origin': return 'origins';
+      case 'plugin/inbox': return 'inbox'
+      case 'plugin/invoice': return 'invoices';
+      case 'ext': return 'tag extensions';
+      case 'user': return 'users';
+      case 'plugin': return 'plugins';
+      case 'template': return 'templates';
+    }
+    return view || '';
+  }
 }

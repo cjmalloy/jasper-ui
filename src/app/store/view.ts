@@ -6,6 +6,21 @@ import { TagSort } from '../model/tag';
 import { UrlFilter } from '../util/query';
 import { hasPrefix, isQuery, localTag } from '../util/tag';
 
+/**
+ * ID for current view. Only includes pages that make queries.
+ * For example, the alt refs and missing refs pages are not included since
+ * they do not make queries.
+ */
+export type View =
+  'home' | 'all' | 'local' |
+  'tag' | 'query' |
+  'sent' |
+  'ref/comments' | 'ref/responses' | 'ref/sources' | 'ref/versions' |
+  'plugin/feed' | 'plugin/origin' | 'plugin/inbox' | 'plugin/invoice' |
+  'ext' | 'user' | 'plugin' | 'template';
+
+export type Type = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
+
 export class ViewStore {
 
   defaultPageSize = 20;
@@ -37,6 +52,59 @@ export class ViewStore {
     return this.route.routeSnapshot?.firstChild?.params['url'];
   }
 
+  get current(): View | undefined {
+    const s = this.route.routeSnapshot.firstChild;
+    switch (s?.routeConfig?.path) {
+      case 'home': return 'home';
+      case 'tag/:tag':
+        if (this.tag === '@*') return 'all';
+        if (this.tag === '*') return 'local';
+        if (/[!:|]/g.test(this.tag!)) return 'query';
+        return 'tag';
+      case 'ref/:url':
+        switch (s.firstChild?.routeConfig?.path) {
+          case 'comments': return 'ref/comments';
+          case 'responses': return 'ref/responses';
+          case 'sources': return 'ref/sources';
+          case 'versions': return 'ref/versions';
+        }
+        return undefined;
+      case 'settings':
+        switch (s.firstChild?.routeConfig?.path) {
+          case 'ext': return 'ext';
+          case 'user': return 'user';
+          case 'plugin': return 'plugin';
+          case 'template': return 'template';
+          case 'feed': return 'plugin/feed';
+          case 'origin': return 'plugin/origin';
+        }
+        return undefined;
+      case 'inbox':
+        switch (s.firstChild?.routeConfig?.path) {
+          case 'all': return 'plugin/inbox';
+          case 'invoices': return 'plugin/invoice';
+          case 'sent': return 'sent';
+        }
+        return undefined;
+    }
+    return undefined;
+  }
+
+  get type(): Type | undefined {
+    if (!this.current) return undefined;
+    if (this.current.startsWith('ref/') ||
+      this.current.startsWith('plugin/') ||
+      this.current ==='home' ||
+      this.current ==='all' ||
+      this.current ==='local' ||
+      this.current ==='tag' ||
+      this.current ==='query' ||
+      this.current ==='sent') {
+      return 'ref';
+    }
+    return this.current as Type;
+  }
+
   get origin() {
     return this.route.routeSnapshot?.queryParams['origin'];
   }
@@ -49,8 +117,8 @@ export class ViewStore {
     return this.url?.startsWith('comment:');
   }
 
-  get tag() {
-    return this.route.routeSnapshot?.firstChild?.params['tag'];
+  get tag(): string {
+    return this.route.routeSnapshot?.firstChild?.params['tag'] || '';
   }
 
   get localTag() {
