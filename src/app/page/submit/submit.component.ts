@@ -68,13 +68,13 @@ export class SubmitPage implements OnInit, OnDestroy {
       url: ['', [Validators.required], [this.validator]],
       scrape: [true],
     });
-    runInAction(() => store.submit.wikiPrefix = admin.getWikiPrefix());
+    runInAction(() => {
+      store.submit.wikiPrefix = admin.getWikiPrefix();
+      store.submit.plugins = admin.getSubmitPlugins().filter(p => auth.tagReadAccess(p.tag));
+    });
   }
 
   ngOnInit(): void {
-    runInAction(() => {
-      this.store.submit.plugins = this.admin.getSubmitPlugins();
-    });
     this.disposers.push(autorun(() => {
       this.validations.length = 0;
       if (!this.admin.isWikiExternal() && this.store.submit.wiki) {

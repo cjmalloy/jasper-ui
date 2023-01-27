@@ -17,6 +17,11 @@ export interface Plugin extends Tag {
      * Optional formly config for editing a form defined by the schema.
      */
     form?: FormlyFieldConfig[],
+    /**
+     * Add tab on submit page for this plugin using this label.
+     */
+    submit?: string,
+    description?: string,
   };
   defaults?: any;
   schema?: Schema;
