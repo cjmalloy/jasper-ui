@@ -26,12 +26,11 @@
           </ng-container>
         </div>
         <div class="actions">
-          <a *ngIf="admin.status.plugins.comment"
-             [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ comments.replace(' ', '&thinsp;') }}</a>
-          <a *ngIf="!admin.status.plugins.comment"
-             [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">permalink</a>
-          <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }">{{ responses.replace(' ', '&thinsp;') }}</a>
-          <a [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }">{{ sources.replace(' ', '&thinsp;') }}</a>
+          <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">permalink</a>
+          <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ comments.replace(' ', '&thinsp;') }}</a>
+          <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }">{{ responses.replace(' ', '&thinsp;') }}</a>
+          <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }">parent</a>
+          <a *ngIf="sources && sources !== 'parent'" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }">{{ sources.replace(' ', '&thinsp;') }}</a>
           <a *ngIf="writeAccess else source"
              class="fake-link"
              (click)="editing = !editing">edit</a>

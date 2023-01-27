@@ -167,10 +167,6 @@ export class ViewStore {
     return this.route.routeSnapshot?.queryParams['published'];
   }
 
-  get hideSearch() {
-    return this.route.routeSnapshot?.queryParams['hideSearch'];
-  }
-
   get noView() {
     return !this.route.routeSnapshot?.queryParams['view'];
   }

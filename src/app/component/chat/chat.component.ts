@@ -33,7 +33,6 @@ export class ChatComponent implements OnDestroy {
   loadingPrev = false;
   lastPoll = moment();
   initialSize = 50;
-  defaultPageSize = 20;
   messages?: Ref[];
   addText = '';
   sending: Ref[] = [];

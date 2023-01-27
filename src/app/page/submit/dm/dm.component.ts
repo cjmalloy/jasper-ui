@@ -104,7 +104,7 @@ export class SubmitDmPage implements OnInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/ref', url, 'sources'], { queryParams: { published }});
+      this.router.navigate(['/ref', url], { queryParams: { published }});
     });
   }
 }

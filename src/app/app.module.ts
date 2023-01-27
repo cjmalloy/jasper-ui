@@ -99,11 +99,11 @@ import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
 import { RefAltsComponent } from './page/ref/alts/alts.component';
 import { RefCommentsComponent } from './page/ref/comments/comments.component';
-import { RefGraphComponent } from './page/ref/graph/graph.component';
 import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
+import { RefSummaryComponent } from './page/ref/summary/summary.component';
 import { RefVersionsComponent } from './page/ref/versions/versions.component';
 import { SettingsBackupPage } from './page/settings/backup/backup.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
@@ -158,10 +158,11 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     RefComponent,
     TagPage,
     RefPage,
+    RefSummaryComponent,
     RefCommentsComponent,
     RefResponsesComponent,
     RefSourcesComponent,
-    RefGraphComponent,
+    RefMissingComponent,
     CommentComponent,
     SettingsComponent,
     InboxPage,
@@ -215,7 +216,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     QrFormComponent,
     CommentFormComponent,
     ThumbnailFormComponent,
-    RefMissingComponent,
     ArchiveFormComponent,
     PdfFormComponent,
     SettingsProfilePage,

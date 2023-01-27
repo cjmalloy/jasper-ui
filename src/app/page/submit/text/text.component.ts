@@ -139,7 +139,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/ref', this.url.value, 'sources'], { queryParams: { published }});
+      this.router.navigate(['/ref', this.url.value], { queryParams: { published }});
     });
   }
 }

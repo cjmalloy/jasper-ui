@@ -7,10 +7,7 @@
     <span *ngIf="inProgress">in progress...</span>
   </div>
   <div class="actions">
-    <a *ngIf="admin.status.plugins.comment"
-       [routerLink]="['/ref', downloadLink, 'comments']">comment</a>
-    <a *ngIf="!admin.status.plugins.comment"
-       [routerLink]="['/ref', downloadLink]">ref</a>
+    <a [routerLink]="['/ref', downloadLink]">ref</a>
     <a *ngIf="store.account.admin && !restoring && !inProgress"
        class="fake-link"
        (click)="restoring = true">restore</a>

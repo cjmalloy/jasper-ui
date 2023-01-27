@@ -17,7 +17,6 @@ import { getArgs } from '../../util/query';
 export class HomePage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
-  private defaultPageSize = 20;
 
   homeRef?: Ref;
   expandPlugins: string[] = [];
@@ -50,7 +49,7 @@ export class HomePage implements OnInit, OnDestroy {
         this.store.view.filter,
         this.store.view.search,
         this.store.view.pageNumber,
-        this.store.view.pageSize ?? this.defaultPageSize
+        this.store.view.pageSize,
       );
       _.defer(() => this.query.setArgs(args));
     }));

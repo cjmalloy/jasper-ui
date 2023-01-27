@@ -12,11 +12,11 @@ import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
 import { RefAltsComponent } from './page/ref/alts/alts.component';
 import { RefCommentsComponent } from './page/ref/comments/comments.component';
-import { RefGraphComponent } from './page/ref/graph/graph.component';
 import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
+import { RefSummaryComponent } from './page/ref/summary/summary.component';
 import { RefVersionsComponent } from './page/ref/versions/versions.component';
 import { SettingsBackupPage } from './page/settings/backup/backup.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
@@ -50,14 +50,13 @@ const routes: Routes = [
     path: 'ref/:url',
     component: RefPage,
     children: [
-      { path: '', redirectTo: 'responses', pathMatch: 'full' },
+      { path: '', component: RefSummaryComponent },
       { path: 'comments', component: RefCommentsComponent },
       { path: 'responses', component: RefResponsesComponent },
       { path: 'sources', component: RefSourcesComponent },
       { path: 'missing', component: RefMissingComponent },
       { path: 'alts', component: RefAltsComponent },
       { path: 'versions', component: RefVersionsComponent },
-      { path: 'graph', component: RefGraphComponent },
     ],
   }, {
     path: 'inbox',

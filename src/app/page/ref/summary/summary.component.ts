@@ -1,6 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { Subject } from 'rxjs';
+import { Ref } from '../../../model/ref';
+import { mailboxes } from '../../../plugin/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
@@ -8,13 +11,15 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  selector: 'app-ref-sources',
-  templateUrl: './sources.component.html',
-  styleUrls: ['./sources.component.scss'],
+  selector: 'app-ref-summary',
+  templateUrl: './summary.component.html',
+  styleUrls: ['./summary.component.scss']
 })
-export class RefSourcesComponent implements OnInit, OnDestroy {
-
+export class RefSummaryComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
+  newComments$ = new Subject<Ref | null>();
+
+  summaryItems = 5;
 
   constructor(
     private theme: ThemeService,
@@ -30,22 +35,35 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
       const args = getArgs(
         '',
         this.store.view.sort,
-        this.store.view.filter,
+        _.uniq(['notInternal', ...this.store.view.filter]),
         this.store.view.search,
         this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.summaryItems,
       );
-      args.sources = this.store.view.url;
+      args.responses = this.store.view.url;
       _.defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
-      this.theme.setTitle('Sources: ' + (this.store.view.ref?.title || this.store.view.url));
+      this.theme.setTitle((this.store.view.ref?.title || this.store.view.url));
     }));
   }
 
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.newComments$.complete();
   }
 
+  get comments() {
+    if (!this.admin.status.plugins.comment) return 0;
+    return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
+  }
+
+  get responses() {
+    return this.store.view.ref?.metadata?.responses || 0;
+  }
+
+  get mailboxes() {
+    return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
+  }
 }

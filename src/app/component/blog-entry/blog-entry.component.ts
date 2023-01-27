@@ -193,28 +193,28 @@ export class BlogEntryComponent implements OnInit {
   }
 
   get comments() {
-    if (!this._ref.metadata) return '? comments';
-    const commentCount = this._ref.metadata.plugins?.['plugin/comment'];
-    if (commentCount === 0) return 'comment';
+    if (!this.admin.status.plugins.comment) return undefined;
+    if (!this._ref.metadata?.modified) return undefined;
+    let commentCount = this._ref.metadata?.plugins?.['plugin/comment'] || 0;
+    if (!commentCount) return undefined;
     if (commentCount === 1) return '1 comment';
     return commentCount + ' comments';
   }
 
   get responses() {
-    if (!this._ref.metadata) return '? citations';
-    const responseCount = this._ref.metadata.responses;
-    if (responseCount === 0) return 'uncited';
+    if (!this._ref.metadata?.modified) return undefined;
+    let responseCount = this._ref.metadata?.responses || 0;
+    if (!responseCount) return undefined;
     if (responseCount === 1) return '1 citation';
     return responseCount + ' citations';
   }
 
   get sources() {
     const sourceCount = this._ref.sources?.length || 0;
-    if (sourceCount === 0) return 'unsourced';
-    if (sourceCount === 1) return '1 source';
+    if (!sourceCount) return undefined;
+    if (sourceCount === 1) return 'parent';
     return sourceCount + ' sources';
   }
-
 
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {

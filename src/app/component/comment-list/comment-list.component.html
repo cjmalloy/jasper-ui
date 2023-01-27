@@ -6,7 +6,7 @@
                [context]="context"></app-comment>
 </ng-container>
 <span class="fake-link load-more"
-      *ngIf="hasMore"
+      *ngIf="showLoadMore && hasMore"
       (click)="loadMore()">
   load more comments
 </span>

@@ -41,7 +41,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
     return this.store.view.depth || 7;
   }
 
-  mailboxes(ref: Ref) {
-    return mailboxes(ref, this.store.account.tag, this.store.origins.originMap);
+  get mailboxes() {
+    return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
   }
 }

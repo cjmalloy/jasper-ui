@@ -12,8 +12,7 @@
   <div class="stack">
     <div class="link" [class.remote]="!local">
       <a *ngIf="clickableLink" [href]="ref.url | safe" target="_blank">{{ ref.title || ref.url }}</a>
-      <a *ngIf="!clickableLink && admin.status.plugins.comment" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
-      <a *ngIf="!clickableLink && !admin.status.plugins.comment" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a><wbr>
+      <a *ngIf="!clickableLink" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a><wbr>
       <span class="host">({{ host }})</span>
       <span class="invoice icon" *ngIf="invoice" title="Invoice">🧾️</span>
       <span class="lock icon" *ngIf="locked" title="Locked">🔒️</span>
@@ -88,14 +87,11 @@
             <a routerLink="/submit" [queryParams]="{ url: ref.url }">submit</a>
           </ng-container>
           <ng-container *ngIf="ref.created">
-            <a *ngIf="admin.status.plugins.comment"
-               [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ comments.replace(' ', '&thinsp;') }}</a>
-            <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }">{{ responses.replace(' ', '&thinsp;') }}</a>
-            <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0], 'comments']" [queryParams]="{ origin }">parent</a>
-            <a *ngIf="sources !== 'parent'" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }">{{ sources.replace(' ', '&thinsp;')}}</a>
-            <ng-container *ngIf="admin.status.plugins.graph">
-              <a [routerLink]="['/ref', ref.url, 'graph']" [queryParams]="{ origin, hideSearch: true }">graph</a>
-            </ng-container>
+            <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">permalink</a>
+            <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ comments.replace(' ', '&thinsp;') }}</a>
+            <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }">{{ responses.replace(' ', '&thinsp;') }}</a>
+            <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }">parent</a>
+            <a *ngIf="sources && sources !== 'parent'" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }">{{ sources.replace(' ', '&thinsp;')}}</a>
             <a *ngIf="writeAccess else source"
                class="fake-link"
                (click)="editing = !editing">edit</a>

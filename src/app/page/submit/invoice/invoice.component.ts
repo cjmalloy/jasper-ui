@@ -144,7 +144,7 @@ export class SubmitInvoicePage implements OnInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/ref', this.invoiceForm.value.url, 'sources'], { queryParams: { published }});
+      this.router.navigate(['/ref', this.invoiceForm.value.url], { queryParams: { published }});
     });
   }
 }

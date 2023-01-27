@@ -15,7 +15,6 @@ import { getArgs } from '../../../util/query';
 export class RefResponsesComponent implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
-  private defaultPageSize = 20;
 
   constructor(
     private theme: ThemeService,
@@ -34,7 +33,7 @@ export class RefResponsesComponent implements OnInit, OnDestroy {
         _.uniq(['notInternal', ...this.store.view.filter]),
         this.store.view.search,
         this.store.view.pageNumber,
-        this.store.view.pageSize ?? this.defaultPageSize
+        this.store.view.pageSize,
       );
       args.responses = this.store.view.url;
       _.defer(() => this.query.setArgs(args));

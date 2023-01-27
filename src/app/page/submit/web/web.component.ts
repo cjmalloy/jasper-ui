@@ -166,7 +166,7 @@ export class SubmitWebPage implements AfterViewInit {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/ref', this.url, 'responses'], { queryParams: { published }});
+      this.router.navigate(['/ref', this.url], { queryParams: { published }});
     });
   }
 }

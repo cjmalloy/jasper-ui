@@ -20,9 +20,13 @@ export class CommentListComponent implements OnInit, OnDestroy {
   @Input()
   top!: Ref;
   @Input()
-  depth?: number | null = 7;
+  depth = 7;
+  @Input()
+  pageSize = 20;
   @Input()
   context = 0;
+  @Input()
+  showLoadMore = true;
   @Input()
   newComments$!: Observable<Ref | null>;
 
@@ -77,6 +81,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
       ...getArgs('plugin/comment@*', this.sort, this.filter),
       responses: this._source,
       page: this.pages.length,
+      size: this.pageSize,
     }).subscribe(page => {
       this.pages.push(page);
       this.hasMore = this.pages.length < this.pages[0].totalPages;

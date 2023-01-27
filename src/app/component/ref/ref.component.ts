@@ -263,35 +263,30 @@ export class RefComponent implements OnInit {
   }
 
   get comments() {
-    let commentCount : number | string = '?';
-    if (this._ref.metadata?.modified) {
-      commentCount = this._ref.metadata?.plugins?.['plugin/comment'] || 0;
-    }
+    if (!this.admin.status.plugins.comment) return undefined;
+    if (!this._ref.metadata?.modified) return undefined;
+    let commentCount = this._ref.metadata?.plugins?.['plugin/comment'] || 0;
+    if (!commentCount) return undefined;
     if (commentCount === 0) return 'comment';
     if (commentCount === 1) return '1 comment';
     return commentCount + ' comments';
   }
 
   get responses() {
-    let responseCount : number | string = '?';
-    if (this._ref.metadata?.modified) {
-      responseCount = this._ref.metadata?.responses || 0;
-    }
+    if (!this._ref.metadata?.modified) return undefined;
+    let responseCount = this._ref.metadata?.responses || 0;
+    if (!responseCount) return undefined;
     if (this.feed) {
       return responseCount + ' scraped';
     }
-    if (responseCount === 0) return 'uncited';
     if (responseCount === 1) return '1 citation';
     return responseCount + ' citations';
   }
 
   get sources() {
     const sourceCount = this._ref.sources?.length || 0;
-    if (sourceCount === 0) return 'unsourced';
-    if (sourceCount === 1) {
-      if (this.comment) return 'parent';
-      return '1 source';
-    }
+    if (!sourceCount) return undefined;
+    if (sourceCount === 1) return 'parent';
     return sourceCount + ' sources';
   }
 

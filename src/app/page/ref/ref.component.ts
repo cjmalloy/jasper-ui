@@ -39,7 +39,7 @@ export class RefPage implements OnInit, OnDestroy {
       this.refs.get(url, origin).pipe(
         catchError(err => {
           this.error = err;
-          return of(undefined);
+          return of({url, origin});
         }),
       ).subscribe(ref => runInAction(() => this.store.view.ref = ref));
       this.refs.count({ url }).pipe(
