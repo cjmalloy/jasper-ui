@@ -18,7 +18,15 @@ import { AuthzService } from '../../service/authz.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
-import { authors, clickableLink, formatAuthor, interestingTags, TAGS_REGEX, urlSummary } from '../../util/format';
+import {
+  authors,
+  clickableLink,
+  formatAuthor,
+  interestingTags,
+  TAGS_REGEX,
+  templates,
+  urlSummary
+} from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag, isOwnerTag, tagOrigin } from '../../util/tag';
 
@@ -28,7 +36,7 @@ import { hasTag, isOwnerTag, tagOrigin } from '../../util/tag';
   styleUrls: ['./ref.component.scss'],
 })
 export class RefComponent implements OnInit {
-  @HostBinding('class') css = 'ref list-item';
+  css = 'ref list-item ';
   @HostBinding('attr.tabindex') tabIndex = 0;
   tagRegex = TAGS_REGEX.source;
 
@@ -66,6 +74,13 @@ export class RefComponent implements OnInit {
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = refForm(fb);
+  }
+
+  @HostBinding('class')
+  get pluginClasses() {
+    return this.css + templates(this._ref.tags, 'plugin')
+      .map(t => t.replace(/\//g, '-'))
+      .join(' ');
   }
 
   get ref(): Ref {
