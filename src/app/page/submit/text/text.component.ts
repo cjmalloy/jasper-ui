@@ -1,12 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, OnDestroy, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { LinksFormComponent } from '../../../form/links/links.component';
 import { refForm } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { wikiTitleFormat, wikiUriFormat } from '../../../plugin/wiki';
@@ -69,6 +70,9 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
         for (const tag of this.store.submit.tags) {
           this.addTag(...tag.split(/[:|!()]/));
         }
+        for (const s of this.store.submit.sources) {
+          this.addSource(s)
+        }
       }));
     });
   }
@@ -90,11 +94,20 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
     return this.textForm.get('comment') as UntypedFormControl;
   }
 
+  get sources() {
+    return this.textForm.get('sources') as UntypedFormArray;
+  }
+
   addTag(...values: string[]) {
     if (!values) values = [''];
     for (const value of values) {
       this.tags.addTag(value);
     }
+    this.submitted = false;
+  }
+
+  addSource(value = '') {
+    this.sources.push(this.fb.control(value, LinksFormComponent.validators))
     this.submitted = false;
   }
 

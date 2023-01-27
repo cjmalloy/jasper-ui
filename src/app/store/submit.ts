@@ -41,6 +41,14 @@ export class SubmitStore {
     return _.flatten(this.tag ? [this.tag] : []);
   }
 
+  get source() {
+    return this.route.routeSnapshot?.queryParams['source'];
+  }
+
+  get sources(): string[] {
+    return _.flatten(this.source ? [this.source] : []);
+  }
+
   get feed() {
     return this.tags.includes('+plugin/feed');
   }
