@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
-import { mapPlugin, maybePlugin, Plugin, writePlugin } from '../../model/plugin';
+import { mapPlugin, Plugin, writePlugin } from '../../model/plugin';
 import { TagPageArgs } from '../../model/tag';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
@@ -45,16 +45,6 @@ export class PluginService {
       map(() => true),
       catchError(err => this.login.handleHttpError(err)),
       catchError(() => of(false)),
-    );
-  }
-
-  list(tags: string[]): Observable<(Plugin | undefined)[]> {
-    return this.http.get(`${this.base}/list`, {
-      params: params({ tags }),
-    }).pipe(
-      map(res => res as any[]),
-      map(res => res.map(maybePlugin)),
-      catchError(err => this.login.handleHttpError(err)),
     );
   }
 

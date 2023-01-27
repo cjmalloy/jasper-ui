@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { TagPageArgs } from '../../model/tag';
-import { mapTemplate, maybeTemplate, Template, writeTemplate } from '../../model/template';
+import { mapTemplate, Template, writeTemplate } from '../../model/template';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -45,16 +45,6 @@ export class TemplateService {
       map(() => true),
       catchError(err => this.login.handleHttpError(err)),
       catchError(() => of(false)),
-    );
-  }
-
-  list(tags: string[]): Observable<(Template | undefined)[]> {
-    return this.http.get(`${this.base}/list`, {
-      params: params({ tags }),
-    }).pipe(
-      map(res => res as any[]),
-      map(res => res.map(maybeTemplate)),
-      catchError(err => this.login.handleHttpError(err)),
     );
   }
 
