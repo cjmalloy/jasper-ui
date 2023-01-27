@@ -31,6 +31,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => this.theme.setTitle((this.store.view.ref?.title || this.store.view.url))));
     this.disposers.push(autorun(() => {
       const args = getArgs(
         '',
@@ -52,8 +53,6 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
           this.store.view.ref!.metadata.plugins['plugin/comment']++;
         });
       }
-    this.disposers.push(autorun(() => {
-      this.theme.setTitle((this.store.view.ref?.title || this.store.view.url));
     }));
   }
 
