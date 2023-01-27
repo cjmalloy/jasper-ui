@@ -19,10 +19,10 @@ export interface RefNode extends Ref {
 }
 
 export interface Metadata {
-  modified: string;
-  responses: number;
-  internalResponses: number;
-  plugins: Record<string, number>;
+  modified?: string;
+  responses?: number;
+  internalResponses?: number;
+  plugins?: Record<string, number>;
 }
 
 export type Filter =

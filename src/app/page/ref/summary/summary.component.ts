@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import * as _ from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
+import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { mailboxes } from '../../../plugin/mailbox';
@@ -43,6 +43,15 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       args.responses = this.store.view.url;
       _.defer(() => this.query.setArgs(args));
     }));
+    this.newComments$.subscribe(() => runInAction(() => {
+      if (!this.comments) {
+        runInAction(() => {
+          this.store.view.ref!.metadata ||= {};
+          this.store.view.ref!.metadata.plugins ||= {};
+          this.store.view.ref!.metadata.plugins['plugin/comment'] ||= 0;
+          this.store.view.ref!.metadata.plugins['plugin/comment']++;
+        });
+      }
     this.disposers.push(autorun(() => {
       this.theme.setTitle((this.store.view.ref?.title || this.store.view.url));
     }));

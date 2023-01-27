@@ -74,9 +74,11 @@ export class CommentComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(ref => {
       this.replying = false;
-      if (ref?.metadata) {
-        this._ref.metadata!.plugins['plugin/comment']++;
-        this._ref.metadata!.responses++;
+      if (ref) {
+        this._ref.metadata ||= {};
+        this._ref.metadata.plugins ||= {};
+        this._ref.metadata.plugins['plugin/comment'] ||= 0;
+        this._ref.metadata.plugins['plugin/comment']++;
         if (this.depth === 0) this.depth = 1;
       }
     });

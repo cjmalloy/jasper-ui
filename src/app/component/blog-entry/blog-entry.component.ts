@@ -257,7 +257,7 @@ export class BlogEntryComponent implements OnInit {
   }
 
   accept() {
-    if (this._ref.metadata!.plugins?.['plugin/invoice/disputed'] > 1) {
+    if ((this._ref.metadata!.plugins?.['plugin/invoice/disputed'] || 0) > 1) {
       console.warn('Multiple disputes found');
     }
     this.refs.page({
