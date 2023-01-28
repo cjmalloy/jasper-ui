@@ -111,7 +111,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.settings .inbox').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Ref from other').parent().parent().as('ref');
-    cy.get('@ref').find('.actions').contains('comment').click();
+    cy.get('@ref').find('.actions').contains('permalink').click();
     cy.get('.comment-reply textarea').type('Doing well, thanks!', {force: true}).blur();
     cy.get('.comment-reply button').contains('reply').click({force: true});
   });
