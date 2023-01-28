@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';

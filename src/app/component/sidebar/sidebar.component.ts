@@ -8,7 +8,6 @@ import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { TAG_REGEX } from '../../util/format';
 import { hasPrefix, localTag, prefix, removeWildcard } from '../../util/tag';
 
 @Component({

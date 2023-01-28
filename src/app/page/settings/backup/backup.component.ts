@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as _ from 'lodash-es';
-import { catchError, forkJoin, throwError } from 'rxjs';
+import { catchError, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
 import { Ref } from '../../../model/ref';
 import { BackupService } from '../../../service/api/backup.service';

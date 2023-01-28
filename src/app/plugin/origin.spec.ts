@@ -1,5 +1,4 @@
 import { Ref } from '../model/ref';
-import { getMailbox, isMailbox, mailboxes, notifications } from './mailbox';
 import { isReplicating } from './origin';
 
 describe('OriginPlugin', () => {
