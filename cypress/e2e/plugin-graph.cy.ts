@@ -31,25 +31,34 @@ describe('Graph Plugin', {
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
   it('shows graph', () => {
-    cy.get('.full-page .actions a').contains('graph').click();
-    cy.title().should('include', 'Graph: Title');
+    cy.get('.full-page .actions a').contains('edit').click();
+    cy.get('#url').then($url => {
+      cy.get('.subs').contains('all').click();
+      cy.get('.search input').type($url.val() + '{enter}');
+    });
+    cy.get('.tabs').contains('graph').click();
     cy.get('figure').contains('Title');
   });
   it('creates reply', () => {
-    cy.get('.full-page .actions a').contains('reply').click();
-    cy.get('#url').type('test:reply' + Math.random());
-    cy.get('#scrape').uncheck();
-    cy.contains('Next').click();
+    cy.get('.ref .actions a').contains('reply').click();
+    cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Reply');
+    cy.contains('show advanced').click();
     cy.get('#published').type('2020-01-02T00:00');
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Reply');
   });
   it('graphs reply', () => {
-    cy.get('.full-page .actions a').contains('graph').click();
-    cy.title().should('include', 'Graph: Reply');
-    cy.contains('load more').click();
-    cy.get('figure').contains('Title');
+    cy.get('.full-page .actions a').contains('edit').click();
+    cy.get('#url').then($url => {
+      cy.get('.subs').contains('all').click();
+      cy.get('.search input').type($url.val() + '{enter}');
+    });
+    cy.get('.tabs').contains('graph').click();
     cy.get('figure').contains('Reply');
+    cy.contains('load more').click();
+    cy.get('figure').rightclick();
+    cy.contains('Select all').click();
+    cy.get('figure').contains('Title');
   });
 });

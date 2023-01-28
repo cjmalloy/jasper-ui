@@ -103,8 +103,12 @@ export class GraphStore {
     this.links = links(this.nodes, ...this.nodes);
   }
 
-  select(...refs: RefNode[]) {
+  select(...refs: GraphNode[]) {
     this.selected = [...refs];
+  }
+
+  selectAll() {
+    this.selected = [...this.nodes];
   }
 
   clearSelection() {

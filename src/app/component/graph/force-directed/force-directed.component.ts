@@ -258,6 +258,11 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     this.update();
   }
 
+  selectAll() {
+    this.store.graph.selectAll();
+    this.close();
+  }
+
   pin(ref: GraphNode) {
     ref.pinned = !ref.pinned;
     if (!ref.pinned) {
