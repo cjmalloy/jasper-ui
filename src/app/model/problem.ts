@@ -4,12 +4,16 @@ export interface Problem {
   status: number;
   path: string;
   message: string;
-  detail: string;
-  fieldErrors: FieldError[];
+  detail?: string;
+  fieldErrors?: FieldError[];
+  violations?: FieldError[];
 }
 
-export interface FieldError {
+export interface Violation {
   field: string;
   message: string;
+}
+
+export interface FieldError extends Violation {
   objectName: string;
 }

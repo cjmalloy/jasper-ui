@@ -35,9 +35,6 @@ export class BlogEntryComponent implements OnInit {
   @Input()
   blog?: Ext;
 
-  @ViewChild('inlineTag')
-  inlineTag?: ElementRef;
-
   editForm: UntypedFormGroup;
   submitted = false;
   expandPlugins: string[] = [];
@@ -223,9 +220,15 @@ export class BlogEntryComponent implements OnInit {
     return formatAuthor(user);
   }
 
-  addInlineTag() {
-    if (!this.inlineTag) return;
-    const tag = (this.inlineTag.nativeElement.value as string).toLowerCase().trim();
+  addInlineTag(field: HTMLInputElement) {
+    if (field.validity.patternMismatch) {
+      this.serverError = [`
+        Tags must be lower case letters, numbers, periods, and forward slashes.
+        Must not start with a slash or contain two forward slashes in a row. Private
+      tags start with an underscore.`];
+      return;
+    }
+    const tag = field.value;
     this.ts.create(tag, this._ref.url, this._ref.origin!).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
       catchError((err: HttpErrorResponse) => {

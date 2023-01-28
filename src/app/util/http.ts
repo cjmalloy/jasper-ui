@@ -53,5 +53,11 @@ export function printError(res: HttpErrorResponse): string[] {
     }
     return result;
   }
+  if (problem.violations) {
+    for (const v of problem.violations) {
+      result.push(`Error: ${v.field} ${v.message}`);
+    }
+    return result;
+  }
   return [problem?.detail || res.message];
 }

@@ -111,14 +111,15 @@
                (click)="tagging = !tagging">tag</a>
             <span *ngIf="tagging" class="inline-tagging">
               <input #inlineTag
-                     (keydown)="$event.key === 'Enter' && addInlineTag(inlineTag.value) || true"
+                     (keydown)="$event.key === 'Enter' && addInlineTag(inlineTag) || true"
+                     (input)="inlineTag.value = inlineTag.value.toLowerCase()"
                      type="text"
                      inputmode="email"
                      [pattern]="tagRegex"
                      autocorrect="off"
                      autocapitalize="none"
                      appAutofocus>
-              <button (click)="addInlineTag(inlineTag.value)">+</button>
+              <button (click)="addInlineTag(inlineTag)">+</button>
             </span>
             <ng-container *ngIf="canInvoice">
               <a routerLink="/submit/invoice"
