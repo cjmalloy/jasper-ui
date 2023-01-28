@@ -21,14 +21,6 @@ describe('Ref Actions', {
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
-  it('shows responses', () => {
-    cy.get('.actions a').contains('uncited').click();
-    cy.title().should('includes', 'Responses: Title');
-  });
-  it('shows sources', () => {
-    cy.get('.actions a').contains('unsourced').click();
-    cy.title().should('includes', 'Sources: Title');
-  });
   it('edits comments field', () => {
     cy.get('.actions a').contains('edit').click();
     cy.get('#comment').type('Comment field');
@@ -53,19 +45,21 @@ describe('Ref Actions', {
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Reply');
   });
-  it('shows reply responses', () => {
-    cy.get('.actions a').contains('uncited').click();
-    cy.title().should('includes', 'Responses: Reply');
+  it('shows parent', () => {
+    cy.get('.actions a').contains('parent').click();
+    cy.get('.full-page.ref .link a').should('have.text', 'Title');
+    cy.title().should('includes', 'Title');
   });
-  it('shows reply sources', () => {
-    cy.get('.actions a').contains('1 source').click();
-    cy.title().should('includes', 'Sources: Reply');
-    cy.get('.ref-list .ref .link a').contains('Title');
+  it('shows responses', () => {
+    cy.get('.full-page.ref .actions a').contains('1 citation').click();
+    cy.get('.full-page.ref .link a').should('have.text', 'Title');
+    cy.title().should('includes', 'Responses: Title');
+    cy.get('.ref-list .ref .link a').contains('Reply');
   });
   it('should delete reply', () => {
-    cy.get('.full-page.ref .actions a').contains('delete').click();
-    cy.get('.full-page.ref .actions a').contains('yes').click();
-    cy.get('.ref-list .ref .actions a').contains('1 citation').click();
+    cy.get('.ref-list .ref .actions a').contains('delete').click();
+    cy.get('.ref-list .ref .actions a').contains('yes').click();
+    cy.get('.ref-list .ref .actions a').contains('parent').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
 });
