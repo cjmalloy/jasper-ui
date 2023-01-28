@@ -30,7 +30,7 @@ export class SubmitStore {
 
   get wiki() {
     if (this.linkTypeOverride) return this.linkTypeOverride === 'wiki';
-    return this.url?.startsWith(this.wikiPrefix);
+    return !!this.url?.startsWith(this.wikiPrefix);
   }
 
   get tag() {
