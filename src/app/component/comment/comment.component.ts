@@ -172,9 +172,11 @@ export class CommentComponent implements OnInit, OnDestroy {
   addInlineTag(field: HTMLInputElement) {
     if (field.validity.patternMismatch) {
       this.serverError = [`
-        Tags must be lower case letters, numbers, periods, and forward slashes.
-        Must not start with a slash or contain two forward slashes or periods
-        in a row. Private tags start with an underscore.`];
+        Tags must be lower case letters, numbers, periods and forward slashes.
+        Must not start with a forward slash or period.
+        Must not or contain two forward slashes or periods in a row.
+        Protected tags start with a plus sign.
+        Private tags start with an underscore.`];
       return;
     }
     const tag = field.value.toLowerCase().trim();

@@ -13,8 +13,8 @@
                [formControl]="$any(c)">
         <div class="error" *ngIf="users.at(i).touched && users.at(i).errors?.['pattern']" i18n>
           User tags must start with the "user/" or "_user/" prefix.
-          Tags must be lower case letters, numbers, and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-          tags start with an underscore.<br>
+          Tags must be lower case letters, numbers, periods and forward slashes.
+          Must not or contain two forward slashes or periods in a row.<br>
           (i.e. "science", "my/tag", or "_my/private/tag")
         </div>
         <div class="error" *ngIf="users.at(i).touched && users.at(i).errors?.['required']" i18n>

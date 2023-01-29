@@ -12,8 +12,11 @@
                autocapitalize="none"
                [formControl]="$any(tag)">
         <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['pattern']" i18n>
-          Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-          tags start with an underscore.<br>
+          Tags must be lower case letters, numbers, periods and forward slashes.
+          Must not start with a forward slash or period.
+          Must not or contain two forward slashes or periods in a row.
+          Protected tags start with a plus sign.
+          Private tags start with an underscore.<br>
           (i.e. "science", "my/tag", or "_my/private/tag")
         </div>
         <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['required']" i18n>

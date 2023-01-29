@@ -12,9 +12,17 @@
                autocapitalize="none"
                [formControl]="$any(tag)">
         <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['pattern']" i18n>
-          Tags must be lower case letters, numbers, periods and forward slashes. Tags may be qualified with an origin. Must start with a letter or number. Must
-          not or contain two forward slashes or periods in a row. Private tags start with an underscore.<br>
-          (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")
+          Tags must be lower case letters, numbers, periods and forward slashes.
+          Must not start with a forward slash or period.
+          Must not or contain two forward slashes or periods in a row.
+          Use the local wildcard (*) to match all tags with a local origin.
+          Tags may be qualified with an origin, or a wildcard origin (@*).
+          Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+          Use an origin without a tag to match all tags at that origin.
+          The wildcard origin (@*) by itself will match everything.
+          Protected tags start with a plus sign.
+          Private tags start with an underscore.<br>
+          (i.e. "*", "science", "science@origin" "my/tag@*", or "_my/private/tag")
         </div>
         <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['required']" i18n>
           Tag must not be blank.
