@@ -4,8 +4,8 @@ import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
 @Component({
   selector: 'formly-wrapper-form-field',
   template: `
-    <label *ngIf="props.label" [attr.for]="id" class="form-label">
-      {{ props.label }}
+    <label [attr.for]="id" class="form-label">
+      {{ props.label || '' }}
       <span *ngIf="props.required" aria-hidden="true">*</span>
     </label>
     <ng-template #fieldComponent></ng-template>
