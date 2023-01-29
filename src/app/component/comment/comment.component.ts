@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { filter, uniq } from 'lodash-es';
 import { catchError, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { mailboxes } from '../../plugin/mailbox';
@@ -10,7 +11,7 @@ import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { authors, formatAuthor, interestingTags, TAGS_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
-import { hasTag, tagOrigin } from '../../util/tag';
+import { hasPrefix, hasTag, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-comment',
@@ -131,6 +132,10 @@ export class CommentComponent implements OnInit, OnDestroy {
     return hasTag('_moderated', this._ref);
   }
 
+  get deleted() {
+    return hasTag('plugin/deleted', this._ref);
+  }
+
   get locked() {
     return hasTag('locked', this._ref);
   }
@@ -207,16 +212,18 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   delete() {
-    this.refs.patch(this._ref.url, this._ref.origin!, [{
-      op: 'add',
-      path: '/plugins/plugin~1comment/deleted',
-      value: true,
-    }]).pipe(
+    delete this._ref.title;
+    delete this._ref.comment;
+    delete this._ref.plugins;
+    this.refs.update({
+      ...this._ref,
+      tags: uniq([...filter(this._ref.tags, t => !hasPrefix(t, 'plugin')), 'plugin/comment', 'plugin/deleted']),
+    }).pipe(
+      switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-      switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
     ).subscribe(ref => {
       this.serverError = [];
       this._ref = ref;

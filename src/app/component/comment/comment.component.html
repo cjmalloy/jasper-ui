@@ -11,11 +11,11 @@
   {{ comments }}
 </div>
 
-<div class="comment-container info collapsed" tabindex="0" *ngIf="ref.plugins?.['plugin/comment']?.deleted" i18n>
+<div class="comment-container info collapsed" tabindex="0" *ngIf="deleted" i18n>
   deleted comment
 </div>
 
-<div class="comment-container" tabindex="0" *ngIf="!collapsed && !ref.plugins?.['plugin/comment']?.deleted">
+<div class="comment-container" tabindex="0" *ngIf="!collapsed && !deleted">
   <div class="info">
     <span class="comment-collapse fake-link" (click)="store.local.setRefToggled(ref.url, collapsed = true)">[&ndash;]</span>&nbsp;
     <ng-container *ngFor="let user of authors">

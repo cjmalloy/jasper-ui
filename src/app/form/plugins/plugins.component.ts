@@ -3,7 +3,6 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AdminService } from '../../service/admin.service';
 import { emptyObject, writeObj } from '../../util/http';
 import { includesTag } from '../../util/tag';
-import { commentPluginForm } from './comment/comment.component';
 import { feedForm, FeedFormComponent } from './feed/feed.component';
 import { originForm } from './origin/origin.component';
 
@@ -111,7 +110,6 @@ function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
   switch (tag) {
     case '+plugin/origin': return originForm(fb, admin);
     case '+plugin/feed': return feedForm(fb, admin);
-    case 'plugin/comment': return commentPluginForm(fb, admin);
   }
   if (admin.getPlugin(tag)?.config?.form) {
     return fb.group({});

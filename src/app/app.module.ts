@@ -64,7 +64,6 @@ import { ExtFormComponent } from './form/ext/ext.component';
 import { JsonComponent } from './form/json/json.component';
 import { LinksFormComponent } from './form/links/links.component';
 import { PluginFormComponent } from './form/plugin/plugin.component';
-import { CommentFormComponent } from './form/plugins/comment/comment.component';
 import { FeedFormComponent } from './form/plugins/feed/feed.component';
 import { GenFormComponent } from './form/plugins/gen/gen.component';
 import { OriginFormComponent } from './form/plugins/origin/origin.component';
@@ -201,7 +200,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     LinksFormComponent,
     QtagsFormComponent,
     PluginsFormComponent,
-    CommentFormComponent,
     SettingsProfilePage,
     ProfileListComponent,
     ProfileComponent,
