@@ -19,55 +19,55 @@
   <app-debug *ngIf="expanded"></app-debug>
   <app-bulk *ngIf="expanded && store.view.current" [type]="store.view.type!"></app-bulk>
   <ng-container *ngIf="store.account.poster">
-    <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
+    <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }" i18n>
       📝️ &nbsp; Submit
     </div>
   </ng-container>
   <ng-container *ngIf="!ext && (store.account.editor || writeAccess)">
-    <div class="submit-button" routerLink="/create/ext" [queryParams]="{ tag: writeAccess ? localTag : '' }">
+    <div class="submit-button" routerLink="/create/ext" [queryParams]="{ tag: writeAccess ? localTag : '' }" i18n>
       🖌️ &nbsp; Extend Tag
     </div>
   </ng-container>
   <ng-container *ngIf="ext && writeAccess">
-    <div class="submit-button" [routerLink]="['/tag', localTag, 'edit']">
+    <div class="submit-button" [routerLink]="['/tag', localTag, 'edit']" i18n>
       🖌️ &nbsp; Extend Tag
     </div>
   </ng-container>
   <ng-container *ngIf="config.scim && store.account.mod">
-    <div class="submit-button" routerLink="/create/profile" [queryParams]="{ tag: localTag }">
+    <div class="submit-button" routerLink="/create/profile" [queryParams]="{ tag: localTag }" i18n>
       👤️ &nbsp; Create Profile
     </div>
   </ng-container>
   <ng-container *ngIf="store.account.mod">
-    <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag: localTag }">
+    <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag: localTag }" i18n>
       🗝️️ &nbsp; User Permissions
     </div>
   </ng-container>
   <ng-container *ngIf="admin.status.plugins.inbox">
     <ng-container *ngIf="user && store.account.tag !== tag">
-      <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
+      <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }" i18n>
         ✉️ &nbsp; Direct Message {{ tag }}
       </div>
     </ng-container>
     <ng-container *ngIf="store.account.poster && !user && modmail">
-      <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
+      <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }" i18n>
         ✉️ &nbsp; Mod Mail {{ tag }}
       </div>
     </ng-container>
   </ng-container>
   <ng-container *ngIf="store.account.signedIn && store.account.tag === tag">
-    <div class="submit-button" routerLink="/settings/password">
+    <div class="submit-button" routerLink="/settings/password" i18n>
       🔑️️ &nbsp; Change Password
     </div>
   </ng-container>
 
   <div class="tag-header" *ngIf="home">
-    <h3><a [routerLink]="['/home']">Home</a></h3>
+    <h3><a [routerLink]="['/home']" i18n>Home</a></h3>
 
     <ng-container *ngIf="homeWriteAccess">
       <a *ngIf="admin.status.templates.home"
          class="sidebar-link edit"
-         [routerLink]="['/tag', '+home']">
+         [routerLink]="['/tag', '+home']" i18n>
         edit
       </a>
     </ng-container>
@@ -77,19 +77,19 @@
     <ng-container *ngIf="store.account.signedIn && tag && admin.status.templates.user">
       <button *ngIf="inSubs; else notInSubs"
               class="subscribe"
-              (click)="unsubscribe()">&ndash; unsubscribe</button>
+              (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
       <ng-template #notInSubs>
         <button (click)="subscribe()"
                 title="Add to home screen"
-                class="subscribe">+ subscribe</button>
+                class="subscribe" i18n>+ subscribe</button>
       </ng-template>
       <button *ngIf="inBookmarks; else notBookmarked"
               class="bookmark"
-              (click)="removeBookmark()">&ndash; bookmark</button>
+              (click)="removeBookmark()" i18n>&ndash; bookmark</button>
       <ng-template #notBookmarked>
         <button (click)="bookmark()"
                 title="Add to top bar"
-                class="bookmark">+ bookmark</button>
+                class="bookmark" i18n>+ bookmark</button>
       </ng-template>
     </ng-container>
   </div>
@@ -102,13 +102,13 @@
 
   <ng-container *ngIf="queue">
     <div class="ext-text" *ngIf="ext?.config?.bounty">
-      <b>Bounty:</b> {{ ext?.config?.bounty }}
+      <b i18n>Bounty:</b> {{ ext?.config?.bounty }}
     </div>
     <div class="ext-text" *ngIf="ext?.config?.maxAge">
-      <b>Max Age:</b> {{ ext?.config?.maxAge }}
+      <b i18n>Max Age:</b> {{ ext?.config?.maxAge }}
     </div>
     <div class="ext-text" *ngIf="ext?.config?.approvers?.length">
-      <b>Approvers:</b>
+      <b i18n>Approvers:</b>
       <br>
       <ng-container *ngFor="let a of ext!.config!.approvers!">
         <a class="tag" [routerLink]="['/tag', a]">
@@ -119,12 +119,12 @@
     </div>
     <div *ngIf="isApprover">
       <a class="sidebar-link"
-         [routerLink]="['/tag', prefix('plugin/invoice', ext!.tag)]">invoices</a>
+         [routerLink]="['/tag', prefix('plugin/invoice', ext!.tag)]" i18n>invoices</a>
     </div>
   </ng-container>
 
   <ng-container *ngIf="user || home">
-    <div class="ext-text" *ngIf="ext?.config?.bookmarks?.length">
+    <div class="ext-text" *ngIf="ext?.config?.bookmarks?.length" i18n>
       My Bookmarks:
       <br>
       <ng-container *ngFor="let book of ext!.config!.bookmarks!">
@@ -135,7 +135,7 @@
       </ng-container>
       <br *ngIf="ext?.config?.subscriptions?.length">
     </div>
-    <div class="ext-text" *ngIf="ext?.config?.subscriptions?.length">
+    <div class="ext-text" *ngIf="ext?.config?.subscriptions?.length" i18n>
       Subscribed to:
       <br>
       <ng-container *ngFor="let sub of ext!.config!.subscriptions!">

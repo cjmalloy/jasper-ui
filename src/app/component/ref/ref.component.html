@@ -27,20 +27,22 @@
       <div class="stack">
         <div class="info" [class.expanded]="!actionsExpanded">
           <ng-container *ngIf="ref.created else notSubmitted">
-            <span [title]="ref.created.toISOString()">submitted {{ ref.created.fromNow() }}</span>
-            <span *ngIf="ref.modified!.diff(ref.created, 'seconds') > 5" [title]="'last edited ' + ref.modified!.fromNow()">*</span>
+            <span [title]="ref.created.toISOString()" i18n>submitted {{ ref.created.fromNow() }}</span>
+            <span *ngIf="ref.modified!.diff(ref.created, 'seconds') > 5"
+                  i18n-title
+                  title="last edited {{ ref.modified!.fromNow() }}}">*</span>
           </ng-container>
           <ng-template #notSubmitted>
-            <span>not found</span>
+            <span i18n>not found</span>
           </ng-template>
-          <ng-container *ngIf="authors.length">
+          <ng-container *ngIf="authors.length" i18n>
             by
             <ng-container *ngFor="let user of authors">
               <a class="user tag" [routerLink]="['/tag', user]">
                 {{ formatAuthor(user) }}</a>&nbsp;
             </ng-container>
           </ng-container>
-          <ng-container *ngIf="tags.length">
+          <ng-container *ngIf="tags.length" i18n>
             tagged
             <ng-container *ngFor="let tag of tags">
               <a class="tag" [routerLink]="['/tag', tag + ref.origin]">{{ tag }}</a>&nbsp;
@@ -48,34 +50,34 @@
           </ng-container>
           <ng-container *ngIf="scrapeable">
             <ng-container *ngIf="scraped">
-              <span [title]="lastScrape.toISOString()"> last scraped {{ lastScrape.fromNow() }} </span>
+              <span [title]="lastScrape.toISOString()" i18n> last scraped {{ lastScrape.fromNow() }} </span>
             </ng-container>
-            <ng-container *ngIf="!lastScrape">
+            <ng-container *ngIf="!lastScrape" i18n>
               not scraped yet
             </ng-container>
           </ng-container>
           <ng-container *ngIf="!scrapeable && ref.published">
             <ng-container *ngIf="person">
-              <span [title]="ref.published.toISOString()">
+              <span [title]="ref.published.toISOString()" i18n>
                 born
                 {{ ref.published.fromNow() }}</span>
             </ng-container>
             <ng-container *ngIf="!person">
-              <span [title]="ref.published.toISOString()">
+              <span [title]="ref.published.toISOString()" i18n>
                 published
                 {{ ref.published.fromNow() }}</span>
             </ng-container>
           </ng-container>
-          <ng-container *ngIf="ref.created && !local">
+          <ng-container *ngIf="ref.created && !local" i18n>
             on <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
           </ng-container>
-          <ng-container *ngIf="addTags?.length">
+          <ng-container *ngIf="addTags?.length" i18n>
             tagging refs
             <ng-container *ngFor="let tag of addTags">
               <a [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
             </ng-container>
           </ng-container>
-          <ng-container *ngIf="addOrigin">
+          <ng-container *ngIf="addOrigin" i18n>
             to <a [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
           </ng-container>
         </div>
@@ -84,31 +86,31 @@
                    [expandPlugins]="expandPlugins"></app-embed>
         <div class="actions" [class.expanded]="actionsExpanded">
           <ng-container *ngIf="!local || !ref.created">
-            <a routerLink="/submit" [queryParams]="{ url: ref.url }">submit</a>
+            <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
           </ng-container>
           <ng-container *ngIf="ref.created">
-            <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">permalink</a>
-            <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">{{ comments.replace(' ', '&thinsp;') }}</a>
-            <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }">{{ responses.replace(' ', '&thinsp;') }}</a>
-            <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }">parent</a>
-            <a *ngIf="sources && sources !== 'parent'" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }">{{ sources.replace(' ', '&thinsp;')}}</a>
+            <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }" i18n>permalink</a>
+            <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>{{ comments.replace(' ', '&thinsp;') }}</a>
+            <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{{ responses.replace(' ', '&thinsp;') }}</a>
+            <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }" i18n>parent</a>
+            <a *ngIf="sources && sources !== 'parent'" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }" i18n>{{ sources.replace(' ', '&thinsp;')}}</a>
             <a *ngIf="writeAccess else source"
                class="fake-link"
-               (click)="editing = !editing">edit</a>
+               (click)="editing = !editing" i18n>edit</a>
             <ng-template #source>
               <a class="fake-link"
-                 (click)="viewSource = !viewSource">source</a>
+                 (click)="viewSource = !viewSource" i18n>source</a>
             </ng-template>
             <a *ngIf="!deleting && writeAccess"
                class="fake-link"
-               (click)="deleting = true">delete</a>
-            <span *ngIf="deleting" class="delete-confirm"> are you sure?&nbsp;
+               (click)="deleting = true" i18n>delete</a>
+            <span *ngIf="deleting" class="delete-confirm" i18n> are you sure?&nbsp;
               <a class="fake-link" (click)="delete()">yes</a>&nbsp;/&nbsp;
               <a class="fake-link" (click)="deleting = false">no</a>&nbsp;
             </span>
             <a *ngIf="local && (store.account.editor || writeAccess)"
                class="fake-link"
-               (click)="tagging = !tagging">tag</a>
+               (click)="tagging = !tagging" i18n>tag</a>
             <span *ngIf="tagging" class="inline-tagging">
               <input #inlineTag
                      (keydown)="$event.key === 'Enter' && addInlineTag(inlineTag) || true"
@@ -119,37 +121,37 @@
                      autocorrect="off"
                      autocapitalize="none"
                      appAutofocus>
-              <button (click)="addInlineTag(inlineTag)">+</button>
+              <button (click)="addInlineTag(inlineTag)" i18n>+</button>
             </span>
             <ng-container *ngIf="canInvoice">
               <a routerLink="/submit/invoice"
-                 [queryParams]="{url: ref.url}">invoice</a>
+                 [queryParams]="{url: ref.url}" i18n>invoice</a>
             </ng-container>
             <ng-container *ngIf="invoice">
-              <span *ngIf="disputed">disputed!&nbsp;</span>
+              <span *ngIf="disputed" i18n>disputed!&nbsp;</span>
               <a *ngIf="disputed && isAuthor"
                  class="fake-link"
-                 (click)="accept()">accept</a>
+                 (click)="accept()" i18n>accept</a>
               <a *ngIf="!disputed && isAuthor"
                  class="fake-link"
-                 (click)="dispute()">dispute</a>
-              <span *ngIf="paid">paid!&nbsp;</span>
+                 (click)="dispute()" i18n>dispute</a>
+              <span *ngIf="paid" i18n>paid!&nbsp;</span>
               <a *ngIf="!paid && isRecipient"
                  class="fake-link"
-                 (click)="markPaid()">paid</a>
-              <span *ngIf="rejected">rejected!&nbsp;</span>
+                 (click)="markPaid()" i18n>paid</a>
+              <span *ngIf="rejected" i18n>rejected!&nbsp;</span>
               <a *ngIf="!rejected && isRecipient"
                  class="fake-link"
-                 (click)="reject()">reject</a>
+                 (click)="reject()" i18n>reject</a>
             </ng-container>
-            <a *ngIf="pdf" target="_blank" [href]="pdf">pdf</a>
-            <a *ngIf="clickableLink && archive" target="_blank" [href]="archive">archive</a>
-            <a *ngIf="store.account.mod && scrapeable" class="fake-link" (click)="scrape()">scrape</a>
-            <a *ngIf="store.account.poster" routerLink="/submit" [queryParams]="{source: ref.url}">reply</a>
+            <a *ngIf="pdf" target="_blank" [href]="pdf" i18n>pdf</a>
+            <a *ngIf="clickableLink && archive" target="_blank" [href]="archive" i18n>archive</a>
+            <a *ngIf="store.account.mod && scrapeable" class="fake-link" (click)="scrape()" i18n>scrape</a>
+            <a *ngIf="store.account.poster" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
             <a *ngIf="local && store.account.mod && !approved && !locked"
                class="fake-link"
-               (click)="approve()">approve</a>
-            <span class="approved icon" *ngIf="store.account.mod && approved" title="Moderated">✔️</span>
+               (click)="approve()" i18n>approve</a>
+            <span class="approved icon" *ngIf="store.account.mod && approved" i18n-title title="Moderated" i18n>✔️</span>
           </ng-container>
         </div>
       </div>
@@ -176,8 +178,8 @@
 
   <span><!-- Buttons --></span>
   <span class="form-array right">
-    <button type="submit" [disabled]="submitted && !editForm.valid">save</button>
-    <button (click)="editing = false">cancel</button>
+    <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
+    <button (click)="editing = false" i18n>cancel</button>
   </span>
 </form>
 
@@ -190,7 +192,7 @@
     <div class="error">{{ e }}</div>
   </ng-container>
   <div *ngIf="publishChanged"
-       class="warning">
+       class="warning" i18n>
     * Published date was changed to be after source published date.
   </div>
 </ng-template>

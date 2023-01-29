@@ -1,6 +1,6 @@
 <ng-container [formGroup]="group">
 
-  <label for="tag">Tag:</label>
+  <label for="tag" i18n>Tag:</label>
   <input id="tag"
          type="email"
          autocorrect="off"
@@ -8,39 +8,39 @@
          formControlName="tag">
   <span><!-- Tag Errors --></span>
   <div>
-    <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']">
+    <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']" i18n>
       User tags must start with the "+user/" or "_user/" prefix.
       Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
       tags start with an underscore.<br>
       (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")
     </div>
-    <div class="error" *ngIf="tag.touched && tag.errors?.['required']">
+    <div class="error" *ngIf="tag.touched && tag.errors?.['required']" i18n>
       Tag must not be blank.
     </div>
   </div>
 
-  <label for="name">Name:</label>
+  <label for="name" i18n>Name:</label>
   <input id="name" type="text" formControlName="name">
 
-  <label for="readAccess">Read Access:</label>
+  <label for="readAccess" i18n>Read Access:</label>
   <app-tags #readAccess
             id="readAccess"
             fieldName="readAccess"
             [group]="group"></app-tags>
 
-  <label for="writeAccess">Write Access:</label>
+  <label for="writeAccess" i18n>Write Access:</label>
   <app-tags #writeAccess
             id="writeAccess"
             fieldName="writeAccess"
             [group]="group"></app-tags>
 
-  <label for="tagReadAccess">Tag Read Access:</label>
+  <label for="tagReadAccess" i18n>Tag Read Access:</label>
   <app-tags #tagReadAccess
             id="tagReadAccess"
             fieldName="tagReadAccess"
             [group]="group"></app-tags>
 
-  <label for="tagWriteAccess">Tag Write Access:</label>
+  <label for="tagWriteAccess" i18n>Tag Write Access:</label>
   <app-tags #tagWriteAccess
             id="tagWriteAccess"
             fieldName="tagWriteAccess"

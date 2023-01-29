@@ -1,16 +1,16 @@
 <ng-container *mobxAutorun>
   <div class="tabs">
-    <h5>Home</h5>
+    <h5 i18n>Home</h5>
     <ng-container *ngIf="!query.page?.empty">
       <a routerLink="./"
          [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
-         queryParamsHandling="merge">list</a>
+         queryParamsHandling="merge" i18n>list</a>
       <ng-container *ngIf="admin.status.plugins.graph">
         <a routerLink="./"
            [class.current-tab]="store.view.graph"
            [queryParams]="{view: 'graph'}"
-           queryParamsHandling="merge" >graph</a>
+           queryParamsHandling="merge" i18n>graph</a>
       </ng-container>
     </ng-container>
     <app-settings></app-settings>

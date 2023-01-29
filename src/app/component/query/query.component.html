@@ -3,6 +3,7 @@
          #editor
          autocorrect="off"
          autocapitalize="none"
+         i18n-placeholder
          placeholder="Tag Query"
          [ngModel]="query"
          (keydown)="$event.key === 'Enter' && search(editor.value) || true">

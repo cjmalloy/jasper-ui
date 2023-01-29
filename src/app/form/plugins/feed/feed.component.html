@@ -7,7 +7,8 @@
     <div><!-- Origin Errors --></div>
     <div>
       <div class="error" *ngIf="origin.touched && origin.errors?.['pattern']">
-        Origins must be lower case letters and start with @.
+        Origins must be lower case letters, numbers, periods, and start with @. Must not start with a period
+        or contain two periods in a row.
       </div>
     </div>
 

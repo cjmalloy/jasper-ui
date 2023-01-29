@@ -5,23 +5,23 @@
 </div>
 <div class="stack">
   <div class="info">
-    <span [title]="ext.modified?.toISOString()">modified {{ ext.modified?.fromNow() }}</span>
-    <ng-container *ngIf="!local">
+    <span [title]="ext.modified?.toISOString()" i18n>modified {{ ext.modified?.fromNow() }}</span>
+    <ng-container *ngIf="!local" i18n>
       on <a [routerLink]="['/tag', ext.origin]">{{ ext.origin }}</a>
     </ng-container>
   </div>
   <div class="actions">
     <a *ngIf="writeAccess else source"
        class="fake-link"
-       (click)="editing = !editing">edit</a>
+       (click)="editing = !editing" i18n>edit</a>
     <ng-template #source>
       <a class="fake-link"
-         (click)="viewSource = !viewSource">source</a>
+         (click)="viewSource = !viewSource" i18n>source</a>
     </ng-template>
     <a *ngIf="!deleting && writeAccess"
        class="fake-link"
-       (click)="deleting = true">delete</a>
-    <span *ngIf="deleting" class="delete-confirm">are you sure?
+       (click)="deleting = true" i18n>delete</a>
+    <span *ngIf="deleting" class="delete-confirm" i18n>are you sure?
       <a class="fake-link" (click)="delete()">yes</a> /
       <a class="fake-link" (click)="deleting = false">no</a>
     </span>
@@ -39,8 +39,8 @@
 
   <span><!-- Buttons --></span>
   <span class="form-array right">
-    <button type="submit" [disabled]="submitted && !editForm.valid">save</button>
-    <button (click)="editing = false">cancel</button>
+    <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
+    <button (click)="editing = false" i18n>cancel</button>
   </span>
 </form>
 

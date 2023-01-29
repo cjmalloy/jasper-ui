@@ -1,16 +1,16 @@
 <ng-container *ngIf="plugins">
   <ng-container *ngIf="youtube">
-    <label>YouTube embed</label>
+    <label i18n>YouTube embed</label>
   </ng-container>
   <ng-container *ngIf="twitter">
-    <label>Twitter embed (sandbox iframe)</label>
+    <label i18n>Twitter embed (sandbox iframe)</label>
   </ng-container>
   <ng-container *ngIf="!youtube && !twitter">
-    <label>Embed</label>
+    <label i18n>Embed</label>
   </ng-container>
   <div class="form" [formGroup]="plugin">
     <ng-container *ngIf="!twitter">
-      <label for="{{fieldName}}-url">URL:</label>
+      <label for="{{fieldName}}-url" i18n>URL:</label>
       <input id="{{fieldName}}-url"
              type="text"
              autocorrect="off"
@@ -19,11 +19,11 @@
     </ng-container>
     <span><!-- URL Errors --></span>
     <div>
-      <div class="error" *ngIf="url.touched && url.errors?.['pattern']">
+      <div class="error" *ngIf="url.touched && url.errors?.['pattern']" i18n>
         Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986.</a>
       </div>
     </div>
-    <label for="{{fieldName}}-width">Width:</label>
+    <label for="{{fieldName}}-width" i18n>Width:</label>
     <input id="{{fieldName}}-width"
            type="number"
            autocorrect="off"
@@ -31,11 +31,11 @@
            formControlName="width">
     <span><!-- Width Errors --></span>
     <div>
-      <div class="error" *ngIf="url.touched && url.errors?.['min']">
+      <div class="error" *ngIf="url.touched && url.errors?.['min']" i18n>
         Width must be at least 200px.
       </div>
     </div>
-    <label for="{{fieldName}}-height">Height:</label>
+    <label for="{{fieldName}}-height" i18n>Height:</label>
     <input id="{{fieldName}}-height"
            type="number"
            autocorrect="off"
@@ -43,7 +43,7 @@
            formControlName="height">
     <span><!-- Height Errors --></span>
     <div>
-      <div class="error" *ngIf="url.touched && url.errors?.['height']">
+      <div class="error" *ngIf="url.touched && url.errors?.['height']" i18n>
         Height must be at least 200px.
       </div>
     </div>

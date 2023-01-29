@@ -1,22 +1,22 @@
 <ng-container *mobxAutorun>
   <div class="tabs">
-    <a routerLink="./" [queryParams]="{origin: store.view.origin}" [class.current-tab]="!store.view.current">summary</a>
+    <a routerLink="./" [queryParams]="{origin: store.view.origin}" [class.current-tab]="!store.view.current" i18n>summary</a>
     <ng-container *ngIf="store.view.ref?.created">
       <ng-container *ngIf="admin.status.plugins.comment && store.view.ref!.metadata?.plugins?.['plugin/comment']">
-        <a routerLink="./comments" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">comments</a>
+        <a routerLink="./comments" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>comments</a>
       </ng-container>
       <ng-container *ngIf="store.view.ref!.metadata?.responses">
-        <a routerLink="./responses" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">responses</a>
+        <a routerLink="./responses" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>responses</a>
       </ng-container>
       <ng-container *ngIf="store.view.ref!.sources?.length">
-        <a routerLink="./sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">sources</a>
-        <a routerLink="./missing" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">missing sources</a>
+        <a routerLink="./sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>sources</a>
+        <a routerLink="./missing" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>missing sources</a>
       </ng-container>
       <ng-container *ngIf="store.view.ref!.alternateUrls?.length">
-        <a routerLink="./alts" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">alts</a>
+        <a routerLink="./alts" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>alts</a>
       </ng-container>
       <ng-container *ngIf="error && store.view.versions || store.view.versions > 1">
-        <a routerLink="./versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab">versions</a>
+        <a routerLink="./versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>versions</a>
       </ng-container>
     </ng-container>
     <app-settings></app-settings>
@@ -29,7 +29,7 @@
              [expandInline]="true"
              [expanded]="store.local.isRefToggled(store.view.url, !!store.view.ref.comment)"></app-ref>
     <div *ngIf="refWarning"
-         class="warning">
+         class="warning" i18n>
       * Published date was changed to be after source published date.
     </div>
   </ng-container>
@@ -39,15 +39,15 @@
   <ng-container *ngIf="error">
     <ng-container *ngIf="error!.status === 404">
       <div class="stack">
-        <div class="error-404">Not Found</div>
+        <div class="error-404" i18n>Not Found</div>
         <ng-container *ngIf="store.account.signedIn">
-          <div *ngIf="!store.view.isTextPost && !isWiki(store.view.url)" class="error-404 submit-button" routerLink="/submit" [queryParams]="{ url: store.view.url }">
+          <div *ngIf="!store.view.isTextPost && !isWiki(store.view.url)" class="error-404 submit-button" routerLink="/submit" [queryParams]="{ url: store.view.url }" i18n>
             🔗 Submit Link
           </div>
-          <div *ngIf="store.view.isTextPost" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }">
+          <div *ngIf="store.view.isTextPost" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }" i18n>
             📝 Submit Text Post
           </div>
-          <div *ngIf="isWiki(store.view.url)" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }">
+          <div *ngIf="isWiki(store.view.url)" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }" i18n>
             📔 &nbsp; Submit Wiki
           </div>
         </ng-container>

@@ -17,8 +17,4 @@ export class QrComponent {
         (error, url) => this.bgImage = `url('${url}')`);
   }
 
-  get qrWidth() {
-    return Math.min(256, window.innerWidth);
-  }
-
 }

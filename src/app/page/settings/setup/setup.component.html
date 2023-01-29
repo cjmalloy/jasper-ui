@@ -1,14 +1,14 @@
 <form class="form" [formGroup]="adminForm" (ngSubmit)="install()">
   <span><!-- Title --></span>
-  <h3>Install Plugins and Templates</h3>
+  <h3 i18n>Install Plugins and Templates</h3>
   <span><!-- Description --></span>
-  <p>
+  <p i18n>
     Quickly turn on and off templates bundled with this client.
     Visit the <a routerLink="../plugin">plugins</a> or
     <a routerLink="../template">templates</a> settings page to manage all
     plugins and templates.
   </p>
-  <span>Plugins:</span>
+  <span i18n>Plugins:</span>
   <div formGroupName="plugins">
     <div *ngFor="let plugin of admin.def.plugins | keyvalue">
       <input id="plugin-{{ plugin.key }}" type="checkbox" [formControlName]="$any(plugin.key)">
@@ -16,7 +16,7 @@
     </div>
   </div>
 
-  <span>Templates:</span>
+  <span i18n>Templates:</span>
   <div formGroupName="templates">
     <div *ngFor="let template of admin.def.templates | keyvalue">
       <input id="template-{{ template.key }}" type="checkbox" [formControlName]="$any(template.key)">
@@ -31,8 +31,9 @@
 
   <span><!-- Buttons --></span>
   <span class="form-array right">
-    <button type="button" (click)="selectAll()">{{ selectAllToggle ? 'Select None' : 'Select All' }}</button>
-    <button type="submit" [disabled]="submitted && !adminForm.valid">Save</button>
+    <button type="button" (click)="selectAll()" *ngIf="selectAllToggle" i18n>Select None</button>
+    <button type="button" (click)="selectAll()" *ngIf="!selectAllToggle" i18n>Select All</button>
+    <button type="submit" [disabled]="submitted && !adminForm.valid" i18n>Save</button>
   </span>
 
   <ng-container *ngFor="let i of installMessages">

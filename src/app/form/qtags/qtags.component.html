@@ -1,9 +1,9 @@
 <ng-container [formGroup]="group">
   <ng-container [formArrayName]="fieldName">
-    <button type="button" (click)="addTag()">+ Add another {{ label }}</button>
+    <button type="button" (click)="addTag()" i18n>+ Add another {{ label }}</button>
 
     <div class="form-array" *ngFor="let tag of tags.controls; let i=index">
-      <label for="qtags-{{ fieldName }}-{{ i }}">🏷️</label>
+      <label for="qtags-{{ fieldName }}-{{ i }}" i18n>🏷️</label>
       <div class="grow">
         <input id="qtags-{{ fieldName }}-{{ i }}"
                size="10"
@@ -11,16 +11,16 @@
                autocorrect="off"
                autocapitalize="none"
                [formControl]="$any(tag)">
-        <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['pattern']">
-          Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
-          two forward slashes in a row. Private tags start with an underscore.<br>
+        <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['pattern']" i18n>
+          Tags must be lower case letters, numbers, periods and forward slashes. Tags may be qualified with an origin. Must start with a letter or number. Must
+          not or contain two forward slashes or periods in a row. Private tags start with an underscore.<br>
           (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")
         </div>
-        <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['required']">
+        <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['required']" i18n>
           Tag must not be blank.
         </div>
       </div>
-      <button type="button" (click)="removeTag(i)">&ndash;</button>
+      <button type="button" (click)="removeTag(i)" i18n>&ndash;</button>
     </div>
   </ng-container>
 </ng-container>

@@ -9,61 +9,62 @@
         <input id="pinned"
                type="checkbox"
                [checked]="ref.pinned">
-        <label for="pinned">Pinned</label>
+        <label for="pinned" i18n>Pinned</label>
       </div>
       <ng-container *ngIf="countRefUnloaded(ref) as uc">
         <hr>
-        <div (click)="load(ref)">Load <span *ngIf="uc > 1">{{ max(uc) }}</span></div>
+        <div (click)="load(ref)" i18n>Load <span *ngIf="uc > 1">{{ max(uc) }}</span></div>
       </ng-container>
       <ng-container *ngIf="countUnloadedSource(ref) as sc">
         <hr>
-        <div (click)="loadSources(ref)">Load sources <span *ngIf="sc > 1">{{ max(sc) }}</span></div>
+        <div (click)="loadSources(ref)" i18n>Load sources <span *ngIf="sc > 1">{{ max(sc) }}</span></div>
       </ng-container>
       <ng-container *ngIf="countUnloadedResponse(ref) as rc">
         <hr>
-        <div (click)="loadResponses(ref)">Load responses <span *ngIf="rc > 1">{{ max(rc) }}</span></div>
+        <div (click)="loadResponses(ref)" i18n>Load responses <span *ngIf="rc > 1">{{ max(rc) }}</span></div>
       </ng-container>
       <hr>
-      <div (click)="remove(ref)">Remove</div>
+      <div (click)="remove(ref)" i18n>Remove</div>
       <hr>
-      <div (click)="restart(ref)">Restart from here</div>
+      <div (click)="restart(ref)" i18n>Restart from here</div>
       <hr>
     </ng-container>
-    <div (click)="selectAll()">Select all</div>
+    <div (click)="selectAll()" i18n>Select all</div>
     <hr>
     <div (click)="toggleUnloaded()">
       <input id="unloaded"
              type="checkbox"
              [checked]="store.graph.showUnloaded">
-      <label for="unloaded">Show unloaded references</label>
+      <label for="unloaded" i18n>Show unloaded references</label>
     </div>
     <hr>
     <div (click)="toggleTimeline()">
       <input id="timeline"
              type="checkbox"
              [checked]="store.graph.timeline">
-      <label for="timeline">Timeline force on X-axis</label>
+      <label for="timeline" i18n>Timeline force on X-axis</label>
     </div>
     <hr>
     <div (click)="toggleArrows()">
       <input id="arrows"
              type="checkbox"
              [checked]="store.graph.arrows">
-      <label for="timeline">Show arrow from source to response</label>
+      <label for="timeline" i18n>Show arrow from source to response</label>
     </div>
     <hr>
-    <div (click)="fullscreen()">Fullscreen</div>
+    <div (click)="fullscreen()" i18n>Fullscreen</div>
   </div>
 </ng-template>
 <ng-container *mobxAutorun>
   <a *ngIf="store.graph.unloaded.length"
      class="load-more fake-link"
-     (click)="drawMore()">load more</a>
+     (click)="drawMore()" i18n>load more</a>
   <div class="loading-container">
     <app-loading *ngIf="store.graph.loading.length"></app-loading>
   </div>
-  <label class="graph-selected">Selected:</label>
+  <label class="graph-selected" i18n>Selected:</label>
   <app-ref-list [page]="store.graph.selectedPage"
+                i18n-emptyMessage
                 emptyMessage="Empty selection"
                 [pageControls]="false"></app-ref-list>
 </ng-container>

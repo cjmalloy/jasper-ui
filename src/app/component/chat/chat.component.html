@@ -16,8 +16,9 @@
   <button type="button"
           class="refresh"
           [title]="'last polled ' + lastPoll.fromNow()"
-          (click)="loadMore()">🔄</button>
+          (click)="loadMore()" i18n>🔄</button>
   <input type="text"
+         i18n-placeholder
          placeholder="chat..."
          size="10"
          [(ngModel)]="addText"
@@ -25,20 +26,21 @@
          appAutofocus>
   <button type="button"
           class="add"
+          i18n-title
           title="Send"
-          (click)="add()">⏎</button>
+          (click)="add()" i18n>⏎</button>
 </div>
 <span class="hints">
   <ng-container *ngIf="admin.status.plugins.emoji">
     <input id="emoji" type="checkbox" [(ngModel)]="emoji">
-    <label for="emoji">
+    <label for="emoji" i18n>
       Emoji plugin
       <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
     </label>
   </ng-container>
   <ng-container *ngIf="admin.status.plugins.latex">
     <input id="latex" type="checkbox" [(ngModel)]="latex">
-    <label for="latex">
+    <label for="latex" i18n>
       LaTeX plugin
       <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
     </label>
@@ -46,7 +48,7 @@
 </span>
 <div class="list-container">
   <ng-container *ngFor="let ref of errored">
-    <button type="button" class="retry" (click)="retry(ref)">retry</button>
+    <button type="button" class="retry" (click)="retry(ref)" i18n>retry</button>
     <app-chat-entry [ref]="ref" [loading]="false"></app-chat-entry>
   </ng-container>
   <app-chat-entry *ngFor="let ref of sending" [ref]="ref"></app-chat-entry>

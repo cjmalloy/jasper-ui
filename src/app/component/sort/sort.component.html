@@ -1,10 +1,10 @@
-<button type="button" (click)="addSort()">+ Add sort</button>
+<button type="button" (click)="addSort()" i18n>+ Add sort</button>
 <span class="form-array" *ngFor="let f of sorts; let i=index">
-  <label for="filter-{{ i }}">Sort:</label>
+  <label for="filter-{{ i }}" i18n>Sort:</label>
   <select id="filter-{{ i }}" [ngModel]="sortCol(sorts[i])" (ngModelChange)="setSortCol(i, $event)">
     <option *ngFor="let opt of allSorts" [value]="opt.value">{{ opt.label || opt.value }}</option>
   </select>
   <button *ngIf="sortDir(sorts[i]) === 'DESC'" type="button" (click)="setSortDir(i, 'ASC')">🔽</button>
   <button *ngIf="sortDir(sorts[i]) === 'ASC'" type="button" (click)="setSortDir(i, 'DESC')">🔼</button>
-  <button *ngIf="sorts.length > 1" type="button" (click)="removeSort(i)">&ndash;</button>
+  <button *ngIf="sorts.length > 1" type="button" (click)="removeSort(i)" i18n>&ndash;</button>
 </span>

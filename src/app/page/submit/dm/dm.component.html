@@ -1,5 +1,5 @@
 <div class="tabs">
-  <h5>Direct Message</h5>
+  <h5 i18n>Direct Message</h5>
   <app-settings></app-settings>
 </div>
 
@@ -14,7 +14,7 @@
          (change)="to = $any($event.target).value"
          appAutofocus>
 
-  <label for="title">Title:</label>
+  <label for="title" i18n>Title:</label>
   <input id="title" type="text" [formControl]="title">
 
   <span><!-- Message --></span>
@@ -28,14 +28,14 @@
     <span class="hints">
       <ng-container *ngIf="admin.status.plugins.emoji">
         <input id="emoji" type="checkbox" [checked]="emoji" (change)="emoji = !emoji">
-        <label for="emoji">
+        <label for="emoji" i18n>
           Emoji plugin
           <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
         </label>
       </ng-container>
       <ng-container *ngIf="admin.status.plugins.latex">
         <input id="latex" type="checkbox" [checked]="latex" (change)="latex = !latex">
-        <label for="latex">
+        <label for="latex" i18n>
           LaTeX plugin
           <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
         </label>
@@ -50,6 +50,6 @@
 
   <span><!-- Buttons --></span>
   <span class="form-array right">
-    <button type="submit" [disabled]="submitted && !dmForm.valid">Send</button>
+    <button type="submit" [disabled]="submitted && !dmForm.valid" i18n>Send</button>
   </span>
 </form>

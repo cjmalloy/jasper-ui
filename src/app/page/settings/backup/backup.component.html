@@ -1,13 +1,15 @@
 
 <ng-container *ngIf="store.account.mod">
   <button (click)="backup()"
+          i18n-title
           title="Create Backup"
-          class="backup">+ backup</button>
+          class="backup" i18n>+ backup</button>
 
   <button *ngIf="!uploading"
           (click)="showUpload()"
+          i18n-title
           title="Upload Backup"
-          class="upload">+ upload</button>
+          class="upload" i18n>+ upload</button>
   <app-loading *ngIf="uploading"></app-loading>
 
   <input id="upload"
@@ -18,8 +20,9 @@
 
 <button *ngIf="!restoring"
         (click)="showRestore()"
-        title="Upload Backup"
-        class="upload">+ restore</button>
+        i18n-title
+        title="Restore Backup"
+        class="upload" i18n>+ restore</button>
 <app-loading *ngIf="restoring"></app-loading>
 
 <input id="restore"

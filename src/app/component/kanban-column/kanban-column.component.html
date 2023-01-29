@@ -9,6 +9,7 @@
 </ng-template>
 <div class="spacer"></div>
 <input type="text"
+       i18n-placeholder
        placeholder="Add..."
        [(ngModel)]="addText"
        [style.display]="addText ? 'block' : 'none'"
@@ -16,4 +17,4 @@
        (blur)="add()">
 <a *ngIf="hasMore"
    class="fake-link"
-   (click)="loadMore()">load more</a>
+   (click)="loadMore()" i18n>load more</a>

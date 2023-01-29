@@ -1,12 +1,12 @@
 <ng-container *mobxAutorun>
   <div class="tabs">
-    <h5>Submit</h5>
+    <h5 i18n>Submit</h5>
     <a *ngIf="!store.submit.noPlugins.length"
        routerLink="/submit"
        [class.current-tab]="store.submit.link"
        [queryParams]="{ tag: null, url: url.value }"
        [replaceUrl]="true"
-       queryParamsHandling="merge">link</a>
+       queryParamsHandling="merge" i18n>link</a>
     <a *ngIf="store.submit.noPlugins.length"
        routerLink="/submit"
        [class.current-tab]="store.submit.link"
@@ -15,17 +15,17 @@
        queryParamsHandling="merge">{{ store.submit.noPlugins.join(', ') }}</a>
     <a routerLink="/submit/text"
        [queryParams]="{ tag: store.submit.noPlugins, url: null }"
-       queryParamsHandling="merge">text</a>
+       queryParamsHandling="merge" i18n>text</a>
     <ng-container *ngIf="!admin.isWikiExternal()">
       <a routerLink="/submit"
          [class.current-tab]="store.submit.wiki"
          [queryParams]="{ tag: store.submit.noPlugins, url: wikify }"
          [replaceUrl]="true"
-         queryParamsHandling="merge">wiki</a>
+         queryParamsHandling="merge" i18n>wiki</a>
     </ng-container>
     <a routerLink="/submit/dm"
        [queryParams]="{ tag: store.submit.noPlugins, url: null }"
-       queryParamsHandling="merge">dm</a>
+       queryParamsHandling="merge" i18n>dm</a>
     <a routerLink="/submit"
        [class.current-tab]="store.submit.tags.includes(plugin.tag)"
        *ngFor="let plugin of store.submit.plugins"
@@ -37,7 +37,7 @@
   <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
 
     <ng-container *ngFor="let plugin of store.submit.activePlugins">
-      <span>Type:</span>
+      <span i18n>Type:</span>
       <div>
         <span>{{ plugin.name }}</span>
         <p *ngIf="plugin.config?.description" class="description">
@@ -47,10 +47,10 @@
     </ng-container>
 
     <ng-container *ngIf="store.submit.wiki">
-      <span>Type:</span>
+      <span i18n>Type:</span>
       <div>
-        <span>Wiki</span>
-        <p class="description">
+        <span i18n>Wiki</span>
+        <p class="description" i18n>
           Create a text post that can be linked to via double bracket [[Wiki]] style.
         </p>
       </div>

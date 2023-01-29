@@ -1,28 +1,28 @@
 <ng-container *mobxAutorun>
   <div class="tabs">
-    <h5 *ngIf="!store.submit.wiki">Submit Text Post</h5>
-    <h5 *ngIf="store.submit.wiki">Submit Wiki</h5>
+    <h5 *ngIf="!store.submit.wiki" i18n>Submit Text Post</h5>
+    <h5 *ngIf="store.submit.wiki" i18n>Submit Wiki</h5>
     <app-settings></app-settings>
   </div>
 
   <form class="form" [formGroup]="textForm" (ngSubmit)="submit()">
 
     <ng-container *ngIf="!advanced">
-      <label for="title" *ngIf="!store.submit.wiki">Title:</label>
-      <label for="title" *ngIf="store.submit.wiki">Wiki:</label>
+      <label for="title" *ngIf="!store.submit.wiki" i18n>Title:</label>
+      <label for="title" *ngIf="store.submit.wiki" i18n>Wiki:</label>
       <input id="title"
              type="text"
              [formControl]="title"
              [appAutofocus]="!store.submit.wiki">
       <span><!-- Title Errors --></span>
       <div>
-        <div class="error" *ngIf="title.touched && title.errors?.['required']">
+        <div class="error" *ngIf="title.touched && title.errors?.['required']" i18n>
           Title must not be blank.
         </div>
       </div>
 
-      <label for="comment" *ngIf="!store.submit.wiki">Comment:</label>
-      <label for="comment" *ngIf="store.submit.wiki">Entry:</label>
+      <label for="comment" *ngIf="!store.submit.wiki" i18n>Comment:</label>
+      <label for="comment" *ngIf="store.submit.wiki" i18n>Entry:</label>
       <div class="editor-preview">
         <textarea id="comment"
                   class="has-plugins"
@@ -40,14 +40,14 @@
       <span class="hints">
         <ng-container *ngIf="admin.status.plugins.emoji">
           <input id="emoji" type="checkbox" [checked]="emoji" (change)="emoji = !emoji">
-          <label for="emoji">
+          <label for="emoji" i18n>
             Emoji plugin
             <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
           </label>
         </ng-container>
         <ng-container *ngIf="admin.status.plugins.latex">
           <input id="latex" type="checkbox" [checked]="latex" (change)="latex = !latex">
-          <label for="latex">
+          <label for="latex" i18n>
             LaTeX plugin
             <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
           </label>
@@ -55,11 +55,11 @@
       </span>
       </div>
 
-      <label for="tags">Tags</label>
+      <label for="tags" i18n>Tags</label>
       <app-tags id="tags" [group]="textForm"></app-tags>
 
       <span><!-- Advanced --></span>
-      <a class="fake-link" (click)="setAdvanced()">show advanced</a>
+      <a class="fake-link" (click)="setAdvanced()" i18n>show advanced</a>
     </ng-container>
 
     <ng-container *ngIf="advanced">
@@ -73,7 +73,7 @@
 
     <span><!-- Buttons --></span>
     <span class="form-array right">
-      <button type="submit" [disabled]="submitted && !textForm.valid">Submit</button>
+      <button type="submit" [disabled]="submitted && !textForm.valid" i18n>Submit</button>
     </span>
   </form>
 </ng-container>

@@ -1,27 +1,27 @@
 <ng-container [formGroup]="group">
-  <label for="tag">Tag:</label>
+  <label for="tag" i18n>Tag:</label>
   <input id="tag" type="text" formControlName="tag" [attr.disabled]="true">
 
-  <label for="title">Name:</label>
+  <label for="title" i18n>Name:</label>
   <input id="title" type="text" [formControl]="name">
   <span><!-- Title Errors --></span>
   <div>
-    <div class="error" *ngIf="name.touched && name.errors?.['required']">
+    <div class="error" *ngIf="name.touched && name.errors?.['required']" i18n>
       Name must not be blank.
     </div>
   </div>
 
-  <label for="config">Config:</label>
+  <label for="config" i18n>Config:</label>
   <app-json id="config"
             fieldName="config"
             [group]="group"></app-json>
 
-  <label for="defaults">Defaults:</label>
+  <label for="defaults" i18n>Defaults:</label>
   <app-json id="defaults"
             fieldName="defaults"
             [group]="group"></app-json>
 
-  <label for="schema">Schema:</label>
+  <label for="schema" i18n>Schema:</label>
   <app-json id="schema"
             fieldName="schema"
             [group]="group"></app-json>

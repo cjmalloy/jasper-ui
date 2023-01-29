@@ -330,7 +330,7 @@ export class RefComponent implements OnInit {
     ).subscribe(ref => {
       this.serverError = [];
       this.tagging = false;
-      this._ref = ref;
+      this.ref = ref;
     });
   }
 

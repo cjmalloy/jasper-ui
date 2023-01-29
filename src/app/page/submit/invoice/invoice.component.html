@@ -1,34 +1,34 @@
 <div class="tabs">
-  <h5>Submit Invoice</h5>
+  <h5 i18n>Submit Invoice</h5>
   <app-settings></app-settings>
 </div>
 
 <form class="form" [formGroup]="invoiceForm" (ngSubmit)="submit()">
 
-  <label for="to">Queue:</label>
+  <label for="to" i18n>Queue:</label>
   <input id="to"
          type="email"
          autocorrect="off"
          autocapitalize="none"
          [value]="queue || ''" (change)="queue = $any($event.target).value">
 
-  <label for="qr">QR Code:</label>
+  <label for="qr" i18n>QR Code:</label>
   <input id="qr" type="text" [formControl]="url" (blur)="checkUrl()">
   <span><!-- QR Code Errors --></span>
   <div>
-    <div class="error" *ngIf="url.touched && url.errors?.['required']">
+    <div class="error" *ngIf="url.touched && url.errors?.['required']" i18n>
       QR Code must not be blank.
     </div>
-    <div class="error" *ngIf="url.touched && url.errors?.['pattern']">
+    <div class="error" *ngIf="url.touched && url.errors?.['pattern']" i18n>
       QR Code must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986.</a>
     </div>
   </div>
 
-  <label for="title">Title:</label>
+  <label for="title" i18n>Title:</label>
   <input id="title" type="text" [formControl]="title">
   <span><!-- Title Errors --></span>
   <div>
-    <div class="error" *ngIf="title.touched && title.errors?.['required']">
+    <div class="error" *ngIf="title.touched && title.errors?.['required']" i18n>
       Title must not be blank.
     </div>
   </div>
@@ -44,14 +44,14 @@
     <span class="hints">
       <ng-container *ngIf="admin.status.plugins.emoji">
         <input id="emoji" type="checkbox" [checked]="emoji" (change)="emoji = !emoji">
-        <label for="emoji">
+        <label for="emoji" i18n>
           Emoji plugin
           <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
         </label>
       </ng-container>
       <ng-container *ngIf="admin.status.plugins.latex">
         <input id="latex" type="checkbox" [checked]="latex" (change)="latex = !latex">
-        <label for="latex">
+        <label for="latex" i18n>
           LaTeX plugin
           <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
         </label>
@@ -66,6 +66,6 @@
 
   <span><!-- Buttons --></span>
   <span class="form-array right">
-    <button type="submit" [disabled]="submitted && !invoiceForm.valid">Send</button>
+    <button type="submit" [disabled]="submitted && !invoiceForm.valid" i18n>Send</button>
   </span>
 </form>

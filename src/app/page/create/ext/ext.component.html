@@ -1,11 +1,11 @@
 <div class="tabs">
-  <h5>Create Tag Extension</h5>
+  <h5 i18n>Create Tag Extension</h5>
   <app-settings></app-settings>
 </div>
 
 <form class="form" [formGroup]="extForm" (ngSubmit)="create()">
 
-  <label for="tag">Tag:</label>
+  <label for="tag" i18n>Tag:</label>
   <input id="tag"
          type="email"
          autocorrect="off"
@@ -13,12 +13,12 @@
          formControlName="tag">
   <span><!-- Tag Errors --></span>
   <div>
-    <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']">
+    <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']" i18n>
       Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
       tags start with an underscore.<br>
       (i.e. "science", "my/tag", or "_my/private/tag")
     </div>
-    <div class="error" *ngIf="tag.touched && tag.errors?.['required']">
+    <div class="error" *ngIf="tag.touched && tag.errors?.['required']" i18n>
       Tag must not be blank.
     </div>
   </div>
@@ -33,7 +33,7 @@
 
   <span><!-- Buttons --></span>
   <span class="form-array right">
-    <button type="submit" [disabled]="submitted && !extForm.valid">Create</button>
+    <button type="submit" [disabled]="submitted && !extForm.valid" i18n>Create</button>
   </span>
 
 </form>

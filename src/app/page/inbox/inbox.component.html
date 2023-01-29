@@ -1,13 +1,13 @@
 <div class="tabs">
-  <h5>Inbox</h5>
-  <a routerLink="./all" routerLinkActive="current-tab">all</a>
+  <h5 i18n>Inbox</h5>
+  <a routerLink="./all" routerLinkActive="current-tab" i18n>all</a>
   <ng-container *ngIf="admin.status.templates.user">
-    <a routerLink="./unread" routerLinkActive="current-tab">unread</a>
+    <a routerLink="./unread" routerLinkActive="current-tab" i18n>unread</a>
   </ng-container>
   <ng-container *ngIf="admin.status.plugins.invoice">
-    <a routerLink="./invoices" routerLinkActive="current-tab">invoices</a>
+    <a routerLink="./invoices" routerLinkActive="current-tab" i18n>invoices</a>
   </ng-container>
-  <a routerLink="./sent" routerLinkActive="current-tab">sent</a>
+  <a routerLink="./sent" routerLinkActive="current-tab" i18n>sent</a>
   <app-settings></app-settings>
 </div>
 <app-sidebar class="aside"></app-sidebar>

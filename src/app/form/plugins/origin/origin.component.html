@@ -1,16 +1,17 @@
 <ng-container *ngIf="plugins">
-  <label>Origin</label>
+  <label i18n>Origin</label>
   <div class="form" [formGroup]="plugin">
 
-    <label for="origin">Origin:</label>
+    <label for="origin" i18n>Origin:</label>
     <input id="origin" type="url" [formControl]="origin">
     <div><!-- Origin Errors --></div>
     <div>
-      <div class="error" *ngIf="origin.touched && origin.errors?.['required']">
+      <div class="error" *ngIf="origin.touched && origin.errors?.['required']" i18n>
         Origin is required
       </div>
-      <div class="error" *ngIf="origin.touched && origin.errors?.['pattern']">
-        Origins must be lower case letters and start with @.
+      <div class="error" *ngIf="origin.touched && origin.errors?.['pattern']" i18n>
+        Origins must be lower case letters, numbers, periods, and start with @. Must not start with a period
+        or contain two periods in a row.
       </div>
     </div>
 
@@ -18,68 +19,69 @@
     <input id="remote" type="url" [formControl]="remote">
     <div><!-- Remote Origin Errors --></div>
     <div>
-      <div class="error" *ngIf="remote.touched && remote.errors?.['pattern']">
-        Origins must be lower case letters and start with @, or '@*' to match all origins.
+      <div class="error" *ngIf="remote.touched && remote.errors?.['pattern']" i18n>
+        Origins must be lower case letters, numbers, periods, and start with @. Must not start with a period
+        or contain two periods in a row. Use'@*' to match all origins.
       </div>
     </div>
 
-    <label for="generateMetadata">Generate Metadata:</label>
+    <label for="generateMetadata" i18n>Generate Metadata:</label>
     <div>
       <input id="generateMetadata" type="checkbox" formControlName="generateMetadata">
     </div>
 
-    <label for="proxy">Proxy:</label>
+    <label for="proxy" i18n>Proxy:</label>
     <input id="proxy" type="url" [formControl]="proxy">
     <span><!-- Proxy Errors --></span>
     <div>
-      <div class="error" *ngIf="proxy.touched && proxy.errors?.['pattern']">
+      <div class="error" *ngIf="proxy.touched && proxy.errors?.['pattern']" i18n>
         Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986.</a>
       </div>
     </div>
 
-    <label for="query">Query:</label>
+    <label for="query" i18n>Query:</label>
     <input id="query" type="email" [formControl]="query">
     <span><!-- Query Errors --></span>
     <div>
-      <div class="error" *ngIf="query.touched && query.errors?.['pattern']">
+      <div class="error" *ngIf="query.touched && query.errors?.['pattern']" i18n>
         Queries support AND (:), OR (|) and grouping qualified tags (parentheses).
-        Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
-        two forward slashes in a row. Private tags start with an underscore.<br>
+        Tags must be lower case letters, numbers, periods and forward slashes. Tags may be qualified with an origin. Must start with a letter or number. Must
+        not or contain two forward slashes or periods in a row. Private tags start with an underscore.<br>
         (i.e. "science:news", "science@origin science@other" "your/tag my/tag", or "news:_my/private/tag")
       </div>
     </div>
 
-    <label for="scrapeInterval">Scrape Interval:</label>
+    <label for="scrapeInterval" i18n>Scrape Interval:</label>
     <input id="scrapeInterval"
            type="text"
            [formControl]="scrapeInterval"
            (blur)="convertInterval()">
     <span><!-- Scrape Interval Errors --></span>
     <div>
-      <div class="error" *ngIf="scrapeInterval.touched && scrapeInterval.errors?.['interval']">
+      <div class="error" *ngIf="scrapeInterval.touched && scrapeInterval.errors?.['interval']" i18n>
         Scrape Duration must be valid time span (HH:MM:SS) or ISO 8601 Duration.
       </div>
     </div>
 
     <span><!-- Help --></span>
     <div class="no-margin">
-    <span class="hints">
+    <span class="hints" i18n>
           Use time spans (HH:MM:SS) or ISO 8601 Durations&nbsp;
           <sup><a target="_blank" href="https://en.wikipedia.org/wiki/ISO_8601#Durations">help</a></sup>
     </span>
     </div>
 
-    <label for="removeTags">Remove Tags:</label>
+    <label for="removeTags" i18n>Remove Tags:</label>
     <app-tags id="removeTags"
               [group]="plugin"
               fieldName="removeTags"></app-tags>
 
-    <label for="addTags">Add Tags:</label>
+    <label for="addTags" i18n>Add Tags:</label>
     <app-tags id="addTags"
               [group]="plugin"
               fieldName="addTags"></app-tags>
 
-<!--    <label for="mapTags">Map Tags:</label>-->
+<!--    <label for="mapTags" i18n>Map Tags:</label>-->
 <!--    <app-tags id="mapTags"-->
 <!--              [group]="plugin"-->
 <!--              fieldName="mapTags"></app-tags>-->

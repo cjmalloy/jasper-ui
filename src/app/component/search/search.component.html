@@ -1,7 +1,8 @@
 <ng-container *mobxAutorun>
   <input type="search"
          class="dont-hide"
-         [placeholder]="'Search ' + viewName(store.view.current)"
+         i18n-placeholder
+         placeholder="Search {{ viewName(store.view.current) }}"
          [ngModel]="searchValue"
          (input)="searchValue = $any($event.target).value"
          (keydown)="$event.key === 'Enter' && search() || true">

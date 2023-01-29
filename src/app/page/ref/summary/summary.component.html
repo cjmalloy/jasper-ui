@@ -5,20 +5,20 @@
                        [tags]="mailboxes"
                        [newComments$]="newComments$"></app-comment-reply>
     <div class="summary-box" *ngIf="comments">
-      <h5>Comments:</h5>
+      <h5 i18n>Comments:</h5>
       <app-comment-list [top]="store.view.ref"
                         [source]="store.view.ref.url"
                         [newComments$]="newComments$"
                         [depth]="1"
                         [pageSize]="summaryItems"
                         [showLoadMore]="false"></app-comment-list>
-      <a *ngIf="comments > summaryItems" routerLink="./comments" class="load-more">more comments</a>
+      <a *ngIf="comments > summaryItems" routerLink="./comments" class="load-more" i18n>more comments</a>
     </div>
     <div class="summary-box" *ngIf="responses">
-      <h5>Responses:</h5>
+      <h5 i18n>Responses:</h5>
       <app-ref-list [page]="query.page"
                     [pageControls]="false"></app-ref-list>
-      <a *ngIf="responses > summaryItems" routerLink="./responses" class="load-more">more responses</a>
+      <a *ngIf="responses > summaryItems" routerLink="./responses" class="load-more" i18n>more responses</a>
     </div>
   </ng-container>
   <ng-template #loading>

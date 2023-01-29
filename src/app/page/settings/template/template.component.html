@@ -1,7 +1,8 @@
 <ng-container *ngIf="store.account.admin">
   <button (click)="showUpload()"
+          i18n-title
           title="Upload Template"
-          class="upload">+ upload dev template</button>
+          class="upload" i18n>+ upload dev template</button>
 
   <input id="upload"
          type="file"

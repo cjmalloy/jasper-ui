@@ -1,9 +1,9 @@
 <ng-container [formGroup]="group">
   <ng-container [formArrayName]="fieldName">
-    <button type="button" (click)="addUser()">+ Add another {{ label }}</button>
+    <button type="button" (click)="addUser()" i18n>+ Add another {{ label }}</button>
 
     <div class="form-array" *ngFor="let c of users.controls; let i=index">
-      <label for="users-{{ fieldName }}-{{ i }}">🏷️</label>
+      <label for="users-{{ fieldName }}-{{ i }}" i18n>🏷️</label>
       <div class="grow">
         <input id="users-{{ fieldName }}-{{ i }}"
                size="10"
@@ -11,17 +11,17 @@
                autocorrect="off"
                autocapitalize="none"
                [formControl]="$any(c)">
-        <div class="error" *ngIf="users.at(i).touched && users.at(i).errors?.['pattern']">
+        <div class="error" *ngIf="users.at(i).touched && users.at(i).errors?.['pattern']" i18n>
           User tags must start with the "user/" or "_user/" prefix.
-          Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+          Tags must be lower case letters, numbers, and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
           tags start with an underscore.<br>
           (i.e. "science", "my/tag", or "_my/private/tag")
         </div>
-        <div class="error" *ngIf="users.at(i).touched && users.at(i).errors?.['required']">
+        <div class="error" *ngIf="users.at(i).touched && users.at(i).errors?.['required']" i18n>
           Tag must not be blank.
         </div>
       </div>
-      <button type="button" (click)="removeUser(i)">&ndash;</button>
+      <button type="button" (click)="removeUser(i)" i18n>&ndash;</button>
     </div>
   </ng-container>
 </ng-container>

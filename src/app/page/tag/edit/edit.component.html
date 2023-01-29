@@ -1,5 +1,5 @@
 <div class="tabs">
-  <h5>Edit Tag Extension</h5>
+  <h5 i18n>Edit Tag Extension</h5>
   <app-settings></app-settings>
 </div>
 
@@ -14,8 +14,8 @@
 
   <span><!-- Buttons --></span>
   <span class="form-array right">
-    <button type="submit" [disabled]="submitted && !editForm.valid">Save</button>
-    <button type="button" (click)="delete()">Delete</button>
+    <button type="submit" [disabled]="submitted && !editForm.valid" i18n>Save</button>
+    <button type="button" (click)="delete()" i18n>Delete</button>
   </span>
 
 </form>

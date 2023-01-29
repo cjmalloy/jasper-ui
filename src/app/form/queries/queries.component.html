@@ -1,9 +1,9 @@
 <ng-container [formGroup]="group">
   <ng-container [formArrayName]="fieldName">
-    <button type="button" (click)="addQuery()">+ Add another {{ label }}</button>
+    <button type="button" (click)="addQuery()" i18n>+ Add another {{ label }}</button>
 
     <div class="form-array" *ngFor="let c of queries.controls; let i=index">
-      <label for="tags-{{ i }}">🔖️</label>
+      <label for="tags-{{ i }}" i18n>🔖️</label>
       <div class="grow">
         <input id="tags-{{ i }}"
                size="10"
@@ -11,17 +11,17 @@
                autocorrect="off"
                autocapitalize="none"
                [formControl]="$any(c)">
-        <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['pattern']">
+        <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['pattern']" i18n>
           Queries support AND (:), OR (|) and grouping qualified tags (parentheses).
-          Tags must be lower case letters and forward slashes. Tags may be qualified with an origin. Must not start with a slash or contain
-          two forward slashes in a row. Private tags start with an underscore.<br>
+          Tags must be lower case letters, numbers, periods and forward slashes. Tags may be qualified with an origin. Must start with a letter or number. Must
+          not or contain two forward slashes or periods in a row. Private tags start with an underscore.<br>
           (i.e. "science:news", "science@origin science@other" "your/tag my/tag", or "news:_my/private/tag")
         </div>
-        <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['required']">
+        <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['required']" i18n>
           Query must not be blank.
         </div>
       </div>
-      <button type="button" (click)="removeQuery(i)">&ndash;</button>
+      <button type="button" (click)="removeQuery(i)" i18n>&ndash;</button>
     </div>
   </ng-container>
 </ng-container>

@@ -1,34 +1,34 @@
 <div class="link" [class.remote]="!local">
   <a *ngIf="template.tag" [routerLink]="['/tag', qualifiedTag]">{{ template.name || template.tag }}</a>
   <a *ngIf="!template.tag" routerLink="/all">{{ template.name || 'root' }}</a>
-  <span *ngIf="!qualifiedTag" class="host">(root: "")</span>
-  <span *ngIf="!template.tag && template.origin" class="host">(root: {{ template.origin }})</span>
+  <span *ngIf="!qualifiedTag" class="host" i18n>(root: "")</span>
+  <span *ngIf="!template.tag && template.origin" class="host" i18n>(root: {{ template.origin }})</span>
   <span *ngIf="template.name && template.tag" class="host">({{ qualifiedTag }})</span>
   <span *ngIf="!template.tag && !template.name && template.origin" class="host">({{ template.origin }})</span>
 </div>
 <div class="stack">
   <div class="info">
-    <span [title]="template.modified?.toISOString()">modified {{ template.modified?.fromNow() }}</span>
-    <ng-container *ngIf="!local">
+    <span [title]="template.modified?.toISOString()" i18n>modified {{ template.modified?.fromNow() }}</span>
+    <ng-container *ngIf="!local" i18n>
       on <a [routerLink]="['/tag', template.origin]">{{ template.origin }}</a>
     </ng-container>
   </div>
   <div class="actions">
     <a *ngIf="local && store.account.admin else source"
        class="fake-link"
-       (click)="editing = !editing">edit</a>
+       (click)="editing = !editing" i18n>edit</a>
     <ng-template #source>
       <a class="fake-link"
-         (click)="viewSource = !viewSource">source</a>
+         (click)="viewSource = !viewSource" i18n>source</a>
     </ng-template>
     <a *ngIf="local && !deleting && store.account.admin"
        class="fake-link"
-       (click)="deleting = true">delete</a>
-    <span *ngIf="deleting" class="delete-confirm">are you sure?
+       (click)="deleting = true" i18n>delete</a>
+    <span *ngIf="deleting" class="delete-confirm" i18n>are you sure?
       <a class="fake-link" (click)="delete()">yes</a> /
       <a class="fake-link" (click)="deleting = false">no</a>
     </span>
-    <a class="fake-link" (click)="download()">download</a>
+    <a class="fake-link" (click)="download()" i18n>download</a>
   </div>
 </div>
 
@@ -43,8 +43,8 @@
 
   <span><!-- Buttons --></span>
   <span class="form-array right">
-    <button type="submit" [disabled]="submitted && !editForm.valid">save</button>
-    <button (click)="editing = false">cancel</button>
+    <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
+    <button (click)="editing = false" i18n>cancel</button>
   </span>
 </form>
 

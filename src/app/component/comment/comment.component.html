@@ -1,17 +1,17 @@
 <div class="comment-container info collapsed" tabindex="0" *ngIf="collapsed">
-  <span class="comment-expand fake-link" (click)="store.local.setRefToggled(ref.url, collapsed = false)">[+]</span>&nbsp;
+  <span class="comment-expand fake-link" (click)="store.local.setRefToggled(ref.url, collapsed = false)" i18n>[+]</span>&nbsp;
   <ng-container *ngFor="let user of authors">
     <a class="author" [routerLink]="['/tag', user]">
       {{ formatAuthor(user) }}
     </a>
   </ng-container>
-  <span class="lock icon" *ngIf="locked" title="Locked">🔒️</span>
+  <span class="lock icon" *ngIf="locked" i18n-title title="Locked" i18n>🔒️</span>
   <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
   <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="ref.modified?.fromNow()">*</span>
   {{ comments }}
 </div>
 
-<div class="comment-container info collapsed" tabindex="0" *ngIf="ref.plugins?.['plugin/comment']?.deleted">
+<div class="comment-container info collapsed" tabindex="0" *ngIf="ref.plugins?.['plugin/comment']?.deleted" i18n>
   deleted comment
 </div>
 
@@ -25,7 +25,7 @@
     </ng-container>
     <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
     <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="'last edited ' + ref.modified?.fromNow()">*</span>
-    <ng-container *ngIf="tagged.length">
+    <ng-container *ngIf="tagged.length" i18n>
       tagged
       <ng-container *ngFor="let tag of tagged">
         <a class="tag" [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
@@ -41,23 +41,23 @@
                     [ref]="ref"
                     [commentEdited$]="commentEdited$"></app-comment-edit>
   <div class="actions">
-    <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">permalink</a>
-    <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }">{{ responses.replace(' ', '&thinsp;') }}</a>
-    <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }">parent</a>
-    <a *ngIf="sources !== 'parent'" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }">{{ sources.replace(' ', '&thinsp;')}}</a>
+    <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>permalink</a>
+    <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{{ responses.replace(' ', '&thinsp;') }}</a>
+    <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }" i18n>parent</a>
+    <a *ngIf="sources !== 'parent'" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }" i18n>{{ sources.replace(' ', '&thinsp;')}}</a>
     <a class="fake-link"
        *ngIf="writeAccess"
-       (click)="editing = !editing">edit</a>
+       (click)="editing = !editing" i18n>edit</a>
     <a class="fake-link"
        *ngIf="!deleting && writeAccess"
-       (click)="deleting = true">delete</a>
-    <span *ngIf="deleting" class="delete-confirm"> are you sure?
+       (click)="deleting = true" i18n>delete</a>
+    <span *ngIf="deleting" class="delete-confirm" i18n> are you sure?
       <a class="fake-link" (click)="delete()">yes</a> /
       <a class="fake-link" (click)="deleting = false">no</a>
     </span>
     <a class="fake-link"
        *ngIf="!ref.origin && store.account.editor || writeAccess"
-       (click)="tagging = !tagging">tag</a>
+       (click)="tagging = !tagging" i18n>tag</a>
     <span *ngIf="tagging" class="inline-tagging">
       <input #inlineTag
              (keydown)="$event.key === 'Enter' && addInlineTag(inlineTag) || true"
@@ -68,18 +68,18 @@
              autocorrect="off"
              autocapitalize="none"
              appAutofocus>
-      <button (click)="addInlineTag(inlineTag)">+</button>
+      <button (click)="addInlineTag(inlineTag)" i18n>+</button>
     </span>
     <a class="fake-link"
-       (click)="replying = !replying">reply</a>
+       (click)="replying = !replying" i18n>reply</a>
     <ng-container *ngIf="canInvoice">
       <a [routerLink]="['/submit/invoice']"
-         [queryParams]="{ url: ref.url }">invoice</a>
+         [queryParams]="{ url: ref.url }" i18n>invoice</a>
     </ng-container>
     <a *ngIf="store.account.mod && !approved"
        class="fake-link"
-       (click)="approve()">approve</a>
-    <span class="approved icon" *ngIf="store.account.mod && approved">✔️</span>
+       (click)="approve()" i18n>approve</a>
+    <span class="approved icon" *ngIf="store.account.mod && approved" i18n-title title="Moderated" i18n>✔️</span>
   </div>
 </div>
 <app-comment-reply *ngIf="replying"
@@ -90,12 +90,12 @@
                    [newComments$]="newComments$"></app-comment-reply>
 <span class="fake-link load-more"
       *ngIf="!collapsed && context < maxContext && depth === 0 && ref.metadata!.plugins?.['plugin/comment']"
-      (click)="depth = depth + 1">
+      (click)="depth = depth + 1" i18n>
   load more comments
 </span>
 <a class="load-more"
    *ngIf="!collapsed && context >= maxContext && depth === 0 && ref.metadata!.plugins?.['plugin/comment']"
-   [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }">
+   [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>
   continue this thread
 </a>
 <div *ngIf="depth! > 0"

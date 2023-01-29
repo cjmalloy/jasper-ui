@@ -1,7 +1,7 @@
 <ng-container *mobxAutorun>
   <div class="subs">
-    <a routerLink="/home" routerLinkActive="current-page">home</a> &bullet;
-    <a routerLink="/tag/@*" routerLinkActive="current-page">all</a>
+    <a routerLink="/home" routerLinkActive="current-page" i18n>home</a> &bullet;
+    <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
     <ng-container *ngFor="let b of store.account.bookmarks">
       &bullet; <a [routerLink]="['/tag', b]" routerLinkActive="current-page">{{ b }}</a>
     </ng-container>

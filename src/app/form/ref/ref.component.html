@@ -1,45 +1,45 @@
 <ng-container [formGroup]="group">
-  <label for="url">URL:</label>
+  <label for="url" i18n>URL:</label>
   <input id="url" type="text" formControlName="url" [attr.disabled]="true">
 
-  <label for="title">Title:</label>
+  <label for="title" i18n>Title:</label>
   <div class="form-array">
     <input id="title" type="text" [formControl]="title">
-    <button type="button" (click)="scrapeTitle()">Scrape Title</button>
+    <button type="button" (click)="scrapeTitle()" i18n>Scrape Title</button>
   </div>
   <span><!-- Title Errors --></span>
   <div>
-    <div class="error" *ngIf="title.touched && title.errors?.['required']">
+    <div class="error" *ngIf="title.touched && title.errors?.['required']" i18n>
       Title must not be blank.
     </div>
   </div>
 
-  <label for="published">Published:</label>
+  <label for="published" i18n>Published:</label>
   <div class="form-array">
     <input id="published" type="datetime-local" step="1" [formControl]="published">
-    <button type="button" (click)="scrapePublished()">Scrape Published</button>
+    <button type="button" (click)="scrapePublished()" i18n>Scrape Published</button>
   </div>
   <span><!-- Published Errors --></span>
   <div>
-    <div class="error" *ngIf="published.touched && published.errors?.['required']">
+    <div class="error" *ngIf="published.touched && published.errors?.['required']" i18n>
       Published date is required.
     </div>
   </div>
 
-  <label for="comment">Abstract:</label>
+  <label for="comment" i18n>Abstract:</label>
   <div class="editor-preview">
     <textarea id="comment" [formControl]="comment" (blur)="syncEditor()"></textarea>
     <app-embed *ngIf="!comment.pristine" [ref]="group.value"></app-embed>
   </div>
 
-  <label for="sources">Sources:</label>
+  <label for="sources" i18n>Sources:</label>
   <app-links #sources
              id="sources"
              label="source"
              [group]="group"
              fieldName="sources"></app-links>
 
-  <label for="alts">Alternate URLs:</label>
+  <label for="alts" i18n>Alternate URLs:</label>
   <app-links #alts
              id="alts"
              label="alternate URL"
@@ -47,10 +47,10 @@
              fieldName="alternateUrls"
              [alt]="true"></app-links>
 
-  <label for="tags">Tags:</label>
+  <label for="tags" i18n>Tags:</label>
   <app-tags id="tags" [group]="group"></app-tags>
 
-  <label for="plugins" class="big">Plugins:</label>
+  <label for="plugins" class="big" i18n>Plugins:</label>
   <app-form-plugins id="plugins"
                     [ref]="group.value.url"
                     [tags]="group.value.tags"

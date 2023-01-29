@@ -5,29 +5,29 @@
       <a routerLink="./"
          [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
-         queryParamsHandling="merge">kanban</a>
+         queryParamsHandling="merge" i18n>kanban</a>
     </ng-container>
     <ng-container *ngIf="store.view.blog">
       <a routerLink="./"
          [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
-         queryParamsHandling="merge">blog</a>
+         queryParamsHandling="merge" i18n>blog</a>
     </ng-container>
     <ng-container *ngIf="store.view.chat">
       <a routerLink="./"
          [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
-         queryParamsHandling="merge">chat</a>
+         queryParamsHandling="merge" i18n>chat</a>
     </ng-container>
     <a routerLink="./"
        [class.current-tab]="isSpecial ? store.view.list : store.view.noView"
        [queryParams]="{view: isSpecial ? 'list' : null}"
-       queryParamsHandling="merge">list</a>
+       queryParamsHandling="merge" i18n>list</a>
     <ng-container *ngIf="admin.status.plugins.graph">
       <a routerLink="./"
          [class.current-tab]="store.view.graph"
          [queryParams]="{view: 'graph'}"
-         queryParamsHandling="merge" >graph</a>
+         queryParamsHandling="merge" i18n>graph</a>
     </ng-container>
     <app-settings></app-settings>
   </div>
@@ -36,7 +36,7 @@
                [tag]="store.view.tag!"
                [ext]="store.view.ext"
                [showSort]="!(store.view.chat && store.view.noView)"></app-sidebar>
-  <div *ngIf="query.error?.status === 403 else accessGranted" class="error-403">Access Denied</div>
+  <div *ngIf="query.error?.status === 403 else accessGranted" class="error-403" i18n>Access Denied</div>
   <ng-template #accessGranted>
     <!-- TODO: allow paging with graph -->
     <app-ref-list *ngIf="isList else special"

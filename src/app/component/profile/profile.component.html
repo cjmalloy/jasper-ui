@@ -8,40 +8,40 @@
   <div class="actions">
     <a *ngIf="writeAccess"
        class="fake-link"
-       (click)="changingPassword = !changingPassword">password</a>
+       (click)="changingPassword = !changingPassword" i18n>password</a>
     <span *ngIf="changingPassword" class="inline-password">
       <input #inlinePassword
              (keydown)="$event.key === 'Enter' && setInlinePassword() || true"
              type="password"
              appAutofocus>
-      <button (click)="setInlinePassword()">+</button>
+      <button (click)="setInlinePassword()" i18n>+</button>
     </span>
     <a *ngIf="store.account.mod"
        class="fake-link"
-       (click)="changingRole = !changingRole">role</a>
+       (click)="changingRole = !changingRole" i18n>role</a>
     <span *ngIf="changingRole" class="inline-role">
       <select #inlineRole
               [value]="profile.role"
               (change)="setInlineRole()">
-        <option value="ROLE_ADMIN">admin</option>
-        <option value="ROLE_MOD">mod</option>
-        <option value="ROLE_EDITOR">editor</option>
-        <option value="ROLE_USER">user</option>
-        <option value="ROLE_VIEWER">viewer</option>
+        <option value="ROLE_ADMIN" i18n>admin</option>
+        <option value="ROLE_MOD" i18n>mod</option>
+        <option value="ROLE_EDITOR" i18n>editor</option>
+        <option value="ROLE_USER" i18n>user</option>
+        <option value="ROLE_VIEWER" i18n>viewer</option>
       </select>&nbsp;
     </span>
     <a *ngIf="!deleting && writeAccess"
        class="fake-link"
-       (click)="deleting = true">delete</a>
-    <span *ngIf="deleting" class="delete-confirm">are you sure?
+       (click)="deleting = true" i18n>delete</a>
+    <span *ngIf="deleting" class="delete-confirm" i18n>are you sure?
       <a class="fake-link" (click)="delete()">yes</a> /
       <a class="fake-link" (click)="deleting = false">no</a>
     </span>
     <a *ngIf="!profile.active"
        class="fake-link"
-       (click)="activate()">activate</a>
+       (click)="activate()" i18n>activate</a>
     <a *ngIf="profile.active"
        class="fake-link"
-       (click)="deactivate()">deactivate</a>
+       (click)="deactivate()" i18n>deactivate</a>
   </div>
 </div>
