@@ -32,9 +32,6 @@ export class CommentComponent implements OnInit, OnDestroy {
   @Input()
   context = 0;
 
-  @ViewChild('inlineTag')
-  inlineTag?: ElementRef;
-
   _ref!: Ref;
   commentEdited$ = new Subject<Ref>();
   newComments$ = new Subject<Ref | null>();
@@ -51,7 +48,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     public store: Store,
     private auth: AuthzService,
     private refs: RefService,
-    private tags: TaggingService,
+    private ts: TaggingService,
   ) { }
 
   get ref(): Ref {
@@ -172,24 +169,30 @@ export class CommentComponent implements OnInit, OnDestroy {
     return formatAuthor(user);
   }
 
-  addInlineTag() {
-    if (!this.inlineTag) return;
-    const tag = (this.inlineTag.nativeElement.value as string).toLowerCase();
-    this.tags.create(tag, this._ref.url, this._ref.origin!).pipe(
+  addInlineTag(field: HTMLInputElement) {
+    if (field.validity.patternMismatch) {
+      this.serverError = [`
+        Tags must be lower case letters, numbers, periods, and forward slashes.
+        Must not start with a slash or contain two forward slashes or periods
+        in a row. Private tags start with an underscore.`];
+      return;
+    }
+    const tag = field.value.toLowerCase().trim();
+    this.ts.create(tag, this._ref.url, this._ref.origin!).pipe(
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-      switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
     ).subscribe(ref => {
       this.serverError = [];
       this.tagging = false;
-      this._ref = ref;
+      this.ref = ref;
     });
   }
 
   approve() {
-    this.tags.create('_moderated', this._ref.url, this._ref.origin!).pipe(
+    this.ts.create('_moderated', this._ref.url, this._ref.origin!).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

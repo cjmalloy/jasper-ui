@@ -224,8 +224,8 @@ export class BlogEntryComponent implements OnInit {
     if (field.validity.patternMismatch) {
       this.serverError = [`
         Tags must be lower case letters, numbers, periods, and forward slashes.
-        Must not start with a slash or contain two forward slashes in a row. Private
-      tags start with an underscore.`];
+        Must not start with a slash or contain two forward slashes or periods
+        in a row. Private tags start with an underscore.`];
       return;
     }
     const tag = field.value;
