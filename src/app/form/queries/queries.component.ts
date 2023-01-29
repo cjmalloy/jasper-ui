@@ -17,7 +17,7 @@ export class QueriesFormComponent implements OnInit {
   @Input()
   fieldName = 'tags';
   @Input()
-  label = 'query';
+  label = $localize`query`;
 
   constructor(
     private fb: UntypedFormBuilder,

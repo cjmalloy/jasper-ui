@@ -13,7 +13,7 @@ export class ThemesFormComponent implements OnInit {
   @Input()
   fieldName = 'themes';
   @Input()
-  label = 'theme';
+  label = $localize`theme`;
 
   _group!: UntypedFormGroup;
   keys: string[] = [];

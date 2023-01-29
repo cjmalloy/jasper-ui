@@ -314,7 +314,7 @@ export class RefComponent implements OnInit {
 
   addInlineTag(field: HTMLInputElement) {
     if (field.validity.patternMismatch) {
-      this.serverError = [`
+      this.serverError = [$localize`
         Tags must be lower case letters, numbers, periods and forward slashes.
         Must not start with a forward slash or period.
         Must not or contain two forward slashes or periods in a row.

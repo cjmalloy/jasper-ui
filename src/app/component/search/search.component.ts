@@ -40,20 +40,23 @@ export class SearchComponent implements OnInit, OnDestroy {
   viewName(view?: View) {
     switch (view) {
       case 'tag': return this.store.view.ext?.name || this.store.view.tag;
-      case 'query': return 'query results';
-      case 'home': return this.store.account.signedIn ? 'subscriptions' : 'home page';
-      case 'ref/comments': return 'comments';
-      case 'ref/responses': return 'responses';
-      case 'ref/sources': return 'sources';
-      case 'ref/versions': return 'versions';
-      case 'plugin/feed': return 'feeds';
-      case 'plugin/origin': return 'origins';
-      case 'plugin/inbox': return 'inbox'
-      case 'plugin/invoice': return 'invoices';
-      case 'ext': return 'tag extensions';
-      case 'user': return 'users';
-      case 'plugin': return 'plugins';
-      case 'template': return 'templates';
+      case 'query': return $localize`query results`;
+      case 'home': return this.store.account.signedIn ? $localize`subscriptions` : $localize`home page`;
+      case 'all': return $localize`all`;
+      case 'local': return $localize`local`;
+      case 'sent': return $localize`sent`;
+      case 'ref/comments': return $localize`comments`;
+      case 'ref/responses': return $localize`responses`;
+      case 'ref/sources': return $localize`sources`;
+      case 'ref/versions': return $localize`versions`;
+      case 'plugin/feed': return $localize`feeds`;
+      case 'plugin/origin': return $localize`origins`;
+      case 'plugin/inbox': return $localize`inbox`;
+      case 'plugin/invoice': return $localize`invoices`;
+      case 'ext': return $localize`tag extensions`;
+      case 'user': return $localize`users`;
+      case 'plugin': return $localize`plugins`;
+      case 'template': return $localize`templates`;
     }
     return view || '';
   }

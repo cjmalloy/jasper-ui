@@ -17,7 +17,7 @@ export class QtagsFormComponent implements OnInit {
   @Input()
   fieldName = 'tags';
   @Input()
-  label = 'tag';
+  label = $localize`tag`;
 
   constructor(
     private fb: UntypedFormBuilder,

@@ -7,7 +7,7 @@ import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { UrlFilter } from '../../util/query';
 
-type FilterItem = { filter: UrlFilter, label?: string };
+type FilterItem = { filter: UrlFilter, label: string };
 
 @Component({
   selector: 'app-filter',
@@ -20,12 +20,12 @@ export class FilterComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   allFilters: { filters: FilterItem[], label: string }[] = [
-    { label: 'Filters',
+    { label: $localize`Filters`,
       filters : [
-        { filter: 'uncited' },
-        { filter: 'unsourced' },
-        { filter: 'untagged' },
-        { filter: 'internal' },
+        { filter: 'uncited', label: $localize`uncited` },
+        { filter: 'unsourced', label: $localize`unsourced` },
+        { filter: 'untagged', label: $localize`untagged` },
+        { filter: 'internal', label: $localize`internal` },
       ]
     }
   ];
@@ -38,26 +38,26 @@ export class FilterComponent implements OnInit, OnDestroy {
   ) {
     if (store.account.mod) {
       this.allFilters.push({
-        label: 'Mod Tools',
+        label: $localize`Mod Tools`,
         filters: [
-          { filter: 'modlist' }
+          { filter: 'modlist', label: $localize`modlist` }
         ],
       });
     }
     const invoiceFilters = {
-      label: 'Invoices',
+      label: $localize`Invoices`,
       filters: [] as FilterItem[],
     };
     if (admin.status.plugins.invoicePaid) {
       invoiceFilters.filters.push(
-        { filter: '-plugin/invoice/paid', label: 'unpaid'},
-        { filter: 'plugin/invoice/paid', label: 'paid'});
+        { filter: '-plugin/invoice/paid', label: $localize`unpaid`},
+        { filter: 'plugin/invoice/paid', label: $localize`paid`});
     }
     if (admin.status.plugins.invoiceRejected) {
-      invoiceFilters.filters.push({ filter: 'plugin/invoice/rejected', label: 'rejected'});
+      invoiceFilters.filters.push({ filter: 'plugin/invoice/rejected', label: $localize`rejected`});
     }
     if (admin.status.plugins.invoiceDisputed) {
-      invoiceFilters.filters.push({ filter: 'plugin/invoice/disputed', label: 'disputed'});
+      invoiceFilters.filters.push({ filter: 'plugin/invoice/disputed', label: $localize`disputed`});
     }
     if (invoiceFilters.filters.length) {
       this.allFilters.push(invoiceFilters);

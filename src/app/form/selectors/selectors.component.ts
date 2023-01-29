@@ -17,7 +17,7 @@ export class SelectorsFormComponent implements OnInit {
   @Input()
   fieldName = 'tags';
   @Input()
-  label = 'selector';
+  label = $localize`selector`;
 
   constructor(
     private fb: UntypedFormBuilder,

@@ -17,7 +17,7 @@ export class UsersFormComponent implements OnInit {
   @Input()
   fieldName = 'users';
   @Input()
-  label = 'user';
+  label = $localize`user`;
 
   constructor(
     private fb: UntypedFormBuilder,

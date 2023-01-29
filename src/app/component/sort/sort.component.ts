@@ -18,8 +18,8 @@ export class SortComponent implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
-  allSorts: {value: RefSort | TagSort, label?: string}[] = [
-    { value: 'modified' },
+  allSorts: {value: RefSort | TagSort, label: string}[] = [
+    { value: 'modified', label: $localize`modified` },
   ];
   sorts: string[] = [];
 
@@ -39,30 +39,30 @@ export class SortComponent implements OnInit, OnDestroy {
   set type(value: Type) {
     if (value === 'ref') {
       this.allSorts = [
-        { value: 'url' },
-        { value: 'origin' },
-        { value: 'title' },
-        { value: 'comment', label: 'comments' },
-        { value: 'created', label: 'new' },
-        { value: 'tagCount', label: 'tags' },
-        { value: 'sourceCount', label: 'sources' },
-        { value: 'responseCount', label: 'responses' },
-        { value: 'published' },
-        { value: 'modified' },
+        { value: 'url', label: $localize`url` },
+        { value: 'origin', label: $localize`origin` },
+        { value: 'title', label: $localize`title` },
+        { value: 'comment', label: $localize`comments` },
+        { value: 'created', label: $localize`new` },
+        { value: 'tagCount', label: $localize`tags` },
+        { value: 'sourceCount', label: $localize`sources` },
+        { value: 'responseCount', label: $localize`responses` },
+        { value: 'published', label: $localize`published` },
+        { value: 'modified', label: $localize`modified` },
       ]
       if (this.admin.status.plugins.comment) {
-        this.allSorts.splice(1, 0, { value: 'commentCount', label: 'comments' });
+        this.allSorts.splice(1, 0, { value: 'commentCount', label: $localize`comments` });
       }
       if (this.store.view.search) {
-        this.allSorts.unshift({ value: 'rank', label: 'relevance' });
+        this.allSorts.unshift({ value: 'rank', label: $localize`relevance` });
       }
     }
     if (value !== 'ref') {
       this.allSorts = [
-        { value: 'tag' },
-        { value: 'origin' },
-        { value: 'name' },
-        { value: 'modified' },
+        { value: 'tag', label: $localize`tag` },
+        { value: 'origin', label: $localize`origin` },
+        { value: 'name', label: $localize`name` },
+        { value: 'modified', label: $localize`modified` },
       ]
     }
   }
