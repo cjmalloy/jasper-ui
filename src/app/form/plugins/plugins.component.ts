@@ -3,17 +3,9 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AdminService } from '../../service/admin.service';
 import { emptyObject, writeObj } from '../../util/http';
 import { includesTag } from '../../util/tag';
-import { archivePluginForm } from './archive/archive.component';
-import { audioPluginForm } from './audio/audio.component';
 import { commentPluginForm } from './comment/comment.component';
-import { embedPluginForm } from './embed/embed.component';
 import { feedForm, FeedFormComponent } from './feed/feed.component';
-import { imagePluginForm } from './image/image.component';
 import { originForm } from './origin/origin.component';
-import { pdfPluginForm } from './pdf/pdf.component';
-import { qrPluginForm } from './qr/qr.component';
-import { thumbnailPluginForm } from './thumbnail/thumbnail.component';
-import { videoPluginForm } from './video/video.component';
 
 @Component({
   selector: 'app-form-plugins',
@@ -119,14 +111,6 @@ function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
   switch (tag) {
     case '+plugin/origin': return originForm(fb, admin);
     case '+plugin/feed': return feedForm(fb, admin);
-    case 'plugin/thumbnail': return thumbnailPluginForm(fb, admin);
-    case 'plugin/archive': return archivePluginForm(fb, admin);
-    case 'plugin/pdf': return pdfPluginForm(fb, admin);
-    case 'plugin/audio': return audioPluginForm(fb, admin);
-    case 'plugin/video': return videoPluginForm(fb, admin);
-    case 'plugin/image': return imagePluginForm(fb, admin);
-    case 'plugin/embed': return embedPluginForm(fb, admin);
-    case 'plugin/qr': return qrPluginForm(fb, admin);
     case 'plugin/comment': return commentPluginForm(fb, admin);
   }
   if (admin.getPlugin(tag)?.config?.form) {

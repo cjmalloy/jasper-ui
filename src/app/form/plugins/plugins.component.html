@@ -1,13 +1,5 @@
 <app-form-origin *ngIf="tags.includes('+plugin/origin')" [plugins]="plugins"></app-form-origin>
 <app-form-feed *ngIf="tags.includes('+plugin/feed')" [plugins]="plugins"></app-form-feed>
-<app-form-thumbnail *ngIf="tags.includes('plugin/thumbnail')" [plugins]="plugins" [ref]="ref"></app-form-thumbnail>
-<app-form-archive *ngIf="tags.includes('plugin/archive')" [plugins]="plugins"></app-form-archive>
-<app-form-pdf *ngIf="tags.includes('plugin/pdf')" [plugins]="plugins"></app-form-pdf>
-<app-form-audio *ngIf="tags.includes('plugin/audio')" [plugins]="plugins"></app-form-audio>
-<app-form-video *ngIf="tags.includes('plugin/video')" [plugins]="plugins"></app-form-video>
-<app-form-image *ngIf="tags.includes('plugin/image')" [plugins]="plugins"></app-form-image>
-<app-form-embed *ngIf="tags.includes('plugin/embed')" [plugins]="plugins" [ref]="ref"></app-form-embed>
-<app-form-qr *ngIf="tags.includes('plugin/qr')" [plugins]="plugins"></app-form-qr>
 <app-form-comment *ngIf="tags.includes('plugin/comment')" [plugins]="plugins"></app-form-comment>
 <ng-container *ngFor="let plugin of admin.getPluginForms(tags)">
   <app-form-gen [plugins]="plugins" [plugin]="plugin"></app-form-gen>

@@ -11,9 +11,14 @@ import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
     <span><!-- Errors --></span>
     <div>
       <div *ngIf="showError" class="error">
-        <formly-validation-message [field]="field"></formly-validation-message>
+        <span *ngIf="field.type === 'url' && field.formControl?.errors?.['pattern'] else defaultMessage" i18n>
+          Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
+        </span>
+        <ng-template #defaultMessage>
+          <formly-validation-message [field]="field"></formly-validation-message>
+        </ng-template>
       </div>
     </div>
   `,
 })
-export class FormlyWrapperFormField extends FieldWrapper<FormlyFieldConfig> {}
+export class FormlyWrapperFormField extends FieldWrapper<FormlyFieldConfig> { }

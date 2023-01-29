@@ -10,7 +10,7 @@
                type="url"
                [formControl]="$any(c)">
         <div class="error" *ngIf="links.at(i).touched && links.at(i).errors?.['pattern']" i18n>
-          Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986.</a>
+          Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
         </div>
         <div class="error" *ngIf="links.at(i).touched && links.at(i).errors?.['required']" i18n>
           Link must not be blank.

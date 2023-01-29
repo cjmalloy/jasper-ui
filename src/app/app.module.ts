@@ -64,19 +64,11 @@ import { ExtFormComponent } from './form/ext/ext.component';
 import { JsonComponent } from './form/json/json.component';
 import { LinksFormComponent } from './form/links/links.component';
 import { PluginFormComponent } from './form/plugin/plugin.component';
-import { ArchiveFormComponent } from './form/plugins/archive/archive.component';
-import { AudioFormComponent } from './form/plugins/audio/audio.component';
 import { CommentFormComponent } from './form/plugins/comment/comment.component';
-import { EmbedFormComponent } from './form/plugins/embed/embed.component';
 import { FeedFormComponent } from './form/plugins/feed/feed.component';
 import { GenFormComponent } from './form/plugins/gen/gen.component';
-import { ImageFormComponent } from './form/plugins/image/image.component';
 import { OriginFormComponent } from './form/plugins/origin/origin.component';
-import { PdfFormComponent } from './form/plugins/pdf/pdf.component';
 import { PluginsFormComponent } from './form/plugins/plugins.component';
-import { QrFormComponent } from './form/plugins/qr/qr.component';
-import { ThumbnailFormComponent } from './form/plugins/thumbnail/thumbnail.component';
-import { VideoFormComponent } from './form/plugins/video/video.component';
 import { QtagsFormComponent } from './form/qtags/qtags.component';
 import { QueriesFormComponent } from './form/queries/queries.component';
 import { RefFormComponent } from './form/ref/ref.component';
@@ -208,16 +200,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     TagsFormComponent,
     LinksFormComponent,
     QtagsFormComponent,
-    AudioFormComponent,
     PluginsFormComponent,
-    VideoFormComponent,
-    ImageFormComponent,
-    EmbedFormComponent,
-    QrFormComponent,
     CommentFormComponent,
-    ThumbnailFormComponent,
-    ArchiveFormComponent,
-    PdfFormComponent,
     SettingsProfilePage,
     ProfileListComponent,
     ProfileComponent,
