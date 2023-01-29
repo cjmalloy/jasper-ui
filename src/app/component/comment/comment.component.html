@@ -45,9 +45,6 @@
     <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }">{{ responses.replace(' ', '&thinsp;') }}</a>
     <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }">parent</a>
     <a *ngIf="sources !== 'parent'" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }">{{ sources.replace(' ', '&thinsp;')}}</a>
-    <ng-container *ngIf="admin.status.plugins.graph">
-      <a [routerLink]="['/ref', ref.url, 'graph']" [queryParams]="{ origin }">graph</a>
-    </ng-container>
     <a class="fake-link"
        *ngIf="writeAccess"
        (click)="editing = !editing">edit</a>
