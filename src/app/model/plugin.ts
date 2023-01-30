@@ -22,6 +22,10 @@ export interface Plugin extends Tag {
      */
     submit?: string,
     description?: string,
+    /**
+     * Add an action to the Ref actions bar that toggles a tag.
+     */
+    actions?: Action[],
   };
   defaults?: any;
   schema?: Schema;
@@ -29,6 +33,12 @@ export interface Plugin extends Tag {
 
   // Cache
   _ui?: HandlebarsTemplateDelegate;
+}
+
+export interface Action {
+  tag: string,
+  labelOn?: string,
+  labelOff?: string,
 }
 
 export function mapPlugin(obj: any): Plugin {
