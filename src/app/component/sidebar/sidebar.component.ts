@@ -137,4 +137,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   get inBookmarks() {
     return this.store.account.bookmarks.includes(this._tag!);
   }
+
+  set showRemotes(value: boolean) {
+    this.router.navigate([], { queryParams: { showRemotes: value ? true : null }, queryParamsHandling: 'merge' })
+  }
 }

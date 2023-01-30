@@ -179,6 +179,10 @@ export class ViewStore {
     return this.route.routeSnapshot?.queryParams['view'] === 'graph';
   }
 
+  get showRemotes() {
+    return this.route.routeSnapshot?.queryParams['showRemotes'] === 'true';
+  }
+
   get user() {
     return !isQuery(this.tag) && hasPrefix(this.tag, 'user');
   }

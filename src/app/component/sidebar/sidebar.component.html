@@ -6,14 +6,16 @@
     <div *ngIf="store.view.current" class="wide dont-hide">
       <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
       <app-search class="dont-hide"></app-search>
-      <ng-container *ngIf="expanded && store.view.type === 'ref'">
-        <br>
+      <div class="show-remotes" *ngIf="expanded && store.view.type !== 'ref'">
+        <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
+        <label for="show-remotes" i18n>show remotes</label>
+      </div>
+      <div *ngIf="expanded && store.view.type === 'ref'">
         <app-filter></app-filter>
-      </ng-container>
-      <ng-container *ngIf="expanded && showSort">
-        <br>
+      </div>
+      <div *ngIf="expanded && showSort">
         <app-sort [type]="store.view.type!"></app-sort>
-      </ng-container>
+      </div>
     </div>
   </div>
   <app-debug *ngIf="expanded"></app-debug>

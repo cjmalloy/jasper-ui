@@ -180,6 +180,17 @@ input.big {
     }
   }
 
+  .show-remotes {
+    display: flex;
+    justify-content: flex-end;
+    label {
+      align-self: center;
+      font-size: 75%;
+      margin-right: 10px;
+      line-height: 13px;
+    }
+  }
+
   .submit-button {
     white-space: nowrap;
     text-transform: capitalize;

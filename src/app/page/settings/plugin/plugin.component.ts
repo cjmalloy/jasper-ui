@@ -36,6 +36,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = {
+        query: this.store.view.showRemotes ? '@*' : '*',
         search: this.store.view.search,
         sort: [...this.store.view.sort],
         page: this.store.view.pageNumber,
