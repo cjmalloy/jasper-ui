@@ -35,8 +35,8 @@ type FilterObj = {
 };
 
 export type RefFilter = FilterObj & {
-  pluginResponse?: string;
-  noPluginResponse?: string;
+  pluginResponse?: string[];
+  noPluginResponse?: string[];
 };
 
 export type RefQueryArgs = RefFilter & {

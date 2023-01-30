@@ -60,9 +60,11 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter | undefined {
     if (['internal', 'notInternal', 'modlist'].includes(i)) continue;
     const f = i as Filter;
     if (f.startsWith('plugin/')) {
-      result.pluginResponse = f;
+      result.pluginResponse ||= [];
+      result.pluginResponse.push(f);
     } else if (f.startsWith('-plugin/')) {
-      result.noPluginResponse = f.substring(1);
+      result.noPluginResponse ||= [];
+      result.noPluginResponse.push(f.substring(1));
     } else {
       result[f] = true;
     }
