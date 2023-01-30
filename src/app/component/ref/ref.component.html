@@ -14,8 +14,8 @@
       <a *ngIf="clickableLink" [href]="ref.url | safe" target="_blank">{{ ref.title || ref.url }}</a>
       <a *ngIf="!clickableLink" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a><wbr>
       <span class="host">({{ host }})</span>
-      <span class="invoice icon" *ngIf="invoice" title="Invoice">🧾️</span>
-      <span class="lock icon" *ngIf="locked" title="Locked">🔒️</span>
+      <span *ngFor="let icon of icons" class="icon">{{ icon }}</span>
+      <span class="lock icon" *ngIf="locked" i18n-title title="Locked">🔒️</span>
     </div>
     <div class="link-below">
       <div class="toggle toggle-comment"

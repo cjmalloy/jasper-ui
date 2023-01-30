@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as _ from 'lodash-es';
-import { find, flatten, intersection } from 'lodash-es';
+import { flatten } from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Action, PluginFilter, Plugin } from '../model/plugin';
+import { Action, Plugin, PluginFilter } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { archivePlugin } from '../plugin/archive';
@@ -35,6 +35,7 @@ import { kanbanTemplate } from '../template/kanban';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
+import { tagIntersection } from '../util/tag';
 import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
 import { ConfigService } from './config.service';
@@ -88,6 +89,7 @@ export class AdminService {
   };
 
   private _embeddable?: string[];
+  private _icons?: string[];
   private _actions?: string[];
   private _filters?: PluginFilter[];
 
@@ -166,6 +168,15 @@ export class AdminService {
     return this._embeddable;
   }
 
+  get icons() {
+    if (!this._icons) {
+      this._icons = flatten(Object.values(this.status.plugins)
+        .filter(p => p?.config?.icon)
+        .map(p => p!.tag));
+    }
+    return this._icons;
+  }
+
   get actions() {
     if (!this._actions) {
       this._actions = flatten(Object.values(this.status.plugins)
@@ -185,12 +196,17 @@ export class AdminService {
   }
 
   getEmbeds(tags: string[] = []) {
-    return intersection(tags, this.embeddable);
+    return tagIntersection(tags, this.embeddable);
   }
 
   getActions(tags: string[] = []) {
-    return flatten(intersection(['plugin', ...tags], this.actions)
+    return flatten(tagIntersection(['plugin', ...tags], this.actions)
       .map(t => this.getPlugin(t)!.config!.actions as Action[]));
+  }
+
+  getIcons(tags: string[] = []) {
+    return flatten(tagIntersection(tags, this.icons)
+      .map(t => this.getPlugin(t)!.config!.icon as string));
   }
 
   getPlugin(tag: string) {

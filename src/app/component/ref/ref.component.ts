@@ -51,6 +51,7 @@ export class RefComponent implements OnInit {
   editForm: UntypedFormGroup;
   submitted = false;
   expandPlugins: string[] = [];
+  icons: string[] = [];
   actions: Action[] = [];
   tagging = false;
   editing = false;
@@ -104,6 +105,7 @@ export class RefComponent implements OnInit {
     this.actionsExpanded = false;
     this._ref = value;
     this.writeAccess = this.auth.writeAccess(value);
+    this.icons = this.admin.getIcons(value.tags || []);
     this.actions = this.admin.getActions(value.tags || []).filter(a => this.auth.tagReadAccess(a.tag));
     this.expandPlugins = this.admin.getEmbeds(value.tags || []);
   }

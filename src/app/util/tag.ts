@@ -1,4 +1,4 @@
-import * as _ from 'lodash-es';
+import { filter, find, without } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
@@ -35,12 +35,17 @@ export function capturesAny(selectors?: string[], target?: string[]): boolean {
 export function hasTag(tag?: string, ref?: Ref)  {
   if (!tag) return false;
   if (!ref?.tags) return false;
-  return !!_.find(ref.tags, t => expandedTagsInclude(t, tag));
+  return !!find(ref.tags, t => expandedTagsInclude(t, tag));
+}
+
+export function tagIntersection(expand: string[], tags: string[]) {
+  if (!expand) return [];
+  return filter(tags, e => includesTag(e, expand));
 }
 
 export function includesTag(tag: string, tags: string[])  {
   if (!tag) return false;
-  return !!_.find(tags, t => expandedTagsInclude(t, tag));
+  return !!find(tags, t => expandedTagsInclude(t, tag));
 }
 
 export function expandedTagsInclude(tag: string, target: string) {
@@ -141,7 +146,7 @@ export function parentTag(tag: string): string | undefined {
 
 export function removeTag(tag: string | undefined, tags: string[]): string[] {
   while (tag) {
-    tags = _.without(tags, tag);
+    tags = without(tags, tag);
     tag = parentTag(tag);
   }
   return tags;

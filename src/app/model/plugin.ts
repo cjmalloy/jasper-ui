@@ -22,6 +22,7 @@ export interface Plugin extends Tag {
      */
     submit?: string,
     description?: string,
+    icon?: string,
     /**
      * Add an action to the Ref actions bar that toggles a tag.
      */
