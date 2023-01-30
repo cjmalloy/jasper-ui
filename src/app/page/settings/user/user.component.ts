@@ -20,7 +20,7 @@ export class SettingsUserPage implements OnInit, OnDestroy {
     public query: UserStore,
   ) {
     theme.setTitle('Settings: User Permissions');
-    store.view.clear('modified', 'tag');
+    store.view.clear('tag', 'tag');
     query.clear();
   }
 

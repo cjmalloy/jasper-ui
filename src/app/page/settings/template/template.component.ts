@@ -29,7 +29,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
     private templates: TemplateService,
   ) {
     theme.setTitle('Settings: Templates');
-    store.view.clear('modified', 'tag');
+    store.view.clear('tag', 'tag');
     query.clear();
   }
 

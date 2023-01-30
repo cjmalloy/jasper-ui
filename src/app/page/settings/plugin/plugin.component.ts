@@ -29,7 +29,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
     private plugins: PluginService,
   ) {
     theme.setTitle('Settings: Plugins');
-    store.view.clear('modified', 'tag');
+    store.view.clear('tag', 'tag');
     query.clear();
   }
 

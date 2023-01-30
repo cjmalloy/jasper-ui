@@ -7,6 +7,7 @@ import { TagSort } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
+import { defaultDesc } from '../../util/query';
 
 @Component({
   selector: 'app-sort',
@@ -108,7 +109,7 @@ export class SortComponent implements OnInit, OnDestroy {
   }
 
   sortDir(sort: string) {
-    if (!sort.includes(',')) return 'DESC';
+    if (!sort.includes(',')) return defaultDesc.includes(sort) ? 'DESC' : 'ASC';
     return sort.split(',')[1];
   }
 }
