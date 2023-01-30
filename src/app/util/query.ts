@@ -1,12 +1,10 @@
+import { filter, uniq, without } from 'lodash-es';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 
 export const defaultDesc = ['created', 'published', 'modified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount'];
 
 export type UrlFilter = Filter |
-  'internal' |
-  'notInternal' |
-  'modlist' |
-  'comments' |
+  `query/${string}` |
   `plugin/${string}` |
   `-plugin/${string}`;
 
@@ -18,19 +16,15 @@ export function getArgs(
   pageNumber?: number,
   pageSize?: number
 ): RefPageArgs {
-  let queryFilter = '';
-  if (filters?.includes('internal')) {
-    queryFilter += 'internal@*';
-  } else if (filters?.includes('notInternal')) {
-    if (filters?.includes('comments')) {
-      queryFilter += '(!internal@*|plugin/comment@*)';
-    } else {
-      queryFilter += '!internal@*';
-    }
+  if (filters?.includes('query/internal@*')) {
+    filters = without(filters, 'query/!internal@*');
   }
-  if (filters?.includes('modlist')) {
-    queryFilter += (queryFilter ? ':' : '') +  '!_moderated@*';
+  if (filters?.includes('query/!internal@*') && filters?.includes('query/plugin/comment@*')) {
+    filters = without(filters, 'query/!internal@*', 'query/plugin/comment@*');
+    filters.push('query/(!internal@*|plugin/comment@*)');
   }
+  filters = uniq(filters);
+  let queryFilter = filter(filters, f => f.startsWith('query/')).map(f => f.substring('query/'.length)).join(':');
   const query = queryFilter && tagOrSimpleQuery ? `(${tagOrSimpleQuery}):${queryFilter}` : tagOrSimpleQuery || queryFilter;
   if (sort) {
     sort = Array.isArray(sort) ? [...sort] : [sort];
@@ -56,9 +50,8 @@ export function getArgs(
 function getRefFilter(filter?: UrlFilter[]): RefFilter | undefined {
   if (!filter) return undefined;
   let result: any = {};
-  for (const i of filter) {
-    if (['internal', 'notInternal', 'modlist'].includes(i)) continue;
-    const f = i as Filter;
+  for (const f of filter) {
+    if (f.startsWith('query/')) continue;
     if (f.startsWith('plugin/')) {
       result.pluginResponse ||= [];
       result.pluginResponse.push(f);
@@ -66,7 +59,7 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter | undefined {
       result.noPluginResponse ||= [];
       result.noPluginResponse.push(f.substring(1));
     } else {
-      result[f] = true;
+      result[f as Filter] = true;
     }
   }
   return result;

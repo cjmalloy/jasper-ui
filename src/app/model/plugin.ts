@@ -26,6 +26,10 @@ export interface Plugin extends Tag {
      * Add an action to the Ref actions bar that toggles a tag.
      */
     actions?: Action[],
+    /**
+     * Add query or response filters to the filter dropdown.
+     */
+    filters?: PluginFilter[],
   };
   defaults?: any;
   schema?: Schema;
@@ -39,6 +43,13 @@ export interface Action {
   tag: string,
   labelOn?: string,
   labelOff?: string,
+}
+
+export interface PluginFilter {
+  query?: string,
+  response?: `plugin/${string}` | `-plugin/${string}`,
+  label?: string,
+  group?: string,
 }
 
 export function mapPlugin(obj: any): Plugin {

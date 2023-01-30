@@ -1,9 +1,12 @@
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { find } from 'lodash-es';
 import * as _ from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
+import { PluginFilter } from '../../model/plugin';
 import { Filter } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
+import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { UrlFilter } from '../../util/query';
 
@@ -25,25 +28,19 @@ export class FilterComponent implements OnInit, OnDestroy {
         { filter: 'uncited', label: $localize`uncited` },
         { filter: 'unsourced', label: $localize`unsourced` },
         { filter: 'untagged', label: $localize`untagged` },
-        { filter: 'internal', label: $localize`internal` },
-      ]
-    }
+        { filter: 'query/internal@*', label: $localize`internal` },
+      ],
+    },
   ];
   filters: UrlFilter[] = [];
 
   constructor(
     public router: Router,
     public admin: AdminService,
+    private auth: AuthzService,
     public store: Store,
   ) {
-    if (store.account.mod) {
-      this.allFilters.push({
-        label: $localize`Mod Tools`,
-        filters: [
-          { filter: 'modlist', label: $localize`modlist` }
-        ],
-      });
-    }
+    for (const f of admin.filters) this.loadFilter(f);
     const invoiceFilters = {
       label: $localize`Invoices`,
       filters: [] as FilterItem[],
@@ -66,6 +63,27 @@ export class FilterComponent implements OnInit, OnDestroy {
       this.filters = toJS(this.store.view.filter);
       if (!Array.isArray(this.filters)) this.filters = [this.filters];
     }));
+  }
+
+  loadFilter(filter: PluginFilter) {
+    if (!this.auth.queryReadAccess(filter.query || filter.response)) return;
+    let group = find(this.allFilters, f => f.label === (filter.group || ''));
+    if (group) {
+      group.filters.push(this.convertFilter(filter))
+    } else {
+      this.allFilters.push({
+        label: filter.group || '',
+        filters: [this.convertFilter(filter)],
+      });
+    }
+  }
+
+  convertFilter(filter: PluginFilter): FilterItem {
+    if (filter.query) {
+      return { filter: `query/${filter.query}`, label: filter.label || '' };
+    } else {
+      return { filter: filter.response!, label: filter.label || '' };
+    }
   }
 
   ngOnInit(): void {

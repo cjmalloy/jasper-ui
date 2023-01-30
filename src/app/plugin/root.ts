@@ -10,6 +10,9 @@ export const rootPlugin: Plugin = {
     actions: [
       { tag: '_moderated', labelOff: $localize`approve`, labelOn: $localize`✔️` }
     ],
+    filters: [
+      { query: '!_moderated', label: $localize`modlist`, group: $localize`Mod Tools` },
+    ]
   },
 };
 

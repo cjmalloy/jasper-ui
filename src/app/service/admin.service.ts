@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as _ from 'lodash-es';
-import { flatten, intersection } from 'lodash-es';
+import { find, flatten, intersection } from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Action, Plugin } from '../model/plugin';
+import { Action, PluginFilter, Plugin } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { archivePlugin } from '../plugin/archive';
@@ -89,6 +89,7 @@ export class AdminService {
 
   private _embeddable?: string[];
   private _actions?: string[];
+  private _filters?: PluginFilter[];
 
   constructor(
     private config: ConfigService,
@@ -172,6 +173,15 @@ export class AdminService {
         .map(p => p!.tag));
     }
     return this._actions;
+  }
+
+  get filters() {
+    if (!this._filters) {
+      this._filters = flatten(Object.values(this.status.plugins)
+        .filter(p => p?.config?.filters)
+        .map(p => p!.config!.filters!));
+    }
+    return this._filters;
   }
 
   getEmbeds(tags: string[] = []) {

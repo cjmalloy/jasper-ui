@@ -41,7 +41,7 @@ export class TagPage implements OnInit, OnDestroy {
       const args = getArgs(
         this.store.view.tag,
         this.store.view.sort,
-        _.uniq(['comments', 'notInternal', ...this.store.view.filter]) as UrlFilter[],
+        _.uniq(['query/!internal@*', ...this.store.view.filter]) as UrlFilter[],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,

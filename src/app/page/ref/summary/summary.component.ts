@@ -36,7 +36,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       const args = getArgs(
         '',
         this.store.view.sort,
-        _.uniq(['notInternal', ...this.store.view.filter]),
+        _.uniq(['query/!internal@*', ...this.store.view.filter]),
         this.store.view.search,
         this.store.view.pageNumber,
         this.summaryItems,
