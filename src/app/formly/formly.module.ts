@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { AbstractControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormlyModule } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
