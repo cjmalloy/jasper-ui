@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as _ from 'lodash-es';
+import { flatten, intersection } from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Plugin } from '../model/plugin';
+import { Action, Plugin } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { archivePlugin } from '../plugin/archive';
@@ -22,6 +23,7 @@ import { originPlugin } from '../plugin/origin';
 import { pdfPlugin } from '../plugin/pdf';
 import { personPlugin } from '../plugin/person';
 import { qrPlugin } from '../plugin/qr';
+import { rootPlugin } from '../plugin/root';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
 import { DEFAULT_WIKI_PREFIX, wikiPlugin } from '../plugin/wiki';
@@ -49,6 +51,7 @@ export class AdminService {
 
   def = {
     plugins: <Record<string, Plugin>> {
+      root: rootPlugin,
       origin: originPlugin,
       feed: feedPlugin,
       delete: deletePlugin,
@@ -85,6 +88,7 @@ export class AdminService {
   };
 
   private _embeddable?: string[];
+  private _actions?: string[];
 
   constructor(
     private config: ConfigService,
@@ -161,8 +165,22 @@ export class AdminService {
     return this._embeddable;
   }
 
+  get actions() {
+    if (!this._actions) {
+      this._actions = flatten(Object.values(this.status.plugins)
+        .filter(p => p?.config?.actions)
+        .map(p => p!.tag));
+    }
+    return this._actions;
+  }
+
   getEmbeds(tags: string[] = []) {
-    return _.intersection(tags, this.embeddable);
+    return intersection(tags, this.embeddable);
+  }
+
+  getActions(tags: string[] = []) {
+    return flatten(intersection(['plugin', ...tags], this.actions)
+      .map(t => this.getPlugin(t)!.config!.actions as Action[]));
   }
 
   getPlugin(tag: string) {

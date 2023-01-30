@@ -8,6 +8,7 @@ import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
+import { Action } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { deleteNotice } from '../../plugin/delete';
 import { AdminService } from '../../service/admin.service';
@@ -50,6 +51,7 @@ export class RefComponent implements OnInit {
   editForm: UntypedFormGroup;
   submitted = false;
   expandPlugins: string[] = [];
+  actions: Action[] = [];
   tagging = false;
   editing = false;
   viewSource = false;
@@ -102,9 +104,8 @@ export class RefComponent implements OnInit {
     this.actionsExpanded = false;
     this._ref = value;
     this.writeAccess = this.auth.writeAccess(value);
-    if (value.tags) {
-      this.expandPlugins = this.admin.getEmbeds(value.tags);
-    }
+    this.actions = this.admin.getActions(value.tags || []).filter(a => this.auth.tagReadAccess(a.tag));
+    this.expandPlugins = this.admin.getEmbeds(value.tags || []);
   }
 
   @ViewChild(RefFormComponent)
@@ -269,10 +270,6 @@ export class RefComponent implements OnInit {
     return clickableLink(this._ref);
   }
 
-  get approved() {
-    return hasTag('_moderated', this._ref);
-  }
-
   get locked() {
     return hasTag('locked', this._ref);
   }
@@ -336,12 +333,13 @@ export class RefComponent implements OnInit {
     });
   }
 
-  approve() {
-    this.refs.patch(this._ref.url, this._ref.origin!, [{
-      op: 'add',
-      path: '/tags/-',
-      value: '_moderated',
-    }]).pipe(
+  actionOn(a: Action) {
+    return hasTag(a.tag, this._ref);
+  }
+
+  toggleAction(a: Action) {
+    const patch = (this.actionOn(a) ? '-' : '') + a.tag;
+    this.ts.create(patch, this._ref.url, this._ref.origin!).pipe(
       switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);

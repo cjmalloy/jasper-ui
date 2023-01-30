@@ -148,10 +148,11 @@
             <a *ngIf="clickableLink && archive" target="_blank" [href]="archive" i18n>archive</a>
             <a *ngIf="store.account.mod && scrapeable" class="fake-link" (click)="scrape()" i18n>scrape</a>
             <a *ngIf="store.account.poster" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
-            <a *ngIf="local && store.account.mod && !approved && !locked"
-               class="fake-link"
-               (click)="approve()" i18n>approve</a>
-            <span class="approved icon" *ngIf="store.account.mod && approved" i18n-title title="Moderated" i18n>✔️</span>
+            <ng-container *ngIf="local">
+              <ng-container *ngFor="let a of actions">
+                <a class="fake-link" (click)="toggleAction(a)">{{ actionOn(a) ? a.labelOn : a.labelOff }}</a>
+              </ng-container>
+            </ng-container>
           </ng-container>
         </div>
       </div>
