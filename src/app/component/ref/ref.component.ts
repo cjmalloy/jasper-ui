@@ -349,7 +349,7 @@ export class RefComponent implements OnInit {
       }),
     ).subscribe(ref => {
       this.serverError = [];
-      this.ref = ref;
+      this._ref = ref;
     });
   }
 

@@ -200,11 +200,11 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   approve() {
     this.ts.create('_moderated', this._ref.url, this._ref.origin!).pipe(
+      switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-      switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
     ).subscribe(ref => {
       this.serverError = [];
       this._ref = ref;
