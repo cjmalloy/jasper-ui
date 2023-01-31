@@ -45,9 +45,9 @@
   <div class="actions">
     <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>permalink</a>
     <a class="fake-link" (click)="replying = !replying" i18n>reply</a>
-    <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{{ responses.replace(' ', '&thinsp;') }}</a>
-    <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }" i18n>parent</a>
-    <a *ngIf="sources !== 'parent'" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }" i18n>{{ sources.replace(' ', '&thinsp;')}}</a>
+    <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
+    <a *ngIf="sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }" i18n>parent</a>
+    <a *ngIf="sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }" i18n>{{ sources }}&thinsp;sources</a>
     <a class="fake-link"
        *ngIf="writeAccess"
        (click)="editing = !editing" i18n>edit</a>

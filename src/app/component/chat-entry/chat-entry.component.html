@@ -49,9 +49,9 @@
   <div class="actions"
        *ngIf="ref.created"
        [style.pointer-events]="allowActions ? 'auto' : 'none'">
-    <a *ngIf="admin.status.plugins.comment"
-       [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>{{ comments.replace(' ', '&thinsp;') }}</a>
-    <a *ngIf="!admin.status.plugins.comment"
+    <a *ngIf="comments"
+       [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
+    <a *ngIf="!comments"
        [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }" i18n>permalink</a>
     <a *ngIf="!deleting && writeAccess"
        class="fake-link"

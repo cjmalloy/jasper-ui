@@ -183,27 +183,16 @@ export class BlogEntryComponent implements OnInit {
   }
 
   get comments() {
-    if (!this.admin.status.plugins.comment) return undefined;
-    if (!this._ref.metadata?.modified) return undefined;
-    let commentCount = this._ref.metadata?.plugins?.['plugin/comment'] || 0;
-    if (!commentCount) return undefined;
-    if (commentCount === 1) return '1 comment';
-    return commentCount + ' comments';
+    if (!this.admin.status.plugins.comment) return 0;
+    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
   get responses() {
-    if (!this._ref.metadata?.modified) return undefined;
-    let responseCount = this._ref.metadata?.responses || 0;
-    if (!responseCount) return undefined;
-    if (responseCount === 1) return '1 citation';
-    return responseCount + ' citations';
+    return this.ref.metadata?.responses || 0;
   }
 
   get sources() {
-    const sourceCount = this._ref.sources?.length || 0;
-    if (!sourceCount) return undefined;
-    if (sourceCount === 1) return 'parent';
-    return sourceCount + ' sources';
+    return this.ref.sources?.length || 0;
   }
 
   formatAuthor(user: string) {

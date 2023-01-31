@@ -119,11 +119,8 @@ export class ChatEntryComponent {
   }
 
   get comments() {
-    if (!this.ref.metadata) return '? comments';
-    const commentCount = this.ref.metadata.plugins?.['plugin/comment'];
-    if (commentCount === 0) return 'thread';
-    if (commentCount === 1) return '1 comment';
-    return commentCount + ' comments';
+    if (!this.admin.status.plugins.comment) return 0;
+    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
   formatAuthor(user: string) {

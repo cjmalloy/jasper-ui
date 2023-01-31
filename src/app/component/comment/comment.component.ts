@@ -160,30 +160,15 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get comments() {
-    let commentCount : number | string = '?';
-    if (this._ref.metadata?.modified) {
-      commentCount = this._ref.metadata?.plugins?.['plugin/comment'] || 0;
-    }
-    if (commentCount === 0) return 'comment';
-    if (commentCount === 1) return '1 comment';
-    return commentCount + ' comments';
+    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
   get responses() {
-    let responseCount : number | string = '?';
-    if (this._ref.metadata?.modified) {
-      responseCount = this._ref.metadata?.responses || 0;
-    }
-    if (responseCount === 0) return 'uncited';
-    if (responseCount === 1) return '1 citation';
-    return responseCount + ' citations';
+    return this.ref.metadata?.responses || 0;
   }
 
   get sources() {
-    const sourceCount = this._ref.sources?.length || 0;
-    if (sourceCount === 0) return 'unsourced';
-    if (sourceCount === 1) return 'parent';
-    return sourceCount + ' sources';
+    return this.ref.sources?.length || 0;
   }
 
   formatAuthor(user: string) {

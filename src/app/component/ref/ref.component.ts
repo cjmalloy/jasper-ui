@@ -270,31 +270,16 @@ export class RefComponent implements OnInit {
   }
 
   get comments() {
-    if (!this.admin.status.plugins.comment) return undefined;
-    if (!this.ref.metadata?.modified) return undefined;
-    let commentCount = this.ref.metadata?.plugins?.['plugin/comment'] || 0;
-    if (!commentCount) return undefined;
-    if (commentCount === 0) return 'comment';
-    if (commentCount === 1) return '1 comment';
-    return commentCount + ' comments';
+    if (!this.admin.status.plugins.comment) return 0;
+    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
   get responses() {
-    if (!this.ref.metadata?.modified) return undefined;
-    let responseCount = this.ref.metadata?.responses || 0;
-    if (!responseCount) return undefined;
-    if (this.feed) {
-      return responseCount + ' scraped';
-    }
-    if (responseCount === 1) return '1 citation';
-    return responseCount + ' citations';
+    return this.ref.metadata?.responses || 0;
   }
 
   get sources() {
-    const sourceCount = this.ref.sources?.length || 0;
-    if (!sourceCount) return undefined;
-    if (sourceCount === 1) return 'parent';
-    return sourceCount + ' sources';
+    return this.ref.sources?.length || 0;
   }
 
   formatAuthor(user: string) {
