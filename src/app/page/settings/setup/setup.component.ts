@@ -2,7 +2,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
+import { isEqual, isNil, omitBy } from 'lodash-es';
 import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
+import { writePlugin } from '../../../model/plugin';
+import { writeTemplate } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
@@ -56,14 +59,14 @@ export class SettingsSetupPage implements OnInit {
       if (!!this.admin.status.plugins[plugin] === !!this.adminForm.value.plugins[plugin]) continue;
       const def = this.admin.def.plugins[plugin];
       if (this.adminForm.value.plugins[plugin]) {
-        this.installMessages.push(`Installing ${def.name || def.tag} plugin...`);
+        this.installMessages.push($localize`Installing ${def.name || def.tag} plugin...`);
         installs.push(this.plugins.create({
           ...def,
           origin: this.store.account.origin,
         }).pipe(retry(10)));
       } else {
         const status = this.admin.status.plugins[plugin]!;
-        this.installMessages.push(`Deleting ${status.name || status.tag} plugin...`);
+        this.installMessages.push($localize`Deleting ${status.name || status.tag} plugin...`);
         installs.push(this.plugins.delete(status.tag + status.origin));
       }
     }
@@ -71,14 +74,14 @@ export class SettingsSetupPage implements OnInit {
       if (!!this.admin.status.templates[template] === !!this.adminForm.value.templates[template]) continue;
       const def = this.admin.def.templates[template];
       if (this.adminForm.value.templates[template]) {
-        this.installMessages.push(`Installing ${def.name || def.tag} template...`);
+        this.installMessages.push($localize`Installing ${def.name || def.tag} template...`);
         installs.push(this.templates.create({
           ...def,
           origin: this.store.account.origin,
         }).pipe(retry(10)));
       } else {
         const status = this.admin.status.templates[template]!;
-        this.installMessages.push(`Deleting ${status.name || status.tag} template...`);
+        this.installMessages.push($localize`Deleting ${status.name || status.tag} template...`);
         installs.push(this.templates.delete(status.tag + status.origin));
       }
     }
@@ -91,7 +94,7 @@ export class SettingsSetupPage implements OnInit {
     ).subscribe(() => {
       this.submitted = true;
       this.adminForm.reset(this.admin.status);
-      this.installMessages.push('Success.');
+      this.installMessages.push($localize`Success.`);
     });
   }
 
@@ -102,4 +105,57 @@ export class SettingsSetupPage implements OnInit {
     sa(this.adminForm.get('templates') as UntypedFormGroup);
   }
 
+  needsPluginUpdate(key: string) {
+    if (!this.admin.status.plugins[key]) return false;
+    const def = omitBy(this.admin.def.plugins[key], i => !i);
+    const status = omitBy(writePlugin(this.admin.status.plugins[key]!), i => !i);
+    def.config = omitBy(def.config, i => !i);
+    status.config = omitBy(status.config, i => !i);
+    delete def.config!.generated;
+    delete status.config!.generated;
+    delete status.origin;
+    delete status.modified;
+    return !isEqual(def, status);
+  }
+
+  needsTemplateUpdate(key: string) {
+    if (!this.admin.status.templates[key]) return false;
+    const def = omitBy(this.admin.def.templates[key], i => !i);
+    const status = omitBy(writeTemplate(this.admin.status.templates[key]!), i => !i);
+    def.config = omitBy(def.config, i => !i);
+    status.config = omitBy(status.config, i => !i);
+    delete def.config!.generated;
+    delete status.config!.generated;
+    delete status.origin;
+    delete status.modified;
+    return !isEqual(def, status);
+  }
+
+  updatePlugin(key: string) {
+    const def = this.admin.def.plugins[key];
+    const status = this.admin.status.plugins[key]!;
+    this.installMessages.push($localize`Updating ${def.name || def.tag} plugin...`);
+    this.plugins.update({
+      ...def,
+      origin: this.store.account.origin,
+      modifiedString: status.modifiedString,
+    }).subscribe(() => {
+      this.adminForm.reset(this.admin.status);
+      this.installMessages.push($localize`Updated ${def.name || def.tag} plugin.`);
+    });
+  }
+
+  updateTemplate(key: string) {
+    const def = this.admin.def.templates[key];
+    const status = this.admin.status.templates[key]!;
+    this.installMessages.push($localize`Updating ${def.name || def.tag} template...`);
+    this.templates.update({
+      ...def,
+      origin: this.store.account.origin,
+      modifiedString: status.modifiedString,
+    }).subscribe(() => {
+      this.adminForm.reset(this.admin.status);
+      this.installMessages.push($localize`Updated ${def.name || def.tag} template.`);
+    });
+  }
 }

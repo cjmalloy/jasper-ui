@@ -13,6 +13,9 @@
     <div *ngFor="let plugin of admin.def.plugins | keyvalue">
       <input id="plugin-{{ plugin.key }}" type="checkbox" [formControlName]="$any(plugin.key)">
       <label for="plugin-{{ plugin.key }}">{{ plugin.value.name || plugin.key }}</label>
+      <span *ngIf="needsPluginUpdate(plugin.key)" class="update">
+        (<span class="fake-link" (click)="updatePlugin(plugin.key)" i18n>update</span>)
+      </span>
     </div>
   </div>
 
@@ -21,6 +24,9 @@
     <div *ngFor="let template of admin.def.templates | keyvalue">
       <input id="template-{{ template.key }}" type="checkbox" [formControlName]="$any(template.key)">
       <label for="template-{{ template.key }}">{{ template.value.name || template.key }}</label>
+      <span *ngIf="needsTemplateUpdate(template.key)" class="update">
+        (<span class="fake-link" (click)="updateTemplate(template.key)" i18n>update</span>)
+      </span>
     </div>
   </div>
 
