@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as _ from 'lodash-es';
+import { flatten, uniq } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, map, mergeMap, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -114,7 +114,7 @@ export class SubmitInvoicePage implements OnInit {
     }
     if (this.emoji) result.push('plugin/emoji');
     if (this.latex) result.push('plugin/latex');
-    return _.uniq(result);
+    return uniq(result);
   }
 
   syncEditor() {
@@ -137,7 +137,7 @@ export class SubmitInvoicePage implements OnInit {
         origin: this.store.account.origin,
         published,
         tags: this.getTags(queueExt),
-        sources: [this.refUrl],
+        sources: flatten([this.refUrl]),
       })),
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
