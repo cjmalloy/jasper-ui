@@ -62,7 +62,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get origin() {
-    return this._ref.origin || undefined;
+    return this.ref.origin || undefined;
   }
 
   @Input()
@@ -71,8 +71,8 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.deleting = false;
     this.editing = false;
     this.tagging = false;
-    this.collapsed = this.store.local.isRefToggled(this._ref.url, false);
-    this.writeAccess = this.auth.writeAccess(this._ref);
+    this.collapsed = this.store.local.isRefToggled(this.ref.url, false);
+    this.writeAccess = this.auth.writeAccess(this.ref);
     this.icons = this.admin.getIcons(value.tags || []);
     this.actions = this.admin.getActions(value.tags || []).filter(a => a.response || this.auth.tagReadAccess(a.tag));
   }
@@ -83,10 +83,10 @@ export class CommentComponent implements OnInit, OnDestroy {
     ).subscribe(ref => {
       this.replying = false;
       if (ref) {
-        this._ref.metadata ||= {};
-        this._ref.metadata.plugins ||= {};
-        this._ref.metadata.plugins['plugin/comment'] ||= 0;
-        this._ref.metadata.plugins['plugin/comment']++;
+        this.ref.metadata ||= {};
+        this.ref.metadata.plugins ||= {};
+        this.ref.metadata.plugins['plugin/comment'] ||= 0;
+        this.ref.metadata.plugins['plugin/comment']++;
         if (this.depth === 0) this.depth = 1;
       }
     });
@@ -94,7 +94,7 @@ export class CommentComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(ref => {
       this.editing = false;
-      this._ref = ref;
+      this.ref = ref;
     });
   }
 
@@ -119,20 +119,20 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get emoji() {
-    return !!this.admin.status.plugins.emoji && hasTag('plugin/emoji', this._ref);
+    return !!this.admin.status.plugins.emoji && hasTag('plugin/emoji', this.ref);
   }
 
   get latex() {
-    return !!this.admin.status.plugins.latex && hasTag('plugin/latex', this._ref);
+    return !!this.admin.status.plugins.latex && hasTag('plugin/latex', this.ref);
   }
 
   get canInvoice() {
-    if (this._ref.origin) return false;
+    if (this.ref.origin) return false;
     if (!this.admin.status.plugins.invoice) return false;
     if (!this.isAuthor) return false;
-    if (!this._ref.sources || !this._ref.sources.length) return false;
-    return hasTag('plugin/comment', this._ref) ||
-      !hasTag('internal', this._ref);
+    if (!this.ref.sources || !this.ref.sources.length) return false;
+    return hasTag('plugin/comment', this.ref) ||
+      !hasTag('internal', this.ref);
   }
 
   get isAuthor() {
@@ -144,19 +144,19 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get authors() {
-    return authors(this._ref);
+    return authors(this.ref);
   }
 
   get mailboxes() {
-    return mailboxes(this._ref, this.store.account.tag, this.store.origins.originMap);
+    return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
   }
 
   get tagged() {
-    return interestingTags(this._ref.tags);
+    return interestingTags(this.ref.tags);
   }
 
   get deleted() {
-    return hasTag('plugin/deleted', this._ref);
+    return hasTag('plugin/deleted', this.ref);
   }
 
   get comments() {
@@ -188,7 +188,7 @@ export class CommentComponent implements OnInit, OnDestroy {
         Private tags start with an underscore.`];
       return;
     }
-    this.runAndLoad(this.ts.create(field.value.trim(), this._ref.url, this._ref.origin!));
+    this.runAndLoad(this.ts.create(field.value.trim(), this.ref.url, this.ref.origin!));
   }
 
   visible(v: Visibility) {
@@ -216,22 +216,12 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   delete() {
-    delete this._ref.title;
-    delete this._ref.comment;
-    delete this._ref.plugins;
-    this.refs.update({
-      ...this._ref,
-      tags: uniq([...filter(this._ref.tags, t => !hasPrefix(t, 'plugin')), 'plugin/comment', 'plugin/deleted']),
-    }).pipe(
-      switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this._ref = ref;
-      this.deleting = false;
-    });
+    delete this.ref.title;
+    delete this.ref.comment;
+    delete this.ref.plugins;
+    this.runAndLoad(this.refs.update({
+      ...this.ref,
+      tags: uniq([...filter(this.ref.tags, t => !hasPrefix(t, 'plugin')), 'plugin/comment', 'plugin/deleted']),
+    }));
   }
 }

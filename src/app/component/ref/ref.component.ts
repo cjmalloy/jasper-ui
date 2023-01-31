@@ -82,7 +82,7 @@ export class RefComponent implements OnInit {
 
   @HostBinding('class')
   get pluginClasses() {
-    return this.css + templates(this._ref.tags, 'plugin')
+    return this.css + templates(this.ref.tags, 'plugin')
       .map(t => t.replace(/\//g, '-'))
       .join(' ');
   }
@@ -92,11 +92,12 @@ export class RefComponent implements OnInit {
   }
 
   get origin() {
-    return this._ref.origin || undefined;
+    return this.ref.origin || undefined;
   }
 
   @Input()
   set ref(value: Ref) {
+    this._ref = value;
     this.submitted = false;
     this.deleted = false;
     this.deleting = false;
@@ -104,7 +105,6 @@ export class RefComponent implements OnInit {
     this.viewSource = false;
     this.tagging = false;
     this.actionsExpanded = false;
-    this._ref = value;
     this.writeAccess = this.auth.writeAccess(value);
     this.icons = this.admin.getIcons(value.tags || []);
     this.actions = this.admin.getActions(value.tags || []).filter(a => a.response || this.auth.tagReadAccess(a.tag));
@@ -114,8 +114,8 @@ export class RefComponent implements OnInit {
   @ViewChild(RefFormComponent)
   set refForm(value: RefFormComponent) {
     _.defer(() => {
-      value?.setRef(this._ref);
-      this.editor.syncEditor(this.fb, this.editForm, this._ref.comment);
+      value?.setRef(this.ref);
+      this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
     });
   }
 

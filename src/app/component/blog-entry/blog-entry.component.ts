@@ -72,18 +72,18 @@ export class BlogEntryComponent implements OnInit {
   }
 
   get origin() {
-    return this._ref.origin || undefined;
+    return this.ref.origin || undefined;
   }
 
   @Input()
   set ref(value: Ref) {
+    this._ref = value;
     this.submitted = false;
     this.deleted = false;
     this.deleting = false;
     this.editing = false;
     this.viewSource = false;
     this.tagging = false;
-    this._ref = value;
     this.writeAccess = this.auth.writeAccess(value);
     this.icons = this.admin.getIcons(value.tags || []);
     this.actions = this.admin.getActions(value.tags || []).filter(a => a.response || this.auth.tagReadAccess(a.tag));
@@ -93,8 +93,8 @@ export class BlogEntryComponent implements OnInit {
   @ViewChild(RefFormComponent)
   set refForm(value: RefFormComponent) {
     _.defer(() => {
-      value?.setRef(this._ref);
-      this.editor.syncEditor(this.fb, this.editForm, this._ref.comment);
+      value?.setRef(this.ref);
+      this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
     });
   }
 
@@ -102,12 +102,12 @@ export class BlogEntryComponent implements OnInit {
   }
 
   get canInvoice() {
-    if (this._ref.origin) return false;
+    if (this.ref.origin) return false;
     if (!this.admin.status.plugins.invoice) return false;
     if (!this.isAuthor) return false;
-    if (!this._ref.sources || !this._ref.sources.length) return false;
-    return hasTag('plugin/comment', this._ref) ||
-      !hasTag('internal', this._ref);
+    if (!this.ref.sources || !this.ref.sources.length) return false;
+    return hasTag('plugin/comment', this.ref) ||
+      !hasTag('internal', this.ref);
   }
 
   private runAndLoad(observable: Observable<any>) {
@@ -155,23 +155,23 @@ export class BlogEntryComponent implements OnInit {
         }
       }
     }
-    return 'https://archive.ph/newest/' + this._ref.url;
+    return 'https://archive.ph/newest/' + this.ref.url;
   }
 
   get isAuthor() {
-    return isOwnerTag(this.store.account.tag, this._ref);
+    return isOwnerTag(this.store.account.tag, this.ref);
   }
 
   get isRecipient() {
-    return hasTag(this.store.account.mailbox, this._ref);
+    return hasTag(this.store.account.mailbox, this.ref);
   }
 
   get authors() {
-    return authors(this._ref);
+    return authors(this.ref);
   }
 
   get tags() {
-    let result = interestingTags(this._ref.tags);
+    let result = interestingTags(this.ref.tags);
     if (this.blog?.config.filterTags) {
       result = _.intersection(result, this.blog.config.tags || []);
     }
@@ -179,7 +179,7 @@ export class BlogEntryComponent implements OnInit {
   }
 
   get webLink() {
-    return clickableLink(this._ref);
+    return clickableLink(this.ref);
   }
 
   get comments() {
@@ -213,7 +213,7 @@ export class BlogEntryComponent implements OnInit {
       return;
     }
     const tag = field.value;
-    this.ts.create(tag, this._ref.url, this._ref.origin!).pipe(
+    this.ts.create(tag, this.ref.url, this.ref.origin!).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
@@ -267,7 +267,7 @@ export class BlogEntryComponent implements OnInit {
         ...this.editForm.value.plugins
       }),
     }).pipe(
-      switchMap(() => this.refs.get(this._ref.url, this._ref.origin)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -281,8 +281,8 @@ export class BlogEntryComponent implements OnInit {
 
   delete() {
     (this.admin.status.plugins.delete
-        ? this.refs.update(deleteNotice(this._ref))
-        : this.refs.delete(this._ref.url, this._ref.origin)
+        ? this.refs.update(deleteNotice(this.ref))
+        : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
