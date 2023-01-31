@@ -41,24 +41,6 @@ export class FilterComponent implements OnInit, OnDestroy {
     public store: Store,
   ) {
     for (const f of admin.filters) this.loadFilter(f);
-    const invoiceFilters = {
-      label: $localize`Invoices`,
-      filters: [] as FilterItem[],
-    };
-    if (admin.status.plugins.invoicePaid) {
-      invoiceFilters.filters.push(
-        { filter: '-plugin/invoice/paid', label: $localize`unpaid`},
-        { filter: 'plugin/invoice/paid', label: $localize`paid`});
-    }
-    if (admin.status.plugins.invoiceRejected) {
-      invoiceFilters.filters.push({ filter: 'plugin/invoice/rejected', label: $localize`rejected`});
-    }
-    if (admin.status.plugins.invoiceDisputed) {
-      invoiceFilters.filters.push({ filter: 'plugin/invoice/disputed', label: $localize`disputed`});
-    }
-    if (invoiceFilters.filters.length) {
-      this.allFilters.push(invoiceFilters);
-    }
     this.disposers.push(autorun(() => {
       this.filters = toJS(this.store.view.filter);
       if (!Array.isArray(this.filters)) this.filters = [this.filters];

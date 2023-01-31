@@ -1,10 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import * as _ from 'lodash-es';
-import * as moment from 'moment';
+import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { intersection, map, uniq } from 'lodash-es';
+import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, forkJoin, Observable, of } from 'rxjs';
-import { v4 as uuid } from 'uuid';
+import { Action } from '../../model/plugin';
 import { deleteNotice } from '../../plugin/delete';
+import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { PluginService } from '../../service/api/plugin.service';
@@ -13,6 +14,7 @@ import { ScrapeService } from '../../service/api/scrape.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
 import { UserService } from '../../service/api/user.service';
+import { AuthzService } from '../../service/authz.service';
 import { ExtStore } from '../../store/ext';
 import { PluginStore } from '../../store/plugin';
 import { QueryStore } from '../../store/query';
@@ -30,13 +32,16 @@ import { hasTag } from '../../util/tag';
   templateUrl: './bulk.component.html',
   styleUrls: ['./bulk.component.scss']
 })
-export class BulkComponent implements OnInit {
+export class BulkComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'bulk actions';
   tagRegex = TAGS_REGEX.source;
+
+  private disposers: IReactionDisposer[] = [];
 
   @Input()
   type: Type = 'ref';
 
+  actions: Action[] = [];
   batchRunning = false;
   tagging = false;
   deleting = false;
@@ -44,6 +49,7 @@ export class BulkComponent implements OnInit {
 
   constructor(
     public admin: AdminService,
+    public auth: AuthzService,
     public store: Store,
     public query: QueryStore,
     public ext: ExtStore,
@@ -55,16 +61,27 @@ export class BulkComponent implements OnInit {
     private users: UserService,
     private plugins: PluginService,
     private templates: TemplateService,
+    private acts: ActionService,
     private ts: TaggingService,
     private scraper: ScrapeService,
-  ) { }
+  ) {
+    this.disposers.push(autorun(() => {
+      const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
+      this.actions = this.admin.getActions(commonTags).filter(a => a.response || this.auth.tagReadAccess(a.tag));
+    }))
+  }
 
   ngOnInit(): void {
   }
 
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
+  }
+
   get urls() {
     if (!this.query.page?.content.length) return [];
-    return _.uniq(this.query.page!.content.map(ref => ref.url));
+    return uniq(this.query.page!.content.map(ref => ref.url));
   }
 
   batch(fn: (e: any) => Observable<any>) {
@@ -144,59 +161,13 @@ export class BulkComponent implements OnInit {
     });
   }
 
-  accept() {
-    this.batch(ref => {
-      if (ref.metadata?.plugins?.['plugin/invoice/disputed'].length) {
-        return this.refs.delete(ref.metadata!.plugins['plugin/invoice/disputed'][0]);
-      } else {
-        return of(null);
-      }
-    });
+  doAction(a: Action) {
+    this.batch(ref => this.acts.apply(ref, a));
   }
 
-  dispute() {
-    this.batch(ref => this.refs.create({
-      url: 'internal:' + uuid(),
-      published: moment(),
-      tags: ['internal', this.store.account.localTag, 'plugin/invoice/disputed'],
-      sources: [ref.url],
-    }));
-  }
-
-  markPaid() {
-    this.batch(ref => {
-      if (ref.metadata?.plugins?.['plugin/invoice/rejected'].length) {
-        return forkJoin(
-          this.refs.delete(ref.metadata!.plugins['plugin/invoice/rejected'][0]),
-          this.refs.create({
-            url: 'internal:' + uuid(),
-            published: moment(),
-            tags: ['internal', this.store.account.localTag, 'plugin/invoice/paid'],
-            sources: [ref.url],
-          })
-        );
-      } else {
-        return of(null);
-      }
-    });
-  }
-
-  reject() {
-    this.batch(ref => {
-      if (ref.metadata?.plugins?.['plugin/invoice/paid'].length) {
-        return forkJoin(
-          this.refs.delete(ref.metadata!.plugins['plugin/invoice/paid'][0]),
-          this.refs.create({
-            url: 'internal:' + uuid(),
-            published: moment(),
-            tags: ['internal', this.store.account.localTag, 'plugin/invoice/rejected'],
-            sources: [ref.url],
-          })
-        );
-      } else {
-        return of(null);
-      }
-    });
+  label(a: Action) {
+    if (a.labelOff && a.labelOn) return a.labelOff + ' / ' + a.labelOn;
+    return a.labelOff || a.labelOn;
   }
 
   scrape() {
@@ -214,5 +185,4 @@ export class BulkComponent implements OnInit {
       this.batch(tag => this.service.delete(tag.tag + tag.origin))
     }
   }
-
 }

@@ -53,6 +53,7 @@ export function writeTemplate(template: Partial<Template>): Partial<Template> {
   result.modified = result.modifiedString as any;
   delete result.type;
   delete result.modifiedString;
+  delete result._ui;
   return result;
 }
 

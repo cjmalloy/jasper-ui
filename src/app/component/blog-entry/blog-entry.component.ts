@@ -3,13 +3,15 @@ import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core'
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, mergeMap, switchMap, throwError } from 'rxjs';
+import { catchError, mergeMap, Observable, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Ext } from '../../model/ext';
+import { Action, active, Icon, Visibility, visible } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { deleteNotice } from '../../plugin/delete';
+import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -38,6 +40,8 @@ export class BlogEntryComponent implements OnInit {
   editForm: UntypedFormGroup;
   submitted = false;
   expandPlugins: string[] = [];
+  icons: Icon[] = [];
+  actions: Action[] = [];
   tagging = false;
   editing = false;
   viewSource = false;
@@ -55,6 +59,7 @@ export class BlogEntryComponent implements OnInit {
     private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
+    private acts: ActionService,
     private scraper: ScrapeService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
@@ -80,9 +85,9 @@ export class BlogEntryComponent implements OnInit {
     this.tagging = false;
     this._ref = value;
     this.writeAccess = this.auth.writeAccess(value);
-    if (value.tags) {
-      this.expandPlugins = this.admin.getEmbeds(value.tags);
-    }
+    this.icons = this.admin.getIcons(value.tags || []);
+    this.actions = this.admin.getActions(value.tags || []).filter(a => a.response || this.auth.tagReadAccess(a.tag));
+    this.expandPlugins = this.admin.getEmbeds(value.tags || []);
   }
 
   @ViewChild(RefFormComponent)
@@ -96,10 +101,6 @@ export class BlogEntryComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  get local() {
-    return this.ref.origin === this.store.account.origin;
-  }
-
   get canInvoice() {
     if (this._ref.origin) return false;
     if (!this.admin.status.plugins.invoice) return false;
@@ -109,21 +110,21 @@ export class BlogEntryComponent implements OnInit {
       !hasTag('internal', this._ref);
   }
 
-  get invoice() {
-    return this.admin.status.plugins.invoice &&
-      hasTag('plugin/invoice', this._ref);
+  private runAndLoad(observable: Observable<any>) {
+    observable.pipe(
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(ref => {
+      this.serverError = [];
+      this.ref = ref;
+    });
   }
 
-  get disputed() {
-    return this._ref.metadata?.plugins?.['plugin/invoice/disputed'];
-  }
-
-  get paid() {
-    return this._ref.metadata?.plugins?.['plugin/invoice/paid'];
-  }
-
-  get rejected() {
-    return this._ref.metadata?.plugins?.['plugin/invoice/rejected'];
+  get local() {
+    return this.ref.origin === this.store.account.origin;
   }
 
   get pdf() {
@@ -181,14 +182,6 @@ export class BlogEntryComponent implements OnInit {
     return clickableLink(this._ref);
   }
 
-  get approved() {
-    return hasTag('_moderated', this._ref);
-  }
-
-  get locked() {
-    return hasTag('locked', this._ref);
-  }
-
   get comments() {
     if (!this.admin.status.plugins.comment) return undefined;
     if (!this._ref.metadata?.modified) return undefined;
@@ -244,136 +237,28 @@ export class BlogEntryComponent implements OnInit {
     });
   }
 
-  approve() {
-    this.refs.patch(this._ref.url, this._ref.origin!, [{
-      op: 'add',
-      path: '/tags/-',
-      value: '_moderated',
-    }]).pipe(
-      switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
+  visible(v: Visibility) {
+    return visible(v, this.isAuthor, this.isRecipient);
   }
 
-  accept() {
-    if ((this._ref.metadata!.plugins?.['plugin/invoice/disputed'] || 0) > 1) {
-      console.warn('Multiple disputes found');
-    }
-    this.refs.page({
-      responses: this._ref.url,
-      query: 'plugin/invoice/disputed:' + this.store.account.localTag,
-      size: 1
-    }).pipe(
-      mergeMap(page => this.refs.delete(page.content[0].url)),
-      switchMap(() => this.refs.get(this._ref.url)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
+  active(a: Action | Icon) {
+    return active(this.ref, a);
   }
 
-  dispute() {
-    this.refs.create({
-      url: 'internal:' + uuid(),
-      published: moment(),
-      tags: ['internal', this.store.account.localTag, 'plugin/invoice/disputed'],
-      sources: [this._ref.url],
-    }).pipe(
-      switchMap(() => this.refs.get(this._ref.url)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
+  showIcon(i: Icon) {
+    return this.visible(i) && this.active(i);
   }
 
-  markPaid() {
-    if (this._ref.metadata?.plugins?.['plugin/invoice/rejected']) {
-      if (this._ref.metadata?.plugins?.['plugin/invoice/rejected'] > 1) {
-        console.warn('Multiple rejections found');
-      }
-      this.refs.page({
-        responses: this._ref.url,
-        query: 'plugin/invoice/rejected:' + this.store.account.localTag,
-        size: 1
-      }).pipe(
-        mergeMap(page => this.refs.delete(page.content[0].url)),
-        switchMap(() => this.refs.get(this._ref.url)),
-        catchError((err: HttpErrorResponse) => {
-          this.serverError = printError(err);
-          return throwError(() => err);
-        }),
-      ).subscribe(ref => {
-        this.serverError = [];
-        this.ref = ref;
-      });
-    }
-    this.refs.create({
-      url: 'internal:' + uuid(),
-      published: moment(),
-      tags: ['internal', this.store.account.localTag, 'plugin/invoice/paid'],
-      sources: [this._ref.url],
-    }).pipe(
-      switchMap(() => this.refs.get(this._ref.url)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
+  showAction(a: Action) {
+    if (a.tag && !this.writeAccess) return false;
+    if (!this.visible(a)) return false;
+    if (this.active(a) && !a.labelOn) return false;
+    if (!this.active(a) && !a.labelOff) return false;
+    return true;
   }
 
-  reject() {
-    if (this._ref.metadata?.plugins?.['plugin/invoice/paid']) {
-      if (this._ref.metadata?.plugins?.['plugin/invoice/paid'] > 1) {
-        console.warn('Multiple paid approvals found');
-      }
-      this.refs.page({
-        responses: this._ref.url,
-        query: 'plugin/invoice/paid:' + this.store.account.localTag,
-        size: 1
-      }).pipe(
-        mergeMap(page => this.refs.delete(page.content[0].url)),
-        switchMap(() => this.refs.get(this._ref.url)),
-        catchError((err: HttpErrorResponse) => {
-          this.serverError = printError(err);
-          return throwError(() => err);
-        }),
-      ).subscribe(ref => {
-        this.serverError = [];
-        this.ref = ref;
-      });
-    }
-    this.refs.create({
-      url: 'internal:' + uuid(),
-      published: moment(),
-      tags: ['internal', this.store.account.localTag, 'plugin/invoice/rejected'],
-      sources: [this._ref.url],
-    }).pipe(
-      switchMap(() => this.refs.get(this._ref.url)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
+  doAction(a: Action) {
+    this.runAndLoad(this.acts.apply(this.ref, a));
   }
 
   save() {

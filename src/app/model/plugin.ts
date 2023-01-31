@@ -2,6 +2,7 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
 import * as moment from 'moment';
+import { hasTag } from '../util/tag';
 import { Ref } from './ref';
 import { Tag } from './tag';
 
@@ -22,9 +23,9 @@ export interface Plugin extends Tag {
      */
     submit?: string,
     description?: string,
-    icon?: string,
+    icons?: Icon[],
     /**
-     * Add an action to the Ref actions bar that toggles a tag.
+     * Add an action to the Ref actions bar that toggles a tag or tag response.
      */
     actions?: Action[],
     /**
@@ -40,17 +41,85 @@ export interface Plugin extends Tag {
   _ui?: HandlebarsTemplateDelegate;
 }
 
-export interface Action {
-  tag: string,
-  labelOn?: string,
-  labelOff?: string,
+export interface Visibility {
+  /**
+   * If set, limits visibility to the indicated parties.
+   */
+  visible?: 'author' | 'recipient' | 'participant';
+}
+
+export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) {
+  if (!v.visible) return true;
+  if (isAuthor) return v.visible === 'author' || v.visible === 'participant';
+  if (isRecipient) return v.visible === 'recipient' || v.visible === 'participant';
+  return false;
+}
+
+export interface Icon extends Visibility {
+  label: string;
+  /**
+   * If set, makes this icon conditional on a tag.
+   */
+  tag?: string;
+  /**
+   * If set, makes this icon conditional on a tag response.
+   */
+  response?: `plugin/${string}`;
+}
+
+export interface Action extends Visibility {
+  /**
+   * Add a tag directly to the Ref.
+   * If set, response must not be set.
+   */
+  tag?: string;
+  /**
+   * Add a tag response to the Ref.
+   * If set, tag must not be set.
+   */
+  response?: `plugin/${string}`;
+  /**
+   * Clear other tag responses when adding tag response.
+   * If set, tag must not be set.
+   */
+  clear?: `plugin/${string}`[];
+  /**
+   * Label to show when this action has been applied. In the case of response
+   * actions, the response plugin must have metadata generation turned on.
+   */
+  labelOn?: string;
+  /**
+   * Label to show when this action has not been applied. In the case of response
+   * actions, the response plugin must have metadata generation turned on.
+   */
+  labelOff?: string;
+  /**
+   * If set, limits visibility to the indicated parties.
+   */
+  visible?: 'author' | 'recipient' | 'participant';
+}
+
+export function active(ref: Ref, o: Action | Icon) {
+  if (!o.tag && !o.response) return true;
+  if (o.tag && hasTag(o.tag, ref)) return true;
+  if (o.response && ref.metadata?.plugins?.[o.response]) return true;
+  return false;
 }
 
 export interface PluginFilter {
-  query?: string,
-  response?: `plugin/${string}` | `-plugin/${string}`,
-  label?: string,
-  group?: string,
+  /**
+   * Filter based on a tag query.
+   * If set, response must not be set.
+   */
+  query?: string;
+  /**
+   * Filter based on plugin responses in metadata. Plugins must have be
+   * generating metadata to work.
+   * If set, query must not be set.
+   */
+  response?: `plugin/${string}` | `-plugin/${string}`;
+  label?: string;
+  group?: string;
 }
 
 export function mapPlugin(obj: any): Plugin {
@@ -71,6 +140,7 @@ export function writePlugin(plugin: Partial<Plugin>): Partial<Plugin> {
   result.modified = result.modifiedString as any;
   delete result.type;
   delete result.modifiedString;
+  delete result._ui;
   return result;
 }
 

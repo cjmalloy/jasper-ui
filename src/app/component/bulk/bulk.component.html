@@ -5,6 +5,10 @@
     <span class="fake-link"
           (click)="download()" i18n>download</span>
     <ng-container *ngIf="type === 'ref'">
+      <a *ngIf="store.account.poster"
+         class="fake-link"
+         routerLink="/submit"
+         [queryParams]="{source: urls}" i18n>reply</a>
       <a class="fake-link"
          (click)="tagging = !tagging" i18n>tag</a>
       <span *ngIf="tagging" class="inline-tagging">
@@ -34,30 +38,12 @@
         <a routerLink="/submit/invoice"
            [queryParams]="{url: urls}" i18n>invoice</a>
       </ng-container>
-      <ng-container *ngIf="admin.status.plugins.invoice">
-        <a *ngIf="admin.status.plugins.invoiceDisputed"
-           class="fake-link"
-           (click)="accept()" i18n>accept</a>
-        <a *ngIf="admin.status.plugins.invoiceDisputed"
-           class="fake-link"
-           (click)="dispute()" i18n>dispute</a>
-        <a *ngIf="admin.status.plugins.invoicePaid"
-           class="fake-link"
-           (click)="markPaid()" i18n>paid</a>
-        <a *ngIf="admin.status.plugins.invoiceRejected"
-           class="fake-link"
-           (click)="reject()" i18n>reject</a>
-      </ng-container>
       <a *ngIf="store.account.mod"
          class="fake-link"
          (click)="scrape()" i18n>scrape</a>
-      <a *ngIf="store.account.poster"
-         class="fake-link"
-         routerLink="/submit"
-         [queryParams]="{source: urls}" i18n>reply</a>
-      <a *ngIf="store.account.mod"
-         class="fake-link"
-         (click)="approve()" i18n>approve</a>
+      <ng-container *ngFor="let a of actions">
+        <a class="fake-link" (click)="doAction(a)">{{ label(a) }}</a>
+      </ng-container>
     </ng-container>
   </ng-container>
 

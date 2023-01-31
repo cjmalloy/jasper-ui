@@ -14,8 +14,9 @@
       <a *ngIf="clickableLink" [href]="ref.url | safe" target="_blank">{{ ref.title || ref.url }}</a>
       <a *ngIf="!clickableLink" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a><wbr>
       <span class="host">({{ host }})</span>
-      <span *ngFor="let icon of icons" class="icon">{{ icon }}</span>
-      <span class="lock icon" *ngIf="locked" i18n-title title="Locked">🔒️</span>
+      <ng-container *ngFor="let icon of icons">
+        <span *ngIf="showIcon(icon)" class="icon">{{ icon.label }}</span>
+      </ng-container>
     </div>
     <div class="link-below">
       <div class="toggle toggle-comment"
@@ -90,6 +91,7 @@
           </ng-container>
           <ng-container *ngIf="ref.created">
             <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }" i18n>permalink</a>
+            <a *ngIf="store.account.poster" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
             <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>{{ comments.replace(' ', '&thinsp;') }}</a>
             <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{{ responses.replace(' ', '&thinsp;') }}</a>
             <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }" i18n>parent</a>
@@ -127,31 +129,11 @@
               <a routerLink="/submit/invoice"
                  [queryParams]="{url: ref.url}" i18n>invoice</a>
             </ng-container>
-            <ng-container *ngIf="invoice">
-              <span *ngIf="disputed" i18n>disputed!&nbsp;</span>
-              <a *ngIf="disputed && isAuthor"
-                 class="fake-link"
-                 (click)="accept()" i18n>accept</a>
-              <a *ngIf="!disputed && isAuthor"
-                 class="fake-link"
-                 (click)="dispute()" i18n>dispute</a>
-              <span *ngIf="paid" i18n>paid!&nbsp;</span>
-              <a *ngIf="!paid && isRecipient"
-                 class="fake-link"
-                 (click)="markPaid()" i18n>paid</a>
-              <span *ngIf="rejected" i18n>rejected!&nbsp;</span>
-              <a *ngIf="!rejected && isRecipient"
-                 class="fake-link"
-                 (click)="reject()" i18n>reject</a>
-            </ng-container>
             <a *ngIf="pdf" target="_blank" [href]="pdf" i18n>pdf</a>
             <a *ngIf="clickableLink && archive" target="_blank" [href]="archive" i18n>archive</a>
             <a *ngIf="store.account.mod && scrapeable" class="fake-link" (click)="scrape()" i18n>scrape</a>
-            <a *ngIf="store.account.poster" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
-            <ng-container *ngIf="local">
-              <ng-container *ngFor="let a of actions">
-                <a class="fake-link" (click)="toggleAction(a)">{{ actionOn(a) ? a.labelOn : a.labelOff }}</a>
-              </ng-container>
+            <ng-container *ngFor="let a of actions">
+              <a *ngIf="showAction(a)" class="fake-link" (click)="doAction(a)">{{ active(a) ? a.labelOn : a.labelOff }}</a>
             </ng-container>
           </ng-container>
         </div>

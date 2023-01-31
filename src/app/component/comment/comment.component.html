@@ -5,7 +5,9 @@
       {{ formatAuthor(user) }}
     </a>
   </ng-container>
-  <span class="lock icon" *ngIf="locked" i18n-title title="Locked" i18n>🔒️</span>
+  <ng-container *ngFor="let icon of icons">
+    <span *ngIf="showIcon(icon)" class="icon">{{ icon.label }}</span>
+  </ng-container>
   <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
   <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="ref.modified?.fromNow()">*</span>
   {{ comments }}
@@ -42,6 +44,7 @@
                     [commentEdited$]="commentEdited$"></app-comment-edit>
   <div class="actions">
     <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>permalink</a>
+    <a class="fake-link" (click)="replying = !replying" i18n>reply</a>
     <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{{ responses.replace(' ', '&thinsp;') }}</a>
     <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }" i18n>parent</a>
     <a *ngIf="sources !== 'parent'" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }" i18n>{{ sources.replace(' ', '&thinsp;')}}</a>
@@ -70,16 +73,13 @@
              appAutofocus>
       <button (click)="addInlineTag(inlineTag)" i18n>+</button>
     </span>
-    <a class="fake-link"
-       (click)="replying = !replying" i18n>reply</a>
     <ng-container *ngIf="canInvoice">
       <a [routerLink]="['/submit/invoice']"
          [queryParams]="{ url: ref.url }" i18n>invoice</a>
     </ng-container>
-    <a *ngIf="store.account.mod && !approved"
-       class="fake-link"
-       (click)="approve()" i18n>approve</a>
-    <span class="approved icon" *ngIf="store.account.mod && approved" i18n-title title="Moderated" i18n>✔️</span>
+    <ng-container *ngFor="let a of actions">
+      <a *ngIf="showAction(a)" class="fake-link" (click)="doAction(a)">{{ active(a) ? a.labelOn : a.labelOff }}</a>
+    </ng-container>
   </div>
 </div>
 <app-comment-reply *ngIf="replying"

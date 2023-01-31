@@ -3,14 +3,14 @@ import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core'
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, mergeMap, switchMap, throwError } from 'rxjs';
+import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
-import { Action } from '../../model/plugin';
+import { Action, active, Icon, Visibility, visible } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { deleteNotice } from '../../plugin/delete';
+import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -51,7 +51,7 @@ export class RefComponent implements OnInit {
   editForm: UntypedFormGroup;
   submitted = false;
   expandPlugins: string[] = [];
-  icons: string[] = [];
+  icons: Icon[] = [];
   actions: Action[] = [];
   tagging = false;
   editing = false;
@@ -72,6 +72,7 @@ export class RefComponent implements OnInit {
     private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
+    private acts: ActionService,
     private scraper: ScrapeService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
@@ -106,7 +107,7 @@ export class RefComponent implements OnInit {
     this._ref = value;
     this.writeAccess = this.auth.writeAccess(value);
     this.icons = this.admin.getIcons(value.tags || []);
-    this.actions = this.admin.getActions(value.tags || []).filter(a => this.auth.tagReadAccess(a.tag));
+    this.actions = this.admin.getActions(value.tags || []).filter(a => a.response || this.auth.tagReadAccess(a.tag));
     this.expandPlugins = this.admin.getEmbeds(value.tags || []);
   }
 
@@ -119,6 +120,19 @@ export class RefComponent implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  private runAndLoad(observable: Observable<any>) {
+    observable.pipe(
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(ref => {
+      this.serverError = [];
+      this.ref = ref;
+    });
   }
 
   get local() {
@@ -179,38 +193,21 @@ export class RefComponent implements OnInit {
 
   get thumbnail() {
     return this.admin.status.plugins.thumbnail &&
-      hasTag('plugin/thumbnail', this._ref);
+      hasTag('plugin/thumbnail', this.ref);
   }
 
   get person() {
     return this.admin.status.plugins.person &&
-      hasTag('plugin/person', this._ref);
+      hasTag('plugin/person', this.ref);
   }
 
   get canInvoice() {
-    if (this._ref.origin) return false;
+    if (this.ref.origin) return false;
     if (!this.admin.status.plugins.invoice) return false;
     if (!this.isAuthor) return false;
-    if (!this._ref.sources || !this._ref.sources.length) return false;
-    return hasTag('plugin/comment', this._ref) ||
-      !hasTag('internal', this._ref);
-  }
-
-  get invoice() {
-    return this.admin.status.plugins.invoice &&
-      hasTag('plugin/invoice', this._ref);
-  }
-
-  get disputed() {
-    return this._ref.metadata?.plugins?.['plugin/invoice/disputed'];
-  }
-
-  get paid() {
-    return this._ref.metadata?.plugins?.['plugin/invoice/paid'];
-  }
-
-  get rejected() {
-    return this._ref.metadata?.plugins?.['plugin/invoice/rejected'];
+    if (!this.ref.sources || !this.ref.sources.length) return false;
+    return hasTag('plugin/comment', this.ref) ||
+      !hasTag('internal', this.ref);
   }
 
   get pdf() {
@@ -245,41 +242,37 @@ export class RefComponent implements OnInit {
         }
       }
     }
-    return 'https://archive.ph/newest/' + this._ref.url;
+    return 'https://archive.ph/newest/' + this.ref.url;
   }
 
   get isAuthor() {
-    return isOwnerTag(this.store.account.tag, this._ref);
+    return isOwnerTag(this.store.account.tag, this.ref);
   }
 
   get isRecipient() {
-    return hasTag(this.store.account.mailbox, this._ref);
+    return hasTag(this.store.account.mailbox, this.ref);
   }
 
   get authors() {
-    return authors(this._ref);
+    return authors(this.ref);
   }
 
   get tags() {
-    return interestingTags(this._ref.tags);
+    return interestingTags(this.ref.tags);
   }
 
   get host() {
-    return urlSummary(this._ref.url);
+    return urlSummary(this.ref.url);
   }
 
   get clickableLink() {
-    return clickableLink(this._ref);
-  }
-
-  get locked() {
-    return hasTag('locked', this._ref);
+    return clickableLink(this.ref);
   }
 
   get comments() {
     if (!this.admin.status.plugins.comment) return undefined;
-    if (!this._ref.metadata?.modified) return undefined;
-    let commentCount = this._ref.metadata?.plugins?.['plugin/comment'] || 0;
+    if (!this.ref.metadata?.modified) return undefined;
+    let commentCount = this.ref.metadata?.plugins?.['plugin/comment'] || 0;
     if (!commentCount) return undefined;
     if (commentCount === 0) return 'comment';
     if (commentCount === 1) return '1 comment';
@@ -287,8 +280,8 @@ export class RefComponent implements OnInit {
   }
 
   get responses() {
-    if (!this._ref.metadata?.modified) return undefined;
-    let responseCount = this._ref.metadata?.responses || 0;
+    if (!this.ref.metadata?.modified) return undefined;
+    let responseCount = this.ref.metadata?.responses || 0;
     if (!responseCount) return undefined;
     if (this.feed) {
       return responseCount + ' scraped';
@@ -298,7 +291,7 @@ export class RefComponent implements OnInit {
   }
 
   get sources() {
-    const sourceCount = this._ref.sources?.length || 0;
+    const sourceCount = this.ref.sources?.length || 0;
     if (!sourceCount) return undefined;
     if (sourceCount === 1) return 'parent';
     return sourceCount + ' sources';
@@ -321,164 +314,35 @@ export class RefComponent implements OnInit {
         Private tags start with an underscore.`];
       return;
     }
-    const tag = field.value.toLowerCase().trim();
-    this.ts.create(tag, this._ref.url, this._ref.origin!).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.tagging = false;
-      this.ref = ref;
-    });
+    this.runAndLoad(this.ts.create(field.value, this.ref.url, this.ref.origin!));
   }
 
-  actionOn(a: Action) {
-    return hasTag(a.tag, this._ref);
+  visible(v: Visibility) {
+    return visible(v, this.isAuthor, this.isRecipient);
   }
 
-  toggleAction(a: Action) {
-    const patch = (this.actionOn(a) ? '-' : '') + a.tag;
-    this.ts.create(patch, this._ref.url, this._ref.origin!).pipe(
-      switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this._ref = ref;
-    });
+  active(a: Action | Icon) {
+    return active(this.ref, a);
   }
 
-  accept() {
-    if ((this._ref.metadata!.plugins?.['plugin/invoice/disputed'] || 0) > 1) {
-      console.warn('Multiple disputes found');
-    }
-    this.refs.page({
-      responses: this._ref.url,
-      query: 'plugin/invoice/disputed:' + this.store.account.localTag,
-      size: 1
-    }).pipe(
-      mergeMap(page => this.refs.delete(page.content[0].url)),
-      switchMap(() => this.refs.get(this._ref.url)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
+  showIcon(i: Icon) {
+    return this.visible(i) && this.active(i);
   }
 
-  dispute() {
-    this.refs.create({
-      url: 'internal:' + uuid(),
-      published: moment(),
-      tags: ['internal', this.store.account.localTag, 'plugin/invoice/disputed'],
-      sources: [this._ref.url],
-    }).pipe(
-      switchMap(() => this.refs.get(this._ref.url)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
+  showAction(a: Action) {
+    if (a.tag && !this.writeAccess) return false;
+    if (!this.visible(a)) return false;
+    if (this.active(a) && !a.labelOn) return false;
+    if (!this.active(a) && !a.labelOff) return false;
+    return true;
   }
 
-  markPaid() {
-    if (this._ref.metadata?.plugins?.['plugin/invoice/rejected']) {
-      if (this._ref.metadata?.plugins?.['plugin/invoice/rejected'] > 1) {
-        console.warn('Multiple rejections found');
-      }
-      this.refs.page({
-        responses: this._ref.url,
-        query: 'plugin/invoice/rejected:' + this.store.account.localTag,
-        size: 1
-      }).pipe(
-        mergeMap(page => this.refs.delete(page.content[0].url)),
-        switchMap(() => this.refs.get(this._ref.url)),
-        catchError((err: HttpErrorResponse) => {
-          this.serverError = printError(err);
-          return throwError(() => err);
-        }),
-      ).subscribe(ref => {
-        this.serverError = [];
-        this.ref = ref;
-      });
-    }
-    this.refs.create({
-      url: 'internal:' + uuid(),
-      published: moment(),
-      tags: ['internal', this.store.account.localTag, 'plugin/invoice/paid'],
-      sources: [this._ref.url],
-    }).pipe(
-      switchMap(() => this.refs.get(this._ref.url)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
-  }
-
-  reject() {
-    if (this._ref.metadata?.plugins?.['plugin/invoice/paid']) {
-      if (this._ref.metadata?.plugins?.['plugin/invoice/paid'] > 1) {
-        console.warn('Multiple paid approvals found');
-      }
-      this.refs.page({
-        responses: this._ref.url,
-        query: 'plugin/invoice/paid:' + this.store.account.localTag,
-        size: 1
-      }).pipe(
-        mergeMap(page => this.refs.delete(page.content[0].url)),
-        switchMap(() => this.refs.get(this._ref.url)),
-        catchError((err: HttpErrorResponse) => {
-          this.serverError = printError(err);
-          return throwError(() => err);
-        }),
-      ).subscribe(ref => {
-        this.serverError = [];
-        this.ref = ref;
-      });
-    }
-    this.refs.create({
-      url: 'internal:' + uuid(),
-      published: moment(),
-      tags: ['internal', this.store.account.localTag, 'plugin/invoice/rejected'],
-      sources: [this._ref.url],
-    }).pipe(
-      switchMap(() => this.refs.get(this._ref.url)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
+  doAction(a: Action) {
+    this.runAndLoad(this.acts.apply(this.ref, a));
   }
 
   scrape() {
-    this.scraper.feed(this.ref.url, this.ref.origin!).pipe(
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin)),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
+    this.runAndLoad(this.scraper.feed(this.ref.url, this.ref.origin!));
   }
 
   save() {
@@ -499,7 +363,7 @@ export class RefComponent implements OnInit {
         ...this.editForm.value.plugins,
       }),
     }).pipe(
-      switchMap(() => this.refs.get(this._ref.url, this._ref.origin)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin)),
       tap(ref => this.publishChanged = !published.isSame(ref.published)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
@@ -507,15 +371,14 @@ export class RefComponent implements OnInit {
       }),
     ).subscribe(ref => {
       this.serverError = [];
-      this.editing = false;
       this.ref = ref;
     });
   }
 
   delete() {
     (this.admin.status.plugins.delete
-      ? this.refs.update(deleteNotice(this._ref))
-      : this.refs.delete(this._ref.url, this._ref.origin)
+      ? this.refs.update(deleteNotice(this.ref))
+      : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);

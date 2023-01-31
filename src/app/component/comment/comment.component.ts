@@ -1,9 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { filter, uniq } from 'lodash-es';
-import { catchError, Subject, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
+import { Action, active, Icon, Visibility, visible } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { mailboxes } from '../../plugin/mailbox';
+import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
@@ -36,6 +38,8 @@ export class CommentComponent implements OnInit, OnDestroy {
   _ref!: Ref;
   commentEdited$ = new Subject<Ref>();
   newComments$ = new Subject<Ref | null>();
+  icons: Icon[] = [];
+  actions: Action[] = [];
   collapsed = false;
   replying = false;
   editing = false;
@@ -49,6 +53,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     public store: Store,
     private auth: AuthzService,
     private refs: RefService,
+    private acts: ActionService,
     private ts: TaggingService,
   ) { }
 
@@ -63,8 +68,13 @@ export class CommentComponent implements OnInit, OnDestroy {
   @Input()
   set ref(value: Ref) {
     this._ref = value;
+    this.deleting = false;
+    this.editing = false;
+    this.tagging = false;
     this.collapsed = this.store.local.isRefToggled(this._ref.url, false);
     this.writeAccess = this.auth.writeAccess(this._ref);
+    this.icons = this.admin.getIcons(value.tags || []);
+    this.actions = this.admin.getActions(value.tags || []).filter(a => a.response || this.auth.tagReadAccess(a.tag));
   }
 
   ngOnInit(): void {
@@ -95,6 +105,19 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private runAndLoad(observable: Observable<any>) {
+    observable.pipe(
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(ref => {
+      this.serverError = [];
+      this.ref = ref;
+    });
+  }
+
   get emoji() {
     return !!this.admin.status.plugins.emoji && hasTag('plugin/emoji', this._ref);
   }
@@ -116,6 +139,10 @@ export class CommentComponent implements OnInit, OnDestroy {
     return this.authors.includes(this.store.account.tag);
   }
 
+  get isRecipient() {
+    return hasTag(this.store.account.mailbox, this.ref);
+  }
+
   get authors() {
     return authors(this._ref);
   }
@@ -128,16 +155,8 @@ export class CommentComponent implements OnInit, OnDestroy {
     return interestingTags(this._ref.tags);
   }
 
-  get approved() {
-    return hasTag('_moderated', this._ref);
-  }
-
   get deleted() {
     return hasTag('plugin/deleted', this._ref);
-  }
-
-  get locked() {
-    return hasTag('locked', this._ref);
   }
 
   get comments() {
@@ -184,31 +203,31 @@ export class CommentComponent implements OnInit, OnDestroy {
         Private tags start with an underscore.`];
       return;
     }
-    const tag = field.value.toLowerCase().trim();
-    this.ts.create(tag, this._ref.url, this._ref.origin!).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.tagging = false;
-      this.ref = ref;
-    });
+    this.runAndLoad(this.ts.create(field.value.trim(), this._ref.url, this._ref.origin!));
   }
 
-  approve() {
-    this.ts.create('_moderated', this._ref.url, this._ref.origin!).pipe(
-      switchMap(() => this.refs.get(this._ref.url, this._ref.origin!)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this._ref = ref;
-    });
+  visible(v: Visibility) {
+    return visible(v, this.isAuthor, this.isRecipient);
+  }
+
+  active(a: Action | Icon) {
+    return active(this.ref, a);
+  }
+
+  showIcon(i: Icon) {
+    return this.visible(i) && this.active(i);
+  }
+
+  showAction(a: Action) {
+    if (a.tag && !this.writeAccess) return false;
+    if (!this.visible(a)) return false;
+    if (this.active(a) && !a.labelOn) return false;
+    if (!this.active(a) && !a.labelOff) return false;
+    return true;
+  }
+
+  doAction(a: Action) {
+    this.runAndLoad(this.acts.apply(this.ref, a));
   }
 
   delete() {

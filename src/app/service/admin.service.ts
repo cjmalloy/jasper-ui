@@ -4,7 +4,7 @@ import * as _ from 'lodash-es';
 import { flatten } from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Action, Plugin, PluginFilter } from '../model/plugin';
+import { Action, Icon, Plugin, PluginFilter } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { archivePlugin } from '../plugin/archive';
@@ -88,6 +88,8 @@ export class AdminService {
     },
   };
 
+  private _uis?: string[];
+  private _forms?: string[];
   private _embeddable?: string[];
   private _icons?: string[];
   private _actions?: string[];
@@ -151,6 +153,24 @@ export class AdminService {
     return _.findKey(dict, p => p.tag === tag) || tag;
   }
 
+  get uis() {
+    if (!this._uis) {
+      this._uis = flatten(Object.values(this.status.plugins)
+        .filter(p => p?.config?.ui)
+        .map(p => p!.tag));
+    }
+    return this._uis;
+  }
+
+  get forms() {
+    if (!this._forms) {
+      this._forms = flatten(Object.values(this.status.plugins)
+        .filter(p => p?.config?.form)
+        .map(p => p!.tag));
+    }
+    return this._forms;
+  }
+
   get embeddable() {
     if (!this._embeddable) {
       this._embeddable = Object.values(this.status.plugins)
@@ -171,7 +191,7 @@ export class AdminService {
   get icons() {
     if (!this._icons) {
       this._icons = flatten(Object.values(this.status.plugins)
-        .filter(p => p?.config?.icon)
+        .filter(p => p?.config?.icons)
         .map(p => p!.tag));
     }
     return this._icons;
@@ -196,7 +216,7 @@ export class AdminService {
   }
 
   getEmbeds(tags: string[] = []) {
-    return tagIntersection(tags, this.embeddable);
+    return tagIntersection(['plugin', ...tags], this.embeddable);
   }
 
   getActions(tags: string[] = []) {
@@ -205,8 +225,8 @@ export class AdminService {
   }
 
   getIcons(tags: string[] = []) {
-    return flatten(tagIntersection(tags, this.icons)
-      .map(t => this.getPlugin(t)!.config!.icon as string));
+    return flatten(tagIntersection(['plugin', ...tags], this.icons)
+      .map(t => this.getPlugin(t)!.config!.icons as Icon[]));
   }
 
   getPlugin(tag: string) {
@@ -214,9 +234,8 @@ export class AdminService {
   }
 
   getPluginUi(tags: string[] = []) {
-    return tags
-      .map(t => this.getPlugin(t))
-      .filter(p => p?.config?.ui) as Plugin[];
+    return tagIntersection(['plugin', ...tags], this.uis)
+      .map(t => this.getPlugin(t)) as Plugin[];
   }
 
   getSubmitPlugins() {
@@ -225,9 +244,8 @@ export class AdminService {
   }
 
   getPluginForms(tags: string[] = []) {
-    return tags
-      .map(t => this.getPlugin(t))
-      .filter(p => p?.config?.form) as Plugin[];
+    return tagIntersection(['plugin', ...tags], this.forms)
+      .map(t => this.getPlugin(t)) as Plugin[];
   }
 
   getTemplate(tag: string) {

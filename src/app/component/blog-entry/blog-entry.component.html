@@ -3,6 +3,9 @@
     <h2 class="link" [class.remote]="!local">
       <a *ngIf="webLink" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
       <span *ngIf="!webLink">{{ ref.title || ref.url }}</span>
+      <ng-container *ngFor="let icon of icons">
+        <span *ngIf="showIcon(icon)" class="icon">{{ icon.label }}</span>
+      </ng-container>
     </h2>
     <div class="link-below">
       <div class="stack">
@@ -27,6 +30,7 @@
         </div>
         <div class="actions">
           <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }" i18n>permalink</a>
+          <a *ngIf="store.account.poster" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
           <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>{{ comments.replace(' ', '&thinsp;') }}</a>
           <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{{ responses.replace(' ', '&thinsp;') }}</a>
           <a *ngIf="sources === 'parent'" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }" i18n>parent</a>
@@ -58,36 +62,17 @@
                    autocorrect="off"
                    autocapitalize="none"
                    appAutofocus>
-              <button (click)="addInlineTag(inlineTag)" i18n>+</button>
-            </span>
+            <button (click)="addInlineTag(inlineTag)" i18n>+</button>
+          </span>
           <ng-container *ngIf="canInvoice">
             <a [routerLink]="['/submit/invoice']"
                [queryParams]="{url: ref.url}" i18n>invoice</a>
           </ng-container>
-          <ng-container *ngIf="invoice">
-            <span *ngIf="disputed" i18n>disputed!&nbsp;</span>
-            <a *ngIf="disputed && isAuthor"
-               class="fake-link"
-               (click)="accept()" i18n>accept</a>
-            <a *ngIf="!disputed && isAuthor"
-               class="fake-link"
-               (click)="dispute()" i18n>dispute</a>
-            <span *ngIf="paid" i18n>paid!&nbsp;</span>
-            <a *ngIf="!paid && isRecipient"
-               class="fake-link"
-               (click)="markPaid()" i18n>paid</a>
-            <span *ngIf="rejected" i18n>rejected!&nbsp;</span>
-            <a *ngIf="!rejected && isRecipient"
-               class="fake-link"
-               (click)="reject()" i18n>reject</a>
-          </ng-container>
           <a *ngIf="pdf" target="_blank" [href]="pdf" i18n>pdf</a>
           <a *ngIf="webLink && archive" target="_blank" [href]="archive" i18n>archive</a>
-          <a *ngIf="store.account.poster" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
-          <a *ngIf="local && store.account.mod && !approved && !locked"
-             class="fake-link"
-             (click)="approve()" i18n>approve</a>
-          <span class="approved icon" *ngIf="store.account.mod && approved"  i18n-title title="Moderated" i18n>✔️</span>
+          <ng-container *ngFor="let a of actions">
+            <a *ngIf="showAction(a)" class="fake-link" (click)="doAction(a)">{{ active(a) ? a.labelOn : a.labelOff }}</a>
+          </ng-container>
         </div>
       </div>
     </div>
