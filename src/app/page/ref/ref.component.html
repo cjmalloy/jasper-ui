@@ -2,20 +2,20 @@
   <div class="tabs">
     <a routerLink="./" [queryParams]="{origin: store.view.origin}" [class.current-tab]="!store.view.current" i18n>summary</a>
     <ng-container *ngIf="store.view.ref?.created">
-      <ng-container *ngIf="admin.status.plugins.comment && store.view.ref!.metadata?.plugins?.['plugin/comment']">
+      <ng-container *ngIf="store.view.current === 'ref/comments' || comments">
         <a routerLink="./comments" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>comments</a>
       </ng-container>
-      <ng-container *ngIf="store.view.ref!.metadata?.responses">
+      <ng-container *ngIf="store.view.current === 'ref/responses' || responses">
         <a routerLink="./responses" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>responses</a>
       </ng-container>
-      <ng-container *ngIf="store.view.ref!.sources?.length">
+      <ng-container *ngIf="store.view.current === 'ref/sources' || sources">
         <a routerLink="./sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>sources</a>
         <a routerLink="./missing" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>missing sources</a>
       </ng-container>
-      <ng-container *ngIf="store.view.ref!.alternateUrls?.length">
+      <ng-container *ngIf="alts">
         <a routerLink="./alts" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>alts</a>
       </ng-container>
-      <ng-container *ngIf="error && store.view.versions || store.view.versions > 1">
+      <ng-container *ngIf="store.view.current === 'ref/versions' || error && store.view.versions || store.view.versions > 1">
         <a routerLink="./versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>versions</a>
       </ng-container>
     </ng-container>
