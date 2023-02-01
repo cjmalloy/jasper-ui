@@ -25,6 +25,9 @@ import { FormlyFieldTextArea } from './textarea.type';
     FormlyFieldSelect,
     QrScannerComponent,
   ],
+  exports: [
+    QrScannerComponent,
+  ],
   imports: [
     BrowserModule,
     ReactiveFormsModule,

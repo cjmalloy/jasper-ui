@@ -61,7 +61,7 @@ export class SubmitStore {
     return !this.wiki && !_.find(this.tags, t => this.plugins.find(p => p.tag === t));
   }
 
-  get noPlugins() {
+  get tagsWithoutTab() {
     return _.filter(this.tags, t => !this.plugins.find(p => p.tag === t));
   }
 

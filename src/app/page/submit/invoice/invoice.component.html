@@ -13,7 +13,10 @@
          [value]="queue || ''" (change)="queue = $any($event.target).value">
 
   <label for="qr" i18n>QR Code:</label>
-  <input id="qr" type="text" [formControl]="url" (blur)="checkUrl()">
+  <div class="form-array">
+    <input id="qr" type="text" [formControl]="url" (blur)="checkUrl()">
+    <app-qr-scanner (data)="$event && url.setValue($event)"></app-qr-scanner>
+  </div>
   <span><!-- QR Code Errors --></span>
   <div>
     <div class="error" *ngIf="url.touched && url.errors?.['required']" i18n>

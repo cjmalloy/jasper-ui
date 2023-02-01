@@ -9,7 +9,7 @@ import {
   Validators
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import * as _ from 'lodash-es';
+import { uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
@@ -127,7 +127,7 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   isShortener(url: string) {
     url = url.toLowerCase();
-    for (const frag of this.linkShorteners) {
+    for (const frag of this.bannedUrls) {
       if (url.includes(frag)) return true;
     }
     return false;
@@ -171,9 +171,9 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   togglePlugin(plugin: string) {
     if (this.store.submit.tags.includes(plugin)) {
-      return _.without(this.store.submit.tags, plugin);
+      return without(this.store.submit.tags, plugin);
     } else {
-      return _.uniq([plugin].concat(this.store.submit.tags));
+      return uniq([plugin].concat(this.store.submit.tags));
     }
   }
 
@@ -181,5 +181,17 @@ export class SubmitPage implements OnInit, OnDestroy {
     if (!linkType) throw 'invalid link';
     if (linkType === 'other') return 'web';
     return linkType;
+  }
+
+  scanQr(data: string) {
+    if (!data) return;
+    this.url.setValue(data);
+    this.router.navigate([], {
+      queryParams: {
+        url: data,
+        tag: uniq([...this.store.submit.tags, 'plugin/qr']),
+      } ,
+      queryParamsHandling: 'merge'
+    });
   }
 }

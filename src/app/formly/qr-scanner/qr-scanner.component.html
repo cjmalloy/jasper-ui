@@ -1,10 +1,6 @@
-<button type="button" (click)="imageFile.click()" i18n>📷</button>
-<input #imageFile
-       type="file"
-       accept="image/*"
-       style="display: none"
-       (change)="readQr(imageFile.files!)"/>
-<button type="button" (click)="scanQr()" i18n>🤳</button>
+<button type="button" (click)="imageFile.click()" i18n-title title="QR from photo or camera" i18n>📷</button>
+<input #imageFile type="file" accept="image/*" (change)="readQr(imageFile.files!)"/>
+<button type="button" (click)="scanQr()" i18n-title title="Scan for QR with video" i18n>🤳</button>
 <ng-template #video>
-  <video (click)="stopScanQr()"></video>
+  <video i18n-title title="Click anywhere to stop scanning" (click)="stopScanQr()"></video>
 </ng-template>

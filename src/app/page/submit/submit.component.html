@@ -1,30 +1,30 @@
 <ng-container *mobxAutorun>
   <div class="tabs">
     <h5 i18n>Submit</h5>
-    <a *ngIf="!store.submit.noPlugins.length"
+    <a *ngIf="!store.submit.tagsWithoutTab.length"
        routerLink="/submit"
        [class.current-tab]="store.submit.link"
        [queryParams]="{ tag: null, url: url.value }"
        [replaceUrl]="true"
        queryParamsHandling="merge" i18n>link</a>
-    <a *ngIf="store.submit.noPlugins.length"
+    <a *ngIf="store.submit.tagsWithoutTab.length"
        routerLink="/submit"
        [class.current-tab]="store.submit.link"
-       [queryParams]="{ tag: store.submit.noPlugins, url: url.value }"
+       [queryParams]="{ tag: store.submit.tagsWithoutTab, url: url.value }"
        [replaceUrl]="true"
-       queryParamsHandling="merge">{{ store.submit.noPlugins.join(', ') }}</a>
+       queryParamsHandling="merge">{{ store.submit.tagsWithoutTab.join(', ') }}</a>
     <a routerLink="/submit/text"
-       [queryParams]="{ tag: store.submit.noPlugins, url: null }"
+       [queryParams]="{ tag: store.submit.tagsWithoutTab, url: null }"
        queryParamsHandling="merge" i18n>text</a>
     <ng-container *ngIf="!admin.isWikiExternal()">
       <a routerLink="/submit"
          [class.current-tab]="store.submit.wiki"
-         [queryParams]="{ tag: store.submit.noPlugins, url: wikify }"
+         [queryParams]="{ tag: store.submit.tagsWithoutTab, url: wikify }"
          [replaceUrl]="true"
          queryParamsHandling="merge" i18n>wiki</a>
     </ng-container>
     <a routerLink="/submit/dm"
-       [queryParams]="{ tag: store.submit.noPlugins, url: null }"
+       [queryParams]="{ tag: store.submit.tagsWithoutTab, url: null }"
        queryParamsHandling="merge" i18n>dm</a>
     <a routerLink="/submit"
        [class.current-tab]="store.submit.tags.includes(plugin.tag)"
@@ -58,12 +58,15 @@
 
     <label for="url" class="big" *ngIf="!store.submit.wiki">URL:</label>
     <label for="url" class="big" *ngIf="store.submit.wiki">Title:</label>
-    <input id="url"
-           class="big"
-           type="text"
-           autocomplete="off"
-           formControlName="url"
-           appAutofocus>
+    <div class="form-array">
+      <input id="url"
+             class="big"
+             type="text"
+             autocomplete="off"
+             formControlName="url"
+             appAutofocus>
+      <app-qr-scanner (data)="scanQr($event)"></app-qr-scanner>
+    </div>
 
     <span><!-- Tags --></span>
     <div class="form-array right">
