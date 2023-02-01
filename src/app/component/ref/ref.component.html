@@ -20,10 +20,10 @@
     </div>
     <div class="link-below">
       <div class="toggle toggle-comment"
-           *ngIf="showToggle && (ref.comment || expandPlugins.length) && !editing"
-           (click)="store.local.setRefToggled(ref.url, expanded = !expanded)">
-        <span class="toggle-plus" *ngIf="!expanded">＋</span>
-        <span class="toggle-x" *ngIf="expanded">✕</span>
+           *ngIf="showToggle && (ref.comment || expandPlugins.length)"
+           (click)="editing ? editing = false : store.local.setRefToggled(ref.url, expanded = !expanded)">
+        <span class="toggle-plus" *ngIf="!editing && !expanded">＋</span>
+        <span class="toggle-x" *ngIf="editing || expanded">✕</span>
       </div>
       <div class="stack">
         <div class="info" [class.expanded]="!actionsExpanded">
