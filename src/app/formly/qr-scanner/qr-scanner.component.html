@@ -1,0 +1,10 @@
+<button type="button" (click)="imageFile.click()" i18n>📷</button>
+<input #imageFile
+       type="file"
+       accept="image/*"
+       style="display: none"
+       (change)="readQr(imageFile.files!)"/>
+<button type="button" (click)="scanQr()" i18n>🤳</button>
+<ng-template #video>
+  <video (click)="stopScanQr()"></video>
+</ng-template>

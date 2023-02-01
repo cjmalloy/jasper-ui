@@ -1,3 +1,4 @@
+import { OverlayModule } from '@angular/cdk/overlay';
 import { NgModule } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
@@ -8,6 +9,7 @@ import { FormlyFieldCheckbox } from './checkbox.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
 import { FormlyFieldInput } from './input.type';
 import { FormlyFieldMultiCheckbox } from './multicheckbox.type';
+import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
 import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldSelect } from './select.type';
 import { FormlyFieldTextArea } from './textarea.type';
@@ -21,10 +23,12 @@ import { FormlyFieldTextArea } from './textarea.type';
     FormlyFieldMultiCheckbox,
     FormlyFieldRadio,
     FormlyFieldSelect,
+    QrScannerComponent,
   ],
   imports: [
     BrowserModule,
     ReactiveFormsModule,
+    OverlayModule,
     FormlySelectModule,
     FormlyModule.forRoot({
       wrappers: [{
@@ -69,6 +73,9 @@ import { FormlyFieldTextArea } from './textarea.type';
             }
           },
         },
+      }, {
+        name: 'qr',
+        extends: 'url',
       }, {
         name: 'textarea',
         component: FormlyFieldTextArea,
