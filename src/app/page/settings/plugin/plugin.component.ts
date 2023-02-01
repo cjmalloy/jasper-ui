@@ -71,8 +71,4 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
       }),
     ).subscribe(() => this.query.refresh());
   }
-
-  showUpload() {
-    document.getElementById('upload')!.click()
-  }
 }

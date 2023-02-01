@@ -1,14 +1,12 @@
 <ng-container *ngIf="store.account.admin">
-  <button (click)="showUpload()"
+  <button (click)="uploadFile.click()"
           i18n-title
           title="Upload Plugin"
           class="upload" i18n>+ upload dev plugin</button>
-
-  <input id="upload"
+  <input #uploadFile
          type="file"
          class="upload"
-         (change)="upload($any($event)?.target?.files)">
-
+         (change)="upload(uploadFile.files!)">
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>

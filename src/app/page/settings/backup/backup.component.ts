@@ -127,12 +127,4 @@ export class SettingsBackupPage implements OnInit {
       }),
     ).subscribe();
   }
-
-  showUpload() {
-    document.getElementById('upload')!.click()
-  }
-
-  showRestore() {
-    document.getElementById('restore')!.click()
-  }
 }

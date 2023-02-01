@@ -6,29 +6,27 @@
           class="backup" i18n>+ backup</button>
 
   <button *ngIf="!uploading"
-          (click)="showUpload()"
+          (click)="uploadFile.click()"
           i18n-title
           title="Upload Backup"
           class="upload" i18n>+ upload</button>
   <app-loading *ngIf="uploading"></app-loading>
-
-  <input id="upload"
+  <input #uploadFile
          type="file"
          class="upload"
-         (change)="upload($any($event)?.target?.files)">
+         (change)="upload(uploadFile?.files!)">
 </ng-container>
 
 <button *ngIf="!restoring"
-        (click)="showRestore()"
+        (click)="restoreFile.click()"
         i18n-title
         title="Restore Backup"
         class="upload" i18n>+ restore</button>
 <app-loading *ngIf="restoring"></app-loading>
-
-<input id="restore"
+<input #restoreFile
        type="file"
        class="restore"
-       (change)="restore($any($event)?.target?.files)">
+       (change)="restore(restoreFile.files!)">
 
 <ng-container *ngFor="let e of serverError">
   <span><!-- Unexpected Error --></span>
