@@ -36,18 +36,6 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   submitForm: UntypedFormGroup;
 
-  linkShorteners = [
-    '//bit.ly/',
-    '//ow.ly/',
-    '//tinyurl.com/',
-    '//is.gd/',
-    '//buff.ly/',
-    '//adf.ly/',
-    '//bit.do/',
-    '//mcaf.ee/',
-    '//su.pr/',
-  ];
-
   validations: Validation[] = [];
 
   existingRef?: Ref;
@@ -111,6 +99,10 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   get validator(): AsyncValidatorFn {
     return (control: AbstractControl) => this.validLink(control);
+  }
+
+  get bannedUrls() {
+    return this.admin.status.plugins.root?.config?.bannedUrls || this.admin.def.plugins.root.config!.bannedUrls;
   }
 
   fixed(url: string) {

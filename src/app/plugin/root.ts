@@ -14,6 +14,17 @@ export const rootPlugin: Plugin = {
     filters: [
       { query: '!_moderated', label: $localize`modlist`, group: $localize`Mod Tools` },
     ],
+    bannedUrls: [
+      '//bit.ly/',
+      '//ow.ly/',
+      '//tinyurl.com/',
+      '//is.gd/',
+      '//buff.ly/',
+      '//adf.ly/',
+      '//bit.do/',
+      '//mcaf.ee/',
+      '//su.pr/',
+    ]
   },
 };
 
