@@ -2,21 +2,22 @@
   <ng-container [formArrayName]="fieldName">
     <button type="button" (click)="addLink()" i18n>+ Add another {{ label }}</button>
 
-    <div class="form-array" *ngFor="let c of links.controls; let i=index">
-      <label for="sources-{{ fieldName }}-{{ i }}" *ngIf="alt" i18n>📎</label>
-      <label for="sources-{{ fieldName }}-{{ i }}" *ngIf="!alt" i18n>🔗</label>
-      <div class="grow">
-        <input id="sources-{{ fieldName }}-{{ i }}"
-               type="url"
-               [formControl]="$any(c)">
-        <div class="error" *ngIf="links.at(i).touched && links.at(i).errors?.['pattern']" i18n>
-          Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
+    <ng-container *ngFor="let c of links.controls; let i=index">
+      <div class="form-array">
+        <label for="sources-{{ fieldName }}-{{ i }}"><span *ngIf="alt" i18n>📎</span><span *ngIf="!alt" i18n>🔗</span></label>
+        <div class="grow">
+          <input id="sources-{{ fieldName }}-{{ i }}"
+                 type="url"
+                 [formControl]="$any(c)">
         </div>
-        <div class="error" *ngIf="links.at(i).touched && links.at(i).errors?.['required']" i18n>
-          Link must not be blank.
-        </div>
+        <button type="button" (click)="removeLink(i)" i18n>&ndash;</button>
       </div>
-      <button type="button" (click)="removeLink(i)" i18n>&ndash;</button>
-    </div>
+      <div class="error" *ngIf="links.at(i).touched && links.at(i).errors?.['pattern']" i18n>
+        Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
+      </div>
+      <div class="error" *ngIf="links.at(i).touched && links.at(i).errors?.['required']" i18n>
+        Link must not be blank.
+      </div>
+    </ng-container>
   </ng-container>
 </ng-container>

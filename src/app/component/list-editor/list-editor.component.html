@@ -5,10 +5,10 @@
            autocapitalize="none"
            [placeholder]="placeholder"
            [(ngModel)]="addingText">
-    <div class="error" *ngIf="error">{{ error }}</div>
   </div>
   <button type="button" (click)="add()" i18n>+</button>
 </span>
+<div class="error" *ngIf="error">{{ error }}</div>
 <span class="form-array" *ngFor="let l of list; let i = index">
   <span tabindex="0"
         [class.selected]="selectedIndex === i"

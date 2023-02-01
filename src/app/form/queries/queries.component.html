@@ -2,34 +2,36 @@
   <ng-container [formArrayName]="fieldName">
     <button type="button" (click)="addQuery()" i18n>+ Add another {{ label }}</button>
 
-    <div class="form-array" *ngFor="let c of queries.controls; let i=index">
-      <label for="tags-{{ i }}" i18n>🔖️</label>
-      <div class="grow">
-        <input id="tags-{{ i }}"
-               size="10"
-               type="email"
-               autocorrect="off"
-               autocapitalize="none"
-               [formControl]="$any(c)">
-        <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['pattern']" i18n>
-          Queries support AND (:), OR (|), NOT (!) and grouping qualified tags (parentheses).
-          Tags must be lower case letters, numbers, periods and forward slashes.
-          Must not start with a forward slash or period.
-          Must not or contain two forward slashes or periods in a row.
-          Use the local wildcard (*) to match all tags with a local origin.
-          Tags may be qualified with an origin, or a wildcard origin (@*).
-          Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
-          Use an origin without a tag to match all tags at that origin.
-          The wildcard origin (@*) by itself will match everything.
-          Protected tags start with a plus sign.
-          Private tags start with an underscore.<br>
-          (i.e. "science:news", "science@origin science@other" "your/tag my/tag", "!cool", or "news:_my/private/tag")
+    <ng-container *ngFor="let c of queries.controls; let i=index">
+      <div class="form-array">
+        <label for="tags-{{ i }}" i18n>🔖️</label>
+        <div class="grow">
+          <input id="tags-{{ i }}"
+                 size="10"
+                 type="email"
+                 autocorrect="off"
+                 autocapitalize="none"
+                 [formControl]="$any(c)">
         </div>
-        <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['required']" i18n>
-          Query must not be blank.
-        </div>
+        <button type="button" (click)="removeQuery(i)" i18n>&ndash;</button>
       </div>
-      <button type="button" (click)="removeQuery(i)" i18n>&ndash;</button>
-    </div>
+      <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['pattern']" i18n>
+        Queries support AND (:), OR (|), NOT (!) and grouping qualified tags (parentheses).
+        Tags must be lower case letters, numbers, periods and forward slashes.
+        Must not start with a forward slash or period.
+        Must not or contain two forward slashes or periods in a row.
+        Use the local wildcard (*) to match all tags with a local origin.
+        Tags may be qualified with an origin, or a wildcard origin (@*).
+        Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+        Use an origin without a tag to match all tags at that origin.
+        The wildcard origin (@*) by itself will match everything.
+        Protected tags start with a plus sign.
+        Private tags start with an underscore.<br>
+        (i.e. "science:news", "science@origin science@other" "your/tag my/tag", "!cool", or "news:_my/private/tag")
+      </div>
+      <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['required']" i18n>
+        Query must not be blank.
+      </div>
+    </ng-container>
   </ng-container>
 </ng-container>
