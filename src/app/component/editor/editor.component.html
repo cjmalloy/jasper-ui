@@ -1,16 +1,19 @@
-<div class="text-wrapper">
+<div #tw class="text-wrapper">
   <textarea *ngIf="control"
             [formControl]="control"
             (input)="setText($any($event).target.value)"
             (blur)="syncText($any($event).target.value)"
+            [appFillWidth]="fillWidth"
             [appAutofocus]="autoFocus"></textarea>
   <textarea *ngIf="!control"
             [value]="currentText"
             (input)="setText($any($event).target.value)"
             (blur)="syncText($any($event).target.value)"
+            [appFillWidth]="fillWidth"
             [appAutofocus]="autoFocus"></textarea>
   <div class="floating-toggles">
-    <button type="button"
+    <button *ngIf="fullscreen || currentText"
+            type="button"
             (click)="toggleStacked()"
             title="Stacked or side by side layout toggle">\</button>
     <button type="button"
@@ -27,11 +30,12 @@
          [title]="plugin.name || plugin.tag"><span>{{ plugin.config?.editor }}</span></div>
   </div>
 </div>
-<app-md *ngIf="(!control || text) && preview"
+<app-md *ngIf="preview && (fullscreen || currentText)"
         class="expand"
         [origin]="store.account.origin"
-        [text]="text"
-        [plugins]="tags"></app-md>
+        [text]="currentText"
+        [plugins]="tags"
+        [appLimitWidth]="$any(tw.firstElementChild)"></app-md>
 
 <ng-template #help>
   <div class="editor-help-popup" (click)="toggleHelp()">

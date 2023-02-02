@@ -90,6 +90,16 @@ $mobile-width: 640px;
         white-space: normal;
       }
     }
+
+    .form {
+      padding: 0;
+    }
+
+    textarea {
+      margin: 0;
+      resize: vertical;
+    }
+
     .comment {
       margin-left: 0;
 
@@ -104,10 +114,6 @@ $mobile-width: 640px;
 
     .comment-reply, .comment-edit {
       width: calc(100vw - 8px);
-      textarea {
-        width: 100%;
-        margin: 0;
-      }
     }
 
     .embed {
@@ -173,10 +179,6 @@ $mobile-width: 640px;
       label {
         text-align: left;
       }
-    }
-
-    textarea {
-      max-width: 100%;
     }
   }
 

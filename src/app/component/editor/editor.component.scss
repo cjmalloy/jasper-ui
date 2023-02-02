@@ -2,6 +2,8 @@
   textarea, app-md {
     resize: none;
     overflow: auto;
+    min-width: unset !important;
+    max-width: unset !important;
   }
   &.stacked {
     textarea, app-md {

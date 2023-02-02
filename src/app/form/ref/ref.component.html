@@ -27,11 +27,14 @@
   </div>
 
   <label for="comment" i18n>Abstract:</label>
-  <app-editor id="comment"
-              [control]="comment"
-              [tags]="getTags()"
-              (syncEditor)="syncEditor()"
-              (syncTags)="editorTags.next($event)"></app-editor>
+  <div #fill>
+    <app-editor id="comment"
+                [control]="comment"
+                [tags]="getTags()"
+                [fillWidth]="fill"
+                (syncEditor)="syncEditor()"
+                (syncTags)="editorTags.next($event)"></app-editor>
+  </div>
 
   <label for="sources" i18n>Sources:</label>
   <app-links #sources

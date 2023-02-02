@@ -18,9 +18,12 @@
   <input id="title" type="text" [formControl]="title">
 
   <span><!-- Message --></span>
-  <app-editor [control]="comment"
-              (syncEditor)="syncEditor()"
-              (syncTags)="plugins = $event"></app-editor>
+  <div #fill>
+    <app-editor [control]="comment"
+                [fillWidth]="fill"
+                (syncEditor)="syncEditor()"
+                (syncTags)="plugins = $event"></app-editor>
+  </div>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>

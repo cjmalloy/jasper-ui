@@ -23,11 +23,14 @@
 
       <label for="comment" *ngIf="!store.submit.wiki" i18n>Comment:</label>
       <label for="comment" *ngIf="store.submit.wiki" i18n>Entry:</label>
-      <app-editor id="comment"
-                  [control]="comment"
-                  (syncEditor)="syncEditor()"
-                  (syncTags)="plugins = $event"
-                  [autoFocus]="store.submit.wiki"></app-editor>
+      <div #fill>
+        <app-editor id="comment"
+                    [control]="comment"
+                    (syncEditor)="syncEditor()"
+                    (syncTags)="plugins = $event"
+                    [fillWidth]="fill"
+                    [autoFocus]="store.submit.wiki"></app-editor>
+      </div>
 
       <label for="tags" i18n>Tags</label>
       <app-tags id="tags" [group]="textForm"></app-tags>

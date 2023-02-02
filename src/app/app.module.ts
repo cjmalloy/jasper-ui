@@ -56,6 +56,8 @@ import { TemplateComponent } from './component/template/template.component';
 import { UserComponent } from './component/user/user.component';
 import { ViewerComponent } from './component/viewer/viewer.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
+import { FillWidthDirective } from './directive/fill-width.directive';
+import { LimitWidthDirective } from './directive/limit-width.directive';
 import { MdPostDirective } from './directive/md-post.directive';
 import { PluginUiDirective } from './directive/plugin-ui.directive';
 import { ResizeDirective } from './directive/resize.directive';
@@ -247,6 +249,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     BulkComponent,
     QrComponent,
     DebugComponent,
+    FillWidthDirective,
+    LimitWidthDirective,
   ],
   imports: [
     BrowserModule,

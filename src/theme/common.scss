@@ -46,9 +46,20 @@ input.big {
   backdrop-filter: blur(4px);
 }
 
+.cdk-overlay-pane {
+  pointer-events: none;
+  * {
+    pointer-events: all;
+  }
+}
+
 .editor {
   display: block;
   position: relative;
+
+  .editor-container {
+    display: contents;
+  }
 
   .text-wrapper {
     position: relative;
@@ -547,7 +558,7 @@ input.big {
 }
 
 .comment-reply, .comment-edit {
-  button, textarea {
+  button, .text-wrapper {
     margin: 5px;
   }
 }

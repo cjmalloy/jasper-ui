@@ -1,17 +1,18 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import {
-  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
   HostBinding,
   Input,
   Output,
-  TemplateRef, ViewChild, ViewContainerRef
+  TemplateRef,
+  ViewChild,
+  ViewContainerRef
 } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
-import { debounce, delay, uniq, without } from 'lodash-es';
+import { debounce, throttle, uniq, without } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { switchMap } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
@@ -42,6 +43,8 @@ export class EditorComponent {
   text? = '';
   @Input()
   autoFocus = false
+  @Input()
+  fillWidth?: HTMLElement;
 
   @Output()
   syncEditor = new EventEmitter<string>();
@@ -66,20 +69,24 @@ export class EditorComponent {
     private vc: ViewContainerRef,
   ) {
     this.preview = store.local.showPreview;
+    this._tags = this.store.account.defaultEditors(this.editors);
   }
 
   @Input()
   set tags(value: string[] | undefined) {
-    const editors = this.editorPlugins.map(e => e.tag);
-    this._tags = this.store.account.defaultEditors(editors);
+    this._tags = this.store.account.defaultEditors(this.editors);
     if (value && value.length) {
-      this._tags = uniq([...this._tags, ...editors.filter(t => value.includes(t))]);
+      this._tags = uniq([...this._tags, ...this.editors.filter(t => value.includes(t))]);
     }
     this.syncTags.next(this._tags);
   }
 
   get tags() {
     return this._tags;
+  }
+
+  get editors() {
+    return this.editorPlugins.map(e => e.tag);
   }
 
   get editorPlugins() {
@@ -91,10 +98,10 @@ export class EditorComponent {
   }
 
   toggleTag(tag: string) {
-    if (this.tags!.includes(tag)) {
+    if (this.tags?.includes(tag)) {
       this.syncTags.next(this._tags = without(this.tags!, tag));
     } else {
-      this.syncTags.next(this._tags = [...this.tags!, tag]);
+      this.syncTags.next(this._tags = [...this.tags || [], tag]);
     }
     if (this.admin.status.templates.user) {
       runInAction(() => {
@@ -108,7 +115,7 @@ export class EditorComponent {
     }
   }
 
-  setText = debounce((value: string) => {
+  setText = throttle((value: string) => {
     this.text = value;
     this.store.local.saveEditing(value);
   }, 400);
@@ -119,7 +126,6 @@ export class EditorComponent {
   }, 400);
 
   toggleStacked() {
-    this.text = this.currentText;
     if (this.fullscreen) {
       if (this.stacked) {
         if (this.preview) {
@@ -136,10 +142,10 @@ export class EditorComponent {
     }
   }
 
-  toggleFullscreen() {
-    this.text = this.currentText;
-    this.fullscreen = !this.fullscreen;
+  toggleFullscreen(override?: boolean) {
+    this.fullscreen = override !== undefined ? override : !this.fullscreen;
     if (this.fullscreen) {
+      this.text = this.currentText;
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
       this.overlayRef = this.overlay.create({
@@ -150,6 +156,8 @@ export class EditorComponent {
         scrollStrategy: this.overlay.scrollStrategies.block(),
       });
       this.overlayRef.attach(new DomPortal(this.el));
+      this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
+      this.overlayRef.keydownEvents().subscribe(event => event.key === "Escape" && this.toggleFullscreen(false));
     } else {
       this.stacked = true;
       this.preview = this.store.local.showPreview;
@@ -158,8 +166,8 @@ export class EditorComponent {
     }
   }
 
-  toggleHelp() {
-    this.help = !this.help;
+  toggleHelp(override?: boolean) {
+    this.help = override !== undefined ? override : !this.help;
     if (this.help) {
       this.helpRef = this.overlay.create({
         height: '100vh',
@@ -169,6 +177,7 @@ export class EditorComponent {
         scrollStrategy: this.overlay.scrollStrategies.block(),
       });
       this.helpRef.attach(new TemplatePortal(this.helpTemplate, this.vc));
+      this.helpRef.backdropClick().subscribe(() => this.toggleHelp(false));
     } else {
       this.helpRef?.detach();
       this.helpRef?.dispose();

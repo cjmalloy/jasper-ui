@@ -18,7 +18,11 @@
     </ng-container>
 
     <label for="sidebar" i18n>Sidebar:</label>
-    <app-editor id="sidebar" [control]="sidebar"></app-editor>
+    <div #fill>
+      <app-editor id="sidebar"
+                  [fillWidth]="fill"
+                  [control]="sidebar"></app-editor>
+    </div>
 
     <label for="pinned" i18n>Pinned:</label>
     <app-links id="pinned"
