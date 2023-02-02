@@ -11,5 +11,10 @@
             (click)="scanner?.toggleFlash()"
             i18n-title title="Toggle flash"
             i18n>🔦️</button>
+    <button *ngIf="hasMultipleCameras"
+            type="button"
+            (click)="nextCamera()"
+            i18n-title title="Next camera"
+            i18n>🔃️</button>
   </div>
 </ng-template>

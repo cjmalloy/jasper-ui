@@ -5,6 +5,8 @@ import QrScanner from 'qr-scanner';
 
 export let hasCamera = false;
 QrScanner.hasCamera().then(value => hasCamera = value);
+export let cameras: QrScanner.Camera[] = [];
+QrScanner.listCameras().then(value => cameras = value);
 
 @Component({
   selector: 'app-qr-scanner',
@@ -67,5 +69,30 @@ export class QrScannerComponent {
     this.scanner = undefined;
     this.overlayRef?.detach();
     this.overlayRef?.dispose();
+  }
+
+  get hasMultipleCameras() {
+    return cameras.length > 1;
+  }
+
+  get camera() {
+    return localStorage.getItem('cameraId')!;
+  }
+
+  set camera(id: string | undefined) {
+    localStorage.setItem('cameraId', id!);
+  }
+
+  nextCamera() {
+    QrScanner.listCameras()
+      .then(cameras => {
+        if (!cameras.length) return;
+        const cameraId = this.camera;
+        for (let i = 0; i < cameras.length; i++) {
+          if (!cameraId) return this.camera = cameras[i].id;
+          if (cameraId === cameras[i].id) return this.camera = cameras[(i + 1) % cameras.length].id;
+        }
+        return this.camera = cameras[0].id;
+      });
   }
 }
