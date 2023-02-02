@@ -29,7 +29,8 @@ export class SubmitStore {
 
   get text() {
     if (this.linkTypeOverride) return this.linkTypeOverride === 'text';
-    return this.url?.startsWith('comment:');
+    if (this.subpage != 'text') return false;
+    return this.url?.startsWith('comment:') || !this.url;
   }
 
   get wiki() {
@@ -63,6 +64,10 @@ export class SubmitStore {
 
   get link() {
     return !this.wiki && !find(this.tags, t => this.plugins.find(p => p.tag === t));
+  }
+
+  get web() {
+    return this.link && (!this.subpage || this.subpage === 'web');
   }
 
   get tagsWithoutTab(): string[] {

@@ -3,13 +3,13 @@
     <h5 i18n>Submit</h5>
     <a *ngIf="!store.submit.tagsWithoutTab.length"
        routerLink="/submit"
-       [class.current-tab]="store.submit.link"
+       [class.current-tab]="store.submit.web"
        [queryParams]="{ tag: null, url: url.value }"
        [replaceUrl]="true"
        queryParamsHandling="merge" i18n>link</a>
     <a *ngIf="store.submit.tagsWithoutTab.length"
        routerLink="/submit"
-       [class.current-tab]="store.submit.link"
+       [class.current-tab]="store.submit.web"
        [queryParams]="{ tag: store.submit.tagsWithoutTab, url: url.value }"
        [replaceUrl]="true"
        queryParamsHandling="merge">{{ store.submit.tagsWithoutTab.join(', ') }}</a>
