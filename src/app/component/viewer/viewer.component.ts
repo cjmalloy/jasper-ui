@@ -34,7 +34,6 @@ export class ViewerComponent implements AfterViewInit {
   constructor(
     public admin: AdminService,
     private embeds: EmbedService,
-    private refs: RefService,
     @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
   ) { }
 
