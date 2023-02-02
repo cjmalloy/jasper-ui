@@ -191,6 +191,7 @@ input.big {
 
 .tabs {
   display: flex;
+  user-select: none;
   flex-wrap: wrap;
   min-height: 60px;
   height: auto;
@@ -233,6 +234,7 @@ input.big {
     border-top-left-radius: 8px;
     display: inline-block;
     justify-self: flex-end;
+    user-select: none;
 
     font-size: 80%;
     padding: 4px;
@@ -289,6 +291,7 @@ input.big {
     padding: 4px;
     cursor: pointer;
     overflow: hidden;
+    user-select: none;
   }
 
   .tag-header {
