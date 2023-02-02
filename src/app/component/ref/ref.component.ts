@@ -107,7 +107,7 @@ export class RefComponent implements OnInit {
     this.viewSource = false;
     this.tagging = false;
     this.actionsExpanded = false;
-    this.writeAccess = this.auth.writeAccess(value);
+    this.writeAccess = !hasTag('locked', value) && this.auth.writeAccess(value);
     this.icons = this.admin.getIcons(value.tags || []);
     this.actions = this.admin.getActions(value.tags || []).filter(a => a.response || this.auth.tagReadAccess(a.tag));
     this.expandPlugins = this.admin.getEmbeds(value.tags || []);
