@@ -39,9 +39,7 @@ export class EditorComponent implements AfterViewInit {
   preview = true;
 
   @Input()
-  control?: UntypedFormControl;
-  @Input()
-  text? = '';
+  control!: UntypedFormControl;
   @Input()
   autoFocus = false
   @Input()
@@ -59,6 +57,7 @@ export class EditorComponent implements AfterViewInit {
   helpTemplate!: TemplateRef<any>;
 
   private _tags?: string[];
+  private _text? = '';
 
   constructor(
     private admin: AdminService,
@@ -98,7 +97,7 @@ export class EditorComponent implements AfterViewInit {
   }
 
   get currentText() {
-    return this.text || this.control?.value || '';
+    return this._text || this.control?.value || '';
   }
 
   toggleTag(tag: string) {
@@ -120,13 +119,14 @@ export class EditorComponent implements AfterViewInit {
   }
 
   setText = throttle((value: string) => {
-    this.text = value;
+    if (this._text === value) return;
+    this._text = value;
     this.store.local.saveEditing(value);
   }, 400);
 
   syncText = debounce((value: string) => {
-    this.text = value;
-    this.syncEditor.next(this.text)
+    this._text = value;
+    this.syncEditor.next(this._text)
   }, 400);
 
   toggleStacked() {
@@ -149,7 +149,7 @@ export class EditorComponent implements AfterViewInit {
   toggleFullscreen(override?: boolean) {
     this.fullscreen = override !== undefined ? override : !this.fullscreen;
     if (this.fullscreen) {
-      this.text = this.currentText;
+      this._text = this.currentText;
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
       this.overlayRef = this.overlay.create({

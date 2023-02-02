@@ -6,7 +6,7 @@ export function loadBoard() {
 
 export function addToBoard(col: number, text: string) {
   cy.intercept({method: 'POST', pathname: '/api/v1/ref'}).as('add');
-  cy.get(`.kanban-column:nth-of-type(${col})`).first().find('input').focus().type(text + '{enter}', {force: true});
+  cy.get(`.kanban-column:nth-of-type(${col})`).first().find('input').focus().type(text + '{enter}');
   cy.wait('@add');
 }
 

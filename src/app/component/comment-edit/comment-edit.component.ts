@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input } from '@angular/core';
+import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { filter, without } from 'lodash-es';
 import { catchError, Subject, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
@@ -19,7 +20,6 @@ import { printError } from '../../util/http';
 export class CommentEditComponent {
   @HostBinding('class') css = 'comment-edit';
 
-  editValue = '';
   serverError: string[] = [];
 
   @Input()
@@ -27,6 +27,7 @@ export class CommentEditComponent {
   @Input()
   commentEdited$!: Subject<Ref>;
 
+  commentForm: UntypedFormGroup;
   plugins: string[] = [];
 
   constructor(
@@ -34,25 +35,34 @@ export class CommentEditComponent {
     private account: AccountService,
     private editor: EditorService,
     private refs: RefService,
-  ) { }
+    private fb: FormBuilder,
+  ) {
+    this.commentForm = fb.group({
+      comment: [''],
+    });
+  }
+
+  get comment() {
+    return this.commentForm.get('comment') as UntypedFormControl;
+  }
 
   get patchTags() {
     return getIfNew([
       ...this.admin.removeEditors(this.ref.tags),
-      ...getTags(this.editValue),
-      ...getMailboxes(this.editValue),
+      ...getTags(this.comment.value),
+      ...getMailboxes(this.comment.value),
       ...this.plugins],
       this.ref.tags);
   }
 
   get patchSources() {
     return getIfNew(
-      this.editor.getSources(this.editValue),
+      this.editor.getSources(this.comment.value),
       this.ref.sources);
   }
 
   get patchAlts() {
-    return getIfNew(this.editor.getAlts(this.editValue),
+    return getIfNew(this.editor.getAlts(this.comment.value),
       this.ref.alternateUrls);
   }
 
@@ -60,7 +70,7 @@ export class CommentEditComponent {
     const patches: any[] = [{
       op: 'add',
       path: '/comment',
-      value: this.editValue,
+      value: this.comment.value,
     }];
     const tags = this.patchTags;
     if (tags) {

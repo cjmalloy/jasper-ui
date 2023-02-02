@@ -23,7 +23,7 @@ describe('Ref Actions', {
   });
   it('edits comments field', () => {
     cy.get('.actions a').contains('edit').click();
-    cy.get('#comment').type('Comment field');
+    cy.get('#comment textarea').type('Comment field');
     cy.get('form .md').should('contain', 'Comment field');
     cy.get('button').contains('save').click();
     cy.get('.full-page.ref').should('not.contain', 'Comment field');

@@ -1,6 +1,5 @@
-<app-editor [text]="ref.comment"
+<app-editor [control]="comment"
             [tags]="ref.tags"
-            (syncEditor)="editValue = $event"
             (syncTags)="plugins = $event"
             [autoFocus]="true"></app-editor>
 <ng-container *ngFor="let e of serverError">
