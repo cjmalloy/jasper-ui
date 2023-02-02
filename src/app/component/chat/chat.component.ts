@@ -31,6 +31,7 @@ export class ChatComponent implements OnDestroy {
   _query!: string;
   cursor?: string;
   loadingPrev = false;
+  plugins = this.store.account.defaultEditors(['plugin/latex', 'plugin/emoji']);
   lastPoll = moment();
   initialSize = 50;
   messages?: Ref[];
@@ -62,13 +63,6 @@ export class ChatComponent implements OnDestroy {
 
   get query() {
     return this._query;
-  }
-
-  get plugins() {
-    const result = [];
-    if (this.emoji) result.push('plugin/emoji');
-    if (this.latex) result.push('plugin/latex');
-    return result;
   }
 
   get containerHeight() {

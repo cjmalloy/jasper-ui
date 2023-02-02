@@ -55,12 +55,6 @@ export class SubmitWebPage implements AfterViewInit {
     _.defer(() => {
       this.addTag('public');
       this.addTag(this.store.account.localTag);
-      if (this.admin.status.plugins.emoji) {
-        this.addTag('plugin/emoji');
-      }
-      if (this.admin.status.plugins.latex) {
-        this.addTag('plugin/latex');
-      }
       this.route.queryParams.subscribe(params => {
         if (params['tag']) {
           const tags = _.flatten([params['tag']]);
@@ -154,7 +148,7 @@ export class SubmitWebPage implements AfterViewInit {
       scrollToFirstInvalid();
       return;
     }
-    const tags = [...this.webForm.value.tags, ...this.plugins];
+    const tags = [...this.admin.removeEditors(this.webForm.value.tags), ...this.plugins];
     const published = moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.create({
       ...this.webForm.value,

@@ -1,6 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -25,7 +26,7 @@ import { Store } from '../../store/store';
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
-export class EditorComponent {
+export class EditorComponent implements AfterViewInit {
   @HostBinding('class') css = 'editor';
 
   @HostBinding('class.stacked')
@@ -69,7 +70,10 @@ export class EditorComponent {
     private vc: ViewContainerRef,
   ) {
     this.preview = store.local.showPreview;
-    this._tags = this.store.account.defaultEditors(this.editors);
+  }
+
+  ngAfterViewInit() {
+    this.tags = this._tags;
   }
 
   @Input()
