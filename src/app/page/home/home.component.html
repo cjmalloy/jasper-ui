@@ -19,9 +19,8 @@
                *ngIf="!store.view.graph"
                [home]="true"
                [ext]="store.account.ext"></app-sidebar>
-  <app-embed *ngIf="homeRef"
-             [ref]="homeRef"
-             [expandPlugins]="expandPlugins"></app-embed>
+  <app-viewer *ngIf="homeRef"
+              [ref]="homeRef"></app-viewer>
   <app-ref-list *ngIf="!query.page?.empty"
                 [page]="query.page"
                 [graph]="store.view.graph"></app-ref-list>

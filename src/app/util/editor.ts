@@ -1,3 +1,4 @@
+import { difference, uniq } from 'lodash-es';
 import * as _ from 'lodash-es';
 import { marked } from 'marked';
 import { getMailbox } from '../plugin/mailbox';
@@ -26,9 +27,9 @@ export function extractPattern(markdown: string, pattern: RegExp, extractor?: Re
 
 export function getIfNew<T>(list: T[], old?: T[]): T[] | null {
   old ??= [];
-  const diff = _.uniq(_.difference(list, old));
+  const diff = difference(uniq(list), uniq(old));
   if (!diff.length) return null;
-  return [...old, ...diff];
+  return list;
 }
 
 export function getLinks(markdown: string, withText?: RegExp) {

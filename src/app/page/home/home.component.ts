@@ -19,7 +19,6 @@ export class HomePage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   homeRef?: Ref;
-  expandPlugins: string[] = [];
 
   constructor(
     private theme: ThemeService,
@@ -35,7 +34,6 @@ export class HomePage implements OnInit, OnDestroy {
       refs.page({query: '+home', sort: ['published,DESC'], size: 1}).subscribe(page => {
         if (!page.empty) {
           this.homeRef = page.content[0];
-          this.expandPlugins = this.admin.getEmbeds(this.homeRef.tags);
         }
       });
     }

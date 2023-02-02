@@ -14,9 +14,9 @@ export class MdComponent implements OnInit {
   @Input()
   origin? = '';
   @Input()
-  text = '';
+  text? = '';
   @Input()
-  plugins? = ['plugin/emoji', 'plugin/latex'];
+  plugins?: string[];
 
   postProcessMarkdown: Subject<void> = new Subject();
 
@@ -34,14 +34,6 @@ export class MdComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-  }
-
-  get emoji() {
-    return !!this.admin.status.plugins.emoji && !!this.plugins?.includes('plugin/emoji');
-  }
-
-  get latex() {
-    return !!this.admin.status.plugins.latex && !!this.plugins?.includes('plugin/latex');
   }
 
   onReady = _.debounce(() => {

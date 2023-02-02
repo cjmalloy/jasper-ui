@@ -26,7 +26,7 @@ import { CommentListComponent } from './component/comment-list/comment-list.comp
 import { CommentReplyComponent } from './component/comment-reply/comment-reply.component';
 import { CommentComponent } from './component/comment/comment.component';
 import { DebugComponent } from './component/debug/debug.component';
-import { EmbedComponent } from './component/embed/embed.component';
+import { EditorComponent } from './component/editor/editor.component';
 import { ExtListComponent } from './component/ext-list/ext-list.component';
 import { ExtComponent } from './component/ext/ext.component';
 import { FilterComponent } from './component/filter/filter.component';
@@ -54,6 +54,7 @@ import { SubscriptionBarComponent } from './component/subscription-bar/subscript
 import { TagListComponent } from './component/tag-list/tag-list.component';
 import { TemplateComponent } from './component/template/template.component';
 import { UserComponent } from './component/user/user.component';
+import { ViewerComponent } from './component/viewer/viewer.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { MdPostDirective } from './directive/md-post.directive';
 import { PluginUiDirective } from './directive/plugin-ui.directive';
@@ -189,7 +190,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     InboxInvoicesPage,
     InboxSentPage,
     SearchComponent,
-    EmbedComponent,
+    EditorComponent,
+    ViewerComponent,
     SafePipe,
     EmbedPipe,
     ThumbnailPipe,

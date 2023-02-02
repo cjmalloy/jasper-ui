@@ -25,6 +25,7 @@ export const userTemplate: Template = {
       bookmarks: { elements: { type: 'string' } },
     },
     optionalProperties: {
+      editors: { values: { type : 'string' } },
       userThemes: { values: { type: 'string' } },
       userTheme: { type: "string" },
     }

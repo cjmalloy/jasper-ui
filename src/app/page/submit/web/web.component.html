@@ -5,7 +5,8 @@
 
 <form class="form" [formGroup]="webForm" (ngSubmit)="submit()">
 
-  <app-ref-form [group]="webForm"></app-ref-form>
+  <app-ref-form [group]="webForm"
+                (editorTags)="plugins = $event"></app-ref-form>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>

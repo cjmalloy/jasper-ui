@@ -32,8 +32,7 @@ export class SubmitInvoicePage implements OnInit {
 
   refUrl?: string;
   queue?: string;
-  emoji = !!this.admin.status.plugins.emoji;
-  latex = !!this.admin.status.plugins.latex;
+  plugins: string[] = [];
 
   constructor(
     private theme: ThemeService,
@@ -108,12 +107,11 @@ export class SubmitInvoicePage implements OnInit {
       prefix('plugin/invoice', queueExt.tag),
       'plugin/qr',
       this.store.account.localTag,
+      ...this.plugins,
     ];
     for (const approver of queueExt.config.approvers) {
       result.push(prefix('plugin/inbox', approver));
     }
-    if (this.emoji) result.push('plugin/emoji');
-    if (this.latex) result.push('plugin/latex');
     return uniq(result);
   }
 

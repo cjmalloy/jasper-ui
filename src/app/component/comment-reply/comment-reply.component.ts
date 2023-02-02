@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import * as _ from 'lodash-es';
 import * as moment from 'moment';
 import { Subject, switchMap } from 'rxjs';
@@ -17,7 +17,7 @@ import { hasTag, removeTag } from '../../util/tag';
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
 })
-export class CommentReplyComponent implements AfterViewInit {
+export class CommentReplyComponent {
   @HostBinding('class') css = 'comment-reply';
 
   @Input()
@@ -31,11 +31,7 @@ export class CommentReplyComponent implements AfterViewInit {
   @Input()
   autofocus = false;
 
-  @ViewChild('textbox')
-  textbox!: ElementRef;
-
-  emoji = this.admin.status.plugins.emoji;
-  latex = this.admin.status.plugins.latex;
+  plugins: string[] = [];
   textboxValue = '';
 
   constructor(
@@ -48,19 +44,6 @@ export class CommentReplyComponent implements AfterViewInit {
   get publicTag() {
     if (!hasTag('public', this.to)) return [];
     return ['public'];
-  }
-
-  get plugins() {
-    const result = [];
-    if (this.emoji) result.push('plugin/emoji');
-    if (this.latex) result.push('plugin/latex');
-    return result;
-  }
-
-  ngAfterViewInit(): void {
-    if (this.autofocus) {
-      this.textbox.nativeElement.focus();
-    }
   }
 
   reply(value: string) {
@@ -91,12 +74,12 @@ export class CommentReplyComponent implements AfterViewInit {
       switchMap(() => this.refs.get(url)),
     ).subscribe(ref => {
       this.newComments$.next(ref);
-      this.textbox.nativeElement.value = this.textboxValue = '';
+      this.textboxValue = '';
     });
   }
 
   cancel() {
     this.newComments$.next(null);
-    this.textbox.nativeElement.value = this.textboxValue = '';
+    this.textboxValue = '';
   }
 }

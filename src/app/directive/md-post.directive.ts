@@ -1,9 +1,9 @@
 import { AfterViewInit, ComponentRef, Directive, Inject, Input, OnDestroy, ViewContainerRef } from '@angular/core';
 import * as _ from 'lodash-es';
 import { Subject } from 'rxjs';
-import { EmbedComponent } from '../component/embed/embed.component';
 import { RefListComponent } from '../component/ref-list/ref-list.component';
 import { RefComponent } from '../component/ref/ref.component';
+import { ViewerComponent } from '../component/viewer/viewer.component';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { isAudio } from '../plugin/audio';
@@ -61,8 +61,8 @@ export class MdPostDirective implements AfterViewInit, OnDestroy, Embed {
     this.origin)
   }
 
-  createEmbed(ref: Ref | string, expandPlugins: string[] = []): ComponentRef<EmbedComponent> {
-    const c = this.viewContainerRef.createComponent(EmbedComponent);
+  createEmbed(ref: Ref | string, expandPlugins: string[] = []): ComponentRef<ViewerComponent> {
+    const c = this.viewContainerRef.createComponent(ViewerComponent);
     if (_.isString(ref)) {
       const url = ref as string;
       ref = { url, origin: this.origin };
@@ -77,7 +77,7 @@ export class MdPostDirective implements AfterViewInit, OnDestroy, Embed {
       }
     }
     c.instance.ref = ref;
-    c.instance.expandPlugins = expandPlugins;
+    c.instance.tags = expandPlugins;
     return c;
   }
 

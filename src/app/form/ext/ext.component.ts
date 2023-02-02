@@ -9,6 +9,7 @@ import { hasPrefix } from '../../util/tag';
 import { linksForm } from '../links/links.component';
 import { qtagsForm } from '../qtags/qtags.component';
 import { queriesForm } from '../queries/queries.component';
+import { tagsForm } from '../tags/tags.component';
 import { themesForm } from '../themes/themes.component';
 import { usersForm } from '../users/users.component';
 
@@ -106,6 +107,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService) {
     configControls = {
       ...configControls,
       sidebar: [''],
+      editors: tagsForm(fb, ext.config?.editors || []),
       modmail: [true],
       pinned: linksForm(fb, ext.config?.pinned || []),
       themes: themesForm(fb, ext.config?.themes || []),

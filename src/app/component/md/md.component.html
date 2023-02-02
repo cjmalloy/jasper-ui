@@ -2,8 +2,8 @@
      markdown
      [appMdPost]="postProcessMarkdown"
      [origin]="origin"
-     [emoji]="emoji"
-     [katex]="latex"
+     [emoji]="!!plugins?.includes('plugin/emoji')"
+     [katex]="!!plugins?.includes('plugin/latex')"
      [katexOptions]="katexOptions"
      mermaid
      [mermaidOptions]="$any({ theme: store.darkTheme ? 'dark' : 'default' })"

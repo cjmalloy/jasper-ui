@@ -42,6 +42,85 @@ input.big {
   width: 100%;
 }
 
+.cdk-overlay-backdrop {
+  backdrop-filter: blur(4px);
+}
+
+.editor {
+  display: block;
+  position: relative;
+
+  .text-wrapper {
+    position: relative;
+  }
+
+  &:not(.stacked) {
+    display: flex;
+    flex-direction: row-reverse;
+
+    .floating-toggles, .floating-ribbons {
+      position: absolute;
+    }
+  }
+  .floating-ribbons {
+    user-select: none;
+    font-size: 80%;
+    font-weight: bold;
+    position: absolute;
+    right: 0;
+    top: 32px;
+    & > div {
+      position: relative;
+      white-space: nowrap;
+      cursor: pointer;
+      text-align: center;
+      right: -100%;
+      margin: 4px;
+      span {
+        display: inline-block;
+        max-width: 128px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        border-radius: 2px;
+        padding: 2px;
+        border: 1px solid transparent;
+      }
+      &.on {
+        right: 16px;
+        text-align: right;
+        span {
+          backdrop-filter: blur(1.5px);
+        }
+      }
+    }
+  }
+  .floating-toggles {
+    user-select: none;
+    display: flex;
+    flex-direction: row;
+    position: absolute;
+    right: 16px;
+    top: 4px;
+    & > button {
+      cursor: pointer;
+      margin: 4px;
+    }
+  }
+}
+
+.editor-help-popup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  & > * {
+    max-width: 300px;
+    border-radius: 2px;
+    margin: 8px;
+    background-color: grey;
+  }
+}
+
 .context-menu {
   border-radius: 2px;
   padding: 4px;
@@ -471,10 +550,6 @@ input.big {
   button, textarea {
     margin: 5px;
   }
-}
-
-textarea.has-plugins {
-  margin-bottom: 0;
 }
 
 .hints {

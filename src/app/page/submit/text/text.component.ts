@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import * as _ from 'lodash-es';
+import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
@@ -30,11 +30,9 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
 
   submitted = false;
   textForm: UntypedFormGroup;
+  plugins: string[] = [];
   advanced = false;
   serverError: string[] = [];
-
-  emoji = !!this.admin.status.plugins.emoji;
-  latex = !!this.admin.status.plugins.latex;
 
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
@@ -54,7 +52,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    _.defer(() => {
+    defer(() => {
       this.addTag('public');
       this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
@@ -111,22 +109,8 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
     this.submitted = false;
   }
 
-  addPlugins(tags: string[]) {
-    if (this.advanced) return tags;
-    const result = [...tags];
-    if (this.emoji) result.push('plugin/emoji');
-    if (this.latex) result.push('plugin/latex');
-    return result;
-  }
-
   syncEditor() {
     this.editor.syncEditor(this.fb, this.textForm);
-  }
-
-  setAdvanced() {
-    this.advanced = true;
-    if (this.emoji) this.addTag('plugin/emoji');
-    if (this.latex) this.addTag('plugin/latex');
   }
 
   submit() {
@@ -138,14 +122,15 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
       scrollToFirstInvalid();
       return;
     }
+    const tags = uniq([...(this.textForm.value.tags || []), ...this.plugins]);
     const published = this.textForm.value.published ? moment(this.textForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
     this.refs.create({
       ...this.textForm.value,
       url: this.url.value, // Need to pull separately since control is locked
       title: this.title.value, // Need to pull separately if disabled by wiki mode
       origin: this.store.account.origin,
-      tags: this.addPlugins(this.textForm.value.tags),
       published,
+      tags,
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);

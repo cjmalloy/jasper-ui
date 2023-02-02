@@ -1,5 +1,6 @@
-import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { without } from 'lodash-es';
 import * as _ from 'lodash-es';
 import * as moment from 'moment';
 import { of } from 'rxjs';
@@ -24,6 +25,9 @@ export class RefFormComponent implements OnInit {
   @Input()
   group!: UntypedFormGroup;
 
+  @Output()
+  editorTags = new EventEmitter<string[]>();
+
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
   @ViewChild('sources')
@@ -43,6 +47,10 @@ export class RefFormComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+  }
+
+  getTags() {
+    return this.group.get('tags')?.value;
   }
 
   get url() {
@@ -113,7 +121,6 @@ export class RefFormComponent implements OnInit {
     });
     _.defer(() => this.plugins.setValue(ref.plugins));
   }
-
 }
 
 export function refForm(fb: UntypedFormBuilder) {

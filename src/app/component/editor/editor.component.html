@@ -1,0 +1,41 @@
+<div class="text-wrapper">
+  <textarea *ngIf="control"
+            [formControl]="control"
+            (input)="setText($any($event).target.value)"
+            (blur)="syncText($any($event).target.value)"
+            [appAutofocus]="autoFocus"></textarea>
+  <textarea *ngIf="!control"
+            [value]="currentText"
+            (input)="setText($any($event).target.value)"
+            (blur)="syncText($any($event).target.value)"
+            [appAutofocus]="autoFocus"></textarea>
+  <div class="floating-toggles">
+    <button type="button"
+            (click)="toggleStacked()"
+            title="Stacked or side by side layout toggle">\</button>
+    <button type="button"
+            (click)="toggleFullscreen()"
+            title="Fullscreen editor">📱</button>
+    <button type="button"
+            (click)="toggleHelp()"
+            title="Stacked or side by side layout toggle">?</button>
+  </div>
+  <div class="floating-ribbons">
+    <div *ngFor="let plugin of editorPlugins"
+         [class.on]="tags?.includes(plugin.tag)"
+         (click)="toggleTag(plugin.tag)"
+         [title]="plugin.name || plugin.tag"><span>{{ plugin.config?.editor }}</span></div>
+  </div>
+</div>
+<app-md *ngIf="(!control || text) && preview"
+        class="expand"
+        [origin]="store.account.origin"
+        [text]="text"
+        [plugins]="tags"></app-md>
+
+<ng-template #help>
+  <div class="editor-help-popup" (click)="toggleHelp()">
+    <a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md" i18n>Emoji plugin</a>
+    <a target="_blank" href="https://katex.org/docs/supported.html">LaTeX plugin</a>
+  </div>
+</ng-template>

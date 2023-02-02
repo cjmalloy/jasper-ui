@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as _ from 'lodash-es';
-import { flatten } from 'lodash-es';
+import { flatten, without } from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Action, Icon, Plugin, PluginFilter } from '../model/plugin';
@@ -11,13 +11,12 @@ import { archivePlugin } from '../plugin/archive';
 import { audioPlugin } from '../plugin/audio';
 import { commentPlugin } from '../plugin/comment';
 import { deletePlugin } from '../plugin/delete';
+import { emojiPlugin, htmlPlugin, latexPlugin } from '../plugin/editor';
 import { embedPlugin } from '../plugin/embed';
-import { emojiPlugin } from '../plugin/emoji';
 import { feedPlugin } from '../plugin/feed';
 import { graphPlugin } from '../plugin/graph';
 import { imagePlugin } from '../plugin/image';
 import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
-import { latexPlugin } from '../plugin/latex';
 import { inboxPlugin, outboxPlugin } from '../plugin/mailbox';
 import { originPlugin } from '../plugin/origin';
 import { pdfPlugin } from '../plugin/pdf';
@@ -64,6 +63,7 @@ export class AdminService {
       archive: archivePlugin,
       latex: latexPlugin,
       emoji: emojiPlugin,
+      html: htmlPlugin,
       person: personPlugin,
       graph: graphPlugin,
       invoice: invoicePlugin,
@@ -88,6 +88,8 @@ export class AdminService {
     },
   };
 
+  private _submit?: Plugin[];
+  private _editors?: Plugin[];
   private _uis?: string[];
   private _forms?: string[];
   private _embeddable?: string[];
@@ -153,6 +155,22 @@ export class AdminService {
     return _.findKey(dict, p => p.tag === tag) || tag;
   }
 
+  get submit() {
+    if (!this._submit) {
+      this._submit = Object.values(this.status.plugins)
+        .filter(p => p?.config?.submit) as Plugin[];
+    }
+    return this._submit;
+  }
+
+  get editors() {
+    if (!this._editors) {
+      this._editors = Object.values(this.status.plugins)
+        .filter(p => p?.config?.editor) as Plugin[];
+    }
+    return this._editors;
+  }
+
   get uis() {
     if (!this._uis) {
       this._uis = flatten(Object.values(this.status.plugins)
@@ -215,6 +233,14 @@ export class AdminService {
     return this._filters;
   }
 
+  getEditors(tags: string[] = []) {
+    return tagIntersection(tags, this.editors.map(e => e.tag));
+  }
+
+  removeEditors(tags?: string[]) {
+    return without(tags, ...this.editors.map(e => e.tag));
+  }
+
   getEmbeds(tags: string[] = []) {
     return tagIntersection(['plugin', ...tags], this.embeddable);
   }
@@ -236,11 +262,6 @@ export class AdminService {
   getPluginUi(tags: string[] = []) {
     return tagIntersection(['plugin', ...tags], this.uis)
       .map(t => this.getPlugin(t)) as Plugin[];
-  }
-
-  getSubmitPlugins() {
-    return Object.values(this.status.plugins)
-      .filter(p => p?.config?.submit) as Plugin[];
   }
 
   getPluginForms(tags: string[] = []) {

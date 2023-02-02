@@ -31,6 +31,7 @@ export class SubmitWebPage implements AfterViewInit {
   submitted = false;
   title = '';
   webForm: UntypedFormGroup;
+  plugins: string[] = [];
   serverError: string[] = [];
 
   @ViewChild(RefFormComponent)
@@ -153,13 +154,15 @@ export class SubmitWebPage implements AfterViewInit {
       scrollToFirstInvalid();
       return;
     }
+    const tags = [...this.webForm.value.tags, ...this.plugins];
     const published = moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.create({
       ...this.webForm.value,
       url: this.url, // Need to pull separately since control is locked
       origin: this.store.account.origin,
+      tags,
       published,
-      plugins: writePlugins(this.webForm.value.tags, this.webForm.value.plugins),
+      plugins: writePlugins(tags, this.webForm.value.plugins),
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);

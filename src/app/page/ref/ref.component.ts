@@ -31,6 +31,23 @@ export class RefPage implements OnInit, OnDestroy {
     return (this.store.view.ref?.sources?.length || 0) > 0 && this.store.view.published && !this.store.view.ref!.published!.isSame(this.store.view.published);
   }
 
+  get comments() {
+    if (!this.admin.status.plugins.comment) return 0;
+    return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
+  }
+
+  get responses() {
+    return this.store.view.ref?.metadata?.responses || 0;
+  }
+
+  get sources() {
+    return this.store.view.ref?.sources?.length || 0;
+  }
+
+  get alts() {
+    return this.store.view.ref?.alternateUrls?.length || 0;
+  }
+
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const url = this.store.view.url;

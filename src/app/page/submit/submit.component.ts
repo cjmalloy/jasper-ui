@@ -58,7 +58,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     });
     runInAction(() => {
       store.submit.wikiPrefix = admin.getWikiPrefix();
-      store.submit.plugins = admin.getSubmitPlugins().filter(p => auth.tagReadAccess(p.tag));
+      store.submit.plugins = admin.submit.filter(p => auth.tagReadAccess(p.tag));
     });
   }
 

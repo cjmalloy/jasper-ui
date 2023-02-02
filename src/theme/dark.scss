@@ -19,7 +19,7 @@ body.dark-theme {
   color-scheme: dark;
   color: $text;
 
-  &, ::backdrop {
+  &, ::backdrop, .editor.fullscreen app-md {
     background-color: $bg;
     background-image: url("~/assets/bg-dark.png");
     background-blend-mode: soft-light;
@@ -39,6 +39,27 @@ body.dark-theme {
 
   a:active {
     color: $text;
+  }
+
+  .editor-help-popup {
+    justify-content: center;
+    & > * {
+      padding: 16px;
+      background-color: $card;
+      border: 1px solid transparent;
+      &:hover {
+        border: 1px solid $border;
+      }
+    }
+  }
+
+  .floating-ribbons {
+    div span {
+        border: 1px dashed $border;
+    }
+    div.on span {
+      border: 0.5px solid $border;
+    }
   }
 
   .context-menu {
@@ -244,7 +265,7 @@ body.dark-theme {
     }
   }
 
-  .ref, .form, .editor-preview {
+  .ref, .form, .editor {
     .expand {
       border: 1px solid $border;
     }

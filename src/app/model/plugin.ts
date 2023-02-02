@@ -22,6 +22,7 @@ export interface Plugin extends Tag {
      * Add tab on submit page for this plugin using this label.
      */
     submit?: string,
+    editor?: string,
     description?: string,
     icons?: Icon[],
     /**
@@ -144,7 +145,7 @@ export function writePlugin(plugin: Partial<Plugin>): Partial<Plugin> {
   return result;
 }
 
-export function renderPlugin(plugin: Plugin, ref: Ref) {
+export function renderPlugin(plugin: Plugin, ref: Ref = { url: '' }) {
   if (!plugin.config?.ui) return '';
   if (!plugin._ui) {
     plugin._ui = Handlebars.compile(plugin.config.ui);

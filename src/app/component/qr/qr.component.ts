@@ -12,7 +12,8 @@ export class QrComponent {
   bgImage = '';
 
   @Input()
-  set url(url: string)  {
+  set url(url: string | undefined)  {
+    if (!url) return;
       toDataURL(document.createElement('canvas'), url,
         (error, url) => this.bgImage = `url('${url}')`);
   }

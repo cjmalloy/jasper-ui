@@ -1,3 +1,4 @@
+import { intersection } from 'lodash-es';
 import * as _ from 'lodash-es';
 import { makeAutoObservable } from 'mobx';
 import { Ext } from '../model/ext';
@@ -87,5 +88,10 @@ export class AccountStore {
     this.mod = roles.mod;
     this.editor = roles.editor;
     this.poster = roles.user;
+  }
+
+  defaultEditors(plugins: string[]) {
+    if (!this.ext?.config?.editors) return plugins;
+    return intersection(this.ext.config.editors, plugins);
   }
 }

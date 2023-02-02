@@ -18,30 +18,9 @@
   <input id="title" type="text" [formControl]="title">
 
   <span><!-- Message --></span>
-  <div class="editor-preview">
-    <textarea class="has-plugins" [formControl]="comment"></textarea>
-    <app-embed [ref]="dmForm.value"></app-embed>
-  </div>
-
-  <span><!-- Comment Plugins --></span>
-  <div class="no-margin">
-    <span class="hints">
-      <ng-container *ngIf="admin.status.plugins.emoji">
-        <input id="emoji" type="checkbox" [checked]="emoji" (change)="emoji = !emoji">
-        <label for="emoji" i18n>
-          Emoji plugin
-          <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
-        </label>
-      </ng-container>
-      <ng-container *ngIf="admin.status.plugins.latex">
-        <input id="latex" type="checkbox" [checked]="latex" (change)="latex = !latex">
-        <label for="latex" i18n>
-          LaTeX plugin
-          <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
-        </label>
-      </ng-container>
-    </span>
-  </div>
+  <app-editor [control]="comment"
+              (syncEditor)="syncEditor()"
+              (syncTags)="plugins = $event"></app-editor>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>

@@ -18,12 +18,7 @@
     </ng-container>
 
     <label for="sidebar" i18n>Sidebar:</label>
-    <div class="editor-preview">
-      <textarea id="sidebar" [formControl]="sidebar"></textarea>
-      <app-md *ngIf="sidebar.value"
-              [text]="sidebar.value"
-              class="expand"></app-md>
-    </div>
+    <app-editor id="sidebar" [control]="sidebar"></app-editor>
 
     <label for="pinned" i18n>Pinned:</label>
     <app-links id="pinned"
@@ -56,6 +51,11 @@
                  label="bookmark"
                  [group]="config"
                  fieldName="bookmarks"></app-queries>
+
+    <label for="editors" i18n>Editors:</label>
+    <app-tags id="editors"
+              [group]="config"
+              fieldName="editors"></app-tags>
 
     <label for="userThemes" i18n>User Themes:</label>
     <app-themes id="userThemes"

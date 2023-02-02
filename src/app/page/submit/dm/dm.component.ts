@@ -2,12 +2,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { uniq } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { getMailbox } from '../../../plugin/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
+import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
@@ -24,11 +26,10 @@ export class SubmitDmPage implements OnInit {
 
   submitted = false;
   dmForm: UntypedFormGroup;
+  plugins: string[] = [];
   serverError: string[] = [];
 
   to = '';
-  emoji = !!this.admin.status.plugins.emoji;
-  latex = !!this.admin.status.plugins.latex;
 
   constructor(
     private theme: ThemeService,
@@ -37,6 +38,7 @@ export class SubmitDmPage implements OnInit {
     private route: ActivatedRoute,
     private store: Store,
     private refs: RefService,
+    private editor: EditorService,
     private fb: UntypedFormBuilder,
   ) {
     theme.setTitle('Submit: Direct Message');
@@ -68,14 +70,16 @@ export class SubmitDmPage implements OnInit {
   }
 
   get tags() {
-    const result = [
+    return uniq([
       'locked',
       this.store.account.localTag,
       getMailbox(this.to!),
-    ];
-    if (this.emoji) result.push('plugin/emoji');
-    if (this.latex) result.push('plugin/latex');
-    return result;
+      ...this.plugins,
+    ]);
+  }
+
+  syncEditor() {
+    this.editor.syncEditor(this.fb, this.dmForm);
   }
 
   submit() {

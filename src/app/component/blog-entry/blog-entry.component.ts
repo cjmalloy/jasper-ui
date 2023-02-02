@@ -3,8 +3,7 @@ import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core'
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, mergeMap, Observable, switchMap, throwError } from 'rxjs';
-import { v4 as uuid } from 'uuid';
+import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Ext } from '../../model/ext';
@@ -39,9 +38,9 @@ export class BlogEntryComponent implements OnInit {
 
   editForm: UntypedFormGroup;
   submitted = false;
-  expandPlugins: string[] = [];
   icons: Icon[] = [];
   actions: Action[] = [];
+  editorPlugins: string[] = [];
   tagging = false;
   editing = false;
   viewSource = false;
@@ -87,7 +86,6 @@ export class BlogEntryComponent implements OnInit {
     this.writeAccess = this.auth.writeAccess(value);
     this.icons = this.admin.getIcons(value.tags || []);
     this.actions = this.admin.getActions(value.tags || []).filter(a => a.response || this.auth.tagReadAccess(a.tag));
-    this.expandPlugins = this.admin.getEmbeds(value.tags || []);
   }
 
   @ViewChild(RefFormComponent)
@@ -258,11 +256,14 @@ export class BlogEntryComponent implements OnInit {
       scrollToFirstInvalid();
       return;
     }
+    const tags = [...this.admin.removeEditors(this.editForm.value.tags), ...this.editorPlugins];
+    const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.update({
       ...this.ref,
       ...this.editForm.value,
-      published: moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
-      plugins: writePlugins(this.editForm.value.tags, {
+      tags,
+      published,
+      plugins: writePlugins(tags, {
         ...this.ref.plugins,
         ...this.editForm.value.plugins
       }),

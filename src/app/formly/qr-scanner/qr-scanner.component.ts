@@ -43,7 +43,6 @@ export class QrScannerComponent {
       hasBackdrop: true,
     });
     this.overlayRef.attach(new TemplatePortal(this.video, this.viewContainerRef));
-    if (!this.overlayRef) return;
     this.scanner ||= new QrScanner(this.overlayRef.overlayElement.firstElementChild as HTMLVideoElement, ({ data }) => {
       if (data) this.data.next(data);
       this.stopScanQr();

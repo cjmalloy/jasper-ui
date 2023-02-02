@@ -10,7 +10,7 @@ export class PluginUiDirective implements AfterViewInit {
   @Input("appPluginUi")
   plugin!: Plugin;
   @Input()
-  ref!: Ref;
+  ref?: Ref;
 
   constructor(private el: ElementRef) { }
 

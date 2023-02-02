@@ -1,0 +1,38 @@
+<iframe #iframe
+        *ngIf="currentTags.includes('plugin/embed')"
+        [width]="ref?.plugins?.['plugin/embed']?.width || 560"
+        [height]="ref?.plugins?.['plugin/embed']?.height || 315"
+        [src]="embed | embed | safe"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+<div *ngIf="currentTags.includes('plugin/image')"
+     class="image-expand"
+     [style.background-image]="cssUrl(ref?.plugins?.['plugin/image']?.url || ref?.url)"
+     appResize></div>
+<video *ngIf="currentTags.includes('plugin/video')"
+       class="video-expand"
+       autoplay
+       controls
+       appResize>
+  <source [src]="ref?.plugins?.['plugin/video']?.url || ref?.url">
+</video>
+<audio *ngIf="currentTags.includes('plugin/audio')"
+       class="audio-expand"
+       autoplay
+       controls>
+  <source [src]="ref?.plugins?.['plugin/audio']?.url || ref?.url">
+</audio>
+<app-qr *ngIf="currentTags.includes('plugin/qr')"
+        [url]="ref?.plugins?.['plugin/qr']?.url || ref?.url"
+        appResize></app-qr>
+<app-md *ngIf="currentText"
+        class="expand"
+        [origin]="ref?.origin"
+        [text]="currentText"
+        [plugins]="currentTags"></app-md>
+<ng-container *ngFor="let ui of uis">
+  <div [appPluginUi]="ui"
+       [ref]="ref"
+       appResize></div>
+</ng-container>

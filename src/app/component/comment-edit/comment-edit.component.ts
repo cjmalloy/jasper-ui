@@ -1,21 +1,22 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
+import { filter, without } from 'lodash-es';
 import { catchError, Subject, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { EditorService } from '../../service/editor.service';
+import { Store } from '../../store/store';
 import { getIfNew, getMailboxes, getTags } from '../../util/editor';
 import { printError } from '../../util/http';
-import { hasTag } from '../../util/tag';
 
 @Component({
   selector: 'app-comment-edit',
   templateUrl: './comment-edit.component.html',
   styleUrls: ['./comment-edit.component.scss'],
 })
-export class CommentEditComponent implements OnInit, AfterViewInit {
+export class CommentEditComponent {
   @HostBinding('class') css = 'comment-edit';
 
   editValue = '';
@@ -25,38 +26,19 @@ export class CommentEditComponent implements OnInit, AfterViewInit {
   ref!: Ref;
   @Input()
   commentEdited$!: Subject<Ref>;
-  @ViewChild('textbox')
-  textbox!: ElementRef;
 
-  emoji = !!this.admin.status.plugins.emoji;
-  latex = !!this.admin.status.plugins.latex;
+  plugins: string[] = [];
 
   constructor(
-    public admin: AdminService,
+    private admin: AdminService,
     private account: AccountService,
     private editor: EditorService,
     private refs: RefService,
   ) { }
 
-  ngOnInit(): void {
-    this.editValue = this.ref.comment || '';
-    this.emoji &&= hasTag('plugin/emoji', this.ref);
-    this.latex &&= hasTag('plugin/latex', this.ref);
-  }
-
-  ngAfterViewInit(): void {
-    this.textbox.nativeElement.focus();
-  }
-
-  get plugins() {
-    let result = [];
-    if (this.emoji) result.push('plugin/emoji');
-    if (this.latex) result.push('plugin/latex');
-    return result;
-  }
-
   get patchTags() {
     return getIfNew([
+      ...this.admin.removeEditors(this.ref.tags),
       ...getTags(this.editValue),
       ...getMailboxes(this.editValue),
       ...this.plugins],

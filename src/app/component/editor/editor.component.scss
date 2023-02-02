@@ -1,0 +1,41 @@
+:host.fullscreen {
+  textarea, app-md {
+    resize: none;
+    overflow: auto;
+  }
+  &.stacked {
+    textarea, app-md {
+      width: calc(100vw - 128px) !important;
+      height: calc(50vh - 16px) !important;
+    }
+  }
+
+  &:not(.stacked) {
+    textarea, app-md {
+      width: calc(50vw - 66px) !important;
+      height: calc(100vh - 12px) !important;
+    }
+    app-md {
+      height: calc(100vh - 8px) !important;
+    }
+  }
+
+  &:not(.preview) {
+    textarea {
+      width: calc(100vw - 128px) !important;
+      height: calc(100vh - 24px) !important;
+    }
+  }
+}
+
+.floating-toggles, .floating-ribbons {
+  pointer-events: none;
+  * {
+    pointer-events: all;
+  }
+}
+
+.editor-help-popup {
+  width: 100vw;
+  height: 100vh;
+}

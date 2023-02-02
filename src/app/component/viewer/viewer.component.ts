@@ -14,17 +14,19 @@ import { RefService } from '../../service/api/ref.service';
 import { EmbedService } from '../../service/embed.service';
 
 @Component({
-  selector: 'app-embed',
-  templateUrl: './embed.component.html',
-  styleUrls: ['./embed.component.scss']
+  selector: 'app-viewer',
+  templateUrl: './viewer.component.html',
+  styleUrls: ['./viewer.component.scss']
 })
-export class EmbedComponent implements AfterViewInit {
+export class ViewerComponent implements AfterViewInit {
   @HostBinding('class') css = 'embed';
 
   @Input()
-  ref!: Ref;
+  ref?: Ref;
   @Input()
-  expandPlugins: string[] = [];
+  text? = '';
+  @Input()
+  tags?: string[];
 
   @ViewChild('iframe')
   iframe!: ElementRef;
@@ -42,12 +44,20 @@ export class EmbedComponent implements AfterViewInit {
     }
   }
 
+  get currentText() {
+    return this.text || this.ref?.comment || '';
+  }
+
+  get currentTags() {
+    return this.tags || this.ref?.tags || [];
+  }
+
   get embed() {
-    return this.ref.plugins?.['plugin/embed']?.url || this.ref?.url;
+    return this.ref?.plugins?.['plugin/embed']?.url || this.ref?.url;
   }
 
   get uis() {
-    return this.admin.getPluginUi(this.expandPlugins);
+    return this.admin.getPluginUi(this.tags || []);
   }
 
   cssUrl(url: string) {

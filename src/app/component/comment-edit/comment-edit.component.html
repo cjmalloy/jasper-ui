@@ -1,30 +1,11 @@
-<div class="editor-preview">
-  <textarea #textbox class="has-plugins" [(ngModel)]="editValue"></textarea>
-  <app-md *ngIf="editValue"
-          [text]="editValue"
-          class="expand"
-          [plugins]="plugins"></app-md>
-</div>
+<app-editor [text]="ref.comment"
+            [tags]="ref.tags"
+            (syncEditor)="editValue = $event"
+            (syncTags)="plugins = $event"
+            [autoFocus]="true"></app-editor>
 <ng-container *ngFor="let e of serverError">
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
 </ng-container>
 <button (click)="save()" i18n>save</button>
 <button (click)="cancel()" i18n>cancel</button>
-
-<span class="hints">
-  <ng-container *ngIf="admin.status.plugins.emoji">
-    <input id="emoji" type="checkbox" [(ngModel)]="emoji">
-    <label for="emoji" i18n>
-      Emoji plugin
-      <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
-    </label>
-  </ng-container>
-  <ng-container *ngIf="admin.status.plugins.latex">
-    <input id="latex" type="checkbox" [(ngModel)]="latex">
-    <label for="latex" i18n>
-      LaTeX plugin
-      <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
-    </label>
-  </ng-container>
-</span>

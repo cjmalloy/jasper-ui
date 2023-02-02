@@ -82,9 +82,7 @@
             to <a [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
           </ng-container>
         </div>
-        <app-embed *ngIf="expanded && expandInline && !editing"
-                   [ref]="ref"
-                   [expandPlugins]="expandPlugins"></app-embed>
+        <app-viewer *ngIf="expanded && expandInline && !editing" [ref]="ref" ></app-viewer>
         <div class="actions" [class.expanded]="actionsExpanded">
           <ng-container *ngIf="!local || !ref.created">
             <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
@@ -146,13 +144,12 @@
     </div>
   </div>
 </div>
-<app-embed *ngIf="expanded && !expandInline && !editing"
-           [ref]="ref"
-           [expandPlugins]="expandPlugins"></app-embed>
+<app-viewer *ngIf="expanded && !expandInline && !editing" [ref]="ref"></app-viewer>
 
 <form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-  <app-ref-form [group]="editForm"></app-ref-form>
+  <app-ref-form [group]="editForm"
+                (editorTags)="editorPlugins = $event"></app-ref-form>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>
