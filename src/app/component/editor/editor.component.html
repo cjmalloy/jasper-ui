@@ -1,12 +1,5 @@
 <div #tw class="text-wrapper">
-  <textarea *ngIf="control"
-            [formControl]="control"
-            (input)="setText($any($event).target.value)"
-            (blur)="syncText($any($event).target.value)"
-            [appFillWidth]="fillWidth"
-            [appAutofocus]="autoFocus"></textarea>
-  <textarea *ngIf="!control"
-            [value]="currentText"
+  <textarea [formControl]="control"
             (input)="setText($any($event).target.value)"
             (blur)="syncText($any($event).target.value)"
             [appFillWidth]="fillWidth"

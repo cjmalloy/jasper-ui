@@ -70,7 +70,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Ref from other');
-    cy.get('#comment').type('Hi +user/alice@main! How\'s it going? You should also see this +user/charlie.').blur();
+    cy.get('#comment textarea').type('Hi +user/alice@main! How\'s it going? You should also see this +user/charlie.').blur();
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Ref from other');
   });
@@ -112,8 +112,8 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Ref from other').parent().parent().as('ref');
     cy.get('@ref').find('.actions').contains('permalink').click();
-    cy.get('.comment-reply textarea').type('Doing well, thanks!', {force: true}).blur();
-    cy.get('.comment-reply button').contains('reply').click({force: true});
+    cy.get('.comment-reply textarea').type('Doing well, thanks!').blur();
+    cy.get('.comment-reply button').contains('reply').click();
   });
   it('@other: scrape @main', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
