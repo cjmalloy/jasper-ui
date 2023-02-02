@@ -182,7 +182,7 @@ export class AccountService {
     return combineLatest(this.user$, this.userExt$).pipe(
       switchMap(([_, ext]) => this.refs.count({
         query: this.store.account.notificationsQuery,
-        modifiedAfter: ext.config?.inbox?.lastNotified || moment().subtract(1, 'year'),
+        modifiedAfter: ext.config?.lastNotified || moment().subtract(1, 'year'),
       })),
     ).subscribe(count => runInAction(() => this.store.account.notifications = count));
   }
@@ -192,7 +192,7 @@ export class AccountService {
     if (!this.admin.status.templates.user) throw 'User template not installed';
     this.exts.patch(this.store.account.tag, [{
       op: 'add',
-      path: '/config/inbox/lastNotified',
+      path: '/config/lastNotified',
       value: readDate.add(1, 'millisecond').toISOString(),
     }]).subscribe(() => {
       this.clearCache();
