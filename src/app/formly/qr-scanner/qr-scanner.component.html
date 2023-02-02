@@ -2,5 +2,14 @@
 <input #imageFile type="file" accept="image/*" (change)="readQr(imageFile.files!)"/>
 <button *ngIf="hasCamera" type="button" (click)="scanQr()" i18n-title title="Scan for QR with video" i18n>🤳</button>
 <ng-template #video>
-  <video i18n-title title="Click anywhere to stop scanning" (click)="stopScanQr()"></video>
+  <video class="qr-preview"
+         i18n-title title="Click anywhere to stop scanning"
+         (click)="stopScanQr()"></video>
+  <div class="floating-toggles big">
+    <button *ngIf="hasFlash"
+            type="button"
+            (click)="scanner?.toggleFlash()"
+            i18n-title title="Toggle flash"
+            i18n>🔦️</button>
+  </div>
 </ng-template>

@@ -8,13 +8,16 @@
     <button *ngIf="fullscreen || currentText"
             type="button"
             (click)="toggleStacked()"
-            title="Stacked or side by side layout toggle">\</button>
+            i18n-title title="Stacked or side by side layout toggle"
+            i18n>\</button>
     <button type="button"
             (click)="toggleFullscreen()"
-            title="Fullscreen editor">📱</button>
+            i18n-title title="Fullscreen editor"
+            i18n>📱️</button>
     <button type="button"
             (click)="toggleHelp()"
-            title="Stacked or side by side layout toggle">?</button>
+            i18n-title title="Stacked or side by side layout toggle"
+            i18n>?</button>
   </div>
   <div class="floating-ribbons">
     <div *ngFor="let plugin of editorPlugins"

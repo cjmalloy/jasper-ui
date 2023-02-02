@@ -53,6 +53,19 @@ input.big {
   }
 }
 
+.floating-toggles, .floating-ribbons {
+  position: absolute;
+  pointer-events: none;
+  * {
+    pointer-events: all;
+  }
+
+  &.big * {
+    margin: 16px;
+    font-size: 300%;
+  }
+}
+
 .editor {
   display: block;
   position: relative;
@@ -68,11 +81,8 @@ input.big {
   &:not(.stacked) {
     display: flex;
     flex-direction: row-reverse;
-
-    .floating-toggles, .floating-ribbons {
-      position: absolute;
-    }
   }
+
   .floating-ribbons {
     user-select: none;
     font-size: 80%;
@@ -130,6 +140,13 @@ input.big {
     margin: 8px;
     background-color: grey;
   }
+}
+
+video.qr-preview {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  overflow: hidden;
 }
 
 .context-menu {

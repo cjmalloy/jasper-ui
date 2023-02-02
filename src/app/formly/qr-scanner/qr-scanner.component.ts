@@ -23,6 +23,7 @@ export class QrScannerComponent {
   scanner?: QrScanner;
   overlayRef?: OverlayRef;
   hasCamera = hasCamera;
+  hasFlash = false;
 
   constructor(
     private viewContainerRef: ViewContainerRef,
@@ -54,7 +55,9 @@ export class QrScannerComponent {
       preferredCamera: 'environment',
       highlightScanRegion: true,
     });
-    this.scanner.start();
+    this.scanner.start()
+      .then(() => this.scanner?.hasFlash())
+      .then(value => this.hasFlash = !!value);
   }
 
   stopScanQr() {

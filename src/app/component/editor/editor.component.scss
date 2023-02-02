@@ -30,13 +30,6 @@
   }
 }
 
-.floating-toggles, .floating-ribbons {
-  pointer-events: none;
-  * {
-    pointer-events: all;
-  }
-}
-
 .editor-help-popup {
   width: 100vw;
   height: 100vh;
