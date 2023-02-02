@@ -3,6 +3,9 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { Component, EventEmitter, HostBinding, Output, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import QrScanner from 'qr-scanner';
 
+export let hasCamera = false;
+QrScanner.hasCamera().then(value => hasCamera = value);
+
 @Component({
   selector: 'app-qr-scanner',
   templateUrl: './qr-scanner.component.html',
@@ -19,6 +22,7 @@ export class QrScannerComponent {
 
   scanner?: QrScanner;
   overlayRef?: OverlayRef;
+  hasCamera = hasCamera;
 
   constructor(
     private viewContainerRef: ViewContainerRef,
