@@ -1,4 +1,4 @@
-import * as _ from 'lodash-es';
+import { filter, find, flatten } from 'lodash-es';
 import { makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Plugin } from '../model/plugin';
@@ -13,6 +13,10 @@ export class SubmitStore {
     public route: RouterStore,
   ) {
     makeAutoObservable(this);
+  }
+
+  get subpage() {
+    return this.route.routeSnapshot.firstChild?.firstChild?.routeConfig?.path;
   }
 
   get url() {
@@ -38,7 +42,7 @@ export class SubmitStore {
   }
 
   get tags(): string[] {
-    return _.flatten(this.tag ? [this.tag] : []);
+    return flatten(this.tag ? [this.tag] : []);
   }
 
   get source() {
@@ -46,7 +50,7 @@ export class SubmitStore {
   }
 
   get sources(): string[] {
-    return _.flatten(this.source ? [this.source] : []);
+    return flatten(this.source ? [this.source] : []);
   }
 
   get feed() {
@@ -58,11 +62,11 @@ export class SubmitStore {
   }
 
   get link() {
-    return !this.wiki && !_.find(this.tags, t => this.plugins.find(p => p.tag === t));
+    return !this.wiki && !find(this.tags, t => this.plugins.find(p => p.tag === t));
   }
 
-  get tagsWithoutTab() {
-    return _.filter(this.tags, t => !this.plugins.find(p => p.tag === t));
+  get tagsWithoutTab(): string[] {
+    return filter(this.tags, t => !this.plugins.find(p => p.tag === t));
   }
 
   get activePlugins() {

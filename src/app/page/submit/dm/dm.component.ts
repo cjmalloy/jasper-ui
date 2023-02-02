@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { uniq } from 'lodash-es';
 import * as moment from 'moment';
@@ -13,6 +13,7 @@ import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
+import { NOTIFY_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasPrefix } from '../../../util/tag';
 
@@ -29,7 +30,8 @@ export class SubmitDmPage implements OnInit {
   plugins: string[] = [];
   serverError: string[] = [];
 
-  to = '';
+  defaultTo?: string;
+  defaultNotes = $localize`Notes: ${moment().format('dddd, MMMM Do YYYY, h:mm:ss a')}`
 
   constructor(
     private theme: ThemeService,
@@ -43,22 +45,27 @@ export class SubmitDmPage implements OnInit {
   ) {
     theme.setTitle('Submit: Direct Message');
     this.dmForm = fb.group({
+      to: ['', [Validators.pattern(NOTIFY_REGEX)]],
       title: [''],
       comment: [''],
     });
     route.queryParams.subscribe(params => {
       if (params['to']) {
-        this.to = params['to'];
+        this.to.setValue(params['to']);
       }
-      if (!this.to || hasPrefix(this.to, 'user')) {
-        this.title.setValue(`DM from ${store.account.tag}`)
+      if (!this.to.value || hasPrefix(this.to.value, 'user')) {
+        this.defaultTo = $localize`DM from ${store.account.tag}`;
       } else {
-        this.title.setValue(`Message to Moderators of ${this.to}`)
+        this.defaultTo = $localize`Message to Moderators of ${this.to}`;
       }
     });
   }
 
   ngOnInit(): void {
+  }
+
+  get to() {
+    return this.dmForm.get('to') as UntypedFormControl;
   }
 
   get title() {
@@ -71,9 +78,11 @@ export class SubmitDmPage implements OnInit {
 
   get tags() {
     return uniq([
-      'locked',
       this.store.account.localTag,
-      getMailbox(this.to!),
+        ...(this.to.value ?
+          ['locked', ...this.to.value.split(/\s+/).map((t: string) => getMailbox(t))] :
+          ['notes']
+        ),
       ...this.plugins,
     ]);
   }
@@ -86,10 +95,6 @@ export class SubmitDmPage implements OnInit {
     this.serverError = [];
     this.submitted = true;
     this.dmForm.markAllAsTouched();
-    if (this.to === this.store.account.tag) {
-      this.serverError = ['You cannot sent messages to yourself.'];
-      return;
-    }
     if (!this.dmForm.valid) {
       scrollToFirstInvalid();
       return;
@@ -97,9 +102,10 @@ export class SubmitDmPage implements OnInit {
     const url = 'comment:' + uuid();
     const published = this.dmForm.value.published ? moment(this.dmForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
     this.refs.create({
-      ...this.dmForm.value,
       url,
       origin: this.store.account.origin,
+      title: this.dmForm.value.title,
+      comment: this.dmForm.value.comment,
       published,
       tags: this.tags,
     }).pipe(
@@ -110,5 +116,14 @@ export class SubmitDmPage implements OnInit {
     ).subscribe(() => {
       this.router.navigate(['/ref', url], { queryParams: { published }});
     });
+  }
+
+  setDefaultTitle() {
+    if (this.title.value && ![this.defaultTo, this.defaultNotes].includes(this.title.value)) return;
+    if (this.to.value) {
+      this.title.setValue(this.defaultTo);
+    } else {
+      this.title.setValue(this.defaultNotes);
+    }
   }
 }

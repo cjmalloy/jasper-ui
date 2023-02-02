@@ -14,6 +14,7 @@
        [replaceUrl]="true"
        queryParamsHandling="merge">{{ store.submit.tagsWithoutTab.join(', ') }}</a>
     <a routerLink="/submit/text"
+       [class.current-tab]="store.submit.text"
        [queryParams]="{ tag: store.submit.tagsWithoutTab, url: null }"
        queryParamsHandling="merge" i18n>text</a>
     <ng-container *ngIf="!admin.isWikiExternal()">
@@ -24,6 +25,7 @@
          queryParamsHandling="merge" i18n>wiki</a>
     </ng-container>
     <a routerLink="/submit/dm"
+       routerLinkActive="current-tab"
        [queryParams]="{ tag: store.submit.tagsWithoutTab, url: null }"
        queryParamsHandling="merge" i18n>dm</a>
     <a routerLink="/submit"
@@ -34,66 +36,71 @@
        queryParamsHandling="merge">{{ plugin.config?.submit || plugin.tag }}</a>
     <app-settings></app-settings>
   </div>
-  <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
 
-    <ng-container *ngFor="let plugin of store.submit.activePlugins">
-      <span i18n>Type:</span>
-      <div>
-        <span>{{ plugin.name }}</span>
-        <p *ngIf="plugin.config?.description" class="description">
-          {{ plugin.config!.description }}
-        </p>
-      </div>
-    </ng-container>
+  <router-outlet></router-outlet>
 
-    <ng-container *ngIf="store.submit.wiki">
-      <span i18n>Type:</span>
-      <div>
-        <span i18n>Wiki</span>
-        <p class="description" i18n>
-          Create a text post that can be linked to via double bracket [[Wiki]] style.
-        </p>
-      </div>
-    </ng-container>
+  <ng-container *ngIf="!store.submit.subpage">
+    <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
 
-    <label for="url" class="big" *ngIf="!store.submit.wiki">URL:</label>
-    <label for="url" class="big" *ngIf="store.submit.wiki">Title:</label>
-    <div class="form-array">
-      <input id="url"
-             class="big"
-             type="text"
-             autocomplete="off"
-             formControlName="url"
-             appAutofocus>
-      <app-qr-scanner (data)="scanQr($event)"></app-qr-scanner>
-    </div>
-
-    <span><!-- Tags --></span>
-    <div class="form-array right">
-      <span *ngFor="let tag of store.submit.tags">🏷️{{ tag }}</span>
-    </div>
-
-    <br>
-    <div class="validations">
-      <ng-container *ngFor="let v of validations">
-        <div *ngIf="v.passed">✅️ &nbsp;{{ v.name }}</div>
-        <div *ngIf="!v.passed">❌️ &nbsp;{{ v.name }}</div>
+      <ng-container *ngFor="let plugin of store.submit.activePlugins">
+        <span i18n>Type:</span>
+        <div>
+          <span>{{ plugin.name || plugin.config?.submit || plugin.tag }}</span>
+          <p *ngIf="plugin.config?.description" class="description">
+            {{ plugin.config!.description }}
+          </p>
+        </div>
       </ng-container>
-    </div>
 
-    <span><!-- Buttons --></span>
-    <span class="form-array right">
+      <ng-container *ngIf="store.submit.wiki">
+        <span i18n>Type:</span>
+        <div>
+          <span i18n>Wiki</span>
+          <p class="description" i18n>
+            Create a text post that can be linked to via double bracket [[Wiki]] style.
+          </p>
+        </div>
+      </ng-container>
+
+      <label for="url" class="big" *ngIf="!store.submit.wiki">URL:</label>
+      <label for="url" class="big" *ngIf="store.submit.wiki">Title:</label>
+      <div class="form-array">
+        <input id="url"
+               class="big"
+               type="text"
+               autocomplete="off"
+               formControlName="url"
+               appAutofocus>
+        <app-qr-scanner (data)="scanQr($event)"></app-qr-scanner>
+      </div>
+
+      <span><!-- Tags --></span>
+      <div class="form-array right">
+        <span *ngFor="let plugin of store.submit.activePlugins">{{ plugin.config?.submit || plugin.tag }}</span>
+        <span *ngFor="let tag of store.submit.tagsWithoutTab">🏷️{{ tag }}</span>
+      </div>
+
+      <br>
+      <div class="validations">
+        <ng-container *ngFor="let v of validations">
+          <div *ngIf="v.passed">✅️ &nbsp;{{ v.name }}</div>
+          <div *ngIf="!v.passed">❌️ &nbsp;{{ v.name }}</div>
+        </ng-container>
+      </div>
+
+      <span><!-- Buttons --></span>
+      <span class="form-array right">
     <button type="submit" [disabled]="!submitForm.valid">Next</button>
     <div *ngIf="store.submit.link">
       <input id="scrape" type="checkbox" [checked]="scrape" (input)="scrape = !scrape">
       <label for="scrape">Scrape</label>
     </div>
   </span>
-  </form>
+    </form>
 
-  <ng-container *ngIf="existingRef">
-    <br>
-    <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
+    <ng-container *ngIf="existingRef">
+      <br>
+      <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
+    </ng-container>
   </ng-container>
-
 </ng-container>

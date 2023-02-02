@@ -1,10 +1,4 @@
 <ng-container *mobxAutorun>
-  <div class="tabs">
-    <h5 *ngIf="!store.submit.wiki" i18n>Submit Text Post</h5>
-    <h5 *ngIf="store.submit.wiki" i18n>Submit Wiki</h5>
-    <app-settings></app-settings>
-  </div>
-
   <form class="form" [formGroup]="textForm" (ngSubmit)="submit()">
 
     <ng-container *ngIf="!advanced">
