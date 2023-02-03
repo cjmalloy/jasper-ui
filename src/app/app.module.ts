@@ -53,6 +53,7 @@ import { SortComponent } from './component/sort/sort.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { TagListComponent } from './component/tag-list/tag-list.component';
 import { TemplateComponent } from './component/template/template.component';
+import { UploadRefComponent } from './component/upload-ref/upload-ref.component';
 import { UserComponent } from './component/user/user.component';
 import { ViewerComponent } from './component/viewer/viewer.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
@@ -251,6 +252,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     DebugComponent,
     FillWidthDirective,
     LimitWidthDirective,
+    UploadRefComponent,
   ],
   imports: [
     BrowserModule,
