@@ -25,7 +25,7 @@
          queryParamsHandling="merge" i18n>wiki</a>
     </ng-container>
     <a routerLink="/submit/dm"
-       routerLinkActive="current-tab"
+       [class.current-tab]="store.submit.subpage === 'dm'"
        [queryParams]="{ tag: store.submit.tagsWithoutTab, url: null }"
        queryParamsHandling="merge" i18n>dm</a>
     <a routerLink="/submit"
