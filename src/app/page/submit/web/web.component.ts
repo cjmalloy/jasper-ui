@@ -3,6 +3,7 @@ import { AfterViewInit, Component, HostBinding, ViewChild } from '@angular/core'
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as _ from 'lodash-es';
+import { without } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { writePlugins } from '../../../form/plugins/plugins.component';
@@ -148,7 +149,7 @@ export class SubmitWebPage implements AfterViewInit {
       scrollToFirstInvalid();
       return;
     }
-    const tags = [...this.admin.removeEditors(this.webForm.value.tags), ...this.plugins];
+    const tags = [...without(this.webForm.value.tags, ...this.admin.editors), ...this.plugins];
     const published = moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.create({
       ...this.webForm.value,

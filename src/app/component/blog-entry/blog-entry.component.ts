@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import * as _ from 'lodash-es';
+import { without } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
@@ -84,8 +85,8 @@ export class BlogEntryComponent implements OnInit {
     this.viewSource = false;
     this.tagging = false;
     this.writeAccess = this.auth.writeAccess(value);
-    this.icons = this.admin.getIcons(value.tags || []);
-    this.actions = this.admin.getActions(value.tags || []).filter(a => a.response || this.auth.tagReadAccess(a.tag));
+    this.icons = this.admin.getIcons(value.tags);
+    this.actions = this.admin.getActions(value.tags).filter(a => a.response || this.auth.tagReadAccess(a.tag));
   }
 
   @ViewChild(RefFormComponent)
@@ -256,7 +257,7 @@ export class BlogEntryComponent implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    const tags = [...this.admin.removeEditors(this.editForm.value.tags), ...this.editorPlugins];
+    const tags = [...without(this.editForm.value.tags, ...this.admin.editors), ...this.editorPlugins];
     const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.update({
       ...this.ref,

@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import * as _ from 'lodash-es';
-import { flatten, without } from 'lodash-es';
+import { findKey, flatten, mapValues } from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Action, Icon, Plugin, PluginFilter } from '../model/plugin';
+import { Action, Icon, Plugin } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { archivePlugin } from '../plugin/archive';
@@ -88,14 +87,7 @@ export class AdminService {
     },
   };
 
-  private _submit?: Plugin[];
-  private _editors?: Plugin[];
-  private _uis?: string[];
-  private _forms?: string[];
-  private _embeddable?: string[];
-  private _icons?: string[];
-  private _actions?: string[];
-  private _filters?: PluginFilter[];
+ _cache = new Map<string, any>();
 
   constructor(
     private config: ConfigService,
@@ -105,10 +97,10 @@ export class AdminService {
   ) { }
 
   get init$() {
-    this._embeddable = undefined;
-    this.status.plugins =  _.mapValues(this.def.plugins, () => undefined);
-    this.status.templates = _.mapValues(this.def.templates, () => undefined);
-    return forkJoin(this.loadPlugins$(), this.loadTemplates$());
+    this._cache.clear();
+    this.status.plugins =  mapValues(this.def.plugins, () => undefined);
+    this.status.templates = mapValues(this.def.templates, () => undefined);
+    return forkJoin([this.loadPlugins$(), this.loadTemplates$()]);
   }
 
   get localOriginQuery() {
@@ -152,121 +144,95 @@ export class AdminService {
   }
 
   keyOf(dict: Record<string, Tag>, tag: string) {
-    return _.findKey(dict, p => p.tag === tag) || tag;
+    return findKey(dict, p => p.tag === tag) || tag;
+  }
+
+  pluginConfigProperty(name: string): Plugin[] {
+    if (!this._cache.has(name)) {
+      this._cache.set(name, Object.values(this.status.plugins).filter(p => p?.config?.[name]));
+    }
+    return this._cache.get(name)!;
   }
 
   get submit() {
-    if (!this._submit) {
-      this._submit = Object.values(this.status.plugins)
-        .filter(p => p?.config?.submit) as Plugin[];
-    }
-    return this._submit;
+    return this.pluginConfigProperty('submit').map(p => p!.tag);
   }
 
   get editors() {
-    if (!this._editors) {
-      this._editors = Object.values(this.status.plugins)
-        .filter(p => p?.config?.editor) as Plugin[];
-    }
-    return this._editors;
+    return this.pluginConfigProperty('editor').map(p => p!.tag);
   }
 
   get uis() {
-    if (!this._uis) {
-      this._uis = flatten(Object.values(this.status.plugins)
-        .filter(p => p?.config?.ui)
-        .map(p => p!.tag));
-    }
-    return this._uis;
+    return this.pluginConfigProperty('ui').map(p => p!.tag);
   }
 
   get forms() {
-    if (!this._forms) {
-      this._forms = flatten(Object.values(this.status.plugins)
-        .filter(p => p?.config?.form)
-        .map(p => p!.tag));
-    }
-    return this._forms;
+    return this.pluginConfigProperty('form').map(p => p!.tag);
   }
 
-  get embeddable() {
-    if (!this._embeddable) {
-      this._embeddable = Object.values(this.status.plugins)
-        .filter(p => {
-          if (!p) return false;
-          if (p?.config?.ui) return true;
-          if (p === this.status.plugins.qr) return true;
-          if (p === this.status.plugins.embed) return true;
-          if (p === this.status.plugins.audio) return true;
-          if (p === this.status.plugins.video) return true;
-          if (p === this.status.plugins.image) return true;
-          return false;
-        }).map(p => p!.tag);
+  get embeddable(): string[] {
+    if (!this._cache.has('embeddable')) {
+      this._cache.set('embeddable', Object.values(this.status.plugins).filter(p => {
+        if (!p) return false;
+        if (p?.config?.ui) return true;
+        if (p === this.status.plugins.qr) return true;
+        if (p === this.status.plugins.embed) return true;
+        if (p === this.status.plugins.audio) return true;
+        if (p === this.status.plugins.video) return true;
+        if (p === this.status.plugins.image) return true;
+        return false;
+      }).map(p => p!.tag));
     }
-    return this._embeddable;
+    return this._cache.get('embeddable')!;
   }
 
   get icons() {
-    if (!this._icons) {
-      this._icons = flatten(Object.values(this.status.plugins)
-        .filter(p => p?.config?.icons)
-        .map(p => p!.tag));
-    }
-    return this._icons;
+    return this.pluginConfigProperty('icons').map(p => p!.tag);
   }
 
   get actions() {
-    if (!this._actions) {
-      this._actions = flatten(Object.values(this.status.plugins)
-        .filter(p => p?.config?.actions)
-        .map(p => p!.tag));
-    }
-    return this._actions;
+    return this.pluginConfigProperty('actions').map(p => p!.tag);
   }
 
   get filters() {
-    if (!this._filters) {
-      this._filters = flatten(Object.values(this.status.plugins)
+    if (!this._cache.has('filters')) {
+      this._cache.set('filters', flatten(Object.values(this.status.plugins)
         .filter(p => p?.config?.filters)
-        .map(p => p!.config!.filters!));
+        .map(p => p!.config!.filters!)));
     }
-    return this._filters;
+    return this._cache.get('filters')!;
   }
 
-  getEditors(tags: string[] = []) {
-    return tagIntersection(tags, this.editors.map(e => e.tag));
+  getEmbeds(tags?: string[]) {
+    return tagIntersection(['plugin', ...(tags || [])], this.embeddable);
   }
 
-  removeEditors(tags?: string[]) {
-    return without(tags, ...this.editors.map(e => e.tag));
+  getActions(tags?: string[]) {
+    return flatten(this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.actions))
+      .map(p => p.config!.actions as Action[]));
   }
 
-  getEmbeds(tags: string[] = []) {
-    return tagIntersection(['plugin', ...tags], this.embeddable);
-  }
-
-  getActions(tags: string[] = []) {
-    return flatten(tagIntersection(['plugin', ...tags], this.actions)
-      .map(t => this.getPlugin(t)!.config!.actions as Action[]));
-  }
-
-  getIcons(tags: string[] = []) {
-    return flatten(tagIntersection(['plugin', ...tags], this.icons)
-      .map(t => this.getPlugin(t)!.config!.icons as Icon[]));
+  getIcons(tags?: string[]) {
+    return flatten(this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.icons))
+      .map(p => p.config!.icons as Icon[]));
   }
 
   getPlugin(tag: string) {
     return Object.values(this.status.plugins).find(p => p?.tag === tag);
   }
 
-  getPluginUi(tags: string[] = []) {
-    return tagIntersection(['plugin', ...tags], this.uis)
-      .map(t => this.getPlugin(t)) as Plugin[];
+  getPlugins(tags?: string[] | string[][]) {
+    if (!tags || !tags.length) return [];
+    const ts: string[] = flatten(tags)!;
+    return Object.values(this.status.plugins).filter(p => p?.tag && ts.includes(p.tag)) as Plugin[];
   }
 
-  getPluginForms(tags: string[] = []) {
-    return tagIntersection(['plugin', ...tags], this.forms)
-      .map(t => this.getPlugin(t)) as Plugin[];
+  getPluginUi(tags?: string[]) {
+    return this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.uis));
+  }
+
+  getPluginForms(tags?: string[]) {
+    return this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.forms));
   }
 
   getTemplate(tag: string) {

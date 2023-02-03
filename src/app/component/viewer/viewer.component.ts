@@ -56,7 +56,7 @@ export class ViewerComponent implements AfterViewInit {
   }
 
   get uis() {
-    return this.admin.getPluginUi(this.tags || []);
+    return this.admin.getPluginUi(this.tags);
   }
 
   cssUrl(url: string) {

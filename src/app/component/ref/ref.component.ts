@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { uniq } from 'lodash-es';
 import * as _ from 'lodash-es';
+import { uniq, without } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -108,9 +108,9 @@ export class RefComponent implements OnInit {
     this.tagging = false;
     this.actionsExpanded = false;
     this.writeAccess = !hasTag('locked', value) && this.auth.writeAccess(value);
-    this.icons = this.admin.getIcons(value.tags || []);
-    this.actions = this.admin.getActions(value.tags || []).filter(a => a.response || this.auth.tagReadAccess(a.tag));
-    this.expandPlugins = this.admin.getEmbeds(value.tags || []);
+    this.icons = this.admin.getIcons(value.tags);
+    this.actions = this.admin.getActions(value.tags).filter(a => a.response || this.auth.tagReadAccess(a.tag));
+    this.expandPlugins = this.admin.getEmbeds(value.tags);
   }
 
   @ViewChild(RefFormComponent)
@@ -340,7 +340,7 @@ export class RefComponent implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq([...this.admin.removeEditors(this.editForm.value.tags), ...this.editorPlugins]);
+    const tags = uniq([...without(this.editForm.value.tags, ...this.admin.editors), ...this.editorPlugins]);
     const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.update({
       ...this.ref,

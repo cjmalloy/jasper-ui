@@ -89,11 +89,11 @@ export class EditorComponent implements AfterViewInit {
   }
 
   get editors() {
-    return this.editorPlugins.map(e => e.tag);
+    return this.admin.editors.filter(e => this.auth.tagReadAccess(e));
   }
 
   get editorPlugins() {
-    return this.admin.editors.filter(e => this.auth.tagReadAccess(e.tag));
+    return this.admin.getPlugins(this.editors);
   }
 
   get currentText() {
