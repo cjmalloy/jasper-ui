@@ -1,9 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { delay } from 'lodash-es';
-import { catchError, firstValueFrom, forkJoin, throwError } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, of, throwError } from 'rxjs';
+import { Ext } from '../../model/ext';
 import { Ref } from '../../model/ref';
+import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { printError } from '../../util/http';
 import { getModels, getZipOrTextFile } from '../../util/zip';
@@ -16,31 +18,64 @@ import { getModels, getZipOrTextFile } from '../../util/zip';
 export class UploadRefComponent {
   @HostBinding('class') css = 'form-array';
 
+  @Output()
+  serverErrors = new EventEmitter<string[]>();
+
   serverError: string[] = [];
+  processing = false;
 
   constructor(
     private refs: RefService,
+    private exts: ExtService,
     private router: Router,
   ) { }
 
   readRefs(files?: FileList) {
     this.serverError = [];
     if (!files || !files.length) return;
-    getZipOrTextFile(files[0]!, 'ref.json')
+    getZipOrTextFile(files[0]!, 'ext.json')
+      .then(json => getModels<Ext>(json))
+      .then(exts => firstValueFrom(forkJoin(exts.map(ext => this.uploadExt(ext))).pipe(
+        catchError(err => {
+          this.serverErrors.next(this.serverError = [...this.serverError, err.message]);
+          return of(null);
+        }))))
+      .then(() =>getZipOrTextFile(files[0]!, 'ref.json'))
       .then(json => getModels<Ref>(json))
       .then(refs => firstValueFrom(forkJoin(refs.map(ref => this.uploadRef(ref)))))
-      .catch(err => this.serverError = [err])
       .then(() => delay(() => this.router.navigate(['/tag', '*'], { queryParams: { sort: 'modified,DESC' } }),
-        1000));
+        1000))
+      .catch(() => null);
   }
 
   uploadRef(ref: Ref) {
+    // @ts-ignore
+    if (ref.tag) return of(null);
     return this.refs.create(ref).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status === 409) {
           return this.refs.update(ref);
         }
-        this.serverError = printError(res);
+        return throwError(() => res);
+      }),
+      catchError((res: HttpErrorResponse) => {
+        this.serverErrors.next(this.serverError = [...this.serverError, ...printError(res)]);
+        return throwError(() => res);
+      }),
+    );
+  }
+
+  uploadExt(ext: Ext) {
+    if (!ext.tag) return of(null);
+    return this.exts.create(ext).pipe(
+      catchError((res: HttpErrorResponse) => {
+        if (res.status === 409) {
+          return this.exts.update(ext);
+        }
+        return throwError(() => res);
+      }),
+      catchError((res: HttpErrorResponse) => {
+        this.serverErrors.next(this.serverError = [...this.serverError, ...printError(res)]);
         return throwError(() => res);
       }),
     );

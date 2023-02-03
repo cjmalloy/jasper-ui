@@ -71,9 +71,14 @@
                autocomplete="off"
                formControlName="url"
                appAutofocus>
-        <app-upload-ref *ngIf="store.submit.web"></app-upload-ref>
+        <app-upload-ref *ngIf="store.submit.web"  (serverErrors)="serverErrors = $event"></app-upload-ref>
         <app-qr-scanner (data)="scanQr($event)"></app-qr-scanner>
       </div>
+
+      <ng-container *ngFor="let e of serverErrors">
+        <span><!-- Unexpected Error --></span>
+        <div class="error">{{ e }}</div>
+      </ng-container>
 
       <span><!-- Tags --></span>
       <div class="form-array right">

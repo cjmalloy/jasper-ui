@@ -38,6 +38,7 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   validations: Validation[] = [];
 
+  serverErrors: string[] = [];
   existingRef?: Ref;
   scrape = true;
 

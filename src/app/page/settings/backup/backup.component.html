@@ -17,17 +17,6 @@
          (change)="upload(uploadFile?.files!)">
 </ng-container>
 
-<button *ngIf="!restoring"
-        (click)="restoreFile.click()"
-        i18n-title
-        title="Restore Backup"
-        class="upload" i18n>+ restore</button>
-<app-loading *ngIf="restoring"></app-loading>
-<input #restoreFile
-       type="file"
-       class="restore"
-       (change)="restore(restoreFile.files!)">
-
 <ng-container *ngFor="let e of serverError">
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
