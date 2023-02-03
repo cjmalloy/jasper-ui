@@ -1,8 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import * as _ from 'lodash-es';
-import { without } from 'lodash-es';
+import { defer, intersection, without } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
@@ -91,7 +90,7 @@ export class BlogEntryComponent implements OnInit {
 
   @ViewChild(RefFormComponent)
   set refForm(value: RefFormComponent) {
-    _.defer(() => {
+    defer(() => {
       value?.setRef(this.ref);
       this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
     });
@@ -172,7 +171,7 @@ export class BlogEntryComponent implements OnInit {
   get tags() {
     let result = interestingTags(this.ref.tags);
     if (this.blog?.config.filterTags) {
-      result = _.intersection(result, this.blog.config.tags || []);
+      result = intersection(result, this.blog.config.tags || []);
     }
     return result;
   }

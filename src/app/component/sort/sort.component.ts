@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import * as _ from 'lodash-es';
+import { filter } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { RefSort } from '../../model/ref';
 import { TagSort } from '../../model/tag';
@@ -99,7 +99,7 @@ export class SortComponent implements OnInit, OnDestroy {
   }
 
   setSort() {
-    const sort = _.filter(this.sorts, f => !!f && !f.startsWith(','));
+    const sort = filter(this.sorts, f => !!f && !f.startsWith(','));
     this.router.navigate([], { queryParams: { sort: sort.length ? sort : null, pageNumber: null }, queryParamsHandling: 'merge' });
   }
 

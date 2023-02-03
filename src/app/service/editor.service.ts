@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import * as _ from 'lodash-es';
+import { difference, uniq } from 'lodash-es';
 import { LinksFormComponent } from '../form/links/links.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
 import { getLinks, getMailboxes, getTags } from '../util/editor';
@@ -102,12 +102,12 @@ export class EditorService {
       ...(group.value.sources || []),
       ...(group.value.alternateUrls || []),
     ];
-    const newAlts = _.uniq(_.difference(this.getAlts(group.value.comment), existing));
+    const newAlts = uniq(difference(this.getAlts(group.value.comment), existing));
     for (const a of newAlts) {
       (group.get('alternateUrls') as UntypedFormArray).push(fb.control(a, LinksFormComponent.validators));
     }
     existing.push(...newAlts);
-    const newSources = _.uniq(_.difference(this.getSources(group.value.comment), existing));
+    const newSources = uniq(difference(this.getSources(group.value.comment), existing));
     for (const s of newSources) {
       (group.get('sources') as UntypedFormArray).push(fb.control(s, LinksFormComponent.validators));
     }
@@ -119,7 +119,7 @@ export class EditorService {
       ...getMailboxes(previousComment),
       ...(group.value.tags || []),
     ];
-    const newTags = _.uniq(_.difference([
+    const newTags = uniq(difference([
       ...getTags(group.value.comment),
       ...getMailboxes(group.value.comment)], existingTags));
     for (const t of newTags) {
@@ -154,7 +154,7 @@ export class EditorService {
   }
 
   getSources(markdown: string) {
-    return _.difference(getLinks(markdown), this.getAlts(markdown)).map(url => this.getRefUrl(url));
+    return difference(getLinks(markdown), this.getAlts(markdown)).map(url => this.getRefUrl(url));
   }
 
   getAlts(markdown: string) {

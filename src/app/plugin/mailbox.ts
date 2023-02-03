@@ -1,4 +1,4 @@
-import * as _ from 'lodash-es';
+import { filter, maxBy, uniq } from 'lodash-es';
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
@@ -31,7 +31,7 @@ export function isMailbox(tag: string) {
 }
 
 export function notifications(ref: Ref): string[] {
-  return _.filter(ref.tags || [], isMailbox);
+  return filter(ref.tags || [], isMailbox);
 }
 
 export function getMailbox(tag: string, local = ''): string {
@@ -70,12 +70,12 @@ export function getLocalMailbox(mailbox: string, local: string, origin: string, 
 
 export function mailboxes(ref: Ref, myUserTag: string, lookup?: Map<string, Map<string, string>>): string[] {
   const local = tagOrigin(myUserTag);
-  return _.uniq([
+  return uniq([
     ...authors(ref).filter(tag => tag !== myUserTag).map(tag => getMailbox(tag, local)),
     ...notifications(ref).map(m => getLocalMailbox(m, local, ref.origin || '', lookup)).filter(t => !!t) as string[],
   ]);
 }
 
 export function newest(refs: Ref[]) {
-  return _.maxBy(refs, r => r.modified!.valueOf());
+  return maxBy(refs, r => r.modified!.valueOf());
 }

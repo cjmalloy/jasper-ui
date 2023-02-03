@@ -1,4 +1,4 @@
-import * as _ from 'lodash-es';
+import { filter, find, uniq } from 'lodash-es';
 import { RefNode } from '../model/ref';
 import { hasTag } from './tag';
 
@@ -30,17 +30,17 @@ export function isInternal(node: GraphNode) {
 
 export function links(allNodes: GraphNode[], ...nodes: GraphNode[]) {
   return [
-    ...nodes.flatMap(n => sources(n).filter(url => find(allNodes, url)).map(url => ({ source: url, target: n.url })) || []),
-    ...nodes.flatMap(n => responses(n).filter(url => find(allNodes, url)).map(url => ({ source: n.url, target: url })) || []),
+    ...nodes.flatMap(n => sources(n).filter(url => findNode(allNodes, url)).map(url => ({ source: url, target: n.url })) || []),
+    ...nodes.flatMap(n => responses(n).filter(url => findNode(allNodes, url)).map(url => ({ source: n.url, target: url })) || []),
   ];
 }
 
 export function linkSources(allNodes: GraphNode[], url: string) {
-  return _.filter(allNodes, n => !!n.sources?.includes(url)).map((n: GraphNode) => ({ source: url, target: n.url }));
+  return filter(allNodes, n => !!n.sources?.includes(url)).map((n: GraphNode) => ({ source: url, target: n.url }));
 }
 
 export function references(...nodes: GraphNode[]): string[] {
-  return _.uniq([...sources(...nodes), ...responses(...nodes)]);
+  return uniq([...sources(...nodes), ...responses(...nodes)]);
 }
 
 export function sources(...nodes: GraphNode[]): string[] {
@@ -52,9 +52,9 @@ export function responses(...nodes: GraphNode[]): string[] {
 }
 
 export function unloadedReferences(allNodes: GraphNode[], ...nodes: GraphNode[]): string[] {
-  return references(...graphable(...nodes)).filter(s => !find(allNodes, s));
+  return references(...graphable(...nodes)).filter(s => !findNode(allNodes, s));
 }
 
-export function find(nodes: GraphNode[], url: string) {
-  return _.find(nodes, r => r.url === url);
+export function findNode(nodes: GraphNode[], url: string) {
+  return find(nodes, r => r.url === url);
 }

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import * as _ from 'lodash-es';
+import { debounce } from 'lodash-es';
 import { Subject } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
@@ -36,7 +36,7 @@ export class MdComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  onReady = _.debounce(() => {
+  onReady = debounce(() => {
     this.postProcessMarkdown.next();
   }, 3000);
 

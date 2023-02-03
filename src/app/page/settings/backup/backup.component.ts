@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import * as _ from 'lodash-es';
 import { catchError, throwError } from 'rxjs';
 import { BackupService } from '../../../service/api/backup.service';
 import { ThemeService } from '../../../service/theme.service';

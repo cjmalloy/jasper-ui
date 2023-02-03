@@ -1,4 +1,4 @@
-import * as _ from 'lodash-es';
+import { filter } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { config } from '../service/config.service';
 import { hasPrefix, hasTag } from './tag';
@@ -18,7 +18,7 @@ export const SELECTOR_REGEX = /^!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]
 export const QUERY_REGEX = /^(!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9]+)*|@\*))|\(!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*))([ |]!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*)))*\))([ |:&](!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*))|\(!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*))([ |]!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*)))*\)))*$/;
 
 export function templates(tags?: string[], template?: string) {
-  return _.filter(tags, t => hasPrefix(t, template));
+  return filter(tags, t => hasPrefix(t, template));
 }
 
 export function authors(ref: Ref) {
@@ -51,7 +51,7 @@ export function urlSummary(url: string) {
 }
 
 export function interestingTags(tags?: string[]): string[] {
-  return _.filter(_.filter(tags, interestingTag), value => !prefixTag(value, tags!));
+  return filter(filter(tags, interestingTag), value => !prefixTag(value, tags!));
 }
 
 export function prefixTag(tag: string, tags: string[]) {

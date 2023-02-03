@@ -1,5 +1,5 @@
 import { AfterViewInit, ComponentRef, Directive, Inject, Input, OnDestroy, ViewContainerRef } from '@angular/core';
-import * as _ from 'lodash-es';
+import { isString } from 'lodash-es';
 import { Subject } from 'rxjs';
 import { RefListComponent } from '../component/ref-list/ref-list.component';
 import { RefComponent } from '../component/ref/ref.component';
@@ -63,7 +63,7 @@ export class MdPostDirective implements AfterViewInit, OnDestroy, Embed {
 
   createEmbed(ref: Ref | string, expandPlugins: string[] = []): ComponentRef<ViewerComponent> {
     const c = this.viewContainerRef.createComponent(ViewerComponent);
-    if (_.isString(ref)) {
+    if (isString(ref)) {
       const url = ref as string;
       ref = { url, origin: this.origin };
       if (isImage(url)) {

@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import * as _ from 'lodash-es';
+import { map } from 'lodash-es';
 import { SELECTOR_REGEX } from '../../util/format';
 
 @Component({
@@ -41,5 +41,5 @@ export class SelectorsFormComponent implements OnInit {
 }
 
 export function selectorsForm(fb: UntypedFormBuilder, tags: string[]) {
-  return fb.array(_.map(tags, v => fb.control(v, SelectorsFormComponent.validators)));
+  return fb.array(map(tags, v => fb.control(v, SelectorsFormComponent.validators)));
 }

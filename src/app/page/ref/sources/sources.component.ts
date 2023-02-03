@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import * as _ from 'lodash-es';
+import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { AdminService } from '../../../service/admin.service';
 import { ThemeService } from '../../../service/theme.service';
@@ -36,7 +36,7 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
         this.store.view.pageSize,
       );
       args.sources = this.store.view.url;
-      _.defer(() => this.query.setArgs(args));
+      defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
       this.theme.setTitle('Sources: ' + (this.store.view.ref?.title || this.store.view.url));

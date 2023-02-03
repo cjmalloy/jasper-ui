@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import * as _ from 'lodash-es';
+import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { RefPageArgs } from '../../../model/ref';
 import { newest } from '../../../plugin/mailbox';
@@ -38,7 +38,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
         modifiedAfter: this.store.account.ext?.config.lastNotified,
         sort: ['modified,ASC'],
       };
-      _.defer(() => this.query.setArgs(args));
+      defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
       if (this.query.page && !this.query.page!.empty) {

@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import * as _ from 'lodash-es';
+import { map } from 'lodash-es';
 import { TAG_REGEX } from '../../util/format';
 
 @Component({
@@ -46,5 +46,5 @@ export class TagsFormComponent implements OnInit {
 }
 
 export function tagsForm(fb: UntypedFormBuilder, tags: string[]) {
-  return fb.array(_.map(tags, v => fb.control(v, TagsFormComponent.validators)));
+  return fb.array(map(tags, v => fb.control(v, TagsFormComponent.validators)));
 }

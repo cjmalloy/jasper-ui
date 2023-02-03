@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import * as _ from 'lodash-es';
+import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
@@ -33,7 +33,7 @@ export class SettingsUserPage implements OnInit, OnDestroy {
         page: this.store.view.pageNumber,
         size: this.store.view.pageSize,
       };
-      _.defer(() => this.query.setArgs(args));
+      defer(() => this.query.setArgs(args));
     }));
   }
 

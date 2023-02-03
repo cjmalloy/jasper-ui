@@ -1,8 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import * as _ from 'lodash-es';
-import { isEqual, isNil, omitBy } from 'lodash-es';
+import { forOwn, isEqual, mapValues, omitBy } from 'lodash-es';
 import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
 import { writePlugin } from '../../../model/plugin';
 import { writeTemplate } from '../../../model/template';
@@ -37,8 +36,8 @@ export class SettingsSetupPage implements OnInit {
   ) {
     theme.setTitle('Settings: Setup');
     this.adminForm = fb.group({
-      plugins: fb.group(_.mapValues(admin.status.plugins, p => fb.control(p))),
-      templates: fb.group(_.mapValues(admin.status.templates, t => fb.control(t))),
+      plugins: fb.group(mapValues(admin.status.plugins, p => fb.control(p))),
+      templates: fb.group(mapValues(admin.status.templates, t => fb.control(t))),
     });
   }
 
@@ -100,7 +99,7 @@ export class SettingsSetupPage implements OnInit {
 
   selectAll() {
     this.selectAllToggle = !this.selectAllToggle;
-    const sa = (fg: UntypedFormGroup) => _.forOwn(fg.controls, c => c.setValue(this.selectAllToggle));
+    const sa = (fg: UntypedFormGroup) => forOwn(fg.controls, c => c.setValue(this.selectAllToggle));
     sa(this.adminForm.get('plugins') as UntypedFormGroup);
     sa(this.adminForm.get('templates') as UntypedFormGroup);
   }

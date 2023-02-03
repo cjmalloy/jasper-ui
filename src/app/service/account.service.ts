@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import * as _ from 'lodash-es';
+import { delay } from 'lodash-es';
 import { runInAction } from 'mobx';
 import * as moment from 'moment';
 import { catchError, combineLatest, map, Observable, of, shareReplay, throwError } from 'rxjs';
@@ -74,7 +74,7 @@ export class AccountService {
         shareReplay(1),
         catchError(() => of(undefined)),
       );
-      _.delay(() => this._user$ = undefined, CACHE_MS);
+      delay(() => this._user$ = undefined, CACHE_MS);
     }
     return this._user$;
   }
@@ -86,7 +86,7 @@ export class AccountService {
         tap(ext => runInAction(() => this.store.account.ext = ext)),
         shareReplay(1),
       );
-      _.delay(() => this._userExt$ = undefined, CACHE_MS);
+      delay(() => this._userExt$ = undefined, CACHE_MS);
     }
     return this._userExt$;
   }

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
-import * as _ from 'lodash-es';
+import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { isAudio } from '../../plugin/audio';
@@ -68,7 +68,7 @@ export class ChatEntryComponent {
   set allowActions(value: boolean) {
     if (value === this._allowActions) return;
     if (value) {
-      _.defer(() => this._allowActions = value);
+      defer(() => this._allowActions = value);
     } else {
       this._allowActions = false;
     }

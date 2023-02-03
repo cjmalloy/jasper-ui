@@ -1,7 +1,7 @@
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { Component, HostBinding, Input, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import * as _ from 'lodash-es';
+import { defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, map, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -105,8 +105,8 @@ export class ChatComponent implements OnDestroy {
       if (!this.messages) this.messages = [];
       this.messages = [...this.messages, ...page.content];
       this.cursor = page.content[page.content.length - 1]?.modifiedString;
-      _.pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
-      _.defer(() => this.viewport.checkViewportSize());
+      pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
+      defer(() => this.viewport.checkViewportSize());
       if (!this.scrollLock) this.scrollDown();
     });
   }
@@ -136,8 +136,8 @@ export class ChatComponent implements OnDestroy {
       if (!this.messages) this.messages = [];
       this.cursor ??= page.content[0]?.modifiedString;
       this.messages = [...page.content.reverse(), ...this.messages];
-      _.pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
-      _.defer(() => this.viewport.checkViewportSize());
+      pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
+      defer(() => this.viewport.checkViewportSize());
       if (scrollDown) {
         this.retries = 0;
         this.scrollDown();
@@ -148,7 +148,7 @@ export class ChatComponent implements OnDestroy {
   }
 
   scrollDown() {
-    _.defer(() => {
+    defer(() => {
       let wait = 0;
       if (this.lastScrolled < this.messages!.length / 2) {
         this.lastScrolled = Math.floor((this.lastScrolled + this.messages!.length) / 2);
@@ -157,7 +157,7 @@ export class ChatComponent implements OnDestroy {
       }
       if (this.lastScrolled < this.messages!.length - 1) {
         this.lastScrolled = this.messages!.length - 1;
-        _.delay(() => this.viewport.scrollToIndex(this.lastScrolled, 'smooth'), wait);
+        delay(() => this.viewport.scrollToIndex(this.lastScrolled, 'smooth'), wait);
       }
     });
   }
@@ -185,7 +185,7 @@ export class ChatComponent implements OnDestroy {
     this.addText = this.addText.trim();
     if (!this.addText) return;
     this.scrollLock = undefined;
-    const newTags = _.uniq([
+    const newTags = uniq([
       ...this.addTags,
       ...this.plugins,
       this.store.account.localTag]);
@@ -212,7 +212,7 @@ export class ChatComponent implements OnDestroy {
             switchMap(() => this.refs.get(ref.url)),
           );
         } else {
-          _.pull(this.sending, ref);
+          pull(this.sending, ref);
           this.errored.push(ref);
         }
         return throwError(err);
@@ -223,7 +223,7 @@ export class ChatComponent implements OnDestroy {
   }
 
   retry(ref: Ref) {
-    _.pull(this.errored, ref);
+    pull(this.errored, ref);
     this.send(ref);
   }
 

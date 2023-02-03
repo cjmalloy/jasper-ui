@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import * as _ from 'lodash-es';
+import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
@@ -36,13 +36,13 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       const args = getArgs(
         '',
         this.store.view.sort,
-        _.uniq(['query/!internal@*', ...this.store.view.filter]),
+        uniq(['query/!internal@*', ...this.store.view.filter]),
         this.store.view.search,
         this.store.view.pageNumber,
         this.summaryItems,
       );
       args.responses = this.store.view.url;
-      _.defer(() => this.query.setArgs(args));
+      defer(() => this.query.setArgs(args));
     }));
     this.newComments$.subscribe(() => runInAction(() => {
       if (!this.comments) {

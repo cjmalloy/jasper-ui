@@ -1,6 +1,6 @@
 import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import * as _ from 'lodash-es';
+import { defer } from 'lodash-es';
 import * as moment from 'moment';
 import { of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -121,7 +121,7 @@ export class RefFormComponent implements OnInit {
       ...ref,
       published: ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
     });
-    _.defer(() => this.plugins.setValue(ref.plugins));
+    defer(() => this.plugins.setValue(ref.plugins));
   }
 }
 

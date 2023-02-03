@@ -1,9 +1,9 @@
-import * as _ from 'lodash-es';
+import { assign, difference, max, min, pull, pullAll, remove } from 'lodash-es';
 import { makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Page } from '../model/page';
 import { RefNode } from '../model/ref';
-import { find, graphable, GraphLink, GraphNode, links, linkSources, unloadedReferences } from '../util/graph';
+import { findNode, graphable, GraphLink, GraphNode, links, linkSources, unloadedReferences } from '../util/graph';
 
 export class GraphStore {
 
@@ -34,7 +34,7 @@ export class GraphStore {
   }
 
   get unloadedNotLoading(): string[] {
-    return _.difference(this.unloaded, this.loading);
+    return difference(this.unloaded, this.loading);
   }
 
   get selectedPage() {
@@ -42,11 +42,11 @@ export class GraphStore {
   }
 
   get minPublished() {
-    return _.min(this.graphable.map(r => r.published).filter(p => !!p));
+    return min(this.graphable.map(r => r.published).filter(p => !!p));
   }
 
   get maxPublished() {
-    return _.max(this.graphable.map(r => r.published).filter(p => !!p));
+    return max(this.graphable.map(r => r.published).filter(p => !!p));
   }
 
   get publishedDiff() {
@@ -65,9 +65,9 @@ export class GraphStore {
 
   load(...refs: RefNode[]) {
     for (const ref of refs) {
-      const found = find(this.nodes, ref.url);
+      const found = findNode(this.nodes, ref.url);
       if (found) {
-        _.assign(found, ref);
+        assign(found, ref);
         found.unloaded = false;
       } else {
         this.nodes.push(ref);
@@ -77,17 +77,17 @@ export class GraphStore {
     this.nodes = [...this.nodes];
     this.selected = [...this.selected];
     if (this.showUnloaded) {
-      this.nodes.push(..._.difference(unloadedReferences(this.nodes, ...refs), this.unloaded).map(url => ({ url, unloaded: true })));
+      this.nodes.push(...difference(unloadedReferences(this.nodes, ...refs), this.unloaded).map(url => ({ url, unloaded: true })));
     }
     this.links.push(...links(this.nodes, ...refs));
-    _.pullAll(this.loading, refs.map(r => r.url));
+    pullAll(this.loading, refs.map(r => r.url));
   }
 
   remove(refs: RefNode[]) {
-    _.pullAll(this.nodes, refs);
-    _.pullAll(this.selected, refs);
+    pullAll(this.nodes, refs);
+    pullAll(this.selected, refs);
     for (const ref of refs) {
-      _.remove(this.links, l => l.target === ref || l.source === ref);
+      remove(this.links, l => l.target === ref || l.source === ref);
     }
   }
 
@@ -98,7 +98,7 @@ export class GraphStore {
         this.nodes.push(...unloadedReferences(this.nodes, ...this.nodes).map(url => ({ url, unloaded: true })));
       }
     } else {
-      _.remove(this.nodes, n => n.unloaded);
+      remove(this.nodes, n => n.unloaded);
     }
     this.links = links(this.nodes, ...this.nodes);
   }
@@ -127,14 +127,14 @@ export class GraphStore {
   }
 
   notFound(url: string) {
-    let ref = find(this.nodes, url);
+    let ref = findNode(this.nodes, url);
     if (!ref) {
       ref = { url, notFound: true };
       this.nodes.push(ref);
     }
     ref.notFound = true;
     ref.unloaded = false;
-    _.pull(this.loading, url);
+    pull(this.loading, url);
     if (!this.showUnloaded) {
       this.links.push(...linkSources(this.nodes, url));
     }

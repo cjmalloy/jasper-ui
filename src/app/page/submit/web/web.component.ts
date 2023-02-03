@@ -2,8 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as _ from 'lodash-es';
-import { without } from 'lodash-es';
+import { defer, flatten, without } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { writePlugins } from '../../../form/plugins/plugins.component';
@@ -53,12 +52,12 @@ export class SubmitWebPage implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    _.defer(() => {
+    defer(() => {
       this.addTag('public');
       this.addTag(this.store.account.localTag);
       this.route.queryParams.subscribe(params => {
         if (params['tag']) {
-          const tags = _.flatten([params['tag']]);
+          const tags = flatten([params['tag']]);
           for (const tag of tags) {
             this.addTag(...tag.split(/[:|!()]/));
           }
@@ -70,10 +69,10 @@ export class SubmitWebPage implements AfterViewInit {
           this.addTag('internal');
           this.setTitle('Submit: Feed');
         }
-        _.defer(() => {
+        defer(() => {
           this.url = params['url'].trim();
           if (params['source']) {
-            _.flatten([params['source']]).map(s => this.addSource(s));
+            flatten([params['source']]).map(s => this.addSource(s));
           }
           if (params['scrape'] === 'true') {
             this.refForm.scrapeAll();

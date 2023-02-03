@@ -1,5 +1,4 @@
-import { intersection } from 'lodash-es';
-import * as _ from 'lodash-es';
+import { intersection, uniq } from 'lodash-es';
 import { makeAutoObservable } from 'mobx';
 import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
@@ -73,7 +72,7 @@ export class AccountStore {
     if (this.outboxes?.length) {
       tags.push(...this.outboxes);
     }
-    return _.uniq(tags).join('|');
+    return uniq(tags).join('|');
   }
 
   get subscriptionQuery() {

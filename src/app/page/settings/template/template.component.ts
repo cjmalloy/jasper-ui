@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import * as _ from 'lodash-es';
+import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, throwError } from 'rxjs';
 import { Template } from '../../../model/template';
@@ -42,7 +42,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
         page: this.store.view.pageNumber,
         size: this.store.view.pageSize,
       };
-      _.defer(() => this.query.setArgs(args));
+      defer(() => this.query.setArgs(args));
     }));
   }
 

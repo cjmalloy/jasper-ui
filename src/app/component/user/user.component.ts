@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import * as _ from 'lodash-es';
+import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { User } from '../../model/user';
@@ -49,7 +49,7 @@ export class UserComponent implements OnInit {
 
   @ViewChild(UserFormComponent)
   set refForm(value: UserFormComponent) {
-    _.defer(() => value?.setUser(this.user));
+    defer(() => value?.setUser(this.user));
   }
 
   ngOnInit(): void {

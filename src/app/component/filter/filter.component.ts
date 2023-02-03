@@ -1,7 +1,6 @@
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { find } from 'lodash-es';
-import * as _ from 'lodash-es';
+import { filter, find } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { PluginFilter } from '../../model/plugin';
 import { Filter } from '../../model/ref';
@@ -92,7 +91,7 @@ export class FilterComponent implements OnInit, OnDestroy {
   }
 
   setFilters() {
-    const filters = _.filter(this.filters, f => !!f);
+    const filters = filter(this.filters, f => !!f);
     this.router.navigate([], { queryParams: { filter: filters.length ? filters : null, pageNumber: null }, queryParamsHandling: 'merge' });
   }
 

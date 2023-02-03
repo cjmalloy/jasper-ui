@@ -1,5 +1,4 @@
 import { difference, uniq } from 'lodash-es';
-import * as _ from 'lodash-es';
 import { marked } from 'marked';
 import { getMailbox } from '../plugin/mailbox';
 import { QUALIFIED_USER_REGEX, TAG_REGEX } from './format';

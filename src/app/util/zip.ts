@@ -1,5 +1,5 @@
 import * as JSZip from 'jszip';
-import * as _ from 'lodash-es';
+import { isArray } from 'lodash-es';
 
 export function getZipFile(file: File, zipFileName: string): Promise<string | undefined> {
   return JSZip.loadAsync(file).catch(() => {
@@ -33,6 +33,6 @@ export function getZipOrTextFile(file: File, zipFileName: string): Promise<strin
 export function getModels<T>(json?: string): T[] {
   if (!json) return [];
   const models = JSON.parse(json);
-  if (_.isArray(models)) return models;
+  if (isArray(models)) return models;
   return [models];
 }

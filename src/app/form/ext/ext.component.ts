@@ -1,7 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { FormlyFieldConfig, FormlyFormOptions } from '@ngx-formly/core';
-import * as _ from 'lodash-es';
+import { defer } from 'lodash-es';
 import { Ext } from '../../model/ext';
 import { getMailbox } from '../../plugin/mailbox';
 import { AdminService } from '../../service/admin.service';
@@ -97,7 +97,7 @@ export class ExtFormComponent implements OnInit {
     if (!this.form) {
       this.form = this.admin.getTemplateForm(ext.tag);
     }
-    _.defer(() => this.group.patchValue(ext));
+    defer(() => this.group.patchValue(ext));
   }
 }
 

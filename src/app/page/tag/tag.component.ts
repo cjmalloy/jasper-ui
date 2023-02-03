@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import * as _ from 'lodash-es';
+import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, of } from 'rxjs';
 import { AccountService } from '../../service/account.service';
@@ -41,12 +41,12 @@ export class TagPage implements OnInit, OnDestroy {
       const args = getArgs(
         this.store.view.tag,
         this.store.view.sort,
-        _.uniq(['query/!internal@*', ...this.store.view.filter]) as UrlFilter[],
+        uniq(['query/!internal@*', ...this.store.view.filter]) as UrlFilter[],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
       );
-      _.defer(() => this.query.setArgs(args));
+      defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
       const tag = removeWildcard(this.store.view.tag);

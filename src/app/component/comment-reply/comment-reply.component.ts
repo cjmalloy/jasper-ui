@@ -1,11 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input } from '@angular/core';
-import { FormBuilder, FormControl, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import * as _ from 'lodash-es';
+import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { uniq } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, Subject, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { refForm } from '../../form/ref/ref.component';
 import { Ref } from '../../model/ref';
 import { getMailbox } from '../../plugin/mailbox';
 import { AdminService } from '../../service/admin.service';
@@ -70,12 +69,12 @@ export class CommentReplyComponent {
       origin: this.store.account.origin,
       title: 'Reply to: ' + this.to.title,
       comment: value,
-      sources: _.uniq([
+      sources: uniq([
         this.to.url,
         ...this.editor.getSources(value),
       ]),
       alternateUrls: this.editor.getAlts(value),
-      tags: removeTag(getMailbox(this.store.account.tag), _.uniq([
+      tags: removeTag(getMailbox(this.store.account.tag), uniq([
         ...this.publicTag,
         'internal',
         'plugin/comment',

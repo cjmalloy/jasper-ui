@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import * as _ from 'lodash-es';
+import { defer, escape } from 'lodash-es';
 import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
@@ -237,7 +237,7 @@ export class EmbedService {
           t.parentNode?.insertBefore(c.location.nativeElement, t);
         } else {
           el = document.createElement('div');
-          el.innerHTML = `<span class="error">Ref ${_.escape(url)} not found.</span>`;
+          el.innerHTML = `<span class="error">Ref ${escape(url)} not found.</span>`;
           t.parentNode?.insertBefore(el, t);
         }
         t.remove();
@@ -260,7 +260,7 @@ export class EmbedService {
           t.parentNode?.insertBefore(c.location.nativeElement, t);
         } else {
           el = document.createElement('div');
-          el.innerHTML = `<span class="error">Ref ${_.escape(url)} not found and could not embed directly.</span>`;
+          el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
           t.parentNode?.insertBefore(el, t);
         }
         t.remove();
@@ -310,7 +310,7 @@ export class EmbedService {
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               } else {
                 el = document.createElement('div');
-                el.innerHTML = `<span class="error">Ref ${_.escape(url)} not found.</span>`;
+                el.innerHTML = `<span class="error">Ref ${escape(url)} not found.</span>`;
                 t.parentNode?.insertBefore(el, t.nextSibling);
               }
               // @ts-ignore
@@ -383,12 +383,12 @@ export class EmbedService {
                     t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                   } else {
                     el = document.createElement('div');
-                    el.innerHTML = `<span class="error">Ref ${_.escape(ref.title || ref.url)} does not contain any embeds.</span>`;
+                    el.innerHTML = `<span class="error">Ref ${escape(ref.title || ref.url)} does not contain any embeds.</span>`;
                     t.parentNode?.insertBefore(el, t.nextSibling);
                   }
                 } else {
                   el = document.createElement('div');
-                  el.innerHTML = `<span class="error">Ref ${_.escape(url)} not found and could not embed directly.</span>`;
+                  el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
                   t.parentNode?.insertBefore(el, t.nextSibling);
                 }
                 // @ts-ignore
@@ -448,7 +448,7 @@ export class EmbedService {
               oldHeight = h;
             }
             if (start.isAfter(moment().subtract(3, 'seconds'))) {
-              _.defer(f);
+              defer(f);
             }
           };
           f();

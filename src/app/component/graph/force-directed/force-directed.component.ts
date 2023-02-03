@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import * as d3 from 'd3';
 import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
-import * as _ from 'lodash-es';
+import { filter } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
 import { Observable, of, Subscription } from 'rxjs';
@@ -23,7 +23,7 @@ import { Ref, RefNode } from '../../../model/ref';
 import { GraphService } from '../../../service/api/graph.service';
 import { Store } from '../../../store/store';
 import { isTextPost } from '../../../util/format';
-import { find, GraphNode, isGraphable, isInternal, responses, sources } from '../../../util/graph';
+import { findNode, GraphNode, isGraphable, isInternal, responses, sources } from '../../../util/graph';
 import { Point, Rect } from '../../../util/math';
 import { capturesAny, hasTag } from '../../../util/tag';
 
@@ -183,7 +183,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   find(url: string) {
-    return find(this.store.graph.nodes, url);
+    return findNode(this.store.graph.nodes, url);
   }
 
   max(loadCount: number) {
@@ -221,7 +221,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   select(rect?: Rect) {
-    this.store.graph.select(..._.filter(this.store.graph.nodes, n => Rect.contains(rect, n as Point)));
+    this.store.graph.select(...filter(this.store.graph.nodes, n => Rect.contains(rect, n as Point)));
     this.update();
   }
 

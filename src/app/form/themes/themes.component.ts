@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import * as _ from 'lodash-es';
+import { mapValues } from 'lodash-es';
 
 @Component({
   selector: 'app-themes',
@@ -53,5 +53,5 @@ export class ThemesFormComponent implements OnInit {
 }
 
 export function themesForm(fb: UntypedFormBuilder, themes: Record<string, string>) {
-  return fb.group(_.mapValues(themes, v => fb.control(v)));
+  return fb.group(mapValues(themes, v => fb.control(v)));
 }
