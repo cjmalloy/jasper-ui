@@ -53,6 +53,11 @@ input.big {
   }
 }
 
+.floating-ribbons > * {
+  transition: right 0.1s cubic-bezier(.47,1.64,.8,1.2);
+  transition-delay: 0.1s;
+}
+
 .floating-toggles, .floating-ribbons {
   position: absolute;
   pointer-events: none;
