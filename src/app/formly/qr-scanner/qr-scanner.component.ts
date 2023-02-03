@@ -1,12 +1,14 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { Component, EventEmitter, HostBinding, Output, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
-import QrScanner from 'qr-scanner';
+import { loadImage } from '../../util/image';
+import { QrScanner, scanImage } from '../../util/qr-scanner';
+import { Camera, checkCamera, listCameras } from '../../util/webcam';
 
 export let hasCamera = false;
-QrScanner.hasCamera().then(value => hasCamera = value);
-export let cameras: QrScanner.Camera[] = [];
-QrScanner.listCameras().then(value => cameras = value);
+checkCamera().then(value => hasCamera = value);
+export let cameras: Camera[] = [];
+listCameras().then(value => cameras = value);
 
 @Component({
   selector: 'app-qr-scanner',
@@ -35,7 +37,9 @@ export class QrScannerComponent {
   readQr(files?: FileList) {
     if (!files || !files.length) return;
     const file = files[0]!;
-    QrScanner.scanImage(file).then(data => this.data.next(data));
+    loadImage(file)
+      .then(image => scanImage(image))
+      .then(qr => qr?.data && this.data.next(qr.data));
   }
 
   scanQr() {
@@ -50,14 +54,12 @@ export class QrScannerComponent {
       hasBackdrop: true,
     });
     this.overlayRef.attach(new TemplatePortal(this.video, this.viewContainerRef));
-    this.scanner ||= new QrScanner(this.overlayRef.overlayElement.firstElementChild as HTMLVideoElement, ({ data }) => {
+    this.scanner ||= new QrScanner(this.overlayRef.overlayElement.firstElementChild as HTMLVideoElement, data => {
       if (data) this.data.next(data);
       this.stopScanQr();
-    }, {
-      preferredCamera: 'environment',
-      highlightScanRegion: true,
-    });
+    }, this.camera);
     this.scanner.start()
+      .then(() => listCameras().then(value => cameras = value))
       .then(() => this.scanner?.hasFlash())
       .then(value => this.hasFlash = !!value);
   }
@@ -81,10 +83,11 @@ export class QrScannerComponent {
 
   set camera(id: string | undefined) {
     localStorage.setItem('cameraId', id!);
+    if (id) this.scanner?.setCamera(id);
   }
 
   nextCamera() {
-    QrScanner.listCameras()
+    listCameras()
       .then(cameras => {
         if (!cameras.length) return;
         const cameraId = this.camera;
