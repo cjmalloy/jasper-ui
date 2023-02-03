@@ -7,6 +7,7 @@ import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
+import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { hasPrefix, localTag, prefix, removeWildcard } from '../../util/tag';
 
@@ -42,6 +43,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     public route: ActivatedRoute,
     public admin: AdminService,
     public store: Store,
+    public query: QueryStore,
     public config: ConfigService,
     private auth: AuthzService,
     private account: AccountService,

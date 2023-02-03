@@ -3,7 +3,7 @@
     <div class="toggle dont-hide"
          *ngIf="showToggle"
          (click)="expanded = !expanded">☰</div>
-    <div *ngIf="store.view.current" class="wide dont-hide">
+    <div *ngIf="store.view.current && (!home || store.view.search || store.view.filter.length || !query.page?.empty)" class="wide dont-hide">
       <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
       <app-search class="dont-hide"></app-search>
       <div class="show-remotes" *ngIf="expanded && store.view.type !== 'ref'">
