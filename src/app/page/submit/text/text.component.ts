@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, HostBinding, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostBinding, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -8,7 +8,7 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LinksFormComponent } from '../../../form/links/links.component';
-import { refForm } from '../../../form/ref/ref.component';
+import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { wikiTitleFormat, wikiUriFormat } from '../../../plugin/wiki';
 import { AdminService } from '../../../service/admin.service';
@@ -33,6 +33,11 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
   plugins: string[] = [];
   advanced = false;
   serverError: string[] = [];
+
+  @ViewChild('fill')
+  fill?: ElementRef;
+  @ViewChild('advancedForm')
+  advancedForm?: RefFormComponent;
 
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;

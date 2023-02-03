@@ -1,6 +1,7 @@
-<form class="form" [formGroup]="webForm" (ngSubmit)="submit()">
+<form class="form" [formGroup]="webForm" (ngSubmit)="submit()" [appLimitWidth]="form.fill?.nativeElement">
 
-  <app-ref-form [group]="webForm"
+  <app-ref-form #form
+                [group]="webForm"
                 (editorTags)="plugins = $event"></app-ref-form>
 
   <ng-container *ngFor="let e of serverError">

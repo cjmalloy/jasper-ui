@@ -1,29 +1,26 @@
 import { AfterViewInit, Directive, ElementRef, HostListener, Input, OnDestroy } from '@angular/core';
-import { debounce } from 'lodash-es';
+import { throttle } from 'lodash-es';
+import { mobileWidth } from './fill-width.directive';
 
 @Directive({
   selector: '[appLimitWidth]'
 })
 export class LimitWidthDirective implements OnDestroy, AfterViewInit {
 
-  private _linked?: HTMLTextAreaElement;
-
-  @Input()
-  padding = 0;
-
   resizeObserver = new ResizeObserver(() => this.fill());
+
+  private _linked?: HTMLElement;
 
   constructor(
     private el: ElementRef,
-  ) {
-  }
+  ) { }
 
   get linked() {
     return this._linked;
   }
 
   @Input('appLimitWidth')
-  set linked(value: HTMLTextAreaElement | undefined) {
+  set linked(value: HTMLElement | undefined) {
     this._linked = value;
     if (value) this.resizeObserver.observe(value);
   }
@@ -41,10 +38,16 @@ export class LimitWidthDirective implements OnDestroy, AfterViewInit {
     this.fill();
   }
 
-  private fill = debounce(() => {
-    const parentWidth = this._linked?.clientWidth;
-    if (parentWidth) {
-      this.el.nativeElement.style.maxWidth = parentWidth - this.padding + 'px';
+  get max() {
+    return window.innerWidth;
+  }
+
+  private fill = throttle(() => {
+    const linkedWidth = this._linked?.clientWidth;
+    if (window.innerWidth <= mobileWidth || !linkedWidth) {
+      this.el.nativeElement.style.maxWidth = '';
+    } else {
+      this.el.nativeElement.style.maxWidth = Math.min(this.max, linkedWidth) + 'px';
     }
-  }, 5);
+  }, 16, { leading: true, trailing: true});
 }

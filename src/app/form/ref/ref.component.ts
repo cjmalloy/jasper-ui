@@ -1,6 +1,5 @@
-import { Component, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { without } from 'lodash-es';
 import * as _ from 'lodash-es';
 import * as moment from 'moment';
 import { of } from 'rxjs';
@@ -28,6 +27,8 @@ export class RefFormComponent implements OnInit {
   @Output()
   editorTags = new EventEmitter<string[]>();
 
+  @ViewChild('fill')
+  fill?: ElementRef;
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
   @ViewChild('sources')
@@ -40,6 +41,7 @@ export class RefFormComponent implements OnInit {
   scraped?: Ref;
 
   constructor(
+    public el: ElementRef,
     private fb: UntypedFormBuilder,
     private admin: AdminService,
     private editor: EditorService,

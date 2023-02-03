@@ -1,5 +1,5 @@
 <ng-container *mobxAutorun>
-  <form class="form" [formGroup]="textForm" (ngSubmit)="submit()">
+  <form class="form" [formGroup]="textForm" (ngSubmit)="submit()" [appLimitWidth]="(fill || advancedForm?.fill)?.nativeElement">
 
     <ng-container *ngIf="!advanced">
       <label for="title" *ngIf="!store.submit.wiki" i18n>Title:</label>
@@ -34,7 +34,8 @@
     </ng-container>
 
     <ng-container *ngIf="advanced">
-      <app-ref-form [group]="textForm"
+      <app-ref-form #advancedForm
+                    [group]="textForm"
                     (editorTags)="plugins = $event"></app-ref-form>
     </ng-container>
 
