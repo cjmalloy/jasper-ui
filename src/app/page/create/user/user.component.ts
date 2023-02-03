@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { uniq } from 'lodash-es';
 import { catchError, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../../form/user/user.component';
 import { AccountService } from '../../../service/account.service';
@@ -24,9 +25,6 @@ export class CreateUserPage implements OnInit {
   submitted = false;
   userForm: UntypedFormGroup;
   serverError: string[] = [];
-
-  @ViewChild(UserFormComponent)
-  user!: UserFormComponent;
 
   constructor(
     private theme: ThemeService,
@@ -62,16 +60,18 @@ export class CreateUserPage implements OnInit {
     this.serverError = [];
     this.submitted = true;
     this.userForm.markAllAsTouched();
-    const inbox = prefix('plugin/inbox', this.userForm.value.tag);
-    if (this.admin.status.plugins.inbox && !this.userForm.value.readAccess.includes) {
-      this.user.readAccess.addTag(inbox);
-    }
     if (!this.userForm.valid) {
       scrollToFirstInvalid();
       return;
     }
+    const user = this.tag.value;
+    const readAccess = uniq([...this.userForm.value.readAccess, ...this.admin.readAccess.map(t => prefix(t, user))])
+    const writeAccess = uniq([...this.userForm.value.readAccess, ...this.admin.writeAccess.map(t => prefix(t, user))])
     this.users.create({
       ...this.userForm.value,
+      tag: user,
+      readAccess,
+      writeAccess,
       origin: this.store.account.origin,
     }).pipe(
       catchError((res: HttpErrorResponse) => {

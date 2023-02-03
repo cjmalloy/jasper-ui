@@ -33,6 +33,16 @@ export interface Plugin extends Tag {
      * Add query or response filters to the filter dropdown.
      */
     filters?: PluginFilter[],
+    /**
+     * Optional default read access tags to give users. Tags will be prefixed
+     * with the plugin tag.
+     */
+    readAccess?: string[],
+    /**
+     * Optional default write access tags to give users. Tags will be prefixed
+     * with the plugin tag.
+     */
+    writeAccess?: string[],
   };
   defaults?: any;
   schema?: Schema;

@@ -154,6 +154,14 @@ export class AdminService {
     return this._cache.get(name)!;
   }
 
+  get readAccess() {
+    return flatten(this.pluginConfigProperty('readAccess').map(p => p.config!.readAccess!));
+  }
+
+  get writeAccess() {
+    return flatten(this.pluginConfigProperty('writeAccess').map(p => p.config!.writeAccess!));
+  }
+
   get submit() {
     return this.pluginConfigProperty('submit').map(p => p!.tag);
   }
