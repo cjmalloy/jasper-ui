@@ -1,6 +1,15 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { Component, EventEmitter, HostBinding, Output, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  HostBinding,
+  OnDestroy,
+  Output,
+  TemplateRef,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { loadImage } from '../../util/image';
 import { QrScanner, scanImage } from '../../util/qr-scanner';
 import { Camera, hasCamera, listCameras } from '../../util/webcam';
@@ -10,7 +19,7 @@ import { Camera, hasCamera, listCameras } from '../../util/webcam';
   templateUrl: './qr-scanner.component.html',
   styleUrls: ['./qr-scanner.component.scss']
 })
-export class QrScannerComponent {
+export class QrScannerComponent implements OnDestroy {
   @HostBinding('class') css = 'form-array';
 
   @ViewChild('video')
@@ -28,6 +37,10 @@ export class QrScannerComponent {
     private viewContainerRef: ViewContainerRef,
     private overlay: Overlay,
   ) { }
+
+  ngOnDestroy() {
+    this.stopScanQr();
+  }
 
   readQr(files?: FileList) {
     if (!files || !files.length) return;
