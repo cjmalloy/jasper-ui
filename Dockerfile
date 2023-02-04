@@ -33,7 +33,7 @@ RUN npm i -g @angular/cli
 COPY --from=builder app ./
 CMD ng test --karma-config karma-ci.conf.js
 
-FROM nginx as deploy
+FROM nginx:alpine-slim as deploy
 WORKDIR /usr/share/nginx/html/
 COPY --from=builder app/dist/jasper-ui ./
 ARG BASE_HREF="/"
