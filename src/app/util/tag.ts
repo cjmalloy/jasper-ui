@@ -73,12 +73,14 @@ export function removeWildcard(tag: string) {
   }
   return tag;
 }
-export function localTag(tag: string) {
+export function localTag(tag?: string) {
+  if (!tag) return '';
   if (!tag.includes('@')) return tag;
   return tag.substring(0, tag.indexOf('@'));
 }
 
-export function tagOrigin(tag: string) {
+export function tagOrigin(tag?: string) {
+  if (!tag) return '';
   if (!tag.includes('@')) return '';
   return tag.substring(tag.indexOf('@'));
 }

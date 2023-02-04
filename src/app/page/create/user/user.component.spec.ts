@@ -12,7 +12,7 @@ describe('CreateUserPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CreateUserPage],
+      declarations: [ CreateUserPage ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,

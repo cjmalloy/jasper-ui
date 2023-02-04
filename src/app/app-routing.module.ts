@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { CreateExtPage } from './page/create/ext/ext.component';
-import { CreateProfilePage } from './page/create/profile/profile.component';
 import { CreateUserPage } from './page/create/user/user.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAllPage } from './page/inbox/all/all.component';
@@ -24,7 +23,6 @@ import { SettingsFeedPage } from './page/settings/feed/feed.component';
 import { SettingsOriginPage } from './page/settings/origin/origin.component';
 import { SettingsPasswordPage } from './page/settings/password/password.component';
 import { SettingsPluginPage } from './page/settings/plugin/plugin.component';
-import { SettingsProfilePage } from './page/settings/profile/profile.component';
 import { SettingsPage } from './page/settings/settings.component';
 import { SettingsSetupPage } from './page/settings/setup/setup.component';
 import { SettingsTemplatePage } from './page/settings/template/template.component';
@@ -79,18 +77,16 @@ const routes: Routes = [
   },
   { path: 'create/ext', component: CreateExtPage },
   { path: 'create/user', component: CreateUserPage },
-  { path: 'create/profile', component: CreateProfilePage },
   {
     path: 'settings',
     component: SettingsPage,
     children: [
-      { path: '', redirectTo: 'ext', pathMatch: 'full' },
-      { path: 'ext', component: SettingsExtPage },
+      { path: '', redirectTo: 'user', pathMatch: 'full' },
       { path: 'user', component: SettingsUserPage },
+      { path: 'ext', component: SettingsExtPage },
       { path: 'feed', component: SettingsFeedPage },
       { path: 'plugin', component: SettingsPluginPage },
       { path: 'template', component: SettingsTemplatePage },
-      { path: 'profile', component: SettingsProfilePage },
       { path: 'password', component: SettingsPasswordPage },
       { path: 'setup', component: SettingsSetupPage },
       { path: 'origin', component: SettingsOriginPage },

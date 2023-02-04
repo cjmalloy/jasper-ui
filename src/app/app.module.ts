@@ -40,8 +40,6 @@ import { LoginPopupComponent } from './component/login-popup/login-popup.compone
 import { MdComponent } from './component/md/md.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
 import { PluginComponent } from './component/plugin/plugin.component';
-import { ProfileListComponent } from './component/profile-list/profile-list.component';
-import { ProfileComponent } from './component/profile/profile.component';
 import { QrComponent } from './component/qr/qr.component';
 import { QueryComponent } from './component/query/query.component';
 import { RefListComponent } from './component/ref-list/ref-list.component';
@@ -54,6 +52,7 @@ import { SubscriptionBarComponent } from './component/subscription-bar/subscript
 import { TagListComponent } from './component/tag-list/tag-list.component';
 import { TemplateComponent } from './component/template/template.component';
 import { UploadRefComponent } from './component/upload-ref/upload-ref.component';
+import { UserListComponent } from './component/user-list/user-list.component';
 import { UserComponent } from './component/user/user.component';
 import { ViewerComponent } from './component/viewer/viewer.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
@@ -83,7 +82,6 @@ import { UserFormComponent } from './form/user/user.component';
 import { UsersFormComponent } from './form/users/users.component';
 import { JasperFormlyModule } from './formly/formly.module';
 import { CreateExtPage } from './page/create/ext/ext.component';
-import { CreateProfilePage } from './page/create/profile/profile.component';
 import { CreateUserPage } from './page/create/user/user.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAllPage } from './page/inbox/all/all.component';
@@ -106,7 +104,6 @@ import { SettingsFeedPage } from './page/settings/feed/feed.component';
 import { SettingsOriginPage } from './page/settings/origin/origin.component';
 import { SettingsPasswordPage } from './page/settings/password/password.component';
 import { SettingsPluginPage } from './page/settings/plugin/plugin.component';
-import { SettingsProfilePage } from './page/settings/profile/profile.component';
 import { SettingsPage } from './page/settings/settings.component';
 import { SettingsSetupPage } from './page/settings/setup/setup.component';
 import { SettingsTemplatePage } from './page/settings/template/template.component';
@@ -173,7 +170,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     SubmitTextPage,
     AutofocusDirective,
     CreateExtPage,
-    CreateProfilePage,
+    CreateUserPage,
     EditTagPage,
     LoadingComponent,
     SettingsPage,
@@ -186,7 +183,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     SettingsTemplatePage,
     TagListComponent,
     UserComponent,
-    CreateUserPage,
     ForceDirectedComponent,
     SubmitDmPage,
     SubmitInvoicePage,
@@ -205,9 +201,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     LinksFormComponent,
     QtagsFormComponent,
     PluginsFormComponent,
-    SettingsProfilePage,
-    ProfileListComponent,
-    ProfileComponent,
+    UserListComponent,
     SettingsPasswordPage,
     RefFormComponent,
     MdPostDirective,

@@ -35,14 +35,9 @@
       🖌️ &nbsp; Extend Tag
     </div>
   </ng-container>
-  <ng-container *ngIf="config.scim && store.account.mod">
-    <div class="submit-button" routerLink="/create/profile" [queryParams]="{ tag: localTag }" i18n>
-      👤️ &nbsp; Create Profile
-    </div>
-  </ng-container>
   <ng-container *ngIf="store.account.mod">
     <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag: localTag }" i18n>
-      🗝️️ &nbsp; User Permissions
+      👤️ &nbsp; Create User
     </div>
   </ng-container>
   <ng-container *ngIf="admin.status.plugins.inbox">

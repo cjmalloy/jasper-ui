@@ -64,7 +64,7 @@ export class OriginService {
       remotesForOrigin(origin)
         .map(remote => [config(remote).origin || '', findLocalAlias(remote.url)]));
     return new Map(
-      remotesForOrigin(this.store.account.origin)
+      remotesForOrigin(this.store.account.origin!)
         .map(remote => remote.origin || '')
         .map(origin => [origin, originMapFor(origin)]));
   }

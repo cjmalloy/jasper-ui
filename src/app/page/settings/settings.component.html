@@ -1,14 +1,13 @@
 <div class="tabs">
   <h5 i18n>Settings</h5>
-  <a routerLink="./ext" routerLinkActive="current-tab" i18n-title title="Tag Extensions" i18n>ext</a>
   <a routerLink="./user" routerLinkActive="current-tab">user</a>
+  <a routerLink="./ext" routerLinkActive="current-tab" i18n-title title="Tag Extensions" i18n>ext</a>
   <a *ngIf="admin.status.plugins.feed" routerLink="./feed" routerLinkActive="current-tab" i18n-title title="RSS Feeds" i18n>feed</a>
   <a *ngIf="admin.status.plugins.origin" routerLink="./origin" routerLinkActive="current-tab" i18n-title title="Remote Origins" i18n>origin</a>
   <a routerLink="./plugin" routerLinkActive="current-tab" i18n-title title="Ref Plugins" i18n>plugin</a>
   <a routerLink="./template" routerLinkActive="current-tab" i18n-title title="Ext Templates" i18n>template</a>
   <a *ngIf="store.account.admin" routerLink="./setup" routerLinkActive="current-tab" i18n-title title="Setup" i18n>setup</a>
   <a *ngIf="store.account.mod" routerLink="./backup" routerLinkActive="current-tab" i18n-title title="Backup" i18n>backup</a>
-  <a *ngIf="config.scim && store.account.mod" routerLink="./profile" routerLinkActive="current-tab" i18n-title title="Profiles" i18n>profile</a>
   <a *ngIf="config.scim && store.account.signedIn" routerLink="./password" routerLinkActive="current-tab" i18n-title title="Change Password" i18n>password</a>
   <app-settings></app-settings>
 </div>

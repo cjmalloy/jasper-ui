@@ -1,7 +1,7 @@
 <div class="list-container">
-  <ng-container *ngFor="let profile of page?.content; let i = index">
+  <ng-container *ngFor="let user of page?.content; let i = index">
     <div class="list-number">{{ i + page!.number * page!.size + 1 }}</div>
-    <app-profile [profile]="profile"></app-profile>
+    <app-user [user]="user" [profile]="getProfile(user)"></app-user>
   </ng-container>
 </div>
 <app-loading *ngIf="!page"></app-loading>

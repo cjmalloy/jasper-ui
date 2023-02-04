@@ -1,11 +1,25 @@
 <div class="tabs">
-  <h5 i18n>Create User Permissions</h5>
+  <h5 i18n>Create Profile</h5>
   <app-settings></app-settings>
 </div>
 
-<form class="form" [formGroup]="userForm" (ngSubmit)="create()">
+<form class="form" [formGroup]="profileForm" (ngSubmit)="create()">
 
-  <app-user-form [group]="userForm"></app-user-form>
+  <app-user-form [group]="user"></app-user-form>
+
+  <ng-container *ngIf="config.scim">
+    <label for="password" i18n>Password:</label>
+    <input id="password" type="password" [formControl]="password">
+
+    <label for="role">Role:</label>
+    <select id="role" [formControl]="role">
+      <option value="ROLE_ADMIN" i18n>admin</option>
+      <option value="ROLE_MOD" i18n>mod</option>
+      <option value="ROLE_EDITOR" i18n>editor</option>
+      <option value="ROLE_USER" i18n>user</option>
+      <option value="ROLE_VIEWER" i18n>viewer</option>
+    </select>
+  </ng-container>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>
@@ -14,7 +28,7 @@
 
   <span><!-- Buttons --></span>
   <span class="form-array right">
-    <button type="submit" [disabled]="submitted && !userForm.valid" i18n>Create</button>
+    <button type="submit" [disabled]="submitted && !profileForm.valid" i18n>Create</button>
   </span>
 
 </form>
