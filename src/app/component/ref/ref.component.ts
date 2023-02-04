@@ -18,6 +18,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
+import { downloadRef } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import {
   authors,
@@ -288,6 +289,10 @@ export class RefComponent implements OnInit {
       user = user.replace(this.store.account.origin, '');
     }
     return formatAuthor(user);
+  }
+
+  download() {
+    downloadRef(this.ref);
   }
 
   addInlineTag(field: HTMLInputElement) {

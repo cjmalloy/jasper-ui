@@ -7,7 +7,7 @@ import { Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
-import { download } from '../../util/download';
+import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
@@ -102,6 +102,6 @@ export class TemplateComponent implements OnInit {
   }
 
   download() {
-    download(this.template);
+    downloadTag(this.template);
   }
 }

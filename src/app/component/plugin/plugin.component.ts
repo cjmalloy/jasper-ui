@@ -7,7 +7,7 @@ import { Plugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { Store } from '../../store/store';
-import { download } from '../../util/download';
+import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
@@ -102,6 +102,6 @@ export class PluginComponent implements OnInit {
   }
 
   download() {
-    download(this.plugin);
+    downloadTag(this.plugin);
   }
 }

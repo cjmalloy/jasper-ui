@@ -35,20 +35,6 @@
           <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
           <a *ngIf="sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }" i18n>parent</a>
           <a *ngIf="sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }" i18n>{{ sources }}&thinsp;sources</a>
-          <a *ngIf="writeAccess else source"
-             class="fake-link"
-             (click)="editing = !editing" i18n>edit</a>
-          <ng-template #source>
-            <a class="fake-link"
-               (click)="viewSource = !viewSource" i18n>source</a>
-          </ng-template>
-          <a *ngIf="!deleting && writeAccess"
-             class="fake-link"
-             (click)="deleting = true" i18n>delete</a>
-          <span *ngIf="deleting" class="delete-confirm"> are you sure?&nbsp;
-            <a class="fake-link" (click)="delete()" i18n>yes</a>&nbsp;/&nbsp;
-            <a class="fake-link" (click)="deleting = false" i18n>no</a>&nbsp;
-          </span>
           <a *ngIf="local && (store.account.editor || writeAccess)"
              class="fake-link"
              (click)="tagging = !tagging" i18n>tag</a>
@@ -63,6 +49,22 @@
                    autocapitalize="none"
                    appAutofocus>
             <button (click)="addInlineTag(inlineTag)" i18n>+</button>
+          </span>
+          <a *ngIf="writeAccess else source"
+             class="fake-link"
+             (click)="editing = !editing" i18n>edit</a>
+          <ng-template #source>
+            <a class="fake-link"
+               (click)="viewSource = !viewSource" i18n>source</a>
+          </ng-template>
+          <a class="fake-link"
+             (click)="download()" i18n>download</a>
+          <a *ngIf="!deleting && writeAccess"
+             class="fake-link"
+             (click)="deleting = true" i18n>delete</a>
+          <span *ngIf="deleting" class="delete-confirm"> are you sure?&nbsp;
+            <a class="fake-link" (click)="delete()" i18n>yes</a>&nbsp;/&nbsp;
+            <a class="fake-link" (click)="deleting = false" i18n>no</a>&nbsp;
           </span>
           <ng-container *ngIf="canInvoice">
             <a [routerLink]="['/submit/invoice']"

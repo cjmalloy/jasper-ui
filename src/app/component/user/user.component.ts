@@ -10,6 +10,7 @@ import { AdminService } from '../../service/admin.service';
 import { UserService } from '../../service/api/user.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
+import { downloadRef, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
@@ -98,5 +99,9 @@ export class UserComponent implements OnInit {
       this.deleting = false;
       this.deleted = true;
     });
+  }
+
+  download() {
+    downloadTag(this.user);
   }
 }
