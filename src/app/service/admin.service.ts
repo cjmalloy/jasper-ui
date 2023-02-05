@@ -10,7 +10,7 @@ import { archivePlugin } from '../plugin/archive';
 import { audioPlugin } from '../plugin/audio';
 import { commentPlugin } from '../plugin/comment';
 import { deletePlugin } from '../plugin/delete';
-import { emojiPlugin, htmlPlugin, latexPlugin } from '../plugin/editor';
+import { htmlPlugin, latexPlugin } from '../plugin/editor';
 import { embedPlugin } from '../plugin/embed';
 import { feedPlugin } from '../plugin/feed';
 import { graphPlugin } from '../plugin/graph';
@@ -61,7 +61,6 @@ export class AdminService {
       pdf: pdfPlugin,
       archive: archivePlugin,
       latex: latexPlugin,
-      emoji: emojiPlugin,
       html: htmlPlugin,
       person: personPlugin,
       graph: graphPlugin,
