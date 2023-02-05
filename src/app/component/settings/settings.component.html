@@ -20,10 +20,10 @@
        [routerLink]="['/tag', store.account.tag]">{{ shortUserTag }}</a>
     <ng-container *ngIf="admin.status.plugins.inbox">
       <ng-container *ngIf="store.account.notifications as n; else noNotifications">
-        | {{ n }} <a class="inbox notification" routerLink="/inbox/unread">📧</a>
+        | {{ n }} <a class="inbox notification" routerLink="/inbox/unread">✉️</a>
       </ng-container>
       <ng-template #noNotifications>
-        | <a class="inbox" routerLink="/inbox">📧</a>
+        | <a class="inbox" routerLink="/inbox">✉️</a>
       </ng-template>
     </ng-container>
     | <a routerLink="/settings" i18n>settings</a>

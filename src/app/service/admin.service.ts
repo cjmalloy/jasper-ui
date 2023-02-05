@@ -11,6 +11,7 @@ import { audioPlugin } from '../plugin/audio';
 import { commentPlugin } from '../plugin/comment';
 import { deletePlugin } from '../plugin/delete';
 import { htmlPlugin, latexPlugin } from '../plugin/editor';
+import { emailPlugin } from '../plugin/email';
 import { embedPlugin } from '../plugin/embed';
 import { feedPlugin } from '../plugin/feed';
 import { graphPlugin } from '../plugin/graph';
@@ -57,6 +58,7 @@ export class AdminService {
       inbox: inboxPlugin,
       outbox: outboxPlugin,
       comment: commentPlugin,
+      email: emailPlugin,
       thumbnail: thumbnailPlugin,
       pdf: pdfPlugin,
       archive: archivePlugin,
