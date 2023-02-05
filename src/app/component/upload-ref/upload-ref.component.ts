@@ -32,15 +32,12 @@ export class UploadRefComponent {
 
   readRefs(files?: FileList) {
     this.serverError = [];
-    if (!files || !files.length) return;
-    getZipOrTextFile(files[0]!, 'ext.json')
+    const file = files?.[0];
+    if (!file) return;
+    getZipOrTextFile(file, 'ext.json')
       .then(json => getModels<Ext>(json))
-      .then(exts => firstValueFrom(forkJoin(exts.map(ext => this.uploadExt(ext))).pipe(
-        catchError(err => {
-          this.serverErrors.next(this.serverError = [...this.serverError, err.message]);
-          return of(null);
-        }))))
-      .then(() =>getZipOrTextFile(files[0]!, 'ref.json'))
+      .then(exts => firstValueFrom(forkJoin(exts.map(ext => this.uploadExt(ext)))))
+      .then(() => getZipOrTextFile(file, 'ref.json'))
       .then(json => getModels<Ref>(json))
       .then(refs => firstValueFrom(forkJoin(refs.map(ref => this.uploadRef(ref)))))
       .then(() => delay(() => this.router.navigate(['/tag', '*'], { queryParams: { sort: 'modified,DESC' } }),
@@ -60,7 +57,7 @@ export class UploadRefComponent {
       }),
       catchError((res: HttpErrorResponse) => {
         this.serverErrors.next(this.serverError = [...this.serverError, ...printError(res)]);
-        return throwError(() => res);
+        return of(null);
       }),
     );
   }
@@ -76,7 +73,7 @@ export class UploadRefComponent {
       }),
       catchError((res: HttpErrorResponse) => {
         this.serverErrors.next(this.serverError = [...this.serverError, ...printError(res)]);
-        return throwError(() => res);
+        return of(null);
       }),
     );
   }
