@@ -15,6 +15,10 @@ export interface Plugin extends Tag {
      */
     ui?: string,
     /**
+     * Optional CSS to be added to <head> on load.
+     */
+    css?: string,
+    /**
      * Optional formly config for editing a form defined by the schema.
      */
     form?: FormlyFieldConfig[],

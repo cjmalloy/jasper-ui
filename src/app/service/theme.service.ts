@@ -2,7 +2,9 @@ import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { autorun, runInAction } from 'mobx';
+import { of } from 'rxjs';
 import { Store } from '../store/store';
+import { AdminService } from './admin.service';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -13,11 +15,17 @@ export class ThemeService {
   constructor(
     @Inject(DOCUMENT) private document: Document,
     private config: ConfigService,
+    private admin: AdminService,
     private store: Store,
     private titleService: Title,
   ) {
     this.setTheme(localStorage.getItem('theme'));
-    autorun(() => this.setCustomCss(store.account.theme || store.view.ext?.config?.themes?.[store.view.ext?.config?.theme]));
+    autorun(() => this.setCustomCss('custom-css', this.store.account.theme || this.store.view.ext?.config?.themes?.[this.store.view.ext?.config?.theme]));
+  }
+
+  get init$() {
+    this.admin.pluginConfigProperty('css').map(p => this.setCustomCss(p.tag, p.config!.css));
+    return of();
   }
 
   toggle() {
@@ -28,13 +36,14 @@ export class ThemeService {
     }
   }
 
-  setCustomCss(css?: string) {
-    const old = this.document.getElementById('custom-css')
+  setCustomCss(id: string, css?: string) {
+    id = id.replace(/\W/g, '-');
+    const old = this.document.getElementById(id)
     if (old) old.remove();
     if (!css) return;
     const head = this.document.getElementsByTagName('head')[0];
     const style = this.document.createElement('style');
-    style.id = 'custom-css';
+    style.id = id;
     style.innerHTML = css;
     head.appendChild(style);
   }
