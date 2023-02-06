@@ -156,11 +156,11 @@ export class AdminService {
   }
 
   get readAccess() {
-    return flatten(this.pluginConfigProperty('readAccess').map(p => p.config!.readAccess!));
+    return this.pluginConfigProperty('readAccess').flatMap(p => p.config!.readAccess!);
   }
 
   get writeAccess() {
-    return flatten(this.pluginConfigProperty('writeAccess').map(p => p.config!.writeAccess!));
+    return this.pluginConfigProperty('writeAccess').flatMap(p => p.config!.writeAccess!);
   }
 
   get submit() {
@@ -221,8 +221,8 @@ export class AdminService {
   }
 
   getActions(tags?: string[]) {
-    return flatten(this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.actions))
-      .map(p => p.config!.actions as Action[]));
+    return this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.actions))
+      .flatMap(p => p.config!.actions as Action[]);
   }
 
   getIcons(tags?: string[]) {
@@ -236,8 +236,8 @@ export class AdminService {
   }
 
   getPublished(tags?: string[]) {
-    return flatten(this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.published))
-      .map(p => p.config!.published as string));
+    return this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.published))
+      .flatMap(p => p.config!.published as string);
   }
 
   getPlugin(tag: string) {
