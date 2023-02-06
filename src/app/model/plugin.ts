@@ -76,6 +76,7 @@ export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) 
 
 export interface Icon extends Visibility {
   label: string;
+  title?: string;
   /**
    * If set, makes this icon conditional on a tag.
    */

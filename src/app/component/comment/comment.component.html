@@ -5,12 +5,12 @@
       {{ formatAuthor(user) }}
     </a>
   </ng-container>
-  <ng-container *ngFor="let icon of icons">
-    <span *ngIf="showIcon(icon)" class="icon">{{ icon.label }}</span>
-  </ng-container>
   <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
   <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="ref.modified?.fromNow()">*</span>
-  {{ comments }}
+  <ng-container *ngFor="let icon of icons">
+    <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span>
+  </ng-container>
+  ({comments, plural, =1 {1&thinsp;child} other {{{ comments }}&thinsp;children}})
 </div>
 
 <div class="comment-container info collapsed" tabindex="0" *ngIf="deleted" i18n>
@@ -32,6 +32,9 @@
       <ng-container *ngFor="let tag of tagged">
         <a class="tag" [routerLink]="['/tag', tag]">{{ tag }}</a>&nbsp;
       </ng-container>
+    </ng-container>
+    <ng-container *ngFor="let icon of icons">
+      <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span>
     </ng-container>
   </div>
   <app-md *ngIf="!editing"

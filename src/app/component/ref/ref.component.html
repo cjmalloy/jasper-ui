@@ -12,9 +12,6 @@
       <a *ngIf="clickableLink" [href]="ref.url | safe" target="_blank">{{ ref.title || ref.url }}</a>
       <a *ngIf="!clickableLink" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a><wbr>
       <span class="host">({{ host }})</span>
-      <ng-container *ngFor="let icon of icons">
-        <span *ngIf="showIcon(icon)" class="icon">{{ icon.label }}</span>
-      </ng-container>
     </div>
     <div class="link-below">
       <div class="toggle toggle-comment"
@@ -51,6 +48,9 @@
             <ng-container *ngFor="let tag of tags">
               <a class="tag" [routerLink]="['/tag', tag + ref.origin]">{{ tag }}</a>&nbsp;
             </ng-container>
+          </ng-container>
+          <ng-container *ngFor="let icon of icons">
+            <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span>
           </ng-container>
           <ng-container *ngIf="scrapeable">
             <ng-container *ngIf="scraped">

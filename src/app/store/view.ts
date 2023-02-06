@@ -1,3 +1,4 @@
+import { without } from 'lodash-es';
 import { makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
@@ -201,5 +202,21 @@ export class ViewStore {
 
   get queue() {
     return !isQuery(this.tag) && hasPrefix(this.tag, 'queue');
+  }
+
+  toggleTag(tag: string) {
+    let query = this.tag;
+    if (!query || query === '@*') return tag;
+    if (query === tag) return '@*';
+    if (query.includes(':' + tag)) return query.replace(':' + tag, '');
+    if (query.includes(tag + ':')) return query.replace(tag + ':', '');
+    if (query.includes('|')) query = '(' + query + ')';
+    return query + ':' + tag;
+  }
+
+  toggleFilter(filter: UrlFilter) {
+    const filters = this.filter;
+    if (filters.includes(filter)) return without(filters, filter);
+    return [...filters, filter];
   }
 }
