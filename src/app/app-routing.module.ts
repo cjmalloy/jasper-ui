@@ -5,7 +5,6 @@ import { CreateUserPage } from './page/create/user/user.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAllPage } from './page/inbox/all/all.component';
 import { InboxPage } from './page/inbox/inbox.component';
-import { InboxInvoicesPage } from './page/inbox/invoices/invoices.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
 import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
@@ -63,7 +62,6 @@ const routes: Routes = [
       { path: '', redirectTo: 'all', pathMatch: 'full' },
       { path: 'all', component: InboxAllPage },
       { path: 'unread', component: InboxUnreadPage },
-      { path: 'invoices', component: InboxInvoicesPage },
       { path: 'sent', component: InboxSentPage },
     ],
   },
