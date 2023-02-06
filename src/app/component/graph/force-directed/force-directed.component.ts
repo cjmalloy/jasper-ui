@@ -19,7 +19,9 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
+import { Action, active, Icon, Visibility, visible } from '../../../model/plugin';
 import { Ref, RefNode } from '../../../model/ref';
+import { AdminService } from '../../../service/admin.service';
 import { GraphService } from '../../../service/api/graph.service';
 import { Store } from '../../../store/store';
 import { isTextPost } from '../../../util/format';
@@ -65,7 +67,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   @Input()
   selectedStrokeOpacity = 1;
   @Input()
-  nodeRadius = 8;
+  nodeRadius = 10;
   @Input()
   nodeStrength?: number;
   @Input()
@@ -101,6 +103,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     public store: Store,
+    private admin: AdminService,
     private graphs: GraphService,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
@@ -350,6 +353,10 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     return ref.title || ref.url;
   }
 
+  icon(ref: GraphNode) {
+    return this.admin.getIcons(ref.tags).filter(i => active(ref, i)).pop()?.label || '';
+  }
+
   color(ref: GraphNode) {
     if (ref.notFound) return '#e54a4a';
     if (ref.unloaded) return '#e38a35';
@@ -426,9 +433,13 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
           .attr('y2', (d: any) => d.target.y);
 
         this.node!
-          .selectAll('circle')
-          .attr('cx', (d: any) => d.x)
-          .attr('cy', (d: any) => d.y);
+          .selectAll('g').select('circle')
+            .attr('cx', (d: any) => d.x)
+            .attr('cy', (d: any) => d.y);
+        this.node!
+          .selectAll('g').select('text')
+            .attr('x', (d: any) => d.x)
+            .attr('y', (d: any) => d.y);
       });
 
     this.dragRect = this.svg.append('g')
@@ -493,11 +504,12 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
     const self = this;
     this.node
-      .selectAll('circle')
+      .selectAll('g')
       .data(this.store.graph.nodes, (d: any) => d.url)
       .join(
         enter => {
-          const circle = enter.append('circle')
+          const node = enter.append('g');
+          const circle = node.append('circle')
             .attr('r', this.nodeRadius)
             .attr('fill', ref => this.color(ref))
             .attr('stroke', this.nodeStroke)
@@ -511,17 +523,25 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
               self.contextMenu((this as any).__data__, event);
             });
           circle.append('title');
-          return circle;
+          node.append('text')
+            .attr('font-size', '14px')
+            .attr('pointer-events', 'none')
+            .attr('text-anchor', 'middle')
+            .attr('alignment-baseline', 'central');
+          return node;
         },
         update => {
-          update.select('title')
-            .text(ref => this.title(ref));
-          return update
+          update.select('circle')
             .attr('stroke', ref => this.store.graph.selected.includes(ref) ? this.selectedStroke : this.nodeStroke)
             .attr('stroke-dasharray', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeDashedArray : this.nodeStrokeDashedArray)
             .attr('stroke-opacity', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeOpacity : this.nodeStrokeOpacity)
             .attr('stroke-width', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeWidth : this.nodeStrokeOpacity)
-            .attr('fill', ref => this.color(ref));
+            .attr('fill', ref => this.color(ref))
+            .select('title')
+              .text(ref => this.title(ref));
+          update.select('text')
+            .text(ref => this.icon(ref));
+          return update;
         });
 
     function drag(simulation: Simulation<SimulationNodeDatum, undefined>) {
