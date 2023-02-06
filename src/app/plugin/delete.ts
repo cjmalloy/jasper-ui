@@ -10,11 +10,13 @@ export const deletePlugin: Plugin = {
   },
 };
 
-export function deleteNotice(ref: Ref) {
+export function deleteNotice(ref: Ref): Ref {
   return {
     url: ref.url,
     origin: ref.origin,
     tags: ['plugin/delete', 'internal'],
+    created: ref.created,
+    published: ref.published,
     modifiedString: ref.modifiedString,
   };
 }
