@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
-import { RefService } from '../../service/api/ref.service';
 import { EmbedService } from '../../service/embed.service';
 
 @Component({
@@ -56,7 +55,7 @@ export class ViewerComponent implements AfterViewInit {
   }
 
   get uis() {
-    return this.admin.getPluginUi(this.tags);
+    return this.admin.getPluginUi(this.currentTags);
   }
 
   cssUrl(url: string) {
