@@ -226,8 +226,13 @@ export class AdminService {
   }
 
   getIcons(tags?: string[]) {
-    return flatten(this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.icons))
-      .map(p => p.config!.icons as Icon[]));
+    return this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.icons))
+      .flatMap(p => p.config!.icons?.map(i => {
+        if (!i.response) i.tag ||= p.tag;
+        if (i.tag === p.tag)  i.title ||= p.name;
+        i.title ||= i.tag;
+        return i;
+      }) as Icon[]);
   }
 
   getPublished(tags?: string[]) {
