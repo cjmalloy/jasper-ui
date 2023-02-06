@@ -5,6 +5,7 @@ import { filter, uniq } from 'lodash-es';
 import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { Action, active, Icon, Visibility, visible } from '../../model/plugin';
 import { Ref } from '../../model/ref';
+import { deleteNotice } from '../../plugin/delete';
 import { mailboxes } from '../../plugin/mailbox';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
@@ -158,7 +159,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get deleted() {
-    return hasTag('plugin/deleted', this.ref);
+    return hasTag('plugin/delete', this.ref);
   }
 
   get comments() {
@@ -230,9 +231,11 @@ export class CommentComponent implements OnInit, OnDestroy {
     delete this.ref.title;
     delete this.ref.comment;
     delete this.ref.plugins;
+    this.ref.tags = ['plugin/comment', 'plugin/delete', 'internal']
     this.runAndLoad(this.refs.update({
-      ...this.ref,
-      tags: uniq([...filter(this.ref.tags, t => !hasPrefix(t, 'plugin')), 'plugin/comment', 'plugin/deleted']),
+      ...deleteNotice(this.ref),
+      sources: this.ref.sources,
+      tags: this.ref.tags,
     }));
   }
 }
