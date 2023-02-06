@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { forOwn, isEqual, mapValues, omitBy } from 'lodash-es';
+import { forOwn, groupBy, isEqual, mapValues, omitBy } from 'lodash-es';
 import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
-import { writePlugin } from '../../../model/plugin';
+import { Plugin, writePlugin } from '../../../model/plugin';
 import { writeTemplate } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
@@ -25,6 +25,7 @@ export class SettingsSetupPage implements OnInit {
   adminForm: UntypedFormGroup;
   serverError: string[] = [];
   installMessages: string[] = [];
+  pluginGroups = this._pluginGroups;
 
   constructor(
     public admin: AdminService,
@@ -42,6 +43,15 @@ export class SettingsSetupPage implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  get _pluginGroups() {
+    const ret = Object.entries(this.admin.def.plugins).reduce((result, item) => {
+      const type = result[item[1].config?.type || 'feature'] ||= {} as Record<string, Plugin>;
+      type[item[0]] = item[1];
+      return result;
+    }, {} as Record<'feature' | 'editor' | 'viewer' | 'semantic' | 'theme', Record<string, Plugin>>);
+    return ret
   }
 
   install() {
