@@ -11,4 +11,5 @@ export const emailPlugin: Plugin = {
       { label: $localize`📧️` },
     ],
   },
+  generateMetadata: true,
 };

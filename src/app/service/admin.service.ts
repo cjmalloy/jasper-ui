@@ -6,6 +6,7 @@ import { tap } from 'rxjs/operators';
 import { Action, Icon, Plugin } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
+import { aprioriPlugin } from '../plugin/apriori';
 import { archivePlugin } from '../plugin/archive';
 import { audioPlugin } from '../plugin/audio';
 import { commentPlugin } from '../plugin/comment';
@@ -22,7 +23,9 @@ import { originPlugin } from '../plugin/origin';
 import { pdfPlugin } from '../plugin/pdf';
 import { personPlugin } from '../plugin/person';
 import { qrPlugin } from '../plugin/qr';
+import { repostPlugin } from '../plugin/repost';
 import { rootPlugin } from '../plugin/root';
+import { terminalThemePlugin } from '../plugin/theme';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
 import { DEFAULT_WIKI_PREFIX, wikiPlugin } from '../plugin/wiki';
@@ -55,6 +58,7 @@ export class AdminService {
       origin: originPlugin,
       feed: feedPlugin,
       delete: deletePlugin,
+      apriori: aprioriPlugin,
       inbox: inboxPlugin,
       outbox: outboxPlugin,
       comment: commentPlugin,
@@ -65,6 +69,7 @@ export class AdminService {
       latex: latexPlugin,
       html: htmlPlugin,
       person: personPlugin,
+      repost: repostPlugin,
       graph: graphPlugin,
       invoice: invoicePlugin,
       invoiceRejected: invoiceRejectionPlugin,
@@ -76,6 +81,9 @@ export class AdminService {
       video: videoPlugin,
       image: imagePlugin,
       wiki: wikiPlugin,
+
+      // Themes
+      terminalTheme: terminalThemePlugin,
     },
     templates: <Record<string, Template>> {
       root: rootTemplate,

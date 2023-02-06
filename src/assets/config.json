@@ -1,6 +1,4 @@
 {
   "version": "debug",
-  "title": "Jasper",
-  "api": "//localhost:8081",
-  "//api": "https://jasper.local"
+  "title": "Jasper"
 }

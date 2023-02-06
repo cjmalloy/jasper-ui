@@ -11,6 +11,10 @@ export interface Plugin extends Tag {
   config?: {
     [record: string]: any,
     /**
+     * Optional category for setup screen.
+     */
+    type?: 'feature' | 'editor' | 'viewer' | 'semantic' | 'theme',
+    /**
      * Optional handlebars template to use as an embed UI.
      */
     ui?: string,
