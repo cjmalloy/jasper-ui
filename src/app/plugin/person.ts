@@ -10,6 +10,8 @@ export const personPlugin: Plugin = {
     css: `
       .plugin-person .thumbnail {
         border-radius: 32px;
+        height: 64px;
+        background-size: cover;
       }
     `,
   },
