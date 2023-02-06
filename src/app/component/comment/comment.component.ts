@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { filter, uniq } from 'lodash-es';
 import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { Action, active, Icon, Visibility, visible } from '../../model/plugin';
@@ -51,6 +52,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   constructor(
     public admin: AdminService,
     public store: Store,
+    private router: Router,
     private auth: AuthzService,
     private refs: RefService,
     private acts: ActionService,
@@ -201,6 +203,15 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   showIcon(i: Icon) {
     return this.visible(i) && this.active(i);
+  }
+
+  clickIcon(i: Icon) {
+    if (i.response) {
+      this.router.navigate([], { queryParams: { filter: this.store.view.toggleFilter(i.response) }, queryParamsHandling: 'merge' });
+    }
+    if (i.tag) {
+      this.router.navigate(['/tag', this.store.view.toggleTag(i.tag)], { queryParamsHandling: 'merge' });
+    }
   }
 
   showAction(a: Action) {

@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
@@ -72,6 +73,7 @@ export class RefComponent implements OnInit {
   constructor(
     public admin: AdminService,
     public store: Store,
+    private router: Router,
     private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
@@ -315,6 +317,15 @@ export class RefComponent implements OnInit {
 
   showIcon(i: Icon) {
     return this.visible(i) && this.active(i);
+  }
+
+  clickIcon(i: Icon) {
+    if (i.response) {
+      this.router.navigate([], { queryParams: { filter: this.store.view.toggleFilter(i.response) }, queryParamsHandling: 'merge' });
+    }
+    if (i.tag) {
+      this.router.navigate(['/tag', this.store.view.toggleTag(i.tag)], { queryParamsHandling: 'merge' });
+    }
   }
 
   showAction(a: Action) {

@@ -3,9 +3,6 @@
     <h2 class="link" [class.remote]="!local">
       <a *ngIf="webLink" [href]="ref.url" target="_blank">{{ ref.title || ref.url }}</a>
       <span *ngIf="!webLink">{{ ref.title || ref.url }}</span>
-      <ng-container *ngFor="let icon of icons">
-        <span *ngIf="showIcon(icon)" class="icon">{{ icon.label }}</span>
-      </ng-container>
     </h2>
     <div class="link-below">
       <div class="stack">
@@ -22,6 +19,9 @@
             <ng-container *ngFor="let tag of tags">
               <a class="tag" [routerLink]="['/tag', tag + ref.origin]">{{ tag }}</a>&nbsp;
             </ng-container>
+          </ng-container>
+          <ng-container *ngFor="let icon of icons">
+            <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span> &nbsp;
           </ng-container>
           <span [title]="ref.published?.toISOString()">{{ ref.published?.fromNow() }}</span>
           <ng-container *ngIf="!local">
