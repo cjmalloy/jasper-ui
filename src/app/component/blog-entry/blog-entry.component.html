@@ -11,17 +11,17 @@
             by
             <ng-container *ngFor="let user of authors">
               <a class="user tag" [routerLink]="['/tag', user]">
-                {{ formatAuthor(user) }}</a>&nbsp;
+                {{ formatAuthor(user) }}</a>
             </ng-container>
           </ng-container>
           <ng-container *ngIf="tags.length" i18n>
             tagged
             <ng-container *ngFor="let tag of tags">
-              <a class="tag" [routerLink]="['/tag', tag + ref.origin]">{{ tag }}</a>&nbsp;
+              <a class="tag" [routerLink]="['/tag', tag + ref.origin]">{{ tag }}</a>
             </ng-container>
           </ng-container>
           <ng-container *ngFor="let icon of icons">
-            <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span> &nbsp;
+            <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span>
           </ng-container>
           <span [title]="ref.published?.toISOString()">{{ ref.published?.fromNow() }}</span>
           <ng-container *ngIf="!local">

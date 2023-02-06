@@ -191,6 +191,18 @@ video.qr-preview {
   overflow: hidden;
 }
 
+.tag,
+.icon {
+  margin: 0 4px;
+  line-height: 10px;
+  cursor: pointer;
+  font-style: normal;
+  & + .tag,
+  & + .icon {
+    margin-left: 0;
+  }
+}
+
 .deleted {
   text-decoration: line-through;
   opacity: 0.5;
@@ -670,12 +682,6 @@ video.qr-preview {
 
 .no-results {
   margin-left: 10px;
-}
-
-.icon {
-  line-height: 10px;
-  cursor: pointer;
-  font-style: normal;
 }
 
 .load-more {
