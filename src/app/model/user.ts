@@ -3,12 +3,15 @@ import { Tag } from './tag';
 
 export interface User extends Tag {
   type?: 'user';
+  role?: Role;
   readAccess?: string[];
   writeAccess?: string[];
   tagReadAccess?: string[];
   tagWriteAccess?: string[];
   pubKey?: string;
 }
+
+export type Role = 'ROLE_ADMIN' | 'ROLE_MOD' | 'ROLE_EDITOR' | 'ROLE_USER' | 'ROLE_VIEWER';
 
 export interface Roles {
   tag: string;

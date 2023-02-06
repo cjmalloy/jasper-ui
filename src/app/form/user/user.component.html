@@ -22,6 +22,15 @@
   <label for="name" i18n>Name:</label>
   <input id="name" type="text" formControlName="name">
 
+  <label for="role" i18n>Role:</label>
+  <select id="role" formControlName="role">
+    <option value="ROLE_ADMIN" i18n>admin</option>
+    <option value="ROLE_MOD" i18n>mod</option>
+    <option value="ROLE_EDITOR" i18n>editor</option>
+    <option value="ROLE_USER" i18n>user</option>
+    <option value="ROLE_VIEWER" i18n>viewer</option>
+  </select>
+
   <label for="readAccess" i18n>Read Access:</label>
   <app-tags #readAccess
             id="readAccess"

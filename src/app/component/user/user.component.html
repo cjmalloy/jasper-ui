@@ -38,6 +38,7 @@
       <select #inlineRole
               [value]="profile.role"
               (change)="setInlineRole()">
+        <option value="ROLE_SYSADMIN" i18n>sysadmin</option>
         <option value="ROLE_ADMIN" i18n>admin</option>
         <option value="ROLE_MOD" i18n>mod</option>
         <option value="ROLE_EDITOR" i18n>editor</option>
