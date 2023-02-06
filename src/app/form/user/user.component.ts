@@ -51,6 +51,7 @@ export function userForm(fb: UntypedFormBuilder) {
   return fb.group({
     tag: ['', [Validators.required, Validators.pattern(USER_REGEX)]],
     name: [''],
+    role: [''],
     readAccess: fb.array([]),
     writeAccess: fb.array([]),
     tagReadAccess: fb.array([]),
