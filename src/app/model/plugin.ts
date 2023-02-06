@@ -30,6 +30,10 @@ export interface Plugin extends Tag {
     description?: string,
     icons?: Icon[],
     /**
+     * Optionally customise the meaning of the published field.
+     */
+    published?: string;
+    /**
      * Add an action to the Ref actions bar that toggles a tag or tag response.
      */
     actions?: Action[],

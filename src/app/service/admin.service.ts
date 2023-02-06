@@ -203,6 +203,10 @@ export class AdminService {
     return this.pluginConfigProperty('actions').map(p => p!.tag);
   }
 
+  get published() {
+    return this.pluginConfigProperty('published').map(p => p!.tag);
+  }
+
   get filters() {
     if (!this._cache.has('filters')) {
       this._cache.set('filters', flatten(Object.values(this.status.plugins)
@@ -224,6 +228,11 @@ export class AdminService {
   getIcons(tags?: string[]) {
     return flatten(this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.icons))
       .map(p => p.config!.icons as Icon[]));
+  }
+
+  getPublished(tags?: string[]) {
+    return flatten(this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.published))
+      .map(p => p.config!.published as string));
   }
 
   getPlugin(tag: string) {

@@ -26,10 +26,15 @@
       <div class="stack">
         <div class="info" [class.expanded]="!actionsExpanded">
           <ng-container *ngIf="ref.created else notSubmitted">
-            <span [title]="ref.created.toISOString()" i18n>submitted {{ ref.created.fromNow() }}</span>
+            <span *ngIf="!ref.published || ref.published.diff(ref.created, 'seconds') <= 5" [title]="ref.created.toISOString()" i18n>submitted {{ ref.created.fromNow() }}</span>
             <span *ngIf="ref.modified!.diff(ref.created, 'seconds') > 5"
                   i18n-title
-                  title="last edited {{ ref.modified!.fromNow() }}}">*</span>
+                  title="last edited {{ ref.modified!.fromNow() }}">*</span>
+            <ng-container *ngIf="!scrapeable && ref.published && ref.published.diff(ref.created, 'seconds') > 5">
+              <span [title]="ref.published.toISOString()" i18n>
+                {{ publishedLabel }}
+                {{ ref.published.fromNow() }}</span>
+            </ng-container>
           </ng-container>
           <ng-template #notSubmitted>
             <span i18n>not found</span>
@@ -49,22 +54,10 @@
           </ng-container>
           <ng-container *ngIf="scrapeable">
             <ng-container *ngIf="scraped">
-              <span [title]="lastScrape.toISOString()" i18n> last scraped {{ lastScrape.fromNow() }} </span>
+              <span [title]="lastScrape.toISOString()" i18n> last scraped {{ lastScrape.fromNow() }}</span>
             </ng-container>
             <ng-container *ngIf="!lastScrape" i18n>
               not scraped yet
-            </ng-container>
-          </ng-container>
-          <ng-container *ngIf="!scrapeable && ref.published">
-            <ng-container *ngIf="person">
-              <span [title]="ref.published.toISOString()" i18n>
-                born
-                {{ ref.published.fromNow() }}</span>
-            </ng-container>
-            <ng-container *ngIf="!person">
-              <span [title]="ref.published.toISOString()" i18n>
-                published
-                {{ ref.published.fromNow() }}</span>
             </ng-container>
           </ng-container>
           <ng-container *ngIf="ref.created && !local" i18n>

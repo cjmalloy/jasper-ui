@@ -55,6 +55,7 @@ export class RefComponent implements OnInit {
   editorPlugins: string[] = [];
   icons: Icon[] = [];
   actions: Action[] = [];
+  publishedLabel = $localize`published`;
   tagging = false;
   editing = false;
   viewSource = false;
@@ -110,6 +111,7 @@ export class RefComponent implements OnInit {
     this.writeAccess = !hasTag('locked', value) && this.auth.writeAccess(value);
     this.icons = this.admin.getIcons(value.tags);
     this.actions = this.admin.getActions(value.tags).filter(a => a.response || this.auth.tagReadAccess(a.tag));
+    this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
     this.expandPlugins = this.admin.getEmbeds(value.tags);
   }
 
@@ -196,11 +198,6 @@ export class RefComponent implements OnInit {
   get thumbnail() {
     return this.admin.status.plugins.thumbnail &&
       hasTag('plugin/thumbnail', this.ref);
-  }
-
-  get person() {
-    return this.admin.status.plugins.person &&
-      hasTag('plugin/person', this.ref);
   }
 
   get canInvoice() {
