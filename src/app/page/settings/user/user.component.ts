@@ -33,6 +33,7 @@ export class SettingsUserPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.config.scim) {
+      // TODO: better way to find unattached profiles
       this.disposers.push(autorun(() => {
         const args = {
           page: this.store.view.pageNumber,

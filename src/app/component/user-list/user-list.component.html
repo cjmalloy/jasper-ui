@@ -5,7 +5,7 @@
   </ng-container>
   <ng-container *ngFor="let profile of scim?.content; let i = index">
     <ng-container *ngIf="!hasUser(profile.tag)">
-      <div class="list-number">{{ i + scim!.number * scim!.size + ((1 + page!.number) * page!.size) }}</div>
+      <div class="list-number">{{ i + scim!.number * scim!.size + (page ? page.content.length + page.number * page.size : 0) }}</div>
       <app-user [profile]="profile"></app-user>
     </ng-container>
   </ng-container>
