@@ -15,7 +15,7 @@
       <div>
         <div *ngFor="let plugin of group.value | keyvalue">
           <input id="plugin-{{ plugin.key }}" type="checkbox" [formControlName]="plugin.key">
-          <label for="plugin-{{ plugin.key }}">{{ plugin.value.name || plugin.key }}</label>
+          <label for="plugin-{{ plugin.key }}">{{ plugin.value.name || plugin.key || plugin.value.tag }}</label>
           <span *ngIf="needsPluginUpdate($any(plugin.key))" class="update">
             (<span class="fake-link" (click)="updatePlugin($any(plugin.key))" i18n>update</span>)</span>
         </div>

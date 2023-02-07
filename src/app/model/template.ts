@@ -10,6 +10,10 @@ export interface Template extends Tag {
   config?: {
     [record: string]: any,
     /**
+     * Install by default on a fresh instance.
+     */
+    default?: boolean;
+    /**
      * Optional handlebars template to use as a sidebar UI.
      */
     ui?: string,

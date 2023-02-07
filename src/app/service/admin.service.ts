@@ -3,6 +3,7 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import { findKey, flatten, mapValues } from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Ext } from '../model/ext';
 import { Action, Icon, Plugin } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
@@ -38,6 +39,7 @@ import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
 import { tagIntersection } from '../util/tag';
+import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
 import { ConfigService } from './config.service';
@@ -102,6 +104,7 @@ export class AdminService {
     private config: ConfigService,
     private plugins: PluginService,
     private templates: TemplateService,
+    private exts: ExtService,
     private store: Store,
   ) { }
 
@@ -109,7 +112,31 @@ export class AdminService {
     this._cache.clear();
     this.status.plugins =  mapValues(this.def.plugins, () => undefined);
     this.status.templates = mapValues(this.def.templates, () => undefined);
-    return forkJoin([this.loadPlugins$(), this.loadTemplates$()]);
+    return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
+      switchMap(() => this.firstRun$),
+    );
+  }
+
+  get firstRun$(): Observable<any> {
+    if (!this.store.account.admin || this.store.account.ext) return of(null);
+    if (Object.values(this.status.plugins).filter(p => !!p).length > 0) return of(null);
+    if (Object.values(this.status.templates).filter(t => !!t).length > 0) return of(null);
+
+    const installs = this.defaultPlugins.map(p => this.plugins.create({
+      ...p,
+      origin: this.store.account.origin,
+    }));
+    installs.push(...this.defaultTemplates.map(t => this.templates.create({
+      ...t,
+      origin: this.store.account.origin,
+    })));
+    return this.exts.create({
+      tag: this.store.account.localTag,
+      origin: this.store.account.origin,
+    }).pipe(
+      switchMap(() => forkJoin(installs)),
+      switchMap(() => this.init$)
+    );
   }
 
   get localOriginQuery() {
@@ -161,6 +188,14 @@ export class AdminService {
       this._cache.set(name, Object.values(this.status.plugins).filter(p => p?.config?.[name]));
     }
     return this._cache.get(name)!;
+  }
+
+  get defaultPlugins() {
+    return Object.values(this.def.plugins).filter(p => p?.config?.default) as Plugin[];
+  }
+
+  get defaultTemplates() {
+    return Object.values(this.def.templates).filter(t => t?.config?.default) as Template[];
   }
 
   get readAccess() {

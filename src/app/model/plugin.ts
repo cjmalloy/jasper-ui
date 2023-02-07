@@ -15,6 +15,10 @@ export interface Plugin extends Tag {
      */
     type?: 'feature' | 'editor' | 'viewer' | 'semantic' | 'theme',
     /**
+     * Install by default on a fresh instance.
+     */
+    default?: boolean;
+    /**
      * Optional handlebars template to use as an embed UI.
      */
     ui?: string,
