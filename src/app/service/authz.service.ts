@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Ref } from '../model/ref';
+import { Role } from '../model/user';
 import { Store } from '../store/store';
 import {
   captures,
@@ -64,5 +65,18 @@ export class AuthzService {
     if (captures(this.store.account.localTag, tag)) return true;
     if (!this.store.account.user) return false;
     return capturesAny(this.store.account.user.tagWriteAccess, [tag]);
+  }
+
+  hasRole(role: Role) {
+    switch(role) {
+      case 'ROLE_SYSADMIN': return this.store.account.sysadmin;
+      case 'ROLE_ADMIN': return this.store.account.admin;
+      case 'ROLE_MOD': return this.store.account.mod;
+      case 'ROLE_EDITOR': return this.store.account.editor;
+      case 'ROLE_USER': return this.store.account.poster;
+      case 'ROLE_VIEWER': return true;
+      case 'ROLE_ANONYMOUS': return true;
+    }
+    return false;
   }
 }

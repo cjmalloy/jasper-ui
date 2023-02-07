@@ -18,6 +18,7 @@ export class ConfigService {
   login = '';
   signup = '';
   scim = false;
+  multiTenant = false;
   blockedSchemes = ['comment:', 'internal:', 'wiki:'];
 
   maxPlugins = 1000;

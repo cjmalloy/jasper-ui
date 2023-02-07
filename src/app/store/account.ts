@@ -3,6 +3,7 @@ import { makeAutoObservable } from 'mobx';
 import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../plugin/mailbox';
+import { config } from '../service/config.service';
 import { defaultSubs } from '../template/user';
 import { hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
@@ -12,6 +13,7 @@ export class AccountStore {
   tag = '';
   user?: User;
   ext?: Ext;
+  sa = false;
   admin = false;
   mod = false;
   editor = false;
@@ -26,6 +28,17 @@ export class AccountStore {
     private origins: OriginStore,
   ) {
     makeAutoObservable(this);
+  }
+
+  get sysadmin() {
+    if (config().multiTenant)  return this.sa;
+
+    return this.admin;
+  }
+
+  get sysMod() {
+    if (config().multiTenant) return this.sa;
+    return this.mod;
   }
 
   get signedIn() {
@@ -83,6 +96,7 @@ export class AccountStore {
 
   setRoles(roles: Roles) {
     this.tag = roles.tag || '';
+    this.sa = roles.sysadmin;
     this.admin = roles.admin;
     this.mod = roles.mod;
     this.editor = roles.editor;

@@ -5,7 +5,7 @@
 </div>
 <div class="stack">
   <div class="info">
-    <span>{{ role }}</span>
+    <span>{{ role.toLowerCase().replace('role_', '') }}</span>
   </div>
   <div class="actions">
     <a *ngIf="writeAccess else source"
@@ -17,12 +17,11 @@
     </ng-template>
     <a class="fake-link"
        (click)="download()" i18n>download</a>
-    <a *ngIf="config.scim && !profile"
+    <a *ngIf="store.account.sysMod && config.scim && !profile"
        class="fake-link"
        (click)="activate()" i18n>sync</a>
-    <ng-container *ngIf="profile">
-      <a *ngIf="writeAccess"
-         class="fake-link"
+    <ng-container *ngIf="profile && writeAccess">
+      <a class="fake-link"
          (click)="changingPassword = !changingPassword" i18n>password</a>
       <span *ngIf="changingPassword" class="inline-password">
         <input #inlinePassword
@@ -31,8 +30,9 @@
                appAutofocus>
         <button (click)="setInlinePassword()" i18n>+</button>
       </span>
-      <a *ngIf="store.account.mod"
-         class="fake-link"
+    </ng-container>
+    <ng-container *ngIf="profile && store.account.sysMod">
+      <a class="fake-link"
          (click)="changingRole = !changingRole" i18n>role</a>
       <span *ngIf="changingRole" class="inline-role">
         <select #inlineRole

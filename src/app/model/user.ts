@@ -11,10 +11,11 @@ export interface User extends Tag {
   pubKey?: string;
 }
 
-export type Role = 'ROLE_ADMIN' | 'ROLE_MOD' | 'ROLE_EDITOR' | 'ROLE_USER' | 'ROLE_VIEWER';
+export type Role = 'ROLE_SYSADMIN' | 'ROLE_ADMIN' | 'ROLE_MOD' | 'ROLE_EDITOR' | 'ROLE_USER' | 'ROLE_VIEWER' | 'ROLE_ANONYMOUS';
 
 export interface Roles {
   tag: string;
+  sysadmin: boolean;
   admin: boolean;
   mod: boolean;
   editor: boolean;
