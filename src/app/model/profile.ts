@@ -10,12 +10,12 @@ export type ProfilePageArgs = {
   size?: number,
 };
 
-const roleOrder = ['ROLE_SYSADMIN', 'ROLE_ADMIN', 'ROLE_MOD', 'ROLE_EDITOR', 'ROLE_USER', 'ROLE_VIEWER', 'ROLE_ANONYMOUS'];
+const roleOrder = ['ROLE_ANONYMOUS', 'ROLE_VIEWER', 'ROLE_USER', 'ROLE_EDITOR', 'ROLE_MOD', 'ROLE_ADMIN', 'ROLE_SYSADMIN'];
 
 export function getRole(...roles: (string | undefined)[]) {
-  let index = roleOrder.indexOf('ROLE_ANONYMOUS');
+  let index = 0;
   for (const r of roles) {
-    index = Math.min(index, roleOrder.indexOf(r || ''));
+    index = Math.max(index, roleOrder.indexOf(r || ''));
   }
   return roleOrder[index];
 }
