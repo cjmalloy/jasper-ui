@@ -136,6 +136,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
           timer(1000 * Math.pow(2, Math.min(10, retryCount)))
       })
     )),
+    switchMap(() => account.initExt$),
     switchMap(() => admin.init$),
     switchMap(() => account.init$),
     switchMap(() => origins.init$),
