@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
-import { Profile } from '../../model/profile';
+import { getRole, Profile } from '../../model/profile';
 import { User } from '../../model/user';
 import { AdminService } from '../../service/admin.service';
 import { ProfileService } from '../../service/api/profile.service';
@@ -100,7 +100,7 @@ export class UserComponent implements OnInit {
   }
 
   get role() {
-    return this.profile?.role?.toLowerCase().replace('role_', '');
+    return getRole(this.profile?.role, this.user?.role).toLowerCase().replace('role_', '');
   }
 
   setInlinePassword() {
