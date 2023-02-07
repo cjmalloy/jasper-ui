@@ -162,16 +162,18 @@ export class UserComponent implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    this.users.update({
-      ...this.user,
-      ...this.editForm.value,
-    }).pipe(
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-      switchMap(() => this.users.get(this.qualifiedTag)),
-    ).subscribe(user => {
+    (this.user ?
+      this.users.update({
+        ...this.user,
+        ...this.editForm.value}) :
+      this.users.create(this.editForm.value))
+      .pipe(
+        catchError((err: HttpErrorResponse) => {
+          this.serverError = printError(err);
+          return throwError(() => err);
+        }),
+        switchMap(() => this.users.get(this.qualifiedTag)),
+      ).subscribe(user => {
       this.serverError = [];
       this.editing = false;
       this.user = user;

@@ -3,6 +3,12 @@
     <div class="list-number">{{ i + page!.number * page!.size + 1 }}</div>
     <app-user [user]="user" [profile]="getProfile(user)"></app-user>
   </ng-container>
+  <ng-container *ngFor="let profile of scim?.content; let i = index">
+    <ng-container *ngIf="!hasUser(profile.tag)">
+      <div class="list-number">{{ i + scim!.number * scim!.size + ((1 + page!.number) * page!.size) }}</div>
+      <app-user [profile]="profile"></app-user>
+    </ng-container>
+  </ng-container>
 </div>
 <app-loading *ngIf="!page"></app-loading>
 <app-page-controls *ngIf="page && !page.empty"

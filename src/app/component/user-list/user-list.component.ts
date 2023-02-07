@@ -15,7 +15,9 @@ import { ProfileService } from '../../service/api/profile.service';
 export class UserListComponent implements OnInit {
   @HostBinding('class') css = 'user-list';
 
-  private _scim?: Page<Profile>;
+
+  @Input()
+  scim?: Page<Profile>;
   private _page?: Page<User>;
   private cache: Map<string, Profile | undefined> = new Map();
 
@@ -29,44 +31,23 @@ export class UserListComponent implements OnInit {
   }
 
   @Input()
-  set scim(value: Page<Profile> | undefined) {
-    this._scim = value;
-    if (this._scim) {
-      if (this._scim.number > 0 && this._scim.number >= this._scim.totalPages) {
-        this.router.navigate([], {
-          queryParams: {
-            pageNumber: this._scim.totalPages - 1
-          },
-          queryParamsHandling: "merge",
-        })
-      }
-    }
-  }
-
-  @Input()
   set page(value: Page<User> | undefined) {
     this.cache.clear();
     this._page = value;
-    if (this._page) {
-      if (this._page.number > 0 && this._page.number >= this._page.totalPages) {
-        this.router.navigate([], {
-          queryParams: {
-            pageNumber: this._page.totalPages - 1
-          },
-          queryParamsHandling: "merge",
-        })
-      }
-    }
   }
 
   ngOnInit(): void {
+  }
+
+  hasUser(tag: string) {
+    return !!find(this.page?.content, p => p.tag === tag);
   }
 
   getProfile(user: User) {
     const tag = user.tag + user.origin;
     if (!this._page) this._page = {} as any;
     if (!this.cache.has(tag)) {
-      const profile = find(this._scim?.content, p => p.tag === tag);
+      const profile = find(this.scim?.content, p => p.tag === tag);
       if (profile) {
         this.cache.set(tag, profile);
       } else {

@@ -25,27 +25,27 @@
          class="fake-link"
          (click)="changingPassword = !changingPassword" i18n>password</a>
       <span *ngIf="changingPassword" class="inline-password">
-      <input #inlinePassword
-             (keydown)="$event.key === 'Enter' && setInlinePassword() || true"
-             type="password"
-             appAutofocus>
-      <button (click)="setInlinePassword()" i18n>+</button>
-    </span>
+        <input #inlinePassword
+               (keydown)="$event.key === 'Enter' && setInlinePassword() || true"
+               type="password"
+               appAutofocus>
+        <button (click)="setInlinePassword()" i18n>+</button>
+      </span>
       <a *ngIf="store.account.mod"
          class="fake-link"
          (click)="changingRole = !changingRole" i18n>role</a>
       <span *ngIf="changingRole" class="inline-role">
-      <select #inlineRole
-              [value]="profile.role"
-              (change)="setInlineRole()">
-        <option value="ROLE_SYSADMIN" i18n>sysadmin</option>
-        <option value="ROLE_ADMIN" i18n>admin</option>
-        <option value="ROLE_MOD" i18n>mod</option>
-        <option value="ROLE_EDITOR" i18n>editor</option>
-        <option value="ROLE_USER" i18n>user</option>
-        <option value="ROLE_VIEWER" i18n>viewer</option>
-      </select>&nbsp;
-    </span>
+        <select #inlineRole
+                [value]="profile.role"
+                (change)="setInlineRole()">
+          <option value="ROLE_SYSADMIN" i18n>sysadmin</option>
+          <option value="ROLE_ADMIN" i18n>admin</option>
+          <option value="ROLE_MOD" i18n>mod</option>
+          <option value="ROLE_EDITOR" i18n>editor</option>
+          <option value="ROLE_USER" i18n>user</option>
+          <option value="ROLE_VIEWER" i18n>viewer</option>
+        </select>&nbsp;
+      </span>
       <a *ngIf="!profile.active"
          class="fake-link"
          (click)="activate()" i18n>activate</a>
