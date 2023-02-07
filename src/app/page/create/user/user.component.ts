@@ -42,6 +42,7 @@ export class CreateUserPage implements OnInit {
   ) {
     theme.setTitle('Create Profile');
     this.profileForm = fb.group({
+      active: [true],
       password: [''],
       role: [''],
       user: userForm(fb),
