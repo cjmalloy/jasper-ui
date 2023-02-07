@@ -45,6 +45,10 @@ export class AccountService {
     );
   }
 
+  get initExt$() {
+    return this.userExt$.pipe(catchError(() => of(null)));
+  }
+
   get init$() {
     if (!this.store.account.signedIn) return this.subscriptions$;
     return this.loadUserExt$.pipe(

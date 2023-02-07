@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { forOwn, groupBy, isEqual, mapValues, omitBy } from 'lodash-es';
+import { forOwn, isEqual, mapValues, omitBy } from 'lodash-es';
 import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
 import { Plugin, writePlugin } from '../../../model/plugin';
 import { writeTemplate } from '../../../model/template';
@@ -46,12 +46,11 @@ export class SettingsSetupPage implements OnInit {
   }
 
   get _pluginGroups() {
-    const ret = Object.entries(this.admin.def.plugins).reduce((result, item) => {
+    return Object.entries(this.admin.def.plugins).reduce((result, item) => {
       const type = result[item[1].config?.type || 'feature'] ||= {} as Record<string, Plugin>;
       type[item[0]] = item[1];
       return result;
-    }, {} as Record<'feature' | 'editor' | 'viewer' | 'semantic' | 'theme', Record<string, Plugin>>);
-    return ret
+    }, {} as Record<'feature' | 'editor' | 'viewer' | 'semantic' | 'theme', Record<string, Plugin>>)
   }
 
   install() {
