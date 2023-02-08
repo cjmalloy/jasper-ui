@@ -285,6 +285,12 @@ video.qr-preview {
     margin: 4px;
   }
 
+  &:not(.expand) {
+    .submit-button {
+      margin: 4px 0;
+    }
+  }
+
   input[type=search] {
     height: 30px;
     width: 256px;
@@ -317,15 +323,24 @@ video.qr-preview {
     }
   }
 
+  .button-bar {
+    display: flex;
+    flex-direction: column;
+  }
+
   .submit-button {
     white-space: nowrap;
     text-transform: capitalize;
     border: 1px solid transparent;
     border-radius: 2px;
+    margin: 4px;
     padding: 4px;
     cursor: pointer;
     overflow: hidden;
     user-select: none;
+    span {
+      margin-right: 16px;
+    }
   }
 
   .tag-header {

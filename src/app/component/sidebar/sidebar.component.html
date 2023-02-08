@@ -1,64 +1,66 @@
 <ng-container *mobxAutorun>
-  <div class="row dont-hide">
-    <div class="toggle dont-hide"
+  <div class="row">
+    <div class="toggle"
          *ngIf="showToggle"
          (click)="expanded = !expanded">☰</div>
-    <div *ngIf="store.view.current && (!home || store.view.search || store.view.filter.length || !query.page?.empty)" class="wide dont-hide">
-      <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
-      <app-search class="dont-hide"></app-search>
+    <div *ngIf="store.view.current && (!home || store.view.search || store.view.filter.length || !query.page?.empty)" class="wide">
+      <app-query *ngIf="store.view.tag" [query]="tag" class="hide breadcrumbs"></app-query>
+      <app-search></app-search>
       <div class="show-remotes" *ngIf="expanded && store.view.type !== 'ref'">
         <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
         <label for="show-remotes" i18n>show remotes</label>
       </div>
-      <div *ngIf="expanded && store.view.type === 'ref'">
+      <div *ngIf="expanded && store.view.type === 'ref'" class="hide">
         <app-filter></app-filter>
       </div>
-      <div *ngIf="expanded && showSort">
+      <div *ngIf="expanded && showSort" class="hide">
         <app-sort [type]="store.view.type!"></app-sort>
       </div>
     </div>
   </div>
   <app-debug *ngIf="expanded"></app-debug>
   <app-bulk *ngIf="expanded && store.view.current" [type]="store.view.type!"></app-bulk>
-  <ng-container *ngIf="store.account.poster">
-    <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }" i18n>
-      📝️ &nbsp; Submit
-    </div>
-  </ng-container>
-  <ng-container *ngIf="!ext && (store.account.editor || writeAccess)">
-    <div class="submit-button" routerLink="/create/ext" [queryParams]="{ tag: writeAccess ? localTag : '' }" i18n>
-      🖌️ &nbsp; Extend Tag
-    </div>
-  </ng-container>
-  <ng-container *ngIf="ext && writeAccess">
-    <div class="submit-button" [routerLink]="['/tag', localTag, 'edit']" i18n>
-      🖌️ &nbsp; Extend Tag
-    </div>
-  </ng-container>
-  <ng-container *ngIf="store.account.mod">
-    <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag: localTag }" i18n>
-      👤️ &nbsp; Create User
-    </div>
-  </ng-container>
-  <ng-container *ngIf="admin.status.plugins.inbox">
-    <ng-container *ngIf="user && store.account.tag !== tag">
-      <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }" i18n>
-        ✉️ &nbsp; Direct Message {{ tag }}
+  <span class="button-bar">
+    <ng-container *ngIf="store.account.poster">
+      <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
+        <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit</label>
       </div>
     </ng-container>
-    <ng-container *ngIf="store.account.poster && !user && modmail">
-      <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }" i18n>
-        ✉️ &nbsp; Mod Mail {{ tag }}
+    <ng-container *ngIf="!ext && (store.account.editor || writeAccess)">
+      <div class="submit-button" routerLink="/create/ext" [queryParams]="{ tag: writeAccess ? localTag : '' }">
+        <span i18n-title title="Extend Tag" i18n>🖌️</span> <label i18n>Extend Tag</label>
       </div>
     </ng-container>
-  </ng-container>
-  <ng-container *ngIf="store.account.signedIn && store.account.tag === tag">
-    <div class="submit-button" routerLink="/settings/password" i18n>
-      🔑️️ &nbsp; Change Password
-    </div>
-  </ng-container>
+    <ng-container *ngIf="ext && writeAccess">
+      <div class="submit-button" [routerLink]="['/tag', localTag, 'edit']">
+        <span i18n-title title="Extend Tag" i18n>🖌️</span> <label i18n>Extend Tag</label>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="store.account.mod">
+      <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag: localTag }">
+        <span i18n-title title="Create User" i18n>👤️</span> <label i18n>Create User</label>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="admin.status.plugins.inbox">
+      <ng-container *ngIf="user && store.account.tag !== tag">
+        <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
+          <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Direct Message {{ tag }}</label>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="store.account.poster && !user && modmail">
+        <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
+          <span i18n-title title="Mod Mail" i18n>✉️</span> <label i18n>Mod Mail {{ tag }}</label>
+        </div>
+      </ng-container>
+    </ng-container>
+    <ng-container *ngIf="store.account.signedIn && store.account.tag === tag">
+      <div class="submit-button" routerLink="/settings/password">
+        <span i18n-title title="Change Password" i18n>🔑️️</span> <label i18n>Change Password</label>
+      </div>
+    </ng-container>
+  </span>
 
-  <div class="tag-header" *ngIf="home">
+  <div class="hide tag-header" *ngIf="home">
     <h3><a [routerLink]="['/home']" i18n>Home</a></h3>
 
     <ng-container *ngIf="homeWriteAccess">
@@ -69,7 +71,7 @@
       </a>
     </ng-container>
   </div>
-  <div class="tag-header" *ngIf="!home && store.view.tag">
+  <div class="hide tag-header" *ngIf="!home && store.view.tag">
     <h3 *ngIf="store.view.current === 'tag'">{{ ext?.name || tag }}</h3>
     <ng-container *ngIf="store.account.signedIn && tag && admin.status.templates.user">
       <button *ngIf="inSubs; else notInSubs"
@@ -92,12 +94,12 @@
   </div>
 
   <ng-container *ngIf="ui && ext">
-    <div class="ui"
+    <div class="hide ui"
          [appTemplateUi]="ui"
          [ext]="ext"></div>
   </ng-container>
 
-  <ng-container *ngIf="queue">
+  <div *ngIf="queue" class="hide template-queue">
     <div class="ext-text" *ngIf="ext?.config?.bounty">
       <b i18n>Bounty:</b> {{ ext?.config?.bounty }}
     </div>
@@ -118,9 +120,9 @@
       <a class="sidebar-link"
          [routerLink]="['/tag', prefix('plugin/invoice', ext!.tag)]" i18n>invoices</a>
     </div>
-  </ng-container>
+  </div>
 
-  <ng-container *ngIf="user || home">
+  <div *ngIf="user || home" class="hide home">
     <div class="ext-text" *ngIf="ext?.config?.bookmarks?.length" i18n>
       My Bookmarks:
       <br>
@@ -142,11 +144,11 @@
         <br>
       </ng-container>
     </div>
-  </ng-container>
+  </div>
 
-  <ng-container *ngIf="root">
+  <div *ngIf="root" class="hide template-root">
     <app-md *ngIf="ext?.config?.sidebar"
             [origin]="ext?.origin"
             [text]="ext!.config!.sidebar"></app-md>
-  </ng-container>
+  </div>
 </ng-container>
