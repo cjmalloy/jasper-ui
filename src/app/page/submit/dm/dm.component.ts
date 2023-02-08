@@ -56,7 +56,7 @@ export class SubmitDmPage implements OnInit {
       if (!this.to.value || hasPrefix(this.to.value, 'user')) {
         this.defaultTo = $localize`DM from ${store.account.tag}`;
       } else {
-        this.defaultTo = $localize`Message to Moderators of ${this.to}`;
+        this.defaultTo = $localize`Message to Moderators of ${this.to.value}`;
       }
     });
   }
