@@ -1,4 +1,5 @@
 import { HttpErrorResponse, HttpParameterCodec, HttpParams } from '@angular/common/http';
+import { isArray } from 'lodash-es';
 import { isMoment } from 'moment';
 import { Problem } from '../model/problem';
 
@@ -40,8 +41,18 @@ export function emptyObject(obj: any) {
  */
 export function params(obj?: Record<string, any>): Record<string, any> | undefined {
   if (!obj) return undefined;
-  const params = new HttpParams({ encoder });
-  return params.appendAll(writeObj(obj)!);
+  let params = new HttpParams({ encoder });
+  obj = writeObj(obj);
+  for (const k in obj) {
+    if (isArray(obj[k])) {
+      for (const i in obj[k]) {
+        params = params.append(k, obj[k][i]);
+      }
+    } else {
+      params = params.append(k, obj[k]);
+    }
+  }
+  return params;
 }
 
 export function printError(res: HttpErrorResponse): string[] {
