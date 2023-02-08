@@ -1,10 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { forOwn, isEqual, mapValues, omitBy } from 'lodash-es';
+import { forOwn, mapValues } from 'lodash-es';
 import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
-import { Plugin, writePlugin } from '../../../model/plugin';
-import { writeTemplate } from '../../../model/template';
+import { Plugin } from '../../../model/plugin';
+import { Template } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
@@ -113,32 +113,6 @@ export class SettingsSetupPage implements OnInit {
     sa(this.adminForm.get('templates') as UntypedFormGroup);
   }
 
-  needsPluginUpdate(key: string) {
-    if (!this.admin.status.plugins[key]) return false;
-    const def = omitBy(this.admin.def.plugins[key], i => !i);
-    const status = omitBy(writePlugin(this.admin.status.plugins[key]!), i => !i);
-    def.config = omitBy(def.config, i => !i);
-    status.config = omitBy(status.config, i => !i);
-    delete def.config!.generated;
-    delete status.config!.generated;
-    delete status.origin;
-    delete status.modified;
-    return !isEqual(def, status);
-  }
-
-  needsTemplateUpdate(key: string) {
-    if (!this.admin.status.templates[key]) return false;
-    const def = omitBy(this.admin.def.templates[key], i => !i);
-    const status = omitBy(writeTemplate(this.admin.status.templates[key]!), i => !i);
-    def.config = omitBy(def.config, i => !i);
-    status.config = omitBy(status.config, i => !i);
-    delete def.config!.generated;
-    delete status.config!.generated;
-    delete status.origin;
-    delete status.modified;
-    return !isEqual(def, status);
-  }
-
   updatePlugin(key: string) {
     const def = this.admin.def.plugins[key];
     const status = this.admin.status.plugins[key]!;
@@ -168,4 +142,13 @@ export class SettingsSetupPage implements OnInit {
       this.installMessages.push($localize`Updated ${def.name || def.tag} template.`);
     });
   }
+
+  needsPluginUpdate(key: string) {
+    return this.admin.status.plugins[key]?.config?.needsUpdate;
+  }
+
+  needsTemplateUpdate(key: string) {
+    return this.admin.status.templates[key]?.config?.needsUpdate;
+  }
+
 }

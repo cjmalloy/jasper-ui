@@ -32,6 +32,7 @@ export class ViewStore {
   versions = 0;
   ext?: Ext = {} as any;
   pinned?: Ref[] = [];
+  updates = false;
 
   constructor(
     public route: RouterStore,
@@ -218,5 +219,9 @@ export class ViewStore {
     const filters = this.filter;
     if (filters.includes(filter)) return without(filters, filter);
     return [...filters, filter];
+  }
+
+  updateNotify() {
+    return this.updates = true;
   }
 }

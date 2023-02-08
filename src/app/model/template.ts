@@ -31,6 +31,7 @@ export interface Template extends Tag {
      * will stack from abstract to specific inheritance.
      */
     overrideForm?: boolean;
+    description?: string,
   };
   defaults?: any;
   schema?: Schema;
@@ -54,7 +55,7 @@ export function maybeTemplate(obj: any): Template | undefined {
 
 export function writeTemplate(template: Partial<Template>): Partial<Template> {
   const result = { ...template };
-  result.modified = result.modifiedString as any;
+  if (result.modifiedString) result.modified = result.modifiedString as any;
   delete result.type;
   delete result.modifiedString;
   delete result._ui;

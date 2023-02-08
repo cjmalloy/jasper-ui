@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import { findKey, flatten, mapValues } from 'lodash-es';
+import { findKey, flatten, isEqual, mapValues, omitBy } from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
-import { Action, Icon, Plugin } from '../model/plugin';
+import { Action, Icon, Plugin, writePlugin } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { aprioriPlugin } from '../plugin/apriori';
@@ -114,7 +114,14 @@ export class AdminService {
     this.status.templates = mapValues(this.def.templates, () => undefined);
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
+      tap(() => this.updates),
     );
+  }
+
+  get updates() {
+    for (const p of Object.values(this.status.plugins)) if (p?.config?.needsUpdate) return this.store.view.updateNotify();
+    for (const t of Object.values(this.status.templates)) if (t?.config?.needsUpdate) return this.store.view.updateNotify();;
+    return false;
   }
 
   get firstRun$(): Observable<any> {
@@ -168,14 +175,20 @@ export class AdminService {
   }
 
   private pluginToStatus(list: Plugin[]) {
-    for (const t of list) {
-      this.status.plugins[this.keyOf(this.def.plugins, t.tag)] = t;
+    for (const p of list) {
+      const key = this.keyOf(this.def.plugins, p.tag);
+      this.status.plugins[key] = p;
+      p.config ||= {};
+      p.config.needsUpdate ||= this.needsUpdate(this.def.plugins[key], p);
     }
   }
 
   private templateToStatus(list: Template[]) {
     for (const t of list) {
-      this.status.templates[this.keyOf(this.def.templates, t.tag)] = t;
+      const key = this.keyOf(this.def.templates, t.tag);
+      this.status.templates[key] = t;
+      t.config ||= {};
+      t.config.needsUpdate ||= this.needsUpdate(this.def.templates[key], t);
     }
   }
 
@@ -354,5 +367,21 @@ export class AdminService {
 
   getWikiPrefix() {
     return this.status.plugins.wiki?.config?.prefix || DEFAULT_WIKI_PREFIX;
+  }
+
+  needsUpdate(def: Plugin | Template, status: Plugin | Template) {
+    if (!this.store.account.admin) return false;
+    def = omitBy(def, i => !i) as any;
+    status = omitBy(status, i => !i) as any;
+    def.config = omitBy(def.config, i => !i);
+    status.config = omitBy(status.config, i => !i);
+    delete def.config!.generated;
+    delete status.config!.generated;
+    delete status.type;
+    delete status.origin;
+    delete status.modified;
+    delete status.modifiedString;
+    delete status._ui;
+    return !isEqual(def, status);
   }
 }

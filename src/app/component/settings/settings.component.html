@@ -27,6 +27,9 @@
       </ng-template>
     </ng-container>
     | <a routerLink="/settings" i18n>settings</a>
+    <a *ngIf="store.view.updates"
+       routerLink="/settings/setup"
+       i18n-title title="Updates available in setup" i18n>🌟️</a>
     <ng-container *ngIf="authn.clientAuth">
       | <a class="fake-link" (click)="authn.logOut()" i18n>logout</a>
     </ng-container>
