@@ -13,11 +13,11 @@
     <ng-container *ngFor="let group of pluginGroups | keyvalue">
       <label [style.text-transform]="'capitalize'" i18n>{{ group.key }}</label>
       <div>
-        <div *ngFor="let plugin of group.value | keyvalue" [title]="plugin.value.config?.description || ''">
-          <input id="plugin-{{ plugin.key }}" type="checkbox" [formControlName]="plugin.key">
-          <label for="plugin-{{ plugin.key }}">{{ plugin.value.name || plugin.key || plugin.value.tag }}</label>
-          <span *ngIf="needsPluginUpdate(plugin.key)" class="update">
-            (<span class="fake-link" (click)="updatePlugin($any(plugin.key))" i18n>update</span>)</span>
+        <div *ngFor="let e of group.value" [title]="e[1].config?.description || ''">
+          <input id="plugin-{{ e[0] }}" type="checkbox" [formControlName]="e[0]">
+          <label for="plugin-{{ e[0] }}">{{ e[1].name || e[0] || e[1].tag }}</label>
+          <span *ngIf="needsPluginUpdate(e[0])" class="update">
+            <span class="fake-link" (click)="updatePlugin($any(e[0]))" i18n>🌟️ update</span></span>
         </div>
       </div>
     </ng-container>
@@ -29,7 +29,7 @@
       <input id="template-{{ template.key }}" type="checkbox" [formControlName]="$any(template.key)">
       <label for="template-{{ template.key }}">{{ template.value.name || template.key }}</label>
       <span *ngIf="needsTemplateUpdate(template.key)" class="update">
-        (<span class="fake-link" (click)="updateTemplate(template.key)" i18n>update</span>)
+        <span class="fake-link" (click)="updateTemplate(template.key)" i18n>🌟️ update</span>
       </span>
     </div>
   </div>
