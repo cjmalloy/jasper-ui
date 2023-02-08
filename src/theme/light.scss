@@ -71,6 +71,12 @@ body.light-theme {
     text-shadow: 0 0 2px $warning;
   }
 
+  .update {
+    font-size: 80%;
+    color: $text;
+    text-decoration: underline;
+  }
+
   .error {
     font-size: 80%;
     color: $error;

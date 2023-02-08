@@ -74,6 +74,12 @@ body.dark-theme {
     color: $warning;
   }
 
+  .update {
+    font-size: 80%;
+    color: $text;
+    text-decoration: underline;
+  }
+
   .error {
     font-size: 80%;
     color: $error;
