@@ -66,11 +66,11 @@
           <ng-container *ngIf="addTags?.length" i18n>
             tagging refs
             <ng-container *ngFor="let tag of addTags">
-              <a [routerLink]="['/tag', tag]">{{ tag }}</a>
+              <a class="tag" [routerLink]="['/tag', tag]">{{ tag }}</a>
             </ng-container>
           </ng-container>
           <ng-container *ngIf="addOrigin" i18n>
-            to <a [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
+            to <a class="origin tag" [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
           </ng-container>
         </div>
         <app-viewer *ngIf="expanded && expandInline && !editing && !viewSource" [ref]="ref" ></app-viewer>
