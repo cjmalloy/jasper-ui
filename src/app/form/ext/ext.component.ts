@@ -107,7 +107,6 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService) {
     configControls = {
       ...configControls,
       sidebar: [''],
-      editors: tagsForm(fb, ext.config?.editors || []),
       modmail: [true],
       pinned: linksForm(fb, ext.config?.pinned || []),
       themes: themesForm(fb, ext.config?.themes || []),
@@ -121,6 +120,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService) {
       bookmarks: queriesForm(fb, ext.config?.bookmarks || []),
       userThemes: themesForm(fb, ext.config?.userThemes),
       userTheme: [''],
+      editors: tagsForm(fb, ext.config?.editors || []),
     };
   }
   if (queue(ext.tag, admin)) {
