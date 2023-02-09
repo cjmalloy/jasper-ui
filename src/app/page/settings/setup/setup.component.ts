@@ -122,6 +122,10 @@ export class SettingsSetupPage implements OnInit {
     this.installMessages.push($localize`Updating ${def.name || def.tag} plugin...`);
     this.plugins.update({
       ...def,
+      defaults: {
+        ...def.defaults || {},
+        ...status.defaults || {},
+      },
       origin: this.store.account.origin,
       modifiedString: status.modifiedString,
     }).subscribe(() => {
@@ -137,6 +141,10 @@ export class SettingsSetupPage implements OnInit {
     this.installMessages.push($localize`Updating ${def.name || def.tag} template...`);
     this.templates.update({
       ...def,
+      defaults: {
+        ...def.defaults || {},
+        ...status.defaults || {},
+      },
       origin: this.store.account.origin,
       modifiedString: status.modifiedString,
     }).subscribe(() => {

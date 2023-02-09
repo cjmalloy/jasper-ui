@@ -375,7 +375,9 @@ export class AdminService {
     def.config = omitBy(def.config, i => !i);
     status.config = omitBy(status.config, i => !i);
     delete def.config!.generated;
+    delete def.defaults;
     delete status.config!.generated;
+    delete status.defaults;
     delete status.type;
     delete status.origin;
     delete status.modified;
