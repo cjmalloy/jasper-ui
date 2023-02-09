@@ -30,8 +30,7 @@ export class TagPage implements OnInit, OnDestroy {
     private router: Router,
     private refs: RefService,
     private exts: ExtService,
-  ) {
-  }
+  ) { }
 
   ngOnInit(): void {
     this.store.view.clear(this.store.view.tag.includes('*') ? 'published' : 'created');
