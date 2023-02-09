@@ -238,8 +238,9 @@ video.qr-preview {
     align-self: flex-end;
   }
 
-  &.empty > a, &.empty > app-mobile-tab-select {
-    opacity: 0.5;
+  &.empty > a,
+  &.empty > app-mobile-tab-select {
+    mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
   }
 
   h5 {
