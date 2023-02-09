@@ -11,6 +11,7 @@ import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { retry, switchMap, timer } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -127,8 +128,11 @@ import { ThemeService } from './service/theme.service';
 
 const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginService, themes: ThemeService) => () =>
   config.load$.pipe(
+    tap(() => console.log('Loading Jasper')),
     switchMap(() => debug.init$),
+    tap(() => console.log('Authenticating')),
     switchMap(() => authn.init$),
+    tap(() => console.log('Authorizing')),
     switchMap(() => account.whoAmI$.pipe(
       retry({
         delay: (_, retryCount: number) =>
@@ -136,11 +140,17 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
           timer(1000 * Math.pow(2, Math.min(10, retryCount)))
       })
     )),
+    tap(() => console.log('Checking if first run as admin')),
     switchMap(() => account.initExt$),
+    tap(() => console.log('Loading plugins and templates')),
     switchMap(() => admin.init$),
+    tap(() => console.log('Loading account information')),
     switchMap(() => account.init$),
+    tap(() => console.log('Loading origins')),
     switchMap(() => origins.init$),
+    tap(() => console.log('Loading themes')),
     switchMap(() => themes.init$),
+    tap(() => console.log('Ready')),
   );
 
 @NgModule({
