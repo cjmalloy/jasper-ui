@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { CreateExtPage } from './page/create/ext/ext.component';
-import { CreateUserPage } from './page/create/user/user.component';
+import { ExtPage } from './page/ext/ext.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAllPage } from './page/inbox/all/all.component';
 import { InboxPage } from './page/inbox/inbox.component';
@@ -31,18 +30,20 @@ import { SubmitInvoicePage } from './page/submit/invoice/invoice.component';
 import { SubmitPage } from './page/submit/submit.component';
 import { SubmitTextPage } from './page/submit/text/text.component';
 import { SubmitWebPage } from './page/submit/web/web.component';
-import { EditTagPage } from './page/tag/edit/edit.component';
 import { TagPage } from './page/tag/tag.component';
+import { UserPage } from './page/user/user.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
-  { path: 'all', redirectTo: 'tag/@*', pathMatch: 'full' },
-
-  { path: 'login', component: LoginPage },
   { path: 'home', component: HomePage },
+  { path: 'login', component: LoginPage },
+  { path: 'all', redirectTo: 'tag/@*', pathMatch: 'full' },
   { path: 'tag', redirectTo: 'tag/@*', pathMatch: 'full' },
   { path: 'tag/:tag', component: TagPage },
-  { path: 'tag/:tag/edit', component: EditTagPage },
+  { path: 'ext', component: ExtPage },
+  { path: 'ext/:tag', component: ExtPage },
+  { path: 'user', component: UserPage },
+  { path: 'user/:tag', component: UserPage },
   {
     path: 'ref/:url',
     component: RefPage,
@@ -73,8 +74,6 @@ const routes: Routes = [
       { path: 'invoice', component: SubmitInvoicePage },
     ]
   },
-  { path: 'create/ext', component: CreateExtPage },
-  { path: 'create/user', component: CreateUserPage },
   {
     path: 'settings',
     component: SettingsPage,

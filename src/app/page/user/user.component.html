@@ -1,0 +1,53 @@
+<ng-container *mobxAutorun>
+  <div class="tabs">
+    <h5 i18n>User</h5>
+    <app-settings></app-settings>
+  </div>
+
+  <form class="form" [formGroup]="profileForm" (ngSubmit)="save()">
+
+    <app-user-form [group]="user"
+                   (tagChanges)="setTag($event)"
+                   [showClear]="true"
+                   (clear)="clear()"></app-user-form>
+
+    <ng-container *ngIf="config.scim">
+      <label class="scim-label">SCIM</label>
+      <div class="bubble">
+        <label>System for Cross-domain Identity Management</label>
+        <div class="form">
+          <label for="active">Active:</label>
+          <div title="Enable logins">
+            <input id="active" type="checkbox" formControlName="active">
+          </div>
+
+          <label for="password" i18n>Password:</label>
+          <input id="password" type="password" [formControl]="password">
+
+          <label for="role">Role:</label>
+          <select id="role" [formControl]="role">
+            <option value="ROLE_SYSADMIN" i18n>sysadmin</option>
+            <option value="ROLE_ADMIN" i18n>admin</option>
+            <option value="ROLE_MOD" i18n>mod</option>
+            <option value="ROLE_EDITOR" i18n>editor</option>
+            <option value="ROLE_USER" i18n>user</option>
+            <option value="ROLE_VIEWER" i18n>viewer</option>
+            <option value="ROLE_ANONYMOUS" i18n>anon</option>
+          </select>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngFor="let e of serverError">
+      <span><!-- Unexpected Error --></span>
+      <div class="error">{{ e }}</div>
+    </ng-container>
+
+    <span><!-- Buttons --></span>
+    <span class="form-array right">
+    <button type="submit" [disabled]="submitted && !profileForm.valid" i18n>{{ user ? 'Save' : 'Create' }}</button>
+    <button *ngIf="user" type="button" (click)="delete()" i18n>Delete</button>
+  </span>
+
+  </form>
+</ng-container>

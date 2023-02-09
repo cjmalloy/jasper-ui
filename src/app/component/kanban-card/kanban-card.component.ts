@@ -2,7 +2,6 @@ import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
-import { hasTag } from '../../util/tag';
 
 @Component({
   selector: 'app-kanban-card',

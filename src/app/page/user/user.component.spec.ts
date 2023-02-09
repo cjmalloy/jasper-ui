@@ -4,19 +4,19 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
 
-import { CreateExtPage } from './ext.component';
+import { UserPage } from './user.component';
 
-describe('CreateExtPage', () => {
-  let component: CreateExtPage;
-  let fixture: ComponentFixture<CreateExtPage>;
+describe('CreateUserPage', () => {
+  let component: UserPage;
+  let fixture: ComponentFixture<UserPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CreateExtPage],
+      declarations: [ UserPage ],
       imports: [
         HttpClientTestingModule,
-        ReactiveFormsModule,
         RouterTestingModule,
+        ReactiveFormsModule,
       ],
       providers: [
         { provide: OAuthService, useValue: {} },
@@ -27,7 +27,7 @@ describe('CreateExtPage', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(CreateExtPage);
+    fixture = TestBed.createComponent(UserPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

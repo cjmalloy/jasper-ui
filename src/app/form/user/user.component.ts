@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { User } from '../../model/user';
 import { USER_REGEX } from '../../util/format';
@@ -14,6 +14,12 @@ export class UserFormComponent implements OnInit {
 
   @Input()
   group!: UntypedFormGroup;
+  @Output()
+  tagChanges = new EventEmitter<string>();
+  @Input()
+  showClear = false;
+  @Output()
+  clear = new EventEmitter<void>();
 
   @ViewChild('readAccess')
   readAccess!: SelectorsFormComponent;
@@ -47,9 +53,9 @@ export class UserFormComponent implements OnInit {
 
 }
 
-export function userForm(fb: UntypedFormBuilder) {
+export function userForm(fb: UntypedFormBuilder, locked = false) {
   return fb.group({
-    tag: ['', [Validators.required, Validators.pattern(USER_REGEX)]],
+    tag: [{value: '', disabled: locked}, [Validators.required, Validators.pattern(USER_REGEX)]],
     name: [''],
     role: [''],
     readAccess: fb.array([]),

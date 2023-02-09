@@ -4,6 +4,7 @@ import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Ref, RefSort } from '../model/ref';
 import { TagSort } from '../model/tag';
+import { User } from '../model/user';
 import { UrlFilter } from '../util/query';
 import { hasPrefix, isQuery, localTag } from '../util/tag';
 
@@ -31,6 +32,7 @@ export class ViewStore {
   ref?: Ref = {} as any;
   versions = 0;
   ext?: Ext = {} as any;
+  selectedUser?: User = {} as any;
   pinned?: Ref[] = [];
   updates = false;
 
@@ -45,6 +47,7 @@ export class ViewStore {
     this.ref = undefined;
     this.versions = 0;
     this.ext = undefined;
+    this.selectedUser = undefined;
     this.pinned = undefined;
     this.defaultSort = defaultSort;
     this.defaultSearchSort = defaultSearchSort;

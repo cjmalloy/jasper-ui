@@ -82,8 +82,7 @@ import { ThemesFormComponent } from './form/themes/themes.component';
 import { UserFormComponent } from './form/user/user.component';
 import { UsersFormComponent } from './form/users/users.component';
 import { JasperFormlyModule } from './formly/formly.module';
-import { CreateExtPage } from './page/create/ext/ext.component';
-import { CreateUserPage } from './page/create/user/user.component';
+import { ExtPage } from './page/ext/ext.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAllPage } from './page/inbox/all/all.component';
 import { InboxPage } from './page/inbox/inbox.component';
@@ -113,8 +112,8 @@ import { SubmitInvoicePage } from './page/submit/invoice/invoice.component';
 import { SubmitPage } from './page/submit/submit.component';
 import { SubmitTextPage } from './page/submit/text/text.component';
 import { SubmitWebPage } from './page/submit/web/web.component';
-import { EditTagPage } from './page/tag/edit/edit.component';
 import { TagPage } from './page/tag/tag.component';
+import { UserPage } from './page/user/user.component';
 import { EmbedPipe } from './pipe/embed.pipe';
 import { SafePipe } from './pipe/safe.pipe';
 import { ThumbnailPipe } from './pipe/thumbnail.pipe';
@@ -181,9 +180,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     SubmitWebPage,
     SubmitTextPage,
     AutofocusDirective,
-    CreateExtPage,
-    CreateUserPage,
-    EditTagPage,
+    ExtPage,
+    UserPage,
     LoadingComponent,
     SettingsPage,
     SettingsFeedPage,

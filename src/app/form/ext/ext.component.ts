@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { FormlyFieldConfig, FormlyFormOptions } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
@@ -23,6 +23,13 @@ export class ExtFormComponent implements OnInit {
 
   @Input()
   group!: UntypedFormGroup;
+  @Input()
+  showClear = false;
+  @Output()
+  clear = new EventEmitter<void>();
+
+  @ViewChild('fill')
+  fill?: ElementRef;
 
   form?: FormlyFieldConfig[];
 
@@ -35,26 +42,6 @@ export class ExtFormComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-  }
-
-  get root() {
-    return root(this.group.value.tag, this.admin);
-  }
-
-  get user() {
-    return user(this.group.value.tag, this.admin);
-  }
-
-  get queue() {
-    return queue(this.group.value.tag, this.admin);
-  }
-
-  get kanban() {
-    return kanban(this.group.value.tag, this.admin);
-  }
-
-  get blog() {
-    return blog(this.group.value.tag, this.admin);
   }
 
   get config() {
@@ -89,8 +76,56 @@ export class ExtFormComponent implements OnInit {
     return this.config.get('theme') as UntypedFormControl;
   }
 
+  get subscriptions() {
+    return this.config.get('subscriptions') as UntypedFormControl;
+  }
+
+  get pinned() {
+    return this.config.get('pinned') as UntypedFormControl;
+  }
+
+  get bookmarks() {
+    return this.config.get('bookmarks') as UntypedFormControl;
+  }
+
+  get editors() {
+    return this.config.get('editors') as UntypedFormControl;
+  }
+
   get userTheme() {
     return this.config.get('userTheme') as UntypedFormControl;
+  }
+
+  get maxAge() {
+    return this.config.get('maxAge') as UntypedFormControl;
+  }
+
+  get bounty() {
+    return this.config.get('bounty') as UntypedFormControl;
+  }
+
+  get approvers() {
+    return this.config.get('approvers') as UntypedFormControl;
+  }
+
+  get columns() {
+    return this.config.get('columns') as UntypedFormControl;
+  }
+
+  get showNoColumn() {
+    return this.config.get('showNoColumn') as UntypedFormControl;
+  }
+
+  get swimLanes() {
+    return this.config.get('swimLanes') as UntypedFormControl;
+  }
+
+  get showNoSwimLane() {
+    return this.config.get('showNoSwimLane') as UntypedFormControl;
+  }
+
+  get filterTags() {
+    return this.config.get('filterTags') as UntypedFormControl;
   }
 
   setValue(ext: Ext) {
@@ -140,13 +175,6 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService) {
       swimLanes: qtagsForm(fb, ext.config?.swimLanes || []),
       showNoSwimLane: [false],
       noSwimLaneTitle: [''],
-    };
-  }
-  if (blog(ext.tag, admin)) {
-    configControls = {
-      ...configControls,
-      filterTags: [false],
-      tags: qtagsForm(fb, ext.config?.tags || []),
     };
   }
   if (blog(ext.tag, admin)) {

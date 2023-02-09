@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { filter, uniq } from 'lodash-es';
 import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { Action, active, Icon, Visibility, visible } from '../../model/plugin';
 import { Ref } from '../../model/ref';
@@ -15,7 +14,7 @@ import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { authors, formatAuthor, interestingTags, TAGS_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
-import { hasPrefix, hasTag, tagOrigin } from '../../util/tag';
+import { hasTag, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-comment',

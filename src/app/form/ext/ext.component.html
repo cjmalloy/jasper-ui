@@ -1,15 +1,17 @@
 <ng-container [formGroup]="group">
 
   <label for="tag" i18n>Tag:</label>
-  <input id="tag" type="text" formControlName="tag" [attr.disabled]="true">
+  <div class="form-array">
+    <input id="tag" type="text" formControlName="tag">
+    <button *ngIf="showClear" type="button" (click)="clear.next()" i18n-title title="New Ext" i18n>🆑️</button>
+  </div>
 
   <label for="name" i18n>Name:</label>
   <input id="name" type="text" formControlName="name">
 
-  <ng-container *ngIf="root"
-                [formGroup]="config">
+  <ng-container [formGroup]="config">
 
-    <ng-container *ngIf="!user">
+    <ng-container *ngIf="modmail">
       <label for="modmail" i18n>Enable Modmail:</label>
       <div>
         <input id="modmail" type="checkbox" formControlName="modmail">
@@ -17,120 +19,142 @@
       </div>
     </ng-container>
 
-    <label for="sidebar" i18n>Sidebar:</label>
-    <div #fill>
-      <app-editor id="sidebar"
-                  [fillWidth]="fill"
-                  [control]="sidebar"></app-editor>
-    </div>
-
-    <label for="pinned" i18n>Pinned:</label>
-    <app-links id="pinned"
-               label="pinned link"
-               [group]="config"
-               fieldName="pinned"></app-links>
-
-    <label for="themes" i18n>Custom Themes:</label>
-    <app-themes id="themes"
-                [group]="config"
-                fieldName="themes"></app-themes>
-
-    <label for="theme" i18n>Tag Page Theme:</label>
-    <select id="theme" [formControl]="theme">
-      <option [ngValue]="undefined" i18n>default</option>
-      <option *ngFor="let t of themeValues" [ngValue]="t">{{ t }}</option>
-    </select>
-  </ng-container>
-
-  <ng-container *ngIf="user"
-                [formGroup]="config">
-    <label for="subscriptions" i18n>Subscriptions:</label>
-    <app-queries id="subscriptions"
-                 label="subscription"
-                 [group]="config"
-                 fieldName="subscriptions"></app-queries>
-
-    <label for="bookmarks" i18n>Bookmarks:</label>
-    <app-queries id="bookmarks"
-                 label="bookmark"
-                 [group]="config"
-                 fieldName="bookmarks"></app-queries>
-
-    <label for="editors" i18n>Editors:</label>
-    <app-tags id="editors"
-              [group]="config"
-              fieldName="editors"></app-tags>
-
-    <label for="userThemes" i18n>User Themes:</label>
-    <app-themes id="userThemes"
-                [group]="config"
-                fieldName="userThemes"></app-themes>
-
-    <label for="userTheme" i18n>Theme Override:</label>
-    <select id="userTheme" formControlName="userTheme">
-      <option [ngValue]="undefined" i18n>default</option>
-      <option *ngFor="let t of userThemeValues" [ngValue]="t">{{ t }}</option>
-    </select>
-  </ng-container>
-
-  <ng-container *ngIf="queue"
-                [formGroup]="config">
-    <label for="maxAge" i18n>Max Age:</label>
-    <input type="text" id="maxAge" formControlName="maxAge">
-
-    <label for="bounty" i18n>Bounty:</label>
-    <input type="text" id="bounty" formControlName="bounty">
-
-    <label for="approvers" i18n>Approvers:</label>
-    <app-users id="approvers"
-               [group]="config"
-               label="approver"
-               fieldName="approvers"></app-users>
-  </ng-container>
-
-  <ng-container *ngIf="kanban"
-                [formGroup]="config">
-    <label for="columns" i18n>Columns:</label>
-    <app-qtags id="columns"
-               [group]="config"
-               label="column"
-               fieldName="columns"></app-qtags>
-
-    <label for="showNoColumn" i18n>Extra column for untagged Refs:</label>
-    <div>
-      <input id="showNoColumn" type="checkbox" formControlName="showNoColumn">
-    </div>
-    <ng-container *ngIf="config.get('showNoColumn')!.value">
-      <label for="noColumnTitle" i18n>Extra Column Title:</label>
-      <input type="text" id="noColumnTitle" formControlName="noColumnTitle">
+    <ng-container *ngIf="sidebar">
+      <label for="sidebar" i18n>Sidebar:</label>
+      <div #fill>
+        <app-editor id="sidebar"
+                    [fillWidth]="fill"
+                    [control]="sidebar"></app-editor>
+      </div>
     </ng-container>
 
-    <label for="swimLanes" i18n>Swim Lanes:</label>
-    <app-qtags id="swimLanes"
-               [group]="config"
-               label="swim lane"
-               fieldName="swimLanes"></app-qtags>
-
-    <label for="showNoSwimLane" i18n>Extra swim lane for untagged Refs:</label>
-    <div>
-      <input id="showNoSwimLane" type="checkbox" formControlName="showNoSwimLane">
-    </div>
-    <ng-container *ngIf="config.get('showNoSwimLane')!.value">
-      <label for="noSwimLaneTitle" i18n>Extra Swim Lane Title:</label>
-      <input type="text" id="noSwimLaneTitle" formControlName="noSwimLaneTitle">
+    <ng-container *ngIf="pinned">
+      <label for="pinned" i18n>Pinned:</label>
+      <app-links id="pinned"
+                 label="pinned link"
+                 [group]="config"
+                 fieldName="pinned"></app-links>
     </ng-container>
-  </ng-container>
 
-  <ng-container *ngIf="blog"
-                [formGroup]="config">
-    <label for="filterTags" i18n>Only show selected tags:</label>
-    <div>
-      <input id="filterTags" type="checkbox" formControlName="filterTags" >
-    </div>
-    <ng-container *ngIf="config.get('filterTags')!.value">
-      <label for="tags" i18n>Tags:</label>
-      <app-qtags id="tags"
-                 [group]="config"></app-qtags>
+    <ng-container *ngIf="themes">
+      <label for="themes" i18n>Custom Themes:</label>
+      <app-themes id="themes"
+                  [group]="config"
+                  fieldName="themes"></app-themes>
+    </ng-container>
+
+    <ng-container *ngIf="theme">
+      <label for="theme" i18n>Tag Page Theme:</label>
+      <select id="theme" [formControl]="theme">
+        <option [ngValue]="undefined" i18n>default</option>
+        <option *ngFor="let t of themeValues" [ngValue]="t">{{ t }}</option>
+      </select>
+    </ng-container>
+
+    <ng-container *ngIf="subscriptions">
+      <label for="subscriptions" i18n>Subscriptions:</label>
+      <app-queries id="subscriptions"
+                   label="subscription"
+                   [group]="config"
+                   fieldName="subscriptions"></app-queries>
+    </ng-container>
+
+    <ng-container *ngIf="bookmarks">
+      <label for="bookmarks" i18n>Bookmarks:</label>
+      <app-queries id="bookmarks"
+                   label="bookmark"
+                   [group]="config"
+                   fieldName="bookmarks"></app-queries>
+    </ng-container>
+
+    <ng-container *ngIf="editors">
+      <label for="editors" i18n>Editors:</label>
+      <app-tags id="editors"
+                [group]="config"
+                fieldName="editors"></app-tags>
+    </ng-container>
+
+    <ng-container *ngIf="userTheme">
+      <label for="userThemes" i18n>User Themes:</label>
+      <app-themes id="userThemes"
+                  [group]="config"
+                  fieldName="userThemes"></app-themes>
+    </ng-container>
+
+    <ng-container *ngIf="userTheme">
+      <label for="userTheme" i18n>Theme Override:</label>
+      <select id="userTheme" formControlName="userTheme">
+        <option [ngValue]="undefined" i18n>default</option>
+        <option *ngFor="let t of userThemeValues" [ngValue]="t">{{ t }}</option>
+      </select>
+    </ng-container>
+
+    <ng-container *ngIf="maxAge">
+      <label for="maxAge" i18n>Max Age:</label>
+      <input type="text" id="maxAge" formControlName="maxAge">
+    </ng-container>
+
+    <ng-container *ngIf="bounty">
+      <label for="bounty" i18n>Bounty:</label>
+      <input type="text" id="bounty" formControlName="bounty">
+    </ng-container>
+
+    <ng-container *ngIf="approvers">
+      <label for="approvers" i18n>Approvers:</label>
+      <app-users id="approvers"
+                 [group]="config"
+                 label="approver"
+                 fieldName="approvers"></app-users>
+    </ng-container>
+
+    <ng-container *ngIf="columns">
+      <label for="columns" i18n>Columns:</label>
+      <app-qtags id="columns"
+                 [group]="config"
+                 label="column"
+                 fieldName="columns"></app-qtags>
+     </ng-container>
+
+    <ng-container *ngIf="showNoColumn">
+      <label for="showNoColumn" i18n>Extra column for untagged Refs:</label>
+      <div>
+        <input id="showNoColumn" type="checkbox" formControlName="showNoColumn">
+      </div>
+      <ng-container *ngIf="showNoColumn.value">
+        <label for="noColumnTitle" i18n>Extra Column Title:</label>
+        <input type="text" id="noColumnTitle" formControlName="noColumnTitle">
+      </ng-container>
+    </ng-container>
+
+    <ng-container *ngIf="swimLanes">
+      <label for="swimLanes" i18n>Swim Lanes:</label>
+      <app-qtags id="swimLanes"
+                 [group]="config"
+                 label="swim lane"
+                 fieldName="swimLanes"></app-qtags>
+    </ng-container>
+
+    <ng-container *ngIf="showNoSwimLane">
+      <label for="showNoSwimLane" i18n>Extra swim lane for untagged Refs:</label>
+      <div>
+        <input id="showNoSwimLane" type="checkbox" formControlName="showNoSwimLane">
+      </div>
+      <ng-container *ngIf="config.get('showNoSwimLane')!.value">
+        <label for="noSwimLaneTitle" i18n>Extra Swim Lane Title:</label>
+        <input type="text" id="noSwimLaneTitle" formControlName="noSwimLaneTitle">
+      </ng-container>
+    </ng-container>
+
+    <ng-container *ngIf="filterTags">
+      <label for="filterTags" i18n>Only show selected tags:</label>
+      <div>
+        <input id="filterTags" type="checkbox" formControlName="filterTags" >
+      </div>
+      <ng-container *ngIf="config.get('filterTags')!.value">
+        <label for="tags" i18n>Tags:</label>
+        <app-qtags id="tags"
+                   [group]="config"></app-qtags>
+      </ng-container>
     </ng-container>
   </ng-container>
 

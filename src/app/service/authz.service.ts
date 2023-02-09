@@ -2,17 +2,7 @@ import { Injectable } from '@angular/core';
 import { Ref } from '../model/ref';
 import { Role } from '../model/user';
 import { Store } from '../store/store';
-import {
-  captures,
-  capturesAny,
-  hasTag,
-  isOwner,
-  isOwnerTag,
-  localTag,
-  privateTag,
-  qualifyTags,
-  tagOrigin
-} from '../util/tag';
+import { captures, capturesAny, hasTag, isOwner, isOwnerTag, localTag, privateTag, qualifyTags } from '../util/tag';
 
 @Injectable({
   providedIn: 'root'

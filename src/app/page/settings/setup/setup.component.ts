@@ -4,7 +4,6 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { forOwn, mapValues, sortBy } from 'lodash-es';
 import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
 import { Plugin } from '../../../model/plugin';
-import { Template } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';

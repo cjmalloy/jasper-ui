@@ -19,7 +19,7 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
-import { Action, active, Icon, Visibility, visible } from '../../../model/plugin';
+import { active } from '../../../model/plugin';
 import { Ref, RefNode } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { GraphService } from '../../../service/api/graph.service';

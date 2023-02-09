@@ -60,7 +60,7 @@ export class UserComponent implements OnInit {
     private users: UserService,
     private fb: FormBuilder,
   ) {
-    this.editForm = userForm(fb);
+    this.editForm = userForm(fb, true);
   }
 
   @ViewChild(UserFormComponent)
@@ -165,8 +165,15 @@ export class UserComponent implements OnInit {
     (this.user ?
       this.users.update({
         ...this.user,
-        ...this.editForm.value}) :
-      this.users.create(this.editForm.value))
+        ...this.editForm.value,
+        tag: this.localTag,
+        origin: this.origin,
+      }) :
+      this.users.create({
+        ...this.editForm.value,
+        tag: this.localTag,
+        origin: this.origin,
+      }))
       .pipe(
         catchError((err: HttpErrorResponse) => {
           this.serverError = printError(err);

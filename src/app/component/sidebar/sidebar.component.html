@@ -26,36 +26,21 @@
         <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit</label>
       </div>
     </ng-container>
-    <ng-container *ngIf="!ext && (store.account.editor || writeAccess)">
-      <div class="submit-button" routerLink="/create/ext" [queryParams]="{ tag: writeAccess ? localTag : '' }">
-        <span i18n-title title="Extend Tag" i18n>🖌️</span> <label i18n>Extend Tag</label>
-      </div>
-    </ng-container>
-    <ng-container *ngIf="ext && writeAccess">
-      <div class="submit-button" [routerLink]="['/tag', localTag, 'edit']">
-        <span i18n-title title="Extend Tag" i18n>🖌️</span> <label i18n>Extend Tag</label>
-      </div>
-    </ng-container>
-    <ng-container *ngIf="store.account.mod">
-      <div class="submit-button" routerLink="/create/user" [queryParams]="{ tag: localTag }">
-        <span i18n-title title="Create User" i18n>👤️</span> <label i18n>Create User</label>
+    <ng-container *ngIf="store.account.editor || writeAccess">
+      <div class="submit-button" [routerLink]="['/ext', writeAccess ? localTag : '']">
+        <span i18n-title title="Extend Tag" i18n>🖌️</span> <label i18n>Edit</label>
       </div>
     </ng-container>
     <ng-container *ngIf="admin.status.plugins.inbox">
-      <ng-container *ngIf="user && store.account.tag !== tag">
+      <ng-container *ngIf="store.account.poster && (user || modmail)">
         <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
-          <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Direct Message {{ tag }}</label>
-        </div>
-      </ng-container>
-      <ng-container *ngIf="store.account.poster && !user && modmail">
-        <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
-          <span i18n-title title="Mod Mail" i18n>✉️</span> <label i18n>Mod Mail {{ tag }}</label>
+          <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
         </div>
       </ng-container>
     </ng-container>
-    <ng-container *ngIf="store.account.signedIn && store.account.tag === tag">
-      <div class="submit-button" routerLink="/settings/password">
-        <span i18n-title title="Change Password" i18n>🔑️️</span> <label i18n>Change Password</label>
+    <ng-container *ngIf="store.account.mod || store.account.tag === tag">
+      <div class="submit-button" [routerLink]="['/user', user && tag || '']">
+        <span i18n-title title="Create User" i18n>👤️</span> <label i18n>User</label>
       </div>
     </ng-container>
   </span>

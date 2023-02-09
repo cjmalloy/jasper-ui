@@ -9,7 +9,7 @@ import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
-import { downloadRef, downloadTag } from '../../util/download';
+import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 

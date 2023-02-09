@@ -1,11 +1,17 @@
 <ng-container [formGroup]="group">
 
   <label for="tag" i18n>Tag:</label>
-  <input id="tag"
-         type="email"
-         autocorrect="off"
-         autocapitalize="none"
-         formControlName="tag">
+  <div class="form-array">
+    <input #tagInput
+           id="tag"
+           type="email"
+           autocorrect="off"
+           autocapitalize="none"
+           formControlName="tag"
+           (keydown)="tag.errors || $event.key === 'Enter' && tagChanges.next(tagInput.value) || true"
+           (blur)="tag.errors || tagChanges.next(tagInput.value)">
+    <button *ngIf="showClear" type="button" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
+  </div>
   <span><!-- Tag Errors --></span>
   <div>
     <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']" i18n>

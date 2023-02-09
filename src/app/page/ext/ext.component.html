@@ -1,0 +1,58 @@
+<ng-container *mobxAutorun>
+  <div class="tabs">
+    <h5 i18n>Ext</h5>
+    <app-settings></app-settings>
+  </div>
+  <ng-container *ngIf="!store.view.ext">
+    <form class="form" [formGroup]="extForm" (ngSubmit)="create()">
+
+      <label for="tag" i18n>Tag:</label>
+      <input id="tag"
+             type="email"
+             autocorrect="off"
+             autocapitalize="none"
+             formControlName="tag">
+      <span><!-- Tag Errors --></span>
+      <div>
+        <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']" i18n>
+          Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+          tags start with an underscore.<br>
+          (i.e. "science", "my/tag", or "_my/private/tag")
+        </div>
+        <div class="error" *ngIf="tag.touched && tag.errors?.['required']" i18n>
+          Tag must not be blank.
+        </div>
+      </div>
+
+      <ng-container *ngFor="let e of serverError">
+        <span><!-- Unexpected Error --></span>
+        <div class="error">{{ e }}</div>
+      </ng-container>
+
+      <span><!-- Buttons --></span>
+      <span class="form-array right">
+        <button type="submit" [disabled]="submitted && !extForm.valid" i18n>Create</button>
+      </span>
+    </form>
+  </ng-container>
+  <ng-container *ngIf="store.view.ext">
+    <form *ngIf="editForm" class="form" [formGroup]="editForm" (ngSubmit)="save()" [appLimitWidth]="form.fill?.nativeElement">
+
+      <app-ext-form #form
+                    [group]="editForm"
+                    [showClear]="true"
+                    (clear)="clear()"></app-ext-form>
+
+      <ng-container *ngFor="let e of serverError">
+        <span><!-- Unexpected Error --></span>
+        <div class="error">{{ e }}</div>
+      </ng-container>
+
+      <span><!-- Buttons --></span>
+      <span class="form-array right">
+        <button type="submit" [disabled]="submitted && !editForm.valid" i18n>Save</button>
+        <button type="button" (click)="delete()" i18n>Delete</button>
+      </span>
+    </form>
+  </ng-container>
+</ng-container>
