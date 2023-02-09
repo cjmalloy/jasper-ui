@@ -76,12 +76,16 @@ export class SubmitDmPage implements OnInit {
     return this.dmForm.get('comment') as UntypedFormControl;
   }
 
+  get notes() {
+    return !this.to.value || this.to.value === this.store.account.tag;
+  }
+
   get tags() {
     return uniq([
       this.store.account.localTag,
-        ...(this.to.value ?
-          ['locked', ...this.to.value.split(/\s+/).map((t: string) => getMailbox(t))] :
-          ['notes']
+        ...(this.notes ?
+            ['notes'] :
+            ['locked', ...this.to.value.split(/\s+/).map((t: string) => getMailbox(t))]
         ),
       ...this.plugins,
     ]);
@@ -120,10 +124,6 @@ export class SubmitDmPage implements OnInit {
 
   setDefaultTitle() {
     if (this.title.value && ![this.defaultTo, this.defaultNotes].includes(this.title.value)) return;
-    if (this.to.value) {
-      this.title.setValue(this.defaultTo);
-    } else {
-      this.title.setValue(this.defaultNotes);
-    }
+    this.title.setValue(this.notes ? this.defaultNotes : this.defaultTo);
   }
 }
