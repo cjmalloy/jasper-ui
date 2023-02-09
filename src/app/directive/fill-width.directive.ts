@@ -1,7 +1,7 @@
 import { AfterViewInit, Directive, ElementRef, HostListener, Input, OnDestroy } from '@angular/core';
 import { throttle } from 'lodash-es';
 
-export const mobileWidth = 640;
+export const mobileWidth = 740;
 
 @Directive({
   selector: '[appFillWidth]'
