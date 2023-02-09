@@ -1,8 +1,10 @@
 
 @media print {
+
   .login-popup,
   .subscription-bar,
-  .tabs,
+  .tabs a,
+  .tabs .settings,
   .sidebar,
   .toggle,
   app-comment-reply {
@@ -15,6 +17,10 @@
 
   body, .container {
       background: none !important;
+  }
+
+  footer {
+    display: none;
   }
 
 }
