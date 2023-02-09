@@ -50,18 +50,21 @@ export class AccountService {
   }
 
   get init$() {
-    if (!this.store.account.signedIn) return this.subscriptions$;
+    if (!this.store.account.signedIn) return this.subscriptions$.pipe(
+      switchMap(() => this.bookmarks$),
+      switchMap(() => this.theme$),
+      );
     return this.loadUserExt$.pipe(
       switchMap(() => this.user$),
       switchMap(() => this.subscriptions$),
       switchMap(() => this.bookmarks$),
       switchMap(() => this.theme$),
-    )
+    );
   }
 
   private get loadUserExt$() {
-    if (!this.store.account.signedIn) return of();
-    if (!this.admin.status.templates.user) return of();
+    if (!this.store.account.signedIn) return of(undefined);
+    if (!this.admin.status.templates.user) return of(undefined);
     return this.userExt$.pipe(catchError(err => this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin })));
   }
 
@@ -106,16 +109,17 @@ export class AccountService {
   }
 
   get bookmarks$(): Observable<string[]> {
-    if (!this.store.account.signedIn || !this.admin.status.templates.user) return of([]);
+    if (!this.admin.status.templates.user) return of(this.store.account.bookmarks);
     return this.userExt$.pipe(
-      map(ext => ext.config?.bookmarks || []),
+      map(ext => ext.config),
+      catchError(() => of(this.admin.status.templates.user!.defaults)),
+      map(config => config.bookmarks || []),
       tap(books => runInAction(() => this.store.account.bookmarks = books)),
     );
   }
 
   get theme$(): Observable<string | undefined> {
     if (!this.admin.status.templates.user) return of(this.store.account.theme);
-    if (!this.store.account.signedIn) return of(runInAction(() => this.store.account.subs = this.admin.status.templates.user!.defaults.userTheme));
     return this.userExt$.pipe(
       map(ext => ext.config),
       catchError(() => of(this.admin.status.templates.user!.defaults)),

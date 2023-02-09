@@ -25,7 +25,7 @@ export class ThemeService {
   get init$() {
     autorun(() => this.setCustomCss('custom-css', this.store.account.theme || this.store.view.ext?.config?.themes?.[this.store.view.ext?.config?.theme]));
     this.admin.pluginConfigProperty('css').map(p => this.setCustomCss(p.tag, p.config!.css));
-    return of();
+    return of(null);
   }
 
   toggle() {

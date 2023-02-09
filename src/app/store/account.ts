@@ -89,7 +89,6 @@ export class AccountStore {
   }
 
   get subscriptionQuery() {
-    if (!this.signedIn) return 'none';
     if (!this.subs.length) return 'none';
     return this.subs.join('|');
   }
