@@ -36,7 +36,8 @@
     </form>
   </ng-container>
   <ng-container *ngIf="store.view.ext">
-    <form *ngIf="editForm" class="form" [formGroup]="editForm" (ngSubmit)="save()" [appLimitWidth]="form.fill?.nativeElement">
+    <form *ngIf="editForm" class="form" [formGroup]="editForm" (ngSubmit)="save()"
+          [appLimitWidth]="form?.fill?.nativeElement" [limitSibling]="true">
 
       <app-ext-form #form
                     [group]="editForm"

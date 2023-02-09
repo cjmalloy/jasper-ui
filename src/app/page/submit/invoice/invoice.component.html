@@ -1,4 +1,5 @@
-<form class="form" [formGroup]="invoiceForm" (ngSubmit)="submit()" [appLimitWidth]="fill">
+<form class="form" [formGroup]="invoiceForm" (ngSubmit)="submit()"
+      [appLimitWidth]="fill" [limitSibling]="true">
 
   <label for="to" i18n>Queue:</label>
   <input id="to"

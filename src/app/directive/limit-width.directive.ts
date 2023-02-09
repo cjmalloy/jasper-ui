@@ -9,6 +9,9 @@ export class LimitWidthDirective implements OnDestroy, AfterViewInit {
 
   resizeObserver = new ResizeObserver(() => this.fill());
 
+  @Input()
+  limitSibling = false;
+
   private _linked?: HTMLElement;
 
   constructor(
@@ -43,8 +46,11 @@ export class LimitWidthDirective implements OnDestroy, AfterViewInit {
   }
 
   private fill = throttle(() => {
-    const linkedWidth = this._linked?.clientWidth;
-    if (window.innerWidth <= mobileWidth || !linkedWidth) {
+    let linkedWidth = this._linked?.clientWidth || 0;
+    if (this.limitSibling) linkedWidth += this._linked?.nextElementSibling?.clientWidth || 0;
+    if (window.innerWidth <= mobileWidth) {
+      this.el.nativeElement.style.maxWidth = '100vw';
+    } else if (!linkedWidth) {
       this.el.nativeElement.style.maxWidth = '';
     } else {
       this.el.nativeElement.style.maxWidth = Math.min(this.max, linkedWidth) + 'px';

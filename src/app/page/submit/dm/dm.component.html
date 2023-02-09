@@ -1,4 +1,5 @@
-<form class="form" [formGroup]="dmForm" (ngSubmit)="submit()" [appLimitWidth]="fill">
+<form class="form" [formGroup]="dmForm" (ngSubmit)="submit()"
+      [appLimitWidth]="fill" [limitSibling]="true">
 
   <label for="to">To:</label>
   <input id="to"

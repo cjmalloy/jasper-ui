@@ -14,7 +14,7 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
   @Input()
   padding = 4;
 
-  resizeObserver = new ResizeObserver(() => this.fill());
+  resizeObserver = new ResizeObserver(() => this.onResize());
   dragging = false;
 
   constructor(
@@ -24,7 +24,7 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.fill();
+    this.onResize();
   }
 
   ngOnDestroy() {
@@ -33,7 +33,7 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
 
   @HostListener('window:resize', ['$event'])
   onWindowResize(event: UIEvent) {
-    this.fill();
+    this.onResize();
   }
 
   @HostListener('pointerdown', ['$event'])
@@ -51,7 +51,7 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
     return window.innerWidth - left;
   }
 
-  private fill = throttle(() => {
+  private onResize = throttle(() => {
     if (window.innerWidth <= mobileWidth) {
       this.el.nativeElement.style.minWidth = '';
       this.el.nativeElement.style.width = this.max - 8 + 'px';

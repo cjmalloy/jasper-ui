@@ -1,5 +1,6 @@
 <ng-container *mobxAutorun>
-  <form class="form" [formGroup]="textForm" (ngSubmit)="submit()" [appLimitWidth]="(fill || advancedForm?.fill)?.nativeElement">
+  <form class="form" [formGroup]="textForm" (ngSubmit)="submit()"
+        [appLimitWidth]="(fill || advancedForm?.fill)?.nativeElement" [limitSibling]="true">
 
     <ng-container *ngIf="!advanced">
       <label for="title" *ngIf="!store.submit.wiki" i18n>Title:</label>
