@@ -1,5 +1,5 @@
 <ng-container *mobxAutorun>
-  <div class="tabs">
+  <div #tabs class="tabs">
     <h5 i18n>Submit</h5>
     <a *ngIf="!store.submit.tagsWithoutTab.length"
        routerLink="/submit"
@@ -34,6 +34,7 @@
        [queryParams]="{ tag: togglePlugin(plugin.tag), url: url.value }"
        [replaceUrl]="true"
        queryParamsHandling="merge">{{ plugin.config?.submit || plugin.tag }}</a>
+    <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
   </div>
 

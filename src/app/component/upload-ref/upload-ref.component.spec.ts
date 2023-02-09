@@ -1,4 +1,6 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { UploadRefComponent } from './upload-ref.component';
 
@@ -8,7 +10,10 @@ describe('UploadRefComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ UploadRefComponent ]
+      declarations: [ UploadRefComponent ],
+      imports: [
+        HttpClientTestingModule,
+      ],
     })
     .compileComponents();
 

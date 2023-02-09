@@ -1,10 +1,11 @@
-<div class="tabs">
+<div #tabs class="tabs">
   <h5 i18n>Inbox</h5>
   <a routerLink="./all" routerLinkActive="current-tab" i18n>all</a>
   <ng-container *ngIf="admin.status.templates.user">
     <a routerLink="./unread" routerLinkActive="current-tab" i18n>unread</a>
   </ng-container>
   <a routerLink="./sent" routerLinkActive="current-tab" i18n>sent</a>
+  <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
   <app-settings></app-settings>
 </div>
 <app-sidebar class="aside"></app-sidebar>

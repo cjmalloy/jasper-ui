@@ -39,6 +39,7 @@ import { ListEditorComponent } from './component/list-editor/list-editor.compone
 import { LoadingComponent } from './component/loading/loading.component';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { MdComponent } from './component/md/md.component';
+import { MobileTabSelectComponent } from './component/mobile-tab-select/mobile-tab-select.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
 import { PluginComponent } from './component/plugin/plugin.component';
 import { QrComponent } from './component/qr/qr.component';
@@ -256,6 +257,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     FillWidthDirective,
     LimitWidthDirective,
     UploadRefComponent,
+    MobileTabSelectComponent,
   ],
   imports: [
     BrowserModule,

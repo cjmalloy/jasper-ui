@@ -1,7 +1,7 @@
 <ng-container *mobxAutorun>
-  <div class="tabs">
+  <div #tabs class="tabs" [class.empty]="query.page?.empty">
     <h5 i18n>Home</h5>
-    <ng-container *ngIf="!query.page?.empty">
+    <ng-container>
       <a routerLink="./"
          [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
@@ -13,6 +13,7 @@
            queryParamsHandling="merge" i18n>graph</a>
       </ng-container>
     </ng-container>
+    <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
   </div>
   <app-sidebar class="aside"

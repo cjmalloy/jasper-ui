@@ -238,11 +238,22 @@ video.qr-preview {
     align-self: flex-end;
   }
 
+  &.empty > a, &.empty > app-mobile-tab-select {
+    opacity: 0.5;
+  }
+
   h5 {
     margin: 4px;
     min-width: 0;
     text-overflow: ellipsis;
     overflow: hidden;
+  }
+
+  select {
+    height: 25px;
+    position: relative;
+    bottom: -1px;
+    outline: none !important;
   }
 
   & > a {
