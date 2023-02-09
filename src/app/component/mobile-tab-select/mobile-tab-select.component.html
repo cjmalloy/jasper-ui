@@ -1,0 +1,4 @@
+<select #select (input)="nav($any(select.value))">
+  <option i18n>🧭️ navigate</option>
+  <option *ngFor="let opt of options">{{ opt }}</option>
+</select>

@@ -2,6 +2,9 @@ $mobile-width: 640px;
 
 /* Big Screens */
 @media (min-width: $mobile-width) {
+  app-mobile-tab-select {
+    display: none;
+  }
   .aside {
     float: right;
     overflow: hidden;
@@ -94,6 +97,9 @@ $mobile-width: 640px;
     .tabs {
       h5 {
         flex-basis: 100%;
+      }
+      & > a:not(.current-tab) {
+        display: none;
       }
     }
 

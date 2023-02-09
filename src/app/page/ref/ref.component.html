@@ -1,5 +1,5 @@
 <ng-container *mobxAutorun>
-  <div class="tabs">
+  <div #tabs class="tabs">
     <a routerLink="./" [queryParams]="{origin: store.view.origin}" [class.current-tab]="!store.view.current" i18n>summary</a>
     <ng-container *ngIf="store.view.ref?.created">
       <ng-container *ngIf="store.view.current === 'ref/comments' || comments">
@@ -19,6 +19,7 @@
         <a routerLink="./versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>versions</a>
       </ng-container>
     </ng-container>
+    <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
   </div>
   <app-sidebar class="aside"></app-sidebar>

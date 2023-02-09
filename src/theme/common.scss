@@ -245,6 +245,13 @@ video.qr-preview {
     overflow: hidden;
   }
 
+  select {
+    height: 25px;
+    position: relative;
+    bottom: -1px;
+    outline: none !important;
+  }
+
   & > a {
     display: inline-block;
     position: relative;
