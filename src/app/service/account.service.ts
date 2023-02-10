@@ -113,7 +113,7 @@ export class AccountService {
     return this.userExt$.pipe(
       map(ext => ext.config),
       catchError(() => of(this.admin.status.templates.user!.defaults)),
-      map(config => config.bookmarks || []),
+      map(config => config?.bookmarks || []),
       tap(books => runInAction(() => this.store.account.bookmarks = books)),
     );
   }
