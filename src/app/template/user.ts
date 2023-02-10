@@ -21,11 +21,6 @@ export const userTemplate: Template = {
       editors: { elements: { type: 'string' } },
       userThemes: { values: { type: 'string' } },
       userTheme: { type: "string" },
-      inbox: {
-        optionalProperties: {
-          lastNotified: { type: 'string' },
-        },
-      },
     }
   },
 };
