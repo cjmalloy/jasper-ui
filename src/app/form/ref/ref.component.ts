@@ -41,7 +41,6 @@ export class RefFormComponent implements OnInit {
   scraped?: Ref;
 
   constructor(
-    public el: ElementRef,
     private fb: UntypedFormBuilder,
     private admin: AdminService,
     private editor: EditorService,

@@ -17,10 +17,9 @@ import { RefSummaryComponent } from './page/ref/summary/summary.component';
 import { RefVersionsComponent } from './page/ref/versions/versions.component';
 import { SettingsBackupPage } from './page/settings/backup/backup.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
-import { SettingsFeedPage } from './page/settings/feed/feed.component';
-import { SettingsOriginPage } from './page/settings/origin/origin.component';
 import { SettingsPasswordPage } from './page/settings/password/password.component';
 import { SettingsPluginPage } from './page/settings/plugin/plugin.component';
+import { SettingsRefPage } from './page/settings/ref/ref.component';
 import { SettingsPage } from './page/settings/settings.component';
 import { SettingsSetupPage } from './page/settings/setup/setup.component';
 import { SettingsTemplatePage } from './page/settings/template/template.component';
@@ -78,15 +77,15 @@ const routes: Routes = [
     path: 'settings',
     component: SettingsPage,
     children: [
-      { path: '', redirectTo: 'user', pathMatch: 'full' },
-      { path: 'user', component: SettingsUserPage },
+      { path: '', redirectTo: 'ext', pathMatch: 'full' },
       { path: 'ext', component: SettingsExtPage },
-      { path: 'feed', component: SettingsFeedPage },
+      { path: 'user', component: SettingsUserPage },
+      { path: 'ref', component: SettingsRefPage },
+      { path: 'ref/:tag', component: SettingsRefPage },
       { path: 'plugin', component: SettingsPluginPage },
       { path: 'template', component: SettingsTemplatePage },
       { path: 'password', component: SettingsPasswordPage },
       { path: 'setup', component: SettingsSetupPage },
-      { path: 'origin', component: SettingsOriginPage },
       { path: 'backup', component: SettingsBackupPage },
     ],
   },

@@ -7,11 +7,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  selector: 'app-settings-feed-page',
-  templateUrl: './feed.component.html',
-  styleUrls: ['./feed.component.scss'],
+  selector: 'app-settings-ref-page',
+  templateUrl: './ref.component.html',
+  styleUrls: ['./ref.component.scss'],
 })
-export class SettingsFeedPage implements OnInit, OnDestroy {
+export class SettingsRefPage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
@@ -20,15 +20,16 @@ export class SettingsFeedPage implements OnInit, OnDestroy {
     public store: Store,
     public query: QueryStore,
   ) {
-    theme.setTitle('Settings: Feeds');
+    theme.setTitle('Settings: ');
     store.view.clear('modified');
     query.clear();
   }
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
+      this.theme.setTitle(`Settings: ${this.store.settings.tag}`);
       const args = getArgs(
-        '+plugin/feed',
+        this.store.settings.tag,
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,

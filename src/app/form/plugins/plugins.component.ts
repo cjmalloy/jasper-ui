@@ -2,7 +2,7 @@ import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angula
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AdminService } from '../../service/admin.service';
 import { emptyObject, writeObj } from '../../util/http';
-import { includesTag } from '../../util/tag';
+import { hasTag, includesTag } from '../../util/tag';
 import { feedForm, FeedFormComponent } from './feed/feed.component';
 import { originForm } from './origin/origin.component';
 
@@ -93,6 +93,10 @@ export class PluginsFormComponent implements AfterViewInit {
         }
       }
     }
+  }
+
+  hasTag(tag: string) {
+    includesTag(tag, this.tags);
   }
 }
 

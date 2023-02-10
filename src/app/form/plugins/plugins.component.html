@@ -1,5 +1,5 @@
-<app-form-origin *ngIf="tags.includes('+plugin/origin')" [plugins]="plugins"></app-form-origin>
-<app-form-feed *ngIf="tags.includes('+plugin/feed')" [plugins]="plugins"></app-form-feed>
+<app-form-origin *ngIf="hasTag('+plugin/origin')" [plugins]="plugins"></app-form-origin>
+<app-form-feed *ngIf="hasTag('+plugin/feed')" [plugins]="plugins"></app-form-feed>
 <ng-container *ngFor="let plugin of admin.getPluginForms(tags)">
   <app-form-gen [plugins]="plugins" [plugin]="plugin"></app-form-gen>
 </ng-container>
