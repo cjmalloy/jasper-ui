@@ -10,14 +10,9 @@ export const rootTemplate: Template = {
     description: $localize`Root template to apply to all exts, adding pinned
     Refs, sidebar markdown, and custom themes.`
   },
-  defaults: {
-    pinned: [],
-  },
   schema: {
-    properties: {
-      pinned: { elements: { type: 'string' } },
-    },
     optionalProperties: {
+      pinned: { elements: { type: 'string' } },
       sidebar: { type: 'string' },
       modmail: { type: 'boolean' },
       themes: { values: { type: 'string' } },
