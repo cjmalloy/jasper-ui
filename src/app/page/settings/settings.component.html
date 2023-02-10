@@ -2,7 +2,7 @@
   <div #tabs class="tabs">
     <h5 i18n>Settings</h5>
     <a routerLink="./ext" routerLinkActive="current-tab" i18n-title title="Tag Extensions" i18n>ext</a>
-    <a routerLink="./user" routerLinkActive="current-tab" i18n-title title="User permissions" i18n>user</a>
+    <a *ngIf="store.account.viewer" routerLink="./user" routerLinkActive="current-tab" i18n-title title="User permissions" i18n>user</a>
     <a *ngFor="let plugin of store.settings.plugins"
        [routerLink]="['./ref', plugin.tag]"
        [replaceUrl]="true"
