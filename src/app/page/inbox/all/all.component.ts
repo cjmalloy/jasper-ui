@@ -23,6 +23,7 @@ export class InboxAllPage implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     theme.setTitle('Inbox: All');
+    store.view.clear();
     query.clear();
   }
 

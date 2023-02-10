@@ -28,6 +28,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
     private account: AccountService,
   ) {
     theme.setTitle('Inbox: Unread');
+    store.view.clear();
     query.clear();
   }
 
