@@ -23,6 +23,7 @@ export class InboxSentPage implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     theme.setTitle('Inbox: Sent');
+    store.view.clear();
     query.clear();
   }
 
