@@ -18,11 +18,10 @@ export class ThemeService {
     private admin: AdminService,
     private store: Store,
     private titleService: Title,
-  ) {
-    this.setTheme(localStorage.getItem('theme'));
-  }
+  ) { }
 
   get init$() {
+    this.setTheme(localStorage.getItem('theme'));
     autorun(() => this.setCustomCss('custom-css', this.store.account.config.theme || this.store.view.ext?.config?.themes?.[this.store.view.ext?.config?.theme]));
     this.admin.pluginConfigProperty('css').map(p => this.setCustomCss(p.tag, p.config!.css));
     return of(null);
