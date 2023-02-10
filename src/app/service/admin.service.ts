@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import { findKey, flatten, isEqual, mapValues, omitBy } from 'lodash-es';
+import { findKey, flatten, isEqual, mapValues, omitBy, reduce } from 'lodash-es';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Action, Icon, Plugin } from '../model/plugin';
@@ -319,6 +319,24 @@ export class AdminService {
     tag = tag.replace('+', '');
     if (this.status.templates[tag]) return this.status.templates[tag];
     return Object.values(this.status.templates).find(t => t?.tag === tag);
+  }
+
+  defaultConfig(tag: string) {
+    return reduce(this.getTemplates(tag), (prev, curr) => {
+      return {...prev, ...curr};
+    }, {});
+  }
+
+  getTemplates(tag = ''): Template[] {
+    const template = this.getTemplate(tag);
+    const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
+    if (template) {
+      if (!tag) return [template];
+      return [...this.getTemplateUi(parent!), template]
+    } else if (tag) {
+      return this.getTemplateUi(parent!);
+    }
+    return [];
   }
 
   getTemplateUi(tag = ''): Template[] {

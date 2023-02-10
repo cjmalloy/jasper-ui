@@ -13,6 +13,7 @@ export class AccountStore {
   tag = '';
   user?: User;
   ext?: Ext;
+  defaultConfig: any;
   sa = false;
   admin = false;
   mod = false;
@@ -20,9 +21,6 @@ export class AccountStore {
   poster = false;
   viewer = false;
   notifications = 0;
-  subs: string[] = defaultSubs;
-  bookmarks: string[] = [];
-  theme?: string;
   authError = false;
 
   constructor(
@@ -62,6 +60,21 @@ export class AccountStore {
     if (this.poster) return 'user';
     if (this.viewer) return 'viewer';
     return 'anon';
+  }
+
+  get config() {
+    return {
+      ...(this.defaultConfig || {}),
+      ...(this.ext?.config || {}),
+    };
+  }
+
+  get subs() {
+    return this.config.subscriptions || defaultSubs;
+  }
+
+  get bookmarks() {
+    return this.config.bookmarks || [];
   }
 
   get mailbox() {
@@ -106,7 +119,7 @@ export class AccountStore {
   }
 
   defaultEditors(plugins: string[]) {
-    if (!this.ext?.config?.editors) return plugins;
-    return intersection(this.ext.config.editors, plugins);
+    if (!this.config?.editors) return plugins;
+    return intersection(this.config.editors, plugins);
   }
 }

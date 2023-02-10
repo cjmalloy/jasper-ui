@@ -30,7 +30,9 @@ export class AccountService {
     private users: UserService,
     private exts: ExtService,
     private refs: RefService,
-  ) { }
+  ) {
+    runInAction(() => this.store.account.defaultConfig = this.admin.defaultConfig('user'));
+  }
 
   get whoAmI$() {
     return this.users.whoAmI().pipe(
@@ -101,30 +103,24 @@ export class AccountService {
   get subscriptions$(): Observable<string[]> {
     if (!this.admin.status.templates.user) return of(this.store.account.subs);
     return this.userExt$.pipe(
-      map(ext => ext.config),
-      catchError(() => of(this.admin.status.templates.user!.defaults)),
-      map(config => config?.subscriptions || []),
-      tap(subs => runInAction(() => this.store.account.subs = subs)),
+      catchError(() => of(null)),
+      map(() => this.store.account.subs),
     );
   }
 
   get bookmarks$(): Observable<string[]> {
     if (!this.admin.status.templates.user) return of(this.store.account.bookmarks);
     return this.userExt$.pipe(
-      map(ext => ext.config),
-      catchError(() => of(this.admin.status.templates.user!.defaults)),
-      map(config => config?.bookmarks || []),
-      tap(books => runInAction(() => this.store.account.bookmarks = books)),
+      catchError(() => of(null)),
+      map(() => this.store.account.bookmarks),
     );
   }
 
   get theme$(): Observable<string | undefined> {
-    if (!this.admin.status.templates.user) return of(this.store.account.theme);
+    if (!this.admin.status.templates.user) return of(this.store.account.config.theme);
     return this.userExt$.pipe(
-      map(ext => ext.config),
-      catchError(() => of(this.admin.status.templates.user!.defaults)),
-      map(config => config?.userThemes?.[config.userTheme]),
-      tap(css => runInAction(() => this.store.account.theme = css)),
+      catchError(() => of(null)),
+      map(() => this.store.account.config.theme),
     );
   }
 
@@ -190,7 +186,7 @@ export class AccountService {
     return combineLatest(this.user$, this.userExt$).pipe(
       switchMap(([_, ext]) => this.refs.count({
         query: this.store.account.notificationsQuery,
-        modifiedAfter: ext.config?.lastNotified || moment().subtract(1, 'year'),
+        modifiedAfter: this.store.account.config.lastNotified || moment().subtract(1, 'year'),
       })),
     ).subscribe(count => runInAction(() => this.store.account.notifications = count));
   }
