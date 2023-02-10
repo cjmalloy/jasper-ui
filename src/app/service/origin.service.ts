@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { runInAction } from 'mobx';
-import { Observable, of, switchMap } from 'rxjs';
+import { catchError, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
 import { isReplicating, originPlugin } from '../plugin/origin';
@@ -32,6 +32,11 @@ export class OriginService {
         this.store.origins.reverseLookup = this.reverseLookup;
         this.store.origins.originMap = this.originMap;
       })),
+      catchError(err => {
+        console.error("Error looking up origin cross references.");
+        console.error(err);
+        return of(null)
+      }),
     );
   }
 
@@ -50,21 +55,21 @@ export class OriginService {
   private get reverseLookup(): Map<string, string> {
     return new Map(this.origins
       .filter(remote => isReplicating(remote, this.config.api, this.store.account.origin))
-      .map(remote => [remote.origin || '', remote.plugins!['+plugin/origin'].origin]));
+      .map(remote => [remote.origin || '', remote.plugins?.['+plugin/origin']?.origin]));
   }
 
   private get originMap(): Map<string, Map<string, string>> {
-    const config = (remote: Ref): typeof originPlugin => remote.plugins!['+plugin/origin'];
+    const config = (remote: Ref): typeof originPlugin => remote.plugins?.['+plugin/origin'];
     const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
     const findLocalAlias = (url: string) => remotesForOrigin(this.store.account.origin)
       .filter(remote => remote.url === url)
-      .map(remote => config(remote).origin)
+      .map(remote => config(remote)?.origin || '')
       .find(() => true) || '';
     const originMapFor = (origin: string) => new Map(
       remotesForOrigin(origin)
-        .map(remote => [config(remote).origin || '', findLocalAlias(remote.url)]));
+        .map(remote => [config(remote)?.origin || '', findLocalAlias(remote.url)]));
     return new Map(
-      remotesForOrigin(this.store.account.origin!)
+      remotesForOrigin(this.store.account.origin || '')
         .map(remote => remote.origin || '')
         .map(origin => [origin, originMapFor(origin)]));
   }

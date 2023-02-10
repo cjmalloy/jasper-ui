@@ -2,15 +2,15 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { SettingsFeedPage } from './feed.component';
+import { SettingsRefPage } from './ref.component';
 
-describe('SettingsFeedPage', () => {
-  let component: SettingsFeedPage;
-  let fixture: ComponentFixture<SettingsFeedPage>;
+describe('SettingsRefPage', () => {
+  let component: SettingsRefPage;
+  let fixture: ComponentFixture<SettingsRefPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SettingsFeedPage],
+      declarations: [SettingsRefPage],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
@@ -20,7 +20,7 @@ describe('SettingsFeedPage', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SettingsFeedPage);
+    fixture = TestBed.createComponent(SettingsRefPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

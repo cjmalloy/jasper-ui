@@ -5,6 +5,7 @@ import { AccountStore } from './account';
 import { GraphStore } from './graph';
 import { LocalStore } from './local';
 import { OriginStore } from './origin';
+import { SettingsStore } from './settings';
 import { SubmitStore } from './submit';
 import { ViewStore } from './view';
 
@@ -18,6 +19,7 @@ export class Store {
   account = new AccountStore(this.origins);
   view = new ViewStore(this.route);
   submit = new SubmitStore(this.route);
+  settings = new SettingsStore(this.route);
   graph = new GraphStore(this.route);
   theme = 'init-theme';
 

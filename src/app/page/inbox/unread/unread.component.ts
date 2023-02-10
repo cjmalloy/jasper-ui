@@ -35,7 +35,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       const args: RefPageArgs = {
         query: this.store.account.notificationsQuery,
-        modifiedAfter: this.store.account.ext?.config.lastNotified,
+        modifiedAfter: this.store.account.ext?.config?.lastNotified,
         sort: ['modified,ASC'],
       };
       defer(() => this.query.setArgs(args));

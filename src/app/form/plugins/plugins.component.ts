@@ -1,8 +1,11 @@
-import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Icon, visible } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
+import { Store } from '../../store/store';
 import { emptyObject, writeObj } from '../../util/http';
-import { includesTag } from '../../util/tag';
+import { hasTag, includesTag } from '../../util/tag';
 import { feedForm, FeedFormComponent } from './feed/feed.component';
 import { originForm } from './origin/origin.component';
 
@@ -18,15 +21,21 @@ export class PluginsFormComponent implements AfterViewInit {
   ref = '';
   @Input()
   fieldName = 'plugins';
+  @Output()
+  clickIcon = new EventEmitter<Icon>();
 
   @ViewChild(FeedFormComponent)
   feed?: FeedFormComponent;
+
+  icons: Icon[] = [];
 
   private _group: UntypedFormGroup;
   private _tags: string[] = [];
 
   constructor(
     public admin: AdminService,
+    private router: Router,
+    private store: Store,
     private fb: UntypedFormBuilder,
   ) {
     this._group = fb.group({
@@ -66,10 +75,15 @@ export class PluginsFormComponent implements AfterViewInit {
     return !Object.keys(this.plugins.controls).length;
   }
 
+  showIcon(i: Icon) {
+    return visible(i, true, false);
+  }
+
   setValue(value: any) {
     if (this.feed) {
       this.feed.setValue(value['+plugin/feed']);
     }
+    this.icons = this.admin.getIcons(value.tags);
     this.plugins.patchValue(value);
   }
 
@@ -93,6 +107,10 @@ export class PluginsFormComponent implements AfterViewInit {
         }
       }
     }
+  }
+
+  hasTag(tag: string) {
+    includesTag(tag, this.tags);
   }
 }
 

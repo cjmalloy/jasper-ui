@@ -4,6 +4,7 @@ import { defer } from 'lodash-es';
 import * as moment from 'moment';
 import { of } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Icon } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -41,7 +42,6 @@ export class RefFormComponent implements OnInit {
   scraped?: Ref;
 
   constructor(
-    public el: ElementRef,
     private fb: UntypedFormBuilder,
     private admin: AdminService,
     private editor: EditorService,
@@ -101,6 +101,17 @@ export class RefFormComponent implements OnInit {
     this.scrape$.subscribe(ref => {
       this.published.setValue(ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS));
     });
+  }
+
+  clickIcon(i: Icon) {
+    if (i.response) {
+      // TODO: Wait to create responses until after creating / updating ref
+    }
+    if (i.tag) {
+      if (this.getTags().includes(i.tag)) {
+        this.tags.removeTag(this.tags.tags.value.indexOf(i.tag));
+      }
+    }
   }
 
   setRef(ref: Ref) {
