@@ -18,6 +18,7 @@ export class AccountStore {
   mod = false;
   editor = false;
   poster = false;
+  viewer = false;
   notifications = 0;
   subs: string[] = defaultSubs;
   bookmarks: string[] = [];
@@ -59,7 +60,8 @@ export class AccountStore {
     if (this.mod) return 'mod';
     if (this.editor) return 'editor';
     if (this.poster) return 'user';
-    return 'viewer';
+    if (this.viewer) return 'viewer';
+    return 'anon';
   }
 
   get mailbox() {
@@ -100,6 +102,7 @@ export class AccountStore {
     this.mod = roles.mod;
     this.editor = roles.editor;
     this.poster = roles.user;
+    this.viewer = roles.viewer;
   }
 
   defaultEditors(plugins: string[]) {

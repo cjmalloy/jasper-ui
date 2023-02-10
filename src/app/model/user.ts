@@ -20,6 +20,7 @@ export interface Roles {
   mod: boolean;
   editor: boolean;
   user: boolean;
+  viewer: boolean;
 }
 
 export function mapUser(obj: any): User {
