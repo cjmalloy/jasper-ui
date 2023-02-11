@@ -99,7 +99,7 @@ export class ExtPage implements OnInit, OnDestroy {
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status === 409) {
-          // Ignore Already existserror
+          // Ignore Already exists error
           return of(null);
         }
         return throwError(() => res);
@@ -111,6 +111,7 @@ export class ExtPage implements OnInit, OnDestroy {
       }),
     ).subscribe(ext => {
       this.serverError = [];
+      runInAction(() => this.store.view.ext = ext);
       this.router.navigate(['/ext', ext.tag]);
     });
   }
