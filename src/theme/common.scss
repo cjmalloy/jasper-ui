@@ -511,9 +511,6 @@ select {
   .floating-ribbons {
     right: 0;
     top: 0;
-    & > div.on {
-      right: -16px;
-    }
   }
 }
 
