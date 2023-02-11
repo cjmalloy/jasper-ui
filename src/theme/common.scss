@@ -89,48 +89,59 @@ input.big {
   }
 
   .floating-ribbons {
-    user-select: none;
-    font-size: 80%;
-    font-weight: bold;
-    position: absolute;
     right: 0;
     top: 32px;
-    & > div {
-      position: relative;
-      white-space: nowrap;
-      cursor: pointer;
-      text-align: center;
-      right: -100%;
-      margin: 4px;
+  }
+
+  .floating-toggles {
+    right: 16px;
+    top: 4px;
+  }
+}
+
+.floating-ribbons {
+  user-select: none;
+  font-size: 80%;
+  font-weight: bold;
+  position: absolute;
+  right: 0;
+  top: 32px;
+  & > div {
+    position: relative;
+    white-space: nowrap;
+    cursor: pointer;
+    text-align: center;
+    right: -100%;
+    margin: 4px;
+    span {
+      display: inline-block;
+      max-width: 128px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      border-radius: 2px;
+      padding: 2px;
+      border: 1px solid transparent;
+    }
+    &.on {
+      right: 16px;
+      text-align: right;
       span {
-        display: inline-block;
-        max-width: 128px;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        border-radius: 2px;
-        padding: 2px;
-        border: 1px solid transparent;
-      }
-      &.on {
-        right: 16px;
-        text-align: right;
-        span {
-          backdrop-filter: blur(1.5px);
-        }
+        backdrop-filter: blur(1.5px);
       }
     }
   }
-  .floating-toggles {
-    user-select: none;
-    display: flex;
-    flex-direction: row;
-    position: absolute;
-    right: 16px;
-    top: 4px;
-    & > button {
-      cursor: pointer;
-      margin: 4px;
-    }
+}
+
+.floating-toggles {
+  user-select: none;
+  display: flex;
+  flex-direction: row;
+  position: absolute;
+  right: 16px;
+  top: 4px;
+  & > button {
+    cursor: pointer;
+    margin: 4px;
   }
 }
 
@@ -223,6 +234,10 @@ video.qr-preview {
   }
 }
 
+select {
+  height: 25px;
+}
+
 .tabs {
   display: flex;
   user-select: none;
@@ -251,7 +266,6 @@ video.qr-preview {
   }
 
   select {
-    height: 25px;
     position: relative;
     bottom: -1px;
     outline: none !important;
@@ -484,6 +498,22 @@ video.qr-preview {
 .plugins-form {
   .form {
     padding: 0;
+  }
+
+  .ribbon-margin {
+    height: 0;
+    transition: height 0.2s linear;
+    &.on {
+      height: 12px;
+    }
+  }
+
+  .floating-ribbons {
+    right: 0;
+    top: 0;
+    & > div.on {
+      right: -16px;
+    }
   }
 }
 

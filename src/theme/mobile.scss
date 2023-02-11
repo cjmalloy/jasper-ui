@@ -38,6 +38,7 @@ $mobile-width: 740px;
 /* Small Screens */
 @media not print {
   @media (max-width: $mobile-width) {
+
     .aside {
       border: none !important;
 

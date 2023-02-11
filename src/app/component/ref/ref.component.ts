@@ -180,7 +180,7 @@ export class RefComponent implements OnInit {
       return this.ref.plugins!['+plugin/feed'].origin;
     }
     if (this.remote) {
-      return this.ref.plugins?.['+plugin/origin']?.origin;
+      return this.ref.plugins?.['+plugin/origin']?.local;
     }
     return undefined;
   }

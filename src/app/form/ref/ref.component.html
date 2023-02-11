@@ -26,6 +26,13 @@
     </div>
   </div>
 
+  <label for="plugins" class="big" i18n>Plugins:</label>
+  <app-form-plugins id="plugins"
+                    (togglePlugin)="togglePlugin($event)"
+                    [ref]="group.value.url"
+                    [tags]="group.value.tags"
+                    [group]="group"></app-form-plugins>
+
   <label for="comment" i18n>Abstract:</label>
   <div #fill>
     <app-editor id="comment"
@@ -53,11 +60,5 @@
 
   <label for="tags" i18n>Tags:</label>
   <app-tags id="tags" [group]="group"></app-tags>
-
-  <label for="plugins" class="big" i18n>Plugins:</label>
-  <app-form-plugins id="plugins"
-                    [ref]="group.value.url"
-                    [tags]="group.value.tags"
-                    [group]="group"></app-form-plugins>
 
 </ng-container>

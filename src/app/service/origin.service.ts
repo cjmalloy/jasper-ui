@@ -55,19 +55,19 @@ export class OriginService {
   private get reverseLookup(): Map<string, string> {
     return new Map(this.origins
       .filter(remote => isReplicating(remote, this.config.api, this.store.account.origin))
-      .map(remote => [remote.origin || '', remote.plugins?.['+plugin/origin']?.origin]));
+      .map(remote => [remote.origin || '', remote.plugins?.['+plugin/origin']?.local]));
   }
 
   private get originMap(): Map<string, Map<string, string>> {
-    const config = (remote: Ref): typeof originPlugin => remote.plugins?.['+plugin/origin'];
+    const config = (remote: Ref): any => remote.plugins?.['+plugin/origin'];
     const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
     const findLocalAlias = (url: string) => remotesForOrigin(this.store.account.origin)
       .filter(remote => remote.url === url)
-      .map(remote => config(remote)?.origin || '')
+      .map(remote => config(remote)?.local || '')
       .find(() => true) || '';
     const originMapFor = (origin: string) => new Map(
       remotesForOrigin(origin)
-        .map(remote => [config(remote)?.origin || '', findLocalAlias(remote.url)]));
+        .map(remote => [config(remote)?.local || '', findLocalAlias(remote.url)]));
     return new Map(
       remotesForOrigin(this.store.account.origin || '')
         .map(remote => remote.origin || '')

@@ -1,7 +1,10 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import * as moment from 'moment';
+import { Icon, Plugin, visible } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
+import { Store } from '../../../store/store';
 import { intervalValidator } from '../../../util/form';
 import { ORIGIN_REGEX, ORIGIN_WILDCARD_REGEX } from '../../../util/format';
 import { TagsFormComponent } from '../../tags/tags.component';
@@ -15,64 +18,110 @@ export class OriginFormComponent implements OnInit {
 
   @Input()
   plugins!: UntypedFormGroup;
-  @Input()
-  fieldName = '+plugin/origin';
+  @Output()
+  togglePlugin = new EventEmitter<string>();
 
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
 
-  constructor() { }
+  pull = this.admin.getPlugin('+plugin/origin/pull');
+  push = this.admin.getPlugin('+plugin/origin/push');
+
+  constructor(
+    private admin: AdminService,
+  ) { }
 
   ngOnInit(): void {
   }
 
-  get plugin() {
-    return this.plugins.get(this.fieldName) as UntypedFormGroup;
+  get config() {
+    return this.plugins.get('+plugin/origin') as UntypedFormGroup;
   }
 
-  get origin() {
-    return this.plugin.get('origin') as UntypedFormControl;
+  get pullConfig() {
+    return this.plugins.get('+plugin/origin/pull') as UntypedFormGroup;
+  }
+
+  get pushConfig() {
+    return this.plugins.get('+plugin/origin/push') as UntypedFormGroup;
+  }
+
+  get local() {
+    return this.config.get('local') as UntypedFormControl;
   }
 
   get remote() {
-    return this.plugin.get('remote') as UntypedFormControl;
+    return this.config.get('remote') as UntypedFormControl;
   }
 
-  get proxy() {
-    return this.plugin.get('proxy') as UntypedFormControl;
+  get pullProxy() {
+    return this.pullConfig.get('proxy') as UntypedFormControl;
   }
 
-  get query() {
-    return this.plugin.get('query') as UntypedFormControl;
+  get pushProxy() {
+    return this.pushConfig.get('proxy') as UntypedFormControl;
   }
 
-  get scrapeInterval() {
-    return this.plugin.get('scrapeInterval') as UntypedFormControl;
+  get pullQuery() {
+    return this.pullConfig.get('query') as UntypedFormControl;
+  }
+
+  get pushQuery() {
+    return this.pushConfig.get('query') as UntypedFormControl;
+  }
+
+  get pullInterval() {
+    return this.pullConfig.get('pullInterval') as UntypedFormControl;
+  }
+
+  get pushInterval() {
+    return this.pushConfig.get('pushInterval') as UntypedFormControl;
   }
 
   convertInterval() {
-    this.scrapeInterval.setValue(moment.duration(this.scrapeInterval.value));
+    this.pullInterval?.setValue(moment.duration(this.pullInterval.value));
+    this.pushInterval?.setValue(moment.duration(this.pushInterval.value));
   }
 
   setValue(value: any) {
-    this.tags.setValue(value.addTags);
-    this.plugin.patchValue(value);
+    this.plugins.patchValue(value);
+    if (this.pullConfig) this.tags.setValue(value['+plugin/origin/pull'].addTags);
   }
 }
 
 export function originForm(fb: UntypedFormBuilder, admin: AdminService) {
   const result = fb.group({
-    origin: ['', [Validators.required, Validators.pattern(ORIGIN_REGEX)]],
+    local: ['', [Validators.pattern(ORIGIN_WILDCARD_REGEX)]],
     remote: ['', [Validators.pattern(ORIGIN_WILDCARD_REGEX)]],
-    generateMetadata: [true],
+  });
+  result.patchValue(admin.status.plugins.origin?.defaults);
+  return result;
+}
+
+export function pullForm(fb: UntypedFormBuilder, admin: AdminService) {
+  const result = fb.group({
+    pullInterval: ['PT15M', [intervalValidator()]],
+    lastPull: [''],
     query: [''],
     proxy: [''],
+    batchSize: [250],
+    generateMetadata: [true],
     removeTags: fb.array([]),
     mapTags: fb.group({}),
     addTags: fb.array([]),
     mapOrigins: fb.group({}),
-    scrapeInterval: ['PT15M', [intervalValidator()]],
-    lastScrape: [''],
+  });
+  result.patchValue(admin.status.plugins.origin?.defaults);
+  return result;
+}
+
+export function pushForm(fb: UntypedFormBuilder, admin: AdminService) {
+  const result = fb.group({
+    pushInterval: ['PT15M', [intervalValidator()]],
+    lastPush: [''],
+    query: [''],
+    proxy: [''],
+    batchSize: [250],
   });
   result.patchValue(admin.status.plugins.origin?.defaults);
   return result;

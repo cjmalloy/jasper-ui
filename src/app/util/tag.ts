@@ -1,4 +1,4 @@
-import { filter, find, without } from 'lodash-es';
+import { filter, find, flatMap, without } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
@@ -30,6 +30,20 @@ export function capturesAny(selectors?: string[], target?: string[]): boolean {
     }
   }
   return false;
+}
+
+export function addHierarchicalTags(tag?: string)  {
+  if (!tag) return [];
+  const result = [tag];
+  while (tag.includes('/')) {
+    result.push(tag = tag.substring(0, tag.lastIndexOf('/')));
+  }
+  return result;
+}
+
+export function addAllHierarchicalTags(tags?: string[])  {
+  if (!tags || !tags.length) return [];
+  return flatMap(tags, t => addHierarchicalTags(t))
 }
 
 export function hasTag(tag?: string, ref?: Ref)  {

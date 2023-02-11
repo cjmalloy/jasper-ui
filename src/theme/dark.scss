@@ -198,6 +198,14 @@ body.dark-theme {
     backdrop-filter: blur(1px);
     box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
 
+    hr {
+      border: none;
+      border-top: 0.5px dotted $border;
+      position: relative;
+      left: -8px;
+      width: calc(100% + 16px);
+    }
+
     &:first-child {
       margin: 0;
     }

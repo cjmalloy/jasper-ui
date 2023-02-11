@@ -1,21 +1,19 @@
 <ng-container *ngIf="plugins">
   <label i18n>Origin</label>
-  <div class="form" [formGroup]="plugin">
-
-    <label for="origin" i18n>Origin:</label>
-    <input id="origin" type="url" [formControl]="origin">
+  <div class="ribbon-margin" [class.on]="pullConfig || pushConfig"></div>
+  <div class="ribbon-margin" [class.on]="pushConfig"></div>
+  <div class="form" [formGroup]="config">
+    <label for="origin" i18n>Local:</label>
+    <input id="origin" type="url" [formControl]="local">
     <div><!-- Origin Errors --></div>
     <div>
-      <div class="error" *ngIf="origin.touched && origin.errors?.['required']" i18n>
-        Origin is required
-      </div>
-      <div class="error" *ngIf="origin.touched && origin.errors?.['pattern']" i18n>
+      <div class="error" *ngIf="local.touched && local.errors?.['pattern']" i18n>
         Origins must be lower case letters, numbers, periods, and start with @. Must not start with a period
         or contain two periods in a row.
       </div>
     </div>
 
-    <label for="remote">Remote Origin:</label>
+    <label for="remote">Remote:</label>
     <input id="remote" type="url" [formControl]="remote">
     <div><!-- Remote Origin Errors --></div>
     <div>
@@ -24,66 +22,112 @@
         or contain two periods in a row. Use'@*' to match all origins.
       </div>
     </div>
-
-    <label for="generateMetadata" i18n>Generate Metadata:</label>
-    <div>
-      <input id="generateMetadata" type="checkbox" formControlName="generateMetadata">
-    </div>
-
-    <label for="proxy" i18n>Proxy:</label>
-    <input id="proxy" type="url" [formControl]="proxy">
-    <span><!-- Proxy Errors --></span>
-    <div>
-      <div class="error" *ngIf="proxy.touched && proxy.errors?.['pattern']" i18n>
-        Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
+  </div>
+  <ng-container *ngIf="pullConfig">
+    <hr>
+    <label i18n>Pull 📥️</label>
+    <div class="form" [formGroup]="pullConfig">
+      <label for="pull-query" i18n>Query:</label>
+      <input id="pull-query" type="email" [formControl]="pullQuery">
+      <span><!-- Query Errors --></span>
+      <div>
+        <div class="error" *ngIf="pullQuery.touched && pullQuery.errors?.['pattern']" i18n>
+          Queries support AND (:), OR (|) and grouping qualified tags (parentheses).
+          Tags must be lower case letters, numbers, periods and forward slashes. Tags may be qualified with an origin. Must start with a letter or number. Must
+          not or contain two forward slashes or periods in a row. Private tags start with an underscore.<br>
+          (i.e. "science:news", "science@origin science@other" "your/tag my/tag", or "news:_my/private/tag")
+        </div>
       </div>
-    </div>
 
-    <label for="query" i18n>Query:</label>
-    <input id="query" type="email" [formControl]="query">
-    <span><!-- Query Errors --></span>
-    <div>
-      <div class="error" *ngIf="query.touched && query.errors?.['pattern']" i18n>
-        Queries support AND (:), OR (|) and grouping qualified tags (parentheses).
-        Tags must be lower case letters, numbers, periods and forward slashes. Tags may be qualified with an origin. Must start with a letter or number. Must
-        not or contain two forward slashes or periods in a row. Private tags start with an underscore.<br>
-        (i.e. "science:news", "science@origin science@other" "your/tag my/tag", or "news:_my/private/tag")
+      <label for="pullInterval" i18n>Pull Interval:</label>
+      <input id="pullInterval"
+             type="text"
+             [formControl]="pullInterval"
+             (blur)="convertInterval()">
+      <span><!-- Scrape Interval Errors --></span>
+      <div>
+        <div class="error" *ngIf="pullInterval.touched && pullInterval.errors?.['interval']" i18n>
+          Duration must be valid time span (HH:MM:SS) or ISO 8601 Duration.
+        </div>
       </div>
-    </div>
 
-    <label for="scrapeInterval" i18n>Scrape Interval:</label>
-    <input id="scrapeInterval"
-           type="text"
-           [formControl]="scrapeInterval"
-           (blur)="convertInterval()">
-    <span><!-- Scrape Interval Errors --></span>
-    <div>
-      <div class="error" *ngIf="scrapeInterval.touched && scrapeInterval.errors?.['interval']" i18n>
-        Scrape Duration must be valid time span (HH:MM:SS) or ISO 8601 Duration.
-      </div>
-    </div>
-
-    <span><!-- Help --></span>
-    <div class="no-margin">
-    <span class="hints" i18n>
+      <span><!-- Help --></span>
+      <div class="no-margin">
+        <span class="hints" i18n>
           Use time spans (HH:MM:SS) or ISO 8601 Durations&nbsp;
           <sup><a target="_blank" href="https://en.wikipedia.org/wiki/ISO_8601#Durations">help</a></sup>
-    </span>
+        </span>
+      </div>
+
+      <label for="removeTags" i18n>Remove Tags:</label>
+      <app-tags id="removeTags"
+                [group]="pullConfig"
+                fieldName="removeTags"></app-tags>
+
+      <label for="generateMetadata" i18n>Generate Metadata:</label>
+      <div>
+        <input id="generateMetadata" type="checkbox" formControlName="generateMetadata">
+      </div>
+
+      <label for="pull-proxy" i18n>Proxy:</label>
+      <input id="pull-proxy" type="url" [formControl]="pullProxy">
+      <span><!-- Proxy Errors --></span>
+      <div>
+        <div class="error" *ngIf="pullProxy.touched && pullProxy.errors?.['pattern']" i18n>
+          Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
+        </div>
+      </div>
     </div>
+  </ng-container>
+  <ng-container *ngIf="pushConfig">
+    <hr>
+    <label i18n>Push 📤️</label>
+    <div class="form" [formGroup]="pushConfig">
+      <label for="push-query" i18n>Query:</label>
+      <input id="push-query" type="email" [formControl]="pushQuery">
+      <span><!-- Query Errors --></span>
+      <div>
+        <div class="error" *ngIf="pushQuery.touched && pushQuery.errors?.['pattern']" i18n>
+          Queries support AND (:), OR (|) and grouping qualified tags (parentheses).
+          Tags must be lower case letters, numbers, periods and forward slashes. Tags may be qualified with an origin. Must start with a letter or number. Must
+          not or contain two forward slashes or periods in a row. Private tags start with an underscore.<br>
+          (i.e. "science:news", "science@origin science@other" "your/tag my/tag", or "news:_my/private/tag")
+        </div>
+      </div>
 
-    <label for="removeTags" i18n>Remove Tags:</label>
-    <app-tags id="removeTags"
-              [group]="plugin"
-              fieldName="removeTags"></app-tags>
+      <label for="pushInterval" i18n>Push Interval:</label>
+      <input id="pushInterval"
+             type="text"
+             [formControl]="pushInterval"
+             (blur)="convertInterval()">
+      <span><!-- Scrape Interval Errors --></span>
+      <div>
+        <div class="error" *ngIf="pushInterval.touched && pushInterval.errors?.['interval']" i18n>
+          Duration must be valid time span (HH:MM:SS) or ISO 8601 Duration.
+        </div>
+      </div>
 
-    <label for="addTags" i18n>Add Tags:</label>
-    <app-tags id="addTags"
-              [group]="plugin"
-              fieldName="addTags"></app-tags>
+      <span><!-- Help --></span>
+      <div class="no-margin">
+        <span class="hints" i18n>
+          Use time spans (HH:MM:SS) or ISO 8601 Durations&nbsp;
+          <sup><a target="_blank" href="https://en.wikipedia.org/wiki/ISO_8601#Durations">help</a></sup>
+        </span>
+      </div>
 
-<!--    <label for="mapTags" i18n>Map Tags:</label>-->
-<!--    <app-tags id="mapTags"-->
-<!--              [group]="plugin"-->
-<!--              fieldName="mapTags"></app-tags>-->
-  </div>
+      <label for="push-proxy" i18n>Proxy:</label>
+      <input id="push-proxy" type="url" [formControl]="pushProxy">
+      <span><!-- Proxy Errors --></span>
+      <div>
+        <div class="error" *ngIf="pushProxy.touched && pushProxy.errors?.['pattern']" i18n>
+          Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
+        </div>
+      </div>
+    </div>
+  </ng-container>
 </ng-container>
+
+<div class="floating-ribbons">
+  <div *ngIf="pull" [class.on]="pullConfig" class="icon" (click)="togglePlugin.next('+plugin/origin/pull')"><span>{{ pull.config?.submitChild }}</span></div>
+  <div *ngIf="push" [class.on]="pushConfig"  class="icon" (click)="togglePlugin.next('+plugin/origin/push')"><span>{{ push.config?.submitChild }}</span></div>
+</div>

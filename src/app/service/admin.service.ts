@@ -19,7 +19,7 @@ import { graphPlugin } from '../plugin/graph';
 import { imagePlugin } from '../plugin/image';
 import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
 import { inboxPlugin, outboxPlugin } from '../plugin/mailbox';
-import { originPlugin } from '../plugin/origin';
+import { originPlugin, pullPlugin, pushPlugin } from '../plugin/origin';
 import { pdfPlugin } from '../plugin/pdf';
 import { personPlugin } from '../plugin/person';
 import { qrPlugin } from '../plugin/qr';
@@ -57,6 +57,8 @@ export class AdminService {
     plugins: <Record<string, Plugin>> {
       root: rootPlugin,
       origin: originPlugin,
+      pull: pullPlugin,
+      push: pushPlugin,
       feed: feedPlugin,
       delete: deletePlugin,
       apriori: aprioriPlugin,

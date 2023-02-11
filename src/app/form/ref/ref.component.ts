@@ -4,6 +4,7 @@ import { defer } from 'lodash-es';
 import * as moment from 'moment';
 import { of } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Icon } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -100,6 +101,16 @@ export class RefFormComponent implements OnInit {
     this.scrape$.subscribe(ref => {
       this.published.setValue(ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS));
     });
+  }
+
+  togglePlugin(tag: string) {
+    if (tag) {
+      if (this.tags.includesTag(tag)) {
+        this.tags.removeTagOrSuffix(tag);
+      } else {
+        this.tags.addTag(tag);
+      }
+    }
   }
 
   setRef(ref: Ref) {

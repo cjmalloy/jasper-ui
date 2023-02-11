@@ -1,10 +1,10 @@
-import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AdminService } from '../../service/admin.service';
 import { emptyObject, writeObj } from '../../util/http';
-import { hasTag, includesTag } from '../../util/tag';
+import { addAllHierarchicalTags, includesTag } from '../../util/tag';
 import { feedForm, FeedFormComponent } from './feed/feed.component';
-import { originForm } from './origin/origin.component';
+import { originForm, OriginFormComponent, pullForm, pushForm } from './origin/origin.component';
 
 @Component({
   selector: 'app-form-plugins',
@@ -18,9 +18,13 @@ export class PluginsFormComponent implements AfterViewInit {
   ref = '';
   @Input()
   fieldName = 'plugins';
+  @Output()
+  togglePlugin = new EventEmitter<string>();
 
   @ViewChild(FeedFormComponent)
   feed?: FeedFormComponent;
+  @ViewChild(OriginFormComponent)
+  origin?: OriginFormComponent;
 
   private _group: UntypedFormGroup;
   private _tags: string[] = [];
@@ -54,7 +58,7 @@ export class PluginsFormComponent implements AfterViewInit {
 
   @Input()
   set tags(tags: string[]) {
-    this._tags = tags;
+    this._tags = addAllHierarchicalTags(tags);
     this.updateForm();
   }
 
@@ -67,24 +71,23 @@ export class PluginsFormComponent implements AfterViewInit {
   }
 
   setValue(value: any) {
-    if (this.feed) {
-      this.feed.setValue(value['+plugin/feed']);
-    }
     this.plugins.patchValue(value);
+    this.feed?.setValue(value)
+    this.origin?.setValue(value)
   }
 
   updateForm() {
     if (this.plugins) {
       for (const p in this.plugins.value) {
-        if (!this._tags || !this._tags.includes(p)) {
+        if (!this.tags.includes(p)) {
           this.plugins.removeControl(p);
         }
       }
     }
     if (!this.plugins) {
-      this._group.addControl(this.fieldName, pluginsForm(this.fb, this.admin, this._tags || []));
-    } else if (this._tags) {
-      for (const t of this._tags) {
+      this._group.addControl(this.fieldName, pluginsForm(this.fb, this.admin, this.tags));
+    } else if (this.tags) {
+      for (const t of this.tags) {
         if (!this.plugins.contains(t)) {
           const form = pluginForm(this.fb, this.admin, t);
           if (form) {
@@ -93,10 +96,6 @@ export class PluginsFormComponent implements AfterViewInit {
         }
       }
     }
-  }
-
-  hasTag(tag: string) {
-    includesTag(tag, this.tags);
   }
 }
 
@@ -113,6 +112,8 @@ export function pluginsForm(fb: UntypedFormBuilder, admin: AdminService, tags: s
 function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
   switch (tag) {
     case '+plugin/origin': return originForm(fb, admin);
+    case '+plugin/origin/push': return pushForm(fb, admin);
+    case '+plugin/origin/pull': return pullForm(fb, admin);
     case '+plugin/feed': return feedForm(fb, admin);
   }
   if (admin.getPlugin(tag)?.config?.form) {
