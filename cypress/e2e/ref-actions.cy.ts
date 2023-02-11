@@ -27,7 +27,7 @@ describe('Ref Actions', {
     cy.get('form .md').should('contain', 'Comment field');
     cy.get('button').contains('save').click();
     cy.get('.full-page.ref').should('not.contain', 'Comment field');
-    cy.get('.full-page.ref  .toggle-comment').click();
+    cy.get('.full-page.ref  .toggle').click();
     cy.get('.full-page.ref').should('contain', 'Comment field');
   });
   it('adds tag inline', () => {
