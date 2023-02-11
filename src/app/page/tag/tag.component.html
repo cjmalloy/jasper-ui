@@ -1,27 +1,17 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
     <h5 class="fake-link" routerLink=".." [queryParams]="{}">{{ store.view.name }}</h5>
-    <ng-container *ngIf="store.view.kanban">
-      <a routerLink="./"
-         [class.current-tab]="store.view.noView"
-         [queryParams]="{view: null}"
-         queryParamsHandling="merge" i18n>kanban</a>
-    </ng-container>
-    <ng-container *ngIf="store.view.blog">
-      <a routerLink="./"
-         [class.current-tab]="store.view.noView"
-         [queryParams]="{view: null}"
-         queryParamsHandling="merge" i18n>blog</a>
-    </ng-container>
-    <ng-container *ngIf="store.view.chat">
-      <a routerLink="./"
-         [class.current-tab]="store.view.noView"
-         [queryParams]="{view: null}"
-         queryParamsHandling="merge" i18n>chat</a>
+    <ng-container *ngFor="let t of templates">
+      <ng-container *ngIf="store.view.isTemplate(t.tag)">
+        <a routerLink="./"
+           [class.current-tab]="store.view.noView"
+           [queryParams]="{view: null}"
+           queryParamsHandling="merge" i18n>{{ t.config?.view || t.tag }}</a>
+      </ng-container>
     </ng-container>
     <a routerLink="./"
-       [class.current-tab]="isSpecial ? store.view.list : store.view.noView"
-       [queryParams]="{view: isSpecial ? 'list' : null}"
+       [class.current-tab]="isTemplate ? store.view.list : store.view.noView"
+       [queryParams]="{view: isTemplate ? 'list' : null}"
        queryParamsHandling="merge" i18n>list</a>
     <ng-container *ngIf="admin.status.plugins.graph">
       <a routerLink="./"
@@ -35,23 +25,22 @@
   <app-sidebar class="aside"
                *ngIf="!store.view.graph"
                [tag]="store.view.tag!"
-               [ext]="store.view.ext"
-               [showSort]="!(store.view.chat && store.view.noView)"></app-sidebar>
+               [ext]="store.view.ext"></app-sidebar>
   <div *ngIf="query.error?.status === 403 else accessGranted" class="error-403" i18n>Access Denied</div>
   <ng-template #accessGranted>
     <!-- TODO: allow paging with graph -->
-    <app-ref-list *ngIf="isList else special"
+    <app-ref-list *ngIf="(!isTemplate || store.view.list) else tmpl"
                   [page]="query.page"
                   [pinned]="store.view.pinned"
                   [tag]="store.view.tag"
                   [graph]="store.view.graph"></app-ref-list>
-    <ng-template #special>
-      <app-kanban *ngIf="store.view.kanban"
+    <ng-template #tmpl>
+      <app-kanban *ngIf="store.view.isTemplate('kanban')"
                   [tag]="store.view.tag!"></app-kanban>
-      <app-chat *ngIf="store.view.chat"
+      <app-chat *ngIf="store.view.isTemplate('chat')"
                 [query]="store.view.tag!"
                 [addTags]="['public', 'internal', store.view.localTag]"></app-chat>
-      <app-blog *ngIf="store.view.blog"
+      <app-blog *ngIf="store.view.isTemplate('blog')"
                 [tag]="store.view.tag!"
                 [page]="query.page"
                 [pinned]="store.view.pinned"></app-blog>

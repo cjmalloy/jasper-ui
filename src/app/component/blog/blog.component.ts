@@ -17,7 +17,7 @@ export class BlogComponent implements OnInit {
   @Input()
   pinned?: Ref[] | null;
   @Input()
-  emptyMessage = 'No blog entries found';
+  emptyMessage = $localize`No blog entries found`;
 
   ext?: Ext;
   error: any;

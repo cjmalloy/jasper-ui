@@ -11,7 +11,7 @@
 </ng-container>
 <div *ngIf="!editing && query">
   <span *ngFor="let breadcrumb of breadcrumbs">
-    <a *ngIf="breadcrumb.tag" class="tag" [routerLink]="['/tag', breadcrumb.tag]">{{ breadcrumb.text }}</a>
+    <a *ngIf="breadcrumb.tag" class="tag" [routerLink]="['/tag', breadcrumb.tag]" queryParamsHandling="merge">{{ breadcrumb.text }}</a>
     <span *ngIf="!breadcrumb.tag">{{ breadcrumb.text }}</span>
   </span>
 </div>

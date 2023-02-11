@@ -11,7 +11,7 @@ import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
-import { removeWildcard } from '../../util/tag';
+import { hasPrefix, removeWildcard } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
@@ -20,6 +20,8 @@ import { removeWildcard } from '../../util/tag';
 })
 export class TagPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
+
+  templates = this.admin.tmplView;
 
   constructor(
     public admin: AdminService,
@@ -75,26 +77,15 @@ export class TagPage implements OnInit, OnDestroy {
     this.disposers.length = 0;
   }
 
-  get isSpecial() {
-    if (this.store.view.kanban) return true;
-    if (this.store.view.chat) return true;
-    if (this.store.view.blog) return true;
-    return false;
-  }
-
-  get isList() {
-    if (this.store.view.list) return true;
-    if (this.store.view.graph) return true;
-    if (this.store.view.kanban) return false;
-    if (this.store.view.chat) return false;
-    if (this.store.view.blog) return false;
-    return true;
+  get isTemplate() {
+    return this.templates.find(t => hasPrefix(this.store.view.tag, t.tag));
   }
 
   get fetchPage() {
     if (this.store.view.graph) return true;
-    if (this.store.view.blog) return true;
-    return !this.isSpecial;
+    if (this.store.view.isTemplate('blog')) return true;
+    if (this.store.view.isTemplate('folder')) return true;
+    return !this.isTemplate;
   }
 
 }

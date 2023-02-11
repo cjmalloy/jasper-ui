@@ -165,7 +165,7 @@ export class ViewStore {
   }
 
   get pageSize() {
-    return parseInt(this.route.routeSnapshot?.queryParams['pageSize'] ?? (this.blog ? this.defaultBlogPageSize : this.defaultPageSize));
+    return parseInt(this.route.routeSnapshot?.queryParams['pageSize'] ?? (this.isTemplate('blog') ? this.defaultBlogPageSize : this.defaultPageSize));
   }
 
   get published() {
@@ -188,24 +188,8 @@ export class ViewStore {
     return this.route.routeSnapshot?.queryParams['showRemotes'] === 'true';
   }
 
-  get user() {
-    return !isQuery(this.tag) && hasPrefix(this.tag, 'user');
-  }
-
-  get kanban() {
-    return !isQuery(this.tag) && hasPrefix(this.tag, 'kanban');
-  }
-
-  get chat() {
-    return !isQuery(this.tag) && hasPrefix(this.tag, 'chat');
-  }
-
-  get blog() {
-    return !isQuery(this.tag) && hasPrefix(this.tag, 'blog');
-  }
-
-  get queue() {
-    return !isQuery(this.tag) && hasPrefix(this.tag, 'queue');
+  isTemplate(tag: string) {
+    return !isQuery(this.tag) && hasPrefix(this.tag, tag);
   }
 
   toggleTag(tag: string) {

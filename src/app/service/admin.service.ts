@@ -235,6 +235,10 @@ export class AdminService {
     return this.templateConfigProperty('submit');
   }
 
+  get tmplView() {
+    return this.templateConfigProperty('view');
+  }
+
   get editors() {
     return this.pluginConfigProperty('editor');
   }
