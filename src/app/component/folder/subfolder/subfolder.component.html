@@ -1,0 +1,19 @@
+<div class="folder-icon"
+     *ngIf="thumbnail else defaultThumbnail"
+     [style.background-image]="cssUrl(thumbnail)"></div>
+<ng-template #defaultThumbnail>
+  <div class="folder-icon default-folder">
+    <span>📂️</span>
+  </div>
+</ng-template>
+<div class="row">
+<!--  <div class="toggle"-->
+<!--       *ngIf="showToggle && (ref.comment || expandPlugins.length)"-->
+<!--       (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, expanded = !expanded)">-->
+<!--    <span class="toggle-plus" *ngIf="!editing && !viewSource && !expanded">＋</span>-->
+<!--    <span class="toggle-x" *ngIf="editing || viewSource || expanded">✕</span>-->
+<!--  </div>-->
+  <a [routerLink]="['/tag', tag]">{{ name }}</a>
+</div>
+
+

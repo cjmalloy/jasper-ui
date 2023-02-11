@@ -32,6 +32,7 @@ import { DEFAULT_WIKI_PREFIX, wikiPlugin } from '../plugin/wiki';
 import { Store } from '../store/store';
 import { blogTemplate } from '../template/blog';
 import { chatTemplate } from '../template/chat';
+import { folderTemplate } from '../template/folder';
 import { homeTemplate } from '../template/home';
 import { kanbanTemplate } from '../template/kanban';
 import { queueTemplate } from '../template/queue';
@@ -91,6 +92,7 @@ export class AdminService {
     templates: <Record<string, Template>> {
       root: rootTemplate,
       user: userTemplate,
+      folder: folderTemplate,
       home: homeTemplate,
       queue: queueTemplate,
       kanban: kanbanTemplate,
@@ -220,11 +222,17 @@ export class AdminService {
   }
 
   get readAccess() {
-    return this.pluginConfigProperty('readAccess').flatMap(p => p.config!.readAccess!);
+    return [
+      ...this.pluginConfigProperty('readAccess'),
+      ...this.templateConfigProperty('readAccess')
+    ].flatMap(p => p.config!.readAccess!);
   }
 
   get writeAccess() {
-    return this.pluginConfigProperty('writeAccess').flatMap(p => p.config!.writeAccess!);
+    return [
+      ...this.pluginConfigProperty('writeAccess'),
+      ...this.templateConfigProperty('writeAccess')
+    ].flatMap(p => p.config!.writeAccess!);
   }
 
   get submit() {

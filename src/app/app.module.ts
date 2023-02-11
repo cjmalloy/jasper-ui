@@ -31,6 +31,9 @@ import { EditorComponent } from './component/editor/editor.component';
 import { ExtListComponent } from './component/ext-list/ext-list.component';
 import { ExtComponent } from './component/ext/ext.component';
 import { FilterComponent } from './component/filter/filter.component';
+import { FileComponent } from './component/folder/file/file.component';
+import { FolderComponent } from './component/folder/folder.component';
+import { SubfolderComponent } from './component/folder/subfolder/subfolder.component';
 import { ForceDirectedComponent } from './component/graph/force-directed/force-directed.component';
 import { KanbanCardComponent } from './component/kanban-card/kanban-card.component';
 import { KanbanColumnComponent } from './component/kanban-column/kanban-column.component';
@@ -64,6 +67,7 @@ import { LimitWidthDirective } from './directive/limit-width.directive';
 import { MdPostDirective } from './directive/md-post.directive';
 import { PluginUiDirective } from './directive/plugin-ui.directive';
 import { ResizeDirective } from './directive/resize.directive';
+import { RouterActivateDirective } from './directive/router-activate.directive';
 import { TemplateUiDirective } from './directive/template-ui.directive';
 import { CodeComponent } from './form/code/code.component';
 import { ExtFormComponent } from './form/ext/ext.component';
@@ -258,6 +262,10 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     UploadRefComponent,
     MobileTabSelectComponent,
     SelectTemplateComponent,
+    FolderComponent,
+    SubfolderComponent,
+    FileComponent,
+    RouterActivateDirective,
   ],
   imports: [
     BrowserModule,

@@ -104,6 +104,9 @@ export function tagOrigin(tag?: string) {
  * origin markers '@' for all but the first tag.
  */
 export function prefix(prefix: string, ...rest: string[]) {
+  if (access(prefix) && access(rest[0])) {
+    prefix = access(rest[0]) + prefix.substring(1);
+  }
   return prefix + '/' + rest.join('/')
     .replace(/[+_@]/g, '')
     .replace(/\/\//g, '/');
@@ -152,7 +155,13 @@ export function isQuery(query?: string) {
 }
 
 export function privateTag(tag: string) {
-  return tag.startsWith("_");
+  return tag.startsWith('_');
+}
+
+export function access(tag: string) {
+  if (tag.startsWith('_')) return '_';
+  if (tag.startsWith('+')) return '+';
+  return '';
 }
 
 export function parentTag(tag: string): string | undefined {

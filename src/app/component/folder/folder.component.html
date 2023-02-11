@@ -1,0 +1,19 @@
+<div class="desktop">
+  <app-subfolder *ngIf="parent"
+                 cdkDrag
+                 cdkDragBoundary=".desktop"
+                 [tag]="parent"
+                 [name]="'..'"></app-subfolder>
+  <app-subfolder *ngFor="let f of subfolders"
+                 cdkDrag
+                 cdkDragBoundary=".desktop"
+                 [tag]="tag + '/' + f"
+                 [name]="f"></app-subfolder>
+  <app-file *ngFor="let ref of page?.content"
+            cdkDrag
+            cdkDragBoundary=".desktop"
+            [style.display]="flatten || !inSubfolder(ref) ? 'block' : 'none'"
+            [ref]="ref"></app-file>
+</div>
+<!--<app-page-controls *ngIf="!page?.empty"-->
+<!--                   [page]="page!"></app-page-controls>-->

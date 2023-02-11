@@ -925,3 +925,34 @@ button.backup, button.upload, input.upload {
     }
   }
 }
+
+.desktop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
+  max-width: 100vw;
+  height: 90vh;
+}
+
+.file, .subfolder {
+  width: 48px;
+  height: 64px;
+  display: inline-block;
+  text-align: center;
+  .row {
+    justify-content: center;
+    a {
+      -webkit-box-orient: vertical;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal;
+    }
+  }
+  .folder-icon {
+    font-size: 32px;
+    cursor: default;
+  }
+}

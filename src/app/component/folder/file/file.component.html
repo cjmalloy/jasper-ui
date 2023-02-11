@@ -1,0 +1,26 @@
+<div class="folder-icon"
+     *ngIf="thumbnail else defaultThumbnail"
+     [style.background-image]="cssUrl(ref | thumbnail)"
+     [appRouterActivate]="['/ref', ref.url]" [queryParams]="{ origin }"></div>
+<ng-template #defaultThumbnail>
+  <div class="folder-icon default-file"
+       [appRouterActivate]="['/ref', ref.url]" [queryParams]="{ origin }">
+<!--    <ng-container *ngFor="let icon of icons">-->
+<!--      <span>{{ icon.label }}</span>-->
+<!--    </ng-container>-->
+<!--    <ng-container *ngIf="!icons || !icons.length">-->
+      <span>📄️</span>
+<!--    </ng-container>-->
+  </div>
+</ng-template>
+<div class="row">
+  <div class="toggle"
+       *ngIf="showToggle && (ref.comment || expandPlugins.length)"
+       (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, expanded = !expanded)">
+    <span class="toggle-plus" *ngIf="!editing && !viewSource && !expanded">＋</span>
+    <span class="toggle-x" *ngIf="editing || viewSource || expanded">✕</span>
+  </div>
+  <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
+</div>
+
+<app-viewer *ngIf="expanded" [ref]="ref"></app-viewer>

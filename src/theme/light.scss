@@ -388,4 +388,13 @@ body.light-theme {
       backdrop-filter: blur(1px);
     }
   }
+
+  .file, .subfolder {
+    :focus, :focus-within {
+      .folder-icon {
+        filter: drop-shadow(0 0 2px $border);
+        background-color: red;
+      }
+    }
+  }
 }
