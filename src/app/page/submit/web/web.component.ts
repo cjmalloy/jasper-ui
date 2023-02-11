@@ -148,7 +148,7 @@ export class SubmitWebPage implements AfterViewInit {
       scrollToFirstInvalid();
       return;
     }
-    const tags = [...without(this.webForm.value.tags, ...this.admin.editors), ...this.plugins];
+    const tags = [...without(this.webForm.value.tags, ...this.admin.editorTags), ...this.plugins];
     const published = moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.create({
       ...this.webForm.value,

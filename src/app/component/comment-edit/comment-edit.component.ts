@@ -47,7 +47,7 @@ export class CommentEditComponent {
 
   get patchTags() {
     return getIfNew([
-      ...without(this.ref.tags, ...this.admin.editors),
+      ...without(this.ref.tags, ...this.admin.editorTags),
       ...getTags(this.comment.value),
       ...getMailboxes(this.comment.value),
       ...this.plugins],

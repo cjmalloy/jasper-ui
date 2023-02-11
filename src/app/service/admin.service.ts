@@ -223,15 +223,19 @@ export class AdminService {
   }
 
   get editors() {
-    return this.pluginConfigProperty('editor').map(p => p!.tag);
+    return this.pluginConfigProperty('editor');
+  }
+
+  get editorTags() {
+    return this.editors.map(p => p.tag);
   }
 
   get uis() {
-    return this.pluginConfigProperty('ui').map(p => p!.tag);
+    return this.pluginConfigProperty('ui');
   }
 
   get forms() {
-    return this.pluginConfigProperty('form').map(p => p!.tag);
+    return this.pluginConfigProperty('form');
   }
 
   get embeddable(): string[] {
@@ -251,15 +255,15 @@ export class AdminService {
   }
 
   get icons() {
-    return this.pluginConfigProperty('icons').map(p => p!.tag);
+    return this.pluginConfigProperty('icons');
   }
 
   get actions() {
-    return this.pluginConfigProperty('actions').map(p => p!.tag);
+    return this.pluginConfigProperty('actions');
   }
 
   get published() {
-    return this.pluginConfigProperty('published').map(p => p!.tag);
+    return this.pluginConfigProperty('published');
   }
 
   get filters() {
@@ -276,12 +280,14 @@ export class AdminService {
   }
 
   getActions(tags?: string[]) {
-    return this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.actions))
+    const match = ['plugin', ...(tags || [])];
+    return this.actions.filter(p => match.includes(p.tag))
       .flatMap(p => p.config!.actions as Action[]);
   }
 
   getIcons(tags?: string[]) {
-    return this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.icons))
+    const match = ['plugin', ...(tags || [])];
+    return this.icons.filter(p => match.includes(p.tag))
       .flatMap(p => p.config!.icons?.map(i => {
         if (!i.response) i.tag ||= p.tag;
         if (i.tag === p.tag)  i.title ||= p.name;
@@ -291,7 +297,8 @@ export class AdminService {
   }
 
   getPublished(tags?: string[]) {
-    return this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.published))
+    const match = ['plugin', ...(tags || [])];
+    return this.published.filter(p => match.includes(p.tag))
       .flatMap(p => p.config!.published as string);
   }
 
@@ -299,18 +306,19 @@ export class AdminService {
     return Object.values(this.status.plugins).find(p => p?.tag === tag);
   }
 
-  getPlugins(tags?: string[] | string[][]) {
-    if (!tags || !tags.length) return [];
-    const ts: string[] = flatten(tags)!;
-    return Object.values(this.status.plugins).filter(p => p?.tag && ts.includes(p.tag)) as Plugin[];
+  getEditors(tags?: string[]) {
+    const match = tags || [];
+    return this.editors.filter(p => match.includes(p.tag));
   }
 
   getPluginUi(tags?: string[]) {
-    return this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.uis));
+    const match = ['plugin', ...(tags || [])];
+    return this.uis.filter(p => match.includes(p.tag));
   }
 
   getPluginForms(tags?: string[]) {
-    return this.getPlugins(tagIntersection(['plugin', ...(tags || [])], this.forms));
+    const match = ['plugin', ...(tags || [])];
+    return this.forms.filter(p => match.includes(p.tag));
   }
 
   getTemplate(tag: string) {

@@ -360,7 +360,7 @@ export class RefComponent implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq([...without(this.editForm.value.tags, ...this.admin.editors), ...this.editorPlugins]);
+    const tags = uniq([...without(this.editForm.value.tags, ...this.admin.editorTags), ...this.editorPlugins]);
     const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.update({
       ...this.ref,
