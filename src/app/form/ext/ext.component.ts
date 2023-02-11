@@ -1,10 +1,11 @@
 import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormlyFieldConfig, FormlyFormOptions } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Ext } from '../../model/ext';
 import { getMailbox } from '../../plugin/mailbox';
 import { AdminService } from '../../service/admin.service';
+import { TAG_REGEX } from '../../util/format';
 import { hasPrefix } from '../../util/tag';
 import { linksForm } from '../links/links.component';
 import { qtagsForm } from '../qtags/qtags.component';
@@ -136,7 +137,7 @@ export class ExtFormComponent implements OnInit {
   }
 }
 
-export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService) {
+export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService, locked: boolean) {
   let configControls = {};
   if (root(ext.tag, admin)) {
     configControls = {
@@ -185,7 +186,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService) {
     };
   }
   return fb.group({
-    tag: [''],
+    tag: [{value: '', disabled: locked}, [Validators.required, Validators.pattern(TAG_REGEX)]],
     name: [''],
     config: fb.group(configControls),
   });

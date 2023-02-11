@@ -204,6 +204,13 @@ export class AdminService {
     return this._cache.get(name)!;
   }
 
+  templateConfigProperty(name: string): Template[] {
+    if (!this._cache.has('t:'+name)) {
+      this._cache.set('t:'+name, Object.values(this.status.templates).filter(p => p?.config?.[name]));
+    }
+    return this._cache.get('t:'+name)!;
+  }
+
   get defaultPlugins() {
     return Object.values(this.def.plugins).filter(p => p?.config?.default) as Plugin[];
   }
@@ -222,6 +229,10 @@ export class AdminService {
 
   get submit() {
     return this.pluginConfigProperty('submit').map(p => p!.tag);
+  }
+
+  get tmplSubmit() {
+    return this.templateConfigProperty('submit');
   }
 
   get editors() {

@@ -44,7 +44,7 @@ export class ExtComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.editForm = extForm(this.fb, this.ext, this.admin);
+    this.editForm = extForm(this.fb, this.ext, this.admin, true);
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);
   }
 
@@ -71,6 +71,7 @@ export class ExtComponent implements OnInit {
     this.exts.update({
       ...this.ext,
       ...this.editForm.value,
+      tag: this.ext.tag, // Need to fetch because control is disabled
       config: {
         ...this.admin.getDefaults(this.ext.tag),
         ...this.ext.config,

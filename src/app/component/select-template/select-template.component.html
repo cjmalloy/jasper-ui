@@ -1,0 +1,4 @@
+<select #select [value]="template" (input)="templateChange.next(select.value)">
+  <option></option>
+  <option *ngFor="let t of templates" [value]="t.tag ? t.tag + '/' : ''">{{ t.config?.submit }}</option>
+</select>

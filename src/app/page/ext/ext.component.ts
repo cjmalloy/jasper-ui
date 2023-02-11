@@ -24,6 +24,7 @@ export class ExtPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
   @HostBinding('class') css = 'full-page-form';
 
+  template = '';
   created = false;
   submitted = false;
   extForm: UntypedFormGroup;
@@ -57,7 +58,7 @@ export class ExtPage implements OnInit, OnDestroy {
         ).subscribe(ext => runInAction(() => {
           this.store.view.ext = ext;
           if (ext) {
-            this.editForm = extForm(this.fb, ext, this.admin);
+            this.editForm = extForm(this.fb, ext, this.admin, true);
             this.editForm.patchValue(ext);
           }
         }));
@@ -74,6 +75,14 @@ export class ExtPage implements OnInit, OnDestroy {
     return this.extForm.get('tag') as UntypedFormControl;
   }
 
+  prefix(tag: string) {
+    if (!this.template) return tag;
+    if (tag.startsWith('+') || tag.startsWith('_')) {
+      return tag.substring(0, 1) + this.template + tag.substring(1);
+    }
+    return this.template + tag;
+  }
+
   create() {
     this.serverError = [];
     this.submitted = true;
@@ -82,9 +91,10 @@ export class ExtPage implements OnInit, OnDestroy {
       scrollToFirstInvalid();
       return;
     }
-    const tag = this.tag.value + this.store.account.origin;
+    const prefixed = this.prefix(this.tag.value);
+    const tag = prefixed + this.store.account.origin;
     this.exts.create({
-      tag: this.tag.value,
+      tag: prefixed,
       origin: this.store.account.origin,
     }).pipe(
       catchError((res: HttpErrorResponse) => {
@@ -117,6 +127,7 @@ export class ExtPage implements OnInit, OnDestroy {
     this.exts.update({
       ...ext,
       ...this.editForm.value,
+      tag: ext.tag, // Need to fetch because control is disabled
       config: {
         ...ext.config,
         ...this.editForm.value.config,
