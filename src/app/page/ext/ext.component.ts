@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { extForm } from '../../form/ext/ext.component';
+import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -31,6 +32,8 @@ export class ExtPage implements OnInit, OnDestroy {
   editForm!: UntypedFormGroup;
   serverError: string[] = [];
 
+  templates = this.admin.tmplSubmit;
+
   constructor(
     private theme: ThemeService,
     private admin: AdminService,
@@ -51,19 +54,33 @@ export class ExtPage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       const tag = removeWildcard(this.store.view.tag);
       if (!tag) {
+        this.template = '';
+        this.tag.setValue('');
         runInAction(() => this.store.view.ext = undefined);
       } else {
         this.exts.get(tag).pipe(
           catchError(() => of(undefined)),
-        ).subscribe(ext => runInAction(() => {
-          this.store.view.ext = ext;
-          if (ext) {
-            this.editForm = extForm(this.fb, ext, this.admin, true);
-            this.editForm.patchValue(ext);
-          }
-        }));
+        ).subscribe(ext => this.setExt(tag, ext));
       }
     }));
+  }
+
+  setExt(tag: string, ext?: Ext) {
+    runInAction(() => this.store.view.ext = ext);
+    if (ext) {
+      this.editForm = extForm(this.fb, ext, this.admin, true);
+      this.editForm.patchValue(ext);
+    } else {
+      for (const t of this.templates) {
+        if (tag.startsWith(t.tag + '/')) {
+          this.template = t.tag + '/';
+          this.tag.setValue(tag.substring(t.tag.length + 1))
+          return
+        }
+      }
+      this.template = '';
+      this.tag.setValue(tag);
+    }
   }
 
   ngOnDestroy() {
@@ -111,7 +128,7 @@ export class ExtPage implements OnInit, OnDestroy {
       }),
     ).subscribe(ext => {
       this.serverError = [];
-      runInAction(() => this.store.view.ext = ext);
+      this.setExt(tag, ext);
       this.router.navigate(['/ext', ext.tag]);
     });
   }

@@ -1,23 +1,32 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { Template } from '../../model/template';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { indexOf } from 'lodash-es';
+import { findIndex } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 
 @Component({
   selector: 'app-select-template',
   templateUrl: './select-template.component.html',
-  styleUrls: ['./select-template.component.scss']
+  styleUrls: ['./select-template.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectTemplateComponent {
 
-  @Input()
-  template = '';
+
   @Output()
   templateChange = new EventEmitter<string>();
+
+  @ViewChild('select')
+  select?: ElementRef;
 
   templates = this.admin.tmplSubmit;
 
   constructor(
     private admin: AdminService,
   ) {  }
+
+  @Input()
+  set template(value: string) {
+    this.select!.nativeElement.selectedIndex = this.templates.map(t => t.tag + '/').indexOf(value) + 1;
+  }
 
 }
