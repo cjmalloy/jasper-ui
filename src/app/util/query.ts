@@ -38,7 +38,7 @@ export function getArgs(
     sort = [];
   }
   return {
-    query,
+    query: query.replace(/\s/g, ''),
     sort,
     search,
     page: pageNumber,
