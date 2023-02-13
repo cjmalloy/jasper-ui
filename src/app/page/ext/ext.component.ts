@@ -44,7 +44,7 @@ export class ExtPage implements OnInit, OnDestroy {
     private exts: ExtService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle('Create Tag Extension');
+    theme.setTitle($localize`Extend Tag`);
     this.extForm = fb.group({
       tag: ['', [Validators.required, Validators.pattern(TAG_REGEX)]],
     });

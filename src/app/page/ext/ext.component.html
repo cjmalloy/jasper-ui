@@ -1,12 +1,12 @@
 <ng-container *mobxAutorun>
   <div class="tabs">
-    <h5 i18n>Ext</h5>
+    <h5 i18n>Extend Tag</h5>
     <app-settings></app-settings>
   </div>
   <ng-container *ngIf="!store.view.ext">
     <form class="form" [formGroup]="extForm" (ngSubmit)="create()">
 
-      <label for="tag" i18n>Tag:</label>
+      <label for="tag" i18n>Extend Tag:</label>
       <div class="form-array">
         <app-select-template [(template)]="template"></app-select-template>
         <input id="tag"
