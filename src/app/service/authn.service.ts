@@ -1,6 +1,8 @@
 import { Injectable, Optional } from '@angular/core';
+import { Router } from '@angular/router';
 import { OAuthModuleConfig, OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
 import { filter, from, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -12,6 +14,7 @@ export class AuthnService {
     private config: ConfigService,
     private oauth: OAuthService,
     private storage: OAuthStorage,
+    private router: Router,
     @Optional() private moduleConfig: OAuthModuleConfig,
   ) { }
 
@@ -49,12 +52,17 @@ export class AuthnService {
         this.storage.setItem('access_token', this.storage.getItem('id_token')!);
       });
     }
-    return from(this.oauth.loadDiscoveryDocumentAndTryLogin());
+    return from(this.oauth.loadDiscoveryDocumentAndTryLogin()).pipe(
+      tap(() => {
+        if (this.oauth.state) {
+          this.router.navigateByUrl(this.oauth.state);
+        }
+      }));
   }
 
   logIn() {
     if (this.clientAuth) {
-      this.oauth.initLoginFlow()
+      this.oauth.initLoginFlow(this.router.url);
     } else if (this.config.login) {
       // @ts-ignore
       window.location = this.config.loginLink;
