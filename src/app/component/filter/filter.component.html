@@ -1,6 +1,10 @@
-<button type="button" (click)="addFilter()" i18n>+ Add filter</button>
-<span class="form-array" *ngFor="let f of filters; let i=index">
-  <label for="filter-{{ i }}" i18n>Filter:</label>
+<select #create (input)="addFilter($any(create.value))" i18n-title title="Filter">
+  <option class="unselected">🪄️ filter</option>
+  <optgroup *ngFor="let g of allFilters" [label]="g.label">
+    <option *ngFor="let f of g.filters" [value]="f.filter">{{ f.label || f.filter }}</option>
+  </optgroup>
+</select>
+<div class="form-array" *ngFor="let f of filters; let i=index">
   <select id="filter-{{ i }}" [ngModel]="filters[i]" (ngModelChange)="setFilter(i, $event)">
     <optgroup *ngFor="let g of allFilters" [label]="g.label">
       <option *ngFor="let f of g.filters" [value]="f.filter">{{ f.label || f.filter }}</option>
@@ -8,4 +12,4 @@
 
   </select>
   <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
-</span>
+</div>

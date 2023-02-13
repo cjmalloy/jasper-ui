@@ -80,8 +80,7 @@ export class ViewStore {
           case 'user': return 'user';
           case 'plugin': return 'plugin';
           case 'template': return 'template';
-          case 'feed': return 'plugin/feed';
-          case 'origin': return 'plugin/origin';
+          case 'ref/:tag': return 'tag';
         }
         return undefined;
       case 'inbox':

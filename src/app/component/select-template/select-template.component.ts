@@ -1,6 +1,4 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { indexOf } from 'lodash-es';
-import { findIndex } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 
 @Component({
@@ -16,7 +14,7 @@ export class SelectTemplateComponent {
   templateChange = new EventEmitter<string>();
 
   @ViewChild('select')
-  select?: ElementRef;
+  select?: ElementRef<HTMLSelectElement>;
 
   templates = this.admin.tmplSubmit;
 

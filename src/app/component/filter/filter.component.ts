@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { filter, find } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
@@ -21,13 +21,16 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
+  @ViewChild('create')
+  create?: ElementRef<HTMLSelectElement>;
+
   allFilters: { filters: FilterItem[], label: string }[] = [
     { label: $localize`Filters`,
       filters : [
-        { filter: 'uncited', label: $localize`uncited` },
-        { filter: 'unsourced', label: $localize`unsourced` },
-        { filter: 'untagged', label: $localize`untagged` },
-        { filter: 'query/internal@*', label: $localize`internal` },
+        { filter: 'uncited', label: $localize`🪄️ uncited` },
+        { filter: 'unsourced', label: $localize`🪄️ unsourced` },
+        { filter: 'untagged', label: $localize`🪄️ untagged` },
+        { filter: 'query/internal@*', label: $localize`🕵️️ internal` },
       ],
     },
   ];
@@ -75,9 +78,13 @@ export class FilterComponent implements OnInit, OnDestroy {
     this.disposers.length = 0;
   }
 
-  addFilter() {
-    if (!this.filters) this.filters = [];
-    this.filters.push('' as any);
+  addFilter(value: Filter) {
+    if (value) {
+      if (!this.filters) this.filters = [];
+      this.filters.push(value);
+      this.create!.nativeElement.selectedIndex = 0;
+      this.setFilters();
+    }
   }
 
   setFilter(index: number, value: Filter) {

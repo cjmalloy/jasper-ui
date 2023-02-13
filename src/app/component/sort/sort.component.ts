@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { filter } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
@@ -19,8 +19,11 @@ export class SortComponent implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
+  @ViewChild('create')
+  create?: ElementRef<HTMLSelectElement>;
+
   allSorts: {value: RefSort | TagSort, label: string}[] = [
-    { value: 'modified', label: $localize`modified` },
+    { value: 'modified', label: $localize`🕓️ modified` },
   ];
   sorts: string[] = [];
 
@@ -40,30 +43,29 @@ export class SortComponent implements OnInit, OnDestroy {
   set type(value: Type) {
     if (value === 'ref') {
       this.allSorts = [
-        { value: 'url', label: $localize`url` },
-        { value: 'origin', label: $localize`origin` },
-        { value: 'title', label: $localize`title` },
-        { value: 'comment', label: $localize`comments` },
-        { value: 'created', label: $localize`new` },
-        { value: 'tagCount', label: $localize`tags` },
-        { value: 'sourceCount', label: $localize`sources` },
-        { value: 'responseCount', label: $localize`responses` },
-        { value: 'published', label: $localize`published` },
-        { value: 'modified', label: $localize`modified` },
+        { value: 'url', label: $localize`🔗️ url` },
+        { value: 'origin', label: $localize`🏛️ origin` },
+        { value: 'title', label: $localize`🇦️ title` },
+        { value: 'created', label: $localize`✨️ new` },
+        { value: 'tagCount', label: $localize`🏷️ tags` },
+        { value: 'sourceCount', label: $localize`📜️ sources` },
+        { value: 'responseCount', label: $localize`💌️ responses` },
+        { value: 'published', label: $localize`📅️ published` },
+        { value: 'modified', label: $localize`🕓️ modified` },
       ]
       if (this.admin.status.plugins.comment) {
-        this.allSorts.splice(1, 0, { value: 'commentCount', label: $localize`comments` });
+        this.allSorts.splice(1, 0, { value: 'commentCount', label: $localize`💬️ comments` });
       }
       if (this.store.view.search) {
-        this.allSorts.unshift({ value: 'rank', label: $localize`relevance` });
+        this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance` });
       }
     }
     if (value !== 'ref') {
       this.allSorts = [
-        { value: 'tag', label: $localize`tag` },
-        { value: 'origin', label: $localize`origin` },
-        { value: 'name', label: $localize`name` },
-        { value: 'modified', label: $localize`modified` },
+        { value: 'tag', label: $localize`🏷️ tag` },
+        { value: 'origin', label: $localize`🏛️ origin` },
+        { value: 'name', label: $localize`🇦️ name` },
+        { value: 'modified', label: $localize`🕓️ modified` },
       ]
     }
   }
@@ -76,9 +78,11 @@ export class SortComponent implements OnInit, OnDestroy {
     this.disposers.length = 0;
   }
 
-  addSort() {
+  addSort(value: string) {
     if (!this.sorts) this.sorts = [];
     this.sorts.push('');
+    this.create!.nativeElement.selectedIndex = 0;
+    this.setSortCol(this.sorts.length - 1, value);
   }
 
   setSortCol(index: number, value: string) {

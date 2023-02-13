@@ -18,7 +18,7 @@ export const rootPlugin: Plugin = {
       { tag: '_moderated', labelOff: $localize`approve` }
     ],
     filters: [
-      { query: '!_moderated', label: $localize`modlist`, group: $localize`Mod Tools` },
+      { query: '!_moderated', label: $localize`🛡️ modlist`, group: $localize`Mod Tools` },
     ],
     bannedUrls: [
       '//bit.ly/',

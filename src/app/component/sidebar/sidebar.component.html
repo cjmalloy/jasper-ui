@@ -3,21 +3,21 @@
     <div class="toggle"
          *ngIf="showToggle"
          (click)="expanded = !expanded">☰</div>
-    <div *ngIf="store.view.current && (!home || store.view.search || store.view.filter.length || !query.page?.empty)" class="wide">
-      <app-query *ngIf="store.view.tag" [query]="tag" class="hide breadcrumbs"></app-query>
+    <div class="wide" *ngIf="store.view.current && (!home || store.view.search || store.view.filter.length || !query.page?.empty)">
       <app-search></app-search>
       <div class="show-remotes" *ngIf="expanded && store.view.type !== 'ref'">
         <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
         <label for="show-remotes" i18n>show remotes</label>
       </div>
-      <div *ngIf="expanded && store.view.type === 'ref'" class="hide">
-        <app-filter></app-filter>
-      </div>
-      <div *ngIf="expanded && showSort" class="hide">
-        <app-sort [type]="store.view.type!"></app-sort>
-      </div>
     </div>
   </div>
+  <ng-container *ngIf="expanded && store.view.current && (!home || store.view.search || store.view.filter.length || !query.page?.empty)">
+    <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
+    <div class="row">
+      <app-filter *ngIf="store.view.type === 'ref'"></app-filter>
+      <app-sort *ngIf="showSort" [type]="store.view.type!"></app-sort>
+    </div>
+  </ng-container>
   <app-debug *ngIf="expanded"></app-debug>
   <app-bulk *ngIf="expanded && store.view.current" [type]="store.view.type!"></app-bulk>
   <span class="button-bar">

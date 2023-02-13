@@ -1,6 +1,8 @@
-<button type="button" (click)="addSort()" i18n>+ Add sort</button>
+<select #create (input)="addSort($any(create.value))" i18n-title title="Sort">
+  <option class="unselected">🔼️ sort</option>
+  <option *ngFor="let opt of allSorts" [value]="opt.value">{{ opt.label || opt.value }}</option>
+</select>
 <span class="form-array" *ngFor="let f of sorts; let i=index">
-  <label for="filter-{{ i }}" i18n>Sort:</label>
   <select id="filter-{{ i }}" [ngModel]="sortCol(sorts[i])" (ngModelChange)="setSortCol(i, $event)">
     <option *ngFor="let opt of allSorts" [value]="opt.value">{{ opt.label || opt.value }}</option>
   </select>

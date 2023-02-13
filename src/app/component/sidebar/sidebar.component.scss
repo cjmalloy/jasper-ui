@@ -4,7 +4,11 @@
 
 .row {
   padding-left: 4px;
-  app-search-filter {
+  app-search, app-filter, app-sort {
     flex-grow: 1;
   }
+}
+
+app-filter {
+  margin-right: 4px;
 }
