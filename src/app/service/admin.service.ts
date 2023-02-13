@@ -38,7 +38,7 @@ import { kanbanTemplate } from '../template/kanban';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
-import { tagIntersection } from '../util/tag';
+import { includesTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
@@ -306,13 +306,13 @@ export class AdminService {
 
   getActions(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.actions.filter(p => match.includes(p.tag))
+    return this.actions.filter(p => includesTag(p.tag, match))
       .flatMap(p => p.config!.actions as Action[]);
   }
 
   getIcons(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.icons.filter(p => match.includes(p.tag))
+    return this.icons.filter(p => includesTag(p.tag, match))
       .flatMap(p => p.config!.icons?.map(i => {
         if (!i.response) i.tag ||= p.tag;
         if (i.tag === p.tag)  i.title ||= p.name;
@@ -323,7 +323,7 @@ export class AdminService {
 
   getPublished(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.published.filter(p => match.includes(p.tag))
+    return this.published.filter(p => includesTag(p.tag, match))
       .flatMap(p => p.config!.published as string);
   }
 
