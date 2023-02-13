@@ -35,6 +35,10 @@
                   [tag]="store.view.tag"
                   [graph]="store.view.graph"></app-ref-list>
     <ng-template #tmpl>
+      <app-folder *ngIf="store.view.isTemplate('folder')"
+                  [tag]="store.view.tag!"
+                  [ext]="store.view.ext!"
+                  [page]="query.page"></app-folder>
       <app-kanban *ngIf="store.view.isTemplate('kanban')"
                   [tag]="store.view.tag!"></app-kanban>
       <app-chat *ngIf="store.view.isTemplate('chat')"
