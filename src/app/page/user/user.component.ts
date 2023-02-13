@@ -158,7 +158,7 @@ export class UserPage implements OnInit, OnDestroy {
         ));
       }
     }
-    forkJoin(entities).subscribe(() => this.router.navigate(['/settings/user']));
+    forkJoin(entities).subscribe(() => this.router.navigate(['/tag', this.tag.value]));
   }
 
   delete() {
