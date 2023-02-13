@@ -69,7 +69,7 @@ export class UserComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.writeAccess = this.store.account.sysadmin || this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
+    this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
     if (this.user && !this.profile) {
       this.profiles.getProfile(this.qualifiedTag)
         .subscribe(profile => this.profile = profile);

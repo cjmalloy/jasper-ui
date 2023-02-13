@@ -31,7 +31,7 @@
         <button (click)="setInlinePassword()" i18n>+</button>
       </span>
     </ng-container>
-    <ng-container *ngIf="profile && store.account.sysMod">
+    <ng-container *ngIf="profile && store.account.mod && writeAccess">
       <a class="fake-link"
          (click)="changingRole = !changingRole" i18n>role</a>
       <span *ngIf="changingRole" class="inline-role">
