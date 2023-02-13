@@ -11,9 +11,9 @@ import { OriginStore } from './origin';
 export class AccountStore {
 
   tag = '';
-  user?: User;
-  ext?: Ext;
-  defaultConfig: any;
+  user?: User = {} as User;
+  ext?: Ext = {} as Ext;
+  defaultConfig: any = {};
   sa = false;
   admin = false;
   mod = false;
@@ -27,11 +27,14 @@ export class AccountStore {
     private origins: OriginStore,
   ) {
     makeAutoObservable(this);
+    // Initial observables may not be null for MobX
+    this.user = undefined;
+    this.ext = undefined;
+    this.defaultConfig = undefined;
   }
 
   get sysadmin() {
     if (config().multiTenant)  return this.sa;
-
     return this.admin;
   }
 

@@ -55,7 +55,7 @@ export class AccountService {
     if (!this.store.account.signedIn) return this.subscriptions$.pipe(
       switchMap(() => this.bookmarks$),
       switchMap(() => this.theme$),
-      );
+    );
     return this.loadUserExt$.pipe(
       switchMap(() => this.user$),
       switchMap(() => this.subscriptions$),
@@ -127,11 +127,7 @@ export class AccountService {
   addSub(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.status.templates.user) throw 'User template not installed';
-    this.exts.patch(this.store.account.tag, [{
-      op: 'add',
-      path: '/config/subscriptions/-',
-      value: tag,
-    }]).pipe(
+    this.addConfigArray('subscriptions', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.subscriptions$),
     ).subscribe();
@@ -155,11 +151,7 @@ export class AccountService {
   addBookmark(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.status.templates.user) throw 'User template not installed';
-    this.exts.patch(this.store.account.tag, [{
-      op: 'add',
-      path: '/config/bookmarks/-',
-      value: tag,
-    }]).pipe(
+    this.addConfigArray('bookmarks', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.bookmarks$),
     ).subscribe();
@@ -183,8 +175,8 @@ export class AccountService {
   checkNotifications() {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.status.templates.user) throw 'User template not installed';
-    return combineLatest(this.user$, this.userExt$).pipe(
-      switchMap(([_, ext]) => this.refs.count({
+    this.userExt$.pipe(
+      switchMap(() => this.refs.count({
         query: this.store.account.notificationsQuery,
         modifiedAfter: this.store.account.config.lastNotified || moment().subtract(1, 'year'),
       })),
@@ -194,13 +186,50 @@ export class AccountService {
   clearNotifications(readDate: moment.Moment) {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.status.templates.user) throw 'User template not installed';
-    this.exts.patch(this.store.account.tag, [{
-      op: 'add',
-      path: '/config/lastNotified',
-      value: readDate.add(1, 'millisecond').toISOString(),
-    }]).subscribe(() => {
+    const lastNotified = readDate.add(1, 'millisecond').toISOString();
+    this.updateConfig('lastNotified', lastNotified).subscribe(() => {
       this.clearCache();
       this.checkNotifications();
     });
+  }
+
+  updateConfig(name: string, value: any) {
+    return this.exts.patch(this.store.account.ext!.tag + this.store.account.ext!.origin, [{
+        op: 'add',
+        path: '/config/' + name,
+        value: value,
+      }]).pipe(tap(() => runInAction(() => {
+        this.store.account.ext = <Ext> {
+          ...this.store.account.ext,
+          config: {
+            ...this.store.account.config,
+            [name]: value,
+          },
+        };
+      })));
+  }
+
+  addConfigArray(name: string, value: any) {
+    if (!this.store.account.config[name]) {
+      value = [value];
+    } else {
+      name += '/-';
+    }
+    return this.exts.patch(this.store.account.ext!.tag + this.store.account.ext!.origin, [{
+        op: 'add',
+        path: '/config/' + name,
+        value: value,
+      }]).pipe(tap(() => runInAction(() => {
+        this.store.account.ext = <Ext> {
+          ...this.store.account.ext,
+          config: {
+            ...this.store.account.config,
+            [name]: [
+              ...(this.store.account.config[name] || []),
+              value
+            ],
+          },
+        };
+      })));
   }
 }

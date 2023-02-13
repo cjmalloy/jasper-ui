@@ -16,6 +16,7 @@ import { UntypedFormControl } from '@angular/forms';
 import { debounce, throttle, uniq, without } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { switchMap } from 'rxjs';
+import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
@@ -61,6 +62,7 @@ export class EditorComponent implements AfterViewInit {
 
   constructor(
     private admin: AdminService,
+    private accounts: AccountService,
     private auth: AuthzService,
     public store: Store,
     private overlay: Overlay,
@@ -108,12 +110,7 @@ export class EditorComponent implements AfterViewInit {
     }
     if (this.admin.status.templates.user) {
       runInAction(() => {
-        this.store.account.ext!.config ||= {};
-        this.store.account.ext!.config.editors = this.tags;
-        this.exts.update(this.store.account.ext!)
-          .pipe(
-            switchMap(() => this.exts.get(this.store.account.ext!.tag)),
-          ).subscribe(ext => runInAction(() => this.store.account.ext = ext));
+        this.accounts.updateConfig('editor', this.tags);
       });
     }
   }

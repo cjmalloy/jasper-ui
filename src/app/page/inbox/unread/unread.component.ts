@@ -18,6 +18,7 @@ import { Store } from '../../../store/store';
 export class InboxUnreadPage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
+  private lastNotified?: moment.Moment;
 
   constructor(
     private theme: ThemeService,
@@ -43,7 +44,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
     }));
     this.disposers.push(autorun(() => {
       if (this.query.page && !this.query.page!.empty) {
-        this.account.clearNotifications(newest(this.query.page!.content)!.modified!);
+        this.lastNotified = newest(this.query.page!.content)!.modified!;
       }
     }));
   }
@@ -51,6 +52,9 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    if (this.lastNotified) {
+      this.account.clearNotifications(this.lastNotified);
+    }
   }
 
 }
