@@ -27,7 +27,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.theme.setTitle('Comments: ' + (this.store.view.ref?.title || this.store.view.url));
+      this.theme.setTitle($localize`Comments: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
   }
 

@@ -39,7 +39,7 @@ export class RefResponsesComponent implements OnInit, OnDestroy {
       defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
-      this.theme.setTitle('Responses: ' + (this.store.view.ref?.title || this.store.view.url));
+      this.theme.setTitle($localize`Responses: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
   }
 

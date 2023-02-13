@@ -39,7 +39,7 @@ export class RefVersionsComponent implements OnInit, OnDestroy {
       defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
-      this.theme.setTitle('Remotes: ' + (this.store.view.ref?.title || this.store.view.url));
+      this.theme.setTitle($localize`Remotes: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
   }
 

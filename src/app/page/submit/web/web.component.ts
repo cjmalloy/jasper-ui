@@ -47,7 +47,7 @@ export class SubmitWebPage implements AfterViewInit {
     private refs: RefService,
     private fb: UntypedFormBuilder,
   ) {
-    this.setTitle('Submit: Web Link');
+    this.setTitle($localize`Submit: Web Link`);
     this.webForm = refForm(fb);
   }
 
@@ -64,10 +64,10 @@ export class SubmitWebPage implements AfterViewInit {
         }
         if (this.origin) {
           this.addTag('internal');
-          this.setTitle('Replicate Remote Origin');
+          this.setTitle($localize`Replicate Remote Origin`);
         } else if (this.feed) {
           this.addTag('internal');
-          this.setTitle('Submit: Feed');
+          this.setTitle($localize`Submit: Feed`);
         }
         defer(() => {
           this.url = params['url'].trim();

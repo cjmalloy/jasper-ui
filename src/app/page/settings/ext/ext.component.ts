@@ -19,7 +19,7 @@ export class SettingsExtPage implements OnInit, OnDestroy {
     public store: Store,
     public query: ExtStore,
   ) {
-    theme.setTitle('Settings: Tag Extensions');
+    theme.setTitle($localize`Settings: Tag Extensions`);
     store.view.clear('tag', 'tag');
     query.clear();
   }

@@ -28,7 +28,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
     public query: TemplateStore,
     private templates: TemplateService,
   ) {
-    theme.setTitle('Settings: Templates');
+    theme.setTitle($localize`Settings: Templates`);
     store.view.clear('tag', 'tag');
     query.clear();
   }

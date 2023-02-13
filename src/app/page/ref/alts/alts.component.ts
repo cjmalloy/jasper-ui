@@ -35,7 +35,7 @@ export class RefAltsComponent implements OnInit, OnDestroy {
         totalElements: 0,
         totalPages: 1,
       });
-      this.theme.setTitle('Alts: ' + (this.store.view.ref?.title || this.store.view.url))
+      this.theme.setTitle($localize`Alts: ` + (this.store.view.ref?.title || this.store.view.url))
       if (!this.store.view.ref?.alternateUrls) return;
       runInAction(() => {
         for (const url of this.store.view.ref!.alternateUrls!) {

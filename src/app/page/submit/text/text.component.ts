@@ -51,7 +51,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
     private refs: RefService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle('Submit: Text Post');
+    theme.setTitle($localize`Submit: Text Post`);
     this.textForm = refForm(fb);
     runInAction(() => store.submit.wikiPrefix = admin.getWikiPrefix());
   }
@@ -64,7 +64,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
         let url = this.store.submit.url || 'comment:' + uuid();
         if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
           url = wikiUriFormat(url, this.admin.getWikiPrefix());
-          this.theme.setTitle('Submit: Wiki');
+          this.theme.setTitle($localize`Submit: Wiki`);
           this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
           this.title.disable();
         }

@@ -28,7 +28,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
     private refs: RefService,
     private account: AccountService,
   ) {
-    theme.setTitle('Inbox: Unread');
+    theme.setTitle($localize`Inbox: Unread`);
     store.view.clear();
     query.clear();
   }

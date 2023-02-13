@@ -37,7 +37,7 @@ export class RefMissingComponent implements OnInit, OnDestroy {
         totalElements: 0,
         totalPages: 1,
       });
-      this.theme.setTitle('Missing Sources: ' + (this.store.view.ref?.title || this.store.view.url));
+      this.theme.setTitle($localize`Missing Sources: ` + (this.store.view.ref?.title || this.store.view.url));
       if (!this.store.view.ref?.sources) return;
       for (const url of this.store.view.ref.sources) {
         this.refs.exists(url).subscribe(exists => {

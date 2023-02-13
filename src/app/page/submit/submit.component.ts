@@ -52,7 +52,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     private feeds: ScrapeService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle('Submit: Link');
+    theme.setTitle($localize`Submit: Link`);
     this.submitForm = fb.group({
       url: ['', [Validators.required], [this.validator]],
       scrape: [true],

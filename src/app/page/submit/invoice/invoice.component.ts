@@ -45,7 +45,7 @@ export class SubmitInvoicePage implements OnInit {
     private exts: ExtService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle('Submit: Invoice');
+    theme.setTitle($localize`Submit: Invoice`);
     this.invoiceForm = fb.group({
       url: ['', [Validators.required, Validators.pattern(URI_REGEX)]],
       title: ['', [Validators.required]],

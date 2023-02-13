@@ -22,7 +22,7 @@ export class InboxSentPage implements OnInit, OnDestroy {
     public store: Store,
     public query: QueryStore,
   ) {
-    theme.setTitle('Inbox: Sent');
+    theme.setTitle($localize`Inbox: Sent`);
     store.view.clear();
     query.clear();
   }

@@ -43,7 +43,7 @@ export class SubmitDmPage implements OnInit {
     private editor: EditorService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle('Submit: Direct Message');
+    theme.setTitle($localize`Submit: Direct Message`);
     this.dmForm = fb.group({
       to: ['', [Validators.pattern(NOTIFY_REGEX)]],
       title: [''],

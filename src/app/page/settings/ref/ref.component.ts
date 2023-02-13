@@ -20,14 +20,14 @@ export class SettingsRefPage implements OnInit, OnDestroy {
     public store: Store,
     public query: QueryStore,
   ) {
-    theme.setTitle('Settings: ');
+    theme.setTitle($localize`Settings: `);
     store.view.clear('modified');
     query.clear();
   }
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.theme.setTitle(`Settings: ${this.store.settings.tag}`);
+      this.theme.setTitle($localize`Settings: ${this.store.settings.tag}`);
       const args = getArgs(
         this.store.settings.tag,
         this.store.view.sort,

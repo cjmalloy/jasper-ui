@@ -25,7 +25,7 @@ export class SettingsUserPage implements OnInit, OnDestroy {
     public scim: ProfileStore,
     public query: UserStore,
   ) {
-    theme.setTitle('Settings: User Profiles');
+    theme.setTitle($localize`Settings: User Profiles`);
     store.view.clear('tag', 'tag');
     scim.clear();
     query.clear();

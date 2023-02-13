@@ -27,7 +27,7 @@ export class HomePage implements OnInit, OnDestroy {
     public query: QueryStore,
     private refs: RefService,
   ) {
-    theme.setTitle('Home');
+    theme.setTitle($localize`Home`);
     store.view.clear();
     query.clear();
     if (admin.status.templates.home) {

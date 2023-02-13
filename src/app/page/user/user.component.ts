@@ -45,7 +45,7 @@ export class UserPage implements OnInit, OnDestroy {
     private users: UserService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle('Create Profile');
+    theme.setTitle($localize`Create Profile`);
     this.profileForm = fb.group({
       active: [true],
       password: [''],

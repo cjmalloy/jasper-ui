@@ -28,7 +28,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
     public query: PluginStore,
     private plugins: PluginService,
   ) {
-    theme.setTitle('Settings: Plugins');
+    theme.setTitle($localize`Settings: Plugins`);
     store.view.clear('tag', 'tag');
     query.clear();
   }

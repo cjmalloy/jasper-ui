@@ -34,7 +34,7 @@ export class SettingsSetupPage implements OnInit {
     private templates: TemplateService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle('Settings: Setup');
+    theme.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
       plugins: fb.group(mapValues(admin.status.plugins, p => fb.control(p))),
       templates: fb.group(mapValues(admin.status.templates, t => fb.control(t))),

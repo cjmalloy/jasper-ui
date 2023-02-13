@@ -24,7 +24,7 @@ export class SettingsBackupPage implements OnInit {
     public store: Store,
     private backups: BackupService,
   ) {
-    theme.setTitle('Settings: Backup & Restore');
+    theme.setTitle($localize`Settings: Backup & Restore`);
     backups.list()
       .subscribe(list => this.list = list.sort().reverse());
   }
