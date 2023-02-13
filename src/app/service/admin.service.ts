@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { findKey, flatten, isEqual, mapValues, omitBy, reduce } from 'lodash-es';
-import { forkJoin, Observable, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Action, Icon, Plugin } from '../model/plugin';
 import { Tag } from '../model/tag';
@@ -135,11 +135,29 @@ export class AdminService {
     const installs = this.defaultPlugins.map(p => this.plugins.create({
       ...p,
       origin: this.store.account.origin,
-    }));
+    }).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          // Ignore already exists
+          console.warn('Ignoring 409 ', err);
+          return of(null);
+        }
+        return throwError(() => err);
+      })
+    ));
     installs.push(...this.defaultTemplates.map(t => this.templates.create({
       ...t,
       origin: this.store.account.origin,
-    })));
+    }).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          // Ignore already exists
+          console.warn('Ignoring 409 ', err);
+          return of(null);
+        }
+        return throwError(() => err);
+      })
+    )));
     return this.exts.create({
       tag: this.store.account.localTag,
       origin: this.store.account.origin,
