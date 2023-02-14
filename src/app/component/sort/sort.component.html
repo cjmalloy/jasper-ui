@@ -1,4 +1,7 @@
-<select #create (input)="addSort($any(create.value))" i18n-title title="Sort">
+<select #create
+        class="big"
+        (input)="addSort($any(create.value))"
+        i18n-title title="Sort">
   <option class="unselected">🔼️ sort</option>
   <option *ngFor="let opt of allSorts" [value]="opt.value">{{ opt.label || opt.value }}</option>
 </select>
