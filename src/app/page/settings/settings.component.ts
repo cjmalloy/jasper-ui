@@ -19,7 +19,7 @@ export class SettingsPage implements OnInit {
     public store: Store,
   ) {
     runInAction(() => {
-      store.settings.plugins = admin.pluginConfigProperty('submit').filter(p => auth.tagReadAccess(p.tag));
+      store.settings.plugins = admin.settings.filter(p => auth.tagReadAccess(p.tag));
     });
   }
 

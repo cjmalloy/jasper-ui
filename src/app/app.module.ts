@@ -50,6 +50,7 @@ import { QueryComponent } from './component/query/query.component';
 import { RefListComponent } from './component/ref-list/ref-list.component';
 import { RefComponent } from './component/ref/ref.component';
 import { SearchComponent } from './component/search/search.component';
+import { SelectPluginComponent } from './component/select-plugin/select-plugin.component';
 import { SelectTemplateComponent } from './component/select-template/select-template.component';
 import { SettingsComponent } from './component/settings/settings.component';
 import { SidebarComponent } from './component/sidebar/sidebar.component';
@@ -266,6 +267,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     SubfolderComponent,
     FileComponent,
     RouterActivateDirective,
+    SelectPluginComponent,
   ],
   imports: [
     BrowserModule,

@@ -6,7 +6,6 @@ import { DEFAULT_WIKI_PREFIX } from '../plugin/wiki';
 
 export class SubmitStore {
 
-  plugins: Plugin[] = [];
   wikiPrefix = DEFAULT_WIKI_PREFIX;
 
   constructor(
@@ -62,19 +61,7 @@ export class SubmitStore {
     return this.tags.includes('+plugin/origin');
   }
 
-  get link() {
-    return !this.wiki && !find(this.tags, t => this.plugins.find(p => p.tag === t));
-  }
-
   get web() {
-    return this.link && (!this.subpage || this.subpage === 'web');
-  }
-
-  get tagsWithoutTab(): string[] {
-    return filter(this.tags, t => !this.plugins.find(p => p.tag === t));
-  }
-
-  get activePlugins() {
-    return this.plugins.filter(p => this.tags.includes(p.tag));
+    return !this.wiki && (!this.subpage || this.subpage === 'web');
   }
 }

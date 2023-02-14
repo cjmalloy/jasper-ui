@@ -38,6 +38,10 @@ input.big {
   height: 24px;
 }
 
+select.big {
+  height: 30px;
+}
+
 .wide {
   width: 100%;
 }
@@ -232,10 +236,6 @@ video.qr-preview {
   .current-page {
     font-weight: bold;
   }
-}
-
-select {
-  height: 25px;
 }
 
 .tabs {

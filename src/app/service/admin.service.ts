@@ -254,7 +254,11 @@ export class AdminService {
   }
 
   get submit() {
-    return this.pluginConfigProperty('submit').map(p => p!.tag);
+    return this.pluginConfigProperty('submit');
+  }
+
+  get settings() {
+    return this.pluginConfigProperty('settings');
   }
 
   get tmplSubmit() {

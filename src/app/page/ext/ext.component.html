@@ -6,10 +6,13 @@
   <ng-container *ngIf="!store.view.ext">
     <form class="form" [formGroup]="extForm" (ngSubmit)="create()">
 
-      <label for="tag" i18n>Extend Tag:</label>
+      <label for="tag"></label>
       <div class="form-array">
         <app-select-template [(template)]="template"></app-select-template>
         <input id="tag"
+               i18n-placeholder
+               placeholder="Extend Tag..."
+               class="big"
                type="email"
                autocorrect="off"
                autocapitalize="none"
@@ -34,14 +37,13 @@
 
       <span><!-- Buttons --></span>
       <span class="form-array right">
-        <button type="submit" [disabled]="submitted && !extForm.valid" i18n>Create</button>
+        <button type="submit" [disabled]="submitted && !extForm.valid" i18n>Extend</button>
       </span>
     </form>
   </ng-container>
   <ng-container *ngIf="store.view.ext">
     <form *ngIf="editForm" class="form" [formGroup]="editForm" (ngSubmit)="save()"
           [appLimitWidth]="form?.fill?.nativeElement" [limitSibling]="true">
-
       <app-ext-form #form
                     [group]="editForm"
                     [showClear]="true"

@@ -1,39 +1,26 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
     <h5 i18n>Submit</h5>
-    <a *ngIf="!store.submit.tagsWithoutTab.length"
-       routerLink="/submit"
+    <a routerLink="/submit"
        [class.current-tab]="store.submit.web"
        [queryParams]="{ tag: null, url: url.value }"
        [replaceUrl]="true"
        queryParamsHandling="merge" i18n>link</a>
-    <a *ngIf="store.submit.tagsWithoutTab.length"
-       routerLink="/submit"
-       [class.current-tab]="store.submit.web"
-       [queryParams]="{ tag: store.submit.tagsWithoutTab, url: url.value }"
-       [replaceUrl]="true"
-       queryParamsHandling="merge">{{ store.submit.tagsWithoutTab.join(', ') }}</a>
     <a routerLink="/submit/text"
        [class.current-tab]="store.submit.text"
-       [queryParams]="{ tag: store.submit.tagsWithoutTab, url: null }"
+       [queryParams]="{ url: null }"
        queryParamsHandling="merge" i18n>text</a>
     <ng-container *ngIf="!admin.isWikiExternal()">
       <a routerLink="/submit"
          [class.current-tab]="store.submit.wiki"
-         [queryParams]="{ tag: store.submit.tagsWithoutTab, url: wikify }"
+         [queryParams]="{ url: wikify }"
          [replaceUrl]="true"
          queryParamsHandling="merge" i18n>wiki</a>
     </ng-container>
     <a routerLink="/submit/dm"
        [class.current-tab]="store.submit.subpage === 'dm'"
-       [queryParams]="{ tag: store.submit.tagsWithoutTab, url: null }"
+       [queryParams]="{ url: null }"
        queryParamsHandling="merge" i18n>dm</a>
-    <a routerLink="/submit"
-       [class.current-tab]="store.submit.tags.includes(plugin.tag)"
-       *ngFor="let plugin of store.submit.plugins"
-       [queryParams]="{ tag: togglePlugin(plugin.tag), url: url.value }"
-       [replaceUrl]="true"
-       queryParamsHandling="merge">{{ plugin.config?.submit || plugin.tag }}</a>
     <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
   </div>
@@ -43,12 +30,12 @@
   <ng-container *ngIf="!store.submit.subpage">
     <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
 
-      <ng-container *ngFor="let plugin of store.submit.activePlugins">
+      <ng-container *ngIf="!store.submit.wiki && selectedPlugin">
         <span i18n>Type:</span>
         <div>
-          <span>{{ plugin.name || plugin.config?.submit || plugin.tag }}</span>
-          <p *ngIf="plugin.config?.description" class="description">
-            {{ plugin.config!.description }}
+          <span>{{ selectedPlugin.name || selectedPlugin.config?.submit || selectedPlugin.tag }}</span>
+          <p *ngIf="selectedPlugin.config?.description" class="description">
+            {{ selectedPlugin.config!.description }}
           </p>
         </div>
       </ng-container>
@@ -63,10 +50,12 @@
         </div>
       </ng-container>
 
-      <label for="url" class="big" *ngIf="!store.submit.wiki">URL:</label>
+      <label for="url" class="big" *ngIf="!store.submit.wiki"></label>
       <label for="url" class="big" *ngIf="store.submit.wiki">Title:</label>
       <div class="form-array">
+        <app-select-plugin *ngIf="store.submit.web" [(plugin)]="plugin"></app-select-plugin>
         <input id="url"
+               [placeholder]="placeholder"
                class="big"
                type="text"
                autocomplete="off"
@@ -83,8 +72,7 @@
 
       <span><!-- Tags --></span>
       <div class="form-array right">
-        <span *ngFor="let plugin of store.submit.activePlugins">{{ plugin.config?.submit || plugin.tag }}</span>
-        <span *ngFor="let tag of store.submit.tagsWithoutTab">🏷️{{ tag }}</span>
+        <span *ngFor="let tag of store.submit.tags">🏷️{{ tag }}</span>
       </div>
 
       <br>
@@ -98,7 +86,7 @@
       <span><!-- Buttons --></span>
       <span class="form-array right">
     <button type="submit" [disabled]="!submitForm.valid">Next</button>
-    <div *ngIf="store.submit.link">
+    <div *ngIf="store.submit.web">
       <input id="scrape" type="checkbox" [checked]="scrape" (input)="scrape = !scrape">
       <label for="scrape">Scrape</label>
     </div>

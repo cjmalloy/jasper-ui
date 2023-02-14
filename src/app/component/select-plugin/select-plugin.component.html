@@ -1,0 +1,6 @@
+<select #select
+        class="big"
+        (input)="pluginChange.next(select.value)">
+  <option i18n>🧰️</option>
+  <option *ngFor="let p of plugins" [value]="p.tag">{{ p.config?.submit }}</option>
+</select>

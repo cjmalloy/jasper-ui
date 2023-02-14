@@ -9,7 +9,6 @@ import { AdminService } from '../../service/admin.service';
 })
 export class SelectTemplateComponent {
 
-
   @Output()
   templateChange = new EventEmitter<string>();
 

@@ -13,6 +13,7 @@ import { uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
+import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { isWiki, wikiUriFormat } from '../../plugin/wiki';
 import { AdminService } from '../../service/admin.service';
@@ -38,6 +39,8 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   validations: Validation[] = [];
 
+  plugin = '';
+  private _plugin?: Plugin;
   serverErrors: string[] = [];
   existingRef?: Ref;
   scrape = true;
@@ -59,7 +62,6 @@ export class SubmitPage implements OnInit, OnDestroy {
     });
     runInAction(() => {
       store.submit.wikiPrefix = admin.getWikiPrefix();
-      store.submit.plugins = admin.pluginConfigProperty('submit').filter(p => auth.tagReadAccess(p.tag));
     });
   }
 
@@ -90,8 +92,21 @@ export class SubmitPage implements OnInit, OnDestroy {
     this.disposers.length = 0;
   }
 
+  get selectedPlugin() {
+    if (!this.plugin) {
+      this._plugin = undefined;
+    } else if (this._plugin?.tag != this.plugin) {
+      this._plugin = this.admin.getPlugin(this.plugin);
+    }
+    return this._plugin;
+  }
+
   get url() {
     return this.submitForm.get('url') as UntypedFormControl;
+  }
+
+  get placeholder() {
+    return this.store.submit.wiki ? '' : $localize`URL...`;
   }
 
   get wikify() {
@@ -135,9 +150,17 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   submit() {
+    let tags = this.store.submit.tags;
+    if (this.store.submit.web && this.plugin && !tags.includes(this.plugin)) {
+      tags = uniq([this.plugin, ...tags]);
+    }
     const url = this.fixed(this.url.value);
     this.router.navigate(['./submit', this.editor(this.linkType(url))], {
-      queryParams: { url, scrape: this.store.submit.link && this.scrape },
+      queryParams: {
+        url,
+        tag: tags,
+        scrape: this.store.submit.web && this.scrape,
+      },
       queryParamsHandling: 'merge',
     });
   }
@@ -168,14 +191,6 @@ export class SubmitPage implements OnInit, OnDestroy {
     if (value.startsWith('comment:')) return 'text';
     if (URI_REGEX.test(value)) return 'other';
     return null;
-  }
-
-  togglePlugin(plugin: string) {
-    if (this.store.submit.tags.includes(plugin)) {
-      return without(this.store.submit.tags, plugin);
-    } else {
-      return uniq([plugin].concat(this.store.submit.tags));
-    }
   }
 
   private editor(linkType: any) {
