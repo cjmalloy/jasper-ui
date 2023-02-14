@@ -43,18 +43,18 @@ export class SortComponent implements OnInit, OnDestroy {
   set type(value: Type) {
     if (value === 'ref') {
       this.allSorts = [
-        { value: 'url', label: $localize`🔗️ url` },
-        { value: 'origin', label: $localize`🏛️ origin` },
-        { value: 'title', label: $localize`🇦️ title` },
         { value: 'created', label: $localize`✨️ new` },
-        { value: 'tagCount', label: $localize`🏷️ tags` },
-        { value: 'sourceCount', label: $localize`📜️ sources` },
-        { value: 'responseCount', label: $localize`💌️ responses` },
         { value: 'published', label: $localize`📅️ published` },
         { value: 'modified', label: $localize`🕓️ modified` },
+        { value: 'title', label: $localize`🇦️ title` },
+        { value: 'url', label: $localize`🔗️ url` },
+        { value: 'origin', label: $localize`🏛️ origin` },
+        { value: 'tagCount', label: $localize`🏷️ tags` },
+        { value: 'responseCount', label: $localize`💌️ responses` },
+        { value: 'sourceCount', label: $localize`📜️ sources` },
       ]
       if (this.admin.status.plugins.comment) {
-        this.allSorts.splice(1, 0, { value: 'commentCount', label: $localize`💬️ comments` });
+        this.allSorts.splice(7, 0, { value: 'commentCount', label: $localize`💬️ comments` });
       }
       if (this.store.view.search) {
         this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance` });
@@ -62,10 +62,10 @@ export class SortComponent implements OnInit, OnDestroy {
     }
     if (value !== 'ref') {
       this.allSorts = [
+        { value: 'modified', label: $localize`🕓️ modified` },
+        { value: 'name', label: $localize`🇦️ name` },
         { value: 'tag', label: $localize`🏷️ tag` },
         { value: 'origin', label: $localize`🏛️ origin` },
-        { value: 'name', label: $localize`🇦️ name` },
-        { value: 'modified', label: $localize`🕓️ modified` },
       ]
     }
   }

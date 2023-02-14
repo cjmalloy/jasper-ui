@@ -35,11 +35,12 @@ label.big {
 }
 
 input.big {
-  height: 24px;
+  height: 23px;
 }
 
 select.big {
-  height: 30px;
+  height: 29px;
+  font-size: 16px;
 }
 
 .wide {
@@ -267,6 +268,7 @@ video.qr-preview {
 
   select {
     position: relative;
+    height: 24px;
     bottom: -1px;
     outline: none !important;
   }
