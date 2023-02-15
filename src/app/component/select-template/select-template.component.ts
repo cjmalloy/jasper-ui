@@ -23,7 +23,9 @@ export class SelectTemplateComponent {
 
   @Input()
   set template(value: string) {
-    this.select!.nativeElement.selectedIndex = this.templates.map(t => t.tag + '/').indexOf(value) + 1;
+    if (this.select) {
+      this.select!.nativeElement.selectedIndex = this.templates.map(t => t.tag + '/').indexOf(value) + 1;
+    }
   }
 
 }
