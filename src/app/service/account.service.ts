@@ -61,6 +61,11 @@ export class AccountService {
       switchMap(() => this.subscriptions$),
       switchMap(() => this.bookmarks$),
       switchMap(() => this.theme$),
+      catchError(err => {
+        console.error('Can not create user data');
+        console.error(err);
+        return of(null);
+      }),
     );
   }
 
