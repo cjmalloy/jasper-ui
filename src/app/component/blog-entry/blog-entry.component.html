@@ -30,7 +30,7 @@
         </div>
         <div class="actions">
           <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }" i18n>permalink</a>
-          <a *ngIf="store.account.poster" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
+          <a *ngIf="store.account.user" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
           <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
           <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
           <a *ngIf="sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }" i18n>parent</a>

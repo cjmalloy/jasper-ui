@@ -83,7 +83,7 @@ export class AccountService {
     if (!this.store.account.signedIn) return throwError(() => 'Not signed in');
     if (!this._user$) {
       this._user$ = this.users.get(this.store.account.tag).pipe(
-        tap(user => runInAction(() => this.store.account.user = user)),
+        tap(user => runInAction(() => this.store.account.access = user)),
         shareReplay(1),
         catchError(() => of(undefined)),
       );

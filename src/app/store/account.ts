@@ -11,14 +11,46 @@ import { OriginStore } from './origin';
 export class AccountStore {
 
   tag = '';
-  user?: User = {} as User;
+  access?: User = {} as User;
   ext?: Ext = {} as Ext;
   defaultConfig: any = {};
+
+  /**
+   * Is Sysadmin.
+   * Only used in multi-tenant to own all origins.
+   * Equivalent to Admin in single tenant.
+   */
   sa = false;
+  /**
+   * Is admin.
+   * Owns everything.
+   * Limited to origin in multi-tenant.
+   */
   admin = false;
+  /**
+   * Is mod.
+   * Owns everything except plugins and templates.
+   * Limited to origin in multi-tenant.
+   */
   mod = false;
+  /**
+   * Is editor.
+   * Allowed to toggle any public tag (except public and locked) to any Ref in view.
+   * Limited to origin in multi-tenant.
+   */
   editor = false;
-  poster = false;
+  /**
+   * Is editor.
+   * Allowed to toggle any public tag (except public and locked) to any Ref in view.
+   * May be given access to other tags.
+   * Limited to origin in multi-tenant.
+   */
+  user = false;
+  /**
+   * Is user.
+   * Allowed to post Refs.
+   * May be given access to other tags.
+   */
   viewer = false;
   notifications = 0;
   authError = false;
@@ -28,7 +60,7 @@ export class AccountStore {
   ) {
     makeAutoObservable(this);
     // Initial observables may not be null for MobX
-    this.user = undefined;
+    this.access = undefined;
     this.ext = undefined;
     this.defaultConfig = undefined;
   }
@@ -60,7 +92,7 @@ export class AccountStore {
     if (this.admin) return 'admin';
     if (this.mod) return 'mod';
     if (this.editor) return 'editor';
-    if (this.poster) return 'user';
+    if (this.user) return 'user';
     if (this.viewer) return 'viewer';
     return 'anon';
   }
@@ -86,7 +118,7 @@ export class AccountStore {
   }
 
   get modmail() {
-    return this.user?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => t + (this.origin || '@*'));
+    return this.access?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => t + (this.origin || '@*'));
   }
 
   get outboxes() {
@@ -117,7 +149,7 @@ export class AccountStore {
     this.admin = roles.admin;
     this.mod = roles.mod;
     this.editor = roles.editor;
-    this.poster = roles.user;
+    this.user = roles.user;
     this.viewer = roles.viewer;
   }
 

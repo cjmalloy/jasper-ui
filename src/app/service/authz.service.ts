@@ -19,9 +19,9 @@ export class AuthzService {
     if (this.store.account.mod) return true;
     if (hasTag('locked', ref)) return false;
     if (isOwnerTag(this.store.account.tag, ref)) return true;
-    if (!this.store.account.user) return false;
-    if (isOwner(this.store.account.user, ref)) return true;
-    return capturesAny(this.store.account.user.writeAccess, qualifyTags(ref.tags, ref.origin));
+    if (!this.store.account.access) return false;
+    if (isOwner(this.store.account.access, ref)) return true;
+    return capturesAny(this.store.account.access.writeAccess, qualifyTags(ref.tags, ref.origin));
   }
 
   queryReadAccess(query?: string): boolean {
@@ -40,9 +40,9 @@ export class AuthzService {
     if (!privateTag(tag)) return true;
     if (this.store.account.mod) return true;
     if (captures(this.store.account.localTag, tag)) return true;
-    if (!this.store.account.user) return false;
-    if (capturesAny(this.store.account.user.tagReadAccess, [tag])) return true;
-    return capturesAny(this.store.account.user.readAccess, [tag]);
+    if (!this.store.account.access) return false;
+    if (capturesAny(this.store.account.access.tagReadAccess, [tag])) return true;
+    return capturesAny(this.store.account.access.readAccess, [tag]);
   }
 
   tagWriteAccess(tag?: string): boolean {
@@ -53,8 +53,8 @@ export class AuthzService {
     if (this.store.account.mod) return true;
     if (this.store.account.editor && !privateTag(tag)) return true;
     if (captures(this.store.account.localTag, tag)) return true;
-    if (!this.store.account.user) return false;
-    return capturesAny(this.store.account.user.tagWriteAccess, [tag]);
+    if (!this.store.account.access) return false;
+    return capturesAny(this.store.account.access.tagWriteAccess, [tag]);
   }
 
   hasRole(role: Role) {
@@ -63,7 +63,7 @@ export class AuthzService {
       case 'ROLE_ADMIN': return this.store.account.admin;
       case 'ROLE_MOD': return this.store.account.mod;
       case 'ROLE_EDITOR': return this.store.account.editor;
-      case 'ROLE_USER': return this.store.account.poster;
+      case 'ROLE_USER': return this.store.account.user;
       case 'ROLE_VIEWER': return true;
       case 'ROLE_ANONYMOUS': return true;
     }

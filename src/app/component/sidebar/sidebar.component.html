@@ -21,7 +21,7 @@
   <app-debug *ngIf="expanded"></app-debug>
   <app-bulk *ngIf="expanded && store.view.current" [type]="store.view.type!"></app-bulk>
   <span class="button-bar">
-    <ng-container *ngIf="store.account.poster">
+    <ng-container *ngIf="store.account.user">
       <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
         <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit</label>
       </div>
@@ -32,7 +32,7 @@
       </div>
     </ng-container>
     <ng-container *ngIf="admin.status.plugins.inbox">
-      <ng-container *ngIf="store.account.poster && (user || modmail)">
+      <ng-container *ngIf="store.account.user && (user || modmail)">
         <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
         </div>

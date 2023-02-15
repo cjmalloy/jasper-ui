@@ -5,7 +5,7 @@
     <span class="fake-link"
           (click)="download()" i18n>download</span>
     <ng-container *ngIf="type === 'ref'">
-      <a *ngIf="store.account.poster"
+      <a *ngIf="store.account.user"
          class="fake-link"
          routerLink="/submit"
          [queryParams]="{source: urls}" i18n>reply</a>
