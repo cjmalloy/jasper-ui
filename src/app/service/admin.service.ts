@@ -375,7 +375,7 @@ export class AdminService {
   }
 
   defaultConfig(tag: string) {
-    return reduce(this.getTemplates(tag), (prev, curr) => {
+    return reduce(this.getTemplates(tag).map(t => t.defaults || {}), (prev, curr) => {
       return {...prev, ...curr};
     }, {});
   }

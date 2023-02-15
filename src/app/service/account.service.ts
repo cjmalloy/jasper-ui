@@ -30,9 +30,7 @@ export class AccountService {
     private users: UserService,
     private exts: ExtService,
     private refs: RefService,
-  ) {
-    runInAction(() => this.store.account.defaultConfig = this.admin.defaultConfig('user'));
-  }
+  ) { }
 
   get whoAmI$() {
     return this.users.whoAmI().pipe(
@@ -52,6 +50,7 @@ export class AccountService {
   }
 
   get init$() {
+    runInAction(() => this.store.account.defaultConfig = this.admin.defaultConfig('user'));
     if (!this.store.account.signedIn) return this.subscriptions$.pipe(
       switchMap(() => this.bookmarks$),
       switchMap(() => this.theme$),
