@@ -9,7 +9,7 @@ import {
   Validators
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { uniq, without } from 'lodash-es';
+import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
@@ -118,7 +118,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   get bannedUrls() {
-    return this.admin.status.plugins.root?.config?.bannedUrls || this.admin.def.plugins.root.config!.bannedUrls;
+    return this.admin.status.plugins.banlist?.config?.bannedUrls || this.admin.def.plugins.banlist.config!.bannedUrls;
   }
 
   fixed(url: string) {

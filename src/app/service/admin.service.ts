@@ -9,6 +9,7 @@ import { Template } from '../model/template';
 import { aprioriPlugin } from '../plugin/apriori';
 import { archivePlugin } from '../plugin/archive';
 import { audioPlugin } from '../plugin/audio';
+import { banlistPlugin } from '../plugin/banlist';
 import { commentPlugin } from '../plugin/comment';
 import { deletePlugin } from '../plugin/delete';
 import { htmlPlugin, latexPlugin } from '../plugin/editor';
@@ -18,13 +19,14 @@ import { feedPlugin } from '../plugin/feed';
 import { graphPlugin } from '../plugin/graph';
 import { imagePlugin } from '../plugin/image';
 import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
+import { lockedPlugin } from '../plugin/locked';
 import { inboxPlugin, outboxPlugin } from '../plugin/mailbox';
+import { modlistPlugin } from '../plugin/modlist';
 import { originPlugin, pullPlugin, pushPlugin } from '../plugin/origin';
 import { pdfPlugin } from '../plugin/pdf';
 import { personPlugin } from '../plugin/person';
 import { qrPlugin } from '../plugin/qr';
 import { repostPlugin } from '../plugin/repost';
-import { rootPlugin } from '../plugin/root';
 import { terminalThemePlugin } from '../plugin/theme';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
@@ -56,7 +58,9 @@ export class AdminService {
 
   def = {
     plugins: <Record<string, Plugin>> {
-      root: rootPlugin,
+      locked: lockedPlugin,
+      modlist: modlistPlugin,
+      banlist: banlistPlugin,
       origin: originPlugin,
       pull: pullPlugin,
       push: pushPlugin,
