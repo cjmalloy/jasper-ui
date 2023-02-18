@@ -9,6 +9,10 @@ import { Tag } from './tag';
 export interface Plugin extends Tag {
   type?: 'plugin';
   config?: {
+    /**
+     * Plugins may only be created and edited by admin, so we allow anything.
+     * Schemas are only used on non-admin config.
+     */
     [record: string]: any,
     /**
      * Optional category for setup screen.
@@ -18,6 +22,10 @@ export interface Plugin extends Tag {
      * Install by default on a fresh instance.
      */
     default?: boolean;
+    /**
+     * Description of what this plugin is used for.
+     */
+    description?: string,
     /**
      * Optional handlebars template to use as an embed UI.
      */
@@ -31,12 +39,33 @@ export interface Plugin extends Tag {
      */
     form?: FormlyFieldConfig[],
     /**
-     * Add tab on submit page for this plugin using this label.
+     * Add plugin to submit dropdown.
      */
     submit?: string,
+    /**
+     * Add tab on the settings page for this plugin using this label.
+     */
+    settings?: string,
+    /**
+     * Add a ribbon to the editor to enable this plugin.
+     */
     editor?: string,
-    description?: string,
+    /**
+     * Optional icons to add to refs based on tag triggers.
+     */
     icons?: Icon[],
+    /**
+     * List of file extensions that match this plugin.
+     */
+    extensions?: string[],
+    /**
+     * List of web hosts that match this plugin.
+     */
+    hosts?: string[],
+    /**
+     * List of URL schemes that match this plugin.
+     */
+    schemes?: string[],
     /**
      * Optionally customise the meaning of the published field.
      */
@@ -60,8 +89,17 @@ export interface Plugin extends Tag {
      */
     writeAccess?: string[],
   };
+  /**
+   * Default config values when validating or reading. Should pass validation.
+   */
   defaults?: any;
+  /**
+   * JTD schema for validating config.
+   */
   schema?: Schema;
+  /**
+   * Generate separate Ref response metadata for this plugin.
+   */
   generateMetadata?: boolean;
 
   // Cache

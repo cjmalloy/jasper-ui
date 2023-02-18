@@ -8,11 +8,19 @@ import { Tag } from './tag';
 export interface Template extends Tag {
   type?: 'template';
   config?: {
+    /**
+     * Templates may only be created and edited by admin, so we allow anything.
+     * Schemas are only used on non-admin config.
+     */
     [record: string]: any,
     /**
      * Install by default on a fresh instance.
      */
     default?: boolean;
+    /**
+     * Description of what this template is used for.
+     */
+    description?: string,
     /**
      * Optional handlebars template to use as a sidebar UI.
      */
@@ -31,9 +39,14 @@ export interface Template extends Tag {
      * will stack from abstract to specific inheritance.
      */
     overrideForm?: boolean;
-    description?: string,
   };
+  /**
+   * Default config values when validating or reading. Should pass validation.
+   */
   defaults?: any;
+  /**
+   * JTD schema for validating config.
+   */
   schema?: Schema;
 
   // Cache
