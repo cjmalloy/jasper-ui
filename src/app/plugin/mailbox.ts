@@ -26,6 +26,9 @@ export const outboxPlugin: Plugin = {
     description: $localize`The outbox plugin allow sending notifications to another user on
       a remote or multi-tenant server.`,
     icons: [{ label: $localize`📬️`, title: $localize`Notifications in outbox` }],
+    filters: [
+      { query: 'plugin/outbox', label: $localize`📬️ outbox`, group: $localize`Plugins 🧰️` },
+    ],
   },
 };
 

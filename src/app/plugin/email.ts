@@ -12,6 +12,9 @@ export const emailPlugin: Plugin = {
     icons: [
       { label: $localize`📧️` },
     ],
+    filters: [
+      { query: 'plugin/email', label: $localize`📧️ email`, group: $localize`Plugins 🧰️` },
+    ],
   },
   generateMetadata: true,
 };
