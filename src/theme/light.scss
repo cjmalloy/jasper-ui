@@ -164,6 +164,21 @@ body.light-theme {
     border-bottom: 1px dashed $border;
     backdrop-filter: blur(1px);
     box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
+
+    details {
+      summary {
+        span {
+          border: 1px solid $border;
+          border-left: none;
+          border-right: none;
+
+          &:hover {
+            background-color: $bg-accent;
+          }
+        }
+      }
+    }
+
     .submit-button {
       border: 1px solid $border;
 

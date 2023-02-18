@@ -309,6 +309,41 @@ video.qr-preview {
   margin-bottom: 100px;
   border-bottom-left-radius: 4px;
 
+  details {
+    padding: 4px;
+    transition: max-height 0.4s;
+    max-height: 50px;
+
+    summary {
+      display: block;
+      text-align: right;
+      margin: 4px -8px;
+      span {
+        display: block;
+        cursor: pointer;
+        padding: 4px;
+
+        &:after {
+          margin: 0 8px;
+          content: '➕';
+          display: inline-block;
+          transition: transform 0.4s;
+          transform: rotate(90deg);
+        }
+      }
+    }
+  }
+
+  details[open] {
+    max-height: 300px;
+    summary span {
+      &:after {
+        transform: rotate(0);
+        content: '➖';
+      }
+    }
+  }
+
   & > * {
     margin: 4px;
   }
