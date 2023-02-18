@@ -37,7 +37,7 @@ export class ExtComponent implements OnInit {
 
   constructor(
     public admin: AdminService,
-    private store: Store,
+    public store: Store,
     private auth: AuthzService,
     private exts: ExtService,
     private fb: UntypedFormBuilder,
