@@ -17,7 +17,7 @@ export function getArgs(
   pageSize?: number
 ): RefPageArgs {
   if (filters?.includes('query/internal@*')) {
-    filters = without(filters, 'query/!internal@*');
+    filters = without(filters, 'query/!internal@*', 'query/internal@*');
   }
   if (filters?.includes('query/!internal@*') && filters?.includes('query/plugin/comment@*')) {
     filters = without(filters, 'query/!internal@*', 'query/plugin/comment@*');
