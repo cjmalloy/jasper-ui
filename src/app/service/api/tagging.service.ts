@@ -47,4 +47,21 @@ export class TaggingService {
       catchError(err => this.login.handleHttpError(err)),
     );
   }
+
+  createResponse(tag: string, url: string, origin = ''): Observable<void> {
+    if (tag.startsWith('-')) return this.deleteResponse(tag.substring(1), url, origin);
+    return this.http.post<void>(`${this.base}/response`, null, {
+      params: params({ tag, url, origin }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  deleteResponse(tag: string, url: string, origin = ''): Observable<void> {
+    return this.http.delete<void>(`${this.base}/response`, {
+      params: params({ tag, url, origin }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
 }

@@ -101,6 +101,10 @@ export interface Plugin extends Tag {
    * Generate separate Ref response metadata for this plugin.
    */
   generateMetadata?: boolean;
+  /**
+   * Validate that any Ref with this plugin has a valid User URL.
+   */
+  userUrl?: boolean;
 
   // Cache
   _ui?: HandlebarsTemplateDelegate;

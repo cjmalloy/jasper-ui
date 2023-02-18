@@ -1,6 +1,7 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as moment from 'moment/moment';
-import { forkJoin, Observable, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Action, active } from '../model/plugin';
 import { Ref } from '../model/ref';
@@ -16,7 +17,6 @@ export class ActionService {
   constructor(
     private refs: RefService,
     private ts: TaggingService,
-    private store: Store,
   ) { }
 
   apply(ref: Ref, a: Action) {
@@ -38,23 +38,10 @@ export class ActionService {
 
   clearResponse(ref: Ref, ...tags: string[]): Observable<any> {
     if (!tags || !tags.length) return of(null);
-    return this.refs.page({
-      responses: ref.url,
-      query: `(${tags.join('|')}):${this.store.account.localTag}`,
-    }).pipe(
-      switchMap(page => page.empty ? of(null) :
-        forkJoin([
-          ...page.content.map(c => this.refs.delete(c.url)),
-          ...(page.last ? [] : [this.clearResponse(ref, ...tags)])]))
-    );
+    return forkJoin(tags.map(t => this.ts.deleteResponse(t, ref.url, ref.origin)));
   }
 
   addResponse(ref: Ref, tag: string): Observable<any> {
-    return this.refs.create({
-      url: 'internal:' + uuid(),
-      published: moment(),
-      tags: ['internal', this.store.account.localTag, tag],
-      sources: [ref.url],
-    });
+    return this.ts.createResponse(tag, ref.url, ref.origin);
   }
 }
