@@ -310,9 +310,9 @@ video.qr-preview {
   border-bottom-left-radius: 4px;
 
   details {
-    padding: 4px;
     transition: max-height 0.4s;
-    max-height: 50px;
+    max-height: 30px;
+    overflow: hidden;
 
     summary {
       display: block;
@@ -325,10 +325,10 @@ video.qr-preview {
 
         &:after {
           margin: 0 8px;
-          content: '➕';
+          content: '🔅';
           display: inline-block;
           transition: transform 0.4s;
-          transform: rotate(90deg);
+          transform: rotate(0);
         }
       }
     }
@@ -338,8 +338,8 @@ video.qr-preview {
     max-height: 300px;
     summary span {
       &:after {
-        transform: rotate(0);
-        content: '➖';
+        content: '🔆';
+        transform: rotate(-120deg);
       }
     }
   }

@@ -42,6 +42,10 @@ $mobile-width: 740px;
     .aside {
       border: none !important;
 
+      details {
+        max-height: 42px;
+      }
+
       input[type=search] {
         width: 100%;
       }
