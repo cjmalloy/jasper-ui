@@ -23,15 +23,15 @@
       <div class="stack">
         <div class="info" [class.expanded]="!actionsExpanded">
           <ng-container *ngIf="ref.created else notSubmitted">
-            <span *ngIf="!ref.published || ref.published.diff(ref.created, 'seconds') <= 5" [title]="ref.created.toISOString()" i18n>submitted {{ ref.created.fromNow() }}</span>
-            <span *ngIf="ref.modified!.diff(ref.created, 'seconds') > 5"
+            <span *ngIf="publishedIsSubmitted" [title]="ref.created.toISOString()" i18n>submitted {{ ref.created.fromNow() }}</span>
+            <ng-container *ngIf="!scrapeable && !publishedIsSubmitted">
+              <span [title]="ref.published!.toISOString()" i18n>
+                {{ publishedLabel }}
+                {{ ref.published!.fromNow() }}</span>
+            </ng-container>
+            <span *ngIf="!modifiedIsSubmitted"
                   i18n-title
                   title="last edited {{ ref.modified!.fromNow() }}">*</span>
-            <ng-container *ngIf="!scrapeable && ref.published && ref.published.diff(ref.created, 'seconds') > 5">
-              <span [title]="ref.published.toISOString()" i18n>
-                {{ publishedLabel }}
-                {{ ref.published.fromNow() }}</span>
-            </ng-container>
           </ng-container>
           <ng-template #notSubmitted>
             <span i18n>not found</span>

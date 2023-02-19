@@ -291,6 +291,14 @@ export class RefComponent implements OnInit {
     return this.ref.sources?.length || 0;
   }
 
+  get publishedIsSubmitted() {
+    return !this.ref.published || Math.abs(this.ref.published.diff(this.ref.created, 'seconds')) <= 5;
+  }
+
+  get modifiedIsSubmitted() {
+    return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created, 'seconds')) <= 5;
+  }
+
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
       user = user.replace(this.store.account.origin, '');
