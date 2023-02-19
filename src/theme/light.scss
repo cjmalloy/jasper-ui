@@ -171,6 +171,7 @@ body.light-theme {
           border: 1px solid $border;
           border-left: none;
           border-right: none;
+          transition: background-color 0.2s;
 
           &:hover {
             background-color: $bg-accent;
@@ -181,6 +182,7 @@ body.light-theme {
 
     .submit-button {
       border: 1px solid $border;
+      transition: background-color 0.2s;
 
       &:hover {
         background-color: $bg-accent;
