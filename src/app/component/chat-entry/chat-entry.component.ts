@@ -3,10 +3,7 @@ import { Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/c
 import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
-import { isAudio } from '../../plugin/audio';
 import { deleteNotice } from '../../plugin/delete';
-import { isImage } from '../../plugin/image';
-import { isVideo } from '../../plugin/video';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
@@ -99,15 +96,18 @@ export class ChatEntryComponent {
   }
 
   get audio() {
-    return isAudio(this.ref.url) || hasTag('plugin/audio', this.ref);
+    return hasTag('plugin/audio', this.ref) ||
+      this.admin.getPluginsForUrl(this.ref.url).find(p => p.tag === 'plugin/audio');
   }
 
   get video() {
-    return isVideo(this.ref.url) || hasTag('plugin/video', this.ref);
+    return hasTag('plugin/video', this.ref) ||
+      this.admin.getPluginsForUrl(this.ref.url).find(p => p.tag === 'plugin/image');
   }
 
   get image() {
-    return isImage(this.ref.url) || hasTag('plugin/image', this.ref);
+    return hasTag('plugin/image', this.ref) ||
+      this.admin.getPluginsForUrl(this.ref.url).find(p => p.tag === 'plugin/image');
   }
 
   get media() {

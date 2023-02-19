@@ -6,10 +6,6 @@ import { RefComponent } from '../component/ref/ref.component';
 import { ViewerComponent } from '../component/viewer/viewer.component';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
-import { isAudio } from '../plugin/audio';
-import { isKnownEmbed } from '../plugin/embed';
-import { isImage } from '../plugin/image';
-import { isVideo } from '../plugin/video';
 import { AdminService } from '../service/admin.service';
 import { RefService } from '../service/api/ref.service';
 import { EditorService } from '../service/editor.service';
@@ -66,15 +62,6 @@ export class MdPostDirective implements AfterViewInit, OnDestroy, Embed {
     if (isString(ref)) {
       const url = ref as string;
       ref = { url, origin: this.origin };
-      if (isImage(url)) {
-        expandPlugins = ['plugin/image'];
-      } else if (isVideo(url)) {
-        expandPlugins = ['plugin/video'];
-      }  else if (isAudio(url)) {
-        expandPlugins = ['plugin/audio'];
-      } else if (isKnownEmbed(url)) {
-        expandPlugins = ['plugin/embed'];
-      }
     }
     c.instance.ref = ref;
     c.instance.tags = expandPlugins;

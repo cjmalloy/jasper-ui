@@ -7,11 +7,6 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
-import { isAudio } from '../../../plugin/audio';
-import { isKnownEmbed } from '../../../plugin/embed';
-import { isImage } from '../../../plugin/image';
-import { isKnownThumbnail } from '../../../plugin/thumbnail';
-import { isVideo } from '../../../plugin/video';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { EditorService } from '../../../service/editor.service';
@@ -95,14 +90,11 @@ export class SubmitWebPage implements AfterViewInit {
   }
 
   set url(value: string) {
+    const plugins = this.admin.getPluginsForUrl(value);
     if (this.feed) {
-      if (this.admin.status.plugins.embed && isKnownEmbed(value)) this.feedForm!.tags.addTag('plugin/embed');
+      this.feedForm!.tags.addTag(...plugins.map(p => p.tag));
     } else {
-      if (this.admin.status.plugins.audio && isAudio(value)) this.addTag('plugin/audio');
-      if (this.admin.status.plugins.video && isVideo(value)) this.addTag('plugin/video');
-      if (this.admin.status.plugins.image && isImage(value)) this.addTag('plugin/image');
-      if (this.admin.status.plugins.thumbnail && isKnownThumbnail(value)) this.addTag('plugin/thumbnail');
-      if (this.admin.status.plugins.embed && isKnownEmbed(value)) this.addTag('plugin/embed');
+      this.addTag(...plugins.map(p => p.tag));
     }
     this.webForm.get('url')?.setValue(value);
     this.webForm.get('url')?.disable();

@@ -61,4 +61,9 @@ export class ViewerComponent implements AfterViewInit {
   cssUrl(url: string) {
     return `url("${url}")`;
   }
+
+  cssWidth(width: any) {
+    if (!width) return 0;
+    return width + 'px';
+  }
 }

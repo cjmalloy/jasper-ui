@@ -1,4 +1,4 @@
-import { Directive, HostBinding, HostListener, Input } from '@angular/core';
+import { Directive, HostListener, Input } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Directive({

@@ -22,3 +22,11 @@ export function getPath(url: string): string | null {
   if (!parsed) return null;
   return parsed.pathname;
 }
+
+
+export function getExtension(url: string): string | null {
+  const parsed = getUrl(url);
+  if (!parsed) return null;
+  if (!parsed.pathname.includes('.')) return parsed.pathname;
+  return parsed.pathname.substring(parsed.pathname.lastIndexOf('.'));
+}

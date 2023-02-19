@@ -13,6 +13,7 @@ export const imagePlugin: Plugin = {
     filters: [
       { query: 'plugin/image', label: $localize`🖼️ image`, group: $localize`Plugins 🧰️` },
     ],
+    extensions: ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'],
     description: $localize`Display the image inline.`,
     form: [{
       key: 'url',
@@ -30,8 +31,3 @@ export const imagePlugin: Plugin = {
   },
 };
 
-export const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'];
-
-export function isImage(url: string) {
-  return imageExtensions.includes(url.slice(url.lastIndexOf('.')).toLowerCase());
-}

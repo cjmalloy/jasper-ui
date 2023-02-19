@@ -13,6 +13,7 @@ export const audioPlugin: Plugin = {
     filters: [
       { query: 'plugin/audio', label: $localize`📻️ audio`, group: $localize`Plugins 🧰️` },
     ],
+    extensions: ['.mp3', '.aac', '.flac', '.m4a', '.ogg', '.wav'],
     description: $localize`Play in an inline audio player.`,
     form: [{
       key: 'url',
@@ -29,9 +30,3 @@ export const audioPlugin: Plugin = {
     },
   },
 };
-
-export const audioExtensions = ['.mp3', '.aac', '.flac', '.m4a', '.ogg', '.wav'];
-
-export function isAudio(url: string) {
-  return audioExtensions.includes(url.slice(url.lastIndexOf('.')).toLowerCase());
-}

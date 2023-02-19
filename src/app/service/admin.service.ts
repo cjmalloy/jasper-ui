@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import { findKey, flatten, isEqual, mapValues, omitBy, reduce } from 'lodash-es';
+import { findKey, flatten, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Action, Icon, Plugin } from '../model/plugin';
@@ -40,6 +40,7 @@ import { kanbanTemplate } from '../template/kanban';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
 import { userTemplate } from '../template/user';
+import { getExtension, getHost } from '../util/hosts';
 import { includesTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
@@ -265,6 +266,14 @@ export class AdminService {
     return this.pluginConfigProperty('settings');
   }
 
+  get extensions() {
+    return this.pluginConfigProperty('extensions');
+  }
+
+  get hosts() {
+    return this.pluginConfigProperty('hosts');
+  }
+
   get tmplSubmit() {
     return this.templateConfigProperty('submit');
   }
@@ -328,6 +337,22 @@ export class AdminService {
 
   getEmbeds(tags?: string[]) {
     return tagIntersection(['plugin', ...(tags || [])], this.embeddable);
+  }
+
+  getPluginsForUrl(url: string) {
+    return uniq([...this.getPluginsForHost(url), ...this.getPluginsForExtension(url)]);
+  }
+
+
+  getPluginsForHost(url: string) {
+    const host = getHost(url);
+    return this.hosts.filter(p => p.config!.hosts!.includes(host!))
+  }
+
+
+  getPluginsForExtension(url: string) {
+    const type = getExtension(url)!;
+    return this.extensions.filter(p => p.config!.extensions!.includes(type))
   }
 
   getActions(tags?: string[]) {

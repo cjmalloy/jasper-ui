@@ -4,11 +4,6 @@ import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
 import { catchError, map, Observable, of } from 'rxjs';
-import { isAudio } from '../plugin/audio';
-import { isKnownEmbed } from '../plugin/embed';
-import { isImage } from '../plugin/image';
-import { isKnownThumbnail } from '../plugin/thumbnail';
-import { isVideo } from '../plugin/video';
 import { wikiUriFormat } from '../plugin/wiki';
 import { Store } from '../store/store';
 import { Embed } from '../util/embed';
@@ -45,7 +40,7 @@ export class EmbedService {
     markdownService.renderer.link = (href: string | null, title: string | null, text: string) => {
       let html = renderLink.call(markdownService.renderer, href, title, text);
       if (!href) return html;
-      if (text.toLowerCase().trim() === 'toggle' || isKnownEmbed(href) || isImage(href) || isVideo(href) || isAudio(href)) {
+      if (text.toLowerCase().trim() === 'toggle' || this.admin.getPluginsForUrl(href).length) {
         return html + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
       }
       const type = this.editor.getUrlType(href);
@@ -255,13 +250,16 @@ export class EmbedService {
             const c = embed.createEmbed(ref, expandPlugins);
             t.parentNode?.insertBefore(c.location.nativeElement, t);
           }
-        } else if (isKnownEmbed(url) || isImage(url) || isVideo(url) || isAudio(url)) {
-          const c = embed.createEmbed(url);
-          t.parentNode?.insertBefore(c.location.nativeElement, t);
         } else {
-          el = document.createElement('div');
-          el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
-          t.parentNode?.insertBefore(el, t);
+          const embeds = this.admin.getPluginsForUrl(url);
+          if (embeds.length) {
+            const c = embed.createEmbed(url, embeds.map(p => p.tag));
+            t.parentNode?.insertBefore(c.location.nativeElement, t);
+          } else {
+            el = document.createElement('div');
+            el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
+            t.parentNode?.insertBefore(el, t);
+          }
         }
         t.remove();
       });
@@ -357,8 +355,9 @@ export class EmbedService {
         } else {
           // TODO: Don't use title to store url
           const url = t.title!;
-          if (isKnownEmbed(url) || isImage(url) || isVideo(url) || isAudio(url)) {
-            const c = embed.createEmbed(url);
+          const embeds = this.admin.getPluginsForUrl(url);
+          if (embeds.length) {
+            const c = embed.createEmbed(url, embeds.map(p => p.tag));
             t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
             // @ts-ignore
             t.expanded = !t.expanded;
@@ -457,19 +456,6 @@ export class EmbedService {
       return;
     }
   }
-
-  getThumbnail(ref: string): Observable<string | undefined> {
-    if (!isKnownThumbnail(ref)) return of(undefined);
-    const host = getHost(ref)!;
-    if (bitchuteHosts.includes(host)) {
-      return this.oembed.bitChute(ref).pipe(
-        map(embed => embed.thumbnail_url),
-        catchError(err => of(undefined)),
-      );
-    }
-    return of(undefined);
-  }
-
 }
 
 export function transparentIframe(content: string, bgColor: string) {

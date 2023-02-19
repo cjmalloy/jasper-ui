@@ -130,6 +130,7 @@ import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
 import { OriginService } from './service/origin.service';
 import { ThemeService } from './service/theme.service';
+import { ImageDimDirective } from './directive/image-dim.directive';
 
 const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginService, themes: ThemeService) => () =>
   config.load$.pipe(
@@ -268,6 +269,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     FileComponent,
     RouterActivateDirective,
     SelectPluginComponent,
+    ImageDimDirective,
   ],
   imports: [
     BrowserModule,
