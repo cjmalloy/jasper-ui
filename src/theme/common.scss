@@ -309,6 +309,21 @@ video.qr-preview {
   margin-bottom: 100px;
   border-bottom-left-radius: 4px;
 
+  .toggle {
+    margin-top: 3px;
+  }
+
+  .row {
+    padding: 0 2px;
+    app-search, app-filter, app-sort {
+      flex-grow: 1;
+    }
+  }
+
+  app-filter {
+    margin-right: 8px;
+  }
+
   details {
     transition: max-height 0.4s;
     max-height: 30px;
@@ -355,7 +370,7 @@ video.qr-preview {
   }
 
   input[type=search] {
-    height: 30px;
+    height: 29px;
     width: 290px;
   }
 
@@ -720,7 +735,7 @@ video.qr-preview {
   font-weight: bold;
   white-space: nowrap;
 
-  a {
+  a, .fake-link {
     margin: 2px 6px 2px 0;
   }
 
