@@ -17,6 +17,7 @@ export const userTemplate: Template = {
     optionalProperties: {
       lastNotified: { type: 'string' },
       subscriptions: { elements: { type: 'string' } },
+      alarms: { elements: { type: 'string' } },
       bookmarks: { elements: { type: 'string' } },
       editors: { elements: { type: 'string' } },
       userThemes: { values: { type: 'string' } },

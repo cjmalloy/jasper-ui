@@ -112,6 +112,10 @@ export class AccountStore {
     return this.config.bookmarks || [];
   }
 
+  get alarms() {
+    return this.config.alarms || [];
+  }
+
   get mailbox() {
     if (!this.signedIn) return undefined;
     return getMailbox(this.tag);
@@ -134,6 +138,9 @@ export class AccountStore {
     }
     if (this.outboxes?.length) {
       tags.push(...this.outboxes);
+    }
+    if (this.config.alarms) {
+      tags.push(...this.config.alarms)
     }
     return uniq(tags).join('|');
   }

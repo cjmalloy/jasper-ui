@@ -120,6 +120,14 @@ export class AccountService {
     );
   }
 
+  get alarms$(): Observable<string[]> {
+    if (!this.admin.status.templates.user) return of(this.store.account.alarms);
+    return this.userExt$.pipe(
+      catchError(() => of(null)),
+      map(() => this.store.account.alarms),
+    );
+  }
+
   get theme$(): Observable<string | undefined> {
     if (!this.admin.status.templates.user) return of(this.store.account.config.theme);
     return this.userExt$.pipe(
@@ -173,6 +181,30 @@ export class AccountService {
     ).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.bookmarks$),
+    ).subscribe();
+  }
+
+  addAlarm(tag: string) {
+    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.admin.status.templates.user) throw 'User template not installed';
+    this.addConfigArray('alarms', tag).pipe(
+      tap(() => this.clearCache()),
+      switchMap(() => this.alarms$),
+    ).subscribe();
+  }
+
+  removeAlarm(tag: string) {
+    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.admin.status.templates.user) throw 'User template not installed';
+    this.alarms$.pipe(
+      map(subs => subs.indexOf(tag)),
+      switchMap(index => this.exts.patch(this.store.account.tag,[{
+        op: 'remove',
+        path: '/config/alarms/' + index,
+      }]))
+    ).pipe(
+      tap(() => this.clearCache()),
+      switchMap(() => this.alarms$),
     ).subscribe();
   }
 

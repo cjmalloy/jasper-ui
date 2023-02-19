@@ -89,6 +89,10 @@ export class ExtFormComponent implements OnInit {
     return this.config.get('bookmarks') as UntypedFormControl;
   }
 
+  get alarms() {
+    return this.config.get('alarms') as UntypedFormControl;
+  }
+
   get editors() {
     return this.config.get('editors') as UntypedFormControl;
   }
@@ -154,6 +158,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService, l
       ...configControls,
       subscriptions: queriesForm(fb, ext.config?.subscriptions || []),
       bookmarks: queriesForm(fb, ext.config?.bookmarks || []),
+      alarms: queriesForm(fb, ext.config?.alarms || []),
       userThemes: themesForm(fb, ext.config?.userThemes),
       userTheme: [''],
       editors: tagsForm(fb, ext.config?.editors || []),

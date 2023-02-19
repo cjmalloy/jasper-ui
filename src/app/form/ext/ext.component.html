@@ -67,6 +67,14 @@
                    fieldName="bookmarks"></app-queries>
     </ng-container>
 
+    <ng-container *ngIf="alarms">
+      <label for="alarms" i18n>Alarms:</label>
+      <app-queries id="alarms"
+                   label="alarm"
+                   [group]="config"
+                   fieldName="alarms"></app-queries>
+    </ng-container>
+
     <ng-container *ngIf="editors">
       <label for="editors" i18n>Editors:</label>
       <app-tags id="editors"

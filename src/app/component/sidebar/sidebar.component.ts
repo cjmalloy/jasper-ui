@@ -132,12 +132,24 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.account.removeBookmark(this._tag!);
   }
 
+  addAlarm() {
+    this.account.addAlarm(this._tag!);
+  }
+
+  removeAlarm() {
+    this.account.removeAlarm(this._tag!);
+  }
+
   get inSubs() {
     return this.store.account.subs.includes(this._tag!);
   }
 
   get inBookmarks() {
     return this.store.account.bookmarks.includes(this._tag!);
+  }
+
+  get inAlarms() {
+    return this.store.account.alarms.includes(this._tag!);
   }
 
   set showRemotes(value: boolean) {

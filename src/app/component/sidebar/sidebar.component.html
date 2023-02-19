@@ -26,11 +26,6 @@
         <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit</label>
       </div>
     </ng-container>
-    <ng-container *ngIf="store.account.editor || writeAccess">
-      <div class="submit-button" [routerLink]="['/ext', writeAccess ? localTag : '']">
-        <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Edit</label>
-      </div>
-    </ng-container>
     <ng-container *ngIf="admin.status.plugins.inbox">
       <ng-container *ngIf="store.account.user && (user || modmail)">
         <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
@@ -41,6 +36,11 @@
     <ng-container *ngIf="store.account.mod || store.account.signedIn && store.account.tag === tag">
       <div class="submit-button" [routerLink]="['/user', user && tag || '']">
         <span i18n-title title="Create User" i18n>👤️</span> <label i18n>User</label>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="store.account.editor || writeAccess">
+      <div class="submit-button" [routerLink]="['/ext', writeAccess ? localTag : '']">
+        <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Edit</label>
       </div>
     </ng-container>
   </span>
@@ -59,21 +59,32 @@
   <div class="hide tag-header" *ngIf="!home && store.view.tag">
     <h3 *ngIf="store.view.current === 'tag'">{{ ext?.name || tag }}</h3>
     <ng-container *ngIf="store.account.signedIn && tag && admin.status.templates.user">
-      <button *ngIf="inSubs; else notInSubs"
-              class="subscribe"
-              (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
-      <ng-template #notInSubs>
-        <button (click)="subscribe()"
-                title="Add to home screen"
-                class="subscribe" i18n>+ subscribe</button>
-      </ng-template>
       <button *ngIf="inBookmarks; else notBookmarked"
               class="bookmark"
+              i18n-title title="Remove from top bar"
               (click)="removeBookmark()" i18n>&ndash; bookmark</button>
       <ng-template #notBookmarked>
         <button (click)="bookmark()"
-                title="Add to top bar"
+                i18n-title title="Add to top bar"
                 class="bookmark" i18n>+ bookmark</button>
+      </ng-template>
+      <button *ngIf="inSubs; else notInSubs"
+              class="subscribe"
+              i18n-title title="Remove from home screen"
+              (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
+      <ng-template #notInSubs>
+        <button (click)="subscribe()"
+                i18n-title title="Add to home screen"
+                class="subscribe" i18n>+ subscribe</button>
+      </ng-template>
+      <button *ngIf="inAlarms; else notInAlarms"
+              class="alarm"
+              i18n-title title="Remove alarm"
+              (click)="removeAlarm()" i18n>🔇</button>
+      <ng-template #notInAlarms>
+        <button (click)="addAlarm()"
+                i18n-title title="Add alarm"
+                class="alarm" i18n>🔔</button>
       </ng-template>
     </ng-container>
   </div>
