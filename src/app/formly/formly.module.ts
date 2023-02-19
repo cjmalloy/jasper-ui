@@ -67,11 +67,15 @@ import { FormlyFieldTextArea } from './textarea.type';
         defaultOptions: {
           props: {
             type: 'url',
-            required: true,
           },
           validators: {
             pattern: {
-              expression: (c: AbstractControl) => !c.value || URI_REGEX.test(c.value),
+              expression: (c: AbstractControl) => {
+                if (!c.value || URI_REGEX.test(c.value)) return {};
+                return {
+                  pattern: true,
+                };
+              },
               message: 'Error message contains HTML, so there is a special override in form-field.wrapper.ts',
             }
           },
