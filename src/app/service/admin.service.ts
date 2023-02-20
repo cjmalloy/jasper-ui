@@ -374,14 +374,18 @@ export class AdminService {
   getIcons(tags?: string[], scheme?: string) {
     const match = ['plugin', ...(tags || [])];
     return [
-      ...(!scheme ? [] : this.icons.flatMap(p => p.config!.icons).filter(i => i?.scheme === scheme) as Icon[]),
+      ...(!scheme ? [] : this.icons.flatMap(p => p.config!.icons!.map(i => {
+        i.title ||= p.name || i.tag || p.tag;
+        return i;
+      })).filter(i => i?.scheme === scheme) as Icon[]),
       ...this.icons.filter(p => includesTag(p.tag, match))
       .flatMap(p => p.config!.icons?.map(i => {
-        if (!i.response && !i.scheme) i.tag ||= p.tag;
+        if (!i.response) i.tag ||= p.tag;
         if (i.tag === p.tag)  i.title ||= p.name;
         i.title ||= i.tag;
         return i;
-      }) as Icon[])];
+      }) as Icon[])
+        .filter(i => !i.scheme)];
   }
 
   getPublished(tags?: string[]) {
