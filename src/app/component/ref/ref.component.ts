@@ -32,7 +32,7 @@ import {
 } from '../../util/format';
 import { getScheme } from '../../util/hosts';
 import { printError } from '../../util/http';
-import { hasTag, isOwnerTag, tagOrigin } from '../../util/tag';
+import { captures, capturesAny, hasTag, isOwnerTag, queriesAny, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-ref',
@@ -56,6 +56,7 @@ export class RefComponent implements OnInit {
   expandPlugins: string[] = [];
   editorPlugins: string[] = [];
   icons: Icon[] = [];
+  alarm?: string;
   actions: Action[] = [];
   publishedLabel = $localize`published`;
   tagging = false;
@@ -113,6 +114,7 @@ export class RefComponent implements OnInit {
     this.actionsExpanded = false;
     this.writeAccess = !hasTag('locked', value) && this.auth.writeAccess(value);
     this.icons = this.admin.getIcons(value.tags, getScheme(value.url)!);
+    this.alarm = queriesAny(this.store.account.alarms, value.tags);
     this.actions = this.admin.getActions(value.tags).filter(a => a.response || this.auth.tagReadAccess(a.tag));
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
     this.expandPlugins = this.admin.getEmbeds(value.tags);

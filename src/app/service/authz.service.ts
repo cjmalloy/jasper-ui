@@ -21,7 +21,7 @@ export class AuthzService {
     if (isOwnerTag(this.store.account.tag, ref)) return true;
     if (!this.store.account.access) return false;
     if (isOwner(this.store.account.access, ref)) return true;
-    return capturesAny(this.store.account.access.writeAccess, qualifyTags(ref.tags, ref.origin));
+    return !!capturesAny(this.store.account.access.writeAccess, qualifyTags(ref.tags, ref.origin));
   }
 
   queryReadAccess(query?: string): boolean {
@@ -42,7 +42,7 @@ export class AuthzService {
     if (captures(this.store.account.localTag, tag)) return true;
     if (!this.store.account.access) return false;
     if (capturesAny(this.store.account.access.tagReadAccess, [tag])) return true;
-    return capturesAny(this.store.account.access.readAccess, [tag]);
+    return !!capturesAny(this.store.account.access.readAccess, [tag]);
   }
 
   tagWriteAccess(tag?: string): boolean {
@@ -54,7 +54,7 @@ export class AuthzService {
     if (this.store.account.editor && !privateTag(tag)) return true;
     if (captures(this.store.account.localTag, tag)) return true;
     if (!this.store.account.access) return false;
-    return capturesAny(this.store.account.access.tagWriteAccess, [tag]);
+    return !!capturesAny(this.store.account.access.tagWriteAccess, [tag]);
   }
 
   hasRole(role: Role) {
