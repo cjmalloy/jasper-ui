@@ -9,5 +9,9 @@
       &bullet; <a [routerLink]="['/tag', sub]" routerLinkActive="current-page">{{ sub }}</a>
     </ng-container>
   </div>
-  <a class="light-toggle fake-link no-underline" (click)="themes.toggle()">{{ store.darkTheme ?  '🌙️' : '💡️'}}</a>
+  <div class="light-toggle"
+     (click)="themes.toggle()">
+    <div class="moon" [class.lights-on]="!store.darkTheme" [class.lights-off]="store.darkTheme" i18n>🌙️</div>
+    <div class="light" [class.lights-on]="!store.darkTheme" [class.lights-off]="store.darkTheme" i18n>💡️</div>
+  </div>
 </ng-container>

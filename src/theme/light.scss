@@ -111,6 +111,17 @@ body.light-theme {
     .current-page {
       color: $active;
     }
+
+    .light-toggle {
+      border-radius: 16px;
+      transition: all 0.2s;
+      border: 0.5px solid transparent;
+      background-color: rgba(255, 255, 255, 0.1);
+      &:hover {
+        border: 0.5px dashed $border;
+        background-color: $bg-accent;
+      }
+    }
   }
 
   .tabs {

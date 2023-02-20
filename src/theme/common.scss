@@ -250,6 +250,33 @@ video.qr-preview {
   .current-page {
     font-weight: bold;
   }
+
+  .light-toggle {
+    cursor: pointer;
+    padding: 2px 15px 15px 20px;
+    div {
+      position: absolute;
+      transition: all 0.4s ease-in-out;
+      &.moon.lights-on {
+        transform: translate(-18px);
+      }
+      &.light.lights-off {
+        transform: rotate(-180deg);
+      }
+      &.light.lights-on {
+        transform: translate(-18px);
+      }
+      &.moon.lights-off,
+      &.light.lights-on {
+        opacity: 1;
+      }
+      &.moon.lights-on,
+      &.light.lights-off {
+        opacity: 0;
+      }
+    }
+  }
+
 }
 
 .tabs {
