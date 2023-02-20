@@ -21,7 +21,7 @@ import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
-import { relativeX } from '../../util/math';
+import { relativeX, relativeY } from '../../util/math';
 
 @Component({
   selector: 'app-editor',
@@ -94,7 +94,9 @@ export class EditorComponent implements AfterViewInit {
 
   @HostListener('window:pointermove', ['$event'])
   onPointerMove(event: PointerEvent) {
-    this.mouseLeft = relativeX(event.clientX, this.editor?.nativeElement) < this.editor!.nativeElement!.offsetWidth / 2;
+    const y = relativeY(event.clientY, this.editor?.nativeElement);
+    if (y < 0 || y > this.editor!.nativeElement.offsetHeight) return;
+    this.mouseLeft = relativeX(event.clientX, this.editor?.nativeElement) < this.editor!.nativeElement.offsetWidth / 2;
   }
 
   get tags() {
