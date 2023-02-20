@@ -1,5 +1,8 @@
 :host {
   display: flex;
+  :first-child {
+    margin-right: 10px;
+  }
 }
 .subs {
   flex-grow: 1;
