@@ -337,6 +337,14 @@ video.qr-preview {
       display: block;
       text-align: right;
       margin: 4px -8px;
+      &::marker,
+      &::-webkit-details-marker {
+        display: none;
+        opacity: 0;
+      }
+      &:first-of-type {
+        list-style-type: none;
+      }
       span {
         display: block;
         cursor: pointer;
