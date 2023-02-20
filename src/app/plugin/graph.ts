@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 
 export const graphPlugin: Plugin = {
   tag: 'plugin/graph',
-  name: $localize`Graph`,
+  name: $localize`🎇️ Graph`,
   config: {
     type: 'viewer',
     default: true,
