@@ -66,11 +66,11 @@ export class ExtFormComponent implements OnInit {
   }
 
   get themeValues() {
-    return Object.keys(this.themes?.value);
+    return [...Object.keys(this.themes?.value), ...this.admin.themes.flatMap(p => Object.keys(p.config!.themes!))];
   }
 
   get userThemeValues() {
-    return Object.keys(this.userThemes?.value);
+    return [...Object.keys(this.userThemes?.value), ...this.admin.themes.flatMap(p => Object.keys(p.config!.themes!))];
   }
 
   get theme() {

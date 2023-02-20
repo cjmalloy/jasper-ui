@@ -326,6 +326,10 @@ export class AdminService {
     return this.pluginConfigProperty('published');
   }
 
+  get themes() {
+    return this.pluginConfigProperty('themes');
+  }
+
   get filters() {
     if (!this._cache.has('filters')) {
       this._cache.set('filters', flatten(Object.values(this.status.plugins)

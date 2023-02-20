@@ -79,6 +79,10 @@ export interface Plugin extends Tag {
      */
     filters?: PluginFilter[],
     /**
+     * Add themes.
+     */
+    themes?: Record<string, string>,
+    /**
      * Optional default read access tags to give users. Tags will be prefixed
      * with the plugin tag.
      */

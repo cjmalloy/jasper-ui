@@ -22,7 +22,7 @@ export class ThemeService {
 
   get init$() {
     this.setTheme(localStorage.getItem('theme'));
-    autorun(() => this.setCustomCss('custom-css', this.store.account.config.theme || this.store.view.ext?.config?.themes?.[this.store.view.ext?.config?.theme]));
+    autorun(() => this.setCustomCss('custom-css', this.getUserCss() || this.getExtCss()));
     this.admin.pluginConfigProperty('css').map(p => this.setCustomCss(p.tag, p.config!.css));
     return of(null);
   }
@@ -68,5 +68,18 @@ export class ThemeService {
 
   setTitle(title: string) {
     this.titleService.setTitle(`${this.config.title} ± ${title}`);
+  }
+
+  private getTheme(id: string, sources: Record<string, string>[]) {
+    if (!id) return undefined;
+    return sources.find(ts => ts[id])?.[id];
+  }
+
+  private getUserCss() {
+    return this.getTheme(this.store.account.config.userTheme, [this.store.account.config.userThemes || {}, ...this.admin.themes.map(p => p.config!.themes!)]);
+  }
+
+  private getExtCss() {
+    return this.getTheme(this.store.view.ext?.config?.theme, [this.store.view.ext?.config?.themes || {}, ...this.admin.themes.map(p => p.config!.themes!)]);
   }
 }
