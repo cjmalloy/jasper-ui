@@ -10,3 +10,8 @@ export namespace Rect {
     );
   }
 }
+
+export function relativeX(x: number, el?: any): number {
+  if (!el) return x;
+  return relativeX(x - el.offsetLeft, el.offsetParent!);
+}

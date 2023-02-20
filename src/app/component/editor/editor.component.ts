@@ -6,6 +6,7 @@ import {
   ElementRef,
   EventEmitter,
   HostBinding,
+  HostListener,
   Input,
   Output,
   TemplateRef,
@@ -15,12 +16,12 @@ import {
 import { UntypedFormControl } from '@angular/forms';
 import { debounce, throttle, uniq, without } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { switchMap } from 'rxjs';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
+import { relativeX } from '../../util/math';
 
 @Component({
   selector: 'app-editor',
@@ -39,6 +40,9 @@ export class EditorComponent implements AfterViewInit {
   @HostBinding('class.preview')
   preview = true;
 
+  @ViewChild('editor')
+  editor?: ElementRef<HTMLTextAreaElement>;
+
   @Input()
   control!: UntypedFormControl;
   @Input()
@@ -56,6 +60,8 @@ export class EditorComponent implements AfterViewInit {
 
   @ViewChild('help')
   helpTemplate!: TemplateRef<any>;
+
+  mouseLeft = false;
 
   private _tags?: string[];
   private _text? = '';
@@ -84,6 +90,11 @@ export class EditorComponent implements AfterViewInit {
       this._tags = uniq([...this._tags, ...this.editors.filter(t => value.includes(t))]);
     }
     this.syncTags.next(this._tags);
+  }
+
+  @HostListener('window:pointermove', ['$event'])
+  onPointerMove(event: PointerEvent) {
+    this.mouseLeft = relativeX(event.clientX, this.editor?.nativeElement) < this.editor!.nativeElement!.offsetWidth / 2;
   }
 
   get tags() {
@@ -144,6 +155,7 @@ export class EditorComponent implements AfterViewInit {
   }
 
   toggleFullscreen(override?: boolean) {
+    if (override === this.fullscreen) return;
     this.fullscreen = override !== undefined ? override : !this.fullscreen;
     if (this.fullscreen) {
       this._text = this.currentText;
