@@ -171,6 +171,7 @@ export class EditorComponent implements AfterViewInit {
       this.overlayRef.attach(new DomPortal(this.el));
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
       this.overlayRef.keydownEvents().subscribe(event => event.key === "Escape" && this.toggleFullscreen(false));
+      this.editor?.nativeElement.focus();
     } else {
       this.stacked = true;
       this.preview = this.store.local.showPreview;
