@@ -13,7 +13,7 @@
     <ng-container *ngFor="let group of pluginGroups | keyvalue">
       <label [style.text-transform]="'capitalize'" i18n>{{ group.key }}</label>
       <div>
-        <div *ngFor="let e of group.value" [title]="e[1].config?.description || ''">
+        <div *ngFor="let e of group.value" [title]="e[1].config?.description || ''" class="nowrap">
           <input id="plugin-{{ e[0] }}" type="checkbox" [formControlName]="e[0]">
           <label for="plugin-{{ e[0] }}">{{ e[1].name || e[0] || e[1].tag }}</label>
           <span *ngIf="needsPluginUpdate(e[0])" class="update">
