@@ -48,6 +48,7 @@ export class SortComponent implements OnInit, OnDestroy {
         { value: 'modified', label: $localize`🕓️ modified` },
         { value: 'title', label: $localize`🇦️ title` },
         { value: 'url', label: $localize`🔗️ url` },
+        { value: 'scheme', label: $localize`🏳️️ scheme` },
         { value: 'origin', label: $localize`🏛️ origin` },
         { value: 'tagCount', label: $localize`🏷️ tags` },
         { value: 'responseCount', label: $localize`💌️ responses` },
