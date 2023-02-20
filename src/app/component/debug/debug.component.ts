@@ -23,7 +23,7 @@ export class DebugComponent {
   sourcing = false;
   batchRunning = false;
   serverError: string[] = [];
-  debug = isDevMode();
+  debug = this.admin.status.plugins.debug;
 
   constructor(
     public admin: AdminService,

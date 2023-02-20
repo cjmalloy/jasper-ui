@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 
 export const audioPlugin: Plugin = {
   tag: 'plugin/audio',
-  name: 'Audio',
+  name: '📻️ Audio',
   config: {
     type: 'viewer',
     default: true,

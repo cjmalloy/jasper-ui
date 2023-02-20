@@ -6,7 +6,7 @@ import { videoPlugin } from './video';
 
 export const thumbnailPlugin: Plugin = {
   tag: 'plugin/thumbnail',
-  name: $localize`Thumbnail`,
+  name: $localize`🍥️ Thumbnail`,
   config: {
     type: 'viewer',
     default: true,

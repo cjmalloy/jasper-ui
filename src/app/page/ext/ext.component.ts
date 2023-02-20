@@ -1,10 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, of, switchMap, throwError } from 'rxjs';
-import { extForm } from '../../form/ext/ext.component';
+import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -24,6 +25,9 @@ import { removeWildcard } from '../../util/tag';
 export class ExtPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
   @HostBinding('class') css = 'full-page-form';
+
+  @ViewChild('form')
+  form?: ExtFormComponent;
 
   template = '';
   created = false;
@@ -70,6 +74,7 @@ export class ExtPage implements OnInit, OnDestroy {
     if (ext) {
       this.editForm = extForm(this.fb, ext, this.admin, true);
       this.editForm.patchValue(ext);
+      defer(() => this.form!.setValue(ext));
     } else {
       for (const t of this.templates) {
         if (tag.startsWith(t.tag + '/')) {

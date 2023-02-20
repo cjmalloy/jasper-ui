@@ -16,13 +16,17 @@ export function getHost(url: string): string | null {
   return parsed.host;
 }
 
+export function getScheme(url: string): string | null {
+  const parsed = getUrl(url);
+  if (!parsed) return null;
+  return parsed.protocol;
+}
 
 export function getPath(url: string): string | null {
   const parsed = getUrl(url);
   if (!parsed) return null;
   return parsed.pathname;
 }
-
 
 export function getExtension(url: string): string | null {
   const parsed = getUrl(url);

@@ -11,6 +11,7 @@ import { archivePlugin } from '../plugin/archive';
 import { audioPlugin } from '../plugin/audio';
 import { banlistPlugin } from '../plugin/banlist';
 import { commentPlugin } from '../plugin/comment';
+import { breakpointPlugin, debugPlugin } from '../plugin/debug';
 import { deletePlugin } from '../plugin/delete';
 import { htmlPlugin, latexPlugin } from '../plugin/editor';
 import { emailPlugin } from '../plugin/email';
@@ -34,6 +35,7 @@ import { DEFAULT_WIKI_PREFIX, wikiPlugin } from '../plugin/wiki';
 import { Store } from '../store/store';
 import { blogTemplate } from '../template/blog';
 import { chatTemplate } from '../template/chat';
+import { debugTemplate } from '../template/debug';
 import { folderTemplate } from '../template/folder';
 import { homeTemplate } from '../template/home';
 import { kanbanTemplate } from '../template/kanban';
@@ -59,6 +61,8 @@ export class AdminService {
 
   def = {
     plugins: <Record<string, Plugin>> {
+      debug: debugPlugin,
+      breakpoint: breakpointPlugin,
       locked: lockedPlugin,
       modlist: modlistPlugin,
       banlist: banlistPlugin,
@@ -67,6 +71,8 @@ export class AdminService {
       push: pushPlugin,
       feed: feedPlugin,
       delete: deletePlugin,
+      wiki: wikiPlugin,
+
       apriori: aprioriPlugin,
       inbox: inboxPlugin,
       outbox: outboxPlugin,
@@ -89,12 +95,12 @@ export class AdminService {
       audio: audioPlugin,
       video: videoPlugin,
       image: imagePlugin,
-      wiki: wikiPlugin,
 
       // Themes
       terminalTheme: terminalThemePlugin,
     },
     templates: <Record<string, Template>> {
+      debug: debugTemplate,
       root: rootTemplate,
       user: userTemplate,
       folder: folderTemplate,
@@ -365,15 +371,17 @@ export class AdminService {
       .flatMap(p => p.config!.actions as Action[]);
   }
 
-  getIcons(tags?: string[]) {
+  getIcons(tags?: string[], scheme?: string) {
     const match = ['plugin', ...(tags || [])];
-    return this.icons.filter(p => includesTag(p.tag, match))
+    return [
+      ...(!scheme ? [] : this.icons.flatMap(p => p.config!.icons).filter(i => i?.scheme === scheme) as Icon[]),
+      ...this.icons.filter(p => includesTag(p.tag, match))
       .flatMap(p => p.config!.icons?.map(i => {
-        if (!i.response) i.tag ||= p.tag;
+        if (!i.response && !i.scheme) i.tag ||= p.tag;
         if (i.tag === p.tag)  i.title ||= p.name;
         i.title ||= i.tag;
         return i;
-      }) as Icon[]);
+      }) as Icon[])];
   }
 
   getPublished(tags?: string[]) {

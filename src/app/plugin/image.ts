@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 
 export const imagePlugin: Plugin = {
   tag: 'plugin/image',
-  name: $localize`Image`,
+  name: $localize`🖼️ Image`,
   config: {
     type: 'viewer',
     default: true,

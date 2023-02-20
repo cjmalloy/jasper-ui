@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 
 export const qrPlugin: Plugin = {
   tag: 'plugin/qr',
-  name: $localize`QR Code`,
+  name: $localize`🔲 QR Code`,
   config: {
     type: 'viewer',
     default: true,

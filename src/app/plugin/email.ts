@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 
 export const emailPlugin: Plugin = {
   tag: 'plugin/email',
-  name: $localize`Email`,
+  name: $localize`📧️ Email`,
   config: {
     type: 'viewer',
     default: true,

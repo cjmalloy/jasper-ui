@@ -6,6 +6,8 @@ import { hasTag } from '../util/tag';
 import { Ref } from './ref';
 import { Tag } from './tag';
 
+export type PluginType = 'core' | 'feature' | 'editor' | 'viewer' | 'semantic' | 'theme' | 'tool';
+
 export interface Plugin extends Tag {
   type?: 'plugin';
   config?: {
@@ -17,7 +19,7 @@ export interface Plugin extends Tag {
     /**
      * Optional category for setup screen.
      */
-    type?: 'feature' | 'editor' | 'viewer' | 'semantic' | 'theme',
+    type?: PluginType,
     /**
      * Install by default on a fresh instance.
      */
@@ -139,6 +141,10 @@ export interface Icon extends Visibility {
    * If set, makes this icon conditional on a tag response.
    */
   response?: `plugin/${string}`;
+  /**
+   * If set, makes this icon conditional on a ref scheme.
+   */
+  scheme?: `${string}:`;
 }
 
 export interface Action extends Visibility {

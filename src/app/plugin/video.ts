@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 
 export const videoPlugin: Plugin = {
   tag: 'plugin/video',
-  name: 'Video',
+  name: '🎞️ Video',
   config: {
     type: 'viewer',
     default: true,

@@ -1,5 +1,7 @@
-import { filter } from 'lodash-es';
+import { filter, sortBy } from 'lodash-es';
+import { Plugin, PluginType } from '../model/plugin';
 import { Ref } from '../model/ref';
+import { Template, TemplateType } from '../model/template';
 import { config } from '../service/config.service';
 import { hasPrefix, hasTag } from './tag';
 
@@ -84,4 +86,17 @@ export function formatAuthor(tag: string) {
 
 export function isTextPost(ref: Ref) {
   return ref.url.startsWith('comment:') && !hasTag('internal', ref);
+}
+
+export function configGroups(def: Record<PluginType|TemplateType, Plugin|Template>): Record<PluginType|TemplateType, [string, Plugin|Template][]> {
+  let result = Object.entries(def).reduce((result, item) => {
+    const type = result[item[1].config?.type || 'feature'] ||= [] as [string, Plugin|Template][];
+    type.push(item);
+    return result;
+  }, {} as Record<PluginType|TemplateType, [string, Plugin|Template][]>)
+  for (const k of Object.keys(result) as PluginType|TemplateType[]) {
+    // @ts-ignore
+    result[k] = sortBy(result[k], [e => e[1]!.tag.match(/^[+_]/) ? e[1]!.tag.substring(1) : e[1]!.tag]);
+  }
+  return result;
 }

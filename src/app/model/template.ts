@@ -3,7 +3,10 @@ import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
 import * as moment from 'moment';
 import { Ext } from './ext';
+import { PluginType } from './plugin';
 import { Tag } from './tag';
+
+export type TemplateType = 'core' | 'feature' | 'tool';
 
 export interface Template extends Tag {
   type?: 'template';
@@ -13,6 +16,10 @@ export interface Template extends Tag {
      * Schemas are only used on non-admin config.
      */
     [record: string]: any,
+    /**
+     * Optional category for setup screen.
+     */
+    type?: TemplateType,
     /**
      * Install by default on a fresh instance.
      */

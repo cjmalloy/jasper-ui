@@ -4,7 +4,7 @@ import { bitchuteHosts, twitterHosts, youtubeHosts } from '../util/hosts';
 
 export const embedPlugin: Plugin = {
   tag: 'plugin/embed',
-  name: $localize`Embed`,
+  name: $localize`🔭️ Embed`,
   config: {
     type: 'viewer',
     default: true,

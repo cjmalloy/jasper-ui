@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 
 export const pdfPlugin: Plugin = {
   tag: 'plugin/pdf',
-  name: $localize`PDF`,
+  name: $localize`📄️ PDF`,
   config: {
     type: 'viewer',
     default: true,

@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 
 export const commentPlugin: Plugin = {
   tag: 'plugin/comment',
-  name: $localize`Comment`,
+  name: $localize`💬️ Comment`,
   config: {
     type: 'viewer',
     default: true,

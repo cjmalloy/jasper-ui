@@ -3,13 +3,15 @@ import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { forOwn, mapValues, sortBy } from 'lodash-es';
 import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
-import { Plugin } from '../../../model/plugin';
+import { Plugin, PluginType } from '../../../model/plugin';
+import { Template, TemplateType } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
+import { configGroups } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -24,7 +26,8 @@ export class SettingsSetupPage implements OnInit {
   adminForm: UntypedFormGroup;
   serverError: string[] = [];
   installMessages: string[] = [];
-  pluginGroups = this._pluginGroups;
+  pluginGroups = configGroups(this.admin.def.plugins);
+  templateGroups = configGroups(this.admin.def.templates);
 
   constructor(
     public admin: AdminService,
@@ -42,18 +45,6 @@ export class SettingsSetupPage implements OnInit {
   }
 
   ngOnInit(): void {
-  }
-
-  get _pluginGroups() {
-    let result = Object.entries(this.admin.def.plugins).reduce((result, item) => {
-      const type = result[item[1].config?.type || 'feature'] ||= [] as [string, Plugin][];
-      type.push(item);
-      return result;
-    }, {} as Record<'feature' | 'editor' | 'viewer' | 'semantic' | 'theme', [string, Plugin][]>)
-    for (const k of Object.keys(result) as ['feature' | 'editor' | 'viewer' | 'semantic' | 'theme']) {
-      result[k] = sortBy(result[k], [e => e[1]?.name]);
-    }
-    return result;
   }
 
   install() {

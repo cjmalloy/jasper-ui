@@ -30,6 +30,7 @@ import {
   templates,
   urlSummary
 } from '../../util/format';
+import { getScheme } from '../../util/hosts';
 import { printError } from '../../util/http';
 import { hasTag, isOwnerTag, tagOrigin } from '../../util/tag';
 
@@ -111,7 +112,7 @@ export class RefComponent implements OnInit {
     this.tagging = false;
     this.actionsExpanded = false;
     this.writeAccess = !hasTag('locked', value) && this.auth.writeAccess(value);
-    this.icons = this.admin.getIcons(value.tags);
+    this.icons = this.admin.getIcons(value.tags, getScheme(value.url)!);
     this.actions = this.admin.getActions(value.tags).filter(a => a.response || this.auth.tagReadAccess(a.tag));
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
     this.expandPlugins = this.admin.getEmbeds(value.tags);
@@ -341,6 +342,9 @@ export class RefComponent implements OnInit {
     }
     if (i.tag) {
       this.router.navigate(['/tag', this.store.view.toggleTag(i.tag)], { queryParamsHandling: 'merge' });
+    }
+    if (i.scheme) {
+      this.router.navigate(['/tag', '@*'], { queryParamsHandling: 'merge', queryParams: { search: i.scheme } });
     }
   }
 
