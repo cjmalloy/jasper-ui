@@ -1,6 +1,7 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
+import { toJS } from 'mobx';
 import * as moment from 'moment';
 import { hasTag } from '../util/tag';
 import { Ref } from './ref';
@@ -44,6 +45,10 @@ export interface Plugin extends Tag {
      * Add plugin to submit dropdown.
      */
     submit?: string,
+    /**
+     * Generate internal URL.
+     */
+    genUrl?: boolean,
     /**
      * Add tab on the settings page for this plugin using this label.
      */
@@ -230,8 +235,8 @@ export function renderPlugin(plugin: Plugin, ref: Ref = { url: '' }) {
     plugin._ui = Handlebars.compile(plugin.config.ui);
   }
   return plugin._ui({
-    ref,
-    plugin,
-    ...(ref.plugins?.[plugin.tag] || {}),
+    ref: toJS(ref),
+    plugin: toJS(plugin),
+    ...toJS(ref.plugins?.[plugin.tag] || {}),
   });
 }

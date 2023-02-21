@@ -26,6 +26,7 @@ import { modlistPlugin } from '../plugin/modlist';
 import { originPlugin, pullPlugin, pushPlugin } from '../plugin/origin';
 import { pdfPlugin } from '../plugin/pdf';
 import { personPlugin } from '../plugin/person';
+import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../plugin/poll';
 import { qrPlugin } from '../plugin/qr';
 import { repostPlugin } from '../plugin/repost';
 import { terminalThemePlugin } from '../plugin/theme';
@@ -95,6 +96,11 @@ export class AdminService {
       audio: audioPlugin,
       video: videoPlugin,
       image: imagePlugin,
+      poll: pollPlugin,
+      pa: pollOptionAPlugin,
+      pb: pollOptionBPlugin,
+      pc: pollOptionCPlugin,
+      pd: pollOptionDPlugin,
 
       // Themes
       terminalTheme: terminalThemePlugin,
