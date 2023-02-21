@@ -251,17 +251,34 @@ video.qr-preview {
 }
 
 .subscription-bar {
-  font-size: 70%;
+  user-select: none;
+  font-size: 10px;
   border-bottom: 1px solid transparent;
   padding: 4px 8px 2px;
 
+  .preferences {
+    cursor: pointer;
+    margin-top: 2.5px;
+    position: relative;
+    transition: transform 0.4s ease-in-out;
+    transform-origin: 50% calc(50% - 2px);
+    &:hover {
+      transform: rotate(360deg);
+    }
+  }
+
   a {
     text-transform: uppercase;
-    padding: 0 2px;
+    padding: 2px;
   }
 
   .current-page {
     font-weight: bold;
+  }
+
+  .subs {
+    font-size: 12px;
+    margin-top: 2px;
   }
 
   .light-toggle {

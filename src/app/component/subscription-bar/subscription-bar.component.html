@@ -1,5 +1,5 @@
 <ng-container *mobxAutorun>
-  <a *ngIf="store.account.signedIn" [routerLink]="['/ext', store.account.localTag]">⚙️</a>
+  <span *ngIf="store.account.signedIn" class="preferences" [routerLink]="['/ext', store.account.localTag]">⚙️</span>
   <div class="subs">
     <a routerLink="/home" routerLinkActive="current-page" i18n>home</a> &bullet;
     <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
