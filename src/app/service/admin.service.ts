@@ -436,9 +436,9 @@ export class AdminService {
     const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
     if (template) {
       if (!tag) return [template];
-      return [...this.getTemplateUi(parent!), template]
+      return [...this.getTemplates(parent!), template]
     } else if (tag) {
-      return this.getTemplateUi(parent!);
+      return this.getTemplates(parent!);
     }
     return [];
   }
