@@ -54,6 +54,7 @@ export const pollPlugin: Plugin = {
       }
       .poll-results > div > div {
         box-sizing: border-box;
+        min-width: 20px;
         margin: 2px;
         padding: 4px;
         white-space: nowrap;

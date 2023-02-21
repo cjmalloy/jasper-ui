@@ -8,6 +8,7 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
+import { PluginUiDirective } from '../../directive/plugin-ui.directive';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { EmbedService } from '../../service/embed.service';
@@ -21,14 +22,16 @@ export class ViewerComponent implements AfterViewInit {
   @HostBinding('class') css = 'embed';
 
   @Input()
-  ref?: Ref;
-  @Input()
   text? = '';
   @Input()
   tags?: string[];
 
   @ViewChild('iframe')
   iframe!: ElementRef;
+
+  uis = this.admin.getPluginUi(this.currentTags);
+
+  private _ref?: Ref;
 
   constructor(
     public admin: AdminService,
@@ -42,6 +45,16 @@ export class ViewerComponent implements AfterViewInit {
     }
   }
 
+  get ref(): Ref {
+    return this._ref!;
+  }
+
+  @Input()
+  set ref(value: Ref) {
+    this._ref = value;
+    this.uis = this.admin.getPluginUi(this.currentTags);
+  }
+
   get currentText() {
     return this.text || this.ref?.comment || '';
   }
@@ -52,10 +65,6 @@ export class ViewerComponent implements AfterViewInit {
 
   get embed() {
     return this.ref?.plugins?.['plugin/embed']?.url || this.ref?.url;
-  }
-
-  get uis() {
-    return this.admin.getPluginUi(this.currentTags);
   }
 
   cssUrl(url: string) {
