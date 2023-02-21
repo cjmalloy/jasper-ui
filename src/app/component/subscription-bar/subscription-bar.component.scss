@@ -1,6 +1,6 @@
 :host {
   display: flex;
-  :nth-child(2) {
+  & > :nth-child(2) {
     margin-left: 10px;
   }
 }
