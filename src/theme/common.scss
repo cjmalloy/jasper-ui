@@ -7,6 +7,19 @@ html, body {
   overflow-x: hidden;
 }
 
+.resize-handle {
+  position: relative;
+  &:after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    background-image: url("data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjIwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBtZWV0IiB2aWV3Qm94PSIwIDAgMjAgMjAiIHdpZHRoPSIyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyIiBjeT0iMTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgiIGN5PSIxNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE0IiBjeT0iMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTQiIGN5PSIxNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTQiIGN5PSI4IiByPSIxLjUiLz48cGF0aCBkPSJtMCAwaDM2djM2aC0zNnoiIGZpbGw9Im5vbmUiLz48L3N2Zz4=");
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+  }
+}
+
 .nowrap {
   white-space: nowrap;
 }
@@ -923,6 +936,13 @@ button.backup, button.upload, input.upload {
 
   td, th {
     padding: 4px;
+  }
+}
+
+ngx-monaco-editor {
+  position: relative;
+  .editor-container {
+    height: 100% !important;
   }
 }
 

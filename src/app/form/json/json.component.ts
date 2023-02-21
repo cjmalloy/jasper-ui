@@ -19,6 +19,7 @@ export class JsonComponent implements OnInit, OnDestroy {
 
   options: any = {
     language: 'json',
+    automaticLayout: true,
   };
 
   constructor(

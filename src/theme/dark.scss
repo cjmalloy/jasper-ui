@@ -25,6 +25,10 @@ body.dark-theme {
     background-blend-mode: soft-light;
   }
 
+  .resize-handle:after {
+    filter: drop-shadow(0.5px 0.5px 1px $border);
+  }
+
   .container {
     background: radial-gradient(transparent 0, rgba(0, 0, 0, 0.3));
   }

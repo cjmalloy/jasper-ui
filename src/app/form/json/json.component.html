@@ -1,4 +1,8 @@
 <ng-container [formGroup]="group">
-  <ngx-monaco-editor [formControlName]="fieldName"
-                     [options]="options"></ngx-monaco-editor>
+  <ngx-monaco-editor #editor
+                     [formControlName]="fieldName"
+                     [options]="options"
+                     [style.width]="'900px'"
+                     [style.height]="'600px'"
+                     appResizeHandle></ngx-monaco-editor>
 </ng-container>

@@ -64,9 +64,11 @@ import { UserComponent } from './component/user/user.component';
 import { ViewerComponent } from './component/viewer/viewer.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { FillWidthDirective } from './directive/fill-width.directive';
+import { ImageDimDirective } from './directive/image-dim.directive';
 import { LimitWidthDirective } from './directive/limit-width.directive';
 import { MdPostDirective } from './directive/md-post.directive';
 import { PluginUiDirective } from './directive/plugin-ui.directive';
+import { ResizeHandleDirective } from './directive/resize-handle.directive';
 import { ResizeDirective } from './directive/resize.directive';
 import { RouterActivateDirective } from './directive/router-activate.directive';
 import { TemplateUiDirective } from './directive/template-ui.directive';
@@ -130,7 +132,6 @@ import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
 import { OriginService } from './service/origin.service';
 import { ThemeService } from './service/theme.service';
-import { ImageDimDirective } from './directive/image-dim.directive';
 
 const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginService, themes: ThemeService) => () =>
   config.load$.pipe(
@@ -270,6 +271,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     RouterActivateDirective,
     SelectPluginComponent,
     ImageDimDirective,
+    ResizeHandleDirective,
   ],
   imports: [
     BrowserModule,

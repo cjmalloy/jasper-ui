@@ -12,12 +12,12 @@ export namespace Rect {
 }
 
 export function relativeX(x: number, el?: any): number {
-  if (!el) return x;
+  if (!el) return x + scrollX;
   return relativeX(x - el.offsetLeft, el.offsetParent!);
 }
 
 
 export function relativeY(y: number, el?: any): number {
-  if (!el) return y;
+  if (!el) return y + scrollY;
   return relativeY(y - el.offsetTop, el.offsetParent!);
 }

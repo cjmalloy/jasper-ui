@@ -133,6 +133,10 @@ textarea {
   resize: vertical;
 }
 
+ngx-monaco-editor {
+  width: 100vw !important;
+}
+
 .comment {
   margin-left: 0;
 
