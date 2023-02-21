@@ -371,10 +371,10 @@ export class AdminService {
     return this.extensions.filter(p => p.config!.extensions!.includes(type))
   }
 
-  getActions(tags?: string[]) {
+  getActions(tags?: string[], config?: any) {
     const match = ['plugin', ...(tags || [])];
     return this.actions.filter(p => includesTag(p.tag, match))
-      .flatMap(p => p.config!.actions as Action[]);
+      .flatMap(p => p.config!.actions!.filter(a => !a.condition || !!config?.[p.tag]?.[a.condition]) as Action[]);
   }
 
   getIcons(tags?: string[], scheme?: string) {

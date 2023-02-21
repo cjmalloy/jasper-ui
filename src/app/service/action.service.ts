@@ -1,11 +1,7 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import * as moment from 'moment/moment';
-import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
-import { v4 as uuid } from 'uuid';
+import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { Action, active } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { Store } from '../store/store';
 import { RefService } from './api/ref.service';
 import { TaggingService } from './api/tagging.service';
 

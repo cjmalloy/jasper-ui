@@ -179,9 +179,9 @@ export interface Action extends Visibility {
    */
   labelOff?: string;
   /**
-   * If set, limits visibility to the indicated parties.
+   * Field name of a config flag to show / hide this action.
    */
-  visible?: 'author' | 'recipient' | 'participant';
+  condition?: string;
 }
 
 export function active(ref: Ref, o: Action | Icon) {

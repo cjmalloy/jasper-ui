@@ -34,10 +34,10 @@ export const pollPlugin: Plugin = {
     submit: $localize`🗳️ poll`,
     genUrl: true,
     actions: [
-      { response: 'plugin/poll.a', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`A`, labelOn: $localize`unvote` },
-      { response: 'plugin/poll.b', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`B`, labelOn: $localize`unvote` },
-      { response: 'plugin/poll.c', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`C`, labelOn: $localize`unvote` },
-      { response: 'plugin/poll.d', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`D`, labelOn: $localize`unvote` },
+      { condition: 'a', response: 'plugin/poll.a', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`a`, labelOn: $localize`(a)` },
+      { condition: 'b', response: 'plugin/poll.b', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`b`, labelOn: $localize`(b)` },
+      { condition: 'c', response: 'plugin/poll.c', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`c`, labelOn: $localize`(c)` },
+      { condition: 'd', response: 'plugin/poll.d', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`d`, labelOn: $localize`(d)` },
     ],
     filters: [
       { query: 'plugin/poll', label: $localize`🗳️ poll`, group: $localize`Plugins 🧰️` },
@@ -46,9 +46,14 @@ export const pollPlugin: Plugin = {
       .poll-results {
         display: inline-block !important;
         padding: 10px;
+      }
+      .poll-results > div {
+        display: inline-block;
+        position: relative;
         min-width: min(100vw, 300px);
       }
-      .poll-results div {
+      .poll-results > div > div {
+        box-sizing: border-box;
         margin: 2px;
         padding: 4px;
         white-space: nowrap;
@@ -61,11 +66,13 @@ export const pollPlugin: Plugin = {
       }
     `,
     ui: `
-      <div class="poll-results bubble">
-        <div {{#if (userVoted ref 'a')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'a' }}%">{{ a }} {{ votePercentage ref 'a' }}%</div>
-        <div {{#if (userVoted ref 'b')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'b' }}%">{{ b }} {{ votePercentage ref 'b' }}%</div>
-        <div {{#if (userVoted ref 'c')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'c' }}%">{{ c }} {{ votePercentage ref 'c' }}%</div>
-        <div {{#if (userVoted ref 'd')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'd' }}%">{{ d }} {{ votePercentage ref 'd' }}%</div>
+      <div class="bubble poll-results">
+        <div>
+          {{#if a }}<div {{#if (userVoted ref 'a')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'a' }}%">A: {{ a }} {{ votePercentage ref 'a' }}%</div>{{/if}}
+          {{#if b }}<div {{#if (userVoted ref 'b')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'b' }}%">B: {{ b }} {{ votePercentage ref 'b' }}%</div>{{/if}}
+          {{#if c }}<div {{#if (userVoted ref 'c')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'c' }}%">C: {{ c }} {{ votePercentage ref 'c' }}%</div>{{/if}}
+          {{#if d }}<div {{#if (userVoted ref 'd')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'd' }}%">D: {{ d }} {{ votePercentage ref 'd' }}%</div>{{/if}}
+        </div>
       </div>
     `,
     form: [{
