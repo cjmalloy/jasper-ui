@@ -13,7 +13,7 @@ import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
-import { NOTIFY_REGEX } from '../../../util/format';
+import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasPrefix } from '../../../util/tag';
 
@@ -45,7 +45,7 @@ export class SubmitDmPage implements OnInit {
   ) {
     theme.setTitle($localize`Submit: Direct Message`);
     this.dmForm = fb.group({
-      to: ['', [Validators.pattern(NOTIFY_REGEX)]],
+      to: ['', [Validators.pattern(TAG_REGEX)]],
       title: [''],
       comment: [''],
     });

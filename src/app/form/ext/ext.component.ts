@@ -50,7 +50,8 @@ export class ExtFormComponent implements OnInit {
   }
 
   get modmail() {
-    return getMailbox(this.group.value.tag);
+    if (hasPrefix(this.group.get('tag')!.value, 'user')) return null;
+    return getMailbox(this.group.get('tag')!.value);
   }
 
   get sidebar() {
