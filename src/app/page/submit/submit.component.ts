@@ -13,6 +13,7 @@ import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
+import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { isWiki, wikiUriFormat } from '../../plugin/wiki';
@@ -39,8 +40,8 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   validations: Validation[] = [];
 
-  plugin = '';
-  private _plugin?: Plugin;
+  private _plugin = '';
+  private _selectedPlugin?: Plugin;
   serverErrors: string[] = [];
   existingRef?: Ref;
   scrape = true;
@@ -92,13 +93,24 @@ export class SubmitPage implements OnInit, OnDestroy {
     this.disposers.length = 0;
   }
 
-  get selectedPlugin() {
-    if (!this.plugin) {
-      this._plugin = undefined;
-    } else if (this._plugin?.tag != this.plugin) {
-      this._plugin = this.admin.getPlugin(this.plugin);
-    }
+  get plugin(): string {
     return this._plugin;
+  }
+
+  set plugin(value: string) {
+    this._plugin = value;
+    if (this.admin.getPlugin(value)?.config?.genUrl) {
+      this.submit('internal:' + uuid());
+    }
+  }
+
+  get selectedPlugin() {
+    if (!this._plugin) {
+      this._selectedPlugin = undefined;
+    } else if (this._selectedPlugin?.tag != this._plugin) {
+      this._selectedPlugin = this.admin.getPlugin(this._plugin);
+    }
+    return this._selectedPlugin;
   }
 
   get url() {
@@ -149,12 +161,12 @@ export class SubmitPage implements OnInit, OnDestroy {
     return false;
   }
 
-  submit() {
+  submit(url?: string) {
     let tags = this.store.submit.tags;
-    if (this.store.submit.web && this.plugin && !tags.includes(this.plugin)) {
-      tags = uniq([this.plugin, ...tags]);
+    if (this.store.submit.web && this._plugin && !tags.includes(this._plugin)) {
+      tags = uniq([this._plugin, ...tags]);
     }
-    const url = this.fixed(this.url.value);
+    url ||= this.fixed(this.url.value);
     this.router.navigate(['./submit', this.editor(this.linkType(url))], {
       queryParams: {
         url,

@@ -23,6 +23,7 @@ export interface Metadata {
   responses?: number;
   internalResponses?: number;
   plugins?: Record<string, number>;
+  userUrls?: string[];
 }
 
 export type Filter =

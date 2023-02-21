@@ -1,8 +1,26 @@
+import * as Handlebars from 'handlebars';
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Ref } from '../model/ref';
 
+// https://github.com/handlebars-lang/handlebars.js/issues/1593
 // @ts-ignore
 window.global = {};
+
+Handlebars.registerHelper('userVoted', (ref: Ref, value: string) => {
+  return ref.metadata?.userUrls?.includes('plugin/poll.' + value);
+});
+
+Handlebars.registerHelper('votePercentage', (ref: Ref, value: string) => {
+  const total =
+    (ref.metadata?.plugins?.['plugin/poll.a'] || 0) +
+    (ref.metadata?.plugins?.['plugin/poll.b'] || 0) +
+    (ref.metadata?.plugins?.['plugin/poll.c'] || 0) +
+    (ref.metadata?.plugins?.['plugin/poll.d'] || 0);
+  if (!total) return 0;
+  return Math.floor(100 * (ref.metadata?.plugins?.['plugin/poll.' + value] || 0) / total);
+});
+
 export const pollPlugin: Plugin = {
   tag: 'plugin/poll',
   name: $localize`🗳️ Poll`,
@@ -24,14 +42,31 @@ export const pollPlugin: Plugin = {
     filters: [
       { query: 'plugin/poll', label: $localize`🗳️ poll`, group: $localize`Plugins 🧰️` },
     ],
+    css: `
+      .poll-results {
+        display: inline-block !important;
+        padding: 10px;
+        min-width: min(100vw, 300px);
+      }
+      .poll-results div {
+        margin: 2px;
+        padding: 4px;
+        white-space: nowrap;
+        overflow: visible;
+        border-radius: 6px;
+        background-color: rgba(128, 128, 128, 0.5);
+      }
+      .poll-results .voted:after {
+        content: ' ☑️ ';
+      }
+    `,
     ui: `
-      <table class="poll-results">
-      <th><td></td><td>score</td></th>
-        <tr><td>A:</td><td>{{ lookup ref.metadata.plugins 'plugin/poll.a' }}</td></tr>
-        <tr><td>B:</td><td>{{ lookup ref.metadata.plugins 'plugin/poll.b' }}</td></tr>
-        <tr><td>C:</td><td>{{ lookup ref.metadata.plugins 'plugin/poll.c' }}</td></tr>
-        <tr><td>D:</td><td>{{ lookup ref.metadata.plugins 'plugin/poll.d' }}</td></tr>
-      </table>
+      <div class="poll-results bubble">
+        <div {{#if (userVoted ref 'a')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'a' }}%">{{ a }} {{ votePercentage ref 'a' }}%</div>
+        <div {{#if (userVoted ref 'b')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'b' }}%">{{ b }} {{ votePercentage ref 'b' }}%</div>
+        <div {{#if (userVoted ref 'c')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'c' }}%">{{ c }} {{ votePercentage ref 'c' }}%</div>
+        <div {{#if (userVoted ref 'd')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'd' }}%">{{ d }} {{ votePercentage ref 'd' }}%</div>
+      </div>
     `,
     form: [{
       key: 'a',

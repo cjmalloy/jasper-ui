@@ -187,7 +187,7 @@ export interface Action extends Visibility {
 export function active(ref: Ref, o: Action | Icon) {
   if (!o.tag && !o.response) return true;
   if (o.tag && hasTag(o.tag, ref)) return true;
-  if (o.response && ref.metadata?.plugins?.[o.response]) return true;
+  if (o.response && ref.metadata?.userUrls?.includes(o.response)) return true;
   return false;
 }
 
