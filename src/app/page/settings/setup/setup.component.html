@@ -1,6 +1,6 @@
 <form class="form" [formGroup]="adminForm" (ngSubmit)="install()">
   <span><!-- Title --></span>
-  <h3 i18n>Install Plugins and Templates</h3>
+  <h2 i18n>Install Plugins and Templates</h2>
   <span><!-- Description --></span>
   <p i18n>
     Quickly turn on and off templates bundled with this client.
@@ -9,7 +9,7 @@
     plugins and templates.
   </p>
 
-  <label i18n>Templates:</label>
+  <h3 i18n>Templates:</h3>
   <div class="bubble">
     <div formGroupName="templates" class="form">
       <ng-container *ngFor="let group of templateGroups | keyvalue">
@@ -26,7 +26,7 @@
     </div>
   </div>
 
-  <label i18n>Plugins:</label>
+  <h3 i18n>Plugins:</h3>
   <div class="bubble">
     <div formGroupName="plugins" class="form">
       <ng-container *ngFor="let group of pluginGroups | keyvalue">
