@@ -14,6 +14,8 @@ export class RefListComponent implements OnInit {
   @Input()
   pinned?: Ref[] | null;
   @Input()
+  expanded = false;
+  @Input()
   tag?: string | null;
   @Input()
   graph = false;

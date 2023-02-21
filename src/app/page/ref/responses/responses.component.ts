@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
+import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { AdminService } from '../../../service/admin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
@@ -23,6 +23,7 @@ export class RefResponsesComponent implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     query.clear();
+    runInAction(() => store.view.defaultSort = 'published');
   }
 
   ngOnInit(): void {

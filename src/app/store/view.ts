@@ -17,7 +17,7 @@ export type View =
   'home' | 'all' | 'local' |
   'tag' | 'query' |
   'sent' |
-  'ref/comments' | 'ref/responses' | 'ref/sources' | 'ref/versions' |
+  'ref/comments' | 'ref/email' | 'ref/responses' | 'ref/sources' | 'ref/versions' |
   'plugin/feed' | 'plugin/origin' | 'plugin/inbox' | 'plugin/invoice' |
   'ext' | 'user' | 'plugin' | 'template';
 
@@ -69,6 +69,7 @@ export class ViewStore {
       case 'ref/:url':
         switch (s.firstChild?.routeConfig?.path) {
           case 'comments': return 'ref/comments';
+          case 'email': return 'ref/email';
           case 'responses': return 'ref/responses';
           case 'sources': return 'ref/sources';
           case 'versions': return 'ref/versions';

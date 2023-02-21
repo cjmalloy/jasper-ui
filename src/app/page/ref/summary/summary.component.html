@@ -9,7 +9,7 @@
       <app-comment-list [top]="store.view.ref"
                         [source]="store.view.ref.url"
                         [newComments$]="newComments$"
-                        [depth]="1"
+                        [depth]="0"
                         [pageSize]="summaryItems"
                         [showLoadMore]="false"></app-comment-list>
       <a *ngIf="comments > summaryItems" routerLink="./comments" class="load-more" i18n>more comments</a>

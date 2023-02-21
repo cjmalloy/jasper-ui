@@ -697,6 +697,15 @@ video.qr-preview {
   }
 }
 
+.email {
+  .thumbnail, .link {
+    display: none;
+  }
+  .list-item .expand {
+    border: none;
+  }
+}
+
 .stack {
   display: flex;
   flex-direction: column;

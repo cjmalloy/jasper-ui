@@ -326,6 +326,12 @@ body.dark-theme {
     }
   }
 
+  .email .ref {
+    .expand {
+      border: none !important;
+    }
+  }
+
   .actions {
     :link, :visited, a:active, .fake-link {
       color: $info;

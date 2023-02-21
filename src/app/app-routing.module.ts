@@ -9,6 +9,7 @@ import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
 import { RefAltsComponent } from './page/ref/alts/alts.component';
 import { RefCommentsComponent } from './page/ref/comments/comments.component';
+import { RefEmailComponent } from './page/ref/email/email.component';
 import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
@@ -49,6 +50,7 @@ const routes: Routes = [
     children: [
       { path: '', component: RefSummaryComponent },
       { path: 'comments', component: RefCommentsComponent },
+      { path: 'email', component: RefEmailComponent },
       { path: 'responses', component: RefResponsesComponent },
       { path: 'sources', component: RefSourcesComponent },
       { path: 'missing', component: RefMissingComponent },

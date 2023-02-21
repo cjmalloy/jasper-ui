@@ -4,13 +4,13 @@
     <app-ref class="pinned"
              [ref]="ref"
              [showToggle]="true"
-             [expanded]="false"></app-ref>
+             [expanded]="expanded"></app-ref>
   </ng-container>
   <ng-container *ngFor="let ref of page?.content; let i = index">
     <div class="list-number">{{ i + page!.number * page!.size + 1 }}</div>
     <app-ref [ref]="ref"
              [showToggle]="true"
-             [expanded]="false"></app-ref>
+             [expanded]="expanded"></app-ref>
   </ng-container>
 </div>
 <ng-container *ngIf="page else loading">

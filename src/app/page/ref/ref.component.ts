@@ -36,6 +36,11 @@ export class RefPage implements OnInit, OnDestroy {
     return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
+  get emailReplies() {
+    if (!this.admin.status.plugins.email) return 0;
+    return this.store.view.ref?.metadata?.plugins?.['plugin/email'] || 0;
+  }
+
   get responses() {
     return this.store.view.ref?.metadata?.responses || 0;
   }

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { autorun, IReactionDisposer } from 'mobx';
+import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { mailboxes } from '../../../plugin/mailbox';
@@ -23,6 +23,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     query.clear();
+    runInAction(() => store.view.defaultSort = 'published');
   }
 
   ngOnInit(): void {
