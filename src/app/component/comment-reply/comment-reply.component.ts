@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq } from 'lodash-es';
+import { runInAction } from 'mobx';
 import * as moment from 'moment';
 import { catchError, Subject, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -11,6 +12,7 @@ import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
+import { ThreadStore } from '../../store/thread';
 import { getMailboxes, getTags } from '../../util/editor';
 import { printError } from '../../util/http';
 import { hasTag, removeTag } from '../../util/tag';
@@ -25,6 +27,8 @@ export class CommentReplyComponent {
 
   @Input()
   to!: Ref;
+  @Input()
+  top?: Ref;
   @Input()
   tags: string[] = [];
   @Input()
@@ -41,6 +45,7 @@ export class CommentReplyComponent {
   constructor(
     public admin: AdminService,
     public store: Store,
+    private thread: ThreadStore,
     private editor: EditorService,
     private refs: RefService,
     private fb: FormBuilder,
@@ -71,6 +76,7 @@ export class CommentReplyComponent {
       comment: value,
       sources: uniq([
         this.to.url,
+        ...(this.top ? [this.top.url] : []),
         ...this.editor.getSources(value),
       ]),
       alternateUrls: this.editor.getAlts(value),

@@ -7,6 +7,7 @@ import { LocalStore } from './local';
 import { OriginStore } from './origin';
 import { SettingsStore } from './settings';
 import { SubmitStore } from './submit';
+import { ThreadStore } from './thread';
 import { ViewStore } from './view';
 
 @Injectable({

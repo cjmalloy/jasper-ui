@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { without } from 'lodash-es';
 import { catchError, Subject, switchMap, throwError } from 'rxjs';
@@ -16,7 +16,7 @@ import { printError } from '../../util/http';
   templateUrl: './comment-edit.component.html',
   styleUrls: ['./comment-edit.component.scss'],
 })
-export class CommentEditComponent {
+export class CommentEditComponent implements AfterViewInit {
   @HostBinding('class') css = 'comment-edit';
 
   serverError: string[] = [];
@@ -39,6 +39,10 @@ export class CommentEditComponent {
     this.commentForm = fb.group({
       comment: [''],
     });
+  }
+
+  ngAfterViewInit() {
+    this.comment.setValue(this.ref.comment);
   }
 
   get comment() {

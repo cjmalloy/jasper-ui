@@ -6,13 +6,11 @@
                        [newComments$]="newComments$"></app-comment-reply>
     <div class="summary-box" *ngIf="comments">
       <h5 i18n>Comments:</h5>
-      <app-comment-list [top]="store.view.ref"
-                        [source]="store.view.ref.url"
+      <app-comment-list [source]="store.view.ref"
                         [newComments$]="newComments$"
-                        [depth]="0"
-                        [pageSize]="summaryItems"
-                        [showLoadMore]="false"></app-comment-list>
-      <a *ngIf="comments > summaryItems" routerLink="./comments" class="load-more" i18n>more comments</a>
+                        [depth]="1"
+                        [pageSize]="summaryItems"></app-comment-list>
+      <a *ngIf="moreComments" routerLink="./comments" class="load-more" i18n>more comments</a>
     </div>
     <div class="summary-box" *ngIf="responses">
       <h5 i18n>Responses:</h5>

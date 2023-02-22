@@ -1,11 +1,9 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { Observable, Subject, takeUntil } from 'rxjs';
-import { Page } from '../../model/page';
-import { Ref, RefSort } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
+import { Ref } from '../../model/ref';
 import { Store } from '../../store/store';
-import { getArgs, UrlFilter } from '../../util/query';
+import { ThreadStore } from '../../store/thread';
 
 @Component({
   selector: 'app-comment-list',
@@ -18,52 +16,45 @@ export class CommentListComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
-  top!: Ref;
-  @Input()
   depth = 7;
   @Input()
-  pageSize = 20;
+  pageSize = 500;
   @Input()
   context = 0;
   @Input()
-  showLoadMore = true;
-  @Input()
   newComments$!: Observable<Ref | null>;
 
+  comments?: Ref[];
   newComments: Ref[] = [];
-  pages: Page<Ref>[] = [];
-  hasMore = false;
-  private _source?: string;
-  private sort?: RefSort[];
-  private filter?: UrlFilter[];
+  private _source?: Ref;
 
   constructor(
-    private refs: RefService,
-    private store: Store,
+    public store: Store,
+    public thread: ThreadStore,
   ) {
     this.disposers.push(autorun(() => {
-      this.sort = [...store.view.sort];
-      this.filter = store.view.filter;
-      this.newComments = [];
-      this.pages = [];
-      this.loadMore();
+      if (thread.latest) {
+        this.comments = thread.cache.get(this.source?.url)
+      }
     }));
   }
 
   @Input()
-  set source(value: string) {
+  set source(value: Ref | undefined) {
     if (this._source === value) return;
     this._source = value;
     this.newComments = [];
-    this.pages = [];
-    this.loadMore();
+    this.comments = this.thread.cache.get(value?.url);
+  }
+
+  get source() {
+    return this._source;
   }
 
   ngOnInit(): void {
     this.newComments$.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(comment =>
-      comment && this.pages[0].content.unshift(comment));
+    ).subscribe(comment => comment && this.newComments.unshift(comment));
   }
 
   ngOnDestroy() {
@@ -71,21 +62,6 @@ export class CommentListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-  }
-
-  loadMore() {
-    if (!this._source) return;
-    if (!this.sort) return;
-    if (!this.filter) return;
-    this.refs.page({
-      ...getArgs('plugin/comment@*', this.sort, this.filter),
-      responses: this._source,
-      page: this.pages.length,
-      size: this.pageSize,
-    }).subscribe(page => {
-      this.pages.push(page);
-      this.hasMore = this.pages.length < this.pages[0].totalPages;
-    });
   }
 
 }

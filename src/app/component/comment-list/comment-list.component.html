@@ -1,12 +1,12 @@
-<ng-container *ngFor="let page of pages">
-  <app-comment *ngFor="let comment of page.content"
-               [top]="top"
+<ng-container *mobxAutorun>
+  <app-comment *ngFor="let comment of newComments"
                [ref]="comment"
                [depth]="depth"
                [context]="context"></app-comment>
+  <ng-container *ngIf="depth > 0">
+    <app-comment *ngFor="let comment of comments"
+                 [ref]="comment"
+                 [depth]="depth"
+                 [context]="context"></app-comment>
+  </ng-container>
 </ng-container>
-<span class="fake-link load-more"
-      *ngIf="showLoadMore && hasMore"
-      (click)="loadMore()" i18n>
-  load more comments
-</span>

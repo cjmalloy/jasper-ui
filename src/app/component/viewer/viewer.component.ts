@@ -45,12 +45,12 @@ export class ViewerComponent implements AfterViewInit {
     }
   }
 
-  get ref(): Ref {
-    return this._ref!;
+  get ref() {
+    return this._ref;
   }
 
   @Input()
-  set ref(value: Ref) {
+  set ref(value: Ref | undefined) {
     this._ref = value;
     this.uis = this.admin.getPluginUi(this.currentTags);
   }

@@ -4,8 +4,8 @@ import { Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { mailboxes } from '../../../plugin/mailbox';
 import { ThemeService } from '../../../service/theme.service';
-import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { ThreadStore } from '../../../store/thread';
 
 @Component({
   selector: 'app-ref-comments',
@@ -20,15 +20,20 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
   constructor(
     private theme: ThemeService,
     public store: Store,
-    public query: QueryStore,
+    public thread: ThreadStore,
   ) {
-    query.clear();
+    thread.clear();
     runInAction(() => store.view.defaultSort = 'published');
   }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => this.theme.setTitle($localize`Comments: ` + (this.store.view.ref?.title || this.store.view.url))));
     this.disposers.push(autorun(() => {
-      this.theme.setTitle($localize`Comments: ` + (this.store.view.ref?.title || this.store.view.url));
+      const top = this.store.view.ref!;
+      const sort = this.store.view.sort;
+      const filter = this.store.view.filter;
+      const search = this.store.view.search;
+      runInAction(() => this.thread.setArgs(top, sort, filter, search));
     }));
   }
 

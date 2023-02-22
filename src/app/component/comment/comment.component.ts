@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { runInAction } from 'mobx';
 import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { Action, active, Icon, Visibility, visible } from '../../model/plugin';
 import { Ref } from '../../model/ref';
@@ -12,6 +13,7 @@ import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
+import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags, TAGS_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag, tagOrigin } from '../../util/tag';
@@ -30,14 +32,13 @@ export class CommentComponent implements OnInit, OnDestroy {
   maxContext = 20;
 
   @Input()
-  top!: Ref;
-  @Input()
   depth?: number | null = 7;
   @Input()
   context = 0;
 
   _ref!: Ref;
   commentEdited$ = new Subject<Ref>();
+  newComments = 0;
   newComments$ = new Subject<Ref | null>();
   icons: Icon[] = [];
   actions: Action[] = [];
@@ -52,6 +53,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   constructor(
     public admin: AdminService,
     public store: Store,
+    public thread: ThreadStore,
     private router: Router,
     private auth: AuthzService,
     private refs: RefService,
@@ -59,12 +61,12 @@ export class CommentComponent implements OnInit, OnDestroy {
     private ts: TaggingService,
   ) { }
 
-  get ref(): Ref {
-    return this._ref;
-  }
-
   get origin() {
     return this.ref.origin || undefined;
+  }
+
+  get ref(): Ref {
+    return this._ref;
   }
 
   @Input()
@@ -85,6 +87,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     ).subscribe(ref => {
       this.replying = false;
       if (ref) {
+        this.newComments++;
         this.ref.metadata ||= {};
         this.ref.metadata.plugins ||= {};
         this.ref.metadata.plugins['plugin/comment'] ||= 0;
@@ -118,14 +121,6 @@ export class CommentComponent implements OnInit, OnDestroy {
       this.serverError = [];
       this.ref = ref;
     });
-  }
-
-  get emoji() {
-    return !!this.admin.status.plugins.emoji && hasTag('plugin/emoji', this.ref);
-  }
-
-  get latex() {
-    return !!this.admin.status.plugins.latex && hasTag('plugin/latex', this.ref);
   }
 
   get canInvoice() {
@@ -165,12 +160,23 @@ export class CommentComponent implements OnInit, OnDestroy {
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
+  get moreComments() {
+    return this.comments > (this.thread.cache.get(this.ref.url)?.length || 0) + this.newComments;
+  }
+
   get responses() {
     return this.ref.metadata?.responses || 0;
   }
 
   get sources() {
     return this.ref.sources?.length || 0;
+  }
+
+  get parent() {
+    if (!this.sources) return false;
+    if (this.sources === 1) return true;
+    if (this.sources > 2) return false;
+    return this.ref.sources![0].startsWith('comment:') && this.ref.sources![1] === this.thread.top?.url;
   }
 
   formatAuthor(user: string) {
@@ -236,5 +242,13 @@ export class CommentComponent implements OnInit, OnDestroy {
       sources: this.ref.sources,
       tags: this.ref.tags,
     }));
+  }
+
+  loadMore() {
+    this.depth ||= 0;
+    this.depth++;
+    runInAction(() => {
+      this.thread.loadAdHoc(this.ref?.url);
+    });
   }
 }

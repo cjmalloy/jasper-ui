@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { autorun, makeAutoObservable, observable, runInAction } from 'mobx';
+import { action, autorun, makeAutoObservable, observable, runInAction } from 'mobx';
 import { catchError, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs } from '../model/ref';
@@ -20,6 +20,7 @@ export class QueryStore {
   ) {
     makeAutoObservable(this, {
       args: observable.struct,
+      clear: action,
     });
     this.clear(); // Initial observables may not be null for MobX
     autorun(() => {

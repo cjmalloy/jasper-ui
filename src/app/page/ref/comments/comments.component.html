@@ -3,10 +3,14 @@
     <app-comment-reply [to]="store.view.ref"
                        [tags]="mailboxes"
                        [newComments$]="newComments$"></app-comment-reply>
-    <app-comment-list [top]="store.view.ref"
-                      [source]="store.view.ref.url"
+    <app-comment-list [source]="store.view.ref"
                       [newComments$]="newComments$"
                       [depth]="depth"></app-comment-list>
+    <span class="fake-link load-more"
+          *ngIf="thread.hasMore"
+          (click)="thread.loadMore()" i18n>
+      load more comments
+    </span>
   </ng-container>
   <ng-template #loading>
     <app-loading></app-loading>
