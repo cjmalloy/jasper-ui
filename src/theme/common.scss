@@ -261,9 +261,9 @@ video.qr-preview {
     margin-top: 2.5px;
     position: relative;
     transition: transform 0.4s ease-in-out;
-    transform-origin: 50% calc(50% - 2px);
+    transform-origin: 50% calc(50% - 2.5px);
     &:hover {
-      transform: rotate(360deg);
+      transform:  scale(1.5) rotate(-270deg);
     }
   }
 
