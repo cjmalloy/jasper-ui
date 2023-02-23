@@ -1,6 +1,8 @@
-<select #select
-        class="big"
-        (input)="templateChange.next(select.value)">
-  <option i18n>🏷️</option>
-  <option *ngFor="let t of templates" [value]="t.tag ? t.tag + '/' : ''">{{ t.config?.submit }}</option>
-</select>
+<ng-container *ngIf="templates.length">
+  <select #select
+          class="big"
+          (input)="templateChange.next(select.value)">
+    <option i18n>🏷️</option>
+    <option *ngFor="let t of templates" [value]="t.tag ? t.tag + '/' : ''">{{ t.config?.submit }}</option>
+  </select>
+</ng-container>
