@@ -53,14 +53,6 @@ export class SubmitStore {
     return flatten(this.source ? [this.source] : []);
   }
 
-  get feed() {
-    return this.tags.includes('+plugin/feed');
-  }
-
-  get origin() {
-    return this.tags.includes('+plugin/origin');
-  }
-
   get web() {
     return !this.wiki && (!this.subpage || this.subpage === 'web');
   }

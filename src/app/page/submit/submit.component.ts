@@ -75,12 +75,7 @@ export class SubmitPage implements OnInit, OnDestroy {
         this.validations.push({ name: 'Not created yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
       } else {
         this.url.setValue(this.store.submit.url);
-        if (this.store.submit.feed || this.store.submit.origin) {
-          this.scrape = false;
-          this.validations.push({ name: 'Valid Web link', passed: false, test: url => of('web' === this.linkType(this.fixed(url))) });
-        } else {
-          this.validations.push({ name: 'Valid link', passed: false, test: url => of(this.linkType(this.fixed(url))) });
-        }
+        this.validations.push({ name: 'Valid link', passed: false, test: url => of(this.linkType(this.fixed(url))) });
         this.validations.push({ name: 'Not submitted yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
         this.validations.push({ name: 'No link shorteners', passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
       }
