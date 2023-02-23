@@ -11,11 +11,11 @@
 
   <ng-container [formGroup]="config">
 
-    <ng-container *ngIf="modmail">
+    <ng-container *ngIf="modmail && inbox">
       <label for="modmail" i18n>Enable Modmail:</label>
       <div>
-        <input id="modmail" type="checkbox" formControlName="modmail">
-        <a class="tag" [routerLink]="['/tag', modmail]">{{ modmail }}</a>
+        <input id="modmail" type="checkbox" [formControl]="modmail">
+        <a class="tag" [routerLink]="['/tag', inbox]">{{ inbox }}</a>
       </div>
     </ng-container>
 

@@ -49,9 +49,14 @@ export class ExtFormComponent implements OnInit {
     return this.group.get('config') as UntypedFormGroup;
   }
 
-  get modmail() {
+  get inbox() {
+    if (!this.admin.status.plugins.inbox) return null;
     if (hasPrefix(this.group.get('tag')!.value, 'user')) return null;
     return getMailbox(this.group.get('tag')!.value);
+  }
+
+  get modmail() {
+    return this.config.get('modmail') as UntypedFormControl;
   }
 
   get sidebar() {
