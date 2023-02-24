@@ -24,7 +24,8 @@
     <a *ngFor="let p of store.submit.submitInternal" routerLink="/submit/web"
        [class.current-tab]="store.submit.tags.includes(p.tag)"
        [queryParams]="{ tag: p.tag, url: genUrl }"
-       [replaceUrl]="true">{{ p.config!.submitInternal }}</a>
+       [replaceUrl]="true"
+       queryParamsHandling="merge">{{ p.config!.submitInternal }}</a>
     <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
   </div>
