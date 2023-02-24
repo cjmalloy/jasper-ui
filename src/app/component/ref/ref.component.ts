@@ -10,6 +10,7 @@ import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Action, active, Icon, Visibility, visible } from '../../model/plugin';
 import { Ref } from '../../model/ref';
+import { findArchive } from '../../plugin/archive';
 import { deleteNotice } from '../../plugin/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
@@ -32,7 +33,7 @@ import {
 } from '../../util/format';
 import { getScheme } from '../../util/hosts';
 import { printError } from '../../util/http';
-import { captures, capturesAny, hasTag, isOwnerTag, queriesAny, tagOrigin } from '../../util/tag';
+import { hasTag, isOwnerTag, queriesAny, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-ref',
@@ -238,23 +239,13 @@ export class RefComponent implements OnInit {
   }
 
   get archive() {
-    if (!this.admin.status.plugins.archive) return null;
-    return this.ref.plugins?.['plugin/archive']?.url || this.findArchive;
+    const plugin = this.admin.getPlugin('plugin/archive');
+    if (!plugin) return null;
+    return this.ref.plugins?.['plugin/archive']?.url || findArchive(plugin, this.ref);
   }
 
   get scrapeable() {
     return this.feed || this.pull;
-  }
-
-  get findArchive() {
-    if (this.ref.alternateUrls) {
-      for (const s of this.ref.alternateUrls) {
-        if (new URL(s).host === 'archive.ph') {
-          return s;
-        }
-      }
-    }
-    return 'https://archive.ph/newest/' + this.ref.url;
   }
 
   get isAuthor() {

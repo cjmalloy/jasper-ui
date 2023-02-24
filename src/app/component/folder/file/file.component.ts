@@ -198,24 +198,8 @@ export class FileComponent implements OnInit {
     return null;
   }
 
-  get archive() {
-    if (!this.admin.status.plugins.archive) return null;
-    return this.ref.plugins?.['plugin/archive']?.url || this.findArchive;
-  }
-
   get scrapeable() {
     return this.feed || this.pull;
-  }
-
-  get findArchive() {
-    if (this.ref.alternateUrls) {
-      for (const s of this.ref.alternateUrls) {
-        if (new URL(s).host === 'archive.ph') {
-          return s;
-        }
-      }
-    }
-    return 'https://archive.ph/newest/' + this.ref.url;
   }
 
   get isAuthor() {

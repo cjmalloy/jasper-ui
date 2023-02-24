@@ -3,7 +3,6 @@ import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
 import * as moment from 'moment';
 import { Ext } from './ext';
-import { PluginType } from './plugin';
 import { Tag } from './tag';
 
 export type TemplateType = 'core' | 'feature' | 'tool';

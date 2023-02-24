@@ -1,5 +1,7 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Ref } from '../model/ref';
+import { getHost } from '../util/hosts';
 
 export const archivePlugin: Plugin = {
   tag: 'plugin/archive',
@@ -11,6 +13,12 @@ export const archivePlugin: Plugin = {
     filters: [
       { query: 'plugin/archive', label: $localize`🗄️ archive`, group: $localize`Plugins 🧰️` },
     ],
+    hosts: [
+      'archive.ph',
+      '12ft.io',
+    ],
+    defaultArchive: 'https://archive.ph/newest/',
+    // defaultArchive: 'https://12ft.io/?proxy=',
     form: [{
       key: 'url',
       type: 'url',
@@ -26,3 +34,12 @@ export const archivePlugin: Plugin = {
     },
   },
 };
+
+export function findArchive(plugin: Plugin, ref: Ref) {
+  if (ref.alternateUrls && plugin!.config?.hosts) {
+    for (const s of ref.alternateUrls) {
+      if (plugin!.config.hosts.includes(getHost(s)!)) return s;
+    }
+  }
+  return plugin!.config!.defaultArchive + ref.url;
+}

@@ -10,6 +10,7 @@ import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Ext } from '../../model/ext';
 import { Action, active, Icon, Visibility, visible } from '../../model/plugin';
 import { Ref } from '../../model/ref';
+import { findArchive } from '../../plugin/archive';
 import { deleteNotice } from '../../plugin/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
@@ -144,19 +145,9 @@ export class BlogEntryComponent implements OnInit {
   }
 
   get archive() {
-    if (!this.admin.status.plugins.archive) return null;
-    return this.ref.plugins?.['plugin/archive']?.url || this.findArchive;
-  }
-
-  get findArchive() {
-    if (this.ref.alternateUrls) {
-      for (const s of this.ref.alternateUrls) {
-        if (new URL(s).host === 'archive.ph') {
-          return s;
-        }
-      }
-    }
-    return 'https://archive.ph/newest/' + this.ref.url;
+    const plugin = this.admin.getPlugin('plugin/archive');
+    if (!plugin) return null;
+    return this.ref.plugins?.['plugin/archive']?.url || findArchive(plugin, this.ref);
   }
 
   get isAuthor() {
