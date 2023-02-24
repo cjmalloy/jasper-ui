@@ -16,6 +16,7 @@ import { deletePlugin } from '../plugin/delete';
 import { htmlPlugin, latexPlugin } from '../plugin/editor';
 import { emailPlugin } from '../plugin/email';
 import { embedPlugin } from '../plugin/embed';
+import { experimentsPlugin } from '../plugin/experiments';
 import { feedPlugin } from '../plugin/feed';
 import { graphPlugin } from '../plugin/graph';
 import { imagePlugin } from '../plugin/image';
@@ -63,6 +64,7 @@ export class AdminService {
   def = {
     plugins: <Record<string, Plugin>> {
       debug: debugPlugin,
+      experiments: experimentsPlugin,
       breakpoint: breakpointPlugin,
       locked: lockedPlugin,
       modlist: modlistPlugin,

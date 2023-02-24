@@ -1,10 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { forOwn, mapValues, sortBy } from 'lodash-es';
+import { forOwn, mapValues } from 'lodash-es';
 import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
-import { Plugin, PluginType } from '../../../model/plugin';
-import { Template, TemplateType } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
@@ -21,6 +19,7 @@ import { printError } from '../../../util/http';
 })
 export class SettingsSetupPage implements OnInit {
 
+  experiments = !!this.admin.getPlugin('plugin/experiments');
   selectAllToggle = false;
   submitted = false;
   adminForm: UntypedFormGroup;

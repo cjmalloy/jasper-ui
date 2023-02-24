@@ -24,6 +24,11 @@ export interface Template extends Tag {
      */
     default?: boolean;
     /**
+     * Mark this template as an experiment. Only show on setup page if
+     * plugin/experiments is installed.
+     */
+    experimental?: boolean;
+    /**
      * Description of what this template is used for.
      */
     description?: string,

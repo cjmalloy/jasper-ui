@@ -26,6 +26,11 @@ export interface Plugin extends Tag {
      */
     default?: boolean;
     /**
+     * Mark this plugin as an experiment. Only show on setup page if
+     * plugin/experiments is installed.
+     */
+    experimental?: boolean;
+    /**
      * Description of what this plugin is used for.
      */
     description?: string,
