@@ -21,8 +21,8 @@
       <ng-container *ngIf="store.view.current === 'ref/versions' || error && store.view.versions || store.view.versions > 1">
         <a routerLink="versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>versions</a>
       </ng-container>
+      <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     </ng-container>
-    <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
   </div>
   <app-sidebar class="aside"></app-sidebar>
