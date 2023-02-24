@@ -500,6 +500,7 @@ export class AdminService {
 
   needsUpdate(def: Plugin | Template, status: Plugin | Template) {
     if (!this.store.account.admin) return false;
+    if (!def) return false;
     def = omitBy(def, i => !i) as any;
     status = omitBy(status, i => !i) as any;
     def.config = omitBy(def.config, i => !i);
