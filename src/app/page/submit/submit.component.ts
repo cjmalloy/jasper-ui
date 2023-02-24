@@ -40,7 +40,7 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   validations: Validation[] = [];
 
-  private _plugin = '';
+  plugin = '';
   private _selectedPlugin?: Plugin;
   serverErrors: string[] = [];
   existingRef?: Ref;
@@ -63,6 +63,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     });
     runInAction(() => {
       store.submit.wikiPrefix = admin.getWikiPrefix();
+      store.submit.submitInternal = this.admin.submitInternal.filter(p => this.auth.tagReadAccess(p.tag));
     });
   }
 
@@ -88,22 +89,15 @@ export class SubmitPage implements OnInit, OnDestroy {
     this.disposers.length = 0;
   }
 
-  get plugin(): string {
-    return this._plugin;
-  }
-
-  set plugin(value: string) {
-    this._plugin = value;
-    if (this.admin.getPlugin(value)?.config?.genUrl) {
-      this.submit('internal:' + uuid());
-    }
+  get genUrl() {
+    return 'internal:' + uuid();
   }
 
   get selectedPlugin() {
-    if (!this._plugin) {
+    if (!this.plugin) {
       this._selectedPlugin = undefined;
-    } else if (this._selectedPlugin?.tag != this._plugin) {
-      this._selectedPlugin = this.admin.getPlugin(this._plugin);
+    } else if (this._selectedPlugin?.tag != this.plugin) {
+      this._selectedPlugin = this.admin.getPlugin(this.plugin);
     }
     return this._selectedPlugin;
   }
@@ -158,8 +152,8 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   submit(url?: string) {
     let tags = this.store.submit.tags;
-    if (this.store.submit.web && this._plugin && !tags.includes(this._plugin)) {
-      tags = uniq([this._plugin, ...tags]);
+    if (this.store.submit.web && this.plugin && !tags.includes(this.plugin)) {
+      tags = uniq([this.plugin, ...tags]);
     }
     url ||= this.fixed(this.url.value);
     this.router.navigate(['./submit', this.editor(this.linkType(url))], {

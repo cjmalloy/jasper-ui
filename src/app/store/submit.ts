@@ -1,4 +1,4 @@
-import { filter, find, flatten } from 'lodash-es';
+import { flatten, without } from 'lodash-es';
 import { makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Plugin } from '../model/plugin';
@@ -7,6 +7,7 @@ import { DEFAULT_WIKI_PREFIX } from '../plugin/wiki';
 export class SubmitStore {
 
   wikiPrefix = DEFAULT_WIKI_PREFIX;
+  submitInternal: Plugin[] = [];
 
   constructor(
     public route: RouterStore,
@@ -55,5 +56,13 @@ export class SubmitStore {
 
   get web() {
     return !this.wiki && (!this.subpage || this.subpage === 'web');
+  }
+
+  get internal() {
+    return this.tags.find(t => this.submitInternal.find(p => p.tag === t));
+  }
+
+  get withoutInternal() {
+    return without(this.tags, ...this.submitInternal.map(p => p.tag));
   }
 }

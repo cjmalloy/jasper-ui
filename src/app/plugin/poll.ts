@@ -31,8 +31,7 @@ export const pollPlugin: Plugin = {
     icons: [
       { label: $localize`🗳️` },
     ],
-    submit: $localize`🗳️ poll`,
-    genUrl: true,
+    submitInternal: $localize`🗳️ poll`,
     actions: [
       { condition: 'a', response: 'plugin/poll.a', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`a`, labelOn: $localize`(a)` },
       { condition: 'b', response: 'plugin/poll.b', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`b`, labelOn: $localize`(b)` },

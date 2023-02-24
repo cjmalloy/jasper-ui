@@ -46,9 +46,9 @@ export interface Plugin extends Tag {
      */
     submit?: string,
     /**
-     * Generate internal URL.
+     * Add plugin to submit tabs and generate internal URL.
      */
-    genUrl?: boolean,
+    submitInternal?: string,
     /**
      * Add tab on the settings page for this plugin using this label.
      */
