@@ -25,7 +25,7 @@ export const originPlugin: Plugin = {
     },
   },
 };
-export const pullPlugin: Plugin = {
+export const originPullPlugin: Plugin = {
   tag: '+plugin/origin/pull',
   name: $localize`🏛️📥️ Remote Origin Pull`,
   config: {
@@ -67,7 +67,7 @@ export const pullPlugin: Plugin = {
   },
 };
 
-export const pushPlugin: Plugin = {
+export const originPushPlugin: Plugin = {
   tag: '+plugin/origin/push',
   name: $localize`🏛️📤️Remote Origin Push`,
   config: {

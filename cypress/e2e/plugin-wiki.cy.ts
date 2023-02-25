@@ -35,7 +35,7 @@ describe('Wiki Plugin', {
     cy.url().then(url => cy.visit(url + '?debug=USER'));
     cy.get('.error-404').contains('Not Found');
     cy.get('.submit-button').contains('Submit Wiki').click();
-    cy.get('h5').should('have.text', 'Submit Wiki');
+    cy.get('h5').should('have.text', 'Submit');
     cy.get('#title').should('have.value', 'Other wiki');
   });
   it('turn on wiki plugin', () => {

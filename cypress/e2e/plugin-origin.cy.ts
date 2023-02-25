@@ -19,15 +19,17 @@ describe('Origin Plugin: Remote Replication', {
     cy.get('.tabs').contains('setup').click();
     cy.get('input[type=checkbox]').uncheck();
     cy.get('#plugin-origin').check();
+    cy.get('#plugin-originPull').check();
     cy.get('button').contains('Save').click();
   });
   it('creates a remote origin', () => {
     cy.visit('/?debug=ADMIN');
     cy.contains('Submit').click();
-    cy.get('.tabs').contains('remote').click();
+    cy.get('.select-plugin select').select('+plugin/origin');
     cy.get('#url').type(replApiProxy);
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
+    cy.get('#ribbon-plugin-pull').click();
     cy.get('#origin').type('@other');
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');

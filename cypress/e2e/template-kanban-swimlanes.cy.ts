@@ -1,4 +1,4 @@
-import { addToBoard, dragCol } from './template-kanban.cy';
+import { addToBoard, dragCol } from './template-kanban';
 
 export function loadBoard() {
   cy.intercept({pathname: '/api/v1/ref/page'}).as('page');
@@ -30,10 +30,10 @@ describe('Kanban Template with Swim Lanes', {
   });
   it('creates a board with swim lanes', () => {
     cy.visit('/?debug=MOD');
-    cy.contains('Extend Tag').click();
+    cy.contains('Edit').click();
     cy.get('#tag').type('kanban/sl');
+    cy.get('button').contains('Extend').click();
     cy.get('#name').type('Kanban Test');
-    cy.get('button').contains('Create').click();
     cy.get('#columns button').click().click();
     cy.get('#qtags-columns-0').type('doing');
     cy.get('#qtags-columns-1').type('done');
@@ -189,7 +189,7 @@ describe('Kanban Template with Swim Lanes', {
     cy.get('.kanban-column').contains('second step').should('not.exist');
   });
   it('deletes board', () => {
-    cy.visit('/tag/kanban%2fsl/edit?debug=MOD');
+    cy.visit('/ext/kanban%2fsl?debug=MOD');
     cy.get('button').contains('Delete').click();
     cy.contains('Not Found');
   });

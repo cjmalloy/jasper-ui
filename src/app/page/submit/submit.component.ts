@@ -40,6 +40,8 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   validations: Validation[] = [];
 
+
+  genUrl = 'internal:' + uuid();
   plugin = '';
   private _selectedPlugin?: Plugin;
   serverErrors: string[] = [];
@@ -87,10 +89,6 @@ export class SubmitPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-  }
-
-  get genUrl() {
-    return 'internal:' + uuid();
   }
 
   get selectedPlugin() {

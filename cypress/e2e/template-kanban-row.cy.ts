@@ -1,34 +1,12 @@
+import { addToBoard, dragCol } from './template-kanban';
+
 export function loadBoard() {
   cy.intercept({pathname: '/api/v1/ref/page'}).as('page');
   cy.visit('/tag/kanban%2ftest?debug=USER');
   cy.wait(new Array(3).fill('@page'));
 }
 
-export function addToBoard(col: number, text: string) {
-  cy.intercept({method: 'POST', pathname: '/api/v1/ref'}).as('add');
-  cy.get(`.kanban-column:nth-of-type(${col})`).first().find('input').focus().type(text + '{enter}', {force: true});
-  cy.wait('@add');
-}
-
-export function dragCol(from: number, to?: number) {
-  cy.wait(400);
-  cy.get(`.kanban-column:nth-of-type(${from}) a`)
-    .realMouseDown({ button: 'left', position: 'center' })
-    .realMouseMove(0, 10, { position: 'center' });
-  cy.intercept({method: 'PATCH', pathname: '/api/v1/tags'}).as('tag');
-  if (to) {
-    cy.get(`.kanban-column:nth-of-type(${to})`)
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-  } else {
-    cy.get('.kanban-remove').parent()
-      .realMouseMove(30, 30, { position: 'topLeft' })
-      .realMouseUp();
-  }
-  cy.wait('@tag');
-}
-
-describe('Kanban Template', {
+describe('Kanban Template No Swimlanes', {
   testIsolation: false
 }, () => {
   it('loads the page', () => {
@@ -52,10 +30,10 @@ describe('Kanban Template', {
   });
   it('creates a board', () => {
     cy.visit('/?debug=MOD');
-    cy.contains('Extend Tag').click();
+    cy.contains('Edit').click();
     cy.get('#tag').type('kanban/test');
+    cy.get('button').contains('Extend').click();
     cy.get('#name').type('Kanban Test');
-    cy.get('button').contains('Create').click();
     cy.get('#columns button').click().click();
     cy.get('#qtags-columns-0').type('doing');
     cy.get('#qtags-columns-1').type('done');
@@ -102,7 +80,7 @@ describe('Kanban Template', {
     cy.get('.kanban-column').contains('first step').should('not.exist');
   });
   it('deletes board', () => {
-    cy.visit('/tag/kanban%2ftest/edit?debug=MOD');
+    cy.visit('/ext/kanban%2ftest?debug=MOD');
     cy.get('button').contains('Delete').click();
     cy.contains('Not Found');
   });

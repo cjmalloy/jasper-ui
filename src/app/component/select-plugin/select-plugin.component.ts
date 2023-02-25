@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 
@@ -8,6 +8,7 @@ import { AuthzService } from '../../service/authz.service';
   styleUrls: ['./select-plugin.component.scss']
 })
 export class SelectPluginComponent {
+  @HostBinding('class') css = 'select-plugin';
 
   @Output()
   pluginChange = new EventEmitter<string>();

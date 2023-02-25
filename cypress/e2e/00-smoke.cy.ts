@@ -1,3 +1,5 @@
+import { findArchive } from '../../src/app/plugin/archive';
+
 describe('Smoke Tests', {
   testIsolation: false
 }, () => {
@@ -33,11 +35,13 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
-        tag: '+user',
+        tag: '+user/debug',
+        sysadmin: false,
         admin: true,
         mod: true,
         editor: true,
         user: true,
+        viewer: true,
       });
     });
   });
@@ -47,11 +51,13 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
-        tag: '+user',
+        tag: '+user/debug',
+        sysadmin: false,
         admin: false,
         mod: true,
         editor: true,
         user: true,
+        viewer: true,
       });
     });
   });
@@ -61,11 +67,13 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
-        tag: '+user',
+        tag: '+user/debug',
+        sysadmin: false,
         admin: false,
         mod: false,
         editor: true,
         user: true,
+        viewer: true,
       });
     });
   });
@@ -75,11 +83,13 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
-        tag: '+user',
+        tag: '+user/debug',
+        sysadmin: false,
         admin: false,
         mod: false,
         editor: false,
         user: true,
+        viewer: true,
       });
     });
   });
@@ -89,11 +99,29 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
-        tag: '+user',
+        tag: '+user/debug',
+        sysadmin: false,
         admin: false,
         mod: false,
         editor: false,
         user: false,
+        viewer: true,
+      });
+    });
+  });
+  it('loads the ANON user', () => {
+    cy.intercept({method: 'GET', pathname: '/api/v1/user/whoami'}).as('whoami');
+    cy.visit('/?debug=ANON');
+    cy.wait('@whoami');
+    cy.get('@whoami').should(({ request, response }: any) => {
+      expect(response.body).deep.equal({
+        tag: '+user/debug',
+        sysadmin: false,
+        admin: false,
+        mod: false,
+        editor: false,
+        user: false,
+        viewer: false,
       });
     });
   });

@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostBinding,
+  Input,
+  Output,
+  ViewChild
+} from '@angular/core';
 import { AdminService } from '../../service/admin.service';
 
 @Component({
@@ -8,6 +17,7 @@ import { AdminService } from '../../service/admin.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectTemplateComponent {
+  @HostBinding('class') css = 'select-template';
 
   @Output()
   templateChange = new EventEmitter<string>();
