@@ -638,6 +638,10 @@ details.advanced[open] {
     .form {
       padding: 16px;
     }
+
+    &[open] {
+      max-height: 554px;
+    }
   }
 
   .ribbon-margin {
