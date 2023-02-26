@@ -24,7 +24,7 @@
         <div class="info" [class.expanded]="!actionsExpanded">
           <ng-container *ngIf="ref.created else notSubmitted">
             <span *ngIf="publishedIsSubmitted" [title]="ref.created.toISOString()" i18n>submitted {{ ref.created.fromNow() }}</span>
-            <ng-container *ngIf="!scrapeable && !publishedIsSubmitted">
+            <ng-container *ngIf="!publishedIsSubmitted">
               <span [title]="ref.published!.toISOString()" i18n>
                 {{ publishedLabel }}
                 {{ ref.published!.fromNow() }}</span>
@@ -57,7 +57,7 @@
             <ng-container *ngIf="scraped">
               <span [title]="lastScrape.toISOString()" i18n> last scraped {{ lastScrape.fromNow() }}</span>
             </ng-container>
-            <ng-container *ngIf="!lastScrape" i18n>
+            <ng-container *ngIf="!scraped" i18n>
               not scraped yet
             </ng-container>
           </ng-container>
