@@ -108,7 +108,7 @@ export class EditorComponent implements AfterViewInit {
   }
 
   get editorPlugins() {
-    return this.admin.editors.filter(e => this.auth.tagReadAccess(e.tag));
+    return this.admin.editors.filter(e => this.auth.canAddTag(e.tag));
   }
 
   get currentText() {

@@ -78,7 +78,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.collapsed = this.store.local.isRefToggled(this.ref.url, false);
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.icons = this.admin.getIcons(value.tags);
-    this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.tagReadAccess(a.tag));
+    this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.canAddTag(a.tag));
   }
 
   ngOnInit(): void {

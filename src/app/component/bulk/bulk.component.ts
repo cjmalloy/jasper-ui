@@ -67,7 +67,7 @@ export class BulkComponent implements OnInit, OnDestroy {
   ) {
     this.disposers.push(autorun(() => {
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
-      this.actions = this.admin.getActions(commonTags).filter(a => a.response || this.auth.tagReadAccess(a.tag));
+      this.actions = this.admin.getActions(commonTags).filter(a => a.response || this.auth.canAddTag(a.tag));
     }))
   }
 

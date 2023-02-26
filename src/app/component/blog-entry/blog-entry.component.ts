@@ -89,7 +89,7 @@ export class BlogEntryComponent implements OnInit {
     this.tagging = false;
     this.writeAccess = this.auth.writeAccess(value);
     this.icons = this.admin.getIcons(value.tags);
-    this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.tagReadAccess(a.tag));
+    this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.canAddTag(a.tag));
   }
 
   @ViewChild(RefFormComponent)

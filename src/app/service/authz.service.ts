@@ -2,7 +2,17 @@ import { Injectable } from '@angular/core';
 import { Ref } from '../model/ref';
 import { Role } from '../model/user';
 import { Store } from '../store/store';
-import { captures, capturesAny, hasTag, isOwner, isOwnerTag, localTag, privateTag, qualifyTags } from '../util/tag';
+import {
+  captures,
+  capturesAny,
+  hasTag,
+  isOwner,
+  isOwnerTag,
+  localTag,
+  privateTag,
+  publicTag,
+  qualifyTags
+} from '../util/tag';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +41,18 @@ export class AuthzService {
       if (part && !this.tagReadAccess(part)) return false;
     }
     return true;
+  }
+
+  canAddTag(tag?: string): boolean {
+    if (!this.store.account.signedIn) return false;
+    if (!tag) return false;
+    tag = localTag(tag);
+    if (publicTag(tag)) return true;
+    if (this.store.account.mod) return true;
+    if (captures(this.store.account.localTag, tag)) return true;
+    if (!this.store.account.access) return false;
+    if (capturesAny(this.store.account.access.tagReadAccess, [tag])) return true;
+    return !!capturesAny(this.store.account.access.readAccess, [tag]);
   }
 
   tagReadAccess(tag?: string): boolean {

@@ -170,8 +170,16 @@ export function isQuery(query?: string) {
   return /[:|!()]/g.test(query);
 }
 
+export function publicTag(tag: string) {
+  return !tag.startsWith('_') && !tag.startsWith('+');
+}
+
 export function privateTag(tag: string) {
   return tag.startsWith('_');
+}
+
+export function protectedTag(tag: string) {
+  return tag.startsWith('+');
 }
 
 export function access(tag: string) {

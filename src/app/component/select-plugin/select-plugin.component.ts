@@ -16,7 +16,7 @@ export class SelectPluginComponent {
   @ViewChild('select')
   select?: ElementRef<HTMLSelectElement>;
 
-  plugins = this.admin.submit.filter(p => this.auth.tagReadAccess(p.tag));
+  plugins = this.admin.submit.filter(p => this.auth.canAddTag(p.tag));
 
   constructor(
     private admin: AdminService,

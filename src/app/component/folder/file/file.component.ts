@@ -84,7 +84,7 @@ export class FileComponent implements OnInit {
     this.tagging = false;
     this.writeAccess = !hasTag('locked', value) && this.auth.writeAccess(value);
     this.icons = this.admin.getIcons(value.tags);
-    this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.tagReadAccess(a.tag));
+    this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.canAddTag(a.tag));
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
     this.expandPlugins = this.admin.getEmbeds(value.tags);
   }

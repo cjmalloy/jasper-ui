@@ -116,7 +116,7 @@ export class RefComponent implements OnInit {
     this.writeAccess = !hasTag('locked', value) && this.auth.writeAccess(value);
     this.icons = this.admin.getIcons(value.tags, getScheme(value.url)!);
     this.alarm = queriesAny(this.store.account.alarms, value.tags);
-    this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.tagReadAccess(a.tag));
+    this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.canAddTag(a.tag));
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
     this.expandPlugins = this.admin.getEmbeds(value.tags);
   }
