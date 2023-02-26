@@ -91,7 +91,7 @@ export class SubmitWebPage implements AfterViewInit {
 
   set url(value: string) {
     const plugins = this.admin.getPluginsForUrl(value);
-    if (this.feed) {
+    if (this.feed && plugins.length) {
       this.feedForm!.tags.addTag(...plugins.map(p => p.tag));
     } else {
       this.addTag(...plugins.map(p => p.tag));
