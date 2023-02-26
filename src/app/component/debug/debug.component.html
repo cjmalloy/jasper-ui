@@ -1,5 +1,5 @@
-<details *ngIf="debug">
-  <summary><span>Debug</span> <app-loading *ngIf="batchRunning"></app-loading></summary>
+<details *ngIf="debug" class="advanced">
+  <summary><span i18n>Debug</span> <app-loading *ngIf="batchRunning"></app-loading></summary>
   <a class="fake-link"
      (click)="generating = !generating">gen</a>
   <span *ngIf="generating">

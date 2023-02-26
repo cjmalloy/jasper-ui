@@ -176,27 +176,27 @@ body.light-theme {
     backdrop-filter: blur(1px);
     box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
 
-    details {
-      summary {
-        span {
-          border: 1px solid $border;
-          border-left: none;
-          border-right: none;
-          transition: background-color 0.2s;
-
-          &:hover {
-            background-color: $bg-accent;
-          }
-        }
-      }
-    }
-
     .submit-button {
       border: 1px solid $border;
       transition: background-color 0.2s;
 
       &:hover {
         background-color: $bg-accent;
+      }
+    }
+  }
+
+  details.advanced {
+    summary {
+      span {
+        border: 1px solid $border;
+        border-left: none;
+        border-right: none;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: $bg-accent;
+        }
       }
     }
   }

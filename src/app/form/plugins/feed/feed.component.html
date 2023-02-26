@@ -2,59 +2,78 @@
   <label>Feed</label>
   <div class="form" [formGroup]="plugin">
 
-    <label for="origin">Origin:</label>
-    <input id="origin" type="url" [formControl]="origin">
-    <div><!-- Origin Errors --></div>
-    <div>
-      <div class="error" *ngIf="origin.touched && origin.errors?.['pattern']">
-        Origins must be lower case letters, numbers, periods, and start with @. Must not start with a period
-        or contain two periods in a row.
-      </div>
-    </div>
-
-    <label for="scrapeInterval">Scrape Interval:</label>
-    <input id="scrapeInterval"
-           type="text"
-           [formControl]="scrapeInterval"
-           (blur)="convertInterval()">
-    <span><!-- Scrape Interval Errors --></span>
-    <div>
-      <div class="error" *ngIf="scrapeInterval.touched && scrapeInterval.errors?.['interval']">
-        Scrape Duration must be valid time span (HH:MM:SS) or ISO 8601 Duration.
-      </div>
-    </div>
-
-    <span><!-- Help --></span>
-    <div class="no-margin">
-    <span class="hints">
-          Use time spans (HH:MM:SS) or ISO 8601 Durations&nbsp;
-          <sup><a target="_blank" href="https://en.wikipedia.org/wiki/ISO_8601#Durations">help</a></sup>
-    </span>
-    </div>
-
-    <label for="disableEtag">Disable Etag caching:</label>
-    <div>
-      <input id="disableEtag" type="checkbox" formControlName="disableEtag">
-    </div>
-
-    <label for="scrapeDescription">Scrape Description:</label>
-    <div>
-      <input id="scrapeDescription" type="checkbox" formControlName="scrapeDescription">
-    </div>
-
-    <label for="scrapeContents">Scrape Contents:</label>
-    <div title="Will overwrite description if both scraped and found.">
-      <input id="scrapeContents" type="checkbox" formControlName="scrapeContents">
-    </div>
-
-    <label for="scrapeAuthors">Scrape Authors:</label>
-    <div>
-      <input id="scrapeAuthors" type="checkbox" formControlName="scrapeAuthors">
-    </div>
-
     <label for="addTags">Add Tags:</label>
     <app-tags id="addTags"
               [group]="plugin"
               fieldName="addTags"></app-tags>
   </div>
+  <details class="advanced" [formGroup]="plugin">
+    <summary><span i18n>Advanced</span></summary>
+    <div class="form">
+      <label for="origin">Origin:</label>
+      <input id="origin" type="url" [formControl]="origin">
+      <div><!-- Origin Errors --></div>
+      <div>
+        <div class="error" *ngIf="origin.touched && origin.errors?.['pattern']">
+          Origins must be lower case letters, numbers, periods, and start with @. Must not start with a period
+          or contain two periods in a row.
+        </div>
+      </div>
+
+      <label for="scrapeInterval">Scrape Interval:</label>
+      <input id="scrapeInterval"
+             type="text"
+             [formControl]="scrapeInterval"
+             (blur)="convertInterval()">
+      <span><!-- Scrape Interval Errors --></span>
+      <div>
+        <div class="error" *ngIf="scrapeInterval.touched && scrapeInterval.errors?.['interval']">
+          Scrape Duration must be valid time span (HH:MM:SS) or ISO 8601 Duration.
+        </div>
+      </div>
+
+      <span><!-- Help --></span>
+      <div class="no-margin">
+        <span class="hints">
+              Use time spans (HH:MM:SS) or ISO 8601 Durations&nbsp;
+              <sup><a target="_blank" href="https://en.wikipedia.org/wiki/ISO_8601#Durations">help</a></sup>
+        </span>
+      </div>
+
+      <label for="disableEtag">Disable Etag caching:</label>
+      <div>
+        <input id="disableEtag" type="checkbox" formControlName="disableEtag">
+      </div>
+
+      <label for="scrapeDescription">Scrape Description:</label>
+      <div>
+        <input id="scrapeDescription" type="checkbox" formControlName="scrapeDescription">
+      </div>
+
+      <label for="scrapeContents">Scrape Contents:</label>
+      <div title="Will overwrite description if both scraped and found.">
+        <input id="scrapeContents" type="checkbox" formControlName="scrapeContents">
+      </div>
+
+      <label for="scrapeThumbnail">Scrape Thumbnail:</label>
+      <div>
+        <input id="scrapeThumbnail" type="checkbox" formControlName="scrapeThumbnail">
+      </div>
+
+      <label for="scrapeAudio">Scrape Audio:</label>
+      <div>
+        <input id="scrapeAudio" type="checkbox" formControlName="scrapeAudio">
+      </div>
+
+      <label for="scrapeVideo">Scrape Video:</label>
+      <div>
+        <input id="scrapeVideo" type="checkbox" formControlName="scrapeVideo">
+      </div>
+
+      <label for="scrapeEmbed">Scrape Embed:</label>
+      <div>
+        <input id="scrapeEmbed" type="checkbox" formControlName="scrapeEmbed">
+      </div>
+    </div>
+  </details>
 </ng-container>

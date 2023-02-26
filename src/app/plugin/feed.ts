@@ -29,6 +29,10 @@ export const feedPlugin: Plugin = {
       scrapeDescription: { type: 'boolean' },
       scrapeContents: { type: 'boolean' },
       scrapeAuthors: { type: 'boolean' },
+      scrapeThumbnail: { type: 'boolean' },
+      scrapeAudio: { type: 'boolean' },
+      scrapeVideo: { type: 'boolean' },
+      scrapeEmbed: { type: 'boolean' },
     },
   },
 };
