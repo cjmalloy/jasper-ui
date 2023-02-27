@@ -64,7 +64,7 @@ export class ViewStore {
       case 'tag/:tag':
         if (this.tag === '@*') return 'all';
         if (this.tag === '*') return 'local';
-        if (/[!:|]/g.test(this.tag!)) return 'query';
+        if (isQuery(this.tag)) return 'query';
         return 'tag';
       case 'ref/:url':
         switch (s.firstChild?.routeConfig?.path) {
@@ -124,6 +124,10 @@ export class ViewStore {
 
   get tag(): string {
     return this.route.routeSnapshot?.firstChild?.params['tag'] || '';
+  }
+
+  get query() {
+    return isQuery(this.tag) ? this.tag : undefined;
   }
 
   get localTag() {
