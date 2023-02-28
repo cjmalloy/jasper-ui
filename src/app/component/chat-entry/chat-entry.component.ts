@@ -38,6 +38,7 @@ export class ChatEntryComponent {
   deleting = false;
   deleted = false;
   writeAccess = false;
+  taggingAccess = false;
   serverError: string[] = [];
 
   constructor(
@@ -52,6 +53,7 @@ export class ChatEntryComponent {
   set ref(ref: Ref) {
     this._ref = ref;
     this.writeAccess = this.auth.writeAccess(ref);
+    this.taggingAccess = this.auth.taggingAccess(ref);
   }
 
   get ref() {

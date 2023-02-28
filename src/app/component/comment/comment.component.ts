@@ -48,6 +48,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   tagging = false;
   deleting = false;
   writeAccess = false;
+  taggingAccess = false;
   serverError: string[] = [];
 
   constructor(
@@ -76,7 +77,8 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.editing = false;
     this.tagging = false;
     this.collapsed = this.store.local.isRefToggled(this.ref.url, false);
-    this.writeAccess = this.auth.writeAccess(this.ref);
+    this.writeAccess = this.auth.writeAccess(value);
+    this.taggingAccess = this.auth.taggingAccess(value);
     this.icons = this.admin.getIcons(value.tags);
     this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.canAddTag(a.tag));
   }
@@ -221,7 +223,8 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   showAction(a: Action) {
-    if (a.tag && !this.writeAccess) return false;
+    if (a.tag === 'locked' && !this.writeAccess) return false;
+    if (a.tag && !this.taggingAccess) return false;
     if (!this.visible(a)) return false;
     if (this.active(a) && !a.labelOn) return false;
     if (!this.active(a) && !a.labelOff) return false;

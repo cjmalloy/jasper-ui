@@ -34,6 +34,16 @@ export class AuthzService {
     return !!capturesAny(this.store.account.access.writeAccess, qualifyTags(ref.tags, ref.origin));
   }
 
+  taggingAccess(ref: Ref): boolean {
+    if (!this.store.account.signedIn) return false;
+    if (ref.origin !== this.store.account.origin) return false;
+    if (this.store.account.editor) return true;
+    if (isOwnerTag(this.store.account.tag, ref)) return true;
+    if (!this.store.account.access) return false;
+    if (isOwner(this.store.account.access, ref)) return true;
+    return !!capturesAny(this.store.account.access.writeAccess, qualifyTags(ref.tags, ref.origin));
+  }
+
   queryReadAccess(query?: string): boolean {
     if (!this.store.account.signedIn) return false;
     if (!query) return false;

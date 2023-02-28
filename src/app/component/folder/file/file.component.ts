@@ -44,6 +44,7 @@ export class FileComponent implements OnInit {
   viewSource = false;
   deleting = false;
   writeAccess = false;
+  taggingAccess = false;
   serverError: string[] = [];
 
   private _ref!: Ref;
@@ -82,7 +83,8 @@ export class FileComponent implements OnInit {
     this.editing = false;
     this.viewSource = false;
     this.tagging = false;
-    this.writeAccess = !hasTag('locked', value) && this.auth.writeAccess(value);
+    this.writeAccess = this.auth.writeAccess(value);
+    this.taggingAccess = this.auth.taggingAccess(value);
     this.icons = this.admin.getIcons(value.tags);
     this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.canAddTag(a.tag));
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
@@ -281,7 +283,8 @@ export class FileComponent implements OnInit {
   }
 
   showAction(a: Action) {
-    if (a.tag && !this.writeAccess) return false;
+    if (a.tag === 'locked' && !this.writeAccess) return false;
+    if (a.tag && !this.taggingAccess) return false;
     if (!this.visible(a)) return false;
     if (this.active(a) && !a.labelOn) return false;
     if (!this.active(a) && !a.labelOff) return false;

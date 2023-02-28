@@ -51,6 +51,7 @@ export class BlogEntryComponent implements OnInit {
   @HostBinding('class.deleted')
   deleted = false;
   writeAccess = false;
+  taggingAccess = false;
   serverError: string[] = [];
 
   private _ref!: Ref;
@@ -88,6 +89,7 @@ export class BlogEntryComponent implements OnInit {
     this.viewSource = false;
     this.tagging = false;
     this.writeAccess = this.auth.writeAccess(value);
+    this.taggingAccess = this.auth.taggingAccess(value);
     this.icons = this.admin.getIcons(value.tags);
     this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.canAddTag(a.tag));
   }
@@ -244,7 +246,8 @@ export class BlogEntryComponent implements OnInit {
   }
 
   showAction(a: Action) {
-    if (a.tag && !this.writeAccess) return false;
+    if (a.tag === 'locked' && !this.writeAccess) return false;
+    if (a.tag && !this.taggingAccess) return false;
     if (!this.visible(a)) return false;
     if (this.active(a) && !a.labelOn) return false;
     if (!this.active(a) && !a.labelOff) return false;

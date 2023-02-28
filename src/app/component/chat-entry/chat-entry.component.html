@@ -60,7 +60,7 @@
         <a class="fake-link" (click)="delete()">yes</a>&nbsp;/&nbsp;
         <a class="fake-link" (click)="deleting = false" i18n>no</a>&nbsp;
       </span>
-    <a *ngIf="!ref.origin && (store.account.editor || writeAccess)"
+    <a *ngIf="taggingAccess"
        class="fake-link"
        (click)="tagging = !tagging" i18n>tag</a>
     <span *ngIf="tagging" class="inline-tagging">
