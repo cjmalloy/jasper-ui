@@ -26,8 +26,8 @@ export class AuthzService {
   writeAccess(ref: Ref): boolean {
     if (!this.store.account.signedIn) return false;
     if (ref.origin !== this.store.account.origin) return false;
-    if (this.store.account.mod) return true;
     if (hasTag('locked', ref)) return false;
+    if (this.store.account.mod) return true;
     if (isOwnerTag(this.store.account.tag, ref)) return true;
     if (!this.store.account.access) return false;
     if (isOwner(this.store.account.access, ref)) return true;
