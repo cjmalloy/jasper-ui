@@ -336,8 +336,16 @@ export class AdminService {
     return this.pluginConfigProperty('icons');
   }
 
+  get globalIcons() {
+    return this.icons.flatMap(p => p.config!.icons!).filter(i => i.global);
+  }
+
   get actions() {
     return this.pluginConfigProperty('actions');
+  }
+
+  get globalActions() {
+    return this.actions.flatMap(p => p.config!.actions!).filter(a => a.global);
   }
 
   get published() {
@@ -379,13 +387,18 @@ export class AdminService {
 
   getActions(tags?: string[], config?: any) {
     const match = ['plugin', ...(tags || [])];
-    return this.actions.filter(p => includesTag(p.tag, match))
-      .flatMap(p => p.config!.actions!.filter(a => !a.condition || !!config?.[p.tag]?.[a.condition]) as Action[]);
+    return [
+      ...this.globalActions,
+      ...this.actions
+        .filter(p => includesTag(p.tag, match))
+        .flatMap(p => p.config!.actions!.filter(a => !a.condition || !!config?.[p.tag]?.[a.condition]) as Action[]),
+    ];
   }
 
   getIcons(tags?: string[], scheme?: string) {
     const match = ['plugin', ...(tags || [])];
     return [
+      ...this.globalIcons,
       ...(!scheme ? [] : this.icons.flatMap(p => p.config!.icons!.map(i => {
         i.title ||= p.name || i.tag || p.tag;
         return i;

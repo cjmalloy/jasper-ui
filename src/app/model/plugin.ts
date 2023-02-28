@@ -155,6 +155,10 @@ export interface Icon extends Visibility {
    * If set, makes this icon conditional on a ref scheme.
    */
   scheme?: `${string}:`;
+  /**
+   * Add this icon to every Ref, not just Refs with this plugin.
+   */
+  global?: boolean;
 }
 
 export interface Action extends Visibility {
@@ -187,6 +191,10 @@ export interface Action extends Visibility {
    * Field name of a config flag to show / hide this action.
    */
   condition?: string;
+  /**
+   * Add this action to every Ref, not just Refs with this plugin.
+   */
+  global?: boolean;
 }
 
 export function active(ref: Ref, o: Action | Icon) {
