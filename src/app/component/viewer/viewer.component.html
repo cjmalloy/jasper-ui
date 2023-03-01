@@ -1,12 +1,11 @@
 <iframe #iframe
         *ngIf="currentTags.includes('plugin/embed')"
-        [style.width]="cssWidth(ref?.plugins?.['plugin/embed']?.width) || '100vw'"
-        [style.height]="cssWidth(ref?.plugins?.['plugin/embed']?.height) || '100vh'"
+        [style.width]="cssWidth(ref?.plugins?.['plugin/embed']?.width) || '560px'"
+        [style.height]="cssWidth(ref?.plugins?.['plugin/embed']?.height) || '350px'"
         [src]="embed | embed | safe"
         frameborder="0"
         scrolling="yes"
-        seamless="seamless"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen></iframe>
 <div *ngIf="currentTags.includes('plugin/image')"
      class="image-expand"
