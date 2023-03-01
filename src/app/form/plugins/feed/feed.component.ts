@@ -15,8 +15,6 @@ export class FeedFormComponent implements OnInit {
 
   @Input()
   plugins!: UntypedFormGroup;
-  @Input()
-  fieldName = '+plugin/feed';
 
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
@@ -27,7 +25,7 @@ export class FeedFormComponent implements OnInit {
   }
 
   get plugin() {
-    return this.plugins.get(this.fieldName) as UntypedFormGroup;
+    return this.plugins.get('+plugin/feed') as UntypedFormGroup;
   }
 
   get origin() {
@@ -43,8 +41,8 @@ export class FeedFormComponent implements OnInit {
   }
 
   setValue(value: any) {
-    this.tags.setValue(value.addTags);
-    this.plugin.patchValue(value);
+    this.tags.setValue(value['+plugin/feed'].addTags);
+    this.plugins.patchValue(value);
   }
 }
 
