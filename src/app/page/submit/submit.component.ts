@@ -120,6 +120,10 @@ export class SubmitPage implements OnInit, OnDestroy {
     return this.admin.status.plugins.banlist?.config?.bannedUrls || this.admin.def.plugins.banlist.config!.bannedUrls;
   }
 
+  withTag(tag: string) {
+    return uniq([...this.store.submit.tags, tag]);
+  }
+
   fixed(url: string) {
     if (this.store.submit.wiki) {
       return wikiUriFormat(url, this.admin.getWikiPrefix());
