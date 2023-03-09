@@ -4,9 +4,11 @@
     <app-settings></app-settings>
   </div>
 
-  <form class="form" [formGroup]="profileForm" (ngSubmit)="save()">
+  <form class="form" [formGroup]="profileForm" (ngSubmit)="save()"
+        [appLimitWidth]="form?.fill?.nativeElement" [limitSibling]="true">
 
-    <app-user-form [group]="user"
+    <app-user-form #form
+                   [group]="user"
                    (tagChanges)="setTag($event)"
                    [showClear]="true"
                    (clear)="clear()"></app-user-form>

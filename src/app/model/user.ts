@@ -28,12 +28,14 @@ export function mapUser(obj: any): User {
   obj.origin ||= '';
   obj.modifiedString = obj.modified;
   obj.modified = moment(obj.modified);
+  obj.pubKey = obj.pubKey && atob(obj.pubKey);
   return obj;
 }
 
 export function writeUser(user: Partial<User>): Partial<User> {
   const result = { ...user };
   result.modified = result.modifiedString as any;
+  result.pubKey = user.pubKey && btoa(user.pubKey);
   delete result.type;
   delete result.modifiedString;
   return result;

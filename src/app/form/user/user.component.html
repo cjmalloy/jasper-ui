@@ -62,4 +62,11 @@
             fieldName="tagWriteAccess"
             [group]="group"></app-tags>
 
+  <label for="pubKey" i18n>SSH Public Key:</label>
+  <div #fill>
+    <textarea id="pubKey"
+              formControlName="pubKey"
+              [appFillWidth]="fill"></textarea>
+  </div>
+
 </ng-container>
