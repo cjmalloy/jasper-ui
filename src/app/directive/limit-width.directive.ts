@@ -23,8 +23,8 @@ export class LimitWidthDirective implements OnDestroy, AfterViewInit {
   }
 
   @Input('appLimitWidth')
-  set linked(value: HTMLElement | undefined) {
-    this._linked = value;
+  set linked(value: HTMLElement | undefined | null) {
+    this._linked = value!;
     if (value) this.resizeObserver.observe(value);
   }
 

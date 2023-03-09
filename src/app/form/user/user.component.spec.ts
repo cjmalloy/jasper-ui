@@ -23,6 +23,7 @@ describe('UserFormComponent', () => {
     component.group = new UntypedFormGroup({
       tag: new UntypedFormControl(),
       name: new UntypedFormControl(),
+      role: new UntypedFormControl(),
     });
     fixture.detectChanges();
   });

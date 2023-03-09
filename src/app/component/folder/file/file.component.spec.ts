@@ -20,6 +20,7 @@ describe('FileComponent', () => {
 
     fixture = TestBed.createComponent(FileComponent);
     component = fixture.componentInstance;
+    component.ref = {} as any;
     fixture.detectChanges();
   });
 

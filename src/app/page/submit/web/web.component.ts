@@ -1,8 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, HostBinding, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { defer, flatten, without } from 'lodash-es';
+import { defer, flatten, uniq, without } from 'lodash-es';
+import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { writePlugins } from '../../../form/plugins/plugins.component';
@@ -20,8 +21,10 @@ import { printError } from '../../../util/http';
   templateUrl: './web.component.html',
   styleUrls: ['./web.component.scss'],
 })
-export class SubmitWebPage implements AfterViewInit {
+export class SubmitWebPage implements AfterViewInit, OnDestroy {
   @HostBinding('class') css = 'full-page-form';
+
+  private disposers: IReactionDisposer[] = [];
 
   submitted = false;
   title = '';
@@ -36,7 +39,6 @@ export class SubmitWebPage implements AfterViewInit {
     private theme: ThemeService,
     private admin: AdminService,
     private router: Router,
-    private route: ActivatedRoute,
     private store: Store,
     private editor: EditorService,
     private refs: RefService,
@@ -48,12 +50,12 @@ export class SubmitWebPage implements AfterViewInit {
 
   ngAfterViewInit(): void {
     defer(() => {
+
       this.addTag('public');
       this.addTag(this.store.account.localTag);
-      this.route.queryParams.subscribe(params => {
-        if (params['tag']) {
-          const tags = flatten([params['tag']]);
-          for (const tag of tags) {
+      this.disposers.push(autorun(() => {
+        if (this.store.submit.tag) {
+          for (const tag of this.store.submit.tags) {
             this.addTag(...tag.split(/[:|!()]/));
           }
         }
@@ -64,17 +66,20 @@ export class SubmitWebPage implements AfterViewInit {
           this.addTag('internal');
           this.setTitle($localize`Submit: Feed`);
         }
-        defer(() => {
-          this.url = params['url'].trim();
-          if (params['source']) {
-            flatten([params['source']]).map(s => this.addSource(s));
-          }
-          if (params['scrape'] === 'true') {
-            this.refForm.scrapeAll();
-          }
-        });
-      });
+        this.url = this.store.submit.url.trim();
+        if (this.store.submit.source) {
+          this.store.submit.sources.map(s => this.addSource(s));
+        }
+        if (this.store.submit.scrape) {
+          this.refForm.scrapeAll();
+        }
+      }));
     });
+  }
+
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   get feed() {

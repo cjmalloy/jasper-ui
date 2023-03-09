@@ -13,6 +13,7 @@ describe('UploadRefComponent', () => {
       declarations: [ UploadRefComponent ],
       imports: [
         HttpClientTestingModule,
+        RouterTestingModule,
       ],
     })
     .compileComponents();

@@ -54,6 +54,10 @@ export class SubmitStore {
     return flatten(this.source ? [this.source] : []);
   }
 
+  get scrape() {
+    return this.route.routeSnapshot?.queryParams['scrape'] === 'true';
+  }
+
   get web() {
     return !this.wiki && (!this.subpage || this.subpage === 'web');
   }

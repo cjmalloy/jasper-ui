@@ -27,9 +27,9 @@ export class RefFormComponent implements OnInit {
 
   @Output()
   editorTags = new EventEmitter<string[]>();
+  @Output()
+  fill = new EventEmitter<HTMLDivElement>();
 
-  @ViewChild('fill')
-  fill?: ElementRef;
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
   @ViewChild('sources')
@@ -53,6 +53,11 @@ export class RefFormComponent implements OnInit {
 
   getTags() {
     return this.group.get('tags')?.value;
+  }
+
+  @ViewChild('fill')
+  set setFill(value: ElementRef) {
+    this.fill.next(value.nativeElement);
   }
 
   get url() {

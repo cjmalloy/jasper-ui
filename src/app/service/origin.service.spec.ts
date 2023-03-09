@@ -33,7 +33,7 @@ describe('OriginService', () => {
     url: 'spec:test',
     origin,
     plugins: {'+plugin/origin': {
-        origin: target,
+        local: target,
         remote: source,
       }
     }

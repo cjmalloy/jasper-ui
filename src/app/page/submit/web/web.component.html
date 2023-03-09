@@ -1,18 +1,19 @@
-<form class="form" [formGroup]="webForm" (ngSubmit)="submit()"
-      [appLimitWidth]="form.fill?.nativeElement" [limitSibling]="true">
+<ng-container *mobxAutorun>
+  <form class="form" [formGroup]="webForm" (ngSubmit)="submit()"
+        [appLimitWidth]="refForm?.fill | async" [limitSibling]="true">
 
-  <app-ref-form #form
-                [group]="webForm"
-                (editorTags)="plugins = $event"></app-ref-form>
+    <app-ref-form [group]="webForm"
+                  (editorTags)="plugins = $event"></app-ref-form>
 
-  <ng-container *ngFor="let e of serverError">
-    <span><!-- Unexpected Error --></span>
-    <div class="error">{{ e }}</div>
-  </ng-container>
+    <ng-container *ngFor="let e of serverError">
+      <span><!-- Unexpected Error --></span>
+      <div class="error">{{ e }}</div>
+    </ng-container>
 
-  <span><!-- Buttons --></span>
-  <span class="form-array right">
+    <span><!-- Buttons --></span>
+    <span class="form-array right">
     <button type="submit" [disabled]="submitted && !webForm.valid" i18n>Submit</button>
   </span>
 
-</form>
+  </form>
+</ng-container>

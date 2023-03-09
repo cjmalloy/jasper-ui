@@ -2,7 +2,7 @@ import { ImageDimDirective } from './image-dim.directive';
 
 describe('ImageDimDirective', () => {
   it('should create an instance', () => {
-    const directive = new ImageDimDirective({} as any, {} as any);
+    const directive = new ImageDimDirective({ nativeElement: { style: {}}} as any, {} as any);
     expect(directive).toBeTruthy();
   });
 });
