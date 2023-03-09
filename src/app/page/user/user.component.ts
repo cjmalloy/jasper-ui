@@ -113,15 +113,15 @@ export class UserPage implements OnInit, OnDestroy {
     const old = this.store.view.selectedUser;
     const updates = old ? {
       ...old,
-      ...this.profileForm.value,
+      ...this.user.value,
       tag: userTag,
       origin: this.store.account.origin,
     } : {
-      ...this.profileForm.value,
+      ...this.user.value,
       tag: userTag,
       origin: this.store.account.origin,
-      readAccess: uniq([...this.profileForm.value.user.readAccess, ...this.admin.readAccess.map(t => prefix(t, userTag))]),
-      writeAccess: uniq([...this.profileForm.value.user.readAccess, ...this.admin.writeAccess.map(t => prefix(t, userTag))]),
+      readAccess: uniq([...this.user.value.readAccess, ...this.admin.readAccess.map(t => prefix(t, userTag))]),
+      writeAccess: uniq([...this.user.value.readAccess, ...this.admin.writeAccess.map(t => prefix(t, userTag))]),
     };
     const entities = [
       (old ? this.users.update(updates) : this.users.create(updates)).pipe(
