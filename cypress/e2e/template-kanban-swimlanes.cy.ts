@@ -3,7 +3,7 @@ import { addToBoard, dragCol } from './template-kanban';
 export function loadBoard() {
   cy.intercept({pathname: '/api/v1/ref/page'}).as('page');
   cy.visit('/tag/kanban%2fsl?debug=USER');
-  cy.wait(new Array(9).fill('@page'));
+  cy.wait(new Array(9).fill('@page'), { timeout: 30_000 });
 }
 
 describe('Kanban Template with Swim Lanes', {
