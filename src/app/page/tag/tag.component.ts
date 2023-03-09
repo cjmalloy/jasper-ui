@@ -35,7 +35,10 @@ export class TagPage implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.store.view.clear(this.store.view.tag.includes('*') ? 'published' : 'created');
+    this.store.view.clear(
+      !!this.admin.status.plugins.voteUp ? 'voteScoreDecay'
+        : this.store.view.tag.includes('*') ? 'published'
+        : 'created');
     this.disposers.push(autorun(() => {
       this.theme.setTitle(this.store.view.name);
       if (!this.fetchPage && !this.store.view.list) return;

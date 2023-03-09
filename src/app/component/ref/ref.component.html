@@ -1,4 +1,12 @@
 <div class="row">
+  <div *ngIf="admin.status.plugins.voteUp"
+       class="voting">
+    <div class="vote-up"
+         (click)="voteUp()"></div>
+    <div class="vote-down"
+         *ngIf="admin.status.plugins.voteDown"
+         (click)="voteDown()"></div>
+  </div>
   <ng-container *ngIf="admin.status.plugins.thumbnail">
     <div class="thumbnail"
          *ngIf="thumbnail else defaultThumbnail"

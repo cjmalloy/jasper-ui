@@ -1,7 +1,7 @@
 import { filter, uniq, without } from 'lodash-es';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 
-export const defaultDesc = ['created', 'published', 'modified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount'];
+export const defaultDesc = ['created', 'published', 'modified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
 
 export type UrlFilter = Filter |
   `query/${string}` |

@@ -33,6 +33,7 @@ import { repostPlugin } from '../plugin/repost';
 import { terminalThemePlugin } from '../plugin/theme';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
+import { voteDownPlugin, voteUpPlugin } from '../plugin/vote';
 import { DEFAULT_WIKI_PREFIX, wikiPlugin } from '../plugin/wiki';
 import { Store } from '../store/store';
 import { blogTemplate } from '../template/blog';
@@ -103,6 +104,8 @@ export class AdminService {
       pb: pollOptionBPlugin,
       pc: pollOptionCPlugin,
       pd: pollOptionDPlugin,
+      voteUp: voteUpPlugin,
+      voteDown: voteDownPlugin,
 
       // Themes
       terminalTheme: terminalThemePlugin,

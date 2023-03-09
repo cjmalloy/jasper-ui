@@ -5,11 +5,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { defer, flatten, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
 import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
@@ -42,6 +44,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
     private store: Store,
     private editor: EditorService,
     private refs: RefService,
+    private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
     this.setTitle($localize`Submit: Web Link`);
@@ -155,6 +158,11 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
       published,
       plugins: writePlugins(tags, this.webForm.value.plugins),
     }).pipe(
+      tap(() => {
+        if (this.admin.def.plugins.voteUp) {
+          this.ts.createResponse('plugin/vote/up', this.url, this.store.account.origin);
+        }
+      }),
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);

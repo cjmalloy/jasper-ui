@@ -1114,3 +1114,27 @@ ngx-monaco-editor {
     cursor: default;
   }
 }
+
+.voting {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+
+  * {
+    cursor: pointer;
+    &:hover {
+      filter: brightness(1.1);
+    }
+    &.pressed {
+      filter: brightness(0.5) blur(.9);
+    }
+  }
+
+  .vote-up::before {
+    content: '⬆️';
+  }
+
+  .vote-down::before {
+    content: '⬇️';
+  }
+}

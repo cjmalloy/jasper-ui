@@ -68,7 +68,10 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
   'tagCount' | 'tagCount,ASC' | 'tagCount,DESC' |
   'sourceCount' | 'sourceCount,ASC' | 'sourceCount,DESC' |
   'responseCount' | 'responseCount,ASC' | 'responseCount,DESC' |
-  'commentCount' | 'commentCount,ASC' | 'commentCount,DESC';
+  'commentCount' | 'commentCount,ASC' | 'commentCount,DESC' |
+  'voteCount' | 'voteCount,ASC' | 'voteCount,DESC' |
+  'voteScore' | 'voteScore,ASC' | 'voteScore,DESC' |
+  'voteScoreDecay' | 'voteScoreDecay,ASC' | 'voteScoreDecay,DESC';
 
 export function mapRef(obj: any): Ref {
   obj.origin ||= '';
