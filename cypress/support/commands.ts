@@ -43,3 +43,10 @@
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
 import 'cypress-real-events';
+
+Cypress.on('uncaught:exception', (err) => {
+  if (err.message.includes('ResizeObserver loop limit exceeded')) {
+    return false;
+  }
+  return true;
+});
