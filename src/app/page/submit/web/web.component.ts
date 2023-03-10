@@ -149,7 +149,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
       return;
     }
     const tags = [...without(this.webForm.value.tags, ...this.admin.editorTags), ...this.plugins];
-    const published = moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
+    const published = this.webForm.value.published ? moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
     this.refs.create({
       ...this.webForm.value,
       url: this.url, // Need to pull separately since control is locked

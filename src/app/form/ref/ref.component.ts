@@ -143,7 +143,7 @@ export class RefFormComponent implements OnInit {
 export function refForm(fb: UntypedFormBuilder) {
   return fb.group({
     url: [''],
-    published: [moment().format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS), [Validators.required]],
+    published: [''],
     title: ['', [Validators.required]],
     comment: [''],
     sources: fb.array([]),
