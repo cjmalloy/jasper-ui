@@ -64,8 +64,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (this._tag === value) return;
     this._tag = value;
     if (value) {
-      this.localTag = localTag(removeWildcard(value));
-      this.writeAccess = this.auth.tagWriteAccess(removeWildcard(value));
+      this.localTag = localTag(removeWildcard(value, this.store.account.origin));
+      this.writeAccess = this.auth.tagWriteAccess(removeWildcard(value, this.store.account.origin));
       this.ui = this.admin.getTemplateUi(value);
     } else {
       this.localTag = undefined;

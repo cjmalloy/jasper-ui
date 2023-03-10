@@ -56,7 +56,7 @@ export class UserPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      const tag = removeWildcard(this.store.view.tag);
+      const tag = removeWildcard(this.store.view.tag, this.store.account.origin);
       if (!tag) {
         runInAction(() => this.store.view.selectedUser = undefined);
       } else {

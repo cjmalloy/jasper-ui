@@ -95,11 +95,11 @@ export function isOwnerTag(tag: string, ref: Ref) {
 /**
  * Return local tag if origin is a wildcard.
  */
-export function removeWildcard(tag: string) {
-  if (tag === '@*') return '';
-  if (tag === '*') return '';
+export function removeWildcard(tag: string, local: string) {
+  if (tag === '@*') return local;
+  if (tag === '*') return local;
   if (tag.endsWith('@*')) {
-    return tag.substring(0, tag.length - 2);
+    return tag.substring(0, tag.length - 2) + local;
   }
   return tag;
 }

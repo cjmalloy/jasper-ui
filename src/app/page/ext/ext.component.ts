@@ -56,7 +56,7 @@ export class ExtPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      const tag = removeWildcard(this.store.view.tag);
+      const tag = removeWildcard(this.store.view.tag, this.store.account.origin);
       if (!tag) {
         this.template = '';
         this.tag.setValue('');
