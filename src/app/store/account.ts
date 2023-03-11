@@ -11,6 +11,7 @@ import { OriginStore } from './origin';
 export class AccountStore {
 
   tag = '';
+  origin = '';
   access?: User = {} as User;
   ext?: Ext = {} as Ext;
   defaultConfig: any = {};
@@ -83,10 +84,6 @@ export class AccountStore {
     return localTag(this.tag);
   }
 
-  get origin() {
-    return tagOrigin(this.tag);
-  }
-
   get role() {
     if (!this.signedIn) return '';
     if (this.admin) return 'admin';
@@ -151,7 +148,12 @@ export class AccountStore {
   }
 
   setRoles(roles: Roles) {
+    this.origin = tagOrigin(roles.tag);
     this.tag = roles.tag || '';
+    if (this.tag.startsWith('@')) {
+      // Not logged in, only local origin is set
+      this.tag = '';
+    }
     this.sa = roles.sysadmin;
     this.admin = roles.admin;
     this.mod = roles.mod;
