@@ -15,7 +15,7 @@ import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { TAG_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
-import { removeWildcard } from '../../util/tag';
+import { defaultLocal, removeWildcard } from '../../util/tag';
 
 @Component({
   selector: 'app-ext-page',
@@ -56,13 +56,13 @@ export class ExtPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      const tag = removeWildcard(this.store.view.tag, this.store.account.origin);
+      const tag = defaultLocal(removeWildcard(this.store.view.tag, this.store.account.origin), this.store.account.origin);
       if (!tag) {
         this.template = '';
         this.tag.setValue('');
         runInAction(() => this.store.view.ext = undefined);
       } else {
-        this.exts.get(tag).pipe(
+        this.exts.get(defaultLocal(tag, this.store.account.origin)).pipe(
           catchError(() => of(undefined)),
         ).subscribe(ext => this.setExt(tag, ext));
       }

@@ -56,7 +56,7 @@ export class RefPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const url = this.store.view.url;
-      const origin = this.store.view.origin || this.store.account.origin;
+      const origin = this.store.view.origin !== undefined ? this.store.view.origin : this.store.account.origin;
       if (!url) return;
       this.refs.get(url, origin).pipe(
         catchError(err => {

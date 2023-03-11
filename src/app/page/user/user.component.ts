@@ -15,7 +15,7 @@ import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
-import { prefix, removeWildcard } from '../../util/tag';
+import { defaultLocal, localTag, prefix, removeWildcard, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-user-page',
@@ -60,7 +60,7 @@ export class UserPage implements OnInit, OnDestroy {
       if (!tag) {
         runInAction(() => this.store.view.selectedUser = undefined);
       } else {
-        this.users.get(tag).pipe(
+        this.users.get(defaultLocal(tag, this.store.account.origin)).pipe(
           catchError(() => of(undefined)),
         ).subscribe(user => runInAction(() => {
           this.store.view.selectedUser = user;
@@ -69,7 +69,10 @@ export class UserPage implements OnInit, OnDestroy {
             defer(() => this.userForm.setUser(user));
           } else {
             this.profileForm.setControl('user', userForm(this.fb, false));
-            defer(() => this.userForm.setUser({ tag }));
+            defer(() => this.userForm.setUser({
+              tag: localTag(tag),
+              origin: tagOrigin(tag),
+            }));
           }
         }));
       }
@@ -109,7 +112,7 @@ export class UserPage implements OnInit, OnDestroy {
       scrollToFirstInvalid();
       return;
     }
-    const userTag = this.store.view.tag;
+    const userTag = this.store.view.localTag;
     const old = this.store.view.selectedUser;
     const updates = old ? {
       ...old,

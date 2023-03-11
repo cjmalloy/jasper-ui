@@ -129,9 +129,11 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     const tagsWithAuthor = !this.addTags.includes(this.store.account.localTag) ? [...this.addTags, this.store.account.localTag] : this.addTags;
     const ref = URI_REGEX.test(this.addText) ? {
       url: this.addText,
+      origin: this.store.account.origin,
       tags: tagsWithAuthor,
     } : {
       url: 'comment:' + uuid(),
+      origin: this.store.account.origin,
       title: this.addText,
       tags: tagsWithAuthor,
     };

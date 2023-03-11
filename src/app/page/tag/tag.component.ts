@@ -11,7 +11,7 @@ import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
-import { hasPrefix, removeWildcard } from '../../util/tag';
+import { defaultLocal, hasPrefix, removeWildcard } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
@@ -43,7 +43,7 @@ export class TagPage implements OnInit, OnDestroy {
       this.theme.setTitle(this.store.view.name);
       if (!this.fetchPage && !this.store.view.list) return;
       const args = getArgs(
-        this.store.view.tag,
+        defaultLocal(this.store.view.tag, this.store.account.origin),
         this.store.view.sort,
         uniq(['query/!internal@*', ...this.store.view.filter]) as UrlFilter[],
         this.store.view.search,
@@ -53,7 +53,7 @@ export class TagPage implements OnInit, OnDestroy {
       defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
-      const tag = removeWildcard(this.store.view.tag, this.store.account.origin);
+      const tag = defaultLocal(removeWildcard(this.store.view.tag, this.store.account.origin), this.store.account.origin);
       if (!tag) {
         runInAction(() => this.store.view.ext = undefined);
       } else {

@@ -35,7 +35,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
   serverError: string[] = [];
 
   @ViewChild(RefFormComponent)
-  refForm!: RefFormComponent;
+  refForm?: RefFormComponent;
 
   constructor(
     private theme: ThemeService,
@@ -53,7 +53,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     defer(() => {
-
       this.addTag('public');
       this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
@@ -74,7 +73,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
           this.store.submit.sources.map(s => this.addSource(s));
         }
         if (this.store.submit.scrape) {
-          this.refForm.scrapeAll();
+          this.refForm!.scrapeAll();
         }
       }));
     });
@@ -94,7 +93,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
   }
 
   get feedForm() {
-    return this.refForm.plugins.feed;
+    return this.refForm!.plugins.feed;
   }
 
   set url(value: string) {
@@ -120,18 +119,18 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
   addTag(...values: string[]) {
     if (!values) values = [''];
     for (const value of values) {
-      this.refForm.tags.addTag(value);
+      this.refForm!.tags.addTag(value);
     }
     this.submitted = false;
   }
 
   addSource(value = '') {
-    this.refForm.sources.addLink(value);
+    this.refForm!.sources.addLink(value);
     this.submitted = false;
   }
 
   addAlt(value = '') {
-    this.refForm.alts.addLink(value);
+    this.refForm!.alts.addLink(value);
     this.submitted = false;
   }
 

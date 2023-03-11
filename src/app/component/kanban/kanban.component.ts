@@ -5,6 +5,8 @@ import { Ext } from '../../model/ext';
 import { Ref } from '../../model/ref';
 import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
+import { Store } from '../../store/store';
+import { defaultLocalTags } from '../../util/tag';
 
 export interface KanbanDrag {
   from: string;
@@ -26,6 +28,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   updates = new Subject<KanbanDrag>();
 
   constructor(
+    private store: Store,
     private exts: ExtService,
     private tags: TaggingService,
   ) { }
@@ -49,14 +52,14 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   get columns(): string[] {
-    return this.ext?.config.columns;
+    return defaultLocalTags(this.ext?.config.columns, this.store.account.origin);
   }
 
   get swimLanes(): string[] | undefined {
     if (this.disableSwimLanes) return undefined;
     if (!this.ext?.config.swimLanes) return undefined;
     if (!this.ext?.config.swimLanes.length) return undefined;
-    return this.ext?.config.swimLanes;
+    return defaultLocalTags(this.ext?.config.swimLanes, this.store.account.origin);
   }
 
   /**
