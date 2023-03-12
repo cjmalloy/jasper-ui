@@ -1130,6 +1130,10 @@ ngx-monaco-editor {
     }
   }
 
+  .on {
+    transform: scale(1.5);
+  }
+
   .vote-up::before {
     content: '⬆️';
   }

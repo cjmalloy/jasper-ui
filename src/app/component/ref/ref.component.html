@@ -2,9 +2,11 @@
   <div *ngIf="admin.status.plugins.voteUp"
        class="voting">
     <div class="vote-up"
+         [class.on]="upvote"
          (click)="voteUp()"></div>
     <div class="vote-down"
          *ngIf="admin.status.plugins.voteDown"
+         [class.on]="downvote"
          (click)="voteDown()"></div>
   </div>
   <ng-container *ngIf="admin.status.plugins.thumbnail">

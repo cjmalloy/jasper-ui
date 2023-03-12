@@ -68,6 +68,12 @@ export function hasTag(tag?: string, ref?: Ref)  {
   return !!find(ref.tags, t => expandedTagsInclude(t, tag));
 }
 
+export function hasUserUrlResponse(tag?: string, ref?: Ref)  {
+  if (!tag) return false;
+  if (!ref?.metadata?.userUrls) return false;
+  return !!find(ref.metadata.userUrls, t => expandedTagsInclude(t, tag));
+}
+
 export function tagIntersection(expand: string[], tags: string[]) {
   if (!expand) return [];
   return filter(tags, e => includesTag(e, expand));

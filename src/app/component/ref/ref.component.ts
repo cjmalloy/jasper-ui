@@ -33,7 +33,7 @@ import {
 } from '../../util/format';
 import { getScheme } from '../../util/hosts';
 import { printError } from '../../util/http';
-import { hasTag, isOwnerTag, queriesAny, tagOrigin } from '../../util/tag';
+import { hasTag, hasUserUrlResponse, isOwnerTag, queriesAny, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-ref',
@@ -295,6 +295,14 @@ export class RefComponent implements OnInit {
     return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created, 'seconds')) <= 5;
   }
 
+  get upvote() {
+    return hasUserUrlResponse('plugin/vote/up', this.ref);
+  }
+
+  get downvote() {
+    return hasUserUrlResponse('plugin/vote/down', this.ref);
+  }
+
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
       user = user.replace(this.store.account.origin, '');
@@ -353,15 +361,23 @@ export class RefComponent implements OnInit {
   }
 
   voteUp() {
-    this.runAndLoad(forkJoin([
-      this.ts.deleteResponse('plugin/vote/down', this.ref.url, this.ref.origin),
-      this.ts.createResponse('plugin/vote/up', this.ref.url, this.ref.origin)]));
+    if (this.upvote) {
+      this.runAndLoad(this.ts.deleteResponse('plugin/vote/up', this.ref.url, this.ref.origin));
+    } else {
+      this.runAndLoad(forkJoin([
+        this.ts.deleteResponse('plugin/vote/down', this.ref.url, this.ref.origin),
+        this.ts.createResponse('plugin/vote/up', this.ref.url, this.ref.origin)]));
+    }
   }
 
   voteDown() {
-    this.runAndLoad(forkJoin([
-      this.ts.deleteResponse('plugin/vote/up', this.ref.url, this.ref.origin),
-      this.ts.createResponse('plugin/vote/down', this.ref.url, this.ref.origin)]));
+    if (this.downvote) {
+      this.runAndLoad(this.ts.deleteResponse('plugin/vote/down', this.ref.url, this.ref.origin));
+    } else {
+      this.runAndLoad(forkJoin([
+        this.ts.deleteResponse('plugin/vote/up', this.ref.url, this.ref.origin),
+        this.ts.createResponse('plugin/vote/down', this.ref.url, this.ref.origin)]));
+    }
   }
 
   doAction(a: Action) {
