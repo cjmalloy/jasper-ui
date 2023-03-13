@@ -350,7 +350,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   title(ref: GraphNode) {
-    return ref.title || ref.url;
+    return (ref.title || '').trim() || ref.url;
   }
 
   icon(ref: GraphNode) {

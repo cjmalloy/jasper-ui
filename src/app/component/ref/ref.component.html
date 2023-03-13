@@ -19,8 +19,8 @@
   </ng-container>
   <div class="stack">
     <div class="link" [class.remote]="!local">
-      <a *ngIf="clickableLink" [href]="ref.url | safe" target="_blank">{{ ref.title || ref.url }}</a>
-      <a *ngIf="!clickableLink" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a><wbr>
+      <a *ngIf="clickableLink" [href]="ref.url | safe" target="_blank">{{ (ref.title || '').trim() || ref.url }}</a>
+      <a *ngIf="!clickableLink" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ (ref.title || '').trim() || ref.url }}</a><wbr>
       <span class="host">({{ host }})</span>
     </div>
     <div class="link-below">

@@ -20,7 +20,7 @@
     <span class="toggle-plus" *ngIf="!editing && !viewSource && !expanded">＋</span>
     <span class="toggle-x" *ngIf="editing || viewSource || expanded">✕</span>
   </div>
-  <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ ref.title || ref.url }}</a>
+  <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }">{{ (ref.title || '').trim() || ref.url }}</a>
 </div>
 
 <app-viewer *ngIf="expanded" [ref]="ref"></app-viewer>
