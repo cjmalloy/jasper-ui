@@ -420,6 +420,22 @@ export class RefComponent implements OnInit {
     });
   }
 
+  copy() {
+    const tags = (this.ref.tags || []).filter(t => this.auth.canAddTag(t));
+    this.refs.create({
+      ...this.ref,
+      origin: this.store.account.origin,
+      tags,
+    }, true).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(ref => {
+      this.router.navigate(['/ref', this.ref.url], { queryParams: { origin: this.store.account.origin }})
+    });
+  }
+
   delete() {
     (this.admin.status.plugins.delete
       ? this.refs.update(deleteNotice(this.ref))

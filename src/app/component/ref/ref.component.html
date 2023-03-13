@@ -86,7 +86,7 @@
         </div>
         <app-viewer *ngIf="expanded && expandInline && !editing && !viewSource" [ref]="ref" ></app-viewer>
         <div class="actions" [class.expanded]="actionsExpanded">
-          <ng-container *ngIf="!local || !ref.created">
+          <ng-container *ngIf="!ref.created">
             <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
           </ng-container>
           <ng-container *ngIf="ref.created">
@@ -127,6 +127,9 @@
             </span>
             <a class="fake-link"
                (click)="download()" i18n>download</a>
+            <ng-container *ngIf="!local">
+              <span class="fake-link" (click)="copy()" i18n>copy</span>
+            </ng-container>
             <ng-container *ngIf="canInvoice">
               <a routerLink="/submit/invoice"
                  [queryParams]="{url: ref.url}" i18n>invoice</a>

@@ -22,8 +22,10 @@ export class RefService {
     return this.config.api + '/api/v1/ref';
   }
 
-  create(ref: Ref): Observable<void> {
-    return this.http.post<void>(this.base, writeRef(ref)).pipe(
+  create(ref: Ref, force = false): Observable<void> {
+    return this.http.post<void>(this.base, writeRef(ref), {
+      params: !force ? undefined : { force: true },
+    }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
