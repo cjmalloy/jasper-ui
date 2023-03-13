@@ -1,7 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { Ref } from '../../model/ref';
-import { AdminService } from '../../service/admin.service';
-import { AuthzService } from '../../service/authz.service';
+import { Ref } from '../../../model/ref';
+import { AdminService } from '../../../service/admin.service';
+import { AuthzService } from '../../../service/authz.service';
 
 @Component({
   selector: 'app-kanban-card',

@@ -3,14 +3,14 @@ import { ActivatedRoute } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, map, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { Page } from '../../model/page';
-import { Ref, RefSort } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
-import { TaggingService } from '../../service/api/tagging.service';
-import { Store } from '../../store/store';
-import { URI_REGEX } from '../../util/format';
-import { getArgs, UrlFilter } from '../../util/query';
-import { KanbanDrag } from '../kanban/kanban.component';
+import { Page } from '../../../model/page';
+import { Ref, RefSort } from '../../../model/ref';
+import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
+import { Store } from '../../../store/store';
+import { URI_REGEX } from '../../../util/format';
+import { getArgs, UrlFilter } from '../../../util/query';
+import { KanbanDrag } from '../kanban.component';
 
 @Component({
   selector: 'app-kanban-column',
