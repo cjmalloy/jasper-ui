@@ -101,7 +101,7 @@ export class RefComponent implements OnInit {
   }
 
   get origin() {
-    return this.ref.origin || this.store.account.origin ? '' : undefined;
+    return this.ref.origin || (this.store.account.origin ? '' : undefined);
   }
 
   @Input()
