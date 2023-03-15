@@ -132,6 +132,17 @@ export function defaultLocalTags(tags: string[], local: string) {
   return tags.map(t => defaultLocal(t, local));
 }
 
+export function defaultWild(tag: string) {
+  if (!tag) return tag;
+  if (tag.includes('*')) return tag;
+  if (tag.includes('@')) return tag;
+  return localTag(tag) + '@*';
+}
+
+export function defaultWildTags(tags: string[]) {
+  return tags.map(t => defaultWild(t));
+}
+
 /**
  * Join multiple tags together, ignoring visibility modifiers '+' and '_' and
  * origin markers '@' for all but the first tag.

@@ -81,7 +81,7 @@ export class TagPage implements OnInit, OnDestroy {
   }
 
   get isTemplate() {
-    return this.templates.find(t => hasPrefix(this.store.view.tag, t.tag));
+    return !this.store.view.query && this.templates.find(t => hasPrefix(this.store.view.tag, t.tag));
   }
 
   get fetchPage() {

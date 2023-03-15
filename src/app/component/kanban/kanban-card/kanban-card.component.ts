@@ -31,12 +31,4 @@ export class KanbanCardComponent implements OnInit {
     return !this.auth.writeAccess(this.ref);
   }
 
-  get routerLink() {
-    const route = ['/ref', this.ref.url];
-    if (this.admin.status.plugins.comment) {
-      route.push('comments');
-    }
-    return route;
-  }
-
 }

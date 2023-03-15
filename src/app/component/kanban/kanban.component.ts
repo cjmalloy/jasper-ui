@@ -1,12 +1,13 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { uniq } from 'lodash-es';
 import { catchError, of, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { Ref } from '../../model/ref';
 import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
-import { defaultLocalTags } from '../../util/tag';
+import { defaultLocal, defaultLocalTags, defaultWild, defaultWildTags } from '../../util/tag';
 
 export interface KanbanDrag {
   from: string;
@@ -52,14 +53,14 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   get columns(): string[] {
-    return defaultLocalTags(this.ext?.config.columns, this.store.account.origin);
+    return this.ext?.config.columns;
   }
 
   get swimLanes(): string[] | undefined {
     if (this.disableSwimLanes) return undefined;
     if (!this.ext?.config.swimLanes) return undefined;
     if (!this.ext?.config.swimLanes.length) return undefined;
-    return defaultLocalTags(this.ext?.config.swimLanes, this.store.account.origin);
+    return this.ext?.config.swimLanes;
   }
 
   /**
@@ -71,16 +72,18 @@ export class KanbanComponent implements OnInit, OnDestroy {
       result.push('public');
     }
     result.push(this.ext!.tag);
-    if (tags.col && !result.includes(tags.col)) result.push(tags.col);
-    if (tags.sl && !result.includes(tags.sl)) result.push(tags.sl);
-    return result;
+    if (tags.col) result.push(tags.col);
+    if (tags.sl) result.push(tags.sl);
+    return uniq(result);
   }
 
   getQuery(tags: { col?: string, sl?: string }) {
     if (!tags) return '';
-    const kanbanTag = this.ext!.tag;
-    const columns = this.ext!.config.columns;
-    const swimLanes = this.swimLanes;
+    const kanbanTag = defaultLocal(this.ext!.tag, this.store.account.origin);
+    const columns = defaultWildTags(this.ext!.config.columns);
+    const swimLanes = this.swimLanes && defaultWildTags(this.swimLanes);
+    tags.sl = tags.sl && defaultWild(tags.sl);
+    tags.col = tags.col && defaultWild(tags.col);
     if (swimLanes) {
       if (!tags.col && !tags.sl) {
         return kanbanTag + ':!' + columns.join(':!') + ':!' + swimLanes.join(':!');

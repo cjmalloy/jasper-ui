@@ -28,12 +28,12 @@
        title="No matching column tag">{{ ext.config.noColumnTitle || 'untagged' }}</a>
     <a *ngFor="let col of columns"
        class="column-title tag"
-       [routerLink]="['/tag', ext.tag + ':' + col]"
+       [routerLink]="['/tag', getQuery({col})]"
        [title]="col">{{ col }}</a>
     <ng-container *ngIf="swimLanes else noSwimLanes">
       <ng-container *ngFor="let sl of swimLanes">
         <a class="swim-lane-title tag"
-           [routerLink]="['/tag', ext.tag + ':' + sl]"
+           [routerLink]="['/tag', getQuery({sl})]"
            [title]="sl">{{ sl }}</a>
         <app-kanban-column *ngIf="ext.config.showNoColumn"
                            cdkDropList

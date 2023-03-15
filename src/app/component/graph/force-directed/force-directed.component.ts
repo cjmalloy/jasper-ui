@@ -123,7 +123,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
   @Input()
   set content(refs: Ref[]) {
-    this.graphs.list(refs.map(r => r.url))
+    this.graphs.list(refs.map(r => r.url), this.store.account.origin)
       .subscribe(nodes => {
         this.store.graph.set(nodes.filter(n => !!n) as RefNode[]);
         if (this.depth > 0) {
@@ -160,7 +160,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
   load$(more: string[]) {
     if (!more.length) return of([]);
-    return this.graphs.list(more).pipe(
+    return this.graphs.list(more, this.store.account.origin).pipe(
       tap((moreLoaded: (RefNode|null)[]) => {
         for (let i = 0; i < more.length; i++) {
           if (!moreLoaded[i]) {
