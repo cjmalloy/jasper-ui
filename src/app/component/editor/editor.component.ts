@@ -61,8 +61,6 @@ export class EditorComponent implements AfterViewInit {
   @ViewChild('help')
   helpTemplate!: TemplateRef<any>;
 
-  mouseLeft = false;
-
   private _tags?: string[];
   private _text? = '';
 
@@ -90,13 +88,6 @@ export class EditorComponent implements AfterViewInit {
       this._tags = uniq([...this._tags, ...this.editors.filter(t => value.includes(t))]);
     }
     this.syncTags.next(this._tags);
-  }
-
-  @HostListener('window:pointermove', ['$event'])
-  onPointerMove(event: PointerEvent) {
-    const y = relativeY(event.clientY, this.editor?.nativeElement);
-    if (y < 0 || y > this.editor!.nativeElement.offsetHeight) return;
-    this.mouseLeft = relativeX(event.clientX, this.editor?.nativeElement) < this.editor!.nativeElement.offsetWidth / 2;
   }
 
   get tags() {

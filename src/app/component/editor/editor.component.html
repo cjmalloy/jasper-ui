@@ -1,4 +1,4 @@
-<div #tw class="text-wrapper" [class.mouse-left]="mouseLeft">
+<div #tw class="text-wrapper">
   <textarea #editor
             [formControl]="control"
             (input)="setText($any($event).target.value)"
