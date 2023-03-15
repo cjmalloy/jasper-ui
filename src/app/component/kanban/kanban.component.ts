@@ -7,7 +7,7 @@ import { Ref } from '../../model/ref';
 import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
-import { defaultLocal, defaultLocalTags, defaultWild, defaultWildTags } from '../../util/tag';
+import { defaultLocal, defaultWild, defaultWildTags } from '../../util/tag';
 
 export interface KanbanDrag {
   from: string;
