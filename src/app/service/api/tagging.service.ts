@@ -48,18 +48,18 @@ export class TaggingService {
     );
   }
 
-  createResponse(tag: string, url: string, origin = ''): Observable<void> {
-    if (tag.startsWith('-')) return this.deleteResponse(tag.substring(1), url, origin);
+  createResponse(tag: string, url: string): Observable<void> {
+    if (tag.startsWith('-')) return this.deleteResponse(tag.substring(1), url);
     return this.http.post<void>(`${this.base}/response`, null, {
-      params: params({ tag, url, origin }),
+      params: params({ tag, url }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  deleteResponse(tag: string, url: string, origin = ''): Observable<void> {
+  deleteResponse(tag: string, url: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/response`, {
-      params: params({ tag, url, origin }),
+      params: params({ tag, url }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );

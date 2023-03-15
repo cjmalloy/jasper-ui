@@ -34,10 +34,10 @@ export class ActionService {
 
   clearResponse(ref: Ref, ...tags: string[]): Observable<any> {
     if (!tags || !tags.length) return of(null);
-    return forkJoin(tags.map(t => this.ts.deleteResponse(t, ref.url, ref.origin)));
+    return forkJoin(tags.map(t => this.ts.deleteResponse(t, ref.url)));
   }
 
   addResponse(ref: Ref, tag: string): Observable<any> {
-    return this.ts.createResponse(tag, ref.url, ref.origin);
+    return this.ts.createResponse(tag, ref.url);
   }
 }

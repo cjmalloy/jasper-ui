@@ -362,21 +362,21 @@ export class RefComponent implements OnInit {
 
   voteUp() {
     if (this.upvote) {
-      this.runAndLoad(this.ts.deleteResponse('plugin/vote/up', this.ref.url, this.ref.origin));
+      this.runAndLoad(this.ts.deleteResponse('plugin/vote/up', this.ref.url));
     } else {
       this.runAndLoad(forkJoin([
-        this.ts.deleteResponse('plugin/vote/down', this.ref.url, this.ref.origin),
-        this.ts.createResponse('plugin/vote/up', this.ref.url, this.ref.origin)]));
+        this.ts.deleteResponse('plugin/vote/down', this.ref.url),
+        this.ts.createResponse('plugin/vote/up', this.ref.url)]));
     }
   }
 
   voteDown() {
     if (this.downvote) {
-      this.runAndLoad(this.ts.deleteResponse('plugin/vote/down', this.ref.url, this.ref.origin));
+      this.runAndLoad(this.ts.deleteResponse('plugin/vote/down', this.ref.url));
     } else {
       this.runAndLoad(forkJoin([
-        this.ts.deleteResponse('plugin/vote/up', this.ref.url, this.ref.origin),
-        this.ts.createResponse('plugin/vote/down', this.ref.url, this.ref.origin)]));
+        this.ts.deleteResponse('plugin/vote/up', this.ref.url),
+        this.ts.createResponse('plugin/vote/down', this.ref.url)]));
     }
   }
 

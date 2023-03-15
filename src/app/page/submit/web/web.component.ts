@@ -159,7 +159,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
     }).pipe(
       tap(() => {
         if (this.admin.def.plugins.voteUp) {
-          this.ts.createResponse('plugin/vote/up', this.url, this.store.account.origin);
+          this.ts.createResponse('plugin/vote/up', this.url);
         }
       }),
       catchError((res: HttpErrorResponse) => {
