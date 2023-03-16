@@ -1113,6 +1113,7 @@ ngx-monaco-editor {
 
   * {
     cursor: pointer;
+    transition: transform 100ms ease-in-out;
     &:hover {
       filter: brightness(1.1);
     }
@@ -1123,6 +1124,7 @@ ngx-monaco-editor {
 
   .on {
     transform: scale(1.5);
+    filter: hue-rotate(180deg)
   }
 
   .vote-up::before {
