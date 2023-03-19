@@ -1,3 +1,4 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FeedFormComponent } from './feed.component';
@@ -8,7 +9,10 @@ describe('FeedFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ FeedFormComponent ]
+      declarations: [ FeedFormComponent ],
+      imports: [
+        HttpClientTestingModule,
+      ],
     })
     .compileComponents();
   });

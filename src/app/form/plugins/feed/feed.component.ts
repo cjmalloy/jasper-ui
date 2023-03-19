@@ -2,6 +2,7 @@ import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import * as moment from 'moment';
 import { AdminService } from '../../../service/admin.service';
+import { ConfigService } from '../../../service/config.service';
 import { intervalValidator } from '../../../util/form';
 import { ORIGIN_REGEX } from '../../../util/format';
 import { tagsForm, TagsFormComponent } from '../../tags/tags.component';
@@ -19,7 +20,9 @@ export class FeedFormComponent implements OnInit {
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
 
-  constructor() { }
+  constructor(
+    public config: ConfigService,
+  ) { }
 
   ngOnInit(): void {
   }
