@@ -1,8 +1,8 @@
 <div class="row">
   <div class="stack">
     <h2 class="link" [class.remote]="!local">
-      <a *ngIf="webLink" [href]="ref.url" target="_blank">{{ (ref.title || '').trim() || ref.url }}</a>
-      <span *ngIf="!webLink">{{ (ref.title || '').trim() || ref.url }}</span>
+      <a *ngIf="clickableLink" [href]="ref.url | safe" target="_blank">{{ (ref.title || '').trim() || ref.url }}</a>
+      <span *ngIf="!clickableLink">{{ (ref.title || '').trim() || ref.url }}</span>
     </h2>
     <div class="link-below">
       <div class="stack">
@@ -71,7 +71,7 @@
                [queryParams]="{url: ref.url}" i18n>invoice</a>
           </ng-container>
           <a *ngIf="pdf" target="_blank" [href]="pdf" i18n>pdf</a>
-          <a *ngIf="webLink && archive" target="_blank" [href]="archive" i18n>archive</a>
+          <a *ngIf="clickableLink && archive" target="_blank" [href]="archive" i18n>archive</a>
           <ng-container *ngFor="let a of actions">
             <a *ngIf="showAction(a)" class="fake-link" (click)="doAction(a)">{{ active(a) ? a.labelOn : a.labelOff }}</a>
           </ng-container>

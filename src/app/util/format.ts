@@ -27,14 +27,10 @@ export function authors(ref: Ref) {
 }
 
 export function clickableLink(ref: Ref) {
-  try {
-    const url = new URL(ref.url);
-    if (url.protocol === 'http:' || url.protocol === 'https:') return true;
-  } catch (e) { }
-  for (const v of config().blockedSchemes) {
-    if (ref.url.startsWith(v)) return false;
+  for (const v of config().allowedSchemes) {
+    if (ref.url.startsWith(v)) return true;
   }
-  return true;
+  return false;
 }
 
 export function urlSummary(url: string) {

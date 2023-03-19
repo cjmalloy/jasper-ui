@@ -81,7 +81,7 @@ export class ChatEntryComponent {
     return authors(this.ref);
   }
 
-  get webLink() {
+  get clickableLink() {
     return clickableLink(this.ref);
   }
 

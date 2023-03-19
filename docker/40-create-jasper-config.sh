@@ -10,7 +10,7 @@ config="
   \"signup\": \"$JASPER_SIGNUP\",
   \"scim\": ${JASPER_SCIM-false},
   \"multiTenant\": ${JASPER_MULTI_TENANT-false},
-  \"blockedSchemes\": ${JASPER_BLOCKED_SCHEMES-[\"comment:\", \"internal:\", \"wiki:\"]},
+  \"allowedSchemes\": ${JASPER_ALLOWED_SCHEMES-[\"http:\", \"https:\", \"ftp:\", \"tel:\", \"mailto:\", \"magnet:\"]},
   \"maxPlugins\": ${JASPER_MAX_PLUGINS-0},
   \"maxTemplates\": ${JASPER_MAX_TEMPLATES-0},
   \"maxOrigins\": ${JASPER_MAX_ORIGINS-0},

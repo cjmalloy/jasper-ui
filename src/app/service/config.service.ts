@@ -19,7 +19,7 @@ export class ConfigService {
   signup = '';
   scim = false;
   multiTenant = false;
-  blockedSchemes = ['comment:', 'internal:', 'wiki:'];
+  allowedSchemes = ['http:', 'https:', 'ftp:', 'tel:', 'mailto:', 'magnet:'];
 
   maxPlugins = 1000;
   maxTemplates = 1000;

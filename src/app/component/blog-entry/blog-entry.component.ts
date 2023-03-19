@@ -172,7 +172,7 @@ export class BlogEntryComponent implements OnInit {
     return result;
   }
 
-  get webLink() {
+  get clickableLink() {
     return clickableLink(this.ref);
   }
 

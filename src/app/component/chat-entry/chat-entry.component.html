@@ -20,9 +20,9 @@
       [class.tagging]="tagging"
       (pointerenter)="allowActions = true"
       (pointerleave)="allowActions = false">
-  <div [class.has-title]="webLink || ref.title">
-    <a *ngIf="webLink && (ref.title || !media)" [href]="ref.url" target="_blank">{{ (ref.title || '').trim() || ref.url }}</a>
-    <span *ngIf="!webLink && (ref.title || !expand)">{{ ref.title || ref.url }}</span>
+  <div [class.has-title]="clickableLink || ref.title">
+    <a *ngIf="clickableLink && (ref.title || !media)" [href]="ref.url | safe" target="_blank">{{ (ref.title || '').trim() || ref.url }}</a>
+    <span *ngIf="!clickableLink && (ref.title || !expand)">{{ ref.title || ref.url }}</span>
     <app-md *ngIf="ref.comment"
             [origin]="ref.origin"
             [text]="ref.comment"
