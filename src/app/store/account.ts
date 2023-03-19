@@ -5,7 +5,7 @@ import { Roles, User } from '../model/user';
 import { getMailbox } from '../plugin/mailbox';
 import { config } from '../service/config.service';
 import { defaultSubs } from '../template/user';
-import { hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
+import { defaultLocal, hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
 export class AccountStore {
@@ -67,7 +67,7 @@ export class AccountStore {
   }
 
   get sysadmin() {
-    if (config().multiTenant)  return this.sa;
+    if (config().multiTenant) return this.sa;
     return this.admin;
   }
 
@@ -101,7 +101,7 @@ export class AccountStore {
     };
   }
 
-  get subs() {
+  get subs(): string[] {
     return this.config.subscriptions || defaultSubs;
   }
 
@@ -144,7 +144,7 @@ export class AccountStore {
 
   get subscriptionQuery() {
     if (!this.subs.length) return 'none';
-    return this.subs.join('|');
+    return this.subs.map(t => defaultLocal(t, this.origin)).join('|');
   }
 
   setRoles(roles: Roles) {
