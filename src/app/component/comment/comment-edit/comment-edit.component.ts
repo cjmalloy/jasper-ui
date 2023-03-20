@@ -3,13 +3,13 @@ import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { without } from 'lodash-es';
 import { catchError, Subject, switchMap, throwError } from 'rxjs';
-import { Ref } from '../../model/ref';
-import { AccountService } from '../../service/account.service';
-import { AdminService } from '../../service/admin.service';
-import { RefService } from '../../service/api/ref.service';
-import { EditorService } from '../../service/editor.service';
-import { getIfNew, getMailboxes, getTags } from '../../util/editor';
-import { printError } from '../../util/http';
+import { Ref } from '../../../model/ref';
+import { AccountService } from '../../../service/account.service';
+import { AdminService } from '../../../service/admin.service';
+import { RefService } from '../../../service/api/ref.service';
+import { EditorService } from '../../../service/editor.service';
+import { getIfNew, getMailboxes, getTags } from '../../../util/editor';
+import { printError } from '../../../util/http';
 
 @Component({
   selector: 'app-comment-edit',

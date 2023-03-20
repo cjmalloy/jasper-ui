@@ -6,16 +6,16 @@ import { runInAction } from 'mobx';
 import * as moment from 'moment';
 import { catchError, Subject, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { Ref } from '../../model/ref';
-import { getMailbox } from '../../plugin/mailbox';
-import { AdminService } from '../../service/admin.service';
-import { RefService } from '../../service/api/ref.service';
-import { EditorService } from '../../service/editor.service';
-import { Store } from '../../store/store';
-import { ThreadStore } from '../../store/thread';
-import { getMailboxes, getTags } from '../../util/editor';
-import { printError } from '../../util/http';
-import { hasTag, removeTag } from '../../util/tag';
+import { Ref } from '../../../model/ref';
+import { getMailbox } from '../../../plugin/mailbox';
+import { AdminService } from '../../../service/admin.service';
+import { RefService } from '../../../service/api/ref.service';
+import { EditorService } from '../../../service/editor.service';
+import { Store } from '../../../store/store';
+import { ThreadStore } from '../../../store/thread';
+import { getMailboxes, getTags } from '../../../util/editor';
+import { printError } from '../../../util/http';
+import { hasTag, removeTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-comment-reply',

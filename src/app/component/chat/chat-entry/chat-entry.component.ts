@@ -2,16 +2,16 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
-import { Ref } from '../../model/ref';
-import { deleteNotice } from '../../plugin/delete';
-import { AdminService } from '../../service/admin.service';
-import { RefService } from '../../service/api/ref.service';
-import { TaggingService } from '../../service/api/tagging.service';
-import { AuthzService } from '../../service/authz.service';
-import { Store } from '../../store/store';
-import { authors, clickableLink, formatAuthor, TAGS_REGEX } from '../../util/format';
-import { printError } from '../../util/http';
-import { hasTag, tagOrigin } from '../../util/tag';
+import { Ref } from '../../../model/ref';
+import { deleteNotice } from '../../../plugin/delete';
+import { AdminService } from '../../../service/admin.service';
+import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
+import { AuthzService } from '../../../service/authz.service';
+import { Store } from '../../../store/store';
+import { authors, clickableLink, formatAuthor, TAGS_REGEX } from '../../../util/format';
+import { printError } from '../../../util/http';
+import { hasTag, tagOrigin } from '../../../util/tag';
 
 @Component({
   selector: 'app-chat-entry',
