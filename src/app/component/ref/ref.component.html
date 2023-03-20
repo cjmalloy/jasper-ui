@@ -56,7 +56,7 @@
           <ng-container *ngIf="tags.length" i18n>
             tagged
             <ng-container *ngFor="let tag of tags">
-              <a class="tag" [routerLink]="['/tag', tag + ref.origin]">{{ tag }}</a>
+              <a class="tag" [routerLink]="['/tag', tag]">{{ tag }}</a>
             </ng-container>
           </ng-container>
           <span *ngIf="alarm" class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm">🔔</span>

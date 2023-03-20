@@ -169,7 +169,7 @@ export class BlogEntryComponent implements OnInit {
     if (this.blog?.config.filterTags) {
       result = intersection(result, this.blog.config.tags || []);
     }
-    return result;
+    return this.qualify(result);
   }
 
   get clickableLink() {
@@ -304,5 +304,12 @@ export class BlogEntryComponent implements OnInit {
       this.deleting = false;
       this.deleted = true;
     });
+  }
+
+  qualify(tags: string[]) {
+    if (this.ref.origin && !this.local) {
+      return tags.map(t => t + this.ref.origin);
+    }
+    return tags;
   }
 }
