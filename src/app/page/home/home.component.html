@@ -24,5 +24,6 @@
               [ref]="homeRef"></app-viewer>
   <app-ref-list *ngIf="!query.page?.empty"
                 [page]="query.page"
-                [graph]="store.view.graph"></app-ref-list>
+                [graph]="store.view.graph"
+                [showVotes]="store.view.isVoteSorted">></app-ref-list>
 </ng-container>
