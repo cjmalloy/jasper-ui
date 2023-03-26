@@ -2,10 +2,10 @@ import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
-import { Page } from '../../model/page';
-import { Profile } from '../../model/profile';
-import { User } from '../../model/user';
-import { ProfileService } from '../../service/api/profile.service';
+import { Page } from '../../../model/page';
+import { Profile } from '../../../model/profile';
+import { User } from '../../../model/user';
+import { ProfileService } from '../../../service/api/profile.service';
 
 @Component({
   selector: 'app-user-list',

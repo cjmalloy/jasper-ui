@@ -1,9 +1,9 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import * as moment from 'moment';
-import { Page } from '../../model/page';
-import { Ref } from '../../model/ref';
-import { score } from '../../plugin/vote';
+import { Page } from '../../../model/page';
+import { Ref } from '../../../model/ref';
+import { score } from '../../../plugin/vote';
 
 @Component({
   selector: 'app-ref-list',

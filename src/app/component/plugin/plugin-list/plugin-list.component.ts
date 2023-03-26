@@ -1,17 +1,17 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { Router } from '@angular/router';
-import { Ext } from '../../model/ext';
-import { Page } from '../../model/page';
+import { Page } from '../../../model/page';
+import { Tag } from '../../../model/tag';
 
 @Component({
-  selector: 'app-ext-list',
-  templateUrl: './ext-list.component.html',
-  styleUrls: ['./ext-list.component.scss']
+  selector: 'app-plugin-list',
+  templateUrl: './plugin-list.component.html',
+  styleUrls: ['./plugin-list.component.scss']
 })
-export class ExtListComponent implements OnInit {
-  @HostBinding('class') css = 'ext-list';
+export class PluginListComponent {
+  @HostBinding('class') css = 'plugin-list';
 
-  private _page?: Page<Ext>;
+  private _page?: Page<Tag>;
 
   constructor(private router: Router) { }
 
@@ -20,7 +20,7 @@ export class ExtListComponent implements OnInit {
   }
 
   @Input()
-  set page(value: Page<Ext> | undefined) {
+  set page(value: Page<Tag> | undefined) {
     this._page = value;
     if (this._page) {
       if (this._page.number > 0 && this._page.number >= this._page.totalPages) {
@@ -29,12 +29,11 @@ export class ExtListComponent implements OnInit {
             pageNumber: this._page.totalPages - 1
           },
           queryParamsHandling: "merge",
-        })
+        });
       }
     }
   }
 
   ngOnInit(): void {
   }
-
 }

@@ -1,24 +1,22 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { TagListComponent } from './tag-list.component';
+import { TemplateListComponent } from './template-list.component';
 
-describe('TagListComponent', () => {
-  let component: TagListComponent;
-  let fixture: ComponentFixture<TagListComponent>;
+describe('TemplateListComponent', () => {
+  let component: TemplateListComponent;
+  let fixture: ComponentFixture<TemplateListComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TagListComponent],
+      declarations: [ TemplateListComponent ],
       imports: [
         RouterTestingModule,
       ],
     })
     .compileComponents();
-  });
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(TagListComponent);
+    fixture = TestBed.createComponent(TemplateListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

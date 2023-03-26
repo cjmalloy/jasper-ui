@@ -1,7 +1,7 @@
 import { AfterViewInit, ComponentRef, Directive, Inject, Input, OnDestroy, ViewContainerRef } from '@angular/core';
 import { isString } from 'lodash-es';
 import { Subject } from 'rxjs';
-import { RefListComponent } from '../component/ref-list/ref-list.component';
+import { RefListComponent } from '../component/ref/ref-list/ref-list.component';
 import { RefComponent } from '../component/ref/ref.component';
 import { ViewerComponent } from '../component/viewer/viewer.component';
 import { Page } from '../model/page';

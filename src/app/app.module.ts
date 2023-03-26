@@ -15,7 +15,7 @@ import { tap } from 'rxjs/operators';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { BackupListComponent } from './component/backup-list/backup-list.component';
+import { BackupListComponent } from './component/backup/backup-list/backup-list.component';
 import { BackupComponent } from './component/backup/backup.component';
 import { BlogEntryComponent } from './component/blog/blog-entry/blog-entry.component';
 import { BlogComponent } from './component/blog/blog.component';
@@ -28,7 +28,7 @@ import { CommentReplyComponent } from './component/comment/comment-reply/comment
 import { CommentComponent } from './component/comment/comment.component';
 import { DebugComponent } from './component/debug/debug.component';
 import { EditorComponent } from './component/editor/editor.component';
-import { ExtListComponent } from './component/ext-list/ext-list.component';
+import { ExtListComponent } from './component/ext/ext-list/ext-list.component';
 import { ExtComponent } from './component/ext/ext.component';
 import { FilterComponent } from './component/filter/filter.component';
 import { FileComponent } from './component/folder/file/file.component';
@@ -44,10 +44,11 @@ import { LoginPopupComponent } from './component/login-popup/login-popup.compone
 import { MdComponent } from './component/md/md.component';
 import { MobileTabSelectComponent } from './component/mobile-tab-select/mobile-tab-select.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
+import { PluginListComponent } from './component/plugin/plugin-list/plugin-list.component';
 import { PluginComponent } from './component/plugin/plugin.component';
 import { QrComponent } from './component/qr/qr.component';
 import { QueryComponent } from './component/query/query.component';
-import { RefListComponent } from './component/ref-list/ref-list.component';
+import { RefListComponent } from './component/ref/ref-list/ref-list.component';
 import { RefComponent } from './component/ref/ref.component';
 import { SearchComponent } from './component/search/search.component';
 import { SelectPluginComponent } from './component/select-plugin/select-plugin.component';
@@ -56,10 +57,10 @@ import { SettingsComponent } from './component/settings/settings.component';
 import { SidebarComponent } from './component/sidebar/sidebar.component';
 import { SortComponent } from './component/sort/sort.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
-import { TagListComponent } from './component/tag-list/tag-list.component';
+import { TemplateListComponent } from './component/template/template-list/template-list.component';
 import { TemplateComponent } from './component/template/template.component';
 import { UploadRefComponent } from './component/upload-ref/upload-ref.component';
-import { UserListComponent } from './component/user-list/user-list.component';
+import { UserListComponent } from './component/user/user-list/user-list.component';
 import { UserComponent } from './component/user/user.component';
 import { ViewerComponent } from './component/viewer/viewer.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
@@ -199,7 +200,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     SettingsSetupPage,
     SettingsPluginPage,
     SettingsTemplatePage,
-    TagListComponent,
     UserComponent,
     ForceDirectedComponent,
     SubmitDmPage,
@@ -274,6 +274,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     SelectPluginComponent,
     ImageDimDirective,
     ResizeHandleDirective,
+    PluginListComponent,
+    TemplateListComponent,
   ],
   imports: [
     BrowserModule,
