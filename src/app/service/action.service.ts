@@ -23,21 +23,15 @@ export class ActionService {
     }
     if (a.response) {
       if (on) {
-        return this.clearResponse(ref, a.response);
+        return this.ts.deleteResponse(a.response, ref.url);
       } else {
-        return this.clearResponse(ref, ...(a.clear || [])).pipe(
-          switchMap(() => this.addResponse(ref, a.response!)));
+        const tags = [
+          ...(a.clear || []).map(t => '-' + t),
+          a.response,
+        ];
+        return this.ts.respond(tags, ref.url);
       }
     }
     return of(null);
-  }
-
-  clearResponse(ref: Ref, ...tags: string[]): Observable<any> {
-    if (!tags || !tags.length) return of(null);
-    return forkJoin(tags.map(t => this.ts.deleteResponse(t, ref.url)));
-  }
-
-  addResponse(ref: Ref, tag: string): Observable<any> {
-    return this.ts.createResponse(tag, ref.url);
   }
 }

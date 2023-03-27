@@ -64,4 +64,12 @@ export class TaggingService {
       catchError(err => this.login.handleHttpError(err)),
     );
   }
+
+  respond(tags: string[], url: string): Observable<void> {
+    return this.http.patch<void>(`${this.base}/response`, null, {
+      params: params({ tags, url }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
 }
