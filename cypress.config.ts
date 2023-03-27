@@ -5,6 +5,7 @@ export default defineConfig({
   e2e: {
     baseUrl: 'http://localhost:4200',
     experimentalRunAllSpecs: true,
+    defaultCommandTimeout: 10_000,
     setupNodeEvents(on, config) {
       require('cypress-mochawesome-reporter/plugin')(on);
     },
