@@ -26,19 +26,15 @@ describe('OriginService', () => {
   // @ts-ignore
   const setApi = (api: string) => service.config.api = api;
   // @ts-ignore
-  const setLocal = (origin: string) => service.store.account.tag = '+user' + origin;
+  const setLocal = (origin: string) => service.store.account.origin = origin;
   // @ts-ignore
   const reverseLookup = () => service.reverseLookup;
-  const ref = (origin: string, target: string, source = ''): Ref => ({
+  const ref = (origin: string, local: string, remote = ''): Ref => ({
     url: 'spec:test',
     origin,
-    plugins: {'+plugin/origin': {
-        local: target,
-        remote: source,
-      }
-    }
+    plugins: { '+plugin/origin': { local, remote } },
   });
-  it('reverseLookup passed', () => {
+  it('reverseLookup on @other has named us @main', () => {
     setOrigins([
       ref('@other', '@main'),
     ]);
@@ -46,15 +42,7 @@ describe('OriginService', () => {
     setLocal('');
     expect(reverseLookup().get('@other')).toEqual('@main');
   });
-  it('reverseLookup passed', () => {
-    setOrigins([
-      ref('@other', '@main'),
-    ]);
-    setApi('spec:test');
-    setLocal('');
-    expect(reverseLookup().get('@other')).toEqual('@main');
-  });
-  it('reverseLookup passed', () => {
+  it('reverseLookup on @other does not have an entry for our API', () => {
     setOrigins([
       ref('@other', '@main'),
     ]);
@@ -62,7 +50,7 @@ describe('OriginService', () => {
     setLocal('');
     expect(reverseLookup().get('@other')).toBeFalsy();
   });
-  it('reverseLookup passed', () => {
+  it('reverseLookup on @other for tenant @mt has it named @main', () => {
     setOrigins([
       ref('@other', '@main', '@mt'),
     ]);
@@ -70,7 +58,7 @@ describe('OriginService', () => {
     setLocal('@mt');
     expect(reverseLookup().get('@other')).toEqual('@main');
   });
-  it('reverseLookup passed', () => {
+  it('reverseLookup on @other does not have an entry for tenant @mt', () => {
     setOrigins([
       ref('@other', '@main', '@diff'),
     ]);
