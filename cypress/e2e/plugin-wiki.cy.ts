@@ -50,7 +50,7 @@ describe('Wiki Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('plugin').click();
-    cy.get('.actions').contains('edit').click();
+    cy.get('.plugin-list .actions').contains('edit').click();
     cy.wait(1000); // Warm up monaco editor
     cy.get('#config').click().focused().type('{ctrl}a{backspace}');
     cy.get('#config').type(JSON.stringify({ prefix: 'https://externalwiki/', external: true }), { parseSpecialCharSequences: false });
