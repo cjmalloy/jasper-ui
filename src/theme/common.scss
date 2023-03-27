@@ -249,10 +249,10 @@ video.qr-preview {
 
   .preferences {
     cursor: pointer;
-    margin-top: 2.5px;
+    padding-top: 2.5px;
     position: relative;
     transition: transform 0.4s ease-in-out;
-    transform-origin: 50% calc(50% - 2.5px);
+    transform-origin: center;
     &:hover {
       transform:  scale(1.5) rotate(-270deg);
     }
