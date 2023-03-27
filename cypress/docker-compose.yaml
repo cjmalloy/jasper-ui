@@ -9,6 +9,7 @@ services:
     network_mode: host
     environment:
       CYPRESS_DEFAULT_COMMAND_TIMEOUT: 30000
+      CYPRESS_REQUEST_TIMEOUT: 10000
       CYPRESS_baseUrl: http://localhost:8080
       CYPRESS_mainApi: http://localhost:8081
       CYPRESS_mainApiProxy: http://web
