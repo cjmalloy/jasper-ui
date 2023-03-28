@@ -118,7 +118,9 @@ export class SettingsSetupPage implements OnInit {
       },
       origin: this.store.account.origin,
       modifiedString: status.modifiedString,
-    }).subscribe(() => {
+    }).pipe(
+      switchMap(() => this.admin.init$)
+    ).subscribe(() => {
       this.admin.status.plugins[key] = def;
       this.adminForm.reset(this.admin.status);
       this.installMessages.push($localize`Updated ${def.name || def.tag} plugin.`);
@@ -137,7 +139,9 @@ export class SettingsSetupPage implements OnInit {
       },
       origin: this.store.account.origin,
       modifiedString: status.modifiedString,
-    }).subscribe(() => {
+    }).pipe(
+      switchMap(() => this.admin.init$)
+    ).subscribe(() => {
       this.admin.status.templates[key] = def;
       this.adminForm.reset(this.admin.status);
       this.installMessages.push($localize`Updated ${def.name || def.tag} template.`);

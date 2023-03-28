@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { findKey, flatten, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
+import { runInAction } from 'mobx';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Action, Icon, Plugin } from '../model/plugin';
@@ -135,6 +136,7 @@ export class AdminService {
 
   get init$() {
     this._cache.clear();
+    runInAction(() => this.store.view.updates = false);
     this.status.plugins =  mapValues(this.def.plugins, () => undefined);
     this.status.templates = mapValues(this.def.templates, () => undefined);
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
