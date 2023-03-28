@@ -77,7 +77,7 @@ export function maybeTemplate(obj: any): Template | undefined {
   return mapTemplate(obj);
 }
 
-export function writeTemplate(template: Partial<Template>): Partial<Template> {
+export function writeTemplate(template: Template): Template {
   const result = { ...template };
   if (result.modifiedString) result.modified = result.modifiedString as any;
   delete result.type;

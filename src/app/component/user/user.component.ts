@@ -93,10 +93,17 @@ export class UserComponent implements OnInit {
   }
 
   download() {
-    downloadTag(this.user || {
-      tag: this.profile!.tag,
-      origin: '',
-    });
+    if (!this.user) {
+      return downloadTag({
+        tag: this.profile!.tag,
+        origin: '',
+      });
+    }
+    const user = { ...this.user };
+    user.modified = user.modifiedString as any;
+    delete user.type;
+    delete user.modifiedString;
+    downloadTag(user);
   }
 
   get role() {

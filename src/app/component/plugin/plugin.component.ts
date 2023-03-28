@@ -3,7 +3,7 @@ import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { pluginForm } from '../../form/plugin/plugin.component';
-import { Plugin } from '../../model/plugin';
+import { Plugin, writePlugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { Store } from '../../store/store';
@@ -102,6 +102,6 @@ export class PluginComponent implements OnInit {
   }
 
   download() {
-    downloadTag(this.plugin);
+    downloadTag(writePlugin(this.plugin));
   }
 }

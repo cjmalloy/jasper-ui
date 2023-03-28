@@ -32,7 +32,7 @@ export function mapUser(obj: any): User {
   return obj;
 }
 
-export function writeUser(user: Partial<User>): Partial<User> {
+export function writeUser(user: User): User {
   const result = { ...user };
   result.modified = result.modifiedString as any;
   result.pubKey = user.pubKey && btoa(user.pubKey);

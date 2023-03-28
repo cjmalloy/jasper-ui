@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import * as moment from 'moment/moment';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { Action, active, Icon, Visibility, visible } from '../../../model/plugin';
-import { Ref } from '../../../model/ref';
+import { Ref, writeRef } from '../../../model/ref';
 import { ActionService } from '../../../service/action.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -245,7 +245,7 @@ export class FileComponent implements OnInit {
   }
 
   download() {
-    downloadRef(this.ref);
+    downloadRef(writeRef(this.ref));
   }
 
   addInlineTag(field: HTMLInputElement) {

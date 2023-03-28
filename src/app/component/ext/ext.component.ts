@@ -4,7 +4,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { toJS } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
-import { Ext } from '../../model/ext';
+import { Ext, writeExt } from '../../model/ext';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
@@ -104,6 +104,6 @@ export class ExtComponent implements OnInit {
   }
 
   download() {
-    downloadTag(this.ext);
+    downloadTag(writeExt(this.ext));
   }
 }

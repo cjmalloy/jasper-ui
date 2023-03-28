@@ -3,7 +3,7 @@ import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { templateForm } from '../../form/template/template.component';
-import { Template } from '../../model/template';
+import { Template, writeTemplate } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
@@ -102,6 +102,6 @@ export class TemplateComponent implements OnInit {
   }
 
   download() {
-    downloadTag(this.template);
+    downloadTag(writeTemplate(this.template));
   }
 }

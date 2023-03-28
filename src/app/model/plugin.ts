@@ -233,7 +233,7 @@ export function maybePlugin(obj: any): Plugin | undefined {
   return mapPlugin(obj);
 }
 
-export function writePlugin(plugin: Partial<Plugin>): Partial<Plugin> {
+export function writePlugin(plugin: Plugin): Plugin {
   const result = { ...plugin };
   result.modified = result.modifiedString as any;
   delete result.type;

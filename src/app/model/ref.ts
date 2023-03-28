@@ -87,7 +87,7 @@ export function mapRefOrNull(obj: any): Ref | null {
   return mapRef(obj);
 }
 
-export function writeRef(ref: Partial<Ref>): Partial<Ref> {
+export function writeRef(ref: Ref): Ref {
   const result = { ...ref };
   result.published = moment(result.published);
   result.modified = result.modifiedString as any;

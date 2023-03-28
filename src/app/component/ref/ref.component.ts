@@ -9,7 +9,7 @@ import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Action, active, Icon, Visibility, visible } from '../../model/plugin';
-import { Ref } from '../../model/ref';
+import { Ref, writeRef } from '../../model/ref';
 import { findArchive } from '../../plugin/archive';
 import { deleteNotice } from '../../plugin/delete';
 import { ActionService } from '../../service/action.service';
@@ -311,7 +311,7 @@ export class RefComponent implements OnInit {
   }
 
   download() {
-    downloadRef(this.ref);
+    downloadRef(writeRef(this.ref));
   }
 
   addInlineTag(field: HTMLInputElement) {

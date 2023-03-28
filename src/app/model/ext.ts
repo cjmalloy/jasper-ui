@@ -14,7 +14,7 @@ export function mapTag(obj: any): Ext {
   return obj;
 }
 
-export function writeExt(ext: Partial<Ext>): Partial<Ext> {
+export function writeExt(ext: Ext): Ext {
   const result = { ...ext };
   result.modified = result.modifiedString as any;
   delete result.type;
