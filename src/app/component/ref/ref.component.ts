@@ -4,7 +4,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, forkJoin, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
@@ -208,12 +208,40 @@ export class RefComponent implements OnInit {
     if (this.pull) {
       return moment(this.ref.plugins!['+plugin/origin/pull'].lastPulled);
     }
-    throw "Not scraped";
+    throw 'Not scraped';
   }
 
   get thumbnail() {
     return this.admin.status.plugins.thumbnail &&
       hasTag('plugin/thumbnail', this.ref);
+  }
+
+  get audio() {
+    return this.admin.status.plugins.audio &&
+      hasTag('plugin/audio', this.ref);
+  }
+
+  get video() {
+    return this.admin.status.plugins.video &&
+      hasTag('plugin/video', this.ref);
+  }
+
+  get image() {
+    return this.admin.status.plugins.image &&
+      hasTag('plugin/image', this.ref);
+  }
+
+  get mediaAttachment() {
+    if (this.audio) {
+      return this.ref.plugins?.['plugin/audio'].url;
+    }
+    if (this.video) {
+      return this.ref.plugins?.['plugin/video'].url;
+    }
+    if (this.image) {
+      return this.ref.plugins?.['plugin/image'].url;
+    }
+    return false;
   }
 
   get canInvoice() {
@@ -312,6 +340,10 @@ export class RefComponent implements OnInit {
 
   download() {
     downloadRef(writeRef(this.ref));
+  }
+
+  downloadMedia() {
+    window.open(this.mediaAttachment, "_blank");
   }
 
   addInlineTag(field: HTMLInputElement) {

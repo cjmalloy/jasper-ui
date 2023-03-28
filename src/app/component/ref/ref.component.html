@@ -127,6 +127,9 @@
             </span>
             <a class="fake-link"
                (click)="download()" i18n>download</a>
+            <a *ngIf="mediaAttachment"
+               class="fake-link"
+               (click)="downloadMedia()" i18n>media</a>
             <ng-container *ngIf="!local">
               <span class="fake-link" (click)="copy()" i18n>copy</span>
             </ng-container>
