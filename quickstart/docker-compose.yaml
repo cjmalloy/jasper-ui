@@ -3,24 +3,26 @@
 # The web client will be on http://localhost:8082
 services:
   web:
-    image: ghcr.io/cjmalloy/jasper
+    image: ghcr.io/cjmalloy/jasper:v1.2
     ports:
       - 8081:8081
     environment:
-      SPRING_PROFILES_ACTIVE: dev,admin,feed-burst
+      SPRING_PROFILES_ACTIVE: dev,default-user,storage,feed-burst,pull-burst,push-burst
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
+      JASPER_DEFAULT_USER: +user
+      JASPER_DEFAULT_ROLE: ROLE_ADMIN
     depends_on:
       - db
   db:
-    image: postgres
+    image: postgres:15
     environment:
       POSTGRES_USER: jasper
       POSTGRES_PASSWORD: jasper
       POSTGRES_DB: jasper
   client:
-    image: ghcr.io/cjmalloy/jasper-ui
+    image: ghcr.io/cjmalloy/jasper-ui:v1.2
     ports:
       - 8082:80
     environment:
