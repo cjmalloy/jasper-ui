@@ -1,14 +1,15 @@
 import * as JSZip from 'jszip';
 import { isArray } from 'lodash-es';
 
-export function getZipFile(file: File, zipFileName: string): Promise<string | undefined> {
+export function unzip(file: File) {
   return JSZip.loadAsync(file).catch(() => {
-    throw "Could not read ZIP file.";
-  }).then(zip => {
-    return zip.file(zipFileName)?.async('string')?.catch(() => {
-      throw `Could not find ${zipFileName} in ZIP file.`;
-    });
+    throw 'Could not read ZIP file.';
   });
+}
+
+export function zippedFile(zip: JSZip, fileName: string) {
+  return zip.file(fileName)?.async('string')?.catch(() => '') ||
+    Promise.resolve(undefined);
 }
 
 export function getTextFile(file: File): Promise<string | undefined> {
@@ -17,14 +18,14 @@ export function getTextFile(file: File): Promise<string | undefined> {
     fr.onload = () => {
       resolve(fr.result as string)
     };
-    fr.onerror = () => reject("Could not read text file.");
+    fr.onerror = () => reject('Could not read text file.');
     fr.readAsText(file);
   });
 }
 
 export function getZipOrTextFile(file: File, zipFileName: string): Promise<string | undefined> {
   if (file.name.toLowerCase().endsWith('.zip')) {
-    return getZipFile(file, zipFileName);
+    return unzip(file).then(zip => zippedFile(zip, zipFileName));
   } else {
     return getTextFile(file);
   }

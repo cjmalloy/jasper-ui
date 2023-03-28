@@ -66,7 +66,7 @@
                autocomplete="off"
                formControlName="url"
                appAutofocus>
-        <app-upload-ref *ngIf="store.submit.web"  (serverErrors)="serverErrors = $event"></app-upload-ref>
+        <app-upload-ref *ngIf="store.submit.web" (serverErrors)="serverErrors = $event"></app-upload-ref>
         <app-qr-scanner (data)="scanQr($event)"></app-qr-scanner>
       </div>
 
