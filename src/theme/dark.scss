@@ -16,8 +16,10 @@ $card-dragging: #4d4d4d;
 $placeholder: #2c2c2c;
 $deleting: #dc5c5c;
 body.dark-theme {
-  color-scheme: dark;
-  color: $text;
+  @media not print {
+    color-scheme: dark;
+    color: $text;
+  }
 
   &, ::backdrop, .editor.fullscreen app-md {
     background-color: $bg;
