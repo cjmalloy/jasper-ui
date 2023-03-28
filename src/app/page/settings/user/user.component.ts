@@ -44,7 +44,7 @@ export class SettingsUserPage implements OnInit, OnDestroy {
     }
     this.disposers.push(autorun(() => {
       const args = {
-        query: this.store.view.showRemotes ? '@*' : this.store.account.origin,
+        query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
         search: this.store.view.search,
         sort: [...this.store.view.sort],
         page: this.store.view.pageNumber,
