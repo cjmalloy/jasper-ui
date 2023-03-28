@@ -44,7 +44,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   @Input()
   set tag(value: string) {
     if (this.ext?.tag === value) return;
-    this.exts.get(value).pipe(
+    this.exts.get(defaultLocal(value, this.store.account.origin)).pipe(
       catchError(err => {
         this.error = err;
         return of(undefined);
