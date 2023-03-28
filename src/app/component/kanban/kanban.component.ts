@@ -82,24 +82,24 @@ export class KanbanComponent implements OnInit, OnDestroy {
     const kanbanTag = defaultLocal(this.ext!.tag, this.store.account.origin);
     const columns = defaultWildTags(this.ext!.config.columns);
     const swimLanes = this.swimLanes && defaultWildTags(this.swimLanes);
-    tags.sl = tags.sl && defaultWild(tags.sl);
-    tags.col = tags.col && defaultWild(tags.col);
+    const sl = tags.sl && defaultWild(tags.sl);
+    const col = tags.col && defaultWild(tags.col);
     if (swimLanes) {
-      if (!tags.col && !tags.sl) {
+      if (!col && !sl) {
         return kanbanTag + ':!' + columns.join(':!') + ':!' + swimLanes.join(':!');
       }
-      if (!tags.col) {
-        return kanbanTag + ':' + tags.sl + ':!' + columns.join(':!');
+      if (!col) {
+        return kanbanTag + ':' + sl + ':!' + columns.join(':!');
       }
-      if (!tags.sl) {
-        return kanbanTag + ':' + tags.col + ':!' + swimLanes.join(':!');
+      if (!sl) {
+        return kanbanTag + ':' + col + ':!' + swimLanes.join(':!');
       }
-      return kanbanTag + ':' + tags.col + ':' + tags.sl;
+      return kanbanTag + ':' + col + ':' + sl;
     } else {
-      if (!tags.col) {
+      if (!col) {
         return kanbanTag + ':!' + columns.join(':!');
       }
-      return kanbanTag + ':' + tags.col;
+      return kanbanTag + ':' + col;
     }
   }
 
