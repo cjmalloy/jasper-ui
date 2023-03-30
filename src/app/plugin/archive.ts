@@ -1,7 +1,8 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { getHost } from '../util/hosts';
+import { clickableLink } from '../util/format';
+import { getHost, getScheme } from '../util/hosts';
 
 export const archivePlugin: Plugin = {
   tag: 'plugin/archive',
@@ -41,5 +42,7 @@ export function findArchive(plugin: Plugin, ref: Ref) {
       if (plugin!.config.hosts.includes(getHost(s)!)) return s;
     }
   }
+  const scheme = getScheme(ref.url);
+  if (scheme !== 'http:' && scheme !== 'https:') return null;
   return plugin!.config!.defaultArchive + ref.url;
 }

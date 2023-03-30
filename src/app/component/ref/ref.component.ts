@@ -245,7 +245,7 @@ export class RefComponent implements OnInit {
   }
 
   get canInvoice() {
-    if (this.ref.origin) return false;
+    if (!this.local) return false;
     if (!this.admin.status.plugins.invoice) return false;
     if (!this.isAuthor) return false;
     if (!this.ref.sources || !this.ref.sources.length) return false;
@@ -275,6 +275,7 @@ export class RefComponent implements OnInit {
   }
 
   get scrapeable() {
+    if (!this.store.account.mod) return false;
     return this.feed || this.pull;
   }
 

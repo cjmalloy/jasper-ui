@@ -71,7 +71,7 @@
                [queryParams]="{url: ref.url}" i18n>invoice</a>
           </ng-container>
           <a *ngIf="pdf" target="_blank" [href]="pdf" i18n>pdf</a>
-          <a *ngIf="clickableLink && archive" target="_blank" [href]="archive" i18n>archive</a>
+          <a *ngIf="archive" target="_blank" [href]="archive" i18n>archive</a>
           <ng-container *ngFor="let a of actions">
             <a *ngIf="showAction(a)" class="fake-link" (click)="doAction(a)">{{ active(a) ? a.labelOn : a.labelOff }}</a>
           </ng-container>

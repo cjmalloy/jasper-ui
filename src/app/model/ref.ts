@@ -92,11 +92,21 @@ export function mapRefOrNull(obj: any): Ref | null {
 }
 
 export function writeRef(ref: Ref): Ref {
-  const result = { ...ref };
-  result.published = moment(result.published);
+  const result = { ...ref } as any;
+  result.published &&= moment(result.published);
   result.modified = result.modifiedString as any;
   delete result.metadata;
   delete result.modifiedString;
   delete result.created;
+  // Added by graphing
+  delete result.unloaded;
+  delete result.notFound;
+  delete result.index;
+  delete result.x;
+  delete result.y;
+  delete result.vx;
+  delete result.vy;
+  delete result.fx;
+  delete result.fy;
   return result;
 }

@@ -86,7 +86,7 @@
         </div>
         <app-viewer *ngIf="expanded && expandInline && !editing && !viewSource" [ref]="ref" ></app-viewer>
         <div class="actions" [class.expanded]="actionsExpanded">
-          <ng-container *ngIf="!ref.created">
+          <ng-container *ngIf="store.account.signedIn && !ref.created">
             <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
           </ng-container>
           <ng-container *ngIf="ref.created">
@@ -125,24 +125,24 @@
               <a class="fake-link" (click)="delete()">yes</a>&nbsp;/&nbsp;
               <a class="fake-link" (click)="deleting = false">no</a>&nbsp;
             </span>
-            <a class="fake-link"
-               (click)="download()" i18n>download</a>
-            <a *ngIf="mediaAttachment"
-               class="fake-link"
-               (click)="downloadMedia()" i18n>media</a>
-            <ng-container *ngIf="!local">
+            <ng-container *ngIf="store.account.signedIn && !local">
               <span class="fake-link" (click)="copy()" i18n>copy</span>
             </ng-container>
-            <ng-container *ngIf="canInvoice">
-              <a routerLink="/submit/invoice"
-                 [queryParams]="{url: ref.url}" i18n>invoice</a>
-            </ng-container>
-            <a *ngIf="pdf" target="_blank" [href]="pdf" i18n>pdf</a>
-            <a *ngIf="clickableLink && archive" target="_blank" [href]="archive" i18n>archive</a>
-            <a *ngIf="store.account.mod && scrapeable" class="fake-link" (click)="scrape()" i18n>scrape</a>
-            <ng-container *ngFor="let a of actions">
-              <a *ngIf="showAction(a)" class="fake-link" (click)="doAction(a)">{{ active(a) ? a.labelOn : a.labelOff }}</a>
-            </ng-container>
+          </ng-container>
+          <a class="fake-link"
+             (click)="download()" i18n>download</a>
+          <a *ngIf="mediaAttachment"
+             class="fake-link"
+             (click)="downloadMedia()" i18n>media</a>
+          <ng-container *ngIf="canInvoice">
+            <a routerLink="/submit/invoice"
+               [queryParams]="{url: ref.url}" i18n>invoice</a>
+          </ng-container>
+          <a *ngIf="pdf" target="_blank" [href]="pdf" i18n>pdf</a>
+          <a *ngIf="archive" target="_blank" [href]="archive" i18n>archive</a>
+          <a *ngIf="scrapeable" class="fake-link" (click)="scrape()" i18n>scrape</a>
+          <ng-container *ngFor="let a of actions">
+            <a *ngIf="showAction(a)" class="fake-link" (click)="doAction(a)">{{ active(a) ? a.labelOn : a.labelOff }}</a>
           </ng-container>
         </div>
       </div>
