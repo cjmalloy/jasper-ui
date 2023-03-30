@@ -67,8 +67,7 @@ export class SortComponent implements OnInit, OnDestroy {
       if (this.store.view.search) {
         this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance` });
       }
-    }
-    if (value !== 'ref') {
+    } else {
       this.allSorts = [
         { value: 'modified', label: $localize`🕓️ modified` },
         { value: 'name', label: $localize`🇦️ name` },

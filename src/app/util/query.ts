@@ -1,9 +1,16 @@
 import { filter, uniq, without } from 'lodash-es';
-import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
+import { Filter, RefPageArgs, RefQueryArgs, RefSort } from '../model/ref';
+import { TagQueryArgs } from '../model/tag';
 
 export const defaultDesc = ['created', 'published', 'modified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
 
 export type UrlFilter = Filter |
+  `modified/before/${string}` |
+  `modified/after/${string}` |
+  `published/before/${string}` |
+  `published/after/${string}` |
+  `created/before/${string}` |
+  `created/after/${string}` |
   `query/${string}` |
   `plugin/${string}` |
   `-plugin/${string}`;
@@ -47,9 +54,9 @@ export function getArgs(
   };
 }
 
-function getRefFilter(filter?: UrlFilter[]): RefFilter | undefined {
-  if (!filter) return undefined;
-  let result: any = {};
+function getRefFilter(filter?: UrlFilter[]): RefQueryArgs {
+  if (!filter) return {};
+  let result: RefQueryArgs = {};
   for (const f of filter) {
     if (f.startsWith('query/')) continue;
     if (f.startsWith('plugin/')) {
@@ -58,8 +65,33 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter | undefined {
     } else if (f.startsWith('-plugin/')) {
       result.noPluginResponse ||= [];
       result.noPluginResponse.push(f.substring(1));
+    } else if (f.startsWith('modified/before/')) {
+      result.modifiedBefore = f.substring('modified/before/'.length);
+    } else if (f.startsWith('modified/after/')) {
+      result.modifiedAfter = f.substring('modified/after/'.length);
+    } else if (f.startsWith('published/before/')) {
+      result.publishedBefore = f.substring('published/before/'.length);
+    } else if (f.startsWith('published/after/')) {
+      result.publishedAfter = f.substring('published/after/'.length);
+    } else if (f.startsWith('created/before/')) {
+      result.createdBefore = f.substring('created/before/'.length);
+    } else if (f.startsWith('created/after/')) {
+      result.createdAfter = f.substring('created/after/'.length);
     } else {
       result[f as Filter] = true;
+    }
+  }
+  return result;
+}
+
+export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {
+  if (!filter) return {};
+  let result: TagQueryArgs = {};
+  for (const f of filter) {
+    if (f.startsWith('modified/before/')) {
+      result.modifiedBefore = f.substring('modified/before/'.length);
+    } else if (f.startsWith('modified/after/')) {
+      result.modifiedAfter = f.substring('modified/after/'.length);
     }
   }
   return result;

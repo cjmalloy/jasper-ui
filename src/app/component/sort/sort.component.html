@@ -9,7 +9,7 @@
   <select id="filter-{{ i }}" [ngModel]="sortCol(sorts[i])" (ngModelChange)="setSortCol(i, $event)">
     <option *ngFor="let opt of allSorts" [value]="opt.value">{{ opt.label || opt.value }}</option>
   </select>
-  <button *ngIf="sortDir(sorts[i]) === 'DESC'" type="button" (click)="setSortDir(i, 'ASC')">🔽</button>
-  <button *ngIf="sortDir(sorts[i]) === 'ASC'" type="button" (click)="setSortDir(i, 'DESC')">🔼</button>
+  <button *ngIf="sortDir(sorts[i]) === 'DESC'" type="button" (click)="setSortDir(i, 'ASC')">🔽️</button>
+  <button *ngIf="sortDir(sorts[i]) === 'ASC'" type="button" (click)="setSortDir(i, 'DESC')">🔼️</button>
   <button *ngIf="sorts.length > 1" type="button" (click)="removeSort(i)" i18n>&ndash;</button>
 </span>

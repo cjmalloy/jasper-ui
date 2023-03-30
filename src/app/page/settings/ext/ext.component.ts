@@ -4,6 +4,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { ThemeService } from '../../../service/theme.service';
 import { ExtStore } from '../../../store/ext';
 import { Store } from '../../../store/store';
+import { getTagFilter } from '../../../util/query';
 
 @Component({
   selector: 'app-settings-ext-page',
@@ -32,6 +33,7 @@ export class SettingsExtPage implements OnInit, OnDestroy {
         sort: [...this.store.view.sort],
         page: this.store.view.pageNumber,
         size: this.store.view.pageSize,
+        ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
     }));

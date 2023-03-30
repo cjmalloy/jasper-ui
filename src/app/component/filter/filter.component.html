@@ -7,12 +7,28 @@
     <option *ngFor="let f of g.filters" [value]="f.filter">{{ f.label || f.filter }}</option>
   </optgroup>
 </select>
-<div class="form-array" *ngFor="let f of filters; let i=index">
-  <select id="filter-{{ i }}" [ngModel]="filters[i]" (ngModelChange)="setFilter(i, $event)">
-    <optgroup *ngFor="let g of allFilters" [label]="g.label">
-      <option *ngFor="let f of g.filters" [value]="f.filter">{{ f.label || f.filter }}</option>
-    </optgroup>
-
-  </select>
-  <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
-</div>
+<ng-container *ngFor="let filter of filters; let i=index">
+  <div class="form-array">
+    <select id="filter-{{ i }}" [ngModel]="filter" (ngModelChange)="setFilter(i, $event)">
+      <optgroup *ngFor="let g of allFilters" [label]="g.label">
+        <option *ngFor="let f of g.filters" [value]="f.filter">{{ f.label || f.filter }}</option>
+      </optgroup>
+    </select>
+    <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
+  </div>
+  <input *ngIf="filter.startsWith('modified/')"
+         type="datetime-local"
+         step="1"
+         [ngModel]="toDate(filter)"
+         (ngModelChange)="setModified(i, filter.startsWith('modified/before/'), toIso($event))">
+  <input *ngIf="filter.startsWith('published/')"
+         type="datetime-local"
+         step="1"
+         [ngModel]="toDate(filter)"
+         (ngModelChange)="setPublished(i, filter.startsWith('published/before/'), toIso($event))">
+  <input *ngIf="filter.startsWith('created/')"
+         type="datetime-local"
+         step="1"
+         [ngModel]="toDate(filter)"
+         (ngModelChange)="setCreated(i, filter.startsWith('created/before/'), toIso($event))">
+</ng-container>

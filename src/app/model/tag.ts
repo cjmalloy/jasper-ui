@@ -18,7 +18,8 @@ export interface Tag extends HasOrigin {
 export type TagQueryArgs = {
   query?: string,
   search?: string,
-  modifiedAfter?: moment.Moment,
+  modifiedBefore?: string,
+  modifiedAfter?: string,
 };
 
 export type TagPageArgs = TagQueryArgs & {

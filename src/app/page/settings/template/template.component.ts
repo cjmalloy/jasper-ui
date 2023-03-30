@@ -9,6 +9,7 @@ import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { TemplateStore } from '../../../store/template';
 import { printError } from '../../../util/http';
+import { getTagFilter } from '../../../util/query';
 import { getModels, getZipOrTextFile } from '../../../util/zip';
 
 @Component({
@@ -41,6 +42,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
         sort: [...this.store.view.sort],
         page: this.store.view.pageNumber,
         size: this.store.view.pageSize,
+        ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
     }));

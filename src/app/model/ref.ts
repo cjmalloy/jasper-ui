@@ -48,6 +48,10 @@ export type RefQueryArgs = RefFilter & {
   search?: string;
   modifiedAfter?: string;
   modifiedBefore?: string;
+  publishedAfter?: string;
+  publishedBefore?: string;
+  createdAfter?: string;
+  createdBefore?: string;
 };
 
 export type RefPageArgs = RefQueryArgs & {

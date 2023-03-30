@@ -6,3 +6,8 @@ select {
   display: block;
   width: 100%;
 }
+
+input {
+  margin: 0 5px 0 0;
+  width: calc(100% - 5px);
+}

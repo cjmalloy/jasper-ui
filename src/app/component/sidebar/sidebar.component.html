@@ -14,8 +14,8 @@
   <ng-container *ngIf="expanded && store.view.current && (!home || store.view.search || store.view.filter.length || !query.page?.empty)">
     <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
     <div class="row">
-      <app-filter *ngIf="store.view.type === 'ref'"></app-filter>
-      <app-sort *ngIf="showSort" [type]="store.view.type!"></app-sort>
+      <app-filter [type]="store.view.type!"></app-filter>
+      <app-sort [type]="store.view.type!"></app-sort>
     </div>
   </ng-container>
   <app-debug *ngIf="expanded"></app-debug>

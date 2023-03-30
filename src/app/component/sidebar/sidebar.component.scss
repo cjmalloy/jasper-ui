@@ -3,4 +3,7 @@
   app-search, app-filter, app-sort {
     flex-grow: 1;
   }
+  app-filter, app-sort {
+    width: 50%;
+  }
 }
