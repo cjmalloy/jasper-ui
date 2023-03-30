@@ -34,6 +34,9 @@ import { FormlyFieldTextArea } from './textarea.type';
     OverlayModule,
     FormlySelectModule,
     FormlyModule.forRoot({
+      validationMessages: [
+        { name: 'required', message: 'This field is required' },
+      ],
       wrappers: [{
           name: 'form-field',
           component: FormlyWrapperFormField,
