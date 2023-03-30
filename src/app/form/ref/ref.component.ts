@@ -4,7 +4,6 @@ import { defer } from 'lodash-es';
 import * as moment from 'moment';
 import { of } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Icon } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -142,7 +141,7 @@ export class RefFormComponent implements OnInit {
 
 export function refForm(fb: UntypedFormBuilder) {
   return fb.group({
-    url: [''],
+    url: { value: '',  disabled: true },
     published: [''],
     title: ['', [Validators.required]],
     comment: [''],
