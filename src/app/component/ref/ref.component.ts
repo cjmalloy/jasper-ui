@@ -196,7 +196,7 @@ export class RefComponent implements OnInit {
       return !!this.ref.plugins!['+plugin/feed'].lastScrape;
     }
     if (this.pull) {
-      return !!this.ref.plugins!['+plugin/origin/pull'].lastPulled;
+      return !!this.ref.plugins!['+plugin/origin/pull'].lastPull;
     }
     return false;
   }
@@ -206,7 +206,7 @@ export class RefComponent implements OnInit {
       return moment(this.ref.plugins!['+plugin/feed'].lastScrape);
     }
     if (this.pull) {
-      return moment(this.ref.plugins!['+plugin/origin/pull'].lastPulled);
+      return moment(this.ref.plugins!['+plugin/origin/pull'].lastPull);
     }
     throw 'Not scraped';
   }
