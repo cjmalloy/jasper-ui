@@ -110,6 +110,7 @@ import { RefSummaryComponent } from './page/ref/summary/summary.component';
 import { RefVersionsComponent } from './page/ref/versions/versions.component';
 import { SettingsBackupPage } from './page/settings/backup/backup.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
+import { SettingsOriginsPage } from './page/settings/origins/origins.component';
 import { SettingsPasswordPage } from './page/settings/password/password.component';
 import { SettingsPluginPage } from './page/settings/plugin/plugin.component';
 import { SettingsRefPage } from './page/settings/ref/ref.component';
@@ -132,10 +133,10 @@ import { AdminService } from './service/admin.service';
 import { AuthnService } from './service/authn.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
-import { OriginService } from './service/origin.service';
+import { OriginMapService } from './service/origin-map.service';
 import { ThemeService } from './service/theme.service';
 
-const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginService, themes: ThemeService) => () =>
+const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ThemeService) => () =>
   config.load$.pipe(
     tap(() => console.log('-{1}- Loading Jasper')),
     switchMap(() => debug.init$),
@@ -276,6 +277,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     ResizeHandleDirective,
     PluginListComponent,
     TemplateListComponent,
+    SettingsOriginsPage,
   ],
   imports: [
     BrowserModule,
@@ -302,7 +304,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     {
       provide: APP_INITIALIZER,
       useFactory: loadFactory,
-      deps: [ConfigService, DebugService, AuthnService, AdminService, AccountService, OriginService, ThemeService],
+      deps: [ConfigService, DebugService, AuthnService, AdminService, AccountService, OriginMapService, ThemeService],
       multi: true,
     },
   ],

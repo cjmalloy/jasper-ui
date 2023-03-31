@@ -18,6 +18,7 @@ import { RefSummaryComponent } from './page/ref/summary/summary.component';
 import { RefVersionsComponent } from './page/ref/versions/versions.component';
 import { SettingsBackupPage } from './page/settings/backup/backup.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
+import { SettingsOriginsPage } from './page/settings/origins/origins.component';
 import { SettingsPasswordPage } from './page/settings/password/password.component';
 import { SettingsPluginPage } from './page/settings/plugin/plugin.component';
 import { SettingsRefPage } from './page/settings/ref/ref.component';
@@ -88,6 +89,7 @@ const routes: Routes = [
       { path: 'template', component: SettingsTemplatePage },
       { path: 'password', component: SettingsPasswordPage },
       { path: 'setup', component: SettingsSetupPage },
+      { path: 'origins', component: SettingsOriginsPage },
       { path: 'backup', component: SettingsBackupPage },
     ],
   },

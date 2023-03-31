@@ -8,14 +8,14 @@
   </div>
   <div class="actions">
     <a [routerLink]="['/ref', downloadLink]" i18n>ref</a>
-    <a *ngIf="store.account.sysadmin && !restoring && !inProgress"
+    <a *ngIf="store.account.sysAdmin && !restoring && !inProgress"
        class="fake-link"
        (click)="restoring = true" i18n>restore</a>
     <span *ngIf="restoring" class="restore-confirm">are you sure?
       <a class="fake-link" (click)="restore()">yes</a> /
       <a class="fake-link" (click)="restoring = false" i18n>no</a>
     </span>
-    <a *ngIf="store.account.sysadmin && !deleting"
+    <a *ngIf="store.account.sysAdmin && !deleting"
        class="fake-link"
        (click)="deleting = true" i18n>delete</a>
     <span *ngIf="deleting" class="delete-confirm" i18n>are you sure?

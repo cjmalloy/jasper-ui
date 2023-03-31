@@ -3,10 +3,10 @@ import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Ref } from '../model/ref';
 
-import { OriginService } from './origin.service';
+import { OriginMapService } from './origin-map.service';
 
-describe('OriginService', () => {
-  let service: OriginService;
+describe('OriginMapService', () => {
+  let service: OriginMapService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -15,7 +15,7 @@ describe('OriginService', () => {
         RouterTestingModule,
       ]
     });
-    service = TestBed.inject(OriginService);
+    service = TestBed.inject(OriginMapService);
   });
 
   it('should be created', () => {

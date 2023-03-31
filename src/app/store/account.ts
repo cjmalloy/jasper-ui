@@ -66,7 +66,7 @@ export class AccountStore {
     this.defaultConfig = undefined;
   }
 
-  get sysadmin() {
+  get sysAdmin() {
     if (config().multiTenant) return this.sa;
     return this.admin;
   }

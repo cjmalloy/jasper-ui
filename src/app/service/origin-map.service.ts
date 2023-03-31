@@ -3,7 +3,7 @@ import { runInAction } from 'mobx';
 import { catchError, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
-import { isReplicating, originPlugin } from '../plugin/origin';
+import { isReplicating } from '../plugin/origin';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
@@ -12,7 +12,7 @@ import { ConfigService } from './config.service';
 @Injectable({
   providedIn: 'root'
 })
-export class OriginService {
+export class OriginMapService {
 
   private origins: Ref[] = [];
 
