@@ -111,6 +111,9 @@
                      appAutofocus>
               <button (click)="addInlineTag(inlineTag)" i18n>+</button>
             </span>
+            <ng-container *ngIf="store.account.signedIn && !local">
+              <span class="fake-link" (click)="copy()" i18n>copy</span>
+            </ng-container>
             <a *ngIf="writeAccess else source"
                class="fake-link"
                (click)="editing = !editing" i18n>edit</a>
@@ -125,9 +128,6 @@
               <a class="fake-link" (click)="delete()">yes</a>&nbsp;/&nbsp;
               <a class="fake-link" (click)="deleting = false">no</a>&nbsp;
             </span>
-            <ng-container *ngIf="store.account.signedIn && !local">
-              <span class="fake-link" (click)="copy()" i18n>copy</span>
-            </ng-container>
           </ng-container>
           <a class="fake-link"
              (click)="download()" i18n>download</a>
