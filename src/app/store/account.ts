@@ -5,7 +5,7 @@ import { Roles, User } from '../model/user';
 import { getMailbox } from '../plugin/mailbox';
 import { config } from '../service/config.service';
 import { defaultSubs } from '../template/user';
-import { defaultLocal, hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
+import { defaultWild, hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
 export class AccountStore {
@@ -144,7 +144,7 @@ export class AccountStore {
 
   get subscriptionQuery() {
     if (!this.subs.length) return 'none';
-    return this.subs.map(t => defaultLocal(t, this.origin)).join('|');
+    return this.subs.map(defaultWild).join('|');
   }
 
   setRoles(roles: Roles) {
