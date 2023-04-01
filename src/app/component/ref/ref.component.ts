@@ -173,10 +173,10 @@ export class RefComponent implements OnInit {
 
   get addTags() {
     if (this.feed) {
-      return this.qualify(interestingTags(this.ref.plugins!['+plugin/feed'].addTags));
+      return interestingTags(this.ref.plugins!['+plugin/feed'].addTags);
     }
     if (this.pull) {
-      return this.qualify(interestingTags(this.ref.plugins?.['+plugin/origin']?.addTags));
+      return interestingTags(this.ref.plugins?.['+plugin/origin']?.addTags);
     }
     return undefined;
   }
@@ -292,7 +292,7 @@ export class RefComponent implements OnInit {
   }
 
   get tags() {
-    return this.qualify(interestingTags(this.ref.tags));
+    return interestingTags(this.ref.tags);
   }
 
   get host() {
@@ -487,12 +487,5 @@ export class RefComponent implements OnInit {
 
   cssUrl(url: string) {
     return `url("${url}")`;
-  }
-
-  qualify(tags: string[]) {
-    if (this.ref.origin && !this.local) {
-      return tags.map(t => t + this.ref.origin);
-    }
-    return tags;
   }
 }
