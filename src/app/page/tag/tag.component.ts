@@ -43,7 +43,7 @@ export class TagPage implements OnInit, OnDestroy {
       this.theme.setTitle(this.store.view.name);
       if (!this.fetchPage && !this.store.view.list) return;
       const args = getArgs(
-        defaultWild(this.store.view.tag),
+        this.store.view.query ? this.store.view.tag : defaultWild(this.store.view.tag),
         this.store.view.sort,
         uniq(['query/!internal@*', ...this.store.view.filter]) as UrlFilter[],
         this.store.view.search,
