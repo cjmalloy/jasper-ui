@@ -9,6 +9,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { ExtStore } from '../../store/ext';
 import { PluginStore } from '../../store/plugin';
 import { QueryStore } from '../../store/query';
+import { Store } from '../../store/store';
 import { TemplateStore } from '../../store/template';
 import { UserStore } from '../../store/user';
 import { printError } from '../../util/http';
@@ -29,6 +30,7 @@ export class DebugComponent {
 
   constructor(
     public admin: AdminService,
+    private store: Store,
     public query: QueryStore,
     public ext: ExtStore,
     public user: UserStore,
@@ -79,6 +81,7 @@ export class DebugComponent {
       const url = 'comment:' + uuid();
       return this.refs.create({
         url,
+        origin: this.store.account.origin,
         title: 'Generated: ' + i,
         comment: uuid(),
         tags: ['public', 'gen']
