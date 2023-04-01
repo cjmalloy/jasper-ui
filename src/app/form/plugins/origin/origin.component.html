@@ -1,7 +1,8 @@
 <ng-container *ngIf="plugins">
   <label i18n>Origin</label>
-  <div class="ribbon-margin" [class.on]="pullConfig || pushConfig"></div>
-  <div class="ribbon-margin" [class.on]="pushConfig"></div>
+  <div class="ribbon-margin" [class.on]="pullConfig || pushConfig || tunnelConfig"></div>
+  <div class="ribbon-margin" [class.on]="pushConfig || tunnelConfig"></div>
+  <div class="ribbon-margin" [class.on]="tunnelConfig"></div>
   <div class="form" [formGroup]="config">
     <label for="origin" i18n>Local:</label>
     <input id="origin" type="url" [formControl]="local">
@@ -22,8 +23,17 @@
         or contain two periods in a row. Use'@*' to match all origins.
       </div>
     </div>
+
+    <label for="proxy" i18n>Proxy:</label>
+    <input id="proxy" type="url" [formControl]="proxy">
+    <span><!-- Proxy Errors --></span>
+    <div>
+      <div class="error" *ngIf="proxy.touched && proxy.errors?.['pattern']" i18n>
+        Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
+      </div>
+    </div>
   </div>
-  <ng-container *ngIf="pullConfig">
+  <ng-container *ngIf="pull && pullConfig">
     <hr>
     <label i18n>Pull 📥️</label>
     <div class="form" [formGroup]="pullConfig">
@@ -68,18 +78,9 @@
       <div>
         <input id="generateMetadata" type="checkbox" formControlName="generateMetadata">
       </div>
-
-      <label for="pull-proxy" i18n>Proxy:</label>
-      <input id="pull-proxy" type="url" [formControl]="pullProxy">
-      <span><!-- Proxy Errors --></span>
-      <div>
-        <div class="error" *ngIf="pullProxy.touched && pullProxy.errors?.['pattern']" i18n>
-          Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
-        </div>
-      </div>
     </div>
   </ng-container>
-  <ng-container *ngIf="pushConfig">
+  <ng-container *ngIf="push && pushConfig">
     <hr>
     <label i18n>Push 📤️</label>
     <div class="form" [formGroup]="pushConfig">
@@ -114,20 +115,17 @@
           <sup><a target="_blank" href="https://en.wikipedia.org/wiki/ISO_8601#Durations">help</a></sup>
         </span>
       </div>
-
-      <label for="push-proxy" i18n>Proxy:</label>
-      <input id="push-proxy" type="url" [formControl]="pushProxy">
-      <span><!-- Proxy Errors --></span>
-      <div>
-        <div class="error" *ngIf="pushProxy.touched && pushProxy.errors?.['pattern']" i18n>
-          Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
-        </div>
-      </div>
     </div>
+  </ng-container>
+  <ng-container *ngIf="tunnel && tunnelConfig">
+    <hr>
+    <label>Tunnel 🕳️</label>
+    <formly-form class="form" [form]="$any(plugins.get(tunnel.tag))" [fields]="tunnel.config!.form!"></formly-form>
   </ng-container>
 </ng-container>
 
 <div class="floating-ribbons">
   <div *ngIf="pull" id="ribbon-plugin-pull" [class.on]="pullConfig" class="icon" (click)="togglePlugin.next('+plugin/origin/pull')"><span>{{ pull.config?.submitChild }}</span></div>
-  <div *ngIf="push" id="ribbon-plugin-push" [class.on]="pushConfig"  class="icon" (click)="togglePlugin.next('+plugin/origin/push')"><span>{{ push.config?.submitChild }}</span></div>
+  <div *ngIf="push" id="ribbon-plugin-push" [class.on]="pushConfig" class="icon" (click)="togglePlugin.next('+plugin/origin/push')"><span>{{ push.config?.submitChild }}</span></div>
+  <div *ngIf="tunnel" id="ribbon-plugin-proxy" [class.on]="tunnelConfig" class="icon" (click)="togglePlugin.next('+plugin/origin/tunnel')"><span>{{ tunnel.config?.submitChild }}</span></div>
 </div>

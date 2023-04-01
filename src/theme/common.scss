@@ -548,7 +548,7 @@ details.advanced[open] {
 
 .form {
   max-width: 600px;
-  display: grid;
+  display: grid !important;
   grid-template-columns: min-content auto;
   padding: 10px;
 

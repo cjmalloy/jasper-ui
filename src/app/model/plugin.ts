@@ -51,6 +51,10 @@ export interface Plugin extends Tag {
      */
     submit?: string,
     /**
+     * Nest this plugin within its parent.
+     */
+    submitChild?: string,
+    /**
      * Add plugin to submit tabs and generate internal URL.
      */
     submitInternal?: string,

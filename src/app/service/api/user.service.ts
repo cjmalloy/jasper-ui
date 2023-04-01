@@ -53,6 +53,14 @@ export class UserService {
     );
   }
 
+  keygen(tag: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/keygen`, null, {
+      params: params({ tag }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
   delete(tag: string): Observable<void> {
     return this.http.delete<void>(this.base, {
       params: params({ tag }),

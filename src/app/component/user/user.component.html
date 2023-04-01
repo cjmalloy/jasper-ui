@@ -60,6 +60,14 @@
       <a class="fake-link" (click)="delete()">yes</a> /
       <a class="fake-link" (click)="deleting = false">no</a>
     </span>
+    <a *ngIf="user && !genKey && (store.account.sysMod || writeAccess)"
+       class="fake-link"
+       (click)="genKey = true" i18n>keygen</a>
+    <span *ngIf="genKey" class="delete-confirm" i18n>
+      <span *ngIf="user?.pubKey" class="warning">This will overwrite existing key!</span> are you sure?
+      <a class="fake-link" (click)="keygen()">yes</a> /
+      <a class="fake-link" (click)="genKey = false">no</a>
+    </span>
   </div>
 </div>
 

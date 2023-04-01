@@ -44,6 +44,7 @@ export class UserComponent implements OnInit {
   tagging = false;
   editing = false;
   viewSource = false;
+  genKey = false;
   deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
@@ -214,8 +215,27 @@ export class UserComponent implements OnInit {
           return throwError(() => err);
         }),
       ).subscribe(() => {
+        this.serverError = [];
         this.deleting = false;
         this.deleted = true;
+      });
+    }
+  }
+
+  keygen() {
+    this.serverError = [];
+    if (this.user) {
+      this.users.keygen(this.qualifiedTag).pipe(
+        catchError((err: HttpErrorResponse) => {
+          this.serverError.push(...printError(err));
+          return throwError(() => err);
+        }),
+      ).pipe(
+        switchMap(() => this.users.get(this.qualifiedTag))
+      ).subscribe(user => {
+        this.user = user;
+        this.serverError = [];
+        this.genKey = false;
       });
     }
   }

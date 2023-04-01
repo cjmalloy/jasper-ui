@@ -1,12 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import * as moment from 'moment';
-import { Icon, Plugin, visible } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
-import { Store } from '../../../store/store';
 import { intervalValidator } from '../../../util/form';
-import { ORIGIN_REGEX, ORIGIN_WILDCARD_REGEX } from '../../../util/format';
+import { ORIGIN_REGEX } from '../../../util/format';
 import { TagsFormComponent } from '../../tags/tags.component';
 
 @Component({
@@ -26,6 +23,7 @@ export class OriginFormComponent implements OnInit {
 
   pull = this.admin.getPlugin('+plugin/origin/pull');
   push = this.admin.getPlugin('+plugin/origin/push');
+  tunnel = this.admin.getPlugin('+plugin/origin/tunnel');
 
   constructor(
     private admin: AdminService,
@@ -46,6 +44,10 @@ export class OriginFormComponent implements OnInit {
     return this.plugins.get('+plugin/origin/push') as UntypedFormGroup;
   }
 
+  get tunnelConfig() {
+    return this.plugins.get('+plugin/origin/tunnel') as UntypedFormGroup;
+  }
+
   get local() {
     return this.config.get('local') as UntypedFormControl;
   }
@@ -54,12 +56,8 @@ export class OriginFormComponent implements OnInit {
     return this.config.get('remote') as UntypedFormControl;
   }
 
-  get pullProxy() {
-    return this.pullConfig.get('proxy') as UntypedFormControl;
-  }
-
-  get pushProxy() {
-    return this.pushConfig.get('proxy') as UntypedFormControl;
+  get proxy() {
+    return this.config.get('proxy') as UntypedFormControl;
   }
 
   get pullQuery() {
@@ -91,8 +89,9 @@ export class OriginFormComponent implements OnInit {
 
 export function originForm(fb: UntypedFormBuilder, admin: AdminService) {
   const result = fb.group({
-    local: ['', [Validators.pattern(ORIGIN_WILDCARD_REGEX)]],
-    remote: ['', [Validators.pattern(ORIGIN_WILDCARD_REGEX)]],
+    local: ['', [Validators.pattern(ORIGIN_REGEX)]],
+    remote: ['', [Validators.pattern(ORIGIN_REGEX)]],
+    proxy: [''],
   });
   result.patchValue(admin.status.plugins.origin?.defaults);
   return result;
@@ -103,7 +102,6 @@ export function pullForm(fb: UntypedFormBuilder, admin: AdminService) {
     pullInterval: ['PT15M', [intervalValidator()]],
     lastPull: [''],
     query: [''],
-    proxy: [''],
     batchSize: [250],
     generateMetadata: [true],
     removeTags: fb.array([]),
@@ -120,7 +118,6 @@ export function pushForm(fb: UntypedFormBuilder, admin: AdminService) {
     pushInterval: ['PT15M', [intervalValidator()]],
     lastPush: [''],
     query: [''],
-    proxy: [''],
     batchSize: [250],
   });
   result.patchValue(admin.status.plugins.origin?.defaults);

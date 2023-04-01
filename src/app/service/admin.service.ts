@@ -25,7 +25,7 @@ import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejecti
 import { lockedPlugin } from '../plugin/locked';
 import { inboxPlugin, outboxPlugin } from '../plugin/mailbox';
 import { modlistPlugin } from '../plugin/modlist';
-import { originPlugin, originPullPlugin, originPushPlugin } from '../plugin/origin';
+import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } from '../plugin/origin';
 import { pdfPlugin } from '../plugin/pdf';
 import { personPlugin } from '../plugin/person';
 import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../plugin/poll';
@@ -74,6 +74,7 @@ export class AdminService {
       origin: originPlugin,
       originPull: originPullPlugin,
       originPush: originPushPlugin,
+      originProxy: originTunnelPlugin,
       feed: feedPlugin,
       delete: deletePlugin,
       wiki: wikiPlugin,
