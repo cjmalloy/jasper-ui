@@ -115,7 +115,7 @@ export function pullForm(fb: UntypedFormBuilder, admin: AdminService) {
 
 export function pushForm(fb: UntypedFormBuilder, admin: AdminService) {
   const result = fb.group({
-    pushInterval: ['PT15M', [intervalValidator()]],
+    pushInterval: ['PT1M', [intervalValidator()]],
     lastPush: [''],
     query: [''],
     batchSize: [250],
