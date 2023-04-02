@@ -74,7 +74,7 @@ export class AdminService {
       origin: originPlugin,
       originPull: originPullPlugin,
       originPush: originPushPlugin,
-      originProxy: originTunnelPlugin,
+      originTunnel: originTunnelPlugin,
       feed: feedPlugin,
       delete: deletePlugin,
       wiki: wikiPlugin,
