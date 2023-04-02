@@ -40,7 +40,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('#title').type('Testing Remote @other');
     cy.get('#ribbon-plugin-pull').click();
     cy.get('#origin').type('@other');
-    cy.get('#pull-proxy').type(replApiProxy).blur();
+    cy.get('#proxy').type(replApiProxy).blur();
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');
   });
@@ -65,7 +65,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('#title').type('Testing Remote @main');
     cy.get('#ribbon-plugin-pull').click();
     cy.get('#origin').type('@main');
-    cy.get('#pull-proxy').type(mainApiProxy).blur();
+    cy.get('#proxy').type(mainApiProxy).blur();
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @main');
   });
