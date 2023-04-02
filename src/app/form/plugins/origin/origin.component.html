@@ -74,6 +74,11 @@
                 [group]="pullConfig"
                 fieldName="removeTags"></app-tags>
 
+      <label for="batchSize" i18n>Batch Size:</label>
+      <div>
+        <input id="batchSize" type="number" formControlName="batchSize">
+      </div>
+
       <label for="generateMetadata" i18n>Generate Metadata:</label>
       <div>
         <input id="generateMetadata" type="checkbox" formControlName="generateMetadata">
@@ -114,6 +119,11 @@
           Use time spans (HH:MM:SS) or ISO 8601 Durations&nbsp;
           <sup><a target="_blank" href="https://en.wikipedia.org/wiki/ISO_8601#Durations">help</a></sup>
         </span>
+      </div>
+
+      <label for="batchSize" i18n>Batch Size:</label>
+      <div>
+        <input id="batchSize" type="number" formControlName="batchSize">
       </div>
 
       <label for="checkRemoteCursor" i18n>Check Remote Cursor</label>
