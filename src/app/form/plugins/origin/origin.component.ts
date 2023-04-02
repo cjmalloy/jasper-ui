@@ -119,6 +119,7 @@ export function pushForm(fb: UntypedFormBuilder, admin: AdminService) {
     lastPush: [''],
     query: [''],
     batchSize: [250],
+    checkRemoteCursor: [false],
   });
   result.patchValue(admin.status.plugins.origin?.defaults);
   return result;

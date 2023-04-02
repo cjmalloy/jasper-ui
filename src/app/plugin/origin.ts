@@ -94,7 +94,7 @@ export const originPushPlugin: Plugin = {
       query: { type: 'string' },
       lastPush: { type: 'string' },
       batchSize: { type: 'int32' },
-      writeOnly: { type: 'boolean' },
+      checkRemoteCursor: { type: 'boolean' },
       lastModifiedRefWritten: { elements: { type: 'string' } },
       lastModifiedExtWritten: { elements: { type: 'string' } },
       lastModifiedUserWritten: { elements: { type: 'string' } },
