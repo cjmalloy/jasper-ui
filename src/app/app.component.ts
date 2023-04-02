@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { ConfigService } from './service/config.service';
 
 @Component({
@@ -7,6 +7,8 @@ import { ConfigService } from './service/config.service';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
+
+  @HostBinding('class.electron') electron = this.config.electron;
 
   constructor(
     public config: ConfigService,

@@ -1,6 +1,7 @@
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
+import { Location } from "@angular/common";
 
 @Component({
   selector: 'app-subscription-bar',
@@ -13,8 +14,10 @@ export class SubscriptionBarComponent implements OnInit {
   constructor(
     public store: Store,
     public themes: ThemeService,
+    public location: Location,
   ) { }
 
   ngOnInit(): void {
   }
+
 }

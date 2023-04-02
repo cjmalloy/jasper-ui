@@ -1,5 +1,5 @@
 <ng-container *mobxAutorun>
-  <span *ngIf="store.account.signedIn" class="preferences" [routerLink]="['/ext', store.account.localTag]">⚙️</span>
+  <span class="back-button" (click)="location.back()">🔙️</span>
   <div class="subs">
     <a routerLink="/home" routerLinkActive="current-page" i18n>home</a> &bullet;
     <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
@@ -10,6 +10,7 @@
       &bullet; <a [routerLink]="['/tag', sub]" routerLinkActive="current-page">{{ sub }}</a>
     </ng-container>
   </div>
+  <span *ngIf="store.account.signedIn" class="preferences" [routerLink]="['/ext', store.account.localTag]">⚙️</span>
   <div class="light-toggle"
      (click)="themes.toggle()">
     <div class="moon" [class.lights-on]="!store.darkTheme" [class.lights-off]="store.darkTheme" i18n>🌙️</div>

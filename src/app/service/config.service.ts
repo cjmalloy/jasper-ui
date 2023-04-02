@@ -14,6 +14,7 @@ export class ConfigService {
   version = 'debug';
   title = 'Jasper';
   api = '//localhost:8081';
+  electron = /electron/i.test(navigator.userAgent);
   logout = '';
   login = '';
   signup = '';
