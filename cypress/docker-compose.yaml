@@ -1,6 +1,6 @@
 services:
   cypress:
-    image: cypress/included:12.8.1
+    image: cypress/included:12.9.0
     profiles:
       - ci
     depends_on:
