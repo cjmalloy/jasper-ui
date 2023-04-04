@@ -18,17 +18,17 @@
   </div>
   <input *ngIf="filter.startsWith('modified/')"
          type="datetime-local"
-         step="1"
+         step="60"
          [ngModel]="toDate(filter)"
          (ngModelChange)="setModified(i, filter.startsWith('modified/before/'), toIso($event))">
   <input *ngIf="filter.startsWith('published/')"
          type="datetime-local"
-         step="1"
+         step="60"
          [ngModel]="toDate(filter)"
          (ngModelChange)="setPublished(i, filter.startsWith('published/before/'), toIso($event))">
   <input *ngIf="filter.startsWith('created/')"
          type="datetime-local"
-         step="1"
+         step="60"
          [ngModel]="toDate(filter)"
          (ngModelChange)="setCreated(i, filter.startsWith('created/before/'), toIso($event))">
 </ng-container>
