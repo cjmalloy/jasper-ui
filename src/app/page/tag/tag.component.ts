@@ -11,7 +11,7 @@ import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
-import { defaultLocal, defaultWild, hasPrefix, removeWildcard } from '../../util/tag';
+import { defaultLocal, defaultWild, hasPrefix, isWild, removeWildcard } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
@@ -42,10 +42,11 @@ export class TagPage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       this.theme.setTitle(this.store.view.name);
       if (!this.fetchPage && !this.store.view.list) return;
+      var hideInternal = isWild(this.store.view.tag);
       const args = getArgs(
         this.store.view.query ? this.store.view.tag : defaultWild(this.store.view.tag),
         this.store.view.sort,
-        uniq(['query/!internal@*', ...this.store.view.filter]) as UrlFilter[],
+        hideInternal ? uniq(['query/!internal@*', ...this.store.view.filter]) as UrlFilter[] : this.store.view.filter,
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
