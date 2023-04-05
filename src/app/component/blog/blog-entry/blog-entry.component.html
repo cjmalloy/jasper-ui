@@ -24,7 +24,7 @@
             <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span>
           </ng-container>
           <span [title]="ref.published?.toISOString()">{{ ref.published?.fromNow() }}</span>
-          <ng-container *ngIf="!local">
+          <ng-container *ngIf="!authors.length && ref.created && !local">
             on <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
           </ng-container>
         </div>
