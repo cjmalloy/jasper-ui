@@ -30,7 +30,7 @@ describe('Ref Actions', {
     cy.get('.full-page.ref .toggle-plus').click();
     cy.get('.full-page.ref').should('contain', 'Comment field');
   });
-  it('adds tag inline', () => {
+  xit('adds tag inline (this breaks loading "1 citation" text)', () => {
     cy.get('.actions a').contains('tag').click();
     cy.get('.inline-tagging input').type('cool{enter}');
     cy.get('.full-page.ref .tag:not(.user)').contains('cool').should('exist');
@@ -49,6 +49,11 @@ describe('Ref Actions', {
     cy.get('.actions a').contains('parent').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
     cy.title().should('includes', 'Title');
+  });
+  it('adds tag inline', () => {
+    cy.get('.actions a').contains('tag').click();
+    cy.get('.inline-tagging input').type('cool{enter}');
+    cy.get('.full-page.ref .tag:not(.user)').contains('cool').should('exist');
   });
   it('shows responses', () => {
     cy.get('.full-page.ref .actions a').contains('1 citation').click();
