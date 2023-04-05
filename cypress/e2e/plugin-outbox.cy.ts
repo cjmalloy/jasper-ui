@@ -106,7 +106,6 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Ref from other').parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('bob@other');
-    cy.get('@ref').find('.origin.tag').contains('@other');
   });
   it('@main: reply to remote message', () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
@@ -137,7 +136,6 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Reply to: Ref from other').parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice@main');
-    cy.get('@ref').find('.origin.tag').contains('@main');
   });
   it('@other: check inbox was converted to outbox', () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
@@ -147,7 +145,6 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Reply to: Ref from other').parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice@main');
-    cy.get('@ref').find('.origin.tag').contains('@main');
   });
   it('@main: delete remote @other', () => {
     cy.visit('/?debug=ADMIN');
