@@ -94,7 +94,7 @@ export const originPushPlugin: Plugin = {
       {{#if lastPush}}
         last pushed {{fromNow lastPush}}
       {{else}}
-        not pulled yet
+        not pushed yet
       {{/if}}
     `,
   },
@@ -136,7 +136,7 @@ export const originTunnelPlugin: Plugin = {
         <div>{{ user }}</div>
 
         <span class="nowrap">SSH Host:</span>
-        <textarea disabled>{{ sshHost }}</textarea>
+        <div>{{ sshHost }}</div>
       </div>
     `,
     form: [{
