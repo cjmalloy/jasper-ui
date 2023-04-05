@@ -39,7 +39,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
     cy.get('#ribbon-plugin-pull').click();
-    cy.get('#origin').type('@other');
+    cy.get('#local').type('@other');
     cy.get('#proxy').type(replApiProxy).blur();
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');
@@ -64,7 +64,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @main');
     cy.get('#ribbon-plugin-pull').click();
-    cy.get('#origin').type('@main');
+    cy.get('#local').type('@main');
     cy.get('#proxy').type(mainApiProxy).blur();
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @main');
@@ -87,18 +87,18 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.ref-list .link:not(.remote)').contains('Ref from other').parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('bob');
   });
-  it('@main: scrape @other', () => {
+  it('@main: pull @other', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
     cy.get('input[type=search]').type(replApi + '{enter}');
     cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
-    cy.intercept({pathname: '/api/v1/scrape/feed'}).as('scrape');
-    cy.get('@other').find('.actions').contains('scrape').click();
-    cy.wait('@scrape');
+    cy.intercept({pathname: '/api/v1/origin/pull'}).as('pull');
+    cy.get('@other').find('.actions').contains('pull').click();
+    cy.wait('@pull');
     cy.wait(100);
   });
-  it('@main: check ref was scraped', () => {
+  it('@main: check ref was pulled', () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit('/?debug=USER&tag=alice');
     cy.wait('@notifications');
@@ -119,17 +119,17 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.comment-reply textarea').type('Doing well, thanks!').blur();
     cy.get('.comment-reply button').contains('reply').click();
   });
-  it('@other: scrape @main', () => {
+  it('@other: pull @main', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
     cy.get('input[type=search]').type(mainApi + '{enter}');
     cy.get('.link:not(.remote)').contains('@main').parent().parent().as('main');
-    cy.intercept({pathname: '/api/v1/scrape/feed'}).as('scrape');
-    cy.get('@main').find('.actions').contains('scrape').click();
-    cy.wait('@scrape');
+    cy.intercept({pathname: '/api/v1/origin/pull'}).as('pull');
+    cy.get('@main').find('.actions').contains('pull').click();
+    cy.wait('@pull');
   });
-  it('@other: check reply was scraped', () => {
+  it('@other: check reply was pulled', () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=USER&tag=bob');
     cy.wait('@notifications');
