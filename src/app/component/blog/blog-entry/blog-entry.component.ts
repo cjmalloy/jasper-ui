@@ -1,14 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, intersection, without } from 'lodash-es';
+import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { Ext } from '../../../model/ext';
-import { Action, active, Icon, Visibility, visible } from '../../../model/plugin';
+import { Action, active, Icon, ResponseAction, TagAction, Visibility, visible } from '../../../model/plugin';
 import { Ref, writeRef } from '../../../model/ref';
 import { findArchive } from '../../../plugin/archive';
 import { deleteNotice } from '../../../plugin/delete';
@@ -31,10 +32,12 @@ import { hasTag, isOwnerTag, tagOrigin } from '../../../util/tag';
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss']
 })
-export class BlogEntryComponent implements OnInit {
+export class BlogEntryComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'blog-entry';
   @HostBinding('attr.tabindex') tabIndex = 0;
   tagRegex = TAGS_REGEX.source;
+
+  private disposers: IReactionDisposer[] = [];
 
   @Input()
   blog?: Ext;
@@ -63,12 +66,24 @@ export class BlogEntryComponent implements OnInit {
     private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
-    private acts: ActionService,
+    public acts: ActionService,
     private scraper: ScrapeService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = refForm(fb);
+    this.disposers.push(autorun(() => {
+      if (this.store.eventBus.event === 'refresh') {
+        if (this.ref?.url && this.store.eventBus.ref.url === this.ref.url) {
+          this.ref = this.store.eventBus.ref;
+        }
+      }
+      if (this.store.eventBus.event === 'error') {
+        if (this.ref?.url && this.store.eventBus.ref.url === this.ref.url) {
+          this.serverError = this.store.eventBus.errors;
+        }
+      }
+    }));
   }
 
   get ref(): Ref {
@@ -91,7 +106,7 @@ export class BlogEntryComponent implements OnInit {
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
     this.icons = this.admin.getIcons(value.tags);
-    this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.canAddTag(a.tag));
+    this.actions = this.admin.getActions(value.tags, value.plugins);
   }
 
   @ViewChild(RefFormComponent)
@@ -105,6 +120,11 @@ export class BlogEntryComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
+  }
+
   get canInvoice() {
     if (!this.local) return false;
     if (!this.admin.status.plugins.invoice) return false;
@@ -112,19 +132,6 @@ export class BlogEntryComponent implements OnInit {
     if (!this.ref.sources || !this.ref.sources.length) return false;
     return hasTag('plugin/comment', this.ref) ||
       !hasTag('internal', this.ref);
-  }
-
-  private runAndLoad(observable: Observable<any>) {
-    observable.pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
   }
 
   get local() {
@@ -226,7 +233,14 @@ export class BlogEntryComponent implements OnInit {
     return visible(v, this.isAuthor, this.isRecipient);
   }
 
-  active(a: Action | Icon) {
+  label(a: Action) {
+    if ('tag' in a || 'response' in a) {
+      return active(this.ref, a) ? a.labelOn : a.labelOff;
+    }
+    return a.label;
+  }
+
+  active(a: TagAction | ResponseAction | Icon) {
     return active(this.ref, a);
   }
 
@@ -244,16 +258,17 @@ export class BlogEntryComponent implements OnInit {
   }
 
   showAction(a: Action) {
-    if (a.tag === 'locked' && !this.writeAccess) return false;
-    if (a.tag && !this.taggingAccess) return false;
     if (!this.visible(a)) return false;
-    if (this.active(a) && !a.labelOn) return false;
-    if (!this.active(a) && !a.labelOff) return false;
+    if ('tag' in a) {
+      if (a.tag === 'locked' && !this.writeAccess) return false;
+      if (a.tag && !this.taggingAccess) return false;
+      if (a.tag && !this.auth.canAddTag(a.tag)) return false;
+    }
+    if ('tag' in a || 'response' in a) {
+      if (this.active(a) && !a.labelOn) return false;
+      if (!this.active(a) && !a.labelOff) return false;
+    }
     return true;
-  }
-
-  doAction(a: Action) {
-    this.runAndLoad(this.acts.apply(this.ref, a));
   }
 
   save() {

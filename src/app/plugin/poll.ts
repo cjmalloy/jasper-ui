@@ -1,25 +1,5 @@
-import * as Handlebars from 'handlebars';
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
-import { Ref } from '../model/ref';
-
-// https://github.com/handlebars-lang/handlebars.js/issues/1593
-// @ts-ignore
-window.global = {};
-
-Handlebars.registerHelper('userVoted', (ref: Ref, value: string) => {
-  return ref.metadata?.userUrls?.includes('plugin/poll.' + value);
-});
-
-Handlebars.registerHelper('votePercentage', (ref: Ref, value: string) => {
-  const total =
-    (ref.metadata?.plugins?.['plugin/poll.a'] || 0) +
-    (ref.metadata?.plugins?.['plugin/poll.b'] || 0) +
-    (ref.metadata?.plugins?.['plugin/poll.c'] || 0) +
-    (ref.metadata?.plugins?.['plugin/poll.d'] || 0);
-  if (!total) return 0;
-  return Math.floor(100 * (ref.metadata?.plugins?.['plugin/poll.' + value] || 0) / total);
-});
 
 export const pollPlugin: Plugin = {
   tag: 'plugin/poll',
@@ -68,10 +48,10 @@ export const pollPlugin: Plugin = {
     ui: `
       <div class="bubble poll-results">
         <div>
-          {{#if a }}<div {{#if (userVoted ref 'a')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'a' }}%">A: {{ a }} {{ votePercentage ref 'a' }}%</div>{{/if}}
-          {{#if b }}<div {{#if (userVoted ref 'b')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'b' }}%">B: {{ b }} {{ votePercentage ref 'b' }}%</div>{{/if}}
-          {{#if c }}<div {{#if (userVoted ref 'c')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'c' }}%">C: {{ c }} {{ votePercentage ref 'c' }}%</div>{{/if}}
-          {{#if d }}<div {{#if (userVoted ref 'd')}} class="voted" {{/if}} style="width: {{ votePercentage ref 'd' }}%">D: {{ d }} {{ votePercentage ref 'd' }}%</div>{{/if}}
+          {{#if a}}<div {{#if (response ref 'plugin/poll.a')}} class="voted" {{/if}} style="width: {{percent ref 'a' 'plugin/poll.'}}%">A: {{a}} {{percent ref 'a' 'plugin/poll.'}}%</div>{{/if}}
+          {{#if b}}<div {{#if (response ref 'plugin/poll.b')}} class="voted" {{/if}} style="width: {{percent ref 'b' 'plugin/poll.'}}%">B: {{b}} {{percent ref 'b' 'plugin/poll.'}}%</div>{{/if}}
+          {{#if c}}<div {{#if (response ref 'plugin/poll.c')}} class="voted" {{/if}} style="width: {{percent ref 'c' 'plugin/poll.'}}%">C: {{c}} {{percent ref 'c' 'plugin/poll.'}}%</div>{{/if}}
+          {{#if d}}<div {{#if (response ref 'plugin/poll.d')}} class="voted" {{/if}} style="width: {{percent ref 'd' 'plugin/poll.'}}%">D: {{d}} {{percent ref 'd' 'plugin/poll.'}}%</div>{{/if}}
         </div>
       </div>
     `,

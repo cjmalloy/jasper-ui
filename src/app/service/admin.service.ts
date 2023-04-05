@@ -4,7 +4,7 @@ import { findKey, flatten, isEqual, mapValues, omitBy, reduce, uniq } from 'loda
 import { runInAction } from 'mobx';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Action, Icon, Plugin } from '../model/plugin';
+import { Plugin } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { aprioriPlugin } from '../plugin/apriori';
@@ -51,6 +51,7 @@ import { includesTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
+import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -129,6 +130,7 @@ export class AdminService {
 
   constructor(
     private config: ConfigService,
+    private auth: AuthzService,
     private plugins: PluginService,
     private templates: TemplateService,
     private exts: ExtService,
@@ -318,6 +320,10 @@ export class AdminService {
     return this.pluginConfigProperty('ui');
   }
 
+  get infoUis() {
+    return this.pluginConfigProperty('infoUi');
+  }
+
   get forms() {
     return this.pluginConfigProperty('form');
   }
@@ -342,16 +348,8 @@ export class AdminService {
     return this.pluginConfigProperty('icons');
   }
 
-  get globalIcons() {
-    return this.icons.flatMap(p => p.config!.icons!).filter(i => i.global);
-  }
-
   get actions() {
     return this.pluginConfigProperty('actions');
-  }
-
-  get globalActions() {
-    return this.actions.flatMap(p => p.config!.actions!).filter(a => a.global);
   }
 
   get published() {
@@ -393,30 +391,27 @@ export class AdminService {
 
   getActions(tags?: string[], config?: any) {
     const match = ['plugin', ...(tags || [])];
-    return [
-      ...this.globalActions,
-      ...this.actions
-        .filter(p => includesTag(p.tag, match))
-        .flatMap(p => p.config!.actions!.filter(a => !a.condition || !!config?.[p.tag]?.[a.condition]) as Action[]),
-    ];
+    return this.actions
+      .flatMap(p => p.config!.actions!.filter(a => {
+        if (!a.global && !includesTag(p.tag, match)) return false;
+        return !a.condition || !!config?.[p.tag]?.[a.condition];
+      }))
+      .filter(a => !a.role || this.auth.hasRole(a.role));
   }
 
-  getIcons(tags?: string[], scheme?: string) {
+  getIcons(tags?: string[], config?: any, scheme?: string) {
     const match = ['plugin', ...(tags || [])];
-    return [
-      ...this.globalIcons,
-      ...(!scheme ? [] : this.icons.flatMap(p => p.config!.icons!.map(i => {
-        i.title ||= p.name || i.tag || p.tag;
-        return i;
-      })).filter(i => i?.scheme === scheme) as Icon[]),
-      ...this.icons.filter(p => includesTag(p.tag, match))
-      .flatMap(p => p.config!.icons?.map(i => {
+    return this.icons
+      .flatMap(p => p.config!.icons!.filter(i => {
+        return i.global || includesTag(p.tag, match)
+      }).map(i => {
         if (!i.response) i.tag ||= p.tag;
         if (i.tag === p.tag)  i.title ||= p.name;
         i.title ||= i.tag;
         return i;
-      }) as Icon[])
-        .filter(i => !i.scheme)];
+      }))
+      .filter(i => !scheme || i.scheme === scheme)
+      .filter(i => !i.role || this.auth.hasRole(i.role));
   }
 
   getPublished(tags?: string[]) {
@@ -437,6 +432,11 @@ export class AdminService {
   getPluginUi(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
     return this.uis.filter(p => match.includes(p.tag));
+  }
+
+  getPluginInfoUis(tags?: string[]) {
+    const match = ['plugin', ...(tags || [])];
+    return this.infoUis.filter(p => match.includes(p.tag));
   }
 
   getPluginForms(tags?: string[]) {

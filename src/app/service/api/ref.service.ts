@@ -1,8 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { autorun } from 'mobx';
 import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { mapRef, Ref, RefPageArgs, RefQueryArgs, writeRef } from '../../model/ref';
+import { Store } from '../../store/store';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -15,8 +17,16 @@ export class RefService {
   constructor(
     private http: HttpClient,
     private config: ConfigService,
+    private store: Store,
     private login: LoginService,
-  ) { }
+  ) {
+    autorun(() => {
+      if (this.store.eventBus.event === 'reload') {
+        this.store.eventBus.catchError(this.get(this.store.eventBus.ref.url, this.store.eventBus.ref.origin!))
+          .subscribe(ref => this.store.eventBus.refresh(ref));
+      }
+    });
+  }
 
   private get base() {
     return this.config.api + '/api/v1/ref';

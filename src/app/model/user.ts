@@ -33,11 +33,12 @@ export function mapUser(obj: any): User {
 }
 
 export function writeUser(user: User): User {
-  const result = { ...user };
+  const result = { ...user } as any;
   result.modified = result.modifiedString as any;
   result.pubKey = user.pubKey && btoa(user.pubKey);
   delete result.type;
   delete result.modifiedString;
+  delete result.qualifiedTag;
   return result;
 }
 

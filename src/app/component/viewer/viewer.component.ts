@@ -8,7 +8,6 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { PluginUiDirective } from '../../directive/plugin-ui.directive';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { EmbedService } from '../../service/embed.service';

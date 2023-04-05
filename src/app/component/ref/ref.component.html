@@ -63,30 +63,7 @@
           <ng-container *ngFor="let icon of icons">
             <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span>
           </ng-container>
-          <ng-container *ngIf="feed">
-            <ng-container *ngIf="lastScrape">
-              <span [title]="lastScrape.toISOString()" i18n> last scraped {{ lastScrape.fromNow() }}</span>
-            </ng-container>
-            <ng-container *ngIf="!lastScrape" i18n>
-              not scraped yet
-            </ng-container>
-          </ng-container>
-          <ng-container *ngIf="originPush">
-            <ng-container *ngIf="lastPush">
-              <span [title]="lastPush.toISOString()" i18n> last pushed {{ lastPush.fromNow() }}</span>
-            </ng-container>
-            <ng-container *ngIf="!lastPush" i18n>
-              not pushed yet
-            </ng-container>
-          </ng-container>
-          <ng-container *ngIf="originPull">
-            <ng-container *ngIf="lastPull">
-              <span [title]="lastPull.toISOString()" i18n> last pulled {{ lastPull.fromNow() }}</span>
-            </ng-container>
-            <ng-container *ngIf="!lastPull" i18n>
-              not pulled yet
-            </ng-container>
-          </ng-container>
+          <span *ngFor="let ui of infoUis" [appPluginInfoUi]="ui" [ref]="ref"></span>
           <ng-container *ngIf="ref.created && !local" i18n>
             on <a class="origin tag" [routerLink]="['/tag', ref.origin || '*']">{{ ref.origin || 'default' }}</a>
           </ng-container>
@@ -156,11 +133,8 @@
           </ng-container>
           <a *ngIf="pdf" target="_blank" [href]="pdf" i18n>pdf</a>
           <a *ngIf="archive" target="_blank" [href]="archive" i18n>archive</a>
-          <a *ngIf="store.account.mod && feed" class="fake-link" (click)="scrape()" i18n>scrape</a>
-          <a *ngIf="store.account.mod && originPush" class="fake-link" (click)="push()" i18n>push</a>
-          <a *ngIf="store.account.mod && originPull" class="fake-link" (click)="pull()" i18n>pull</a>
           <ng-container *ngFor="let a of actions">
-            <a *ngIf="showAction(a)" class="fake-link" (click)="doAction(a)">{{ active(a) ? a.labelOn : a.labelOff }}</a>
+            <a *ngIf="showAction(a)" class="fake-link" (click)="acts.apply(ref, a)">{{ label(a) }}</a>
           </ng-container>
         </div>
       </div>

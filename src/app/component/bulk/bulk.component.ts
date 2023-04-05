@@ -69,8 +69,8 @@ export class BulkComponent implements OnInit, OnDestroy {
   ) {
     this.disposers.push(autorun(() => {
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
-      this.actions = this.admin.getActions(commonTags).filter(a => a.response || this.auth.canAddTag(a.tag));
-    }))
+      this.actions = this.admin.getActions(commonTags).filter(a => !('tag' in a) || this.auth.canAddTag(a.tag));
+    }));
   }
 
   ngOnInit(): void {
@@ -86,10 +86,10 @@ export class BulkComponent implements OnInit, OnDestroy {
     return uniq(this.query.page!.content.map(ref => ref.url));
   }
 
-  batch(fn: (e: any) => Observable<any>) {
+  batch(fn: (e: any) => Observable<any> | void) {
     if (this.batchRunning) return;
     this.batchRunning = true;
-    forkJoin(this.queryStore.page!.content.map(e => fn(e).pipe(
+    forkJoin(this.queryStore.page!.content.map(e => (fn(e) || of(null)).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.push(...printError(err));
         return of(null);
@@ -168,20 +168,11 @@ export class BulkComponent implements OnInit, OnDestroy {
   }
 
   label(a: Action) {
-    if (a.labelOff && a.labelOn) return a.labelOff + ' / ' + a.labelOn;
-    return a.labelOff || a.labelOn;
-  }
-
-  scrape() {
-    this.batch(ref => this.scraper.feed(ref.url, ref.origin!));
-  }
-
-  push() {
-    this.batch(ref => this.origins.pull(ref.url, ref.origin!));
-  }
-
-  pull() {
-    this.batch(ref => this.origins.pull(ref.url, ref.origin!));
+    if ('tag' in a || 'response' in a) {
+      if (a.labelOff && a.labelOn) return a.labelOff + ' / ' + a.labelOn;
+      return a.labelOff || a.labelOn;
+    }
+    return a.label;
   }
 
   delete() {

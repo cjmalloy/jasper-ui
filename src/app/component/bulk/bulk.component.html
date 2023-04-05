@@ -38,15 +38,6 @@
         <a routerLink="/submit/invoice"
            [queryParams]="{url: urls}" i18n>invoice</a>
       </ng-container>
-      <a *ngIf="store.account.mod"
-         class="fake-link"
-         (click)="scrape()" i18n>scrape</a>
-      <a *ngIf="store.account.sysMod"
-         class="fake-link"
-         (click)="push()" i18n>push</a>
-      <a *ngIf="store.account.sysMod"
-         class="fake-link"
-         (click)="pull()" i18n>pull</a>
       <ng-container *ngFor="let a of actions">
         <a class="fake-link" (click)="doAction(a)">{{ label(a) }}</a>
       </ng-container>

@@ -1,14 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
+import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
-import { Action, active, Icon, Visibility, visible } from '../../model/plugin';
+import { Action, active, Icon, Plugin, ResponseAction, TagAction, Visibility, visible } from '../../model/plugin';
 import { Ref, writeRef } from '../../model/ref';
 import { findArchive } from '../../plugin/archive';
 import { deleteNotice } from '../../plugin/delete';
@@ -41,10 +42,12 @@ import { hasTag, hasUserUrlResponse, isOwnerTag, queriesAny, tagOrigin } from '.
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
 })
-export class RefComponent implements OnInit {
+export class RefComponent implements OnInit, OnDestroy {
   css = 'ref list-item ';
   @HostBinding('attr.tabindex') tabIndex = 0;
   tagRegex = TAGS_REGEX.source;
+
+  private disposers: IReactionDisposer[] = [];
 
   @Input()
   expanded = false;
@@ -60,6 +63,7 @@ export class RefComponent implements OnInit {
   icons: Icon[] = [];
   alarm?: string;
   actions: Action[] = [];
+  infoUis: Plugin[] = [];
   publishedLabel = $localize`published`;
   tagging = false;
   editing = false;
@@ -82,13 +86,25 @@ export class RefComponent implements OnInit {
     private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
-    private acts: ActionService,
+    public acts: ActionService,
     private scraper: ScrapeService,
     private origins: OriginService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = refForm(fb);
+    this.disposers.push(autorun(() => {
+      if (this.store.eventBus.event === 'refresh') {
+        if (this.ref?.url && this.store.eventBus.ref.url === this.ref.url) {
+          this.ref = this.store.eventBus.ref;
+        }
+      }
+      if (this.store.eventBus.event === 'error') {
+        if (this.ref?.url && this.store.eventBus.ref.url === this.ref.url) {
+          this.serverError = this.store.eventBus.errors;
+        }
+      }
+    }));
   }
 
   @HostBinding('class')
@@ -120,7 +136,8 @@ export class RefComponent implements OnInit {
     this.taggingAccess = this.auth.taggingAccess(value);
     this.icons = this.admin.getIcons(value.tags, getScheme(value.url)!);
     this.alarm = queriesAny(this.store.account.alarms, value.tags);
-    this.actions = this.admin.getActions(value.tags, value.plugins).filter(a => a.response || this.auth.canAddTag(a.tag));
+    this.actions = this.admin.getActions(value.tags, value.plugins);
+    this.infoUis = this.admin.getPluginInfoUis(value.tags);
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
     this.expandPlugins = this.admin.getEmbeds(value.tags);
   }
@@ -136,17 +153,9 @@ export class RefComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  private runAndLoad(observable: Observable<any>) {
-    observable.pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   get local() {
@@ -163,10 +172,6 @@ export class RefComponent implements OnInit {
 
   get remote() {
     return !!this.admin.status.plugins.origin && hasTag('+plugin/origin', this.ref);
-  }
-
-  get originPush() {
-    return !!this.admin.status.plugins.originPush && hasTag('+plugin/origin/push', this.ref);
   }
 
   get originPull() {
@@ -191,21 +196,6 @@ export class RefComponent implements OnInit {
       return this.ref.plugins?.['+plugin/origin']?.local;
     }
     return undefined;
-  }
-
-  get lastScrape() {
-    if (!this.ref.plugins?.['+plugin/feed']?.lastScrape) return null;
-    return moment(this.ref.plugins['+plugin/feed'].lastScrape);
-  }
-
-  get lastPush() {
-    if (!this.ref.plugins?.['+plugin/origin/push']?.lastPush) return null;
-    return moment(this.ref.plugins['+plugin/origin/push'].lastPush);
-  }
-
-  get lastPull() {
-    if (!this.ref.plugins?.['+plugin/origin/pull']?.lastPull) return null;
-    return moment(this.ref.plugins['+plugin/origin/pull'].lastPull);
   }
 
   get thumbnail() {
@@ -349,14 +339,21 @@ export class RefComponent implements OnInit {
         Private tags start with an underscore.`];
       return;
     }
-    this.runAndLoad(this.ts.create(field.value, this.ref.url, this.ref.origin!));
+    this.store.eventBus.runAndReload(this.ts.create(field.value, this.ref.url, this.ref.origin!), this.ref);
   }
 
   visible(v: Visibility) {
     return visible(v, this.isAuthor, this.isRecipient);
   }
 
-  active(a: Action | Icon) {
+  label(a: Action) {
+    if ('tag' in a || 'response' in a) {
+      return active(this.ref, a) ? a.labelOn : a.labelOff;
+    }
+    return a.label;
+  }
+
+  active(a: TagAction | ResponseAction | Icon) {
     return active(this.ref, a);
   }
 
@@ -377,48 +374,37 @@ export class RefComponent implements OnInit {
   }
 
   showAction(a: Action) {
-    if (a.tag === 'locked' && !this.writeAccess) return false;
-    if (a.tag && !this.taggingAccess) return false;
     if (!this.visible(a)) return false;
-    if (this.active(a) && !a.labelOn) return false;
-    if (!this.active(a) && !a.labelOff) return false;
+    if ('tag' in a) {
+      if (a.tag === 'locked' && !this.writeAccess) return false;
+      if (a.tag && !this.taggingAccess) return false;
+      if (a.tag && !this.auth.canAddTag(a.tag)) return false;
+    }
+    if ('tag' in a || 'response' in a) {
+      if (this.active(a) && !a.labelOn) return false;
+      if (!this.active(a) && !a.labelOff) return false;
+    }
     return true;
   }
 
   voteUp() {
     if (this.upvote) {
-      this.runAndLoad(this.ts.deleteResponse('plugin/vote/up', this.ref.url));
+      this.store.eventBus.runAndReload(this.ts.deleteResponse('plugin/vote/up', this.ref.url), this.ref);
     } else if (!this.downvote) {
-      this.runAndLoad(this.ts.createResponse('plugin/vote/up', this.ref.url));
+      this.store.eventBus.runAndReload(this.ts.createResponse('plugin/vote/up', this.ref.url), this.ref);
     } else {
-      this.runAndLoad(this.ts.respond(['plugin/vote/up', '-plugin/vote/down'], this.ref.url));
+      this.store.eventBus.runAndReload(this.ts.respond(['plugin/vote/up', '-plugin/vote/down'], this.ref.url), this.ref);
     }
   }
 
   voteDown() {
     if (this.downvote) {
-      this.runAndLoad(this.ts.deleteResponse('plugin/vote/down', this.ref.url));
+      this.store.eventBus.runAndReload(this.ts.deleteResponse('plugin/vote/down', this.ref.url), this.ref);
     } else if (!this.upvote) {
-      this.runAndLoad(this.ts.createResponse('plugin/vote/down', this.ref.url));
+      this.store.eventBus.runAndReload(this.ts.createResponse('plugin/vote/down', this.ref.url), this.ref);
     } else {
-      this.runAndLoad(this.ts.respond(['-plugin/vote/up', 'plugin/vote/down'], this.ref.url));
+      this.store.eventBus.runAndReload(this.ts.respond(['-plugin/vote/up', 'plugin/vote/down'], this.ref.url), this.ref);
     }
-  }
-
-  doAction(a: Action) {
-    this.runAndLoad(this.acts.apply(this.ref, a));
-  }
-
-  scrape() {
-    this.runAndLoad(this.scraper.feed(this.ref.url, this.ref.origin!));
-  }
-
-  push() {
-    this.runAndLoad(this.origins.push(this.ref.url, this.ref.origin!));
-  }
-
-  pull() {
-    this.runAndLoad(this.origins.pull(this.ref.url, this.ref.origin!));
   }
 
   save() {

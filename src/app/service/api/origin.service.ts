@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { autorun } from 'mobx';
 import * as moment from 'moment';
-import { catchError, map, Observable } from 'rxjs';
-import { mapRefOrNull, RefNode } from '../../model/ref';
+import { catchError, Observable } from 'rxjs';
+import { Store } from '../../store/store';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -15,8 +16,18 @@ export class OriginService {
   constructor(
     private http: HttpClient,
     private config: ConfigService,
+    private store: Store,
     private login: LoginService,
-  ) { }
+  ) {
+    autorun(() => {
+      if (this.store.eventBus.event === 'push') {
+        this.store.eventBus.runAndReload(this.push(this.store.eventBus.ref.url, this.store.eventBus.ref.origin));
+      }
+      if (this.store.eventBus.event === 'pull') {
+        this.store.eventBus.runAndReload(this.pull(this.store.eventBus.ref.url, this.store.eventBus.ref.origin));
+      }
+    });
+  }
 
   private get base() {
     return this.config.api + '/api/v1/origin';

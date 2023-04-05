@@ -1,11 +1,12 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import * as Handlebars from 'handlebars/dist/cjs/handlebars';
+import * as Handlebars from 'handlebars';
 import { Schema } from 'jtd';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
 import { hasTag } from '../util/tag';
 import { Ref } from './ref';
 import { Tag } from './tag';
+import { Role } from './user';
 
 export type PluginType = 'core' | 'feature' | 'editor' | 'viewer' | 'semantic' | 'theme' | 'tool';
 
@@ -38,6 +39,10 @@ export interface Plugin extends Tag {
      * Optional handlebars template to use as an embed UI.
      */
     ui?: string,
+    /**
+     * Optional handlebars template to use as an info UI.
+     */
+    infoUi?: string,
     /**
      * Optional CSS to be added to <head> on load.
      */
@@ -87,7 +92,7 @@ export interface Plugin extends Tag {
      */
     published?: string;
     /**
-     * Add an action to the Ref actions bar that toggles a tag or tag response.
+     * Add an action to the Ref actions bar.
      */
     actions?: Action[],
     /**
@@ -128,13 +133,26 @@ export interface Plugin extends Tag {
 
   // Cache
   _ui?: HandlebarsTemplateDelegate;
+  _infoUi?: HandlebarsTemplateDelegate;
 }
 
 export interface Visibility {
   /**
+   * Minimum role required to be visible.
+   */
+  role?: Role;
+  /**
+   * Field name of a config flag to show / hide.
+   */
+  condition?: string;
+  /**
    * If set, limits visibility to the indicated parties.
    */
   visible?: 'author' | 'recipient' | 'participant';
+  /**
+   * Add this to every Ref, not just Refs with this plugin.
+   */
+  global?: boolean;
 }
 
 export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) {
@@ -159,52 +177,61 @@ export interface Icon extends Visibility {
    * If set, makes this icon conditional on a ref scheme.
    */
   scheme?: `${string}:`;
-  /**
-   * Add this icon to every Ref, not just Refs with this plugin.
-   */
-  global?: boolean;
 }
 
-export interface Action extends Visibility {
+export type Action = TagAction | ResponseAction | EventAction;
+
+export interface TagAction extends Visibility {
   /**
    * Add a tag directly to the Ref.
-   * If set, response must not be set.
    */
-  tag?: string;
+  tag: string;
   /**
-   * Add a tag response to the Ref.
-   * If set, tag must not be set.
-   */
-  response?: `plugin/${string}`;
-  /**
-   * Clear other tag responses when adding tag response.
-   * If set, tag must not be set.
-   */
-  clear?: `plugin/${string}`[];
-  /**
-   * Label to show when this action has been applied. In the case of response
-   * actions, the response plugin must have metadata generation turned on.
+   * Label to show when this action has been applied.
    */
   labelOn?: string;
   /**
-   * Label to show when this action has not been applied. In the case of response
-   * actions, the response plugin must have metadata generation turned on.
+   * Label to show when this action has not been applied.
    */
   labelOff?: string;
-  /**
-   * Field name of a config flag to show / hide this action.
-   */
-  condition?: string;
-  /**
-   * Add this action to every Ref, not just Refs with this plugin.
-   */
-  global?: boolean;
 }
 
-export function active(ref: Ref, o: Action | Icon) {
-  if (!o.tag && !o.response) return true;
-  if (o.tag && hasTag(o.tag, ref)) return true;
-  if (o.response && ref.metadata?.userUrls?.includes(o.response)) return true;
+export interface ResponseAction extends Visibility {
+  /**
+   * Add a tag response to the Ref.
+   */
+  response: `plugin/${string}`;
+  /**
+   * Clear other tag responses when adding tag response.
+   */
+  clear?: `plugin/${string}`[];
+  /**
+   * Label to show when this action has been applied.
+   * The response plugin must have metadata generation turned on.
+   */
+  labelOn?: string;
+  /**
+   * Label to show when this action has not been applied.
+   * The response plugin must have metadata generation turned on.
+   */
+  labelOff?: string;
+}
+
+export interface EventAction extends Visibility {
+  /**
+   * Fire an event when action is triggered.
+   */
+  event: string;
+  /**
+   * Event label.
+   */
+  label?: string;
+}
+
+export function active(ref: Ref, o: TagAction | ResponseAction | Icon) {
+  if (!('tag' in o || 'response' in o)) return true;
+  if (('tag' in o) && hasTag(o.tag, ref)) return true;
+  if (('response' in o) && o.response && ref.metadata?.userUrls?.includes(o.response)) return true;
   return false;
 }
 
@@ -243,8 +270,31 @@ export function writePlugin(plugin: Plugin): Plugin {
   delete result.type;
   delete result.modifiedString;
   delete result._ui;
+  delete result._infoUi;
   return result;
 }
+
+// https://github.com/handlebars-lang/handlebars.js/issues/1593
+// @ts-ignore
+window.global = {};
+
+Handlebars.registerHelper('fromNow', value => moment(value).fromNow());
+
+Handlebars.registerHelper('response', (ref: Ref, value: string) => {
+  return ref.metadata?.userUrls?.includes(value);
+});
+
+Handlebars.registerHelper('percent', (ref: Ref, value: string, prefix: string) => {
+  if (!ref?.metadata?.plugins) return 0;
+  let total = 0;
+  for (const k in ref.metadata.plugins) {
+    if (k.startsWith(prefix)) {
+      total += ref.metadata.plugins[k] || 0;
+    }
+  }
+  if (!total) return 0;
+  return Math.floor(100 * (ref.metadata.plugins[prefix + value] || 0) / total);
+});
 
 export function renderPlugin(plugin: Plugin, ref: Ref = { url: '' }) {
   if (!plugin.config?.ui) return '';
@@ -252,6 +302,18 @@ export function renderPlugin(plugin: Plugin, ref: Ref = { url: '' }) {
     plugin._ui = Handlebars.compile(plugin.config.ui);
   }
   return plugin._ui({
+    ref: toJS(ref),
+    plugin: toJS(plugin),
+    ...toJS(ref.plugins?.[plugin.tag] || {}),
+  });
+}
+
+export function renderPluginInfo(plugin: Plugin, ref: Ref = { url: '' }) {
+  if (!plugin.config?.infoUi) return '';
+  if (!plugin._infoUi) {
+    plugin._infoUi = Handlebars.compile(plugin.config.infoUi);
+  }
+  return plugin._infoUi({
     ref: toJS(ref),
     plugin: toJS(plugin),
     ...toJS(ref.plugins?.[plugin.tag] || {}),

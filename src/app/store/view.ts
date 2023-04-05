@@ -1,5 +1,5 @@
 import { without } from 'lodash-es';
-import { makeAutoObservable } from 'mobx';
+import { autorun, makeAutoObservable, runInAction } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Ref, RefSort } from '../model/ref';
@@ -7,6 +7,7 @@ import { TagSort } from '../model/tag';
 import { User } from '../model/user';
 import { UrlFilter } from '../util/query';
 import { hasPrefix, isQuery, localTag } from '../util/tag';
+import { EventBus } from './bus';
 
 /**
  * ID for current view. Only includes pages that make queries.
@@ -38,9 +39,18 @@ export class ViewStore {
 
   constructor(
     public route: RouterStore,
+    private eventBus: EventBus,
   ) {
     makeAutoObservable(this);
     this.clear(); // Initial observables may not be null for MobX
+
+    autorun(() => {
+      if (this.eventBus.event === 'refresh') {
+        if (this.ref?.url && this.eventBus.ref.url === this.ref.url) {
+          runInAction(() => this.ref = this.eventBus.ref);
+        }
+      }
+    });
   }
 
   clear(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {

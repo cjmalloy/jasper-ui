@@ -41,6 +41,14 @@ export const originPullPlugin: Plugin = {
       If the remote is also set up to replicate from this instance, you may
       communicate with remote users.
       You may configure if metadata is generated or plugins are validated. `,
+    actions: [{ event: 'pull', label: $localize`pull` }],
+    infoUi: `
+      {{#if lastPull}}
+        last pulled {{fromNow lastPull}}
+      {{else}}
+        not pulled yet
+      {{/if}}
+    `,
   },
   defaults: {
     pullInterval: 'PT15M',
@@ -81,6 +89,14 @@ export const originPushPlugin: Plugin = {
       On the scrape interval set, the server will check if the remote cursor is
       behind the local cursor. If writeOnly is set, this check is skipped and
       the lastModifiedWritten config is used instead.`,
+    actions: [{ event: 'push', label: $localize`push` }],
+    infoUi: `
+      {{#if lastPush}}
+        last pushed {{fromNow lastPush}}
+      {{else}}
+        not pulled yet
+      {{/if}}
+    `,
   },
   defaults: {
     pushInterval: 'PT15M',

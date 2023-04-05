@@ -1,10 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { defer, flatten, uniq } from 'lodash-es';
+import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { mailboxes } from '../../../plugin/mailbox';
 import { AdminService } from '../../../service/admin.service';
+import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
@@ -25,6 +26,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   constructor(
     private theme: ThemeService,
     public admin: AdminService,
+    public refs: RefService,
     public store: Store,
     public thread: ThreadStore,
     public query: QueryStore,
@@ -54,16 +56,9 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
     }));
-    this.newComments$.subscribe(() => runInAction(() => {
-      if (!this.comments) {
-        runInAction(() => {
-          this.store.view.ref!.metadata ||= {};
-          this.store.view.ref!.metadata.plugins ||= {};
-          this.store.view.ref!.metadata.plugins['plugin/comment'] ||= 0;
-          this.store.view.ref!.metadata.plugins['plugin/comment']++;
-        });
-      }
-    }));
+    this.newComments$.subscribe(() => {
+      this.store.eventBus.reload(this.store.view.ref!);
+    });
   }
 
   ngOnDestroy() {

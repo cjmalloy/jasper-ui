@@ -12,6 +12,14 @@ export const feedPlugin: Plugin = {
     settings: $localize`feed`,
     icons: [{ label: $localize`🗞️` }],
     description: $localize`Import entries from an RSS / Atom feed. The feed will be scraped on an interval you specify.`,
+    actions: [{ event: 'scrape', label: $localize`scrape` }],
+    infoUi: `
+      {{#if lastScrape}}
+        last scraped {{fromNow lastScrape}}
+      {{else}}
+        not scraped yet
+      {{/if}}
+    `,
   },
   defaults: {
     scrapeInterval: 'PT15M',

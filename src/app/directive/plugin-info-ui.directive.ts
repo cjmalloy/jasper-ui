@@ -1,13 +1,13 @@
 import { Directive, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { Plugin, renderPlugin } from '../model/plugin';
+import { Plugin, renderPlugin, renderPluginInfo } from '../model/plugin';
 import { Ref } from '../model/ref';
 
 @Directive({
-  selector: '[appPluginUi]'
+  selector: '[appPluginInfoUi]'
 })
-export class PluginUiDirective implements OnChanges {
+export class PluginInfoUiDirective implements OnChanges {
 
-  @Input("appPluginUi")
+  @Input("appPluginInfoUi")
   plugin!: Plugin;
   @Input()
   ref?: Ref;
@@ -19,7 +19,7 @@ export class PluginUiDirective implements OnChanges {
   }
 
   render(): void {
-    this.el.nativeElement.innerHTML = renderPlugin(this.plugin, this.ref);
+    this.el.nativeElement.innerHTML = renderPluginInfo(this.plugin, this.ref);
   }
 
 }

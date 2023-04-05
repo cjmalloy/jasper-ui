@@ -68,6 +68,7 @@ import { FillWidthDirective } from './directive/fill-width.directive';
 import { ImageDimDirective } from './directive/image-dim.directive';
 import { LimitWidthDirective } from './directive/limit-width.directive';
 import { MdPostDirective } from './directive/md-post.directive';
+import { PluginInfoUiDirective } from './directive/plugin-info-ui.directive';
 import { PluginUiDirective } from './directive/plugin-ui.directive';
 import { ResizeHandleDirective } from './directive/resize-handle.directive';
 import { ResizeDirective } from './directive/resize.directive';
@@ -278,6 +279,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     PluginListComponent,
     TemplateListComponent,
     SettingsOriginsPage,
+    PluginInfoUiDirective,
   ],
   imports: [
     BrowserModule,
