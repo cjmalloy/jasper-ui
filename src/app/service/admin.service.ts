@@ -145,6 +145,7 @@ export class AdminService {
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
       tap(() => this.updates),
+      catchError(() => of(null)),
     );
   }
 
