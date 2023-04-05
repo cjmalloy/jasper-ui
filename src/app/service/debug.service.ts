@@ -16,6 +16,7 @@ export class DebugService {
     if (location.search.includes('debug=')) {
       const debugRole = location.search.match(/debug=([^&]+)/)![1];
       const debugTag = location.search.match(/tag=([^&]+)/)?.[1] || '';
+      if (debugRole.toLowerCase() === 'false') return of(null);
       return from(this.getDebugToken(debugTag, 'ROLE_' + debugRole.toUpperCase()).then(jwt => this.auth.token = jwt));
     }
     if (isDevMode() && !location.search.includes('anon=')) {
