@@ -22,7 +22,7 @@ export class ScrapeService {
   }
 
   feed(url: string, origin = ''): Observable<void> {
-    return this.http.get<void>(this.base + '/feed', {
+    return this.http.post<void>(`${this.base}/feed`, null, {
       params: params({ url, origin }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
@@ -30,7 +30,7 @@ export class ScrapeService {
   }
 
   webScrape(url: string): Observable<Ref> {
-    return this.http.get<Ref>(this.base + '/web', {
+    return this.http.get<Ref>(`${this.base}/web`, {
       params: params({ url }),
     }).pipe(
       map(mapRef),

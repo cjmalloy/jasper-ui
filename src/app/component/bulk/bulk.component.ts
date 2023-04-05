@@ -8,6 +8,7 @@ import { deleteNotice } from '../../plugin/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
+import { OriginService } from '../../service/api/origin.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -64,6 +65,7 @@ export class BulkComponent implements OnInit, OnDestroy {
     private acts: ActionService,
     private ts: TaggingService,
     private scraper: ScrapeService,
+    private origins: OriginService,
   ) {
     this.disposers.push(autorun(() => {
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
@@ -172,6 +174,14 @@ export class BulkComponent implements OnInit, OnDestroy {
 
   scrape() {
     this.batch(ref => this.scraper.feed(ref.url, ref.origin!));
+  }
+
+  push() {
+    this.batch(ref => this.origins.pull(ref.url, ref.origin!));
+  }
+
+  pull() {
+    this.batch(ref => this.origins.pull(ref.url, ref.origin!));
   }
 
   delete() {

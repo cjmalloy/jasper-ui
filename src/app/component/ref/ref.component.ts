@@ -14,6 +14,7 @@ import { findArchive } from '../../plugin/archive';
 import { deleteNotice } from '../../plugin/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
+import { OriginService } from '../../service/api/origin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { TaggingService } from '../../service/api/tagging.service';
@@ -83,6 +84,7 @@ export class RefComponent implements OnInit {
     private refs: RefService,
     private acts: ActionService,
     private scraper: ScrapeService,
+    private origins: OriginService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
@@ -163,11 +165,11 @@ export class RefComponent implements OnInit {
     return !!this.admin.status.plugins.origin && hasTag('+plugin/origin', this.ref);
   }
 
-  get push() {
+  get originPush() {
     return !!this.admin.status.plugins.originPush && hasTag('+plugin/origin/push', this.ref);
   }
 
-  get pull() {
+  get originPull() {
     return !!this.admin.status.plugins.originPull && hasTag('+plugin/origin/pull', this.ref);
   }
 
@@ -175,7 +177,7 @@ export class RefComponent implements OnInit {
     if (this.feed) {
       return interestingTags(this.ref.plugins!['+plugin/feed'].addTags);
     }
-    if (this.pull) {
+    if (this.originPull) {
       return interestingTags(this.ref.plugins?.['+plugin/origin']?.addTags);
     }
     return undefined;
@@ -191,24 +193,19 @@ export class RefComponent implements OnInit {
     return undefined;
   }
 
-  get scraped() {
-    if (this.feed) {
-      return !!this.ref.plugins!['+plugin/feed'].lastScrape;
-    }
-    if (this.pull) {
-      return !!this.ref.plugins!['+plugin/origin/pull'].lastPull;
-    }
-    return false;
+  get lastScrape() {
+    if (!this.ref.plugins?.['+plugin/feed']?.lastScrape) return null;
+    return moment(this.ref.plugins['+plugin/feed'].lastScrape);
   }
 
-  get lastScrape() {
-    if (this.feed) {
-      return moment(this.ref.plugins!['+plugin/feed'].lastScrape);
-    }
-    if (this.pull) {
-      return moment(this.ref.plugins!['+plugin/origin/pull'].lastPull);
-    }
-    throw 'Not scraped';
+  get lastPush() {
+    if (!this.ref.plugins?.['+plugin/origin/push']?.lastPush) return null;
+    return moment(this.ref.plugins['+plugin/origin/push'].lastPush);
+  }
+
+  get lastPull() {
+    if (!this.ref.plugins?.['+plugin/origin/pull']?.lastPull) return null;
+    return moment(this.ref.plugins['+plugin/origin/pull'].lastPull);
   }
 
   get thumbnail() {
@@ -272,11 +269,6 @@ export class RefComponent implements OnInit {
     const plugin = this.admin.getPlugin('plugin/archive');
     if (!plugin) return null;
     return this.ref.plugins?.['plugin/archive']?.url || findArchive(plugin, this.ref);
-  }
-
-  get scrapeable() {
-    if (!this.store.account.mod) return false;
-    return this.feed || this.pull;
   }
 
   get isAuthor() {
@@ -419,6 +411,14 @@ export class RefComponent implements OnInit {
 
   scrape() {
     this.runAndLoad(this.scraper.feed(this.ref.url, this.ref.origin!));
+  }
+
+  push() {
+    this.runAndLoad(this.origins.push(this.ref.url, this.ref.origin!));
+  }
+
+  pull() {
+    this.runAndLoad(this.origins.pull(this.ref.url, this.ref.origin!));
   }
 
   save() {

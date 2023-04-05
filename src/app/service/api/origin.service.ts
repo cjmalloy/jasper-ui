@@ -22,6 +22,22 @@ export class OriginService {
     return this.config.api + '/api/v1/origin';
   }
 
+  push(url: string, origin = ''): Observable<void> {
+    return this.http.post<void>(`${this.base}/push`, null, {
+      params: params({ url, origin }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  pull(url: string, origin = ''): Observable<void> {
+    return this.http.post<void>(`${this.base}/pull`, null, {
+      params: params({ url, origin }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
   delete(origin: string, olderThan: moment.Moment): Observable<void> {
     return this.http.delete<void>(`${this.base}/${origin}`, {
       params: params({ olderThan }),

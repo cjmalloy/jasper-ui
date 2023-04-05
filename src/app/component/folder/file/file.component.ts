@@ -295,10 +295,6 @@ export class FileComponent implements OnInit {
     this.runAndLoad(this.acts.apply(this.ref, a));
   }
 
-  scrape() {
-    this.runAndLoad(this.scraper.feed(this.ref.url, this.ref.origin!));
-  }
-
   cssUrl(url: string) {
     return `url("${url}")`;
   }

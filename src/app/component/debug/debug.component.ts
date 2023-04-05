@@ -84,7 +84,7 @@ export class DebugComponent {
         origin: this.store.account.origin,
         title: 'Generated: ' + i,
         comment: uuid(),
-        tags: ['public', 'gen']
+        tags: ['public', 'gen'],
       }).pipe(
         tap(() => {
           if (this.admin.def.plugins.voteUp) {
