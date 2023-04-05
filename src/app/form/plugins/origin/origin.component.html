@@ -4,8 +4,8 @@
   <div class="ribbon-margin" [class.on]="pushConfig || tunnelConfig"></div>
   <div class="ribbon-margin" [class.on]="tunnelConfig"></div>
   <div class="form" [formGroup]="config">
-    <label for="origin" i18n>Local:</label>
-    <input id="origin" type="url" [formControl]="local">
+    <label for="local" i18n>Local:</label>
+    <input id="local" type="url" [formControl]="local">
     <div><!-- Origin Errors --></div>
     <div>
       <div class="error" *ngIf="local.touched && local.errors?.['pattern']" i18n>
