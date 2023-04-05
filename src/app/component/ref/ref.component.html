@@ -73,6 +73,9 @@
               <a class="tag" [routerLink]="['/tag', tag]">{{ tag }}</a>
             </ng-container>
           </ng-container>
+          <ng-container *ngIf="fromOrigin" i18n>
+            from <a class="origin tag" [routerLink]="['/tag', fromOrigin]">{{ fromOrigin }}</a>
+          </ng-container>
           <ng-container *ngIf="addOrigin" i18n>
             to <a class="origin tag" [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
           </ng-container>

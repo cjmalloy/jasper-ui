@@ -178,6 +178,10 @@ export class RefComponent implements OnInit, OnDestroy {
     return !!this.admin.status.plugins.originPull && hasTag('+plugin/origin/pull', this.ref);
   }
 
+  get originPush() {
+    return !!this.admin.status.plugins.originPush && hasTag('+plugin/origin/push', this.ref);
+  }
+
   get addTags() {
     if (this.feed) {
       return interestingTags(this.ref.plugins!['+plugin/feed'].addTags);
@@ -188,12 +192,22 @@ export class RefComponent implements OnInit, OnDestroy {
     return undefined;
   }
 
+  get fromOrigin() {
+    if (this.originPush) {
+      return this.ref.plugins?.['+plugin/origin']?.local;
+    }
+    return undefined;
+  }
+
   get addOrigin() {
     if (this.feed) {
       return this.ref.plugins!['+plugin/feed'].origin;
     }
-    if (this.remote) {
+    if (this.originPull) {
       return this.ref.plugins?.['+plugin/origin']?.local;
+    }
+    if (this.originPush) {
+      return this.ref.plugins?.['+plugin/origin']?.remote;
     }
     return undefined;
   }
