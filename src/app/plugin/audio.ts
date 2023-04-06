@@ -11,7 +11,7 @@ export const audioPlugin: Plugin = {
     submit: $localize`📻️ audio`,
     icons: [{ label: $localize`📻️`}],
     filters: [
-      { query: 'plugin/audio', label: $localize`📻️ audio`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/audio@*', label: $localize`📻️ audio`, group: $localize`Plugins 🧰️` },
     ],
     extensions: ['.mp3', '.aac', '.flac', '.m4a', '.ogg', '.wav'],
     description: $localize`Play in an inline audio player.`,

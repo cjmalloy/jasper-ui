@@ -19,7 +19,7 @@ export const pollPlugin: Plugin = {
       { condition: 'd', response: 'plugin/poll.d', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`d`, labelOn: $localize`(d)` },
     ],
     filters: [
-      { query: 'plugin/poll', label: $localize`🗳️ poll`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/poll@*', label: $localize`🗳️ poll`, group: $localize`Plugins 🧰️` },
     ],
     css: `
       .poll-results {

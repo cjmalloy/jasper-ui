@@ -14,8 +14,8 @@ export const lockedPlugin: Plugin = {
       { label: $localize`🔒️`, tag: 'locked', title: $localize`Locked`, global: true },
     ],
     filters: [
-      { query: 'locked', label: $localize`🔒️ locked`, group: $localize`Filters` },
-      { query: 'unlocked', label: $localize`🔓️ unlocked`, group: $localize`Filters` },
+      { query: 'locked@*', label: $localize`🔒️ locked`, group: $localize`Filters` },
+      { query: 'unlocked@*', label: $localize`🔓️ unlocked`, group: $localize`Filters` },
     ],
   },
 };

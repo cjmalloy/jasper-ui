@@ -35,7 +35,7 @@ export const debugPlugin: Plugin = {
       { response: 'plugin/breakpoint', labelOff: $localize`break`, labelOn: $localize`clear` },
     ],
     filters: [
-      { query: 'plugin/debug', label: $localize`🐞️ debug`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/debug@*', label: $localize`🐞️ debug`, group: $localize`Plugins 🧰️` },
       { response: 'plugin/breakpoint', label: $localize`🔴️ breakpoint`, group: $localize`Plugins 🧰️` },
     ],
     form: [{
