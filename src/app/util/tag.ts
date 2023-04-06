@@ -199,6 +199,8 @@ export function breadcrumbs(tag: string): Crumb[] {
 
 export function isQuery(query?: string) {
   if (!query) return false;
+  if (query.startsWith('@')) return true;
+  if (query === '*') return true;
   return /[:|!()]/g.test(query);
 }
 

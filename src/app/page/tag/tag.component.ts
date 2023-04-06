@@ -55,7 +55,7 @@ export class TagPage implements OnInit, OnDestroy {
     }));
     this.disposers.push(autorun(() => {
       const tag = defaultLocal(removeWildcard(this.store.view.tag, this.store.account.origin), this.store.account.origin);
-      if (!tag) {
+      if (!tag || this.store.view.query) {
         runInAction(() => this.store.view.ext = undefined);
       } else {
         this.exts.get(tag).pipe(
