@@ -11,6 +11,7 @@ export const commentPlugin: Plugin = {
     filters: [
       { query: 'plugin/comment@*', label: $localize`💬️ comments`, group: $localize`Plugins 🧰️` },
     ],
+    replyPrefix: $localize`Re: `,
   },
   defaults: {},
   schema: {

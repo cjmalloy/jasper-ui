@@ -7,6 +7,7 @@ import * as moment from 'moment';
 import { catchError, Subject, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../../model/ref';
+import { commentPlugin } from '../../../plugin/comment';
 import { getMailbox } from '../../../plugin/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -41,6 +42,7 @@ export class CommentReplyComponent {
   commentForm: UntypedFormGroup;
   plugins: string[] = [];
   serverError: string[] = [];
+  config = this.admin.getPlugin('plugin/comment')!.config || commentPlugin.config!;
 
   constructor(
     public admin: AdminService,
@@ -72,7 +74,7 @@ export class CommentReplyComponent {
     this.refs.create({
       url,
       origin: this.store.account.origin,
-      title: 'Reply to: ' + this.to.title,
+      title: this.config.replyPrefix + this.to.title,
       comment: value,
       sources: uniq([
         this.to.url,
