@@ -130,6 +130,9 @@ export class AccountStore {
   get notificationsQuery() {
     if (!this.signedIn) return undefined;
     let tags = [this.mailbox];
+    if (this.origin) {
+      tags.push(prefix('plugin/outbox', this.origin, this.localTag) + '@*');
+    }
     if (this.modmail?.length) {
       tags.push(...this.modmail);
     }
