@@ -82,7 +82,7 @@ export class CommentReplyComponent {
         ...this.editor.getSources(value),
       ]),
       alternateUrls: this.editor.getAlts(value),
-      tags: removeTag(getMailbox(this.store.account.tag), uniq([
+      tags: removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
         ...this.publicTag,
         'internal',
         'plugin/comment',
