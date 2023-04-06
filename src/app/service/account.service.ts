@@ -35,7 +35,7 @@ export class AccountService {
   get whoAmI$() {
     return this.users.whoAmI().pipe(
       catchError(err => {
-        if ([0, 200, 403].includes(err.status)) {
+        if ([0, 200, 401, 403].includes(err.status)) {
           // Requires auth to access at all
           this.authn.logIn();
         }
