@@ -92,7 +92,7 @@ export class CommentReplyComponent {
       ])),
       published: moment(),
     }).pipe(
-      switchMap(() => this.refs.get(url)),
+      switchMap(() => this.refs.get(url, this.store.account.origin)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         this.comment.setValue(value);

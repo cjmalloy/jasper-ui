@@ -135,7 +135,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     if (this.linkType(url)) {
       if (this.existingRef?.url === url || this.existingRef?.alternateUrls?.includes(url)) return of(true);
       return timer(400).pipe(
-        switchMap(() => this.refs.get(url)),
+        switchMap(() => this.refs.get(url, this.store.account.origin)),
         tap(ref => this.existingRef = ref),
         map(ref => ref.url === url),
         catchError(err => of(false)),

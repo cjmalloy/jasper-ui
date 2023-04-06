@@ -191,9 +191,11 @@ export class ChatComponent implements OnDestroy {
       this.store.account.localTag]);
     const ref = URI_REGEX.test(this.addText) ? {
       url: this.addText,
+      origin: this.store.account.origin,
       tags: newTags,
     } : {
       url: 'comment:' + uuid(),
+      origin: this.store.account.origin,
       comment: this.addText,
       tags: newTags,
     };
@@ -209,7 +211,7 @@ export class ChatComponent implements OnDestroy {
         if (err.status === 409) {
           // Ref already exists, just tag it
           return this.tags.patch(this.addTags, ref.url).pipe(
-            switchMap(() => this.refs.get(ref.url)),
+            switchMap(() => this.refs.get(ref.url, this.store.account.origin)),
           );
         } else {
           pull(this.sending, ref);

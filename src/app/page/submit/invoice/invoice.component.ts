@@ -84,7 +84,7 @@ export class SubmitInvoicePage implements OnInit {
 
   get ref$() {
     return this.refUrl$.pipe(
-      switchMap(url => this.refs.get(url)),
+      switchMap(url => this.refs.get(url, this.store.account.origin)),
     );
   }
 
