@@ -11,6 +11,7 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { getArgs } from '../../../util/query';
+import { hasTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-summary',
@@ -65,6 +66,13 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.newComments$.complete();
+  }
+
+  get top() {
+    if (hasTag('plugin/comment', this.store.view.ref)) {
+      return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0];
+    }
+    return this.store.view.ref?.url;
   }
 
   getComments(r?: Ref) {

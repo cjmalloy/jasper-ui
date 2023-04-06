@@ -85,7 +85,7 @@
   <app-comment-reply *ngIf="replying"
                      [autofocus]="true"
                      [to]="ref"
-                     [top]="thread.top"
+                     [top]="thread.top?.url"
                      [showCancel]="true"
                      [tags]="mailboxes"
                      [newComments$]="newComments$"></app-comment-reply>

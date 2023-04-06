@@ -1,6 +1,7 @@
 <ng-container *mobxAutorun>
   <ng-container *ngIf="store.view.ref; else loading">
     <app-comment-reply [to]="store.view.ref"
+                       [top]="top"
                        [tags]="mailboxes"
                        [newComments$]="newComments$"></app-comment-reply>
     <app-comment-list [source]="store.view.ref"

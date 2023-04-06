@@ -6,6 +6,7 @@ import { mailboxes } from '../../../plugin/mailbox';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
+import { hasTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-comments',
@@ -41,6 +42,13 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.newComments$.complete();
+  }
+
+  get top() {
+    if (hasTag('plugin/comment', this.store.view.ref)) {
+      return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0];
+    }
+    return this.store.view.ref?.url;
   }
 
   get depth() {

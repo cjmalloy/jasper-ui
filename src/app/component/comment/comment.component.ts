@@ -180,7 +180,11 @@ export class CommentComponent implements OnInit, OnDestroy {
     if (!this.sources) return false;
     if (this.sources === 1) return true;
     if (this.sources > 2) return false;
-    return this.ref.sources![0].startsWith('comment:') && this.ref.sources![1] === this.thread.top?.url;
+    let top = this.thread.top?.url;
+    if (hasTag('plugin/comment', this.thread.top)) {
+      top = this.thread.top?.sources?.[1] || this.thread.top?.sources?.[0];
+    }
+    return this.ref.sources![0].startsWith('comment:') && this.ref.sources![1] === top;
   }
 
   formatAuthor(user: string) {

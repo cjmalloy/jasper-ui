@@ -28,7 +28,7 @@ export class CommentReplyComponent {
   @Input()
   to!: Ref;
   @Input()
-  top?: Ref;
+  top?: string;
   @Input()
   tags: string[] = [];
   @Input()
@@ -76,7 +76,7 @@ export class CommentReplyComponent {
       comment: value,
       sources: uniq([
         this.to.url,
-        ...(this.top ? [this.top.url] : []),
+        ...(this.top ? [this.top] : []),
         ...this.editor.getSources(value),
       ]),
       alternateUrls: this.editor.getAlts(value),
