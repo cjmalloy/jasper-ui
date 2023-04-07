@@ -9,10 +9,9 @@
         allowfullscreen></iframe>
 <div *ngIf="currentTags.includes('plugin/image')"
      class="image-expand"
-     [style.background-image]="cssUrl(ref?.plugins?.['plugin/image']?.url || ref?.url)"
      [appImageDim]="ref?.plugins?.['plugin/image']?.url || ref?.url"
-     defaultWidth="100vw"
-     defaultHeight="100vh"
+     [defaultWidth]="ref?.plugins?.['plugin/image']?.width"
+     [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
      appResize></div>
 <video *ngIf="currentTags.includes('plugin/video')"
        class="video-expand"

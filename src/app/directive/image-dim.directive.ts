@@ -1,42 +1,77 @@
-import { Directive, ElementRef, Input } from '@angular/core';
-import { Dim, ImageDimService } from '../service/image-dim.service';
-import { mobileWidth } from './fill-width.directive';
+import { Directive, ElementRef, Input, OnInit } from '@angular/core';
+import { ConfigService } from '../service/config.service';
+import { Dim, height, ImageDimService, width } from '../service/image-dim.service';
 
 @Directive({
   selector: '[appImageDim]'
 })
-export class ImageDimDirective {
+export class ImageDimDirective implements OnInit {
   @Input('defaultWidth')
-  width?: string;
+  defaultWidth?: number;
   @Input('defaultHeight')
-  height?: string;
+  defaultHeight?: number;
 
   constructor(
-    private el: ElementRef,
+    private config: ConfigService,
+    private elRef: ElementRef,
     private ids: ImageDimService,
   ) {
-    if (window.innerWidth <= mobileWidth) {
-      this.el.nativeElement.style.width = this.width;
-      this.el.nativeElement.style.height = this.height;
-      this.el.nativeElement.style.backgroundSize = 'cover';
+    this.el.style.backgroundImage = `url("./assets/image-loading.png")`;
+  }
+
+  ngOnInit() {
+    if (this.config.mobile) {
+      this.el.style.width = this.defaultWidthPx || '100vw';
+      this.el.style.height = this.defaultHeightPx || '80vh';
+      this.el.style.backgroundSize = 'cover';
     } else {
-      this.el.nativeElement.style.height = '100vh';
-      this.el.nativeElement.style.width = '80vw';
+      this.el.style.width = this.defaultWidthPx || '600px';
+      this.el.style.height = this.defaultHeightPx || '600px';
     }
+  }
+
+  get el() {
+    return this.elRef.nativeElement;
+  }
+
+  get defaultWidthPx() {
+    if (!this.defaultWidth) return undefined;
+    if (this.config.mobile && this.defaultWidth > window.innerWidth) return '100vw'
+    return this.defaultWidth + 'px'
+  }
+
+  get defaultHeightPx() {
+    if (!this.defaultHeight) return undefined;
+    return this.defaultHeight + 'px'
   }
 
   @Input('appImageDim')
   set url(value: string) {
+    this.el.style.backgroundImage = `url("${value}")`;
+    this.el.style.backgroundSize = 'contain';
     this.ids.getImageDim(value)
       .then((d: Dim) => {
-        if (window.innerWidth <= mobileWidth) {
-          this.el.nativeElement.style.width = '100vw';
-          this.el.nativeElement.style.height = (window.innerWidth * d.height / d.width) + 'px';
-          this.el.nativeElement.style.backgroundSize = 'contain';
-        } else {
-          this.el.nativeElement.style.width = d.width + 'px';
-          this.el.nativeElement.style.height = d.height + 'px';
+        if (this.defaultWidth && this.defaultHeight) {
+          this.el.style.backgroundSize = '100% 100%';
+          return;
         }
-    })
+        const parentWidth = this.el.parentElement.offsetWidth;
+        if (this.config.mobile && (!this.defaultWidth || this.defaultWidth >= window.innerWidth)) {
+          this.el.style.width = '100vw';
+          this.el.style.height = this.defaultHeightPx || height(this.defaultWidth || window.innerWidth, d) + 'px';
+        } else if (d.width > parentWidth && (!this.defaultWidth || this.defaultWidth >= parentWidth)) {
+          this.el.style.width = '100%';
+          this.el.style.height = this.defaultHeightPx || height(this.defaultWidth || parentWidth, d) + 'px';
+        } else if (this.defaultWidth) {
+          this.el.style.width = this.defaultWidthPx;
+          this.el.style.height = this.defaultHeightPx || height(this.defaultWidth, d) + 'px';
+        } else if (this.defaultHeight) {
+          this.el.style.width = width(this.defaultHeight, d) + 'px';
+          this.el.style.height = this.defaultHeightPx;
+        } else {
+          this.el.style.width = d.width + 'px';
+          this.el.style.height = d.height + 'px';
+        }
+      });
   }
 }

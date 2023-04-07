@@ -1,6 +1,6 @@
 import { AfterViewInit, Directive, ElementRef, HostListener, Input, OnDestroy } from '@angular/core';
 import { throttle } from 'lodash-es';
-import { mobileWidth } from './fill-width.directive';
+import { ConfigService } from '../service/config.service';
 
 @Directive({
   selector: '[appLimitWidth]'
@@ -15,6 +15,7 @@ export class LimitWidthDirective implements OnDestroy, AfterViewInit {
   private _linked?: HTMLElement;
 
   constructor(
+    private config: ConfigService,
     private el: ElementRef,
   ) { }
 
@@ -48,7 +49,7 @@ export class LimitWidthDirective implements OnDestroy, AfterViewInit {
   private fill = throttle(() => {
     let linkedWidth = this._linked?.clientWidth || 0;
     if (this.limitSibling) linkedWidth += this._linked?.nextElementSibling?.clientWidth || 0;
-    if (window.innerWidth <= mobileWidth) {
+    if (this.config.mobile) {
       this.el.nativeElement.style.maxWidth = '100vw';
     } else if (!linkedWidth) {
       this.el.nativeElement.style.maxWidth = '';

@@ -66,10 +66,6 @@ export class ViewerComponent implements AfterViewInit {
     return this.ref?.plugins?.['plugin/embed']?.url || this.ref?.url;
   }
 
-  cssUrl(url: string) {
-    return `url("${url}")`;
-  }
-
   cssWidth(width: any) {
     if (!width) return 0;
     return width + 'px';

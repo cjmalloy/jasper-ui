@@ -35,6 +35,8 @@ export class ConfigService {
   clientId = '';
   scope = 'openid email';
 
+  mobileWidth = 740;
+
   constructor(
     private http: HttpClient,
   ) {
@@ -58,5 +60,9 @@ export class ConfigService {
         }
       }),
     );
+  }
+
+  get mobile() {
+    return window.innerWidth <= this.mobileWidth;
   }
 }

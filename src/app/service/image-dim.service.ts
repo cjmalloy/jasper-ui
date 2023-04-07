@@ -6,6 +6,14 @@ export interface Dim {
   height: number;
 }
 
+export function height(width: number, ar: Dim) {
+  return width * ar.height / ar.width;
+}
+
+export function width(height: number, ar: Dim) {
+  return height * ar.width / ar.height;
+}
+
 @Injectable({
   providedIn: 'root'
 })

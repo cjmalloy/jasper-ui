@@ -19,7 +19,19 @@ export const imagePlugin: Plugin = {
       key: 'url',
       type: 'url',
       props: {
-        label: $localize`URL:`,
+        label: $localize`URL: `,
+      },
+    }, {
+      key: 'width',
+      type: 'number',
+      props: {
+        label: $localize`Width: `,
+      },
+    }, {
+      key: 'height',
+      type: 'number',
+      props: {
+        label: $localize`Height: `,
       },
     }],
   },
@@ -27,6 +39,8 @@ export const imagePlugin: Plugin = {
   schema: {
     optionalProperties: {
       url: { type: 'string' },
+      width: { type: 'uint16' },
+      height: { type: 'uint16' },
     },
   },
 };

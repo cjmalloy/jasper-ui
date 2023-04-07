@@ -1,7 +1,6 @@
 import { AfterViewInit, Directive, ElementRef, HostListener, Input, OnDestroy } from '@angular/core';
 import { throttle } from 'lodash-es';
-
-export const mobileWidth = 740;
+import { ConfigService } from '../service/config.service';
 
 @Directive({
   selector: '[appFillWidth]'
@@ -18,6 +17,7 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
   dragging = false;
 
   constructor(
+    private config: ConfigService,
     private el: ElementRef<HTMLTextAreaElement>,
   ) {
     this.resizeObserver.observe(el.nativeElement);
@@ -52,7 +52,7 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
   }
 
   private onResize = throttle(() => {
-    if (window.innerWidth <= mobileWidth) {
+    if (this.config.mobile) {
       this.el.nativeElement.style.minWidth = '';
       this.el.nativeElement.style.width = this.max - 8 + 'px';
     } else if (this.dragging) {
