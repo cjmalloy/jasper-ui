@@ -38,8 +38,8 @@ import { FormlyFieldTextArea } from './textarea.type';
         { name: 'required', message: 'This field is required' },
       ],
       wrappers: [{
-          name: 'form-field',
-          component: FormlyWrapperFormField,
+        name: 'form-field',
+        component: FormlyWrapperFormField,
       }],
       types: [{
         name: 'input',
@@ -73,12 +73,7 @@ import { FormlyFieldTextArea } from './textarea.type';
           },
           validators: {
             pattern: {
-              expression: (c: AbstractControl) => {
-                if (!c.value || URI_REGEX.test(c.value)) return {};
-                return {
-                  pattern: true,
-                };
-              },
+              expression: (c: AbstractControl) => !c.value || URI_REGEX.test(c.value),
               message: 'Error message contains HTML, so there is a special override in form-field.wrapper.ts',
             }
           },
