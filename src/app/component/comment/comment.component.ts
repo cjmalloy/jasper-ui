@@ -14,6 +14,7 @@ import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags, TAGS_REGEX } from '../../util/format';
+import { getScheme } from '../../util/hosts';
 import { hasTag, tagOrigin } from '../../util/tag';
 
 @Component({
@@ -92,7 +93,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.collapsed = this.store.local.isRefToggled(this.ref.url, false);
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
-    this.icons = sortOrder(this.admin.getIcons(value.tags));
+    this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
     this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
   }
 

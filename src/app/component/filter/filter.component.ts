@@ -87,7 +87,7 @@ export class FilterComponent implements OnInit, OnDestroy {
   }
 
   loadFilter(filter: PluginFilter) {
-    if (!this.auth.queryReadAccess(filter.query || filter.response)) return;
+    if (!filter.scheme && !this.auth.queryReadAccess(filter.query || filter.response)) return;
     let group = find(this.allFilters, f => f.label === (filter.group || ''));
     if (group) {
       group.filters.push(this.convertFilter(filter))
@@ -100,7 +100,9 @@ export class FilterComponent implements OnInit, OnDestroy {
   }
 
   convertFilter(filter: PluginFilter): FilterItem {
-    if (filter.query) {
+    if (filter.scheme) {
+      return { filter: `scheme/${filter.scheme}`, label: filter.label || '' };
+    } else if (filter.query) {
       return { filter: `query/${filter.query}`, label: filter.label || '' };
     } else {
       return { filter: filter.response!, label: filter.label || '' };

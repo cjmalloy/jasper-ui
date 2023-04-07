@@ -36,6 +36,7 @@ type FilterObj = {
 };
 
 export type RefFilter = FilterObj & {
+  scheme?: string;
   pluginResponse?: string[];
   noPluginResponse?: string[];
 };

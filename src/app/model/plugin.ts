@@ -246,6 +246,7 @@ export interface EventAction extends Visibility {
 }
 
 export function active(ref: Ref, o: TagAction | ResponseAction | Icon) {
+  if ('scheme' in o) return true;
   if (!('tag' in o || 'response' in o)) return true;
   if (('tag' in o) && hasTag(o.tag, ref)) return true;
   if (('response' in o) && o.response && ref.metadata?.userUrls?.includes(o.response)) return true;
@@ -255,13 +256,18 @@ export function active(ref: Ref, o: TagAction | ResponseAction | Icon) {
 export interface PluginFilter {
   /**
    * Filter based on a tag query.
-   * If set, response must not be set.
+   * If set, response and scheme must not be set.
    */
   query?: string;
   /**
+   * Filter based on URL scheme.
+   * If set, tag and response must not be set.
+   */
+  scheme?: string;
+  /**
    * Filter based on plugin responses in metadata. Plugins must have be
    * generating metadata to work.
-   * If set, query must not be set.
+   * If set, query  and scheme must not be set.
    */
   response?: `plugin/${string}` | `-plugin/${string}`;
   label?: string;

@@ -144,7 +144,7 @@ export class RefComponent implements OnInit, OnDestroy {
     this.actionsExpanded = false;
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
-    this.icons = sortOrder(this.admin.getIcons(value.tags, getScheme(value.url)!));
+    this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
     this.alarm = queriesAny(this.store.account.alarms, value.tags);
     this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
     this.infoUis = this.admin.getPluginInfoUis(value.tags);
@@ -393,7 +393,7 @@ export class RefComponent implements OnInit, OnDestroy {
       this.router.navigate(['/tag', this.store.view.toggleTag(i.tag)], { queryParamsHandling: 'merge' });
     }
     if (i.scheme) {
-      this.router.navigate(['/tag', '@*'], { queryParamsHandling: 'merge', queryParams: { search: i.scheme } });
+      this.router.navigate([], { queryParams: { filter: this.store.view.toggleFilter(`scheme/${i.scheme}`) }, queryParamsHandling: 'merge' });
     }
   }
 

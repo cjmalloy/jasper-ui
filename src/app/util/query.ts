@@ -12,6 +12,7 @@ export type UrlFilter = Filter |
   `created/before/${string}` |
   `created/after/${string}` |
   `query/${string}` |
+  `scheme/${string}` |
   `plugin/${string}` |
   `-plugin/${string}`;
 
@@ -59,7 +60,9 @@ function getRefFilter(filter?: UrlFilter[]): RefQueryArgs {
   let result: RefQueryArgs = {};
   for (const f of filter) {
     if (f.startsWith('query/')) continue;
-    if (f.startsWith('plugin/')) {
+    if (f.startsWith('scheme/')) {
+      result.scheme = f.substring('scheme/'.length)
+    } else if (f.startsWith('plugin/')) {
       result.pluginResponse ||= [];
       result.pluginResponse.push(f);
     } else if (f.startsWith('-plugin/')) {

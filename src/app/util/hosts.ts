@@ -16,9 +16,9 @@ export function getHost(url: string): string | null {
   return parsed.host;
 }
 
-export function getScheme(url: string): string | null {
+export function getScheme(url: string) {
   const parsed = getUrl(url);
-  if (!parsed) return null;
+  if (!parsed) return undefined;
   return parsed.protocol;
 }
 

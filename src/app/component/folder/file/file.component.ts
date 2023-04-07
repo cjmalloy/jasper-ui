@@ -5,6 +5,7 @@ import { AdminService } from '../../../service/admin.service';
 import { AuthzService } from '../../../service/authz.service';
 import { Store } from '../../../store/store';
 import { TAGS_REGEX, templates } from '../../../util/format';
+import { getScheme } from '../../../util/hosts';
 import { hasTag } from '../../../util/tag';
 
 @Component({
@@ -68,7 +69,7 @@ export class FileComponent implements OnInit {
     this.tagging = false;
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
-    this.icons = sortOrder(this.admin.getIcons(value.tags));
+    this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
     this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
     this.expandPlugins = this.admin.getEmbeds(value.tags);

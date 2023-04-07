@@ -26,6 +26,7 @@ import { GraphService } from '../../../service/api/graph.service';
 import { Store } from '../../../store/store';
 import { isTextPost } from '../../../util/format';
 import { findNode, GraphNode, isGraphable, isInternal, responses, sources } from '../../../util/graph';
+import { getScheme } from '../../../util/hosts';
 import { Point, Rect } from '../../../util/math';
 import { capturesAny, hasTag } from '../../../util/tag';
 
@@ -354,7 +355,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   icon(ref: GraphNode) {
-    return sortOrder(this.admin.getIcons(ref.tags)).filter(i => active(ref, i)).pop()?.label || '';
+    return sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))).filter(i => active(ref, i)).pop()?.label || '';
   }
 
   color(ref: GraphNode) {

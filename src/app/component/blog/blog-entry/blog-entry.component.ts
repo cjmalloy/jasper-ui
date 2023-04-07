@@ -24,6 +24,7 @@ import { Store } from '../../../store/store';
 import { downloadRef } from '../../../util/download';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags, TAGS_REGEX } from '../../../util/format';
+import { getScheme } from '../../../util/hosts';
 import { printError } from '../../../util/http';
 import { hasTag, isOwnerTag, tagOrigin } from '../../../util/tag';
 
@@ -105,7 +106,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     this.tagging = false;
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
-    this.icons = sortOrder(this.admin.getIcons(value.tags));
+    this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
     this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
   }
 

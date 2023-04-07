@@ -5,7 +5,7 @@ import { Template, TemplateType } from '../model/template';
 import { config } from '../service/config.service';
 import { hasPrefix, hasTag } from './tag';
 
-export const URI_REGEX = /^([^:/?#]+):(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
+export const URI_REGEX = /^[^:/?#]+:(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
 export const TAG_REGEX = /^[_+]?[a-z0-9]+([./][a-z0-9]+)*$/;
 export const TAGS_REGEX = /^-?[_+]?[a-z0-9]+([./][a-z0-9]+)*(\s+-?[_+]?[a-z0-9]+([./][a-z0-9]+)*)*$/;
 export const USER_REGEX = /^[_+]user(\/[a-z0-9]+([./][a-z0-9]+)*)?$/;

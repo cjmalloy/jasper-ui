@@ -394,8 +394,9 @@ export class AdminService {
     const match = ['plugin', ...(tags || [])];
     return this.actions
       .flatMap(p => p.config!.actions!.filter(a => {
-        if (!a.global && !includesTag(p.tag, match)) return false;
-        return !a.condition || !!config?.[p.tag]?.[a.condition];
+        if (a.condition && !config?.[p.tag]?.[a.condition]) return false;
+        if (a.global) return true;
+        return includesTag(p.tag, match);
       }))
       .filter(a => !a.role || this.auth.hasRole(a.role));
   }
@@ -404,14 +405,16 @@ export class AdminService {
     const match = ['plugin', ...(tags || [])];
     return this.icons
       .flatMap(p => p.config!.icons!.filter(i => {
-        return i.global || includesTag(p.tag, match)
+        if (i.condition && !config?.[p.tag]?.[i.condition]) return false;
+        if (i.global) return true;
+        if (i.scheme && i.scheme === scheme) return true;
+        return includesTag(p.tag, match);
       }).map(i => {
         if (!i.response) i.tag ||= p.tag;
         if (i.tag === p.tag)  i.title ||= p.name;
         i.title ||= i.tag;
         return i;
       }))
-      .filter(i => !scheme || i.scheme === scheme)
       .filter(i => !i.role || this.auth.hasRole(i.role));
   }
 
