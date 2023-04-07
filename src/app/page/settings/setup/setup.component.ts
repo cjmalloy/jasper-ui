@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { forOwn, mapValues } from 'lodash-es';
 import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
@@ -31,7 +32,7 @@ export class SettingsSetupPage implements OnInit {
   constructor(
     public admin: AdminService,
     private theme: ThemeService,
-    private store: Store,
+    public store: Store,
     private plugins: PluginService,
     private templates: TemplateService,
     private fb: UntypedFormBuilder,
@@ -99,6 +100,27 @@ export class SettingsSetupPage implements OnInit {
     });
   }
 
+  updateAll() {
+    const updates = [];
+    for (const plugin in this.admin.status.plugins) {
+      if (this.needsPluginUpdate(plugin)) updates.push(this.$updatePlugin(plugin));
+    }
+    for (const template in this.admin.status.templates) {
+      if (this.needsTemplateUpdate(template)) updates.push(this.$updateTemplate(template));
+    }
+    forkJoin(updates).pipe(
+      switchMap(() => this.admin.init$),
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(() => res);
+      }),
+    ).subscribe(() => {
+      this.submitted = true;
+      this.adminForm.reset(this.admin.status);
+      this.installMessages.push($localize`Success.`);
+    });
+  }
+
   selectAll() {
     this.selectAllToggle = !this.selectAllToggle;
     const sa = (fg: UntypedFormGroup) => forOwn(fg.controls, c => c.setValue(this.selectAllToggle));
@@ -107,31 +129,22 @@ export class SettingsSetupPage implements OnInit {
   }
 
   updatePlugin(key: string) {
-    const def = this.admin.def.plugins[key];
-    const status = this.admin.status.plugins[key]!;
-    this.installMessages.push($localize`Updating ${def.name || def.tag} plugin...`);
-    this.plugins.update({
-      ...def,
-      defaults: {
-        ...def.defaults || {},
-        ...status.defaults || {},
-      },
-      origin: this.store.account.origin,
-      modifiedString: status.modifiedString,
-    }).pipe(
+    this.$updatePlugin(key).pipe(
       switchMap(() => this.admin.init$)
-    ).subscribe(() => {
-      this.admin.status.plugins[key] = def;
-      this.adminForm.reset(this.admin.status);
-      this.installMessages.push($localize`Updated ${def.name || def.tag} plugin.`);
-    });
+    ).subscribe(() => this.adminForm.reset(this.admin.status));
   }
 
   updateTemplate(key: string) {
-    const def = this.admin.def.templates[key];
-    const status = this.admin.status.templates[key]!;
-    this.installMessages.push($localize`Updating ${def.name || def.tag} template...`);
-    this.templates.update({
+    this.$updateTemplate(key).pipe(
+      switchMap(() => this.admin.init$)
+    ).subscribe(() => this.adminForm.reset(this.admin.status));
+  }
+
+  $updatePlugin(key: string) {
+    const def = this.admin.def.plugins[key];
+    const status = this.admin.status.plugins[key]!;
+    this.installMessages.push($localize`Updating ${def.name || def.tag} plugin...`);
+    return this.plugins.update({
       ...def,
       defaults: {
         ...def.defaults || {},
@@ -140,12 +153,25 @@ export class SettingsSetupPage implements OnInit {
       origin: this.store.account.origin,
       modifiedString: status.modifiedString,
     }).pipe(
-      switchMap(() => this.admin.init$)
-    ).subscribe(() => {
-      this.admin.status.templates[key] = def;
-      this.adminForm.reset(this.admin.status);
-      this.installMessages.push($localize`Updated ${def.name || def.tag} template.`);
-    });
+      tap(() => this.installMessages.push($localize`Updated ${def.name || def.tag} plugin.`))
+    );
+  }
+
+  $updateTemplate(key: string) {
+    const def = this.admin.def.templates[key];
+    const status = this.admin.status.templates[key]!;
+    this.installMessages.push($localize`Updating ${def.name || def.tag} template...`);
+    return this.templates.update({
+      ...def,
+      defaults: {
+        ...def.defaults || {},
+        ...status.defaults || {},
+      },
+      origin: this.store.account.origin,
+      modifiedString: status.modifiedString,
+    }).pipe(
+      tap(() => this.installMessages.push($localize`Updated ${def.name || def.tag} template.`)),
+    );
   }
 
   needsPluginUpdate(key: string) {

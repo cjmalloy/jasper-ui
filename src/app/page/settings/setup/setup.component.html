@@ -9,6 +9,11 @@
     plugins and templates.
   </p>
 
+  <span><!-- Buttons --></span>
+  <span class="form-array right">
+    <button type="button" (click)="updateAll()" *ngIf="store.view.updates" i18n>🌟️ Update All</button>
+  </span>
+
   <h3 i18n>Templates:</h3>
   <div class="bubble">
     <div formGroupName="templates" class="form">
