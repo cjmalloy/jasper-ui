@@ -9,7 +9,7 @@ import { catchError, switchMap, throwError } from 'rxjs';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { Ext } from '../../../model/ext';
-import { Action, active, Icon, ResponseAction, TagAction, Visibility, visible } from '../../../model/plugin';
+import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../../model/plugin';
 import { Ref, writeRef } from '../../../model/ref';
 import { findArchive } from '../../../plugin/archive';
 import { deleteNotice } from '../../../plugin/delete';
@@ -105,8 +105,8 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     this.tagging = false;
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
-    this.icons = this.admin.getIcons(value.tags);
-    this.actions = this.admin.getActions(value.tags, value.plugins);
+    this.icons = sortOrder(this.admin.getIcons(value.tags));
+    this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
   }
 
   @ViewChild(RefFormComponent)

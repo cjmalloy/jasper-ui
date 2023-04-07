@@ -153,6 +153,15 @@ export interface Visibility {
    * Add this to every Ref, not just Refs with this plugin.
    */
   global?: boolean;
+  /**
+   * Optional number to influence order relative to other items.
+   * Unset or 0 has no impact on ordering.
+   * Lower positive numbers will be towards the left or start, higher positive
+   * numbers will be towards the right or end.
+   * Negative numbers will reverse alignment. i.e. 1 will be first and -1 will
+   * be last.
+   */
+  order?: number;
 }
 
 export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) {
@@ -160,6 +169,14 @@ export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) 
   if (isAuthor) return v.visible === 'author' || v.visible === 'participant';
   if (isRecipient) return v.visible === 'recipient' || v.visible === 'participant';
   return false;
+}
+
+export function sortOrder<T extends Visibility>(vs: T[]) {
+  return vs.sort((a, b) => {
+    if (!a.order || !b.order) return (b.order || 0) - (a.order || 0);
+    if (Math.sign(a.order) !== Math.sign(b.order)) return b.order - a.order;
+    return a.order - b.order;
+  });
 }
 
 export interface Icon extends Visibility {

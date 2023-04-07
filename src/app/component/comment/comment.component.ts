@@ -2,7 +2,7 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { Router } from '@angular/router';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
-import { Action, active, Icon, ResponseAction, TagAction, Visibility, visible } from '../../model/plugin';
+import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { deleteNotice } from '../../plugin/delete';
 import { mailboxes } from '../../plugin/mailbox';
@@ -92,8 +92,8 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.collapsed = this.store.local.isRefToggled(this.ref.url, false);
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
-    this.icons = this.admin.getIcons(value.tags);
-    this.actions = this.admin.getActions(value.tags, value.plugins);
+    this.icons = sortOrder(this.admin.getIcons(value.tags));
+    this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
   }
 
   ngOnInit(): void {

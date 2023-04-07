@@ -9,7 +9,17 @@ import { catchError, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
-import { Action, active, Icon, Plugin, ResponseAction, TagAction, Visibility, visible } from '../../model/plugin';
+import {
+  Action,
+  active,
+  Icon,
+  Plugin,
+  ResponseAction,
+  sortOrder,
+  TagAction,
+  Visibility,
+  visible
+} from '../../model/plugin';
 import { Ref, writeRef } from '../../model/ref';
 import { findArchive } from '../../plugin/archive';
 import { deleteNotice } from '../../plugin/delete';
@@ -134,9 +144,9 @@ export class RefComponent implements OnInit, OnDestroy {
     this.actionsExpanded = false;
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
-    this.icons = this.admin.getIcons(value.tags, getScheme(value.url)!);
+    this.icons = sortOrder(this.admin.getIcons(value.tags, getScheme(value.url)!));
     this.alarm = queriesAny(this.store.account.alarms, value.tags);
-    this.actions = this.admin.getActions(value.tags, value.plugins);
+    this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
     this.infoUis = this.admin.getPluginInfoUis(value.tags);
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
     this.expandPlugins = this.admin.getEmbeds(value.tags);

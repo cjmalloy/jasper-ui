@@ -19,7 +19,7 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
-import { active } from '../../../model/plugin';
+import { active, sortOrder } from '../../../model/plugin';
 import { Ref, RefNode } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { GraphService } from '../../../service/api/graph.service';
@@ -354,7 +354,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   icon(ref: GraphNode) {
-    return this.admin.getIcons(ref.tags).filter(i => active(ref, i)).pop()?.label || '';
+    return sortOrder(this.admin.getIcons(ref.tags)).filter(i => active(ref, i)).pop()?.label || '';
   }
 
   color(ref: GraphNode) {

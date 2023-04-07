@@ -3,7 +3,7 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { intersection, map, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, forkJoin, Observable, of } from 'rxjs';
-import { Action } from '../../model/plugin';
+import { Action, sortOrder } from '../../model/plugin';
 import { deleteNotice } from '../../plugin/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
@@ -69,7 +69,7 @@ export class BulkComponent implements OnInit, OnDestroy {
   ) {
     this.disposers.push(autorun(() => {
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
-      this.actions = this.admin.getActions(commonTags).filter(a => !('tag' in a) || this.auth.canAddTag(a.tag));
+      this.actions = sortOrder(this.admin.getActions(commonTags).filter(a => !('tag' in a) || this.auth.canAddTag(a.tag)));
     }));
   }
 

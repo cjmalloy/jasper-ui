@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { Action, Icon } from '../../../model/plugin';
+import { Action, Icon, sortOrder } from '../../../model/plugin';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { AuthzService } from '../../../service/authz.service';
@@ -68,8 +68,8 @@ export class FileComponent implements OnInit {
     this.tagging = false;
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
-    this.icons = this.admin.getIcons(value.tags);
-    this.actions = this.admin.getActions(value.tags, value.plugins);
+    this.icons = sortOrder(this.admin.getIcons(value.tags));
+    this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
     this.expandPlugins = this.admin.getEmbeds(value.tags);
   }
