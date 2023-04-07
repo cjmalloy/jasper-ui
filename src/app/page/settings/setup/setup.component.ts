@@ -103,10 +103,10 @@ export class SettingsSetupPage implements OnInit {
   updateAll() {
     const updates = [];
     for (const plugin in this.admin.status.plugins) {
-      if (this.needsPluginUpdate(plugin)) updates.push(this.$updatePlugin(plugin));
+      if (this.needsPluginUpdate(plugin)) updates.push(this.updatePlugin$(plugin));
     }
     for (const template in this.admin.status.templates) {
-      if (this.needsTemplateUpdate(template)) updates.push(this.$updateTemplate(template));
+      if (this.needsTemplateUpdate(template)) updates.push(this.updateTemplate$(template));
     }
     forkJoin(updates).pipe(
       switchMap(() => this.admin.init$),
@@ -129,18 +129,18 @@ export class SettingsSetupPage implements OnInit {
   }
 
   updatePlugin(key: string) {
-    this.$updatePlugin(key).pipe(
+    this.updatePlugin$(key).pipe(
       switchMap(() => this.admin.init$)
     ).subscribe(() => this.adminForm.reset(this.admin.status));
   }
 
   updateTemplate(key: string) {
-    this.$updateTemplate(key).pipe(
+    this.updateTemplate$(key).pipe(
       switchMap(() => this.admin.init$)
     ).subscribe(() => this.adminForm.reset(this.admin.status));
   }
 
-  $updatePlugin(key: string) {
+  updatePlugin$(key: string) {
     const def = this.admin.def.plugins[key];
     const status = this.admin.status.plugins[key]!;
     this.installMessages.push($localize`Updating ${def.name || def.tag} plugin...`);
@@ -157,7 +157,7 @@ export class SettingsSetupPage implements OnInit {
     );
   }
 
-  $updateTemplate(key: string) {
+  updateTemplate$(key: string) {
     const def = this.admin.def.templates[key];
     const status = this.admin.status.templates[key]!;
     this.installMessages.push($localize`Updating ${def.name || def.tag} template...`);
