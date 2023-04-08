@@ -143,10 +143,6 @@ export function defaultWildTags(tags: string[]) {
   return tags.map(t => defaultWild(t));
 }
 
-export function isWild(query: string) {
-  return query === '*' || query === '@*';
-}
-
 /**
  * Join multiple tags together, ignoring visibility modifiers '+' and '_' and
  * origin markers '@' for all but the first tag.
