@@ -200,6 +200,12 @@ export function isQuery(query?: string) {
   return /[:|!()]/g.test(query);
 }
 
+export function isPlugin(query?: string) {
+  if (!query) return false;
+  if (isQuery(query)) return false;
+  return hasPrefix(query, 'plugin');
+}
+
 export function publicTag(tag: string) {
   return !tag.startsWith('_') && !tag.startsWith('+');
 }
