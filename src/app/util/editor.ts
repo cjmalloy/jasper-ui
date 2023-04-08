@@ -3,9 +3,9 @@ import { marked } from 'marked';
 import { getMailbox } from '../plugin/mailbox';
 import { QUALIFIED_USER_REGEX, TAG_REGEX } from './format';
 
-export function getMailboxes(markdown: string) {
+export function getMailboxes(markdown: string, origin = '') {
   return extractPattern(markdown, /[_+]user\/[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?/g, undefined, QUALIFIED_USER_REGEX)
-    .map(u => getMailbox(u));
+    .map(u => getMailbox(u, origin));
 }
 
 export function getTags(markdown: string) {

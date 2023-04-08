@@ -8,6 +8,7 @@ import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { EditorService } from '../../../service/editor.service';
+import { Store } from '../../../store/store';
 import { getIfNew, getMailboxes, getTags } from '../../../util/editor';
 import { printError } from '../../../util/http';
 
@@ -31,6 +32,7 @@ export class CommentEditComponent implements AfterViewInit {
 
   constructor(
     private admin: AdminService,
+    private store: Store,
     private account: AccountService,
     private editor: EditorService,
     private refs: RefService,
@@ -53,7 +55,7 @@ export class CommentEditComponent implements AfterViewInit {
     return getIfNew([
       ...without(this.ref.tags, ...this.admin.editorTags),
       ...getTags(this.comment.value),
-      ...getMailboxes(this.comment.value),
+      ...getMailboxes(this.comment.value, this.store.account.origin),
       ...this.plugins],
       this.ref.tags);
   }

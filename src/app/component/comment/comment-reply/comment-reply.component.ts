@@ -2,7 +2,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq } from 'lodash-es';
-import { runInAction } from 'mobx';
 import * as moment from 'moment';
 import { catchError, Subject, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -90,7 +89,7 @@ export class CommentReplyComponent {
         ...this.tags!,
         ...this.plugins,
         ...getTags(value),
-        ...getMailboxes(value),
+        ...getMailboxes(value, this.store.account.origin),
       ])),
       published: moment(),
     }).pipe(

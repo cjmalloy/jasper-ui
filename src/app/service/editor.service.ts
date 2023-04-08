@@ -3,6 +3,7 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular
 import { difference, uniq } from 'lodash-es';
 import { LinksFormComponent } from '../form/links/links.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
+import { Store } from '../store/store';
 import { getLinks, getMailboxes, getTags } from '../util/editor';
 import { getPath } from '../util/hosts';
 import { ConfigService } from './config.service';
@@ -14,6 +15,7 @@ export class EditorService {
 
   constructor(
     private config: ConfigService,
+    private store: Store,
   ) { }
 
   getUrlType(url: string) {
@@ -116,12 +118,12 @@ export class EditorService {
   private syncTags(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
     const existingTags = [
       ...getTags(previousComment),
-      ...getMailboxes(previousComment),
+      ...getMailboxes(previousComment, this.store.account.origin),
       ...(group.value.tags || []),
     ];
     const newTags = uniq(difference([
       ...getTags(group.value.comment),
-      ...getMailboxes(group.value.comment)], existingTags));
+      ...getMailboxes(group.value.comment, this.store.account.origin)], existingTags));
     for (const t of newTags) {
       (group.get('tags') as UntypedFormArray).push(fb.control(t, TagsFormComponent.validators));
     }
