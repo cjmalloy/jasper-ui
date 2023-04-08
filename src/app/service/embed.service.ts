@@ -212,7 +212,6 @@ export class EmbedService {
       userTags.forEach(t => {
         if (tagOrigin(t.innerText)) return;
         t.href += origin;
-        t.innerText += origin;
       });
     }
     const images = el.querySelectorAll<HTMLImageElement>('img');
