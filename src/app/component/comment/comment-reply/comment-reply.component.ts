@@ -42,7 +42,7 @@ export class CommentReplyComponent {
   commentForm: UntypedFormGroup;
   plugins: string[] = [];
   serverError: string[] = [];
-  config = this.admin.getPlugin('plugin/comment')!.config || commentPlugin.config!;
+  config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
 
   constructor(
     public admin: AdminService,
