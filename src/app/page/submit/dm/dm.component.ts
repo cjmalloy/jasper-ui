@@ -13,7 +13,7 @@ import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
-import { TAG_REGEX } from '../../../util/format';
+import { QUALIFIED_TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasPrefix } from '../../../util/tag';
 
@@ -45,7 +45,7 @@ export class SubmitDmPage implements OnInit {
   ) {
     theme.setTitle($localize`Submit: Direct Message`);
     this.dmForm = fb.group({
-      to: ['', [Validators.pattern(TAG_REGEX)]],
+      to: ['', [Validators.pattern(QUALIFIED_TAG_REGEX)]],
       title: [''],
       comment: [''],
     });
@@ -85,7 +85,7 @@ export class SubmitDmPage implements OnInit {
       this.store.account.localTag,
         ...(this.notes ?
             ['notes'] :
-            ['locked', ...this.to.value.split(/\s+/).map((t: string) => getMailbox(t))]
+            ['locked', ...this.to.value.split(/\s+/).map((t: string) => getMailbox(t, this.store.account.origin))]
         ),
       ...this.plugins,
     ]);
