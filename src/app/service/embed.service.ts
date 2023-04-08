@@ -3,7 +3,7 @@ import { defer, escape } from 'lodash-es';
 import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, of } from 'rxjs';
 import { wikiUriFormat } from '../plugin/wiki';
 import { Store } from '../store/store';
 import { Embed } from '../util/embed';
@@ -208,7 +208,7 @@ export class EmbedService {
    */
   postProcess(el: HTMLDivElement, embed: Embed, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
     if (origin) {
-      const userTags = el.querySelectorAll<HTMLAnchorElement>('.tag');
+      const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
       userTags.forEach(t => {
         if (tagOrigin(t.innerText)) return;
         t.href += origin;
