@@ -164,7 +164,14 @@ export const originTunnelPlugin: Plugin = {
   },
 };
 
-export function isReplicating(remote: Ref, url: string, origin = '') {
+export function isReplicating(remote: Ref, apis: Map<string, string>) {
+  if (remote.plugins?.['+plugin/origin/push']) return false;
   const plugin = remote.plugins?.['+plugin/origin'];
-  return remote.url === url && (plugin?.remote || '') === origin;
+  return apis.get(plugin?.remote || '') === remote.url;
+}
+
+export function isPushing(remote: Ref, origin = '') {
+  if (!remote.plugins?.['+plugin/origin/push']) return false;
+  const plugin = remote.plugins?.['+plugin/origin'];
+  return (plugin?.local || '') === origin;
 }
