@@ -11,10 +11,11 @@ describe('OriginPlugin', () => {
       }
     }
   });
+  const api = (url: string, origin = '') => new Map([[origin, url]]);
   it('isReplicating', () => {
-    expect(isReplicating(ref('@other', '@main'), 'spec:test')).toBeTruthy();
-    expect(isReplicating(ref('@other', '@main'), 'spec:other')).toBeFalsy();
-    expect(isReplicating(ref('@other', '@main', '@mt'), 'spec:test', '@mt')).toBeTruthy();
-    expect(isReplicating(ref('@other', '@main', '@diff'), 'spec:test', '@mt')).toBeFalsy();
+    expect(isReplicating(ref('@other', '@main'), api('spec:test'))).toBeTruthy();
+    expect(isReplicating(ref('@other', '@main'), api('spec:other'))).toBeFalsy();
+    expect(isReplicating(ref('@other', '@main', '@mt'), api('spec:test', '@mt'))).toBeTruthy();
+    expect(isReplicating(ref('@other', '@main', '@diff'), api('spec:test', '@mt'))).toBeFalsy();
   });
 });

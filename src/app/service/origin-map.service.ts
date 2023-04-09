@@ -3,7 +3,7 @@ import { runInAction } from 'mobx';
 import { catchError, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
-import { isReplicating } from '../plugin/origin';
+import { isPushing, isReplicating } from '../plugin/origin';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
@@ -52,9 +52,18 @@ export class OriginMapService {
     );
   }
 
+  private get selfApis(): Map<string, string> {
+    return new Map([
+      [this.store.account.origin, this.config.api],
+      ...this.origins
+      .filter(remote => isPushing(remote, this.store.account.origin))
+      .map(remote => [remote.plugins?.['+plugin/origin']?.remote || '', remote.url] as [string, string]),
+    ]);
+  }
+
   private get reverseLookup(): Map<string, string> {
     return new Map(this.origins
-      .filter(remote => isReplicating(remote, this.config.api, this.store.account.origin))
+      .filter(remote => isReplicating(remote, this.selfApis))
       .map(remote => [remote.origin || '', remote.plugins?.['+plugin/origin']?.local]));
   }
 
