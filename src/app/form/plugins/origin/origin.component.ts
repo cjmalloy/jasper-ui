@@ -104,6 +104,7 @@ export function pullForm(fb: UntypedFormBuilder, admin: AdminService) {
     query: [''],
     batchSize: [250],
     generateMetadata: [true],
+    validationOrigin: [''],
     removeTags: fb.array([]),
     mapTags: fb.group({}),
     addTags: fb.array([]),
