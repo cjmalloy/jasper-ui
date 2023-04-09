@@ -148,7 +148,7 @@ export const originTunnelPlugin: Plugin = {
       },
     }, {
       key: 'sshHost',
-      type: 'url',
+      type: 'input',
       props: {
         label: $localize`SSH Host:`,
       },
