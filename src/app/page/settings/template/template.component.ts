@@ -63,7 +63,10 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
   }
 
   uploadTemplate(template: Template) {
-    this.templates.create(template).pipe(
+    this.templates.create({
+      ...template,
+      origin: this.store.account.origin,
+    }).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status === 409) {
           return this.templates.update(template);

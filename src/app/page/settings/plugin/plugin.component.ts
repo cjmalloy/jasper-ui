@@ -63,7 +63,10 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
   }
 
   uploadPlugin(plugin: Plugin) {
-    this.plugins.create(plugin).pipe(
+    this.plugins.create({
+      ...plugin,
+      origin: this.store.account.origin,
+    }).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status === 409) {
           return this.plugins.update(plugin);

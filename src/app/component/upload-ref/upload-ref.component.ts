@@ -9,6 +9,7 @@ import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { printError } from '../../util/http';
 import { getModels, getTextFile, unzip, zippedFile } from '../../util/zip';
+import { Store } from "../../store/store";
 
 @Component({
   selector: 'app-upload-ref',
@@ -25,6 +26,7 @@ export class UploadRefComponent {
   processing = false;
 
   constructor(
+    private store: Store,
     private refs: RefService,
     private exts: ExtService,
     private router: Router,
@@ -53,7 +55,10 @@ export class UploadRefComponent {
   uploadRef(ref: Ref) {
     // @ts-ignore
     if (ref.tag) return of(null);
-    return this.refs.create(ref).pipe(
+    return this.refs.create({
+      ...ref,
+      origin: this.store.account.origin,
+    }).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status === 409) {
           return this.refs.update(ref);
@@ -69,7 +74,10 @@ export class UploadRefComponent {
 
   uploadExt(ext: Ext) {
     if (!ext.tag) return of(null);
-    return this.exts.create(ext).pipe(
+    return this.exts.create({
+      ...ext,
+      origin: this.store.account.origin,
+    }).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status === 409) {
           return this.exts.update(ext);
