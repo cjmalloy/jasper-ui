@@ -90,7 +90,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.deleting = false;
     this.editing = false;
     this.tagging = false;
-    this.collapsed = this.store.local.isRefToggled(this.ref.url, this.ref.origin);
+    this.collapsed = this.store.local.isRefToggled('comment:' + this.ref.url, this.ref.origin);
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
     this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
