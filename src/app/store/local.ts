@@ -1,9 +1,8 @@
 
 export class LocalStore {
 
-  isRefToggled(url: string, origin: string = '', defaultValue = false) {
+  isRefToggled(url: string, origin: string = '') {
     const value = localStorage.getItem(`toggled:${origin}:${url}`);
-    if (!value) return defaultValue;
     return value === 'true';
   }
 
