@@ -67,6 +67,12 @@ export class ViewStore {
     return this.route.routeSnapshot?.firstChild?.params['url'];
   }
 
+  get summary() {
+    const s = this.route.routeSnapshot.firstChild;
+    if (s?.routeConfig?.path !== 'ref/:url') return false;
+    return !!s.firstChild?.routeConfig?.path;
+  }
+
   get current(): View | undefined {
     const s = this.route.routeSnapshot.firstChild;
     switch (s?.routeConfig?.path) {
