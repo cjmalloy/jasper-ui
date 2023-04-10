@@ -125,9 +125,18 @@ export class EditorComponent implements AfterViewInit {
     this.store.local.saveEditing(value);
   }, 400);
 
-  syncText = debounce((value: string) => {
+  syncText(value: string) {
+    if (!value) {
+      this._text = value;
+      this.syncEditor.next(this._text);
+    } else {
+      this.syncTextThrottled(value);
+    }
+  }
+
+  syncTextThrottled = debounce((value: string) => {
     this._text = value;
-    this.syncEditor.next(this._text)
+    this.syncEditor.next(this._text);
   }, 400);
 
   toggleStacked() {
