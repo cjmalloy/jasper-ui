@@ -26,7 +26,7 @@
     <div class="link-below">
       <div class="toggle"
            *ngIf="showToggle && (ref.comment || expandPlugins.length)"
-           (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, expanded = !expanded)">
+           (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, ref.origin, expanded = !expanded)">
         <span class="toggle-plus" *ngIf="!editing && !viewSource && !expanded">＋</span>
         <span class="toggle-x" *ngIf="editing || viewSource || expanded">✕</span>
       </div>
