@@ -18,7 +18,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
   @Input()
   depth = 7;
   @Input()
-  pageSize = 500;
+  pageSize?: number;
   @Input()
   context = 0;
   @Input()
@@ -34,7 +34,11 @@ export class CommentListComponent implements OnInit, OnDestroy {
   ) {
     this.disposers.push(autorun(() => {
       if (thread.latest) {
-        this.comments = thread.cache.get(this.source?.url)
+        this.comments = thread.cache.get(this.source?.url);
+        if (this.comments && this.pageSize) {
+          this.comments = [...this.comments!];
+          this.comments.length = this.pageSize;
+        }
       }
     }));
   }
@@ -45,6 +49,10 @@ export class CommentListComponent implements OnInit, OnDestroy {
     this._source = value;
     this.newComments = [];
     this.comments = this.thread.cache.get(value?.url);
+    if (this.comments && this.pageSize) {
+      this.comments = [...this.comments!];
+      this.comments.length = this.pageSize;
+    }
   }
 
   get source() {
