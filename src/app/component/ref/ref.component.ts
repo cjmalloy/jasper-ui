@@ -146,7 +146,7 @@ export class RefComponent implements OnInit, OnDestroy {
     this.taggingAccess = this.auth.taggingAccess(value);
     this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
     this.alarm = queriesAny(this.store.account.alarms, value.tags);
-    this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
+    this.actions = this.ref.created ? sortOrder(this.admin.getActions(value.tags, value.plugins)) : [];
     this.infoUis = this.admin.getPluginInfoUis(value.tags);
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
     this.expandPlugins = this.admin.getEmbeds(value.tags);
