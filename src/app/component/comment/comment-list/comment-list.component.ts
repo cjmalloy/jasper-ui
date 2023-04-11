@@ -1,9 +1,11 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { Observable, Subject, takeUntil } from 'rxjs';
-import { Ref } from '../../../model/ref';
-import { Store } from '../../../store/store';
-import { ThreadStore } from '../../../store/thread';
+import { Page } from "../../../model/page";
+import { Ref, RefSort } from "../../../model/ref";
+import { RefService } from "../../../service/api/ref.service";
+import { Store } from "../../../store/store";
+import { getArgs, UrlFilter } from "../../../util/query";
 
 @Component({
   selector: 'app-comment-list',
@@ -16,53 +18,46 @@ export class CommentListComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
-  depth = 7;
+  top!: Ref;
   @Input()
-  pageSize?: number;
+  depth = 1;
+  @Input()
+  pageSize = 5;
   @Input()
   context = 0;
   @Input()
+  showLoadMore = true;
+  @Input()
   newComments$!: Observable<Ref | null>;
 
-  comments?: Ref[];
   newComments: Ref[] = [];
+  comments: Ref[] = [];
   private _source?: Ref;
 
   constructor(
-    public store: Store,
-    public thread: ThreadStore,
-  ) {
-    this.disposers.push(autorun(() => {
-      if (thread.latest) {
-        this.comments = thread.cache.get(this.source?.url);
-        if (this.comments && this.pageSize) {
-          this.comments = [...this.comments!];
-          this.comments.length = this.pageSize;
-        }
-      }
-    }));
-  }
+    private refs: RefService,
+    private store: Store,
+  ) { }
 
   @Input()
   set source(value: Ref | undefined) {
     if (this._source === value) return;
     this._source = value;
     this.newComments = [];
-    this.comments = this.thread.cache.get(value?.url);
-    if (this.comments && this.pageSize) {
-      this.comments = [...this.comments!];
-      this.comments.length = this.pageSize;
-    }
-  }
-
-  get source() {
-    return this._source;
+    this.refs.page({
+      ...getArgs('plugin/comment@*', this.store.view.sort, this.store.view.filter),
+      responses: this._source?.url,
+      size: this.pageSize,
+    }).subscribe(page => {
+      this.comments = page.content;
+    });
   }
 
   ngOnInit(): void {
     this.newComments$.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(comment => comment && this.newComments.unshift(comment));
+    ).subscribe(comment =>
+      comment && this.newComments.unshift(comment));
   }
 
   ngOnDestroy() {

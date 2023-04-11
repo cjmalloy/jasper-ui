@@ -4,9 +4,9 @@
                        [top]="top"
                        [tags]="mailboxes"
                        [newComments$]="newComments$"></app-comment-reply>
-    <app-comment-list [source]="store.view.ref"
-                      [newComments$]="newComments$"
-                      [depth]="depth"></app-comment-list>
+    <app-comment-thread [source]="store.view.ref"
+                        [newComments$]="newComments$"
+                        [depth]="depth"></app-comment-thread>
     <span class="fake-link load-more"
           *ngIf="thread.hasMore"
           (click)="thread.loadMore()" i18n>

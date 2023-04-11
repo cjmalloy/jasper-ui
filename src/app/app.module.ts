@@ -25,6 +25,7 @@ import { ChatComponent } from './component/chat/chat.component';
 import { CommentEditComponent } from './component/comment/comment-edit/comment-edit.component';
 import { CommentListComponent } from './component/comment/comment-list/comment-list.component';
 import { CommentReplyComponent } from './component/comment/comment-reply/comment-reply.component';
+import { CommentThreadComponent } from './component/comment/comment-thread/comment-thread.component';
 import { CommentComponent } from './component/comment/comment.component';
 import { DebugComponent } from './component/debug/debug.component';
 import { EditorComponent } from './component/editor/editor.component';
@@ -280,6 +281,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     TemplateListComponent,
     SettingsOriginsPage,
     PluginInfoUiDirective,
+    CommentThreadComponent,
   ],
   imports: [
     BrowserModule,
