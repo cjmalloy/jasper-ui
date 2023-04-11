@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, of } from 'rxjs';
+import { catchError, map, of, switchMap } from 'rxjs';
+import { tap } from "rxjs/operators";
 import { isWiki } from '../../plugin/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -58,18 +59,16 @@ export class RefPage implements OnInit, OnDestroy {
       const url = this.store.view.url;
       const origin = this.store.view.origin !== undefined ? this.store.view.origin : this.store.account.origin;
       if (!url) return;
-      this.refs.get(url, origin).pipe(
-        catchError(err => {
-          this.error = err;
-          return of({url, origin});
-        }),
-      ).subscribe(ref => runInAction(() => this.store.view.ref = ref));
       this.refs.count({ url }).pipe(
         catchError(err => {
           this.error = err;
           return of(0);
         }),
-      ).subscribe(count => runInAction(() => this.store.view.versions = count));
+        tap(count => runInAction(() => this.store.view.versions = count)),
+        switchMap(count => count > 0 ? this.refs.get(url, origin) : of({url, origin})),
+        catchError(err => this.refs.page({ url, size: 1 }).pipe(map(page => page.content[0] || {url, origin}))),
+        tap(ref => runInAction(() => this.store.view.ref = ref)),
+      ).subscribe();
     }));
   }
 
