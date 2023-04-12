@@ -93,7 +93,7 @@ export class SortComponent implements OnInit, OnDestroy {
   }
 
   setSortCol(index: number, value: string) {
-    const dir = this.sortDir(this.sorts[index])
+    const dir = this.sortDir(this.sorts[index] || value)
     this.sorts[index] = value + ',' + dir;
     this.setSort();
   }
