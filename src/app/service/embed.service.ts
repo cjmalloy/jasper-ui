@@ -266,7 +266,7 @@ export class EmbedService {
     const inlineQueries = el.querySelectorAll<HTMLAnchorElement>('.inline-query');
     inlineQueries.forEach(t => {
       const query = this.editor.getQueryUrl(t.innerText);
-      this.refs.page({ query, ...Object.fromEntries(new URL(t.innerText).searchParams) }).subscribe(page => {
+      this.refs.page({ query, ...this.editor.getQueryParams(t.innerText) }).subscribe(page => {
         const c = embed.createRefList(page);
         t.parentNode?.insertBefore(c.location.nativeElement, t);
         t.remove();
@@ -316,7 +316,7 @@ export class EmbedService {
           } else if (type === 'tag') {
             const query = this.editor.getQueryUrl(url);
             // @ts-ignore
-            this.refs.page({ query, ...Object.fromEntries(new URL(url).searchParams) }).subscribe(page => {
+            this.refs.page({ query, ...this.editor.getQueryParams(url) }).subscribe(page => {
               const c = embed.createRefList(page);
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
@@ -364,7 +364,7 @@ export class EmbedService {
             const type = this.editor.getUrlType(url);
             if (type === 'tag') {
               const query = this.editor.getQueryUrl(url);
-              this.refs.page({ query, ...Object.fromEntries(new URL(url).searchParams) }).subscribe(page => {
+              this.refs.page({ query, ...this.editor.getQueryParams(url) }).subscribe(page => {
                 const c = embed.createRefList(page);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                 // @ts-ignore

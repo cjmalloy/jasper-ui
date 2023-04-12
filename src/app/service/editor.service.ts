@@ -3,9 +3,11 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular
 import { difference, uniq } from 'lodash-es';
 import { LinksFormComponent } from '../form/links/links.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
+import { RefPageArgs } from '../model/ref';
 import { Store } from '../store/store';
 import { getLinks, getMailboxes, getTags } from '../util/editor';
 import { getPath } from '../util/hosts';
+import { parseArgs } from '../util/query';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -72,6 +74,10 @@ export class EditorService {
     if (ending.indexOf('?') < 0) return ending;
     const query = ending.substring(0, ending.indexOf('?'))
     return decodeURIComponent(query);
+  }
+
+  getQueryParams(url: string): RefPageArgs {
+    return parseArgs(this.config.base + url);
   }
 
   /**

@@ -55,6 +55,21 @@ export function getArgs(
   };
 }
 
+export function parseArgs(url: string): RefPageArgs {
+  try {
+    const params = Object.fromEntries(new URL(url).searchParams);
+    params.page = params.pageNumber;
+    delete params.pageNumber;
+    params.size = params.pageSize;
+    delete params.pageSize;
+    return {
+      ...params,
+      ...getRefFilter(params.filter as any),
+    };
+  } catch {}
+  return {};
+}
+
 function getRefFilter(filter?: UrlFilter[]): RefQueryArgs {
   if (!filter) return {};
   let result: RefQueryArgs = {};
