@@ -36,29 +36,29 @@
          class="warning" i18n>
       * Published date was changed to be after source published date.
     </div>
+    <ng-container *ngIf="error || !store.view.ref?.created">
+      <ng-container *ngIf="error?.status === 404 || !store.view.ref?.created">
+        <div class="stack">
+          <div class="error-404" i18n>Not Found</div>
+          <ng-container *ngIf="store.account.signedIn">
+            <div *ngIf="!store.view.isTextPost && !isWiki(store.view.url)" class="error-404 submit-button" routerLink="/submit" [queryParams]="{ url: store.view.url }" i18n>
+              🔗 Submit Link
+            </div>
+            <div *ngIf="store.view.isTextPost" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }" i18n>
+              📝 Submit Text Post
+            </div>
+            <div *ngIf="isWiki(store.view.url)" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }" i18n>
+              📔 &nbsp; Submit Wiki
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+      <div *ngIf="error && error.status !== 404" class="error">{{ printError(error) }}</div>
+    </ng-container>
   </ng-container>
   <ng-template #loading>
     <app-loading></app-loading>
   </ng-template>
-  <ng-container *ngIf="error || !store.view.ref?.created">
-    <ng-container *ngIf="error?.status === 404 || !store.view.ref?.created">
-      <div class="stack">
-        <div class="error-404" i18n>Not Found</div>
-        <ng-container *ngIf="store.account.signedIn">
-          <div *ngIf="!store.view.isTextPost && !isWiki(store.view.url)" class="error-404 submit-button" routerLink="/submit" [queryParams]="{ url: store.view.url }" i18n>
-            🔗 Submit Link
-          </div>
-          <div *ngIf="store.view.isTextPost" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }" i18n>
-            📝 Submit Text Post
-          </div>
-          <div *ngIf="isWiki(store.view.url)" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }" i18n>
-            📔 &nbsp; Submit Wiki
-          </div>
-        </ng-container>
-      </div>
-    </ng-container>
-    <div *ngIf="error && error.status !== 404" class="error">{{ printError(error) }}</div>
-  </ng-container>
   <ng-container *ngIf="store.view.ref?.created">
     <hr>
     <router-outlet></router-outlet>
