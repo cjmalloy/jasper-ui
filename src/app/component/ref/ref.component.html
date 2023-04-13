@@ -143,9 +143,14 @@
       </div>
       <div class="toggle actions-toggle"
            (click)="actionsExpanded = !actionsExpanded">⚙️</div>
+      <div class="toggle view"
+           *ngIf="!admin.status.plugins.comment"
+           [routerLink]="['/ref', ref.url]"
+           [queryParams]="{ origin }">🖇️️</div>
       <div class="toggle comments"
            *ngIf="admin.status.plugins.comment"
-           [routerLink]="['/ref', ref.url, 'comments']">💬️</div>
+           [routerLink]="['/ref', ref.url]"
+           [queryParams]="{ origin }">💬️</div>
     </div>
   </div>
 </div>
