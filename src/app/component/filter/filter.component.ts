@@ -28,6 +28,8 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   modifiedBeforeFilter: FilterItem = { filter: `modified/before/${moment().toISOString()}`, label: $localize`🕓️ modified before` };
   modifiedAfterFilter: FilterItem = { filter: `modified/after/${moment().toISOString()}`, label: $localize`🕓️ modified after` };
+  responseBeforeFilter: FilterItem = { filter: `response/before/${moment().toISOString()}`, label: $localize`🎈️ response before` };
+  responseAfterFilter: FilterItem = { filter: `response/after/${moment().toISOString()}`, label: $localize`🎈️ response after` };
   publishedBeforeFilter: FilterItem = { filter: `published/before/${moment().toISOString()}`, label: $localize`📅️ published before` };
   publishedAfterFilter: FilterItem = { filter: `published/after/${moment().toISOString()}`, label: $localize`📅️ published after` };
   createdBeforeFilter: FilterItem = { filter: `created/before/${moment().toISOString()}`, label: $localize`✨️ created before` };
@@ -65,6 +67,8 @@ export class FilterComponent implements OnInit, OnDestroy {
           filters : [
             this.modifiedBeforeFilter,
             this.modifiedAfterFilter,
+            this.responseBeforeFilter,
+            this.responseAfterFilter,
             this.publishedBeforeFilter,
             this.publishedAfterFilter,
             this.createdBeforeFilter,
@@ -137,6 +141,12 @@ export class FilterComponent implements OnInit, OnDestroy {
     this.setFilters();
   }
 
+  setResponse(index: number, before: boolean, isoDate: string) {
+    this.filters[index] = `response/${before ? 'before' : 'after'}/${isoDate}`;
+    this.syncDates();
+    this.setFilters();
+  }
+
   setPublished(index: number, before: boolean, isoDate: string) {
     this.filters[index] = `published/${before ? 'before' : 'after'}/${isoDate}`;
     this.syncDates();
@@ -156,6 +166,12 @@ export class FilterComponent implements OnInit, OnDestroy {
       }
       if (f.startsWith('modified/after')) {
         this.modifiedAfterFilter.filter = f;
+      }
+      if (f.startsWith('response/before')) {
+        this.responseBeforeFilter.filter = f;
+      }
+      if (f.startsWith('response/after')) {
+        this.responseAfterFilter.filter = f;
       }
       if (f.startsWith('published/before')) {
         this.publishedBeforeFilter.filter = f;

@@ -46,6 +46,7 @@ export class SortComponent implements OnInit, OnDestroy {
         { value: 'created', label: $localize`✨️ new` },
         { value: 'published', label: $localize`📅️ published` },
         { value: 'modified', label: $localize`🕓️ modified` },
+        { value: 'metadataModified', label: $localize`🎈️ new response` },
         { value: 'title', label: $localize`🇦️ title` },
         { value: 'url', label: $localize`🔗️ url` },
         { value: 'scheme', label: $localize`🏳️️ scheme` },

@@ -53,6 +53,8 @@ export type RefQueryArgs = RefFilter & {
   publishedBefore?: string;
   createdAfter?: string;
   createdBefore?: string;
+  responseAfter?: string;
+  responseBefore?: string;
 };
 
 export type RefPageArgs = RefQueryArgs & {
@@ -65,6 +67,7 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
   'created' | 'created,ASC' | 'created,DESC' |
   'modified' | 'modified,ASC' | 'modified,DESC' |
   'published' | 'published,ASC' | 'published,DESC' |
+  'metadataModified' | 'metadataModified,ASC' | 'metadataModified,DESC' |
   'url' | 'url,ASC' | 'url,DESC' |
   'scheme' | 'scheme,ASC' | 'scheme,DESC' |
   'title' | 'title,ASC' | 'title,DESC' |

@@ -2,7 +2,7 @@ import { filter, uniq, without } from 'lodash-es';
 import { Filter, RefPageArgs, RefQueryArgs, RefSort } from '../model/ref';
 import { TagQueryArgs } from '../model/tag';
 
-export const defaultDesc = ['created', 'published', 'modified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
+export const defaultDesc = ['created', 'published', 'modified', 'metadataModified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
 
 export type UrlFilter = Filter |
   `modified/before/${string}` |
@@ -11,6 +11,8 @@ export type UrlFilter = Filter |
   `published/after/${string}` |
   `created/before/${string}` |
   `created/after/${string}` |
+  `response/before/${string}` |
+  `response/after/${string}` |
   `query/${string}` |
   `scheme/${string}` |
   `plugin/${string}` |
@@ -95,6 +97,10 @@ function getRefFilter(filter?: UrlFilter[]): RefQueryArgs {
       result.createdBefore = f.substring('created/before/'.length);
     } else if (f.startsWith('created/after/')) {
       result.createdAfter = f.substring('created/after/'.length);
+    } else if (f.startsWith('response/before/')) {
+      result.responseBefore = f.substring('response/before/'.length);
+    } else if (f.startsWith('response/after/')) {
+      result.responseAfter = f.substring('response/after/'.length);
     } else {
       result[f as Filter] = true;
     }

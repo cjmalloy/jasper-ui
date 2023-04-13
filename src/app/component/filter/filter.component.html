@@ -21,6 +21,11 @@
          step="60"
          [ngModel]="toDate(filter)"
          (ngModelChange)="setModified(i, filter.startsWith('modified/before/'), toIso($event))">
+  <input *ngIf="filter.startsWith('response/')"
+         type="datetime-local"
+         step="60"
+         [ngModel]="toDate(filter)"
+         (ngModelChange)="setResponse(i, filter.startsWith('response/before/'), toIso($event))">
   <input *ngIf="filter.startsWith('published/')"
          type="datetime-local"
          step="60"
