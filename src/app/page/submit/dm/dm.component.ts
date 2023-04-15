@@ -84,8 +84,8 @@ export class SubmitDmPage implements OnInit {
     return uniq([
       this.store.account.localTag,
         ...(this.notes ?
-            ['notes'] :
-            ['locked', ...this.to.value.split(/\s+/).map((t: string) => getMailbox(t, this.store.account.origin))]
+            ['internal', 'notes'] :
+            ['internal', 'dm', 'locked', ...this.to.value.split(/\s+/).map((t: string) => getMailbox(t, this.store.account.origin))]
         ),
       ...this.plugins,
     ]);
