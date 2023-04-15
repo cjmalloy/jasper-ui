@@ -40,6 +40,7 @@ import { Store } from '../store/store';
 import { blogTemplate } from '../template/blog';
 import { chatTemplate } from '../template/chat';
 import { debugTemplate } from '../template/debug';
+import { dmTemplate } from '../template/dm';
 import { folderTemplate } from '../template/folder';
 import { homeTemplate } from '../template/home';
 import { kanbanTemplate } from '../template/kanban';
@@ -123,6 +124,7 @@ export class AdminService {
       kanban: kanbanTemplate,
       blog: blogTemplate,
       chat: chatTemplate,
+      dm: dmTemplate,
     },
   };
 
@@ -245,6 +247,17 @@ export class AdminService {
     return findKey(dict, p => p.tag === tag) || tag;
   }
 
+  configProperty(name: string): [Plugin | Template] {
+    if (!this._cache.has(name)) {
+      this._cache.set(name, [
+        ...Object.values(this.status.plugins),
+        ...Object.values(this.status.templates)
+      ].filter(p => p?.config?.[name]));
+    }
+    return this._cache.get(name)!;
+  }
+
+
   pluginConfigProperty(name: string): Plugin[] {
     if (!this._cache.has(name)) {
       this._cache.set(name, Object.values(this.status.plugins).filter(p => p?.config?.[name]));
@@ -268,17 +281,13 @@ export class AdminService {
   }
 
   get readAccess() {
-    return [
-      ...this.pluginConfigProperty('readAccess'),
-      ...this.templateConfigProperty('readAccess')
-    ].flatMap(p => p.config!.readAccess!);
+    return this.configProperty('readAccess')
+      .flatMap(p => p.config!.readAccess!);
   }
 
   get writeAccess() {
-    return [
-      ...this.pluginConfigProperty('writeAccess'),
-      ...this.templateConfigProperty('writeAccess')
-    ].flatMap(p => p.config!.writeAccess!);
+    return this.templateConfigProperty('writeAccess')
+      .flatMap(p => p.config!.writeAccess!);
   }
 
   get submit() {
@@ -358,12 +367,15 @@ export class AdminService {
   }
 
   get themes() {
-    return this.pluginConfigProperty('themes');
+    return this.configProperty('themes');
   }
 
   get filters() {
     if (!this._cache.has('filters')) {
-      this._cache.set('filters', flatten(Object.values(this.status.plugins)
+      this._cache.set('filters', flatten([
+        ...Object.values(this.status.plugins),
+        ...Object.values(this.status.templates)
+      ]
         .filter(p => p?.config?.filters)
         .map(p => p!.config!.filters!)));
     }

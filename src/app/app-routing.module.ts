@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { ExtPage } from './page/ext/ext.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAllPage } from './page/inbox/all/all.component';
+import { InboxDmsPage } from './page/inbox/dms/dms.component';
 import { InboxPage } from './page/inbox/inbox.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
 import { InboxUnreadPage } from './page/inbox/unread/unread.component';
@@ -66,6 +67,7 @@ const routes: Routes = [
       { path: 'all', component: InboxAllPage },
       { path: 'unread', component: InboxUnreadPage },
       { path: 'sent', component: InboxSentPage },
+      { path: 'dms', component: InboxDmsPage },
     ],
   },
   { path: 'submit', component: SubmitPage,

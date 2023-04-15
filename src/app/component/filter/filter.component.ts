@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 import { filter, find } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import * as moment from 'moment';
-import { PluginFilter } from '../../model/plugin';
 import { Filter } from '../../model/ref';
+import { FilterConfig } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
@@ -90,7 +90,7 @@ export class FilterComponent implements OnInit, OnDestroy {
     this.syncDates();
   }
 
-  loadFilter(filter: PluginFilter) {
+  loadFilter(filter: FilterConfig) {
     if (!filter.scheme && !this.auth.queryReadAccess(filter.query || filter.response)) return;
     let group = find(this.allFilters, f => f.label === (filter.group || ''));
     if (group) {
@@ -103,7 +103,7 @@ export class FilterComponent implements OnInit, OnDestroy {
     }
   }
 
-  convertFilter(filter: PluginFilter): FilterItem {
+  convertFilter(filter: FilterConfig): FilterItem {
     if (filter.scheme) {
       return { filter: `scheme/${filter.scheme}`, label: filter.label || '' };
     } else if (filter.query) {

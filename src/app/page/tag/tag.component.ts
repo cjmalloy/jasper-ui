@@ -42,7 +42,7 @@ export class TagPage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       this.theme.setTitle(this.store.view.name);
       if (!this.fetchPage && !this.store.view.list) return;
-      var hideInternal = !isPlugin(this.store.view.tag);
+      var hideInternal = !isPlugin(this.store.view.tag) && !this.admin.getTemplate(this.store.view.tag)?.config?.internal;
       const args = getArgs(
         this.store.view.query ? this.store.view.tag : defaultWild(this.store.view.tag),
         this.store.view.sort,

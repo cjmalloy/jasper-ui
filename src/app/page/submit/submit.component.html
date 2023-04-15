@@ -18,6 +18,7 @@
          queryParamsHandling="merge" i18n>wiki</a>
     </ng-container>
     <a routerLink="/submit/dm"
+       *ngIf="admin.status.templates.dm"
        [class.current-tab]="store.submit.subpage === 'dm'"
        [queryParams]="{ url: null, tag: store.submit.withoutInternal }"
        queryParamsHandling="merge" i18n>dm</a>

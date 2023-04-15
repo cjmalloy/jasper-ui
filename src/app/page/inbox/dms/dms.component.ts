@@ -8,11 +8,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  selector: 'app-sent',
-  templateUrl: './sent.component.html',
-  styleUrls: ['./sent.component.scss']
+  selector: 'app-dms',
+  templateUrl: './dms.component.html',
+  styleUrls: ['./dms.component.scss']
 })
-export class InboxSentPage implements OnInit, OnDestroy {
+export class InboxDmsPage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
@@ -30,7 +30,7 @@ export class InboxSentPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        this.store.account.tag + ':(plugin/inbox@*|plugin/outbox@*)',
+        `dm:(${this.store.account.tag}:(plugin/inbox@*|plugin/outbox@*)|${this.store.account.notificationsQuery})`,
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,

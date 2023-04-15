@@ -22,7 +22,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   prefix = prefix;
 
   @Input()
-  ext?: Ext | null;
+  ext?: Ext;
   @Input()
   showToggle = true;
   @Input()

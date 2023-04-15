@@ -97,6 +97,7 @@ import { JasperFormlyModule } from './formly/formly.module';
 import { ExtPage } from './page/ext/ext.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAllPage } from './page/inbox/all/all.component';
+import { InboxDmsPage } from './page/inbox/dms/dms.component';
 import { InboxPage } from './page/inbox/inbox.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
 import { InboxUnreadPage } from './page/inbox/unread/unread.component';
@@ -282,6 +283,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     SettingsOriginsPage,
     PluginInfoUiDirective,
     CommentThreadComponent,
+    InboxDmsPage,
   ],
   imports: [
     BrowserModule,

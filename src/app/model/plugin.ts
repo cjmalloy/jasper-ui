@@ -1,56 +1,24 @@
-import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as Handlebars from 'handlebars';
-import { Schema } from 'jtd';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
 import { hasTag } from '../util/tag';
 import { Ref } from './ref';
-import { Tag } from './tag';
+import { Config } from './tag';
 import { Role } from './user';
 
 export type PluginType = 'core' | 'feature' | 'editor' | 'viewer' | 'semantic' | 'theme' | 'tool';
 
-export interface Plugin extends Tag {
+export interface Plugin extends Config {
   type?: 'plugin';
-  config?: {
-    /**
-     * Plugins may only be created and edited by admin, so we allow anything.
-     * Schemas are only used on non-admin config.
-     */
-    [record: string]: any,
+  config?: Config['config'] & {
     /**
      * Optional category for setup screen.
      */
     type?: PluginType,
     /**
-     * Install by default on a fresh instance.
-     */
-    default?: boolean;
-    /**
-     * Mark this plugin as an experiment. Only show on setup page if
-     * plugin/experiments is installed.
-     */
-    experimental?: boolean;
-    /**
-     * Description of what this plugin is used for.
-     */
-    description?: string,
-    /**
-     * Optional handlebars template to use as an embed UI.
-     */
-    ui?: string,
-    /**
      * Optional handlebars template to use as an info UI.
      */
     infoUi?: string,
-    /**
-     * Optional CSS to be added to <head> on load.
-     */
-    css?: string,
-    /**
-     * Optional formly config for editing a form defined by the schema.
-     */
-    form?: FormlyFieldConfig[],
     /**
      * Add plugin to submit dropdown.
      */
@@ -95,33 +63,7 @@ export interface Plugin extends Tag {
      * Add an action to the Ref actions bar.
      */
     actions?: Action[],
-    /**
-     * Add query or response filters to the filter dropdown.
-     */
-    filters?: PluginFilter[],
-    /**
-     * Add themes.
-     */
-    themes?: Record<string, string>,
-    /**
-     * Optional default read access tags to give users. Tags will be prefixed
-     * with the plugin tag.
-     */
-    readAccess?: string[],
-    /**
-     * Optional default write access tags to give users. Tags will be prefixed
-     * with the plugin tag.
-     */
-    writeAccess?: string[],
   };
-  /**
-   * Default config values when validating or reading. Should pass validation.
-   */
-  defaults?: any;
-  /**
-   * JTD schema for validating config.
-   */
-  schema?: Schema;
   /**
    * Generate separate Ref response metadata for this plugin.
    */
@@ -251,27 +193,6 @@ export function active(ref: Ref, o: TagAction | ResponseAction | Icon) {
   if (('tag' in o) && hasTag(o.tag, ref)) return true;
   if (('response' in o) && o.response && ref.metadata?.userUrls?.includes(o.response)) return true;
   return false;
-}
-
-export interface PluginFilter {
-  /**
-   * Filter based on a tag query.
-   * If set, response and scheme must not be set.
-   */
-  query?: string;
-  /**
-   * Filter based on URL scheme.
-   * If set, tag and response must not be set.
-   */
-  scheme?: string;
-  /**
-   * Filter based on plugin responses in metadata. Plugins must have be
-   * generating metadata to work.
-   * If set, query  and scheme must not be set.
-   */
-  response?: `plugin/${string}` | `-plugin/${string}`;
-  label?: string;
-  group?: string;
 }
 
 export function mapPlugin(obj: any): Plugin {

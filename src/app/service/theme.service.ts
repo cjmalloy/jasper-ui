@@ -23,7 +23,7 @@ export class ThemeService {
   get init$() {
     this.setTheme(localStorage.getItem('theme'));
     autorun(() => this.setCustomCss('custom-css', this.getUserCss() || this.getExtCss()));
-    this.admin.pluginConfigProperty('css').map(p => this.setCustomCss(p.tag, p.config!.css));
+    this.admin.configProperty('css').map(p => this.setCustomCss(p.tag, p.config!.css));
     return of(null);
   }
 

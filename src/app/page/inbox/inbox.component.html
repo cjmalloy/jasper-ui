@@ -5,6 +5,9 @@
     <a routerLink="./unread" routerLinkActive="current-tab" i18n>unread</a>
   </ng-container>
   <a routerLink="./sent" routerLinkActive="current-tab" i18n>sent</a>
+  <ng-container *ngIf="admin.status.templates.dm">
+    <a routerLink="./dms" routerLinkActive="current-tab" i18n>dms</a>
+  </ng-container>
   <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
   <app-settings></app-settings>
 </div>
