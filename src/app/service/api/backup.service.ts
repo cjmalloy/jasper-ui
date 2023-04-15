@@ -1,7 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable } from 'rxjs';
+import { delay } from 'lodash-es';
+import { catchError, map, Observable, shareReplay } from 'rxjs';
 import { all, BackupOptions } from '../../model/backup';
+import { params } from '../../util/http';
+import { CACHE_MS } from '../account.service';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -9,6 +12,9 @@ import { LoginService } from '../login.service';
   providedIn: 'root'
 })
 export class BackupService {
+
+  private backupKey = '';
+  private _backupKey$?: Observable<string>;
 
   constructor(
     private http: HttpClient,
@@ -35,11 +41,34 @@ export class BackupService {
     );
   }
 
+  getDownloadKey(): Observable<string> {
+    if (!this._backupKey$) {
+      this._backupKey$ = this.http.post(`${this.base}/key`, null, {
+        responseType: 'text',
+        params: params({ key: this.backupKey }),
+      }).pipe(
+        map(res => this.backupKey = res as string),
+        shareReplay(1),
+        catchError(err => this.login.handleHttpError(err)),
+      );
+      delay(() => this._backupKey$ = undefined, CACHE_MS);
+    }
+    return this._backupKey$;
+  }
+
   restore(id: string, options: BackupOptions = all) {
     return this.http.post(`${this.base}/restore/${id}`, options, {
       responseType: 'text'
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  backfill(origin = ''): Observable<void> {
+    return this.http.post<void>(`${this.base}/backfill`, null, {
+      params: params({ origin }),
+    }).pipe(
+        catchError(err => this.login.handleHttpError(err)),
     );
   }
 

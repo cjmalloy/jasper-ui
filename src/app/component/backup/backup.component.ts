@@ -22,11 +22,16 @@ export class BackupComponent implements OnInit {
   deleted = false;
   serverError: string[] = [];
 
+  private backupKey = '';
+
   constructor(
     public admin: AdminService,
     public backups: BackupService,
     public store: Store,
-  ) { }
+  ) {
+    backups.getDownloadKey()
+      .subscribe(key => this.backupKey = key);
+  }
 
   ngOnInit(): void {
   }
@@ -41,6 +46,10 @@ export class BackupComponent implements OnInit {
     if (link.startsWith("_")) link = link.substring(1);
     if (!link.endsWith(".zip")) link = link + '.zip';
     return link;
+  }
+
+  get downloadLinkAuth() {
+    return this.downloadLink + '?p=' + this.backupKey;
   }
 
   restore() {

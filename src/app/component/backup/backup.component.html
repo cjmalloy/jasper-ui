@@ -1,5 +1,5 @@
 <div class="link">
-  <a [href]="downloadLink" *ngIf="!inProgress">{{ id }}</a>
+  <a [href]="downloadLinkAuth" *ngIf="!inProgress">{{ id }}</a>
   <span *ngIf="inProgress">{{ id.substring(1) }}</span>
 </div>
 <div class="stack">
