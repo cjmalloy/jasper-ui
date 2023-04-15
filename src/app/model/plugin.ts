@@ -199,7 +199,7 @@ export function mapPlugin(obj: any): Plugin {
   obj.type = 'plugin';
   obj.origin ||= '';
   obj.modifiedString = obj.modified;
-  obj.modified = moment(obj.modified);
+  obj.modified = obj.modified && moment(obj.modified);
   return obj;
 }
 

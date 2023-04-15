@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, throwError } from 'rxjs';
-import { Plugin } from '../../../model/plugin';
+import { mapPlugin, Plugin } from '../../../model/plugin';
 import { PluginService } from '../../../service/api/plugin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { PluginStore } from '../../../store/plugin';
@@ -58,6 +58,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
     if (!files || !files.length) return;
     getZipOrTextFile(files[0]!, 'plugin.json')
       .then(json => getModels<Plugin>(json))
+      .then(plugins => plugins.map(mapPlugin))
       .then(plugins => plugins.map(p => this.uploadPlugin(p)))
       .catch(err => this.serverError = [err]);
   }

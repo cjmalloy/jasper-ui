@@ -1,5 +1,7 @@
 import * as JSZip from 'jszip';
 import { isArray } from 'lodash-es';
+import { Ext, mapTag } from '../model/ext';
+import { mapRef, Ref } from '../model/ref';
 
 export function unzip(file: File) {
   return JSZip.loadAsync(file).catch(() => {
@@ -31,9 +33,21 @@ export function getZipOrTextFile(file: File, zipFileName: string): Promise<strin
   }
 }
 
+export type FilteredModels = {ref?: Ref[], ext?: Ext[]};
+export function filterModels<T>(models: T[]): FilteredModels {
+  return {
+    ref: models.filter(m => 'url' in m).map(mapRef),
+    ext: models.filter(m => 'tag' in m).map(mapTag),
+  };
+}
+
 export function getModels<T>(json?: string): T[] {
   if (!json) return [];
   const models = JSON.parse(json);
-  if (isArray(models)) return models;
-  return [models];
+  return (isArray(models) ? models : [models]).map(m => {
+    delete m.metadata;
+    delete m.modified;
+    delete m.created;
+    return m;
+  });
 }

@@ -31,6 +31,7 @@ import { SubmitDmPage } from './page/submit/dm/dm.component';
 import { SubmitInvoicePage } from './page/submit/invoice/invoice.component';
 import { SubmitPage } from './page/submit/submit.component';
 import { SubmitTextPage } from './page/submit/text/text.component';
+import { UploadPage } from './page/submit/upload/upload.component';
 import { SubmitWebPage } from './page/submit/web/web.component';
 import { TagPage } from './page/tag/tag.component';
 import { UserPage } from './page/user/user.component';
@@ -74,6 +75,7 @@ const routes: Routes = [
     children: [
       { path: 'web', component: SubmitWebPage },
       { path: 'text', component: SubmitTextPage },
+      { path: 'upload', component: UploadPage },
       { path: 'dm', component: SubmitDmPage },
       { path: 'invoice', component: SubmitInvoicePage },
     ]

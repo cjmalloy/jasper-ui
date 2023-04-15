@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, throwError } from 'rxjs';
-import { Template } from '../../../model/template';
+import { mapTemplate, Template } from '../../../model/template';
 import { TemplateService } from '../../../service/api/template.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
@@ -58,6 +58,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
     if (!files || !files.length) return;
     getZipOrTextFile(files[0]!, 'template.json')
       .then(json => getModels<Template>(json))
+      .then(plugins => plugins.map(mapTemplate))
       .then(plugins => plugins.map(p => this.uploadTemplate(p)))
       .catch(err => this.serverError = [err]);
   }

@@ -60,7 +60,6 @@ import { SortComponent } from './component/sort/sort.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { TemplateListComponent } from './component/template/template-list/template-list.component';
 import { TemplateComponent } from './component/template/template.component';
-import { UploadRefComponent } from './component/upload-ref/upload-ref.component';
 import { UserListComponent } from './component/user/user-list/user-list.component';
 import { UserComponent } from './component/user/user.component';
 import { ViewerComponent } from './component/viewer/viewer.component';
@@ -125,6 +124,7 @@ import { SubmitDmPage } from './page/submit/dm/dm.component';
 import { SubmitInvoicePage } from './page/submit/invoice/invoice.component';
 import { SubmitPage } from './page/submit/submit.component';
 import { SubmitTextPage } from './page/submit/text/text.component';
+import { UploadPage } from './page/submit/upload/upload.component';
 import { SubmitWebPage } from './page/submit/web/web.component';
 import { TagPage } from './page/tag/tag.component';
 import { UserPage } from './page/user/user.component';
@@ -267,7 +267,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     DebugComponent,
     FillWidthDirective,
     LimitWidthDirective,
-    UploadRefComponent,
     RefEmailComponent,
     MobileTabSelectComponent,
     SelectTemplateComponent,
@@ -284,6 +283,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     PluginInfoUiDirective,
     CommentThreadComponent,
     InboxDmsPage,
+    UploadPage,
   ],
   imports: [
     BrowserModule,

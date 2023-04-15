@@ -10,6 +10,11 @@
        [class.current-tab]="store.submit.text"
        [queryParams]="{ url: null, tag: store.submit.withoutInternal }"
        queryParamsHandling="merge" i18n>text</a>
+    <a class="fake-link"
+       (click)="showUpload() || uploadFile.click()"
+       [class.current-tab]="store.submit.upload"
+       i18n-title title="Upload Refs and Exts"
+       i18n>upload</a>
     <ng-container *ngIf="!admin.isWikiExternal()">
       <a routerLink="/submit"
          [class.current-tab]="store.submit.wiki"
@@ -31,9 +36,13 @@
     <app-settings></app-settings>
   </div>
 
+  <input #uploadFile
+         type="file"
+         class="upload"
+         (change)="upload(uploadFile?.files!)">
   <router-outlet></router-outlet>
 
-  <ng-container *ngIf="!store.submit.subpage">
+  <div class="full-page-form" *ngIf="!store.submit.subpage">
     <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
 
       <ng-container *ngIf="!store.submit.wiki && selectedPlugin">
@@ -67,8 +76,7 @@
                autocomplete="off"
                formControlName="url"
                appAutofocus>
-        <app-upload-ref *ngIf="store.submit.web" (serverErrors)="serverErrors = $event"></app-upload-ref>
-        <app-qr-scanner (data)="scanQr($event)"></app-qr-scanner>
+        <app-qr-scanner *ngIf="!store.submit.wiki" (data)="scanQr($event)"></app-qr-scanner>
       </div>
 
       <ng-container *ngFor="let e of serverErrors">
@@ -103,5 +111,5 @@
       <br>
       <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
     </ng-container>
-  </ng-container>
+  </div>
 </ng-container>

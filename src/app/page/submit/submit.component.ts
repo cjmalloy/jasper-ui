@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -33,7 +33,6 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   styleUrls: ['./submit.component.scss'],
 })
 export class SubmitPage implements OnInit, OnDestroy {
-  @HostBinding('class') css = 'full-page-form';
   private disposers: IReactionDisposer[] = [];
 
   submitForm: UntypedFormGroup;
@@ -209,8 +208,20 @@ export class SubmitPage implements OnInit, OnDestroy {
       queryParams: {
         url: data,
         tag: uniq([...this.store.submit.tags, 'plugin/qr']),
-      } ,
+      },
       queryParamsHandling: 'merge'
     });
+  }
+
+  upload(fileList: FileList) {
+    runInAction(() => this.store.submit.files = fileList);
+    this.router.navigate(['/submit/upload'], { queryParamsHandling: 'merge' });
+  }
+
+  showUpload() {
+    if (!this.store.submit.files?.length) return false;
+    this.router.navigate(['/submit/upload'], { queryParamsHandling: 'merge' });
+    return true;
+
   }
 }

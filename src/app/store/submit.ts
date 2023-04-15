@@ -8,6 +8,7 @@ export class SubmitStore {
 
   wikiPrefix = DEFAULT_WIKI_PREFIX;
   submitInternal: Plugin[] = [];
+  files: FileList = [] as any;
 
   constructor(
     public route: RouterStore,
@@ -60,6 +61,10 @@ export class SubmitStore {
 
   get web() {
     return !this.wiki && (!this.subpage || this.subpage === 'web');
+  }
+
+  get upload() {
+    return this.subpage === 'upload';
   }
 
   get internal() {

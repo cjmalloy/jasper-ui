@@ -28,7 +28,7 @@ html, body {
   flex-grow: 1;
 }
 
-:link {
+:link, .fake-link {
   text-decoration: none;
 }
 
@@ -62,6 +62,13 @@ select.big {
 
 .wide {
   width: 100%;
+}
+
+.padded {
+  padding: 4px;
+}
+.padded > * {
+  margin: 4px;
 }
 
 .cdk-overlay-backdrop {
@@ -254,7 +261,20 @@ video.qr-preview {
     margin: -3px 0;
   }
 
+  .drafts {
+    margin-right: 10px;
+    cursor: pointer;
+    padding-top: 2.5px;
+    position: relative;
+    transition: transform 0.4s ease-in-out;
+    transform-origin: center;
+    &:hover {
+      transform:  scale(1.5);
+    }
+  }
+
   .preferences {
+    margin-right: 10px;
     cursor: pointer;
     padding-top: 2.5px;
     position: relative;
@@ -352,7 +372,8 @@ video.qr-preview {
     font-weight: bold;
     border-bottom: 1px solid transparent;
 
-    &:link:hover {
+    &:link:hover,
+    &.fake-link:hover {
       text-decoration: none;
     }
 

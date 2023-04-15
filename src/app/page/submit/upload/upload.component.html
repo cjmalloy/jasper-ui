@@ -1,0 +1,45 @@
+<ng-container *mobxAutorun>
+  <div class="padded list-container">
+
+    <span></span>
+    <div class="padded form-array">
+      <button type="button" (click)="upload.click()" i18n-title title="Upload Refs and Exts" i18n>+ upload</button>
+      <input #upload type="file" accept=".json,.zip" (change)="setFiles(upload.files!)"/>
+      <ng-container *ngIf="!empty">
+        <button type="button" (click)="clear()" i18n-title title="Clear" i18n>clear</button>
+      </ng-container>
+    </div>
+
+    <ng-container *ngIf="!empty">
+      <span></span>
+      <div class="padded form-array">
+        <button type="button" (click)="push()" i18n-title title="Save" i18n>submit all</button>
+        <label for="overwrite" i18n>Overwrite existing</label>
+        <div><input id="overwrite" type="checkbox" [(ngModel)]="overwrite"></div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="es.length">
+      <span>Exts: </span>
+      <span></span>
+      <ng-container *ngFor="let ext of es; let i = index">
+        <div class="list-number">{{ i + 1 }}</div>
+        <app-ext [ext]="ext"></app-ext>
+      </ng-container>
+    </ng-container>
+
+    <ng-container *ngIf="rs.length">
+      <span>Refs: </span>
+      <span></span>
+      <ng-container *ngFor="let ref of rs; let i = index">
+        <div class="list-number">{{ i + 1 }}</div>
+        <app-ref [ref]="ref"></app-ref>
+      </ng-container>
+    </ng-container>
+  </div>
+
+  <ng-container *ngFor="let e of serverErrors">
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  </ng-container>
+</ng-container>

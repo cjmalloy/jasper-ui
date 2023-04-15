@@ -139,7 +139,7 @@ body.light-theme {
         background-color: #dedddd;
       }
 
-      &:link, &:visited, &:active {
+      &:link, &:visited, &:active, &.fake-link {
         color: black;
       }
 
