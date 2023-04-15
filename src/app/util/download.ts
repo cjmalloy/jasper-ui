@@ -21,5 +21,5 @@ export function downloadPage(type: Type, page: Page<any>, query: String) {
   const zip = new JSZip();
   zip.file(type + '.json', file(page.content));
   zip.generateAsync({ type: 'blob' })
-    .then(content => FileSaver.saveAs(content, `${query.replace('/', '_')} (page ${page.number + 1} of ${page.totalPages}).zip`));
+    .then(content => FileSaver.saveAs(content, `${query.replace('/', '_')}` + (page.totalPages > 1 ? ` (page ${page.number + 1} of ${page.totalPages})` : '') + '.zip'));
 }
