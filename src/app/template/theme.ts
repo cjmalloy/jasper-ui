@@ -1,8 +1,8 @@
 import * as moment from 'moment';
-import { Plugin } from '../model/plugin';
+import { Template } from '../model/template';
 
-export const terminalThemePlugin: Plugin = {
-  tag: 'plugin/theme/terminal',
+export const terminalTheme: Template = {
+  tag: 'theme/terminal',
   name: $localize`🖌️ Terminal Theme`,
   config: {
     type: 'theme',

@@ -6,7 +6,7 @@ import { Ref } from './ref';
 import { Config } from './tag';
 import { Role } from './user';
 
-export type PluginType = 'core' | 'feature' | 'editor' | 'viewer' | 'semantic' | 'theme' | 'tool';
+export type PluginType = 'core' | 'feature' | 'editor' | 'viewer' | 'semantic' | 'tool';
 
 export interface Plugin extends Config {
   type?: 'plugin';

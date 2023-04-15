@@ -22,8 +22,8 @@ export class ThemeService {
 
   get init$() {
     this.setTheme(localStorage.getItem('theme'));
-    autorun(() => this.setCustomCss('custom-css', this.getUserCss() || this.getExtCss()));
-    this.admin.configProperty('css').map(p => this.setCustomCss(p.tag, p.config!.css));
+    autorun(() => this.setCustomCss('custom-css', ...(this.store.account.config.userTheme ? this.getUserCss() : this.getExtCss())));
+    this.admin.configProperty('css').forEach(p => this.setCustomCss(p.tag, p.config!.css));
     return of(null);
   }
 
@@ -35,15 +35,15 @@ export class ThemeService {
     }
   }
 
-  setCustomCss(id: string, css?: string) {
+  setCustomCss(id: string, ...cs: (string | undefined)[]) {
     id = id.replace(/\W/g, '-');
     const old = this.document.getElementById(id)
     if (old) old.remove();
-    if (!css) return;
+    if (!cs || !cs.length || !cs[0]) return;
     const head = this.document.getElementsByTagName('head')[0];
     const style = this.document.createElement('style');
     style.id = id;
-    style.innerHTML = css;
+    for (const css of cs) style.innerHTML += css + '\n\n';
     head.appendChild(style);
   }
 
@@ -71,8 +71,9 @@ export class ThemeService {
   }
 
   private getTheme(id: string, sources: Record<string, string>[]) {
-    if (!id) return undefined;
-    return sources.find(ts => ts[id])?.[id];
+    if (!id) return [];
+    return sources.filter(ts => ts[id])
+      .map(ts => ts[id] as string);
   }
 
   private getUserCss() {

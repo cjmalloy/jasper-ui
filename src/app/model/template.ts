@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import { Ext } from './ext';
 import { Config } from './tag';
 
-export type TemplateType = 'core' | 'feature' | 'tool';
+export type TemplateType = 'core' | 'feature' | 'theme' | 'tool';
 
 export interface Template extends Config {
   type?: 'template';

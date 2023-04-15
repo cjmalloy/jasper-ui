@@ -31,7 +31,6 @@ import { personPlugin } from '../plugin/person';
 import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../plugin/poll';
 import { qrPlugin } from '../plugin/qr';
 import { repostPlugin } from '../plugin/repost';
-import { terminalThemePlugin } from '../plugin/theme';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
 import { voteDownPlugin, voteUpPlugin } from '../plugin/vote';
@@ -46,6 +45,7 @@ import { homeTemplate } from '../template/home';
 import { kanbanTemplate } from '../template/kanban';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
+import { terminalTheme } from '../template/theme';
 import { userTemplate } from '../template/user';
 import { getExtension, getHost } from '../util/hosts';
 import { includesTag, tagIntersection } from '../util/tag';
@@ -110,9 +110,6 @@ export class AdminService {
       pd: pollOptionDPlugin,
       voteUp: voteUpPlugin,
       voteDown: voteDownPlugin,
-
-      // Themes
-      terminalTheme: terminalThemePlugin,
     },
     templates: <Record<string, Template>> {
       debug: debugTemplate,
@@ -125,6 +122,9 @@ export class AdminService {
       blog: blogTemplate,
       chat: chatTemplate,
       dm: dmTemplate,
+
+      // Themes
+      terminalTheme: terminalTheme,
     },
   };
 
