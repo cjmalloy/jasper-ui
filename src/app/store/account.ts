@@ -41,16 +41,16 @@ export class AccountStore {
    */
   editor = false;
   /**
-   * Is editor.
-   * Allowed to toggle any public tag (except public and locked) to any Ref in view.
-   * May be given access to other tags.
-   * Limited to origin in multi-tenant.
-   */
-  user = false;
-  /**
    * Is user.
    * Allowed to post Refs.
    * May be given access to other tags.
+   */
+  user = false;
+  /**
+   * Is viewer.
+   * Allowed to edit user ext.
+   * May be given read access to other tags.
+   * May not be given write access to other tags.
    */
   viewer = false;
   notifications = 0;
