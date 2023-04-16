@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { Subject } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { mailboxes } from '../../../plugin/mailbox';
 import { ThemeService } from '../../../service/theme.service';
@@ -14,7 +14,6 @@ import { hasTag } from '../../../util/tag';
   styleUrls: ['./comments.component.scss'],
 })
 export class RefCommentsComponent implements OnInit, OnDestroy {
-
   private disposers: IReactionDisposer[] = [];
   newComments$ = new Subject<Ref | null>();
 
@@ -36,6 +35,15 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
       const search = this.store.view.search;
       runInAction(() => this.thread.setArgs(top, sort, filter, search));
     }));
+    this.newComments$.subscribe(c => {
+      if (c && this.store.view.ref) {
+        this.store.view.ref.metadata ||= {};
+        this.store.view.ref.metadata.plugins ||= {} as any;
+        this.store.view.ref.metadata.plugins!['plugin/comment'] ||= 0;
+        this.store.view.ref.metadata.plugins!['plugin/comment']++;
+        this.store.eventBus.refresh(this.store.view.ref!);
+      }
+    });
   }
 
   ngOnDestroy() {

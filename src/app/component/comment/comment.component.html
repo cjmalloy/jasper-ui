@@ -91,10 +91,10 @@
                      [newComments$]="newComments$"></app-comment-reply>
   <div class="comment-children"
        [class.hidden-without-removing]="collapsed">
-    <app-comment-list [source]="ref"
-                      [depth]="depth! - 1"
-                      [context]="context + 1"
-                      [newComments$]="newComments$"></app-comment-list>
+    <app-comment-thread [source]="ref"
+                        [depth]="depth! - 1"
+                        [context]="context + 1"
+                        [newComments$]="newComments$"></app-comment-thread>
   </div>
   <ng-container *ngIf="(depth === 1 && comments) || moreComments">
     <span class="fake-link load-more"

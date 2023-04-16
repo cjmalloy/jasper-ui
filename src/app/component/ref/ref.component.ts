@@ -6,7 +6,7 @@ import { defer, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, switchMap, throwError } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { delay, tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import {
@@ -441,7 +441,7 @@ export class RefComponent implements OnInit, OnDestroy {
     }
     const tags = uniq([...without(this.editForm.value.tags, ...this.admin.editorTags), ...this.editorPlugins]);
     const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
-    this.refs.update({
+    const ref = {
       ...this.ref,
       ...this.editForm.value,
       tags,
@@ -450,17 +450,8 @@ export class RefComponent implements OnInit, OnDestroy {
         ...this.ref.plugins,
         ...this.editForm.value.plugins,
       }),
-    }).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin)),
-      tap(ref => this.publishChanged = !published.isSame(ref.published)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
-    });
+    };
+    this.store.eventBus.runAndReload(this.refs.update(ref));
   }
 
   copy() {
