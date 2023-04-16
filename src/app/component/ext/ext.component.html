@@ -6,7 +6,7 @@
 <div class="stack">
   <div class="info">
     <ng-container *ngIf="ext.modified else notSubmitted">
-      <span [title]="ext.modified?.toISOString()" i18n>modified {{ ext.modified?.fromNow() }}</span>
+      <span [title]="ext.modified.toISOString()" i18n>modified {{ ext.modified.fromNow() }}</span>
     </ng-container>
     <ng-template #notSubmitted>
       <span i18n>not found</span>
