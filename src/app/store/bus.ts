@@ -13,6 +13,7 @@ export class EventBus {
   constructor() {
     makeAutoObservable(this, {
       ref: observable.shallow,
+      errors: observable.shallow,
       runAndReload: false,
     });
   }
@@ -24,7 +25,7 @@ export class EventBus {
 
   fireError(errors: string[], ref?: Ref) {
     this.event = 'error';
-    this.errors = errors;
+    this.errors = [...errors];
     if (ref) {
       this.ref = ref;
     }

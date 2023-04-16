@@ -1,5 +1,5 @@
 <div class="row">
-  <div *ngIf="store.account.signedIn && admin.status.plugins.voteUp"
+  <div *ngIf="store.account.user && admin.status.plugins.voteUp"
        class="voting">
     <div class="vote-up"
          [class.on]="upvote"
@@ -82,10 +82,10 @@
         </div>
         <app-viewer *ngIf="expanded && expandInline && !editing && !viewSource" [ref]="ref" ></app-viewer>
         <div class="actions" [class.expanded]="actionsExpanded">
-          <ng-container *ngIf="store.account.signedIn && !ref.created">
+          <ng-container *ngIf="store.account.user && !ref.created && !ref.upload">
             <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
           </ng-container>
-          <ng-container *ngIf="ref.created">
+          <ng-container *ngIf="ref.created && !ref.upload">
             <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }" i18n>permalink</a>
             <a *ngIf="store.account.user" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
             <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
@@ -107,14 +107,18 @@
                      appAutofocus>
               <button (click)="addInlineTag(inlineTag)" i18n>+</button>
             </span>
-            <ng-container *ngIf="store.account.signedIn && !local">
+            <ng-container *ngIf="store.account.user && !local">
               <span class="fake-link" (click)="copy()" i18n>copy</span>
             </ng-container>
             <a *ngIf="writeAccess else source"
                class="fake-link"
                (click)="editing = !editing" i18n>edit</a>
             <ng-template #source>
-              <a class="fake-link"
+              <a *ngIf="!local"
+                 class="fake-link"
+                 (click)="editing = !editing" i18n>diff</a>
+              <a *ngIf="local"
+                 class="fake-link"
                  (click)="viewSource = !viewSource" i18n>source</a>
             </ng-template>
             <a *ngIf="!deleting && (store.account.sysMod || writeAccess)"
@@ -122,6 +126,38 @@
                (click)="deleting = true" i18n>delete</a>
             <span *ngIf="deleting" class="delete-confirm" i18n> are you sure?&nbsp;
               <a class="fake-link" (click)="delete()">yes</a>&nbsp;/&nbsp;
+              <a class="fake-link" (click)="deleting = false">no</a>&nbsp;
+            </span>
+          </ng-container>
+          <ng-container *ngIf="ref.upload">
+            <ng-container *ngIf="ref.exists">
+              <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }" i18n>permalink</a>
+            </ng-container>
+            <ng-container *ngIf="store.account.user">
+              <span class="fake-link" (click)="upload()" i18n>upload</span>
+              <a *ngIf="store.account.user" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
+              <a class="fake-link"
+                 (click)="tagging = !tagging" i18n>tag</a>
+              <span *ngIf="tagging" class="inline-tagging">
+                <input #inlineTag
+                       (keydown)="$event.key === 'Enter' && addInlineTag(inlineTag) || true"
+                       (input)="inlineTag.value = inlineTag.value.toLowerCase()"
+                       type="text"
+                       inputmode="email"
+                       [pattern]="tagRegex"
+                       autocorrect="off"
+                       autocapitalize="none"
+                       appAutofocus>
+                <button (click)="addInlineTag(inlineTag)" i18n>+</button>
+              </span>
+              <a class="fake-link"
+                 (click)="editing = !editing" i18n>edit</a>
+            </ng-container>
+            <a *ngIf="!deleting && (store.account.sysMod || writeAccess)"
+               class="fake-link"
+               (click)="deleting = true" i18n>remove</a>
+            <span *ngIf="deleting" class="delete-confirm" i18n> are you sure?&nbsp;
+              <a class="fake-link" (click)="remove()">yes</a>&nbsp;/&nbsp;
               <a class="fake-link" (click)="deleting = false">no</a>&nbsp;
             </span>
           </ng-container>

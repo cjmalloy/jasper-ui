@@ -99,6 +99,8 @@ export function writeRef(ref: Ref): Ref {
   const result = { ...ref } as any;
   result.published &&= moment(result.published);
   result.modified = result.modifiedString as any;
+  delete result.upload;
+  delete result.exists;
   delete result.metadata;
   delete result.modifiedString;
   delete result.created;

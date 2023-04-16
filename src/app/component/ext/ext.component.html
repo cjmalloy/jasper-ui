@@ -16,15 +16,16 @@
     </ng-container>
   </div>
   <div class="actions">
-    <ng-container *ngIf="store.account.signedIn && !ext.modified">
-      <a [routerLink]="['/edit', ext.tag]" i18n>submit</a>
-    </ng-container>
-    <ng-container *ngIf="ext.modified">
+    <ng-container *ngIf="!ext.upload">
       <a *ngIf="writeAccess else source"
          class="fake-link"
          (click)="editing = !editing" i18n>edit</a>
       <ng-template #source>
-        <a class="fake-link"
+        <a *ngIf="!local"
+           class="fake-link"
+           (click)="editing = !editing" i18n>diff</a>
+        <a *ngIf="local"
+           class="fake-link"
            (click)="viewSource = !viewSource" i18n>source</a>
       </ng-template>
       <a class="fake-link"
@@ -36,6 +37,20 @@
       <a class="fake-link" (click)="delete()">yes</a> /
       <a class="fake-link" (click)="deleting = false">no</a>
     </span>
+    </ng-container>
+    <ng-container *ngIf="store.account.user && ext.upload">
+      <a class="fake-link" (click)="upload()" i18n>save</a>
+      <a class="fake-link"
+         (click)="editing = !editing" i18n>edit</a>
+      <a class="fake-link"
+         (click)="download()" i18n>download</a>
+      <a *ngIf="!deleting"
+         class="fake-link"
+         (click)="deleting = true" i18n>remove</a>
+      <span *ngIf="deleting" class="delete-confirm" i18n>are you sure?
+        <a class="fake-link" (click)="(deleting = false) && store.submit.removeExt(ext)">yes</a> /
+        <a class="fake-link" (click)="deleting = false">no</a>
+      </span>
     </ng-container>
   </div>
 </div>

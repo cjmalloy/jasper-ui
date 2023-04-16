@@ -213,14 +213,14 @@ export class SubmitPage implements OnInit, OnDestroy {
     });
   }
 
-  upload(fileList: FileList) {
-    runInAction(() => this.store.submit.files = fileList);
-    this.router.navigate(['/submit/upload'], { queryParamsHandling: 'merge' });
+  upload(fileList?: FileList) {
+    this.store.submit.setFiles(fileList);
+    this.router.navigate(['/submit/upload']);
   }
 
   showUpload() {
-    if (!this.store.submit.files?.length) return false;
-    this.router.navigate(['/submit/upload'], { queryParamsHandling: 'merge' });
+    if (this.store.submit.empty) return false;
+    this.router.navigate(['/submit/upload']);
     return true;
 
   }

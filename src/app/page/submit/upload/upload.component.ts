@@ -22,13 +22,10 @@ export class UploadPage implements OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   serverErrors: string[] = [];
-  rs: Ref[] = [];
-  es: Ext[] = [];
   processing = false;
-  overwrite = false;
 
   constructor(
-    private store: Store,
+    public store: Store,
     private refs: RefService,
     private exts: ExtService,
     private router: Router,
@@ -43,38 +40,47 @@ export class UploadPage implements OnDestroy {
     this.disposers.length = 0;
   }
 
-  get empty() {
-    return !this.es.length && !this.rs.length;
-  }
-
   read(files?: FileList) {
-    this.rs = [];
-    this.es = [];
     const file = files?.[0];
     if (!file) return;
     this.getModels(file)
       .then(models => {
-        this.es = models.ext || [];
-        this.rs = models.ref || [];
+        models.ref?.forEach(ref => this.refs.count({ url: ref.url }).subscribe(count  => {
+          if (count) {
+            this.store.submit.foundRef(ref.url);
+          }
+        }));
+        models.ext?.forEach(ext => this.exts.count({ query: ext.tag }).subscribe(count  => {
+          if (count) {
+            this.store.submit.foundExt(ext.tag);
+          }
+        }));
+        return models;
       })
+      .then(models => runInAction(() => {
+        this.store.submit.exts = [...this.store.submit.exts, ...(models.ext || [])];
+        this.store.submit.refs = [...this.store.submit.refs, ...(models.ref || [])];
+      }))
       .catch(() => null);
+    this.store.submit.setFiles([]);
   }
 
   setFiles(files?: FileList) {
     if (!files) return;
-    runInAction(() => this.store.submit.files = files);
+    this.store.submit.setFiles(files);
   }
 
-  clear() {
-    runInAction(() => this.store.submit.files = [] as any);
+  clear(upload: HTMLInputElement) {
+    upload.value = '';
+    this.store.submit.clearUpload();
   }
 
   push() {
-    if (this.empty) return;
+    if (this.store.submit.empty) return;
     this.processing = true;
     const uploads = [
-      ...this.es.map(ext => this.uploadExt(ext)),
-      ...this.rs.map(ref => this.uploadRef(ref)),
+      ...this.store.submit.exts.map(ext => this.uploadExt(ext)),
+      ...this.store.submit.refs.map(ref => this.uploadRef(ref)),
     ];
     return firstValueFrom(forkJoin(uploads))
       .then(() => delay(() => this.postNavigate(), 1000))
@@ -88,9 +94,9 @@ export class UploadPage implements OnDestroy {
       origin: this.store.account.origin,
     }).pipe(
       catchError((res: HttpErrorResponse) => {
-        if (res.status === 409 && this.overwrite) {
+        if (this.store.submit.overwrite) {
           return this.refs.get(ref.url, this.store.account.origin).pipe(
-            switchMap(old => this.refs.update({
+            switchMap(old => this.refs.push({
               ...ref,
               origin: this.store.account.origin,
               modifiedString: old.modifiedString,
@@ -111,9 +117,9 @@ export class UploadPage implements OnDestroy {
       origin: this.store.account.origin,
     }).pipe(
       catchError((res: HttpErrorResponse) => {
-        if (res.status === 409 && this.overwrite) {
+        if (this.store.submit.overwrite) {
           return this.exts.get(ext.tag + this.store.account.origin).pipe(
-            switchMap(old => this.exts.update({
+            switchMap(old => this.exts.push({
               ...ext,
               origin: this.store.account.origin,
               modifiedString: old.modifiedString,
@@ -147,18 +153,20 @@ export class UploadPage implements OnDestroy {
   }
 
   private postNavigate() {
-    if (this.rs.length === 1) {
-      return this.router.navigate(['/ref', this.rs[0].url]);
+    if (this.store.submit.refs.length === 1) {
+      return this.router.navigate(['/ref', this.store.submit.refs[0].url]);
     }
-    if (this.rs.length) {
+    if (this.store.submit.refs.length) {
       return this.router.navigate(['/tag', '*'], { queryParams: { sort: 'modified,DESC' } });
     }
-    if (this.es.length === 1) {
-      return this.router.navigate(['/tag', this.es[0].tag]);
+    if (this.store.submit.exts.length === 1) {
+      return this.router.navigate(['/tag', this.store.submit.exts[0].tag]);
     }
-    if (this.es.length) {
+    if (this.store.submit.exts.length) {
       return this.router.navigate(['/settings', 'ext'], { queryParams: { sort: 'modified,DESC' } });
     }
     return null;
   }
+
+  protected readonly console = console;
 }

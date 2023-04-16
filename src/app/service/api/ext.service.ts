@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { catchError, map, Observable } from 'rxjs';
 import { Ext, mapTag, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
-import { TagPageArgs } from '../../model/tag';
+import { TagPageArgs, TagQueryArgs } from '../../model/tag';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -23,8 +23,20 @@ export class ExtService {
     return this.config.api + '/api/v1/ext';
   }
 
+  private get repl() {
+    return this.config.api + '/api/v1/repl/ext';
+  }
+
   create(ext: Ext): Observable<void> {
     return this.http.post<void>(this.base, writeExt(ext)).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  push(ext: Ext, origin = ''): Observable<void> {
+    return this.http.post<void>(this.repl, [writeExt(ext)], {
+      params: params({ origin }),
+    }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -43,6 +55,16 @@ export class ExtService {
       params: params(args),
     }).pipe(
       map(mapPage(mapTag)),
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  count(args?: TagQueryArgs): Observable<number> {
+    return this.http.get(`${this.base}/count`, {
+      responseType: 'text',
+      params: params(args),
+    }).pipe(
+      map(parseInt),
       catchError(err => this.login.handleHttpError(err)),
     );
   }

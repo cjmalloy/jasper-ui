@@ -3,10 +3,9 @@ import { Component, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@an
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
+import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, switchMap, throwError } from 'rxjs';
-import { delay, tap } from 'rxjs/operators';
+import { catchError, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import {
@@ -122,6 +121,16 @@ export class RefComponent implements OnInit, OnDestroy {
     return this.css + templates(this.ref.tags, 'plugin')
       .map(t => t.replace(/\//g, '-'))
       .join(' ');
+  }
+
+  @HostBinding('class.upload')
+  get uploadedFile() {
+    return this.ref.upload;
+  }
+
+  @HostBinding('class.exists')
+  get existsFile() {
+    return this.ref.exists;
   }
 
   get ref(): Ref {
@@ -256,6 +265,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get canInvoice() {
+    if (!this.ref.created) return false;
     if (!this.local) return false;
     if (!this.admin.status.plugins.invoice) return false;
     if (!this.isAuthor) return false;
@@ -363,7 +373,21 @@ export class RefComponent implements OnInit, OnDestroy {
         Private tags start with an underscore.`];
       return;
     }
-    this.store.eventBus.runAndReload(this.ts.create(field.value, this.ref.url, this.ref.origin!), this.ref);
+    if (this.ref.upload) {
+      runInAction(() => {
+        this.ref.tags ||= [];
+        for (const t of (field.value || '').split(' ').filter(t => !!t)) {
+          if (t.startsWith('-')) {
+            this.ref.tags = without(this.ref.tags, t.substring(1));
+          } else if (!this.ref.tags.includes(t)) {
+            this.ref.tags.push(t);
+          }
+        }
+      });
+      this.ref = this.ref;
+    } else {
+      this.store.eventBus.runAndReload(this.ts.create(field.value, this.ref.url, this.ref.origin!), this.ref);
+    }
   }
 
   visible(v: Visibility) {
@@ -451,7 +475,13 @@ export class RefComponent implements OnInit, OnDestroy {
         ...this.editForm.value.plugins,
       }),
     };
-    this.store.eventBus.runAndReload(this.refs.update(ref));
+    if (this.ref.upload) {
+      ref.upload = true;
+      this.ref = ref;
+      this.upload();
+    } else {
+      this.store.eventBus.runAndReload(this.refs.update(ref), ref);
+    }
   }
 
   copy() {
@@ -462,12 +492,21 @@ export class RefComponent implements OnInit, OnDestroy {
       tags,
     }, true).pipe(
       catchError((err: HttpErrorResponse) => {
+        if (err.status === 409) {
+          this.refs.get(this.ref.url, this.ref.origin)
+            .subscribe(ref => this.ref.created = ref.created);
+        }
         this.serverError = printError(err);
         return throwError(() => err);
       }),
     ).subscribe(ref => {
+      this.store.submit.removeRef(this.ref);
       this.router.navigate(['/ref', this.ref.url], { queryParams: { origin: this.store.account.origin }})
     });
+  }
+
+  upload() {
+    this.store.eventBus.runAndReload((this.store.submit.overwrite ? this.refs.push(this.ref) : this.refs.create(this.ref)), this.ref);
   }
 
   delete() {
@@ -484,6 +523,13 @@ export class RefComponent implements OnInit, OnDestroy {
       this.deleting = false;
       this.deleted = true;
     });
+  }
+
+  remove() {
+    this.serverError = [];
+    this.store.submit.removeRef(this.ref);
+    this.deleting = false;
+    this.deleted = true;
   }
 
   cssUrl(url: string) {

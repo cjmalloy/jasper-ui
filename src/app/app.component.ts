@@ -1,5 +1,9 @@
 import { Component, HostBinding } from '@angular/core';
+import { Router } from '@angular/router';
+import { runInAction } from 'mobx';
 import { ConfigService } from './service/config.service';
+import { Store } from './store/store';
+import { file } from './util/download';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +16,31 @@ export class AppComponent {
 
   constructor(
     public config: ConfigService,
+    public store: Store,
+    private router: Router,
   ) { }
+
+  dragOver(event: DragEvent) {
+    event.preventDefault();
+  }
+
+  drop(event: DragEvent) {
+    event.preventDefault();
+    const items = event.dataTransfer?.items;
+    if (!items) {
+      this.store.submit.setFiles([]);
+      return;
+    }
+    const result = [] as any;
+    for (let i = 0; i < items.length; i++) {
+      const d = items[i];
+      if (d?.kind !== 'file') continue;
+      result.push(d.getAsFile());
+    }
+    this.store.submit.setFiles(result);
+    if (!this.store.submit.upload) {
+      this.router.navigate(['/submit/upload']);
+    }
+  }
 
 }

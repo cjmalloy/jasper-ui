@@ -212,6 +212,8 @@ export function writePlugin(plugin: Plugin): Plugin {
   const result = { ...plugin };
   result.modified = result.modifiedString as any;
   delete result.type;
+  delete result.upload;
+  delete result.exists;
   delete result.modifiedString;
   delete result._ui;
   delete result._infoUi;

@@ -37,6 +37,8 @@ export function writeUser(user: User): User {
   result.modified = result.modifiedString as any;
   result.pubKey = user.pubKey && btoa(user.pubKey);
   delete result.type;
+  delete result.upload;
+  delete result.exists;
   delete result.modifiedString;
   delete result.qualifiedTag;
   return result;

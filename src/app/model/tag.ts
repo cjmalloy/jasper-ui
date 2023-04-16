@@ -3,6 +3,8 @@ import { Schema } from 'jtd';
 import * as moment from 'moment';
 
 export interface HasModified {
+  upload?: boolean;
+  exists?: boolean;
   modified?: moment.Moment;
   modifiedString?: string;
 }

@@ -10,7 +10,10 @@ export function unzip(file: File) {
 }
 
 export function zippedFile(zip: JSZip, fileName: string) {
-  return zip.file(fileName)?.async('string')?.catch(() => '') ||
+  return zip.file(fileName)?.async('string')?.catch(err => {
+    console.error(err);
+      return '';
+    }) ||
     Promise.resolve(undefined);
 }
 
@@ -45,9 +48,26 @@ export function getModels<T>(json?: string): T[] {
   if (!json) return [];
   const models = JSON.parse(json);
   return (isArray(models) ? models : [models]).map(m => {
-    delete m.metadata;
-    delete m.modified;
+    m.upload = true;
     delete m.created;
     return m;
   });
+}
+
+export function parseModels(file: File): Promise<FilteredModels> {
+  if (file.name.toLowerCase().endsWith('.zip')) {
+    return unzip(file).then(zip => Promise.all([
+      zippedFile(zip, 'ext.json')
+        .then(json => getModels<Ext>(json))
+        .then(exts => exts.map(mapTag)),
+      zippedFile(zip, 'ref.json')
+        .then(json => getModels<Ref>(json))
+        .then(refs => refs.map(mapRef)),
+    ]))
+      .then(([ext, ref]) => ({ ext, ref }));
+  } else {
+    return getTextFile(file)
+      .then(getModels)
+      .then(filterModels);
+  }
 }

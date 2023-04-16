@@ -3,7 +3,7 @@ import { Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq } from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, Subject, switchMap, throwError } from 'rxjs';
+import { catchError, Subject, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../../model/ref';
 import { commentPlugin } from '../../../plugin/comment';
@@ -32,7 +32,7 @@ export class CommentReplyComponent {
   @Input()
   tags: string[] = [];
   @Input()
-  newComments$!: Subject<Ref | null>;
+  newComments$?: Subject<Ref|null>;
   @Input()
   showCancel = false;
   @Input()
@@ -70,7 +70,7 @@ export class CommentReplyComponent {
     const url = 'comment:' + uuid();
     const value = this.comment.value;
     this.comment.setValue('');
-    this.refs.create({
+    const ref = {
       url,
       origin: this.store.account.origin,
       title: this.config.replyPrefix + this.to.title,
@@ -92,21 +92,21 @@ export class CommentReplyComponent {
         ...getMailboxes(value, this.store.account.origin),
       ])),
       published: moment(),
-    }).pipe(
-      switchMap(() => this.refs.get(url, this.store.account.origin)),
+    };
+    this.refs.create(ref).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         this.comment.setValue(value);
         return throwError(() => err);
       }),
-    ).subscribe(ref => {
+    ).subscribe(() => {
       this.serverError = [];
-      this.newComments$.next(ref);
+      this.newComments$?.next(ref);
     });
   }
 
   cancel() {
-    this.newComments$.next(null);
+    this.newComments$?.next(null);
     this.comment.setValue('');
   }
 }

@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { toJS } from 'mobx';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { Ext, writeExt } from '../../model/ext';
 import { AdminService } from '../../service/admin.service';
@@ -48,6 +48,16 @@ export class ExtComponent implements OnInit {
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);
   }
 
+  @HostBinding('class.upload')
+  get uploadedFile() {
+    return this.ext.upload;
+  }
+
+  @HostBinding('class.exists')
+  get existsFile() {
+    return this.ext.exists;
+  }
+
   @ViewChild(ExtFormComponent)
   set extForm(value: ExtFormComponent) {
     value?.setValue(toJS(this.ext));
@@ -68,7 +78,7 @@ export class ExtComponent implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    this.exts.update({
+    const ext = {
       ...this.ext,
       ...this.editForm.value,
       tag: this.ext.tag, // Need to fetch because control is disabled
@@ -77,7 +87,13 @@ export class ExtComponent implements OnInit {
         ...this.ext.config,
         ...this.editForm.value.config,
       },
-    }).pipe(
+    };
+    if (this.ext.upload) {
+      ext.upload = true;
+      this.ext = ext;
+      this.upload();
+    }
+    this.exts.update(ext).pipe(
       switchMap(() => this.exts.get(this.qualifiedTag)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
@@ -88,6 +104,25 @@ export class ExtComponent implements OnInit {
       this.editing = false;
       this.ext = tag;
     });
+  }
+
+  upload() {
+    this.ext.origin = this.store.account.origin;
+    this.catchError((this.store.submit.overwrite ? this.exts.push(this.ext) : this.exts.create(this.ext))).pipe(
+      switchMap(() => this.exts.get(this.ext.tag + this.ext.origin))
+    ).subscribe(ext => {
+      this.ext = ext;
+      this.store.submit.setExt(ext);
+    });
+  }
+
+  catchError(o: Observable<any>) {
+    return o.pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    );
   }
 
   delete() {

@@ -740,6 +740,13 @@ details.advanced[open] {
   }
 }
 
+.ref.upload, .ext.upload {
+  border-left: 10px palegoldenrod groove;
+  &.exists {
+    border-left: 10px red groove;
+  }
+}
+
 .stack {
   display: flex;
   flex-direction: column;

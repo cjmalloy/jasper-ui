@@ -63,7 +63,6 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
         this.store.view.ref.metadata.plugins ||= {} as any;
         this.store.view.ref.metadata.plugins!['plugin/comment'] ||= 0;
         this.store.view.ref.metadata.plugins!['plugin/comment']++;
-        this.store.eventBus.refresh(this.store.view.ref!);
       }
     });
   }

@@ -317,6 +317,13 @@ body.dark-theme {
     }
   }
 
+  .ref.upload, .ext.upload {
+    border-left: 10px $warning groove;
+    &.exists {
+      border-left: 10px $error groove;
+    }
+  }
+
   .ref, .form, .editor {
     .expand {
       border: 1px solid $border;

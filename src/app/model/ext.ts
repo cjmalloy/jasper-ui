@@ -18,6 +18,8 @@ export function writeExt(ext: Ext): Ext {
   const result = { ...ext };
   result.modified = result.modifiedString as any;
   delete result.type;
+  delete result.upload;
+  delete result.exists;
   delete result.modifiedString;
   return result;
 }
