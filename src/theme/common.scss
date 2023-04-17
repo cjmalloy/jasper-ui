@@ -795,6 +795,16 @@ details.advanced[open] {
 .comment {
   margin-left: 10px;
 
+  .voting {
+    margin-top: 4px;
+    font-size: 80%;
+    display: inline-block;
+
+    * {
+      transform: none !important;
+    }
+  }
+
   .comment-children {
     margin-left: 18px;
   }
@@ -1146,21 +1156,30 @@ ngx-monaco-editor {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
+  max-height: 56px;
 
   * {
     cursor: pointer;
     transition: transform 100ms ease-in-out;
+    filter: grayscale(1);
     &:hover {
-      filter: brightness(1.1);
+      filter: grayscale(1) brightness(1.1);
     }
-    &.pressed {
-      filter: brightness(0.5) blur(.9);
+    &:active {
+      filter: grayscale(1) brightness(0.5) blur(0.5px);
     }
   }
 
   .on {
     transform: scale(1.5);
-    filter: hue-rotate(180deg)
+    filter: hue-rotate(180deg);
+    &:hover {
+      filter: hue-rotate(180deg) brightness(1.1);
+    }
+    &:active {
+      transform: scale(1);
+      filter: hue-rotate(180deg) brightness(0.5) blur(0.5px);
+    }
   }
 
   .vote-up::before {

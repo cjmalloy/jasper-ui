@@ -1,11 +1,14 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import * as moment from 'moment/moment';
 import { Subject, takeUntil } from 'rxjs';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { deleteNotice } from '../../plugin/delete';
 import { mailboxes } from '../../plugin/mailbox';
+import { score } from '../../plugin/vote';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -15,7 +18,7 @@ import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags, TAGS_REGEX } from '../../util/format';
 import { getScheme } from '../../util/hosts';
-import { hasTag, tagOrigin } from '../../util/tag';
+import { hasTag, hasUserUrlResponse, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-comment',
@@ -35,7 +38,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   @Input()
   depth?: number | null = 7;
   @Input()
-  context = 0;
+  context = 0
 
   _ref!: Ref;
   commentEdited$ = new Subject<Ref>();
@@ -188,6 +191,18 @@ export class CommentComponent implements OnInit, OnDestroy {
     return this.ref.sources![0].startsWith('comment:') && this.ref.sources![1] === top;
   }
 
+  get upvote() {
+    return hasUserUrlResponse('plugin/vote/up', this.ref);
+  }
+
+  get downvote() {
+    return hasUserUrlResponse('plugin/vote/down', this.ref);
+  }
+
+  get score() {
+    return score(this.ref);
+  }
+
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
       user = user.replace(this.store.account.origin, '');
@@ -248,6 +263,38 @@ export class CommentComponent implements OnInit, OnDestroy {
       if (!this.active(a) && !a.labelOff) return false;
     }
     return true;
+  }
+
+  voteUp() {
+    this.ref.metadata ||= {};
+    this.ref.metadata.userUrls ||= [];
+    if (this.upvote) {
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/vote/up', this.ref.url), this.ref);
+    } else if (!this.downvote) {
+      this.ref.metadata.userUrls.push('plugin/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/vote/up', this.ref.url), this.ref);
+    } else {
+      this.ref.metadata.userUrls.push('plugin/vote/up');
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/vote/up', '-plugin/vote/down'], this.ref.url), this.ref);
+    }
+  }
+
+  voteDown() {
+    this.ref.metadata ||= {};
+    this.ref.metadata.userUrls ||= [];
+    if (this.downvote) {
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/vote/down', this.ref.url), this.ref);
+    } else if (!this.upvote) {
+      this.ref.metadata.userUrls.push('plugin/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/vote/down', this.ref.url), this.ref);
+    } else {
+      this.ref.metadata.userUrls.push('plugin/vote/down');
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/vote/up', 'plugin/vote/down'], this.ref.url), this.ref);
+    }
   }
 
   delete() {

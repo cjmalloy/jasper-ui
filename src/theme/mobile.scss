@@ -144,8 +144,19 @@ $tablet-width: 960px;
     max-height: 50vh;
   }
 
+  .voting {
+    font-size: 170%;
+    * {
+      transform: none !important;
+    }
+  }
+
   .comment {
-    margin-left: 0;
+    margin-left: 2px;
+
+    .voting {
+      margin-top: 10px;
+    }
 
     .comment-children {
       margin-left: 2px;

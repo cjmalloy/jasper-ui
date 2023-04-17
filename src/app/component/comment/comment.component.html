@@ -1,11 +1,8 @@
 <ng-container *mobxAutorun>
   <div class="comment-container info collapsed" tabindex="0" *ngIf="collapsed">
     <span class="comment-expand fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, ref.origin, collapsed = false)" i18n>[+]</span>&nbsp;
-    <ng-container *ngFor="let user of authors">
-      <a class="author" [routerLink]="['/tag', user]">
-        {{ formatAuthor(user) }}
-      </a>
-    </ng-container>
+    <a *ngFor="let user of authors" class="author" [routerLink]="['/tag', user]">{{ formatAuthor(user) }}</a>&nbsp;
+    <span *ngIf="admin.status.plugins.voteUp" class="vote-score" i18n>{{ score }} points&nbsp;</span>
     <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
     <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="ref.modified?.fromNow()">*</span>
     <ng-container *ngFor="let icon of icons">
@@ -17,51 +14,62 @@
   <div class="comment-container info collapsed" tabindex="0" *ngIf="deleted" i18n>
     deleted comment
   </div>
-
-  <div class="comment-container" tabindex="0" *ngIf="!collapsed && !deleted">
-    <div class="info">
-      <span class="comment-collapse fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, ref.origin, collapsed = true)">[&ndash;]</span>&nbsp;
-      <a *ngFor="let user of authors" class="author" [routerLink]="['/tag', user]">{{ formatAuthor(user) }}</a>&nbsp;
-      <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
-      <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="'last edited ' + ref.modified?.fromNow()">*</span>
-      <ng-container *ngIf="tagged.length" i18n>
-        tagged
-        <ng-container *ngFor="let tag of tagged">
-          <a class="tag" [routerLink]="['/tag', tag]">{{ tag }}</a>
-        </ng-container>
-      </ng-container>
-      <ng-container *ngFor="let icon of icons">
-        <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span>
-      </ng-container>
+  <div class="row">
+    <div *ngIf="!collapsed && !deleted && store.account.user && admin.status.plugins.voteUp"
+         class="voting">
+      <div class="vote-up"
+           [class.on]="upvote"
+           (click)="voteUp()"></div>
+      <div class="vote-down"
+           *ngIf="admin.status.plugins.voteDown"
+           [class.on]="downvote"
+           (click)="voteDown()"></div>
     </div>
-    <app-md *ngIf="!editing"
-            class="comment-body"
-            [origin]="ref.origin"
-            [plugins]="ref.tags"
-            [text]="ref.comment || ''"></app-md>
-    <app-comment-edit *ngIf="editing"
-                      [ref]="ref"
-                      [commentEdited$]="commentEdited$"></app-comment-edit>
-    <div class="actions">
-      <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>permalink</a>
-      <a class="fake-link" (click)="replying = !replying" i18n>reply</a>
-      <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
-      <a *ngIf="parent" [routerLink]="['/ref', ref.sources![0], 'comments']" [queryParams]="{ origin }" i18n>parent</a>
-      <a *ngIf="!parent && sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }" i18n>{{ sources }}&thinsp;sources</a>
-      <a class="fake-link"
-         *ngIf="writeAccess"
-         (click)="editing = !editing" i18n>edit</a>
-      <a class="fake-link"
-         *ngIf="!deleting && (store.account.sysMod || writeAccess)"
-         (click)="deleting = true" i18n>delete</a>
-      <span *ngIf="deleting" class="delete-confirm" i18n> are you sure?
+    <div class="comment-container" tabindex="0" *ngIf="!collapsed && !deleted">
+      <div class="info">
+        <span class="comment-collapse fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, ref.origin, collapsed = true)">[&ndash;]</span>&nbsp;
+        <a *ngFor="let user of authors" class="author" [routerLink]="['/tag', user]">{{ formatAuthor(user) }}</a>&nbsp;
+        <span *ngIf="admin.status.plugins.voteUp" class="vote-score" i18n>{{ score }} points&nbsp;</span>
+        <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
+        <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="'last edited ' + ref.modified?.fromNow()">*</span>
+        <ng-container *ngIf="tagged.length" i18n>
+          tagged
+          <ng-container *ngFor="let tag of tagged">
+            <a class="tag" [routerLink]="['/tag', tag]">{{ tag }}</a>
+          </ng-container>
+        </ng-container>
+        <ng-container *ngFor="let icon of icons">
+          <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span>
+        </ng-container>
+      </div>
+      <app-md *ngIf="!editing"
+              class="comment-body"
+              [origin]="ref.origin"
+              [plugins]="ref.tags"
+              [text]="ref.comment || ''"></app-md>
+      <app-comment-edit *ngIf="editing"
+                        [ref]="ref"
+                        [commentEdited$]="commentEdited$"></app-comment-edit>
+      <div class="actions">
+        <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>permalink</a>
+        <a class="fake-link" (click)="replying = !replying" i18n>reply</a>
+        <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
+        <a *ngIf="parent" [routerLink]="['/ref', ref.sources![0], 'comments']" [queryParams]="{ origin }" i18n>parent</a>
+        <a *ngIf="!parent && sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }" i18n>{{ sources }}&thinsp;sources</a>
+        <a class="fake-link"
+           *ngIf="writeAccess"
+           (click)="editing = !editing" i18n>edit</a>
+        <a class="fake-link"
+           *ngIf="!deleting && (store.account.sysMod || writeAccess)"
+           (click)="deleting = true" i18n>delete</a>
+        <span *ngIf="deleting" class="delete-confirm" i18n> are you sure?
       <a class="fake-link" (click)="delete()">yes</a> /
       <a class="fake-link" (click)="deleting = false">no</a>
     </span>
-      <a class="fake-link"
-         *ngIf="taggingAccess"
-         (click)="tagging = !tagging" i18n>tag</a>
-      <span *ngIf="tagging" class="inline-tagging">
+        <a class="fake-link"
+           *ngIf="taggingAccess"
+           (click)="tagging = !tagging" i18n>tag</a>
+        <span *ngIf="tagging" class="inline-tagging">
       <input #inlineTag
              (keydown)="$event.key === 'Enter' && addInlineTag(inlineTag) || true"
              (input)="inlineTag.value = inlineTag.value.toLowerCase()"
@@ -73,13 +81,14 @@
              appAutofocus>
       <button (click)="addInlineTag(inlineTag)" i18n>+</button>
     </span>
-      <ng-container *ngIf="canInvoice">
-        <a [routerLink]="['/submit/invoice']"
-           [queryParams]="{ url: ref.url }" i18n>invoice</a>
-      </ng-container>
-      <ng-container *ngFor="let a of actions">
-        <a *ngIf="showAction(a)" class="fake-link" (click)="acts.apply(ref, a)">{{ label(a) }}</a>
-      </ng-container>
+        <ng-container *ngIf="canInvoice">
+          <a [routerLink]="['/submit/invoice']"
+             [queryParams]="{ url: ref.url }" i18n>invoice</a>
+        </ng-container>
+        <ng-container *ngFor="let a of actions">
+          <a *ngIf="showAction(a)" class="fake-link" (click)="acts.apply(ref, a)">{{ label(a) }}</a>
+        </ng-container>
+      </div>
     </div>
   </div>
   <app-comment-reply *ngIf="replying"
