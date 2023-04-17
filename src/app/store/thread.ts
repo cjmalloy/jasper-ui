@@ -13,7 +13,6 @@ import { getArgs, UrlFilter } from '../util/query';
 export class ThreadStore {
 
   defaultBatchSize = 500;
-  top?: Ref = {} as any;
   args?: RefPageArgs = {} as any;
   pages: Page<Ref>[] = [];
   error?: HttpErrorResponse = {} as any;
@@ -36,7 +35,6 @@ export class ThreadStore {
   }
 
   clear() {
-    this.top = undefined;
     this.error = undefined;
     this.args = {
       size: this.defaultBatchSize,
@@ -48,7 +46,6 @@ export class ThreadStore {
 
   setArgs(top: Ref, sort?: RefSort | RefSort[], filters?: UrlFilter[], search?: string) {
     this.clear();
-    this.top = top;
     this.args = {
       ...getArgs('plugin/comment@*', sort, filters, search),
       responses: top.url,

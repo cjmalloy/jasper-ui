@@ -99,7 +99,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   }
 
   get moreComments() {
-    const topComments = this.thread.cache.get(this.thread.top?.url);
+    const topComments = this.thread.cache.get(this.top);
     if (!topComments) return false;
     return topComments.length > this.summaryItems;
   }

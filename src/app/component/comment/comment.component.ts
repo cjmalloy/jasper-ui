@@ -100,6 +100,13 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
   }
 
+  get top() {
+    if (hasTag('plugin/comment', this.store.view.ref)) {
+      return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0];
+    }
+    return this.store.view.ref?.url;
+  }
+
   ngOnInit(): void {
     this.newComments$.pipe(
       takeUntil(this.destroy$),
@@ -184,11 +191,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     if (!this.sources) return false;
     if (this.sources === 1) return true;
     if (this.sources > 2) return false;
-    let top = this.thread.top?.url;
-    if (hasTag('plugin/comment', this.thread.top)) {
-      top = this.thread.top?.sources?.[1] || this.thread.top?.sources?.[0];
-    }
-    return this.ref.sources![0].startsWith('comment:') && this.ref.sources![1] === top;
+    return this.ref.sources![0].startsWith('comment:') && this.ref.sources![1] === this.top;
   }
 
   get upvote() {
