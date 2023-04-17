@@ -261,7 +261,8 @@ video.qr-preview {
     display: none;
     cursor: pointer;
     font-size: 18px;
-    margin: -3px 0;
+    margin: -1px 0;
+    line-height: 18px;
     filter: grayscale(1);
   }
 
