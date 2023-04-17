@@ -262,6 +262,7 @@ video.qr-preview {
     cursor: pointer;
     font-size: 18px;
     margin: -3px 0;
+    filter: grayscale(1);
   }
 
   .drafts {
