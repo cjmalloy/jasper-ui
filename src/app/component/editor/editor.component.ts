@@ -126,7 +126,7 @@ export class EditorComponent implements AfterViewInit {
   }, 400);
 
   syncText(value: string) {
-    if (!value) {
+    if (!value && this._text) {
       this._text = value;
       this.syncEditor.next(this._text);
     } else {
