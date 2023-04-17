@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { without } from 'lodash-es';
 import { Action, active, EventAction, ResponseAction, TagAction } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Store } from '../store/store';
@@ -46,13 +47,21 @@ export class ActionService {
   respond(ref: Ref, a: ResponseAction) {
     const on = active(ref, a);
     if (on) {
-      this.store.eventBus.runAndReload(this.tags.deleteResponse(a.response, ref.url), ref);
+      ref.metadata ||= {};
+      ref.metadata.userUrls ||= [];
+      ref.metadata.userUrls = without(ref.metadata.userUrls, a.response);
+      this.store.eventBus.runAndRefresh(this.tags.deleteResponse(a.response, ref.url), ref);
     } else {
+      const clear = (a.clear || []).map(t => '-' + t);
       const tags = [
-        ...(a.clear || []).map(t => '-' + t),
+        ...clear,
         a.response,
       ];
-      this.store.eventBus.runAndReload(this.tags.respond(tags, ref.url), ref);
+      ref.metadata ||= {};
+      ref.metadata.userUrls ||= [];
+      ref.metadata.userUrls.push(a.response);
+      ref.metadata.userUrls = without(ref.metadata.userUrls, ...clear);
+      this.store.eventBus.runAndRefresh(this.tags.respond(tags, ref.url), ref);
     }
   }
 }

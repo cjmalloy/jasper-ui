@@ -436,22 +436,34 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   voteUp() {
+    this.ref.metadata ||= {};
+    this.ref.metadata.userUrls ||= [];
     if (this.upvote) {
-      this.store.eventBus.runAndReload(this.ts.deleteResponse('plugin/vote/up', this.ref.url), this.ref);
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/vote/up', this.ref.url), this.ref);
     } else if (!this.downvote) {
-      this.store.eventBus.runAndReload(this.ts.createResponse('plugin/vote/up', this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/vote/up', this.ref.url), this.ref);
     } else {
-      this.store.eventBus.runAndReload(this.ts.respond(['plugin/vote/up', '-plugin/vote/down'], this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/vote/up');
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/vote/up', '-plugin/vote/down'], this.ref.url), this.ref);
     }
   }
 
   voteDown() {
+    this.ref.metadata ||= {};
+    this.ref.metadata.userUrls ||= [];
     if (this.downvote) {
-      this.store.eventBus.runAndReload(this.ts.deleteResponse('plugin/vote/down', this.ref.url), this.ref);
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/vote/down', this.ref.url), this.ref);
     } else if (!this.upvote) {
-      this.store.eventBus.runAndReload(this.ts.createResponse('plugin/vote/down', this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/vote/down', this.ref.url), this.ref);
     } else {
-      this.store.eventBus.runAndReload(this.ts.respond(['-plugin/vote/up', 'plugin/vote/down'], this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/vote/down');
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/vote/up', 'plugin/vote/down'], this.ref.url), this.ref);
     }
   }
 

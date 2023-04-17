@@ -49,6 +49,10 @@ export class EventBus {
     this.catchError(o, ref).subscribe(() => this.reload(ref));
   }
 
+  runAndRefresh(o: Observable<any>, ref?: Ref) {
+    this.catchError(o, ref).subscribe(() => this.refresh(ref));
+  }
+
   catchError(o: Observable<any>, ref?: Ref) {
     return o.pipe(
       catchError((err: HttpErrorResponse) => {
