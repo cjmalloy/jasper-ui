@@ -114,7 +114,7 @@ export class ThreadStore {
   }
 
   get hasMore() {
-    if (!this.pages.length) return true;
+    if (!this.pages.length) return false;
     return this.pages.length < this.pages[0].totalPages;
   }
 }
