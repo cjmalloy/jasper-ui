@@ -797,6 +797,7 @@ details.advanced[open] {
 
   .voting {
     margin-top: 4px;
+    margin-right: 2px;
     font-size: 80%;
     display: inline-block;
 
@@ -1157,6 +1158,7 @@ ngx-monaco-editor {
   flex-direction: column;
   justify-content: space-around;
   max-height: 56px;
+  margin-right: 10px;
 
   * {
     cursor: pointer;
