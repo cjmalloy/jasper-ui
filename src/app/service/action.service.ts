@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { without } from 'lodash-es';
-import { Action, active, EventAction, ResponseAction, TagAction } from '../model/plugin';
+import { forkJoin } from 'rxjs';
+import { Action, active, EmitAction, emitModels, EventAction, ResponseAction, TagAction } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Store } from '../store/store';
+import { ExtService } from './api/ext.service';
 import { OriginService } from './api/origin.service';
 import { RefService } from './api/ref.service';
 import { ScrapeService } from './api/scrape.service';
@@ -15,6 +17,7 @@ export class ActionService {
 
   constructor(
     private refs: RefService,
+    private exts: ExtService,
     private tags: TaggingService,
     private scraper: ScrapeService,
     private origins: OriginService,
@@ -31,11 +34,23 @@ export class ActionService {
     if ('event' in a) {
       return this.event(ref, a);
     }
+    if ('emit' in a) {
+      return this.emit(ref, a);
+    }
     throw 'Invalid action';
   }
 
   event(ref: Ref, a: EventAction) {
     this.store.eventBus.fire(a.event, ref);
+  }
+
+  emit(ref: Ref, a: EmitAction) {
+    const models = emitModels(a, ref, this.store.account.localTag);
+    const uploads = [
+      ...models.ref.map(ref=>  this.refs.create(ref)),
+      ...models.ext.map(ext => this.exts.create(ext)),
+    ];
+    forkJoin(uploads).subscribe();
   }
 
   tag(ref: Ref, a: TagAction) {

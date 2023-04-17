@@ -31,6 +31,7 @@ import { personPlugin } from '../plugin/person';
 import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../plugin/poll';
 import { qrPlugin } from '../plugin/qr';
 import { repostPlugin } from '../plugin/repost';
+import { thanksPlugin } from '../plugin/thanks';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
 import { voteDownPlugin, voteUpPlugin } from '../plugin/vote';
@@ -110,6 +111,7 @@ export class AdminService {
       pd: pollOptionDPlugin,
       voteUp: voteUpPlugin,
       voteDown: voteDownPlugin,
+      thanksPlugin: thanksPlugin,
     },
     templates: <Record<string, Template>> {
       debug: debugTemplate,

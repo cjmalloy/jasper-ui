@@ -1,7 +1,9 @@
 import * as Handlebars from 'handlebars';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
+import { v4 as uuid } from 'uuid';
 import { hasTag } from '../util/tag';
+import { filterModels } from '../util/zip';
 import { Ref } from './ref';
 import { Config } from './tag';
 import { Role } from './user';
@@ -138,7 +140,7 @@ export interface Icon extends Visibility {
   scheme?: `${string}:`;
 }
 
-export type Action = TagAction | ResponseAction | EventAction;
+export type Action = TagAction | ResponseAction | EmitAction | EventAction;
 
 export interface TagAction extends Visibility {
   /**
@@ -187,6 +189,20 @@ export interface EventAction extends Visibility {
   label?: string;
 }
 
+export interface EmitAction extends Visibility {
+  /**
+   * Emit the templated json models.
+   */
+  emit: string;
+  /**
+   * Event label.
+   */
+  label?: string;
+
+  // Cache
+  _emit?: HandlebarsTemplateDelegate;
+}
+
 export function active(ref: Ref, o: TagAction | ResponseAction | Icon) {
   if ('scheme' in o) return true;
   if (!('tag' in o || 'response' in o)) return true;
@@ -224,6 +240,8 @@ export function writePlugin(plugin: Plugin): Plugin {
 // @ts-ignore
 window.global = {};
 
+Handlebars.registerHelper('uuid', prefix => uuid());
+
 Handlebars.registerHelper('fromNow', value => moment(value).fromNow());
 
 Handlebars.registerHelper('response', (ref: Ref, value: string) => {
@@ -241,6 +259,19 @@ Handlebars.registerHelper('percent', (ref: Ref, value: string, prefix: string) =
   if (!total) return 0;
   return Math.floor(100 * (ref.metadata.plugins[prefix + value] || 0) / total);
 });
+
+export function emitModels(action: EmitAction, ref: Ref, user: string) {
+  if (!action.emit) return {ref: [], ext: []};
+  if (!action._emit) {
+    action._emit = Handlebars.compile(action.emit);
+  }
+  const hydrated = action._emit({
+    action: toJS(action),
+    ref: toJS(ref),
+    user: user,
+  });
+  return filterModels(JSON.parse(hydrated));
+}
 
 export function renderPlugin(plugin: Plugin, ref: Ref = { url: '' }) {
   if (!plugin.config?.ui) return '';
