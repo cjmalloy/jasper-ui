@@ -35,7 +35,7 @@
     </ng-container>
     <ng-container *ngIf="store.account.mod || store.account.signedIn && store.account.tag === tag">
       <div class="submit-button" [routerLink]="['/user', user && tag || '']">
-        <span i18n-title title="Create User" i18n>👤️</span> <label i18n>User</label>
+        <span class="recolour" i18n-title title="Create User" i18n>👤️</span> <label i18n>User</label>
       </div>
     </ng-container>
     <ng-container *ngIf="store.account.editor || writeAccess">

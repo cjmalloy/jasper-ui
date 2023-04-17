@@ -1,5 +1,4 @@
 
-
 html, body {
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
@@ -30,6 +29,10 @@ html, body {
 
 :link, .fake-link {
   text-decoration: none;
+}
+
+.recolour {
+  filter: grayscale(1) sepia(1) brightness(1) hue-rotate(180deg);
 }
 
 :link:hover,
