@@ -88,7 +88,7 @@ export class DebugComponent {
       }).pipe(
         tap(() => {
           if (this.admin.def.plugins.voteUp) {
-            this.ts.createResponse('plugin/vote/up', url);
+            this.ts.createResponse('plugin/vote/up', url).subscribe();
           }
         }),
       );

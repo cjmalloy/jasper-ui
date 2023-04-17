@@ -141,8 +141,8 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
       tags,
     }).pipe(
       tap(() => {
-        if (this.admin.def.plugins.voteUp) {
-          this.ts.createResponse('plugin/vote/up', this.url.value);
+        if (this.admin.status.plugins.voteUp) {
+          this.ts.createResponse('plugin/vote/up', this.url.value).subscribe();
         }
       }),
       catchError((res: HttpErrorResponse) => {

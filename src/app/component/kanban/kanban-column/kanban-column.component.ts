@@ -2,9 +2,11 @@ import { AfterViewInit, Component, HostBinding, Input, OnDestroy } from '@angula
 import { ActivatedRoute } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, map, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Page } from '../../../model/page';
 import { Ref, RefSort } from '../../../model/ref';
+import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { Store } from '../../../store/store';
@@ -38,6 +40,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
+    private admin: AdminService,
     private store: Store,
     private refs: RefService,
     private tags: TaggingService,
@@ -138,7 +141,11 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
       tags: tagsWithAuthor,
     };
     this.refs.create(ref).pipe(
-      map(() => ref),
+      tap(() => {
+        if (this.admin.status.plugins.voteUp) {
+          this.tags.createResponse('plugin/vote/up', ref.url);
+        }
+      }),
       catchError(err => {
         if (err.status === 403) {
           // TODO: better error message
@@ -152,7 +159,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
         }
         return throwError(err);
       }),
-    ).subscribe(ref => {
+    ).subscribe(() => {
       this.mutated = true;
       if (!this.pages) this.pages = [];
       this.pages[this.pages.length - 1].content.push(ref)

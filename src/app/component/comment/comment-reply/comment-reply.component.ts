@@ -4,12 +4,14 @@ import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/form
 import { uniq } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, Subject, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../../model/ref';
 import { commentPlugin } from '../../../plugin/comment';
 import { getMailbox } from '../../../plugin/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
 import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
@@ -49,6 +51,7 @@ export class CommentReplyComponent {
     private thread: ThreadStore,
     private editor: EditorService,
     private refs: RefService,
+    private ts: TaggingService,
     private fb: FormBuilder,
   ) {
     this.commentForm = fb.group({
@@ -94,6 +97,11 @@ export class CommentReplyComponent {
       published: moment(),
     };
     this.refs.create(ref).pipe(
+      tap(() => {
+        if (this.admin.status.plugins.voteUp) {
+          this.ts.createResponse('plugin/vote/up', url).subscribe();
+        }
+      }),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         this.comment.setValue(value);
@@ -101,7 +109,14 @@ export class CommentReplyComponent {
       }),
     ).subscribe(() => {
       this.serverError = [];
-      this.newComments$?.next(ref);
+      this.newComments$?.next({
+        ...ref,
+        metadata: {
+          plugins: {
+            'plugin/vote/up': 1
+          }
+        }
+      });
     });
   }
 
