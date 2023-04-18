@@ -2,10 +2,9 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { Router } from '@angular/router';
 import { without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import * as moment from 'moment/moment';
 import { Subject, takeUntil } from 'rxjs';
-import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/plugin';
 import { Ref } from '../../model/ref';
+import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { deleteNotice } from '../../plugin/delete';
 import { mailboxes } from '../../plugin/mailbox';
 import { score } from '../../plugin/vote';

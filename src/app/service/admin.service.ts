@@ -359,11 +359,11 @@ export class AdminService {
   }
 
   get icons() {
-    return this.pluginConfigProperty('icons');
+    return this.configProperty('icons');
   }
 
   get actions() {
-    return this.pluginConfigProperty('actions');
+    return this.configProperty('actions');
   }
 
   get published() {

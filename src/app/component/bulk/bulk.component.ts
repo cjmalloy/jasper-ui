@@ -3,7 +3,7 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { intersection, map, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, forkJoin, Observable, of } from 'rxjs';
-import { Action, sortOrder } from '../../model/plugin';
+import { Action, sortOrder } from '../../model/tag';
 import { deleteNotice } from '../../plugin/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';

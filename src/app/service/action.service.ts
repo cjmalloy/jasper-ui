@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { without } from 'lodash-es';
 import { forkJoin } from 'rxjs';
-import { Action, active, EmitAction, emitModels, EventAction, ResponseAction, TagAction } from '../model/plugin';
 import { Ref } from '../model/ref';
+import { Action, active, EmitAction, emitModels, EventAction, ResponseAction, TagAction } from '../model/tag';
 import { Store } from '../store/store';
 import { ExtService } from './api/ext.service';
 import { OriginService } from './api/origin.service';

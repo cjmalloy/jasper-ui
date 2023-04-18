@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { Action, Icon } from '../../../model/plugin';
+import { Action, Icon } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { Store } from '../../../store/store';
 import { TAGS_REGEX } from '../../../util/format';

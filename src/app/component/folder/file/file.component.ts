@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { Action, Icon, sortOrder } from '../../../model/plugin';
 import { Ref } from '../../../model/ref';
+import { Action, Icon, sortOrder } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { AuthzService } from '../../../service/authz.service';
 import { Store } from '../../../store/store';
