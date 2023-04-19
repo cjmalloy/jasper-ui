@@ -13,6 +13,7 @@ import { Ref, writeRef } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { findArchive } from '../../plugin/archive';
 import { deleteNotice } from '../../plugin/delete';
+import { addressedTo } from '../../plugin/mailbox';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { OriginService } from '../../service/api/origin.service';
@@ -296,6 +297,10 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get authors() {
     return authors(this.ref);
+  }
+
+  get mailboxes() {
+    return without(addressedTo(this.ref), ...this.authors);
   }
 
   get tags() {

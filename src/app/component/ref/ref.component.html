@@ -59,6 +59,13 @@
               <a class="tag" [routerLink]="['/tag', tag]">{{ tag }}</a>
             </ng-container>
           </ng-container>
+          <ng-container *ngIf="mailboxes.length" i18n>
+            to
+            <ng-container *ngFor="let user of mailboxes">
+              <a class="user tag" [routerLink]="['/tag', user]">
+                {{ formatAuthor(user) }}</a>
+            </ng-container>
+          </ng-container>
           <span *ngIf="alarm" class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm">🔔</span>
           <ng-container *ngFor="let icon of icons">
             <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span>

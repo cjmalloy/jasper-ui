@@ -41,6 +41,27 @@ export function notifications(ref: Ref): string[] {
   return filter(ref.tags || [], isMailbox);
 }
 
+export function addressedTo(ref: Ref): string[] {
+  return notifications(ref).map(getUser).filter(u => u) as string[];
+}
+
+export function getUser(mailbox: string): string | undefined {
+  if (mailbox.startsWith('_plugin/inbox/')) return '_' + mailbox.substring('_plugin/inbox/'.length);
+  if (mailbox.startsWith('plugin/inbox/')) return '+' + mailbox.substring('plugin/inbox/'.length);
+  if (mailbox.startsWith('_plugin/outbox/')) return reverseOrigin('_' + mailbox.substring('_plugin/outbox/'.length));
+  if (mailbox.startsWith('plugin/outbox/')) return reverseOrigin('+' + mailbox.substring('plugin/outbox/'.length));
+  return undefined;
+}
+
+/**
+ * Convert from reverse origin syntax (origin/user/tag) to qualified tag syntax (user/tag@origin).
+ * @param tag
+ */
+export function reverseOrigin(tag: string): string {
+  const len = tag.indexOf("/");
+  return tag.substring(len + 1) + '@' + tag.substring(0, len);
+}
+
 export function getMailbox(tag: string, local = ''): string {
   if (hasPrefix(tag, 'plugin/inbox') || hasPrefix(tag, 'plugin/outbox')) return tag;
   const origin = tagOrigin(tag);
