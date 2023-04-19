@@ -1,7 +1,7 @@
 <iframe #iframe
         *ngIf="currentTags.includes('plugin/embed')"
-        [style.width]="cssWidth(ref?.plugins?.['plugin/embed']?.width) || '560px'"
-        [style.height]="cssWidth(ref?.plugins?.['plugin/embed']?.height) || '350px'"
+        [style.width]="cssWidth(ref?.plugins?.['plugin/embed']?.width) || ''"
+        [style.height]="cssWidth(ref?.plugins?.['plugin/embed']?.height) || ''"
         [src]="embed | embed | safe"
         frameborder="0"
         scrolling="yes"
