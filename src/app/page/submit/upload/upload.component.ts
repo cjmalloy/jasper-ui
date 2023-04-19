@@ -1,13 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { delay } from 'lodash-es';
+import { delay, pick } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, firstValueFrom, forkJoin, of, switchMap, throwError } from 'rxjs';
 import { Ext, mapTag } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
+import { AuthzService } from '../../../service/authz.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { printError } from '../../../util/http';
@@ -28,6 +29,7 @@ export class UploadPage implements OnDestroy {
     public store: Store,
     private refs: RefService,
     private exts: ExtService,
+    private auth: AuthzService,
     private router: Router,
     private theme: ThemeService,
   ) {
