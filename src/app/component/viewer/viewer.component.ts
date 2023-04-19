@@ -63,18 +63,18 @@ export class ViewerComponent {
     this.oembed = this.oembed;
   }
 
-  set oembed(value: Oembed | undefined) {
+  set oembed(oembed: Oembed | undefined) {
     if (!this._iframe) {
-      defer(() => this.oembed = value);
+      defer(() => this.oembed = oembed);
     } else {
-      this._oembed = value;
-      if (value) {
-        if (value.url) {
+      this._oembed = oembed;
+      if (oembed) {
+        if (oembed.url && oembed.type === 'photo') {
           // Image embed
           this.tags = without(this.currentTags, "plugin/embed");
-          this.image = value.url;
+          this.image = oembed.url;
         } else {
-          this.embeds.writeIframe(value, this._iframe.nativeElement);
+          this.embeds.writeIframe(oembed, this._iframe.nativeElement);
         }
       } else {
         this.embeds.writeIframeHtml('', this._iframe.nativeElement);
