@@ -406,7 +406,11 @@ export class EmbedService {
   writeIframe(oembed: Oembed, iframe: HTMLIFrameElement) {
     iframe.style.width = (oembed.width || '100') + 'px';
     iframe.style.height = (oembed.height || '100') + 'px';
-    this.writeIframeHtml(oembed.html || '', iframe);
+    if (oembed.html) {
+      this.writeIframeHtml(oembed.html || '', iframe);
+    } else {
+      iframe.src = oembed.url;
+    }
     const doc = iframe.contentWindow!.document;
     if (!oembed.height) {
       const start = moment();
