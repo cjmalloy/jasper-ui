@@ -25,6 +25,7 @@ import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejecti
 import { lockedPlugin } from '../plugin/locked';
 import { inboxPlugin, outboxPlugin } from '../plugin/mailbox';
 import { modlistPlugin } from '../plugin/modlist';
+import { oEmbedPlugin } from '../plugin/oembed';
 import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } from '../plugin/origin';
 import { pdfPlugin } from '../plugin/pdf';
 import { personPlugin } from '../plugin/person';
@@ -75,6 +76,7 @@ export class AdminService {
       locked: lockedPlugin,
       modlist: modlistPlugin,
       banlist: banlistPlugin,
+      oembed: oEmbedPlugin,
       origin: originPlugin,
       originPull: originPullPlugin,
       originPush: originPushPlugin,
@@ -89,6 +91,7 @@ export class AdminService {
       comment: commentPlugin,
       email: emailPlugin,
       thumbnail: thumbnailPlugin,
+      tablePlugin: tablePlugin,
       pdf: pdfPlugin,
       archive: archivePlugin,
       latex: latexPlugin,
@@ -113,7 +116,6 @@ export class AdminService {
       voteUp: voteUpPlugin,
       voteDown: voteDownPlugin,
       thanksPlugin: thanksPlugin,
-      tablePlugin: tablePlugin,
     },
     templates: <Record<string, Template>> {
       debug: debugTemplate,

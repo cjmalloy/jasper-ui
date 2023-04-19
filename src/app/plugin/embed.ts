@@ -1,6 +1,5 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
-import { bitchuteHosts, twitterHosts, youtubeHosts } from '../util/hosts';
 
 export const embedPlugin: Plugin = {
   tag: 'plugin/embed',
@@ -14,7 +13,6 @@ export const embedPlugin: Plugin = {
     filters: [
       { query: 'plugin/embed', label: $localize`🔭️ embed`, group: $localize`Plugins 🧰️` },
     ],
-    hosts: embedHosts(),
     description: $localize`Embed the webpage in an inline frame.`,
     form: [{
       key: 'url',
@@ -57,7 +55,3 @@ export const embedPlugin: Plugin = {
     },
   },
 };
-
-export function embedHosts() {
-  return [...youtubeHosts, ...bitchuteHosts, ...twitterHosts];
-}

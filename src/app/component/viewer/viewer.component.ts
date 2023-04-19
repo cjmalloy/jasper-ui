@@ -8,16 +8,21 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
+import { defer } from 'lodash-es';
+import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
+import { OEmbedService } from '../../service/api/oembed.service';
+import { ConfigService } from '../../service/config.service';
 import { EmbedService } from '../../service/embed.service';
+import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss']
 })
-export class ViewerComponent implements AfterViewInit {
+export class ViewerComponent {
   @HostBinding('class') css = 'embed';
 
   @Input()
@@ -25,24 +30,20 @@ export class ViewerComponent implements AfterViewInit {
   @Input()
   tags?: string[];
 
-  @ViewChild('iframe')
-  iframe!: ElementRef;
-
   uis = this.admin.getPluginUi(this.currentTags);
 
   private _ref?: Ref;
+  private _oembed?: Oembed;
 
   constructor(
     public admin: AdminService,
+    private config: ConfigService,
+    private oembeds: OEmbedService,
     private embeds: EmbedService,
+    private store: Store,
     @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
+    private el: ElementRef,
   ) { }
-
-  ngAfterViewInit(): void {
-    if (this.iframe) {
-      this.embeds.writeIframe(this.embed, this.iframe.nativeElement);
-    }
-  }
 
   get ref() {
     return this._ref;
@@ -54,6 +55,19 @@ export class ViewerComponent implements AfterViewInit {
     this.uis = this.admin.getPluginUi(this.currentTags);
   }
 
+  @ViewChild('iframe')
+  set iframe(iframe: ElementRef) {
+    if (iframe && this.currentTags.includes('plugin/embed')) {
+      defer(() => {
+        const width = this.embed.width || (this.config.mobile ? window.innerWidth : this.el.nativeElement.offsetWidth - 20);
+        this.oembeds.get(this.embed.url || this.ref!.url, this.theme, width, this.embed.height || window.innerHeight)
+          .subscribe(oembed => this.embeds.writeIframe(oembed, iframe.nativeElement));
+      });
+    } else {
+      this._oembed = undefined;
+    }
+  }
+
   get currentText() {
     return this.text || this.ref?.comment || '';
   }
@@ -63,11 +77,16 @@ export class ViewerComponent implements AfterViewInit {
   }
 
   get embed() {
-    return this.ref?.plugins?.['plugin/embed']?.url || this.ref?.url;
+    if (!this.currentTags.includes('plugin/embed')) return undefined;
+    return this.ref?.plugins?.['plugin/embed'];
   }
 
-  cssWidth(width: any) {
-    if (!width) return 0;
-    return width + 'px';
+  get oembed() {
+    if (!this.currentTags.includes('plugin/embed')) return undefined;
+    return this._oembed;
+  }
+
+  private get theme() {
+    return this.store.darkTheme ? 'dark' : undefined;
   }
 }

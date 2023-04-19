@@ -12,7 +12,7 @@
   <ng-container *ngIf="admin.status.plugins.thumbnail">
     <div class="thumbnail"
          *ngIf="thumbnail else defaultThumbnail"
-         [style.background-image]="cssUrl(ref | thumbnail)"></div>
+         [style.background-image]="cssUrl(ref | thumbnail | async)"></div>
     <ng-template #defaultThumbnail>
       <div class="thumbnail default-thumbnail"></div>
     </ng-template>

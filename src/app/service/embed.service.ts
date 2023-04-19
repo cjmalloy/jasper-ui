@@ -4,10 +4,10 @@ import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
 import { catchError, of } from 'rxjs';
+import { Oembed } from '../model/oembed';
 import { wikiUriFormat } from '../plugin/wiki';
 import { Store } from '../store/store';
 import { Embed } from '../util/embed';
-import { bitchuteHosts, getHost, getUrl, twitterHosts, youtubeHosts } from '../util/hosts';
 import { tagOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
 import { OEmbedService } from './api/oembed.service';
@@ -49,7 +49,7 @@ export class EmbedService {
       }
       return html;
     }
-    marked.use({ extensions: this.extensions });
+    marked.use({extensions: this.extensions});
   }
 
   private get extensions() {
@@ -216,7 +216,7 @@ export class EmbedService {
     }
     const images = el.querySelectorAll<HTMLImageElement>('img');
     images.forEach(t => {
-      const c = embed.createEmbed({ url: t.src }, ['plugin/image']);
+      const c = embed.createEmbed({url: t.src}, ['plugin/image']);
       t.parentNode?.insertBefore(c.location.nativeElement, t);
       t.remove();
     });
@@ -266,7 +266,7 @@ export class EmbedService {
     const inlineQueries = el.querySelectorAll<HTMLAnchorElement>('.inline-query');
     inlineQueries.forEach(t => {
       const query = this.editor.getQueryUrl(t.innerText);
-      this.refs.page({ query, ...this.editor.getQueryParams(t.innerText) }).subscribe(page => {
+      this.refs.page({query, ...this.editor.getQueryParams(t.innerText)}).subscribe(page => {
         const c = embed.createRefList(page);
         t.parentNode?.insertBefore(c.location.nativeElement, t);
         t.remove();
@@ -316,7 +316,7 @@ export class EmbedService {
           } else if (type === 'tag') {
             const query = this.editor.getQueryUrl(url);
             // @ts-ignore
-            this.refs.page({ query, ...this.editor.getQueryParams(url) }).subscribe(page => {
+            this.refs.page({query, ...this.editor.getQueryParams(url)}).subscribe(page => {
               const c = embed.createRefList(page);
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
@@ -364,7 +364,7 @@ export class EmbedService {
             const type = this.editor.getUrlType(url);
             if (type === 'tag') {
               const query = this.editor.getQueryUrl(url);
-              this.refs.page({ query, ...this.editor.getQueryParams(url) }).subscribe(page => {
+              this.refs.page({query, ...this.editor.getQueryParams(url)}).subscribe(page => {
                 const c = embed.createRefList(page);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                 // @ts-ignore
@@ -399,60 +399,32 @@ export class EmbedService {
     });
   }
 
-  private get twitterTheme() {
-    return this.store.darkTheme ? 'dark' : undefined;
-  }
-
   private get iframeBg() {
     return getComputedStyle(document.body).backgroundColor;
   }
 
-  fixUrl(url: string) {
-    const parsed = getUrl(url);
-    if (!parsed) return url;
-    if (youtubeHosts.includes(parsed.host) && parsed.searchParams.has('v')) {
-      const videoId = parsed.searchParams.get('v');
-      return 'https://www.youtube.com/embed/' + videoId;
-    }
-    if (bitchuteHosts.includes(parsed.host)) {
-      return url.replace('bitchute.com/video/', 'bitchute.com/embed/');
-    }
-    if (twitterHosts.includes(parsed.host)) {
-      return 'about:blank';
-    }
-    return url;
-  }
-
-  writeIframe(url: string, iFrame: HTMLIFrameElement) {
-    const host = getHost(url);
-    if (!host) return;
-    if (twitterHosts.includes(host)) {
-      const width = 400;
-      const height = 400;
-      this.oembed.twitter(url, this.twitterTheme, width, height).subscribe(tweet => {
-        iFrame.width = tweet.width + 'px';
-        iFrame.height = (tweet.height || '100') + 'px';
-        const doc = iFrame.contentWindow!.document;
-        doc.open();
-        doc.write(transparentIframe(tweet.html!, this.iframeBg));
-        doc.close();
-        if (!tweet.height) {
-          const start = moment();
-          let oldHeight = doc.body.scrollHeight;
-          const f = () => {
-            const h = doc.body.scrollHeight;
-            if (h !== oldHeight) {
-              iFrame.height = h + 'px';
-              oldHeight = h;
-            }
-            if (start.isAfter(moment().subtract(3, 'seconds'))) {
-              defer(f);
-            }
-          };
-          f();
+  writeIframe(oembed: Oembed, iFrame: HTMLIFrameElement) {
+    iFrame.style.width = oembed.width + 'px';
+    iFrame.style.height = (oembed.height || '100') + 'px';
+    const doc = iFrame.contentWindow!.document;
+    doc.open();
+    doc.write(transparentIframe(oembed.html!, this.iframeBg));
+    doc.close();
+    const nested = doc.getElementsByTagName('iframe')[0];
+    if (!oembed.height) {
+      const start = moment();
+      let oldHeight = doc.body.scrollHeight;
+      const f = () => {
+        const h = doc.body.scrollHeight;
+        if (h !== oldHeight) {
+          iFrame.style.height = h + 'px';
+          oldHeight = h;
         }
-      })
-      return;
+        if (start.isAfter(moment().subtract(3, 'seconds'))) {
+          defer(f);
+        }
+      };
+      f();
     }
   }
 }
@@ -465,6 +437,7 @@ export function transparentIframe(content: string, bgColor: string) {
     body {
       background-color: ${bgColor};
       overflow: hidden;
+      margin: 0;
     }
     </style>
   </head>

@@ -10,6 +10,7 @@ import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { AdminService } from '../../../service/admin.service';
+import { OEmbedService } from '../../../service/api/oembed.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { EditorService } from '../../../service/editor.service';
@@ -45,6 +46,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
     private editor: EditorService,
     private refs: RefService,
     private ts: TaggingService,
+    private oembeds: OEmbedService,
     private fb: UntypedFormBuilder,
   ) {
     this.setTitle($localize`Submit: Web Link`);
@@ -105,6 +107,12 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
     }
     this.webForm.get('url')?.setValue(value);
     this.webForm.get('url')?.disable();
+    this.oembeds.get(value).subscribe(oembed => {
+      this.addTag('plugin/embed');
+      if (oembed.thumbnail_url) {
+        this.addTag('plugin/thumbnail');
+      }
+    });
   }
 
   get url() {

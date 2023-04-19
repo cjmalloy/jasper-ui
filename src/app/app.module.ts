@@ -128,7 +128,6 @@ import { UploadPage } from './page/submit/upload/upload.component';
 import { SubmitWebPage } from './page/submit/web/web.component';
 import { TagPage } from './page/tag/tag.component';
 import { UserPage } from './page/user/user.component';
-import { EmbedPipe } from './pipe/embed.pipe';
 import { SafePipe } from './pipe/safe.pipe';
 import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
@@ -213,7 +212,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     EditorComponent,
     ViewerComponent,
     SafePipe,
-    EmbedPipe,
     ThumbnailPipe,
     ResizeDirective,
     LoginPage,

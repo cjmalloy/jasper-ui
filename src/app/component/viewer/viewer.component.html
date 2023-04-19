@@ -1,8 +1,6 @@
 <iframe #iframe
         *ngIf="currentTags.includes('plugin/embed')"
-        [style.width]="cssWidth(ref?.plugins?.['plugin/embed']?.width) || ''"
-        [style.height]="cssWidth(ref?.plugins?.['plugin/embed']?.height) || ''"
-        [src]="embed | embed | safe"
+        src="about:blank"
         frameborder="0"
         scrolling="yes"
         allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

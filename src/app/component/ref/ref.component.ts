@@ -540,7 +540,8 @@ export class RefComponent implements OnInit, OnDestroy {
     this.deleted = true;
   }
 
-  cssUrl(url: string) {
+  cssUrl(url: string | null) {
+    if (!url) return '';
     return `url("${url}")`;
   }
 }

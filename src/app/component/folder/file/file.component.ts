@@ -87,7 +87,8 @@ export class FileComponent implements OnInit {
       hasTag('plugin/thumbnail', this.ref);
   }
 
-  cssUrl(url: string) {
+  cssUrl(url: string | null) {
+    if (!url) return '';
     return `url("${url}")`;
   }
 }
