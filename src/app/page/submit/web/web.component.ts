@@ -1,20 +1,20 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { defer, flatten, uniq, without } from 'lodash-es';
+import { Router } from '@angular/router';
+import { defer, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { AdminService } from '../../../service/admin.service';
-import { OEmbedService } from '../../../service/api/oembed.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
+import { OembedStore } from '../../../store/oembed';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
@@ -46,7 +46,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
     private editor: EditorService,
     private refs: RefService,
     private ts: TaggingService,
-    private oembeds: OEmbedService,
+    private oembeds: OembedStore,
     private fb: UntypedFormBuilder,
   ) {
     this.setTitle($localize`Submit: Web Link`);

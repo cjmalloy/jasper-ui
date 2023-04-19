@@ -1,20 +1,11 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  HostBinding,
-  Inject,
-  Input,
-  ViewChild,
-  ViewContainerRef
-} from '@angular/core';
+import { Component, ElementRef, HostBinding, Inject, Input, ViewChild, ViewContainerRef } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
-import { OEmbedService } from '../../service/api/oembed.service';
 import { ConfigService } from '../../service/config.service';
 import { EmbedService } from '../../service/embed.service';
+import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 
 @Component({
@@ -38,9 +29,9 @@ export class ViewerComponent {
   constructor(
     public admin: AdminService,
     private config: ConfigService,
-    private oembeds: OEmbedService,
     private embeds: EmbedService,
     private store: Store,
+    private oembeds: OembedStore,
     @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
     private el: ElementRef,
   ) { }
