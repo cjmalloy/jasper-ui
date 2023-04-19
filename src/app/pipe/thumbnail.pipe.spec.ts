@@ -2,7 +2,7 @@ import { ThumbnailPipe } from './thumbnail.pipe';
 
 describe('ThumbnailPipe', () => {
   it('create an instance', () => {
-    const pipe = new ThumbnailPipe();
+    const pipe = new ThumbnailPipe({} as any);
     expect(pipe).toBeTruthy();
   });
 });
