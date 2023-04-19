@@ -89,6 +89,8 @@ export class UploadPage implements OnDestroy {
   }
 
   uploadRef(ref: Ref) {
+    ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
+    ref.plugins = pick(ref.plugins as any, ref.tags as string[]);
     return this.refs.create({
       ...ref,
       origin: this.store.account.origin,

@@ -514,7 +514,13 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   upload() {
-    this.store.eventBus.runAndReload((this.store.submit.overwrite ? this.refs.push(this.ref) : this.refs.create(this.ref)), this.ref);
+    const ref = {
+      ...this.ref,
+      origin: this.store.account.origin,
+      tags: this.ref.tags?.filter(t => this.auth.canAddTag(t)),
+    };
+    ref.plugins = pick(ref.plugins as any, ref.tags as string[]);
+    this.store.eventBus.runAndReload((this.store.submit.overwrite ? this.refs.push(ref) : this.refs.create(ref)), ref);
   }
 
   delete() {
