@@ -31,7 +31,7 @@ export class RefResponsesComponent implements OnInit, OnDestroy {
       const args = getArgs(
         '',
         this.store.view.sort,
-        uniq(['query/!internal@*', ...this.store.view.filter]),
+        uniq(['query/!internal', ...this.store.view.filter]),
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,

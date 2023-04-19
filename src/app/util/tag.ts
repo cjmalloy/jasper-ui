@@ -98,17 +98,6 @@ export function isOwnerTag(tag: string, ref: Ref) {
   return hasTag(localTag(tag), ref);
 }
 
-/**
- * Return local tag if origin is a wildcard.
- */
-export function removeWildcard(tag: string, local: string) {
-  if (tag === '@*') return local;
-  if (tag === '*') return local;
-  if (tag.endsWith('@*')) {
-    return tag.substring(0, tag.length - 2) + local;
-  }
-  return tag;
-}
 export function localTag(tag?: string) {
   if (!tag) return '';
   if (!tag.includes('@')) return tag;
@@ -118,29 +107,16 @@ export function localTag(tag?: string) {
 export function tagOrigin(tag?: string) {
   if (!tag) return '';
   if (!tag.includes('@')) return '';
-  return tag.substring(tag.indexOf('@'));
+  const origin = tag.substring(tag.indexOf('@'));
+  if (origin === '@') return '';
+  return origin;
 }
 
-export function defaultLocal(tag: string, local?: string) {
+export function defaultOrigin(tag: string, origin?: string) {
   if (!tag) return tag;
   if (tag.includes('*')) return tag;
   if (tag.includes('@')) return tag;
-  return localTag(tag) + local;
-}
-
-export function defaultLocalTags(tags: string[], local: string) {
-  return tags.map(t => defaultLocal(t, local));
-}
-
-export function defaultWild(tag: string) {
-  if (!tag) return tag;
-  if (tag.includes('*')) return tag;
-  if (tag.includes('@')) return tag;
-  return localTag(tag) + '@*';
-}
-
-export function defaultWildTags(tags: string[]) {
-  return tags.map(t => defaultWild(t));
+  return localTag(tag) + origin;
 }
 
 /**

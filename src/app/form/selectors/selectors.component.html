@@ -26,7 +26,7 @@
         The wildcard origin (@*) by itself will match everything.
         Protected tags start with a plus sign.
         Private tags start with an underscore.<br>
-        (i.e. "*", "!science", "science@origin" "my/tag@*", or "_my/private/tag")
+        (i.e. "*", "!science", "science@origin" "my/tag@", or "_my/private/tag")
       </div>
       <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['required']" i18n>
         Selector must not be blank.

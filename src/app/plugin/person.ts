@@ -11,7 +11,7 @@ export const personPlugin: Plugin = {
     icons: [{ label: $localize`📇️` }],
     submit: $localize`📇️ person`,
     filters: [
-      { query: 'plugin/person@*', label: $localize`📇️‍ people`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/person', label: $localize`📇️‍ people`, group: $localize`Plugins 🧰️` },
     ],
     css: `
       .plugin-person .thumbnail {

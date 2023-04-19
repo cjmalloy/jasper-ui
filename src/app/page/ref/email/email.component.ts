@@ -30,7 +30,7 @@ export class RefEmailComponent {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        'plugin/email@*',
+        'plugin/email',
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,

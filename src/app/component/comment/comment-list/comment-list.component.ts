@@ -1,11 +1,10 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { autorun, IReactionDisposer } from 'mobx';
+import { IReactionDisposer } from 'mobx';
 import { Observable, Subject, takeUntil } from 'rxjs';
-import { Page } from "../../../model/page";
-import { Ref, RefSort } from "../../../model/ref";
-import { RefService } from "../../../service/api/ref.service";
-import { Store } from "../../../store/store";
-import { getArgs, UrlFilter } from "../../../util/query";
+import { Ref } from '../../../model/ref';
+import { RefService } from '../../../service/api/ref.service';
+import { Store } from '../../../store/store';
+import { getArgs } from '../../../util/query';
 
 @Component({
   selector: 'app-comment-list',
@@ -45,7 +44,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
     this._source = value;
     this.newComments = [];
     this.refs.page({
-      ...getArgs('plugin/comment@*', this.store.view.sort, this.store.view.filter),
+      ...getArgs('plugin/comment', this.store.view.sort, this.store.view.filter),
       responses: this._source?.url,
       size: this.pageSize,
     }).subscribe(page => {

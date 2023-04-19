@@ -60,7 +60,7 @@ export class FilterComponent implements OnInit, OnDestroy {
             { filter: 'uncited', label: $localize`🪄️ uncited` },
             { filter: 'unsourced', label: $localize`🪄️ unsourced` },
             { filter: 'untagged', label: $localize`🪄️ untagged` },
-            { filter: 'query/internal@*', label: $localize`🕵️️ internal` },
+            { filter: 'query/internal', label: $localize`🕵️️ internal` },
           ],
         },
         { label: $localize`Time`,

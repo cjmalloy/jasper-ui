@@ -13,7 +13,7 @@ export const emailPlugin: Plugin = {
       { label: $localize`📧️` },
     ],
     filters: [
-      { query: 'plugin/email@*', label: $localize`📧️ email`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/email', label: $localize`📧️ email`, group: $localize`Plugins 🧰️` },
     ],
   },
   generateMetadata: true,

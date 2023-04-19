@@ -11,7 +11,7 @@ export const tablePlugin: Plugin = {
     submitInternal: $localize`📏️ table`,
     icons: [{ label: $localize`📏️`}],
     filters: [
-      { query: 'plugin/table@*', label: $localize`📏️ table`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/table', label: $localize`📏️ table`, group: $localize`Plugins 🧰️` },
     ],
     description: $localize`Create tabular data.`,
   },

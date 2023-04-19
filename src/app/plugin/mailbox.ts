@@ -27,7 +27,7 @@ export const outboxPlugin: Plugin = {
       a remote or multi-tenant server.`,
     icons: [{ label: $localize`📬️`, title: $localize`Notifications in outbox` }],
     filters: [
-      { query: 'plugin/outbox@*', label: $localize`📬️ outbox`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/outbox', label: $localize`📬️ outbox`, group: $localize`Plugins 🧰️` },
     ],
   },
 };

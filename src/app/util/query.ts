@@ -26,12 +26,12 @@ export function getArgs(
   pageNumber?: number,
   pageSize?: number
 ): RefPageArgs {
-  if (filters?.includes('query/internal@*')) {
-    filters = without(filters, 'query/!internal@*', 'query/internal@*');
+  if (filters?.includes('query/internal')) {
+    filters = without(filters, 'query/!internal', 'query/internal');
   }
-  if (filters?.includes('query/!internal@*') && filters?.includes('query/plugin/comment@*')) {
-    filters = without(filters, 'query/!internal@*', 'query/plugin/comment@*');
-    filters.push('query/(!internal@*|plugin/comment@*)');
+  if (filters?.includes('query/!internal') && filters?.includes('query/plugin/comment')) {
+    filters = without(filters, 'query/!internal', 'query/plugin/comment');
+    filters.push('query/(!internal|plugin/comment)');
   }
   filters = uniq(filters);
   let queryFilter = filter(filters, f => f.startsWith('query/')).map(f => f.substring('query/'.length)).join(':');

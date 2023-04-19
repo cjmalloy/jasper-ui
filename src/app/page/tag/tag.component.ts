@@ -11,7 +11,7 @@ import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
-import { defaultLocal, defaultWild, hasPrefix, isPlugin, removeWildcard } from '../../util/tag';
+import { hasPrefix, isPlugin } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
@@ -44,9 +44,9 @@ export class TagPage implements OnInit, OnDestroy {
       if (!this.fetchPage && !this.store.view.list) return;
       var hideInternal = !isPlugin(this.store.view.tag) && !this.admin.getTemplate(this.store.view.tag)?.config?.internal;
       const args = getArgs(
-        this.store.view.query ? this.store.view.tag : defaultWild(this.store.view.tag),
+        this.store.view.tag,
         this.store.view.sort,
-        hideInternal ? uniq(['query/!internal@*', ...this.store.view.filter]) as UrlFilter[] : this.store.view.filter,
+        hideInternal ? uniq(['query/!internal', ...this.store.view.filter]) as UrlFilter[] : this.store.view.filter,
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
@@ -54,11 +54,10 @@ export class TagPage implements OnInit, OnDestroy {
       defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
-      const tag = defaultLocal(removeWildcard(this.store.view.tag, this.store.account.origin), this.store.account.origin);
-      if (!tag || this.store.view.query) {
+      if (!this.store.view.tag || this.store.view.query) {
         runInAction(() => this.store.view.ext = undefined);
       } else {
-        this.exts.get(tag).pipe(
+        this.exts.get(this.store.view.tag).pipe(
           catchError(() => of(undefined)),
         ).subscribe(ext => runInAction(() => this.store.view.ext = ext));
       }

@@ -5,7 +5,7 @@ import { Roles, User } from '../model/user';
 import { getMailbox } from '../plugin/mailbox';
 import { config } from '../service/config.service';
 import { defaultSubs } from '../template/user';
-import { defaultWild, hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
+import { hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
 export class AccountStore {
@@ -131,7 +131,7 @@ export class AccountStore {
     if (!this.signedIn) return undefined;
     let tags = [this.mailbox];
     if (this.origin) {
-      tags.push(prefix('plugin/outbox', this.origin, this.localTag) + '@*');
+      tags.push(prefix('plugin/outbox', this.origin, this.localTag));
     }
     if (this.modmail?.length) {
       tags.push(...this.modmail);
@@ -147,7 +147,7 @@ export class AccountStore {
 
   get subscriptionQuery() {
     if (!this.subs.length) return 'none';
-    return this.subs.map(defaultWild).join('|');
+    return this.subs.join('|');
   }
 
   setRoles(roles: Roles) {

@@ -30,7 +30,7 @@ export class InboxSentPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        this.store.account.tag + ':(plugin/inbox@*|plugin/outbox@*)',
+        this.store.account.tag + ':(plugin/inbox|plugin/outbox)',
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,

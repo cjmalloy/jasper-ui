@@ -12,7 +12,6 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
 import { getArgs } from '../../util/query';
-import { defaultWild } from '../../util/tag';
 
 @Component({
   selector: 'app-chat',
@@ -59,7 +58,7 @@ export class ChatComponent implements OnDestroy {
   @Input()
   set query(value: string) {
     // TODO: Query each origin separately since cursors will not be in sync
-    this._query = defaultWild(value);
+    this._query = value;
     this.clear();
   }
 

@@ -16,7 +16,7 @@ export const modlistPlugin: Plugin = {
       { tag: '_moderated', labelOff: $localize`approve`, global: true, order: -1 }
     ],
     filters: [
-      { query: '!_moderated@*', label: $localize`🛡️ modlist`, group: $localize`Mod Tools` },
+      { query: '!_moderated', label: $localize`🛡️ modlist`, group: $localize`Mod Tools` },
     ],
   },
 };

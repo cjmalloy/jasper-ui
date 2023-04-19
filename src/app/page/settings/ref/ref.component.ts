@@ -5,7 +5,6 @@ import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
-import { defaultLocal } from '../../../util/tag';
 
 @Component({
   selector: 'app-settings-ref-page',
@@ -30,7 +29,7 @@ export class SettingsRefPage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       this.theme.setTitle($localize`Settings: ${this.store.settings.tag}`);
       const args = getArgs(
-        defaultLocal(this.store.settings.tag, this.store.account.origin),
+        this.store.settings.tag + this.store.account.origin,
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,

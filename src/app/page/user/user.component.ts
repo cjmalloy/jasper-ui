@@ -15,7 +15,7 @@ import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
-import { defaultLocal, localTag, prefix, removeWildcard, tagOrigin } from '../../util/tag';
+import { localTag, prefix, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-user-page',
@@ -56,11 +56,11 @@ export class UserPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      const tag = removeWildcard(this.store.view.tag, this.store.account.origin);
-      if (!tag) {
+      if (!this.store.view.tag) {
         runInAction(() => this.store.view.selectedUser = undefined);
       } else {
-        this.users.get(defaultLocal(tag, this.store.account.origin)).pipe(
+        const tag = this.store.view.tag + this.store.account.origin;
+        this.users.get(tag).pipe(
           catchError(() => of(undefined)),
         ).subscribe(user => runInAction(() => {
           this.store.view.selectedUser = user;
@@ -70,8 +70,8 @@ export class UserPage implements OnInit, OnDestroy {
           } else {
             this.profileForm.setControl('user', userForm(this.fb, false));
             defer(() => this.userForm.setUser({
-              tag: localTag(tag),
-              origin: tagOrigin(tag),
+              tag: this.store.view.tag,
+              origin: this.store.view.origin,
             }));
           }
         }));
@@ -161,7 +161,7 @@ export class UserPage implements OnInit, OnDestroy {
         ));
       }
     }
-    forkJoin(entities).subscribe(() => this.router.navigate(['/tag', this.tag.value]));
+    forkJoin(entities).subscribe(() => this.router.navigate(['/tag', this.tag.value + this.store.account.origin]));
   }
 
   delete() {
@@ -173,7 +173,7 @@ export class UserPage implements OnInit, OnDestroy {
           return throwError(() => res);
         }),
       ).subscribe(() => {
-        this.router.navigate(['/tag', this.tag.value]);
+        this.router.navigate(['/tag', this.tag.value + this.store.account.origin]);
       });
     }
   }

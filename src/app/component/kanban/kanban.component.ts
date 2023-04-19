@@ -7,7 +7,7 @@ import { Ref } from '../../model/ref';
 import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
-import { defaultLocal, defaultWild, defaultWildTags } from '../../util/tag';
+import { defaultOrigin } from '../../util/tag';
 
 export interface KanbanDrag {
   from: string;
@@ -44,7 +44,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   @Input()
   set tag(value: string) {
     if (this.ext?.tag === value) return;
-    this.exts.get(defaultLocal(value, this.store.account.origin)).pipe(
+    this.exts.get(defaultOrigin(value, this.store.account.origin)).pipe(
       catchError(err => {
         this.error = err;
         return of(undefined);
@@ -79,11 +79,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   getQuery(tags: { col?: string, sl?: string }) {
     if (!tags) return '';
-    const kanbanTag = defaultLocal(this.ext!.tag, this.store.account.origin);
-    const columns = defaultWildTags(this.ext!.config.columns);
-    const swimLanes = this.swimLanes && defaultWildTags(this.swimLanes);
-    const sl = tags.sl && defaultWild(tags.sl);
-    const col = tags.col && defaultWild(tags.col);
+    const kanbanTag = defaultOrigin(this.ext!.tag, this.store.account.origin);
+    const columns = this.ext!.config.columns;
+    const swimLanes = this.swimLanes;
+    const sl = tags.sl;
+    const col = tags.col;
     if (swimLanes) {
       if (!col && !sl) {
         return kanbanTag + ':!' + columns.join(':!') + ':!' + swimLanes.join(':!');
