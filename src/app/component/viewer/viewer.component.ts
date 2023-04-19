@@ -21,17 +21,19 @@ export class ViewerComponent {
   @Input()
   tags?: string[];
 
+  @ViewChild('iframe')
+  iframe!: ElementRef;
+
   uis = this.admin.getPluginUi(this.currentTags);
 
   private _ref?: Ref;
-  private _oembed?: Oembed;
 
   constructor(
     public admin: AdminService,
     private config: ConfigService,
+    private oembeds: OembedStore,
     private embeds: EmbedService,
     private store: Store,
-    private oembeds: OembedStore,
     @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
     private el: ElementRef,
   ) { }
@@ -44,19 +46,16 @@ export class ViewerComponent {
   set ref(value: Ref | undefined) {
     this._ref = value;
     this.uis = this.admin.getPluginUi(this.currentTags);
+    if (this.currentTags.includes('plugin/embed')) {
+      const width = this.embed.width || (this.config.mobile ? window.innerWidth : this.el.nativeElement.parentElement.offsetWidth - 20);
+      this.oembeds.get(this.embed.url || value!.url, this.theme, width, this.embed.height || window.innerHeight)
+        .subscribe(oembed => this.oembed = oembed);
+    }
   }
 
-  @ViewChild('iframe')
-  set iframe(iframe: ElementRef) {
-    if (iframe && this.currentTags.includes('plugin/embed')) {
-      defer(() => {
-        const width = this.embed.width || (this.config.mobile ? window.innerWidth : this.el.nativeElement.offsetWidth - 20);
-        this.oembeds.get(this.embed.url || this.ref!.url, this.theme, width, this.embed.height || window.innerHeight)
-          .subscribe(oembed => this.embeds.writeIframe(oembed, iframe.nativeElement));
-      });
-    } else {
-      this._oembed = undefined;
-    }
+  set oembed(value: Oembed) {
+    if (!this.iframe) defer(() => this.oembed = value);
+    this.embeds.writeIframe(value, this.iframe.nativeElement);
   }
 
   get currentText() {
@@ -70,11 +69,6 @@ export class ViewerComponent {
   get embed() {
     if (!this.currentTags.includes('plugin/embed')) return undefined;
     return this.ref?.plugins?.['plugin/embed'];
-  }
-
-  get oembed() {
-    if (!this.currentTags.includes('plugin/embed')) return undefined;
-    return this._oembed;
   }
 
   private get theme() {
