@@ -17,7 +17,7 @@ export class MdComponent implements OnInit {
   @Input()
   plugins?: string[];
 
-  @HostBinding("[class.expand]")
+  @HostBinding("class.expand")
   get comment() {
     return !this.plugins?.includes('plugin/table');
   }
