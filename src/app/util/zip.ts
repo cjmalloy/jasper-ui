@@ -36,7 +36,7 @@ export function getZipOrTextFile(file: File, zipFileName: string): Promise<strin
   }
 }
 
-export type FilteredModels = {ref?: Ref[], ext?: Ext[]};
+export type FilteredModels = {ref: Ref[], ext: Ext[]};
 export function filterModels<T>(models: T[]): FilteredModels {
   return {
     ref: models.filter(m => 'url' in m).map(mapRef),
