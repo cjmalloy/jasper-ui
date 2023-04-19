@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostBinding, Inject, Input, ViewChild, ViewContainerRef } from '@angular/core';
-import { defer } from 'lodash-es';
+import { defer, without } from 'lodash-es';
 import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
@@ -21,6 +21,7 @@ export class ViewerComponent {
   @Input()
   tags?: string[];
 
+  image? : string;
   uis = this.admin.getPluginUi(this.currentTags);
 
   private _ref?: Ref;
@@ -68,7 +69,13 @@ export class ViewerComponent {
     } else {
       this._oembed = value;
       if (value) {
-        this.embeds.writeIframe(value, this._iframe.nativeElement);
+        if (value.url) {
+          // Image embed
+          this.tags = without(this.currentTags, "plugin/embed");
+          this.image = value.url;
+        } else {
+          this.embeds.writeIframe(value, this._iframe.nativeElement);
+        }
       } else {
         this.embeds.writeIframeHtml('', this._iframe.nativeElement);
       }

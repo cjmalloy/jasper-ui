@@ -6,9 +6,9 @@
         scrolling="yes"
         allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen></iframe>
-<div *ngIf="currentTags.includes('plugin/image')"
+<div *ngIf="image || currentTags.includes('plugin/image')"
      class="image-expand"
-     [appImageDim]="ref?.plugins?.['plugin/image']?.url || ref?.url"
+     [appImageDim]="image || ref?.plugins?.['plugin/image']?.url || ref?.url"
      [defaultWidth]="ref?.plugins?.['plugin/image']?.width"
      [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
      appResize></div>
