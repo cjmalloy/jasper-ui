@@ -1,5 +1,6 @@
 <iframe #iframe
         *ngIf="currentTags.includes('plugin/embed')"
+        [class.ready]="oembed"
         src="about:blank"
         frameborder="0"
         scrolling="yes"

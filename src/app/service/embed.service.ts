@@ -403,21 +403,18 @@ export class EmbedService {
     return getComputedStyle(document.body).backgroundColor;
   }
 
-  writeIframe(oembed: Oembed, iFrame: HTMLIFrameElement) {
-    iFrame.style.width = oembed.width + 'px';
-    iFrame.style.height = (oembed.height || '100') + 'px';
-    const doc = iFrame.contentWindow!.document;
-    doc.open();
-    doc.write(transparentIframe(oembed.html!, this.iframeBg));
-    doc.close();
-    const nested = doc.getElementsByTagName('iframe')[0];
+  writeIframe(oembed: Oembed, iframe: HTMLIFrameElement) {
+    iframe.style.width = (oembed.width || '100') + 'px';
+    iframe.style.height = (oembed.height || '100') + 'px';
+    this.writeIframeHtml(oembed.html || '', iframe);
+    const doc = iframe.contentWindow!.document;
     if (!oembed.height) {
       const start = moment();
       let oldHeight = doc.body.scrollHeight;
       const f = () => {
         const h = doc.body.scrollHeight;
         if (h !== oldHeight) {
-          iFrame.style.height = h + 'px';
+          iframe.style.height = h + 'px';
           oldHeight = h;
         }
         if (start.isAfter(moment().subtract(3, 'seconds'))) {
@@ -427,6 +424,14 @@ export class EmbedService {
       f();
     }
   }
+
+  writeIframeHtml(html: string, iframe: HTMLIFrameElement) {
+    const doc = iframe.contentWindow!.document;
+    doc.open();
+    doc.write(transparentIframe(html, this.iframeBg));
+    doc.close();
+  }
+
 }
 
 export function transparentIframe(content: string, bgColor: string) {

@@ -21,12 +21,11 @@ export class ViewerComponent {
   @Input()
   tags?: string[];
 
-  @ViewChild('iframe')
-  iframe!: ElementRef;
-
   uis = this.admin.getPluginUi(this.currentTags);
 
   private _ref?: Ref;
+  private _oembed?: Oembed;
+  private _iframe!: ElementRef;
 
   constructor(
     public admin: AdminService,
@@ -53,9 +52,31 @@ export class ViewerComponent {
     }
   }
 
-  set oembed(value: Oembed) {
-    if (!this.iframe) defer(() => this.oembed = value);
-    this.embeds.writeIframe(value, this.iframe.nativeElement);
+  get iframe(): ElementRef {
+    return this._iframe;
+  }
+
+  @ViewChild('iframe')
+  set iframe(value: ElementRef) {
+    this._iframe = value;
+    this.oembed = this.oembed;
+  }
+
+  set oembed(value: Oembed | undefined) {
+    if (!this._iframe) {
+      defer(() => this.oembed = value);
+    } else {
+      this._oembed = value;
+      if (value) {
+        this.embeds.writeIframe(value, this._iframe.nativeElement);
+      } else {
+        this.embeds.writeIframeHtml('', this._iframe.nativeElement);
+      }
+    }
+  }
+
+  get oembed() {
+    return this._oembed;
   }
 
   get currentText() {

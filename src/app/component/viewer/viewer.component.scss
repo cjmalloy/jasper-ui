@@ -1,3 +1,10 @@
-:host > * {
+* {
   display: block;
+}
+
+iframe {
+  opacity: 0;
+  &.ready {
+    opacity: 1;
+  }
 }
