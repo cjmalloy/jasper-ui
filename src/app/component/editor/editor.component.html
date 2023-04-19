@@ -2,7 +2,7 @@
   <textarea #editor
             [formControl]="control"
             (input)="setText($any($event).target.value)"
-            (ngModelChange)="syncText($event)"
+            (blur)="syncText($any($event).target.value)"
             [appFillWidth]="fillWidth"
             [appAutofocus]="autoFocus"></textarea>
   <div class="floating-toggles">
