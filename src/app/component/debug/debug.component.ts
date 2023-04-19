@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, isDevMode } from '@angular/core';
+import { Router } from '@angular/router';
 import { catchError, concatMap, forkJoin, generate, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -23,6 +24,7 @@ export class DebugComponent {
   @HostBinding('class') css = 'debug actions';
 
   generating = false;
+  settingUser = false;
   sourcing = false;
   batchRunning = false;
   serverError: string[] = [];
@@ -38,6 +40,7 @@ export class DebugComponent {
     public template: TemplateStore,
     private refs: RefService,
     private ts: TaggingService,
+    private router: Router,
   ) { }
 
   ngOnInit(): void {
@@ -73,6 +76,11 @@ export class DebugComponent {
     ).subscribe(() => {
       this.batchRunning = false;
     });
+  }
+
+  setUser(tag: string) {
+    this.router.navigate([], { queryParamsHandling: 'merge', queryParams: { debug: 'USER', tag }})
+      .then(() => location.reload());
   }
 
   gen(n: any = 100) {

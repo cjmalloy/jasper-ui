@@ -1,6 +1,14 @@
 <details *ngIf="debug" class="advanced">
   <summary><span i18n>Debug</span> <app-loading *ngIf="batchRunning"></app-loading></summary>
   <a class="fake-link"
+     (click)="settingUser = !settingUser">user</a>
+  <span *ngIf="settingUser">
+    <input #inlineUser
+           i18n-placeholder placeholder="bob"
+           (keydown)="$event.key === 'Enter' && setUser(inlineUser.value || 'bob') || true">
+    <button (click)="setUser(inlineUser.value || 'bob')">⏎</button>
+  </span>
+  <a class="fake-link"
      (click)="generating = !generating">gen</a>
   <span *ngIf="generating">
     <input #inlineGen
