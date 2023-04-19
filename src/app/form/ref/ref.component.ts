@@ -2,12 +2,14 @@ import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { defer } from 'lodash-es';
 import * as moment from 'moment';
-import { of } from 'rxjs';
+import { catchError, map, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { EditorService } from '../../service/editor.service';
+import { OembedStore } from '../../store/oembed';
+import { Store } from '../../store/store';
 import { hasTag } from '../../util/tag';
 import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component';
@@ -45,6 +47,8 @@ export class RefFormComponent implements OnInit {
     private admin: AdminService,
     private editor: EditorService,
     private scrape: ScrapeService,
+    private store: Store,
+    private oembeds: OembedStore,
   ) { }
 
   ngOnInit(): void {
@@ -87,7 +91,19 @@ export class RefFormComponent implements OnInit {
   }
 
   scrapeAll() {
-    this.scrape$.subscribe(ref => {
+    this.scrape$.pipe(
+      catchError(err => of({
+        url: this.url.value,
+        title: '' ,
+      })),
+      switchMap(ref => this.oembeds.get(ref.url).pipe(
+        map(oembed => {
+          ref.title ||= oembed.title;
+          return ref;
+        }),
+        catchError(err => of(ref)),
+      )),
+    ).subscribe((ref: Ref) => {
       this.group.patchValue({
         ...ref,
         published: ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
