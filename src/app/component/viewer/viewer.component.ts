@@ -47,7 +47,7 @@ export class ViewerComponent {
     this._ref = value;
     this.uis = this.admin.getPluginUi(this.currentTags);
     if (this.currentTags.includes('plugin/embed')) {
-      const width = this.embed.width || (this.config.mobile ? window.innerWidth : this.el.nativeElement.parentElement.offsetWidth - 20);
+      const width = this.embed.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 20);
       this.oembeds.get(this.embed.url || value!.url, this.theme, width, this.embed.height || window.innerHeight)
         .subscribe(oembed => this.oembed = oembed);
     }
