@@ -115,8 +115,7 @@ export class SubmitStore {
 
   setFiles(files?: FileList | []) {
     if (files === this.files) return;
-    const file = files?.[0];
-    if (!file) {
+    if (!files?.[0]) {
       this.files = [] as any;
       return;
     }

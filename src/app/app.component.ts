@@ -25,7 +25,6 @@ export class AppComponent {
   }
 
   drop(event: DragEvent) {
-    event.preventDefault();
     const items = event.dataTransfer?.items;
     if (!items) {
       this.store.submit.setFiles([]);
@@ -34,9 +33,10 @@ export class AppComponent {
     const result = [] as any;
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
-      if (d?.kind !== 'file') continue;
+      if (d?.kind !== 'file') return;
       result.push(d.getAsFile());
     }
+    event.preventDefault();
     this.store.submit.setFiles(result);
     if (!this.store.submit.upload) {
       this.router.navigate(['/submit/upload']);
