@@ -14,7 +14,7 @@ export const aiQueryPlugin: Plugin = {
       { query: 'plugin/ai', label: $localize`👻️💭️ ai query`, group: $localize`Plugins 🧰️` },
     ],
     actions: [
-      { tag: 'plugin/ai', labelOff: $localize`ai`, global: true }
+      { tag: 'plugin/ai', labelOff: $localize`ask`, global: true }
     ],
     description: $localize`Create tabular data.`,
   },
