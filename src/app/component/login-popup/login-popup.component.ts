@@ -1,5 +1,6 @@
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { runInAction } from 'mobx';
+import { AuthnService } from '../../service/authn.service';
 import { Store } from '../../store/store';
 
 @Component({
@@ -12,6 +13,7 @@ export class LoginPopupComponent implements OnInit {
 
   constructor(
     public store: Store,
+    public auth: AuthnService,
   ) { }
 
   ngOnInit(): void {
@@ -23,7 +25,12 @@ export class LoginPopupComponent implements OnInit {
 
   doLogin() {
     this.clear();
-    window.open('/login', "_blank");
+    if (this.auth.clientAuth) {
+      // TODO: fix refresh token
+      this.auth.logIn();
+    } else {
+      window.open('/login', "_blank");
+    }
   }
 
 }
