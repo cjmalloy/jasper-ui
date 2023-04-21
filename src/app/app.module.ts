@@ -23,10 +23,10 @@ import { BulkComponent } from './component/bulk/bulk.component';
 import { ChatEntryComponent } from './component/chat/chat-entry/chat-entry.component';
 import { ChatComponent } from './component/chat/chat.component';
 import { CommentEditComponent } from './component/comment/comment-edit/comment-edit.component';
-import { CommentListComponent } from './component/comment/comment-list/comment-list.component';
 import { CommentReplyComponent } from './component/comment/comment-reply/comment-reply.component';
 import { CommentThreadComponent } from './component/comment/comment-thread/comment-thread.component';
 import { CommentComponent } from './component/comment/comment.component';
+import { ThreadSummaryComponent } from './component/comment/thread-summary/thread-summary.component';
 import { DebugComponent } from './component/debug/debug.component';
 import { EditorComponent } from './component/editor/editor.component';
 import { ExtListComponent } from './component/ext/ext-list/ext-list.component';
@@ -103,12 +103,12 @@ import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
 import { RefAltsComponent } from './page/ref/alts/alts.component';
 import { RefCommentsComponent } from './page/ref/comments/comments.component';
-import { RefEmailComponent } from './page/ref/email/email.component';
 import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
 import { RefSummaryComponent } from './page/ref/summary/summary.component';
+import { RefThreadComponent } from './page/ref/thread/thread.component';
 import { RefVersionsComponent } from './page/ref/versions/versions.component';
 import { SettingsBackupPage } from './page/settings/backup/backup.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
@@ -185,7 +185,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     InboxAllPage,
     InboxUnreadPage,
     PageControlsComponent,
-    CommentListComponent,
+    ThreadSummaryComponent,
     CommentReplyComponent,
     CommentEditComponent,
     SidebarComponent,
@@ -265,7 +265,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     DebugComponent,
     FillWidthDirective,
     LimitWidthDirective,
-    RefEmailComponent,
+    RefThreadComponent,
     MobileTabSelectComponent,
     SelectTemplateComponent,
     FolderComponent,

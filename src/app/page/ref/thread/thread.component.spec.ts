@@ -2,15 +2,15 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { RefEmailComponent } from './email.component';
+import { RefThreadComponent } from './thread.component';
 
-describe('RefEmailComponent', () => {
-  let component: RefEmailComponent;
-  let fixture: ComponentFixture<RefEmailComponent>;
+describe('RefThreadComponent', () => {
+  let component: RefThreadComponent;
+  let fixture: ComponentFixture<RefThreadComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ RefEmailComponent ],
+      declarations: [ RefThreadComponent ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
@@ -18,7 +18,7 @@ describe('RefEmailComponent', () => {
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(RefEmailComponent);
+    fixture = TestBed.createComponent(RefThreadComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

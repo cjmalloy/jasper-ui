@@ -8,12 +8,12 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  selector: 'app-ref-email',
-  templateUrl: './email.component.html',
-  styleUrls: ['./email.component.scss']
+  selector: 'app-ref-thread',
+  templateUrl: './thread.component.html',
+  styleUrls: ['./thread.component.scss']
 })
-export class RefEmailComponent {
-  @HostBinding('class') css = 'email';
+export class RefThreadComponent {
+  @HostBinding('class') css = 'thread';
 
   private disposers: IReactionDisposer[] = [];
 
@@ -30,7 +30,7 @@ export class RefEmailComponent {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        'plugin/email',
+        'plugin/thread:!plugin/comment',
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,
@@ -41,7 +41,7 @@ export class RefEmailComponent {
       defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
-      this.theme.setTitle($localize`Email Thread: ` + (this.store.view.ref?.title || this.store.view.url));
+      this.theme.setTitle($localize`Thread: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
   }
 

@@ -8,6 +8,7 @@ import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
 import { printError } from '../../util/http';
+import { hasTag } from '../../util/tag';
 
 @Component({
   selector: 'app-ref-page',
@@ -37,9 +38,9 @@ export class RefPage implements OnInit, OnDestroy {
     return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
-  get emailReplies() {
-    if (!this.admin.status.plugins.email) return 0;
-    return this.store.view.ref?.metadata?.plugins?.['plugin/email'] || 0;
+  get threads() {
+    if (!this.admin.status.plugins.thread) return 0;
+    return hasTag('plugin/thread', this.store.view.ref)
   }
 
   get responses() {

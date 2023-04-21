@@ -3,15 +3,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Subject } from 'rxjs';
 
-import { CommentListComponent } from './comment-list.component';
+import { ThreadSummaryComponent } from './thread-summary.component';
 
-describe('CommentListComponent', () => {
-  let component: CommentListComponent;
-  let fixture: ComponentFixture<CommentListComponent>;
+describe('ThreadSummaryComponent', () => {
+  let component: ThreadSummaryComponent;
+  let fixture: ComponentFixture<ThreadSummaryComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CommentListComponent],
+      declarations: [ThreadSummaryComponent],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
@@ -21,7 +21,7 @@ describe('CommentListComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(CommentListComponent);
+    fixture = TestBed.createComponent(ThreadSummaryComponent);
     component = fixture.componentInstance;
     component.newComments$ = new Subject();
     fixture.detectChanges();

@@ -185,6 +185,10 @@ export class RefComponent implements OnInit, OnDestroy {
     return !!this.admin.status.templates.dm && hasTag('dm', this.ref);
   }
 
+  get email() {
+    return !!this.admin.status.templates.email && hasTag('email', this.ref);
+  }
+
   get remote() {
     return !!this.admin.status.plugins.origin && hasTag('+plugin/origin', this.ref);
   }
@@ -309,6 +313,16 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get mailboxes() {
     return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
+  }
+
+  get replySources() {
+    const sources = [this.ref.url];
+    if (this.comment || this.dm || this.email) {
+      if (this.ref.sources?.length) {
+        sources.push(this.ref.sources[1] || this.ref.sources[0]);
+      }
+    }
+    return sources;
   }
 
   get replyTags() {

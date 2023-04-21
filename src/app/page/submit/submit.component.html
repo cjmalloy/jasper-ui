@@ -25,7 +25,7 @@
     <a routerLink="/submit/dm"
        *ngIf="admin.status.templates.dm"
        [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.dm"
-       [queryParams]="{ url: null, tag: store.submit.withoutInternal }"
+       [queryParams]="{ url: null, tag: store.submit.withoutDm }"
        queryParamsHandling="merge" i18n>dm</a>
     <a *ngFor="let p of store.submit.submitDm"
        routerLink="/submit/dm"

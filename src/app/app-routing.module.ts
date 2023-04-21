@@ -10,12 +10,12 @@ import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
 import { RefAltsComponent } from './page/ref/alts/alts.component';
 import { RefCommentsComponent } from './page/ref/comments/comments.component';
-import { RefEmailComponent } from './page/ref/email/email.component';
 import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
 import { RefSummaryComponent } from './page/ref/summary/summary.component';
+import { RefThreadComponent } from './page/ref/thread/thread.component';
 import { RefVersionsComponent } from './page/ref/versions/versions.component';
 import { SettingsBackupPage } from './page/settings/backup/backup.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
@@ -53,7 +53,7 @@ const routes: Routes = [
     children: [
       { path: '', component: RefSummaryComponent },
       { path: 'comments', component: RefCommentsComponent },
-      { path: 'email', component: RefEmailComponent },
+      { path: 'thread', component: RefThreadComponent },
       { path: 'responses', component: RefResponsesComponent },
       { path: 'sources', component: RefSourcesComponent },
       { path: 'missing', component: RefMissingComponent },

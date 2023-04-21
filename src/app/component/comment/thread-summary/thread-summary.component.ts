@@ -7,17 +7,19 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  selector: 'app-comment-list',
-  templateUrl: './comment-list.component.html',
-  styleUrls: ['./comment-list.component.scss'],
+  selector: 'app-thread-summary',
+  templateUrl: './thread-summary.component.html',
+  styleUrls: ['./thread-summary.component.scss'],
 })
-export class CommentListComponent implements OnInit, OnDestroy {
-  @HostBinding('class') css = 'comment-list';
+export class ThreadSummaryComponent implements OnInit, OnDestroy {
+  @HostBinding('class') css = 'thread-summary';
   private destroy$ = new Subject<void>();
   private disposers: IReactionDisposer[] = [];
 
   @Input()
   top!: Ref;
+  @Input()
+  query = '';
   @Input()
   depth = 1;
   @Input()
@@ -44,7 +46,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
     this._source = value;
     this.newComments = [];
     this.refs.page({
-      ...getArgs('plugin/comment:!plugin/delete', this.store.view.sort, this.store.view.filter),
+      ...getArgs(this.query, this.store.view.sort, this.store.view.filter),
       responses: this._source?.url,
       size: this.pageSize,
     }).subscribe(page => {

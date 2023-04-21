@@ -36,6 +36,7 @@ import { repostPlugin } from '../plugin/repost';
 import { summaryPlugin, summaryQueryPlugin } from '../plugin/summary';
 import { tablePlugin } from '../plugin/table';
 import { thanksPlugin } from '../plugin/thanks';
+import { threadPlugin } from '../plugin/thread';
 import { thumbnailPlugin } from '../plugin/thumbnail';
 import { videoPlugin } from '../plugin/video';
 import { voteDownPlugin, voteUpPlugin } from '../plugin/vote';
@@ -91,6 +92,7 @@ export class AdminService {
       inbox: inboxPlugin,
       outbox: outboxPlugin,
       comment: commentPlugin,
+      thread: threadPlugin,
       email: emailPlugin,
       thumbnail: thumbnailPlugin,
       tablePlugin: tablePlugin,

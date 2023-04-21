@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, OnDestroy } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -48,6 +48,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy {
     this.dmForm = fb.group({
       to: ['', [Validators.pattern(QUALIFIED_TAG_REGEX)]],
       title: [''],
+      sources: [[]],
       comment: [''],
     });
   }
@@ -58,6 +59,9 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy {
         if (this.store.submit.dm) {
           this.to.setValue(this.store.submit.dm);
           this.title.setValue($localize`Chat with AI`);
+        }
+        if (this.store.submit.sources) {
+          this.sources.setValue(this.store.submit.sources)
         }
         if (this.store.submit.sourceTitle) {
           this.title.setValue(this.store.submit.sourceTitle);
@@ -87,6 +91,10 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy {
     return this.dmForm.get('title') as UntypedFormControl;
   }
 
+  get sources() {
+    return this.dmForm.get('sources') as UntypedFormArray;
+  }
+
   get comment() {
     return this.dmForm.get('comment') as UntypedFormControl;
   }
@@ -97,7 +105,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy {
 
   get tags() {
     return uniq([
-      'internal',
+      'internal', 'plugin/thread',
         ...(this.notes ?
             ['notes'] :
             ['dm', 'locked', ...this.to.value.split(/\s+/).map((t: string) => getMailbox(t, this.store.account.origin))]
@@ -127,6 +135,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy {
       origin: this.store.account.origin,
       title: this.dmForm.value.title,
       comment: this.dmForm.value.comment,
+      sources: this.dmForm.value.sources,
       published,
       tags: this.tags,
     }).pipe(

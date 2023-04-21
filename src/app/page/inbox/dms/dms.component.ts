@@ -30,9 +30,9 @@ export class InboxDmsPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        `dm:(${this.store.account.tag}:(plugin/inbox|plugin/outbox)|${this.store.account.notificationsQuery})`,
+        `dm:(${this.store.account.tag}|${this.store.account.notificationsQuery})`,
         this.store.view.sort,
-        this.store.view.filter,
+        ['unsourced', ...this.store.view.filter],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,

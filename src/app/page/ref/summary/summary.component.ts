@@ -85,9 +85,19 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     return r?.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
+  getThreads(r?: Ref) {
+    if (!this.admin.status.plugins.thread) return 0;
+    return r?.metadata?.plugins?.['plugin/thread'] || 0;
+  }
+
   get comments() {
     if (!this.admin.status.plugins.comment) return 0;
     return this.getComments(this.store.view.ref);
+  }
+
+  get threads() {
+    if (!this.admin.status.plugins.thread) return 0;
+    return this.getThreads(this.store.view.ref);
   }
 
   get responses() {

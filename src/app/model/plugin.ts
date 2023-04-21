@@ -1,4 +1,4 @@
-import * as Handlebars from 'handlebars';
+import * as Handlebars from 'handlebars/runtime';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
 import { v4 as uuid } from 'uuid';

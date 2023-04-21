@@ -28,8 +28,8 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   modifiedBeforeFilter: FilterItem = { filter: `modified/before/${moment().toISOString()}`, label: $localize`🕓️ modified before` };
   modifiedAfterFilter: FilterItem = { filter: `modified/after/${moment().toISOString()}`, label: $localize`🕓️ modified after` };
-  responseBeforeFilter: FilterItem = { filter: `response/before/${moment().toISOString()}`, label: $localize`🎈️ response before` };
-  responseAfterFilter: FilterItem = { filter: `response/after/${moment().toISOString()}`, label: $localize`🎈️ response after` };
+  responseBeforeFilter: FilterItem = { filter: `response/before/${moment().toISOString()}`, label: $localize`🧵️ response before` };
+  responseAfterFilter: FilterItem = { filter: `response/after/${moment().toISOString()}`, label: $localize`🧵️ response after` };
   publishedBeforeFilter: FilterItem = { filter: `published/before/${moment().toISOString()}`, label: $localize`📅️ published before` };
   publishedAfterFilter: FilterItem = { filter: `published/after/${moment().toISOString()}`, label: $localize`📅️ published after` };
   createdBeforeFilter: FilterItem = { filter: `created/before/${moment().toISOString()}`, label: $localize`✨️ created before` };
