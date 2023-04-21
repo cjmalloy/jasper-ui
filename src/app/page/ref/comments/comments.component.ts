@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { mailboxes } from '../../../plugin/mailbox';
 import { ThemeService } from '../../../service/theme.service';

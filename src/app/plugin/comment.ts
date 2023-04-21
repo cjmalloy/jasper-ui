@@ -12,6 +12,7 @@ export const commentPlugin: Plugin = {
       { query: 'plugin/comment', label: $localize`💬️ comments`, group: $localize`Plugins 🧰️` },
     ],
     replyPrefix: $localize`Re: `,
+    reply: ['internal', 'plugin/comment'],
   },
   defaults: {},
   schema: {

@@ -13,7 +13,7 @@ import { Ref, writeRef } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { findArchive } from '../../plugin/archive';
 import { deleteNotice } from '../../plugin/delete';
-import { addressedTo } from '../../plugin/mailbox';
+import { addressedTo, getMailbox, mailboxes } from '../../plugin/mailbox';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { OriginService } from '../../service/api/origin.service';
@@ -36,7 +36,7 @@ import {
 } from '../../util/format';
 import { getScheme } from '../../util/hosts';
 import { printError } from '../../util/http';
-import { hasTag, hasUserUrlResponse, isOwnerTag, queriesAny, tagOrigin } from '../../util/tag';
+import { hasTag, hasUserUrlResponse, isOwnerTag, queriesAny, removeTag, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-ref',
@@ -181,6 +181,10 @@ export class RefComponent implements OnInit, OnDestroy {
     return !!this.admin.status.plugins.comment && hasTag('plugin/comment', this.ref);
   }
 
+  get dm() {
+    return !!this.admin.status.templates.dm && hasTag('dm', this.ref);
+  }
+
   get remote() {
     return !!this.admin.status.plugins.origin && hasTag('+plugin/origin', this.ref);
   }
@@ -299,8 +303,20 @@ export class RefComponent implements OnInit, OnDestroy {
     return authors(this.ref);
   }
 
-  get mailboxes() {
+  get recipients() {
     return without(addressedTo(this.ref), ...this.authors);
+  }
+
+  get mailboxes() {
+    return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
+  }
+
+  get replyTags() {
+    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
+      ...this.admin.reply.filter(p => (this.ref.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      ...this.mailboxes,
+      ...this.tags,
+    ]));
   }
 
   get tags() {

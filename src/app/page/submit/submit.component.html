@@ -24,9 +24,15 @@
     </ng-container>
     <a routerLink="/submit/dm"
        *ngIf="admin.status.templates.dm"
-       [class.current-tab]="store.submit.subpage === 'dm'"
+       [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.dm"
        [queryParams]="{ url: null, tag: store.submit.withoutInternal }"
        queryParamsHandling="merge" i18n>dm</a>
+    <a *ngFor="let p of store.submit.submitDm"
+       routerLink="/submit/dm"
+       [class.current-tab]="store.submit.subpage === 'dm' && store.submit.tags.includes(p.tag)"
+       [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
+       [replaceUrl]="true"
+       queryParamsHandling="merge">{{ p.config!.submitDm }}</a>
     <a *ngFor="let p of store.submit.submitInternal"
        routerLink="/submit/web"
        [class.current-tab]="store.submit.tags.includes(p.tag)"

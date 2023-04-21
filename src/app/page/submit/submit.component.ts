@@ -16,6 +16,7 @@ import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
+import { commentPlugin } from '../../plugin/comment';
 import { isWiki, wikiUriFormat } from '../../plugin/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -65,6 +66,8 @@ export class SubmitPage implements OnInit, OnDestroy {
     runInAction(() => {
       store.submit.wikiPrefix = admin.getWikiPrefix();
       store.submit.submitInternal = this.admin.submitInternal.filter(p => this.auth.canAddTag(p.tag));
+      store.submit.submitDm = this.admin.submitDm.filter(p => this.auth.canAddTag(p.tag));
+      store.submit.prefix = this.admin.status.plugins.comment?.config?.replyPrefix || commentPlugin.config!.replyPrefix;
     });
   }
 

@@ -1,12 +1,12 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { without } from 'lodash-es';
+import { uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { deleteNotice } from '../../plugin/delete';
-import { mailboxes } from '../../plugin/mailbox';
+import { getMailbox, mailboxes } from '../../plugin/mailbox';
 import { score } from '../../plugin/vote';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
@@ -17,7 +17,7 @@ import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags, TAGS_REGEX } from '../../util/format';
 import { getScheme } from '../../util/hosts';
-import { hasTag, hasUserUrlResponse, tagOrigin } from '../../util/tag';
+import { hasTag, hasUserUrlResponse, removeTag, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-comment',
@@ -160,6 +160,14 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   get mailboxes() {
     return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
+  }
+
+  get replyTags(): string[] {
+    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
+      ...this.admin.reply.filter(p => (this.ref.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      ...this.mailboxes,
+      ...this.tagged,
+    ]));
   }
 
   get tagged() {

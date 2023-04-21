@@ -19,6 +19,10 @@ export interface Plugin extends Config {
      */
     infoUi?: string,
     /**
+     * Add tags when replying to this plugin.
+     */
+    reply?: string[],
+    /**
      * Add plugin to submit dropdown.
      */
     submit?: string,
@@ -30,6 +34,10 @@ export interface Plugin extends Config {
      * Add plugin to submit tabs and generate internal URL.
      */
     submitInternal?: string,
+    /**
+     * Add plugin to submit tabs and use DM UI.
+     */
+    submitDm?: string,
     /**
      * Add tab on the settings page for this plugin using this label.
      */

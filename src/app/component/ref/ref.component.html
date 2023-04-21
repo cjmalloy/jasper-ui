@@ -59,9 +59,9 @@
               <a class="tag" [routerLink]="['/tag', tag]">{{ tag }}</a>
             </ng-container>
           </ng-container>
-          <ng-container *ngIf="mailboxes.length" i18n>
+          <ng-container *ngIf="recipients.length" i18n>
             to
-            <ng-container *ngFor="let user of mailboxes">
+            <ng-container *ngFor="let user of recipients">
               <a class="user tag" [routerLink]="['/tag', user]">
                 {{ formatAuthor(user) }}</a>
             </ng-container>
@@ -94,7 +94,8 @@
           </ng-container>
           <ng-container *ngIf="ref.created && !ref.upload">
             <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin }" i18n>permalink</a>
-            <a *ngIf="store.account.user" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
+            <a *ngIf="store.account.user && !dm" routerLink="/submit/text" [queryParams]="{source: ref.url, sourceTitle: ref.title, tag: replyTags}" i18n>reply</a>
+            <a *ngIf="store.account.user && dm" routerLink="/submit/dm" [queryParams]="{source: ref.url, sourceTitle: ref.title, tag: replyTags}" i18n>reply</a>
             <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
             <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}</a>
             <a *ngIf="sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }" i18n>parent</a>
@@ -142,7 +143,8 @@
             </ng-container>
             <ng-container *ngIf="store.account.user">
               <span class="fake-link" (click)="upload()" i18n>upload</span>
-              <a *ngIf="store.account.user" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
+              <a *ngIf="store.account.user && !dm" routerLink="/submit/text" [queryParams]="{source: ref.url, sourceTitle: ref.title, tag: replyTags}" i18n>reply</a>
+              <a *ngIf="store.account.user && dm" routerLink="/submit/dm" [queryParams]="{source: ref.url, sourceTitle: ref.title, tag: replyTags}" i18n>reply</a>
               <a class="fake-link"
                  (click)="tagging = !tagging" i18n>tag</a>
               <span *ngIf="tagging" class="inline-tagging">

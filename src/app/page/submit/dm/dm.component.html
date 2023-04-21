@@ -1,28 +1,30 @@
 <form class="form" [formGroup]="dmForm" (ngSubmit)="submit()"
       [appLimitWidth]="fill" [limitSibling]="true">
 
-  <label for="to">To:</label>
-  <input id="to"
-         placeholder="Myself"
-         [formControl]="to"
-         type="email"
-         autocorrect="off"
-         autocapitalize="none"
-         [appAutofocus]="!to.value">
+  <ng-container *ngIf="!store.submit.dm">
+    <label for="to">To:</label>
+    <input id="to"
+           placeholder="Myself"
+           [formControl]="to"
+           type="email"
+           autocorrect="off"
+           autocapitalize="none"
+           [appAutofocus]="!to.value">
 
-  <div><!-- Errors --></div>
-  <div>
-    <div class="error" *ngIf="to.touched && to.errors?.['pattern']" i18n>
-      User tags must start with the "+user/" or "_user/" prefix.
-      Notification tags must start with the "plugin/inbox" or "plugin/outbox" prefix.
-      Tags must be lower case letters, numbers, periods and forward slashes.
-      Must not or contain two forward slashes or periods in a row.<br>
-      (i.e. "+user/bob", "plugin/outbox/dictionary/science", or "_user/charlie@jasperkm.info")
+    <div><!-- Errors --></div>
+    <div>
+      <div class="error" *ngIf="to.touched && to.errors?.['pattern']" i18n>
+        User tags must start with the "+user/" or "_user/" prefix.
+        Notification tags must start with the "plugin/inbox" or "plugin/outbox" prefix.
+        Tags must be lower case letters, numbers, periods and forward slashes.
+        Must not or contain two forward slashes or periods in a row.<br>
+        (i.e. "+user/bob", "plugin/outbox/dictionary/science", or "_user/charlie@jasperkm.info")
+      </div>
+      <div class="warning" *ngIf="to.touched && !to.value" i18n>
+        Message to myself
+      </div>
     </div>
-    <div class="warning" *ngIf="to.touched && !to.value" i18n>
-      Message to myself
-    </div>
-  </div>
+  </ng-container>
 
   <label for="title" i18n>Title:</label>
   <input id="title" type="text" [formControl]="title">

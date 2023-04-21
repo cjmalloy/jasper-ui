@@ -302,12 +302,20 @@ export class AdminService {
       .flatMap(p => p.config!.writeAccess!);
   }
 
+  get reply() {
+    return this.pluginConfigProperty('reply');
+  }
+
   get submit() {
     return this.pluginConfigProperty('submit');
   }
 
   get submitInternal() {
     return this.pluginConfigProperty('submitInternal');
+  }
+
+  get submitDm() {
+    return this.pluginConfigProperty('submitDm');
   }
 
   get settings() {

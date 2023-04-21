@@ -1,8 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, OnDestroy } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { uniq } from 'lodash-es';
+import { Router } from '@angular/router';
+import { defer, uniq } from 'lodash-es';
+import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -22,8 +23,9 @@ import { hasPrefix } from '../../../util/tag';
   templateUrl: './dm.component.html',
   styleUrls: ['./dm.component.scss']
 })
-export class SubmitDmPage implements OnInit {
+export class SubmitDmPage implements AfterViewInit, OnDestroy {
   @HostBinding('class') css = 'full-page-form';
+  private disposers: IReactionDisposer[] = [];
 
   submitted = false;
   dmForm: UntypedFormGroup;
@@ -37,8 +39,7 @@ export class SubmitDmPage implements OnInit {
     private theme: ThemeService,
     public admin: AdminService,
     private router: Router,
-    private route: ActivatedRoute,
-    private store: Store,
+    public store: Store,
     private refs: RefService,
     private editor: EditorService,
     private fb: UntypedFormBuilder,
@@ -49,19 +50,33 @@ export class SubmitDmPage implements OnInit {
       title: [''],
       comment: [''],
     });
-    route.queryParams.subscribe(params => {
-      if (params['to']) {
-        this.to.setValue(params['to']);
-      }
-      if (!this.to.value || hasPrefix(this.to.value, 'user')) {
-        this.defaultTo = $localize`DM from ${store.account.tag}`;
-      } else {
-        this.defaultTo = $localize`Message to Moderators of ${this.to.value}`;
-      }
+  }
+
+  ngAfterViewInit(): void {
+    defer(() => {
+      this.disposers.push(autorun(() => {
+        if (this.store.submit.dm) {
+          this.to.setValue(this.store.submit.dm);
+          this.title.setValue($localize`Chat with AI`);
+        }
+        if (this.store.submit.sourceTitle) {
+          this.title.setValue(this.store.submit.sourceTitle);
+        }
+        if (this.store.submit.to) {
+          this.to.setValue(this.store.submit.to);
+        }
+        if (!this.to.value || hasPrefix(this.to.value, 'user')) {
+          this.defaultTo = $localize`DM from ${this.store.account.tag}`;
+        } else {
+          this.defaultTo = $localize`Message to Moderators of ${this.to.value}`;
+        }
+      }));
     });
   }
 
-  ngOnInit(): void {
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   get to() {
@@ -82,12 +97,14 @@ export class SubmitDmPage implements OnInit {
 
   get tags() {
     return uniq([
-      this.store.account.localTag,
+      'internal',
         ...(this.notes ?
-            ['internal', 'notes'] :
-            ['internal', 'dm', 'locked', ...this.to.value.split(/\s+/).map((t: string) => getMailbox(t, this.store.account.origin))]
+            ['notes'] :
+            ['dm', 'locked', ...this.to.value.split(/\s+/).map((t: string) => getMailbox(t, this.store.account.origin))]
         ),
+      this.store.account.localTag,
       ...this.plugins,
+      ...this.store.submit.tags,
     ]);
   }
 

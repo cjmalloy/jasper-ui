@@ -11,10 +11,12 @@ export class SubmitStore {
 
   wikiPrefix = DEFAULT_WIKI_PREFIX;
   submitInternal: Plugin[] = [];
+  submitDm: Plugin[] = [];
   files: FileList = [] as any;
   exts: Ext[] = [];
   refs: Ref[] = [];
   overwrite = false;
+  prefix = $localize`Re: `;
 
   constructor(
     public route: RouterStore,
@@ -54,6 +56,10 @@ export class SubmitStore {
     return !!this.url?.startsWith(this.wikiPrefix);
   }
 
+  get to() {
+    return this.route.routeSnapshot?.queryParams['to'];
+  }
+
   get tag() {
     return this.route.routeSnapshot?.queryParams['tag'];
   }
@@ -64,6 +70,12 @@ export class SubmitStore {
 
   get source() {
     return this.route.routeSnapshot?.queryParams['source'];
+  }
+
+  get sourceTitle() {
+    const st = this.route.routeSnapshot?.queryParams['sourceTitle'] || '';
+    if (st.startsWith(this.prefix)) return st;
+    return this.prefix + st;
   }
 
   get sources(): string[] {
@@ -90,8 +102,16 @@ export class SubmitStore {
     return this.tags.find(t => this.submitInternal.find(p => p.tag === t));
   }
 
+  get dm() {
+    return this.tags.find(t => this.submitDm.find(p => p.tag === t));
+  }
+
   get withoutInternal() {
     return without(this.tags, ...this.submitInternal.map(p => p.tag));
+  }
+
+  get withoutDm() {
+    return without(this.tags, ...this.submitDm.map(p => p.tag));
   }
 
   removeRef(ref: Ref) {
