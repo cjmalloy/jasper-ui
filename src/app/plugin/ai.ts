@@ -35,6 +35,7 @@ export const aiPlugin: Plugin = {
     systemPrompt: $localize`You are a helpful assistant in a digital library.`,
     authorPrompt: $localize`You have been sent the following message from {author}: `,
     instructionPrompt: $localize`Write a response excluding salutations and regards. `,
+    titlePrefix: $localize`Re: `,
   },
   schema: {},
   generateMetadata: true,

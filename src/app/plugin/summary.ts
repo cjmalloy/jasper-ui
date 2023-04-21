@@ -30,6 +30,8 @@ export const summaryPlugin: Plugin = {
     filters: [
       { query: '+plugin/summary', label: $localize`🔰️ summary`, group: $localize`Plugins 🧰️` },
     ],
+    titlePrefix: $localize`AI Summary: `,
+    systemPrompt: $localize`Summarize the following:`,
   },
   generateMetadata: true,
 };
