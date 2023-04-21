@@ -1,6 +1,13 @@
 <ng-container *ngIf="plugins">
   <label>{{ plugin.name || plugin.tag }}</label>
-  <formly-form class="form" [form]="group" [fields]="plugin.config!.form!" [options]="options"></formly-form>
+  <formly-form *ngIf="plugin.config!.form" class="form" [form]="group" [fields]="plugin.config!.form" [options]="options"></formly-form>
+  <details *ngIf="plugin.config!.advancedForm"
+           class="advanced"
+           [class.mini]="!plugin.config!.form">
+    <summary *ngIf="plugin.config!.form"><span i18n>Advanced</span></summary>
+    <summary *ngIf="!plugin.config!.form"><span></span></summary>
+    <formly-form class="form" [form]="group" [fields]="plugin.config!.advancedForm" [options]="options"></formly-form>
+  </details>
 </ng-container>
 
 

@@ -341,7 +341,10 @@ export class AdminService {
   }
 
   get forms() {
-    return this.pluginConfigProperty('form');
+    return uniq([
+      ...this.pluginConfigProperty('form'),
+      ...this.pluginConfigProperty('advancedForm')
+    ]);
   }
 
   get embeddable(): string[] {
@@ -511,6 +514,19 @@ export class AdminService {
       return [...this.getTemplateForm(parent!), ...form]
     } else if (tag) {
       return this.getTemplateForm(parent!);
+    }
+    return [];
+  }
+
+  getTemplateAdvancedForm(tag = ''): FormlyFieldConfig[] {
+    const template = this.getTemplate(tag);
+    const form = template?.config?.advancedForm;
+    const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
+    if (form) {
+      if (!tag || template!.config?.overrideForm) return form;
+      return [...this.getTemplateAdvancedForm(parent!), ...form]
+    } else if (tag) {
+      return this.getTemplateAdvancedForm(parent!);
     }
     return [];
   }

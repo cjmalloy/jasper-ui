@@ -171,4 +171,16 @@
                [form]="config"
                [fields]="form"
                [options]="options"></formly-form>
+  <ng-container *ngIf="advancedForm">
+    <span><!-- Advanced --></span>
+    <details class="advanced">
+      <summary><span i18n>Advanced</span></summary>
+      <formly-form *ngIf="advancedForm"
+                   class="form"
+                   [form]="config"
+                   [fields]="advancedForm"
+                   [options]="options"></formly-form>
+    </details>
+  </ng-container>
+
 </ng-container>

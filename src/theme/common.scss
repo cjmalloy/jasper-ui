@@ -550,6 +550,15 @@ details.advanced[open] {
   }
 }
 
+details.mini:not([open]) {
+  float: right;
+  margin-top: -4px !important;
+  margin-right: 4px !important;
+  summary span {
+    border: none !important;
+  }
+}
+
 .row {
   display: flex;
 }

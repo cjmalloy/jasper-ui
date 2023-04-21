@@ -15,7 +15,7 @@ export const imagePlugin: Plugin = {
     ],
     extensions: ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'],
     description: $localize`Display the image inline.`,
-    form: [{
+    advancedForm: [{
       key: 'url',
       type: 'url',
       props: {

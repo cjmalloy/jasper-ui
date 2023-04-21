@@ -15,7 +15,7 @@ export const audioPlugin: Plugin = {
     ],
     extensions: ['.mp3', '.aac', '.flac', '.m4a', '.ogg', '.wav'],
     description: $localize`Play in an inline audio player.`,
-    form: [{
+    advancedForm: [{
       key: 'url',
       type: 'url',
       props: {

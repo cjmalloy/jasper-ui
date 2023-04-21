@@ -12,7 +12,7 @@ export const qrPlugin: Plugin = {
     filters: [
       { query: 'plugin/qr', label: $localize`🔲 qr`, group: $localize`Plugins 🧰️` },
     ],
-    form: [{
+    advancedForm: [{
       key: 'url',
       type: 'qr',
       props: {

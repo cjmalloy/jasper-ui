@@ -33,6 +33,7 @@ export class ExtFormComponent implements OnInit {
   fill?: ElementRef;
 
   form?: FormlyFieldConfig[];
+  advancedForm?: FormlyFieldConfig[];
 
   options: FormlyFormOptions = {
   };
@@ -143,7 +144,10 @@ export class ExtFormComponent implements OnInit {
     if (!this.form) {
       this.form = this.admin.getTemplateForm(ext.tag);
     }
-    defer(() => this.group.patchValue(ext));
+    if (!this.advancedForm) {
+      this.advancedForm = this.admin.getTemplateAdvancedForm(ext.tag);
+    }
+    defer(() => this.group!.patchValue(ext));
   }
 }
 

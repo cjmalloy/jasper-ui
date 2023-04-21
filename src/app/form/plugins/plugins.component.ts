@@ -116,7 +116,7 @@ function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
     case '+plugin/origin/pull': return pullForm(fb, admin);
     case '+plugin/feed': return feedForm(fb, admin);
   }
-  if (admin.getPlugin(tag)?.config?.form) {
+  if (admin.getPlugin(tag)?.config?.form || admin.getPlugin(tag)?.config?.advancedForm) {
     return fb.group({});
   }
   return null;

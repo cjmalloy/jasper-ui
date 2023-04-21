@@ -98,6 +98,13 @@ export const debugPlugin: Plugin = {
         ],
       },
     }],
+    advancedForm: [{
+      key: 'advanced',
+      type: 'string',
+      props: {
+        label: $localize`Advanced:`,
+      },
+    }],
     ui: `
      Input: {{ input }} <br>
      Number: {{ number }} <br>
@@ -110,6 +117,7 @@ export const debugPlugin: Plugin = {
       D = {{ multicheckbox.d }} <br>
      Radio: {{ radio }} <br>
      Select: {{ select }}
+     Advanced: {{ advanced }}
     `,
   },
   defaults: {},
@@ -129,6 +137,7 @@ export const debugPlugin: Plugin = {
       },
       radio: { type: 'string' },
       select: { type: 'string' },
+      advanced: { type: 'string' },
     },
   }
 };

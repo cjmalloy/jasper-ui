@@ -13,7 +13,7 @@ export const pdfPlugin: Plugin = {
       { query: 'plugin/pdf', label: $localize`📄️ pdf`, group: $localize`Plugins 🧰️` },
     ],
     extensions: ['.pdf'],
-    form: [{
+    advancedForm: [{
       key: 'url',
       type: 'url',
       props: {

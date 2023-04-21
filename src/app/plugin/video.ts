@@ -15,7 +15,7 @@ export const videoPlugin: Plugin = {
     ],
     extensions: ['.3gp', '.mpg', '.mpeg', '.mp4', '.m4v', '.m4p', '.webm', '.ogv', '.m3u8', '.mov'],
     description: $localize`Play in an inline video player.`,
-    form: [{
+    advancedForm: [{
       key: 'url',
       type: 'url',
       props: {

@@ -55,6 +55,10 @@ export interface Config extends Tag {
      */
     form?: FormlyFieldConfig[],
     /**
+     * Extra formly config to hide in advanced tab.
+     */
+    advancedForm?: FormlyFieldConfig[],
+    /**
     * Optional icons to add to refs based on tag triggers.
     */
     icons?: Icon[],

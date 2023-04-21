@@ -14,7 +14,7 @@ export const embedPlugin: Plugin = {
       { query: 'plugin/embed', label: $localize`🔭️ embed`, group: $localize`Plugins 🧰️` },
     ],
     description: $localize`Embed the webpage in an inline frame.`,
-    form: [{
+    advancedForm: [{
       key: 'url',
       type: 'url',
       props: {

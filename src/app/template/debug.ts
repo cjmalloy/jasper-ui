@@ -70,6 +70,13 @@ export const debugTemplate: Template = {
         ],
       },
     }],
+    advancedForm: [{
+      key: 'advanced',
+      type: 'string',
+      props: {
+        label: $localize`Advanced:`,
+      },
+    }],
     ui: `
      Input: {{ input }} <br>
      Number: {{ number }} <br>
@@ -82,6 +89,7 @@ export const debugTemplate: Template = {
       D = {{ multicheckbox.d }} <br>
      Radio: {{ radio }} <br>
      Select: {{ select }}
+     Advanced: {{ advanced }}
     `,
   },
   defaults: {},
@@ -101,6 +109,7 @@ export const debugTemplate: Template = {
       },
       radio: { type: 'string' },
       select: { type: 'string' },
+      advanced: { type: 'string' },
     },
   },
 };

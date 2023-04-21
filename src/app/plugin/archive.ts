@@ -19,7 +19,7 @@ export const archivePlugin: Plugin = {
     ],
     defaultArchive: 'https://archive.ph/newest/',
     // defaultArchive: 'https://12ft.io/?proxy=',
-    form: [{
+    advancedForm: [{
       key: 'url',
       type: 'url',
       props: {
