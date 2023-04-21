@@ -57,9 +57,9 @@ export class FilterComponent implements OnInit, OnDestroy {
       this.allFilters = [
         { label: $localize`Filters`,
           filters : [
-            { filter: 'uncited', label: $localize`🪄️ uncited` },
-            { filter: 'unsourced', label: $localize`🪄️ unsourced` },
-            { filter: 'untagged', label: $localize`🪄️ untagged` },
+            { filter: 'untagged', label: $localize`🏷️⃠ untagged` },
+            { filter: 'uncited', label: $localize`💌️⃠ uncited` },
+            { filter: 'unsourced', label: $localize`📜️⃠ unsourced` },
             { filter: 'query/internal', label: $localize`🕵️️ internal` },
           ],
         },
