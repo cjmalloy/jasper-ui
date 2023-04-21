@@ -43,27 +43,33 @@ export class UploadPage implements OnDestroy {
   }
 
   read(files?: FileList) {
-    const file = files?.[0];
-    if (!file) return;
-    this.getModels(file)
-      .then(models => {
-        models.ref?.forEach(ref => this.refs.count({ url: ref.url }).subscribe(count  => {
-          if (count) {
-            this.store.submit.foundRef(ref.url);
-          }
-        }));
-        models.ext?.forEach(ext => this.exts.count({ query: ext.tag }).subscribe(count  => {
-          if (count) {
-            this.store.submit.foundExt(ext.tag);
-          }
-        }));
-        return models;
-      })
-      .then(models => runInAction(() => {
-        this.store.submit.exts = [...this.store.submit.exts, ...(models.ext || [])];
-        this.store.submit.refs = [...this.store.submit.refs, ...(models.ref || [])];
-      }))
-      .catch(() => null);
+    if (!files) return;
+    for (let i = 0; i < files?.length; i++) {
+      const file = files[i];
+      this.getModels(file)
+        .then(models => {
+          models.ref?.forEach(ref => this.refs.count({ url: ref.url }).subscribe(count  => {
+            if (count) {
+              this.store.submit.foundRef(ref.url);
+              // @ts-ignore
+              this.refs.get(ref.url, ref.origin).subscribe(diff => this.store.submit.diffRef(diff));
+            }
+          }));
+          models.ext?.forEach(ext => this.exts.count({ query: ext.tag }).subscribe(count  => {
+            if (count) {
+              this.store.submit.foundExt(ext.tag);
+              // @ts-ignore
+              this.exts.get(ext.tag + ext.origin).subscribe(diff => this.store.submit.diffExt(diff));
+            }
+          }));
+          return models;
+        })
+        .then(models => runInAction(() => {
+          this.store.submit.exts = [...this.store.submit.exts, ...(models.ext || [])];
+          this.store.submit.refs = [...this.store.submit.refs, ...(models.ref || [])];
+        }))
+        .catch(() => null);
+    }
     this.store.submit.setFiles([]);
   }
 

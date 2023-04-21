@@ -39,7 +39,8 @@
   <input #uploadFile
          type="file"
          class="upload"
-         (change)="upload(uploadFile?.files!)">
+         (change)="upload(uploadFile?.files!)"
+         multiple>
   <router-outlet></router-outlet>
 
   <div class="full-page-form" *ngIf="!store.submit.subpage">
