@@ -74,7 +74,7 @@ export class SubmitStore {
 
   get sourceTitle() {
     const st = this.route.routeSnapshot?.queryParams['sourceTitle'] || '';
-    if (st.startsWith(this.prefix)) return st;
+    if (!st || st.startsWith(this.prefix)) return st;
     return this.prefix + st;
   }
 
