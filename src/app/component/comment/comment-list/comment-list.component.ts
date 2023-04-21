@@ -44,7 +44,7 @@ export class CommentListComponent implements OnInit, OnDestroy {
     this._source = value;
     this.newComments = [];
     this.refs.page({
-      ...getArgs('plugin/comment', this.store.view.sort, this.store.view.filter),
+      ...getArgs('plugin/comment:!plugin/delete', this.store.view.sort, this.store.view.filter),
       responses: this._source?.url,
       size: this.pageSize,
     }).subscribe(page => {

@@ -11,7 +11,7 @@
     ({comments, plural, =1 {1&thinsp;child} other {{{ comments }}&thinsp;children}})
   </div>
 
-  <div class="comment-container info collapsed" tabindex="0" *ngIf="deleted" i18n>
+  <div class="comment-container info collapsed" tabindex="0" *ngIf="deleted && (comments || responses)" i18n>
     deleted comment
   </div>
   <div class="row">
