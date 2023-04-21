@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 
 export const aiQueryPlugin: Plugin = {
   tag: 'plugin/ai',
-  name: '👻️💭️ AI Query Action',
+  name: '👻️💭️ AI Chat',
   config: {
     type: 'tool',
     default: false,
@@ -22,7 +22,7 @@ export const aiQueryPlugin: Plugin = {
 
 export const aiPlugin: Plugin = {
   tag: '+plugin/ai',
-  name: '👻️ AI',
+  name: '👻️ OpenAI',
   config: {
     type: 'tool',
     default: false,
