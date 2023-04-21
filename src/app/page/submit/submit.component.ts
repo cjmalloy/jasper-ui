@@ -9,7 +9,7 @@ import {
   Validators
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { uniq } from 'lodash-es';
+import { uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
@@ -119,8 +119,8 @@ export class SubmitPage implements OnInit, OnDestroy {
     return this.admin.status.plugins.banlist?.config?.bannedUrls || this.admin.def.plugins.banlist.config!.bannedUrls;
   }
 
-  withTag(tag: string) {
-    return uniq([...this.store.submit.tags, tag]);
+  submitInternal(tag: string) {
+    return uniq([...without(this.store.submit.tags, ...this.store.submit.submitInternal.map(p => p.tag)), tag]);
   }
 
   fixed(url: string) {
