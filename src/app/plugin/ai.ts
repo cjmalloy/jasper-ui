@@ -53,7 +53,7 @@ export const aiPlugin: Plugin = {
     If you include math in your response, use LaTeX markup delimited with $ for inline math and $$ for block math. Do not escape LaTeX backslashes.
     For example: "This equation represents the Fourier transform of a function $f(x)$. The Fourier transform is a mathematical operation that transforms a function from the time or spatial domain to the frequency domain. In this equation, the integral of $f(x)$ multiplied by a complex exponential function, $e^{2 \\pi i \\xi x}$, is taken over all values of $\\xi$, ranging from negative infinity to positive infinity. The resulting function is called the Fourier transform of $f(x)$ and is denoted as $f-hat(xi)$. The equation can be interpreted as representing the amount of frequency component $\\xi$ present in the function $f(x)$."
     For example: "This equation represents an iterative evaluation of the continued fraction $\\cfrac{2}{1+\\cfrac{2}{1+\\cfrac{2}{1}}}$, which is commonly known as the golden ratio or $\\phi$. The fraction describes the ratio of two quantities where the ratio is the same as the ratio between their sum and the larger of the two quantities. The value of the golden ratio is approximately equal to 1.61803398875."
-    Do not include salutations or regards in your response. `,
+    Be concise when possible but always comprehensive.`,
     titlePrefix: $localize`Re: `,
   },
   schema: {},
