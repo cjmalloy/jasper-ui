@@ -7,6 +7,7 @@ import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';
 import { Tag } from '../model/tag';
 import { Template } from '../model/template';
+import { aiPlugin, aiQueryPlugin } from '../plugin/ai';
 import { aprioriPlugin } from '../plugin/apriori';
 import { archivePlugin } from '../plugin/archive';
 import { audioPlugin } from '../plugin/audio';
@@ -32,6 +33,7 @@ import { personPlugin } from '../plugin/person';
 import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../plugin/poll';
 import { qrPlugin } from '../plugin/qr';
 import { repostPlugin } from '../plugin/repost';
+import { summaryPlugin, summaryQueryPlugin } from '../plugin/summary';
 import { tablePlugin } from '../plugin/table';
 import { thanksPlugin } from '../plugin/thanks';
 import { thumbnailPlugin } from '../plugin/thumbnail';
@@ -92,6 +94,10 @@ export class AdminService {
       email: emailPlugin,
       thumbnail: thumbnailPlugin,
       tablePlugin: tablePlugin,
+      aiQueryPlugin: aiQueryPlugin,
+      aiPlugin: aiPlugin,
+      summaryQueryPlugin: summaryQueryPlugin,
+      summaryPlugin: summaryPlugin,
       pdf: pdfPlugin,
       archive: archivePlugin,
       latex: latexPlugin,
