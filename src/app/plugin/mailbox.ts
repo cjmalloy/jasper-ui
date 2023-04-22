@@ -54,12 +54,16 @@ export function getUser(mailbox: string): string | undefined {
 }
 
 /**
- * Convert from reverse origin syntax (origin/user/tag) to qualified tag syntax (user/tag@origin).
- * @param tag
+ * Convert from reverse origin syntax (origin/tag) to qualified tag syntax (tag@origin).
  */
 export function reverseOrigin(tag: string): string {
+  let prefix = '';
+  if (tag.startsWith('+') || tag.startsWith('_')) {
+    prefix = tag.substring(0, 1);
+    tag = tag.substring(1);
+  }
   const len = tag.indexOf("/");
-  return tag.substring(len + 1) + '@' + tag.substring(0, len);
+  return prefix + tag.substring(len + 1) + '@' + tag.substring(0, len);
 }
 
 export function getMailbox(tag: string, local = ''): string {
