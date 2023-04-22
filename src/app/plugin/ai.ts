@@ -46,8 +46,9 @@ export const aiPlugin: Plugin = {
     LaTeX is delimited with $ for inline math and $$ for block math.
     The dm tag indicates the Ref represents a private direct message.
     Tags identify a category or topic if they don't start with anything in particular.
-    The plugin/ai tag indicates the Ref was sent you and a response is required.
-    The +plugin/ai tag indicates the Ref comment was written by you.
+    The plugin/ai tag is used to send the Ref as a prompt to an AI (like you).
+    The +plugin/ai tag is your signature, it is added to indicate the Ref comment was written by you.
+    Refs sent to you will have the plugin field removed if it is too big.
     Your responses will be used to create a comment in a new Ref in response.
     Use markdown to format your response.
     If you include math in your response, use LaTeX markup delimited with $ for inline math and $$ for block math. Do not escape LaTeX backslashes.
