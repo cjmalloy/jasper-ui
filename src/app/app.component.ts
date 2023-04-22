@@ -30,14 +30,39 @@ export class AppComponent {
       this.store.submit.setFiles([]);
       return;
     }
-    const result = [] as any;
+    for (let i = 0; i < items.length; i++) {
+      const d = items[i];
+      console.log(d.getAsFile()?.name);
+      console.log(d.type);
+      console.log(d.kind);
+    }
+    const files = [] as any;
+    const audio = [] as any;
+    const video = [] as any;
+    const images = [] as any;
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
       if (d?.kind !== 'file') return;
-      result.push(d.getAsFile());
+      if (d.type === 'application/json' || d.type === 'application/zip') {
+        files.push(d.getAsFile());
+      }
+      if (d.type.startsWith('audio/')) {
+        audio.push(d.getAsFile());
+      }
+      if (d.type.startsWith('video/')) {
+        video.push(d.getAsFile());
+      }
+      if (d.type.startsWith('image/')) {
+        images.push(d.getAsFile());
+      }
     }
     event.preventDefault();
-    this.store.submit.setFiles(result);
+    runInAction(() => {
+      this.store.submit.setFiles(files);
+      this.store.submit.audio = audio as any;
+      this.store.submit.video = video as any;
+      this.store.submit.images = images as any;
+    });
     if (!this.store.submit.upload) {
       this.router.navigate(['/submit/upload']);
     }

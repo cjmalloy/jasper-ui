@@ -13,6 +13,9 @@ export class SubmitStore {
   submitInternal: Plugin[] = [];
   submitDm: Plugin[] = [];
   files: FileList = [] as any;
+  audio: FileList = [] as any;
+  video: FileList = [] as any;
+  images: FileList = [] as any;
   exts: Ext[] = [];
   refs: Ref[] = [];
   overwrite = false;
@@ -94,6 +97,13 @@ export class SubmitStore {
     return this.subpage === 'upload';
   }
 
+  get filesEmpty() {
+    return !this.files.length &&
+      !this.audio.length &&
+      !this.video.length &&
+      !this.images.length;
+  }
+
   get empty() {
     return !this.exts.length && !this.refs.length;
   }
@@ -114,17 +124,20 @@ export class SubmitStore {
     return without(this.tags, ...this.submitDm.map(p => p.tag));
   }
 
+  addRefs(...refs: Ref[]) {
+    this.refs = [...this.refs, ...refs];
+  }
+
+  addExts(...exts: Ext[]) {
+    this.exts = [...this.exts, ...exts];
+  }
+
   removeRef(ref: Ref) {
     this.refs = without(this.refs, ref);
   }
 
   removeExt(ext: Ext) {
     this.exts = without(this.exts, ext);
-  }
-
-  addModels(refs?: Ref[], exts?: Ext[]) {
-    this.exts = [...this.exts, ...(exts || [])];
-    this.refs = [...this.refs, ...(refs || [])];
   }
 
   clearUpload() {
@@ -135,11 +148,16 @@ export class SubmitStore {
 
   setFiles(files?: FileList | []) {
     if (files === this.files) return;
-    if (!files?.[0]) {
-      this.files = [] as any;
-      return;
-    }
+    if (!files) return;
     this.files = files as any;
+  }
+
+  clearFiles() {
+    if (this.filesEmpty) return;
+    this.files = [] as any;
+    this.audio = [] as any;
+    this.video = [] as any;
+    this.images = [] as any;
   }
 
   foundRef(url: string) {

@@ -1,9 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { delay, pick } from 'lodash-es';
+import { defer, delay, pick } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, firstValueFrom, forkJoin, of, switchMap, throwError } from 'rxjs';
+import { v4 as uuid } from 'uuid';
 import { Ext, mapTag } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
 import { ExtService } from '../../../service/api/ext.service';
@@ -34,7 +35,13 @@ export class UploadPage implements OnDestroy {
     private theme: ThemeService,
   ) {
     theme.setTitle($localize`Submit: Upload`);
-    this.disposers.push(autorun(() => this.read(this.store.submit.files)))
+    this.disposers.push(autorun(() => {
+      this.read(this.store.submit.files);
+      this.readPlugin(this.store.submit.audio, 'plugin/audio');
+      this.readPlugin(this.store.submit.video, 'plugin/video', 'plugin/thumbnail');
+      this.readPlugin(this.store.submit.images, 'plugin/image', 'plugin/thumbnail');
+      defer(() => this.store.submit.clearFiles());
+    }));
   }
 
   ngOnDestroy() {
@@ -64,13 +71,28 @@ export class UploadPage implements OnDestroy {
           }));
           return models;
         })
-        .then(models => runInAction(() => {
-          this.store.submit.exts = [...this.store.submit.exts, ...(models.ext || [])];
-          this.store.submit.refs = [...this.store.submit.refs, ...(models.ref || [])];
-        }))
+        .then(models => {
+          this.store.submit.addExts(...(models.ext || []));
+          this.store.submit.addRefs(...(models.ref || []));
+        })
         .catch(() => null);
     }
-    this.store.submit.setFiles([]);
+  }
+
+  readPlugin(files: FileList, tag: string, ...extraTags: string[]) {
+    if (!files) return;
+    for (let i = 0; i < files?.length; i++) {
+      const file = files[i];
+      const reader = new FileReader();
+      reader.onload = () => runInAction(() => this.store.submit.addRefs({
+        upload: true,
+        url: 'internal:' + uuid(),
+        title: file.name,
+        tags: ['public', tag, ...extraTags],
+        plugins: { [tag]: { url: reader.result as string } },
+      }));
+      reader.readAsDataURL(file);
+    }
   }
 
   setFiles(files?: FileList) {
