@@ -1,3 +1,4 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
@@ -12,6 +13,7 @@ describe('LoginPopupComponent', () => {
       declarations: [ LoginPopupComponent ],
       imports: [
         RouterTestingModule,
+        HttpClientTestingModule,
       ],
     })
     .compileComponents();
