@@ -1,0 +1,3 @@
+<button type="button" (click)="audioFile.click()" i18n-title title="Audio from file or microphone" i18n>🎙️</button>
+<input #audioFile type="file" accept="audio/*" (change)="readAudio(audioFile.files!)"/>
+

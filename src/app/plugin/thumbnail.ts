@@ -5,7 +5,7 @@ import { videoPlugin } from './video';
 
 export const thumbnailPlugin: Plugin = {
   tag: 'plugin/thumbnail',
-  name: $localize`🍥️ Thumbnail`,
+  name: $localize`🔸️ Thumbnail`,
   config: {
     type: 'viewer',
     default: true,
@@ -13,7 +13,7 @@ export const thumbnailPlugin: Plugin = {
     extensions: [...videoPlugin.config!.extensions!, ...imagePlugin.config!.extensions!],
     advancedForm: [{
       key: 'url',
-      type: 'url',
+      type: 'image',
       props: {
         label: $localize`URL:`,
       },

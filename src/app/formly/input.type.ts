@@ -17,6 +17,9 @@ import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
                [class.is-invalid]="showError">
       </ng-template>
       <app-qr-scanner *ngIf="field.type === 'qr'" (data)="$event && field.formControl!.setValue($event)"></app-qr-scanner>
+      <app-audio-upload *ngIf="field.type === 'audio'" (data)="$event && field.formControl!.setValue($event)"></app-audio-upload>
+      <app-video-upload *ngIf="field.type === 'video'" (data)="$event && field.formControl!.setValue($event)"></app-video-upload>
+      <app-image-upload *ngIf="field.type === 'image'" (data)="$event && field.formControl!.setValue($event)"></app-image-upload>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

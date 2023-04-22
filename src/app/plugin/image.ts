@@ -17,7 +17,7 @@ export const imagePlugin: Plugin = {
     description: $localize`Display the image inline.`,
     advancedForm: [{
       key: 'url',
-      type: 'url',
+      type: 'image',
       props: {
         label: $localize`URL: `,
       },

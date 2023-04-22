@@ -17,7 +17,7 @@ export const videoPlugin: Plugin = {
     description: $localize`Play in an inline video player.`,
     advancedForm: [{
       key: 'url',
-      type: 'url',
+      type: 'video',
       props: {
         label: $localize`URL:`,
       },

@@ -17,7 +17,7 @@ export const audioPlugin: Plugin = {
     description: $localize`Play in an inline audio player.`,
     advancedForm: [{
       key: 'url',
-      type: 'url',
+      type: 'audio',
       props: {
         label: $localize`URL:`,
       },

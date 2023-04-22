@@ -5,14 +5,17 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormlyModule } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
 import { URI_REGEX } from '../util/format';
+import { AudioUploadComponent } from './audio-upload/audio-upload.component';
 import { FormlyFieldCheckbox } from './checkbox.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
+import { ImageUploadComponent } from './image-upload/image-upload.component';
 import { FormlyFieldInput } from './input.type';
 import { FormlyFieldMultiCheckbox } from './multicheckbox.type';
 import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
 import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldSelect } from './select.type';
 import { FormlyFieldTextArea } from './textarea.type';
+import { VideoUploadComponent } from './video-upload/video-upload.component';
 
 @NgModule({
   declarations: [
@@ -24,9 +27,13 @@ import { FormlyFieldTextArea } from './textarea.type';
     FormlyFieldRadio,
     FormlyFieldSelect,
     QrScannerComponent,
+    ImageUploadComponent,
+    VideoUploadComponent,
+    AudioUploadComponent,
   ],
   exports: [
     QrScannerComponent,
+    ImageUploadComponent,
   ],
   imports: [
     BrowserModule,
@@ -78,6 +85,15 @@ import { FormlyFieldTextArea } from './textarea.type';
             }
           },
         },
+      }, {
+        name: 'image',
+        extends: 'url',
+      }, {
+        name: 'video',
+        extends: 'url',
+      }, {
+        name: 'audio',
+        extends: 'url',
       }, {
         name: 'qr',
         extends: 'url',
