@@ -47,7 +47,7 @@ export class ImageDimDirective implements OnInit {
 
   @Input('appImageDim')
   set url(value: string) {
-    this.el.style.backgroundImage = `url("${value}")`;
+    this.el.style.backgroundImage = `url('${value}')`;
     this.el.style.backgroundSize = 'contain';
     this.ids.getImageDim(value)
       .then((d: Dim) => {

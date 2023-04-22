@@ -37,7 +37,7 @@ export class SubfolderComponent implements OnInit {
   }
 
   cssUrl(url: string) {
-    return `url("${url}")`;
+    return `url('${url}')`;
   }
 
 }

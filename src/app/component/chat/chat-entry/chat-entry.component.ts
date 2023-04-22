@@ -182,7 +182,7 @@ export class ChatEntryComponent {
   }
 
   cssUrl(url: string) {
-    return `url("${url}")`;
+    return `url('${url}')`;
   }
 
 }

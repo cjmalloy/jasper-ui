@@ -89,6 +89,6 @@ export class FileComponent implements OnInit {
 
   cssUrl(url: string | null) {
     if (!url) return '';
-    return `url("${url}")`;
+    return `url('${url}')`;
   }
 }

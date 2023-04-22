@@ -23,7 +23,7 @@ export class KanbanCardComponent implements OnInit {
   }
 
   cssUrl(url: string) {
-    return `url("${url}")`;
+    return `url('${url}')`;
   }
 
   @HostBinding('class.no-write')
