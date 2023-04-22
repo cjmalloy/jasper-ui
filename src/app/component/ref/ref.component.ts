@@ -523,7 +523,10 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   copy() {
-    const tags = (this.ref.tags || []).filter(t => this.auth.canAddTag(t));
+    const tags = uniq([
+      this.store.account.localTag,
+      ...(this.ref.tags || []).filter(t => this.auth.canAddTag(t))
+    ]);
     this.refs.create({
       ...this.ref,
       origin: this.store.account.origin,
