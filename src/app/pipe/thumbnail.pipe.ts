@@ -16,6 +16,8 @@ export class ThumbnailPipe implements PipeTransform {
 
   transform(ref: Ref): Observable<string> {
     if (ref.plugins?.['plugin/thumbnail']?.url) return of(ref.plugins?.['plugin/thumbnail']?.url);
+    if (ref.plugins?.['plugin/image']?.url) return of(ref.plugins?.['plugin/image']?.url);
+    if (ref.plugins?.['plugin/video']?.url) return of(ref.plugins?.['plugin/video']?.url);
     if (hasTag('plugin/embed', ref)) {
       return this.store.get(ref.plugins?.['plugin/embed']?.url || ref.url).pipe(
         map(oembed => {
