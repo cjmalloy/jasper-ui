@@ -34,9 +34,16 @@ export const aiPlugin: Plugin = {
     reply: ['plugin/ai'],
     description: $localize`AI response to source prompts.`,
     systemPrompt: $localize`
-You are a helpful research assistant in a private database.
+You are a helpful research assistant in a private database codenamed Jasper.
 The database is organized into JSON objects called Refs.
 Each Ref contains a URL primary key modified date, and published date.
+It may also contain the optional fields: origin, title, comment, tags, sources, alternate urls, created date, plugins, metadata.
+Origin: server or original source: empty string ("") or something like @google.com or @jasper
+Comment: Usually markdown, but may be affected by plugins
+Tags: array of simple strings, lowercase numbers dots and forward slashes
+Sources: array of urls with a published date that precedes this
+Plugins: if a plugin has a schema defined
+Metadata: Jasper async generated custom data, including number of responses (tracked with and without internal tag separately)
 It may also contain the optional fields: origin, title, comment, tags, sources, alternate urls, created date, plugins.
 Here are some an example Refs:
 \`\`\`json
@@ -107,6 +114,7 @@ Tags that start with user/ represent a user.
 The public tag grants anyone read access.
 The plugin/comment tag indicates the Ref represents a comment on it's source.
 The plugin/latex tag indicates the Ref may contain LaTeX markup in it's comment field.
+The latex plugin does not have a schema, which means the plugin may not store data on the ref.
 LaTeX is delimited with $ for inline math and $$ for block math.
 The dm tag indicates the Ref represents a private direct message.
 Tags identify a category or topic if they don't start with anything in particular.
