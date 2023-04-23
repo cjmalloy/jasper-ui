@@ -3,7 +3,7 @@
     <app-comment-reply *ngIf="admin.status.plugins.comment"
                        [to]="store.view.ref"
                        [top]="top"
-                       [tags]="mailboxes"
+                       [tags]="replyTags"
                        [newComments$]="newComments$"></app-comment-reply>
     <div class="summary-box" *ngIf="comments">
       <h5 i18n>Comments:</h5>

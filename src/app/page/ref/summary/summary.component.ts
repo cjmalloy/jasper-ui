@@ -3,15 +3,16 @@ import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
-import { mailboxes } from '../../../plugin/mailbox';
+import { getMailbox, mailboxes } from '../../../plugin/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
+import { interestingTags } from '../../../util/format';
 import { getArgs } from '../../../util/query';
-import { hasTag } from '../../../util/tag';
+import { hasTag, removeTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-summary',
@@ -34,6 +35,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   ) {
     query.clear();
     thread.clear();
+    runInAction(() => store.view.defaultSort = 'modified,DESC');
   }
 
   ngOnInit(): void {
@@ -106,6 +108,21 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
 
   get mailboxes() {
     return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
+  }
+
+  get replyTags(): string[] {
+    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
+      'internal',
+      'plugin/comment',
+      'plugin/thread',
+      ...this.admin.reply.filter(p => (this.store.view.ref!.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      ...this.mailboxes,
+      ...this.tagged,
+    ]));
+  }
+
+  get tagged() {
+    return interestingTags(this.store.view.ref!.tags);
   }
 
   get moreComments() {

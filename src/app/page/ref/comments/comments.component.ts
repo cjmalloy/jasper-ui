@@ -1,12 +1,15 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
-import { mailboxes } from '../../../plugin/mailbox';
+import { getMailbox, mailboxes } from '../../../plugin/mailbox';
+import { AdminService } from '../../../service/admin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
-import { hasTag } from '../../../util/tag';
+import { interestingTags } from '../../../util/format';
+import { hasTag, removeTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-comments',
@@ -21,6 +24,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
     private theme: ThemeService,
     public store: Store,
     public thread: ThreadStore,
+    private admin: AdminService,
   ) {
     thread.clear();
     runInAction(() => store.view.defaultSort = 'published');
@@ -65,5 +69,20 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
 
   get mailboxes() {
     return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
+  }
+
+  get replyTags(): string[] {
+    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
+      'internal',
+      'plugin/comment',
+      'plugin/thread',
+      ...this.admin.reply.filter(p => (this.store.view.ref!.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      ...this.mailboxes,
+      ...this.tagged,
+    ]));
+  }
+
+  get tagged() {
+    return interestingTags(this.store.view.ref!.tags);
   }
 }
