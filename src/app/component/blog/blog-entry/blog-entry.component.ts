@@ -95,6 +95,15 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     return this.ref.origin || undefined;
   }
 
+  get title() {
+    this.ref.title = (this.ref.title || '').trim();
+    this.ref.comment = (this.ref.comment || '').trim();
+    if (this.ref.title) return this.ref.title;
+    if (!this.ref.comment) return this.ref.url;
+    if (this.ref.comment.length <= 140) return this.ref.comment;
+    return this.ref.comment.substring(0, 140);
+  }
+
   @Input()
   set ref(value: Ref) {
     this._ref = value;

@@ -76,7 +76,6 @@ export class CommentReplyComponent {
     const ref = {
       url,
       origin: this.store.account.origin,
-      title: this.config.replyPrefix + this.to.title,
       comment: value,
       sources: uniq([
         this.to.url,

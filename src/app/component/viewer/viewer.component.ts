@@ -87,7 +87,9 @@ export class ViewerComponent {
   }
 
   get currentText() {
-    return this.text || this.ref?.comment || '';
+    const value = this.text || this.ref?.comment || '';
+    if (this.ref?.title || value.length > 140) return value;
+    return '';
   }
 
   get currentTags() {

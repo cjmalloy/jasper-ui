@@ -71,9 +71,6 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
           this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
           this.title.disable();
         }
-        if (this.store.submit.sourceTitle) {
-          this.title.setValue(this.store.submit.sourceTitle);
-        }
         this.url.setValue(url);
         this.url.disable();
         for (const tag of this.store.submit.tags) {

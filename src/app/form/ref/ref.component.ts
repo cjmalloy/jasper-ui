@@ -159,7 +159,7 @@ export function refForm(fb: UntypedFormBuilder) {
   return fb.group({
     url: { value: '',  disabled: true },
     published: [''],
-    title: ['', [Validators.required]],
+    title: [''],
     comment: [''],
     sources: fb.array([]),
     alternateUrls: fb.array([]),

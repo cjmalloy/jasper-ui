@@ -73,6 +73,7 @@ export class RefComponent implements OnInit, OnDestroy {
   @HostBinding('class.deleted')
   deleted = false;
   actionsExpanded = false;
+  title = '';
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
@@ -143,6 +144,7 @@ export class RefComponent implements OnInit, OnDestroy {
     this.viewSource = false;
     this.tagging = false;
     this.actionsExpanded = false;
+    this.title = this.getTitle();
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
     this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
@@ -171,6 +173,13 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get local() {
     return this.ref.origin === this.store.account.origin;
+  }
+
+  get commentNoTitle() {
+    if (this.ref.title || (this.ref.comment || '')?.length > 140) {
+      return this.ref.comment;
+    }
+    return '';
   }
 
   get feed() {
@@ -582,5 +591,14 @@ export class RefComponent implements OnInit, OnDestroy {
   cssUrl(url: string | null) {
     if (!url) return '';
     return `url('${url}')`;
+  }
+
+  getTitle() {
+    const title = (this.ref.title || '').trim();
+    const comment = (this.ref.comment || '').trim();
+    if (title) return title;
+    if (!comment) return this.ref.url;
+    if (comment.length <= 140) return comment;
+    return comment.substring(0, 140) + '...';
   }
 }

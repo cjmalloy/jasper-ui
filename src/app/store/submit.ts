@@ -19,7 +19,6 @@ export class SubmitStore {
   exts: Ext[] = [];
   refs: Ref[] = [];
   overwrite = false;
-  prefix = $localize`Re: `;
 
   constructor(
     public route: RouterStore,
@@ -73,12 +72,6 @@ export class SubmitStore {
 
   get source() {
     return this.route.routeSnapshot?.queryParams['source'];
-  }
-
-  get sourceTitle() {
-    const st = this.route.routeSnapshot?.queryParams['sourceTitle'] || '';
-    if (!st || st.startsWith(this.prefix)) return st;
-    return this.prefix + st;
   }
 
   get sources(): string[] {

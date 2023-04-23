@@ -63,9 +63,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy {
         if (this.store.submit.sources) {
           this.sources.setValue(this.store.submit.sources)
         }
-        if (this.store.submit.sourceTitle) {
-          this.title.setValue(this.store.submit.sourceTitle);
-        }
         if (this.store.submit.to) {
           this.to.setValue(this.store.submit.to);
         }

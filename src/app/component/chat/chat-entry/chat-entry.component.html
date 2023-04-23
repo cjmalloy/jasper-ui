@@ -21,30 +21,13 @@
       (pointerenter)="allowActions = true"
       (pointerleave)="allowActions = false">
   <div [class.has-title]="clickableLink || ref.title">
-    <a *ngIf="clickableLink && (ref.title || !media)" [href]="ref.url | safe" target="_blank">{{ (ref.title || '').trim() || ref.url }}</a>
-    <span *ngIf="!clickableLink && (ref.title || !expand)">{{ ref.title || ref.url }}</span>
-    <app-md *ngIf="ref.comment"
+    <a *ngIf="clickableLink && (title || !media)" [href]="ref.url | safe" target="_blank">{{ title }}</a>
+    <span *ngIf="!clickableLink && (title || !expand)">{{ title }}</span>
+    <app-md *ngIf="focused && ref.comment"
             [origin]="ref.origin"
             [text]="ref.comment"
             [plugins]="ref.tags"></app-md>
-    <div *ngIf="image"
-         class="image-expand"
-         [style.background-image]="cssUrl(ref.plugins?.['plugin/image']?.url || ref.url)"
-         appResize></div>
-    <video *ngIf="video"
-           class="video-expand"
-           controls
-           appResize>
-      <source [src]="ref.plugins?.['plugin/video']?.url || ref.url">
-    </video>
-    <audio *ngIf="audio"
-           class="audio-expand"
-           controls>
-      <source [src]="ref.plugins?.['plugin/audio']?.url || ref.url">
-    </audio>
-    <app-qr *ngIf="qr"
-            [url]="ref.plugins?.['plugin/qr']?.url || ref.url"
-            appResize></app-qr>
+    <app-viewer [ref]="embeds"></app-viewer>
   </div>
   <div class="actions"
        *ngIf="ref.created"

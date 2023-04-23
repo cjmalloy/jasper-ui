@@ -60,6 +60,23 @@ export class ChatEntryComponent {
     return this._ref;
   }
 
+  get title() {
+    this.ref.title = (this.ref.title || '').trim();
+    this.ref.comment = (this.ref.comment || '').trim();
+    if (this.ref.title) return this.ref.title;
+    if (this.focused) return '';
+    if (!this.ref.comment) return this.ref.url;
+    if (this.ref.comment.length <= 140) return this.ref.comment;
+    return this.ref.comment.substring(0, 140);
+  }
+
+  get embeds() {
+    return {
+      ...this.ref,
+      comment: ''
+    };
+  }
+
   get allowActions(): boolean {
     return this._allowActions || this.focused || this.tagging || this.deleting;
   }
