@@ -23,7 +23,7 @@
           <ng-container *ngFor="let e of group.value">
             <div *ngIf="experiments || !e[1].config?.experimental || admin.status.templates[e[0]]" [title]="e[1].config?.description || ''" class="nowrap">
               <input id="template-{{ e[0] }}" type="checkbox" [formControlName]="e[0]">
-              <label for="template-{{ e[0] }}">{{ e[1].name || e[0] || e[1].tag }}</label>
+              <label for="template-{{ e[0] }}" [title]="e[1].config?.description || ''">{{ e[1].name || e[0] || e[1].tag }}</label>
               <span *ngIf="e[1].config?.experimental">🧪️</span>
               <span *ngIf="needsTemplateUpdate(e[0])" class="update">
                 <span class="fake-link" (click)="updateTemplate($any(e[0]))" i18n>🌟️ update</span>
@@ -44,7 +44,7 @@
           <ng-container *ngFor="let e of group.value">
             <div *ngIf="experiments || !e[1].config?.experimental || admin.status.plugins[e[0]]" [title]="e[1].config?.description || ''" class="nowrap">
               <input id="plugin-{{ e[0] }}" type="checkbox" [formControlName]="e[0]">
-              <label for="plugin-{{ e[0] }}">{{ e[1].name || e[0] || e[1].tag }}</label>
+              <label for="plugin-{{ e[0] }}" [title]="e[1].config?.description || ''">{{ e[1].name || e[0] || e[1].tag }}</label>
               <span *ngIf="e[1].config?.experimental">🧪️</span>
               <span *ngIf="needsPluginUpdate(e[0])" class="update">
               <span class="fake-link" (click)="updatePlugin($any(e[0]))" i18n>🌟️ update</span>

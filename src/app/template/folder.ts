@@ -10,6 +10,7 @@ export const folderTemplate: Template = {
     submit: $localize`📂️ folder`,
     view: $localize`📂️`,
     writeAccess: ['+folder'],
+    description: $localize`Activates built-in Folder mode for viewing Refs.`,
   },
   schema: {
     optionalProperties: {

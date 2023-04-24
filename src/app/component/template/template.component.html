@@ -1,4 +1,4 @@
-<div class="link" [class.remote]="!local">
+<div class="link" [class.remote]="!local" [title]="template.config?.description || ''">
   <a *ngIf="template.tag" [routerLink]="['/tag', qualifiedTag]">{{ template.name || template.tag }}</a>
   <a *ngIf="!template.tag" routerLink="/all">{{ template.name || 'root' }}</a>
   <span *ngIf="!qualifiedTag" class="host" i18n>(root: "")</span>

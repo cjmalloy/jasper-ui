@@ -1,4 +1,4 @@
-<div class="link" [class.remote]="!local">
+<div class="link" [class.remote]="!local" [title]="plugin.config?.description || ''">
   <a [routerLink]="['/tag', qualifiedTag]">{{ plugin.name || plugin.tag }}</a>
   <span *ngIf="plugin.name" class="host">({{ qualifiedTag }})</span>
   <span *ngIf="!plugin.name && plugin.origin" class="host">({{ plugin.origin }})</span>
