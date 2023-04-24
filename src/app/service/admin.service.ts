@@ -20,6 +20,7 @@ import { emailPlugin } from '../plugin/email';
 import { embedPlugin } from '../plugin/embed';
 import { experimentsPlugin } from '../plugin/experiments';
 import { feedPlugin } from '../plugin/feed';
+import { fullscreenPlugin } from '../plugin/fullscreen';
 import { graphPlugin } from '../plugin/graph';
 import { imagePlugin } from '../plugin/image';
 import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
@@ -94,6 +95,7 @@ export class AdminService {
       comment: commentPlugin,
       thread: threadPlugin,
       email: emailPlugin,
+      fullscreen: fullscreenPlugin,
       thumbnail: thumbnailPlugin,
       tablePlugin: tablePlugin,
       aiQueryPlugin: aiQueryPlugin,

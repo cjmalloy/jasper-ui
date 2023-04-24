@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, pick, uniq, without } from 'lodash-es';
@@ -37,6 +37,7 @@ import {
 import { getScheme } from '../../util/hosts';
 import { printError } from '../../util/http';
 import { hasTag, hasUserUrlResponse, isOwnerTag, queriesAny, removeTag, tagOrigin } from '../../util/tag';
+import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
   selector: 'app-ref',
@@ -161,6 +162,28 @@ export class RefComponent implements OnInit, OnDestroy {
       value?.setRef(this.ref);
       this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
     });
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    if (!hasTag('plugin/fullscreen', this.ref)) return;
+    if (this.ref.plugins?.['plugin/fullscreen'].optional) return;
+    if (window.innerHeight != screen.height) {
+      this.expanded = false;
+    }
+  }
+
+  @ViewChild(ViewerComponent)
+  set viewer(value: ViewerComponent | undefined) {
+    if (!hasTag('plugin/fullscreen', this.ref)) return;
+    if (value) {
+      value.el.nativeElement.requestFullscreen().catch(() => {
+        console.warn('Could not make fullscreen.');
+        this.expanded = false;
+      });
+    } else if (window.innerHeight == screen.height) {
+      document.exitFullscreen();
+    }
   }
 
   ngOnInit(): void {

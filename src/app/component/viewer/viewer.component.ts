@@ -7,6 +7,7 @@ import { ConfigService } from '../../service/config.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
+import { hasTag } from '../../util/tag';
 
 @Component({
   selector: 'app-viewer',
@@ -35,7 +36,7 @@ export class ViewerComponent {
     private embeds: EmbedService,
     private store: Store,
     @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
-    private el: ElementRef,
+    public el: ElementRef,
   ) { }
 
   get ref() {
@@ -47,8 +48,13 @@ export class ViewerComponent {
     this._ref = value;
     this.uis = this.admin.getPluginUi(this.currentTags);
     if (this.currentTags.includes('plugin/embed')) {
-      const width = this.embed.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 20);
-      this.oembeds.get(this.embed.url || value!.url, this.theme, width, this.embed.height || window.innerHeight)
+      let width = this.embed.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 20);
+      let height = this.embed.height || window.innerHeight;
+      if (hasTag('plugin/fullscreen', this.ref)) {
+        width = screen.width;
+        height = screen.height;
+      }
+      this.oembeds.get(this.embed.url || value!.url, this.theme, width, height)
         .subscribe(oembed => this.oembed = oembed);
     }
   }
