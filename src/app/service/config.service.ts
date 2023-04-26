@@ -21,6 +21,8 @@ export class ConfigService {
   scim = false;
   multiTenant = false;
   allowedSchemes = ['http:', 'https:', 'ftp:', 'tel:', 'mailto:', 'magnet:'];
+  modSeals = ['seal', '+seal', 'seal', '_moderated'];
+  editorSeals = ['qc'];
 
   maxPlugins = 1000;
   maxTemplates = 1000;

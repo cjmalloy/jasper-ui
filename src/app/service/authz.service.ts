@@ -6,6 +6,7 @@ import {
   captures,
   capturesAny,
   hasTag,
+  includesTag,
   isOwner,
   isOwnerTag,
   localTag,
@@ -13,6 +14,7 @@ import {
   publicTag,
   qualifyTags
 } from '../util/tag';
+import { ConfigService } from './config.service';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +23,7 @@ export class AuthzService {
 
   constructor(
     private store: Store,
+    private config: ConfigService,
   ) { }
 
   writeAccess(ref: Ref): boolean {
@@ -60,6 +63,8 @@ export class AuthzService {
     if (publicTag(tag)) return true;
     if (this.store.account.mod) return true;
     if (captures(this.store.account.localTag, tag)) return true;
+    if (includesTag(tag, this.config.modSeals)) return false;
+    if (!this.store.account.editor && includesTag(tag, this.config.editorSeals)) return false;
     if (!this.store.account.access) return false;
     if (capturesAny(this.store.account.access.tagReadAccess, [tag])) return true;
     return !!capturesAny(this.store.account.access.readAccess, [tag]);

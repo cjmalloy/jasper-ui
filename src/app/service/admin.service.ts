@@ -417,12 +417,10 @@ export class AdminService {
     return uniq([...this.getPluginsForHost(url), ...this.getPluginsForExtension(url)]);
   }
 
-
   getPluginsForHost(url: string) {
     const host = getHost(url);
     return this.hosts.filter(p => p.config!.hosts!.includes(host!))
   }
-
 
   getPluginsForExtension(url: string) {
     const type = getExtension(url)!;
