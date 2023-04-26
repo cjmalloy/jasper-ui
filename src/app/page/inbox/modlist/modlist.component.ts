@@ -8,11 +8,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  selector: 'app-dms',
-  templateUrl: './dms.component.html',
-  styleUrls: ['./dms.component.scss']
+  selector: 'app-modlist',
+  templateUrl: './modlist.component.html',
+  styleUrls: ['./modlist.component.scss']
 })
-export class InboxDmsPage implements OnInit, OnDestroy {
+export class InboxModlistPage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
@@ -22,7 +22,7 @@ export class InboxDmsPage implements OnInit, OnDestroy {
     public store: Store,
     public query: QueryStore,
   ) {
-    theme.setTitle($localize`Inbox: DMs`);
+    theme.setTitle($localize`Inbox: Modlist`);
     store.view.clear();
     query.clear();
   }
@@ -30,9 +30,9 @@ export class InboxDmsPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        `dm:(${this.store.account.tag}|${this.store.account.notificationsQuery})`,
+        '!_moderated',
         this.store.view.sort,
-        ['unsourced', ...this.store.view.filter],
+        this.store.view.filter,
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,

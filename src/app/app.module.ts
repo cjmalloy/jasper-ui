@@ -98,6 +98,7 @@ import { HomePage } from './page/home/home.component';
 import { InboxAllPage } from './page/inbox/all/all.component';
 import { InboxDmsPage } from './page/inbox/dms/dms.component';
 import { InboxPage } from './page/inbox/inbox.component';
+import { InboxModlistPage } from './page/inbox/modlist/modlist.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
 import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
@@ -282,6 +283,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     CommentThreadComponent,
     InboxDmsPage,
     UploadPage,
+    InboxModlistPage,
   ],
   imports: [
     BrowserModule,
