@@ -268,6 +268,25 @@ export class RefComponent implements OnInit, OnDestroy {
       hasTag('plugin/thumbnail', this.ref);
   }
 
+  get thumbnailUrl() {
+    return this.thumbnail && (this.ref.plugins?.['plugin/thumbnail'].url || !this.thumbnailColor);
+  }
+
+  get thumbnailColor() {
+    return this.thumbnail &&
+      this.ref.plugins?.['plugin/thumbnail'].color;
+  }
+
+  get thumbnailEmoji() {
+    return this.thumbnail &&
+      this.ref.plugins?.['plugin/thumbnail'].emoji || '';
+  }
+
+  get thumbnailRadius() {
+    return this.thumbnail &&
+      this.ref.plugins?.['plugin/thumbnail'].radius || 0;
+  }
+
   get audio() {
     return this.admin.status.plugins.audio &&
       hasTag('plugin/audio', this.ref);

@@ -5,7 +5,7 @@ import { videoPlugin } from './video';
 
 export const thumbnailPlugin: Plugin = {
   tag: 'plugin/thumbnail',
-  name: $localize`🔸️ Thumbnail`,
+  name: $localize`⭕️ Thumbnail`,
   config: {
     type: 'viewer',
     default: true,
@@ -13,17 +13,50 @@ export const thumbnailPlugin: Plugin = {
     description: $localize`Activates built-in thumbnail support and allows users to add thumbnails to Refs.`,
     extensions: [...videoPlugin.config!.extensions!, ...imagePlugin.config!.extensions!],
     advancedForm: [{
+      key: 'showUrl',
+      type: 'radio',
+      props: {
+        label: $localize`Show:`,
+        options: [
+          { value: true, label: 'URL' },
+          { value: false, label: 'Color' },
+        ],
+      },
+    }, {
       key: 'url',
       type: 'image',
       props: {
         label: $localize`URL:`,
       },
+      expressions: { hide: '!model.showUrl' },
+    }, {
+      key: 'color',
+      type: 'color',
+      props: {
+        label: $localize`Background Color:`,
+      },
+      expressions: { hide: 'model.showUrl' },
+    }, {
+      key: 'emoji',
+      type: 'string',
+      props: {
+        label: $localize`Emoji:`,
+      },
+    }, {
+      key: 'radius',
+      type: 'number',
+      props: {
+        label: $localize`Radius:`,
+      },
     }],
   },
-  defaults: {},
   schema: {
     optionalProperties: {
+      showUrl: { type: 'boolean' },
       url: { type: 'string' },
+      color: { type: 'string' },
+      emoji: { type: 'string' },
+      radius: { type: 'int32' },
     },
   },
 };
