@@ -11,6 +11,9 @@
     <ng-template #notSubmitted>
       <span i18n>not found</span>
     </ng-template>
+    <ng-container *ngFor="let icon of icons">
+      <span class="icon" (click)="clickIcon(icon)" [title]="icon.tag">{{ icon.config!.view! }}</span>
+    </ng-container>
     <ng-container *ngIf="!local" i18n>
       on <a [routerLink]="['/tag', ext.origin]">{{ ext.origin }}</a>
     </ng-container>

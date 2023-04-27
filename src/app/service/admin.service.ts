@@ -385,6 +385,10 @@ export class AdminService {
     return this.configProperty('icons');
   }
 
+  get view() {
+    return this.templateConfigProperty('view');
+  }
+
   get actions() {
     return this.configProperty('actions');
   }
@@ -453,6 +457,11 @@ export class AdminService {
         return i;
       }))
       .filter(i => !i.role || this.auth.hasRole(i.role));
+  }
+
+  getTemplateView(...tags: string[]) {
+    return this.view
+      .filter(t => !t.tag || includesTag(t.tag, tags));
   }
 
   getPublished(tags?: string[]) {

@@ -1,10 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 import { toJS } from 'mobx';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { Ext, writeExt } from '../../model/ext';
+import { Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
@@ -27,6 +29,7 @@ export class ExtComponent implements OnInit {
 
   editForm!: UntypedFormGroup;
   submitted = false;
+  icons: Template[] = [];
   editing = false;
   viewSource = false;
   deleting = false;
@@ -41,9 +44,11 @@ export class ExtComponent implements OnInit {
     private auth: AuthzService,
     private exts: ExtService,
     private fb: UntypedFormBuilder,
+    private router: Router,
   ) { }
 
   ngOnInit(): void {
+    this.icons = this.admin.getTemplateView(this.ext.tag);
     this.editForm = extForm(this.fb, this.ext, this.admin, true);
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);
   }
@@ -140,5 +145,9 @@ export class ExtComponent implements OnInit {
 
   download() {
     downloadTag(writeExt(this.ext));
+  }
+
+  clickIcon(i: Template) {
+    this.router.navigate(['/tag', this.store.view.toggleTag(i.tag)], { queryParamsHandling: 'merge' });
   }
 }
