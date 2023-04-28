@@ -199,10 +199,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get commentNoTitle() {
-    if (this.ref.title || (this.ref.comment || '')?.length > 140) {
-      return this.ref.comment;
-    }
-    return '';
+    return this.ref.title || (this.ref.comment || '')?.length > 140;
   }
 
   get feed() {
