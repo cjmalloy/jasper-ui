@@ -50,7 +50,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     private account: AccountService,
   ) {
     if (localStorage.getItem('sidebar-expanded') !== null) {
-      this._expanded = localStorage.getItem('sidebar-expanded') === 'true';
+      this._expanded = localStorage.getItem('sidebar-expanded') !== 'false';
     } else {
       this._expanded = !!window.matchMedia('(min-width: 1024px)').matches;
     }
