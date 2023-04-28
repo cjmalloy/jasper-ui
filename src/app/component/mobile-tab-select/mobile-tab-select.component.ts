@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { defer } from 'lodash-es';
 
 @Component({
   selector: 'app-mobile-tab-select',
@@ -15,10 +16,12 @@ export class MobileTabSelectComponent {
   set tabs(value: HTMLElement) {
     this.options = [];
     if (!value) return;
-    for (const c of value.querySelectorAll('.tabs > a') as any as HTMLAnchorElement[] || []) {
-      this.options.push(c.innerText);
-      this.map.set(c.innerText, c);
-    }
+    defer(() => {
+      for (const c of value.querySelectorAll('.tabs > a') as any as HTMLAnchorElement[] || []) {
+        this.options.push(c.innerText);
+        this.map.set(c.innerText, c);
+      }
+    });
   }
 
   nav(select: HTMLSelectElement) {
