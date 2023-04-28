@@ -29,6 +29,7 @@ $tablet-width: 960px;
 @media (max-width: $tablet-width) {
 .sidebar {
   position: static !important;
+  float: none !important;
   backdrop-filter: blur(1px) !important;
   border: none !important;
 
