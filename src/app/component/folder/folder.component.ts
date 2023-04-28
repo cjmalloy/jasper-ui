@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { difference, intersection, uniq, without } from 'lodash-es';
+import { intersection, uniq } from 'lodash-es';
 import { toJS } from 'mobx';
 import { map, of, switchMap } from 'rxjs';
 import { Ext } from '../../model/ext';
@@ -15,7 +15,7 @@ import { Store } from '../../store/store';
   styleUrls: ['./folder.component.scss']
 })
 export class FolderComponent implements OnInit {
-  @HostBinding('class') css = 'folder';
+  @HostBinding('class') css = 'folder ext';
 
   @Input()
   pinned?: Ref[] | null;

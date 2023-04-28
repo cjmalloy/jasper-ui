@@ -19,7 +19,7 @@ import { getArgs } from '../../util/query';
   styleUrls: ['./chat.component.scss']
 })
 export class ChatComponent implements OnDestroy {
-  @HostBinding('class') css = 'chat';
+  @HostBinding('class') css = 'chat ext';
   itemSize = 18.5;
 
   @Input()

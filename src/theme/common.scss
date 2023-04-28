@@ -400,11 +400,18 @@ video.qr-preview {
 }
 
 .sidebar {
-  position: absolute;
-  right: 0;
+  float: right;
+  overflow: hidden;
+  transition: width .5s;
   width: 354px;
   margin-bottom: 100px;
   border-bottom-left-radius: 4px;
+
+  &.floating {
+    float: none;
+    position: absolute;
+    right: 0;
+  }
 
   .toggle {
     margin-top: 3px;
@@ -429,9 +436,10 @@ video.qr-preview {
     margin: 4px;
   }
 
-  &:not(.expand) {
-    .submit-button {
-      margin: 4px 0;
+  &:not(.expanded) {
+    width: 40px;
+    .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs {
+      display: none;
     }
   }
 
@@ -477,7 +485,7 @@ video.qr-preview {
     text-transform: capitalize;
     border: 1px solid transparent;
     border-radius: 2px;
-    margin: 4px;
+    margin: 4px 0;
     padding: 4px;
     cursor: pointer;
     overflow: hidden;
@@ -765,6 +773,10 @@ details.mini:not([open]) {
   .list-item .expand {
     border: none;
   }
+}
+
+.ext {
+  display: block;
 }
 
 .ref.upload, .ext.upload {

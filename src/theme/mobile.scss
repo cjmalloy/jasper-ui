@@ -1,25 +1,8 @@
 $mobile-width: 740px;
 $tablet-width: 960px;
 
-/* Big Screens */
+/* Tablet and Bigger Screens */
 @media (min-width: $mobile-width) {
-
-  @media (min-width: $tablet-width) {
-    .aside {
-      float: right;
-      overflow: hidden;
-      transition: width .5s;
-
-      &:not(.expanded) {
-        width: 40px;
-
-        .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs {
-          display: none;
-        }
-      }
-    }
-  }
-
   app-mobile-tab-select {
     display: none;
   }
@@ -40,12 +23,12 @@ $tablet-width: 960px;
 }
 
 
-/* Small Screens */
+/* Mobile Overrides */
 @media not print {
+/* Tablet and Smaller Screens */
 @media (max-width: $tablet-width) {
-
-.aside {
-  position: relative;
+.sidebar {
+  position: static !important;
   backdrop-filter: blur(1px) !important;
   border: none !important;
 
@@ -105,7 +88,9 @@ $tablet-width: 960px;
     }
   }
 }
+}
 
+/* Phone Screens */
 @media (max-width: $mobile-width) {
   .tabs {
     h5 {
@@ -248,4 +233,4 @@ $tablet-width: 960px;
     }
   }
 }
-}}
+}

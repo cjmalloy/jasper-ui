@@ -16,9 +16,7 @@
     <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
   </div>
-  <app-sidebar class="aside"
-               *ngIf="!store.view.graph"
-               [home]="true"
+  <app-sidebar [home]="true"
                [ext]="store.account.ext"></app-sidebar>
   <app-viewer *ngIf="homeRef"
               [ref]="homeRef"></app-viewer>

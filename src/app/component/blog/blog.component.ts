@@ -12,7 +12,7 @@ import { ExtService } from '../../service/api/ext.service';
   styleUrls: ['./blog.component.scss']
 })
 export class BlogComponent implements OnInit {
-  @HostBinding('class') css = 'blog';
+  @HostBinding('class') css = 'blog ext';
 
   @Input()
   pinned?: Ref[] | null;

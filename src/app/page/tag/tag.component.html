@@ -22,13 +22,13 @@
     <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
   </div>
-  <app-sidebar class="aside"
+  <app-sidebar [floating]="floatingSidebar"
                [tag]="store.view.tag!"
                [ext]="store.view.ext"></app-sidebar>
   <div *ngIf="query.error?.status === 403 else accessGranted" class="error-403" i18n>Access Denied</div>
   <ng-template #accessGranted>
     <!-- TODO: allow paging with graph -->
-    <app-ref-list *ngIf="(!isTemplate || store.view.list || store.view.query || store.view.graph) else tmpl"
+    <app-ref-list *ngIf="showList else tmpl"
                   [page]="query.page"
                   [pinned]="store.view.pinned"
                   [tag]="store.view.tag"

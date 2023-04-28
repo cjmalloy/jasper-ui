@@ -1,5 +1,5 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { uniq } from 'lodash-es';
 import { catchError, of, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
@@ -22,6 +22,7 @@ export interface KanbanDrag {
   styleUrls: ['./kanban.component.scss']
 })
 export class KanbanComponent implements OnInit, OnDestroy {
+  @HostBinding('class') css = 'kanban ext';
 
   ext?: Ext;
   disableSwimLanes = false;
