@@ -141,7 +141,10 @@ export function hasPrefix(tag?: string, prefix?: string) {
     tag === '+' + prefix ||
     tag.startsWith(prefix + '/') ||
     tag.startsWith('_' + prefix + '/') ||
-    tag.startsWith('+' + prefix + '/');
+    tag.startsWith('+' + prefix + '/') ||
+    tag.startsWith(prefix + '@') ||
+    tag.startsWith('_' + prefix + '@') ||
+    tag.startsWith('+' + prefix + '@');
 }
 
 export function removePrefix(tag: string, count = 1) {
