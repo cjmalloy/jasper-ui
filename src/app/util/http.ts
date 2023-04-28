@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpParameterCodec, HttpParams } from '@angular/common/http';
-import { isArray } from 'lodash-es';
+import { isArray, isObject } from 'lodash-es';
 import { isMoment } from 'moment';
 import { Problem } from '../model/problem';
 
@@ -18,8 +18,10 @@ const encoder = new HttpUrlEncodingCodec();
  */
 export function writeObj(obj?: Record<string, any>): Record<string, any> | undefined {
   if (!obj) return undefined;
+  if (!isObject(obj)) return obj;
   const result: Record<string, any> = {};
   for (const k in obj) {
+    // @ts-ignore
     let v = obj[k];
     if (isMoment(v)) v = v.toISOString();
     if ((v || v === false) && !emptyObject(v)) {
