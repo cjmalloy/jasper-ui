@@ -86,6 +86,7 @@ export class FilterComponent implements OnInit, OnDestroy {
           ],
         },
       ];
+      for (const f of this.admin.tagFilters) this.loadFilter(f);
     }
     this.syncDates();
   }

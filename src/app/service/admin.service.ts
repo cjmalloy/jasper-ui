@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import { findKey, flatten, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
+import { findKey, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -402,15 +402,13 @@ export class AdminService {
   }
 
   get filters() {
-    if (!this._cache.has('filters')) {
-      this._cache.set('filters', flatten([
-        ...Object.values(this.status.plugins),
-        ...Object.values(this.status.templates)
-      ]
-        .filter(p => p?.config?.filters)
-        .map(p => p!.config!.filters!)));
-    }
-    return this._cache.get('filters')!;
+    return this.pluginConfigProperty('filters')
+      .flatMap(p => p.config?.filters!);
+  }
+
+  get tagFilters() {
+    return this.templateConfigProperty('filters')
+      .flatMap(t => t.config?.filters!);
   }
 
   getEmbeds(tags?: string[]) {
