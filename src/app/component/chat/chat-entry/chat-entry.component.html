@@ -21,13 +21,13 @@
       [class.tagging]="tagging"
       (pointerenter)="allowActions = true"
       (pointerleave)="allowActions = false">
-  <div [class.has-title]="clickableLink || ref.title">
-    <a *ngIf="clickableLink && (title || !media)" [href]="ref.url | safe" target="_blank">{{ title }}</a>
+  <div [class.has-title]="clickableLink || currentRef?.title">
+    <a *ngIf="clickableLink && (title || !media)" [href]="url | safe" target="_blank">{{ title }}</a>
     <span *ngIf="!clickableLink && (title || !expand)">{{ title }}</span>
-    <app-md *ngIf="focused && ref.comment"
-            [origin]="ref.origin"
-            [text]="ref.comment"
-            [plugins]="ref.tags"></app-md>
+    <app-md *ngIf="focused && currentRef?.comment"
+            [origin]="ref.origin!"
+            [text]="currentRef!.comment"
+            [plugins]="currentRef!.tags"></app-md>
     <app-viewer [ref]="noComment"></app-viewer>
   </div>
   <div class="actions"

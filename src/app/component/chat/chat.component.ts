@@ -31,7 +31,7 @@ export class ChatComponent implements OnDestroy {
   _query!: string;
   cursor?: string;
   loadingPrev = false;
-  plugins = this.store.account.defaultEditors(['plugin/latex', 'plugin/emoji']);
+  plugins = this.store.account.defaultEditors(['plugin/latex']);
   lastPoll = moment();
   initialSize = 50;
   messages?: Ref[];
@@ -211,7 +211,13 @@ export class ChatComponent implements OnDestroy {
       map(() => ref),
       catchError(err => {
         if (err.status === 409) {
-          // Ref already exists, just tag it
+          // Ref already exists, repost
+          return this.refs.create({
+            ...ref,
+            url: 'comment:' + uuid(),
+            tags: [...ref.tags!, 'plugin/repost'],
+            sources: [ ref.url ],
+          });
           return this.tags.patch(this.addTags, ref.url).pipe(
             switchMap(() => this.refs.get(ref.url, this.store.account.origin)),
           );

@@ -47,8 +47,8 @@ export class MdComponent implements OnInit {
   }
 
   @Input()
-  set text(value: string) {
-    this._text = value;
+  set text(value: string | undefined) {
+    this._text = value || '';
     delete this._value;
   }
 

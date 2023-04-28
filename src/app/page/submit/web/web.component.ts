@@ -7,6 +7,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { AdminService } from '../../../service/admin.service';
@@ -70,7 +71,14 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
           this.addTag('internal');
           this.setTitle($localize`Submit: Feed`);
         }
-        this.url = this.store.submit.url.trim();
+        const url = this.store.submit.url.trim();
+        if (this.store.submit.repost) {
+          this.url = 'internal:' + uuid();
+          this.addTag('plugin/repost');
+          this.addSource(url);
+        } else {
+          this.url = url;
+        }
         if (this.store.submit.source) {
           this.store.submit.sources.map(s => this.addSource(s));
         }
@@ -129,6 +137,14 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
     for (const value of values) {
       this.refForm!.tags.addTag(value);
     }
+    this.submitted = false;
+  }
+
+  addPlugin(tag: string, plugin: any) {
+    this.refForm!.tags.addTag(tag);
+    this.refForm!.plugins.setValue({
+      [tag]: plugin,
+    });
     this.submitted = false;
   }
 

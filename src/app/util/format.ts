@@ -26,9 +26,9 @@ export function authors(ref: Ref) {
   return templates(ref.tags || [], 'user').map(t => t + (ref.origin || ''));
 }
 
-export function clickableLink(ref: Ref) {
+export function clickableLink(url: string) {
   for (const v of config().allowedSchemes) {
-    if (ref.url.startsWith(v)) return true;
+    if (url.startsWith(v)) return true;
   }
   return false;
 }

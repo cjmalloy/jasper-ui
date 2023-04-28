@@ -1,3 +1,9 @@
+<app-ref *ngIf="repost"
+         class="expand"
+         [fetchRepost]="false"
+         [showToggle]="true"
+         [expandInline]="true"
+         [ref]="repost"></app-ref>
 <iframe #iframe
         *ngIf="currentTags.includes('plugin/embed')"
         [class.ready]="oembed"

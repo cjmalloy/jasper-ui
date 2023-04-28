@@ -277,7 +277,7 @@ body.dark-theme {
     filter: none;
   }
 
-  .list-item:not(.full-page) {
+  .list-item:not(.full-page):not(.expand) {
     &:focus-within {
       border: 1px dashed $border;
     }
@@ -330,10 +330,9 @@ body.dark-theme {
     }
   }
 
-  .email .ref {
-    .expand {
+  .thread .ref .expand,
+  .bubble .ref.expand {
       border: none !important;
-    }
   }
 
   .actions {

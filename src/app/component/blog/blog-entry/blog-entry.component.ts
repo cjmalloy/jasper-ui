@@ -188,7 +188,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
   }
 
   get clickableLink() {
-    return clickableLink(this.ref);
+    return clickableLink(this.ref.url);
   }
 
   get comments() {

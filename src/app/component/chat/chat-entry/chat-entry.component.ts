@@ -34,6 +34,7 @@ export class ChatEntryComponent {
   inlineTag?: ElementRef;
 
   noComment: Ref = {} as any;
+  repostRef?: Ref;
   tagging = false;
   deleting = false;
   deleted = false;
@@ -54,12 +55,23 @@ export class ChatEntryComponent {
   @Input()
   set ref(ref: Ref) {
     this._ref = ref;
-    this.noComment = {
-      ...this.ref,
-      comment: ''
-    };
     this.writeAccess = this.auth.writeAccess(ref);
     this.taggingAccess = this.auth.taggingAccess(ref);
+    if (this.ref && this.bareRepost && !this.repostRef) {
+      this.refs.get(this.url, this.ref.origin)
+        .subscribe(ref => {
+          this.repostRef = ref;
+          this.noComment = {
+            ...ref,
+            comment: ''
+          };
+        });
+    } else {
+      this.noComment = {
+        ...this.ref,
+        comment: ''
+      };
+    }
   }
 
   get ref() {
@@ -67,13 +79,17 @@ export class ChatEntryComponent {
   }
 
   get title() {
-    this.ref.title = (this.ref.title || '').trim();
-    this.ref.comment = (this.ref.comment || '').trim();
-    if (this.ref.title) return this.ref.title;
+    const ref = this.currentRef;
+    const title = (ref?.title || '').trim();
+    const comment = (ref?.comment || '').trim();
+    if (title) return title;
     if (this.focused) return '';
-    if (!this.ref.comment) return this.ref.url;
-    if (this.ref.comment.length <= 140) return this.ref.comment;
-    return this.ref.comment.substring(0, 140);
+    if (!comment) {
+      if (this.bareRepost) return $localize`Repost`;
+      return ref?.url;
+    }
+    if (comment.length <= 140) return comment;
+    return comment.substring(0, 140);
   }
 
   get allowActions(): boolean {
@@ -98,34 +114,50 @@ export class ChatEntryComponent {
   }
 
   get clickableLink() {
-    return clickableLink(this.ref);
+    return clickableLink(this.url);
+  }
+
+  get url() {
+    return this.repost ? this.ref.sources![0] : this.ref.url;
+  }
+
+  get currentRef() {
+    return this.repost ? this.repostRef : this.ref;
+  }
+
+  get repost() {
+    return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
+  }
+
+  get bareRepost() {
+    return this.repost && !this.ref.title && !this.ref.comment;
   }
 
   get approved() {
-    return hasTag('_moderated', this.ref);
+    return hasTag('_moderated', this.currentRef);
   }
 
   get locked() {
-    return hasTag('locked', this.ref);
+    return hasTag('locked', this.currentRef);
   }
 
   get qr() {
-    return hasTag('plugin/qr', this.ref);
+    return hasTag('plugin/qr', this.currentRef);
   }
 
   get audio() {
-    return hasTag('plugin/audio', this.ref) ||
-      this.admin.getPluginsForUrl(this.ref.url).find(p => p.tag === 'plugin/audio');
+    return hasTag('plugin/audio', this.currentRef) ||
+      this.admin.getPluginsForUrl(this.url).find(p => p.tag === 'plugin/audio');
   }
 
   get video() {
-    return hasTag('plugin/video', this.ref) ||
-      this.admin.getPluginsForUrl(this.ref.url).find(p => p.tag === 'plugin/image');
+    return hasTag('plugin/video', this.currentRef) ||
+      this.admin.getPluginsForUrl(this.url).find(p => p.tag === 'plugin/image');
   }
 
   get image() {
-    return hasTag('plugin/image', this.ref) ||
-      this.admin.getPluginsForUrl(this.ref.url).find(p => p.tag === 'plugin/image');
+    return hasTag('plugin/image', this.currentRef) ||
+      this.admin.getPluginsForUrl(this.url).find(p => p.tag === 'plugin/image');
   }
 
   get media() {
@@ -133,7 +165,7 @@ export class ChatEntryComponent {
   }
 
   get expand() {
-    return this.ref.comment || this.media;
+    return this.currentRef?.comment || this.media;
   }
 
   get comments() {
@@ -195,10 +227,6 @@ export class ChatEntryComponent {
       this.deleting = false;
       this.deleted = true;
     });
-  }
-
-  cssUrl(url: string) {
-    return `url('${url}')`;
   }
 
 }

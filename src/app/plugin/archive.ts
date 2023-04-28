@@ -35,7 +35,8 @@ export const archivePlugin: Plugin = {
   },
 };
 
-export function findArchive(plugin: Plugin, ref: Ref) {
+export function findArchive(plugin: Plugin, ref?: Ref) {
+  if (!ref) return null;
   if (ref.alternateUrls && plugin!.config?.hosts) {
     for (const s of ref.alternateUrls) {
       if (plugin!.config.hosts.includes(getHost(s)!)) return s;

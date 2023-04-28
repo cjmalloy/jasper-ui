@@ -70,6 +70,10 @@ export class SubmitStore {
     return flatten(this.tag ? [this.tag] : []);
   }
 
+  get repost() {
+    return this.tags.includes('plugin/repost');
+  }
+
   get source() {
     return this.route.routeSnapshot?.queryParams['source'];
   }

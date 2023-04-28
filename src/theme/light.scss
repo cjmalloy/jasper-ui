@@ -255,7 +255,7 @@ body.light-theme {
     }
   }
 
-  .list-item:not(.full-page) {
+  .list-item:not(.full-page):not(.expand) {
     &:focus-visible {
       border: 1px dashed $border;
     }
@@ -306,6 +306,11 @@ body.light-theme {
     .expand {
       border: 1px solid $border;
     }
+  }
+
+  .thread .ref .expand,
+  .bubble .ref.expand {
+    border: none !important;
   }
 
   .actions {

@@ -57,7 +57,10 @@ export class RefComponent implements OnInit, OnDestroy {
   expandInline = false;
   @Input()
   showToggle = false;
+  @Input()
+  fetchRepost = true;
 
+  repostRef?: Ref;
   editForm: UntypedFormGroup;
   submitted = false;
   expandPlugins: string[] = [];
@@ -145,7 +148,6 @@ export class RefComponent implements OnInit, OnDestroy {
     this.viewSource = false;
     this.tagging = false;
     this.actionsExpanded = false;
-    this.title = this.getTitle();
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
     this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
@@ -153,7 +155,21 @@ export class RefComponent implements OnInit, OnDestroy {
     this.actions = this.ref.created ? sortOrder(this.admin.getActions(value.tags, value.plugins)) : [];
     this.infoUis = this.admin.getPluginInfoUis(value.tags);
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
-    this.expandPlugins = this.admin.getEmbeds(value.tags);
+    if (this.repost) {
+      if (value && this.fetchRepost && (!this.repostRef || this.repostRef.url != value.url && this.repostRef.origin === value.origin)) {
+        this.refs.get(this.url, value.origin)
+          .subscribe(ref => {
+            this.repostRef = ref;
+            if (this.bareRepost) {
+              this.title = this.getTitle();
+              this.expandPlugins = this.admin.getEmbeds(ref.tags);
+            }
+          });
+      }
+    } else {
+      this.title = this.getTitle();
+      this.expandPlugins = this.admin.getEmbeds(value?.tags);
+    }
   }
 
   @ViewChild(RefFormComponent)
@@ -198,8 +214,17 @@ export class RefComponent implements OnInit, OnDestroy {
     return this.ref.origin === this.store.account.origin;
   }
 
+  get repost() {
+    return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
+  }
+
+  get bareRepost() {
+    return this.repost && !this.ref.title && !this.ref.comment;
+  }
+
   get commentNoTitle() {
-    return this.ref.title || (this.ref.comment || '')?.length > 140;
+    const ref = this.bareRepost ? this.repostRef : this.ref;
+    return ref?.title || (ref?.comment || '')?.length > 140;
   }
 
   get feed() {
@@ -262,52 +287,53 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get thumbnail() {
     return this.admin.status.plugins.thumbnail &&
-      hasTag('plugin/thumbnail', this.ref);
+      hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
   }
 
   get thumbnailUrl() {
-    return this.thumbnail && (this.ref.plugins?.['plugin/thumbnail'].url || !this.thumbnailColor);
+    return this.thumbnail &&
+      (this.ref?.plugins?.['plugin/thumbnail'].url || this.repostRef?.plugins?.['plugin/thumbnail'].url || !this.thumbnailColor);
   }
 
   get thumbnailColor() {
     return this.thumbnail &&
-      this.ref.plugins?.['plugin/thumbnail'].color;
+      this.ref?.plugins?.['plugin/thumbnail'].color || this.repostRef?.plugins?.['plugin/thumbnail'].color;
   }
 
   get thumbnailEmoji() {
     return this.thumbnail &&
-      this.ref.plugins?.['plugin/thumbnail'].emoji || '';
+      this.ref?.plugins?.['plugin/thumbnail'].emoji || this.repostRef?.plugins?.['plugin/thumbnail'].emoji || '';
   }
 
   get thumbnailRadius() {
     return this.thumbnail &&
-      this.ref.plugins?.['plugin/thumbnail'].radius || 0;
+      this.ref?.plugins?.['plugin/thumbnail'].radius || this.repostRef?.plugins?.['plugin/thumbnail'].radius || 0;
   }
 
   get audio() {
     return this.admin.status.plugins.audio &&
-      hasTag('plugin/audio', this.ref);
+      hasTag('plugin/audio', this.currentRef);
   }
 
   get video() {
     return this.admin.status.plugins.video &&
-      hasTag('plugin/video', this.ref);
+      hasTag('plugin/video', this.currentRef);
   }
 
   get image() {
     return this.admin.status.plugins.image &&
-      hasTag('plugin/image', this.ref);
+      hasTag('plugin/image', this.currentRef);
   }
 
   get mediaAttachment() {
     if (this.audio) {
-      return this.ref.plugins?.['plugin/audio'].url;
+      return this.currentRef?.plugins?.['plugin/audio'].url;
     }
     if (this.video) {
-      return this.ref.plugins?.['plugin/video'].url;
+      return this.currentRef?.plugins?.['plugin/video'].url;
     }
     if (this.image) {
-      return this.ref.plugins?.['plugin/image'].url;
+      return this.currentRef?.plugins?.['plugin/image'].url;
     }
     return false;
   }
@@ -324,12 +350,14 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get pdf() {
     if (!this.admin.status.plugins.pdf) return null;
-    return this.ref.plugins?.['plugin/pdf']?.url || this.findPdf;
+    return this.ref.plugins?.['plugin/pdf']?.url || this.repostRef?.plugins?.['plugin/pdf']?.url || this.findPdf;
   }
 
   get findPdf() {
-    if (!this.ref.alternateUrls) return null;
-    for (const s of this.ref.alternateUrls) {
+    const urls = [
+      ...(this.ref.alternateUrls || []),
+      ...(this.repostRef?.alternateUrls || [])];
+    for (const s of urls) {
       if (new URL(s).pathname.endsWith('.pdf')) {
         return s;
       }
@@ -340,7 +368,10 @@ export class RefComponent implements OnInit, OnDestroy {
   get archive() {
     const plugin = this.admin.getPlugin('plugin/archive');
     if (!plugin) return null;
-    return this.ref.plugins?.['plugin/archive']?.url || findArchive(plugin, this.ref);
+    return this.ref.plugins?.['plugin/archive']?.url ||
+      this.repostRef?.plugins?.['plugin/archive']?.url ||
+      findArchive(plugin, this.ref) ||
+      findArchive(plugin, this.repostRef);
   }
 
   get isAuthor() {
@@ -385,12 +416,24 @@ export class RefComponent implements OnInit, OnDestroy {
     return interestingTags(this.ref.tags);
   }
 
+  get url() {
+    return this.repost ? this.ref.sources![0] : this.ref.url;
+  }
+
+  get currentRef() {
+    return this.repost ? this.repostRef : this.ref;
+  }
+
+  get bareRef() {
+    return this.bareRepost ? this.repostRef : this.ref;
+  }
+
   get host() {
-    return urlSummary(this.ref.url);
+    return urlSummary(this.url);
   }
 
   get clickableLink() {
-    return clickableLink(this.ref);
+    return clickableLink(this.url);
   }
 
   get comments() {
@@ -633,6 +676,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   getTitle() {
+    if (this.bareRepost) return this.repostRef?.title || $localize`Repost`;
     const title = (this.ref.title || '').trim();
     const comment = (this.ref.comment || '').trim();
     if (title) return title;

@@ -91,7 +91,7 @@
             to <a class="origin tag" [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
           </ng-container>
         </div>
-        <app-viewer *ngIf="expanded && expandInline && !editing && !viewSource" [ref]="ref" ></app-viewer>
+        <app-viewer *ngIf="expanded && expandInline && !editing && !viewSource" [ref]="bareRef" ></app-viewer>
         <div class="actions" [class.expanded]="actionsExpanded">
           <ng-container *ngIf="store.account.user && !ref.created && !ref.upload">
             <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
@@ -121,6 +121,9 @@
             </span>
             <ng-container *ngIf="store.account.user && !local">
               <span class="fake-link" (click)="copy()" i18n>copy</span>
+            </ng-container>
+            <ng-container *ngIf="store.account.user && local">
+              <a routerLink="/submit/web" [queryParams]="{ url, tag: 'plugin/repost' }" i18n>repost</a>
             </ng-container>
             <a *ngIf="writeAccess else source"
                class="fake-link"
@@ -203,7 +206,7 @@
     </div>
   </div>
 </div>
-<app-viewer *ngIf="expanded && !expandInline && !editing && !viewSource" [ref]="ref"></app-viewer>
+<app-viewer *ngIf="expanded && !expandInline && !editing && !viewSource" [ref]="bareRef"></app-viewer>
 
 <form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
