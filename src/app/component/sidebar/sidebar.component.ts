@@ -27,6 +27,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   showToggle = true;
   @Input()
   home = false;
+  @Input()
+  @HostBinding('class.floating')
+  floating = true;
 
   _tag = '';
   localTag?: string;

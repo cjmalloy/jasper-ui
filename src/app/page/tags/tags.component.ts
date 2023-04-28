@@ -1,34 +1,39 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { ThemeService } from '../../../service/theme.service';
-import { ExtStore } from '../../../store/ext';
-import { Store } from '../../../store/store';
-import { getTagFilter, getTagQueryFilter } from '../../../util/query';
+import { AdminService } from '../../service/admin.service';
+import { ThemeService } from '../../service/theme.service';
+import { ExtStore } from '../../store/ext';
+import { Store } from '../../store/store';
+import { getTagFilter, getTagQueryFilter } from '../../util/query';
 
 @Component({
-  selector: 'app-settings-ext-page',
-  templateUrl: './ext.component.html',
-  styleUrls: ['./ext.component.scss'],
+  selector: 'app-tags-page',
+  templateUrl: './tags.component.html',
+  styleUrls: ['./tags.component.scss']
 })
-export class SettingsExtPage implements OnInit, OnDestroy {
+export class TagsPage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
+  templates = this.admin.tmplView;
+
   constructor(
     private theme: ThemeService,
+    private admin: AdminService,
     public store: Store,
     public query: ExtStore,
   ) {
-    theme.setTitle($localize`Settings: Tag Extensions`);
+    theme.setTitle($localize`Tags`);
     store.view.clear('tag', 'tag');
     query.clear();
   }
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
+      const query = this.store.view.template || ('(' + this.templates.map(t => t.tag).join('|') + ')');
       const args = {
-        query: (this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*')) + getTagQueryFilter(this.store.view.filter),
+        query: query + getTagQueryFilter(this.store.view.filter),
         search: this.store.view.search,
         sort: [...this.store.view.sort],
         page: this.store.view.pageNumber,

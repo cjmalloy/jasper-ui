@@ -128,6 +128,7 @@ import { SubmitTextPage } from './page/submit/text/text.component';
 import { UploadPage } from './page/submit/upload/upload.component';
 import { SubmitWebPage } from './page/submit/web/web.component';
 import { TagPage } from './page/tag/tag.component';
+import { TagsPage } from './page/tags/tags.component';
 import { UserPage } from './page/user/user.component';
 import { SafePipe } from './pipe/safe.pipe';
 import { ThumbnailPipe } from './pipe/thumbnail.pipe';
@@ -284,6 +285,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     InboxDmsPage,
     UploadPage,
     InboxModlistPage,
+    TagsPage,
   ],
   imports: [
     BrowserModule,

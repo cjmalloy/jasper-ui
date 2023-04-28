@@ -5,7 +5,7 @@
          (click)="expanded = !expanded">☰</div>
     <div class="wide" *ngIf="store.view.current && (!home || store.view.search || store.view.filter.length || !query.page?.empty)">
       <app-search></app-search>
-      <div class="show-remotes" *ngIf="expanded && store.view.type !== 'ref'">
+      <div class="show-remotes" *ngIf="expanded && store.view.type !== 'ref' && store.view.settings">
         <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
         <label for="show-remotes" i18n>show remotes</label>
       </div>

@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
-    <a routerLink="." [queryParams]="{origin: store.view.origin}" [class.current-tab]="!store.view.summary" i18n>view</a>
+    <a routerLink="." [queryParams]="{origin: store.view.origin}" [class.current-tab]="store.view.summary" i18n>view</a>
     <ng-container *ngIf="store.view.ref?.created">
       <ng-container *ngIf="store.view.current === 'ref/comments' || comments">
         <a routerLink="comments" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>comments</a>

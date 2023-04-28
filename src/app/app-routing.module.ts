@@ -35,6 +35,7 @@ import { SubmitTextPage } from './page/submit/text/text.component';
 import { UploadPage } from './page/submit/upload/upload.component';
 import { SubmitWebPage } from './page/submit/web/web.component';
 import { TagPage } from './page/tag/tag.component';
+import { TagsPage } from './page/tags/tags.component';
 import { UserPage } from './page/user/user.component';
 
 const routes: Routes = [
@@ -44,6 +45,8 @@ const routes: Routes = [
   { path: 'all', redirectTo: 'tag/@*', pathMatch: 'full' },
   { path: 'tag', redirectTo: 'tag/@*', pathMatch: 'full' },
   { path: 'tag/:tag', component: TagPage },
+  { path: 'tags', component: TagsPage },
+  { path: 'tags/:template', component: TagsPage },
   { path: 'ext', component: ExtPage },
   { path: 'ext/:tag', component: ExtPage },
   { path: 'user', component: UserPage },

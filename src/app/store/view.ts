@@ -16,7 +16,7 @@ import { EventBus } from './bus';
  */
 export type View =
   'home' | 'all' | 'local' |
-  'tag' | 'query' |
+  'tag' | 'tags' | 'query' |
   'sent' |
   'ref/comments' | 'ref/thread' | 'ref/responses' | 'ref/sources' | 'ref/versions' |
   'plugin/feed' | 'plugin/origin' | 'plugin/inbox' | 'plugin/invoice' |
@@ -70,14 +70,26 @@ export class ViewStore {
   get summary() {
     const s = this.route.routeSnapshot.firstChild;
     if (s?.routeConfig?.path !== 'ref/:url') return false;
-    return !!s.firstChild?.routeConfig?.path;
+    return !s.firstChild?.routeConfig?.path;
+  }
+
+  get tags() {
+    const s = this.route.routeSnapshot.firstChild;
+    return s?.routeConfig?.path === 'tags';
+  }
+
+  get settings() {
+    const s = this.route.routeSnapshot.firstChild;
+    return s?.routeConfig?.path === 'settings';
   }
 
   get current(): View | undefined {
     const s = this.route.routeSnapshot.firstChild;
     switch (s?.routeConfig?.path) {
       case 'home': return 'home';
+      case 'tags': return 'tags';
       case 'tag/:tag':
+        if (this.tag === '') return 'tags';
         if (this.tag === '@*') return 'all';
         if (this.tag === '*') return 'local';
         if (isQuery(this.tag)) return 'query';
@@ -113,6 +125,7 @@ export class ViewStore {
 
   get type(): Type | undefined {
     if (!this.current) return undefined;
+    if (this.current === 'tags') return 'ext';
     if (this.current.startsWith('ref/') ||
       this.current.startsWith('plugin/') ||
       this.current ==='home' ||
@@ -140,6 +153,10 @@ export class ViewStore {
 
   get tag(): string {
     return this.route.routeSnapshot?.firstChild?.params['tag'] || '';
+  }
+
+  get template(): string {
+    return this.route.routeSnapshot?.firstChild?.params['template'] || '';
   }
 
   get query() {

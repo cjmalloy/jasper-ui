@@ -120,3 +120,15 @@ export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {
   }
   return result;
 }
+
+
+export function getTagQueryFilter(filter?: UrlFilter[]): string {
+  if (!filter) return '';
+  let result = '';
+  for (const f of filter) {
+    if (f.startsWith('query/')) {
+      result += ':(' + f.substring('query/'.length) + ')';
+    }
+  }
+  return result;
+}
