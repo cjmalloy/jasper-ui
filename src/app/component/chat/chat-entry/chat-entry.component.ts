@@ -33,13 +33,15 @@ export class ChatEntryComponent {
   @ViewChild('inlineTag')
   inlineTag?: ElementRef;
 
-  private _allowActions = false;
+  noComment: Ref = {} as any;
   tagging = false;
   deleting = false;
   deleted = false;
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
+
+  private _allowActions = false;
 
   constructor(
     public admin: AdminService,
@@ -52,6 +54,10 @@ export class ChatEntryComponent {
   @Input()
   set ref(ref: Ref) {
     this._ref = ref;
+    this.noComment = {
+      ...this.ref,
+      comment: ''
+    };
     this.writeAccess = this.auth.writeAccess(ref);
     this.taggingAccess = this.auth.taggingAccess(ref);
   }
@@ -68,13 +74,6 @@ export class ChatEntryComponent {
     if (!this.ref.comment) return this.ref.url;
     if (this.ref.comment.length <= 140) return this.ref.comment;
     return this.ref.comment.substring(0, 140);
-  }
-
-  get embeds() {
-    return {
-      ...this.ref,
-      comment: ''
-    };
   }
 
   get allowActions(): boolean {
