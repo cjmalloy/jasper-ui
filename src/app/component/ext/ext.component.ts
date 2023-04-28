@@ -14,6 +14,7 @@ import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
+import { hasPrefix } from '../../util/tag';
 
 @Component({
   selector: 'app-ext',
@@ -49,6 +50,9 @@ export class ExtComponent implements OnInit {
 
   ngOnInit(): void {
     this.icons = this.admin.getTemplateView(this.ext.tag);
+    if (hasPrefix(this.ext.tag, 'user')) {
+      this.icons.push({tag: 'user', config: { view: $localize`👤️` }});
+    }
     this.editForm = extForm(this.fb, this.ext, this.admin, true);
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);
   }
