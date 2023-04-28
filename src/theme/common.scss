@@ -400,6 +400,8 @@ video.qr-preview {
 }
 
 .sidebar {
+  position: absolute;
+  right: 0;
   width: 354px;
   margin-bottom: 100px;
   border-bottom-left-radius: 4px;
@@ -490,6 +492,11 @@ video.qr-preview {
 
     .subscribe, .bookmark {
       margin: 10px;
+    }
+
+    .alarm {
+      margin-left: -8px;
+      padding: 1px;
     }
   }
 

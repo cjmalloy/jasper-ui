@@ -182,7 +182,7 @@ body.dark-theme {
 
   .sidebar {
     background-color: $bg-accent;
-    backdrop-filter: blur(1px);
+    backdrop-filter: grayscale(1) contrast(0.2) brightness(0.4) blur(1px);
     box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
 
     .submit-button {

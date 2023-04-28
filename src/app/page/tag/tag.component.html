@@ -23,7 +23,6 @@
     <app-settings></app-settings>
   </div>
   <app-sidebar class="aside"
-               *ngIf="!store.view.graph"
                [tag]="store.view.tag!"
                [ext]="store.view.ext"></app-sidebar>
   <div *ngIf="query.error?.status === 403 else accessGranted" class="error-403" i18n>Access Denied</div>

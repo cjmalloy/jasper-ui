@@ -173,7 +173,7 @@ body.light-theme {
   .sidebar {
     border-left: 1px dashed $border;
     border-bottom: 1px dashed $border;
-    backdrop-filter: blur(1px);
+    backdrop-filter: grayscale(1) contrast(0.2) brightness(1.5) blur(1px);
     box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
 
     .submit-button {
