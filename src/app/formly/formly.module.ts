@@ -72,6 +72,14 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           },
         },
       }, {
+        name: 'color',
+        extends: 'input',
+        defaultOptions: {
+          props: {
+            type: 'color',
+          },
+        },
+      }, {
         name: 'url',
         extends: 'input',
         defaultOptions: {
