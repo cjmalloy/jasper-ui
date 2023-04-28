@@ -4,7 +4,7 @@
                              [class.scroll-lock]="scrollLock"
                              [itemSize]="itemSize"
                              [style.height.px]="containerHeight"
-                             (scrolledIndexChange)="scrollLock = undefined">
+                             (scrolledIndexChange)="onScroll($event)">
   <app-chat-entry *cdkVirtualFor="let ref of messages; let index = index; let odd = odd"
                   [ref]="ref"
                   [class.odd]="odd"

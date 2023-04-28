@@ -134,6 +134,7 @@ export class ChatComponent implements OnDestroy {
       this.loadingPrev = false;
       this.setPoll(page.empty);
       if (page.empty) return;
+      this.scrollLock = undefined;
       if (!this.messages) this.messages = [];
       this.cursor ??= page.content[0]?.modifiedString;
       this.messages = [...page.content.reverse(), ...this.messages];
@@ -228,6 +229,15 @@ export class ChatComponent implements OnDestroy {
   retry(ref: Ref) {
     pull(this.errored, ref);
     this.send(ref);
+  }
+
+  onScroll(index: number) {
+    if (!this.scrollLock) return;
+    // TODO: count height in rows
+    const diff = this.scrollLock - index;
+    if (diff < -5) {
+      this.scrollLock = undefined;
+    }
   }
 
 }
