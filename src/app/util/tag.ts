@@ -74,17 +74,18 @@ export function hasUserUrlResponse(tag?: string, ref?: Ref)  {
   return !!find(ref.metadata.userUrls, t => expandedTagsInclude(t, tag));
 }
 
-export function tagIntersection(expand: string[], tags: string[]) {
+export function tagIntersection(expand: string[], targets: string[]) {
   if (!expand) return [];
-  return filter(tags, e => includesTag(e, expand));
+  return filter(targets, target => includesTag(target, expand));
 }
 
-export function includesTag(tag: string, tags: string[])  {
-  if (!tag) return false;
-  return !!find(tags, t => expandedTagsInclude(t, tag));
+export function includesTag(target: string, tags: string[])  {
+  if (!target) return false;
+  return !!find(tags, t => expandedTagsInclude(t, target));
 }
 
-export function expandedTagsInclude(tag: string, target: string) {
+export function expandedTagsInclude(tag?: string, target?: string) {
+  if (!tag || !target) return false;
   return tag === target || tag.startsWith(target + '/');
 }
 
@@ -133,7 +134,8 @@ export function prefix(prefix: string, ...rest: string[]) {
 }
 
 export function hasPrefix(tag?: string, prefix?: string) {
-  if (!tag || !prefix) return false;
+  if (!tag) return false;
+  if (!prefix) return true;
   return tag === prefix ||
     tag === '_' + prefix ||
     tag === '+' + prefix ||
