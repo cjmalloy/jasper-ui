@@ -134,9 +134,6 @@ export class RefFormComponent implements OnInit {
   }
 
   setRef(ref: Ref) {
-    if (hasTag('chat', ref)) {
-      this.title.setValidators([]);
-    }
     const sourcesForm = this.group.get('sources') as UntypedFormArray;
     const altsForm = this.group.get('alternateUrls') as UntypedFormArray;
     const tagsForm = this.group.get('tags') as UntypedFormArray;
