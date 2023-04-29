@@ -39,6 +39,7 @@ import { fileMod } from '../mods/file';
 import { folderMod } from '../mods/folder';
 import { fullscreenMod } from '../mods/fullscreen';
 import { gdprMod } from '../mods/gdpr';
+import { geoMod } from '../mods/geo';
 import { graphMod } from '../mods/graph';
 import { hideMod } from '../mods/hide';
 import { homeMod } from '../mods/home';
@@ -115,6 +116,7 @@ export class AdminService {
     homeMod,
     kanbanMod,
     blogMod,
+    geoMod,
     chatMod,
     mailboxMod,
     hideMod,
