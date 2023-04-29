@@ -41,6 +41,7 @@ export class AuthnService {
       redirectUri: this.config.base,
       clientId: this.config.clientId,
       responseType: this.config.codeFlow ? 'code' : 'id_token',
+      requireHttps: false,
       scope: this.config.scope,
       preserveRequestedRoute: true,
       clearHashAfterLogin: true,
@@ -55,7 +56,7 @@ export class AuthnService {
     return from(this.oauth.loadDiscoveryDocumentAndTryLogin()).pipe(
       tap(() => {
         if (this.oauth.state) {
-          this.router.navigateByUrl(this.oauth.state);
+          this.router.navigateByUrl(decodeURIComponent(this.oauth.state));
         }
       }));
   }

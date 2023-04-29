@@ -11,6 +11,9 @@ export const folderTemplate: Template = {
     view: $localize`📂️`,
     writeAccess: ['+folder'],
     description: $localize`Activates built-in Folder mode for viewing Refs.`,
+    filters: [
+      { query: 'folder', label: $localize`📂️ folder`, group: $localize`Templates 🎨️` },
+    ],
   },
   schema: {
     optionalProperties: {

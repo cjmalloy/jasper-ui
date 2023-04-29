@@ -18,6 +18,8 @@ export class SubmitStore {
   images: FileList = [] as any;
   exts: Ext[] = [];
   refs: Ref[] = [];
+  extDiff: Ext[] = [];
+  refDiff: Ref[] = [];
   overwrite = false;
 
   constructor(
@@ -169,6 +171,22 @@ export class SubmitStore {
     for (const e of this.exts) {
       if (e.tag === tag) {
         e.exists = true;
+      }
+    }
+  }
+
+  diffRef(ref: Ref) {
+    for (let i = 0; i < this.refs.length; i++) {
+      if (this.refs[i].url === ref.url) {
+        this.refDiff[i] = ref;
+      }
+    }
+  }
+
+  diffExt(ext: Ext) {
+    for (let i = 0; i < this.exts.length; i++) {
+      if (this.exts[i].tag === ext.tag) {
+        this.extDiff[i] = ext;
       }
     }
   }

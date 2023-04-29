@@ -1,8 +1,18 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { without } from 'lodash-es';
 import { forkJoin } from 'rxjs';
 import { Ref } from '../model/ref';
-import { Action, active, EmitAction, emitModels, EventAction, ResponseAction, TagAction } from '../model/tag';
+import {
+  Action,
+  active,
+  EmitAction,
+  emitModels,
+  EventAction,
+  ReplyAction,
+  ResponseAction,
+  TagAction
+} from '../model/tag';
 import { Store } from '../store/store';
 import { ExtService } from './api/ext.service';
 import { OriginService } from './api/origin.service';
@@ -22,6 +32,7 @@ export class ActionService {
     private scraper: ScrapeService,
     private origins: OriginService,
     private store: Store,
+    private router: Router,
   ) { }
 
   apply(ref: Ref, a: Action) {
@@ -30,6 +41,9 @@ export class ActionService {
     }
     if ('response' in a) {
       return this.respond(ref, a);
+    }
+    if ('reply' in a) {
+      return this.reply(ref, a);
     }
     if ('event' in a) {
       return this.event(ref, a);
@@ -78,5 +92,9 @@ export class ActionService {
       ref.metadata.userUrls = without(ref.metadata.userUrls, ...clear);
       this.store.eventBus.runAndRefresh(this.tags.respond(tags, ref.url), ref);
     }
+  }
+
+  reply(ref: Ref, a: ReplyAction) {
+    this.router.navigate(['/submit/text'], { queryParams: { tag: a.reply, source: ref.url } });
   }
 }

@@ -58,6 +58,8 @@ export class RefComponent implements OnInit, OnDestroy {
   @Input()
   showToggle = false;
   @Input()
+  diff?: Ref;
+  @Input()
   fetchRepost = true;
 
   repostRef?: Ref;
@@ -82,6 +84,9 @@ export class RefComponent implements OnInit, OnDestroy {
   taggingAccess = false;
   serverError: string[] = [];
   publishChanged = false;
+
+  @ViewChild(RefFormComponent)
+  refFormComp?: RefFormComponent;
 
   private _ref!: Ref;
 
@@ -337,16 +342,6 @@ export class RefComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  get canInvoice() {
-    if (!this.ref.created) return false;
-    if (!this.local) return false;
-    if (!this.admin.status.plugins.invoice) return false;
-    if (!this.isAuthor) return false;
-    if (!this.ref.sources || !this.ref.sources.length) return false;
-    return hasTag('plugin/comment', this.ref) ||
-      !hasTag('internal', this.ref);
-  }
-
   get pdf() {
     if (!this.admin.status.plugins.pdf) return null;
     return this.ref.plugins?.['plugin/pdf']?.url || this.repostRef?.plugins?.['plugin/pdf']?.url || this.findPdf;
@@ -591,6 +586,17 @@ export class RefComponent implements OnInit, OnDestroy {
       scrollToFirstInvalid();
       return;
     }
+    if (this.refFormComp?.diffOn) {
+      const parsed = JSON.parse(this.refFormComp.diffModel.code);
+      if (this.ref.upload) {
+        this.ref = parsed;
+        this.ref.upload = true;
+        this.store.submit.setRef(this.ref);
+      } else {
+        this.store.eventBus.runAndReload(this.refs.update(parsed), parsed);
+      }
+      return;
+    }
     const tags = uniq([...without(this.editForm.value.tags, ...this.admin.editorTags), ...this.editorPlugins]);
     const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     const ref = {
@@ -606,7 +612,7 @@ export class RefComponent implements OnInit, OnDestroy {
     if (this.ref.upload) {
       ref.upload = true;
       this.ref = ref;
-      this.upload();
+      this.store.submit.setRef(this.ref);
     } else {
       this.store.eventBus.runAndReload(this.refs.update(ref), ref);
     }

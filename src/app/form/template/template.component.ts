@@ -1,5 +1,7 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Template } from '../../model/template';
+import { JsonComponent } from '../json/json.component';
 
 @Component({
   selector: 'app-template-form',
@@ -12,6 +14,13 @@ export class TemplateFormComponent implements OnInit {
   @Input()
   group!: UntypedFormGroup;
 
+  @ViewChild('configJson')
+  configJson?: JsonComponent;
+  @ViewChild('defaultsJson')
+  defaultsJson?: JsonComponent;
+  @ViewChild('schemaJson')
+  schemaJson?: JsonComponent;
+
   constructor() { }
 
   ngOnInit(): void {
@@ -23,6 +32,35 @@ export class TemplateFormComponent implements OnInit {
 
   get name() {
     return this.group.get('name') as UntypedFormControl;
+  }
+
+  get config() {
+    return this.group.get('config') as UntypedFormGroup;
+  }
+
+  get defaults() {
+    return this.group.get('defaults') as UntypedFormGroup;
+  }
+
+  get configForm() {
+    return this.config.value?.configForm;
+  }
+
+  get form() {
+    return [
+      ...(this.config.value?.form || []),
+      ...(this.config.value?.advancedForm || [])
+    ];
+  }
+
+  setValue(model: Template) {
+    this.group.patchValue({
+      tag: model.tag,
+      name: model.name,
+    });
+    this.configJson?.setValue(model.config);
+    this.defaultsJson?.setValue(model.defaults);
+    this.schemaJson?.setValue(model.schema);
   }
 
 }

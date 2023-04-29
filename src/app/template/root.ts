@@ -13,7 +13,30 @@ export const rootTemplate: Template = {
   },
   schema: {
     optionalProperties: {
+      filters: {
+        elements: {
+          optionalProperties: {
+            query: { type: 'string' },
+            scheme: { type: 'string' },
+            response: { type: 'string' },
+            label: { type: 'string' },
+            group: { type: 'string' },
+          },
+        },
+      },
+      icons: {
+        elements: {
+          optionalProperties: {
+            label: { type: 'string' },
+            title: { type: 'string' },
+            tag: { type: 'string' },
+            response: { type: 'string' },
+            scheme: { type: 'string' },
+          },
+        },
+      },
       pinned: { elements: { type: 'string' } },
+      defaultSort: { type: 'string' },
       sidebar: { type: 'string' },
       modmail: { type: 'boolean' },
       themes: { values: { type: 'string' } },

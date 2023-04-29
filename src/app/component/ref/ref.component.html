@@ -1,5 +1,5 @@
 <div class="row">
-  <div *ngIf="store.account.user && admin.status.plugins.voteUp"
+  <div *ngIf="!ref.upload && store.account.user && admin.status.plugins.voteUp"
        class="voting">
     <div class="vote-up"
          [class.on]="upvote"
@@ -182,10 +182,6 @@
           <a *ngIf="mediaAttachment"
              class="fake-link"
              (click)="downloadMedia()" i18n>media</a>
-          <ng-container *ngIf="canInvoice">
-            <a routerLink="/submit/invoice"
-               [queryParams]="{url: ref.url}" i18n>invoice</a>
-          </ng-container>
           <a *ngIf="pdf" target="_blank" [href]="pdf" i18n>pdf</a>
           <a *ngIf="archive" target="_blank" [href]="archive" i18n>archive</a>
           <ng-container *ngFor="let a of actions">
@@ -211,6 +207,7 @@
 <form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
   <app-ref-form [group]="editForm"
+                [diff]="diff"
                 (editorTags)="editorPlugins = $event"></app-ref-form>
 
   <ng-container *ngFor="let e of serverError">

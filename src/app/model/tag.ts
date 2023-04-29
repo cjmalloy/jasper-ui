@@ -47,6 +47,14 @@ export interface Config extends Tag {
      */
     description?: string,
     /**
+     * Plugin dependencies.
+     */
+    requiredPlugins?: string[],
+    /**
+     * Template dependencies.
+     */
+    requiredTemplates?: string[],
+    /**
      * Optional CSS to be added to <head> on load.
      */
     css?: string,
@@ -54,6 +62,10 @@ export interface Config extends Tag {
      * Optional formly config for editing a form defined by the schema.
      */
     form?: FormlyFieldConfig[],
+    /**
+     * Optional formly config for editing the config.
+     */
+    configForm?: FormlyFieldConfig[],
     /**
      * Extra formly config to hide in advanced tab.
      */
@@ -176,7 +188,7 @@ export interface FilterConfig {
   group?: string;
 }
 
-export type Action = TagAction | ResponseAction | EmitAction | EventAction;
+export type Action = TagAction | ResponseAction | ReplyAction | EmitAction | EventAction;
 
 export interface TagAction extends Visibility {
     /**
@@ -212,6 +224,18 @@ export interface ResponseAction extends Visibility {
      * The response plugin must have metadata generation turned on.
      */
     labelOff?: string;
+}
+
+export interface ReplyAction extends Visibility {
+    /**
+     * Add a tag reply to the Ref.
+     */
+    reply: string;
+    /**
+     * Label to show when this ref does not have a tagged reply.
+     * The response plugin must have metadata generation turned on.
+     */
+    label?: string;
 }
 
 export interface EventAction extends Visibility {

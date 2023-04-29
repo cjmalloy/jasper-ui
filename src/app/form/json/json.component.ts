@@ -1,6 +1,7 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
+import { AfterViewInit, Component, Input, OnDestroy } from '@angular/core';
+import { FormControl, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
+import { Subject, takeUntil } from 'rxjs';
 import { Store } from '../../store/store';
 
 @Component({
@@ -8,14 +9,18 @@ import { Store } from '../../store/store';
   templateUrl: './json.component.html',
   styleUrls: ['./json.component.scss']
 })
-export class JsonComponent implements OnInit, OnDestroy {
-
+export class JsonComponent implements AfterViewInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
+  private destroy$ = new Subject<void>();
 
   @Input()
   group!: UntypedFormGroup;
   @Input()
   fieldName = 'source';
+  @Input()
+  diff?: string;
+
+  stringControl = new FormControl();
 
   options: any = {
     language: 'json',
@@ -33,12 +38,37 @@ export class JsonComponent implements OnInit, OnDestroy {
     }));
   }
 
-  ngOnInit(): void {
+  get control() {
+    return this.group.get(this.fieldName) as UntypedFormControl;
+  }
+
+  ngAfterViewInit(): void {
+    this.control.valueChanges.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(
+      value => {
+        this.stringControl.setValue(JSON.stringify(value, null, 2));
+      }
+    );
+    this.stringControl.valueChanges.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(
+      value => {
+        this.control.setValue(JSON.parse(value), { emitEvent: false });
+      }
+    );
   }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  setValue(model: any) {
+    this.control.setValue(model);
+    // this.stringControl.setValue(JSON.stringify(model, null, 2));
   }
 
 }

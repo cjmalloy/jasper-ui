@@ -40,6 +40,7 @@ export class TagPage implements OnInit, OnDestroy {
     this.store.view.clear(
       !!this.admin.status.plugins.voteUp ? 'voteScoreDecay'
         : this.store.view.tag.includes('*') ? 'published'
+        : this.store.view.ext?.config?.defaultSort ? this.store.view.ext?.config?.defaultSort
         : 'created');
     this.disposers.push(autorun(() => {
       this.theme.setTitle(this.store.view.name);

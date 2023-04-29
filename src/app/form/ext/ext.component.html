@@ -1,13 +1,15 @@
-<ng-container [formGroup]="group">
+<ng-container [formGroup]="group || defaults!">
 
-  <label for="tag" i18n>Tag:</label>
-  <div class="form-array">
-    <input id="tag" type="text" formControlName="tag">
-    <button *ngIf="showClear" type="button" (click)="clear.next()" i18n-title title="New Ext" i18n>🆑️</button>
-  </div>
+  <ng-container *ngIf="!defaults">
+    <label for="tag" i18n>Tag:</label>
+    <div class="form-array">
+      <input id="tag" type="text" formControlName="tag">
+      <button *ngIf="showClear" type="button" (click)="clear.next()" i18n-title title="New Ext" i18n>🆑️</button>
+    </div>
 
-  <label for="name" i18n>Name:</label>
-  <input id="name" type="text" formControlName="name">
+    <label for="name" i18n>Name:</label>
+    <input id="name" type="text" formControlName="name">
+  </ng-container>
 
   <ng-container [formGroup]="config">
 

@@ -3,7 +3,7 @@ import { UntypedFormGroup } from '@angular/forms';
 
 import { GenFormComponent } from './gen.component';
 
-describe('GenComponent', () => {
+describe('GenFormComponent', () => {
   let component: GenFormComponent;
   let fixture: ComponentFixture<GenFormComponent>;
 

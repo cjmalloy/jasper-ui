@@ -1,7 +1,19 @@
-import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostBinding,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild
+} from '@angular/core';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
+import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
+import { DiffEditorModel } from 'ngx-monaco-editor';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
@@ -10,7 +22,6 @@ import { ScrapeService } from '../../service/api/scrape.service';
 import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
-import { hasTag } from '../../util/tag';
 import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
@@ -20,11 +31,14 @@ import { TagsFormComponent } from '../tags/tags.component';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss']
 })
-export class RefFormComponent implements OnInit {
+export class RefFormComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'nested-form';
+  private disposers: IReactionDisposer[] = [];
 
   @Input()
   group!: UntypedFormGroup;
+  @Input()
+  diff?: Ref;
 
   @Output()
   editorTags = new EventEmitter<string[]>();
@@ -41,6 +55,14 @@ export class RefFormComponent implements OnInit {
   plugins!: PluginsFormComponent;
 
   scraped?: Ref;
+  diffOn = false;
+
+  options: any = {
+    language: 'json',
+    automaticLayout: true,
+  };
+  private _refModel?: DiffEditorModel;
+  private _diffModel?: DiffEditorModel;
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -49,13 +71,41 @@ export class RefFormComponent implements OnInit {
     private scrape: ScrapeService,
     private store: Store,
     private oembeds: OembedStore,
-  ) { }
+  ) {
+    this.disposers.push(autorun(() => {
+      this.options = {
+        ...this.options,
+        theme: store.darkTheme ? 'vs-dark' : 'vs',
+      }
+    }));
+  }
 
   ngOnInit(): void {
   }
 
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
+  }
+
   getTags() {
     return this.group.get('tags')?.value;
+  }
+
+  get refModel(): DiffEditorModel {
+    if (this._refModel) return this._refModel;
+    return this._refModel = {
+      code: JSON.stringify(this.group.value || '', null, 2),
+      language: 'text/plain'
+    };
+  }
+
+  get diffModel(): DiffEditorModel {
+    if (this._diffModel) return this._diffModel;
+    return this._diffModel = {
+      code: JSON.stringify(this.diff || '', null, 2),
+      language: 'text/plain'
+    };
   }
 
   @ViewChild('fill')
@@ -134,6 +184,8 @@ export class RefFormComponent implements OnInit {
   }
 
   setRef(ref: Ref) {
+    delete this._refModel;
+    delete this._diffModel;
     const sourcesForm = this.group.get('sources') as UntypedFormArray;
     const altsForm = this.group.get('alternateUrls') as UntypedFormArray;
     const tagsForm = this.group.get('tags') as UntypedFormArray;

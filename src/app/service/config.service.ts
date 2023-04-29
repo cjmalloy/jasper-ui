@@ -33,8 +33,8 @@ export class ConfigService {
   token = '';
   codeFlow = false;
   implicitFlow = false;
-  issuer = '';
-  clientId = '';
+  issuer = 'https://dev--ih10zzw.us.auth0.com/';
+  clientId = '8PRmqhzrFQLyBFxcZ1mN5kxb7KTL6jUY';
   scope = 'openid email';
 
   mobileWidth = 740;

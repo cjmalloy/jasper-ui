@@ -1,8 +1,6 @@
-<ng-container [formGroup]="group">
-  <ngx-monaco-editor #editor
-                     [formControlName]="fieldName"
-                     [options]="options"
-                     [style.width]="'900px'"
-                     [style.height]="'600px'"
-                     appResizeHandle></ngx-monaco-editor>
-</ng-container>
+<ngx-monaco-editor *ngIf="!diff"
+                   [formControl]="stringControl"
+                   [options]="options"
+                   [style.width]="'900px'"
+                   [style.height]="'600px'"
+                   appResizeHandle></ngx-monaco-editor>

@@ -3,6 +3,7 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } 
 import { FormlyFieldConfig, FormlyFormOptions } from '@ngx-formly/core';
 import { defer, uniq } from 'lodash-es';
 import { Ext } from '../../model/ext';
+import { Template } from '../../model/template';
 import { getMailbox } from '../../plugin/mailbox';
 import { AdminService } from '../../service/admin.service';
 import { TAG_REGEX } from '../../util/format';
@@ -23,7 +24,9 @@ export class ExtFormComponent implements OnInit {
   @HostBinding('class') css = 'nested-form';
 
   @Input()
-  group!: UntypedFormGroup;
+  group?: UntypedFormGroup;
+  @Input()
+  defaults?: UntypedFormGroup;
   @Input()
   showClear = false;
   @Output()
@@ -47,13 +50,14 @@ export class ExtFormComponent implements OnInit {
   }
 
   get config() {
-    return this.group.get('config') as UntypedFormGroup;
+    return this.group?.get('config') as UntypedFormGroup || this.defaults;
   }
 
   get inbox() {
+    if (this.defaults) return '';
     if (!this.admin.status.plugins.inbox) return null;
-    if (hasPrefix(this.group.get('tag')!.value, 'user')) return null;
-    return getMailbox(this.group.get('tag')!.value);
+    if (hasPrefix(this.group!.get('tag')!.value, 'user')) return null;
+    return getMailbox(this.group!.get('tag')!.value);
   }
 
   get modmail() {
@@ -149,9 +153,27 @@ export class ExtFormComponent implements OnInit {
     }
     defer(() => this.group!.patchValue(ext));
   }
+
+  setDefaults(template: Template) {
+    if (!this.form) {
+      this.form = this.admin.getTemplateForm(template.tag);
+    }
+    if (!this.form) {
+      this.form = this.admin.getTemplateForm(template.tag);
+    }
+    defer(() => this.group!.patchValue(template.defaults));
+  }
 }
 
 export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService, locked: boolean) {
+  return fb.group({
+    tag: [{value: '', disabled: locked}, [Validators.required, Validators.pattern(TAG_REGEX)]],
+    name: [''],
+    config: extConfigForm(fb, ext, admin),
+  });
+}
+
+export function extConfigForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService) {
   let configControls = {};
   if (root(ext.tag, admin)) {
     configControls = {
@@ -196,15 +218,10 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService, l
   if (blog(ext.tag, admin)) {
     configControls = {
       ...configControls,
-      filterTags: [false],
       tags: qtagsForm(fb, ext.config?.tags || []),
     };
   }
-  return fb.group({
-    tag: [{value: '', disabled: locked}, [Validators.required, Validators.pattern(TAG_REGEX)]],
-    name: [''],
-    config: fb.group(configControls),
-  });
+  return fb.group(configControls);
 }
 
 function root(tag: string, admin: AdminService) {

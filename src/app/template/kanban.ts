@@ -10,6 +10,9 @@ export const kanbanTemplate: Template = {
     submit: $localize`📋️ kanban`,
     view: $localize`📋️`,
     description: $localize`Activates built-in Kanban mode for viewing Refs.`,
+    filters: [
+      { query: 'kanban', label: $localize`📋️ kanban`, group: $localize`Templates 🎨️` },
+    ],
   },
   defaults: {
     columns: []

@@ -27,6 +27,8 @@ export class ExtComponent implements OnInit {
 
   @Input()
   ext!: Ext;
+  @Input()
+  diff?: Ext;
 
   editForm!: UntypedFormGroup;
   submitted = false;

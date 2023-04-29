@@ -1,5 +1,7 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Plugin } from '../../model/plugin';
+import { JsonComponent } from '../json/json.component';
 
 @Component({
   selector: 'app-plugin-form',
@@ -11,6 +13,13 @@ export class PluginFormComponent implements OnInit {
 
   @Input()
   group!: UntypedFormGroup;
+
+  @ViewChild('configJson')
+  configJson?: JsonComponent;
+  @ViewChild('defaultsJson')
+  defaultsJson?: JsonComponent;
+  @ViewChild('schemaJson')
+  schemaJson?: JsonComponent;
 
   constructor() { }
 
@@ -25,6 +34,35 @@ export class PluginFormComponent implements OnInit {
     return this.group.get('name') as UntypedFormControl;
   }
 
+  get config() {
+    return this.group.get('config') as UntypedFormGroup;
+  }
+
+  get defaults() {
+    return this.group.get('defaults') as UntypedFormGroup;
+  }
+
+  get configForm() {
+    return this.config.value?.configForm;
+  }
+
+  get form() {
+    return [
+      ...(this.config.value?.form || []),
+      ...(this.config.value?.advancedForm || []),
+    ];
+  }
+
+  setValue(model: Plugin) {
+    this.group.patchValue({
+      tag: model.tag,
+      name: model.name,
+    });
+    this.configJson?.setValue(model.config);
+    this.defaultsJson?.setValue(model.defaults);
+    this.schemaJson?.setValue(model.schema);
+  }
+
 }
 
 export function pluginForm(fb: UntypedFormBuilder) {
@@ -32,8 +70,8 @@ export function pluginForm(fb: UntypedFormBuilder) {
     tag: ['', [Validators.required]],
     name: ['', [Validators.required]],
     generateMetadata: [false],
-    config: [],
-    defaults: [],
-    schema: [],
+    config: [fb.group({})],
+    defaults: [fb.group({})],
+    schema: [fb.group({})],
   });
 }

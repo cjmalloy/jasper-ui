@@ -45,14 +45,19 @@ import { DEFAULT_WIKI_PREFIX, wikiPlugin } from '../plugin/wiki';
 import { Store } from '../store/store';
 import { blogTemplate } from '../template/blog';
 import { chatTemplate } from '../template/chat';
+import { chessTemplate } from '../template/chess';
 import { debugTemplate } from '../template/debug';
 import { dmTemplate } from '../template/dm';
 import { folderTemplate } from '../template/folder';
+import { forumTemplate } from '../template/forum';
 import { homeTemplate } from '../template/home';
 import { kanbanTemplate } from '../template/kanban';
+import { musicTemplate } from '../template/music';
 import { queueTemplate } from '../template/queue';
+import { readerTemplate } from '../template/reader';
 import { rootTemplate } from '../template/root';
 import { terminalTheme } from '../template/theme';
+import { tournamentTemplate } from '../template/tournament';
 import { userTemplate } from '../template/user';
 import { getExtension, getHost } from '../util/hosts';
 import { hasPrefix, includesTag, tagIntersection } from '../util/tag';
@@ -137,7 +142,12 @@ export class AdminService {
       kanban: kanbanTemplate,
       blog: blogTemplate,
       chat: chatTemplate,
+      reader: readerTemplate,
+      forum: forumTemplate,
       dm: dmTemplate,
+      chess: chessTemplate,
+      tournament: tournamentTemplate,
+      music: musicTemplate,
 
       // Themes
       terminalTheme: terminalTheme,
@@ -375,6 +385,8 @@ export class AdminService {
         if (p === this.status.plugins.audio) return true;
         if (p === this.status.plugins.video) return true;
         if (p === this.status.plugins.image) return true;
+        if (p === this.status.plugins.chart) return true;
+        if (p === this.status.plugins.repost) return true;
         return false;
       }).map(p => p!.tag));
     }

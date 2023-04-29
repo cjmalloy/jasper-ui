@@ -67,7 +67,7 @@ export class PluginsFormComponent implements AfterViewInit {
   }
 
   get empty() {
-    return !Object.keys(this.plugins.controls).length;
+    return !this.admin.getPluginForms(this.tags).length;
   }
 
   setValue(value: any) {
@@ -116,7 +116,11 @@ function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
     case '+plugin/origin/pull': return pullForm(fb, admin);
     case '+plugin/feed': return feedForm(fb, admin);
   }
-  if (admin.getPlugin(tag)?.config?.form || admin.getPlugin(tag)?.config?.advancedForm) {
+  const config = admin.getPlugin(tag)?.config;
+  if (config?.form && config.form.length === 1 && !config.form[0].key) {
+    return fb.control(tag);
+  }
+  if (config?.form || config?.advancedForm) {
     return fb.group({});
   }
   return null;

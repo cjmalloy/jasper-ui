@@ -10,6 +10,17 @@ export const blogTemplate: Template = {
     submit: $localize`📖️ blog`,
     view: $localize`📖️`,
     description: $localize`Activates built-in Blog mode for viewing Refs.`,
+    filters: [
+      { query: 'blog', label: $localize`📖️ blog`, group: $localize`Templates 🎨️` },
+    ],
+  },
+  defaults: {
+    icons: [
+      { tag: 'plugin/status/msg', label: $localize`✍️ `},
+    ],
+    filters: [
+      { query: 'plugin/status/msg', label: $localize`✍️ Status`, group: $localize`📖️ Blog` },
+    ],
   },
   schema: {
     optionalProperties: {

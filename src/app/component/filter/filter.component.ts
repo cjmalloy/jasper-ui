@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { filter, find } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import * as moment from 'moment';
+import { Ext } from '../../model/ext';
 import { Filter } from '../../model/ref';
 import { FilterConfig } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
@@ -22,6 +23,9 @@ export class FilterComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'filter form-group';
 
   private disposers: IReactionDisposer[] = [];
+
+  @Input()
+  ext?: Ext;
 
   @ViewChild('create')
   create?: ElementRef<HTMLSelectElement>;

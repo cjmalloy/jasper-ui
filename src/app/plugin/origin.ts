@@ -146,7 +146,8 @@ export const originTunnelPlugin: Plugin = {
         label: $localize`User Tag:`,
         required: true,
       },
-    }, {
+    }],
+    advancedForm: [{
       key: 'sshHost',
       type: 'input',
       props: {

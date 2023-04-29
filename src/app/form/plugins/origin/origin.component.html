@@ -139,6 +139,10 @@
     <hr>
     <label>Tunnel 🕳️</label>
     <formly-form class="form" [form]="$any(plugins.get(tunnel.tag))" [fields]="tunnel.config!.form!"></formly-form>
+    <details class="advanced">
+      <summary><span i18n>Advanced</span></summary>
+      <formly-form class="form" [form]="$any(plugins.get(tunnel.tag))" [fields]="tunnel.config!.advancedForm!"></formly-form>
+    </details>
   </ng-container>
 </ng-container>
 

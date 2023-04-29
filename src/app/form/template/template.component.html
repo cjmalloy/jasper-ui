@@ -11,18 +11,33 @@
     </div>
   </div>
 
-  <label for="config" i18n>Config:</label>
-  <app-json id="config"
-            fieldName="config"
-            [group]="group"></app-json>
+  <ng-container *ngIf="!configForm?.length">
+    <label for="config" i18n>Config:</label>
+    <app-json #configJson
+              id="config"
+              fieldName="config"
+              [group]="group"></app-json>
+  </ng-container>
+  <formly-form *ngIf="configForm?.length"
+               class="nested-form"
+               [form]="config"
+               [fields]="configForm"></formly-form>
 
-  <label for="defaults" i18n>Defaults:</label>
-  <app-json id="defaults"
-            fieldName="defaults"
-            [group]="group"></app-json>
+  <ng-container *ngIf="!form?.length">
+    <label for="defaults" i18n>Defaults:</label>
+    <app-json #defaultsJson
+              id="defaults"
+              fieldName="defaults"
+              [group]="group"></app-json>
+  </ng-container>
+  <formly-form *ngIf="form?.length"
+               class="nested-form"
+               [form]="defaults"
+               [fields]="form"></formly-form>
 
   <label for="schema" i18n>Schema:</label>
-  <app-json id="schema"
+  <app-json #schemaJson
+            id="schema"
             fieldName="schema"
             [group]="group"></app-json>
 

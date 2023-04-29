@@ -10,6 +10,9 @@ export const debugTemplate: Template = {
     description: $localize`Debugging template will every feature turned on.`,
     submit: $localize`🐞️ debug`,
     view: $localize`🐞️ debug`,
+    filters: [
+      { query: 'debug', label: $localize`🐞️ debug`, group: $localize`Templates 🎨️` },
+    ],
     form: [{
       key: 'input',
       type: 'string',

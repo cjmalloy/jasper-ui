@@ -1,4 +1,12 @@
-<ng-container [formGroup]="group">
+<ng-container *ngIf="diff">
+  <span></span>
+  <div class="form-array">
+    <button type="button" (click)="diffOn = false">form</button>
+    <button type="button" (click)="diffOn = true">diff</button>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="!diffOn" [formGroup]="group">
   <label for="url" i18n>URL:</label>
   <input id="url" type="text" formControlName="url">
 
@@ -61,4 +69,12 @@
   <label for="tags" i18n>Tags:</label>
   <app-tags id="tags" [group]="group"></app-tags>
 
+</ng-container>
+<ng-container *ngIf="diffOn">
+  <ngx-monaco-diff-editor [options]="options"
+                          [originalModel]="refModel"
+                          [modifiedModel]="diffModel"
+                          [style.width]="'900px'"
+                          [style.height]="'600px'"
+                          appResizeHandle></ngx-monaco-diff-editor>
 </ng-container>
