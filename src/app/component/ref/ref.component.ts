@@ -223,8 +223,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get commentNoTitle() {
-    const ref = this.bareRepost ? this.repostRef : this.ref;
-    return ref?.title || (ref?.comment || '')?.length > 140;
+    return this.bareRef?.title && this.bareRef?.comment || (this.bareRef?.comment || '')?.length > 140;
   }
 
   get feed() {
