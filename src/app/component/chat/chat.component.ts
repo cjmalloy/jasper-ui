@@ -9,6 +9,7 @@ import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
+import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
 import { getArgs } from '../../util/query';
@@ -53,6 +54,7 @@ export class ChatComponent implements OnDestroy {
     private store: Store,
     private refs: RefService,
     private tags: TaggingService,
+    private editor: EditorService,
   ) { }
 
   @Input()
@@ -192,7 +194,7 @@ export class ChatComponent implements OnDestroy {
       ...this.plugins,
       this.store.account.localTag]);
     const ref = URI_REGEX.test(this.addText) ? {
-      url: this.addText,
+      url: this.editor.getRefUrl(this.addText),
       origin: this.store.account.origin,
       tags: newTags,
     } : {
