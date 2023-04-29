@@ -55,7 +55,7 @@ import { rootTemplate } from '../template/root';
 import { terminalTheme } from '../template/theme';
 import { userTemplate } from '../template/user';
 import { getExtension, getHost } from '../util/hosts';
-import { includesTag, tagIntersection } from '../util/tag';
+import { hasPrefix, includesTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
@@ -385,10 +385,6 @@ export class AdminService {
     return this.configProperty('icons');
   }
 
-  get view() {
-    return this.templateConfigProperty('view');
-  }
-
   get actions() {
     return this.configProperty('actions');
   }
@@ -457,9 +453,9 @@ export class AdminService {
       .filter(i => !i.role || this.auth.hasRole(i.role));
   }
 
-  getTemplateView(...tags: string[]) {
-    return this.view
-      .filter(t => !t.tag || includesTag(t.tag, tags));
+  getTemplateView(tag: string) {
+    return this.tmplView
+      .filter(t => hasPrefix(tag, t.tag));
   }
 
   getPublished(tags?: string[]) {
