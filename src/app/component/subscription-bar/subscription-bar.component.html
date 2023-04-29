@@ -2,8 +2,8 @@
   <span class="back-button" (click)="location.back()">🔙️</span>
   <div class="subs">
     <a routerLink="/home" routerLinkActive="current-page" i18n>home</a> &bullet;
-    <a routerLink="/tags" routerLinkActive="current-page" i18n>tags</a> &bullet;
-    <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
+    <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a> &bullet;
+    <a routerLink="/tags" routerLinkActive="current-page" i18n>tags</a>
     <ng-container *ngFor="let b of store.account.bookmarks">
       &bullet; <a [routerLink]="['/tag', b]" routerLinkActive="current-page">{{ b }}</a>
     </ng-container>
