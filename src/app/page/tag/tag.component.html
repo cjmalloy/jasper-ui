@@ -41,6 +41,8 @@
                   [page]="query.page"></app-folder>
       <app-kanban *ngIf="store.view.isTemplate('kanban')"
                   [tag]="store.view.tag!"></app-kanban>
+      <app-tournament *ngIf="store.view.isTemplate('tournament')"
+                      [tag]="store.view.tag!"></app-tournament>
       <app-chat *ngIf="store.view.isTemplate('chat')"
                 [query]="store.view.tag!"
                 [addTags]="['public', 'internal', store.view.localTag]"></app-chat>
