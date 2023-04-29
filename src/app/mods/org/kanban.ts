@@ -278,7 +278,6 @@ export interface KanbanConfig extends RootConfig {
   badges?: string[];
 }
 
-
 export const kanbanMod: Mod = {
    template: [
     kanbanTemplate,

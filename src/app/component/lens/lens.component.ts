@@ -15,6 +15,7 @@ import { ForceDirectedComponent } from '../graph/force-directed/force-directed.c
 import { GridComponent } from '../grid/grid.component';
 import { KanbanComponent } from '../kanban/kanban.component';
 import { LoadingComponent } from '../loading/loading.component';
+import { MapComponent } from '../map/map.component';
 import { NotebookComponent } from '../notebook/notebook.component';
 import { RefListComponent } from '../ref/ref-list/ref-list.component';
 import { RefComponent } from '../ref/ref.component';
@@ -24,6 +25,7 @@ import { RefComponent } from '../ref/ref.component';
   templateUrl: './lens.component.html',
   styleUrls: ['./lens.component.scss'],
   imports: [
+    LoadingComponent,
     forwardRef(() => RefComponent),
     forwardRef(() => ForceDirectedComponent),
     forwardRef(() => BlogComponent),
@@ -33,7 +35,7 @@ import { RefComponent } from '../ref/ref.component';
     forwardRef(() => KanbanComponent),
     forwardRef(() => NotebookComponent),
     forwardRef(() => GridComponent),
-    LoadingComponent,
+    forwardRef(() => MapComponent),
   ],
 })
 export class LensComponent implements OnChanges, HasChanges {

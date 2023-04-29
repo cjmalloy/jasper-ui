@@ -62,6 +62,16 @@
 } @else if (isTemplate('chat')) {
   <app-chat #lens
             [query]="tag"></app-chat>
+} @else if (isTemplate('map')) {
+  @defer {
+    <app-map #lens
+             [tag]="tag"
+             [ext]="ext"
+             [page]="page"
+             [pageControls]="pageControls"></app-map>
+  } @placeholder {
+    <app-loading></app-loading>
+  }
 } @else if (isTemplate('folder')) {
   <app-folder #lens
               [page]="page"
