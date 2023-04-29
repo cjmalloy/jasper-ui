@@ -12,6 +12,7 @@ import { aprioriPlugin } from '../plugin/apriori';
 import { archivePlugin } from '../plugin/archive';
 import { audioPlugin } from '../plugin/audio';
 import { banlistPlugin } from '../plugin/banlist';
+import { chartPlugin } from '../plugin/chart';
 import { commentPlugin } from '../plugin/comment';
 import { breakpointPlugin, debugPlugin } from '../plugin/debug';
 import { deletePlugin } from '../plugin/delete';
@@ -98,6 +99,7 @@ export class AdminService {
       fullscreen: fullscreenPlugin,
       thumbnail: thumbnailPlugin,
       tablePlugin: tablePlugin,
+      chartPlugin: chartPlugin,
       aiQueryPlugin: aiQueryPlugin,
       aiPlugin: aiPlugin,
       summaryQueryPlugin: summaryQueryPlugin,

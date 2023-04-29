@@ -31,10 +31,12 @@
        controls>
   <source [src]="ref?.plugins?.['plugin/audio']?.url || ref?.url">
 </audio>
+<app-chart *ngIf="currentTags.includes('plugin/chart')"
+           [ref]="ref"></app-chart>
 <app-qr *ngIf="currentTags.includes('plugin/qr')"
         [url]="ref?.plugins?.['plugin/qr']?.url || ref?.url"
         appResize></app-qr>
-<app-md *ngIf="currentText"
+<app-md *ngIf="currentText && !currentTags.includes('plugin/chart')"
         [origin]="ref?.origin"
         [text]="currentText"
         [plugins]="currentTags"></app-md>

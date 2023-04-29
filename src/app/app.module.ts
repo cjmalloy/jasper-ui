@@ -20,6 +20,7 @@ import { BackupComponent } from './component/backup/backup.component';
 import { BlogEntryComponent } from './component/blog/blog-entry/blog-entry.component';
 import { BlogComponent } from './component/blog/blog.component';
 import { BulkComponent } from './component/bulk/bulk.component';
+import { ChartComponent } from './component/chart/chart.component';
 import { ChatEntryComponent } from './component/chat/chat-entry/chat-entry.component';
 import { ChatComponent } from './component/chat/chat.component';
 import { CommentEditComponent } from './component/comment/comment-edit/comment-edit.component';
@@ -284,6 +285,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     CommentThreadComponent,
     InboxDmsPage,
     UploadPage,
+    ChartComponent,
     InboxModlistPage,
     TagsPage,
   ],
