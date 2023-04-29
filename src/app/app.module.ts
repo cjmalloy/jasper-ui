@@ -42,6 +42,7 @@ import { KanbanComponent } from './component/kanban/kanban.component';
 import { ListEditorComponent } from './component/list-editor/list-editor.component';
 import { LoadingComponent } from './component/loading/loading.component';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
+import { MapComponent } from './component/map/map.component';
 import { MdComponent } from './component/md/md.component';
 import { MobileTabSelectComponent } from './component/mobile-tab-select/mobile-tab-select.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
@@ -285,6 +286,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     InboxDmsPage,
     UploadPage,
     InboxModlistPage,
+    MapComponent,
     TagsPage,
   ],
   imports: [

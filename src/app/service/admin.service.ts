@@ -21,6 +21,15 @@ import { embedPlugin } from '../plugin/embed';
 import { experimentsPlugin } from '../plugin/experiments';
 import { feedPlugin } from '../plugin/feed';
 import { fullscreenPlugin } from '../plugin/fullscreen';
+import {
+  geoLineStringPlugin,
+  geoMultiLineStringPlugin,
+  geoMultiPointPlugin,
+  geoMultiPolygonPlugin,
+  geoPlugin,
+  geoPointPlugin,
+  geoPolygonPlugin
+} from '../plugin/geo';
 import { graphPlugin } from '../plugin/graph';
 import { imagePlugin } from '../plugin/image';
 import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
@@ -50,6 +59,7 @@ import { dmTemplate } from '../template/dm';
 import { folderTemplate } from '../template/folder';
 import { homeTemplate } from '../template/home';
 import { kanbanTemplate } from '../template/kanban';
+import { mapTemplate } from '../template/map';
 import { queueTemplate } from '../template/queue';
 import { rootTemplate } from '../template/root';
 import { terminalTheme } from '../template/theme';
@@ -118,6 +128,13 @@ export class AdminService {
       audio: audioPlugin,
       video: videoPlugin,
       image: imagePlugin,
+      geo: geoPlugin,
+      geoPoint: geoPointPlugin,
+      geoLineString: geoLineStringPlugin,
+      geoPolygon: geoPolygonPlugin,
+      geoMultiPoint: geoMultiPointPlugin,
+      geoMultiLineString: geoMultiLineStringPlugin,
+      geoMultiPolygon: geoMultiPolygonPlugin,
       poll: pollPlugin,
       pa: pollOptionAPlugin,
       pb: pollOptionBPlugin,
@@ -138,6 +155,7 @@ export class AdminService {
       blog: blogTemplate,
       chat: chatTemplate,
       dm: dmTemplate,
+      map: mapTemplate,
 
       // Themes
       terminalTheme: terminalTheme,
