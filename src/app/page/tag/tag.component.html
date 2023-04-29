@@ -41,6 +41,8 @@
                   [page]="query.page"></app-folder>
       <app-kanban *ngIf="store.view.isTemplate('kanban')"
                   [tag]="store.view.tag!"></app-kanban>
+      <app-music *ngIf="store.view.isTemplate('music')"
+                 [tag]="store.view.tag!"></app-music>
       <app-chat *ngIf="store.view.isTemplate('chat')"
                 [query]="store.view.tag!"
                 [addTags]="['public', 'internal', store.view.localTag]"></app-chat>

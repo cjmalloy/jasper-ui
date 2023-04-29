@@ -1,7 +1,8 @@
+import { Location } from '@angular/common';
 import { Component, HostBinding, OnInit } from '@angular/core';
+import { AdminService } from '../../service/admin.service';
 import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
-import { Location } from "@angular/common";
 
 @Component({
   selector: 'app-subscription-bar',
@@ -13,6 +14,7 @@ export class SubscriptionBarComponent implements OnInit {
 
   constructor(
     public store: Store,
+    public admin: AdminService,
     public themes: ThemeService,
     public location: Location,
   ) { }
