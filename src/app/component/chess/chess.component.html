@@ -1,0 +1,15 @@
+<div *ngFor="let p of pieces; let i = index" class="tile {{ color(i) }}"
+     [class.from]="getCoord(i) === from"
+     [class.move]="moves.includes(getCoord(i))"
+     (click)="clickSquare(i)"
+     cdkDropList
+     [cdkDropListData]="white ? i : 63 - i"
+     (cdkDropListDropped)="drop($any($event))">
+  <div *ngIf="(white ? p : pieces[63-i]) as rp" class="chess-piece {{ rp?.color }}"
+       cdkDrag
+       cdkDragBoundary=".chess-board"
+       [cdkDragData]="rp"
+       [cdkDragDisabled]="turn !== rp.color"
+       [style.font-size.px]="fontSize"
+       [style.line-height.px]="dim">{{ drawPiece(rp) }}</div>
+</div>

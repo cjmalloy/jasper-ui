@@ -1,0 +1,29 @@
+:host {
+  aspect-ratio: 1;
+  max-height: 90vh;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  user-select: none;
+
+  .tile {
+    aspect-ratio: 1;
+    &.from {
+      box-shadow: inset 3px 3px 16px rgba(255, 255, 255, 0.9),
+                  inset -3px -3px 16px rgba(255, 255, 255, 0.9);
+    }
+    &.move {
+      box-shadow: inset 3px 3px 16px rgba(0, 128, 0, 0.9),
+                  inset -3px -3px 16px rgba(0, 128, 0, 0.9);
+    }
+    &.light {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    &.dark {
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  .chess-piece {
+    aspect-ratio: 1;
+  }
+}

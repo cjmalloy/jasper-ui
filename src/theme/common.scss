@@ -1424,3 +1424,27 @@ ngx-monaco-editor {
     cursor: default;
   }
 }
+
+
+.chess-piece {
+  cursor: grab;
+  text-align: center;
+  vertical-align: middle;
+  &.w {
+    color: #DC9;
+    filter: drop-shadow(1px 1px 1px black);
+  }
+  &.b {
+    color: #111;
+    filter: drop-shadow(0 0 1px rgba(200, 200, 200, 0.5));
+  }
+  &.cdk-drag-preview {
+    cursor: grabbing !important;
+  }
+  &.cdk-drag-placeholder {
+    display: none !important;
+  }
+  &.cdk-drag-disabled {
+    cursor: default !important;
+  }
+}

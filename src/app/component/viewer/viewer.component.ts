@@ -48,6 +48,7 @@ export class ViewerComponent implements AfterViewInit {
   imageUrl = '';
   pdfUrl = '';
   qrUrl = '';
+  chess = false;
   uis = this.admin.getPluginUi(this.currentTags);
   embedReady = false;
 
@@ -92,6 +93,7 @@ export class ViewerComponent implements AfterViewInit {
     this.imageUrl = this.getImageUrl();
     this.pdfUrl = this.getPdfUrl();
     this.qrUrl = this.getQrUrl();
+    this.chess = this.currentTags.includes('plugin/chess');
     this.uis = this.admin.getPluginUi(this.currentTags);
     if (hasTag('plugin/repost', this.ref)) {
       this.refs.get(value!.sources![0], value!.origin)
@@ -181,6 +183,7 @@ export class ViewerComponent implements AfterViewInit {
 
   get currentText() {
     if (this.tags) return '';
+    if (this.chess) return '';
     if (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract) return '';
     const value = this.text || this.ref?.comment || '';
     if (this.ref?.title || this.text || hasTag('plugin/thread', this.ref) || hasComment(this.ref?.comment)) return value;
