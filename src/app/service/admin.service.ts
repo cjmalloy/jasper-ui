@@ -30,6 +30,7 @@ import { helpMod } from '../mods/help';
 import { homeMod } from '../mods/home';
 import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
+import { mapMod } from '../mods/map';
 import { audioMod } from '../mods/media/audio';
 import { codeMod } from '../mods/media/code';
 import { durationMod } from '../mods/media/duration';
@@ -120,6 +121,7 @@ export class AdminService {
     homeMod,
     kanbanMod,
     blogMod,
+    mapMod,
     chatMod,
     mailboxMod,
     hideMod,
