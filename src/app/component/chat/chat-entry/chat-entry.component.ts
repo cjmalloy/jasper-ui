@@ -79,14 +79,13 @@ export class ChatEntryComponent {
   }
 
   get title() {
-    const ref = this.currentRef;
-    const title = (ref?.title || '').trim();
-    const comment = (ref?.comment || '').trim();
+    const title = (this.ref?.title || '').trim();
+    const comment = (this.ref?.comment || '').trim();
     if (title) return title;
     if (this.focused) return '';
     if (!comment) {
       if (this.bareRepost) return $localize`Repost`;
-      return ref?.url;
+      return this.url;
     }
     if (comment.length <= 140) return comment;
     return comment.substring(0, 140);
@@ -123,6 +122,10 @@ export class ChatEntryComponent {
 
   get currentRef() {
     return this.repost ? this.repostRef : this.ref;
+  }
+
+  get bareRef() {
+    return this.bareRepost ? this.repostRef : this.ref;
   }
 
   get repost() {

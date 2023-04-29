@@ -155,6 +155,9 @@ export class RefComponent implements OnInit, OnDestroy {
     this.actions = this.ref.created ? sortOrder(this.admin.getActions(value.tags, value.plugins)) : [];
     this.infoUis = this.admin.getPluginInfoUis(value.tags);
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
+
+    this.title = this.getTitle();
+    this.expandPlugins = this.admin.getEmbeds(value?.tags);
     if (this.repost) {
       if (value && this.fetchRepost && (!this.repostRef || this.repostRef.url != value.url && this.repostRef.origin === value.origin)) {
         this.refs.get(this.url, value.origin)
@@ -166,9 +169,6 @@ export class RefComponent implements OnInit, OnDestroy {
             }
           });
       }
-    } else {
-      this.title = this.getTitle();
-      this.expandPlugins = this.admin.getEmbeds(value?.tags);
     }
   }
 
@@ -679,7 +679,7 @@ export class RefComponent implements OnInit, OnDestroy {
     const title = (this.ref.title || '').trim();
     const comment = (this.ref.comment || '').trim();
     if (title) return title;
-    if (!comment) return this.ref.url;
+    if (!comment) return this.url;
     if (comment.length <= 140) return comment;
     return comment.substring(0, 140) + '...';
   }
