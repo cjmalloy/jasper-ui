@@ -276,5 +276,6 @@ export type TagPageArgs = TagQueryArgs & {
 export type TagSort = '' |
   'modified' | 'modified,ASC' | 'modified,DESC' |
   'tag' | 'tag,ASC' | 'tag,DESC' |
+  'levels' | 'levels,ASC' | 'levels,DESC' |
   'name' | 'name,ASC' | 'name,DESC' |
   'origin' | 'origin,ASC' | 'origin,DESC';
