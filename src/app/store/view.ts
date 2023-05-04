@@ -88,6 +88,7 @@ export class ViewStore {
     switch (s?.routeConfig?.path) {
       case 'home': return 'home';
       case 'tags': return 'tags';
+      case 'tags/:template': return 'tags';
       case 'tag/:tag':
         if (this.tag === '') return 'tags';
         if (this.tag === '@*') return 'all';
