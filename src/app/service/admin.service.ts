@@ -375,6 +375,7 @@ export class AdminService {
         if (p === this.status.plugins.audio) return true;
         if (p === this.status.plugins.video) return true;
         if (p === this.status.plugins.image) return true;
+        if (p === this.status.plugins.repost) return true;
         return false;
       }).map(p => p!.tag));
     }
