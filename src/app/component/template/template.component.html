@@ -1,6 +1,6 @@
 <div class="link" [class.remote]="!local" [title]="template.config?.description || ''">
-  <a *ngIf="template.tag" [routerLink]="['/tag', qualifiedTag]">{{ template.name || template.tag }}</a>
-  <a *ngIf="!template.tag" routerLink="/all">{{ template.name || 'root' }}</a>
+  <a *ngIf="template.tag" [routerLink]="['/tags', template.tag]">{{ template.name || template.tag }}</a>
+  <a *ngIf="!template.tag" routerLink="/tags">{{ template.name || 'root' }}</a>
   <span *ngIf="!qualifiedTag" class="host" i18n>(root: "")</span>
   <span *ngIf="!template.tag && template.origin" class="host" i18n>(root: {{ template.origin }})</span>
   <span *ngIf="template.name && template.tag" class="host">({{ qualifiedTag }})</span>
