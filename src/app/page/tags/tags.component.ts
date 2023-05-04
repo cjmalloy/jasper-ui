@@ -27,7 +27,7 @@ export class TagsPage implements OnInit, OnDestroy {
     public query: ExtStore,
   ) {
     theme.setTitle($localize`Tags`);
-    store.view.clear('tag', 'tag');
+    store.view.clear('levels', 'levels');
     query.clear();
   }
 
