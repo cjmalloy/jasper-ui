@@ -578,6 +578,9 @@ export class AdminService {
   needsUpdate(def: Plugin | Template, status: Plugin | Template) {
     if (!this.store.account.admin) return false;
     if (!def) return false;
+    if (def.config?.version != status.config?.version) {
+      if (def.config?.version && status.config?.version) return def.config.version > status.config.version;
+    }
     def = omitBy(def, i => !i) as any;
     status = omitBy(status, i => !i) as any;
     def.config = omitBy(def.config, i => !i);

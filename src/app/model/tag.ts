@@ -34,6 +34,10 @@ export interface Config extends Tag {
      */
     [record: string]: any,
     /**
+     * Increment-only number to indicate version.
+     */
+    version?: number;
+    /**
      * Install by default on a fresh instance.
      */
     default?: boolean;
