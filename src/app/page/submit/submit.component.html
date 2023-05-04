@@ -107,10 +107,14 @@
 
       <span><!-- Buttons --></span>
       <span class="form-array right">
-    <button type="submit" [disabled]="!submitForm.valid">Next</button>
+    <button type="submit" [disabled]="!submitForm.valid"
+            i18n-title title="Submit link"
+            i18n>Next</button>
     <div *ngIf="store.submit.web">
       <input id="scrape" type="checkbox" [checked]="scrape" (input)="scrape = !scrape">
-      <label for="scrape">Scrape</label>
+      <label for="scrape"
+             i18n-title title="Download the web page and auto fill the title and published date."
+             i18n>Scrape</label>
     </div>
   </span>
     </form>
