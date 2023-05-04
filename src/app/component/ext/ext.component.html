@@ -19,6 +19,9 @@
     </ng-container>
   </div>
   <div class="actions">
+    <a *ngIf="parent"
+       [routerLink]="['/tags', parent]" i18n>parent</a>
+    <a [routerLink]="['/tags', ext.tag]" i18n>tags</a>
     <ng-container *ngIf="!ext.upload">
       <a *ngIf="!local"
          class="fake-link"

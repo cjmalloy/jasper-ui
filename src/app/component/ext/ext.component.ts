@@ -14,7 +14,7 @@ import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
-import { hasPrefix } from '../../util/tag';
+import { hasPrefix, parentTag } from '../../util/tag';
 
 @Component({
   selector: 'app-ext',
@@ -74,6 +74,10 @@ export class ExtComponent implements OnInit {
 
   get qualifiedTag() {
     return this.ext.tag + this.ext.origin;
+  }
+
+  get parent() {
+    return parentTag(this.ext.tag);
   }
 
   get local() {
