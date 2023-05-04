@@ -11,5 +11,8 @@ export const chatTemplate: Template = {
     internal: $localize`💬️ chat`,
     view: $localize`💬️`,
     description: $localize`Activates built-in Chat mode for viewing Refs.`,
+    filters: [
+      { query: 'chat', label: $localize`💬️ chat`, group: $localize`Templates 🎨️` },
+    ],
   },
 };
