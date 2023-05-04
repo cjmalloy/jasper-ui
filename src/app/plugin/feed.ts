@@ -29,7 +29,6 @@ export const feedPlugin: Plugin = {
       scrapeInterval: { type: 'string' },
     },
     optionalProperties: {
-      origin: { type: 'string' },
       addTags: { elements: { type: 'string' } },
       lastScrape: { type: 'string' },
       disableEtag: { type: 'boolean' },

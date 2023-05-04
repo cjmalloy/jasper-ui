@@ -10,18 +10,6 @@
   <details class="advanced" [formGroup]="plugin">
     <summary><span i18n>Advanced</span></summary>
     <div class="form">
-      <ng-container *ngIf="!config.multiTenant">
-        <label for="origin">Origin:</label>
-        <input id="origin" type="url" [formControl]="origin">
-        <div><!-- Origin Errors --></div>
-        <div>
-          <div class="error" *ngIf="origin.touched && origin.errors?.['pattern']">
-            Origins must be lower case letters, numbers, periods, and start with @. Must not start with a period
-            or contain two periods in a row.
-          </div>
-        </div>
-      </ng-container>
-
       <label for="scrapeInterval">Scrape Interval:</label>
       <input id="scrapeInterval"
              type="text"
