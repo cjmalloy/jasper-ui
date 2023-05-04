@@ -55,7 +55,7 @@ export class ViewerComponent {
         .subscribe(ref => this.repost = ref);
     }
     if (this.currentTags.includes('plugin/embed')) {
-      let width = this.embed.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 20);
+      let width = this.embed.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 400);
       let height = this.embed.height || window.innerHeight;
       if (hasTag('plugin/fullscreen', this.ref)) {
         width = screen.width;
