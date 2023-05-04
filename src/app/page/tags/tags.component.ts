@@ -17,6 +17,7 @@ export class TagsPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   title = '';
+  defaultTitle = $localize`Tags`;
   templates = this.admin.tmplView;
 
   constructor(
@@ -32,7 +33,7 @@ export class TagsPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || '';
+      this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.defaultTitle;
       const query = this.store.view.template || ('(' + this.templates.map(t => t.tag).join('|') + ')');
       const args = {
         query: query + getTagQueryFilter(this.store.view.filter),

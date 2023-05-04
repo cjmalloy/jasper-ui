@@ -1,7 +1,7 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
-    <h5 i18n>{{ title }} Tags</h5>
-    <a routerLink="/tags" [class.current-tab]="store.view.tags" queryParamsHandling="merge" i18n>tags</a>
+    <h5>{{ title }}</h5>
+    <a routerLink="/tags" [class.current-tab]="store.view.tags" queryParamsHandling="merge" i18n>all</a>
     <a *ngFor="let tmpl of templates"
        [routerLink]="['/tags', tmpl.tag]"
        routerLinkActive="current-tab"
