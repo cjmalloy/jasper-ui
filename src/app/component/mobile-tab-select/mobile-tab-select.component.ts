@@ -18,8 +18,9 @@ export class MobileTabSelectComponent {
     if (!value) return;
     defer(() => {
       for (const c of value.querySelectorAll('.tabs > a') as any as HTMLAnchorElement[] || []) {
-        this.options.push(c.innerText);
-        this.map.set(c.innerText, c);
+        const value = c.title || c.innerText;
+        this.options.push(value);
+        this.map.set(value, c);
       }
     });
   }

@@ -7,7 +7,8 @@
        [routerLink]="['./ref', plugin.tag]"
        [replaceUrl]="true"
        routerLinkActive="current-tab"
-       queryParamsHandling="merge">{{ plugin.config?.settings || plugin.tag }}</a>
+       queryParamsHandling="merge"
+       [title]="plugin.name || plugin.tag">{{ plugin.config?.settings || plugin.tag }}</a>
     <a routerLink="./plugin" routerLinkActive="current-tab" i18n-title title="Ref Plugins" i18n>plugin</a>
     <a routerLink="./template" routerLinkActive="current-tab" i18n-title title="Ext Templates" i18n>template</a>
     <a *ngIf="store.account.admin" routerLink="./setup" routerLinkActive="current-tab" i18n-title title="Setup" i18n>setup</a>
