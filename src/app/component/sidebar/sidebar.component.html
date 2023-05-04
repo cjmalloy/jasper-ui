@@ -22,8 +22,20 @@
   <app-bulk *ngIf="expanded && store.view.current" [type]="store.view.type!"></app-bulk>
   <span class="button-bar">
     <ng-container *ngIf="store.account.user">
-      <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
+      <div *ngIf="!plugin?.config?.submitInternal && ! plugin?.config?.submitDm" class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
         <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit</label>
+      </div>
+      <div *ngIf="plugin?.config?.submitInternal" class="submit-button" routerLink="/submit/web" [queryParams]="{ tag: plugin!.tag, url: genUrl }">
+        <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
+        &nbsp;
+        &nbsp;
+        {{ plugin!.config!.submitInternal }}</label>
+      </div>
+      <div *ngIf="plugin?.config?.submitDm" class="submit-button" routerLink="/submit/dm" [queryParams]="{ tag: plugin!.tag, url: genUrl }">
+        <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
+        &nbsp;
+        &nbsp;
+        {{ plugin!.config!.submitDm }}</label>
       </div>
     </ng-container>
     <ng-container *ngIf="admin.status.plugins.inbox">

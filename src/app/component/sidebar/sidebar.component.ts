@@ -1,7 +1,9 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
+import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
+import { Plugin } from '../../model/plugin';
 import { Template } from '../../model/template';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -33,8 +35,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   _tag = '';
   localTag?: string;
+  plugin?: Plugin;
   writeAccess = false;
   ui: Template[] = [];
+  genUrl = 'internal:' + uuid();
 
   @HostBinding('class.expanded')
   private _expanded = false;
@@ -66,10 +70,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this._tag = value;
     if (value) {
       this.localTag = localTag(value);
+      this.plugin = this.admin.getPlugin(value);
       this.writeAccess = this.auth.tagWriteAccess(value);
       this.ui = this.admin.getTemplateUi(value);
     } else {
       this.localTag = undefined;
+      this.plugin = undefined;
       this.writeAccess = false;
       this.ui = [];
     }
