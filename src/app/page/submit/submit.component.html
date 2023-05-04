@@ -5,10 +5,12 @@
        [class.current-tab]="store.submit.web && !store.submit.internal"
        [queryParams]="{ url: url.value, tag: store.submit.withoutInternal }"
        [replaceUrl]="true"
+       i18n-title title="Link Post"
        queryParamsHandling="merge" i18n>link</a>
     <a routerLink="/submit/text"
        [class.current-tab]="store.submit.text"
        [queryParams]="{ url: null, tag: store.submit.withoutInternal }"
+       i18n-title title="Text Post"
        queryParamsHandling="merge" i18n>text</a>
     <a class="fake-link"
        (click)="showUpload() || uploadFile.click()"
@@ -20,24 +22,28 @@
          [class.current-tab]="store.submit.wiki"
          [queryParams]="{ url: wikify, tag: store.submit.withoutInternal }"
          [replaceUrl]="true"
+         i18n-title title="Wiki Page"
          queryParamsHandling="merge" i18n>wiki</a>
     </ng-container>
     <a routerLink="/submit/dm"
        *ngIf="admin.status.templates.dm"
        [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.dm"
        [queryParams]="{ url: null, tag: store.submit.withoutDm }"
+       i18n-title title="Direct Message"
        queryParamsHandling="merge" i18n>dm</a>
     <a *ngFor="let p of store.submit.submitDm"
        routerLink="/submit/dm"
        [class.current-tab]="store.submit.subpage === 'dm' && store.submit.tags.includes(p.tag)"
        [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
        [replaceUrl]="true"
+       [title]="p.name"
        queryParamsHandling="merge">{{ p.config!.submitDm }}</a>
     <a *ngFor="let p of store.submit.submitInternal"
        routerLink="/submit/web"
        [class.current-tab]="store.submit.tags.includes(p.tag)"
        [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
        [replaceUrl]="true"
+       [title]="p.name"
        queryParamsHandling="merge">{{ p.config!.submitInternal }}</a>
     <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>

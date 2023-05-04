@@ -1,25 +1,41 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
-    <a routerLink="." [queryParams]="{origin: store.view.origin}" [class.current-tab]="store.view.summary" i18n>view</a>
+    <a routerLink="." [queryParams]="{origin: store.view.origin}" [class.current-tab]="store.view.summary"
+       i18n-title title="Summary View"
+       i18n>view</a>
     <ng-container *ngIf="store.view.ref?.created">
       <ng-container *ngIf="store.view.current === 'ref/comments' || comments">
-        <a routerLink="comments" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>comments</a>
+        <a routerLink="comments" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Comments"
+           i18n>comments</a>
       </ng-container>
       <ng-container *ngIf="store.view.current === 'ref/thread' || threads">
-        <a routerLink="thread" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>threads</a>
+        <a routerLink="thread" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Threads"
+           i18n>threads</a>
       </ng-container>
       <ng-container *ngIf="store.view.current === 'ref/responses' || responses">
-        <a routerLink="responses" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>responses</a>
+        <a routerLink="responses" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Responses"
+           i18n>responses</a>
       </ng-container>
       <ng-container *ngIf="store.view.current === 'ref/sources' || sources">
-        <a routerLink="sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>sources</a>
-        <a routerLink="missing" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>missing sources</a>
+        <a routerLink="sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Sources"
+           i18n>sources</a>
+        <a routerLink="missing" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Missing Sources"
+           i18n>missing sources</a>
       </ng-container>
       <ng-container *ngIf="alts">
-        <a routerLink="alts" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>alts</a>
+        <a routerLink="alts" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Alternate URLs"
+           i18n>alts</a>
       </ng-container>
       <ng-container *ngIf="store.view.current === 'ref/versions' || error && store.view.versions || store.view.versions > 1">
-        <a routerLink="versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab" i18n>versions</a>
+        <a routerLink="versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Versions"
+           i18n>versions</a>
       </ng-container>
       <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     </ng-container>
