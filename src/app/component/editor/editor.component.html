@@ -1,30 +1,42 @@
 <div #tw class="text-wrapper">
-  <textarea #editor
-            [formControl]="control"
-            (input)="setText($any($event).target.value)"
-            (blur)="syncText($any($event).target.value)"
-            [appFillWidth]="fillWidth"
-            [appAutofocus]="autoFocus"></textarea>
-  <div class="floating-toggles">
-    <button *ngIf="fullscreen || currentText"
-            type="button"
-            (click)="toggleStacked()"
-            i18n-title title="Stacked or side by side layout toggle"
-            i18n>\</button>
+  <div class="toolbar">
     <button type="button"
             (click)="toggleFullscreen()"
             i18n-title title="Fullscreen editor"
-            i18n>📱️</button>
+            i18n>⛶</button>
     <button type="button"
             (click)="toggleHelp()"
             i18n-title title="Help"
-            i18n>?</button>
+            i18n>❓️</button>
+    <button *ngIf="fullscreen || currentText"
+            type="button"
+            (click)="toggleStacked()"
+            i18n-title title="Stacked or side by side layout toggle">
+      <span *ngIf="!fullscreen" i18n>📝️</span>
+      <span *ngIf="fullscreen" i18n>/</span>
+    </button>
+    <div *ngFor="let plugin of editorPlugins; let i = index" class="editor-plugin">
+      <input type="checkbox"
+             [style.display]="'none'"
+             [id]="id + i"
+             [checked]="tags?.includes(plugin.tag)"
+             (click)="toggleTag(plugin.tag)">
+      <label [for]="id + i"
+             [class.on]="tags?.includes(plugin.tag)"
+             [title]="plugin.name || plugin.tag">
+        {{ plugin.config?.editor }}
+      </label>
+    </div>
   </div>
-  <div class="floating-ribbons">
-    <div *ngFor="let plugin of editorPlugins"
-         [class.on]="tags?.includes(plugin.tag)"
-         (click)="toggleTag(plugin.tag)"
-         [title]="plugin.name || plugin.tag"><span>{{ plugin.config?.editor }}</span></div>
+  <textarea #editor
+            [formControl]="control"
+            (focusin)="editing = true"
+            (input)="setText($any($event).target.value)"
+            (blur)="syncText($any($event).target.value)"
+            [appFillWidth]="fillWidth"
+            [padding]="padding"
+            [appAutofocus]="autoFocus"></textarea>
+  <div class="floating-toggles">
   </div>
 </div>
 <app-md *ngIf="preview && (fullscreen || currentText)"

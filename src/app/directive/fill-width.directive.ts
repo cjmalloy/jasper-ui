@@ -60,7 +60,7 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
     } else {
       const parentWidth = this.parent?.clientWidth || 0;
       if (this.el.nativeElement.offsetWidth < parentWidth) {
-        this.el.nativeElement.style.minWidth = Math.min(this.max, parentWidth) - this.padding + 'px';
+        this.el.nativeElement.style.minWidth = Math.min(this.max, parentWidth - this.padding * 2) - 8 + 'px';
       }
     }
   }, 16, { leading: true, trailing: true });

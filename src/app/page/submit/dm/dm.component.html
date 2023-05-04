@@ -31,7 +31,8 @@
 
   <span><!-- Message --></span>
   <div #fill>
-    <app-editor [control]="comment"
+    <app-editor class="bubble"
+                [control]="comment"
                 (focusin)="setDefaultTitle()"
                 [fillWidth]="fill"
                 (syncEditor)="syncEditor()"

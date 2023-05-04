@@ -104,8 +104,13 @@ select.big {
 }
 
 .editor {
-  display: block;
+  display: flex;
+  flex-direction: row-reverse;
   position: relative;
+
+  &.stacked {
+    display: block;
+  }
 
   .editor-container {
     display: contents;
@@ -115,19 +120,26 @@ select.big {
     position: relative;
   }
 
-  &:not(.stacked) {
-    display: flex;
-    flex-direction: row-reverse;
-  }
-
   .floating-ribbons {
     right: 0;
     top: 32px;
   }
 
-  .floating-toggles {
-    right: 16px;
-    top: 4px;
+  .toolbar {
+    display: none;
+    flex-direction: row-reverse;
+    & > * {
+      margin: 4px 4px 8px;
+    }
+    & > :first-child {
+      margin-right: 0;
+    }
+  }
+
+  &:focus-within, &.editing {
+    .toolbar {
+      display: flex;
+    }
   }
 }
 
@@ -164,16 +176,37 @@ select.big {
   }
 }
 
-.floating-toggles {
+.bubble {
+  .toolbar {
+    display: flex;
+  }
+}
+
+.toolbar .editor-plugin {
   user-select: none;
-  display: flex;
-  flex-direction: row;
-  position: absolute;
-  right: 16px;
-  top: 4px;
-  & > button {
+  font-size: 80%;
+  font-weight: bold;
+  position: relative;
+  label {
+    position: relative;
+    top: -3px;
+    transform: rotate(-3deg);
+    white-space: nowrap;
     cursor: pointer;
-    margin: 4px;
+    text-align: center;
+    display: inline-block;
+    max-width: 64px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    border-radius: 2px;
+    padding: 2px;
+    border: 1px solid transparent;
+    transition: all 0.1s cubic-bezier(.47,1.64,.8,1.2);
+    transition-delay: 0.1s;
+    &.on {
+      top: 16px;
+      transform: rotate(0);
+    }
   }
 }
 
@@ -678,6 +711,10 @@ details.mini:not([open]) {
 }
 
 .plugins-form {
+  & > * {
+    display: block;
+  }
+
   .form {
     padding: 0;
   }

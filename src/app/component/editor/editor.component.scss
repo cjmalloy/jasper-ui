@@ -7,25 +7,25 @@
   }
   &.stacked {
     textarea, app-md {
-      width: calc(100vw - 128px) !important;
-      height: calc(50vh - 16px) !important;
+      width: calc(100vw - 32px) !important;
+      height: calc(50vh - 32px) !important;
     }
   }
 
   &:not(.stacked) {
     textarea, app-md {
-      width: calc(50vw - 66px) !important;
-      height: calc(100vh - 12px) !important;
+      width: calc(50vw - 18px) !important;
+      height: calc(100vh - 64px) !important;
     }
     app-md {
-      height: calc(100vh - 8px) !important;
+      height: calc(100vh - 24px) !important;
     }
   }
 
   &:not(.preview) {
     textarea {
-      width: calc(100vw - 128px) !important;
-      height: calc(100vh - 24px) !important;
+      width: calc(100vw - 32px) !important;
+      height: calc(100vh - 64px) !important;
     }
   }
 }

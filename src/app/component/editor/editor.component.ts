@@ -6,7 +6,6 @@ import {
   ElementRef,
   EventEmitter,
   HostBinding,
-  HostListener,
   Input,
   Output,
   TemplateRef,
@@ -16,12 +15,12 @@ import {
 import { UntypedFormControl } from '@angular/forms';
 import { debounce, throttle, uniq, without } from 'lodash-es';
 import { runInAction } from 'mobx';
+import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
-import { relativeX, relativeY } from '../../util/math';
 
 @Component({
   selector: 'app-editor',
@@ -31,6 +30,8 @@ import { relativeX, relativeY } from '../../util/math';
 export class EditorComponent implements AfterViewInit {
   @HostBinding('class') css = 'editor';
 
+  id = uuid();
+
   @HostBinding('class.stacked')
   stacked = true;
   @HostBinding('class.fullscreen')
@@ -39,6 +40,8 @@ export class EditorComponent implements AfterViewInit {
   help = false;
   @HostBinding('class.preview')
   preview = true;
+  @HostBinding('class.editing')
+  editing = false;
 
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
@@ -60,6 +63,9 @@ export class EditorComponent implements AfterViewInit {
 
   @ViewChild('help')
   helpTemplate!: TemplateRef<any>;
+
+  @HostBinding('style.padding.px')
+  padding = 8;
 
   private _tags?: string[];
   private _text? = '';

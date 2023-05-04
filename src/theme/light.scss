@@ -59,6 +59,16 @@ body.light-theme {
     }
   }
 
+  .toolbar {
+    label {
+      border: 1px dashed $border;
+    }
+    label.on {
+      border: 0.5px solid $border;
+      backdrop-filter: contrast(0.2) brightness(1.5) blur(1.5px);
+    }
+  }
+
   .context-menu {
     background-color: $card;
 
@@ -213,14 +223,16 @@ body.light-theme {
     }
   }
 
-  .bubble, .plugins-form > * {
-    display: block;
-    margin-top: 8px;
-    padding: 8px;
+  .editor:focus-within, .bubble, .plugins-form > * {
     border-radius: 8px;
-    border: 1px dashed transparent;
     backdrop-filter: blur(1px) sepia(5%);
     box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .bubble, .plugins-form > * {
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px dashed transparent;
 
     hr {
       border: none;
