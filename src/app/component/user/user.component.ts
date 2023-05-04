@@ -3,7 +3,7 @@ import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@a
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { getRole, Profile } from '../../model/profile';
 import { User } from '../../model/user';
@@ -193,6 +193,24 @@ export class UserComponent implements OnInit {
       this.editing = false;
       this.user = user;
     });
+  }
+
+  copy() {
+    this.catchError(this.users.create({
+      ...this.user!,
+      origin: this.store.account.origin,
+    })).subscribe(() => {
+      this.router.navigate(['/user', this.user!.tag]);
+    });
+  }
+
+  catchError(o: Observable<any>) {
+    return o.pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    );
   }
 
   delete() {

@@ -125,6 +125,15 @@ export class ExtComponent implements OnInit {
     });
   }
 
+  copy() {
+    this.catchError(this.exts.create({
+      ...this.ext,
+      origin: this.store.account.origin,
+    })).subscribe(() => {
+      this.router.navigate(['/tag', this.ext.tag]);
+    });
+  }
+
   catchError(o: Observable<any>) {
     return o.pipe(
       catchError((err: HttpErrorResponse) => {

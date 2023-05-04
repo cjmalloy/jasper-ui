@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { Router } from '@angular/router';
+import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { templateForm } from '../../form/template/template.component';
 import { Template, writeTemplate } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
@@ -37,6 +38,7 @@ export class TemplateComponent implements OnInit {
     public store: Store,
     private templates: TemplateService,
     private fb: UntypedFormBuilder,
+    private router: Router,
   ) {
     this.editForm = templateForm(fb);
   }
@@ -86,6 +88,24 @@ export class TemplateComponent implements OnInit {
       this.editing = false;
       this.template = template;
     });
+  }
+
+  copy() {
+    this.catchError(this.templates.create({
+      ...this.template,
+      origin: this.store.account.origin,
+    })).subscribe(() => {
+      this.router.navigate(['/tags', this.template.tag]);
+    });
+  }
+
+  catchError(o: Observable<any>) {
+    return o.pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    );
   }
 
   delete() {

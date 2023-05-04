@@ -11,6 +11,9 @@
     </ng-container>
   </div>
   <div class="actions">
+    <a *ngIf="!local"
+       class="fake-link"
+       (click)="copy()" i18n>copy</a>
     <a *ngIf="local && store.account.admin else source"
        class="fake-link"
        (click)="editing = !editing" i18n>edit</a>

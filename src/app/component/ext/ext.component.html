@@ -20,7 +20,10 @@
   </div>
   <div class="actions">
     <ng-container *ngIf="!ext.upload">
-      <a *ngIf="writeAccess else source"
+      <a *ngIf="!local"
+         class="fake-link"
+         (click)="copy()" i18n>copy</a>
+      <a *ngIf="local && writeAccess else source"
          class="fake-link"
          (click)="editing = !editing" i18n>edit</a>
       <ng-template #source>

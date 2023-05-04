@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { Router } from '@angular/router';
+import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { pluginForm } from '../../form/plugin/plugin.component';
 import { Plugin, writePlugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
@@ -37,6 +38,7 @@ export class PluginComponent implements OnInit {
     public store: Store,
     private plugins: PluginService,
     private fb: UntypedFormBuilder,
+    private router: Router,
   ) {
     this.editForm = pluginForm(fb);
   }
@@ -86,6 +88,24 @@ export class PluginComponent implements OnInit {
       this.editing = false;
       this.plugin = tag;
     });
+  }
+
+  copy() {
+    this.catchError(this.plugins.create({
+      ...this.plugin,
+      origin: this.store.account.origin,
+    })).subscribe(() => {
+      this.router.navigate(['/tag', this.plugin.tag]);
+    });
+  }
+
+  catchError(o: Observable<any>) {
+    return o.pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    );
   }
 
   delete() {
