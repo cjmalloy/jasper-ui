@@ -5,7 +5,7 @@
            class="advanced"
            [class.mini]="!plugin.config!.form">
     <summary *ngIf="plugin.config!.form"><span i18n>Advanced</span></summary>
-    <summary *ngIf="!plugin.config!.form"><span></span></summary>
+    <summary *ngIf="!plugin.config!.form" i18n-title title="Advanced"><span></span></summary>
     <formly-form class="form" [form]="group" [fields]="plugin.config!.advancedForm" [options]="options"></formly-form>
   </details>
 </ng-container>
