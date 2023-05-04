@@ -55,7 +55,7 @@ export class AuthnService {
     return from(this.oauth.loadDiscoveryDocumentAndTryLogin()).pipe(
       tap(() => {
         if (this.oauth.state) {
-          this.router.navigateByUrl(this.oauth.state);
+          this.router.navigateByUrl(decodeURIComponent(this.oauth.state));
         }
       }));
   }
