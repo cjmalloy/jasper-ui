@@ -260,7 +260,7 @@ export class AdminService {
   }
 
   keyOf(dict: Record<string, Tag>, tag: string) {
-    return findKey(dict, p => p.tag === tag) || tag;
+    return findKey(dict, p => p.tag === tag) || tag || 'root';
   }
 
   configProperty(name: string): [Plugin | Template] {
