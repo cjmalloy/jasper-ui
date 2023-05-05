@@ -40,8 +40,6 @@ export class EditorComponent implements AfterViewInit {
   help = false;
   @HostBinding('class.preview')
   preview = true;
-  @HostBinding('class.editing')
-  editing = false;
 
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
@@ -69,6 +67,7 @@ export class EditorComponent implements AfterViewInit {
 
   private _tags?: string[];
   private _text? = '';
+  private _editing = false;
 
   constructor(
     private admin: AdminService,
@@ -89,15 +88,30 @@ export class EditorComponent implements AfterViewInit {
 
   @Input()
   set tags(value: string[] | undefined) {
-    this._tags = this.store.account.defaultEditors(this.editors);
-    if (value && value.length) {
-      this._tags = uniq([...this._tags, ...this.editors.filter(t => value.includes(t))]);
-    }
-    this.syncTags.next(this._tags);
+    this._tags = value;
   }
 
   get tags() {
     return this._tags;
+  }
+
+  get fullTags() {
+    const tags = this.store.account.defaultEditors(this.editors);
+    if (!this.tags?.length) return tags;
+    return uniq([...tags, ...this.editors.filter(t => this.tags!.includes(t))]);
+  }
+
+  get editing(): boolean {
+    return this._editing;
+  }
+
+  @HostBinding('class.editing')
+  set editing(value: boolean) {
+    if (!this._editing && value) {
+      this._editing = value;
+      this.preview = this.store.local.showPreview;
+      this.tags = this.fullTags;
+    }
   }
 
   get editors() {
@@ -119,9 +133,7 @@ export class EditorComponent implements AfterViewInit {
       this.syncTags.next(this._tags = [...this.tags || [], tag]);
     }
     if (this.admin.status.templates.user) {
-      runInAction(() => {
-        this.accounts.updateConfig('editor', this.tags);
-      });
+      this.accounts.updateConfig('editors', this.tags).subscribe();
     }
   }
 
