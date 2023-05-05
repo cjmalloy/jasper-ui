@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { defer, escape } from 'lodash-es';
+import { escape } from 'lodash-es';
 import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
@@ -406,7 +406,7 @@ export class EmbedService {
 
   async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement) {
     iframe.style.width = (oembed.width || '100') + 'px';
-    if (oembed.height) iframe.style.height = oembed.height + 'px';
+    iframe.style.height = (oembed.height || '100') + 'px';
     if (oembed.html) {
       this.writeIframeHtml(oembed.html || '', iframe);
     } else {
@@ -416,21 +416,22 @@ export class EmbedService {
     if (!oembed.height) {
       let start = moment();
       let oldHeight = doc.body.scrollHeight;
+      let newHeight = false;
       const f = async () => {
         await delay(100);
         const h = doc.body.scrollHeight;
         if (h !== oldHeight) {
-          iframe.style.height = h + 'px';
-          if (h > 200) {
-            // Assume final height when over 200px
-            return;
-          }
-          oldHeight = h;
+          newHeight = true;
           start = moment();
+          oldHeight = h;
+          iframe.style.height = h + 'px';
         }
-        // Timeout checking height changes after 10 seconds since the last change
-        if (start.isAfter(moment().subtract(10, 'seconds'))) {
+        if ((!newHeight || h < 300) && start.isAfter(moment().subtract(3, 'seconds'))) {
+          // Keep checking height
           await f();
+        } else if (start.isAfter(moment().subtract(20, 'seconds'))) {
+          // Timeout checking height less than 3 seconds since the last change
+          f(); // Keep checking height until 20 seconds timeout but let promise resolve
         }
       };
       await f();
