@@ -406,7 +406,7 @@ export class EmbedService {
 
   async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement) {
     iframe.style.width = (oembed.width || '100') + 'px';
-    iframe.style.height = (oembed.height || '100') + 'px';
+    if (oembed.height) iframe.style.height = oembed.height + 'px';
     if (oembed.html) {
       this.writeIframeHtml(oembed.html || '', iframe);
     } else {
@@ -418,7 +418,6 @@ export class EmbedService {
       let oldHeight = doc.body.scrollHeight;
       let newHeight = false;
       const f = async () => {
-        await delay(100);
         const h = doc.body.scrollHeight;
         if (h !== oldHeight) {
           newHeight = true;
@@ -426,6 +425,7 @@ export class EmbedService {
           oldHeight = h;
           iframe.style.height = h + 'px';
         }
+        await delay(100);
         if ((!newHeight || h < 300) && start.isAfter(moment().subtract(3, 'seconds'))) {
           // Keep checking height
           await f();
