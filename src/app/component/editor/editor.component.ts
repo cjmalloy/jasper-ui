@@ -132,12 +132,13 @@ export class EditorComponent implements AfterViewInit {
   }, 400);
 
   syncText(value: string) {
-    if (!value && this._text) {
+    if (!value) {
+      // Do not throttle
       this._text = value;
       this.syncEditor.next(this._text);
-    } else {
-      this.syncTextThrottled(value);
     }
+    // Clear previous throttled values
+    this.syncTextThrottled(value);
   }
 
   syncTextThrottled = debounce((value: string) => {

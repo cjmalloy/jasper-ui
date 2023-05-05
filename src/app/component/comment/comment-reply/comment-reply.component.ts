@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, HostBinding, Input, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq } from 'lodash-es';
 import * as moment from 'moment';
@@ -18,6 +18,7 @@ import { ThreadStore } from '../../../store/thread';
 import { getMailboxes, getTags } from '../../../util/editor';
 import { printError } from '../../../util/http';
 import { hasTag, removeTag } from '../../../util/tag';
+import { EditorComponent } from '../../editor/editor.component';
 
 @Component({
   selector: 'app-comment-reply',
@@ -40,6 +41,9 @@ export class CommentReplyComponent {
   @Input()
   autofocus = false;
 
+  @ViewChild(EditorComponent)
+  editor?: EditorComponent;
+
   commentForm: UntypedFormGroup;
   plugins: string[] = [];
   serverError: string[] = [];
@@ -49,7 +53,7 @@ export class CommentReplyComponent {
     public admin: AdminService,
     public store: Store,
     private thread: ThreadStore,
-    private editor: EditorService,
+    private ed: EditorService,
     private refs: RefService,
     private ts: TaggingService,
     private fb: FormBuilder,
@@ -73,6 +77,7 @@ export class CommentReplyComponent {
     const url = 'comment:' + uuid();
     const value = this.comment.value;
     this.comment.setValue('');
+    this.editor?.syncText('');
     const ref = {
       url,
       origin: this.store.account.origin,
@@ -80,9 +85,9 @@ export class CommentReplyComponent {
       sources: uniq([
         this.to.url,
         ...(this.top ? [this.top] : []),
-        ...this.editor.getSources(value),
+        ...this.ed.getSources(value),
       ]),
-      alternateUrls: this.editor.getAlts(value),
+      alternateUrls: this.ed.getAlts(value),
       tags: removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
         ...this.publicTag,
         this.store.account.localTag,

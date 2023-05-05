@@ -12,7 +12,8 @@ import { file } from './util/download';
 })
 export class AppComponent {
 
-  @HostBinding('class.electron') electron = this.config.electron;
+  @HostBinding('class.electron')
+  electron = this.config.electron;
 
   constructor(
     public config: ConfigService,
