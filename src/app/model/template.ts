@@ -25,6 +25,7 @@ export interface Template extends Config {
 
 export function mapTemplate(obj: any): Template {
   obj.type = 'template';
+  obj.tag ||= '';
   obj.origin ||= '';
   obj.modifiedString = obj.modified;
   obj.modified = obj.modified && moment(obj.modified);
