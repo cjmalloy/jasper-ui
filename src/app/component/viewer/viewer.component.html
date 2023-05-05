@@ -4,14 +4,18 @@
          [showToggle]="true"
          [expandInline]="true"
          [ref]="repost"></app-ref>
-<iframe #iframe
-        *ngIf="currentTags.includes('plugin/embed')"
-        [class.ready]="oembed"
-        src="about:blank"
-        frameborder="0"
-        scrolling="yes"
-        allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen></iframe>
+<div *ngIf="currentTags.includes('plugin/embed')"
+     class="embed-container"
+     [class.twitter]="twitter">
+  <app-loading *ngIf="!embedReady"></app-loading>
+  <iframe #iframe
+          [class.ready]="embedReady"
+          src="about:blank"
+          frameborder="0"
+          scrolling="yes"
+          allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen></iframe>
+</div>
 <div *ngIf="image || currentTags.includes('plugin/image')"
      class="image-expand"
      [appImageDim]="image || ref?.plugins?.['plugin/image']?.url || ref?.url"

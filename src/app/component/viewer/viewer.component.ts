@@ -1,5 +1,6 @@
 import { Component, ElementRef, HostBinding, Inject, Input, ViewChild, ViewContainerRef } from '@angular/core';
-import { defer, without } from 'lodash-es';
+import { defer, delay, without } from 'lodash-es';
+import { catchError, of } from 'rxjs';
 import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
@@ -26,6 +27,7 @@ export class ViewerComponent {
   repost?: Ref;
   image? : string;
   uis = this.admin.getPluginUi(this.currentTags);
+  embedReady = false;
 
   private _ref?: Ref;
   private _oembed?: Oembed;
@@ -61,8 +63,9 @@ export class ViewerComponent {
         width = screen.width;
         height = screen.height;
       }
-      this.oembeds.get(this.embed.url || value!.url, this.theme, width, height)
-        .subscribe(oembed => this.oembed = oembed);
+      this.oembeds.get(this.embed.url || value!.url, this.theme, width, height).pipe(
+        catchError(err => of(undefined)),
+      ).subscribe(oembed => this.oembed = oembed);
     }
   }
 
@@ -73,30 +76,35 @@ export class ViewerComponent {
   @ViewChild('iframe')
   set iframe(value: ElementRef) {
     this._iframe = value;
-    this.oembed = this.oembed;
   }
 
   set oembed(oembed: Oembed | undefined) {
     if (!this._iframe) {
       defer(() => this.oembed = oembed);
-    } else {
-      this._oembed = oembed;
-      if (oembed) {
-        if (oembed.url && oembed.type === 'photo') {
-          // Image embed
-          this.tags = without(this.currentTags, "plugin/embed");
-          this.image = oembed.url;
-        } else {
-          this.embeds.writeIframe(oembed, this._iframe.nativeElement);
-        }
+      return;
+    }
+    this._oembed = oembed;
+    if (oembed) {
+      if (oembed.url && oembed.type === 'photo') {
+        // Image embed
+        this.tags = without(this.currentTags, 'plugin/embed');
+        this.image = oembed.url;
       } else {
-        this.embeds.writeIframeHtml('', this._iframe.nativeElement);
+        this.embeds.writeIframe(oembed, this._iframe.nativeElement)
+          .then(() => this.embedReady = true);
       }
+    } else {
+      this.embedReady = true;
+      this._iframe.nativeElement.src = this.embed.url || this.ref?.url;
     }
   }
 
   get oembed() {
     return this._oembed;
+  }
+
+  get twitter() {
+    return this.oembed?.provider_name === 'Twitter';
   }
 
   get currentText() {

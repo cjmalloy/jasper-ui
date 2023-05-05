@@ -7,6 +7,7 @@ import { catchError, of } from 'rxjs';
 import { Oembed } from '../model/oembed';
 import { wikiUriFormat } from '../plugin/wiki';
 import { Store } from '../store/store';
+import { delay } from '../util/async';
 import { Embed } from '../util/embed';
 import { tagOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
@@ -403,9 +404,9 @@ export class EmbedService {
     return getComputedStyle(document.body).backgroundColor;
   }
 
-  writeIframe(oembed: Oembed, iframe: HTMLIFrameElement) {
+  async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement) {
     iframe.style.width = (oembed.width || '100') + 'px';
-    iframe.style.height = (oembed.height || '100') + 'px';
+    if (oembed.height) iframe.style.height = oembed.height + 'px';
     if (oembed.html) {
       this.writeIframeHtml(oembed.html || '', iframe);
     } else {
@@ -413,19 +414,26 @@ export class EmbedService {
     }
     const doc = iframe.contentWindow!.document;
     if (!oembed.height) {
-      const start = moment();
+      let start = moment();
       let oldHeight = doc.body.scrollHeight;
-      const f = () => {
+      const f = async () => {
+        await delay(100);
         const h = doc.body.scrollHeight;
         if (h !== oldHeight) {
           iframe.style.height = h + 'px';
+          if (h > 200) {
+            // Assume final height when over 200px
+            return;
+          }
           oldHeight = h;
+          start = moment();
         }
-        if (start.isAfter(moment().subtract(3, 'seconds'))) {
-          defer(f);
+        // Timeout checking height changes after 10 seconds since the last change
+        if (start.isAfter(moment().subtract(10, 'seconds'))) {
+          await f();
         }
       };
-      f();
+      await f();
     }
   }
 

@@ -1,10 +1,21 @@
 * {
   display: block;
 }
-
 iframe {
   opacity: 0;
+  transition: opacity 0.4s ease-in 0.4s;
+
   &.ready {
     opacity: 1;
+  }
+}
+
+.embed-container {
+  &.twitter {
+    overflow: hidden;
+    iframe {
+      margin-top: -10px;
+      margin-bottom: -10px;
+    }
   }
 }
