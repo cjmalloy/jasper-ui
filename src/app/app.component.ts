@@ -1,4 +1,4 @@
-import { Component, HostBinding } from '@angular/core';
+import { Component, HostBinding, isDevMode } from '@angular/core';
 import { Router } from '@angular/router';
 import { runInAction } from 'mobx';
 import { ConfigService } from './service/config.service';
@@ -19,6 +19,10 @@ export class AppComponent {
     public store: Store,
     private router: Router,
   ) { }
+
+  get debug() {
+    return !isDevMode() && this.store.account.debug;
+  }
 
   dragOver(event: DragEvent) {
     event.preventDefault();
