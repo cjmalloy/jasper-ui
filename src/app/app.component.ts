@@ -15,15 +15,13 @@ export class AppComponent {
   @HostBinding('class.electron')
   electron = this.config.electron;
 
+  debug = !isDevMode() && this.store.account.debug;
+
   constructor(
     public config: ConfigService,
     public store: Store,
     private router: Router,
   ) { }
-
-  get debug() {
-    return !isDevMode() && this.store.account.debug;
-  }
 
   dragOver(event: DragEvent) {
     event.preventDefault();
