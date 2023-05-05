@@ -5,7 +5,7 @@
   <label for="title" i18n>Title:</label>
   <div class="form-array">
     <input id="title" type="text" [formControl]="title">
-    <button type="button" (click)="scrapeTitle()" i18n>Scrape Title</button>
+    <button *ngIf="web" type="button" (click)="scrapeTitle()" i18n>Scrape Title</button>
   </div>
   <span><!-- Title Errors --></span>
   <div>
@@ -17,7 +17,7 @@
   <label for="published" i18n>Published:</label>
   <div class="form-array">
     <input id="published" type="datetime-local" step="1" [formControl]="published">
-    <button type="button" (click)="scrapePublished()" i18n>Scrape Published</button>
+    <button *ngIf="web" type="button" (click)="scrapePublished()" i18n>Scrape Published</button>
   </div>
   <span><!-- Published Errors --></span>
   <div>
