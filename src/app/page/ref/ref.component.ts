@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, map, of, switchMap } from 'rxjs';
-import { tap } from "rxjs/operators";
+import { tap } from 'rxjs/operators';
 import { isWiki } from '../../plugin/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';

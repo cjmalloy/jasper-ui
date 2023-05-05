@@ -8,12 +8,12 @@ export function intervalValidator(): ValidatorFn {
   };
 }
 export function scrollToFirstInvalid() {
-  const control = document.querySelector("form .ng-invalid");
+  const control = document.querySelector('form .ng-invalid');
   if (!control) return;
 
   window.scroll({
     top: control.getBoundingClientRect().top + window.scrollY,
     left: 0,
-    behavior: "smooth"
+    behavior: 'smooth'
   });
 }
