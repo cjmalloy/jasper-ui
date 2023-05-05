@@ -6,6 +6,23 @@ html, body {
   overflow-x: hidden;
 }
 
+.debug {
+  .subscription-bar:before {
+    color: red;
+    font-size: 14px;
+    content: 'DEBUG!';
+  }
+  footer p {
+    &.version-debug {
+      font-size: 0;
+    }
+    min-height: 72px;
+    line-height: 72px;
+    background-repeat: repeat-x !important;
+    background-image: url("~/assets/debug.png") !important;
+  }
+}
+
 .resize-handle {
   position: relative;
   &:after {

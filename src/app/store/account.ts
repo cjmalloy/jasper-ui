@@ -10,6 +10,7 @@ import { OriginStore } from './origin';
 
 export class AccountStore {
 
+  debug = false;
   tag = '';
   origin = '';
   access?: User = {} as User;
@@ -151,6 +152,7 @@ export class AccountStore {
   }
 
   setRoles(roles: Roles) {
+    this.debug = roles.debug;
     this.origin = tagOrigin(roles.tag);
     this.tag = roles.tag || '';
     if (this.tag.startsWith('@')) {

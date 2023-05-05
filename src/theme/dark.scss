@@ -21,6 +21,16 @@ body.dark-theme {
     color: $text;
   }
 
+  .debug {
+    .subscription-bar:before {
+      color: $error;
+    }
+    footer p {
+      border-top: 2px solid $border;
+      border-bottom: 2px solid $border;
+    }
+  }
+
   &, ::backdrop, .editor.fullscreen app-md {
     background-color: $bg;
     background-image: url("~/assets/bg-dark.png");

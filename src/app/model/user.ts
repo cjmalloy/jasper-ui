@@ -14,6 +14,7 @@ export interface User extends Tag {
 export type Role = 'ROLE_SYSADMIN' | 'ROLE_ADMIN' | 'ROLE_MOD' | 'ROLE_EDITOR' | 'ROLE_USER' | 'ROLE_VIEWER' | 'ROLE_ANONYMOUS';
 
 export interface Roles {
+  debug: boolean;
   tag: string;
   sysadmin: boolean;
   admin: boolean;

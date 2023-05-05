@@ -27,6 +27,17 @@ body.light-theme {
     background-blend-mode: darken;
   }
 
+  .debug {
+    .subscription-bar:before {
+      color: $error;
+    }
+    footer p {
+      border-top: 2px solid $border;
+      border-bottom: 2px solid $border;
+      filter: brightness(3);
+    }
+  }
+
   .container {
   }
 
