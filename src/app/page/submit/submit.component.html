@@ -100,7 +100,7 @@
 
       <span><!-- Tags --></span>
       <div class="form-array right">
-        <span *ngFor="let tag of store.submit.tags">🏷️{{ tag }}</span>
+        <span *ngFor="let tag of store.submit.tags | plugins">{{ tag }}</span>
       </div>
 
       <br>

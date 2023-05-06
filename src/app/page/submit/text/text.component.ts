@@ -73,9 +73,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
         }
         this.url.setValue(url);
         this.url.disable();
-        for (const tag of this.store.submit.tags) {
-          this.addTag(...tag.split(/[:|!()]/));
-        }
+        this.addTag(...this.store.submit.tags);
         for (const s of this.store.submit.sources) {
           this.addSource(s)
         }

@@ -59,11 +59,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
       this.addTag('public');
       this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
-        if (this.store.submit.tag) {
-          for (const tag of this.store.submit.tags) {
-            this.addTag(...tag.split(/[:|!()]/));
-          }
-        }
+        this.addTag(...this.store.submit.tags);
         if (this.origin) {
           this.addTag('internal');
           this.setTitle($localize`Replicate Remote Origin`);
