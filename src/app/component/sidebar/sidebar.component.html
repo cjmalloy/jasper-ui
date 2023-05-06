@@ -47,12 +47,12 @@
     </ng-container>
     <ng-container *ngIf="store.account.mod || store.account.signedIn && store.account.tag === tag">
       <div class="submit-button" [routerLink]="['/user', user && localTag || '']">
-        <span class="recolour" i18n-title title="Create User" i18n>👤️</span> <label i18n>User</label>
+        <span class="recolour" i18n-title title="Edit User" i18n>👤️</span> <label i18n>User</label>
       </div>
     </ng-container>
     <ng-container *ngIf="store.account.editor || writeAccess">
       <div class="submit-button" [routerLink]="['/ext', writeAccess ? localTag : '']">
-        <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Edit</label>
+        <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
       </div>
     </ng-container>
   </span>
