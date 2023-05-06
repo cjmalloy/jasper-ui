@@ -161,7 +161,11 @@ export class ViewStore {
   }
 
   get query() {
-    return isQuery(this.tag) ? this.tag : undefined;
+    return isQuery(this.tag) ? this.tag : '';
+  }
+
+  get noQuery() {
+    return isQuery(this.tag) ? '' : this.tag;
   }
 
   get localTag() {
