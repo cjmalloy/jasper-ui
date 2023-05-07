@@ -15,7 +15,7 @@ import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { TAG_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
-import { localTag } from '../../util/tag';
+import { getPrefix, hasPrefix, localTag, prefix } from '../../util/tag';
 
 @Component({
   selector: 'app-ext-page',
@@ -70,18 +70,25 @@ export class ExtPage implements OnInit, OnDestroy {
   }
 
   setExt(tag: string, ext?: Ext) {
+    tag = localTag(tag);
+    for (const t of this.templates) {
+      if (tag === t.tag) {
+        this.template = t.tag + '/';
+        this.tag.setValue(tag.substring(t.tag.length + 1))
+        return;
+      }
+    }
     runInAction(() => this.store.view.ext = ext);
     if (ext) {
       this.editForm = extForm(this.fb, ext, this.admin, true);
       this.editForm.patchValue(ext);
       defer(() => this.form!.setValue(ext));
     } else {
-      tag = localTag(tag);
       for (const t of this.templates) {
-        if (tag.startsWith(t.tag + '/')) {
+        if (hasPrefix(tag, t.tag)) {
           this.template = t.tag + '/';
           this.tag.setValue(tag.substring(t.tag.length + 1))
-          return
+          return;
         }
       }
       this.template = '';
