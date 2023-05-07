@@ -44,15 +44,11 @@ export class SearchComponent implements OnInit, OnDestroy {
       case 'home': return this.store.account.signedIn ? $localize`subscriptions` : $localize`home page`;
       case 'all': return $localize`all`;
       case 'local': return $localize`local`;
-      case 'sent': return $localize`sent`;
+      case 'inbox': return $localize`inbox`;
       case 'ref/comments': return $localize`comments`;
       case 'ref/responses': return $localize`responses`;
       case 'ref/sources': return $localize`sources`;
       case 'ref/versions': return $localize`versions`;
-      case 'plugin/feed': return $localize`feeds`;
-      case 'plugin/origin': return $localize`origins`;
-      case 'plugin/inbox': return $localize`inbox`;
-      case 'plugin/invoice': return $localize`invoices`;
       case 'ext': return $localize`tag extensions`;
       case 'user': return $localize`users`;
       case 'plugin': return $localize`plugins`;

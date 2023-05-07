@@ -11,7 +11,7 @@ import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
-import { hasPrefix, localTag, prefix } from '../../util/tag';
+import { hasPrefix, localTag, prefix, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-sidebar',
@@ -35,6 +35,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   _tag = '';
   localTag?: string;
+  local = true;
   plugin?: Plugin;
   writeAccess = false;
   ui: Template[] = [];
@@ -69,11 +70,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (this._tag === value) return;
     this._tag = value;
     if (value) {
+      const origin = tagOrigin(value);
+      this.local = !origin || origin === this.store.account.origin;
       this.localTag = localTag(value);
       this.plugin = this.admin.getPlugin(value);
       this.writeAccess = this.auth.tagWriteAccess(value);
       this.ui = this.admin.getTemplateUi(value);
     } else {
+      this.local = true;
       this.localTag = undefined;
       this.plugin = undefined;
       this.writeAccess = false;
@@ -113,6 +117,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   get user() {
     return !!this.admin.status.templates.user && hasPrefix(this._tag, 'user');
+  }
+
+  get messages() {
+    if (this.home) return false;
+    if (!this.admin.status.plugins.inbox) return false;
+    if (!this.admin.status.templates.dm) return false;
+    if (!this.store.account.user) return false;
+    return this.user || this.modmail;
   }
 
   get queue() {

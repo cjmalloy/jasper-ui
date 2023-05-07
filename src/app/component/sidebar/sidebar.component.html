@@ -3,7 +3,7 @@
     <div class="toggle"
          *ngIf="showToggle"
          (click)="expanded = !expanded">☰</div>
-    <div class="wide" *ngIf="store.view.current && (!home || store.view.search || store.view.filter.length || !query.page?.empty)">
+    <div class="wide" *ngIf="store.view.type && (!home || store.view.search || store.view.filter.length || !query.page?.empty)">
       <app-search></app-search>
       <div class="show-remotes" *ngIf="expanded && store.view.type !== 'ref' && store.view.settings">
         <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
@@ -11,7 +11,7 @@
       </div>
     </div>
   </div>
-  <ng-container *ngIf="expanded && store.view.current && (!home || store.view.search || store.view.filter.length || !query.page?.empty)">
+  <ng-container *ngIf="expanded && store.view.type && (!home || store.view.search || store.view.filter.length || !query.page?.empty)">
     <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
     <div class="row">
       <app-filter [type]="store.view.type!"></app-filter>
@@ -19,10 +19,10 @@
     </div>
   </ng-container>
   <app-debug *ngIf="expanded"></app-debug>
-  <app-bulk *ngIf="expanded && store.view.current" [type]="store.view.type!"></app-bulk>
+  <app-bulk *ngIf="expanded && store.view.type" [type]="store.view.type!"></app-bulk>
   <span class="button-bar">
-    <ng-container *ngIf="store.account.user">
-      <div *ngIf="!plugin?.config?.submitInternal && ! plugin?.config?.submitDm" class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
+    <ng-container *ngIf="store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')">
+      <div *ngIf="!user && !plugin?.config?.submitInternal && !plugin?.config?.submitDm" class="submit-button" routerLink="/submit" [queryParams]="{ tag: localTag }">
         <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit</label>
       </div>
       <div *ngIf="plugin?.config?.submitInternal" class="submit-button" routerLink="/submit/web" [queryParams]="{ tag: plugin!.tag, url: genUrl }">
@@ -38,20 +38,38 @@
         {{ plugin!.config!.submitDm }}</label>
       </div>
     </ng-container>
-    <ng-container *ngIf="admin.status.plugins.inbox">
-      <ng-container *ngIf="store.account.user && admin.status.templates.dm && (user || modmail)">
-        <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
-          <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
-        </div>
-      </ng-container>
+    <ng-container *ngIf="home || store.account.tag === tag">
+      <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: store.account.tag }">
+        <span i18n-title title="Notes" i18n>✍️</span> <label i18n>Notes</label>
+      </div>
     </ng-container>
-    <ng-container *ngIf="store.account.mod || store.account.signedIn && store.account.tag === tag">
-      <div class="submit-button" [routerLink]="['/user', user && localTag || '']">
+    <ng-container *ngIf="store.account.tag !== tag && messages">
+      <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
+        <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="store.account.editor && store.view.current === 'user'">
+      <div class="submit-button" routerLink="/user">
+        <span class="recolour" i18n-title title="Create User" i18n>👤️</span> <label i18n>Create User</label>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="user && (store.account.mod || store.account.tag === tag)">
+      <div class="submit-button" [routerLink]="['/user', tag]">
         <span class="recolour" i18n-title title="Edit User" i18n>👤️</span> <label i18n>User</label>
       </div>
     </ng-container>
-    <ng-container *ngIf="store.account.editor || writeAccess">
-      <div class="submit-button" [routerLink]="['/ext', writeAccess ? localTag : '']">
+    <ng-container *ngIf="store.account.editor && store.view.type === 'ext'">
+      <div class="submit-button" [routerLink]="['/ext', store.view.template]">
+        <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag</label>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="local && writeAccess && store.view.noQuery">
+      <div class="submit-button" [routerLink]="['/ext', tag]">
+        <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="ext && (!local || !writeAccess) && store.view.noQuery">
+      <div class="submit-button" [routerLink]="['/tags', tag]">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
       </div>
     </ng-container>

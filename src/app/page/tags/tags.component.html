@@ -9,6 +9,6 @@
     <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
   </div>
-  <app-sidebar></app-sidebar>
+  <app-sidebar [tag]="store.view.template"></app-sidebar>
   <app-ext-list [page]="query.page"></app-ext-list>
 </ng-container>

@@ -1,4 +1,5 @@
 import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
+import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 
@@ -27,6 +28,8 @@ export class SelectPluginComponent {
   set plugin(value: string) {
     if (this.select) {
       this.select!.nativeElement.selectedIndex = this.plugins.map(p => p.tag).indexOf(value) + 1;
+    } else {
+      defer(() => this.plugin = value);
     }
   }
 

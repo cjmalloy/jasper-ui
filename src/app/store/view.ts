@@ -17,9 +17,8 @@ import { EventBus } from './bus';
 export type View =
   'home' | 'all' | 'local' |
   'tag' | 'tags' | 'query' |
-  'sent' |
-  'ref/comments' | 'ref/thread' | 'ref/responses' | 'ref/sources' | 'ref/versions' |
-  'plugin/feed' | 'plugin/origin' | 'plugin/inbox' | 'plugin/invoice' |
+  'inbox' |
+  'ref/summary' | 'ref/comments' | 'ref/thread' | 'ref/responses' | 'ref/sources' | 'ref/versions' |
   'ext' | 'user' | 'plugin' | 'template';
 
 export type Type = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
@@ -97,6 +96,7 @@ export class ViewStore {
         return 'tag';
       case 'ref/:url':
         switch (s.firstChild?.routeConfig?.path) {
+          case '': return 'ref/summary';
           case 'comments': return 'ref/comments';
           case 'thread': return 'ref/thread';
           case 'responses': return 'ref/responses';
@@ -113,13 +113,7 @@ export class ViewStore {
           case 'ref/:tag': return 'tag';
         }
         return undefined;
-      case 'inbox':
-        switch (s.firstChild?.routeConfig?.path) {
-          case 'all': return 'plugin/inbox';
-          case 'invoices': return 'plugin/invoice';
-          case 'sent': return 'sent';
-        }
-        return undefined;
+      case 'inbox': return 'inbox';
     }
     return undefined;
   }
@@ -128,13 +122,12 @@ export class ViewStore {
     if (!this.current) return undefined;
     if (this.current === 'tags') return 'ext';
     if (this.current.startsWith('ref/') ||
-      this.current.startsWith('plugin/') ||
       this.current ==='home' ||
       this.current ==='all' ||
       this.current ==='local' ||
       this.current ==='tag' ||
       this.current ==='query' ||
-      this.current ==='sent') {
+      this.current ==='inbox') {
       return 'ref';
     }
     return this.current as Type;

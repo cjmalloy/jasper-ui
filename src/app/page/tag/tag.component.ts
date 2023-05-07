@@ -11,7 +11,7 @@ import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
-import { hasPrefix, isPlugin } from '../../util/tag';
+import { defaultOrigin, hasPrefix, isPlugin } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
@@ -59,7 +59,7 @@ export class TagPage implements OnInit, OnDestroy {
       if (!this.store.view.tag || this.store.view.query) {
         runInAction(() => this.store.view.ext = undefined);
       } else {
-        this.exts.get(this.store.view.tag).pipe(
+        this.exts.get(defaultOrigin(this.store.view.tag, this.store.account.origin)).pipe(
           catchError(() => of(undefined)),
         ).subscribe(ext => runInAction(() => this.store.view.ext = ext));
       }

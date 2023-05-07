@@ -24,6 +24,7 @@ import { AuthzService } from '../../service/authz.service';
 import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
+import { prefix } from '../../util/tag';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
@@ -70,6 +71,12 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    for (const t of this.store.submit.tags) {
+      if (prefix('plugin', t)) {
+        this.plugin = t;
+        break;
+      }
+    }
     this.disposers.push(autorun(() => {
       this.validations.length = 0;
       if (!this.admin.isWikiExternal() && this.store.submit.wiki) {

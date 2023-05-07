@@ -15,6 +15,7 @@ import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { TAG_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
+import { localTag } from '../../util/tag';
 
 @Component({
   selector: 'app-ext-page',
@@ -47,7 +48,7 @@ export class ExtPage implements OnInit, OnDestroy {
     private exts: ExtService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle($localize`Extend Tag`);
+    theme.setTitle($localize`Edit Tag`);
     this.extForm = fb.group({
       tag: ['', [Validators.required, Validators.pattern(TAG_REGEX)]],
     });
@@ -60,7 +61,7 @@ export class ExtPage implements OnInit, OnDestroy {
         this.tag.setValue('');
         runInAction(() => this.store.view.ext = undefined);
       } else {
-        const tag = this.store.view.tag + this.store.account.origin;
+        const tag = this.store.view.localTag + this.store.account.origin;
         this.exts.get(tag).pipe(
           catchError(() => of(undefined)),
         ).subscribe(ext => this.setExt(tag, ext));
@@ -75,6 +76,7 @@ export class ExtPage implements OnInit, OnDestroy {
       this.editForm.patchValue(ext);
       defer(() => this.form!.setValue(ext));
     } else {
+      tag = localTag(tag);
       for (const t of this.templates) {
         if (tag.startsWith(t.tag + '/')) {
           this.template = t.tag + '/';
@@ -146,7 +148,6 @@ export class ExtPage implements OnInit, OnDestroy {
       return;
     }
     const ext = this.store.view.ext!;
-    const tag = this.store.view.tag + this.store.account.origin;
     this.exts.update({
       ...ext,
       ...this.editForm.value,

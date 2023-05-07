@@ -59,7 +59,7 @@ export class UserPage implements OnInit, OnDestroy {
       if (!this.store.view.tag) {
         runInAction(() => this.store.view.selectedUser = undefined);
       } else {
-        const tag = this.store.view.tag + this.store.account.origin;
+        const tag = this.store.view.localTag + this.store.account.origin;
         this.users.get(tag).pipe(
           catchError(() => of(undefined)),
         ).subscribe(user => runInAction(() => {
@@ -70,7 +70,7 @@ export class UserPage implements OnInit, OnDestroy {
           } else {
             this.profileForm.setControl('user', userForm(this.fb, false));
             defer(() => this.userForm.setUser({
-              tag: this.store.view.tag,
+              tag: this.store.view.localTag,
               origin: this.store.view.origin,
             }));
           }
