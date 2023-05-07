@@ -20,6 +20,8 @@ export class TagsFormComponent implements OnInit {
   @Input()
   emoji = '🏷️';
 
+  autofocus = -1;
+
   constructor(
     private fb: UntypedFormBuilder,
   ) { }
@@ -33,6 +35,7 @@ export class TagsFormComponent implements OnInit {
 
   addTag(value = '') {
     if (value && this.tags.value.includes(value)) return;
+    this.autofocus = value ? -1 : this.tags.length;
     this.tags.push(this.fb.control(value, TagsFormComponent.validators));
   }
 

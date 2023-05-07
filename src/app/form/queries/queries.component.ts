@@ -19,6 +19,8 @@ export class QueriesFormComponent implements OnInit {
   @Input()
   label = $localize`query`;
 
+  autofocus = -1;
+
   constructor(
     private fb: UntypedFormBuilder,
   ) {}
@@ -32,6 +34,7 @@ export class QueriesFormComponent implements OnInit {
 
   addQuery(value = '') {
     if (value && this.queries.value.includes(value)) return;
+    this.autofocus = value ? -1 : this.queries.length;
     this.queries.push(this.fb.control(value, QueriesFormComponent.validators));
   }
 

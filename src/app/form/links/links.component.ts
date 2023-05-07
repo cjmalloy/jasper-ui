@@ -21,6 +21,8 @@ export class LinksFormComponent implements OnInit {
   @Input()
   alt = false;
 
+  autofocus = -1;
+
   constructor(
     private fb: UntypedFormBuilder,
   ) {}
@@ -34,6 +36,7 @@ export class LinksFormComponent implements OnInit {
 
   addLink(value = '') {
     if (value && this.links.value.includes(value)) return;
+    this.autofocus = value ? -1 : this.links.length;
     this.links.push(this.fb.control(value, LinksFormComponent.validators));
   }
 

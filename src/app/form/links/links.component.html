@@ -8,6 +8,7 @@
         <div class="grow">
           <input id="sources-{{ fieldName }}-{{ i }}"
                  type="url"
+                 [appAutofocus]="i === autofocus"
                  [formControl]="$any(c)">
         </div>
         <button type="button" (click)="removeLink(i)" i18n>&ndash;</button>

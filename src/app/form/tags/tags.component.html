@@ -11,6 +11,7 @@
                  type="email"
                  autocorrect="off"
                  autocapitalize="none"
+                 [appAutofocus]="i === autofocus"
                  [formControl]="$any(tag)">
         </div>
         <button type="button" (click)="removeTag(i)" i18n>&ndash;</button>

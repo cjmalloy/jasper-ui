@@ -11,6 +11,7 @@
                  type="email"
                  autocorrect="off"
                  autocapitalize="none"
+                 [appAutofocus]="i === autofocus"
                  [formControl]="$any(c)">
         </div>
         <button type="button" (click)="removeUser(i)" i18n>&ndash;</button>

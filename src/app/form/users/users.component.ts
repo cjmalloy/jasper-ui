@@ -19,6 +19,8 @@ export class UsersFormComponent implements OnInit {
   @Input()
   label = $localize`user`;
 
+  autofocus = -1;
+
   constructor(
     private fb: UntypedFormBuilder,
   ) {}
@@ -32,6 +34,7 @@ export class UsersFormComponent implements OnInit {
 
   addUser(value = '') {
     if (value && this.users.value.includes(value)) return;
+    this.autofocus = value ? -1 : this.users.length;
     this.users.push(this.fb.control(value, UsersFormComponent.validators));
   }
 
