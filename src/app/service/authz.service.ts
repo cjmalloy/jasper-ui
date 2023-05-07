@@ -91,7 +91,8 @@ export class AuthzService {
     if (this.store.account.editor && !privateTag(tag)) return true;
     if (captures(this.store.account.localTag, tag)) return true;
     if (!this.store.account.access) return false;
-    return !!capturesAny(this.store.account.access.tagWriteAccess, [tag]);
+    if (capturesAny(this.store.account.access.tagWriteAccess, [tag])) return true;
+    return !!capturesAny(this.store.account.access.writeAccess, [tag]);
   }
 
   hasRole(role: Role) {
