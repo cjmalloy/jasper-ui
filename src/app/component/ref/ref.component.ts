@@ -411,6 +411,10 @@ export class RefComponent implements OnInit, OnDestroy {
     ]));
   }
 
+  get replyTo() {
+    return this.authors.join(' ')
+  }
+
   get tags() {
     return interestingTags(this.ref.tags);
   }
