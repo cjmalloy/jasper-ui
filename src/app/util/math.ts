@@ -16,7 +16,6 @@ export function relativeX(x: number, el?: any): number {
   return relativeX(x - el.offsetLeft, el.offsetParent!);
 }
 
-
 export function relativeY(y: number, el?: any): number {
   if (!el) return y + scrollY;
   return relativeY(y - el.offsetTop, el.offsetParent!);
