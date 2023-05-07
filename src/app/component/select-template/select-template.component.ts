@@ -8,6 +8,7 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
+import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
 
 @Component({
@@ -35,6 +36,8 @@ export class SelectTemplateComponent {
   set template(value: string) {
     if (this.select) {
       this.select!.nativeElement.selectedIndex = this.templates.map(t => t.tag + '/').indexOf(value) + 1;
+    } else {
+      defer(() => this.template = value);
     }
   }
 

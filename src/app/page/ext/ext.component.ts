@@ -15,7 +15,7 @@ import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { TAG_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
-import { getPrefix, hasPrefix, localTag, prefix } from '../../util/tag';
+import { hasPrefix, localTag } from '../../util/tag';
 
 @Component({
   selector: 'app-ext-page',
