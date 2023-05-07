@@ -17,6 +17,8 @@ export class TagsFormComponent implements OnInit {
   group!: UntypedFormGroup;
   @Input()
   fieldName = 'tags';
+  @Input()
+  emoji = '🏷️';
 
   constructor(
     private fb: UntypedFormBuilder,

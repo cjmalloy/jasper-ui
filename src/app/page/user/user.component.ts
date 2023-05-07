@@ -15,7 +15,7 @@ import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
-import { localTag, prefix, tagOrigin } from '../../util/tag';
+import { prefix } from '../../util/tag';
 
 @Component({
   selector: 'app-user-page',
@@ -72,6 +72,8 @@ export class UserPage implements OnInit, OnDestroy {
             defer(() => this.userForm.setUser({
               tag: this.store.view.localTag,
               origin: this.store.view.origin,
+              readAccess: this.admin.readAccess.map(t => prefix(t, this.store.view.localTag)),
+              writeAccess: this.admin.writeAccess.map(t => prefix(t, this.store.view.localTag)),
             }));
           }
         }));
@@ -112,22 +114,16 @@ export class UserPage implements OnInit, OnDestroy {
       scrollToFirstInvalid();
       return;
     }
-    const userTag = this.store.view.localTag;
-    const old = this.store.view.selectedUser;
-    const updates = old ? {
-      ...old,
+    const updates = {
+      ...(this.store.view.selectedUser || {}),
       ...this.user.value,
-      tag: userTag,
+      tag: this.store.view.localTag,
       origin: this.store.account.origin,
-    } : {
-      ...this.user.value,
-      tag: userTag,
-      origin: this.store.account.origin,
-      readAccess: uniq([...this.user.value.readAccess, ...this.admin.readAccess.map(t => prefix(t, userTag))]),
-      writeAccess: uniq([...this.user.value.readAccess, ...this.admin.writeAccess.map(t => prefix(t, userTag))]),
+      readAccess: uniq([...this.user.value.readAccess, ...this.user.value.notifications]),
     };
+    delete updates.notifications;
     const entities = [
-      (old ? this.users.update(updates) : this.users.create(updates)).pipe(
+      (this.store.view.selectedUser ? this.users.update(updates) : this.users.create(updates)).pipe(
         catchError((res: HttpErrorResponse) => {
           this.serverError.push(...printError(res));
           return throwError(() => res);
@@ -136,11 +132,11 @@ export class UserPage implements OnInit, OnDestroy {
     ];
     if (this.config.scim) {
       const profile = {
-        tag: userTag + this.store.account.origin,
+        tag: this.store.view.localTag + this.store.account.origin,
         password: this.profileForm.value.password,
         role: this.profileForm.value.role,
       };
-      if (old) {
+      if (this.store.view.selectedUser) {
         if (this.password.touched) {
           entities.push(this.profiles.changePassword(profile));
         }
@@ -167,7 +163,7 @@ export class UserPage implements OnInit, OnDestroy {
   delete() {
     // TODO: Better dialogs
     if (window.confirm($localize`Are you sure you want to delete this user?`)) {
-      this.users.delete(this.tag.value).pipe(
+      this.users.delete(this.store.view.localTag + this.store.account.origin).pipe(
         catchError((res: HttpErrorResponse) => {
           this.serverError = printError(res);
           return throwError(() => res);

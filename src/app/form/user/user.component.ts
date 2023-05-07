@@ -1,6 +1,7 @@
 import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { User } from '../../model/user';
+import { isMailbox } from '../../plugin/mailbox';
 import { USER_REGEX } from '../../util/format';
 import { SelectorsFormComponent } from '../selectors/selectors.component';
 
@@ -26,6 +27,8 @@ export class UserFormComponent implements OnInit {
   @ViewChild('fill')
   fill?: ElementRef;
 
+  @ViewChild('notifications')
+  notifications!: SelectorsFormComponent;
   @ViewChild('readAccess')
   readAccess!: SelectorsFormComponent;
   @ViewChild('writeAccess')
@@ -35,8 +38,6 @@ export class UserFormComponent implements OnInit {
   @ViewChild('tagWriteAccess')
   tagWriteAccess!: SelectorsFormComponent;
 
-  constructor() { }
-
   ngOnInit(): void {
   }
 
@@ -45,15 +46,23 @@ export class UserFormComponent implements OnInit {
   }
 
   setUser(user: User) {
+    const notifications = this.group.get('notifications') as UntypedFormArray;
     const readAccess = this.group.get('readAccess') as UntypedFormArray;
     const writeAccess = this.group.get('writeAccess') as UntypedFormArray;
     const tagReadAccess = this.group.get('tagReadAccess') as UntypedFormArray;
     const tagWriteAccess = this.group.get('tagWriteAccess') as UntypedFormArray;
-    while (readAccess.length < (user.readAccess?.length || 0)) this.readAccess.addTag()
+    const ns = (user.readAccess || []).filter(isMailbox);
+    while (notifications.length < ns.length) this.notifications.addTag()
+    const ra = (user.readAccess || []).filter(t => !isMailbox(t));
+    while (readAccess.length < ra.length) this.readAccess.addTag()
     while (writeAccess.length < (user.writeAccess?.length || 0)) this.writeAccess.addTag();
     while (tagReadAccess.length < (user.tagReadAccess?.length || 0)) this.tagReadAccess.addTag();
     while (tagWriteAccess.length < (user.tagWriteAccess?.length || 0)) this.tagWriteAccess.addTag();
-    this.group.patchValue(user);
+    this.group.patchValue({
+      ...user,
+      notifications: ns,
+      readAccess: ra,
+    });
   }
 
 }
@@ -63,6 +72,7 @@ export function userForm(fb: UntypedFormBuilder, locked = false) {
     tag: [{value: '', disabled: locked}, [Validators.required, Validators.pattern(USER_REGEX)]],
     name: [''],
     role: [''],
+    notifications: fb.array([]),
     readAccess: fb.array([]),
     writeAccess: fb.array([]),
     tagReadAccess: fb.array([]),

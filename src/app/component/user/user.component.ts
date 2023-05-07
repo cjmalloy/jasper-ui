@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer } from 'lodash-es';
+import { defer, uniq } from 'lodash-es';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { getRole, Profile } from '../../model/profile';
@@ -170,18 +170,14 @@ export class UserComponent implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    (this.user ?
-      this.users.update({
-        ...this.user,
-        ...this.editForm.value,
-        tag: this.localTag,
-        origin: this.origin,
-      }) :
-      this.users.create({
-        ...this.editForm.value,
-        tag: this.localTag,
-        origin: this.origin,
-      }))
+    const updates = {
+      ...(this.user || {}),
+      ...this.editForm.value,
+      tag: this.localTag,
+      origin: this.origin,
+      readAccess: uniq([...this.editForm.value.readAccess, ...this.editForm.value.notifications]),
+    };
+    (this.user ? this.users.update(updates) : this.users.create(updates))
       .pipe(
         catchError((err: HttpErrorResponse) => {
           this.serverError = printError(err);

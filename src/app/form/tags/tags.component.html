@@ -4,7 +4,7 @@
 
     <ng-container *ngFor="let tag of tags.controls; let i=index">
       <div class="form-array">
-        <label for="tags-{{ fieldName }}-{{ i }}" i18n>🏷️</label>
+        <label for="tags-{{ fieldName }}-{{ i }}" i18n>{{ emoji }}</label>
         <div class="grow">
           <input id="tags-{{ fieldName }}-{{ i }}"
                  size="10"
