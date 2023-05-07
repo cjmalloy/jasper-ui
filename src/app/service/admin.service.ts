@@ -35,7 +35,7 @@ import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlu
 import { qrPlugin } from '../plugin/qr';
 import { repostPlugin } from '../plugin/repost';
 import { summaryPlugin, summaryQueryPlugin } from '../plugin/summary';
-import { tablePlugin } from '../plugin/table';
+import { spreadsheetPlugin, tablePlugin } from '../plugin/table';
 import { thanksPlugin } from '../plugin/thanks';
 import { threadPlugin } from '../plugin/thread';
 import { thumbnailPlugin } from '../plugin/thumbnail';
@@ -98,6 +98,7 @@ export class AdminService {
       fullscreen: fullscreenPlugin,
       thumbnail: thumbnailPlugin,
       table: tablePlugin,
+      sheet: spreadsheetPlugin,
       aiQuery: aiQueryPlugin,
       ai: aiPlugin,
       summaryQuery: summaryQueryPlugin,
@@ -470,8 +471,7 @@ export class AdminService {
   }
 
   getEditors(tags?: string[]) {
-    const match = tags || [];
-    return this.editors.filter(p => match.includes(p.tag));
+    return this.editors.filter(p => !p.config?.edits || p.config.edits.find(t => tags?.includes(t)));
   }
 
   getPluginUi(tags?: string[]) {

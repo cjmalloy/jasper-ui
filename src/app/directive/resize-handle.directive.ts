@@ -5,30 +5,57 @@ import { relativeX, relativeY } from '../util/math';
   selector: '[appResizeHandle]'
 })
 export class ResizeHandleDirective {
-  @HostBinding('class') css = 'resize-handle';
+
+  @HostBinding('class.resize-handle') get css() { return this.enabled };
   @HostBinding('style.cursor') cursor = 'auto';
 
   @Input()
   hitArea = 20;
+  @Input()
+  target?: HTMLElement;
 
   dragging = false;
   x = 0;
   y = 0;
   width = 0;
   height = 0;
+  lastWidth = 0;
+  lastHeight = 0;
+
+  private _enabled: boolean | '' = true;
 
   constructor(
-    private el: ElementRef,
+    private ref: ElementRef,
   ) { }
+
+  get el() {
+    return this.target || this.ref.nativeElement;
+  }
+
+  @Input('appResizeHandle')
+  set enabled(value: boolean | "") {
+    this._enabled = value;
+    if (!value) {
+      this.el.style.width = 'auto';
+      this.el.style.height = 'auto';
+    } else if (this.lastWidth) {
+      this.el.style.width = this.lastWidth + 'px';
+      this.el.style.height = this.lastHeight + 'px';
+    }
+  }
+
+  get enabled(): boolean | "" {
+    return this._enabled;
+  }
 
   @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent) {
-    if (this.hit(event)) {
+    if (this._enabled !== false && this.hit(event)) {
       this.dragging = true;
       this.x = event.clientX;
       this.y = event.clientY;
-      this.width = this.el.nativeElement.offsetWidth;
-      this.height = this.el.nativeElement.offsetHeight;
+      this.width = this.el.offsetWidth;
+      this.height = this.el.offsetHeight;
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
@@ -41,8 +68,10 @@ export class ResizeHandleDirective {
       this.cursor = 'se-resize';
       const dx = event.clientX - this.x;
       const dy = event.clientY - this.y;
-      this.el.nativeElement.style.width = (this.width + dx) + 'px';
-      this.el.nativeElement.style.height = (this.height + dy) + 'px';
+      this.lastWidth = this.width + dx;
+      this.lastHeight = this.height + dy;
+      this.el.style.width = this.lastWidth + 'px';
+      this.el.style.height = this.lastHeight + 'px';
     } else {
       this.cursor = this.hit(event) ? 'se-resize' : 'auto';
     }
@@ -54,10 +83,10 @@ export class ResizeHandleDirective {
   }
 
   private hit(event: PointerEvent) {
-    const x = relativeX(event.clientX, this.el.nativeElement);
-    const y = relativeY(event.clientY, this.el.nativeElement);
-    return x + this.hitArea > this.el.nativeElement.offsetWidth &&
-           y + this.hitArea > this.el.nativeElement.offsetHeight;
+    const x = relativeX(event.clientX, this.el);
+    const y = relativeY(event.clientY, this.el);
+    return x + this.hitArea > this.el.offsetWidth &&
+           y + this.hitArea > this.el.offsetHeight;
   }
 
 }

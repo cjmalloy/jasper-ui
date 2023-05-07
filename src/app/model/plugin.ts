@@ -47,6 +47,10 @@ export interface Plugin extends Config {
      */
     editor?: string,
     /**
+     * Only show editor for supporting tags.
+     */
+    edits?: string[],
+    /**
      * List of file extensions that match this plugin.
      */
     extensions?: string[],

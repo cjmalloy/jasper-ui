@@ -5,7 +5,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  HostBinding,
+  HostBinding, HostListener,
   Input,
   Output,
   TemplateRef,
@@ -13,13 +13,16 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
-import { debounce, throttle, uniq, without } from 'lodash-es';
+import { debounce, defer, throttle, uniq, without } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
+import * as XLSX from 'xlsx';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
+
+declare const canvasDatagrid: any;
 
 @Component({
   selector: 'app-editor',
@@ -40,6 +43,8 @@ export class EditorComponent implements AfterViewInit {
   @HostBinding('class.preview')
   preview = true;
 
+  @ViewChild('tw')
+  tw?: ElementRef<HTMLDivElement>;
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
 
@@ -64,6 +69,8 @@ export class EditorComponent implements AfterViewInit {
   @HostBinding('style.padding.px')
   padding = 8;
 
+  grid: any;
+
   private _tags?: string[];
   private _text? = '';
   private _editing = false;
@@ -85,6 +92,30 @@ export class EditorComponent implements AfterViewInit {
     this.tags = this._tags;
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    if (this.fullscreen) {
+      this.resizeGrid();
+    }
+  }
+
+  @ViewChild('spreadsheet')
+  set spreadsheet(div: ElementRef) {
+    if (!div) {
+      if (this.grid) this.grid.dispose();
+      return;
+    }
+    const wb = XLSX.read(this.currentText, {type: 'string'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    this.grid = canvasDatagrid({
+      parentNode: div.nativeElement,
+      data,
+    });
+    this.grid.addEventListener('endedit', () => this.syncGrid());
+    this.grid.addEventListener('reordering', () => this.syncGrid());
+  }
+
   @Input()
   set tags(value: string[] | undefined) {
     this._tags = value;
@@ -92,6 +123,10 @@ export class EditorComponent implements AfterViewInit {
 
   get tags() {
     return this._tags;
+  }
+
+  get sheet() {
+    return this.admin.status.plugins.sheet && this.tags?.includes('plugin/sheet');
   }
 
   get fullTags() {
@@ -123,6 +158,28 @@ export class EditorComponent implements AfterViewInit {
 
   get currentText() {
     return this._text || this.control?.value || '';
+  }
+
+  syncGrid() {
+    function prep(arr: any[]) {
+      const out = [];
+      for (let i = 0; i < arr.length; ++i) {
+        if (!arr[i]) continue;
+        if (Array.isArray(arr[i])) {
+          out[i] = arr[i];
+          continue;
+        }
+        const o: any[] = [];
+        Object.keys(arr[i]).forEach((k) => o[+k] = arr[i][k] );
+        out[i] = o;
+      }
+      return out;
+    }
+    // @ts-ignore
+    this.syncText(XLSX.utils.sheet_to_csv(XLSX.utils.aoa_to_sheet(prep(this.grid.data))), {
+      blankrows: false,
+      strip: true,
+    });
   }
 
   toggleTag(tag: string) {
@@ -172,6 +229,7 @@ export class EditorComponent implements AfterViewInit {
     } else {
       this.store.local.showPreview = this.preview = !this.preview;
     }
+    this.resizeGrid();
   }
 
   toggleFullscreen(override?: boolean) {
@@ -192,6 +250,7 @@ export class EditorComponent implements AfterViewInit {
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
       this.overlayRef.keydownEvents().subscribe(event => event.key === "Escape" && this.toggleFullscreen(false));
       this.editor?.nativeElement.focus();
+      this.resizeGrid();
     } else {
       this.stacked = true;
       this.preview = this.store.local.showPreview;
@@ -216,5 +275,12 @@ export class EditorComponent implements AfterViewInit {
       this.helpRef?.detach();
       this.helpRef?.dispose();
     }
+  }
+
+  resizeGrid() {
+    defer(() => {
+      this.grid.style.width = this.tw?.nativeElement.offsetWidth + 'px';
+      this.grid.style.height = this.tw?.nativeElement.offsetHeight + 'px';
+    });
   }
 }

@@ -29,6 +29,7 @@
     </div>
   </div>
   <textarea #editor
+            *ngIf="!sheet"
             [formControl]="control"
             (focusin)="editing = true"
             (input)="setText($any($event).target.value)"
@@ -36,6 +37,12 @@
             [appFillWidth]="fillWidth"
             [padding]="padding"
             [appAutofocus]="autoFocus"></textarea>
+  <div *ngIf="sheet"
+       tabindex="0"
+       #spreadsheet
+       class="spreadsheet"
+       [appResizeHandle]="!fullscreen"
+       [target]="grid"></div>
   <div class="floating-toggles">
   </div>
 </div>
