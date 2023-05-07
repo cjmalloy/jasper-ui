@@ -17,7 +17,7 @@ import { EventBus } from './bus';
 export type View =
   'home' | 'all' | 'local' |
   'tag' | 'tags' | 'query' |
-  'inbox' |
+  'inbox/all' | 'inbox/sent' | 'inbox/dms' | 'inbox/modlist' |
   'ref/summary' | 'ref/comments' | 'ref/thread' | 'ref/responses' | 'ref/sources' | 'ref/versions' |
   'ext' | 'user' | 'plugin' | 'template';
 
@@ -113,21 +113,29 @@ export class ViewStore {
           case 'ref/:tag': return 'tag';
         }
         return undefined;
-      case 'inbox': return 'inbox';
+      case 'inbox':
+        switch (s.firstChild?.routeConfig?.path) {
+          case 'all': return 'inbox/all';
+          case 'sent': return 'inbox/sent';
+          case 'dms': return 'inbox/dms';
+          case 'modlist': return 'inbox/modlist';
+        }
+        return undefined;
     }
     return undefined;
   }
 
   get type(): Type | undefined {
     if (!this.current) return undefined;
+    if (this.current === 'ref/summary') return undefined;
     if (this.current === 'tags') return 'ext';
     if (this.current.startsWith('ref/') ||
+      this.current.startsWith('inbox/') ||
       this.current ==='home' ||
       this.current ==='all' ||
       this.current ==='local' ||
       this.current ==='tag' ||
-      this.current ==='query' ||
-      this.current ==='inbox') {
+      this.current ==='query' ) {
       return 'ref';
     }
     return this.current as Type;
