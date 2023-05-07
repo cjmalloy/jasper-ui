@@ -1,10 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { defer, delay, pick } from 'lodash-es';
+import { defer, delay, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import * as moment from 'moment';
 import { catchError, firstValueFrom, forkJoin, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import * as XLSX from 'xlsx';
 import { Ext, mapTag } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
 import { ExtService } from '../../../service/api/ext.service';
@@ -37,9 +39,11 @@ export class UploadPage implements OnDestroy {
     theme.setTitle($localize`Submit: Upload`);
     this.disposers.push(autorun(() => {
       this.read(this.store.submit.files);
-      this.readPlugin(this.store.submit.audio, 'plugin/audio');
-      this.readPlugin(this.store.submit.video, 'plugin/video', 'plugin/thumbnail');
-      this.readPlugin(this.store.submit.images, 'plugin/image', 'plugin/thumbnail');
+      this.readUrlPlugin(this.store.submit.audio, 'plugin/audio', this.store.account.localTag);
+      this.readUrlPlugin(this.store.submit.video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag);
+      this.readUrlPlugin(this.store.submit.images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag);
+      this.readData(this.store.submit.texts, this.store.account.localTag);
+      this.readSheet(this.store.submit.tables, 'plugin/table', this.store.account.localTag);
       defer(() => this.store.submit.clearFiles());
     }));
   }
@@ -79,7 +83,7 @@ export class UploadPage implements OnDestroy {
     }
   }
 
-  readPlugin(files: FileList, tag: string, ...extraTags: string[]) {
+  readUrlPlugin(files: FileList, tag: string, ...extraTags: string[]) {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
@@ -90,8 +94,50 @@ export class UploadPage implements OnDestroy {
         title: file.name,
         tags: ['public', tag, ...extraTags],
         plugins: { [tag]: { url: reader.result as string } },
+        published: moment(),
       }));
       reader.readAsDataURL(file);
+    }
+  }
+
+  readData(files: FileList, ...extraTags: string[]) {
+    if (!files) return;
+    for (let i = 0; i < files?.length; i++) {
+      const file = files[i];
+      const reader = new FileReader();
+      reader.onload = () => runInAction(() => this.store.submit.addRefs({
+        upload: true,
+        url: 'internal:' + uuid(),
+        title: file.name,
+        tags: ['public', ...extraTags],
+        comment: reader.result as string,
+        published: moment(),
+      }));
+      reader.readAsText(file);
+    }
+  }
+
+  readSheet(files: FileList, ...extraTags: string[]) {
+    if (!files) return;
+    for (let i = 0; i < files?.length; i++) {
+      const file = files[i];
+      const reader = new FileReader();
+      reader.onload = () => runInAction(() => {
+        const wb = XLSX.read(reader.result);
+        for (const sheet of wb.SheetNames) {
+          const title = wb.SheetNames.length === 1 ? file.name : `${file.name} [${sheet}]`;
+          const comment = XLSX.utils.sheet_to_csv(wb.Sheets[sheet]);
+          this.store.submit.addRefs({
+            upload: true,
+            url: 'internal:' + uuid(),
+            title,
+            tags: ['public', ...extraTags],
+            comment,
+            published: moment(),
+          });
+        }
+      });
+      reader.readAsArrayBuffer(file);
     }
   }
 

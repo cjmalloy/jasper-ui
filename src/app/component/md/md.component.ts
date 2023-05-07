@@ -55,8 +55,8 @@ export class MdComponent implements OnInit {
   get value() {
     if (this._value) return this._value;
     if (this.plugins?.includes('plugin/table')) {
-      const wb = XLSX.read(this._text, {type: "string"});
-      return this._value = XLSX.utils.sheet_to_html(wb.Sheets[wb.SheetNames[0]], {header: ''})
+      const wb = XLSX.read(this._text, {type: 'string'});
+      return this._value = XLSX.utils.sheet_to_html(wb.Sheets[wb.SheetNames[0]], {header: ''});
     }
     return this._value = this._text;
   }

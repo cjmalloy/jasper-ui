@@ -340,9 +340,9 @@ body.dark-theme {
   }
 
   .ref.upload, .ext.upload {
-    border-left: 10px $warning groove;
+    border-left: 10px $warning groove !important;
     &.exists {
-      border-left: 10px $error groove;
+      border-left: 10px $error groove !important;
     }
   }
 

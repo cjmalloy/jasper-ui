@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { from } from 'rxjs';
 
 export interface Dim {
   width: number;

@@ -610,7 +610,7 @@ export class RefComponent implements OnInit, OnDestroy {
     if (this.ref.upload) {
       ref.upload = true;
       this.ref = ref;
-      this.upload();
+      this.store.submit.setRef(this.ref);
     } else {
       this.store.eventBus.runAndReload(this.refs.update(ref), ref);
     }

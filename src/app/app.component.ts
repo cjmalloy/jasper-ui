@@ -43,6 +43,8 @@ export class AppComponent {
     const audio = [] as any;
     const video = [] as any;
     const images = [] as any;
+    const texts = [] as any;
+    const tables = [] as any;
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
       if (d?.kind !== 'file') return;
@@ -58,6 +60,17 @@ export class AppComponent {
       if (d.type.startsWith('image/')) {
         images.push(d.getAsFile());
       }
+      if (d.type.startsWith('text/plain')) {
+        texts.push(d.getAsFile());
+      }
+      if ([
+        'text/csv',
+        'application/vnd.ms-excel',
+        'application/vnd.oasis.opendocument.spreadsheet',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ].includes(d.type)) {
+        tables.push(d.getAsFile());
+      }
     }
     event.preventDefault();
     runInAction(() => {
@@ -65,6 +78,8 @@ export class AppComponent {
       this.store.submit.audio = audio as any;
       this.store.submit.video = video as any;
       this.store.submit.images = images as any;
+      this.store.submit.texts = texts as any;
+      this.store.submit.tables = tables as any;
     });
     if (!this.store.submit.upload) {
       this.router.navigate(['/submit/upload']);

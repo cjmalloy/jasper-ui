@@ -83,10 +83,10 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
 
 export function mapRef(obj: any): Ref {
   obj.origin ||= '';
-  obj.published = obj.published && moment(obj.published);
-  obj.created = obj.created && moment(obj.created);
+  obj.published &&= moment(obj.published);
+  obj.created &&= moment(obj.created);
   obj.modifiedString = obj.modified;
-  obj.modified = obj.modified && moment(obj.modified);
+  obj.modified &&= moment(obj.modified);
   return obj;
 }
 
@@ -97,7 +97,7 @@ export function mapRefOrNull(obj: any): Ref | null {
 
 export function writeRef(ref: Ref): Ref {
   const result = { ...ref } as any;
-  result.published &&= moment(result.published);
+  result.published = moment(result.published);
   result.modified = result.modifiedString as any;
   delete result.upload;
   delete result.exists;

@@ -16,6 +16,8 @@ export class SubmitStore {
   audio: FileList = [] as any;
   video: FileList = [] as any;
   images: FileList = [] as any;
+  texts: FileList = [] as any;
+  tables: FileList = [] as any;
   exts: Ext[] = [];
   refs: Ref[] = [];
   overwrite = false;
@@ -99,7 +101,9 @@ export class SubmitStore {
     return !this.files.length &&
       !this.audio.length &&
       !this.video.length &&
-      !this.images.length;
+      !this.images.length &&
+      !this.texts.length &&
+      !this.tables.length;
   }
 
   get empty() {
@@ -156,6 +160,8 @@ export class SubmitStore {
     this.audio = [] as any;
     this.video = [] as any;
     this.images = [] as any;
+    this.texts = [] as any;
+    this.tables = [] as any;
   }
 
   foundRef(url: string) {

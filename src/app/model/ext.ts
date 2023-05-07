@@ -10,7 +10,7 @@ export function mapTag(obj: any): Ext {
   obj.type = 'ext';
   obj.origin ||= '';
   obj.modifiedString = obj.modified;
-  obj.modified = obj.modified && moment(obj.modified);
+  obj.modified &&= moment(obj.modified);
   return obj;
 }
 
