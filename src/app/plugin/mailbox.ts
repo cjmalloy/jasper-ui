@@ -62,7 +62,7 @@ export function reverseOrigin(tag: string): string {
     prefix = tag.substring(0, 1);
     tag = tag.substring(1);
   }
-  const len = tag.indexOf("/");
+  const len = tag.indexOf('/');
   return prefix + tag.substring(len + 1) + '@' + tag.substring(0, len);
 }
 
