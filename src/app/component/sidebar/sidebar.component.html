@@ -41,7 +41,7 @@
         {{ plugin!.config!.submitDm }}</label>
       </div>
     </ng-container>
-    <ng-container *ngIf="home || store.account.tag === tag">
+    <ng-container *ngIf="store.account.user && (home || store.account.tag === tag)">
       <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: store.account.tag }">
         <span i18n-title title="Notes" i18n>✍️</span> <label i18n>Notes</label>
       </div>
@@ -71,7 +71,7 @@
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
       </div>
     </ng-container>
-    <ng-container *ngIf="ext && (!local || !writeAccess) && store.view.noQuery">
+    <ng-container *ngIf="store.account.user && ext && (!local || !writeAccess) && store.view.noQuery">
       <div class="submit-button" [routerLink]="['/tags', tag]">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
       </div>
