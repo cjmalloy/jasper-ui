@@ -171,14 +171,13 @@
                [form]="config"
                [fields]="form"
                [options]="options"></formly-form>
-  <ng-container *ngIf="advancedForm">
+  <ng-container *ngIf="advancedForm?.length">
     <span><!-- Advanced --></span>
     <details class="advanced">
       <summary><span i18n>Advanced</span></summary>
-      <formly-form *ngIf="advancedForm"
-                   class="form"
+      <formly-form class="form"
                    [form]="config"
-                   [fields]="advancedForm"
+                   [fields]="advancedForm!"
                    [options]="options"></formly-form>
     </details>
   </ng-container>
