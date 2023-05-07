@@ -157,7 +157,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService, l
     configControls = {
       ...configControls,
       sidebar: [''],
-      modmail: [true],
+      modmail: [false],
       pinned: linksForm(fb, ext.config?.pinned || []),
       themes: themesForm(fb, ext.config?.themes || []),
       theme: [''],
