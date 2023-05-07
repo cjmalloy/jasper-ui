@@ -1,9 +1,9 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { Observable, Subject, takeUntil } from "rxjs";
-import { autorun, IReactionDisposer } from "mobx";
-import { Ref } from "../../../model/ref";
-import { Store } from "../../../store/store";
-import { ThreadStore } from "../../../store/thread";
+import { autorun, IReactionDisposer } from 'mobx';
+import { Observable, Subject, takeUntil } from 'rxjs';
+import { Ref } from '../../../model/ref';
+import { Store } from '../../../store/store';
+import { ThreadStore } from '../../../store/thread';
 
 @Component({
   selector: 'app-comment-thread',

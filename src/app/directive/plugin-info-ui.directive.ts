@@ -1,5 +1,5 @@
 import { Directive, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { Plugin, renderPlugin, renderPluginInfo } from '../model/plugin';
+import { Plugin, renderPluginInfo } from '../model/plugin';
 import { Ref } from '../model/ref';
 
 @Directive({

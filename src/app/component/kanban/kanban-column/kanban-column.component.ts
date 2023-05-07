@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, HostBinding, Input, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, map, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Page } from '../../../model/page';

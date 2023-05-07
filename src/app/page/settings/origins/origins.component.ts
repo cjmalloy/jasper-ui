@@ -1,13 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { mapValues } from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
+import { catchError, throwError } from 'rxjs';
 import { OriginService } from '../../../service/api/origin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { scrollToFirstInvalid } from '../../../util/form';
-import { ORIGIN_NOT_BLANK_REGEX, ORIGIN_REGEX } from '../../../util/format';
+import { ORIGIN_NOT_BLANK_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
