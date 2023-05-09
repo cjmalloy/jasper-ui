@@ -119,6 +119,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return !!this.admin.status.templates.user && hasPrefix(this._tag, 'user');
   }
 
+  get userSubs(): string[] {
+    return this.ext?.config?.subscriptions?.filter((s: string) => hasPrefix(s, 'user'));
+  }
+
+  get tagSubs(): string[] {
+    return this.ext?.config?.subscriptions?.filter((s: string) => !hasPrefix(s, 'user'));
+  }
+
   get messages() {
     if (this.home) return false;
     if (!this.admin.status.plugins.inbox) return false;

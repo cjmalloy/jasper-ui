@@ -67,23 +67,23 @@ export class ViewStore {
   }
 
   get summary() {
-    const s = this.route.routeSnapshot.firstChild;
+    const s = this.route.routeSnapshot?.firstChild;
     if (s?.routeConfig?.path !== 'ref/:url') return false;
     return !s.firstChild?.routeConfig?.path;
   }
 
   get tags() {
-    const s = this.route.routeSnapshot.firstChild;
+    const s = this.route.routeSnapshot?.firstChild;
     return s?.routeConfig?.path === 'tags';
   }
 
   get settings() {
-    const s = this.route.routeSnapshot.firstChild;
+    const s = this.route.routeSnapshot?.firstChild;
     return s?.routeConfig?.path === 'settings';
   }
 
   get current(): View | undefined {
-    const s = this.route.routeSnapshot.firstChild;
+    const s = this.route.routeSnapshot?.firstChild;
     switch (s?.routeConfig?.path) {
       case 'home': return 'home';
       case 'tags': return 'tags';
@@ -139,6 +139,10 @@ export class ViewStore {
       return 'ref';
     }
     return this.current as Type;
+  }
+
+  get forYou() {
+    return !!this.route.routeSnapshot?.queryParams['forYou'];
   }
 
   get origin() {

@@ -1,7 +1,10 @@
 <ng-container *mobxAutorun>
   <span class="back-button" (click)="location.back()">🔙️</span>
   <div class="subs">
-    <a routerLink="/home" routerLinkActive="current-page" i18n>home</a> &bullet;
+    <a routerLink="/home" [class.current-page]="store.view.current === 'home' && !store.view.forYou" i18n>home</a> &bullet;
+    <ng-container *ngIf="admin.status.templates.user">
+      <a routerLink="/home" [queryParams]="{ forYou : true }" routerLinkActive="current-page" i18n>for you</a> &bullet;
+    </ng-container>
     <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a> &bullet;
     <a routerLink="/tag/*" routerLinkActive="current-page" i18n>local</a> &bullet;
     <a [routerLink]="['/tags', store.view.noQuery]" routerLinkActive="current-page" i18n>tags</a>

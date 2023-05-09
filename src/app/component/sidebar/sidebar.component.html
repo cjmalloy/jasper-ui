@@ -101,15 +101,28 @@
                 i18n-title title="Add to top bar"
                 class="bookmark" i18n>+ bookmark</button>
       </ng-template>
-      <button *ngIf="inSubs; else notInSubs"
-              class="subscribe"
-              i18n-title title="Remove from home screen"
-              (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
-      <ng-template #notInSubs>
-        <button (click)="subscribe()"
-                i18n-title title="Add to home screen"
-                class="subscribe" i18n>+ subscribe</button>
-      </ng-template>
+      <ng-container *ngIf="user">
+        <button *ngIf="inSubs; else notFollowing"
+                class="subscribe"
+                i18n-title title="Remove from home screen"
+                (click)="unsubscribe()" i18n>&ndash; unfollow</button>
+        <ng-template #notFollowing>
+          <button (click)="subscribe()"
+                  i18n-title title="Add to home screen"
+                  class="subscribe" i18n>+ follow</button>
+        </ng-template>
+      </ng-container>
+      <ng-container *ngIf="!user">
+        <button *ngIf="inSubs; else notInSubs"
+                class="subscribe"
+                i18n-title title="Remove from home screen"
+                (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
+        <ng-template #notInSubs>
+          <button (click)="subscribe()"
+                  i18n-title title="Add to home screen"
+                  class="subscribe" i18n>+ subscribe</button>
+        </ng-template>
+      </ng-container>
       <button *ngIf="inAlarms; else notInAlarms"
               class="alarm"
               i18n-title title="Remove alarm"
@@ -127,6 +140,12 @@
          [appTemplateUi]="ui"
          [ext]="ext"></div>
   </ng-container>
+
+  <div *ngIf="root" class="hide template-root">
+    <app-md *ngIf="ext?.config?.sidebar"
+            [origin]="ext?.origin || ''"
+            [text]="ext!.config!.sidebar"></app-md>
+  </div>
 
   <div *ngIf="queue" class="hide template-queue">
     <div class="ext-text" *ngIf="ext?.config?.bounty">
@@ -163,21 +182,25 @@
       </ng-container>
       <br *ngIf="ext?.config?.subscriptions?.length">
     </div>
-    <div class="ext-text" *ngIf="ext?.config?.subscriptions?.length" i18n>
-      Subscribed to:
+    <div class="ext-text" *ngIf="userSubs.length" i18n>
+      Following:
       <br>
-      <ng-container *ngFor="let sub of ext!.config!.subscriptions!">
+      <ng-container *ngFor="let sub of userSubs">
         <a class="tag" [routerLink]="['/tag', sub]">
           {{ sub }}
         </a>
         <br>
       </ng-container>
     </div>
-  </div>
-
-  <div *ngIf="root" class="hide template-root">
-    <app-md *ngIf="ext?.config?.sidebar"
-            [origin]="ext?.origin"
-            [text]="ext!.config!.sidebar"></app-md>
+    <div class="ext-text" *ngIf="tagSubs.length" i18n>
+      Subscribed to:
+      <br>
+      <ng-container *ngFor="let sub of tagSubs">
+        <a class="tag" [routerLink]="['/tag', sub]">
+          {{ sub }}
+        </a>
+        <br>
+      </ng-container>
+    </div>
   </div>
 </ng-container>

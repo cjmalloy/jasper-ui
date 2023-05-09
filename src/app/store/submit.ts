@@ -38,7 +38,7 @@ export class SubmitStore {
   }
 
   get subpage() {
-    return this.route.routeSnapshot.firstChild?.firstChild?.routeConfig?.path;
+    return this.route.routeSnapshot?.firstChild?.firstChild?.routeConfig?.path;
   }
 
   get url() {

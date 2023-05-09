@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
-import { delay } from 'lodash-es';
+import { delay, uniq } from 'lodash-es';
 import { runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, map, Observable, of, shareReplay, throwError } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, shareReplay, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
 import { User } from '../model/user';
 import { Store } from '../store/store';
+import { hasPrefix } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -15,6 +16,8 @@ import { AuthnService } from './authn.service';
 
 export const CACHE_MS = 15 * 1000;
 
+export const FOLLOWER_CACHE_MS = 15 * 60 * 1000;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -22,6 +25,7 @@ export class AccountService {
 
   private _user$?: Observable<User | undefined>;
   private _userExt$?: Observable<Ext>;
+  private _following = new Map<string, Ext>();
 
   constructor(
     private store: Store,
@@ -102,6 +106,31 @@ export class AccountService {
       delay(() => this._userExt$ = undefined, CACHE_MS);
     }
     return this._userExt$;
+  }
+
+  getFollower(tag: string) {
+    if (this._following.has(tag)) return of(this._following.get(tag));
+    return this.exts.get(tag).pipe(
+      tap(ext => this._following.set(tag, ext)),
+      tap(() => delay(() => this._following.delete(tag), FOLLOWER_CACHE_MS)),
+      shareReplay(1),
+      catchError(() => of(undefined)),
+    );
+  }
+
+  get forYouQuery$(): Observable<string> {
+    const followers = this.store.account.userSubs
+      .map(u => this.getFollower(u));
+    return (followers.length ? forkJoin(followers) : of([])).pipe(
+      map(es => [
+          ...this.store.account.subs,
+        ...es
+          .flatMap(e => e?.config?.subscriptions)
+          .filter(s => !!s)
+      ]),
+      map(uniq),
+      map(es => '!internal:(' + es.join('|') + ')'),
+    );
   }
 
   get subscriptions$(): Observable<string[]> {

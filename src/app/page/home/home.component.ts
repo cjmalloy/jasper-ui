@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ThemeService } from '../../service/theme.service';
@@ -23,6 +24,7 @@ export class HomePage implements OnInit, OnDestroy {
   constructor(
     private theme: ThemeService,
     public admin: AdminService,
+    public account: AccountService,
     public store: Store,
     public query: QueryStore,
     private refs: RefService,
@@ -41,15 +43,29 @@ export class HomePage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      const args = getArgs(
-        this.store.account.subscriptionQuery,
-        this.store.view.sort,
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
-      );
-      defer(() => this.query.setArgs(args));
+      if (this.store.view.forYou) {
+        this.account.forYouQuery$.subscribe(q => {
+          const args = getArgs(
+            q,
+            this.store.view.sort,
+            this.store.view.filter,
+            this.store.view.search,
+            this.store.view.pageNumber,
+            this.store.view.pageSize,
+          );
+          defer(() => this.query.setArgs(args));
+        })
+      } else {
+        const args = getArgs(
+          this.store.account.subscriptionQuery,
+          this.store.view.sort,
+          this.store.view.filter,
+          this.store.view.search,
+          this.store.view.pageNumber,
+          this.store.view.pageSize,
+        );
+        defer(() => this.query.setArgs(args));
+      }
     }));
   }
 

@@ -106,6 +106,14 @@ export class AccountStore {
     return this.config.subscriptions || defaultSubs;
   }
 
+  get userSubs(): string[] {
+    return this.subs.filter(s => hasPrefix(s, 'user'));
+  }
+
+  get tagSubs(): string[] {
+    return this.subs.filter(s => !hasPrefix(s, 'user'));
+  }
+
   get bookmarks() {
     return this.config.bookmarks || [];
   }
