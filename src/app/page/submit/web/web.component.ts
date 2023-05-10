@@ -60,6 +60,12 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
       this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
         this.addTag(...this.store.submit.tags);
+        if (this.admin.status.plugins.thumbnail && (
+            this.store.submit.tags.includes('plugin/video') ||
+            this.store.submit.tags.includes('plugin/image') ||
+            this.store.submit.tags.includes('plugin/embed'))) {
+          this.addTag('plugin/thumbnail')
+        }
         if (this.origin) {
           this.addTag('internal');
           this.setTitle($localize`Replicate Remote Origin`);
