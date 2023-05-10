@@ -123,10 +123,11 @@ export class AccountService {
       .map(u => this.getFollower(u));
     return (followers.length ? forkJoin(followers) : of([])).pipe(
       map(es => [
-          ...this.store.account.subs,
+          ...this.store.account.tagSubs,
         ...es
           .flatMap(e => e?.config?.subscriptions)
           .filter(s => !!s)
+          .filter(s => !hasPrefix(s, 'user'))
       ]),
       map(uniq),
       map(es => '!internal:(' + es.join('|') + ')'),

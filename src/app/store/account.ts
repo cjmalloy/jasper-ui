@@ -155,8 +155,8 @@ export class AccountStore {
   }
 
   get subscriptionQuery() {
-    if (!this.subs.length) return 'none';
-    return this.subs.join('|');
+    if (!this.tagSubs.length) return 'none';
+    return this.tagSubs.join('|');
   }
 
   setRoles(roles: Roles) {
