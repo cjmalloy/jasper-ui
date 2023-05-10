@@ -46,7 +46,6 @@ export class SubmitPage implements OnInit, OnDestroy {
   private _selectedPlugin?: Plugin;
   serverErrors: string[] = [];
   existingRef?: Ref;
-  scrape = true;
 
   constructor(
     public admin: AdminService,
@@ -80,7 +79,6 @@ export class SubmitPage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       this.validations.length = 0;
       if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
-        this.scrape = false;
         this.validations.push({ name: 'Valid title', passed: false, test: url => of(this.linkType(this.fixed(url))) });
         this.validations.push({ name: 'Not created yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
       } else {
@@ -169,7 +167,6 @@ export class SubmitPage implements OnInit, OnDestroy {
       queryParams: {
         url,
         tag: tags,
-        scrape: this.store.submit.web && this.scrape,
       },
       queryParamsHandling: 'merge',
     });

@@ -78,9 +78,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
         if (this.store.submit.source) {
           this.store.submit.sources.map(s => this.addSource(s));
         }
-        if (this.store.submit.scrape) {
-          this.refForm!.scrapeAll();
-        }
+        this.refForm!.scrapeAll();
       }));
     });
   }
