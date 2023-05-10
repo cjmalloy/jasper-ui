@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
 import { catchError, map, Observable } from 'rxjs';
@@ -45,5 +45,25 @@ export class ScrapeService {
       map(mapRef),
       catchError(err => this.login.handleHttpError(err)),
     );
+  }
+
+  fetch(url: string): Observable<any> {
+    return this.http.get<any>(`${this.base}/fetch`, {
+      params: params({ url }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  cache(file: File): Observable<string> {
+    return this.http.post(`${this.base}/cache`, file, {
+      responseType: 'text'
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  getFetch(url: string) {
+    return `${this.base}/fetch?url=${encodeURIComponent(url)}`;
   }
 }

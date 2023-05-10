@@ -5,6 +5,7 @@ import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { ScrapeService } from '../../service/api/scrape.service';
 import { ConfigService } from '../../service/config.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
@@ -35,6 +36,7 @@ export class ViewerComponent {
 
   constructor(
     public admin: AdminService,
+    public scrapes: ScrapeService,
     private config: ConfigService,
     private oembeds: OembedStore,
     private embeds: EmbedService,
@@ -120,6 +122,24 @@ export class ViewerComponent {
   get embed() {
     if (!this.currentTags.includes('plugin/embed')) return undefined;
     return this.ref?.plugins?.['plugin/embed'];
+  }
+
+  get audioUrl() {
+    const url = this.image || this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
+    if (!this.admin.status.plugins.audio?.config?.cache) return url;
+    return this.scrapes.getFetch(url);
+  }
+
+  get videoUrl() {
+    const url = this.image || this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
+    if (!this.admin.status.plugins.video?.config?.cache) return url;
+    return this.scrapes.getFetch(url);
+  }
+
+  get imageUrl() {
+    const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
+    if (!this.admin.status.plugins.image?.config?.cache) return url;
+    return this.scrapes.getFetch(url);
   }
 
   private get theme() {

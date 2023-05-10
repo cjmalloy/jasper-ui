@@ -11,6 +11,7 @@ import { Ext, mapTag } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
+import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
@@ -32,6 +33,7 @@ export class UploadPage implements OnDestroy {
     public store: Store,
     private refs: RefService,
     private exts: ExtService,
+    private scrapes: ScrapeService,
     private auth: AuthzService,
     private router: Router,
     private theme: ThemeService,
@@ -39,9 +41,9 @@ export class UploadPage implements OnDestroy {
     theme.setTitle($localize`Submit: Upload`);
     this.disposers.push(autorun(() => {
       this.read(this.store.submit.files);
-      this.readUrlPlugin(this.store.submit.audio, 'plugin/audio', this.store.account.localTag);
-      this.readUrlPlugin(this.store.submit.video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag);
-      this.readUrlPlugin(this.store.submit.images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag);
+      this.readScrape(this.store.submit.audio, 'plugin/audio', this.store.account.localTag);
+      this.readScrape(this.store.submit.video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag);
+      this.readScrape(this.store.submit.images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag);
       this.readData(this.store.submit.texts, this.store.account.localTag);
       this.readSheet(this.store.submit.tables, 'plugin/table', this.store.account.localTag);
       defer(() => this.store.submit.clearFiles());
@@ -80,6 +82,20 @@ export class UploadPage implements OnDestroy {
           this.store.submit.addRefs(...(models.ref || []));
         })
         .catch(() => null);
+    }
+  }
+
+  readScrape(files: FileList, tag: string, ...extraTags: string[]) {
+    if (!files) return;
+    for (let i = 0; i < files?.length; i++) {
+      const file = files[i];
+      this.scrapes.cache(file).subscribe(url => runInAction(() => this.store.submit.addRefs({
+        upload: true,
+        url,
+        title: file.name,
+        tags: ['public', tag, ...extraTags],
+        published: moment(),
+      })));
     }
   }
 

@@ -291,22 +291,22 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get thumbnailUrl() {
     return this.thumbnail &&
-      (this.ref?.plugins?.['plugin/thumbnail'].url || this.repostRef?.plugins?.['plugin/thumbnail'].url || !this.thumbnailColor);
+      (this.ref?.plugins?.['plugin/thumbnail']?.url || this.repostRef?.plugins?.['plugin/thumbnail']?.url || !this.thumbnailColor);
   }
 
   get thumbnailColor() {
     return this.thumbnail &&
-      this.ref?.plugins?.['plugin/thumbnail'].color || this.repostRef?.plugins?.['plugin/thumbnail'].color;
+      this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color;
   }
 
   get thumbnailEmoji() {
     return this.thumbnail &&
-      this.ref?.plugins?.['plugin/thumbnail'].emoji || this.repostRef?.plugins?.['plugin/thumbnail'].emoji || '';
+      this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
   }
 
   get thumbnailRadius() {
     return this.thumbnail &&
-      this.ref?.plugins?.['plugin/thumbnail'].radius || this.repostRef?.plugins?.['plugin/thumbnail'].radius || 0;
+      this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
   }
 
   get audio() {
@@ -326,13 +326,13 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get mediaAttachment() {
     if (this.audio) {
-      return this.currentRef?.plugins?.['plugin/audio'].url;
+      return this.currentRef?.plugins?.['plugin/audio']?.url;
     }
     if (this.video) {
-      return this.currentRef?.plugins?.['plugin/video'].url;
+      return this.currentRef?.plugins?.['plugin/video']?.url;
     }
     if (this.image) {
-      return this.currentRef?.plugins?.['plugin/image'].url;
+      return this.currentRef?.plugins?.['plugin/image']?.url;
     }
     return false;
   }
