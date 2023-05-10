@@ -1,7 +1,8 @@
 import { HttpClient, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
-import { catchError, map, Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { mapRef, Ref } from '../../model/ref';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
@@ -12,6 +13,8 @@ import { LoginService } from '../login.service';
   providedIn: 'root',
 })
 export class ScrapeService {
+
+  private cacheList = new Set<string>();
 
   constructor(
     private http: HttpClient,
@@ -39,6 +42,7 @@ export class ScrapeService {
   }
 
   webScrape(url: string): Observable<Ref> {
+    this.cacheList.add(url);
     return this.http.get<Ref>(`${this.base}/web`, {
       params: params({ url }),
     }).pipe(
@@ -48,7 +52,19 @@ export class ScrapeService {
   }
 
   fetch(url: string): Observable<any> {
+    this.cacheList.add(url);
     return this.http.get<any>(`${this.base}/fetch`, {
+      params: params({ url }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  scrape(url: string): Observable<void> {
+    if (url.startsWith('data:')) return of();
+    if (this.cacheList.has(url)) return of();
+    this.cacheList.add(url);
+    return this.http.get<void>(`${this.base}/scrape`, {
       params: params({ url }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
@@ -59,11 +75,14 @@ export class ScrapeService {
     return this.http.post(`${this.base}/cache`, file, {
       responseType: 'text'
     }).pipe(
+      tap(url => this.cacheList.add(url)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
   getFetch(url: string) {
+    if (url.startsWith('data:')) return url;
+    if (this.store.account.user) this.scrape(url).subscribe();
     return `${this.base}/fetch?url=${encodeURIComponent(url)}`;
   }
 }
