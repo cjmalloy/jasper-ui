@@ -36,7 +36,7 @@ export class ViewerComponent {
 
   constructor(
     public admin: AdminService,
-    public scrapes: ScrapeService,
+    public scraper: ScrapeService,
     private config: ConfigService,
     private oembeds: OembedStore,
     private embeds: EmbedService,
@@ -127,19 +127,19 @@ export class ViewerComponent {
   get audioUrl() {
     const url = this.image || this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
     if (!this.admin.status.plugins.audio?.config?.cache) return url;
-    return this.scrapes.getFetch(url);
+    return this.scraper.getFetch(url);
   }
 
   get videoUrl() {
     const url = this.image || this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
     if (!this.admin.status.plugins.video?.config?.cache) return url;
-    return this.scrapes.getFetch(url);
+    return this.scraper.getFetch(url);
   }
 
   get imageUrl() {
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
     if (!this.admin.status.plugins.image?.config?.cache) return url;
-    return this.scrapes.getFetch(url);
+    return this.scraper.getFetch(url);
   }
 
   private get theme() {

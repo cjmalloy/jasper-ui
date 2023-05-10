@@ -1,6 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Action, Icon } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
+import { ScrapeService } from '../../../service/api/scrape.service';
 import { Store } from '../../../store/store';
 import { TAGS_REGEX } from '../../../util/format';
 
@@ -25,6 +26,7 @@ export class SubfolderComponent implements OnInit {
 
   constructor(
     public admin: AdminService,
+    private scraper: ScrapeService,
     public store: Store,
   ) { }
 
@@ -37,6 +39,10 @@ export class SubfolderComponent implements OnInit {
   }
 
   cssUrl(url: string) {
+    if (!url) return '';
+    if (this.admin.status.plugins.thumbnail?.config?.cache) {
+      url = this.scraper.getFetch(url);
+    }
     return `url('${url}')`;
   }
 

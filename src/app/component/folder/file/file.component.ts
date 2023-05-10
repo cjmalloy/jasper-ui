@@ -2,6 +2,7 @@ import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Ref } from '../../../model/ref';
 import { Action, Icon, sortOrder } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
+import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
 import { Store } from '../../../store/store';
 import { TAGS_REGEX, templates } from '../../../util/format';
@@ -41,6 +42,7 @@ export class FileComponent implements OnInit {
 
   constructor(
     public admin: AdminService,
+    private scraper: ScrapeService,
     public store: Store,
     private auth: AuthzService,
   ) { }
@@ -89,6 +91,9 @@ export class FileComponent implements OnInit {
 
   cssUrl(url: string | null) {
     if (!url) return '';
+    if (this.admin.status.plugins.thumbnail?.config?.cache) {
+      url = this.scraper.getFetch(url);
+    }
     return `url('${url}')`;
   }
 }

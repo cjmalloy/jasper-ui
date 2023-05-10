@@ -33,7 +33,7 @@ export class UploadPage implements OnDestroy {
     public store: Store,
     private refs: RefService,
     private exts: ExtService,
-    private scrapes: ScrapeService,
+    private scraper: ScrapeService,
     private auth: AuthzService,
     private router: Router,
     private theme: ThemeService,
@@ -89,7 +89,7 @@ export class UploadPage implements OnDestroy {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
-      this.scrapes.cache(file).subscribe(url => runInAction(() => this.store.submit.addRefs({
+      this.scraper.cache(file).subscribe(url => runInAction(() => this.store.submit.addRefs({
         upload: true,
         url,
         title: file.name,

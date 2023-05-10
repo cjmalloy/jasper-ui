@@ -14,7 +14,7 @@ export class VideoUploadComponent {
   data = new EventEmitter<string>();
 
   constructor(
-    private scrapes: ScrapeService,
+    private scraper: ScrapeService,
   ) { }
 
   readVideo(files?: FileList) {
@@ -22,7 +22,7 @@ export class VideoUploadComponent {
     const file = files[0]!;
     const reader = new FileReader();
     reader.onload = () => {
-      this.scrapes.cache(file).pipe(
+      this.scraper.cache(file).pipe(
         catchError(err => of(reader.result as string))
       ).subscribe(url => this.data.next(url));
     }

@@ -675,6 +675,9 @@ export class RefComponent implements OnInit, OnDestroy {
 
   cssUrl(url: string | null) {
     if (!url) return '';
+    if (this.admin.status.plugins.thumbnail?.config?.cache) {
+      url = this.scraper.getFetch(url);
+    }
     return `url('${url}')`;
   }
 

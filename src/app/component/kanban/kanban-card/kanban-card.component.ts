@@ -1,6 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
+import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
 
 @Component({
@@ -17,12 +18,17 @@ export class KanbanCardComponent implements OnInit {
   constructor(
     private admin: AdminService,
     private auth: AuthzService,
+    private scraper: ScrapeService,
   ) { }
 
   ngOnInit(): void {
   }
 
   cssUrl(url: string) {
+    if (!url) return '';
+    if (this.admin.status.plugins.thumbnail?.config?.cache) {
+      url = this.scraper.getFetch(url);
+    }
     return `url('${url}')`;
   }
 
