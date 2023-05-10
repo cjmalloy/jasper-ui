@@ -64,7 +64,7 @@ export class ScrapeService {
     if (url.startsWith('data:')) return of();
     if (this.cacheList.has(url)) return of();
     this.cacheList.add(url);
-    return this.http.get<void>(`${this.base}/scrape`, {
+    return this.http.get<void>(this.base, {
       params: params({ url }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
