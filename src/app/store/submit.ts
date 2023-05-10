@@ -12,12 +12,12 @@ export class SubmitStore {
   wikiPrefix = DEFAULT_WIKI_PREFIX;
   submitInternal: Plugin[] = [];
   submitDm: Plugin[] = [];
-  files: FileList = [] as any;
-  audio: FileList = [] as any;
-  video: FileList = [] as any;
-  images: FileList = [] as any;
-  texts: FileList = [] as any;
-  tables: FileList = [] as any;
+  files: File[] = [] as any;
+  audio: File[] = [] as any;
+  video: File[] = [] as any;
+  images: File[] = [] as any;
+  texts: File[] = [] as any;
+  tables: File[] = [] as any;
   exts: Ext[] = [];
   refs: Ref[] = [];
   overwrite = false;
@@ -139,15 +139,38 @@ export class SubmitStore {
   }
 
   clearUpload() {
-    this.files = [] as any;
     this.exts = [];
     this.refs = [];
   }
 
   setFiles(files?: FileList | []) {
-    if (files === this.files) return;
     if (!files) return;
-    this.files = files as any;
+    for (let i = 0; i < files?.length; i++) {
+      const file = files[i];
+      if (file.type === 'application/json' || file.type === 'application/zip') {
+        this.files.push(file);
+      }
+      if (file.type.startsWith('audio/')) {
+        this.audio.push(file);
+      }
+      if (file.type.startsWith('video/')) {
+        this.video.push(file);
+      }
+      if (file.type.startsWith('image/')) {
+        this.images.push(file);
+      }
+      if (file.type.startsWith('text/plain')) {
+        this.texts.push(file);
+      }
+      if ([
+        'text/csv',
+        'application/vnd.ms-excel',
+        'application/vnd.oasis.opendocument.spreadsheet',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ].includes(file.type)) {
+        this.tables.push(file);
+      }
+    }
   }
 
   clearFiles() {

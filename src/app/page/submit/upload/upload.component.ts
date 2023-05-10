@@ -55,7 +55,7 @@ export class UploadPage implements OnDestroy {
     this.disposers.length = 0;
   }
 
-  read(files?: FileList) {
+  read(files?: File[]) {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
@@ -85,7 +85,7 @@ export class UploadPage implements OnDestroy {
     }
   }
 
-  readScrape(files: FileList, tag: string, ...extraTags: string[]) {
+  readScrape(files: File[], tag: string, ...extraTags: string[]) {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
@@ -99,7 +99,7 @@ export class UploadPage implements OnDestroy {
     }
   }
 
-  readUrlPlugin(files: FileList, tag: string, ...extraTags: string[]) {
+  readUrlPlugin(files: File[], tag: string, ...extraTags: string[]) {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
@@ -116,7 +116,7 @@ export class UploadPage implements OnDestroy {
     }
   }
 
-  readData(files: FileList, ...extraTags: string[]) {
+  readData(files: File[], ...extraTags: string[]) {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
@@ -133,7 +133,7 @@ export class UploadPage implements OnDestroy {
     }
   }
 
-  readSheet(files: FileList, ...extraTags: string[]) {
+  readSheet(files: File[], ...extraTags: string[]) {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];

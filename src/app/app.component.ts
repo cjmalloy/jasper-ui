@@ -33,54 +33,14 @@ export class AppComponent {
       this.store.submit.setFiles([]);
       return;
     }
-    for (let i = 0; i < items.length; i++) {
-      const d = items[i];
-      console.log(d.getAsFile()?.name);
-      console.log(d.type);
-      console.log(d.kind);
-    }
     const files = [] as any;
-    const audio = [] as any;
-    const video = [] as any;
-    const images = [] as any;
-    const texts = [] as any;
-    const tables = [] as any;
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
       if (d?.kind !== 'file') return;
-      if (d.type === 'application/json' || d.type === 'application/zip') {
-        files.push(d.getAsFile());
-      }
-      if (d.type.startsWith('audio/')) {
-        audio.push(d.getAsFile());
-      }
-      if (d.type.startsWith('video/')) {
-        video.push(d.getAsFile());
-      }
-      if (d.type.startsWith('image/')) {
-        images.push(d.getAsFile());
-      }
-      if (d.type.startsWith('text/plain')) {
-        texts.push(d.getAsFile());
-      }
-      if ([
-        'text/csv',
-        'application/vnd.ms-excel',
-        'application/vnd.oasis.opendocument.spreadsheet',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      ].includes(d.type)) {
-        tables.push(d.getAsFile());
-      }
+      files.push(d.getAsFile());
     }
     event.preventDefault();
-    runInAction(() => {
-      this.store.submit.setFiles(files);
-      this.store.submit.audio = audio as any;
-      this.store.submit.video = video as any;
-      this.store.submit.images = images as any;
-      this.store.submit.texts = texts as any;
-      this.store.submit.tables = tables as any;
-    });
+    this.store.submit.setFiles(files);
     if (!this.store.submit.upload) {
       this.router.navigate(['/submit/upload']);
     }
