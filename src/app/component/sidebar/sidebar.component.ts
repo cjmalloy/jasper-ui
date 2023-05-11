@@ -7,6 +7,7 @@ import { Plugin } from '../../model/plugin';
 import { Template } from '../../model/template';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
+import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
@@ -53,6 +54,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     public config: ConfigService,
     private auth: AuthzService,
     private account: AccountService,
+    private exts: ExtService,
   ) {
     if (localStorage.getItem('sidebar-expanded') !== null) {
       this._expanded = localStorage.getItem('sidebar-expanded') !== 'false';
@@ -119,12 +121,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return !!this.admin.status.templates.user && hasPrefix(this._tag, 'user');
   }
 
-  get userSubs(): string[] {
-    return this.ext?.config?.subscriptions?.filter((s: string) => hasPrefix(s, 'user'));
+  get bookmarks() {
+    return this.exts.getCachedExts(this.ext?.config?.bookmarks || []);
   }
 
-  get tagSubs(): string[] {
-    return this.ext?.config?.subscriptions?.filter((s: string) => !hasPrefix(s, 'user'));
+  get userSubs() {
+    return this.exts.getCachedExts(this.ext?.config?.subscriptions?.filter((s: string) => hasPrefix(s, 'user')));
+  }
+
+  get tagSubs() {
+    return this.exts.getCachedExts(this.ext?.config?.subscriptions?.filter((s: string) => !hasPrefix(s, 'user')));
   }
 
   get messages() {

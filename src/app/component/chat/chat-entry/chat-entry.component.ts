@@ -5,6 +5,7 @@ import { catchError, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../plugin/delete';
 import { AdminService } from '../../../service/admin.service';
+import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
@@ -48,6 +49,7 @@ export class ChatEntryComponent {
     public admin: AdminService,
     public store: Store,
     private auth: AuthzService,
+    private exts: ExtService,
     private ts: TaggingService,
     private refs: RefService,
   ) { }
@@ -110,6 +112,10 @@ export class ChatEntryComponent {
 
   get authors() {
     return authors(this.ref);
+  }
+
+  get authorExts() {
+    return this.exts.getCachedExts(this.authors);
   }
 
   get clickableLink() {

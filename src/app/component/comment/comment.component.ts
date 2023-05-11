@@ -10,6 +10,7 @@ import { getMailbox, mailboxes } from '../../plugin/mailbox';
 import { score } from '../../plugin/vote';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
+import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
@@ -61,6 +62,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     private router: Router,
     private auth: AuthzService,
     private refs: RefService,
+    private exts: ExtService,
     public acts: ActionService,
     private ts: TaggingService,
   ) {
@@ -158,6 +160,10 @@ export class CommentComponent implements OnInit, OnDestroy {
     return authors(this.ref);
   }
 
+  get authorExts() {
+    return this.exts.getCachedExts(this.authors);
+  }
+
   get mailboxes() {
     return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
   }
@@ -175,6 +181,10 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   get tagged() {
     return interestingTags(this.ref.tags);
+  }
+
+  get tagExts() {
+    return this.exts.getCachedExts(this.tagged);
   }
 
   get deleted() {

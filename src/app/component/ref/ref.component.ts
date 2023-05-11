@@ -16,6 +16,7 @@ import { deleteNotice } from '../../plugin/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../plugin/mailbox';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
+import { ExtService } from '../../service/api/ext.service';
 import { OriginService } from '../../service/api/origin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -92,6 +93,7 @@ export class RefComponent implements OnInit, OnDestroy {
     private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
+    private exts: ExtService,
     public acts: ActionService,
     private scraper: ScrapeService,
     private origins: OriginService,
@@ -264,6 +266,10 @@ export class RefComponent implements OnInit, OnDestroy {
     return undefined;
   }
 
+  get addTagExts() {
+    return this.exts.getCachedExts(this.addTags || []);
+  }
+
   get fromOrigin() {
     if (this.originPush) {
       return this.ref.plugins?.['+plugin/origin']?.local;
@@ -385,8 +391,16 @@ export class RefComponent implements OnInit, OnDestroy {
     return authors(this.ref);
   }
 
+  get authorExts() {
+    return this.exts.getCachedExts(this.authors);
+  }
+
   get recipients() {
     return without(addressedTo(this.ref), ...this.authors);
+  }
+
+  get recipientExts() {
+    return this.exts.getCachedExts(this.recipients);
   }
 
   get mailboxes() {
@@ -417,6 +431,10 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get tags() {
     return interestingTags(this.ref.tags);
+  }
+
+  get tagExts() {
+    return this.exts.getCachedExts(this.tags);
   }
 
   get url() {

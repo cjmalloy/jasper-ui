@@ -8,11 +8,11 @@
     <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a> &bullet;
     <a routerLink="/tag/*" routerLinkActive="current-page" i18n>local</a> &bullet;
     <a [routerLink]="['/tags', store.view.noQuery]" routerLinkActive="current-page" i18n>tags</a>
-    <ng-container *ngFor="let b of store.account.bookmarks">
-      &bullet; <a [routerLink]="['/tag', b]" routerLinkActive="current-page">{{ b }}</a>
+    <ng-container *ngFor="let b of bookmarkExts | async">
+      &bullet; <a [routerLink]="['/tag', b.tag]" routerLinkActive="current-page">{{ b.name || b.tag }}</a>
     </ng-container>
-    <ng-container *ngFor="let sub of store.account.subs">
-      &bullet; <a [routerLink]="['/tag', sub]" routerLinkActive="current-page">{{ sub }}</a>
+    <ng-container *ngFor="let sub of subExts | async">
+      &bullet; <a [routerLink]="['/tag', sub.tag]" routerLinkActive="current-page">{{ sub.name || sub.tag }}</a>
     </ng-container>
   </div>
   <span *ngIf="store.submit.files?.length" class="drafts" routerLink="/submit/upload" i18n-title title="Unsaved Drafts" i18n>🗂️</span>

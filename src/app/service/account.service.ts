@@ -16,8 +16,6 @@ import { AuthnService } from './authn.service';
 
 export const CACHE_MS = 15 * 1000;
 
-export const FOLLOWER_CACHE_MS = 15 * 60 * 1000;
-
 @Injectable({
   providedIn: 'root',
 })
@@ -25,7 +23,6 @@ export class AccountService {
 
   private _user$?: Observable<User | undefined>;
   private _userExt$?: Observable<Ext>;
-  private _following = new Map<string, Ext>();
 
   constructor(
     private store: Store,
@@ -75,7 +72,7 @@ export class AccountService {
   private get loadUserExt$() {
     if (!this.store.account.signedIn) return of(undefined);
     if (!this.admin.status.templates.user) return of(undefined);
-    return this.userExt$.pipe(catchError(err => this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin })));
+    return this.userExt$.pipe(switchMap(ext => ext ? of(ext) : this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin })));
   }
 
   clearCache() {
@@ -108,19 +105,9 @@ export class AccountService {
     return this._userExt$;
   }
 
-  getFollower(tag: string) {
-    if (this._following.has(tag)) return of(this._following.get(tag));
-    return this.exts.get(tag).pipe(
-      tap(ext => this._following.set(tag, ext)),
-      tap(() => delay(() => this._following.delete(tag), FOLLOWER_CACHE_MS)),
-      shareReplay(1),
-      catchError(() => of(undefined)),
-    );
-  }
-
   get forYouQuery$(): Observable<string> {
     const followers = this.store.account.userSubs
-      .map(u => this.getFollower(u));
+      .map(u => this.exts.getCachedExt(u));
     return (followers.length ? forkJoin(followers) : of([])).pipe(
       map(es => [
           ...this.store.account.tagSubs,
