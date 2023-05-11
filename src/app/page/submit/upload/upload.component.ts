@@ -108,8 +108,6 @@ export class UploadPage implements OnDestroy {
           models.ext?.forEach(ext => this.exts.count({ query: ext.tag }).subscribe(count  => {
             if (count) {
               this.store.submit.foundExt(ext.tag);
-              // @ts-ignore
-              this.exts.get(ext.tag + ext.origin).subscribe(diff => this.store.submit.diffExt(diff));
             }
           }));
           return models;
@@ -244,7 +242,7 @@ export class UploadPage implements OnDestroy {
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         if (this.store.submit.overwrite) {
-          return this.exts.get(ext.tag + this.store.account.origin).pipe(
+          return this.exts.getCachedExt(ext.tag + this.store.account.origin).pipe(
             switchMap(old => this.exts.push({
               ...ext,
               origin: this.store.account.origin,

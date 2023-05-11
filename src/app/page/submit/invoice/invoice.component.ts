@@ -129,7 +129,7 @@ export class SubmitInvoicePage implements OnInit {
       return;
     }
     const published = this.invoiceForm.value.published ? moment(this.invoiceForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
-    this.exts.get(this.queue!).pipe(
+    this.exts.getCachedExt(this.queue!).pipe(
       switchMap(queueExt => this.refs.create({
         ...this.invoiceForm.value,
         origin: this.store.account.origin,

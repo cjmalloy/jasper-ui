@@ -4,10 +4,11 @@
      class="origin tag"
      [routerLink]="['/tag', ref.origin]">
     {{ ref.origin }}</a>
-  <ng-container *ngFor="let user of authors">
+  <ng-container *ngFor="let user of authorExts | async">
     <a class="user tag"
-       [routerLink]="['/tag', user]">
-      {{ formatAuthor(user) }}</a>&nbsp;
+       [title]="formatAuthor(user.tag + user.origin)"
+       [routerLink]="['/tag', user.tag + user.origin]">
+      {{ user.name || formatAuthor(user.tag + user.origin) }}</a>&nbsp;
   </ng-container>
   <span class="timestamp" [title]="ref.modified?.toISOString()">{{ ref.modified?.fromNow() }}</span>
   &nbsp;|&nbsp;
@@ -26,8 +27,8 @@
     <span *ngIf="!clickableLink && (title || !expand)">{{ title }}</span>
     <app-md *ngIf="focused && bareRef?.comment"
             [origin]="ref.origin!"
-            [text]="bareRef!.comment"
-            [plugins]="bareRef!.tags"></app-md>
+            [text]="bareRef!.comment!"
+            [plugins]="bareRef!.tags!"></app-md>
     <app-viewer [ref]="noComment"></app-viewer>
   </div>
   <div class="actions"

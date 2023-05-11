@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { AdminService } from '../../service/admin.service';
+import { ExtService } from '../../service/api/ext.service';
 import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
 
@@ -16,10 +17,19 @@ export class SubscriptionBarComponent implements OnInit {
     public store: Store,
     public themes: ThemeService,
     public admin: AdminService,
+    private exts: ExtService,
     public location: Location,
   ) { }
 
   ngOnInit(): void {
+  }
+
+  get bookmarkExts() {
+    return this.exts.getCachedExts(this.store.account.bookmarks);
+  }
+
+  get subExts() {
+    return this.exts.getCachedExts(this.store.account.subs);
   }
 
 }

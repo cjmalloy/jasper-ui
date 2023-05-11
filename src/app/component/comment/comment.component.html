@@ -1,7 +1,12 @@
 <ng-container *mobxAutorun>
   <div class="comment-container info collapsed" tabindex="0" *ngIf="collapsed">
     <span class="comment-expand fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, ref.origin, collapsed = false)" i18n>[+]</span>&nbsp;
-    <a *ngFor="let user of authors" class="author" [routerLink]="['/tag', user]">{{ formatAuthor(user) }}</a>&nbsp;
+    <ng-container *ngFor="let user of authorExts | async">
+      <a class="user tag"
+         [title]="formatAuthor(user.tag + user.origin)"
+         [routerLink]="['/tag', user.tag + user.origin]">
+        {{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+    </ng-container>
     <span *ngIf="admin.status.plugins.voteUp" class="vote-score" i18n>{{ score }} points&nbsp;</span>
     <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
     <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="ref.modified?.fromNow()">*</span>
@@ -32,14 +37,18 @@
     <div class="comment-container" tabindex="0" *ngIf="!collapsed && !deleted">
       <div class="info">
         <span class="comment-collapse fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, ref.origin, collapsed = true)">[&ndash;]</span>&nbsp;
-        <a *ngFor="let user of authors" class="author" [routerLink]="['/tag', user]">{{ formatAuthor(user) }}</a>&nbsp;
-        <span *ngIf="admin.status.plugins.voteUp" class="vote-score" i18n>{{ score }} points&nbsp;</span>
+        <ng-container *ngFor="let user of authorExts | async">
+          <a class="user tag"
+             [title]="formatAuthor(user.tag + user.origin)"
+             [routerLink]="['/tag', user.tag + user.origin]">
+            {{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+        </ng-container><span *ngIf="admin.status.plugins.voteUp" class="vote-score" i18n>{{ score }} points&nbsp;</span>
         <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
         <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="'last edited ' + ref.modified?.fromNow()">*</span>
         <ng-container *ngIf="tagged.length" i18n>
           tagged
-          <ng-container *ngFor="let tag of tagged">
-            <a class="tag" [routerLink]="['/tag', tag]">{{ tag }}</a>
+          <ng-container *ngFor="let e of tagExts | async">
+            <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
           </ng-container>
         </ng-container>
         <ng-container *ngFor="let icon of icons">
@@ -52,8 +61,8 @@
       </div>
       <app-md *ngIf="!editing"
               class="comment-body"
-              [origin]="ref.origin"
-              [plugins]="ref.tags"
+              [origin]="ref.origin!"
+              [plugins]="ref.tags!"
               [text]="ref.comment || ''"></app-md>
       <app-comment-edit *ngIf="editing"
                         [ref]="ref"

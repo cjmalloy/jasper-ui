@@ -1,17 +1,24 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable } from 'rxjs';
+import { delay } from 'lodash-es';
+import { catchError, forkJoin, map, Observable, of, shareReplay } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Ext, mapTag, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
 import { TagPageArgs, TagQueryArgs } from '../../model/tag';
 import { params } from '../../util/http';
+import { isQuery, localTag, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
+
+export const EXT_CACHE_MS = 15 * 60 * 1000;
 
 @Injectable({
   providedIn: 'root',
 })
 export class ExtService {
+
+  private _cache = new Map<string, Observable<Ext>>();
 
   constructor(
     private http: HttpClient,
@@ -46,8 +53,28 @@ export class ExtService {
       params: params({ tag }),
     }).pipe(
       map(mapTag),
+      tap(ext => this._cache.set(tag, of(ext))),
       catchError(err => this.login.handleHttpError(err)),
     );
+  }
+
+  getCachedExts(tags: string[]) {
+    return forkJoin(tags.map(t => this.getCachedExt(t)));
+  }
+
+  getCachedExt(tag: string) {
+    if (!this._cache.has(tag)) {
+      if (isQuery(tag)) {
+        this._cache.set(tag, of({ tag: tag, origin: "" } as Ext))
+      } else {
+        this._cache.set(tag, this.get(tag).pipe(
+          catchError(err => of({ tag: localTag(tag), origin: tagOrigin(tag) } as Ext)),
+          shareReplay(1),
+        ));
+        delay(() => this._cache.delete(tag), EXT_CACHE_MS);
+      }
+    }
+    return this._cache.get(tag)!;
   }
 
   page(args?: TagPageArgs): Observable<Page<Ext>> {

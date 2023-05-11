@@ -36,7 +36,7 @@ export class BlogComponent implements OnInit {
   @Input()
   set tag(value: string) {
     if (this.ext?.tag === value) return;
-    this.exts.get(value).pipe(
+    this.exts.getCachedExt(value).pipe(
       catchError(err => {
         this.error = err;
         return of(undefined);

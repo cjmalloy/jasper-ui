@@ -15,6 +15,7 @@ import { findArchive } from '../../../plugin/archive';
 import { deleteNotice } from '../../../plugin/delete';
 import { ActionService } from '../../../service/action.service';
 import { AdminService } from '../../../service/admin.service';
+import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
 import { TaggingService } from '../../../service/api/tagging.service';
@@ -67,6 +68,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
+    private exts: ExtService,
     public acts: ActionService,
     private scraper: ScrapeService,
     private ts: TaggingService,
@@ -181,10 +183,18 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     return authors(this.ref);
   }
 
+  get authorExts() {
+    return this.exts.getCachedExts(this.authors);
+  }
+
   get tags() {
     let result = interestingTags(this.ref.tags);
     if (!this.blog?.config.filterTags) return result;
     return intersection(result, this.blog.config.tags || []);
+  }
+
+  get tagExts() {
+    return this.exts.getCachedExts(this.tags);
   }
 
   get clickableLink() {
