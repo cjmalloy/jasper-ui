@@ -1,6 +1,5 @@
 import { Component, HostBinding, isDevMode } from '@angular/core';
 import { Router } from '@angular/router';
-import { runInAction } from 'mobx';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { file } from './util/download';

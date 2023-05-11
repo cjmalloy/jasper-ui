@@ -41,6 +41,25 @@ export class ResizeDirective {
     };
   }
 
+  @HostListener('touchstart', ['$event'])
+  touchstart(e: TouchEvent) {
+    if (e.touches.length != 2) return;
+    e.preventDefault();
+    this.oldZoom = this.zoom;
+    const t1x = e.touches.item(0)!.clientX;
+    const t1y = e.touches.item(0)!.clientY;
+    const t2x = e.touches.item(1)?.clientX || 2 * t1x;
+    const t2y = e.touches.item(1)?.clientY || 2 * t1y;
+    this.dragStart = {
+      x: Math.abs(t1x - t2x),
+      y: Math.abs(t1y - t2y),
+    };
+    this.startDim = {
+      x: this.el.nativeElement.offsetWidth,
+      y: this.el.nativeElement.offsetHeight,
+    };
+  }
+
   @HostListener('click', ['$event'])
   mouseup(e: MouseEvent) {
     if (this.wasDragging) {
@@ -69,8 +88,48 @@ export class ResizeDirective {
     this.dim.y = this.startDim.y * (1 + l);
   }
 
+  @HostListener('window:touchmove', ['$event'])
+  windowTouchmove(e: TouchEvent) {
+    if (!this.dragStart || !this.startDim) return;
+    if (!this.dragging) {
+      this.dragging = true;
+      this.wasDragging = true;
+    }
+    e.preventDefault();
+    const t1 = e.touches.item(0)!;
+    const t2 = e.touches.item(1) || t1;
+    const dims = {
+      w: Math.abs(t1.clientX - t2.clientX),
+      h: Math.abs(t1.clientY - t2.clientY),
+    };
+    const dx = (dims.w - this.dragStart.x) / this.startDim.x;
+    const dy = (dims.h - this.dragStart.y) / this.startDim.y;
+    const l = (dx + dy) / 2;
+    this.dim ??= { ...this.startDim };
+    this.dim.x = this.startDim.x * (1 + l);
+    this.dim.y = this.startDim.y * (1 + l);
+  }
+
   @HostListener('window:mouseup', ['$event'])
   windowMouseup(e: MouseEvent) {
+    delete this.dragStart;
+    if (this.dragging) {
+      this.dragging = false;
+      e.preventDefault();
+    }
+  }
+
+  @HostListener('window:touchend', ['$event'])
+  windowTouchend(e: TouchEvent) {
+    delete this.dragStart;
+    if (this.dragging) {
+      this.dragging = false;
+      e.preventDefault();
+    }
+  }
+
+  @HostListener('window:touchcancel', ['$event'])
+  windowTouchcancel(e: TouchEvent) {
     delete this.dragStart;
     if (this.dragging) {
       this.dragging = false;
