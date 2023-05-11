@@ -99,7 +99,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
 
   get threads() {
     if (!this.admin.status.plugins.thread) return 0;
-    return this.getThreads(this.store.view.ref);
+    return this.getThreads(this.store.view.ref) - this.getComments(this.store.view.ref);
   }
 
   get responses() {
