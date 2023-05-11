@@ -102,6 +102,15 @@ $tablet-width: 960px;
     }
   }
 
+  .editor, .summary-box {
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: unset !important;
+    backdrop-filter: unset !important;
+    box-shadow: unset !important;
+    border: 1px solid transparent !important;
+  }
+
   .list-container {
     .list-number {
       opacity: 0;
