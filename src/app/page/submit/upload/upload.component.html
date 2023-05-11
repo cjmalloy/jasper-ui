@@ -6,7 +6,7 @@
       <button type="button" (click)="upload.click()" i18n-title title="Upload Refs and Exts" i18n>+ upload</button>
       <input #upload type="file"
              accept=".json,.zip,.png,.jpg,.jpeg,.gif,.svg,.webp,.3gp,.mpg,.mpeg,.mp4,.m4v,.m4p,.webm,.ogv,.m3u8,.mov,.mp3,.aac,.flac,.m4a,.ogg,.wav,.xls,.xlsx,.csv,.odx,.txt"
-             (change)="setFiles(upload.files!)"
+             (change)="store.submit.setFiles($any(upload.files))"
              multiple/>
       <ng-container *ngIf="!store.submit.empty">
         <button type="button" (click)="clear(upload)" i18n-title title="Clear" i18n>clear</button>

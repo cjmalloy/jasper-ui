@@ -219,7 +219,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   upload(fileList?: FileList) {
-    this.store.submit.setFiles(fileList);
+    this.store.submit.setFiles(fileList as any);
     this.router.navigate(['/submit/upload']);
   }
 

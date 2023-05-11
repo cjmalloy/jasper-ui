@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { defer, delay, pick, uniq } from 'lodash-es';
+import { defer, delay, pick } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
 import { catchError, firstValueFrom, forkJoin, of, switchMap, throwError } from 'rxjs';
@@ -40,12 +40,7 @@ export class UploadPage implements OnDestroy {
   ) {
     theme.setTitle($localize`Submit: Upload`);
     this.disposers.push(autorun(() => {
-      this.read(this.store.submit.files);
-      this.readScrape(this.store.submit.audio, 'plugin/audio', this.store.account.localTag);
-      this.readScrape(this.store.submit.video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag);
-      this.readScrape(this.store.submit.images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag);
-      this.readData(this.store.submit.texts, this.store.account.localTag);
-      this.readSheet(this.store.submit.tables, 'plugin/table', this.store.account.localTag);
+      this.readUploads(this.store.submit.files);
       defer(() => this.store.submit.clearFiles());
     }));
   }
@@ -53,6 +48,48 @@ export class UploadPage implements OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  readUploads(uploads?: File[]) {
+    if (!uploads) return;
+    const files: File[] = [];
+    const audio: File[] = [];
+    const video: File[] = [];
+    const images: File[] = [];
+    const texts: File[] = [];
+    const tables: File[] = [];
+    for (let i = 0; i < uploads.length; i++) {
+      const file = uploads[i];
+      if (file.type === 'application/json' || file.type === 'application/zip') {
+        files.push(file);
+      }
+      if (file.type.startsWith('audio/')) {
+        audio.push(file);
+      }
+      if (file.type.startsWith('video/')) {
+        video.push(file);
+      }
+      if (file.type.startsWith('image/')) {
+        images.push(file);
+      }
+      if (file.type.startsWith('text/plain')) {
+        texts.push(file);
+      }
+      if ([
+        'text/csv',
+        'application/vnd.ms-excel',
+        'application/vnd.oasis.opendocument.spreadsheet',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ].includes(file.type)) {
+        tables.push(file);
+      }
+    }
+    this.read(files);
+    this.readScrape(audio, 'plugin/audio', this.store.account.localTag);
+    this.readScrape(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag);
+    this.readScrape(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag);
+    this.readData(texts, this.store.account.localTag);
+    this.readSheet(tables, 'plugin/table', this.store.account.localTag);
   }
 
   read(files?: File[]) {
@@ -155,11 +192,6 @@ export class UploadPage implements OnDestroy {
       });
       reader.readAsArrayBuffer(file);
     }
-  }
-
-  setFiles(files?: FileList) {
-    if (!files) return;
-    this.store.submit.setFiles(files);
   }
 
   clear(upload: HTMLInputElement) {

@@ -1,5 +1,5 @@
 import { flatten, without } from 'lodash-es';
-import { autorun, makeAutoObservable } from 'mobx';
+import { autorun, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -13,11 +13,6 @@ export class SubmitStore {
   submitInternal: Plugin[] = [];
   submitDm: Plugin[] = [];
   files: File[] = [] as any;
-  audio: File[] = [] as any;
-  video: File[] = [] as any;
-  images: File[] = [] as any;
-  texts: File[] = [] as any;
-  tables: File[] = [] as any;
   exts: Ext[] = [];
   refs: Ref[] = [];
   overwrite = false;
@@ -26,7 +21,11 @@ export class SubmitStore {
     public route: RouterStore,
     private eventBus: EventBus,
   ) {
-    makeAutoObservable(this);
+    makeAutoObservable(this, {
+      submitInternal: observable.shallow,
+      submitDm: observable.shallow,
+      files: observable.shallow,
+    });
 
     autorun(() => {
       if (this.eventBus.event === 'refresh') {
@@ -94,12 +93,7 @@ export class SubmitStore {
   }
 
   get filesEmpty() {
-    return !this.files.length &&
-      !this.audio.length &&
-      !this.video.length &&
-      !this.images.length &&
-      !this.texts.length &&
-      !this.tables.length;
+    return !this.files.length;
   }
 
   get empty() {
@@ -143,44 +137,15 @@ export class SubmitStore {
     this.refs = [];
   }
 
-  setFiles(files?: FileList | []) {
+  setFiles(files?: File[]) {
     if (!files) return;
-    for (let i = 0; i < files?.length; i++) {
-      const file = files[i];
-      if (file.type === 'application/json' || file.type === 'application/zip') {
-        this.files.push(file);
-      }
-      if (file.type.startsWith('audio/')) {
-        this.audio.push(file);
-      }
-      if (file.type.startsWith('video/')) {
-        this.video.push(file);
-      }
-      if (file.type.startsWith('image/')) {
-        this.images.push(file);
-      }
-      if (file.type.startsWith('text/plain')) {
-        this.texts.push(file);
-      }
-      if ([
-        'text/csv',
-        'application/vnd.ms-excel',
-        'application/vnd.oasis.opendocument.spreadsheet',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      ].includes(file.type)) {
-        this.tables.push(file);
-      }
-    }
+    this.files ||= [];
+    this.files.push(...files);
   }
 
   clearFiles() {
     if (this.filesEmpty) return;
     this.files = [] as any;
-    this.audio = [] as any;
-    this.video = [] as any;
-    this.images = [] as any;
-    this.texts = [] as any;
-    this.tables = [] as any;
   }
 
   foundRef(url: string) {
