@@ -17,7 +17,7 @@ import { Embed } from '../util/embed';
 })
 export class MdPostDirective implements AfterViewInit, OnDestroy, Embed {
 
-  @Input("appMdPost")
+  @Input('appMdPost')
   load?: Subject<void> | string;
   @Input()
   origin? = '';

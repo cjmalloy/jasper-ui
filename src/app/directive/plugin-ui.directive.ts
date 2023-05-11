@@ -1,14 +1,15 @@
 import { Directive, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { Plugin, renderPlugin } from '../model/plugin';
+import { getPluginScope, Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
+import { hydrate } from '../model/tag';
 
 @Directive({
   selector: '[appPluginUi]'
 })
 export class PluginUiDirective implements OnChanges {
 
-  @Input("appPluginUi")
-  plugin!: Plugin;
+  @Input('appPluginUi')
+  plugin?: Plugin;
   @Input()
   ref?: Ref;
 
@@ -19,7 +20,8 @@ export class PluginUiDirective implements OnChanges {
   }
 
   render(): void {
-    this.el.nativeElement.innerHTML = renderPlugin(this.plugin, this.ref);
+    if (!this.plugin) return;
+    this.el.nativeElement.innerHTML = hydrate(this.plugin.config, 'ui', getPluginScope(this.plugin, this.ref));
   }
 
 }

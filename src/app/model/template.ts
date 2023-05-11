@@ -1,4 +1,3 @@
-import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import * as moment from 'moment';
 import { Ext } from './ext';
 import { Config } from './tag';
@@ -18,9 +17,6 @@ export interface Template extends Config {
      */
     overrideForm?: boolean;
   };
-
-  // Cache
-  _ui?: HandlebarsTemplateDelegate;
 }
 
 export function mapTemplate(obj: any): Template {
@@ -44,22 +40,20 @@ export function writeTemplate(template: Template): Template {
   delete result.upload;
   delete result.exists;
   delete result.modifiedString;
-  delete result._ui;
+  delete result.config?._cache;
   return result;
 }
 
-export function renderTemplates(templates: Template[], ext: Ext) {
-  return templates.map(t => renderTemplate(t, ext)).join();
+export interface TemplateScope {
+  [record: string]: any,
+  ext: Ext;
+  template: Template;
 }
 
-export function renderTemplate(template: Template, ext: Ext) {
-  if (!template.config?.ui) return '';
-  if (!template._ui) {
-    template._ui = Handlebars.compile(template.config.ui);
-  }
-  return template._ui({
+export function getTemplateScope(template: Template, ext: Ext): TemplateScope {
+  return {
     ext,
     template,
     ...(ext.config || {}),
-  });
+  };
 }

@@ -1,13 +1,14 @@
 import { AfterViewInit, Directive, ElementRef, Input } from '@angular/core';
 import { Ext } from '../model/ext';
-import { renderTemplates, Template } from '../model/template';
+import { hydrate } from '../model/tag';
+import { getTemplateScope, Template } from '../model/template';
 
 @Directive({
   selector: '[appTemplateUi]'
 })
 export class TemplateUiDirective implements AfterViewInit {
 
-  @Input("appTemplateUi")
+  @Input('appTemplateUi')
   templates!: Template[];
   @Input()
   ext!: Ext;
@@ -15,6 +16,6 @@ export class TemplateUiDirective implements AfterViewInit {
   constructor(private el: ElementRef) { }
 
   ngAfterViewInit(): void {
-    this.el.nativeElement.innerHTML = renderTemplates(this.templates, this.ext);
+    this.el.nativeElement.innerHTML = this.templates.map(t => hydrate(t.config, 'ui', getTemplateScope(t, this.ext))).join();
   }
 }

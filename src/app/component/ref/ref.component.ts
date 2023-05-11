@@ -516,9 +516,9 @@ export class RefComponent implements OnInit, OnDestroy {
 
   label(a: Action) {
     if ('tag' in a || 'response' in a) {
-      return active(this.ref, a) ? a.labelOn : a.labelOff;
+      return active(this.ref, a) ? 'labelOn' : 'labelOff';
     }
-    return a.label;
+    return 'label';
   }
 
   active(a: TagAction | ResponseAction | Icon) {
@@ -551,6 +551,8 @@ export class RefComponent implements OnInit, OnDestroy {
     if ('tag' in a || 'response' in a) {
       if (this.active(a) && !a.labelOn) return false;
       if (!this.active(a) && !a.labelOff) return false;
+    } else {
+      if (!a.label) return false;
     }
     return true;
   }

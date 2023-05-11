@@ -3,6 +3,7 @@ import * as Handlebars from 'handlebars';
 import { Schema } from 'jtd';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
+import { v4 as uuid } from 'uuid';
 import { hasTag } from '../util/tag';
 import { filterModels } from '../util/zip';
 import { Ref } from './ref';
@@ -97,9 +98,17 @@ export interface Config extends Tag {
    * JTD schema for validating config.
    */
   schema?: Schema;
+  /**
+   * Cache for compiled templates.
+   */
+  _cache?: any;
 }
 
 export interface Visibility {
+    /**
+     * Optional handlebars template tooltip.
+     */
+    title?: string;
     /**
      * Minimum role required to be visible.
      */
@@ -125,6 +134,9 @@ export interface Visibility {
      * be last.
      */
     order?: number;
+
+    //cache
+  _parent?: Config;
 }
 
 export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) {
@@ -144,7 +156,6 @@ export function sortOrder<T extends Visibility>(vs: T[]) {
 
 export interface Icon extends Visibility {
     label: string;
-    title?: string;
     /**
      * If set, makes this icon conditional on a tag.
      */
@@ -188,11 +199,11 @@ export interface TagAction extends Visibility {
      */
     tag: string;
     /**
-     * Label to show when this action has been applied.
+     * Handlebars template label to show when this action has been applied.
      */
     labelOn?: string;
     /**
-     * Label to show when this action has not been applied.
+     * Handlebars template label to show when this action has not been applied.
      */
     labelOff?: string;
 }
@@ -207,12 +218,12 @@ export interface ResponseAction extends Visibility {
      */
     clear?: `plugin/${string}`[];
     /**
-     * Label to show when this action has been applied.
+     * Handlebars template label to show when this action has been applied.
      * The response plugin must have metadata generation turned on.
      */
     labelOn?: string;
     /**
-     * Label to show when this action has not been applied.
+     * Handlebars template label to show when this action has not been applied.
      * The response plugin must have metadata generation turned on.
      */
     labelOff?: string;
@@ -224,7 +235,7 @@ export interface EventAction extends Visibility {
      */
     event: string;
     /**
-     * Event label.
+     * Handlebars template label.
      */
     label?: string;
 }
@@ -235,12 +246,9 @@ export interface EmitAction extends Visibility {
      */
     emit: string;
     /**
-     * Event label.
+     * Handlebars template label.
      */
     label?: string;
-
-    // Cache
-    _emit?: HandlebarsTemplateDelegate;
 }
 
 export function active(ref: Ref, o: TagAction | ResponseAction | Icon) {
@@ -251,12 +259,57 @@ export function active(ref: Ref, o: TagAction | ResponseAction | Icon) {
     return false;
 }
 
-export function emitModels(action: EmitAction, ref: Ref, user: string) {
-    if (!action.emit) return {ref: [], ext: []};
-    if (!action._emit) {
-        action._emit = Handlebars.compile(action.emit);
+// https://github.com/handlebars-lang/handlebars.js/issues/1593
+// @ts-ignore
+window.global = {};
+
+Handlebars.registerHelper('uuid', () => uuid());
+
+Handlebars.registerHelper('fromNow', value => moment(value).fromNow());
+
+Handlebars.registerHelper('response', (ref: Ref, value: string) => {
+  return ref.metadata?.userUrls?.includes(value);
+});
+
+Handlebars.registerHelper('count', (ref: Ref, tag: string) => {
+  return ref?.metadata?.plugins?.[tag] || 0;
+});
+
+Handlebars.registerHelper('percent', (ref: Ref, value: string, prefix: string) => {
+  if (!ref?.metadata?.plugins) return 0;
+  let total = 0;
+  for (const k in ref.metadata.plugins) {
+    if (k.startsWith(prefix)) {
+      total += ref.metadata.plugins[k] || 0;
     }
-    const hydrated = action._emit!({
+  }
+  if (!total) return 0;
+  return Math.floor(100 * (ref.metadata.plugins[prefix + value] || 0) / total);
+});
+
+Handlebars.registerHelper('maxCount', (ref: Ref, prefix: string) => {
+  let maxVal = -1;
+  let max = 'nothing found';
+  for (const k in ref?.metadata?.plugins || []) {
+    if (k.startsWith(prefix)) {
+      const n = ref!.metadata!.plugins![k] || 0;
+      if (n > maxVal) {
+        maxVal = n;
+        max = k.substring(prefix.length);
+      }
+    }
+  }
+  return max;
+});
+
+export function hydrate(config: any, field: string, model: any) {
+  config._cache ||= {};
+  config._cache[field] ||= Handlebars.compile(config[field]);
+  return config._cache[field](model);
+}
+
+export function emitModels(action: EmitAction, ref: Ref, user: string) {
+    const hydrated = hydrate(action, 'emit', {
         action: toJS(action),
         ref: toJS(ref),
         user: user,

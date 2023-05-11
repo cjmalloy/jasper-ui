@@ -63,6 +63,7 @@ import { TemplateComponent } from './component/template/template.component';
 import { UserListComponent } from './component/user/user-list/user-list.component';
 import { UserComponent } from './component/user/user.component';
 import { ViewerComponent } from './component/viewer/viewer.component';
+import { ActionLabelDirective } from './directive/action-label.directive';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { FillWidthDirective } from './directive/fill-width.directive';
 import { ImageDimDirective } from './directive/image-dim.directive';
@@ -74,6 +75,7 @@ import { ResizeHandleDirective } from './directive/resize-handle.directive';
 import { ResizeDirective } from './directive/resize.directive';
 import { RouterActivateDirective } from './directive/router-activate.directive';
 import { TemplateUiDirective } from './directive/template-ui.directive';
+import { TitleDirective } from './directive/title.directive';
 import { CodeComponent } from './form/code/code.component';
 import { ExtFormComponent } from './form/ext/ext.component';
 import { JsonComponent } from './form/json/json.component';
@@ -288,6 +290,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     InboxModlistPage,
     TagsPage,
     PluginsPipe,
+    ActionLabelDirective,
+    TitleDirective,
   ],
   imports: [
     BrowserModule,

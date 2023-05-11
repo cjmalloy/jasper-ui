@@ -6,7 +6,11 @@
     <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
     <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="ref.modified?.fromNow()">*</span>
     <ng-container *ngFor="let icon of icons">
-      <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span>
+      <span *ngIf="showIcon(icon)"
+            class="icon"
+            (click)="clickIcon(icon)"
+            [appTitle]="icon"
+            [ref]="ref">{{ icon.label }}</span>
     </ng-container>
     ({comments, plural, =1 {1&thinsp;child} other {{{ comments }}&thinsp;children}})
   </div>
@@ -39,7 +43,11 @@
           </ng-container>
         </ng-container>
         <ng-container *ngFor="let icon of icons">
-          <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span>
+          <span *ngIf="showIcon(icon)"
+                class="icon"
+                (click)="clickIcon(icon)"
+                [appTitle]="icon"
+                [ref]="ref">{{ icon.label }}</span>
         </ng-container>
       </div>
       <app-md *ngIf="!editing"
@@ -86,7 +94,13 @@
              [queryParams]="{ url: ref.url }" i18n>invoice</a>
         </ng-container>
         <ng-container *ngFor="let a of actions">
-          <a *ngIf="showAction(a)" class="fake-link" (click)="acts.apply(ref, a)">{{ label(a) }}</a>
+          <a *ngIf="showAction(a)"
+             class="fake-link"
+             (click)="acts.apply(ref, a)"
+             [appTitle]="a"
+             [appActionLabel]="a"
+             [field]="label(a)"
+             [ref]="ref"></a>
         </ng-container>
       </div>
     </div>

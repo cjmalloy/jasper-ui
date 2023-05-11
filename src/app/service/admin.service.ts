@@ -5,7 +5,7 @@ import { runInAction } from 'mobx';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';
-import { Tag } from '../model/tag';
+import { Config, Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { aiPlugin, aiQueryPlugin } from '../plugin/ai';
 import { aprioriPlugin } from '../plugin/apriori';
@@ -433,7 +433,7 @@ export class AdminService {
         if (a.condition && !config?.[p.tag]?.[a.condition]) return false;
         if (a.global) return true;
         return includesTag(p.tag, match);
-      }))
+      }).map(addParent(p)))
       .filter(a => !a.role || this.auth.hasRole(a.role));
   }
 
@@ -445,7 +445,8 @@ export class AdminService {
         if (i.global) return true;
         if (i.scheme && i.scheme === scheme) return true;
         return includesTag(p.tag, match);
-      }).map(i => {
+      }).map(addParent(p))
+        .map(i => {
         if (!i.response) i.tag ||= p.tag;
         if (i.tag === p.tag)  i.title ||= p.name;
         i.title ||= i.tag;
@@ -593,7 +594,14 @@ export class AdminService {
     delete status.origin;
     delete status.modified;
     delete status.modifiedString;
-    delete status._ui;
+    delete status._cache;
     return !isEqual(def, status);
   }
+}
+
+function addParent(c: Config) {
+  return (a: any) => {
+    a._parent = c;
+    return a;
+  };
 }

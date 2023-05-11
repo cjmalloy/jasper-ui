@@ -21,7 +21,11 @@
             </ng-container>
           </ng-container>
           <ng-container *ngFor="let icon of icons">
-            <span *ngIf="showIcon(icon)" class="icon" (click)="clickIcon(icon)" [title]="icon.title">{{ icon.label }}</span>
+            <span *ngIf="showIcon(icon)"
+                  class="icon"
+                  (click)="clickIcon(icon)"
+                  [appTitle]="icon"
+                  [ref]="ref">{{ icon.label }}</span>
           </ng-container>
           <span [title]="ref.published?.toISOString()">{{ ref.published?.fromNow() }}</span>
           <ng-container *ngIf="!authors.length && ref.created && !local">
@@ -73,7 +77,13 @@
           <a *ngIf="pdf" target="_blank" [href]="pdf" i18n>pdf</a>
           <a *ngIf="archive" target="_blank" [href]="archive" i18n>archive</a>
           <ng-container *ngFor="let a of actions">
-            <a *ngIf="showAction(a)" class="fake-link" (click)="acts.apply(ref, a)">{{ label(a) }}</a>
+            <a *ngIf="showAction(a)"
+               class="fake-link"
+               (click)="acts.apply(ref, a)"
+               [appTitle]="a"
+               [appActionLabel]="a"
+               [field]="label(a)"
+               [ref]="ref"></a>
           </ng-container>
         </div>
       </div>

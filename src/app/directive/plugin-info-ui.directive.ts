@@ -1,6 +1,7 @@
 import { Directive, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { Plugin, renderPluginInfo } from '../model/plugin';
+import { getPluginScope, Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
+import { hydrate } from '../model/tag';
 
 @Directive({
   selector: '[appPluginInfoUi]'
@@ -8,7 +9,7 @@ import { Ref } from '../model/ref';
 export class PluginInfoUiDirective implements OnChanges {
 
   @Input("appPluginInfoUi")
-  plugin!: Plugin;
+  plugin?: Plugin;
   @Input()
   ref?: Ref;
 
@@ -19,7 +20,8 @@ export class PluginInfoUiDirective implements OnChanges {
   }
 
   render(): void {
-    this.el.nativeElement.innerHTML = renderPluginInfo(this.plugin, this.ref);
+    if (!this.plugin) return;
+    this.el.nativeElement.innerHTML = hydrate(this.plugin.config, 'infoUi', getPluginScope(this.plugin, this.ref));
   }
 
 }
