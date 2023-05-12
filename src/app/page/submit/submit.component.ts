@@ -133,6 +133,12 @@ export class SubmitPage implements OnInit, OnDestroy {
     if (this.store.submit.wiki) {
       return wikiUriFormat(url, this.admin.getWikiPrefix());
     }
+    if (url.startsWith('https://youtu.be/')) {
+      return 'https://www.youtube.com/watch?v=' + url.substring('https://youtu.be/'.length);
+    }
+    if (url.startsWith('https://twitter.com/') && url.includes('?')) {
+      return url.substring(0, url.indexOf('?'));
+    }
     return url;
   }
 
