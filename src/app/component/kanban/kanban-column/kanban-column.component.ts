@@ -11,6 +11,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { Store } from '../../../store/store';
 import { URI_REGEX } from '../../../util/format';
+import { fixUrl } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { KanbanDrag } from '../kanban.component';
 
@@ -131,7 +132,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     if (!this.addText) return;
     const tagsWithAuthor = !this.addTags.includes(this.store.account.localTag) ? [...this.addTags, this.store.account.localTag] : this.addTags;
     const ref = URI_REGEX.test(this.addText) ? {
-      url: this.addText,
+      url: fixUrl(this.addText),
       origin: this.store.account.origin,
       tags: tagsWithAuthor,
     } : {

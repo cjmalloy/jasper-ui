@@ -24,6 +24,7 @@ import { AuthzService } from '../../service/authz.service';
 import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
+import { fixUrl } from '../../util/http';
 import { prefix } from '../../util/tag';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
@@ -133,13 +134,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     if (this.store.submit.wiki) {
       return wikiUriFormat(url, this.admin.getWikiPrefix());
     }
-    if (url.startsWith('https://youtu.be/')) {
-      return 'https://www.youtube.com/watch?v=' + url.substring('https://youtu.be/'.length);
-    }
-    if (url.startsWith('https://twitter.com/') && url.includes('?')) {
-      return url.substring(0, url.indexOf('?'));
-    }
-    return url;
+    return fixUrl(url);
   }
 
   exists(url: string) {

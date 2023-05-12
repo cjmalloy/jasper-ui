@@ -74,3 +74,13 @@ export function printError(res: HttpErrorResponse): string[] {
   }
   return [problem?.detail || res.message];
 }
+
+export function fixUrl(url: string) {
+  if (url.startsWith('https://youtu.be/')) {
+    return 'https://www.youtube.com/watch?v=' + url.substring('https://youtu.be/'.length);
+  }
+  if (url.startsWith('https://twitter.com/') && url.includes('?')) {
+    return url.substring(0, url.indexOf('?'));
+  }
+  return url;
+}
