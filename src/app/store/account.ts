@@ -156,7 +156,7 @@ export class AccountStore {
 
   get subscriptionQuery() {
     if (!this.tagSubs.length) return 'none';
-    return this.tagSubs.join('|');
+    return '!internal:(' + this.tagSubs.join('|') + ')';
   }
 
   setRoles(roles: Roles) {
