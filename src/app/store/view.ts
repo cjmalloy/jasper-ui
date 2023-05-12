@@ -165,6 +165,10 @@ export class ViewStore {
     return this.route.routeSnapshot?.firstChild?.params['template'] || '';
   }
 
+  get noTemplate(): boolean {
+    return this.route.routeSnapshot?.queryParams['noTemplate'] === 'true';
+  }
+
   get query() {
     return isQuery(this.tag) ? this.tag : '';
   }

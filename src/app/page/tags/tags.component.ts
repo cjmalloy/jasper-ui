@@ -6,6 +6,7 @@ import { ThemeService } from '../../service/theme.service';
 import { ExtStore } from '../../store/ext';
 import { Store } from '../../store/store';
 import { getTagFilter, getTagQueryFilter } from '../../util/query';
+import { getPrefixes } from '../../util/tag';
 
 @Component({
   selector: 'app-tags-page',
@@ -34,7 +35,12 @@ export class TagsPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.defaultTitle;
-      const query = this.store.view.template || ('(' + this.templates.map(t => t.tag).join('|') + ')');
+      const query =
+        this.store.view.noTemplate
+          ? ['!+user:!_user', ...this.templates.map(t => '!' + t.tag).flatMap(getPrefixes)].join(':')
+          : this.store.view.template
+            ? getPrefixes(this.store.view.template).join('|')
+            : '!+user:!_user';
       const args = {
         query: query + getTagQueryFilter(this.store.view.filter),
         search: this.store.view.search,
