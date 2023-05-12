@@ -6,8 +6,9 @@ import { tap } from 'rxjs/operators';
 import { Ext, mapTag, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
 import { TagPageArgs, TagQueryArgs } from '../../model/tag';
+import { Store } from '../../store/store';
 import { params } from '../../util/http';
-import { isQuery, localTag, tagOrigin } from '../../util/tag';
+import { defaultOrigin, isQuery, localTag, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -24,6 +25,7 @@ export class ExtService {
     private http: HttpClient,
     private config: ConfigService,
     private login: LoginService,
+    private store: Store,
   ) { }
 
   private get base() {
@@ -67,7 +69,7 @@ export class ExtService {
       if (isQuery(tag)) {
         this._cache.set(tag, of({ tag: tag, origin: "" } as Ext))
       } else {
-        this._cache.set(tag, this.get(tag).pipe(
+        this._cache.set(tag, this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
           catchError(err => of({ tag: localTag(tag), origin: tagOrigin(tag) } as Ext)),
           shareReplay(1),
         ));
