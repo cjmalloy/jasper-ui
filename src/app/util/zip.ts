@@ -2,6 +2,7 @@ import * as JSZip from 'jszip';
 import { isArray } from 'lodash-es';
 import { Ext, mapTag } from '../model/ext';
 import { mapRef, Ref } from '../model/ref';
+import { HasOrigin } from '../model/tag';
 
 export function unzip(file: File) {
   return JSZip.loadAsync(file).catch(() => {
@@ -37,14 +38,14 @@ export function getZipOrTextFile(file: File, zipFileName: string): Promise<strin
 }
 
 export type FilteredModels = {ref: Ref[], ext: Ext[]};
-export function filterModels<T>(models: T[]): FilteredModels {
+export function filterModels<T extends HasOrigin>(models: T[]): FilteredModels {
   return {
     ref: models.filter(m => 'url' in m).map(mapRef),
     ext: models.filter(m => 'tag' in m).map(mapTag),
   };
 }
 
-export function getModels<T>(json?: string): T[] {
+export function getModels<T extends HasOrigin>(json?: string): T[] {
   if (!json) return [];
   const models = JSON.parse(json);
   return (isArray(models) ? models : [models]).map(m => {
