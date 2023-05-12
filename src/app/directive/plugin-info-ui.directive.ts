@@ -20,7 +20,7 @@ export class PluginInfoUiDirective implements OnChanges {
   }
 
   render(): void {
-    if (!this.plugin) return;
+    if (!this.plugin?.config?.infoUi) return;
     this.el.nativeElement.innerHTML = hydrate(this.plugin.config, 'infoUi', getPluginScope(this.plugin, this.ref));
   }
 

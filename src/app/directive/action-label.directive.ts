@@ -22,9 +22,10 @@ export class ActionLabelDirective implements OnChanges {
   }
 
   render(): void {
-    if (!this.action) return;
+    // @ts-ignore
+    if (!this.action?.[this.field]) return;
     const ctx = getPluginScope(this.action._parent!, this.ref)
-    this.el.nativeElement.innerHTML = (this.action as any)[this.field] ? hydrate(this.action, this.field, ctx) : '';
+    this.el.nativeElement.innerHTML = hydrate(this.action, this.field, ctx);
   }
 
 }
