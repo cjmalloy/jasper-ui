@@ -64,13 +64,14 @@ export class SubmitStore {
   }
 
   get tag() {
-    return this.route.routeSnapshot?.queryParams['tag'];
+    return this.route.routeSnapshot?.queryParams['tag'] as string;
   }
 
   get tags(): string[] {
     return flatten(this.tag ? [this.tag] : [])
       .flatMap( t => t.split(/[:|!()]/))
-      .filter(t => !t.includes('*'));
+      .map(t => t.includes('@') ? t.substring(0, t.indexOf('@')) : t)
+      .filter(t => t && !t.includes('*'));
   }
 
   get repost() {
