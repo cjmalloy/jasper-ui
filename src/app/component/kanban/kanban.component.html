@@ -29,12 +29,12 @@
     <a *ngFor="let col of columns"
        class="column-title tag"
        [routerLink]="['/tag', getQuery({col})]"
-       [title]="col">{{ col }}</a>
+       [title]="col">{{ (exts.getCachedExt(col) | async)?.name || col }}</a>
     <ng-container *ngIf="swimLanes else noSwimLanes">
       <ng-container *ngFor="let sl of swimLanes">
         <a class="swim-lane-title tag"
            [routerLink]="['/tag', getQuery({sl})]"
-           [title]="sl">{{ sl }}</a>
+           [title]="sl">{{ (exts.getCachedExt(sl) | async)?.name || sl }}</a>
         <app-kanban-column *ngIf="ext.config.showNoColumn"
                            cdkDropList
                            [cdkDropListData]="{sl}"

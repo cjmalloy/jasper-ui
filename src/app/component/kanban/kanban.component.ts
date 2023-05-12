@@ -31,7 +31,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   constructor(
     private store: Store,
-    private exts: ExtService,
+    public exts: ExtService,
     private tags: TaggingService,
   ) { }
 
