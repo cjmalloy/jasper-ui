@@ -151,6 +151,13 @@ export function removePrefix(tag: string, count = 1) {
   return tag.split('/').slice(count).join('/');
 }
 
+export function getPrefixes(tag: string) {
+  const not = tag.startsWith('!');
+  if (not) tag = tag.substring(1);
+  if (tag.startsWith('_') || tag.startsWith('+')) tag = tag.substring(1);
+  return [tag, '+' + tag, '_' + tag].map(t => not ? '!' + t : t);
+}
+
 export type Crumb = {text: string, tag?: string};
 export function breadcrumbs(tag: string): Crumb[] {
   if (!tag) return [];
