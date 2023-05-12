@@ -61,6 +61,7 @@ export class ExtService {
   }
 
   getCachedExts(tags: string[]) {
+    if (!tags) return of([]);
     return forkJoin(tags.map(t => this.getCachedExt(t)));
   }
 
