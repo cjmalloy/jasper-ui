@@ -154,8 +154,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
         }
         if (err.status === 409) {
           // Ref already exists, just tag it
-          return this.tags.patch(this.addTags, ref.url).pipe(
-            switchMap(() => this.refs.get(ref.url, this.store.account.origin)),
+          return this.tags.patch(this.addTags, ref.url, ref.origin).pipe(
+            switchMap(() => this.refs.get(ref.url, ref.origin)),
           );
         }
         return throwError(err);

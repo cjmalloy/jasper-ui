@@ -220,8 +220,8 @@ export class ChatComponent implements OnDestroy {
             tags: [...ref.tags!, 'plugin/repost'],
             sources: [ ref.url ],
           });
-          return this.tags.patch(this.addTags, ref.url).pipe(
-            switchMap(() => this.refs.get(ref.url, this.store.account.origin)),
+          return this.tags.patch(this.addTags, ref.url, ref.origin).pipe(
+            switchMap(() => this.refs.get(ref.url, ref.origin)),
           );
         } else {
           pull(this.sending, ref);
