@@ -69,7 +69,8 @@ export class SubmitStore {
 
   get tags(): string[] {
     return flatten(this.tag ? [this.tag] : [])
-      .flatMap( t => t.split(/[:|!()]/));
+      .flatMap( t => t.split(/[:|!()]/))
+      .filter(t => !t.includes('*'));
   }
 
   get repost() {
