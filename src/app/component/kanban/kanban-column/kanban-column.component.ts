@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, HostBinding, Input, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, Observable, of, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Page } from '../../../model/page';
@@ -9,6 +9,7 @@ import { Ref, RefSort } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
+import { OembedStore } from '../../../store/oembed';
 import { Store } from '../../../store/store';
 import { URI_REGEX } from '../../../util/format';
 import { fixUrl } from '../../../util/http';
@@ -43,6 +44,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     private route: ActivatedRoute,
     private admin: AdminService,
     private store: Store,
+    private oembeds: OembedStore,
     private refs: RefService,
     private tags: TaggingService,
   ) {
@@ -128,10 +130,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   }
 
   add() {
+    // TODO: Move to util function
     this.addText = this.addText.trim();
     if (!this.addText) return;
     const tagsWithAuthor = !this.addTags.includes(this.store.account.localTag) ? [...this.addTags, this.store.account.localTag] : this.addTags;
-    const ref = URI_REGEX.test(this.addText) ? {
+    const isUrl = URI_REGEX.test(this.addText);
+    const ref = isUrl ? {
       url: fixUrl(this.addText),
       origin: this.store.account.origin,
       tags: tagsWithAuthor,
@@ -141,7 +145,16 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
       title: this.addText,
       tags: tagsWithAuthor,
     };
-    this.refs.create(ref).pipe(
+    this.oembeds.get(ref.url).pipe(
+      catchError(() => of(undefined)),
+      tap(oembed => {
+        if (oembed) {
+          ref.title = oembed.title;
+          ref.tags.push('plugin/embed');
+          ref.tags.push('plugin/thumbnail');
+        }
+      }),
+      switchMap(() => this.refs.create(ref)),
       tap(() => {
         if (this.admin.status.plugins.voteUp) {
           this.tags.createResponse('plugin/vote/up', ref.url);
