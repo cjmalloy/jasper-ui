@@ -478,18 +478,21 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get parentComment() {
-    if (!this.sources) return false;
-    if (this.sources === 1) return true;
-    if (this.sources > 2) return false;
-    if (hasTag('plugin/comment', this.ref)) return this.ref.sources![1];
+    if (!hasTag('plugin/comment', this.ref)) return false;
+    if (this.sources === 1 || this.sources === 2) return this.ref.sources![0];
     return false;
   }
 
-  get parentThread() {
-    if (!this.threads) return false;
-    if (this.sources === 1) return true;
-    if (this.sources > 2) return false;
-    if (hasTag('plugin/thread', this.ref)) return this.ref.sources![1];
+  get parentCommentTop() {
+    if (!hasTag('plugin/comment', this.ref)) return false;
+    if (this.sources === 2) return this.ref.sources![1];
+    return false;
+  }
+
+  get parentThreadTop() {
+    if (!hasTag('plugin/thread', this.ref)) return false;
+    if (this.sources === 2) return this.ref.sources![1];
+    if (this.sources === 1) return this.ref.sources![0];
     return false;
   }
 
