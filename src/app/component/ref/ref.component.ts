@@ -30,9 +30,11 @@ import {
   authors,
   clickableLink,
   formatAuthor,
+  hasComment,
   interestingTags,
   TAGS_REGEX,
   templates,
+  trimCommentForTitle,
   urlSummary
 } from '../../util/format';
 import { getScheme } from '../../util/hosts';
@@ -225,7 +227,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get commentNoTitle() {
-    return this.bareRef?.title && this.bareRef?.comment || (this.bareRef?.comment || '')?.length > 140;
+    return this.bareRef?.title && this.bareRef?.comment || hasComment(this.bareRef?.comment || '');
   }
 
   get feed() {
@@ -707,7 +709,6 @@ export class RefComponent implements OnInit, OnDestroy {
     const comment = (this.ref.comment || '').trim();
     if (title) return title;
     if (!comment) return this.url;
-    if (comment.length <= 140) return comment;
-    return comment.substring(0, 140) + '...';
+    return trimCommentForTitle(comment);
   }
 }

@@ -10,6 +10,7 @@ import { ConfigService } from '../../service/config.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
+import { hasComment } from '../../util/format';
 import { hasTag } from '../../util/tag';
 
 @Component({
@@ -111,7 +112,7 @@ export class ViewerComponent {
 
   get currentText() {
     const value = this.text || this.ref?.comment || '';
-    if (this.ref?.title || value.length > 140) return value;
+    if (this.ref?.title || this.text || hasComment(this.ref?.comment)) return value;
     return '';
   }
 

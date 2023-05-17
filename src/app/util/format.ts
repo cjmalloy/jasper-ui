@@ -95,3 +95,25 @@ export function configGroups(def: Record<PluginType|TemplateType, Plugin|Templat
   }
   return result;
 }
+
+export function trimCommentForTitle(comment: string): string {
+  if (!comment) return '';
+  if (comment.includes('\n')) {
+    const lines = comment.split('\n').map(t => t.trim()).filter(t => t.length);
+    const newText = lines.filter(l => !l.startsWith('>'));
+    if (newText.length) return trimTextForTitle(newText[0]);
+    return trimTextForTitle(lines[0]);
+  }
+  return trimTextForTitle(comment);
+}
+
+export function trimTextForTitle(comment: string) {
+  if (!comment) return '';
+  if (comment.length <= 140) return comment;
+  return comment.substring(0, 140) + '...';
+}
+
+export function hasComment(comment?: string) {
+  if (!comment) return false;
+  return trimCommentForTitle(comment) !== comment;
+}
