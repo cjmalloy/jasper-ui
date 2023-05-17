@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq } from 'lodash-es';
 import * as moment from 'moment';
@@ -25,7 +25,7 @@ import { EditorComponent } from '../../editor/editor.component';
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
 })
-export class CommentReplyComponent {
+export class CommentReplyComponent implements AfterViewInit {
   @HostBinding('class') css = 'comment-reply';
 
   @Input()
@@ -70,6 +70,16 @@ export class CommentReplyComponent {
 
   get comment() {
     return this.commentForm.get('comment') as UntypedFormControl;
+  }
+
+  get quote() {
+    const q = this.to.comment || '';
+    if (!q) return q;
+    return q.split('\n').map(l => '> ' + l).join('\n') + '\n\n';
+  }
+
+  ngAfterViewInit(): void {
+    this.comment.setValue(this.quote);
   }
 
   reply() {
