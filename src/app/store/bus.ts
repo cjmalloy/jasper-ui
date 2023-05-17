@@ -15,6 +15,9 @@ export class EventBus {
       ref: observable.shallow,
       errors: observable.shallow,
       runAndReload: false,
+      runAndRefresh: false,
+      catchError: false,
+      isRef: false,
     });
   }
 
@@ -60,5 +63,9 @@ export class EventBus {
         return throwError(() => err);
       })
     );
+  }
+
+  isRef(r: Ref) {
+    return this.ref.url === r.url && this.ref.origin === r.origin;
   }
 }

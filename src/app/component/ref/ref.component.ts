@@ -103,12 +103,12 @@ export class RefComponent implements OnInit, OnDestroy {
     this.editForm = refForm(fb);
     this.disposers.push(autorun(() => {
       if (this.store.eventBus.event === 'refresh') {
-        if (this.ref?.url && this.store.eventBus.ref.url === this.ref.url) {
+        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
           this.ref = this.store.eventBus.ref;
         }
       }
       if (this.store.eventBus.event === 'error') {
-        if (this.ref?.url && this.store.eventBus.ref.url === this.ref.url) {
+        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
           this.serverError = this.store.eventBus.errors;
         }
       }

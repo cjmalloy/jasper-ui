@@ -45,7 +45,7 @@ export class ViewStore {
 
     autorun(() => {
       if (this.eventBus.event === 'refresh') {
-        if (this.ref?.url && this.eventBus.ref.url === this.ref.url) {
+        if (this.ref?.url && this.eventBus.isRef(this.ref)) {
           runInAction(() => this.ref = this.eventBus.ref);
         }
       }
