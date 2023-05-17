@@ -4,8 +4,7 @@
     <ng-container *ngFor="let user of authorExts | async">
       <a class="user tag"
          [title]="formatAuthor(user.tag + user.origin)"
-         [routerLink]="['/tag', user.tag + user.origin]">
-        {{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+         [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
     </ng-container>
     <span *ngIf="admin.status.plugins.voteUp" class="vote-score" i18n>{{ score }} points&nbsp;</span>
     <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
@@ -40,8 +39,7 @@
         <ng-container *ngFor="let user of authorExts | async">
           <a class="user tag"
              [title]="formatAuthor(user.tag + user.origin)"
-             [routerLink]="['/tag', user.tag + user.origin]">
-            {{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+             [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
         </ng-container><span *ngIf="admin.status.plugins.voteUp" class="vote-score" i18n>{{ score }} points&nbsp;</span>
         <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
         <span *ngIf="!ref.modified?.isSame(ref.created)" [title]="'last edited ' + ref.modified?.fromNow()">*</span>

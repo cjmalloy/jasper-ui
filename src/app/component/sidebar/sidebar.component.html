@@ -158,9 +158,7 @@
       <b i18n>Approvers:</b>
       <br>
       <ng-container *ngFor="let a of ext!.config!.approvers!">
-        <a class="tag" [routerLink]="['/tag', a]">
-          {{ a }}
-        </a>
+        <a class="tag" [routerLink]="['/tag', a]">{{ a }}</a>
         <br>
       </ng-container>
     </div>
@@ -175,9 +173,7 @@
       My Bookmarks:
       <br>
       <ng-container *ngFor="let book of bookmarks | async">
-        <a class="tag" [routerLink]="['/tag', book.tag + book.origin]">
-          {{ book.name || book.tag }}
-        </a>
+        <a class="tag" [routerLink]="['/tag', book.tag + book.origin]">{{ book.name || book.tag }}</a>
         <br>
       </ng-container>
       <br *ngIf="ext?.config?.subscriptions?.length">
@@ -186,9 +182,7 @@
       Following:
       <br>
       <ng-container *ngFor="let sub of userSubs | async">
-        <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]">
-          {{ sub.name || sub.tag }}
-        </a>
+        <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]">{{ sub.name || sub.tag }}</a>
         <br>
       </ng-container>
     </div>
@@ -196,9 +190,7 @@
       Subscribed to:
       <br>
       <ng-container *ngFor="let sub of tagSubs | async">
-        <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]">
-          {{ sub.name || sub.tag }}
-        </a>
+        <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]">{{ sub.name || sub.tag }}</a>
         <br>
       </ng-container>
     </div>

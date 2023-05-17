@@ -55,8 +55,7 @@
             <ng-container *ngFor="let user of authorExts | async">
               <a class="user tag"
                  [title]="formatAuthor(user.tag + user.origin)"
-                 [routerLink]="['/tag', user.tag + user.origin]">
-                {{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+                 [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
             </ng-container>
           </ng-container>
           <ng-container *ngIf="tags.length" i18n>
@@ -70,8 +69,7 @@
             <ng-container *ngFor="let user of recipientExts | async">
               <a class="user tag"
                  [title]="formatAuthor(user.tag + user.origin)"
-                 [routerLink]="['/tag', user.tag + user.origin]">
-                {{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+                 [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
             </ng-container>
           </ng-container>
           <span *ngIf="alarm" class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm">🔔</span>

@@ -23,8 +23,7 @@
              (click)="toggleTag(plugin.tag)">
       <label [for]="id + i"
              [class.on]="tags?.includes(plugin.tag)"
-             [title]="plugin.name || plugin.tag">
-        {{ plugin.config?.editor }}
+             [title]="plugin.name || plugin.tag">{{ plugin.config?.editor }}
       </label>
     </div>
   </div>

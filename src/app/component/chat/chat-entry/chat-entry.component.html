@@ -7,8 +7,7 @@
   <ng-container *ngFor="let user of authorExts | async">
     <a class="user tag"
        [title]="formatAuthor(user.tag + user.origin)"
-       [routerLink]="['/tag', user.tag + user.origin]">
-      {{ user.name || formatAuthor(user.tag + user.origin) }}</a>&nbsp;
+       [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>&nbsp;
   </ng-container>
   <span class="timestamp" [title]="ref.modified?.toISOString()">{{ ref.modified?.fromNow() }}</span>
   &nbsp;|&nbsp;
