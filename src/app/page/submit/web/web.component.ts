@@ -113,6 +113,9 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
     } else {
       this.addTag(...plugins.map(p => p.tag));
     }
+    if (this.feed && value.startsWith('https://www.youtube.com/channel/')) {
+      value = 'https://www.youtube.com/feeds/videos.xml?channel_id=' + value.substring('https://www.youtube.com/channel/'.length);
+    }
     this.webForm.get('url')?.setValue(value);
     this.webForm.get('url')?.disable();
     this.oembeds.get(value).subscribe(oembed => {
