@@ -84,6 +84,10 @@ export class ExtFormComponent implements OnInit {
     return this.config.get('theme') as UntypedFormControl;
   }
 
+  get email() {
+    return this.config.get('email') as UntypedFormControl;
+  }
+
   get subscriptions() {
     return this.config.get('subscriptions') as UntypedFormControl;
   }
@@ -166,6 +170,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService, l
   if (user(ext.tag, admin)) {
     configControls = {
       ...configControls,
+      email: [''],
       subscriptions: queriesForm(fb, ext.config?.subscriptions || []),
       bookmarks: queriesForm(fb, ext.config?.bookmarks || []),
       alarms: queriesForm(fb, ext.config?.alarms || []),

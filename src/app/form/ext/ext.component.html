@@ -51,6 +51,11 @@
       </select>
     </ng-container>
 
+    <ng-container *ngIf="email">
+      <label for="email" i18n>e-Mail Address:</label>
+      <input id="email" type="email" formControlName="email">
+    </ng-container>
+
     <ng-container *ngIf="subscriptions">
       <label for="subscriptions" i18n>Subscriptions:</label>
       <app-queries id="subscriptions"
