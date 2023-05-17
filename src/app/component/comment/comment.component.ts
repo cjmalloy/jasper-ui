@@ -207,13 +207,6 @@ export class CommentComponent implements OnInit, OnDestroy {
     return this.ref.sources?.length || 0;
   }
 
-  get parent() {
-    if (!this.sources) return false;
-    if (this.sources === 1) return true;
-    if (this.sources > 2) return false;
-    return this.ref.sources![0].startsWith('comment:') && this.ref.sources![1] === this.top;
-  }
-
   get upvote() {
     return hasUserUrlResponse('plugin/vote/up', this.ref);
   }
