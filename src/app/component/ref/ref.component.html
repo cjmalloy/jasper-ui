@@ -108,8 +108,9 @@
             <a *ngIf="store.account.user && dm" routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
             <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
             <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin }" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}</a>
-            <a *ngIf="sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin }" i18n>parent</a>
-            <a *ngIf="sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }" i18n>{{ sources }}&thinsp;sources</a>
+            <a *ngIf="parentComment" [routerLink]="['/ref', ref.sources![0], 'comments']" [queryParams]="{ origin }" i18n>parent</a>
+            <a *ngIf="parentThread" [routerLink]="['/ref', ref.sources![0], 'threads']" [queryParams]="{ origin }" i18n>parent</a>
+            <a *ngIf="!parentComment && !parentThread && sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }" i18n>{{ sources }}&thinsp;sources</a>
             <a *ngIf="taggingAccess"
                class="fake-link"
                (click)="tagging = !tagging" i18n>tag</a>

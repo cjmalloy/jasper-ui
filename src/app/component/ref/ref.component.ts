@@ -464,12 +464,33 @@ export class RefComponent implements OnInit, OnDestroy {
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
+  get threads() {
+    if (!this.admin.status.plugins.thread) return 0;
+    return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
+  }
+
   get responses() {
     return this.ref.metadata?.responses || 0;
   }
 
   get sources() {
     return this.ref.sources?.length || 0;
+  }
+
+  get parentComment() {
+    if (!this.sources) return false;
+    if (this.sources === 1) return true;
+    if (this.sources > 2) return false;
+    if (hasTag('plugin/comment', this.ref)) return this.ref.sources![1];
+    return false;
+  }
+
+  get parentThread() {
+    if (!this.threads) return false;
+    if (this.sources === 1) return true;
+    if (this.sources > 2) return false;
+    if (hasTag('plugin/thread', this.ref)) return this.ref.sources![1];
+    return false;
   }
 
   get publishedIsSubmitted() {
