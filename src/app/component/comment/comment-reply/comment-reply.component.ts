@@ -48,6 +48,7 @@ export class CommentReplyComponent implements AfterViewInit {
   plugins: string[] = [];
   serverError: string[] = [];
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
+  _quote?: string;
 
   constructor(
     public admin: AdminService,
@@ -73,9 +74,15 @@ export class CommentReplyComponent implements AfterViewInit {
   }
 
   get quote() {
+    if (this._quote !== undefined) return this._quote;
     const q = this.to.comment || '';
     if (!q) return q;
     return q.split('\n').map(l => '> ' + l).join('\n') + '\n\n';
+  }
+
+  @Input()
+  set quote(value: string) {
+    this._quote = value;
   }
 
   ngAfterViewInit(): void {
