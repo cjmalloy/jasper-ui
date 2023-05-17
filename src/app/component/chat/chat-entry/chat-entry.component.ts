@@ -10,7 +10,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { Store } from '../../../store/store';
-import { authors, clickableLink, formatAuthor, TAGS_REGEX } from '../../../util/format';
+import { authors, clickableLink, formatAuthor, TAGS_REGEX, trimCommentForTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasTag, tagOrigin } from '../../../util/tag';
 
@@ -89,8 +89,7 @@ export class ChatEntryComponent {
       if (this.bareRepost) return $localize`Repost`;
       return this.url;
     }
-    if (comment.length <= 140) return comment;
-    return comment.substring(0, 140);
+    return trimCommentForTitle(comment);
   }
 
   get allowActions(): boolean {
