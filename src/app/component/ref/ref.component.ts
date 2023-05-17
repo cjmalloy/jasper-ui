@@ -33,6 +33,7 @@ import {
   interestingTags,
   TAGS_REGEX,
   templates,
+  trimCommentForTitle,
   urlSummary
 } from '../../util/format';
 import { getScheme } from '../../util/hosts';
@@ -707,7 +708,6 @@ export class RefComponent implements OnInit, OnDestroy {
     const comment = (this.ref.comment || '').trim();
     if (title) return title;
     if (!comment) return this.url;
-    if (comment.length <= 140) return comment;
-    return comment.substring(0, 140) + '...';
+    return trimCommentForTitle(comment);
   }
 }

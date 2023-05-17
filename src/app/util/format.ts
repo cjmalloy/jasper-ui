@@ -95,3 +95,18 @@ export function configGroups(def: Record<PluginType|TemplateType, Plugin|Templat
   }
   return result;
 }
+
+export function trimCommentForTitle(comment: string): string {
+  if (comment.includes('\n')) {
+    const lines = comment.split('\n');
+    const newText = lines.filter(l => !l.trim().startsWith('>'));
+    if (newText.length) return trimCommentForTitle(newText[0]);
+    return trimCommentForTitle(lines[0]);
+  }
+  return trimTextForTitle(comment);
+}
+
+export function trimTextForTitle(comment: string) {
+  if (comment.length <= 140) return comment;
+  return comment.substring(0, 140) + '...';
+}
