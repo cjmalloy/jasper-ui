@@ -101,6 +101,7 @@ export class ExtService {
 
   update(ext: Ext): Observable<void> {
     return this.http.put<void>(this.base, writeExt(ext)).pipe(
+      tap(() => this._cache.set(ext.tag + ext.origin, of(ext))),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
