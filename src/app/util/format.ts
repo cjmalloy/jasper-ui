@@ -1,7 +1,8 @@
-import { filter, sortBy } from 'lodash-es';
+import { filter, sortBy, uniq } from 'lodash-es';
 import { Plugin, PluginType } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Template, TemplateType } from '../model/template';
+import { reverseOrigin } from '../plugin/mailbox';
 import { config } from '../service/config.service';
 import { hasPrefix, hasTag } from './tag';
 
@@ -23,7 +24,10 @@ export function templates(tags?: string[], template?: string) {
 }
 
 export function authors(ref: Ref) {
-  return templates(ref.tags || [], 'user').map(t => t + (ref.origin || ''));
+  return uniq([
+    ...templates(ref.tags || [], 'user').map(t => t + (ref.origin || '')),
+    ...templates(ref.tags || [], 'plugin/from').map(t => reverseOrigin(t.substring('plugin/from/'.length))),
+    ]);
 }
 
 export function clickableLink(url: string) {
