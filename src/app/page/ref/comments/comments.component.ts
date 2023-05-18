@@ -78,7 +78,6 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
       'plugin/thread',
       ...this.admin.reply.filter(p => (this.store.view.ref!.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
-      ...this.tagged,
     ]));
   }
 
