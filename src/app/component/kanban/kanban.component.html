@@ -24,16 +24,16 @@
     <div *ngIf="swimLanes"><!-- corner spacer --></div>
     <a *ngIf="ext.config.showNoColumn"
        class="column-title tag"
-       [routerLink]="['/tag', getQuery({})]"
+       [routerLink]="['/tag', ext.tag + ':!' + columns.join(':!')]"
        title="No matching column tag">{{ ext.config.noColumnTitle || 'untagged' }}</a>
     <a *ngFor="let col of columns"
        class="column-title tag"
-       [routerLink]="['/tag', getQuery({col})]"
+       [routerLink]="['/tag', ext.tag + ':' + col]"
        [title]="col">{{ (exts.getCachedExt(col) | async)?.name || col }}</a>
     <ng-container *ngIf="swimLanes else noSwimLanes">
       <ng-container *ngFor="let sl of swimLanes">
         <a class="swim-lane-title tag"
-           [routerLink]="['/tag', getQuery({sl})]"
+           [routerLink]="['/tag', ext.tag + ':' + sl]"
            [title]="sl">{{ (exts.getCachedExt(sl) | async)?.name || sl }}</a>
         <app-kanban-column *ngIf="ext.config.showNoColumn"
                            cdkDropList
@@ -52,7 +52,7 @@
       </ng-container>
       <ng-container *ngIf="ext.config.showNoSwimLane">
         <a class="swim-lane-title tag"
-           [routerLink]="['/tag', getQuery({})]"
+           [routerLink]="['/tag', ext.tag + ':!' + swimLanes.join(':!')]"
            title="No matching swim lane">{{ ext.config.noSwimLaneTitle || 'untagged' }}</a>
         <app-kanban-column *ngIf="ext.config.showNoColumn"
                            cdkDropList
