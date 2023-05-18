@@ -51,10 +51,21 @@ export class ScrapeService {
     );
   }
 
-  fetch(url: string): Observable<any> {
+  fetch(url: string): Observable<string> {
     this.cacheList.add(url);
-    return this.http.get<any>(`${this.base}/fetch`, {
+    return this.http.get(`${this.base}/fetch`, {
       params: params({ url }),
+      responseType: 'text'
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  rss(url: string): Observable<string> {
+    this.cacheList.add(url);
+    return this.http.get(`${this.base}/rss`, {
+      params: params({ url }),
+      responseType: 'text'
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
