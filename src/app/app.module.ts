@@ -97,6 +97,7 @@ import { UsersFormComponent } from './form/users/users.component';
 import { JasperFormlyModule } from './formly/formly.module';
 import { ExtPage } from './page/ext/ext.component';
 import { HomePage } from './page/home/home.component';
+import { InboxAlarmsPage } from './page/inbox/alarms/alarms.component';
 import { InboxAllPage } from './page/inbox/all/all.component';
 import { InboxDmsPage } from './page/inbox/dms/dms.component';
 import { InboxPage } from './page/inbox/inbox.component';
@@ -292,6 +293,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     PluginsPipe,
     ActionLabelDirective,
     TitleDirective,
+    InboxAlarmsPage,
   ],
   imports: [
     BrowserModule,

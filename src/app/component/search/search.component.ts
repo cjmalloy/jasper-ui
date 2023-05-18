@@ -46,6 +46,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       case 'local': return $localize`local`;
       case 'inbox/all': return $localize`my inbox`;
       case 'inbox/sent': return $localize`sent by me`;
+      case 'inbox/alarms': return $localize`alarms`;
       case 'inbox/dms': return $localize`direct messages`;
       case 'inbox/modlist': return $localize`unmoderated`;
       case 'ref/comments': return $localize`comments`;

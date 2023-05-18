@@ -12,6 +12,11 @@
     <a routerLink="./sent" routerLinkActive="current-tab"
        i18n-title title="Sent"
        i18n>sent</a>
+    <ng-container *ngIf="store.account.ext?.config?.alarms?.length">
+      <a routerLink="./alarms" routerLinkActive="current-tab"
+         i18n-title title="Alarms"
+         i18n>alarms</a>
+    </ng-container>
     <ng-container *ngIf="admin.status.templates.dm">
       <a routerLink="./dms" routerLinkActive="current-tab"
          i18n-title title="Direct Messages"

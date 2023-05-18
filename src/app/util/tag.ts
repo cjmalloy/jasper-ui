@@ -17,7 +17,7 @@ export function decompose(tag: string): [string, string] {
 export function captures(selector: string, target: string): boolean {
   const [sTag, sOrigin] = decompose(selector);
   const [tTag, tOrigin] = decompose(target);
-  if (sTag && sTag !== tTag) return false;
+  if (sTag && !hasPrefix(target, selector)) return false;
   return sOrigin === '@*' || sOrigin === tOrigin;
 }
 
@@ -27,22 +27,6 @@ export function capturesAny(selectors?: string[], target?: string[]): string | u
   for (const s of selectors) {
     for (const t of target) {
       if (captures(s, t)) return s;
-    }
-  }
-  return undefined;
-}
-
-export function queries(query: string, target: string): boolean {
-  // TODO: client side querying
-  return captures(query, target);
-}
-
-export function queriesAny(queryList?: string[], target?: string[]): string | undefined {
-  if (!queryList || !target) return undefined;
-  if (!queryList.length || !target.length) return undefined;
-  for (const s of queryList) {
-    for (const t of target) {
-      if (queries(s, t)) return s;
     }
   }
   return undefined;

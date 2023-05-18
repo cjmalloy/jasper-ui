@@ -39,7 +39,7 @@ import {
 } from '../../util/format';
 import { getScheme } from '../../util/hosts';
 import { printError } from '../../util/http';
-import { hasTag, hasUserUrlResponse, isOwnerTag, queriesAny, removeTag, tagOrigin } from '../../util/tag';
+import { capturesAny, hasTag, hasUserUrlResponse, isOwnerTag, removeTag, tagOrigin } from '../../util/tag';
 import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
@@ -155,7 +155,7 @@ export class RefComponent implements OnInit, OnDestroy {
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
     this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
-    this.alarm = queriesAny(this.store.account.alarms, value.tags);
+    this.alarm = capturesAny(this.store.account.alarms, value.tags);
     this.actions = this.ref.created ? sortOrder(this.admin.getActions(value.tags, value.plugins)) : [];
     this.infoUis = this.admin.getPluginInfoUis(value.tags);
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;

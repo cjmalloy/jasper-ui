@@ -17,7 +17,7 @@ import { EventBus } from './bus';
 export type View =
   'home' | 'all' | 'local' |
   'tag' | 'tags' | 'query' |
-  'inbox/all' | 'inbox/sent' | 'inbox/dms' | 'inbox/modlist' |
+  'inbox/all' | 'inbox/sent' | 'inbox/alarms' | 'inbox/dms' | 'inbox/modlist' |
   'ref/summary' | 'ref/comments' | 'ref/thread' | 'ref/responses' | 'ref/sources' | 'ref/versions' |
   'ext' | 'user' | 'plugin' | 'template';
 
@@ -117,6 +117,7 @@ export class ViewStore {
         switch (s.firstChild?.routeConfig?.path) {
           case 'all': return 'inbox/all';
           case 'sent': return 'inbox/sent';
+          case 'alarms': return 'inbox/alarms';
           case 'dms': return 'inbox/dms';
           case 'modlist': return 'inbox/modlist';
         }

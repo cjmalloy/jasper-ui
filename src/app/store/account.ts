@@ -118,7 +118,7 @@ export class AccountStore {
     return this.config.bookmarks || [];
   }
 
-  get alarms() {
+  get alarms(): string[] {
     return this.config.alarms || [];
   }
 
