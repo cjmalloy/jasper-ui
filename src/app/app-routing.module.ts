@@ -91,9 +91,9 @@ const routes: Routes = [
     path: 'settings',
     component: SettingsPage,
     children: [
-      { path: '', redirectTo: 'ext', pathMatch: 'full' },
-      { path: 'ext', component: SettingsExtPage },
+      { path: '', redirectTo: 'user', pathMatch: 'full' },
       { path: 'user', component: SettingsUserPage },
+      { path: 'ext', component: SettingsExtPage },
       { path: 'ref', component: SettingsRefPage },
       { path: 'ref/:tag', component: SettingsRefPage },
       { path: 'plugin', component: SettingsPluginPage },
