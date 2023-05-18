@@ -160,7 +160,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     return authors(this.ref);
   }
 
-  get authorExts() {
+  get authorExts$() {
     return this.exts.getCachedExts(this.authors);
   }
 
@@ -183,7 +183,7 @@ export class CommentComponent implements OnInit, OnDestroy {
     return interestingTags(this.ref.tags);
   }
 
-  get tagExts() {
+  get tagExts$() {
     return this.exts.getCachedExts(this.tagged);
   }
 

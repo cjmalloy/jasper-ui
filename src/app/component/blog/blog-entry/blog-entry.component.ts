@@ -183,7 +183,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     return authors(this.ref);
   }
 
-  get authorExts() {
+  get authorExts$() {
     return this.exts.getCachedExts(this.authors);
   }
 
@@ -193,7 +193,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     return intersection(result, this.blog.config.tags || []);
   }
 
-  get tagExts() {
+  get tagExts$() {
     return this.exts.getCachedExts(this.tags);
   }
 

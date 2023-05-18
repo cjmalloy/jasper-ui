@@ -268,7 +268,7 @@ export class RefComponent implements OnInit, OnDestroy {
     return undefined;
   }
 
-  get addTagExts() {
+  get addTagExts$() {
     return this.exts.getCachedExts(this.addTags || []);
   }
 
@@ -393,7 +393,7 @@ export class RefComponent implements OnInit, OnDestroy {
     return authors(this.ref);
   }
 
-  get authorExts() {
+  get authorExts$() {
     return this.exts.getCachedExts(this.authors);
   }
 
@@ -401,7 +401,7 @@ export class RefComponent implements OnInit, OnDestroy {
     return without(addressedTo(this.ref), ...this.authors);
   }
 
-  get recipientExts() {
+  get recipientExts$() {
     return this.exts.getCachedExts(this.recipients);
   }
 
@@ -435,7 +435,7 @@ export class RefComponent implements OnInit, OnDestroy {
     return interestingTags(this.ref.tags);
   }
 
-  get tagExts() {
+  get tagExts$() {
     return this.exts.getCachedExts(this.tags);
   }
 

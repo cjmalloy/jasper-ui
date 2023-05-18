@@ -24,11 +24,11 @@ export class SubscriptionBarComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  get bookmarkExts() {
+  get bookmarkExts$() {
     return this.exts.getCachedExts(this.store.account.bookmarks);
   }
 
-  get subExts() {
+  get subExts$() {
     return this.exts.getCachedExts(this.store.account.subs);
   }
 

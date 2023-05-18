@@ -8,12 +8,26 @@
     <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a> &bullet;
     <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a> &bullet;
     <a [routerLink]="['/tags', store.view.noQuery]" routerLinkActive="current-page" i18n>tags</a>
-    <ng-container *ngFor="let b of bookmarkExts | async">
-      &bullet; <a [routerLink]="['/tag', b.tag]" routerLinkActive="current-page">{{ b.name || b.tag }}</a>
+    <ng-container *ngIf="bookmarkExts$ | async as bookmarkExts; else bookNoExts">
+      <ng-container *ngFor="let b of bookmarkExts">
+        &bullet; <a [routerLink]="['/tag', b.tag]" routerLinkActive="current-page">{{ b.name || b.tag }}</a>
+      </ng-container>
     </ng-container>
-    <ng-container *ngFor="let sub of subExts | async">
-      &bullet; <a [routerLink]="['/tag', sub.tag]" routerLinkActive="current-page">{{ sub.name || sub.tag }}</a>
+    <ng-template #bookNoExts>
+      <ng-container *ngFor="let t of store.account.bookmarks">
+        &bullet; <a [routerLink]="['/tag', t]" routerLinkActive="current-page">{{ t }}</a>
+      </ng-container>
+    </ng-template>
+    <ng-container *ngIf="subExts$ | async as subExts; else subNoExts">
+      <ng-container *ngFor="let sub of subExts">
+        &bullet; <a [routerLink]="['/tag', sub.tag]" routerLinkActive="current-page">{{ sub.name || sub.tag }}</a>
+      </ng-container>
     </ng-container>
+    <ng-template #subNoExts>
+      <ng-container *ngFor="let t of store.account.subs">
+        &bullet; <a [routerLink]="['/tag', t]" routerLinkActive="current-page">{{ t }}</a>
+      </ng-container>
+    </ng-template>
   </div>
   <span *ngIf="store.submit.files?.length" class="drafts" routerLink="/submit/upload" i18n-title title="Unsaved Drafts" i18n>🗂️</span>
   <span *ngIf="store.account.signedIn" class="preferences" [routerLink]="['/ext', store.account.localTag]" i18n-title title="User Settings" i18n>⚙️</span>

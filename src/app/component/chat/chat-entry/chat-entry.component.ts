@@ -113,7 +113,7 @@ export class ChatEntryComponent {
     return authors(this.ref);
   }
 
-  get authorExts() {
+  get authorExts$() {
     return this.exts.getCachedExts(this.authors);
   }
 

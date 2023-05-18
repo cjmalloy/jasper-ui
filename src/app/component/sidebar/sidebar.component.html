@@ -169,27 +169,27 @@
   </div>
 
   <div *ngIf="user || home" class="hide home">
-    <div class="ext-text" *ngIf="$any(bookmarks | async)?.length" i18n>
+    <div class="ext-text" *ngIf="$any(bookmarks$ | async)?.length" i18n>
       My Bookmarks:
       <br>
-      <ng-container *ngFor="let book of bookmarks | async">
+      <ng-container *ngFor="let book of bookmarks$ | async">
         <a class="tag" [routerLink]="['/tag', book.tag + book.origin]">{{ book.name || book.tag }}</a>
         <br>
       </ng-container>
       <br *ngIf="ext?.config?.subscriptions?.length">
     </div>
-    <div class="ext-text" *ngIf="$any(userSubs | async)?.length" i18n>
+    <div class="ext-text" *ngIf="$any(userSubs$ | async)?.length" i18n>
       Following:
       <br>
-      <ng-container *ngFor="let sub of userSubs | async">
+      <ng-container *ngFor="let sub of userSubs$ | async">
         <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]">{{ sub.name || sub.tag }}</a>
         <br>
       </ng-container>
     </div>
-    <div class="ext-text" *ngIf="$any(tagSubs | async)?.length" i18n>
+    <div class="ext-text" *ngIf="$any(tagSubs$ | async)?.length" i18n>
       Subscribed to:
       <br>
-      <ng-container *ngFor="let sub of tagSubs | async">
+      <ng-container *ngFor="let sub of tagSubs$ | async">
         <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]">{{ sub.name || sub.tag }}</a>
         <br>
       </ng-container>

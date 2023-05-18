@@ -9,17 +9,33 @@
         <div class="info">
           <ng-container *ngIf="authors.length" i18n>
             by
-            <ng-container *ngFor="let user of authorExts | async">
-              <a class="user tag"
-                 [title]="formatAuthor(user.tag + user.origin)"
-                 [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+            <ng-container *ngIf="authorExts$ | async as authorExts; else authorNoExts">
+              <ng-container *ngFor="let user of authorExts">
+                <a class="user tag"
+                   [title]="formatAuthor(user.tag + user.origin)"
+                   [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+              </ng-container>
             </ng-container>
+            <ng-template #authorNoExts>
+              <ng-container *ngFor="let t of authors">
+                <a class="user tag"
+                   [title]="formatAuthor(t)"
+                   [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
+              </ng-container>
+            </ng-template>
           </ng-container>
           <ng-container *ngIf="tags.length" i18n>
             tagged
-            <ng-container *ngFor="let e of tagExts | async">
-              <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+            <ng-container *ngIf="tagExts$ | async as tagExts; else tagNoExts">
+              <ng-container *ngFor="let e of tagExts">
+                <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+              </ng-container>
             </ng-container>
+            <ng-template #tagNoExts>
+              <ng-container *ngFor="let t of tags">
+                <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
+              </ng-container>
+            </ng-template>
           </ng-container>
           <ng-container *ngFor="let icon of icons">
             <span *ngIf="showIcon(icon)"

@@ -121,15 +121,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return !!this.admin.status.templates.user && hasPrefix(this._tag, 'user') && this.store.view.template !== 'user';
   }
 
-  get bookmarks() {
+  get bookmarks$() {
     return this.exts.getCachedExts(this.ext?.config?.bookmarks || []);
   }
 
-  get userSubs() {
+  get userSubs$() {
     return this.exts.getCachedExts(this.ext?.config?.subscriptions?.filter((s: string) => hasPrefix(s, 'user')));
   }
 
-  get tagSubs() {
+  get tagSubs$() {
     return this.exts.getCachedExts(this.ext?.config?.subscriptions?.filter((s: string) => !hasPrefix(s, 'user')));
   }
 

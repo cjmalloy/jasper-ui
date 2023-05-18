@@ -52,27 +52,52 @@
           </ng-template>
           <ng-container *ngIf="authors.length" i18n>
             by
-            <ng-container *ngFor="let user of authorExts | async">
-              <a class="user tag"
-                 [title]="formatAuthor(user.tag + user.origin)"
-                 [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+            <ng-container *ngIf="authorExts$ | async as authorExts; else authorNoExts">
+              <ng-container *ngFor="let user of authorExts">
+                <a class="user tag"
+                   [title]="formatAuthor(user.tag + user.origin)"
+                   [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+              </ng-container>
             </ng-container>
+            <ng-template #authorNoExts>
+              <ng-container *ngFor="let t of authors">
+                <a class="user tag"
+                   [title]="formatAuthor(t)"
+                   [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
+              </ng-container>
+            </ng-template>
           </ng-container>
           <ng-container *ngIf="tags.length" i18n>
             tagged
-            <ng-container *ngFor="let e of tagExts | async">
-              <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+            <ng-container *ngIf="tagExts$ | async as tagExts; else tagNoExts">
+              <ng-container *ngFor="let e of tagExts">
+                <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+              </ng-container>
             </ng-container>
+            <ng-template #tagNoExts>
+              <ng-container *ngFor="let t of tags">
+                <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
+              </ng-container>
+            </ng-template>
           </ng-container>
           <ng-container *ngIf="recipients.length" i18n>
             to
-            <ng-container *ngFor="let user of recipientExts | async">
-              <a class="user tag"
-                 [title]="formatAuthor(user.tag + user.origin)"
-                 [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+            <ng-container *ngIf="recipientExts$ | async as recipientExts; else recipientNoExts">
+              <ng-container *ngFor="let user of recipientExts">
+                <a class="user tag"
+                   [title]="formatAuthor(user.tag + user.origin)"
+                   [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+              </ng-container>
             </ng-container>
+            <ng-template #recipientNoExts>
+              <ng-container *ngFor="let t of recipients">
+                <a class="user tag"
+                   [title]="formatAuthor(t)"
+                   [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
+              </ng-container>
+            </ng-template>
           </ng-container>
-          <span *ngIf="alarm" class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm">🔔</span>
+          <span *ngIf="alarm" class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm ({{ alarm }})">🔔</span>
           <ng-container *ngFor="let icon of icons">
             <span *ngIf="showIcon(icon)"
                   class="icon"
@@ -86,9 +111,16 @@
           </ng-container>
           <ng-container *ngIf="addTags?.length" i18n>
             tagging refs
-            <ng-container *ngFor="let e of addTagExts | async">
-              <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+            <ng-container *ngIf="addTagExts$ | async as addTagExts; else addTagNoExts">
+              <ng-container *ngFor="let e of addTagExts">
+                <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+              </ng-container>
             </ng-container>
+            <ng-template #addTagNoExts>
+              <ng-container *ngFor="let t of addTags || []">
+                <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
+              </ng-container>
+            </ng-template>
           </ng-container>
           <ng-container *ngIf="fromOrigin" i18n>
             from <a class="origin tag" [routerLink]="['/tag', fromOrigin]">{{ fromOrigin }}</a>
