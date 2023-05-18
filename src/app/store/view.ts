@@ -74,7 +74,13 @@ export class ViewStore {
 
   get tags() {
     const s = this.route.routeSnapshot?.firstChild;
-    return s?.routeConfig?.path === 'tags';
+    return s?.routeConfig?.path === 'tags' || s?.routeConfig?.path === 'tags/:template';
+  }
+
+  get allTags() {
+    const s = this.route.routeSnapshot?.firstChild;
+    const emptyTemplate = s?.routeConfig?.path === 'tags/:template' && !s.params.template;
+    return s?.routeConfig?.path === 'tags' || emptyTemplate;
   }
 
   get settings() {

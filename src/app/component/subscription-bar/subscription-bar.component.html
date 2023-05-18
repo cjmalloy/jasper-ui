@@ -7,7 +7,7 @@
     </ng-container>
     <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a> &bullet;
     <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a> &bullet;
-    <a [routerLink]="['/tags', store.view.noQuery]" routerLinkActive="current-page" i18n>tags</a>
+    <a [routerLink]="['/tags', store.view.noQuery]" [class.current-page]="store.view.tags" i18n>tags</a>
     <ng-container *ngIf="bookmarkExts$ | async as bookmarkExts; else bookNoExts">
       <ng-container *ngFor="let b of bookmarkExts">
         &bullet; <a [routerLink]="['/tag', b.tag]" routerLinkActive="current-page">{{ b.name || b.tag }}</a>
