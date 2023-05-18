@@ -3,6 +3,8 @@ import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
+import { hasComment, trimCommentForTitle } from '../../../util/format';
+import { hasTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-kanban-card',
@@ -35,6 +37,35 @@ export class KanbanCardComponent implements OnInit {
   @HostBinding('class.no-write')
   get noWrite() {
     return !this.auth.writeAccess(this.ref);
+  }
+
+  get repost() {
+    return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
+  }
+
+  get bareRepost() {
+    return this.repost && !this.ref.title && !this.ref.comment;
+  }
+
+  get title() {
+    const title = (this.ref?.title || '').trim();
+    const comment = (this.ref?.comment || '').trim();
+    if (title) return title;
+    if (!comment) {
+      if (this.bareRepost) return $localize`Repost`;
+      return this.url;
+    }
+    return trimCommentForTitle(comment);
+  }
+
+  get url() {
+    return this.repost ? this.ref.sources![0] : this.ref.url;
+  }
+
+  get currentText() {
+    const value = this.ref?.comment || '';
+    if (this.ref?.title || hasComment(this.ref?.comment)) return value;
+    return '';
   }
 
 }
