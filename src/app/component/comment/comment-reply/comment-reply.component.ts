@@ -16,6 +16,7 @@ import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { getMailboxes, getTags } from '../../../util/editor';
+import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasTag, removeTag } from '../../../util/tag';
 import { EditorComponent } from '../../editor/editor.component';
@@ -98,6 +99,7 @@ export class CommentReplyComponent implements AfterViewInit {
     const ref = {
       url,
       origin: this.store.account.origin,
+      title: hasTag('plugin/email', this.to) ? getRe(this.to.title) : '',
       comment: value,
       sources: uniq([
         this.to.url,

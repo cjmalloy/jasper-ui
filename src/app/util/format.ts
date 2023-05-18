@@ -121,3 +121,9 @@ export function hasComment(comment?: string) {
   if (!comment) return false;
   return trimCommentForTitle(comment) !== comment;
 }
+
+export function getRe(title?: string) {
+  if (!title) return '';
+  if (title.startsWith($localize`Re: `)) return title;
+  return $localize`Re: ` + title;
+}
