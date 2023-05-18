@@ -3,7 +3,6 @@ import { Ref } from '../model/ref';
 import { Role } from '../model/user';
 import { Store } from '../store/store';
 import {
-  captures,
   capturesAny,
   hasTag,
   includesTag,
@@ -62,7 +61,7 @@ export class AuthzService {
     tag = localTag(tag);
     if (publicTag(tag)) return true;
     if (this.store.account.mod) return true;
-    if (captures(this.store.account.localTag, tag)) return true;
+    if (this.store.account.localTag === tag) return true;
     if (includesTag(tag, this.config.modSeals)) return false;
     if (!this.store.account.editor && includesTag(tag, this.config.editorSeals)) return false;
     if (!this.store.account.access) return false;
@@ -76,7 +75,7 @@ export class AuthzService {
     tag = localTag(tag);
     if (!privateTag(tag)) return true;
     if (this.store.account.mod) return true;
-    if (captures(this.store.account.localTag, tag)) return true;
+    if (this.store.account.localTag === tag) return true;
     if (!this.store.account.access) return false;
     if (capturesAny(this.store.account.access.tagReadAccess, [tag])) return true;
     return !!capturesAny(this.store.account.access.readAccess, [tag]);
@@ -89,7 +88,7 @@ export class AuthzService {
     if (tag === 'locked') return false;
     if (this.store.account.mod) return true;
     if (this.store.account.editor && !privateTag(tag)) return true;
-    if (captures(this.store.account.localTag, tag)) return true;
+    if (this.store.account.localTag === tag) return true;
     if (!this.store.account.access) return false;
     if (capturesAny(this.store.account.access.tagWriteAccess, [tag])) return true;
     return !!capturesAny(this.store.account.access.writeAccess, [tag]);
