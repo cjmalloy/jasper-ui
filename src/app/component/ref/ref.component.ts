@@ -294,27 +294,26 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get thumbnail() {
     return this.admin.status.plugins.thumbnail &&
-      hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
+      (hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef));
   }
 
   get thumbnailUrl() {
-    return this.thumbnail &&
-      (this.ref?.plugins?.['plugin/thumbnail']?.url || this.repostRef?.plugins?.['plugin/thumbnail']?.url || !this.thumbnailColor);
+    return this.thumbnail && !this.thumbnailColor;
   }
 
   get thumbnailColor() {
     return this.thumbnail &&
-      this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color;
+      (this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color);
   }
 
   get thumbnailEmoji() {
     return this.thumbnail &&
-      this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
+      (this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '');
   }
 
   get thumbnailRadius() {
     return this.thumbnail &&
-      this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
+      (this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0);
   }
 
   get audio() {

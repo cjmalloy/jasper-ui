@@ -1,6 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
+import { RefService } from '../../../service/api/ref.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
 import { hasComment, trimCommentForTitle } from '../../../util/format';
@@ -14,19 +15,41 @@ import { hasTag } from '../../../util/tag';
 export class KanbanCardComponent implements OnInit {
   @HostBinding('class') css = 'kanban-card';
 
-  @Input()
-  ref!: Ref;
+  _ref!: Ref;
+
+  title = '';
+  repostRef?: Ref;
 
   constructor(
     private admin: AdminService,
     private auth: AuthzService,
+    private refs: RefService,
     private scraper: ScrapeService,
   ) { }
+
+  get ref() {
+    return this._ref;
+  }
+
+  @Input()
+  set ref(value: Ref) {
+    this._ref = value;
+    this.title = this.getTitle();
+    if (this.repost && value && (!this.repostRef || this.repostRef.url != value.url && this.repostRef.origin === value.origin)) {
+      this.refs.get(this.url, value.origin)
+        .subscribe(ref => {
+          this.repostRef = ref;
+          if (this.bareRepost) {
+            this.title = this.getTitle();
+          }
+        });
+    }
+  }
 
   ngOnInit(): void {
   }
 
-  cssUrl(url: string) {
+  cssUrl(url: string | null) {
     if (!url) return '';
     if (this.admin.status.plugins.thumbnail?.config?.cache) {
       url = this.scraper.getFetch(url);
@@ -47,14 +70,12 @@ export class KanbanCardComponent implements OnInit {
     return this.repost && !this.ref.title && !this.ref.comment;
   }
 
-  get title() {
-    const title = (this.ref?.title || '').trim();
-    const comment = (this.ref?.comment || '').trim();
+  getTitle() {
+    if (this.bareRepost) return this.repostRef?.title || $localize`Repost`;
+    const title = (this.ref.title || '').trim();
+    const comment = (this.ref.comment || '').trim();
     if (title) return title;
-    if (!comment) {
-      if (this.bareRepost) return $localize`Repost`;
-      return this.url;
-    }
+    if (!comment) return this.url;
     return trimCommentForTitle(comment);
   }
 
@@ -63,9 +84,33 @@ export class KanbanCardComponent implements OnInit {
   }
 
   get currentText() {
-    const value = this.ref?.comment || '';
-    if (this.ref?.title || hasComment(this.ref?.comment)) return value;
+    const value = this.ref?.comment || this.repostRef?.comment || '';
+    if (this.ref?.title || hasComment(value)) return value;
     return '';
+  }
+
+  get thumbnail() {
+    return this.admin.status.plugins.thumbnail &&
+      hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
+  }
+
+  get thumbnailUrl() {
+    return this.thumbnail && !this.thumbnailColor;
+  }
+
+  get thumbnailColor() {
+    return this.thumbnail &&
+      (this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color);
+  }
+
+  get thumbnailEmoji() {
+    return this.thumbnail &&
+      (this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '');
+  }
+
+  get thumbnailRadius() {
+    return this.thumbnail &&
+      (this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0);
   }
 
 }

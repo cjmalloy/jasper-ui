@@ -138,12 +138,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     const ref = isUrl ? {
       url: fixUrl(this.addText),
       origin: this.store.account.origin,
-      tags: tagsWithAuthor,
+      tags: [...tagsWithAuthor],
     } : {
       url: 'comment:' + uuid(),
       origin: this.store.account.origin,
       title: this.addText,
-      tags: tagsWithAuthor,
+      tags: [...tagsWithAuthor],
     };
     this.oembeds.get(ref.url).pipe(
       catchError(() => of(undefined)),
@@ -162,21 +162,28 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
       }),
       catchError(err => {
         if (err.status === 403) {
-          // TODO: better error message
-          window.alert('Not allowed to use required tags. Ask admin for permission.');
+          // Can't edit Ref, repost it
+          return this.repost$(ref.url, tagsWithAuthor);
         }
         if (err.status === 409) {
           // Ref already exists, just tag it
           return this.tags.patch(this.addTags, ref.url, ref.origin).pipe(
             switchMap(() => this.refs.get(ref.url, ref.origin)),
+            catchError(err => {
+              if (err.status === 403) {
+                // Can't edit Ref, repost it
+                return this.repost$(ref.url, tagsWithAuthor);
+              }
+              return throwError(err);
+            }),
           );
         }
         return throwError(err);
       }),
-    ).subscribe(() => {
+    ).subscribe(posted => {
       this.mutated = true;
       if (!this.pages) this.pages = [];
-      this.pages[this.pages.length - 1].content.push(ref)
+      this.pages[this.pages.length - 1].content.push(posted || ref)
     });
     this.addText = '';
   }
@@ -193,5 +200,24 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
       if (!this.pages) this.pages = [];
       this.pages[i] = page;
     });
+  }
+
+  private repost$(url: string, tags: string[]) {
+    const rp = 'internal:' + uuid();
+    return this.refs.create({
+      url: rp,
+      origin: this.store.account.origin,
+      tags: ['plugin/repost', ...tags],
+      sources: [url],
+    }).pipe(
+      switchMap(() => this.refs.get(rp, this.store.account.origin)),
+      catchError(err => {
+        if (err.status === 403) {
+          // TODO: better error message
+          window.alert('Not allowed to use required tags. Ask admin for permission.');
+        }
+        return throwError(err);
+      }),
+    );
   }
 }
