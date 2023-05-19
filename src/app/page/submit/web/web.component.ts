@@ -10,6 +10,7 @@ import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
@@ -28,7 +29,7 @@ import { printError } from '../../../util/http';
   templateUrl: './web.component.html',
   styleUrls: ['./web.component.scss'],
 })
-export class SubmitWebPage implements AfterViewInit, OnDestroy {
+export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   @HostBinding('class') css = 'full-page-form';
 
   private disposers: IReactionDisposer[] = [];
@@ -59,6 +60,11 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy {
   ) {
     this.setTitle($localize`Submit: Web Link`);
     this.webForm = refForm(fb);
+  }
+
+  saveChanges() {
+    // TODO: Just save in drafts
+    return !this.webForm.dirty;
   }
 
   ngAfterViewInit(): void {

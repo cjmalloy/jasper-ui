@@ -11,6 +11,7 @@ import { v4 as uuid } from 'uuid';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { wikiTitleFormat, wikiUriFormat } from '../../../plugin/wiki';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -26,7 +27,7 @@ import { printError } from '../../../util/http';
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
 })
-export class SubmitTextPage implements AfterViewInit, OnDestroy {
+export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   @HostBinding('class') css = 'full-page-form';
   private disposers: IReactionDisposer[] = [];
 
@@ -57,6 +58,11 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy {
     theme.setTitle($localize`Submit: Text Post`);
     this.textForm = refForm(fb);
     runInAction(() => store.submit.wikiPrefix = admin.getWikiPrefix());
+  }
+
+  saveChanges() {
+    // TODO: Just save in drafts
+    return !this.textForm.dirty;
   }
 
   ngAfterViewInit(): void {

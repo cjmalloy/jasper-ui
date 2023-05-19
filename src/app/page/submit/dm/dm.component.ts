@@ -7,6 +7,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { getMailbox } from '../../../plugin/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -23,7 +24,7 @@ import { hasPrefix } from '../../../util/tag';
   templateUrl: './dm.component.html',
   styleUrls: ['./dm.component.scss']
 })
-export class SubmitDmPage implements AfterViewInit, OnDestroy {
+export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   @HostBinding('class') css = 'full-page-form';
   private disposers: IReactionDisposer[] = [];
 
@@ -51,6 +52,11 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy {
       sources: [[]],
       comment: [''],
     });
+  }
+
+  saveChanges() {
+    // TODO: Just save in drafts
+    return !this.dmForm.dirty;
   }
 
   ngAfterViewInit(): void {

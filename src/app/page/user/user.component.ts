@@ -6,6 +6,7 @@ import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, of, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProfileService } from '../../service/api/profile.service';
@@ -22,7 +23,7 @@ import { prefix } from '../../util/tag';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss']
 })
-export class UserPage implements OnInit, OnDestroy {
+export class UserPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   @HostBinding('class') css = 'full-page-form';
 
@@ -52,6 +53,10 @@ export class UserPage implements OnInit, OnDestroy {
       role: [''],
       user: userForm(fb),
     });
+  }
+
+  saveChanges() {
+    return !this.profileForm.dirty;
   }
 
   ngOnInit(): void {

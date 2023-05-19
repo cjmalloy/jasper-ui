@@ -6,6 +6,7 @@ import { flatten, uniq } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, map, mergeMap, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
@@ -23,7 +24,7 @@ import { prefix } from '../../../util/tag';
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss']
 })
-export class SubmitInvoicePage implements OnInit {
+export class SubmitInvoicePage implements OnInit, HasChanges {
   @HostBinding('class') css = 'full-page-form';
 
   submitted = false;
@@ -59,6 +60,11 @@ export class SubmitInvoicePage implements OnInit {
         this.queue = templates(page.content[0].tags, 'queue')[0];
       }
     });
+  }
+
+  saveChanges() {
+    // TODO: Just save in drafts
+    return !this.invoiceForm.dirty;
   }
 
   ngOnInit(): void {

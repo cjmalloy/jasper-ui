@@ -6,6 +6,7 @@ import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -22,7 +23,7 @@ import { hasPrefix, localTag } from '../../util/tag';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
 })
-export class ExtPage implements OnInit, OnDestroy {
+export class ExtPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   @HostBinding('class') css = 'full-page-form';
 
@@ -52,6 +53,10 @@ export class ExtPage implements OnInit, OnDestroy {
     this.extForm = fb.group({
       tag: ['', [Validators.required, Validators.pattern(TAG_REGEX)]],
     });
+  }
+
+  saveChanges() {
+    return !this.editForm.dirty;
   }
 
   ngOnInit(): void {
