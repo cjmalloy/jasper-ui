@@ -39,6 +39,10 @@ export interface Config extends Tag {
      */
     version?: number;
     /**
+     * Disable update checking.
+     */
+    noUpdate?: boolean;
+    /**
      * Install by default on a fresh instance.
      */
     default?: boolean;
@@ -55,6 +59,10 @@ export interface Config extends Tag {
      * Optional CSS to be added to <head> on load.
      */
     css?: string,
+    /**
+     * Optional script to be added to <head> on load.
+     */
+    snippet?: string,
     /**
      * Optional formly config for editing a form defined by the schema.
      */
