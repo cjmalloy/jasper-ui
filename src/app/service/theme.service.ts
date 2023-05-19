@@ -24,6 +24,7 @@ export class ThemeService {
     this.setTheme(localStorage.getItem('theme'));
     autorun(() => this.setCustomCss('custom-css', ...(this.store.account.config.userTheme ? this.getUserCss() : this.getExtCss())));
     this.admin.configProperty('css').forEach(p => this.setCustomCss(p.tag, p.config!.css));
+    this.admin.configProperty('snippet').forEach(p => this.addSnippet(p.tag, p.config!.snippet));
     return of(null);
   }
 
@@ -45,6 +46,18 @@ export class ThemeService {
     style.id = id;
     for (const css of cs) style.innerHTML += css + '\n\n';
     head.appendChild(style);
+  }
+
+  addSnippet(id: string, ...snippets: (string | undefined)[]) {
+    id = id.replace(/\W/g, '-');
+    const old = this.document.getElementById(id)
+    if (old) old.remove();
+    if (!snippets || !snippets.length || !snippets[0]) return;
+    const head = this.document.getElementsByTagName('head')[0];
+    const script = this.document.createElement('script');
+    script.id = id;
+    for (const css of snippets) script.innerHTML += css + '\n\n';
+    head.appendChild(script);
   }
 
   getSystemTheme(): string {

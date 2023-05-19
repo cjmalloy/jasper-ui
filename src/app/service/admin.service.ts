@@ -34,6 +34,7 @@ import { personPlugin } from '../plugin/person';
 import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../plugin/poll';
 import { qrPlugin } from '../plugin/qr';
 import { repostPlugin } from '../plugin/repost';
+import { snippetPlugin } from '../plugin/snippet';
 import { summaryPlugin, summaryQueryPlugin } from '../plugin/summary';
 import { tablePlugin } from '../plugin/table';
 import { thanksPlugin } from '../plugin/thanks';
@@ -77,6 +78,7 @@ export class AdminService {
       debug: debugPlugin,
       experiments: experimentsPlugin,
       breakpoint: breakpointPlugin,
+      snippets: snippetPlugin,
       locked: lockedPlugin,
       modlist: modlistPlugin,
       banlist: banlistPlugin,
