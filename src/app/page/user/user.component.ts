@@ -162,7 +162,10 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
         ));
       }
     }
-    forkJoin(entities).subscribe(() => this.router.navigate(['/tag', this.tag.value + this.store.account.origin]));
+    forkJoin(entities).subscribe(() => {
+      this.profileForm.markAsPristine();
+      this.router.navigate(['/tag', this.tag.value + this.store.account.origin])
+    });
   }
 
   delete() {

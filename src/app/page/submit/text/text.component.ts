@@ -154,6 +154,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         return throwError(() => res);
       }),
     ).subscribe(() => {
+      this.textForm.markAsPristine();
       this.router.navigate(['/ref', this.url.value], { queryParams: { published }});
     });
   }

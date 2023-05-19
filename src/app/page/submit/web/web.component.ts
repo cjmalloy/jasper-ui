@@ -233,6 +233,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         return throwError(() => res);
       }),
     ).subscribe(() => {
+      this.webForm.markAsPristine();
       this.router.navigate(['/ref', this.url], { queryParams: { published }});
     });
   }

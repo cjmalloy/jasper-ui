@@ -148,6 +148,7 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
         return throwError(() => res);
       }),
     ).subscribe(() => {
+      this.invoiceForm.markAsPristine();
       this.router.navigate(['/ref', this.invoiceForm.value.url], { queryParams: { published }});
     });
   }

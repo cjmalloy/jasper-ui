@@ -174,6 +174,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
         return throwError(() => res);
       }),
     ).subscribe(() => {
+      this.editForm.markAsPristine();
       this.router.navigate(['/tag', ext.tag]);
     });
   }
