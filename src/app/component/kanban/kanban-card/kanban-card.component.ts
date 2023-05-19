@@ -105,12 +105,12 @@ export class KanbanCardComponent implements OnInit {
 
   get thumbnailEmoji() {
     return this.thumbnail &&
-      (this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '');
+      (this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji) || '';
   }
 
   get thumbnailRadius() {
     return this.thumbnail &&
-      (this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0);
+      (this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius) || 0;
   }
 
 }
