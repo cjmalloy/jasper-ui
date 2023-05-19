@@ -171,7 +171,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   get replyTags(): string[] {
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
       'internal',
-      'plugin/comment',
+      hasTag('plugin/email', this.store.view.ref) ? 'plugin/email' : 'plugin/comment',
       'plugin/thread',
       ...this.admin.reply.filter(p => (this.ref.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
