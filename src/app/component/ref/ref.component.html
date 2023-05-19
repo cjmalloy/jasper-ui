@@ -143,6 +143,7 @@
             <a *ngIf="parentComment" [routerLink]="['/ref', parentComment, 'comments']" [queryParams]="{ origin }" i18n>parent</a>
             <a *ngIf="parentCommentTop" [routerLink]="['/ref', parentCommentTop, 'comments']" [queryParams]="{ origin }" i18n>top</a>
             <a *ngIf="parentThreadTop" [routerLink]="['/ref', parentThreadTop, 'threads']" [queryParams]="{ origin }" i18n>parent</a>
+            <a *ngIf="!parentComment && !parentThreadTop && sources === 1" [routerLink]="['/ref', this.ref.sources![0]]" [queryParams]="{ origin }" i18n>parent</a>
             <a *ngIf="!parentComment && !parentThreadTop && sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin }" i18n>{{ sources }}&thinsp;sources</a>
             <a *ngIf="taggingAccess"
                class="fake-link"
