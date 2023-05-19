@@ -68,19 +68,18 @@ export class ViewStore {
 
   get summary() {
     const s = this.route.routeSnapshot?.firstChild;
-    if (s?.routeConfig?.path !== 'ref/:url') return false;
+    if (s?.url[0].path !== 'ref') return false;
     return !s.firstChild?.routeConfig?.path;
   }
 
   get tags() {
     const s = this.route.routeSnapshot?.firstChild;
-    return s?.routeConfig?.path === 'tags' || s?.routeConfig?.path === 'tags/:template';
+    return s?.url[0].path === 'tags';
   }
 
   get allTags() {
     const s = this.route.routeSnapshot?.firstChild;
-    const emptyTemplate = s?.routeConfig?.path === 'tags/:template' && !s.params.template;
-    return s?.routeConfig?.path === 'tags' || emptyTemplate;
+    return s?.url[0].path === 'tags' && !s?.params.template;
   }
 
   get settings() {
@@ -90,17 +89,16 @@ export class ViewStore {
 
   get current(): View | undefined {
     const s = this.route.routeSnapshot?.firstChild;
-    switch (s?.routeConfig?.path) {
+    switch (s?.url[0].path) {
       case 'home': return 'home';
       case 'tags': return 'tags';
-      case 'tags/:template': return 'tags';
-      case 'tag/:tag':
+      case 'tag':
         if (this.tag === '') return 'tags';
         if (this.tag === '@*') return 'all';
         if (this.tag === '*') return 'local';
         if (isQuery(this.tag)) return 'query';
         return 'tag';
-      case 'ref/:url':
+      case 'ref':
         switch (s.firstChild?.routeConfig?.path) {
           case '': return 'ref/summary';
           case 'comments': return 'ref/comments';

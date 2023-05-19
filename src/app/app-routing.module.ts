@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { DefaultUrlSerializer, RouterModule, Routes, UrlSerializer, UrlTree } from '@angular/router';
 import { ExtPage } from './page/ext/ext.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAlarmsPage } from './page/inbox/alarms/alarms.component';
@@ -38,6 +38,52 @@ import { SubmitWebPage } from './page/submit/web/web.component';
 import { TagPage } from './page/tag/tag.component';
 import { TagsPage } from './page/tags/tags.component';
 import { UserPage } from './page/user/user.component';
+
+const dus = new DefaultUrlSerializer();
+export class CustomUrlSerializer implements UrlSerializer {
+
+  encodeParam(url: string) {
+    const parts = new URL('http://test.com/' + url);
+    return encodeURIComponent(parts.pathname.substring(1)) + parts.search + parts.hash;
+  }
+
+  getExtras(url: string) {
+    const parts = new URL('http://test.com/' + url);
+    return parts.search + parts.hash;
+  }
+
+  parse(url: string) {
+    if (url.startsWith('/ref/')) {
+      const refChildren = url.match(/\/ref\/\w+\//);
+      if (!refChildren?.length) return dus.parse('/ref/' + this.encodeParam(url.substring('/ref/'.length)));
+      return dus.parse('/ref/' + refChildren[0] + '/' + this.encodeParam(url.substring('/ref/'.length)));
+    }
+    if (url.startsWith('/tag/')) {
+      return dus.parse('/tag/' + this.encodeParam(url.substring('/tag/'.length)));
+    }
+    if (url.startsWith('/tags/')) {
+      return dus.parse('/tags/' + this.encodeParam(url.substring('/tags/'.length)));
+    }
+    return dus.parse(url);
+  }
+
+  serialize(tree: UrlTree) {
+    const url = dus.serialize(tree);
+    if (tree.root.children.primary?.segments[0]?.path === 'ref' && tree.root.children.primary?.segments.length === 2) {
+      return '/ref/' + tree.root.children.primary?.segments[1].path + this.getExtras(url);
+    }
+    if (tree.root.children.primary?.segments[0]?.path === 'ref' && tree.root.children.primary?.segments.length === 3) {
+      return '/ref/' + tree.root.children.primary.segments[2].path + '/' + tree.root.children.primary.segments[1].path + this.getExtras(url);
+    }
+    if (tree.root.children.primary?.segments[0]?.path === 'tag') {
+      return '/tag/' + tree.root.children.primary.segments[1].path + this.getExtras(url);
+    }
+    if (tree.root.children.primary?.segments[0]?.path === 'tags' && tree.root.children.primary?.segments.length === 2) {
+      return '/tags/' + tree.root.children.primary.segments[1].path + this.getExtras(url);
+    }
+    return url;
+  }
+}
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -113,5 +159,6 @@ const routes: Routes = [
     enableTracing: false,
   })],
   exports: [RouterModule],
+  providers: [{ provide: UrlSerializer, useClass: CustomUrlSerializer }]
 })
 export class AppRoutingModule {}
