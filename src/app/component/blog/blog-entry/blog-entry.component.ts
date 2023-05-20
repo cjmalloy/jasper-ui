@@ -93,8 +93,9 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     return this._ref;
   }
 
-  get origin() {
-    return this.ref.origin || undefined;
+  get nonLocalOrigin() {
+    if (this.ref.origin === this.store.account.origin) return undefined;
+    return this.ref.origin || (this.store.account.origin ? '' : undefined);
   }
 
   get title() {
