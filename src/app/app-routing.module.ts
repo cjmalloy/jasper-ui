@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { DefaultUrlSerializer, RouterModule, Routes, UrlSerializer, UrlTree } from '@angular/router';
 import { pendingChangesGuard } from './guard/pending-changes.guard';
@@ -108,6 +109,12 @@ export class CustomUrlSerializer implements UrlSerializer {
     return url;
   }
 }
+
+const _stripTrailingSlash = Location.stripTrailingSlash;
+Location.stripTrailingSlash = (url) => {
+  if (url.startsWith('/ref/') && !/\/ref(\/\w\w+)?\/e\//.test(url)) return url;
+  return _stripTrailingSlash(url);
+};
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
