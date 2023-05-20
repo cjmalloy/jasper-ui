@@ -152,6 +152,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
           ref.title = oembed.title;
           ref.tags.push('plugin/embed');
           ref.tags.push('plugin/thumbnail');
+        } else {
+          ref.tags.push(...this.admin.getPluginsForUrl(ref.url).map(p => p.tag));
         }
       }),
       switchMap(() => this.refs.create(ref)),
