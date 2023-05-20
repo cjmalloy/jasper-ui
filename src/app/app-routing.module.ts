@@ -48,6 +48,11 @@ export class CustomUrlSerializer implements UrlSerializer {
     return encodeURIComponent(parts.pathname.substring(1)) + parts.search + parts.hash;
   }
 
+  stripParam(url: string) {
+    const parts = new URL('http://test.com/' + url);
+    return parts.pathname.substring(1);
+  }
+
   getExtras(url: string) {
     const parts = new URL('http://test.com/' + url);
     return parts.search + parts.hash;
@@ -55,9 +60,19 @@ export class CustomUrlSerializer implements UrlSerializer {
 
   parse(url: string) {
     if (url.startsWith('/ref/')) {
-      const refChildren = url.match(/\/ref\/\w+\//);
-      if (!refChildren?.length) return dus.parse('/ref/' + this.encodeParam(url.substring('/ref/'.length)));
-      return dus.parse('/ref/' + refChildren[0] + '/' + this.encodeParam(url.substring('/ref/'.length)));
+      const refChildren = url.match(/^\/ref\/(\w\w+)\//);
+      if (!refChildren?.length) {
+        if (!/^\/ref\/\w+\/e\//.test(url)) {
+          return dus.parse('/ref/' + encodeURIComponent(url.substring('/ref/'.length)));
+        } else {
+          return dus.parse('/ref/' + this.stripParam(url.substring('/ref/e/'.length)) + this.getExtras(url));
+        }
+      }
+      if (!/\/ref\/\w+\/e\//.test(url)) {
+        return dus.parse('/ref/' + encodeURIComponent(url.substring('/ref/'.length + refChildren[1].length + 1)) + '/' + refChildren[1]);
+      } else {
+        return dus.parse('/ref/' + this.stripParam(url.substring('/ref/e/'.length + refChildren[1].length + 1)) + '/' + refChildren[1] + this.getExtras(url));
+      }
     }
     if (url.startsWith('/tag/')) {
       return dus.parse('/tag/' + this.encodeParam(url.substring('/tag/'.length)));
@@ -71,10 +86,18 @@ export class CustomUrlSerializer implements UrlSerializer {
   serialize(tree: UrlTree) {
     const url = dus.serialize(tree);
     if (tree.root.children.primary?.segments[0]?.path === 'ref' && tree.root.children.primary?.segments.length === 2) {
-      return '/ref/' + tree.root.children.primary?.segments[1].path + this.getExtras(url);
+      if (!this.getExtras(url)) {
+        return '/ref/' + tree.root.children.primary?.segments[1].path;
+      } else {
+        return '/ref/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
+      }
     }
     if (tree.root.children.primary?.segments[0]?.path === 'ref' && tree.root.children.primary?.segments.length === 3) {
-      return '/ref/' + tree.root.children.primary.segments[2].path + '/' + tree.root.children.primary.segments[1].path + this.getExtras(url);
+      if (!this.getExtras(url)) {
+        return '/ref/' + tree.root.children.primary.segments[2].path + '/' + tree.root.children.primary.segments[1].path;
+      } else {
+        return '/ref/' + tree.root.children.primary.segments[2].path + '/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
+      }
     }
     if (tree.root.children.primary?.segments[0]?.path === 'tag') {
       return '/tag/' + tree.root.children.primary.segments[1].path + this.getExtras(url);
