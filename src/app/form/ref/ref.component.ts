@@ -105,7 +105,7 @@ export class RefFormComponent implements OnInit {
       })),
       switchMap(ref => this.oembeds.get(ref.url).pipe(
         map(oembed => {
-          ref.title ||= oembed.title;
+          if (oembed) ref.title ||= oembed.title;
           return ref;
         }),
         catchError(err => of(ref)),

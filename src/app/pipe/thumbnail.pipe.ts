@@ -23,7 +23,7 @@ export class ThumbnailPipe implements PipeTransform {
       if (hasTag('plugin/embed', ref)) {
         return this.store.get(ref.plugins?.['plugin/embed']?.url || ref.url).pipe(
           map(oembed => {
-            if (oembed.thumbnail_url) {
+            if (oembed?.thumbnail_url) {
               return oembed.thumbnail_url;
             }
             return ref.url;

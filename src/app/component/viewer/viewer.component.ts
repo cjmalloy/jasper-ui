@@ -66,9 +66,7 @@ export class ViewerComponent {
         width = screen.width;
         height = screen.height;
       }
-      this.oembeds.get(this.embed.url || value!.url, this.theme, width, height).pipe(
-        catchError(err => of(undefined)),
-      ).subscribe(oembed => this.oembed = oembed);
+      this.oembeds.get(this.embed.url || value!.url, this.theme, width, height).subscribe(oembed => this.oembed = oembed);
     }
   }
 
@@ -81,12 +79,12 @@ export class ViewerComponent {
     this._iframe = value;
   }
 
-  set oembed(oembed: Oembed | undefined) {
+  set oembed(oembed: Oembed | null) {
     if (!this._iframe) {
       defer(() => this.oembed = oembed);
       return;
     }
-    this._oembed = oembed;
+    this._oembed = oembed!;
     if (oembed) {
       if (oembed.url && oembed.type === 'photo') {
         // Image embed
@@ -103,7 +101,7 @@ export class ViewerComponent {
   }
 
   get oembed() {
-    return this._oembed;
+    return this._oembed!;
   }
 
   get twitter() {

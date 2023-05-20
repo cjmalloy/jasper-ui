@@ -115,10 +115,10 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           }
           this.oembeds.get(url).subscribe(oembed => {
             this.addTag('plugin/embed');
-            if (oembed.thumbnail_url) {
+            if (oembed?.thumbnail_url) {
               this.addTag('plugin/thumbnail');
             }
-            if (oembed.provider_name === 'Twitter') {
+            if (oembed?.provider_name === 'Twitter') {
               let comment = oembed.html!.replace(/(<([^>]+)>)/gi, "").trim().replace(/\s+/gi, ' ');
               if (comment.length > 140) comment = comment.substring(0, 139) + '…';
               this.webForm.get('comment')!.setValue(comment);

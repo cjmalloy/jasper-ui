@@ -146,7 +146,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
       tags: [...tagsWithAuthor],
     };
     this.oembeds.get(ref.url).pipe(
-      catchError(() => of(undefined)),
       tap(oembed => {
         if (oembed) {
           ref.title = oembed.title;
