@@ -97,6 +97,7 @@ export class RefFormComponent implements OnInit {
   }
 
   scrapeAll() {
+    if (this.tags.includesTag('+plugin/feed')) return;
     this.scrape$.pipe(
       catchError(err => of({
         url: this.url.value,
