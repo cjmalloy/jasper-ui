@@ -1,5 +1,5 @@
 import { without } from 'lodash-es';
-import { autorun, makeAutoObservable, runInAction } from 'mobx';
+import { action, autorun, makeAutoObservable, runInAction } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Ref, RefSort } from '../model/ref';
@@ -40,7 +40,9 @@ export class ViewStore {
     public route: RouterStore,
     private eventBus: EventBus,
   ) {
-    makeAutoObservable(this);
+    makeAutoObservable(this, {
+      clear: action,
+    });
     this.clear(); // Initial observables may not be null for MobX
 
     autorun(() => {
