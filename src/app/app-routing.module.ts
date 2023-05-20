@@ -62,13 +62,13 @@ export class CustomUrlSerializer implements UrlSerializer {
     if (url.startsWith('/ref/')) {
       const refChildren = url.match(/^\/ref\/(\w\w+)\//);
       if (!refChildren?.length) {
-        if (!/^\/ref\/\w+\/e\//.test(url)) {
+        if (!/^\/ref\/e\//.test(url)) {
           return dus.parse('/ref/' + encodeURIComponent(url.substring('/ref/'.length)));
         } else {
           return dus.parse('/ref/' + this.stripParam(url.substring('/ref/e/'.length)) + this.getExtras(url));
         }
       }
-      if (!/\/ref\/\w+\/e\//.test(url)) {
+      if (!/\/ref\/\w\w+\/e\//.test(url)) {
         return dus.parse('/ref/' + encodeURIComponent(url.substring('/ref/'.length + refChildren[1].length + 1)) + '/' + refChildren[1]);
       } else {
         return dus.parse('/ref/' + this.stripParam(url.substring('/ref/e/'.length + refChildren[1].length + 1)) + '/' + refChildren[1] + this.getExtras(url));
