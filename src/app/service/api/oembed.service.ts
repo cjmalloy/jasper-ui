@@ -34,4 +34,10 @@ export class OEmbedService {
       catchError(err => this.login.handleHttpError(err)),
     );
   }
+
+  defaults(): Observable<void> {
+    return this.http.post<void>(this.base + '/defaults', null).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
 }

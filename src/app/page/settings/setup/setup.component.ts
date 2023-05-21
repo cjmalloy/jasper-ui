@@ -5,6 +5,7 @@ import { forOwn, mapValues } from 'lodash-es';
 import { catchError, concat, retry, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AdminService } from '../../../service/admin.service';
+import { OEmbedService } from '../../../service/api/oembed.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
 import { ThemeService } from '../../../service/theme.service';
@@ -32,6 +33,7 @@ export class SettingsSetupPage implements OnInit {
   constructor(
     public admin: AdminService,
     private theme: ThemeService,
+    public oembed: OEmbedService,
     public store: Store,
     private plugins: PluginService,
     private templates: TemplateService,

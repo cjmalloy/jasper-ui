@@ -58,6 +58,7 @@ import { userTemplate } from '../template/user';
 import { getExtension, getHost } from '../util/hosts';
 import { hasPrefix, includesTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
+import { OEmbedService } from './api/oembed.service';
 import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
 import { AuthzService } from './authz.service';
@@ -154,6 +155,7 @@ export class AdminService {
     private plugins: PluginService,
     private templates: TemplateService,
     private exts: ExtService,
+    private oembed: OEmbedService,
     private store: Store,
   ) { }
 
@@ -210,6 +212,7 @@ export class AdminService {
       tag: this.store.account.localTag,
       origin: this.store.account.origin,
     }).pipe(
+      tap(() => this.oembed.defaults()),
       switchMap(() => concat(installs)),
       switchMap(() => this.init$)
     );
