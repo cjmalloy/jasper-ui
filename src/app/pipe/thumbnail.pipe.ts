@@ -14,7 +14,7 @@ export class ThumbnailPipe implements PipeTransform {
     private store: OembedStore,
   ) { }
 
-  transform(refs: (Ref | undefined)[]): Observable<string> {
+  transform(refs: (Ref | undefined)[]): Observable<string | null> {
     for (const ref of refs) {
       if (!ref) continue;
       if (ref.plugins?.['plugin/thumbnail']?.url) return of(ref.plugins?.['plugin/thumbnail']?.url);
@@ -26,7 +26,7 @@ export class ThumbnailPipe implements PipeTransform {
             if (oembed?.thumbnail_url) {
               return oembed.thumbnail_url;
             }
-            return ref.url;
+            return null;
           }),
         );
       }
