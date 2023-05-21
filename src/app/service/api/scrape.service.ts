@@ -1,4 +1,4 @@
-import { HttpClient, HttpRequest } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
 import { catchError, map, Observable, of } from 'rxjs';
@@ -71,11 +71,11 @@ export class ScrapeService {
     );
   }
 
-  scrape(url: string): Observable<void> {
-    if (url.startsWith('data:')) return of();
-    if (this.cacheList.has(url)) return of();
+  scrape(url: string): Observable<null> {
+    if (url.startsWith('data:')) return of(null);
+    if (this.cacheList.has(url)) return of(null);
     this.cacheList.add(url);
-    return this.http.get<void>(this.base, {
+    return this.http.get<null>(this.base, {
       params: params({ url }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
@@ -92,8 +92,9 @@ export class ScrapeService {
   }
 
   getFetch(url: string) {
-    if (url.startsWith('data:')) return url;
-    if (this.store.account.user) this.scrape(url).subscribe();
-    return `${this.base}/fetch?url=${encodeURIComponent(url)}`;
+    if (url.startsWith('data:')) return of(url);
+    const fetchUrl = `${this.base}/fetch?url=${encodeURIComponent(url)}`;
+    if (this.store.account.user) return this.scrape(url).pipe(map(() => fetchUrl));
+    return of(fetchUrl);
   }
 }

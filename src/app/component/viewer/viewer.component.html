@@ -18,7 +18,7 @@
 </div>
 <div *ngIf="image || currentTags.includes('plugin/image')"
      class="image-expand"
-     [appImageDim]="imageUrl"
+     [appImageDim]="imageUrl | async"
      [defaultWidth]="ref?.plugins?.['plugin/image']?.width"
      [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
      appResize></div>
@@ -27,13 +27,13 @@
        autoplay
        controls
        appResize>
-  <source [src]="videoUrl">
+  <source [src]="videoUrl | async">
 </video>
 <audio *ngIf="currentTags.includes('plugin/audio')"
        class="audio-expand"
        autoplay
        controls>
-  <source [src]="audioUrl">
+  <source [src]="audioUrl | async">
 </audio>
 <app-qr *ngIf="currentTags.includes('plugin/qr')"
         [url]="ref?.plugins?.['plugin/qr']?.url || ref?.url"

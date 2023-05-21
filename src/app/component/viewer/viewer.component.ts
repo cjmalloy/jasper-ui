@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostBinding, Inject, Input, ViewChild, ViewContainerRef } from '@angular/core';
 import { defer, without } from 'lodash-es';
-import { catchError, of } from 'rxjs';
+import { of } from 'rxjs';
 import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
@@ -124,20 +124,20 @@ export class ViewerComponent {
   }
 
   get audioUrl() {
-    const url = this.image || this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
-    if (!this.admin.status.plugins.audio?.config?.cache) return url;
+    const url: string = this.image || this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
+    if (!this.admin.status.plugins.audio?.config?.cache) return of(url);
     return this.scraper.getFetch(url);
   }
 
   get videoUrl() {
-    const url = this.image || this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
-    if (!this.admin.status.plugins.video?.config?.cache) return url;
+    const url: string = this.image || this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
+    if (!this.admin.status.plugins.video?.config?.cache) return of(url);
     return this.scraper.getFetch(url);
   }
 
   get imageUrl() {
-    const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
-    if (!this.admin.status.plugins.image?.config?.cache) return url;
+    const url: string = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
+    if (!this.admin.status.plugins.image?.config?.cache) return of(url);
     return this.scraper.getFetch(url);
   }
 
