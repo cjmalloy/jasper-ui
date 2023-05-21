@@ -50,6 +50,8 @@ export function getUser(mailbox: string): string | undefined {
   if (mailbox.startsWith('plugin/inbox/')) return '+' + mailbox.substring('plugin/inbox/'.length);
   if (mailbox.startsWith('_plugin/outbox/')) return reverseOrigin('_' + mailbox.substring('_plugin/outbox/'.length));
   if (mailbox.startsWith('plugin/outbox/')) return reverseOrigin('+' + mailbox.substring('plugin/outbox/'.length));
+  if (mailbox.startsWith('_plugin/from/')) return reverseOrigin('_' + mailbox.substring('_plugin/from/'.length));
+  if (mailbox.startsWith('plugin/from/')) return reverseOrigin('+' + mailbox.substring('plugin/from/'.length));
   return undefined;
 }
 
