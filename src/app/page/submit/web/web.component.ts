@@ -114,6 +114,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
             });
           }
           this.oembeds.get(url).subscribe(oembed => {
+            if (!oembed) return;
             this.addTag('plugin/embed');
             if (oembed?.thumbnail_url) {
               this.addTag('plugin/thumbnail');
