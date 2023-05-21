@@ -1,6 +1,5 @@
 import { Component, ElementRef, HostBinding, Inject, Input, ViewChild, ViewContainerRef } from '@angular/core';
 import { defer, without } from 'lodash-es';
-import { catchError, of } from 'rxjs';
 import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';

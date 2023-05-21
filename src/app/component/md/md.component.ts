@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { debounce } from 'lodash-es';
+import { defer } from 'lodash-es';
 import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
 import { AdminService } from '../../service/admin.service';
@@ -61,8 +61,8 @@ export class MdComponent implements OnInit {
     return this._value = this._text;
   }
 
-  onReady = debounce(() => {
-    this.postProcessMarkdown.next();
-  }, 3000);
+  onReady() {
+    defer(() => this.postProcessMarkdown.next());
+  }
 
 }

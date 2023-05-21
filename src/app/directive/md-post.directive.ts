@@ -1,4 +1,4 @@
-import { AfterViewInit, ComponentRef, Directive, Inject, Input, OnDestroy, ViewContainerRef } from '@angular/core';
+import { ComponentRef, Directive, Inject, Input, OnDestroy, OnInit, ViewContainerRef } from '@angular/core';
 import { defer, isString } from 'lodash-es';
 import { Subject } from 'rxjs';
 import { RefListComponent } from '../component/ref/ref-list/ref-list.component';
@@ -15,7 +15,7 @@ import { Embed } from '../util/embed';
 @Directive({
   selector: '[appMdPost]'
 })
-export class MdPostDirective implements AfterViewInit, OnDestroy, Embed {
+export class MdPostDirective implements OnInit, OnDestroy, Embed {
 
   @Input('appMdPost')
   load?: Subject<void> | string;
@@ -32,8 +32,7 @@ export class MdPostDirective implements AfterViewInit, OnDestroy, Embed {
     @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
   ) { }
 
-  ngAfterViewInit(): void {
-    this.postProcess();
+  ngOnInit(): void {
     if (this.load && typeof this.load !== 'string') {
       this.load.subscribe(() => this.postProcess())
     }
