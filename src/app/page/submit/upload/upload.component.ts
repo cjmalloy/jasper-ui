@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { defer, delay, pick } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, firstValueFrom, forkJoin, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, lastValueFrom, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
 import { Ext, mapTag } from '../../../model/ext';
@@ -204,7 +204,7 @@ export class UploadPage implements OnDestroy {
       ...this.store.submit.exts.map(ext => this.uploadExt(ext)),
       ...this.store.submit.refs.map(ref => this.uploadRef(ref)),
     ];
-    return firstValueFrom(forkJoin(uploads))
+    return lastValueFrom(concat(uploads))
       .then(() => delay(() => this.postNavigate(), 1000))
       .catch(() => null)
       .then(() => this.processing = false);

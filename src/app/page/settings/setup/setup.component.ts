@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { forOwn, mapValues } from 'lodash-es';
-import { catchError, forkJoin, retry, switchMap, throwError } from 'rxjs';
+import { catchError, concat, retry, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
@@ -87,7 +87,7 @@ export class SettingsSetupPage implements OnInit {
         installs.push(this.templates.delete(status.tag + status.origin));
       }
     }
-    forkJoin(installs).pipe(
+    concat(installs).pipe(
       switchMap(() => this.admin.init$),
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
@@ -108,7 +108,7 @@ export class SettingsSetupPage implements OnInit {
     for (const template in this.admin.status.templates) {
       if (this.needsTemplateUpdate(template)) updates.push(this.updateTemplate$(template));
     }
-    forkJoin(updates).pipe(
+    concat(updates).pipe(
       switchMap(() => this.admin.init$),
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);

@@ -1,7 +1,7 @@
-import { HttpClient, HttpRequest } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { mapRef, Ref } from '../../model/ref';
 import { Store } from '../../store/store';
@@ -15,6 +15,8 @@ import { LoginService } from '../login.service';
 export class ScrapeService {
 
   private cacheList = new Set<string>();
+
+  private scraping: string[] = [];
 
   constructor(
     private http: HttpClient,
@@ -71,15 +73,23 @@ export class ScrapeService {
     );
   }
 
-  scrape(url: string): Observable<void> {
-    if (url.startsWith('data:')) return of();
-    if (this.cacheList.has(url)) return of();
+  scrape(url: string) {
+    if (url.startsWith('data:')) return;
+    if (this.cacheList.has(url)) return;
     this.cacheList.add(url);
-    return this.http.get<void>(this.base, {
-      params: params({ url }),
-    }).pipe(
-      catchError(err => this.login.handleHttpError(err)),
-    );
+    const sub = new Subject<null>();
+    const s = () => {
+      this.http.get<null>(this.base, {
+        params: params({ url: this.scraping[0] }),
+      }).pipe(
+        catchError(() => of(null)),
+      ).subscribe(() => {
+        this.scraping.shift();
+        if (this.scraping.length) s();
+      });
+    };
+    this.scraping.push(url);
+    if (this.scraping.length === 1) s();
   }
 
   cache(file: File): Observable<string> {

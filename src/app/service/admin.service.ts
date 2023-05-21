@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { findKey, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';
 import { Config, Tag } from '../model/tag';
@@ -210,7 +210,7 @@ export class AdminService {
       tag: this.store.account.localTag,
       origin: this.store.account.origin,
     }).pipe(
-      switchMap(() => forkJoin(installs)),
+      switchMap(() => concat(installs)),
       switchMap(() => this.init$)
     );
   }

@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { intersection, map, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, forkJoin, Observable, of } from 'rxjs';
+import { catchError, Observable, of, switchMap } from 'rxjs';
 import { Action, sortOrder } from '../../model/tag';
 import { deleteNotice } from '../../plugin/delete';
 import { ActionService } from '../../service/action.service';
@@ -89,12 +89,18 @@ export class BulkComponent implements OnInit, OnDestroy {
   batch(fn: (e: any) => Observable<any> | void) {
     if (this.batchRunning) return;
     this.batchRunning = true;
-    forkJoin(this.queryStore.page!.content.map(e => (fn(e) || of(null)).pipe(
+    const stack = this.queryStore.page!.content;
+    const pop = () => {
+      if (!stack.length) return of(null);
+      let top = stack.pop();
+      return (fn(top) || of(null)).pipe(switchMap(() => pop()));
+    }
+    pop().pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.push(...printError(err));
         return of(null);
       }),
-    ))).subscribe(() => {
+    ).subscribe(() => {
       this.queryStore.refresh();
       this.batchRunning = false;
     });

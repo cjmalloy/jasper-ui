@@ -181,7 +181,7 @@ export class SubmitPage implements OnInit, OnDestroy {
         map(res => res ? null : { error: v.name }),
       ));
     }
-    return forkJoin(...vs).pipe(
+    return forkJoin(vs).pipe(
       mergeMap(res => of(...res)),
       scan((acc, value) => value ? { ...acc, ...value } : acc, {}),
     );

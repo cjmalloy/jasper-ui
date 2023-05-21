@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
-import { catchError, forkJoin, map, Observable, of, shareReplay } from 'rxjs';
+import { catchError, concat, map, Observable, of, shareReplay, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext, mapTag, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
@@ -60,9 +60,9 @@ export class ExtService {
     );
   }
 
-  getCachedExts(tags: string[]) {
+  getCachedExts(tags: string[]): Observable<Ext[]> {
     if (!tags) return of([]);
-    return forkJoin(tags.map(t => this.getCachedExt(t)));
+    return concat(...tags.map(t => this.getCachedExt(t))).pipe(toArray());
   }
 
   getCachedExt(tag: string) {

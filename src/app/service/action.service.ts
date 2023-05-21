@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { without } from 'lodash-es';
-import { forkJoin } from 'rxjs';
+import { concat } from 'rxjs';
 import { Ref } from '../model/ref';
 import { Action, active, EmitAction, emitModels, EventAction, ResponseAction, TagAction } from '../model/tag';
 import { Store } from '../store/store';
@@ -50,7 +50,7 @@ export class ActionService {
       ...models.ref.map(ref=>  this.refs.create(ref)),
       ...models.ext.map(ext => this.exts.create(ext)),
     ];
-    forkJoin(uploads).subscribe();
+    concat(uploads).subscribe();
   }
 
   tag(ref: Ref, a: TagAction) {

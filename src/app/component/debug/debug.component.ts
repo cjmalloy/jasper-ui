@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, concatMap, forkJoin, generate, Observable, of } from 'rxjs';
+import { catchError, concat, concatMap, generate, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { AdminService } from '../../service/admin.service';
@@ -53,7 +53,7 @@ export class DebugComponent {
   batch(fn: (e: any) => Observable<any>) {
     if (this.batchRunning) return;
     this.batchRunning = true;
-    forkJoin(this.query.page!.content.map(e => fn(e).pipe(
+    concat(this.query.page!.content.map(e => fn(e).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.push(...printError(err));
         return of(null);
