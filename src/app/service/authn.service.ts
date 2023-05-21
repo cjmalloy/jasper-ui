@@ -1,6 +1,7 @@
 import { Injectable, Optional } from '@angular/core';
 import { Router } from '@angular/router';
 import { OAuthModuleConfig, OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
+import { defer } from 'lodash-es';
 import { filter, from, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { ConfigService } from './config.service';
@@ -62,7 +63,7 @@ export class AuthnService {
 
   logIn() {
     if (this.clientAuth) {
-      this.oauth.initLoginFlow(this.router.url);
+      defer(() => this.oauth.initLoginFlow(this.router.url));
     } else if (this.config.login) {
       // @ts-ignore
       window.location = this.config.loginLink;
