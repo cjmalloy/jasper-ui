@@ -103,7 +103,7 @@ export class ScrapeService {
 
   getFetch(url: string) {
     if (url.startsWith('data:')) return url;
-    if (this.store.account.user) this.scrape(url).subscribe();
+    if (this.store.account.user) this.scrape(url);
     return `${this.base}/fetch?url=${encodeURIComponent(url)}`;
   }
 }
