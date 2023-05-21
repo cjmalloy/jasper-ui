@@ -85,14 +85,14 @@ export class CustomUrlSerializer implements UrlSerializer {
 
   serialize(tree: UrlTree) {
     const url = dus.serialize(tree);
-    if (tree.root.children.primary?.segments[0]?.path === 'ref' && tree.root.children.primary?.segments.length === 2) {
+    if (tree.root.children.primary?.segments[0]?.path === 'ref' && tree.root.children.primary.segments.length === 2) {
       if (!this.getExtras(url)) {
-        return '/ref/' + tree.root.children.primary?.segments[1].path;
+        return '/ref/' + tree.root.children.primary.segments[1].path;
       } else {
         return '/ref/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
       }
     }
-    if (tree.root.children.primary?.segments[0]?.path === 'ref' && tree.root.children.primary?.segments.length === 3) {
+    if (tree.root.children.primary?.segments[0]?.path === 'ref' && tree.root.children.primary.segments.length === 3) {
       if (!this.getExtras(url)) {
         return '/ref/' + tree.root.children.primary.segments[2].path + '/' + tree.root.children.primary.segments[1].path;
       } else {
@@ -101,7 +101,7 @@ export class CustomUrlSerializer implements UrlSerializer {
     }
     for (let page of ['tag', 'tags', 'ext', 'user', 'settings/ref']) {
       const parts = (page.match(/\//g)?.length || 0) + 1;
-      if (tree.root.children.primary?.segments.length <= parts) continue;
+      if ((tree.root.children.primary?.segments?.length || 0) <= parts) continue;
       const path = tree.root.children.primary.segments.slice(0, parts).map(s => s.path).join('/');
       if (path === page) {
         return `/${page}/` + tree.root.children.primary.segments[parts].path + this.getExtras(url);
