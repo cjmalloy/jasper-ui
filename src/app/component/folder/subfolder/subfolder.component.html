@@ -1,6 +1,6 @@
 <div class="folder-icon"
      *ngIf="thumbnail else defaultThumbnail"
-     [style.background-image]="cssUrl(thumbnail)"></div>
+     [style.background-image]="cssUrl(thumbnail) | async"></div>
 <ng-template #defaultThumbnail>
   <div class="folder-icon default-folder">
     <span>📂️</span>

@@ -1,4 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { lastValueFrom } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { Action, Icon, sortOrder } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
@@ -90,10 +91,10 @@ export class FileComponent implements OnInit {
       hasTag('plugin/thumbnail', this.ref);
   }
 
-  cssUrl(url: string | null) {
+  async cssUrl(url: string | null) {
     if (!url) return '';
     if (this.admin.status.plugins.thumbnail?.config?.cache) {
-      url = this.scraper.getFetch(url);
+      url = await lastValueFrom(this.scraper.getFetch(url));
     }
     return `url('${url}')`;
   }

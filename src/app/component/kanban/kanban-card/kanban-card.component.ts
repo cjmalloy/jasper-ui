@@ -1,4 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { lastValueFrom } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -49,10 +50,10 @@ export class KanbanCardComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  cssUrl(url: string | null) {
+  async cssUrl(url: string | null) {
     if (!url) return '';
     if (this.admin.status.plugins.thumbnail?.config?.cache) {
-      url = this.scraper.getFetch(url);
+      url = await lastValueFrom(this.scraper.getFetch(url));
     }
     return `url('${url}')`;
   }

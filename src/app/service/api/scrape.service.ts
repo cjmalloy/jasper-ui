@@ -1,7 +1,7 @@
-import { HttpClient, HttpRequest } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of, shareReplay } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { mapRef, Ref } from '../../model/ref';
 import { Store } from '../../store/store';
@@ -14,7 +14,7 @@ import { LoginService } from '../login.service';
 })
 export class ScrapeService {
 
-  private cacheList = new Set<string>();
+  private cacheList = new Map<string, Observable<null>>();
 
   constructor(
     private http: HttpClient,
@@ -42,7 +42,7 @@ export class ScrapeService {
   }
 
   webScrape(url: string): Observable<Ref> {
-    this.cacheList.add(url);
+    this.cacheList.set(url, of(null));
     return this.http.get<Ref>(`${this.base}/web`, {
       params: params({ url }),
     }).pipe(
@@ -52,7 +52,7 @@ export class ScrapeService {
   }
 
   fetch(url: string): Observable<string> {
-    this.cacheList.add(url);
+    this.cacheList.set(url, of(null));
     return this.http.get(`${this.base}/fetch`, {
       params: params({ url }),
       responseType: 'text'
@@ -62,7 +62,7 @@ export class ScrapeService {
   }
 
   rss(url: string): Observable<string> {
-    this.cacheList.add(url);
+    this.cacheList.set(url, of(null));
     return this.http.get(`${this.base}/rss`, {
       params: params({ url }),
       responseType: 'text'
@@ -71,29 +71,32 @@ export class ScrapeService {
     );
   }
 
-  scrape(url: string): Observable<void> {
-    if (url.startsWith('data:')) return of();
-    if (this.cacheList.has(url)) return of();
-    this.cacheList.add(url);
-    return this.http.get<void>(this.base, {
-      params: params({ url }),
-    }).pipe(
-      catchError(err => this.login.handleHttpError(err)),
-    );
+  scrape(url: string): Observable<null> {
+    if (url.startsWith('data:')) return of(null);
+    if (!this.cacheList.has(url)) {
+      this.cacheList.set(url, this.http.get<null>(this.base, {
+        params: params({ url }),
+      }).pipe(
+        catchError(err => this.login.handleHttpError(err)),
+        shareReplay(1),
+      ));
+    }
+    return this.cacheList.get(url)!;
   }
 
   cache(file: File): Observable<string> {
     return this.http.post(`${this.base}/cache`, file, {
       responseType: 'text'
     }).pipe(
-      tap(url => this.cacheList.add(url)),
+      tap(url => this.cacheList.set(url, of(null))),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
   getFetch(url: string) {
-    if (url.startsWith('data:')) return url;
-    if (this.store.account.user) this.scrape(url).subscribe();
-    return `${this.base}/fetch?url=${encodeURIComponent(url)}`;
+    if (url.startsWith('data:')) return of(url);
+    const fetchUrl = `${this.base}/fetch?url=${encodeURIComponent(url)}`;
+    if (this.store.account.user) return this.scrape(url).pipe(map(() => fetchUrl));
+    return of(fetchUrl);
   }
 }

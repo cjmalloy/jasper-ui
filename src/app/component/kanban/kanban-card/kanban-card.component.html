@@ -2,7 +2,7 @@
   <ng-container *ngIf="thumbnail">
     <div class="thumbnail"
          *ngIf="thumbnailUrl else defaultThumbnail"
-         [style.background-image]="cssUrl([repostRef, ref] | thumbnail | async)"
+         [style.background-image]="cssUrl([repostRef, ref] | thumbnail | async) | async"
          [style.border-radius]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     <ng-template #defaultThumbnail>
       <div class="thumbnail"

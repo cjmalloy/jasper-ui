@@ -1,4 +1,5 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { lastValueFrom } from 'rxjs';
 import { Action, Icon } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
@@ -38,10 +39,10 @@ export class SubfolderComponent implements OnInit {
     return '';
   }
 
-  cssUrl(url: string) {
+  async cssUrl(url: string | null) {
     if (!url) return '';
     if (this.admin.status.plugins.thumbnail?.config?.cache) {
-      url = this.scraper.getFetch(url);
+      url = await lastValueFrom(this.scraper.getFetch(url));
     }
     return `url('${url}')`;
   }

@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { defer, pick, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, throwError } from 'rxjs';
+import { catchError, lastValueFrom, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
@@ -719,10 +719,10 @@ export class RefComponent implements OnInit, OnDestroy {
     this.deleted = true;
   }
 
-  cssUrl(url: string | null) {
+  async cssUrl(url: string | null) {
     if (!url) return '';
     if (this.admin.status.plugins.thumbnail?.config?.cache) {
-      url = this.scraper.getFetch(url);
+      url = await lastValueFrom(this.scraper.getFetch(url));
     }
     return `url('${url}')`;
   }
