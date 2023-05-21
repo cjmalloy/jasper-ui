@@ -71,7 +71,7 @@ body.dark-theme {
 
   .floating-ribbons {
     div span {
-        border: 1px dashed $border;
+      border: 1px dashed $border;
     }
     div.on span {
       border: 0.5px solid $border;
@@ -244,6 +244,13 @@ body.dark-theme {
     .list-number {
       color: $info;
     }
+  }
+
+  .log {
+    padding: 8px;
+    border-radius: 4px;
+    background-color: $card;
+    backdrop-filter: blur(1px);
   }
 
   .editor:focus-within, .bubble, .plugins-form > * {

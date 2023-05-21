@@ -20,6 +20,10 @@ $tablet-width: 960px;
       margin: auto;
     }
   }
+
+  .mobile-block, .mobile-inline {
+    display: none !important;
+  }
 }
 
 
@@ -93,6 +97,19 @@ $tablet-width: 960px;
 
 /* Phone Screens */
 @media (max-width: $mobile-width) {
+  .mobile-col {
+    flex-direction: column;
+  }
+  .mobile-hide {
+    display: none !important;
+  }
+  .mobile-block {
+    display: block !important;
+  }
+  .mobile-inline {
+    display: inline !important;
+  }
+
   .tabs {
     h5 {
       flex-basis: 100%;

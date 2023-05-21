@@ -234,6 +234,13 @@ body.light-theme {
     }
   }
 
+  .log {
+    padding: 8px;
+    border-radius: 4px;
+    background-color: $card;
+    backdrop-filter: blur(1px);
+  }
+
   .editor:focus-within, .bubble, .plugins-form > * {
     border-radius: 8px;
     backdrop-filter: blur(1px) sepia(5%);
