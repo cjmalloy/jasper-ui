@@ -50,7 +50,7 @@ export class ActionService {
       ...models.ref.map(ref=>  this.refs.create(ref)),
       ...models.ext.map(ext => this.exts.create(ext)),
     ];
-    concat(uploads).subscribe();
+    concat(...uploads).subscribe();
   }
 
   tag(ref: Ref, a: TagAction) {

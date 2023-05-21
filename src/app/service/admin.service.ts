@@ -213,7 +213,7 @@ export class AdminService {
       origin: this.store.account.origin,
     }).pipe(
       tap(() => this.oembed.defaults()),
-      switchMap(() => concat(installs)),
+      switchMap(() => concat(...installs)),
       switchMap(() => this.init$)
     );
   }

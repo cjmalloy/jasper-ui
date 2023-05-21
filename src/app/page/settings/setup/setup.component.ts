@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { forOwn, mapValues } from 'lodash-es';
-import { catchError, concat, retry, switchMap, throwError } from 'rxjs';
+import { catchError, concat, Observable, retry, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AdminService } from '../../../service/admin.service';
 import { OEmbedService } from '../../../service/api/oembed.service';
@@ -58,7 +58,7 @@ export class SettingsSetupPage implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    const installs = [];
+    const installs: Observable<any>[] = [];
     for (const plugin in this.admin.status.plugins) {
       if (!!this.admin.status.plugins[plugin] === !!this.adminForm.value.plugins[plugin]) continue;
       const def = this.admin.def.plugins[plugin];
@@ -89,15 +89,14 @@ export class SettingsSetupPage implements OnInit {
         installs.push(this.templates.delete(status.tag + status.origin));
       }
     }
-    concat(installs).pipe(
-      switchMap(() => this.admin.init$),
+    concat(...installs).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
       this.submitted = true;
-      this.adminForm.reset(this.admin.status);
+      this.admin.init$.subscribe(() => this.adminForm.reset(this.admin.status));
       this.installMessages.push($localize`Success.`);
     });
   }
@@ -110,14 +109,14 @@ export class SettingsSetupPage implements OnInit {
     for (const template in this.admin.status.templates) {
       if (this.needsTemplateUpdate(template)) updates.push(this.updateTemplate$(template));
     }
-    concat(updates).pipe(
-      switchMap(() => this.admin.init$),
+    concat(...updates).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
       this.submitted = true;
+      this.admin.init$.subscribe(() => this.adminForm.reset(this.admin.status));
       this.adminForm.reset(this.admin.status);
       this.installMessages.push($localize`Success.`);
     });
@@ -132,8 +131,10 @@ export class SettingsSetupPage implements OnInit {
 
   updatePlugin(key: string) {
     this.updatePlugin$(key).pipe(
-      switchMap(() => this.admin.init$)
-    ).subscribe(() => this.adminForm.reset(this.admin.status));
+    ).subscribe(() => {
+      this.admin.init$.subscribe(() => this.adminForm.reset(this.admin.status));
+      this.adminForm.reset(this.admin.status)
+    });
   }
 
   updateTemplate(key: string) {

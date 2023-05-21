@@ -204,7 +204,7 @@ export class UploadPage implements OnDestroy {
       ...this.store.submit.exts.map(ext => this.uploadExt(ext)),
       ...this.store.submit.refs.map(ref => this.uploadRef(ref)),
     ];
-    return lastValueFrom(concat(uploads))
+    return lastValueFrom(concat(...uploads))
       .then(() => delay(() => this.postNavigate(), 1000))
       .catch(() => null)
       .then(() => this.processing = false);

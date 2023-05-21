@@ -53,7 +53,7 @@ export class DebugComponent {
   batch(fn: (e: any) => Observable<any>) {
     if (this.batchRunning) return;
     this.batchRunning = true;
-    concat(this.query.page!.content.map(e => fn(e).pipe(
+    concat(...this.query.page!.content.map(e => fn(e).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.push(...printError(err));
         return of(null);
