@@ -6,6 +6,7 @@ import { tap } from 'rxjs/operators';
 import { isWiki } from '../../plugin/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { printError } from '../../util/http';
 import { hasTag } from '../../util/tag';
@@ -22,6 +23,7 @@ export class RefPage implements OnInit, OnDestroy {
   printError = printError;
 
   constructor(
+    public config: ConfigService,
     public admin: AdminService,
     public store: Store,
     private refs: RefService,

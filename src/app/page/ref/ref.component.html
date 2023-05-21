@@ -46,7 +46,7 @@
     <app-ref class="full-page"
              [ref]="store.view.ref"
              [showToggle]="true"
-             [expandInline]="true"
+             [expandInline]="!config.mobile"
              [expanded]="store.local.isRefToggled(store.view.url, store.view.origin, !!store.view.ref.comment)"></app-ref>
     <div *ngIf="refWarning"
          class="warning" i18n>
