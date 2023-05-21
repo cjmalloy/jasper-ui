@@ -90,7 +90,7 @@ export class BulkComponent implements OnInit, OnDestroy {
     if (this.batchRunning) return;
     this.batchRunning = true;
     const stack = this.queryStore.page!.content;
-    const pop = () => {
+    const pop = (): Observable<any> => {
       if (!stack.length) return of(null);
       let top = stack.pop();
       return (fn(top) || of(null)).pipe(switchMap(() => pop()));
