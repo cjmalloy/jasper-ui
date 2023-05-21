@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Injectable, Optional } from '@angular/core';
 import { Router } from '@angular/router';
 import { OAuthModuleConfig, OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
@@ -15,6 +16,7 @@ export class AuthnService {
     private oauth: OAuthService,
     private storage: OAuthStorage,
     private router: Router,
+    private location: Location,
     @Optional() private moduleConfig: OAuthModuleConfig,
   ) { }
 
@@ -62,7 +64,7 @@ export class AuthnService {
 
   logIn() {
     if (this.clientAuth) {
-      this.oauth.initLoginFlow(this.router.url);
+      this.oauth.initLoginFlow(this.location.path());
     } else if (this.config.login) {
       // @ts-ignore
       window.location = this.config.loginLink;
