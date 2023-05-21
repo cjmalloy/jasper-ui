@@ -277,17 +277,14 @@ export class UploadPage implements OnDestroy {
   }
 
   private postNavigate() {
+    if (this.store.submit.exts.length) {
+      return this.router.navigate(['/tag', this.store.submit.exts[0].tag]);
+    }
     if (this.store.submit.refs.length === 1) {
       return this.router.navigate(['/ref', this.store.submit.refs[0].url]);
     }
     if (this.store.submit.refs.length) {
       return this.router.navigate(['/tag', '*'], { queryParams: { sort: 'modified,DESC' } });
-    }
-    if (this.store.submit.exts.length === 1) {
-      return this.router.navigate(['/tag', this.store.submit.exts[0].tag]);
-    }
-    if (this.store.submit.exts.length) {
-      return this.router.navigate(['/settings', 'ext'], { queryParams: { sort: 'modified,DESC' } });
     }
     return null;
   }
