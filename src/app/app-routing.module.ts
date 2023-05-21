@@ -75,11 +75,10 @@ export class CustomUrlSerializer implements UrlSerializer {
         return dus.parse('/ref/' + this.stripParam(url.substring('/ref/e/'.length + refChildren[1].length + 1)) + '/' + refChildren[1] + this.getExtras(url));
       }
     }
-    if (url.startsWith('/tag/')) {
-      return dus.parse('/tag/' + this.encodeParam(url.substring('/tag/'.length)));
-    }
-    if (url.startsWith('/tags/')) {
-      return dus.parse('/tags/' + this.encodeParam(url.substring('/tags/'.length)));
+    for (const page of ['/tag/', '/tags/', '/ext/', '/user/', '/settings/ref/']) {
+      if (url.startsWith(page)) {
+        return dus.parse(page + this.encodeParam(url.substring(page.length)));
+      }
     }
     return dus.parse(url);
   }
@@ -100,11 +99,13 @@ export class CustomUrlSerializer implements UrlSerializer {
         return '/ref/' + tree.root.children.primary.segments[2].path + '/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
       }
     }
-    if (tree.root.children.primary?.segments[0]?.path === 'tag') {
-      return '/tag/' + tree.root.children.primary.segments[1].path + this.getExtras(url);
-    }
-    if (tree.root.children.primary?.segments[0]?.path === 'tags' && tree.root.children.primary?.segments.length === 2) {
-      return '/tags/' + tree.root.children.primary.segments[1].path + this.getExtras(url);
+    for (let page of ['tag', 'tags', 'ext', 'user', 'settings/ref']) {
+      const parts = (page.match(/\//g)?.length || 0) + 1;
+      if (tree.root.children.primary?.segments.length <= parts) continue;
+      const path = tree.root.children.primary.segments.slice(0, parts).map(s => s.path).join('/');
+      if (path === page) {
+        return `/${page}/` + tree.root.children.primary.segments[parts].path + this.getExtras(url);
+      }
     }
     return url;
   }
