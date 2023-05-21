@@ -38,6 +38,7 @@ export class ExtService {
 
   create(ext: Ext): Observable<void> {
     return this.http.post<void>(this.base, writeExt(ext)).pipe(
+      tap(() => this._cache.delete(ext.tag)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -46,6 +47,7 @@ export class ExtService {
     return this.http.post<void>(this.repl, [writeExt(ext)], {
       params: params({ origin }),
     }).pipe(
+      tap(() => this._cache.delete(ext.tag)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -101,7 +103,7 @@ export class ExtService {
 
   update(ext: Ext): Observable<void> {
     return this.http.put<void>(this.base, writeExt(ext)).pipe(
-      tap(() => this._cache.set(ext.tag + ext.origin, of(ext))),
+      tap(() => this._cache.delete(ext.tag)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -111,6 +113,7 @@ export class ExtService {
       headers: { 'Content-Type': 'application/json-patch+json' },
       params: params({ tag }),
     }).pipe(
+      tap(() => this._cache.delete(tag)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -119,6 +122,7 @@ export class ExtService {
     return this.http.delete<void>(this.base, {
       params: params({ tag }),
     }).pipe(
+      tap(() => this._cache.delete(tag)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
