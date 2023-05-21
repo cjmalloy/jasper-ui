@@ -20,6 +20,7 @@ export const userTemplate: Template = {
   },
   schema: {
     optionalProperties: {
+      liveSearch: { type: 'boolean' },
       email: { type: 'string' },
       lastNotified: { type: 'string' },
       subscriptions: { elements: { type: 'string' } },

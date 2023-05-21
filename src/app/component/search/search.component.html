@@ -5,5 +5,6 @@
          placeholder="Search {{ viewName(store.view.current) }}"
          [ngModel]="searchValue"
          (input)="searchValue = $any($event.target).value"
-         (keydown)="$event.key === 'Enter' && search() || true">
+         [incremental]="store.account.config.liveSearch"
+         (search)="search()">
 </ng-container>

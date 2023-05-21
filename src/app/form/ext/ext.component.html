@@ -11,6 +11,11 @@
 
   <ng-container [formGroup]="config">
 
+    <ng-container *ngIf="liveSearch">
+      <label for="liveSearch" i18n>Live Search:</label>
+      <div i18n-title title="Search as you type."><input id="liveSearch" type="checkbox" formControlName="liveSearch"></div>
+    </ng-container>
+
     <ng-container *ngIf="email">
       <label for="email" i18n>e-Mail Address:</label>
       <input id="email" type="email" formControlName="email">
