@@ -19,10 +19,10 @@
     </ng-container>
   </div>
   <div class="actions">
-    <a *ngIf="parent"
-       [routerLink]="['/tags', parent]" i18n>parent</a>
-    <a [routerLink]="['/tags', ext.tag]" i18n>tags</a>
     <ng-container *ngIf="!ext.upload">
+      <a *ngIf="parent"
+         [routerLink]="['/tags', parent]" i18n>parent</a>
+      <a [routerLink]="['/tags', ext.tag]" i18n>tags</a>
       <a *ngIf="!local"
          class="fake-link"
          (click)="copy()" i18n>copy</a>
@@ -48,7 +48,10 @@
     </span>
     </ng-container>
     <ng-container *ngIf="store.account.user && ext.upload">
-      <a class="fake-link" (click)="upload()" i18n>save</a>
+      <a class="fake-link" (click)="upload()" i18n>upload</a>
+      <a *ngIf="parent"
+         [routerLink]="['/tags', parent]" i18n>parent</a>
+      <a [routerLink]="['/tags', ext.tag]" i18n>tags</a>
       <a class="fake-link"
          (click)="editing = !editing" i18n>edit</a>
       <a class="fake-link"
