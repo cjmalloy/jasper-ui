@@ -67,7 +67,7 @@ export class EmbedService {
           const title = 'User ' + text;
           return {
             type: 'userTag',
-            href: '/tag/' + encodeURIComponent(text),
+            href: '/tag/' + text,
             text,
             title,
             raw: text,
@@ -91,7 +91,7 @@ export class EmbedService {
           const title = 'Hashtag ' + text;
           return {
             type: 'hashTag',
-            href: '/tag/' + encodeURIComponent(match[1]),
+            href: '/tag/' + match[1],
             text,
             title,
             raw: text,
