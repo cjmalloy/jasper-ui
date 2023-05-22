@@ -6,7 +6,9 @@
       <a routerLink="/home" [queryParams]="{ forYou : true }" routerLinkActive="current-page" i18n>for you</a> &bullet;
     </ng-container>
     <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a> &bullet;
-    <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a> &bullet;
+    <ng-container *ngIf="config.multiTenant">
+      <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a> &bullet;
+    </ng-container>
     <a [routerLink]="['/tags', store.view.noQuery]" [class.current-page]="store.view.tags" i18n>tags</a>
     <ng-container *ngIf="bookmarkExts$ | async as bookmarkExts; else bookNoExts">
       <ng-container *ngFor="let b of bookmarkExts">

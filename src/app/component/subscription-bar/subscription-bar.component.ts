@@ -2,6 +2,7 @@ import { Location } from '@angular/common';
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
+import { ConfigService } from '../../service/config.service';
 import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
 
@@ -17,6 +18,7 @@ export class SubscriptionBarComponent implements OnInit {
   private startIndex = navigation.currentEntry?.index || 0;
 
   constructor(
+    public config: ConfigService,
     public store: Store,
     public themes: ThemeService,
     public admin: AdminService,
