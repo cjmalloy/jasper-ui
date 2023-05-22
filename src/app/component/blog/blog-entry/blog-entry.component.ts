@@ -190,7 +190,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
 
   get tags() {
     let result = interestingTags(this.ref.tags);
-    if (!this.blog?.config.filterTags) return result;
+    if (!this.blog?.config?.filterTags) return result;
     return intersection(result, this.blog.config.tags || []);
   }
 
