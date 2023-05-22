@@ -421,6 +421,10 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get replyTags() {
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
+        ...(hasTag('plugin/email', this.store.view.ref) ? ['plugin/email', 'plugin/thread']
+        : hasTag('plugin/comment', this.store.view.ref) ? ['plugin/comment', 'plugin/thread']
+        : hasTag('plugin/thread', this.store.view.ref) ? ['plugin/thread']
+          : []),
       ...this.admin.reply.filter(p => (this.ref.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
       ...this.tags,

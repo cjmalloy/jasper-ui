@@ -1,11 +1,15 @@
 import { Component, HostBinding } from '@angular/core';
-import { defer } from 'lodash-es';
+import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { Subject } from 'rxjs';
+import { Ref } from '../../../model/ref';
+import { getMailbox, mailboxes } from '../../../plugin/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { hasTag, removeTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-thread',
@@ -16,6 +20,8 @@ export class RefThreadComponent {
   @HostBinding('class') css = 'thread';
 
   private disposers: IReactionDisposer[] = [];
+
+  newComments$ = new Subject<Ref | null>();
 
   constructor(
     private theme: ThemeService,
@@ -43,11 +49,39 @@ export class RefThreadComponent {
     this.disposers.push(autorun(() => {
       this.theme.setTitle($localize`Thread: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
+    this.newComments$.subscribe(c => {
+      if (c && this.store.view.ref) {
+        this.store.view.ref.metadata ||= {};
+        this.store.view.ref.metadata.plugins ||= {} as any;
+        this.store.view.ref.metadata.plugins!['plugin/thread'] ||= 0;
+        this.store.view.ref.metadata.plugins!['plugin/thread']++;
+      }
+    });
   }
 
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  get top() {
+    if (hasTag('plugin/comment', this.store.view.ref)) {
+      return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0];
+    }
+    return this.store.view.ref?.url;
+  }
+
+  get mailboxes() {
+    return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
+  }
+
+  get replyTags(): string[] {
+    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
+      'internal',
+      'plugin/thread',
+      ...this.admin.reply.filter(p => (this.store.view.ref!.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      ...this.mailboxes,
+    ]));
   }
 
 }

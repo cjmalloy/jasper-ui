@@ -1,6 +1,7 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import * as moment from 'moment';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { score } from '../../../plugin/vote';
@@ -10,8 +11,9 @@ import { score } from '../../../plugin/vote';
   templateUrl: './ref-list.component.html',
   styleUrls: ['./ref-list.component.scss'],
 })
-export class RefListComponent implements OnInit {
+export class RefListComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'ref-list';
+  private destroy$ = new Subject<void>();
 
   @Input()
   pinned?: Ref[] | null;
@@ -29,6 +31,10 @@ export class RefListComponent implements OnInit {
   showVotes = false;
   @Input()
   hideNewZeroVoteScores = true;
+  @Input()
+  newRefs$!: Observable<Ref | null>;
+
+  newRefs: Ref[] = [];
 
   private _page?: Page<Ref>;
 
@@ -54,6 +60,14 @@ export class RefListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.newRefs$.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(ref => ref && this.newRefs.push(ref));
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   getNumber(i: number) {

@@ -1,4 +1,15 @@
 <ng-container *mobxAutorun>
   <app-ref-list [page]="query.page"
+                [newRefs$]="newComments$"
                 [expanded]="true"></app-ref-list>
+  <ng-container *ngIf="store.view.ref; else loading">
+    <app-comment-reply [to]="store.view.ref"
+                       [top]="top"
+                       quote=""
+                       [tags]="replyTags"
+                       [newComments$]="newComments$"></app-comment-reply>
+  </ng-container>
+  <ng-template #loading>
+    <app-loading></app-loading>
+  </ng-template>
 </ng-container>

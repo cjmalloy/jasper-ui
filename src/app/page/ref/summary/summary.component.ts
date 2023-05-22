@@ -63,8 +63,14 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       if (c && this.store.view.ref) {
         this.store.view.ref.metadata ||= {};
         this.store.view.ref.metadata.plugins ||= {} as any;
-        this.store.view.ref.metadata.plugins!['plugin/comment'] ||= 0;
-        this.store.view.ref.metadata.plugins!['plugin/comment']++;
+        if (hasTag('plugin/comment', c)) {
+          this.store.view.ref.metadata.plugins!['plugin/comment'] ||= 0;
+          this.store.view.ref.metadata.plugins!['plugin/comment']++;
+        }
+        if (hasTag('plugin/thread', c)) {
+          this.store.view.ref.metadata.plugins!['plugin/thread'] ||= 0;
+          this.store.view.ref.metadata.plugins!['plugin/thread']++;
+        }
       }
     });
   }
@@ -113,8 +119,10 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   get replyTags(): string[] {
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
       'internal',
-      hasTag('plugin/email', this.store.view.ref) ? 'plugin/email' : 'plugin/comment',
       'plugin/thread',
+      hasTag('plugin/email', this.store.view.ref) ? 'plugin/email'
+        : hasTag('plugin/comment', this.store.view.ref) ? 'plugin/comment'
+          : 'plugin/thread',
       ...this.admin.reply.filter(p => (this.store.view.ref!.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ]));
