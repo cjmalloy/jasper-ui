@@ -24,4 +24,13 @@
     display: none;
   }
 
+  .print-images, .thumbnail {
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .image-expand {
+    max-width: 100% !important;
+  }
+
 }

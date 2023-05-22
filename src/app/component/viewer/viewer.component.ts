@@ -18,7 +18,7 @@ import { hasTag } from '../../util/tag';
   styleUrls: ['./viewer.component.scss']
 })
 export class ViewerComponent {
-  @HostBinding('class') css = 'embed';
+  @HostBinding('class') css = 'embed print-images';
 
   @Input()
   text? = '';
