@@ -32,7 +32,7 @@ export class RefListComponent implements OnInit, OnDestroy {
   @Input()
   hideNewZeroVoteScores = true;
   @Input()
-  newRefs$!: Observable<Ref | null>;
+  newRefs$?: Observable<Ref | null>;
 
   newRefs: Ref[] = [];
 
@@ -60,7 +60,7 @@ export class RefListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.newRefs$.pipe(
+    this.newRefs$?.pipe(
       takeUntil(this.destroy$),
     ).subscribe(ref => ref && this.newRefs.push(ref));
   }
