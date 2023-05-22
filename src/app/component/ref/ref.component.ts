@@ -35,7 +35,8 @@ import {
   TAGS_REGEX,
   templates,
   trimCommentForTitle,
-  urlSummary
+  urlSummary,
+  userAuthors
 } from '../../util/format';
 import { getScheme } from '../../util/hosts';
 import { printError } from '../../util/http';
@@ -391,6 +392,10 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get authors() {
     return authors(this.ref);
+  }
+
+  get userAuthors() {
+    return userAuthors(this.ref);
   }
 
   get authorExts$() {

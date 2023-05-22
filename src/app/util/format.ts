@@ -30,6 +30,10 @@ export function authors(ref: Ref) {
     ]);
 }
 
+export function userAuthors(ref: Ref) {
+  return uniq(templates(ref.tags || [], 'user').map(t => t + (ref.origin || '')));
+}
+
 export function clickableLink(url: string) {
   for (const v of config().allowedSchemes) {
     if (url.startsWith(v)) return true;
