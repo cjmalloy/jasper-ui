@@ -1,5 +1,9 @@
+// Mobile: Change tabs and forms
 $mobile-width: 740px;
-$tablet-width: 960px;
+// Mobile: Change tabs and forms
+$settings-tabs-width: 948px;
+// Tablet: Move sidebar above
+$tablet-width: 767px;
 
 /* Tablet and Bigger Screens */
 @media (min-width: $mobile-width) {
@@ -93,6 +97,18 @@ $tablet-width: 960px;
     }
   }
 }
+}
+
+/* Special width for settings tabs */
+@media (max-width: $settings-tabs-width) {
+  .settings .tabs {
+    & > a:not(.current-tab) {
+      display: none;
+    }
+    app-mobile-tab-select {
+      display: block;
+    }
+  }
 }
 
 /* Phone Screens */
