@@ -13,6 +13,9 @@ import { Store } from '../../store/store';
 export class SubscriptionBarComponent implements OnInit {
   @HostBinding('class') css = 'subscription-bar';
 
+  // @ts-ignore
+  private startIndex = navigation.currentEntry?.index || 0;
+
   constructor(
     public store: Store,
     public themes: ThemeService,
@@ -32,4 +35,10 @@ export class SubscriptionBarComponent implements OnInit {
     return this.exts.getCachedExts(this.store.account.subs);
   }
 
+  back() {
+    // @ts-ignore
+    const index = navigation.currentEntry?.index || 0;
+    console.log(index);
+    if (index > this.startIndex) this.location.back();
+  }
 }

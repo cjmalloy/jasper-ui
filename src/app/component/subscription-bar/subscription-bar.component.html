@@ -1,5 +1,5 @@
 <ng-container *mobxAutorun>
-  <span class="back-button" (click)="location.back()">🔙️</span>
+  <span class="back-button" (click)="back()">🔙️</span>
   <div class="subs">
     <a routerLink="/home" [class.current-page]="store.view.current === 'home' && !store.view.forYou" i18n>home</a> &bullet;
     <ng-container *ngIf="admin.status.templates.user">
