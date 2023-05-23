@@ -1,4 +1,5 @@
 import { filter, find, flatMap, without } from 'lodash-es';
+import { Ext } from '../model/ext';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
@@ -142,27 +143,10 @@ export function getPrefixes(tag: string) {
   return [tag, '+' + tag, '_' + tag].map(t => not ? '!' + t : t);
 }
 
-export type Crumb = {text: string, tag?: string};
-export function breadcrumbs(tag: string): Crumb[] {
-  if (!tag) return [];
-  return tag.split(/([:|()])/g).flatMap(t => {
-    if (/[:|()]/.test(t)) return [{ text: t }];
-    const crumbs: Crumb[] = localTag(t).split(/(\/)/g).map(t => ({ text: t }));
-    for (let i = 0; i < crumbs.length; i++) {
-      const previous = i > 1 ? crumbs[i-2].tag + '/' : '';
-      if (crumbs[i].text !== '/') {
-        crumbs[i].tag = previous + crumbs[i].text;
-      }
-    }
-    const origin = tagOrigin(t);
-    if (origin) {
-      for (const t of crumbs) {
-        if (t.tag) t.tag += origin;
-      }
-      crumbs.push({text: origin, tag: origin });
-    }
-    return crumbs;
-  });
+export function fixClientQuery(query: string) {
+  return query.toLowerCase()
+    .replace(/[\s|]+/g, '|')
+    .replace(/([^+|:!(])\+/g, '$1|');
 }
 
 export function isQuery(query?: string) {

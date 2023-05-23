@@ -1,6 +1,7 @@
 import { filter, uniq, without } from 'lodash-es';
 import { Filter, RefPageArgs, RefQueryArgs, RefSort } from '../model/ref';
 import { TagQueryArgs } from '../model/tag';
+import { fixClientQuery } from './tag';
 
 export const defaultDesc = ['created', 'published', 'modified', 'metadataModified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
 
@@ -48,7 +49,7 @@ export function getArgs(
     sort = [];
   }
   return {
-    query: query.replace(/\s/g, ''),
+    query: fixClientQuery(query),
     sort,
     search,
     page: pageNumber,
