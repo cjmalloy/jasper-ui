@@ -64,7 +64,7 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
 
   saveChanges() {
     // TODO: Just save in drafts
-    return !this.invoiceForm.dirty;
+    return !this.invoiceForm?.dirty;
   }
 
   ngOnInit(): void {

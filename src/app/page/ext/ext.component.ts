@@ -56,7 +56,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.editForm.dirty;
+    return !this.editForm?.dirty;
   }
 
   ngOnInit(): void {

@@ -64,7 +64,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   saveChanges() {
     // TODO: Just save in drafts
-    return !this.webForm.dirty;
+    return !this.webForm?.dirty;
   }
 
   ngAfterViewInit(): void {

@@ -62,7 +62,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   saveChanges() {
     // TODO: Just save in drafts
-    return !this.textForm.dirty;
+    return !this.textForm?.dirty;
   }
 
   ngAfterViewInit(): void {

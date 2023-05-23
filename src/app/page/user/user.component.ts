@@ -56,7 +56,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.profileForm.dirty;
+    return !this.profileForm?.dirty;
   }
 
   ngOnInit(): void {

@@ -56,7 +56,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   saveChanges() {
     // TODO: Just save in drafts
-    return !this.dmForm.dirty;
+    return !this.dmForm?.dirty;
   }
 
   ngAfterViewInit(): void {
