@@ -117,7 +117,7 @@ export class AccountService {
           .filter(s => !hasPrefix(s, 'user'))
       ]),
       map(uniq),
-      map(es => '!internal:(' + es.join('|') + ')'),
+      map(es => es.length === 0 ? 'none' : '!internal:(' + es.join('|') + ')'),
     );
   }
 
