@@ -44,9 +44,12 @@ import { UserPage } from './page/user/user.component';
 const dus = new DefaultUrlSerializer();
 export class CustomUrlSerializer implements UrlSerializer {
 
-  encodeParam(url: string) {
+  encodeTagParam(url: string) {
     const parts = new URL('http://test.com/' + url);
-    return encodeURIComponent(parts.pathname.substring(1)) + parts.search + parts.hash;
+    let path = parts.pathname.substring(1);
+    path = path.replace('%7C', '|');
+    path = encodeURIComponent(path);
+    return path + parts.search + parts.hash;
   }
 
   stripParam(url: string) {
@@ -77,7 +80,7 @@ export class CustomUrlSerializer implements UrlSerializer {
     }
     for (const page of ['/tag/', '/tags/', '/ext/', '/user/', '/settings/ref/']) {
       if (url.startsWith(page)) {
-        return dus.parse(page + this.encodeParam(url.substring(page.length)));
+        return dus.parse(page + this.encodeTagParam(url.substring(page.length)));
       }
     }
     return dus.parse(url);
