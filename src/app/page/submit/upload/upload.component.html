@@ -3,7 +3,7 @@
 
     <span></span>
     <div class="padded form-array">
-      <button type="button" (click)="upload.click()" i18n-title title="Upload Refs and Exts" i18n>+ upload</button>
+      <button type="button" (click)="upload.click()" i18n-title title="Upload Refs and Exts" i18n>+ add files</button>
       <input #upload type="file"
              accept=".json,.zip,.png,.jpg,.jpeg,.gif,.svg,.webp,.3gp,.mpg,.mpeg,.mp4,.m4v,.m4p,.webm,.ogv,.m3u8,.mov,.mp3,.aac,.flac,.m4a,.ogg,.wav,.xls,.xlsx,.csv,.odx,.txt"
              (change)="store.submit.setFiles($any(upload.files))"
@@ -16,7 +16,7 @@
     <ng-container *ngIf="!store.submit.empty">
       <span></span>
       <div class="padded form-array">
-        <button type="button" (click)="push()" i18n-title title="Save" i18n>submit all</button>
+        <button type="button" (click)="push()" i18n-title title="Save" i18n>upload all</button>
         <label for="overwrite" i18n>Overwrite existing</label>
         <div><input id="overwrite" type="checkbox" [(ngModel)]="store.submit.overwrite"></div>
       </div>
