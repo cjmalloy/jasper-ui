@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import * as moment from 'moment';
 import { tap } from 'rxjs/operators';
 
 export function config(): ConfigService {
@@ -11,7 +12,7 @@ export function config(): ConfigService {
   providedIn: 'root',
 })
 export class ConfigService {
-  version = 'debug';
+  version = moment().toISOString();
   title = 'Jasper';
   api = '//localhost:8081';
   electron = /electron/i.test(navigator.userAgent);
