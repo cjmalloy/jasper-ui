@@ -3,7 +3,7 @@
                 [newRefs$]="newComments$"
                 [expanded]="true"></app-ref-list>
   <ng-container *ngIf="store.view.ref; else loading">
-    <app-comment-reply [to]="store.view.ref"
+    <app-comment-reply [to]="query.page?.content?.[(query.page?.content?.length || 0) - 1] || store.view.ref"
                        [top]="top"
                        quote=""
                        [tags]="replyTags"
