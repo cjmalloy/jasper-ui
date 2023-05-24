@@ -132,6 +132,7 @@ export class CommentReplyComponent implements AfterViewInit {
       this.serverError = [];
       this.newComments$?.next({
         ...ref,
+        created: moment(),
         metadata: {
           plugins: {
             'plugin/vote/up': 1
