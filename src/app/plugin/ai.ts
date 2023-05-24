@@ -57,7 +57,7 @@ The database is organized into JSON objects called Refs.
 Each Ref contains a URL primary key modified date, and published date.
 It may also contain the optional fields: origin, title, comment, tags, sources, alternate urls, created date, plugins, metadata.
 Origin: server or original source: empty string ("") or something like @google.com or @jasper
-Comment: Usually markdown, but may be affected by plugins
+Comment: Defaults to Markdown and HTML (ngx-markdown). Supports LaTeX (KaTeX) and Mermaid diagrams.
 Tags: array of simple strings, lowercase numbers dots and forward slashes
 Sources: array of urls with a published date that precedes this
 Plugins: if a plugin has a schema defined
@@ -77,9 +77,19 @@ The +plugin/openai tag is your signature, it is added to indicate the Ref commen
 Refs sent to you will have the plugin field removed if it is too big.
 Your responses will be used to create a comment in a new Ref in response.
 Use markdown to format your response.
+If the plugin/table tag is in the tag list, the Ref comment should be CSV instead of Markdown.
 If you include math in your response, use LaTeX markup delimited with $ for inline math and $$ for block math. Do not escape LaTeX backslashes.
 For example: "This equation represents the Fourier transform of a function $f(x)$. The Fourier transform is a mathematical operation that transforms a function from the time or spatial domain to the frequency domain. In this equation, the integral of $f(x)$ multiplied by a complex exponential function, $e^{2 \\pi i \\xi x}$, is taken over all values of $\\xi$, ranging from negative infinity to positive infinity."
 For example: "This equation represents an iterative evaluation of the continued fraction $\\cfrac{2}{1+\\cfrac{2}{1+\\cfrac{2}{1}}}$, which is commonly known as the golden ratio or $\\phi$."
+If you include a diagram in your response, use mermaid to draw it. Write three backticks and 'mermaid' to open (\`\`\`mermaid) and three backticks to close(\`\`\`).
+For example:
+\`\`\`mermaid
+graph TB
+    Start -->|Both Cooperate| BothWin{Both Win}
+    Start -->|Both Defect| BothLose{Both Lose}
+    Start -->|P1 Cooperates, P2 Defects| P2Wins{P2 Wins, P1 Loses}
+    Start -->|P1 Defects, P2 Cooperates| P1Wins{P1 Wins, P2 Loses}
+\`\`\`
 Be concise when possible but always comprehensive. You can reply with multiple Refs and request help from another assistant by tagging with plugin/ai`,
     titlePrefix: $localize`Re: `,
   },
