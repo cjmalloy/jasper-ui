@@ -1,5 +1,19 @@
 
+
+.print-block, .print-inline {
+  display: none !important;
+}
+
 @media print {
+  .print-hide {
+    display: none !important;
+  }
+  .print-block {
+    display: block !important;
+  }
+  .print-inline {
+    display: inline !important;
+  }
 
   .login-popup,
   .subscription-bar,

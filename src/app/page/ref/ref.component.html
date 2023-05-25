@@ -5,34 +5,41 @@
        i18n>view</a>
     <ng-container *ngIf="store.view.ref?.created">
       <ng-container *ngIf="store.view.current === 'ref/comments' || comments">
+        <h5 *ngIf="store.view.current === 'ref/comments'" class="print-inline" i18n>Comments</h5>
         <a routerLink="comments" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Comments"
            i18n>comments</a>
       </ng-container>
       <ng-container *ngIf="store.view.current === 'ref/thread' || threads">
+        <h5 *ngIf="store.view.current === 'ref/thread'" class="print-inline" i18n>Threads</h5>
         <a routerLink="thread" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Threads"
            i18n>threads</a>
       </ng-container>
       <ng-container *ngIf="store.view.current === 'ref/responses' || responses">
+        <h5 *ngIf="store.view.current === 'ref/responses'" class="print-inline" i18n>Responses</h5>
         <a routerLink="responses" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Responses"
            i18n>responses</a>
       </ng-container>
       <ng-container *ngIf="store.view.current === 'ref/sources' || sources">
+        <h5 *ngIf="store.view.current === 'ref/sources'" class="print-inline" i18n>Sources</h5>
         <a routerLink="sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Sources"
            i18n>sources</a>
+        <h5 *ngIf="store.view.missingSources" class="print-inline" i18n>Missing Sources</h5>
         <a routerLink="missing" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Missing Sources"
            i18n>missing sources</a>
       </ng-container>
       <ng-container *ngIf="alts">
+        <h5 *ngIf="store.view.alternateUrls" class="print-inline" i18n>Alternate URLs</h5>
         <a routerLink="alts" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Alternate URLs"
            i18n>alts</a>
       </ng-container>
       <ng-container *ngIf="store.view.current === 'ref/versions' || error && store.view.versions || store.view.versions > 1">
+        <h5 *ngIf="store.view.current === 'ref/versions'" class="print-inline" i18n>Versions</h5>
         <a routerLink="versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Versions"
            i18n>versions</a>
