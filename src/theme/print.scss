@@ -22,9 +22,16 @@
       background: none !important;
   }
 
-  .print-images, .thumbnail {
+  .tabs,
+  .print-images,
+  .thumbnail {
     color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  .tabs {
+    background-color: unset !important;
+    background-image: url("~/assets/jasper-light.png") !important;
   }
 
   .image-expand {
