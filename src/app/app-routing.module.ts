@@ -114,10 +114,10 @@ export class CustomUrlSerializer implements UrlSerializer {
   }
 }
 
-const _stripTrailingSlash = Location.stripTrailingSlash;
-Location.stripTrailingSlash = (url) => {
+const _normalize = Location.prototype.normalize;
+Location.prototype.normalize = (url) => {
   if (url.startsWith('/ref/') && !/\/ref(\/\w\w+)?\/e\//.test(url)) return url;
-  return _stripTrailingSlash(url);
+  return _normalize.call(Location, url);
 };
 
 const routes: Routes = [
