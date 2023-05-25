@@ -48,12 +48,16 @@ export class EditorComponent implements AfterViewInit {
   @Input()
   autoFocus = false
   @Input()
+  showScrape = false
+  @Input()
   fillWidth?: HTMLElement;
 
   @Output()
   syncEditor = new EventEmitter<string>();
   @Output()
   syncTags = new EventEmitter<string[]>();
+  @Output()
+  scrape = new EventEmitter<void>();
 
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;

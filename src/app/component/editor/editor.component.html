@@ -15,6 +15,10 @@
       <span *ngIf="!fullscreen" i18n>📝️</span>
       <span *ngIf="fullscreen" i18n>/</span>
     </button>
+    <button *ngIf="showScrape"
+            type="button"
+            (click)="scrape.emit()"
+            i18n-title title="Scrape Webpage" i18n>🪝</button>
     <div *ngFor="let plugin of editorPlugins; let i = index" class="editor-plugin">
       <input type="checkbox"
              [style.display]="'none'"

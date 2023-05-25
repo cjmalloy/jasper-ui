@@ -4,6 +4,7 @@ import { defer } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -41,6 +42,7 @@ export class RefFormComponent implements OnInit {
   @ViewChild(PluginsFormComponent)
   plugins!: PluginsFormComponent;
 
+  oembed?: Oembed;
   scraped?: Ref;
 
   constructor(
@@ -96,7 +98,7 @@ export class RefFormComponent implements OnInit {
     );
   }
 
-  scrapeAll() {
+  scrapeTitle() {
     if (this.tags.includesTag('+plugin/feed')) return;
     this.scrape$.pipe(
       catchError(err => of({
@@ -105,28 +107,26 @@ export class RefFormComponent implements OnInit {
       })),
       switchMap(ref => this.oembeds.get(ref.url).pipe(
         map(oembed => {
+          this.oembed = oembed!;
           if (oembed) ref.title ||= oembed.title;
           return ref;
         }),
         catchError(err => of(ref)),
       )),
     ).subscribe((ref: Ref) => {
-      this.group.patchValue({
-        ...ref,
-        published: ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
-      });
-    });
-  }
-
-  scrapeTitle() {
-    this.scrape$.subscribe(ref => {
-      this.title.setValue(ref.title);
+      this.group.patchValue({ title: ref.title });
     });
   }
 
   scrapePublished() {
     this.scrape$.subscribe(ref => {
       this.published.setValue(ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS));
+    });
+  }
+
+  scrapeComment() {
+    this.scrape$.subscribe(ref => {
+      this.comment.setValue(ref.comment);
     });
   }
 

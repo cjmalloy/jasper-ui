@@ -40,6 +40,8 @@
                 [control]="comment"
                 [tags]="getTags()"
                 [fillWidth]="fill"
+                [showScrape]="web && !oembed"
+                (scrape)="scrapeComment()"
                 (syncEditor)="syncEditor()"
                 (syncTags)="editorTags.next($event)"></app-editor>
   </div>

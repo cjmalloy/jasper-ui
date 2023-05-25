@@ -130,7 +130,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         if (this.store.submit.source) {
           this.store.submit.sources.map(s => this.addSource(s));
         }
-        this.refForm!.scrapeAll();
+        this.refForm!.scrapeTitle();
       }));
     });
   }
