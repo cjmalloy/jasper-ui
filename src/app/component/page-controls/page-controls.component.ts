@@ -19,6 +19,12 @@ export class PageControlsComponent implements OnInit {
     private router: Router,
   ) { }
 
+
+  @HostBinding('class.print-hide')
+  get fullResults() {
+    return this.page.totalPages === 1;
+  }
+
   get hasQuery() {
     return !!window.location.search;
   }
