@@ -11,7 +11,7 @@
            i18n>comments</a>
       </ng-container>
       <ng-container *ngIf="store.view.current === 'ref/thread' || threads">
-        <h5 *ngIf="store.view.current === 'ref/thread'" class="print-inline" i18n>Threads</h5>
+        <h5 *ngIf="store.view.current === 'ref/thread'" class="print-inline" i18n>Thread</h5>
         <a routerLink="thread" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Threads"
            i18n>threads</a>
