@@ -7,8 +7,10 @@
   .tabs .settings,
   .sidebar,
   .toggle,
+  .actions,
   app-comment-reply,
-  app-mobile-tab-select {
+  app-mobile-tab-select,
+  footer {
     display: none !important;
   }
 
@@ -18,10 +20,6 @@
 
   body, .container {
       background: none !important;
-  }
-
-  footer {
-    display: none;
   }
 
   .print-images, .thumbnail {
