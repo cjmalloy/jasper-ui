@@ -115,9 +115,10 @@ export class CustomUrlSerializer implements UrlSerializer {
 }
 
 const _normalize = Location.prototype.normalize;
-Location.prototype.normalize = (url) => {
-  if (url.startsWith('/ref/') && !/\/ref(\/\w\w+)?\/e\//.test(url)) return url;
-  return _normalize.call(this, url);
+Location.prototype.normalize = function(url) {
+  const norm = _normalize.call(this, url);
+  if (norm.startsWith('/ref/') && !/\/ref(\/\w\w+)?\/e\//.test(url)) return url;
+  return norm;
 };
 
 const routes: Routes = [
