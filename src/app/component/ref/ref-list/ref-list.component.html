@@ -10,6 +10,7 @@
     <div class="list-number">{{ getNumber(i) }}</div>
     <app-ref [ref]="ref"
              [showToggle]="true"
+             [showAlarm]="showAlarm"
              [expanded]="expanded"></app-ref>
   </ng-container>
   <ng-container *ngFor="let ref of newRefs; let i = index">

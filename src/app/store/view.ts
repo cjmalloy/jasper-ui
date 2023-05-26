@@ -8,6 +8,7 @@ import { User } from '../model/user';
 import { UrlFilter } from '../util/query';
 import { hasPrefix, isQuery, localTag } from '../util/tag';
 import { EventBus } from './bus';
+import {AccountStore} from "./account";
 
 /**
  * ID for current view. Only includes pages that make queries.
@@ -38,6 +39,7 @@ export class ViewStore {
 
   constructor(
     public route: RouterStore,
+    private account: AccountStore,
     private eventBus: EventBus,
   ) {
     makeAutoObservable(this, {
@@ -174,6 +176,10 @@ export class ViewStore {
 
   get isTextPost() {
     return this.url?.startsWith('comment:');
+  }
+
+  get alarm(): boolean {
+    return this.account.alarms.includes(this.tag);
   }
 
   get tag(): string {
