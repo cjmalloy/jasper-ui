@@ -30,7 +30,7 @@ export class InboxAllPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        this.store.account.notificationsQuery,
+        this.store.account.inboxQuery,
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,

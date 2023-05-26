@@ -19,7 +19,7 @@ export class Store {
   eventBus = new EventBus();
   origins = new OriginStore();
   account = new AccountStore(this.origins);
-  view = new ViewStore(this.route, this.eventBus);
+  view = new ViewStore(this.route, this.account, this.eventBus);
   submit = new SubmitStore(this.route, this.eventBus);
   settings = new SettingsStore(this.route);
   graph = new GraphStore(this.route);

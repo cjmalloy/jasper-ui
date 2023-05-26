@@ -97,7 +97,7 @@
               </ng-container>
             </ng-template>
           </ng-container>
-          <span *ngIf="alarm" class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm ({{ alarm }})">🔔</span>
+          <span *ngIf="showAlarm && alarm" class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm ({{ alarm }})">🔔</span>
           <ng-container *ngFor="let icon of icons">
             <span *ngIf="showIcon(icon)"
                   class="icon"

@@ -24,6 +24,8 @@ export class RefListComponent implements OnInit, OnDestroy {
   @Input()
   graph = false;
   @Input()
+  showAlarm = true;
+  @Input()
   pageControls = true;
   @Input()
   emptyMessage = 'No results found';

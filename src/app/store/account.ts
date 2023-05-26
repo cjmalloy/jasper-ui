@@ -136,7 +136,7 @@ export class AccountStore {
       .map(([remote, localAlias]) => prefix('plugin/outbox', localAlias, this.localTag) + remote);
   }
 
-  get notificationsQuery() {
+  get inboxQuery() {
     if (!this.signedIn) return undefined;
     let tags = [this.mailbox];
     if (this.origin) {
@@ -148,10 +148,13 @@ export class AccountStore {
     if (this.outboxes?.length) {
       tags.push(...this.outboxes);
     }
-    if (this.config.alarms) {
-      tags.push(...this.config.alarms)
-    }
     return uniq(tags).join('|');
+  }
+
+  get notificationsQuery() {
+    if (!this.signedIn) return undefined;
+    const alarms = this.config.alarms?.length ? '|' + this.config.alarms.join('|') : '';
+    return `!${this.tag}:(` + this.inboxQuery + ')' + alarms;
   }
 
   get subscriptionQuery() {

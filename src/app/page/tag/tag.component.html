@@ -33,6 +33,7 @@
                   [pinned]="store.view.pinned"
                   [tag]="store.view.tag"
                   [graph]="store.view.graph"
+                  [showAlarm]="!store.view.alarm"
                   [showVotes]="store.view.isVoteSorted"></app-ref-list>
     <ng-template #tmpl>
       <app-folder *ngIf="store.view.isTemplate('folder')"

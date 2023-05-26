@@ -62,6 +62,8 @@ export class RefComponent implements OnInit, OnDestroy {
   @Input()
   showToggle = false;
   @Input()
+  showAlarm = true;
+  @Input()
   fetchRepost = true;
 
   repostRef?: Ref;
