@@ -47,7 +47,9 @@ export class AuthnService {
       preserveRequestedRoute: true,
       clearHashAfterLogin: true,
       requestAccessToken: !this.config.implicitFlow,
+      silentRefreshRedirectUri: window.location.origin + '/silent-refresh.html',
     });
+    this.oauth.setupAutomaticSilentRefresh();
     this.oauth.events.pipe(filter(e => e.type === 'logout')).subscribe(() => location.reload());
     if (this.config.implicitFlow) {
       this.oauth.events.pipe(filter(e => e.type === 'token_received')).subscribe(() => {
