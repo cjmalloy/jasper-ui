@@ -53,6 +53,7 @@ export class AuthnService {
       this.oauth.events.pipe(filter(e => e.type === 'token_received')).subscribe(() => {
         this.storage.setItem('access_token', this.storage.getItem('id_token')!);
         this.oauth.setupAutomaticSilentRefresh();
+        if (location.search == '?r=1') this.oauth.silentRefresh(); // Testing code
       });
     }
     return from(this.oauth.loadDiscoveryDocumentAndTryLogin()).pipe(
