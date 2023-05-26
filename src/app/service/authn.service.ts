@@ -52,6 +52,7 @@ export class AuthnService {
     if (this.config.implicitFlow) {
       this.oauth.events.pipe(filter(e => e.type === 'token_received')).subscribe(() => {
         this.storage.setItem('access_token', this.storage.getItem('id_token')!);
+        this.oauth.setupAutomaticSilentRefresh();
       });
     }
     return from(this.oauth.loadDiscoveryDocumentAndTryLogin()).pipe(
