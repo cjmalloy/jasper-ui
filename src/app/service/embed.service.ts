@@ -217,8 +217,10 @@ export class EmbedService {
     }
     const images = el.querySelectorAll<HTMLImageElement>('img');
     images.forEach(t => {
-      const c = embed.createEmbed({url: t.src}, ['plugin/image']);
-      t.parentNode?.insertBefore(c.location.nativeElement, t);
+      if (t.src) {
+        const c = embed.createEmbed({url: t.src}, ['plugin/image']);
+        t.parentNode?.insertBefore(c.location.nativeElement, t);
+      }
       t.remove();
     });
     const inlineRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-ref');
