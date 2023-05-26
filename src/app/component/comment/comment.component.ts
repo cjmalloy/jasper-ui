@@ -170,16 +170,15 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get replyTags(): string[] {
-    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
+    const tags = [
       'internal',
-      'plugin/thread',
-      hasTag('plugin/email', this.store.view.ref) ? 'plugin/email'
-        : hasTag('plugin/comment', this.store.view.ref) ? 'plugin/comment'
-          : 'plugin/thread',
-      ...this.admin.reply.filter(p => (this.ref.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
-      ...this.tagged,
-    ]));
+    ];
+    if (hasTag('plugin/email', this.store.view.ref)) tags.push('plugin/email');
+    if (hasTag('plugin/comment', this.store.view.ref)) tags.push('plugin/comment');
+    if (hasTag('plugin/thread', this.store.view.ref)) tags.push('plugin/thread');
+    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
   get tagged() {

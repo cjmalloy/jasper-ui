@@ -105,7 +105,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
 
   get threads() {
     if (!this.admin.status.plugins.thread) return 0;
-    return Math.max(0, this.getThreads(this.store.view.ref) - this.getComments(this.store.view.ref));
+    return this.getThreads(this.store.view.ref);
   }
 
   get responses() {
@@ -117,15 +117,15 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   }
 
   get replyTags(): string[] {
-    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
+    const tags = [
       'internal',
-      'plugin/thread',
-      hasTag('plugin/email', this.store.view.ref) ? 'plugin/email'
-        : hasTag('plugin/comment', this.store.view.ref) ? 'plugin/comment'
-          : 'plugin/thread',
-      ...this.admin.reply.filter(p => (this.store.view.ref!.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
-    ]));
+    ];
+    if (hasTag('plugin/email', this.store.view.ref)) tags.push('plugin/email');
+    if (hasTag('plugin/comment', this.store.view.ref)) tags.push('plugin/comment');
+    if (hasTag('plugin/thread', this.store.view.ref)) tags.push('plugin/thread');
+    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
   get tagged() {

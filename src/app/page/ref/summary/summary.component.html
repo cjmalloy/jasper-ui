@@ -8,7 +8,7 @@
                        [newComments$]="newComments$"></app-comment-reply>
     <div class="summary-box" *ngIf="comments">
       <h5 i18n>Comments:</h5>
-      <app-thread-summary query="plugin/comment:internal:!plugin/delete"
+      <app-thread-summary query="plugin/comment:!plugin/delete"
                           [source]="store.view.ref"
                           [newComments$]="newComments$"
                           [depth]="1"
@@ -17,7 +17,7 @@
     </div>
     <div class="summary-box" *ngIf="threads">
       <h5 i18n>Threads:</h5>
-      <app-thread-summary query="plugin/thread:!plugin/comment:internal:!plugin/delete"
+      <app-thread-summary query="plugin/thread:!plugin/delete"
                           [source]="store.view.ref"
                           [newComments$]="newComments$"
                           [depth]="1"
