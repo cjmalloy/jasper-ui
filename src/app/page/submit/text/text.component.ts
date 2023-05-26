@@ -110,9 +110,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   addTag(...values: string[]) {
     if (!values) values = [''];
-    for (const value of values) {
-      this.tags.addTag(value);
-    }
+    this.tags.addTag(...values);
     this.submitted = false;
   }
 

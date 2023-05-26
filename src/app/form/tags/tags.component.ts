@@ -33,10 +33,13 @@ export class TagsFormComponent implements OnInit {
     return this.group.get(this.fieldName) as UntypedFormArray;
   }
 
-  addTag(value = '') {
-    if (value && this.tags.value.includes(value)) return;
-    this.autofocus = value ? -1 : this.tags.length;
-    this.tags.push(this.fb.control(value, TagsFormComponent.validators));
+  addTag(...values: string[]) {
+    this.autofocus = values?.[0] ? -1 : this.tags.length;
+    if (!values.length) values = [''];
+    for (const value of values) {
+      if (value && this.tags.value.includes(value)) return;
+      this.tags.push(this.fb.control(value, TagsFormComponent.validators));
+    }
   }
 
   removeTag(index: number) {
@@ -44,10 +47,7 @@ export class TagsFormComponent implements OnInit {
   }
 
   setValue(addTags: string[]) {
-    while (this.tags.length < addTags.length) {
-      this.addTag();
-    }
-    this.tags.patchValue(addTags);
+    while (this.tags.length < addTags.length) this.addTag(addTags[this.tags.length]);
   }
 
   includesTag(tag: string) {
