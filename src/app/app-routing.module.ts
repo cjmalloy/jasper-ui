@@ -114,10 +114,23 @@ export class CustomUrlSerializer implements UrlSerializer {
   }
 }
 
+
+function _stripBasePath(basePath: string, url: string) {
+  if (!basePath || !url.startsWith(basePath)) {
+    return url;
+  }
+  const strippedUrl = url.substring(basePath.length);
+  if (strippedUrl === '' || ['/', ';', '?', '#'].includes(strippedUrl[0])) {
+    return strippedUrl;
+  }
+  return url;
+}
+
 const _normalize = Location.prototype.normalize;
 Location.prototype.normalize = function(url) {
   const norm = _normalize.call(this, url);
-  if (norm.startsWith('/ref/') && !/\/ref(\/\w\w+)?\/e\//.test(url)) return url;
+  // @ts-ignore
+  if (norm.startsWith('/ref/') && !/\/ref(\/\w\w+)?\/e\//.test(url)) return _stripBasePath(this._basePath, url);
   return norm;
 };
 
