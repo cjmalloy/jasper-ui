@@ -16,6 +16,7 @@ export const thumbnailPlugin: Plugin = {
     advancedForm: [{
       key: 'showUrl',
       type: 'radio',
+      defaultValue: true,
       props: {
         label: $localize`Show:`,
         options: [
