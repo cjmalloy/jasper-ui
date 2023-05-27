@@ -46,12 +46,21 @@ export function addressedTo(ref: Ref): string[] {
 }
 
 export function getUser(mailbox: string): string | undefined {
-  if (mailbox.startsWith('_plugin/inbox/')) return '_' + mailbox.substring('_plugin/inbox/'.length);
-  if (mailbox.startsWith('plugin/inbox/')) return '+' + mailbox.substring('plugin/inbox/'.length);
-  if (mailbox.startsWith('_plugin/outbox/')) return reverseOrigin('_' + mailbox.substring('_plugin/outbox/'.length));
-  if (mailbox.startsWith('plugin/outbox/')) return reverseOrigin('+' + mailbox.substring('plugin/outbox/'.length));
-  if (mailbox.startsWith('_plugin/from/')) return reverseOrigin('_' + mailbox.substring('_plugin/from/'.length));
-  if (mailbox.startsWith('plugin/from/')) return reverseOrigin('+' + mailbox.substring('plugin/from/'.length));
+  const tag = getMailboxTag(mailbox);
+  if (!tag) return tag;
+  if (mailbox.startsWith('_')) return '_' + tag;
+  if (tag == 'user') return '+user';
+  if (tag.startsWith('user/')) return '+' + tag;
+  return tag;
+}
+
+export function getMailboxTag(mailbox: string): string | undefined {
+  if (mailbox.startsWith('_plugin/inbox/')) return mailbox.substring('_plugin/inbox/'.length);
+  if (mailbox.startsWith('plugin/inbox/')) return mailbox.substring('plugin/inbox/'.length);
+  if (mailbox.startsWith('_plugin/outbox/')) return reverseOrigin(mailbox.substring('_plugin/outbox/'.length));
+  if (mailbox.startsWith('plugin/outbox/')) return reverseOrigin(mailbox.substring('plugin/outbox/'.length));
+  if (mailbox.startsWith('_plugin/from/')) return reverseOrigin(mailbox.substring('_plugin/from/'.length));
+  if (mailbox.startsWith('plugin/from/')) return reverseOrigin(mailbox.substring('plugin/from/'.length));
   return undefined;
 }
 
