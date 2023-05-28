@@ -117,15 +117,15 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   }
 
   get replyTags(): string[] {
-    const tags = [
+    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
       'internal',
+      hasTag('plugin/email', this.store.view.ref) ? 'plugin/email'
+      : hasTag('plugin/comment', this.store.view.ref) ? 'plugin/comment'
+      : hasTag('plugin/thread', this.store.view.ref) ? 'plugin/thread'
+      : 'plugin/comment',
       ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
-    ];
-    if (hasTag('plugin/email', this.store.view.ref)) tags.push('plugin/email');
-    if (hasTag('plugin/comment', this.store.view.ref)) tags.push('plugin/comment');
-    if (hasTag('plugin/thread', this.store.view.ref)) tags.push('plugin/thread');
-    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
+    ]));
   }
 
   get tagged() {
