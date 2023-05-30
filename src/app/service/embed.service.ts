@@ -219,6 +219,8 @@ export class EmbedService {
     images.forEach(t => {
       if (t.src) {
         const c = embed.createEmbed({url: t.src}, ['plugin/image']);
+        c.location.nativeElement.title = t.title;
+        c.location.nativeElement.alt = t.alt;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
       }
       t.remove();
