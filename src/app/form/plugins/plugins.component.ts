@@ -5,6 +5,9 @@ import { emptyObject, writeObj } from '../../util/http';
 import { addAllHierarchicalTags, includesTag } from '../../util/tag';
 import { feedForm, FeedFormComponent } from './feed/feed.component';
 import { originForm, OriginFormComponent, pullForm, pushForm } from './origin/origin.component';
+import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from "../../model/tag";
+import { getScheme } from "../../util/hosts";
+import { Plugin } from "../../model/plugin";
 
 @Component({
   selector: 'app-form-plugins',
@@ -25,6 +28,9 @@ export class PluginsFormComponent implements AfterViewInit {
   feed?: FeedFormComponent;
   @ViewChild(OriginFormComponent)
   origin?: OriginFormComponent;
+
+  icons: Icon[] = [];
+  forms: Plugin[] = [];
 
   private _group: UntypedFormGroup;
   private _tags: string[] = [];
@@ -67,7 +73,7 @@ export class PluginsFormComponent implements AfterViewInit {
   }
 
   get empty() {
-    return !Object.keys(this.plugins.controls).length;
+    return !this.icons.length && !Object.keys(this.plugins.controls).length;
   }
 
   setValue(value: any) {
@@ -96,6 +102,22 @@ export class PluginsFormComponent implements AfterViewInit {
         }
       }
     }
+    this.forms = this.admin.getPluginForms(this.tags);
+    this.icons = sortOrder(this.admin.getIcons(this.tags, this.plugins.value, getScheme(this.group.value.url))
+      .filter(i => !this.forms.find(p => p.tag === i.tag)))
+      .filter(i => this.showIcon(i));
+  }
+
+  visible(v: Visibility) {
+    return visible(v, true, false);
+  }
+
+  active(a: TagAction | ResponseAction | Icon) {
+    return active(this.group.value, a);
+  }
+
+  showIcon(i: Icon) {
+    return this.visible(i) && this.active(i);
   }
 }
 

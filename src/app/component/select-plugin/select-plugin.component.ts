@@ -11,13 +11,16 @@ import { AuthzService } from '../../service/authz.service';
 export class SelectPluginComponent {
   @HostBinding('class') css = 'select-plugin';
 
+  @Input()
+  add = false;
   @Output()
   pluginChange = new EventEmitter<string>();
 
   @ViewChild('select')
   select?: ElementRef<HTMLSelectElement>;
 
-  plugins = this.admin.submit.filter(p => this.auth.canAddTag(p.tag));
+  submitPlugins = this.admin.submit.filter(p => this.auth.canAddTag(p.tag));
+  addPlugins = this.admin.add.filter(p => this.auth.canAddTag(p.tag));
 
   constructor(
     private admin: AdminService,
@@ -31,6 +34,10 @@ export class SelectPluginComponent {
     } else {
       defer(() => this.plugin = value);
     }
+  }
+
+  get plugins() {
+    return this.add ? this.addPlugins : this.submitPlugins;
   }
 
 }
