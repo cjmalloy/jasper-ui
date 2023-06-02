@@ -56,7 +56,11 @@
              [group]="group"
              fieldName="sources"></app-links>
 
-  <label for="plugins" class="big" i18n>Plugins:</label>
+  <label for="plugins">
+    <app-select-plugin #pluginSelect
+                       i18n-title title="Add Plugin"
+                       (pluginChange)="togglePlugin($event); pluginSelect.plugin = ''"></app-select-plugin>
+  </label>
   <app-form-plugins id="plugins"
                     (togglePlugin)="togglePlugin($event)"
                     [ref]="group.value.url"
