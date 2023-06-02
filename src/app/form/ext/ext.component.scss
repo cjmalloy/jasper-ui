@@ -1,0 +1,10 @@
+select {
+  height: 20px;
+}
+
+details[open] {
+  margin-top: 8px;
+  summary {
+    margin-bottom: 8px;
+  }
+}

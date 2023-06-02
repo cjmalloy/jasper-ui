@@ -52,21 +52,6 @@
                 fieldName="editors"></app-tags>
     </ng-container>
 
-    <ng-container *ngIf="userTheme">
-      <label for="userTheme" i18n>Theme Override:</label>
-      <select id="userTheme" formControlName="userTheme">
-        <option [ngValue]="undefined" i18n>default</option>
-        <option *ngFor="let t of userThemeValues" [ngValue]="t">{{ t }}</option>
-      </select>
-    </ng-container>
-
-    <ng-container *ngIf="userTheme">
-      <label for="userThemes" i18n>User Themes:</label>
-      <app-themes id="userThemes"
-                  [group]="config"
-                  fieldName="userThemes"></app-themes>
-    </ng-container>
-
     <ng-container *ngIf="maxAge">
       <label for="maxAge" i18n>Max Age:</label>
       <input type="text" id="maxAge" formControlName="maxAge">
@@ -135,19 +120,38 @@
       </ng-container>
     </ng-container>
 
-    <ng-container *ngIf="theme">
-      <label for="theme" i18n>Tag Page Theme:</label>
-      <select id="theme" [formControl]="theme">
-        <option [ngValue]="undefined" i18n>default</option>
-        <option *ngFor="let t of themeValues" [ngValue]="t">{{ t }}</option>
-      </select>
+    <ng-container *ngIf="userThemes">
+      <label for="userTheme" i18n>All Theme Override:</label>
+      <div>
+        <select id="userTheme" formControlName="userTheme">
+          <option [ngValue]="undefined" i18n>default</option>
+          <option *ngFor="let t of userThemeValues" [ngValue]="t">{{ t }}</option>
+        </select>
+
+        <details *ngIf="themes" class="advanced mini">
+          <summary i18n-title title="Custom User Themes"><span></span></summary>
+          <app-themes id="userThemes"
+                      [group]="config"
+                      fieldName="userThemes"></app-themes>
+        </details>
+      </div>
     </ng-container>
 
-    <ng-container *ngIf="themes">
-      <label for="themes" i18n>Custom Themes:</label>
-      <app-themes id="themes"
-                  [group]="config"
-                  fieldName="themes"></app-themes>
+    <ng-container *ngIf="theme">
+      <label for="theme" i18n>Tag Page Theme:</label>
+      <div>
+        <select id="theme" [formControl]="theme">
+          <option [ngValue]="undefined" i18n>default</option>
+          <option *ngFor="let t of themeValues" [ngValue]="t">{{ t }}</option>
+        </select>
+
+        <details *ngIf="themes" class="advanced mini">
+          <summary i18n-title title="Custom Themes"><span></span></summary>
+          <app-themes id="themes"
+                      [group]="config"
+                      fieldName="themes"></app-themes>
+        </details>
+      </div>
     </ng-container>
 
     <ng-container *ngIf="pinned">
