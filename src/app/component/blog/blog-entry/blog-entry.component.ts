@@ -46,6 +46,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
 
   editForm: UntypedFormGroup;
   submitted = false;
+  title = '';
   icons: Icon[] = [];
   actions: Action[] = [];
   editorPlugins: string[] = [];
@@ -98,13 +99,13 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     return this.ref.origin || (this.store.account.origin ? '' : undefined);
   }
 
-  get title() {
-    this.ref.title = (this.ref.title || '').trim();
-    this.ref.comment = (this.ref.comment || '').trim();
-    if (this.ref.title) return this.ref.title;
-    if (!this.ref.comment) return this.ref.url;
-    if (this.ref.comment.length <= 140) return this.ref.comment;
-    return this.ref.comment.substring(0, 140);
+  getTitle() {
+    const title = (this.ref.title || '').trim();
+    const comment = (this.ref.comment || '').trim();
+    if (title) return this.ref.title;
+    if (!comment) return this.ref.url;
+    if (comment.length <= 140) return comment;
+    return comment.substring(0, 140);
   }
 
   @Input()
@@ -120,6 +121,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     this.taggingAccess = this.auth.taggingAccess(value);
     this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
     this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
+    this.title = this.getTitle() || '';
   }
 
   @ViewChild(RefFormComponent)
