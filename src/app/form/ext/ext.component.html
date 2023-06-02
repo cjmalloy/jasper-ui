@@ -53,18 +53,18 @@
     </ng-container>
 
     <ng-container *ngIf="userTheme">
-      <label for="userThemes" i18n>User Themes:</label>
-      <app-themes id="userThemes"
-                  [group]="config"
-                  fieldName="userThemes"></app-themes>
-    </ng-container>
-
-    <ng-container *ngIf="userTheme">
       <label for="userTheme" i18n>Theme Override:</label>
       <select id="userTheme" formControlName="userTheme">
         <option [ngValue]="undefined" i18n>default</option>
         <option *ngFor="let t of userThemeValues" [ngValue]="t">{{ t }}</option>
       </select>
+    </ng-container>
+
+    <ng-container *ngIf="userTheme">
+      <label for="userThemes" i18n>User Themes:</label>
+      <app-themes id="userThemes"
+                  [group]="config"
+                  fieldName="userThemes"></app-themes>
     </ng-container>
 
     <ng-container *ngIf="maxAge">
@@ -135,19 +135,19 @@
       </ng-container>
     </ng-container>
 
-    <ng-container *ngIf="themes">
-      <label for="themes" i18n>Custom Themes:</label>
-      <app-themes id="themes"
-                  [group]="config"
-                  fieldName="themes"></app-themes>
-    </ng-container>
-
     <ng-container *ngIf="theme">
       <label for="theme" i18n>Tag Page Theme:</label>
       <select id="theme" [formControl]="theme">
         <option [ngValue]="undefined" i18n>default</option>
         <option *ngFor="let t of themeValues" [ngValue]="t">{{ t }}</option>
       </select>
+    </ng-container>
+
+    <ng-container *ngIf="themes">
+      <label for="themes" i18n>Custom Themes:</label>
+      <app-themes id="themes"
+                  [group]="config"
+                  fieldName="themes"></app-themes>
     </ng-container>
 
     <ng-container *ngIf="pinned">
