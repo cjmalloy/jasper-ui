@@ -19,12 +19,14 @@ export class SettingsPage implements OnInit {
     private auth: AuthzService,
     public store: Store,
   ) {
-    runInAction(() => {
-      store.settings.plugins = admin.settings.filter(p => auth.tagReadAccess(p.tag));
-    });
   }
 
   ngOnInit(): void {
+    if (!this.store.settings.plugins.length) {
+      runInAction(() => {
+        this.store.settings.plugins = this.admin.settings.filter(p => this.auth.tagReadAccess(p.tag));
+      });
+    }
   }
 
 }
