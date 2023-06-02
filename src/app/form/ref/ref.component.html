@@ -1,6 +1,23 @@
 <ng-container [formGroup]="group">
   <label for="url" i18n>URL:</label>
-  <input id="url" type="text" formControlName="url">
+  <div class="form-array">
+    <input id="url" type="text" formControlName="url">
+    <button type="button" (click)="alts.addLink()" i18n>🔗️</button>
+  </div>
+
+  <label for="alts"
+         [class.no-margin]="!alts.links?.length">
+    <ng-container *ngIf="alts.links?.length"
+           i18n-title title="Alternate URLs" i18n>Alts:</ng-container>
+  </label>
+  <app-links #alts
+             id="alts"
+             label="alternate URL"
+             [class.no-margin]="!alts.links?.length"
+             [showAdd]="false"
+             [group]="group"
+             fieldName="alternateUrls"
+             [alt]="true"></app-links>
 
   <label for="title" i18n>Title:</label>
   <div class="form-array">
@@ -18,6 +35,7 @@
   <div class="form-array">
     <input id="published" type="datetime-local" step="1" [formControl]="published">
     <button *ngIf="web" type="button" (click)="scrapePublished()" i18n>Scrape Published</button>
+    <button type="button" (click)="sources.addLink()" i18n>📜️</button>
   </div>
   <span><!-- Published Errors --></span>
   <div>
@@ -25,6 +43,18 @@
       Published date is required.
     </div>
   </div>
+
+  <label for="sources"
+         [class.no-margin]="!sources.links?.length">
+    <ng-container *ngIf="sources.links?.length" i18n>Sources:</ng-container>
+  </label>
+  <app-links #sources
+             id="sources"
+             label="source"
+             [class.no-margin]="!sources.links?.length"
+             [showAdd]="false"
+             [group]="group"
+             fieldName="sources"></app-links>
 
   <label for="plugins" class="big" i18n>Plugins:</label>
   <app-form-plugins id="plugins"
@@ -45,21 +75,6 @@
                 (syncEditor)="syncEditor()"
                 (syncTags)="editorTags.next($event)"></app-editor>
   </div>
-
-  <label for="sources" i18n>Sources:</label>
-  <app-links #sources
-             id="sources"
-             label="source"
-             [group]="group"
-             fieldName="sources"></app-links>
-
-  <label for="alts" i18n>Alternate URLs:</label>
-  <app-links #alts
-             id="alts"
-             label="alternate URL"
-             [group]="group"
-             fieldName="alternateUrls"
-             [alt]="true"></app-links>
 
   <label for="tags" i18n>Tags:</label>
   <app-tags id="tags" [group]="group"></app-tags>

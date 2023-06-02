@@ -13,14 +13,16 @@ export class LinksFormComponent implements OnInit {
   @HostBinding('class') css = 'form-group';
 
   @Input()
-  group!: UntypedFormGroup;
+  group?: UntypedFormGroup;
   @Input()
   fieldName = 'links';
   @Input()
   label = 'link';
   @Input()
-  alt = false;
+  showAdd = true;
 
+  @Input()
+  alt = false;
   autofocus = -1;
 
   constructor(
@@ -31,16 +33,18 @@ export class LinksFormComponent implements OnInit {
   }
 
   get links() {
-    return this.group.get(this.fieldName) as UntypedFormArray;
+    return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
   }
 
   addLink(value = '') {
+    if (!this.links) return;
     if (value && this.links.value.includes(value)) return;
     this.autofocus = value ? -1 : this.links.length;
     this.links.push(this.fb.control(value, LinksFormComponent.validators));
   }
 
   removeLink(index: number) {
+    if (!this.links) return;
     this.links.removeAt(index);
   }
 }
