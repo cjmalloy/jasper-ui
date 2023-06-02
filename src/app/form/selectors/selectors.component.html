@@ -1,6 +1,6 @@
 <ng-container [formGroup]="group">
   <ng-container [formArrayName]="fieldName">
-    <button type="button" (click)="addTag()" i18n>+ Add another {{ label }}</button>
+    <button type="button" (click)="addTag('')" i18n>+ Add another {{ label }}</button>
 
     <ng-container *ngFor="let tag of tags.controls; let i=index">
       <div class="form-array">

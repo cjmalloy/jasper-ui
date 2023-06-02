@@ -1,5 +1,5 @@
 import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, map, of, switchMap } from 'rxjs';
@@ -12,7 +12,6 @@ import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { getScheme } from '../../util/hosts';
-import { hasTag } from '../../util/tag';
 import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
@@ -153,11 +152,11 @@ export class RefFormComponent implements OnInit {
     const altsForm = this.group.get('alternateUrls') as UntypedFormArray;
     const tagsForm = this.group.get('tags') as UntypedFormArray;
     while (sourcesForm.length > (ref?.sources?.length || 0)) this.sources.removeLink(0);
-    while (sourcesForm.length < (ref?.sources?.length || 0)) this.sources.addLink();
+    while (sourcesForm.length < (ref?.sources?.length || 0)) this.sources.addLink('placeholder');
     while (altsForm.length > (ref?.alternateUrls?.length || 0)) this.alts.removeLink(0);
-    while (altsForm.length < (ref?.alternateUrls?.length || 0)) this.alts.addLink();
+    while (altsForm.length < (ref?.alternateUrls?.length || 0)) this.alts.addLink('placeholder');
     while (tagsForm.length > (ref?.tags?.length || 0)) this.tags.removeTag(0);
-    while (tagsForm.length < (ref?.tags?.length || 0)) this.tags.addTag();
+    while (tagsForm.length < (ref?.tags?.length || 0)) this.tags.addTag('placeholder');
     this.group.setControl('plugins', pluginsForm(this.fb, this.admin, ref.tags || []));
     this.group.patchValue({
       ...ref,

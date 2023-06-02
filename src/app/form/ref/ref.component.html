@@ -2,7 +2,7 @@
   <label for="url" i18n>URL:</label>
   <div class="form-array">
     <input id="url" type="text" formControlName="url">
-    <button type="button" (click)="alts.addLink()" i18n>🔗️</button>
+    <button type="button" (click)="alts.addLink()" i18n>📎️</button>
   </div>
 
   <label for="alts"
@@ -56,7 +56,12 @@
              [group]="group"
              fieldName="sources"></app-links>
 
-  <label for="plugins" class="big" i18n>Plugins:</label>
+  <label for="plugins">
+    <app-select-plugin #pluginSelect
+                       [add]="true"
+                       i18n-title title="Add Plugin"
+                       (pluginChange)="togglePlugin($event); pluginSelect.plugin = ''"></app-select-plugin>
+  </label>
   <app-form-plugins id="plugins"
                     (togglePlugin)="togglePlugin($event)"
                     [ref]="group.value.url"

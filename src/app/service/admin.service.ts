@@ -319,6 +319,10 @@ export class AdminService {
     return this.pluginConfigProperty('submit');
   }
 
+  get add() {
+    return this.pluginConfigProperty('add');
+  }
+
   get submitInternal() {
     return this.pluginConfigProperty('submitInternal');
   }
