@@ -36,11 +36,13 @@ export class LinksFormComponent implements OnInit {
     return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
   }
 
-  addLink(value = '') {
-    if (!this.links) return;
-    if (value && this.links.value.includes(value)) return;
-    this.autofocus = value ? -1 : this.links.length;
-    this.links.push(this.fb.control(value, LinksFormComponent.validators));
+  addLink(...values: string[]) {
+    if (!values.length) return;
+    this.autofocus = values[0] ? -1 : this.links!.length;
+    for (const value of values) {
+      if (value && value !== 'placeholder' && this.links!.value.includes(value)) return;
+      this.links!.push(this.fb.control(value, LinksFormComponent.validators));
+    }
   }
 
   removeLink(index: number) {

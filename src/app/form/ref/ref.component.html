@@ -2,7 +2,7 @@
   <label for="url" i18n>URL:</label>
   <div class="form-array">
     <input id="url" type="text" formControlName="url">
-    <button type="button" (click)="alts.addLink()" i18n>📎️</button>
+    <button type="button" (click)="alts.addLink('')" i18n>📎️</button>
   </div>
 
   <label for="alts"
@@ -39,7 +39,7 @@
   <div class="form-array">
     <input id="published" type="datetime-local" step="1" [formControl]="published">
     <button *ngIf="web" type="button" (click)="scrapePublished()" i18n-title title="Scrape Published" i18n>🪝</button>
-    <button type="button" (click)="sources.addLink()" i18n>📜️</button>
+    <button type="button" (click)="sources.addLink('')" i18n>📜️</button>
   </div>
   <span><!-- Published Errors --></span>
   <div>

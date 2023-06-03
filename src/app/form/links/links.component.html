@@ -1,6 +1,6 @@
 <ng-container *ngIf="group && links" [formGroup]="group">
   <ng-container [formArrayName]="fieldName">
-    <button *ngIf="showAdd" type="button" (click)="addLink()" i18n>+ Add another {{ label }}</button>
+    <button *ngIf="showAdd" type="button" (click)="addLink('')" i18n>+ Add another {{ label }}</button>
 
     <ng-container *ngFor="let c of links.controls; let i=index">
       <div class="form-array">
