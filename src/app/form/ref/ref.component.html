@@ -7,8 +7,12 @@
 
   <label for="alts"
          [class.no-margin]="!alts.links?.length">
-    <ng-container *ngIf="alts.links?.length"
-           i18n-title title="Alternate URLs" i18n>Alts:</ng-container>
+    <span *ngIf="alts.links?.length"
+          class="mobile-hide"
+          i18n-title title="Alternate URLs" i18n>Alts:</span>
+    <span *ngIf="alts.links?.length"
+          class="mobile-block"
+          i18n>Alternate URLs:</span>
   </label>
   <app-links #alts
              id="alts"
@@ -57,6 +61,7 @@
              fieldName="sources"></app-links>
 
   <label for="plugins">
+    <span class="mobile-span" i18n>Add Plugin: &nbsp;</span>
     <app-select-plugin #pluginSelect
                        [add]="true"
                        i18n-title title="Add Plugin"
