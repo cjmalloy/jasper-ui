@@ -355,7 +355,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   icon(ref: GraphNode) {
-    return sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))).filter(i => active(ref, i)).pop()?.label || '';
+    return sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))).filter(i => active(ref, i)).shift()?.label || '';
   }
 
   color(ref: GraphNode) {
