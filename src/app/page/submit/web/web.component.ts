@@ -176,7 +176,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   addTag(...values: string[]) {
-    if (!values) values = [''];
     for (const value of values) {
       this.refForm!.tags.addTag(value);
     }

@@ -34,10 +34,10 @@ export class TagsFormComponent implements OnInit {
   }
 
   addTag(...values: string[]) {
-    this.autofocus = values?.[0] ? -1 : this.tags.length;
-    if (!values.length) values = [''];
+    if (!values.length) return;
+    this.autofocus = values[0] ? -1 : this.tags.length;
     for (const value of values) {
-      if (value && this.tags.value.includes(value)) return;
+      if (value && value !== 'placeholder' && this.tags.value.includes(value)) return;
       this.tags.push(this.fb.control(value, TagsFormComponent.validators));
     }
   }
