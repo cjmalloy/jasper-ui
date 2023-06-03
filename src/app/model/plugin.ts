@@ -13,6 +13,10 @@ export interface Plugin extends Config {
      */
     type?: PluginType,
     /**
+     * Optional flag adding this plugin to the Ref form Add Plugin dropdown.
+     */
+    add?: boolean,
+    /**
      * Optional handlebars template to use as an info UI.
      */
     infoUi?: string,
