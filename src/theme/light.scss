@@ -437,8 +437,13 @@ body.light-theme {
   .kanban-card {
     border-radius: 4px;
     background-color: $card;
+
     &.cdk-drag-placeholder {
       background-color: $placeholder;
+    }
+
+    &.unlocked {
+      border: 0.5px dashed $border;
     }
   }
 
