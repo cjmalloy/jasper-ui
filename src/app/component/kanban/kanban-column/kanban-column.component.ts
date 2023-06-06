@@ -1,7 +1,7 @@
-import { AfterViewInit, Component, HostBinding, Input, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, HostListener, Input, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Observable, of, Subject, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Page } from '../../../model/page';
@@ -15,6 +15,10 @@ import { URI_REGEX } from '../../../util/format';
 import { fixUrl } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { KanbanDrag } from '../kanban.component';
+import { ConfigService } from "../../../service/config.service";
+import { CdkDrag, CdkDragStart } from "@angular/cdk/drag-drop";
+
+const LONG_TOUCH_MS = 1000;
 
 @Component({
   selector: 'app-kanban-column',
@@ -39,8 +43,13 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   sort: RefSort[] = [];
   filter: UrlFilter[] = [];
   search = '';
+  dragDisabled = false;
+  pressToUnlock = false;
+  private unlocked = false;
+  private cdkDrag?: CdkDrag<Ref>;
 
   constructor(
+    public config: ConfigService,
     private route: ActivatedRoute,
     private admin: AdminService,
     private store: Store,
@@ -54,11 +63,21 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
       this.search = this.store.view.search;
       if (this._query) this.clear();
     }));
+    if (config.mobile) {
+      this.pressToUnlock = true;
+    }
   }
 
   get hasMore() {
     if (!this.pages || !this.pages.length) return false;
     return !this.pages[this.pages.length - 1].last;
+  }
+
+  @Input()
+  set query(value: string) {
+    if (this._query === value) return;
+    this._query = value;
+    this.clear();
   }
 
   ngAfterViewInit(): void {
@@ -74,11 +93,44 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     this.disposers.length = 0;
   }
 
-  @Input()
-  set query(value: string) {
-    if (this._query === value) return;
-    this._query = value;
-    this.clear();
+  @HostListener('touchstart', ['$event'])
+  touchstart(e: TouchEvent) {
+    this.pressToUnlock = true;
+    this.unlocked = false;
+    this.dragDisabled = false;
+  }
+
+  @HostListener('touchend', ['$event'])
+  touchend(e: TouchEvent) {
+    this.unlocked = false;
+    this.dragDisabled = false;
+    if (this.cdkDrag) this.cdkDrag.disabled = false;
+  }
+
+  @HostListener('mouseup', ['$event'])
+  mouseup(e: MouseEvent) {
+    this.pressToUnlock = false;
+    this.dragDisabled = false;
+  }
+
+  @HostListener('press', ['$event'])
+  unlock(event: any) {
+    this.unlocked = true;
+  }
+
+  @HostListener('contextmenu', ['$event'])
+  contextmenu(event: MouseEvent) {
+    if (this.unlocked) {
+      event.preventDefault();
+    }
+  }
+
+  dragStarted(event: CdkDragStart<Ref>) {
+    this.cdkDrag = event.source;
+    if (this.pressToUnlock) {
+      this.dragDisabled = !this.unlocked;
+      this.cdkDrag.disabled = !this.unlocked;
+    }
   }
 
   clear() {

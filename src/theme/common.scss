@@ -1120,6 +1120,9 @@ ngx-monaco-editor {
 .kanban {
   padding: 4px;
   grid-gap: 8px;
+  overflow: auto;
+  max-width: 100vw;
+  max-height: 90vh;
 
   .column-title, .swim-lane-title {
     margin: 8px 0;
@@ -1156,6 +1159,14 @@ ngx-monaco-editor {
       }
       cursor: not-allowed !important;
     }
+  }
+
+  transform: scale(1);
+  transform-origin: center;
+  transition: transform 0.1s cubic-bezier(.47,1.64,.8,1.2);
+  &.unlocked {
+    z-index: 1;
+    transform: scale(1.05);
   }
 
   &:not(.no-write) {
