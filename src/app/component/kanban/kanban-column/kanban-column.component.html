@@ -4,6 +4,7 @@
     <app-kanban-card *ngFor="let ref of page.content"
                      cdkDrag
                      [cdkDragData]="ref"
+                     [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
                      [ref]="ref"></app-kanban-card>
   </ng-container>
 </ng-template>

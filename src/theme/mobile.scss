@@ -97,6 +97,11 @@ $tablet-width: 767px;
     }
   }
 }
+app-kanban {
+  overflow: auto;
+  max-width: 100vw;
+  max-height: 90vh;
+}
 }
 
 /* Special width for settings tabs */

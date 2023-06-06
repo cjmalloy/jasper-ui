@@ -41,7 +41,8 @@
                   [ext]="store.view.ext!"
                   [page]="query.page"></app-folder>
       <app-kanban *ngIf="store.view.isTemplate('kanban')"
-                  [tag]="store.view.tag!"></app-kanban>
+                  [tag]="store.view.tag!"
+                  cdkScrollable></app-kanban>
       <app-chat *ngIf="store.view.isTemplate('chat')"
                 [query]="store.view.tag!"
                 [addTags]="['public', 'internal', store.view.localTag]"></app-chat>

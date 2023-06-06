@@ -456,10 +456,13 @@ body.dark-theme {
   .kanban-card {
     border-radius: 4px;
     background-color: $card;
+    &.unlocked {
+      border-radius: 5px;
+      border: 1px dashed $border;
+    }
     &.cdk-drag-preview {
       background-color: $card-dragging;
     }
-
     &.cdk-drag-placeholder {
       background-color: $placeholder;
     }
