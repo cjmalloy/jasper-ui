@@ -1158,6 +1158,14 @@ ngx-monaco-editor {
     }
   }
 
+  transform: scale(1);
+  transform-origin: center;
+  transition: transform 0.1s cubic-bezier(.47,1.64,.8,1.2);
+  &.unlocked {
+    z-index: 1;
+    transform: scale(1.1);
+  }
+
   &:not(.no-write) {
     cursor: grab;
   }

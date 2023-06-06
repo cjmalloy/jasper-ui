@@ -4,6 +4,8 @@
     <app-kanban-card *ngFor="let ref of page.content"
                      cdkDrag
                      [cdkDragData]="ref"
+                     [cdkDragDisabled]="dragDisabled"
+                     (cdkDragStarted)="dragStarted($event)"
                      [ref]="ref"></app-kanban-card>
   </ng-container>
 </ng-template>
