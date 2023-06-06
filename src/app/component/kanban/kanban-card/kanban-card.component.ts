@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, HostListener, Input, OnInit } from '@angular/core';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -6,6 +6,9 @@ import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
 import { hasComment, trimCommentForTitle } from '../../../util/format';
 import { hasTag } from '../../../util/tag';
+import { Store } from "../../../store/store";
+import { ConfigService } from "../../../service/config.service";
+import { defer } from "lodash-es";
 
 @Component({
   selector: 'app-kanban-card',
@@ -15,15 +18,20 @@ import { hasTag } from '../../../util/tag';
 export class KanbanCardComponent implements OnInit {
   @HostBinding('class') css = 'kanban-card';
 
-  _ref!: Ref;
+  @HostBinding('class.unlocked')
+  unlocked = false;
 
   title = '';
   repostRef?: Ref;
 
+  private _ref!: Ref;
+
   constructor(
     private admin: AdminService,
+    private config: ConfigService,
     private auth: AuthzService,
     private refs: RefService,
+    private store: Store,
     private scraper: ScrapeService,
   ) { }
 
@@ -49,14 +57,6 @@ export class KanbanCardComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  cssUrl(url: string | null) {
-    if (!url) return '';
-    if (this.admin.status.plugins.thumbnail?.config?.cache) {
-      url = this.scraper.getFetch(url);
-    }
-    return `url('${url}')`;
-  }
-
   @HostBinding('class.no-write')
   get noWrite() {
     return !this.auth.writeAccess(this.ref);
@@ -68,15 +68,6 @@ export class KanbanCardComponent implements OnInit {
 
   get bareRepost() {
     return this.repost && !this.ref.title && !this.ref.comment;
-  }
-
-  getTitle() {
-    if (this.bareRepost) return this.repostRef?.title || $localize`Repost`;
-    const title = (this.ref.title || '').trim();
-    const comment = (this.ref.comment || '').trim();
-    if (title) return title;
-    if (!comment) return this.url;
-    return trimCommentForTitle(comment);
   }
 
   get url() {
@@ -111,6 +102,35 @@ export class KanbanCardComponent implements OnInit {
   get thumbnailRadius() {
     return this.thumbnail &&
       (this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius) || 0;
+  }
+
+  @HostListener('touchend', ['$event'])
+  touchend(e: TouchEvent) {
+    this.unlocked = false;
+  }
+
+  @HostListener('press', ['$event'])
+  unlock(event: any) {
+    if (!this.config.mobile) return;
+    this.unlocked = true;
+    defer(() => window.navigator.vibrate(Array(3).fill(50)));
+  }
+
+  getTitle() {
+    if (this.bareRepost) return this.repostRef?.title || $localize`Repost`;
+    const title = (this.ref.title || '').trim();
+    const comment = (this.ref.comment || '').trim();
+    if (title) return title;
+    if (!comment) return this.url;
+    return trimCommentForTitle(comment);
+  }
+
+  cssUrl(url: string | null) {
+    if (!url) return '';
+    if (this.admin.status.plugins.thumbnail?.config?.cache) {
+      url = this.scraper.getFetch(url);
+    }
+    return `url('${url}')`;
   }
 
 }

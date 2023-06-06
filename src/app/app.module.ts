@@ -4,7 +4,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { BrowserModule } from '@angular/platform-browser';
+import { BrowserModule, HammerModule } from '@angular/platform-browser';
 import { FormlyModule } from '@ngx-formly/core';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { MobxAngularModule } from 'mobx-angular';
@@ -297,6 +297,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
   ],
   imports: [
     BrowserModule,
+    HammerModule,
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
