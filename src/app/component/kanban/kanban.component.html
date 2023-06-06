@@ -3,6 +3,7 @@
   <div *ngIf="ext else error"
        class="kanban"
        cdkDropListGroup
+       cdkScrollable
        [style.grid-template-columns]="(swimLanes ? 'auto ' : '') + (ext.config.showNoColumn ? '1fr ' : '') + 'repeat(' + ext.config.columns.length + ', 1fr)'">
     <div class="kanban-header"
          cdkDropList

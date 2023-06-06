@@ -1,5 +1,7 @@
 .kanban {
   display: grid;
+  overflow-x: auto;
+  max-width: 100vw;
 
   .column-title, .swim-lane-title {
     padding: 10px;
