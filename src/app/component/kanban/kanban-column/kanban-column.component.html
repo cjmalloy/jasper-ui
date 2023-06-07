@@ -9,6 +9,9 @@
   </ng-container>
 </ng-template>
 <div class="spacer"></div>
+<a *ngIf="hasMore"
+   class="fake-link"
+   (click)="loadMore()" i18n>load more</a>
 <input type="text"
        i18n-placeholder
        placeholder="Add..."
@@ -16,6 +19,3 @@
        [style.display]="addText ? 'block' : 'none'"
        (keydown)="$event.key === 'Enter' && add() || true"
        (blur)="add()">
-<a *ngIf="hasMore"
-   class="fake-link"
-   (click)="loadMore()" i18n>load more</a>

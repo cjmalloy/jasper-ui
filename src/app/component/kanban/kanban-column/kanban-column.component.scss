@@ -10,6 +10,10 @@
     height: 24px;
   }
 
+  .spacer {
+    min-height: 4px;
+  }
+
   &:hover, &:focus-visible {
     padding-bottom: 4px;
   }
