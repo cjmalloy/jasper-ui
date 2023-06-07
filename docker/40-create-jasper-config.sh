@@ -3,7 +3,7 @@ echo "Writing Jasper Config"
 config="
 {
   \"title\": \"$JASPER_TITLE\",
-  \"version\": \"$JASPER_VERSION\",
+  \"version\": \"${JASPER_VERSION:-Build: $(cat /build-timestamp)}\",
   \"api\": \"$JASPER_API\",
   \"logout\": \"$JASPER_LOGOUT\",
   \"login\": \"$JASPER_LOGIN\",
