@@ -38,6 +38,7 @@ WORKDIR /usr/share/nginx/html/
 COPY --from=builder app/dist/jasper-ui ./
 ARG BASE_HREF="/"
 ENV BASE_HREF=$BASE_HREF
+RUN date -R -u > /build-timestamp
 COPY docker/security-headers.conf /etc/nginx/conf.d
 COPY docker/default.conf /etc/nginx/conf.d
 COPY docker/40-create-jasper-config.sh /docker-entrypoint.d
