@@ -8,6 +8,7 @@ import { hasComment, trimCommentForTitle } from '../../../util/format';
 import { hasTag } from '../../../util/tag';
 import { Store } from "../../../store/store";
 import { ConfigService } from "../../../service/config.service";
+import { defer } from "lodash-es";
 
 @Component({
   selector: 'app-kanban-card',
@@ -114,7 +115,7 @@ export class KanbanCardComponent implements OnInit {
     if (!this.config.mobile) return;
     this.unlocked = true;
     this.el.nativeElement.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
-    window.navigator.vibrate([50, 50, 30]);
+    if ('vibrate' in navigator) defer(() => window.navigator.vibrate([50, 50, 20]));
   }
 
   getTitle() {
