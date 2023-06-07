@@ -92,11 +92,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     this.pressToUnlock = true;
   }
 
-  @HostListener('mouseup', ['$event'])
-  mouseup(e: MouseEvent) {
-    this.pressToUnlock = false;
-  }
-
   @HostListener('contextmenu', ['$event'])
   contextmenu(event: MouseEvent) {
     if (this.pressToUnlock) event.preventDefault();

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -20,6 +20,11 @@ import { defaultOrigin, hasPrefix, isPlugin } from '../../util/tag';
 })
 export class TagPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
+
+  @HostBinding('class.no-footer-padding')
+  get noFooterPadding() {
+    return this.store.view.isTemplate('kanban');
+  }
 
   templates = this.admin.tmplView;
   floatingSidebar = true;
