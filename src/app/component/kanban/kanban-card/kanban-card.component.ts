@@ -113,7 +113,7 @@ export class KanbanCardComponent implements OnInit {
   unlock(event: any) {
     if (!this.config.mobile) return;
     this.unlocked = true;
-    this.el.nativeElement.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    this.el.nativeElement.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     window.navigator.vibrate([50, 50, 30]);
   }
 
