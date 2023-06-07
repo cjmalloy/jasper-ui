@@ -1,5 +1,14 @@
 echo "Writing Jasper Config"
 
+echo "$JASPER_VERSION"
+echo "$TIMESTAMP"
+
+echo "$JASPER_VERSION"
+if [[ $JASPER_VERSION = master || $JASPER_VERSION = latest ]]; then
+    JASPER_VERSION=
+fi
+echo "$JASPER_VERSION"
+
 config="
 {
   \"title\": \"$JASPER_TITLE\",
