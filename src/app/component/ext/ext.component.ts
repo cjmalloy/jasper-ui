@@ -51,7 +51,7 @@ export class ExtComponent implements OnInit {
   ngOnInit(): void {
     this.icons = this.admin.getTemplateView(this.ext.tag);
     if (hasPrefix(this.ext.tag, 'user')) {
-      this.icons.push({tag: 'user', config: { view: $localize`👤️` }});
+      this.icons.push({tag: 'user', config: { view: $localize`🧑️` }});
     }
     this.editForm = extForm(this.fb, this.ext, this.admin, true);
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);

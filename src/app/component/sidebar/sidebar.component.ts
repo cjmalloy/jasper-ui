@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject } from 'rxjs';
+import { catchError, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -13,6 +13,8 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { hasPrefix, localTag, prefix, tagOrigin } from '../../util/tag';
+import { autorun, IReactionDisposer } from "mobx";
+import { TemplateService } from "../../service/api/template.service";
 
 @Component({
   selector: 'app-sidebar',
@@ -21,6 +23,7 @@ import { hasPrefix, localTag, prefix, tagOrigin } from '../../util/tag';
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'sidebar';
+  private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
   prefix = prefix;
 
@@ -38,6 +41,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   localTag?: string;
   local = true;
   plugin?: Plugin;
+  template?: Template;
   writeAccess = false;
   ui: Template[] = [];
   genUrl = 'internal:' + uuid();
@@ -55,6 +59,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     private auth: AuthzService,
     private account: AccountService,
     private exts: ExtService,
+    private templates: TemplateService,
   ) {
     if (localStorage.getItem('sidebar-expanded') !== null) {
       this._expanded = localStorage.getItem('sidebar-expanded') !== 'false';
@@ -98,11 +103,22 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.disposers.push(autorun(() => {
+      if (!this.store.view.template) {
+        this.template = undefined;
+      } else if (this.template?.tag !== this.store.view.template) {
+        this.templates.get(this.store.view.template).pipe(
+          catchError(() => of(undefined))
+        ).subscribe(t => this.template = t);
+      }
+    }))
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   get root() {
