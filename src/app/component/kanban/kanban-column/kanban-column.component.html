@@ -1,13 +1,14 @@
-<app-loading *ngIf="!pages else loaded"></app-loading>
-<ng-template #loaded>
-  <ng-container *ngFor="let page of pages">
-    <app-kanban-card *ngFor="let ref of page.content"
-                     cdkDrag
-                     [cdkDragData]="ref"
-                     [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
-                     [ref]="ref"></app-kanban-card>
-  </ng-container>
-</ng-template>
+<div cdkDropList
+     cdkScrollable
+     [cdkDropListData]="data"
+     (cdkDropListDropped)="drop.emit($any($event))">
+  <app-kanban-card *ngFor="let ref of content"
+                   cdkDrag
+                   [cdkDragData]="ref"
+                   [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
+                   [ref]="ref"></app-kanban-card>
+  <app-loading *ngIf="!pages"></app-loading>
+</div>
 <div class="spacer"></div>
 <a *ngIf="hasMore"
    class="fake-link"

@@ -1,4 +1,13 @@
-import { AfterViewInit, Component, HostBinding, HostListener, Input, OnDestroy } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  HostBinding,
+  HostListener,
+  Input,
+  OnDestroy,
+  Output
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
@@ -16,6 +25,7 @@ import { fixUrl } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { KanbanDrag } from '../kanban.component';
 import { ConfigService } from "../../../service/config.service";
+import { CdkDragDrop } from "@angular/cdk/drag-drop";
 
 @Component({
   selector: 'app-kanban-column',
@@ -28,9 +38,13 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
+  data?: { col?: string, sl?: string };
+  @Input()
   updates?: Observable<KanbanDrag>;
   @Input()
   addTags: string[] = [];
+  @Output()
+  drop = new EventEmitter<CdkDragDrop<{ col?: string, sl?: string }>>();
 
   _query = '';
   size = 20;
@@ -65,6 +79,10 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   get hasMore() {
     if (!this.pages || !this.pages.length) return false;
     return !this.pages[this.pages.length - 1].last;
+  }
+
+  get content() {
+    return (this.pages || []).flatMap(p => p.content);
   }
 
   @Input()

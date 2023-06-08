@@ -37,18 +37,14 @@
            [routerLink]="['/tag', ext.tag + ':' + sl]"
            [title]="sl">{{ (exts.getCachedExt(sl) | async)?.name || sl }}</a>
         <app-kanban-column *ngIf="ext.config.showNoColumn"
-                           cdkDropList
-                           cdkScrollable
-                           [cdkDropListData]="{sl}"
-                           (cdkDropListDropped)="drop($any($event))"
+                           [data]="{sl}"
+                           (drop)="drop($any($event))"
                            [updates]="updates"
                            [query]="getQuery({sl})"
                            [addTags]="addingTags({sl})"></app-kanban-column>
         <app-kanban-column *ngFor="let col of columns"
-                           cdkDropList
-                           cdkScrollable
-                           [cdkDropListData]="{col, sl}"
-                           (cdkDropListDropped)="drop($any($event))"
+                           [data]="{col, sl}"
+                           (drop)="drop($any($event))"
                            [updates]="updates"
                            [query]="getQuery({col, sl})"
                            [addTags]="addingTags({col, sl})"></app-kanban-column>
@@ -58,18 +54,14 @@
            [routerLink]="['/tag', ext.tag + ':!' + swimLanes.join(':!')]"
            title="No matching swim lane">{{ ext.config.noSwimLaneTitle || 'untagged' }}</a>
         <app-kanban-column *ngIf="ext.config.showNoColumn"
-                           cdkDropList
-                           cdkScrollable
-                           [cdkDropListData]="{}"
-                           (cdkDropListDropped)="drop($any($event))"
+                           [data]="{}"
+                           (drop)="drop($any($event))"
                            [updates]="updates"
                            [query]="getQuery({})"
                            [addTags]="addingTags({})"></app-kanban-column>
         <app-kanban-column *ngFor="let col of columns"
-                           cdkDropList
-                           cdkScrollable
-                           [cdkDropListData]="{col}"
-                           (cdkDropListDropped)="drop($any($event))"
+                           [data]="{col}"
+                           (drop)="drop($any($event))"
                            [updates]="updates"
                            [query]="getQuery({col})"
                            [addTags]="addingTags({col})"></app-kanban-column>
@@ -79,16 +71,16 @@
       <app-kanban-column *ngIf="ext.config.showNoColumn"
                          cdkDropList
                          cdkScrollable
-                         [cdkDropListData]="{}"
-                         (cdkDropListDropped)="drop($any($event))"
+                         [data]="{}"
+                         (drop)="drop($any($event))"
                          [updates]="updates"
                          [query]="getQuery({})"
                          [addTags]="addingTags({})"></app-kanban-column>
       <app-kanban-column *ngFor="let col of columns"
                          cdkDropList
                          cdkScrollable
-                         [cdkDropListData]="{col}"
-                         (cdkDropListDropped)="drop($any($event))"
+                         [data]="{col}"
+                         (drop)="drop($any($event))"
                          [updates]="updates"
                          [query]="getQuery({col})"
                          [addTags]="addingTags({col})"></app-kanban-column>
