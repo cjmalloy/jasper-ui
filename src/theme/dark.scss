@@ -458,7 +458,7 @@ body.dark-theme {
     background-color: $card;
     &.unlocked {
       border-radius: 5px;
-      border: 1px dashed $border;
+      border: 0.5px dashed $border-accent;
     }
     &.cdk-drag-preview {
       background-color: $card-dragging;

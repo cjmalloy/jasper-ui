@@ -439,7 +439,7 @@ body.light-theme {
     background-color: $card;
     &.unlocked {
       border-radius: 5px;
-      border: 1px dashed $border;
+      border: 0.25px dashed $border-accent;
     }
     &.cdk-drag-placeholder {
       background-color: $placeholder;
