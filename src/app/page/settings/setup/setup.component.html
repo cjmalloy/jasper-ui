@@ -39,7 +39,7 @@
                 <label for="template-{{ e[0] }}" [title]="e[1].config?.description || ''">{{ e[1].name || e[0] || e[1].tag }}</label>
                 <span *ngIf="e[1].config?.experimental">🧪️</span>
                 <span *ngIf="needsTemplateUpdate(e[0])" class="update">
-                <span class="fake-link" (click)="updateTemplate($any(e[0]))" i18n>🌟️ update</span>
+                <span class="fake-link no-select" (click)="updateTemplate($any(e[0]))" i18n>🌟️ update</span>
               </span>
               </div>
             </ng-container>
@@ -60,7 +60,7 @@
                 <label for="plugin-{{ e[0] }}" [title]="e[1].config?.description || ''">{{ e[1].name || e[0] || e[1].tag }}</label>
                 <span *ngIf="e[1].config?.experimental">🧪️</span>
                 <span *ngIf="needsPluginUpdate(e[0])" class="update">
-              <span class="fake-link" (click)="updatePlugin($any(e[0]))" i18n>🌟️ update</span>
+              <span class="fake-link no-select" (click)="updatePlugin($any(e[0]))" i18n>🌟️ update</span>
             </span>
               </div>
             </ng-container>

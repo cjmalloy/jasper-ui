@@ -22,13 +22,19 @@
                           [newComments$]="newComments$"
                           [depth]="1"
                           [pageSize]="summaryItems"></app-thread-summary>
-      <a *ngIf="threads > summaryItems" routerLink="./thread" queryParamsHandling="merge" class="load-more" i18n>load more</a>
+      <a *ngIf="threads > summaryItems"
+         routerLink="./thread"
+         queryParamsHandling="merge"
+         class="load-more no-select" i18n>load more</a>
     </div>
     <div class="summary-box" *ngIf="responses">
       <h5 i18n>Responses:</h5>
       <app-ref-list [page]="query.page"
                     [pageControls]="false"></app-ref-list>
-      <a *ngIf="responses > summaryItems" routerLink="./responses" queryParamsHandling="merge" class="load-more" i18n>more responses</a>
+      <a *ngIf="responses > summaryItems"
+         routerLink="./responses"
+         queryParamsHandling="merge"
+         class="load-more no-select" i18n>more responses</a>
     </div>
   </ng-container>
   <ng-template #loading>

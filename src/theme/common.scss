@@ -67,6 +67,10 @@ html, body {
   cursor: pointer;
 }
 
+.no-select {
+  user-select: none;
+}
+
 label.big {
   padding-top: 5px
 }

@@ -57,12 +57,12 @@
 </ng-template>
 <ng-container *mobxAutorun>
   <a *ngIf="store.graph.unloaded.length"
-     class="load-more fake-link"
+     class="load-more fake-link no-select"
      (click)="drawMore()" i18n>load more</a>
   <div class="loading-container">
     <app-loading *ngIf="store.graph.loading.length"></app-loading>
   </div>
-  <label class="graph-selected" i18n>Selected:</label>
+  <label class="graph-selected no-select" i18n>Selected:</label>
   <app-ref-list [page]="store.graph.selectedPage"
                 i18n-emptyMessage
                 emptyMessage="Empty selection"

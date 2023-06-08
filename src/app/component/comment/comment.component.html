@@ -151,7 +151,7 @@
                         [newComments$]="newComments$"></app-comment-thread>
   </div>
   <ng-container *ngIf="(depth === 1 && comments) || moreComments">
-    <span class="fake-link load-more"
+    <span class="fake-link load-more no-select"
           *ngIf="!collapsed && context < maxContext"
           (click)="loadMore()" i18n>
       load more comments
