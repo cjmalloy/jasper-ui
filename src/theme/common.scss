@@ -547,6 +547,9 @@ video.qr-preview {
     label {
       margin-left: 16px;
     }
+    * {
+      cursor: pointer;
+    }
   }
 
   .tag-header {
