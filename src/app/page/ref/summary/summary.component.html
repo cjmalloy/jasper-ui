@@ -17,7 +17,7 @@
     </div>
     <div class="summary-box" *ngIf="threads">
       <h5 i18n>Threads:</h5>
-      <app-thread-summary query="plugin/thread:!plugin/delete"
+      <app-thread-summary query="plugin/thread:!plugin/comment:!plugin/delete"
                           [source]="store.view.ref"
                           [newComments$]="newComments$"
                           [depth]="1"
