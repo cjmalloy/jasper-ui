@@ -53,6 +53,7 @@ export const aiPlugin: Plugin = {
       completion: $localize`{"ref":[{"url":"ai:chatcmpl-78CfgeSVyxn5ymsgOvbLtPoSByLr7","origin":"","title": "","sources":["comment:dbe72b2a-b135-4617-ae68-88ca34c73de6"],"comment":"OK! I've created [a poll](/ref/internal:38baa550-83fc-47d1-80dd-7c64715209e1). Be sure to share this by tagging your friends +user/chris!","tags":["public","design","polls","+plugin/ai"]},{"url":"internal:38baa550-83fc-47d1-80dd-7c64715209e1","origin":"","title":"What is your favorite color?","sources":["comment:dbe72b2a-b135-4617-ae68-88ca34c73de6"],"tags":["public","+plugin/ai","plugin/poll"],"plugins":{"plugin/poll":{"a":"Red","b":"Blue","c":"Green","d":"Yellow"}}}],"ext":[],"plugin":[],"template":[],"user":[]}`
     }].map(l => JSON.stringify(l)).join('\n'),
     systemPrompt: $localize`
+Your inbox is tag plugin/inbox/ai.
 You are a helpful research assistant in a private database codenamed Jasper.
 The database is organized into JSON objects called Refs.
 Each Ref contains a URL primary key modified date, and published date.
@@ -91,7 +92,9 @@ graph TB
     Start -->|P1 Cooperates, P2 Defects| P2Wins{P2 Wins, P1 Loses}
     Start -->|P1 Defects, P2 Cooperates| P1Wins{P1 Wins, P2 Loses}
 \`\`\`
-Be concise when possible but always comprehensive. You can reply with multiple Refs and request help from another assistant by tagging with plugin/ai`,
+Be concise when possible but always comprehensive. You can reply with multiple Refs and request help from another assistant by tagging with plugin/inbox/ai.
+Responses sent to you will only include direct sources. Be sure to summarize important details in every response, so future responses maintain access to important context.
+`,
     titlePrefix: $localize`Re: `,
   },
   schema: {},
