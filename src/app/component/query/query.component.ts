@@ -80,7 +80,7 @@ export class QueryComponent implements OnInit {
       if (t.tag && !t.tag.startsWith('@')) {
         this.exts.getCachedExt(t.tag).subscribe(ext => {
           this.tagExts.push(ext);
-          if (ext?.name) t.text = ext.name;
+          if (ext?.modifiedString && ext?.name) t.text = ext.name;
         });
       }
     }
