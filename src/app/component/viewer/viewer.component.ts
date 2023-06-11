@@ -65,7 +65,7 @@ export class ViewerComponent {
         width = screen.width;
         height = screen.height;
       }
-      this.oembeds.get(this.embed.url || value!.url, this.theme, width, height).subscribe(oembed => this.oembed = oembed);
+      this.oembeds.get(value!.url, this.theme, width, height).subscribe(oembed => this.oembed = oembed);
     }
   }
 
