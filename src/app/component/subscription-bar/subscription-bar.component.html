@@ -31,7 +31,7 @@
       </ng-container>
     </ng-template>
   </div>
-  <span *ngIf="store.submit.files?.length" class="drafts" routerLink="/submit/upload" i18n-title title="Unsaved Drafts" i18n>🗂️</span>
+  <span *ngIf="!store.submit.empty" class="drafts" routerLink="/submit/upload" i18n-title title="Unsaved Drafts" i18n>🗂️</span>
   <span *ngIf="store.account.signedIn" class="preferences" [routerLink]="['/ext', store.account.localTag]" i18n-title title="User Settings" i18n>🎛️🎚️</span>
   <div class="light-toggle"
      (click)="themes.toggle()">
