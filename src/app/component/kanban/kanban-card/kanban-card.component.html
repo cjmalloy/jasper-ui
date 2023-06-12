@@ -15,4 +15,5 @@
 </div>
 <app-md *ngIf="currentText"
         [origin]="ref.origin || ''"
+        [plugins]="ref.tags || []"
         [text]="currentText"></app-md>
