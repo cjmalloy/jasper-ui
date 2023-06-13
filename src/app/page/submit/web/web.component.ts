@@ -130,7 +130,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         if (this.store.submit.source) {
           this.store.submit.sources.map(s => this.addSource(s));
         }
-        this.refForm!.scrapeTitle();
       }));
     });
   }
@@ -163,6 +162,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     defer(() => {
       this.webForm.get('url')?.setValue(value);
       this.webForm.get('url')?.disable();
+      this.refForm!.scrapeTitle();
     });
   }
 
