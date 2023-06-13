@@ -9,13 +9,13 @@ import { Ref, RefSort } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
+import { ConfigService } from '../../../service/config.service';
 import { OembedStore } from '../../../store/oembed';
 import { Store } from '../../../store/store';
 import { URI_REGEX } from '../../../util/format';
 import { fixUrl } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { KanbanDrag } from '../kanban.component';
-import { ConfigService } from "../../../service/config.service";
 
 @Component({
   selector: 'app-kanban-column',
@@ -150,7 +150,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     this.addText = this.addText.trim();
     if (!this.addText) return;
     const tagsWithAuthor = !this.addTags.includes(this.store.account.localTag) ? [...this.addTags, this.store.account.localTag] : this.addTags;
-    const isUrl = URI_REGEX.test(this.addText);
+    const isUrl = URI_REGEX.test(this.addText) && this.config.allowedSchemes.filter(s => this.addText.startsWith(s)).length;
     const ref = isUrl ? {
       url: fixUrl(this.addText),
       origin: this.store.account.origin,
