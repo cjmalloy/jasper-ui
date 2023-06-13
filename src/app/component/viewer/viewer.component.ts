@@ -109,7 +109,7 @@ export class ViewerComponent {
 
   get currentText() {
     const value = this.text || this.ref?.comment || '';
-    if (this.ref?.title || this.text || hasComment(this.ref?.comment)) return value;
+    if (this.ref?.title || this.text || hasTag('plugin/thread', this.ref) || hasComment(this.ref?.comment)) return value;
     return '';
   }
 

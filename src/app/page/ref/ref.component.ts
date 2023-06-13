@@ -42,7 +42,7 @@ export class RefPage implements OnInit, OnDestroy {
 
   get threads() {
     if (!this.admin.status.plugins.thread) return 0;
-    return hasTag('plugin/thread', this.store.view.ref)
+    return hasTag('plugin/thread', this.store.view.ref) || this.store.view.ref?.metadata?.plugins?.['plugin/thread'];
   }
 
   get responses() {

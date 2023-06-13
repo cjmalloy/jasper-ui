@@ -29,7 +29,7 @@
     </div>
     <div class="link-below">
       <div class="toggle"
-           *ngIf="showToggle && (commentNoTitle || expandPlugins.length)"
+           *ngIf="showToggle && (thread || commentNoTitle || expandPlugins.length)"
            (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, ref.origin, expanded = !expanded)">
         <span class="toggle-plus" *ngIf="!editing && !viewSource && !expanded">＋</span>
         <span class="toggle-x" *ngIf="editing || viewSource || expanded">✕</span>
@@ -129,7 +129,7 @@
             to <a class="origin tag" [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
           </ng-container>
         </div>
-        <app-viewer *ngIf="expanded && expandInline && !editing && !viewSource" [ref]="bareRef" ></app-viewer>
+        <app-viewer *ngIf="expanded && expandInline && !editing && !viewSource" [ref]="bareRef"></app-viewer>
         <div class="actions" [class.expanded]="actionsExpanded">
           <ng-container *ngIf="store.account.user && !ref.created && !ref.upload">
             <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>

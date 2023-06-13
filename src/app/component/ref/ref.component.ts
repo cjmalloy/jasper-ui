@@ -238,6 +238,10 @@ export class RefComponent implements OnInit, OnDestroy {
     return !!this.admin.status.plugins.feed && hasTag('+plugin/feed', this.ref);
   }
 
+  get thread() {
+    return !!this.admin.status.plugins.thread && hasTag('plugin/thread', this.ref);
+  }
+
   get comment() {
     return !!this.admin.status.plugins.comment && hasTag('plugin/comment', this.ref);
   }
@@ -743,6 +747,7 @@ export class RefComponent implements OnInit, OnDestroy {
     const title = (this.ref.title || '').trim();
     const comment = (this.ref.comment || '').trim();
     if (title) return title;
+    if (this.thread) return 'Re:';
     if (!comment) return this.url;
     return trimCommentForTitle(comment);
   }
