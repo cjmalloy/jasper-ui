@@ -12,6 +12,8 @@
                  autocorrect="off"
                  autocapitalize="none"
                  [appAutofocus]="i === autofocus"
+                 (blur)="!$any($event.target).value && removeQuery(i)"
+                 (keydown)="$event.key === 'Enter' && ($any(addQuery()) || $any($event.preventDefault())) || true"
                  [formControl]="$any(c)">
         </div>
         <button type="button" (click)="removeQuery(i)" i18n>&ndash;</button>
@@ -29,9 +31,6 @@
         Protected tags start with a plus sign.
         Private tags start with an underscore.<br>
         (i.e. "science:news", "science@origin science@other" "your/tag my/tag", "!cool", or "news:_my/private/tag")
-      </div>
-      <div class="error" *ngIf="queries.at(i).touched && queries.at(i).errors?.['required']" i18n>
-        Query must not be blank.
       </div>
     </ng-container>
   </ng-container>

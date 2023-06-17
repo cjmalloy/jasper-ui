@@ -9,7 +9,7 @@ import { SELECTOR_REGEX } from '../../util/format';
   styleUrls: ['./selectors.component.scss']
 })
 export class SelectorsFormComponent implements OnInit {
-  static validators = [Validators.required, Validators.pattern(SELECTOR_REGEX)];
+  static validators = [Validators.pattern(SELECTOR_REGEX)];
   @HostBinding('class') css = 'form-group';
 
   @Input()
@@ -18,6 +18,8 @@ export class SelectorsFormComponent implements OnInit {
   fieldName = 'tags';
   @Input()
   label = $localize`selector`;
+
+  autofocus = -1;
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -32,6 +34,7 @@ export class SelectorsFormComponent implements OnInit {
 
   addTag(value = '') {
     if (value && this.tags.value.includes(value)) return;
+    this.autofocus = value ? -1 : this.tags.length;
     this.tags.push(this.fb.control(value, SelectorsFormComponent.validators));
   }
 

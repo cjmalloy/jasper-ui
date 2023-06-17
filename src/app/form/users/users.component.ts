@@ -9,7 +9,7 @@ import { USER_REGEX } from '../../util/format';
   styleUrls: ['./users.component.scss']
 })
 export class UsersFormComponent implements OnInit {
-  static validators = [Validators.required, Validators.pattern(USER_REGEX)];
+  static validators = [Validators.pattern(USER_REGEX)];
   @HostBinding('class') css = 'form-group';
 
   @Input()

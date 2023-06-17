@@ -9,7 +9,7 @@ import { QUERY_REGEX } from '../../util/format';
   styleUrls: ['./queries.component.scss']
 })
 export class QueriesFormComponent implements OnInit {
-  static validators = [Validators.required, Validators.pattern(QUERY_REGEX)];
+  static validators = [Validators.pattern(QUERY_REGEX)];
   @HostBinding('class') css = 'form-group';
 
   @Input()

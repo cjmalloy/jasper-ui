@@ -9,7 +9,7 @@ import { URI_REGEX } from '../../util/format';
   styleUrls: ['./links.component.scss']
 })
 export class LinksFormComponent implements OnInit {
-  static validators = [Validators.required, Validators.pattern(URI_REGEX)];
+  static validators = [Validators.pattern(URI_REGEX)];
   @HostBinding('class') css = 'form-group';
 
   @Input()

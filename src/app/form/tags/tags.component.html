@@ -12,6 +12,8 @@
                  autocorrect="off"
                  autocapitalize="none"
                  [appAutofocus]="i === autofocus"
+                 (blur)="!$any($event.target).value && removeTag(i)"
+                 (keydown)="$event.key === 'Enter' && ($any(addTag('')) || $any($event.preventDefault())) || true"
                  [formControl]="$any(tag)">
         </div>
         <button type="button" (click)="removeTag(i)" i18n>&ndash;</button>
@@ -23,9 +25,6 @@
         Protected tags start with a plus sign.
         Private tags start with an underscore.<br>
         (i.e. "science", "my/tag", or "_my/private/tag")
-      </div>
-      <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['required']" i18n>
-        Tag must not be blank.
       </div>
     </ng-container>
   </ng-container>

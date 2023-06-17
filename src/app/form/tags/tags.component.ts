@@ -10,7 +10,7 @@ import { includesTag } from '../../util/tag';
   styleUrls: ['./tags.component.scss']
 })
 export class TagsFormComponent implements OnInit {
-  static validators = [Validators.required, Validators.pattern(TAG_REGEX)];
+  static validators = [Validators.pattern(TAG_REGEX)];
   @HostBinding('class') css = 'form-group';
 
   @Input()

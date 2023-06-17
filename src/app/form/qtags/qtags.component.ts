@@ -9,7 +9,7 @@ import { QUALIFIED_TAG_REGEX } from '../../util/format';
   styleUrls: ['./qtags.component.scss']
 })
 export class QtagsFormComponent implements OnInit {
-  static validators = [Validators.required, Validators.pattern(QUALIFIED_TAG_REGEX)];
+  static validators = [Validators.pattern(QUALIFIED_TAG_REGEX)];
   @HostBinding('class') css = 'form-group';
 
   @Input()
@@ -18,6 +18,8 @@ export class QtagsFormComponent implements OnInit {
   fieldName = 'tags';
   @Input()
   label = $localize`tag`;
+
+  autofocus = -1;
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -32,6 +34,7 @@ export class QtagsFormComponent implements OnInit {
 
   addTag(value = '') {
     if (value && this.tags.value.includes(value)) return;
+    this.autofocus = value ? -1 : this.tags.length;
     this.tags.push(this.fb.control(value, QtagsFormComponent.validators));
   }
 
