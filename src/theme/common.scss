@@ -670,6 +670,7 @@ details.mini:not([open]) {
   max-width: 600px;
   display: grid !important;
   grid-template-columns: min-content auto;
+  grid-auto-rows: min-content;
   padding: 10px;
 
   .nested-form, formly-field, formly-group, formly-wrapper-form-field, formly-field-textarea, formly-field-input, formly-field-select {
