@@ -199,7 +199,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
       }),
     ).subscribe(posted => {
       this.mutated = true;
-      if (!this.pages) this.pages = [];
+      if (!this.pages) this.pages = [{ content: []} as any];
       this.pages[this.pages.length - 1].content.push(posted || ref)
     });
     this.addText = '';
