@@ -37,7 +37,7 @@ export function getArgs(
   filters = uniq(filters);
   let queryFilter = filter(filters, f => f.startsWith('query/')).map(f => f.substring('query/'.length)).join(':');
   const query = queryFilter && tagOrSimpleQuery ? `(${tagOrSimpleQuery}):${queryFilter}` : tagOrSimpleQuery || queryFilter;
-  if (sort) {
+  if (sort?.length) {
     sort = Array.isArray(sort) ? [...sort] : [sort];
     for (let i = 0; i < sort.length; i++) {
       const s = sort[i];
