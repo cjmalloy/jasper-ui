@@ -64,6 +64,16 @@ export class KanbanComponent implements OnInit, OnDestroy {
     return this.ext?.config.swimLanes;
   }
 
+  get andNoCols() {
+    if (!this.columns?.length) return '';
+    return ':!' + this.columns.join(':!');
+  }
+
+  get andNoSl() {
+    if (!this.swimLanes?.length) return '';
+    return ':!' + this.swimLanes.join(':!');
+  }
+
   /**
    * Tags to apply to new Refs created on the board.
    */
@@ -81,7 +91,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   getQuery(tags: { col?: string, sl?: string }) {
     if (!tags) return '';
     const kanbanTag = defaultOrigin(this.ext!.tag, this.store.account.origin);
-    const columns = this.ext!.config.columns;
+    const columns = this.columns;
     const swimLanes = this.swimLanes;
     const sl = tags.sl;
     const col = tags.col;
@@ -96,11 +106,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
         return kanbanTag + ':' + col + ':!' + swimLanes.join(':!');
       }
       return kanbanTag + ':' + col + ':' + sl;
-    } else {
+    } else if (columns?.length) {
       if (!col) {
         return kanbanTag + ':!' + columns.join(':!');
       }
       return kanbanTag + ':' + col;
+    } else {
+      return kanbanTag;
     }
   }
 
