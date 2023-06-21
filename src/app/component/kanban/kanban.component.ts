@@ -91,29 +91,16 @@ export class KanbanComponent implements OnInit, OnDestroy {
   getQuery(tags: { col?: string, sl?: string }) {
     if (!tags) return '';
     const kanbanTag = defaultOrigin(this.ext!.tag, this.store.account.origin);
-    const columns = this.columns;
-    const swimLanes = this.swimLanes;
-    const sl = tags.sl;
-    const col = tags.col;
-    if (swimLanes) {
-      if (!col && !sl) {
-        return kanbanTag + ':!' + columns.join(':!') + ':!' + swimLanes.join(':!');
-      }
-      if (!col) {
-        return kanbanTag + ':' + sl + ':!' + columns.join(':!');
-      }
-      if (!sl) {
-        return kanbanTag + ':' + col + ':!' + swimLanes.join(':!');
-      }
-      return kanbanTag + ':' + col + ':' + sl;
-    } else if (columns?.length) {
-      if (!col) {
-        return kanbanTag + ':!' + columns.join(':!');
-      }
-      return kanbanTag + ':' + col;
-    } else {
-      return kanbanTag;
+    if (!tags.col && !tags.sl) {
+      return kanbanTag + this.andNoCols + this.andNoSl;
     }
+    if (!tags.col) {
+      return kanbanTag + ':' + tags.sl + this.andNoCols;
+    }
+    if (!tags.sl) {
+      return kanbanTag + ':' + tags.col + this.andNoSl;
+    }
+    return kanbanTag + ':' + tags.col + ':' + tags.sl;
   }
 
   drop(event: CdkDragDrop<{ sl?: string, col?: string }>) {
