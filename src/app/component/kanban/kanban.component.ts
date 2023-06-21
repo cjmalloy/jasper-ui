@@ -88,19 +88,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
     return uniq(result);
   }
 
-  getQuery(tags: { col?: string, sl?: string }) {
+  getQuery(tags?: { col?: string, sl?: string }) {
     if (!tags) return '';
     const kanbanTag = defaultOrigin(this.ext!.tag, this.store.account.origin);
-    if (!tags.col && !tags.sl) {
-      return kanbanTag + this.andNoCols + this.andNoSl;
-    }
-    if (!tags.col) {
-      return kanbanTag + ':' + tags.sl + this.andNoCols;
-    }
-    if (!tags.sl) {
-      return kanbanTag + ':' + tags.col + this.andNoSl;
-    }
-    return kanbanTag + ':' + tags.col + ':' + tags.sl;
+    const cols =  tags.col ? ':' + tags.col : this.andNoCols;
+    const sl =  tags.sl ? ':' + tags.sl : this.andNoSl;
+    return kanbanTag + cols + sl;
   }
 
   drop(event: CdkDragDrop<{ sl?: string, col?: string }>) {
