@@ -86,6 +86,12 @@ export class RefFormComponent implements OnInit {
     return this.group.get('published') as UntypedFormControl;
   }
 
+  setComment(value: string) {
+    this.comment.setValue(value);
+    // Ignore tags and sources from new comment
+    this.editor.syncEditor(this.fb, this.group, value);
+  }
+
   syncEditor() {
     this.editor.syncEditor(this.fb, this.group);
   }
@@ -125,7 +131,7 @@ export class RefFormComponent implements OnInit {
 
   scrapeComment() {
     this.scrape$.subscribe(ref => {
-      this.comment.setValue(ref.comment);
+      this.setComment(ref.comment || '');
       this.tags.addTag(...(ref.tags || []));
       this.plugins.tags = this.group.value.tags;
       defer(() => {
