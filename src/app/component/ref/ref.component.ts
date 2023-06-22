@@ -734,14 +734,6 @@ export class RefComponent implements OnInit, OnDestroy {
     this.deleted = true;
   }
 
-  cssUrl(url: string | null) {
-    if (!url) return '';
-    if (this.admin.status.plugins.thumbnail?.config?.cache) {
-      url = this.scraper.getFetch(url);
-    }
-    return `url('${url}')`;
-  }
-
   getTitle() {
     if (this.bareRepost) return this.repostRef?.title || $localize`Repost`;
     const title = (this.ref.title || '').trim();
