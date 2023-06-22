@@ -38,12 +38,4 @@ export class SubfolderComponent implements OnInit {
     return '';
   }
 
-  cssUrl(url: string) {
-    if (!url) return '';
-    if (this.admin.status.plugins.thumbnail?.config?.cache) {
-      url = this.scraper.getFetch(url);
-    }
-    return `url('${url}')`;
-  }
-
 }

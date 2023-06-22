@@ -89,12 +89,4 @@ export class FileComponent implements OnInit {
     return this.admin.status.plugins.thumbnail &&
       hasTag('plugin/thumbnail', this.ref);
   }
-
-  cssUrl(url: string | null) {
-    if (!url) return '';
-    if (this.admin.status.plugins.thumbnail?.config?.cache) {
-      url = this.scraper.getFetch(url);
-    }
-    return `url('${url}')`;
-  }
 }

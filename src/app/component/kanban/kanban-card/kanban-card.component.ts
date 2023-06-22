@@ -127,12 +127,4 @@ export class KanbanCardComponent implements OnInit {
     return trimCommentForTitle(comment);
   }
 
-  cssUrl(url: string | null) {
-    if (!url) return '';
-    if (this.admin.status.plugins.thumbnail?.config?.cache) {
-      url = this.scraper.getFetch(url);
-    }
-    return `url('${url}')`;
-  }
-
 }
