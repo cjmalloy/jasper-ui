@@ -10,6 +10,8 @@
   <app-loading *ngIf="!embedReady"></app-loading>
   <iframe #iframe
           [class.ready]="embedReady"
+          [style.width]="embedWidth"
+          [style.height]="embedHeight"
           src="about:blank"
           frameborder="0"
           scrolling="yes"

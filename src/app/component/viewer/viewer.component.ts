@@ -139,6 +139,22 @@ export class ViewerComponent {
     return this.ref?.plugins?.['plugin/embed'];
   }
 
+  get embedWidth() {
+    if (this.embed.width) return this.embed.width + 'px';
+    if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
+      return 'calc(100vw - 12px)';
+    }
+    return '80vw';
+  }
+
+  get embedHeight() {
+    if (this.embed.height) return this.embed.height + 'px';
+    if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
+      return '100vh';
+    }
+    return '67vh';
+  }
+
   get audioUrl() {
     const url = this.image || this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
     if (!this.admin.status.plugins.audio?.config?.cache) return url;
