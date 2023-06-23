@@ -1,4 +1,5 @@
 import { Component, ElementRef, HostBinding, Inject, Input, ViewChild, ViewContainerRef } from '@angular/core';
+import Hls from 'hls.js';
 import { defer, without } from 'lodash-es';
 import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
@@ -73,6 +74,18 @@ export class ViewerComponent {
     return this._iframe;
   }
 
+  @ViewChild('video')
+  set video(value: ElementRef<HTMLVideoElement>) {
+    if (!value) return;
+    const video = value.nativeElement;
+    if (video.canPlayType('application/vnd.apple.mpegurl')) return;
+    if (Hls.isSupported() && this.hls) {
+      const hls = new Hls();
+      hls.loadSource(this.videoUrl);
+      hls.attachMedia(video);
+    }
+  }
+
   @ViewChild('iframe')
   set iframe(value: ElementRef) {
     this._iframe = value;
@@ -101,6 +114,10 @@ export class ViewerComponent {
 
   get oembed() {
     return this._oembed!;
+  }
+
+  get hls() {
+    return this.videoUrl.endsWith('.m3u8') || this.tags?.includes('plugin/hls');
   }
 
   get twitter() {

@@ -23,6 +23,7 @@
      [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
      appResize></div>
 <video *ngIf="currentTags.includes('plugin/video')"
+       #video
        class="video-expand"
        autoplay
        controls
