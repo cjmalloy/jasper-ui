@@ -55,7 +55,10 @@ export function hasTag(tag?: string, ref?: Ref)  {
 
 export function hasMedia(ref?: Ref)  {
   if (!ref?.tags) return false;
-  return hasTag('plugin/image', ref) || hasTag('plugin/video', ref) || hasTag('plugin/audio', ref);
+  return hasTag('plugin/image', ref) ||
+    hasTag('plugin/video', ref) ||
+    hasTag('plugin/audio', ref) ||
+    hasTag('plugin/embed', ref);
 }
 
 export function hasUserUrlResponse(tag?: string, ref?: Ref)  {
