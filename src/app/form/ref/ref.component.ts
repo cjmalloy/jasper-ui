@@ -12,6 +12,7 @@ import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { getScheme } from '../../util/hosts';
+import { hasMedia, hasTag } from '../../util/tag';
 import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
@@ -131,7 +132,9 @@ export class RefFormComponent implements OnInit {
 
   scrapeComment() {
     this.scrape$.subscribe(ref => {
-      this.setComment(ref.comment || '');
+      if (!hasMedia(ref) || hasMedia(this.group.value)) {
+        this.setComment(ref.comment || '');
+      }
       this.tags.addTag(...(ref.tags || []));
       this.plugins.tags = this.group.value.tags;
       defer(() => {

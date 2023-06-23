@@ -53,6 +53,11 @@ export function hasTag(tag?: string, ref?: Ref)  {
   return !!find(ref.tags, t => expandedTagsInclude(t, tag));
 }
 
+export function hasMedia(ref?: Ref)  {
+  if (!ref?.tags) return false;
+  return hasTag('plugin/image', ref) || hasTag('plugin/video', ref) || hasTag('plugin/audio', ref);
+}
+
 export function hasUserUrlResponse(tag?: string, ref?: Ref)  {
   if (!tag) return false;
   if (!ref?.metadata?.userUrls) return false;
