@@ -298,7 +298,7 @@ body.dark-theme {
     }
   }
 
-  .thumbnail {
+  .thumbnail, app-viewer .image-expand {
     filter: drop-shadow(0px 0px 0.5px #ffffff);
   }
 
