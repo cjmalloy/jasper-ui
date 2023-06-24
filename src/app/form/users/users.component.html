@@ -13,7 +13,8 @@
                  autocapitalize="none"
                  [appAutofocus]="i === autofocus"
                  (blur)="!$any($event.target).value && removeUser(i)"
-                 (keydown)="$event.key === 'Enter' && ($any(addUser()) || $any($event.preventDefault())) || true"
+                 (appInputDone)="addUser()"
+                 [last]="i === users.controls.length - 1"
                  [formControl]="$any(c)">
         </div>
         <button type="button" (click)="removeUser(i)" i18n>&ndash;</button>

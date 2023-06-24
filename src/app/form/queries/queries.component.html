@@ -13,7 +13,8 @@
                  autocapitalize="none"
                  [appAutofocus]="i === autofocus"
                  (blur)="!$any($event.target).value && removeQuery(i)"
-                 (keydown)="$event.key === 'Enter' && ($any(addQuery()) || $any($event.preventDefault())) || true"
+                 (appInputDone)="addQuery()"
+                 [last]="i === queries.controls.length - 1"
                  [formControl]="$any(c)">
         </div>
         <button type="button" (click)="removeQuery(i)" i18n>&ndash;</button>
