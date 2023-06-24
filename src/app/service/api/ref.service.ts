@@ -105,6 +105,15 @@ export class RefService {
     );
   }
 
+  merge(url: string, origin: string, patch: Partial<Ref>): Observable<void> {
+    return this.http.patch<void>(this.base, patch, {
+      headers: { 'Content-Type': 'application/merge-patch+json' },
+      params: params({ url, origin }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
   delete(url: string, origin = ''): Observable<void> {
     return this.http.delete<void>(this.base, {
       params: params({ url, origin }),

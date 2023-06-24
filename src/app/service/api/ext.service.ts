@@ -118,6 +118,16 @@ export class ExtService {
     );
   }
 
+  merge(tag: string, patch: Partial<Ext>): Observable<void> {
+    return this.http.patch<void>(this.base, patch, {
+      headers: { 'Content-Type': 'application/merge-patch+json' },
+      params: params({ tag }),
+    }).pipe(
+      tap(() => this._cache.delete(tag)),
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
   delete(tag: string): Observable<void> {
     return this.http.delete<void>(this.base, {
       params: params({ tag }),
