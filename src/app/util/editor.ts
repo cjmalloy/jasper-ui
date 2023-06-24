@@ -37,6 +37,7 @@ export function getLinks(markdown: string, withText?: RegExp) {
     if (t.type !== 'link') return;
     if (!t.href) return;
     if (withText && !withText.test(t.text)) return;
+    if (t.href.startsWith('mailto:')) t.href = new DOMParser().parseFromString(t.href, "text/html").documentElement.textContent!;
     result.push(t.href);
   });
   return result;
