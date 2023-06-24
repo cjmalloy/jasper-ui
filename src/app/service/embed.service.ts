@@ -408,8 +408,8 @@ export class EmbedService {
     return getComputedStyle(document.body).backgroundColor;
   }
 
-  async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement) {
-    iframe.style.width = (oembed.width || '100') + 'px';
+  async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement, width = '100px') {
+    iframe.style.width = (oembed.width ? oembed.width + 'px' : width);
     if (oembed.height) iframe.style.height = oembed.height + 'px';
     if (oembed.html) {
       this.writeIframeHtml(oembed.html || '', iframe);

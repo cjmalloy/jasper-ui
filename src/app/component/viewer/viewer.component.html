@@ -9,9 +9,8 @@
      [class.twitter]="twitter">
   <app-loading *ngIf="!embedReady"></app-loading>
   <iframe #iframe
+          class="embed-expand"
           [class.ready]="embedReady"
-          [style.width]="embedWidth"
-          [style.height]="embedHeight"
           src="about:blank"
           frameborder="0"
           scrolling="yes"
@@ -39,6 +38,7 @@
   <source [src]="audioUrl">
 </audio>
 <app-qr *ngIf="currentTags.includes('plugin/qr')"
+        class="qr-expand"
         [url]="ref?.plugins?.['plugin/qr']?.url || ref?.url"
         appResize></app-qr>
 <app-md *ngIf="currentText"
