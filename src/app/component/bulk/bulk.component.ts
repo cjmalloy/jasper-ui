@@ -45,6 +45,7 @@ export class BulkComponent implements OnInit, OnDestroy {
   actions: Action[] = [];
   batchRunning = false;
   tagging = false;
+  thumbnailing = false;
   deleting = false;
   serverError: string[] = [];
 
@@ -141,6 +142,16 @@ export class BulkComponent implements OnInit, OnDestroy {
 
   download() {
     downloadPage(this.type, this.queryStore.page!, this.name);
+  }
+
+  thumbnail(url: string) {
+    this.thumbnailing = false;
+    this.batch(ref => this.refs.merge(ref.url, ref.origin!, {
+      tags: uniq([...(ref.tags || []), 'plugin/thumbnail']),
+      plugins: {
+        'plugin/thumbnail': {url}
+      }
+    }));
   }
 
   tag(tag: string) {

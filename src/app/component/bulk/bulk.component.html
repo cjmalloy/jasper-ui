@@ -22,6 +22,18 @@
                appAutofocus>
         <button (click)="tag(inlineTag.value)" i18n>+</button>
       </span>
+      <a class="fake-link"
+         (click)="thumbnailing = !thumbnailing" i18n>thumbnail</a>
+      <span *ngIf="thumbnailing" class="inline-thumbnailing">
+        <input #inlineThumbnail
+               (keydown)="$event.key === 'Enter' && tag(inlineThumbnail.value) || true"
+               type="text"
+               inputmode="email"
+               autocorrect="off"
+               autocapitalize="none"
+               appAutofocus>
+        <button (click)="thumbnail(inlineThumbnail.value)" i18n>+</button>
+      </span>
     </ng-container>
     <a *ngIf="!deleting"
        class="fake-link"
