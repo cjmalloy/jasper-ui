@@ -228,6 +228,9 @@ select.big {
       top: 16px;
       transform: rotate(0);
     }
+    &:not(.on):hover {
+      transform: rotate(-4deg) scale(1.05);
+    }
   }
 }
 
