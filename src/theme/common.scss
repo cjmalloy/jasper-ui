@@ -1002,6 +1002,14 @@ details.mini:not([open]) {
   }
 }
 
+.viewer-inline > * {
+  margin: 4px;
+}
+
+.viewer-below > * {
+  margin: 4px;
+}
+
 .expand {
   border-radius: 4px;
   margin: 2px;
