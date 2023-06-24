@@ -56,6 +56,7 @@ export class UploadPage implements OnDestroy {
     const audio: File[] = [];
     const video: File[] = [];
     const images: File[] = [];
+    const bookmarks: File[] = [];
     const texts: File[] = [];
     const tables: File[] = [];
     for (let i = 0; i < uploads.length; i++) {
@@ -71,6 +72,9 @@ export class UploadPage implements OnDestroy {
       }
       if (file.type.startsWith('image/')) {
         images.push(file);
+      }
+      if (file.type.startsWith('text/html')) {
+        bookmarks.push(file);
       }
       if (file.type.startsWith('text/plain')) {
         texts.push(file);
@@ -89,6 +93,7 @@ export class UploadPage implements OnDestroy {
     this.readScrape(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag);
     this.readScrape(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag);
     this.readData(texts, this.store.account.localTag);
+    this.readBookmarks(bookmarks, this.store.account.localTag);
     this.readSheet(tables, 'plugin/table', this.store.account.localTag);
   }
 
@@ -164,6 +169,29 @@ export class UploadPage implements OnDestroy {
         comment: reader.result as string,
         published: moment(),
       }));
+      reader.readAsText(file);
+    }
+  }
+
+  readBookmarks(files: File[], ...extraTags: string[]) {
+    if (!files) return;
+    for (let i = 0; i < files?.length; i++) {
+      const file = files[i];
+      const reader = new FileReader();
+      reader.onload = () => runInAction(() => {
+        const html = reader.result as string;
+        const links = new DOMParser().parseFromString(html, "text/html").documentElement.getElementsByTagName('a');
+        for (let i = 0; i < links.length; i++) {
+          const a = links.item(i)!;
+          this.store.submit.addRefs({
+            upload: true,
+            url: a.href,
+            title: a.innerText,
+            tags: ['public', ...extraTags],
+            published: moment(),
+          });
+        }
+      });
       reader.readAsText(file);
     }
   }
