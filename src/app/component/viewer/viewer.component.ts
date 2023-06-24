@@ -103,12 +103,14 @@ export class ViewerComponent {
         this.tags = without(this.currentTags, 'plugin/embed');
         this.image = oembed.url;
       } else {
-        this.embeds.writeIframe(oembed, this._iframe.nativeElement)
+        this.embeds.writeIframe(oembed, this._iframe.nativeElement, this.embedWidth)
           .then(() => this.embedReady = true);
       }
     } else {
       this.embedReady = true;
       this._iframe.nativeElement.src = this.embed.url || this.ref?.url;
+      this._iframe.nativeElement.style.width = this.embedWidth;
+      this._iframe.nativeElement.style.height = this.embedHeight;
     }
   }
 
