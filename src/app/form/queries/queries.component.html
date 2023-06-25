@@ -14,6 +14,7 @@
                  [appAutofocus]="i === autofocus"
                  (blur)="!$any($event.target).value && removeQuery(i)"
                  (appInputDone)="addQuery()"
+                 enterkeyhint="enter"
                  [last]="i === queries.controls.length - 1"
                  [formControl]="$any(c)">
         </div>
