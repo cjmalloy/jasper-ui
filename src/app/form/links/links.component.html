@@ -10,7 +10,9 @@
                  type="url"
                  [appAutofocus]="i === autofocus"
                  (blur)="!$any($event.target).value && removeLink(i)"
-                 (keydown)="$event.key === 'Enter' && ($any(addLink('')) || $any($event.preventDefault())) || true"
+                 (appInputDone)="addLink('')"
+                 enterkeyhint="enter"
+                 [last]="i === links.controls.length - 1"
                  [formControl]="$any(c)">
         </div>
         <button type="button" (click)="removeLink(i)" i18n>&ndash;</button>

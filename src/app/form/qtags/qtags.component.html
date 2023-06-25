@@ -13,7 +13,9 @@
                  autocapitalize="none"
                  [appAutofocus]="i === autofocus"
                  (blur)="!$any($event.target).value && removeTag(i)"
-                 (keydown)="$event.key === 'Enter' && ($any(addTag('')) || $any($event.preventDefault())) || true"
+                 (appInputDone)="addTag('')"
+                 enterkeyhint="enter"
+                 [last]="i === tags.controls.length - 1"
                  [formControl]="$any(tag)">
         </div>
         <button type="button" (click)="removeTag(i)" i18n>&ndash;</button>
