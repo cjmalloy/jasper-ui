@@ -67,6 +67,7 @@ import { ActionLabelDirective } from './directive/action-label.directive';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { FillWidthDirective } from './directive/fill-width.directive';
 import { ImageDimDirective } from './directive/image-dim.directive';
+import { InputDoneDirective } from './directive/input-done.directive';
 import { LimitWidthDirective } from './directive/limit-width.directive';
 import { MdPostDirective } from './directive/md-post.directive';
 import { PluginInfoUiDirective } from './directive/plugin-info-ui.directive';
@@ -294,6 +295,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     ActionLabelDirective,
     TitleDirective,
     InboxAlarmsPage,
+    InputDoneDirective,
   ],
   imports: [
     BrowserModule,
