@@ -249,7 +249,7 @@ export class EmbedService {
         catchError(() => of(null)),
       ).subscribe(ref => {
         if (ref) {
-          const expandPlugins = this.admin.getEmbeds(ref.tags);
+          const expandPlugins = this.admin.getEmbeds(ref);
           if (ref.comment || expandPlugins.length) {
             const c = embed.createEmbed(ref, expandPlugins);
             t.parentNode?.insertBefore(c.location.nativeElement, t);
@@ -380,7 +380,7 @@ export class EmbedService {
                 catchError(() => of(null)),
               ).subscribe(ref => {
                 if (ref) {
-                  const expandPlugins = this.admin.getEmbeds(ref.tags);
+                  const expandPlugins = this.admin.getEmbeds(ref);
                   if (ref.comment || expandPlugins.length) {
                     const c = embed.createEmbed(ref, expandPlugins);
                     t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);

@@ -2,7 +2,7 @@ import { Component, ElementRef, HostBinding, Inject, Input, ViewChild, ViewConta
 import Hls from 'hls.js';
 import { defer, without } from 'lodash-es';
 import { Oembed } from '../../model/oembed';
-import { Ref } from '../../model/ref';
+import { findExtension, Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -142,7 +142,7 @@ export class ViewerComponent {
   }
 
   get embedWidth() {
-    if (this.embed.width) return this.embed.width + 'px';
+    if (this.embed?.width) return this.embed.width + 'px';
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return 'calc(100vw - 12px)';
     }
@@ -150,7 +150,7 @@ export class ViewerComponent {
   }
 
   get embedHeight() {
-    if (this.embed.height) return this.embed.height + 'px';
+    if (this.embed?.height) return this.embed.height + 'px';
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return '100vh';
     }
@@ -177,5 +177,17 @@ export class ViewerComponent {
 
   private get theme() {
     return this.store.darkTheme ? 'dark' : undefined;
+  }
+
+  get pdf() {
+    if (!this.admin.status.plugins.pdf) return undefined;
+    return this.ref?.plugins?.['plugin/pdf']?.url || findExtension('.pdf', this.ref);
+  }
+
+  get pdfUrl() {
+    const url = this.pdf;
+    if (!url) return url;
+    if (!this.admin.status.plugins.pdf?.config?.cache) return url;
+    return this.scraper.getFetch(url);
   }
 }

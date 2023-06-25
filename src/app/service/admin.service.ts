@@ -5,6 +5,7 @@ import { runInAction } from 'mobx';
 import { catchError, concat, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Plugin } from '../model/plugin';
+import { Ref } from '../model/ref';
 import { Config, Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { aiPlugin, aiQueryPlugin } from '../plugin/ai';
@@ -384,6 +385,7 @@ export class AdminService {
         if (p === this.status.plugins.audio) return true;
         if (p === this.status.plugins.video) return true;
         if (p === this.status.plugins.image) return true;
+        if (p === this.status.plugins.pdf) return true;
         if (p === this.status.plugins.repost) return true;
         return false;
       }).map(p => p!.tag));
@@ -417,8 +419,14 @@ export class AdminService {
       .flatMap(t => t.config?.filters!);
   }
 
-  getEmbeds(tags?: string[]) {
-    return tagIntersection(['plugin', ...(tags || [])], this.embeddable);
+  getEmbeds(ref: Ref) {
+    const tags = ref.tags || [];
+    return tagIntersection([
+      'plugin',
+      ...tags,
+      ...this.getPluginsForUrl(ref.url).map(p => p.tag),
+      ...(ref.alternateUrls || []).flatMap(url => this.getPluginsForUrl(url).map(p => p.tag)),
+    ], this.embeddable);
   }
 
   getPluginsForUrl(url: string) {

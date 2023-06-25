@@ -75,7 +75,7 @@ export class FileComponent implements OnInit {
     this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
     this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
-    this.expandPlugins = this.admin.getEmbeds(value.tags);
+    this.expandPlugins = this.admin.getEmbeds(value);
   }
 
   ngOnInit(): void {

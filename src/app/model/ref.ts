@@ -116,3 +116,21 @@ export function writeRef(ref: Ref): Ref {
   delete result.fy;
   return result;
 }
+
+/**
+ * Find URL in alts with file extension.
+ */
+export function findExtension(ending: string, ref?: Ref, repost?: Ref) {
+  if (!ref) return undefined;
+  ending = ending.toLowerCase();
+  if (ref.url.toLowerCase().endsWith(ending)) return ref.url;
+  const urls = [
+    ...(ref.alternateUrls || []),
+    ...(repost?.alternateUrls || [])];
+  for (const s of urls) {
+    if (new URL(s).pathname.toLowerCase().endsWith(ending)) {
+      return s;
+    }
+  }
+  return undefined;
+}

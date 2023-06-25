@@ -9,7 +9,7 @@ import { catchError, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
-import { Ref, writeRef } from '../../model/ref';
+import { findExtension, Ref, writeRef } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { findArchive } from '../../plugin/archive';
 import { deleteNotice } from '../../plugin/delete';
@@ -165,7 +165,7 @@ export class RefComponent implements OnInit, OnDestroy {
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
 
     this.title = this.getTitle();
-    this.expandPlugins = this.admin.getEmbeds(value?.tags);
+    this.expandPlugins = this.admin.getEmbeds(value);
     if (this.repost) {
       if (value && this.fetchRepost && (!this.repostRef || this.repostRef.url != value.url && this.repostRef.origin === value.origin)) {
         this.refs.get(this.url, value.origin)
@@ -173,7 +173,7 @@ export class RefComponent implements OnInit, OnDestroy {
             this.repostRef = ref;
             if (this.bareRepost) {
               this.title = this.getTitle();
-              this.expandPlugins = this.admin.getEmbeds(ref.tags);
+              this.expandPlugins = this.admin.getEmbeds(ref);
             }
           });
       }
@@ -363,20 +363,15 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get pdf() {
-    if (!this.admin.status.plugins.pdf) return null;
-    return this.ref.plugins?.['plugin/pdf']?.url || this.repostRef?.plugins?.['plugin/pdf']?.url || this.findPdf;
+    if (!this.admin.status.plugins.pdf) return undefined;
+    return this.ref.plugins?.['plugin/pdf']?.url || this.repostRef?.plugins?.['plugin/pdf']?.url || findExtension('.pdf', this.ref, this.repostRef);
   }
 
-  get findPdf() {
-    const urls = [
-      ...(this.ref.alternateUrls || []),
-      ...(this.repostRef?.alternateUrls || [])];
-    for (const s of urls) {
-      if (new URL(s).pathname.endsWith('.pdf')) {
-        return s;
-      }
-    }
-    return null;
+  get pdfUrl() {
+    const url = this.pdf;
+    if (!url) return url;
+    if (!this.admin.status.plugins.pdf?.config?.cache) return url;
+    return this.scraper.getFetch(url);
   }
 
   get archive() {

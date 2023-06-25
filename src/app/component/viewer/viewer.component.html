@@ -45,6 +45,11 @@
         [origin]="ref?.origin || ''"
         [text]="currentText"
         [plugins]="currentTags"></app-md>
+<embed *ngIf="pdf && !currentText"
+       type="application/pdf"
+       [src]="pdfUrl | safe"
+       [style.width]="embedWidth"
+       [style.height]="embedHeight">
 <ng-container *ngFor="let ui of uis">
   <div [appPluginUi]="ui"
        [ref]="ref!"></div>
