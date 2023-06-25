@@ -13,7 +13,7 @@ export class InputDoneDirective {
 
   @HostListener('keydown', ['$event'])
   keydown(event: KeyboardEvent) {
-    if (event.key === 'Enter' || this.last && (event.key === 'Tab' || event.which === 229)) {
+    if (event.key === 'Enter' || this.last && (event.key === 'Tab' || event.which === 229 || event.keyCode == 9)) {
       event.preventDefault();
       this.done.next();
     }
