@@ -10,6 +10,7 @@ import { EventBus } from './bus';
 export class SubmitStore {
 
   wikiPrefix = DEFAULT_WIKI_PREFIX;
+  maxPreview = 300;
   submitInternal: Plugin[] = [];
   submitDm: Plugin[] = [];
   files: File[] = [] as any;
@@ -116,6 +117,10 @@ export class SubmitStore {
 
   get withoutDm() {
     return without(this.tags, ...this.submitDm.map(p => p.tag));
+  }
+
+  get huge() {
+    return this.refs.length > 100 || this.exts.length > 100;
   }
 
   addRefs(...refs: Ref[]) {

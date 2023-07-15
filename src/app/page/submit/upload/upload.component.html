@@ -37,7 +37,20 @@
       </div>
     </ng-container>
 
-    <ng-container *ngIf="store.submit.exts.length">
+    <ng-container *ngIf="store.submit.huge">
+      <span></span>
+      <span class="warning">* Preview disabled for huge archives</span>
+      <ng-container *ngIf="store.submit.exts.length && !store.submit.huge">
+        <span>Exts: </span>
+        <span>{{ store.submit.exts.length }}</span>
+      </ng-container>
+      <ng-container *ngIf="store.submit.refs.length">
+        <span>Refs: </span>
+        <span>{{ store.submit.refs.length }}</span>
+      </ng-container>
+    </ng-container>
+
+    <ng-container *ngIf="store.submit.exts.length && !store.submit.huge">
       <span>Exts: </span>
       <span></span>
       <ng-container *ngFor="let ext of store.submit.exts; let i = index">
@@ -46,7 +59,7 @@
       </ng-container>
     </ng-container>
 
-    <ng-container *ngIf="store.submit.refs.length">
+    <ng-container *ngIf="store.submit.refs.length && !store.submit.huge">
       <span>Refs: </span>
       <span></span>
       <ng-container *ngFor="let ref of store.submit.refs; let i = index">
