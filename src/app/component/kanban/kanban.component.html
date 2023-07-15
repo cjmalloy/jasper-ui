@@ -4,8 +4,8 @@
        class="kanban"
        cdkDropListGroup
        cdkScrollable
-       [class.single-column]="(columns?.length || 0) + (ext.config.showNoColumn ? 1 : 0) === 1"
-       [style.grid-template-columns]="(swimLanes ? 'auto ' : '') + (ext.config.showNoColumn ? '1fr ' : '') + (columns?.length ? 'repeat(' + columns.length + ', 1fr)' : '')">
+       [class.single-column]="(columns.length || 0) + (ext.config.showNoColumn ? 1 : 0) === 1"
+       [style.grid-template-columns]="(swimLanes ? 'auto ' : '') + (ext.config.showNoColumn ? '1fr ' : '') + (columns.length ? 'repeat(' + columns.length + ', 1fr)' : '')">
     <div class="kanban-header"
          cdkDropList
          [cdkDropListData]="{col: '-'+ext.tag}"
