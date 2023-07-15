@@ -113,18 +113,22 @@ export class UploadPage implements OnDestroy {
       const file = files[i];
       this.getModels(file)
         .then(models => {
-          models.ref?.forEach(ref => this.refs.count({ url: ref.url }).subscribe(count  => {
-            if (count) {
-              this.store.submit.foundRef(ref.url);
-              // @ts-ignore
-              this.refs.get(ref.url, ref.origin).subscribe(diff => this.store.submit.diffRef(diff));
-            }
-          }));
-          models.ext?.forEach(ext => this.exts.count({ query: ext.tag }).subscribe(count  => {
-            if (count) {
-              this.store.submit.foundExt(ext.tag);
-            }
-          }));
+          if (models.ref?.length < 100) {
+            // Bail on existence checks for huge archives
+            models.ref?.forEach(ref => this.refs.count({ url: ref.url }).subscribe(count  => {
+              if (count) {
+                this.store.submit.foundRef(ref.url);
+              }
+            }));
+          }
+          if (models.ext?.length < 100) {
+            // Bail on existence checks for huge archives
+            models.ext?.forEach(ext => this.exts.count({ query: ext.tag }).subscribe(count  => {
+              if (count) {
+                this.store.submit.foundExt(ext.tag);
+              }
+            }));
+          }
           return models;
         })
         .then(models => {
