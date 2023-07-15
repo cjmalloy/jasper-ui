@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer, delay, pick } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
@@ -15,6 +15,7 @@ import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
+import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
@@ -25,6 +26,10 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
 })
 export class UploadPage implements OnDestroy {
   private disposers: IReactionDisposer[] = [];
+  tagRegex = TAGS_REGEX.source;
+
+  @ViewChild('tagInput')
+  tagInput?: ElementRef;
 
   serverErrors: string[] = [];
   processing = false;
@@ -313,6 +318,11 @@ export class UploadPage implements OnDestroy {
         return of(null);
       }),
     );
+  }
+
+  tag(text: string) {
+    this.tagInput!.nativeElement.value = '';
+    this.store.submit.tagRefs(text.toLowerCase().trim().split(/\s+/));
   }
 
   private getModels(file: File): Promise<FilteredModels> {
