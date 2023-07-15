@@ -55,7 +55,6 @@ export class SubmitPage implements OnInit, OnDestroy {
     public store: Store,
     private auth: AuthzService,
     private refs: RefService,
-    private feeds: ScrapeService,
     private fb: UntypedFormBuilder,
   ) {
     theme.setTitle($localize`Submit: Link`);

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { intersection, map, uniq } from 'lodash-es';
+import { intersection, map, merge, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
 import { Action, sortOrder } from '../../model/tag';
@@ -8,7 +8,6 @@ import { deleteNotice } from '../../plugin/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
-import { OriginService } from '../../service/api/origin.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -47,6 +46,7 @@ export class BulkComponent implements OnInit, OnDestroy {
   tagging = false;
   thumbnailing = false;
   deleting = false;
+  scraping = false;
   serverError: string[] = [];
 
   constructor(
@@ -66,7 +66,6 @@ export class BulkComponent implements OnInit, OnDestroy {
     private acts: ActionService,
     private ts: TaggingService,
     private scraper: ScrapeService,
-    private origins: OriginService,
   ) {
     this.disposers.push(autorun(() => {
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
@@ -89,13 +88,14 @@ export class BulkComponent implements OnInit, OnDestroy {
 
   batch(fn: (e: any) => Observable<any> | void) {
     if (this.batchRunning) return;
+    this.serverError = [];
     this.batchRunning = true;
-    concat(...this.queryStore.page!.content.map(c => fn(c) || of(null))).pipe(
+    concat(...this.queryStore.page!.content.map(c => (fn(c) || of(null)).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.push(...printError(err));
         return of(null);
       }),
-    ).pipe(last()).subscribe(() => {
+    ))).pipe(last()).subscribe(() => {
       this.queryStore.refresh();
       this.batchRunning = false;
     });
@@ -196,5 +196,17 @@ export class BulkComponent implements OnInit, OnDestroy {
     } else {
       this.batch(tag => this.service.delete(tag.tag + tag.origin))
     }
+  }
+
+  scrape() {
+    this.scraping = false;
+    this.batch(ref => this.scraper.webScrape(ref.url).pipe(
+      switchMap(scraped => {
+        scraped.modifiedString = ref.modifiedString;
+        scraped.tags = uniq([...ref.tags, ...scraped.tags || []]);
+        scraped.plugins = merge(ref.plugins, scraped.plugins);
+        return this.refs.update(scraped);
+      }),
+    ));
   }
 }

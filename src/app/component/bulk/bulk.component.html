@@ -34,6 +34,16 @@
                appAutofocus>
         <button (click)="thumbnail(inlineThumbnail.value)" i18n>+</button>
       </span>
+      <a *ngIf="!scraping"
+         class="fake-link"
+         (click)="scraping = true" i18n>scrape</a>
+      <span *ngIf="scraping"
+            class="delete-confirm"> are you sure?&nbsp;
+      <a class="fake-link"
+         (click)="scrape()">yes</a>&nbsp;/&nbsp;
+      <a class="fake-link"
+         (click)="scraping = false" i18n>no</a>&nbsp;
+    </span>
     </ng-container>
     <a *ngIf="!deleting"
        class="fake-link"
