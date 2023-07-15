@@ -31,7 +31,8 @@
               "moment",
               "file-saver",
               "jszip",
-              "qrcode"
+              "qrcode",
+              "jsqr"
             ],
             "assets": [
               "src/favicon.ico",
