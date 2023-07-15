@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { forOwn, mapValues } from 'lodash-es';
-import { catchError, concat, Observable, retry, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, Observable, retry, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AdminService } from '../../../service/admin.service';
 import { OEmbedService } from '../../../service/api/oembed.service';
@@ -94,7 +94,7 @@ export class SettingsSetupPage implements OnInit {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).subscribe(() => {
+    ).pipe(last()).subscribe(() => {
       this.submitted = true;
       this.admin.init$.subscribe(() => this.adminForm.reset(this.admin.status));
       this.installMessages.push($localize`Success.`);

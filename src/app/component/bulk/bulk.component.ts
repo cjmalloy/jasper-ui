@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { intersection, map, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, concat, Observable, of } from 'rxjs';
+import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
 import { Action, sortOrder } from '../../model/tag';
 import { deleteNotice } from '../../plugin/delete';
 import { ActionService } from '../../service/action.service';
@@ -95,7 +95,7 @@ export class BulkComponent implements OnInit, OnDestroy {
         this.serverError.push(...printError(err));
         return of(null);
       }),
-    ).subscribe(() => {
+    ).pipe(last()).subscribe(() => {
       this.queryStore.refresh();
       this.batchRunning = false;
     });

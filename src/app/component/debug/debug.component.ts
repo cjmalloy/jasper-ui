@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, concat, concatMap, generate, Observable, of } from 'rxjs';
+import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { AdminService } from '../../service/admin.service';
@@ -58,7 +58,7 @@ export class DebugComponent {
         this.serverError.push(...printError(err));
         return of(null);
       }),
-    ))).subscribe(() => {
+    ))).pipe(last()).subscribe(() => {
       this.query.refresh();
       this.batchRunning = false;
     });
