@@ -41,6 +41,7 @@ html, body {
 }
 
 .spacer {
+  pointer-events: none;
   flex-grow: 1;
 }
 
