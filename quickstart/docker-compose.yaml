@@ -11,6 +11,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
+      # Edit to set your username (i.e. +user/bob)
       JASPER_SECURITY_CLIENTS_DEFAULT_DEFAULT_USER: +user
       JASPER_SECURITY_CLIENTS_DEFAULT_DEFAULT_ROLE: ROLE_ADMIN
     depends_on:
