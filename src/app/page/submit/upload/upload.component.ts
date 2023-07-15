@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer, delay, pick } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
 import { catchError, concat, lastValueFrom, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -57,6 +57,7 @@ export class UploadPage implements OnDestroy {
     const video: File[] = [];
     const images: File[] = [];
     const bookmarks: File[] = [];
+    const sitemap: File[] = [];
     const texts: File[] = [];
     const tables: File[] = [];
     for (let i = 0; i < uploads.length; i++) {
@@ -76,6 +77,9 @@ export class UploadPage implements OnDestroy {
       if (file.type.startsWith('text/html')) {
         bookmarks.push(file);
       }
+      if (file.type.startsWith('text/xml') || file.type.startsWith('application/xml')) {
+        sitemap.push(file);
+      }
       if (file.type.startsWith('text/plain')) {
         texts.push(file);
       }
@@ -94,6 +98,7 @@ export class UploadPage implements OnDestroy {
     this.readScrape(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag);
     this.readData(texts, this.store.account.localTag);
     this.readBookmarks(bookmarks, this.store.account.localTag);
+    this.readSitemap(sitemap, this.store.account.localTag);
     this.readSheet(tables, 'plugin/table', this.store.account.localTag);
   }
 
@@ -180,13 +185,36 @@ export class UploadPage implements OnDestroy {
       const reader = new FileReader();
       reader.onload = () => runInAction(() => {
         const html = reader.result as string;
-        const links = new DOMParser().parseFromString(html, "text/html").documentElement.getElementsByTagName('a');
+        const links = new DOMParser().parseFromString(html, 'text/html').documentElement.getElementsByTagName('a');
         for (let i = 0; i < links.length; i++) {
           const a = links.item(i)!;
           this.store.submit.addRefs({
             upload: true,
             url: a.href,
             title: a.innerText,
+            tags: ['public', ...extraTags],
+            published: moment(),
+          });
+        }
+      });
+      reader.readAsText(file);
+    }
+  }
+
+  readSitemap(files: File[], ...extraTags: string[]) {
+    if (!files) return;
+    for (let i = 0; i < files?.length; i++) {
+      const file = files[i];
+      const reader = new FileReader();
+      reader.onload = () => runInAction(() => {
+        const xml = reader.result as string;
+        const locs = new DOMParser().parseFromString(xml, 'application/xml').documentElement.getElementsByTagName('loc');
+        for (let i = 0; i < locs.length; i++) {
+          const loc = locs.item(i)?.textContent;
+          if (!loc) continue;
+          this.store.submit.addRefs({
+            upload: true,
+            url: loc,
             tags: ['public', ...extraTags],
             published: moment(),
           });
@@ -239,6 +267,7 @@ export class UploadPage implements OnDestroy {
   }
 
   uploadRef(ref: Ref) {
+    ref = toJS(ref);
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
     ref.plugins = pick(ref.plugins as any, ref.tags as string[]);
     return this.refs.create({

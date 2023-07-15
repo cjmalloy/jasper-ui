@@ -181,4 +181,17 @@ export class SubmitStore {
       }
     }
   }
+
+  tagRefs(tags: string[]) {
+    for (const ref of this.refs)
+    for (const t of tags) {
+      if (t.startsWith('-')) {
+        const r = t.substring(1);
+        if (ref.tags?.includes(r)) ref.tags.splice(ref.tags.indexOf(r), 1);
+      } else if (!ref.tags?.includes(t)) {
+        ref.tags ||= [];
+        ref.tags.push(t)
+      }
+    }
+  }
 }
