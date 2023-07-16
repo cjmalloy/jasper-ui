@@ -23,6 +23,7 @@ import { RefThreadComponent } from './page/ref/thread/thread.component';
 import { RefVersionsComponent } from './page/ref/versions/versions.component';
 import { SettingsBackupPage } from './page/settings/backup/backup.component';
 import { SettingsExtPage } from './page/settings/ext/ext.component';
+import { SettingsMePage } from './page/settings/me/me.component';
 import { SettingsOriginsPage } from './page/settings/origins/origins.component';
 import { SettingsPasswordPage } from './page/settings/password/password.component';
 import { SettingsPluginPage } from './page/settings/plugin/plugin.component';
@@ -186,7 +187,8 @@ const routes: Routes = [
     path: 'settings',
     component: SettingsPage,
     children: [
-      { path: '', redirectTo: 'user', pathMatch: 'full' },
+      { path: '', redirectTo: 'me', pathMatch: 'full' },
+      { path: 'me', component: SettingsMePage, canDeactivate: [pendingChangesGuard] },
       { path: 'user', component: SettingsUserPage, canDeactivate: [pendingChangesGuard] },
       { path: 'ext', component: SettingsExtPage, canDeactivate: [pendingChangesGuard] },
       { path: 'ref/:tag', component: SettingsRefPage, canDeactivate: [pendingChangesGuard] },

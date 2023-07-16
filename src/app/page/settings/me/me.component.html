@@ -1,0 +1,16 @@
+<ng-container *mobxAutorun>
+  <form class="form" [formGroup]="editForm" (ngSubmit)="save()"
+        [appLimitWidth]="form?.fill?.nativeElement" [limitSibling]="true">
+    <app-ext-form #form [group]="editForm"></app-ext-form>
+
+    <ng-container *ngFor="let e of serverError">
+      <span><!-- Unexpected Error --></span>
+      <div class="error">{{ e }}</div>
+    </ng-container>
+
+    <span><!-- Buttons --></span>
+    <span class="form-array right">
+        <button type="submit" [disabled]="submitted && !editForm.valid" i18n>Save</button>
+      </span>
+  </form>
+</ng-container>
