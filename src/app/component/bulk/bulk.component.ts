@@ -143,7 +143,7 @@ export class BulkComponent implements OnInit, OnDestroy {
 
   toggle() {
     this.toggled = !this.toggled;
-    this.acts.event(null!, { event: this.toggled ? 'toggle-all-open' : 'toggle-all-closed' })
+    this.acts.event(null!, { event: this.toggled ? 'toggle-all-open' : 'toggle-all-closed' });
   }
 
   download() {
@@ -209,7 +209,9 @@ export class BulkComponent implements OnInit, OnDestroy {
     this.batch(ref => this.scraper.webScrape(ref.url).pipe(
       switchMap(scraped => {
         scraped.modifiedString = ref.modifiedString;
-        scraped.tags = uniq([...ref.tags, ...scraped.tags || []]);
+        scraped.sources = uniq([...ref.sources || [], ...scraped.sources || []]);
+        scraped.alternateUrls = uniq([...ref.alternateUrls || [], ...scraped.alternateUrls || []]);
+        scraped.tags = uniq([...ref.tags || [], ...scraped.tags || []]);
         scraped.plugins = merge(ref.plugins, scraped.plugins);
         return this.refs.update(scraped);
       }),
