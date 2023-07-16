@@ -5,6 +5,8 @@
     <span class="fake-link"
           (click)="download()" i18n>download</span>
     <ng-container *ngIf="type === 'ref'">
+      <a class="fake-link"
+         (click)="toggle()" i18n>toggle</a>
       <a *ngIf="store.account.user"
          class="fake-link"
          routerLink="/submit"

@@ -43,6 +43,7 @@ export class BulkComponent implements OnInit, OnDestroy {
 
   actions: Action[] = [];
   batchRunning = false;
+  toggled = false;
   tagging = false;
   thumbnailing = false;
   deleting = false;
@@ -138,6 +139,11 @@ export class BulkComponent implements OnInit, OnDestroy {
       name += ' sort(' + this.store.view.sort.join(',') + ')';
     }
     return name;
+  }
+
+  toggle() {
+    this.toggled = !this.toggled;
+    this.acts.event(null!, { event: this.toggled ? 'toggle-all-open' : 'toggle-all-closed' })
   }
 
   download() {

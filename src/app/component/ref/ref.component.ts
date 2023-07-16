@@ -117,6 +117,17 @@ export class RefComponent implements OnInit, OnDestroy {
           this.serverError = this.store.eventBus.errors;
         }
       }
+      if (this.store.eventBus.event === 'toggle') {
+        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
+          this.expanded = !this.expanded;
+        }
+      }
+      if (this.store.eventBus.event === 'toggle-all-open') {
+        this.expanded = true;
+      }
+      if (this.store.eventBus.event === 'toggle-all-closed') {
+        this.expanded = false;
+      }
     }));
   }
 
