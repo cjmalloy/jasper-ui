@@ -217,8 +217,13 @@ export class EmbedService {
     }
     const images = el.querySelectorAll<HTMLImageElement>('img');
     images.forEach(t => {
-      if (t.src) {
-        const c = embed.createEmbed({url: t.src}, ['plugin/image']);
+      if (t.src || t.srcset) {
+        const srcsets = t.srcset ? t.srcset.split(',') : [t.src];
+        const url = t.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : t.src;
+        const config = {} as any;
+        if (t.style.width) config.width = t.style.width;
+        if (t.style.height) config.height = t.style.height;
+        const c = embed.createEmbed({ url, plugins: { 'plugin/image': config } }, ['plugin/image']);
         c.location.nativeElement.title = t.title;
         c.location.nativeElement.alt = t.alt;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
