@@ -48,6 +48,7 @@ export class UploadPage implements OnDestroy {
       this.readUploads(this.store.submit.files);
       defer(() => this.store.submit.clearFiles());
     }));
+    this.store.submit.clearOverride();
   }
 
   ngOnDestroy() {
@@ -56,6 +57,7 @@ export class UploadPage implements OnDestroy {
   }
 
   readUploads(uploads?: File[]) {
+    // TODO: process sequentially and show indicator
     if (!uploads) return;
     const files: File[] = [];
     const audio: File[] = [];
@@ -261,7 +263,7 @@ export class UploadPage implements OnDestroy {
   }
 
   push() {
-    if (this.store.submit.empty) return;
+    if (this.processing || this.store.submit.empty) return;
     this.processing = true;
     const uploads = [
       ...this.store.submit.exts.map(ext => this.uploadExt(ext)),

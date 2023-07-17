@@ -17,6 +17,7 @@ export class SubmitStore {
   exts: Ext[] = [];
   refs: Ref[] = [];
   overwrite = false;
+  refLimitOverride = false;
 
   constructor(
     public route: RouterStore,
@@ -120,7 +121,16 @@ export class SubmitStore {
   }
 
   get huge() {
+    if (this.refLimitOverride) return false;
     return this.refs.length > 100 || this.exts.length > 100;
+  }
+
+  clearOverride() {
+    this.refLimitOverride = false;
+  }
+
+  overrideHuge() {
+    this.refLimitOverride = true;
   }
 
   addRefs(...refs: Ref[]) {
