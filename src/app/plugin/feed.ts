@@ -33,6 +33,7 @@ export const feedPlugin: Plugin = {
       lastScrape: { type: 'string' },
       disableEtag: { type: 'boolean' },
       etag: { type: 'string' },
+      scrapeWebpage: { type: 'boolean' },
       scrapeDescription: { type: 'boolean' },
       scrapeContents: { type: 'boolean' },
       scrapeAuthors: { type: 'boolean' },

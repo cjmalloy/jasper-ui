@@ -48,6 +48,7 @@ export function feedForm(fb: UntypedFormBuilder, admin: AdminService) {
     addTags: tagsForm(fb, ['public']),
     scrapeInterval: ['PT15M', [intervalValidator()]],
     disableEtag: [false],
+    scrapeWebpage: [false],
     scrapeDescription: [true],
     scrapeContents: [true],
     scrapeAuthors: [true],
