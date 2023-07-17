@@ -38,6 +38,11 @@ export class ConfigService {
   clientId = '';
   scope = 'openid email';
 
+  /**
+   * Workaround for non-cookie based auth to scrape images before fetching.
+   */
+  preAuthScrape = true;
+
   mobileWidth = 740;
 
   constructor(
