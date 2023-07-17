@@ -35,6 +35,11 @@
         <input id="disableEtag" type="checkbox" formControlName="disableEtag">
       </div>
 
+      <label for="stripQuery">Strip Query:</label>
+      <div i18n-title title="Will remove any query in the URL. i.e: '?utm_source=rss'">
+        <input id="stripQuery" type="checkbox" formControlName="stripQuery">
+      </div>
+
       <label for="scrapeWebpage">Scrape Webpage:</label>
       <div>
         <input id="scrapeWebpage" type="checkbox" formControlName="scrapeWebpage">
@@ -46,7 +51,7 @@
       </div>
 
       <label for="scrapeContents">Scrape Contents:</label>
-      <div title="Will overwrite description if both scraped and found.">
+      <div i18n-title title="Will overwrite description if both scraped and found.">
         <input id="scrapeContents" type="checkbox" formControlName="scrapeContents">
       </div>
 
