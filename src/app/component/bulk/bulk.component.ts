@@ -206,15 +206,19 @@ export class BulkComponent implements OnInit, OnDestroy {
 
   scrape() {
     this.scraping = false;
-    this.batch(ref => this.scraper.webScrape(ref.url).pipe(
-      switchMap(scraped => {
-        scraped.modifiedString = ref.modifiedString;
-        scraped.sources = uniq([...ref.sources || [], ...scraped.sources || []]);
-        scraped.alternateUrls = uniq([...ref.alternateUrls || [], ...scraped.alternateUrls || []]);
-        scraped.tags = uniq([...ref.tags || [], ...scraped.tags || []]);
-        scraped.plugins = merge(ref.plugins, scraped.plugins);
-        return this.refs.update(scraped);
-      }),
-    ));
+    this.batch(ref => {
+      if (hasTag('+plugin/feed', ref)) {
+        return this.scraper.feed(ref.url, ref.origin());
+      } else {
+        return this.scraper.webScrape(ref.url).pipe(switchMap(scraped => {
+          scraped.modifiedString = ref.modifiedString;
+          scraped.sources = uniq([...ref.sources || [], ...scraped.sources || []]);
+          scraped.alternateUrls = uniq([...ref.alternateUrls || [], ...scraped.alternateUrls || []]);
+          scraped.tags = uniq([...ref.tags || [], ...scraped.tags || []]);
+          scraped.plugins = merge(ref.plugins, scraped.plugins);
+          return this.refs.update(scraped);
+        }));
+      }
+    });
   }
 }
