@@ -29,7 +29,8 @@ config="
   \"implicitFlow\": ${JASPER_IMPLICIT_FLOW-false},
   \"issuer\": \"$JASPER_ISSUER\",
   \"clientId\": \"$JASPER_CLIENT_ID\",
-  \"scope\": \"$JASPER_SCOPE\"
+  \"scope\": \"$JASPER_SCOPE\",
+  \"preAuthScrape\": ${PRE_AUTH_SCRAPE-true}
 }
 "
 echo "$config"

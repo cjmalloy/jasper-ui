@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 import * as moment from 'moment';
 import { tap } from 'rxjs/operators';
 
@@ -37,6 +37,11 @@ export class ConfigService {
   issuer = '';
   clientId = '';
   scope = 'openid email';
+
+  /**
+   * Workaround for non-cookie based auth to scrape images before fetching.
+   */
+  preAuthScrape = isDevMode();
 
   mobileWidth = 740;
 

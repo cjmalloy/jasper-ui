@@ -77,7 +77,6 @@ export class ScrapeService {
     if (url.startsWith('data:')) return;
     if (this.cacheList.has(url)) return;
     this.cacheList.add(url);
-    const sub = new Subject<null>();
     const s = () => {
       this.http.get<null>(this.base, {
         params: params({ url: this.scraping[0] }),
@@ -103,7 +102,7 @@ export class ScrapeService {
 
   getFetch(url: string) {
     if (url.startsWith('data:')) return url;
-    if (this.store.account.user) this.scrape(url);
+    if (this.config.preAuthScrape && this.store.account.user) this.scrape(url);
     return `${this.base}/fetch?url=${encodeURIComponent(url)}`;
   }
 }
