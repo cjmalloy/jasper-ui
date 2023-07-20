@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observable, runInAction } from 'mobx';
 import { catchError, Observable, of, shareReplay, Subject } from 'rxjs';
 import { Oembed } from '../model/oembed';
 import { OEmbedService } from '../service/api/oembed.service';
@@ -30,7 +30,7 @@ export class OembedStore {
         catchError(() => of(null)),
       ).subscribe(o => {
         sub.next(o);
-        this.loading.shift();
+        runInAction(() => this.loading.shift());
         if (this.loading.length) this.loading[0]!();
       }));
       if (this.loading.length === 1) this.loading[0]!();

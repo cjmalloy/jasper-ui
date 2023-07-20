@@ -35,6 +35,11 @@
                appAutofocus>
         <button (click)="tag(tagInput.value)" i18n>+</button>
       </div>
+
+      <span></span>
+      <div>
+        <app-loading *ngIf="processing"></app-loading>
+      </div>
     </ng-container>
 
     <ng-container *ngIf="store.submit.huge">
