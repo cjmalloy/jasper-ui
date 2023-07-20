@@ -1,6 +1,6 @@
 import { difference, uniq } from 'lodash-es';
 import { marked } from 'marked';
-import { getMailbox } from '../plugin/mailbox';
+import { getMailbox } from '../mods/mailbox';
 import { QUALIFIED_USER_REGEX, TAG_REGEX } from './format';
 
 export function getMailboxes(markdown: string, origin = '') {

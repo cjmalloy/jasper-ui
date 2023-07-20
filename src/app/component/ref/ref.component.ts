@@ -13,7 +13,7 @@ import { findExtension, Ref, writeRef } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { findArchive } from '../../plugin/archive';
 import { deleteNotice } from '../../plugin/delete';
-import { addressedTo, getMailbox, mailboxes } from '../../plugin/mailbox';
+import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';

@@ -8,7 +8,7 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { HasChanges } from '../../../guard/pending-changes.guard';
-import { getMailbox } from '../../../plugin/mailbox';
+import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { EditorService } from '../../../service/editor.service';

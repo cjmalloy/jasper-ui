@@ -24,15 +24,14 @@ import { feedPlugin } from '../plugin/feed';
 import { fullscreenPlugin } from '../plugin/fullscreen';
 import { graphPlugin } from '../plugin/graph';
 import { imagePlugin } from '../plugin/image';
-import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin } from '../plugin/invoice';
 import { lockedPlugin } from '../plugin/locked';
-import { inboxPlugin, outboxPlugin } from '../plugin/mailbox';
+import { dmTemplate, inboxPlugin, outboxPlugin } from '../mods/mailbox';
 import { modlistPlugin } from '../plugin/modlist';
 import { oEmbedPlugin } from '../plugin/oembed';
 import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } from '../plugin/origin';
 import { pdfPlugin } from '../plugin/pdf';
 import { personPlugin } from '../plugin/person';
-import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../plugin/poll';
+import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../mods/poll';
 import { qrPlugin } from '../plugin/qr';
 import { repostPlugin } from '../plugin/repost';
 import { snippetPlugin } from '../plugin/snippet';
@@ -48,13 +47,18 @@ import { Store } from '../store/store';
 import { blogTemplate } from '../template/blog';
 import { chatTemplate } from '../template/chat';
 import { debugTemplate } from '../template/debug';
-import { dmTemplate } from '../template/dm';
 import { folderTemplate } from '../template/folder';
 import { homeTemplate } from '../template/home';
 import { kanbanTemplate } from '../template/kanban';
-import { queueTemplate } from '../template/queue';
+import {
+  invoiceDisputedPlugin,
+  invoicePaidPlugin,
+  invoicePlugin,
+  invoiceRejectionPlugin,
+  queueTemplate
+} from '../mods/queue';
 import { rootTemplate } from '../template/root';
-import { terminalTheme } from '../template/theme';
+import { terminalTheme } from '../mods/theme';
 import { userTemplate } from '../template/user';
 import { getExtension, getHost } from '../util/hosts';
 import { hasPrefix, includesTag, tagIntersection } from '../util/tag';

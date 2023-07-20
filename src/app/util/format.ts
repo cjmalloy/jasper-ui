@@ -2,7 +2,7 @@ import { filter, sortBy, uniq } from 'lodash-es';
 import { Plugin, PluginType } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Template, TemplateType } from '../model/template';
-import { reverseOrigin } from '../plugin/mailbox';
+import { reverseOrigin } from '../mods/mailbox';
 import { config } from '../service/config.service';
 import { hasPrefix, hasTag } from './tag';
 
@@ -91,10 +91,16 @@ export function isTextPost(ref: Ref) {
   return ref.url.startsWith('comment:') && !hasTag('internal', ref);
 }
 
-export function configGroups(def: Record<PluginType|TemplateType, Plugin|Template>): Record<PluginType|TemplateType, [string, Plugin|Template][]> {
+export const DEFAULT_TYPE = 'feature';
+export function configGroups(def: Record<string, Plugin|Template>, mods = false): Record<PluginType|TemplateType, [string, Plugin|Template][]> {
   let result = Object.entries(def).reduce((result, item) => {
-    const type = result[item[1].config?.type || 'feature'] ||= [] as [string, Plugin|Template][];
-    type.push(item);
+    const mod = item[1].config?.mod;
+    if (mods == !!mod) {
+      const type: [string, Plugin|Template][] = result[item[1].config?.type || DEFAULT_TYPE] ||= [];
+      if (!mod || !type.find(i => mod === i[1].config?.mod)) {
+        type.push(item);
+      }
+    }
     return result;
   }, {} as Record<PluginType|TemplateType, [string, Plugin|Template][]>)
   for (const k of Object.keys(result) as PluginType|TemplateType[]) {

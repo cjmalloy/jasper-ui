@@ -2,7 +2,7 @@ import { intersection, uniq } from 'lodash-es';
 import { makeAutoObservable } from 'mobx';
 import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
-import { getMailbox } from '../plugin/mailbox';
+import { getMailbox } from '../mods/mailbox';
 import { config } from '../service/config.service';
 import { defaultSubs } from '../template/user';
 import { hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';

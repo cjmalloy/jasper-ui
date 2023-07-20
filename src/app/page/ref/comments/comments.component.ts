@@ -3,7 +3,7 @@ import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
-import { getMailbox, mailboxes } from '../../../plugin/mailbox';
+import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';

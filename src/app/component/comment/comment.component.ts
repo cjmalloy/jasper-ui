@@ -6,7 +6,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { deleteNotice } from '../../plugin/delete';
-import { getMailbox, mailboxes } from '../../plugin/mailbox';
+import { getMailbox, mailboxes } from '../../mods/mailbox';
 import { score } from '../../plugin/vote';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';

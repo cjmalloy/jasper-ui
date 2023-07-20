@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { RefPageArgs } from '../../../model/ref';
-import { newest } from '../../../plugin/mailbox';
+import { newest } from '../../../mods/mailbox';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';

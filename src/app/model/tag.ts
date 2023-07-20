@@ -35,6 +35,10 @@ export interface Config extends Tag {
      */
     [record: string]: any,
     /**
+     * Optional label which can be used to group plugins and templates.
+     */
+    mod?: string;
+    /**
      * Increment-only number to indicate version.
      */
     version?: number;

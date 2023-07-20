@@ -8,7 +8,7 @@ import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../../model/ref';
 import { commentPlugin } from '../../../plugin/comment';
-import { getMailbox } from '../../../plugin/mailbox';
+import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';

@@ -2,8 +2,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { forOwn, mapValues } from 'lodash-es';
-import { catchError, concat, last, Observable, retry, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, Observable, retry, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Plugin } from '../../../model/plugin';
+import { Template } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
 import { OEmbedService } from '../../../service/api/oembed.service';
 import { PluginService } from '../../../service/api/plugin.service';
@@ -29,6 +31,7 @@ export class SettingsSetupPage implements OnInit {
   installMessages: string[] = [];
   pluginGroups = configGroups(this.admin.def.plugins);
   templateGroups = configGroups(this.admin.def.templates);
+  modGroups = configGroups({...this.admin.def.plugins, ...this.admin.def.templates }, true);
 
   constructor(
     public admin: AdminService,
@@ -41,9 +44,9 @@ export class SettingsSetupPage implements OnInit {
   ) {
     theme.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
-      plugins: fb.group(mapValues(admin.status.plugins, p => fb.control(p))),
-      templates: fb.group(mapValues(admin.status.templates, t => fb.control(t))),
+      mods: fb.group(mapValues({...this.admin.def.plugins, ...this.admin.def.templates }, p => fb.control(false))),
     });
+    this.reset();
   }
 
   ngOnInit(): void {
@@ -60,33 +63,23 @@ export class SettingsSetupPage implements OnInit {
     }
     const installs: Observable<any>[] = [];
     for (const plugin in this.admin.status.plugins) {
-      if (!!this.admin.status.plugins[plugin] === !!this.adminForm.value.plugins[plugin]) continue;
       const def = this.admin.def.plugins[plugin];
-      if (this.adminForm.value.plugins[plugin]) {
-        this.installMessages.push($localize`Installing ${def.name || def.tag} plugin...`);
-        installs.push(this.plugins.create({
-          ...def,
-          origin: this.store.account.origin,
-        }).pipe(retry(10)));
+      const status = this.admin.status.plugins[plugin]!;
+      if (!!status === !!this.adminForm.value.mods[plugin]) continue;
+      if (this.adminForm.value.mods[plugin]) {
+        installs.push(this.installPlugin$(def));
       } else {
-        const status = this.admin.status.plugins[plugin]!;
-        this.installMessages.push($localize`Deleting ${status.name || status.tag} plugin...`);
-        installs.push(this.plugins.delete(status.tag + status.origin));
+        installs.push(this.deletePlugin$(status));
       }
     }
     for (const template in this.admin.status.templates) {
-      if (!!this.admin.status.templates[template] === !!this.adminForm.value.templates[template]) continue;
       const def = this.admin.def.templates[template];
-      if (this.adminForm.value.templates[template]) {
-        this.installMessages.push($localize`Installing ${def.name || def.tag} template...`);
-        installs.push(this.templates.create({
-          ...def,
-          origin: this.store.account.origin,
-        }).pipe(retry(10)));
+      const status = this.admin.status.templates[template]!;
+      if (!!status === !!this.adminForm.value.mods[template]) continue;
+      if (this.adminForm.value.mods[template]) {
+        installs.push(this.installTemplate$(def));
       } else {
-        const status = this.admin.status.templates[template]!;
-        this.installMessages.push($localize`Deleting ${status.name || status.tag} template...`);
-        installs.push(this.templates.delete(status.tag + status.origin));
+        installs.push(this.deleteTemplate$(status));
       }
     }
     concat(...installs).pipe(
@@ -96,28 +89,85 @@ export class SettingsSetupPage implements OnInit {
       }),
     ).pipe(last()).subscribe(() => {
       this.submitted = true;
-      this.admin.init$.subscribe(() => this.adminForm.reset(this.admin.status));
+      this.reset();
       this.installMessages.push($localize`Success.`);
     });
+  }
+
+  reset() {
+    this.admin.init$.subscribe(() => this.adminForm.reset({ mods: { ...this.admin.status.plugins, ...this.admin.status.templates } }));
+  }
+
+  installPlugin$(def: Plugin, mod = false) {
+    if (!mod && def.config?.mod) return this.installMod$(def.config?.mod);
+    this.installMessages.push($localize`Installing ${def.name || def.tag} plugin...`);
+    return this.plugins.create({
+      ...def,
+      origin: this.store.account.origin,
+    }).pipe(retry(10));
+  }
+
+  deletePlugin$(status: Plugin, mod = false) {
+    if (!mod && status.config?.mod) return this.deleteMod$(status.config?.mod);
+    this.installMessages.push($localize`Deleting ${status.name || status.tag} plugin...`);
+    return this.plugins.delete(status.tag + (status.origin || ''));
+  }
+
+  installTemplate$(def: Template, mod = false) {
+    if (!mod && def.config?.mod) return this.installMod$(def.config?.mod);
+    this.installMessages.push($localize`Installing ${def.name || def.tag} template...`);
+    return this.templates.create({
+      ...def,
+      origin: this.store.account.origin,
+    }).pipe(retry(10));
+  }
+
+  deleteTemplate$(status: Template, mod = false) {
+    if (!mod && status.config?.mod) return this.deleteMod$(status.config?.mod);
+    this.installMessages.push($localize`Deleting ${status.name || status.tag} template...`);
+    return this.templates.delete(status.tag + (status.origin || ''));
+  }
+
+  installMod$(mod: string): Observable<any> {
+    this.installMessages.push($localize`Installing ${mod} mod...`);
+    return concat(...[
+      ...Object.values(this.admin.def.plugins)
+        .filter(p => p.config?.mod === mod)
+        .map(p => this.installPlugin$(p, true)),
+      ...Object.values(this.admin.def.templates)
+        .filter(t => t.config?.mod === mod)
+        .map(t => this.installTemplate$(t, true)),
+    ]).pipe(toArray());
+  }
+
+  deleteMod$(mod: string): Observable<any> {
+    this.installMessages.push($localize`Deleting ${mod} mod...`);
+    return concat(...[
+      ...Object.values(this.admin.def.plugins)
+        .filter(p => p.config?.mod === mod)
+        .map(p => this.deletePlugin$(p, true)),
+      ...Object.values(this.admin.def.templates)
+        .filter(t => t.config?.mod === mod)
+        .map(t => this.deleteTemplate$(t, true)),
+    ]).pipe(toArray());
   }
 
   updateAll() {
     const updates = [];
     for (const plugin in this.admin.status.plugins) {
-      if (this.needsPluginUpdate(plugin)) updates.push(this.updatePlugin$(plugin));
+      if (this.needsPluginUpdate(plugin)) updates.push(this.updatePlugin$(plugin, true));
     }
     for (const template in this.admin.status.templates) {
-      if (this.needsTemplateUpdate(template)) updates.push(this.updateTemplate$(template));
+      if (this.needsTemplateUpdate(template)) updates.push(this.updateTemplate$(template, true));
     }
     concat(...updates).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).subscribe(() => {
+    ).pipe(last()).subscribe(() => {
       this.submitted = true;
-      this.admin.init$.subscribe(() => this.adminForm.reset(this.admin.status));
-      this.adminForm.reset(this.admin.status);
+      this.reset();
       this.installMessages.push($localize`Success.`);
     });
   }
@@ -125,26 +175,27 @@ export class SettingsSetupPage implements OnInit {
   selectAll() {
     this.selectAllToggle = !this.selectAllToggle;
     const sa = (fg: UntypedFormGroup) => forOwn(fg.controls, c => c.setValue(this.selectAllToggle));
-    sa(this.adminForm.get('plugins') as UntypedFormGroup);
-    sa(this.adminForm.get('templates') as UntypedFormGroup);
+    sa(this.adminForm.get('mods') as UntypedFormGroup);
   }
 
   updatePlugin(key: string) {
     this.updatePlugin$(key).pipe(
     ).subscribe(() => {
-      this.admin.init$.subscribe(() => this.adminForm.reset(this.admin.status));
-      this.adminForm.reset(this.admin.status)
+      this.reset();
     });
   }
 
   updateTemplate(key: string) {
-    this.updateTemplate$(key).pipe(
-      switchMap(() => this.admin.init$)
-    ).subscribe(() => this.adminForm.reset(this.admin.status));
+    this.updateTemplate$(key).subscribe(() => this.reset());
   }
 
-  updatePlugin$(key: string) {
+  updateMod(mod: string) {
+    this.updateMod$(mod).subscribe(() => this.reset());
+  }
+
+  updatePlugin$(key: string, mod = false) {
     const def = this.admin.def.plugins[key];
+    if (!mod && def.config?.mod) return this.updateMod$(def.config?.mod);
     const status = this.admin.status.plugins[key]!;
     this.installMessages.push($localize`Updating ${def.name || def.tag} plugin...`);
     return this.plugins.update({
@@ -160,8 +211,9 @@ export class SettingsSetupPage implements OnInit {
     );
   }
 
-  updateTemplate$(key: string) {
+  updateTemplate$(key: string, mod = false) {
     const def = this.admin.def.templates[key];
+    if (!mod && def.config?.mod) return this.updateMod$(def.config?.mod);
     const status = this.admin.status.templates[key]!;
     this.installMessages.push($localize`Updating ${def.name || def.tag} template...`);
     return this.templates.update({
@@ -177,12 +229,29 @@ export class SettingsSetupPage implements OnInit {
     );
   }
 
+  updateMod$(mod: string): Observable<any> {
+    this.installMessages.push($localize`Updating ${mod} mod...`);
+    return concat(...[
+      ...Object.values(this.admin.def.plugins)
+        .filter(p => p.config?.mod === mod)
+        .map(p => this.updatePlugin$(this.admin.keyOf(this.admin.def.plugins, p.tag), true)),
+      ...Object.values(this.admin.def.templates)
+        .filter(t => t.config?.mod === mod)
+        .map(t => this.updateTemplate$(this.admin.keyOf(this.admin.def.templates, t.tag), true)),
+    ]).pipe(toArray());
+  }
+
   needsPluginUpdate(key: string) {
     return this.admin.status.plugins[key]?.config?.needsUpdate;
   }
 
   needsTemplateUpdate(key: string) {
     return this.admin.status.templates[key]?.config?.needsUpdate;
+  }
+
+  needsModUpdate(mod: string) {
+    return Object.values(this.admin.status.plugins).find(p => mod === p?.config?.mod && p.config.needsUpdate) ||
+      Object.values(this.admin.status.templates).find(t => mod === t?.config?.mod && t.config.needsUpdate);
   }
 
 }

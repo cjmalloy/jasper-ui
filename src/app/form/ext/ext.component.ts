@@ -3,7 +3,7 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } 
 import { FormlyFieldConfig, FormlyFormOptions } from '@ngx-formly/core';
 import { defer, uniq } from 'lodash-es';
 import { Ext } from '../../model/ext';
-import { getMailbox } from '../../plugin/mailbox';
+import { getMailbox } from '../../mods/mailbox';
 import { AdminService } from '../../service/admin.service';
 import { TAG_REGEX } from '../../util/format';
 import { hasPrefix } from '../../util/tag';
