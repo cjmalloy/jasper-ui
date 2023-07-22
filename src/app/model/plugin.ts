@@ -64,6 +64,10 @@ export interface Plugin extends Config {
      * Optionally customise the meaning of the published field.
      */
     published?: string;
+    /**
+     * Has built in defaults available. Should respond to the event `${tag}:defaults`.
+     */
+    hasDefaults?: boolean;
   };
   /**
    * Generate separate Ref response metadata for this plugin.

@@ -26,7 +26,7 @@ export class ScrapeService {
   ) {
     autorun(() => {
       if (this.store.eventBus.event === 'scrape') {
-        this.store.eventBus.runAndReload(this.feed(this.store.eventBus.ref.url, this.store.eventBus.ref.origin));
+        this.store.eventBus.runAndReload(this.feed(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
       }
     });
   }

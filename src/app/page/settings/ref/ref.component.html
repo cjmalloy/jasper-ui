@@ -1,3 +1,14 @@
+<div class="row form">
+  <span><!-- Title --></span>
+  <h2 i18n>Manage {{ plugin.config?.settings || plugin.tag }}s</h2>
+  <span><!-- Description --></span>
+  <p>{{ plugin.config?.description || '' }}</p>
+
+  <span><!-- Buttons --></span>
+  <span class="form-array right">
+      <button type="button" *ngIf="plugin.config?.hasDefaults && writeAccess" (click)="loadDefaults()" i18n>🔁️ load defaults</button>
+    </span>
+</div>
 <ng-container *mobxAutorun>
   <app-ref-list [page]="query.page"></app-ref-list>
 </ng-container>

@@ -1,7 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { autorun } from 'mobx';
 import { catchError, map, Observable } from 'rxjs';
 import { Oembed } from '../../model/oembed';
+import { EventBus } from '../../store/bus';
+import { Store } from '../../store/store';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -15,7 +18,14 @@ export class OEmbedService {
     private http: HttpClient,
     private config: ConfigService,
     private login: LoginService,
-  ) { }
+    private store: Store,
+  ) {
+    autorun(() => {
+      if (store.eventBus.event === '+plugin/oembed:defaults') {
+        this.defaults().subscribe();
+      }
+    });
+  }
 
   private get base() {
     return this.config.api + '/api/v1/oembed';

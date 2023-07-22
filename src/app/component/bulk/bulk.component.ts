@@ -143,7 +143,7 @@ export class BulkComponent implements OnInit, OnDestroy {
 
   toggle() {
     this.toggled = !this.toggled;
-    this.acts.event(null!, { event: this.toggled ? 'toggle-all-open' : 'toggle-all-closed' });
+    this.store.eventBus.fire(this.toggled ? 'toggle-all-open' : 'toggle-all-closed');
   }
 
   download() {

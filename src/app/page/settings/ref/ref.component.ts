@@ -1,6 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { Plugin } from '../../../model/plugin';
+import { AdminService } from '../../../service/admin.service';
+import { AuthzService } from '../../../service/authz.service';
 import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
@@ -12,11 +15,15 @@ import { getArgs } from '../../../util/query';
   styleUrls: ['./ref.component.scss'],
 })
 export class SettingsRefPage implements OnInit, OnDestroy {
-
   private disposers: IReactionDisposer[] = [];
+
+  plugin!: Plugin;
+  writeAccess = false;
 
   constructor(
     private theme: ThemeService,
+    private admin: AdminService,
+    private auth: AuthzService,
     public store: Store,
     public query: QueryStore,
   ) {
@@ -27,9 +34,11 @@ export class SettingsRefPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.theme.setTitle($localize`Settings: ${this.store.settings.tag}`);
+      this.plugin = this.admin.getPlugin(this.store.settings.tag)!;
+      this.writeAccess = this.auth.canAddTag(this.plugin.tag);
+      this.theme.setTitle($localize`Settings: ${this.plugin.config?.settings || this.plugin.tag}`);
       const args = getArgs(
-        this.store.settings.tag + this.store.account.origin,
+        this.plugin.tag + this.plugin.origin,
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,
@@ -43,5 +52,10 @@ export class SettingsRefPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  loadDefaults() {
+    this.store.eventBus.fire(this.plugin.tag + ':defaults');
+    this.store.eventBus.fire('');
   }
 }

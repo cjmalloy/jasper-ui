@@ -36,7 +36,6 @@ export class SettingsSetupPage implements OnInit {
   constructor(
     public admin: AdminService,
     private theme: ThemeService,
-    public oembed: OEmbedService,
     public store: Store,
     private plugins: PluginService,
     private templates: TemplateService,

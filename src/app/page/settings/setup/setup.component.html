@@ -12,7 +12,6 @@
 
     <span><!-- Buttons --></span>
     <span class="form-array right">
-      <button type="button" (click)="oembed.defaults().subscribe()" i18n>🔁️ oEmbed defaults</button>
       <button type="button" (click)="updateAll()" *ngIf="store.view.updates" i18n>🌟️ Update All</button>
       <button type="button" (click)="selectAll()" *ngIf="selectAllToggle" i18n>Select None</button>
       <button type="button" (click)="selectAll()" *ngIf="!selectAllToggle" i18n>Select All</button>

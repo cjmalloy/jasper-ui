@@ -7,7 +7,7 @@ import { printError } from '../util/http';
 export class EventBus {
 
   event = '';
-  ref: Ref = {} as any;
+  ref?: Ref = {} as any;
   errors: string[] = [];
 
   constructor() {
@@ -21,7 +21,7 @@ export class EventBus {
     });
   }
 
-  fire(event: string, ref: Ref) {
+  fire(event: string, ref?: Ref) {
     this.event = event;
     this.ref = ref;
   }
@@ -66,6 +66,6 @@ export class EventBus {
   }
 
   isRef(r: Ref) {
-    return this.ref.url === r.url && this.ref.origin === r.origin;
+    return this.ref?.url === r.url && this.ref.origin === r.origin;
   }
 }

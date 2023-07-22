@@ -22,7 +22,7 @@ export class RefService {
   ) {
     autorun(() => {
       if (this.store.eventBus.event === 'reload') {
-        this.store.eventBus.catchError(this.get(this.store.eventBus.ref.url, this.store.eventBus.ref.origin!))
+        this.store.eventBus.catchError(this.get(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin!))
           .subscribe(ref => this.store.eventBus.refresh(ref));
       }
     });

@@ -21,10 +21,10 @@ export class OriginService {
   ) {
     autorun(() => {
       if (this.store.eventBus.event === 'push') {
-        this.store.eventBus.runAndReload(this.push(this.store.eventBus.ref.url, this.store.eventBus.ref.origin));
+        this.store.eventBus.runAndReload(this.push(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
       }
       if (this.store.eventBus.event === 'pull') {
-        this.store.eventBus.runAndReload(this.pull(this.store.eventBus.ref.url, this.store.eventBus.ref.origin));
+        this.store.eventBus.runAndReload(this.pull(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
       }
     });
   }
