@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Plugin } from '../model/plugin';
 
@@ -9,7 +9,9 @@ export class SettingsStore {
   constructor(
     public route: RouterStore,
   ) {
-    makeAutoObservable(this);
+    makeAutoObservable(this, {
+      plugins: observable.shallow,
+    });
   }
 
   get tag(): string {
