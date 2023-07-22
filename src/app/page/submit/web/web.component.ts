@@ -93,12 +93,13 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           this.addTag('plugin/repost');
           this.addSource(url);
         } else {
-          if (url.startsWith('https://www.youtube.com/channel/') || url.startsWith('https://www.youtube.com/@')) {
+          if (url.startsWith('https://www.youtube.com/channel/') || url.startsWith('https://youtube.com/channel/')
+            || url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
             if (!this.feed && this.auth.canAddTag('+plugin/feed')) {
               this.addTag('+plugin/feed');
             }
-            if (url.startsWith('https://www.youtube.com/@')) {
-              const username = url.substring('https://www.youtube.com/'.length);
+            if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
+              const username = url.substring(url.indexOf('@'));
               this.webForm.get('title')!.setValue(username);
               const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
               this.addTag(tag);
