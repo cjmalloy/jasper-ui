@@ -4,10 +4,12 @@ import { autorun } from 'mobx';
 import { catchError, map, Observable, of, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { mapRef, Ref } from '../../model/ref';
+import { catchAll } from '../../plugin/scrape';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
+import { RefService } from './ref.service';
 
 @Injectable({
   providedIn: 'root',
@@ -22,11 +24,15 @@ export class ScrapeService {
     private http: HttpClient,
     private config: ConfigService,
     private store: Store,
+    private refs: RefService,
     private login: LoginService,
   ) {
     autorun(() => {
       if (this.store.eventBus.event === 'scrape') {
         this.store.eventBus.runAndReload(this.feed(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
+      }
+      if (this.store.eventBus.event === '+plugin/scrape:defaults') {
+        refs.push(catchAll, store.account.origin).subscribe();
       }
     });
   }

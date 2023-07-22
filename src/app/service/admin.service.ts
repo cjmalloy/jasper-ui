@@ -34,6 +34,7 @@ import { personPlugin } from '../plugin/person';
 import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../mods/poll';
 import { qrPlugin } from '../plugin/qr';
 import { repostPlugin } from '../plugin/repost';
+import { scrapePlugin } from '../plugin/scrape';
 import { snippetPlugin } from '../plugin/snippet';
 import { summaryPlugin, summaryQueryPlugin } from '../plugin/summary';
 import { tablePlugin } from '../plugin/table';
@@ -89,6 +90,7 @@ export class AdminService {
       modlist: modlistPlugin,
       banlist: banlistPlugin,
       oembed: oEmbedPlugin,
+      scrape: scrapePlugin,
       origin: originPlugin,
       originPull: originPullPlugin,
       originPush: originPushPlugin,
