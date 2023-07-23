@@ -1,9 +1,20 @@
-import { AfterViewInit, Component, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  HostBinding,
+  Input,
+  Output,
+  QueryList,
+  ViewChild, ViewChildren
+} from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { toJS } from 'mobx';
 import { AdminService } from '../../service/admin.service';
 import { emptyObject, writeObj } from '../../util/http';
 import { addAllHierarchicalTags, includesTag } from '../../util/tag';
 import { feedForm, FeedFormComponent } from './feed/feed.component';
+import { GenFormComponent } from './gen/gen.component';
 import { originForm, OriginFormComponent, pullForm, pushForm } from './origin/origin.component';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from "../../model/tag";
 import { getScheme } from "../../util/hosts";
@@ -28,6 +39,8 @@ export class PluginsFormComponent implements AfterViewInit {
   feed?: FeedFormComponent;
   @ViewChild(OriginFormComponent)
   origin?: OriginFormComponent;
+  @ViewChildren('gen')
+  gens?: QueryList<GenFormComponent>;
 
   icons: Icon[] = [];
   forms: Plugin[] = [];
@@ -77,9 +90,13 @@ export class PluginsFormComponent implements AfterViewInit {
   }
 
   setValue(value: any) {
+    value = toJS(value);
     this.plugins.patchValue(value);
     this.feed?.setValue(value)
     this.origin?.setValue(value)
+    if (this.gens) {
+      this.gens.forEach(g => g.setValue(value))
+    }
   }
 
   updateForm() {

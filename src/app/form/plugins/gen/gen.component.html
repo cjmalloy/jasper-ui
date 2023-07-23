@@ -1,4 +1,4 @@
-<ng-container *ngIf="plugins">
+<ng-container *ngIf="plugins && plugin">
   <label>{{ plugin.name || plugin.tag }}</label>
   <formly-form *ngIf="plugin.config!.form" class="form" [form]="group" [fields]="plugin.config!.form" [options]="options"></formly-form>
   <details *ngIf="plugin.config!.advancedForm"

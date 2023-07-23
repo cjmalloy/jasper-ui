@@ -1,6 +1,6 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
-import { FormlyFormOptions } from '@ngx-formly/core';
+import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { Plugin } from '../../../model/plugin';
 
 @Component({
@@ -15,6 +15,9 @@ export class GenFormComponent implements OnInit {
   @Input()
   plugin!: Plugin;
 
+  @ViewChild(FormlyForm)
+  formlyForm?: FormlyForm;
+
   options: FormlyFormOptions = {
   };
 
@@ -28,4 +31,11 @@ export class GenFormComponent implements OnInit {
     this.group.patchValue(this.plugin.defaults);
   }
 
+  setValue(value: any) {
+    if (!this.formlyForm) return;
+    this.formlyForm.model = value[this.plugin.tag];
+    // TODO: Why aren't changed being detected?
+    // @ts-ignore
+    this.formlyForm.builder.build(this.formlyForm.field);
+  }
 }
