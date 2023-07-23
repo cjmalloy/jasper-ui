@@ -92,6 +92,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         defaultOptions: {
           props: {
             type: 'color',
+            label: $localize`Color: `,
           },
         },
       }, {
@@ -100,6 +101,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         defaultOptions: {
           props: {
             type: 'url',
+            label: $localize`URL:`,
           },
           validators: {
             pattern: {
@@ -124,14 +126,91 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           },
         },
       }, {
+        name: 'email',
+        extends: 'input',
+        defaultOptions: {
+          props: {
+            type: 'email',
+            label: $localize`Email:`,
+          },
+        },
+      }, {
+        name: 'tel',
+        extends: 'input',
+        defaultOptions: {
+          props: {
+            type: 'tel',
+            label: $localize`Telephone:`,
+          },
+        },
+      }, {
+        name: 'date',
+        extends: 'input',
+        defaultOptions: {
+          props: {
+            type: 'date',
+            label: $localize`Date:`,
+          },
+        },
+      }, {
+        name: 'time',
+        extends: 'input',
+        defaultOptions: {
+          props: {
+            type: 'time',
+            label: $localize`Time:`,
+          },
+        },
+      }, {
+        name: 'datetime',
+        extends: 'input',
+        defaultOptions: {
+          props: {
+            type: 'datetime-local',
+          },
+        },
+      }, {
+        name: 'week',
+        extends: 'input',
+        defaultOptions: {
+          props: {
+            type: 'week',
+            label: $localize`Week:`,
+          },
+        },
+      }, {
+        name: 'month',
+        extends: 'input',
+        defaultOptions: {
+          props: {
+            type: 'month',
+            label: $localize`Month:`,
+          },
+        },
+      }, {
         name: 'image',
         extends: 'url',
+        defaultOptions: {
+          props: {
+            label: $localize`Image:`,
+          },
+        },
       }, {
         name: 'video',
         extends: 'url',
+        defaultOptions: {
+          props: {
+            label: $localize`Video:`,
+          },
+        },
       }, {
         name: 'audio',
         extends: 'url',
+        defaultOptions: {
+          props: {
+            label: $localize`Audio:`,
+          },
+        },
       }, {
         name: 'qr',
         extends: 'url',
@@ -140,7 +219,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         extends: 'input',
         defaultOptions: {
           props: {
-            type: 'tag',
+            type: 'email',
+            label: $localize`Tag:`,
           },
           validators: {
             pattern: {
@@ -166,10 +246,10 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'qtag',
-        extends: 'input',
+        extends: 'tag',
         defaultOptions: {
           props: {
-            type: 'qtag',
+            label: $localize`Tag: `,
           },
           validators: {
             pattern: {
@@ -195,10 +275,10 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'user',
-        extends: 'input',
+        extends: 'tag',
         defaultOptions: {
           props: {
-            type: 'user',
+            label: $localize`User: `,
           },
           validators: {
             pattern: {
@@ -224,10 +304,10 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'quser',
-        extends: 'input',
+        extends: 'user',
         defaultOptions: {
           props: {
-            type: 'quser',
+            label: $localize`User: `,
           },
           validators: {
             pattern: {
@@ -253,10 +333,10 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'selector',
-        extends: 'input',
+        extends: 'tag',
         defaultOptions: {
           props: {
-            type: 'selector',
+            label: $localize`Tag: `,
           },
           validators: {
             pattern: {
@@ -282,10 +362,10 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'query',
-        extends: 'input',
+        extends: 'tag',
         defaultOptions: {
           props: {
-            type: 'query',
+            label: $localize`Query: `,
           },
           validators: {
             pattern: {

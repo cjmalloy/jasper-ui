@@ -27,6 +27,11 @@ import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
+  /**
+   * Overrides the <input> type. Not related to the formly field type.
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#input_types
+   */
   get type() {
     return this.props.type || 'text';
   }

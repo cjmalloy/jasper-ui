@@ -167,6 +167,11 @@ $tablet-width: 767px;
   textarea {
     margin: 0;
     resize: vertical;
+    width: calc(100vw - 12px);
+  }
+
+  .plugins-form textarea {
+    width: calc(100vw - 40px);
   }
 
   ngx-monaco-editor {
