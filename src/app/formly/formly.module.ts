@@ -4,6 +4,7 @@ import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormlyModule } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
+import * as moment from 'moment';
 import {
   QUALIFIED_TAG_REGEX,
   QUALIFIED_USER_REGEX,
@@ -15,6 +16,7 @@ import {
 } from '../util/format';
 import { AudioUploadComponent } from './audio-upload/audio-upload.component';
 import { FormlyFieldCheckbox } from './checkbox.type';
+import { DurationInputAccessor, FormlyFieldDuration } from './duration.type';
 import { FormlyError } from './errors';
 import { FormlyWrapperFormField } from './form-field.wrapper';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
@@ -37,6 +39,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
     FormlyFieldMultiCheckbox,
     FormlyFieldRadio,
     FormlyFieldSelect,
+    FormlyFieldDuration,
+    DurationInputAccessor,
     QrScannerComponent,
     ImageUploadComponent,
     VideoUploadComponent,
@@ -185,6 +189,22 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           props: {
             type: 'month',
             label: $localize`Month:`,
+          },
+        },
+      }, {
+        name: 'duration',
+        component: FormlyFieldDuration,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          props: {
+            label: $localize`Duration:`,
+            hint: 'Hint message contains HTML, so there is a special override in form-field.wrapper.ts',
+          },
+          validators: {
+            interval: {
+              expression: (c: AbstractControl) =>  moment.duration(c.value).isValid(),
+              message: $localize`Scrape Duration must be valid time span (HH:MM:SS) or ISO 8601 Duration.`,
+            }
           },
         },
       }, {

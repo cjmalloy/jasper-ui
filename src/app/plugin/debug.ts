@@ -89,6 +89,9 @@ export const debugPlugin: Plugin = {
       key: 'month',
       type: 'month',
     }, {
+      key: 'duration',
+      type: 'duration',
+    }, {
       key: 'image',
       type: 'image',
     }, {
@@ -220,6 +223,7 @@ export const debugPlugin: Plugin = {
       datetime: { type: 'string' },
       week: { type: 'string' },
       month: { type: 'string' },
+      duration: { type: 'string' },
       image: { type: 'string' },
       video: { type: 'string' },
       audio: { type: 'string' },
