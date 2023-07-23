@@ -16,14 +16,7 @@ import { FieldArrayType } from '@ngx-formly/core';
             (keydown)="maybeAdd($event, formControl.length - 1 === i)"></formly-field>
           <button type="button" (click)="remove(i)" i18n>&ndash;</button>
         </div>
-        <div class="error" *ngIf="showError">
-          <span *ngIf="field.type === 'url' && field.formControl?.errors?.['pattern'] else defaultMessage" i18n>
-            Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
-          </span>
-          <ng-template #defaultMessage>
-            <formly-validation-message [field]="field"></formly-validation-message>
-          </ng-template>
-        </div>
+        <formly-error *ngIf="showError" [field]="field"></formly-error>
       </ng-container>
     </div>
   `,
