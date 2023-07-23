@@ -13,6 +13,161 @@ export const scrapePlugin: Plugin = {
     icons: [{ label: $localize`🪝`}],
     description: $localize`Configure CSS classes for scraping website.`,
     hasDefaults: true,
+    form: [{
+      key: 'schemes',
+      type: 'list',
+      props: {
+        label: $localize`Schemes: `,
+        addText: $localize`+ Add scheme`,
+      },
+      fieldArray: {
+        type: 'url',
+        props: {
+          label: $localize`🔗️*`,
+        }
+      },
+    }, {
+      key: 'text',
+      type: 'boolean',
+      props: {
+        label: $localize`Text: `,
+      },
+    },  {
+      key: 'oembedJson',
+      type: 'boolean',
+      props: {
+        label: $localize`oEmbed: `,
+      },
+    },  {
+      key: 'ldJson',
+      type: 'boolean',
+      props: {
+        label: $localize`Linked Data: `,
+      },
+    },  {
+      key: 'openGraph',
+      type: 'boolean',
+      props: {
+        label: $localize`Open Graph: `,
+      },
+    }, {
+      key: 'textSelectors',
+      type: 'list',
+      props: {
+        label: $localize`Text Selectors: `,
+        addText: $localize`+ Add text selector`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
+      key: 'removeSelectors',
+      type: 'list',
+      props: {
+        label: $localize`Remove Selectors: `,
+        addText: $localize`+ Add remove selector`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
+      key: 'removeAfterSelectors',
+      type: 'list',
+      props: {
+        label: $localize`Remove After Selectors: `,
+        addText: $localize`+ Add remove after selector`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
+      key: 'removeStyleSelectors',
+      type: 'list',
+      props: {
+        label: $localize`Remove Style Selectors: `,
+        addText: $localize`+ Add remove style selector`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
+      key: 'imageFixRegex',
+      type: 'list',
+      props: {
+        label: $localize`Image Fix RegEx: `,
+        addText: $localize`+ Add regex`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
+      key: 'imageSelectors',
+      type: 'list',
+      props: {
+        label: $localize`Image Selectors: `,
+        addText: $localize`+ Add image selector`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
+      key: 'videoSelectors',
+      type: 'list',
+      props: {
+        label: $localize`Video Selectors: `,
+        addText: $localize`+ Add video selector`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
+      key: 'audioSelectors',
+      type: 'list',
+      props: {
+        label: $localize`Audio Selectors: `,
+        addText: $localize`+ Add audio selector`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
+      key: 'thumbnailSelectors',
+      type: 'list',
+      props: {
+        label: $localize`Thumbnail Selectors: `,
+        addText: $localize`+ Add thumbnail selector`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }]
   },
   defaults: {
     text: true,
