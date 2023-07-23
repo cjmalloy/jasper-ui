@@ -15,13 +15,12 @@ export const scrapePlugin: Plugin = {
     hasDefaults: true,
     form: [{
       key: 'schemes',
-      type: 'list',
+      type: 'urls',
       props: {
         label: $localize`Schemes: `,
         addText: $localize`+ Add scheme`,
       },
       fieldArray: {
-        type: 'url',
         props: {
           label: $localize`🔗️*`,
         }
