@@ -292,6 +292,10 @@ video.qr-preview {
   overflow: hidden;
 }
 
+.hide-errors .error {
+  display: none;
+}
+
 .tag,
 .icon {
   margin: 0 4px;
@@ -658,11 +662,12 @@ details.mini:not([open]) {
 
 .grow {
   flex: 1;
+  flex-basis: 100% !important;
   display: flex;
   flex-direction: column;
-  * {
+  input {
     flex: 1;
-    flex-basis: 100%;
+    flex-basis: 100% !important;
   }
 }
 
@@ -677,7 +682,7 @@ details.mini:not([open]) {
   grid-auto-rows: min-content;
   padding: 10px;
 
-  .nested-form, formly-field, formly-group, formly-wrapper-form-field, formly-field-textarea, formly-field-input, formly-field-select {
+  .nested-form, formly-field, formly-group, formly-wrapper-form-field, formly-field-textarea, formly-field-input, formly-field-select, formly-list-section {
     margin: 0;
     display: contents;
     & > * {
@@ -688,6 +693,12 @@ details.mini:not([open]) {
     & > span:empty {
       height: 0;
       margin: 0;
+    }
+  }
+
+  formly-list-section .form-array {
+    formly-field formly-wrapper-form-field label, .form-array {
+      margin: 0 4px;
     }
   }
 
@@ -703,7 +714,6 @@ details.mini:not([open]) {
 
   label {
     white-space: nowrap;
-    vertical-align: center;
     text-align: right;
   }
 
@@ -730,6 +740,7 @@ details.mini:not([open]) {
 
 .form-array {
   display: flex;
+  flex: 1;
 
   &.right {
     justify-content: right;

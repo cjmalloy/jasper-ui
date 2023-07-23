@@ -10,6 +10,7 @@ import { FormlyFieldCheckbox } from './checkbox.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
 import { FormlyFieldInput } from './input.type';
+import { ListTypeComponent } from './list.type';
 import { FormlyFieldMultiCheckbox } from './multicheckbox.type';
 import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
 import { FormlyFieldRadio } from './radio.type';
@@ -30,6 +31,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
     ImageUploadComponent,
     VideoUploadComponent,
     AudioUploadComponent,
+    ListTypeComponent,
   ],
   exports: [
     QrScannerComponent,
@@ -131,6 +133,9 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
       }, {
         name: 'enum',
         extends: 'select',
+      }, {
+        name: 'list',
+        component: ListTypeComponent,
       }],
     }),
   ],
