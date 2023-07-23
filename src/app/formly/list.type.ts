@@ -9,7 +9,11 @@ import { FieldArrayType } from '@ngx-formly/core';
       <button type="button" (click)="add()">{{ props.addText }}</button>
       <ng-container *ngFor="let field of field.fieldGroup; let i = index">
         <div class="form-array">
-          <formly-field class="grow hide-errors" [field]="field"></formly-field>
+          <formly-field
+            class="grow hide-errors"
+            [field]="field"
+            (focusout)="!$any($event.target).value && remove(i)"
+            (keydown)="maybeAdd($event, formControl.length - 1 === i)"></formly-field>
           <button type="button" (click)="remove(i)" i18n>&ndash;</button>
         </div>
         <div class="error" *ngIf="showError">
@@ -24,4 +28,19 @@ import { FieldArrayType } from '@ngx-formly/core';
     </div>
   `,
 })
-export class ListTypeComponent extends FieldArrayType { }
+export class ListTypeComponent extends FieldArrayType {
+  override add() {
+    // @ts-ignore
+    this.field.fieldArray.focus = true;
+    super.add(...arguments);
+    // @ts-ignore
+    this.field.fieldArray.focus = false;
+  }
+
+  maybeAdd(event: KeyboardEvent, last: boolean) {
+    if (event.key === 'Enter' || last && event.key === 'Tab') {
+      event.preventDefault();
+      this.add();
+    }
+  }
+}
