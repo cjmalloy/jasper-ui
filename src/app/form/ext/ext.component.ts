@@ -116,18 +116,6 @@ export class ExtFormComponent implements OnInit {
     return this.config.get('userTheme') as UntypedFormControl;
   }
 
-  get maxAge() {
-    return this.config.get('maxAge') as UntypedFormControl;
-  }
-
-  get bounty() {
-    return this.config.get('bounty') as UntypedFormControl;
-  }
-
-  get approvers() {
-    return this.config.get('approvers') as UntypedFormControl;
-  }
-
   get columns() {
     return this.config.get('columns') as UntypedFormControl;
   }

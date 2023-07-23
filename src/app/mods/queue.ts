@@ -14,6 +14,26 @@ export const queueTemplate: Template = {
     filters: [
       { query: 'queue', label: $localize`🚧️ queue`, group: $localize`Templates 🎨️` },
     ],
+    form: [{
+      key: 'bounty',
+      type: 'string',
+      props: {
+        label: $localize`Bounty: `
+      }
+    }, {
+      key: 'maxAge',
+      type: 'string',
+      props: {
+        label: $localize`Max Age: `
+      }
+    }, {
+      key: 'approvers',
+      type: 'qusers',
+      props: {
+        label: $localize`Approvers: `,
+        addText: $localize`+ Add approver`,
+      }
+    }]
   },
   defaults: {
     approvers: [],

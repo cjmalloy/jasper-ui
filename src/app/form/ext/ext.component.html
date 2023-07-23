@@ -11,6 +11,12 @@
 
   <ng-container [formGroup]="config">
 
+    <formly-form *ngIf="form"
+                 class="nested-form"
+                 [form]="config"
+                 [fields]="form"
+                 [options]="options"></formly-form>
+
     <ng-container *ngIf="liveSearch">
       <label for="liveSearch" i18n>Live Search:</label>
       <div i18n-title title="Search as you type."><input id="liveSearch" type="checkbox" formControlName="liveSearch"></div>
@@ -50,24 +56,6 @@
       <app-tags id="editors"
                 [group]="config"
                 fieldName="editors"></app-tags>
-    </ng-container>
-
-    <ng-container *ngIf="maxAge">
-      <label for="maxAge" i18n>Max Age:</label>
-      <input type="text" id="maxAge" formControlName="maxAge">
-    </ng-container>
-
-    <ng-container *ngIf="bounty">
-      <label for="bounty" i18n>Bounty:</label>
-      <input type="text" id="bounty" formControlName="bounty">
-    </ng-container>
-
-    <ng-container *ngIf="approvers">
-      <label for="approvers" i18n>Approvers:</label>
-      <app-users id="approvers"
-                 [group]="config"
-                 label="approver"
-                 fieldName="approvers"></app-users>
     </ng-container>
 
     <ng-container *ngIf="columns">
@@ -180,11 +168,6 @@
     </ng-container>
   </ng-container>
 
-  <formly-form *ngIf="form"
-               class="nested-form"
-               [form]="config"
-               [fields]="form"
-               [options]="options"></formly-form>
   <ng-container *ngIf="advancedForm?.length">
     <span><!-- Advanced --></span>
     <details class="advanced">
