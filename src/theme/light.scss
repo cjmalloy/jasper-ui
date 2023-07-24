@@ -241,6 +241,10 @@ body.light-theme {
     backdrop-filter: blur(1px);
   }
 
+  formly-list-section .form-array:not(:nth-child(2)) > formly-field > formly-group {
+    border-top: 0.5px dashed $border;
+  }
+
   .editor:focus-within, .bubble, .plugins-form > * {
     border-radius: 8px;
     backdrop-filter: blur(1px) sepia(5%);

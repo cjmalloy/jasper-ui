@@ -675,7 +675,12 @@ details.mini:not([open]) {
   margin: 0 !important;
 }
 
-.form {
+formly-list-section .form-array > formly-field > formly-group {
+  width: 100%
+}
+
+.form,
+formly-list-section .form-array > formly-field > formly-group {
   max-width: 600px;
   display: grid !important;
   grid-template-columns: min-content auto;
@@ -697,7 +702,8 @@ details.mini:not([open]) {
   }
 
   formly-list-section .form-array {
-    formly-field formly-wrapper-form-field label, .form-array {
+    formly-field > formly-wrapper-form-field > label,
+    formly-field-input >.form-array {
       margin: 0 4px;
     }
   }

@@ -12,7 +12,7 @@ import { FieldArrayType } from '@ngx-formly/core';
           <formly-field
             class="grow hide-errors"
             [field]="field"
-            (focusout)="!$any($event.target).value && remove(i)"
+            (focusout)="maybeRemove($event, i)"
             (keydown)="maybeAdd($event, i)"></formly-field>
           <button type="button" (click)="remove(i)" i18n>&ndash;</button>
         </div>
@@ -42,5 +42,11 @@ export class ListTypeComponent extends FieldArrayType {
       event.preventDefault();
       this.add(index);
     }
+  }
+
+  maybeRemove(event: FocusEvent, i: number) {
+    // @ts-ignore
+    if (this.field.fieldArray.fieldGroup) return;
+    if (!(event.target as any).value) this.remove(i);
   }
 }

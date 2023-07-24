@@ -12,6 +12,54 @@ export const oEmbedPlugin: Plugin = {
     icons: [{ label: $localize`📡️`}],
     description: $localize`Register an oEmbed API.`,
     hasDefaults: true,
+    form: [{
+      key: 'provider_name',
+      type: 'string',
+    }, {
+      key: 'provider_url',
+      type: 'url',
+    }, {
+      key: 'endpoints',
+      type: 'list',
+      props: {
+        label: $localize`Endpoints:`,
+        addText: $localize`+ Add endpoint`,
+      },
+      fieldArray: {
+        fieldGroup: [{
+          key: 'url',
+          type: 'url',
+        }, {
+          key: 'discovery',
+          type: 'boolean',
+          props: {
+            label: $localize`Discovery:`
+          }
+        }, {
+          key: 'schemes',
+          type: 'urls',
+          props: {
+            label: $localize`Schemes:`,
+            addText: $localize`+ Add scheme`
+          },
+          fieldArray: {
+            props: {
+              label: $localize`🔗️*`,
+            }
+          },
+        }, {
+          key: 'formats',
+          type: 'list',
+          props: {
+            label: $localize`Formats:`,
+            addText: $localize`+ Add format`
+          },
+          fieldArray: {
+            type: 'string',
+          }
+        }]
+      }
+    }]
   },
   schema: {
     optionalProperties: {
