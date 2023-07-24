@@ -17,6 +17,25 @@ export const originPlugin: Plugin = {
      If the remote is also set up to replicate from this instance, you may
      communicate with remote users.
      You may configure if metadata is generated or plugins are validated. `,
+    form: [{
+      key: 'local',
+      type: 'origin',
+      props: {
+        label: $localize`Local:`
+      }
+    }, {
+      key: 'remote',
+      type: 'origin',
+      props: {
+        label: $localize`Remote:`
+      }
+    }, {
+      key: 'proxy',
+      type: 'url',
+      props: {
+        label: $localize`Proxy:`
+      }
+    }],
   },
   schema: {
     optionalProperties: {
@@ -49,6 +68,43 @@ export const originPullPlugin: Plugin = {
         not pulled yet
       {{/if}}
     `,
+    form: [{
+      key: 'query',
+      type: 'query'
+    }, {
+      key: 'pullInterval',
+      type: 'duration',
+      defaultValue: 'PT15M',
+      props: {
+        label: $localize`Pull Interval:`,
+      }
+    }, {
+      key: 'removeTags',
+      type: 'tags',
+      props: {
+        label: $localize`Remove Tags:`,
+      }
+    }, {
+      key: 'batchSize',
+      type: 'integer',
+      defaultValue: 250,
+      props: {
+        label: $localize`Batch Size:`,
+      }
+    }, {
+      key: 'generateMetadata',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Generate Metadata:`,
+      }
+    }, {
+      key: 'validationOrigin',
+      type: 'origin',
+      props: {
+        label: $localize`Validation Origin:`,
+      }
+    }],
   },
   defaults: {
     pullInterval: 'PT15M',
@@ -97,6 +153,30 @@ export const originPushPlugin: Plugin = {
         not pushed yet
       {{/if}}
     `,
+    form: [{
+      key: 'query',
+      type: 'query'
+    }, {
+      key: 'pushInterval',
+      type: 'duration',
+      defaultValue: 'PT15M',
+      props: {
+        label: $localize`Push Interval:`,
+      }
+    }, {
+      key: 'batchSize',
+      type: 'integer',
+      defaultValue: 250,
+      props: {
+        label: $localize`Batch Size:`,
+      }
+    }, {
+      key: 'checkRemoteCursor',
+      type: 'boolean',
+      props: {
+        label: $localize`Check Remote Cursor:`,
+      }
+    }],
   },
   defaults: {
     pushInterval: 'PT15M',

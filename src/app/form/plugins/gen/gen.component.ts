@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { Plugin } from '../../../model/plugin';
@@ -14,6 +14,10 @@ export class GenFormComponent implements OnInit {
   plugins!: UntypedFormGroup;
   @Input()
   plugin!: Plugin;
+  @Input()
+  children: Plugin[] = [];
+  @Output()
+  togglePlugin = new EventEmitter<string>();
 
   @ViewChild(FormlyForm)
   formlyForm?: FormlyForm;
@@ -25,6 +29,13 @@ export class GenFormComponent implements OnInit {
 
   get group() {
     return this.plugins.get(this.plugin.tag) as UntypedFormGroup;
+  }
+
+  get childrenOn() {
+    for (let i = this.children.length - 1; i >= 0; i--) {
+      if (this.plugins.contains(this.children[i].tag)) return i + 1;
+    }
+    return 0;
   }
 
   ngOnInit(): void {

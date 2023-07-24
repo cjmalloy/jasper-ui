@@ -513,6 +513,10 @@ export class AdminService {
     return this.forms.filter(p => match.includes(p.tag));
   }
 
+  getPluginSubForms(parent: string) {
+    return this.forms.filter(p => p.config?.submitChild && hasPrefix(p.tag, parent));
+  }
+
   getTemplate(tag: string) {
     tag = tag.replace('+', '');
     if (this.status.templates[tag]) return this.status.templates[tag];

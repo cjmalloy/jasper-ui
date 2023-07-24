@@ -83,7 +83,6 @@ import { JsonComponent } from './form/json/json.component';
 import { LinksFormComponent } from './form/links/links.component';
 import { PluginFormComponent } from './form/plugin/plugin.component';
 import { GenFormComponent } from './form/plugins/gen/gen.component';
-import { OriginFormComponent } from './form/plugins/origin/origin.component';
 import { PluginsFormComponent } from './form/plugins/plugins.component';
 import { QtagsFormComponent } from './form/qtags/qtags.component';
 import { QueriesFormComponent } from './form/queries/queries.component';
@@ -240,7 +239,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     BackupComponent,
     BackupListComponent,
     UserFormComponent,
-    OriginFormComponent,
     RefAltsComponent,
     RefVersionsComponent,
     KanbanComponent,

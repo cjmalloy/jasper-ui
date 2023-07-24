@@ -778,9 +778,6 @@ details.mini:not([open]) {
   .ribbon-margin {
     height: 0;
     transition: height 0.2s linear;
-    &.on {
-      height: 12px;
-    }
   }
 
   .floating-ribbons {

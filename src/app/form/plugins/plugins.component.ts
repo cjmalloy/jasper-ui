@@ -6,18 +6,18 @@ import {
   Input,
   Output,
   QueryList,
-  ViewChild, ViewChildren
+  ViewChild,
+  ViewChildren
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { toJS } from 'mobx';
+import { Plugin } from '../../model/plugin';
+import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
+import { getScheme } from '../../util/hosts';
 import { emptyObject, writeObj } from '../../util/http';
 import { addAllHierarchicalTags, includesTag } from '../../util/tag';
 import { GenFormComponent } from './gen/gen.component';
-import { originForm, OriginFormComponent, pullForm, pushForm } from './origin/origin.component';
-import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from "../../model/tag";
-import { getScheme } from "../../util/hosts";
-import { Plugin } from "../../model/plugin";
 
 @Component({
   selector: 'app-form-plugins',
@@ -34,8 +34,6 @@ export class PluginsFormComponent implements AfterViewInit {
   @Output()
   togglePlugin = new EventEmitter<string>();
 
-  @ViewChild(OriginFormComponent)
-  origin?: OriginFormComponent;
   @ViewChildren('gen')
   gens?: QueryList<GenFormComponent>;
 
@@ -89,7 +87,6 @@ export class PluginsFormComponent implements AfterViewInit {
   setValue(value: any) {
     value = toJS(value);
     this.plugins.patchValue(value);
-    this.origin?.setValue(value)
     if (this.gens) {
       this.gens.forEach(g => g.setValue(value))
     }
@@ -145,11 +142,6 @@ export function pluginsForm(fb: UntypedFormBuilder, admin: AdminService, tags: s
 }
 
 function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
-  switch (tag) {
-    case '+plugin/origin': return originForm(fb, admin);
-    case '+plugin/origin/push': return pushForm(fb, admin);
-    case '+plugin/origin/pull': return pullForm(fb, admin);
-  }
   if (admin.getPlugin(tag)?.config?.form || admin.getPlugin(tag)?.config?.advancedForm) {
     return fb.group({});
   }

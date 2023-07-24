@@ -1,5 +1,6 @@
 <ng-container *ngIf="plugins && plugin">
-  <label>{{ plugin.name || plugin.tag }}</label>
+  <label>{{ plugin.config?.submitChild || plugin.name || plugin.tag }}</label>
+  <div *ngIf="childrenOn" class="ribbon-margin" [style.height.px]="childrenOn * 12"></div>
   <formly-form *ngIf="plugin.config!.form" class="form" [form]="group" [fields]="plugin.config!.form" [options]="options"></formly-form>
   <details *ngIf="plugin.config!.advancedForm"
            class="advanced"
@@ -8,6 +9,19 @@
     <summary *ngIf="!plugin.config!.form" i18n-title title="Advanced"><span></span></summary>
     <formly-form class="form" [form]="group" [fields]="plugin.config!.advancedForm" [options]="options"></formly-form>
   </details>
+  <ng-container *ngFor="let child of children">
+    <ng-container *ngIf="plugins.contains(child.tag)">
+      <hr>
+      <div>
+        <app-form-gen [plugins]="plugins" [plugin]="child"></app-form-gen>
+      </div>
+    </ng-container>
+  </ng-container>
 </ng-container>
 
-
+<div class="floating-ribbons">
+  <div *ngFor="let child of children"
+       class="icon"
+       [class.on]="plugins.contains(child.tag)"
+       (click)="togglePlugin.next(child.tag)"><span>{{ child.config?.submitChild }}</span></div>
+</div>
