@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 
 export const aiQueryPlugin: Plugin = {
   tag: 'plugin/inbox/ai',
-  name: '👻️💭️ AI Chat',
+  name: '👻️💭️ Ask AI',
   config: {
     type: 'tool',
     default: false,
