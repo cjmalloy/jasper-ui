@@ -13,6 +13,19 @@ export const blogTemplate: Template = {
     filters: [
       { query: 'blog', label: $localize`📰️ blog`, group: $localize`Templates 🎨️` },
     ],
+    form: [{
+      key: 'filterTags',
+      type: 'boolean',
+      props: {
+        label: $localize`Only show selected tags:`
+      }
+    }, {
+      key: 'tags',
+      type: 'qtags',
+      expressions: {
+        hide: '!field.parent.model.filterTags'
+      },
+    }]
   },
   schema: {
     optionalProperties: {

@@ -1,6 +1,6 @@
 import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { FormlyFieldConfig, FormlyFormOptions } from '@ngx-formly/core';
+import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { defer, uniq } from 'lodash-es';
 import { Ext } from '../../model/ext';
 import { getMailbox } from '../../mods/mailbox';
@@ -31,6 +31,8 @@ export class ExtFormComponent implements OnInit {
 
   @ViewChild('fill')
   fill?: ElementRef;
+  @ViewChild(FormlyForm)
+  formlyForm?: FormlyForm;
 
   form?: FormlyFieldConfig[];
   advancedForm?: FormlyFieldConfig[];
@@ -132,10 +134,6 @@ export class ExtFormComponent implements OnInit {
     return this.config.get('showNoSwimLane') as UntypedFormControl;
   }
 
-  get filterTags() {
-    return this.config.get('filterTags') as UntypedFormControl;
-  }
-
   setValue(ext: Ext) {
     if (!this.form) {
       this.form = this.admin.getTemplateForm(ext.tag);
@@ -143,7 +141,10 @@ export class ExtFormComponent implements OnInit {
     if (!this.advancedForm) {
       this.advancedForm = this.admin.getTemplateAdvancedForm(ext.tag);
     }
-    defer(() => this.group!.patchValue(ext));
+    defer(() => {
+      this.group!.patchValue(ext);
+      this.formlyForm!.model = ext.config;
+    });
   }
 }
 

@@ -96,18 +96,6 @@
       </ng-container>
     </ng-container>
 
-    <ng-container *ngIf="filterTags">
-      <label for="filterTags" i18n>Only show selected tags:</label>
-      <div>
-        <input id="filterTags" type="checkbox" formControlName="filterTags" >
-      </div>
-      <ng-container *ngIf="config.get('filterTags')!.value">
-        <label for="tags" i18n>Tags:</label>
-        <app-qtags id="tags"
-                   [group]="config"></app-qtags>
-      </ng-container>
-    </ng-container>
-
     <ng-container *ngIf="userThemes">
       <label for="userTheme" i18n>All Theme Override:</label>
       <div>
