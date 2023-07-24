@@ -42,6 +42,7 @@ export const debugPlugin: Plugin = {
       type: 'boolean',
       props: {
         label: $localize`Show:`,
+        title: 'Toggles whether to show or hide the expandable UI.'
       },
     }, {
       key: 'input',

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { FieldArrayType } from '@ngx-formly/core';
 
 @Component({
@@ -22,6 +22,11 @@ import { FieldArrayType } from '@ngx-formly/core';
   `,
 })
 export class ListTypeComponent extends FieldArrayType {
+  @HostBinding('title')
+  get title() {
+    return this.props.title || '';
+  }
+
   override add(index?: number) {
     // @ts-ignore
     const overrideFocus = !this.field.fieldArray.focus && index === undefined;

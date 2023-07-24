@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
 
 @Component({
@@ -26,4 +26,9 @@ import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
     </ng-container>
   `,
 })
-export class FormlyWrapperFormField extends FieldWrapper<FormlyFieldConfig> { }
+export class FormlyWrapperFormField extends FieldWrapper<FormlyFieldConfig> {
+  @HostBinding('title')
+  get title() {
+    return this.props.title || '';
+  }
+}
