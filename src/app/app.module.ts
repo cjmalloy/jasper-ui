@@ -84,15 +84,11 @@ import { LinksFormComponent } from './form/links/links.component';
 import { PluginFormComponent } from './form/plugin/plugin.component';
 import { GenFormComponent } from './form/plugins/gen/gen.component';
 import { PluginsFormComponent } from './form/plugins/plugins.component';
-import { QtagsFormComponent } from './form/qtags/qtags.component';
-import { QueriesFormComponent } from './form/queries/queries.component';
 import { RefFormComponent } from './form/ref/ref.component';
-import { SelectorsFormComponent } from './form/selectors/selectors.component';
 import { TagsFormComponent } from './form/tags/tags.component';
 import { TemplateFormComponent } from './form/template/template.component';
 import { ThemesFormComponent } from './form/themes/themes.component';
 import { UserFormComponent } from './form/user/user.component';
-import { UsersFormComponent } from './form/users/users.component';
 import { JasperFormlyModule } from './formly/formly.module';
 import { ExtPage } from './page/ext/ext.component';
 import { HomePage } from './page/home/home.component';
@@ -224,15 +220,12 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     LoginPopupComponent,
     TagsFormComponent,
     LinksFormComponent,
-    QtagsFormComponent,
     PluginsFormComponent,
     UserListComponent,
     SettingsPasswordPage,
     RefFormComponent,
     MdPostDirective,
     CodeComponent,
-    QueriesFormComponent,
-    UsersFormComponent,
     ThemesFormComponent,
     ListEditorComponent,
     SettingsBackupPage,
@@ -257,7 +250,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     JsonComponent,
     ChatComponent,
     ChatEntryComponent,
-    SelectorsFormComponent,
     PluginUiDirective,
     TemplateUiDirective,
     GenFormComponent,

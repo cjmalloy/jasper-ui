@@ -31,7 +31,7 @@ export const queueTemplate: Template = {
       type: 'qusers',
       props: {
         label: $localize`Approvers: `,
-        addText: $localize`+ Add approver`,
+        addText: $localize`+ Add another approver`,
       }
     }]
   },

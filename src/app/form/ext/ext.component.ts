@@ -8,11 +8,7 @@ import { AdminService } from '../../service/admin.service';
 import { TAG_REGEX } from '../../util/format';
 import { hasPrefix } from '../../util/tag';
 import { linksForm } from '../links/links.component';
-import { qtagsForm } from '../qtags/qtags.component';
-import { queriesForm } from '../queries/queries.component';
-import { tagsForm } from '../tags/tags.component';
 import { themesForm } from '../themes/themes.component';
-import { usersForm } from '../users/users.component';
 
 @Component({
   selector: 'app-ext-form',
@@ -113,7 +109,7 @@ export class ExtFormComponent implements OnInit {
 
 export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService, locked: boolean) {
   let configControls = {};
-  if (root(ext.tag, admin)) {
+  if (admin.status.templates.root) {
     configControls = {
       ...configControls,
       sidebar: [''],
@@ -123,68 +119,9 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService, l
       theme: [''],
     };
   }
-  if (user(ext.tag, admin)) {
-    configControls = {
-      ...configControls,
-      liveSearch: [false],
-      email: [''],
-      subscriptions: queriesForm(fb, ext.config?.subscriptions || []),
-      bookmarks: queriesForm(fb, ext.config?.bookmarks || []),
-      alarms: queriesForm(fb, ext.config?.alarms || []),
-      userThemes: themesForm(fb, ext.config?.userThemes),
-      userTheme: [''],
-      editors: tagsForm(fb, ext.config?.editors || []),
-    };
-  }
-  if (queue(ext.tag, admin)) {
-    configControls = {
-      ...configControls,
-      bounty: [''],
-      maxAge: [''],
-      approvers: usersForm(fb, ext.config?.approvers),
-    };
-  }
-  if (kanban(ext.tag, admin)) {
-    configControls = {
-      ...configControls,
-      columns: qtagsForm(fb, ext.config?.columns),
-      showNoColumn: [false],
-      noColumnTitle: [''],
-      swimLanes: qtagsForm(fb, ext.config?.swimLanes || []),
-      showNoSwimLane: [false],
-      noSwimLaneTitle: [''],
-    };
-  }
-  if (blog(ext.tag, admin)) {
-    configControls = {
-      ...configControls,
-      filterTags: [false],
-      tags: qtagsForm(fb, ext.config?.tags || []),
-    };
-  }
   return fb.group({
     tag: [{value: '', disabled: locked}, [Validators.required, Validators.pattern(TAG_REGEX)]],
     name: [''],
     config: fb.group(configControls),
   });
-}
-
-function root(tag: string, admin: AdminService) {
-  return !!admin.status.templates.root;
-}
-
-function user(tag: string, admin: AdminService) {
-  return !!admin.status.templates.user && hasPrefix(tag, 'user');
-}
-
-function queue(tag: string, admin: AdminService) {
-  return !!admin.status.templates.queue && hasPrefix(tag, 'queue');
-}
-
-function kanban(tag: string, admin: AdminService) {
-  return !!admin.status.templates.kanban && hasPrefix(tag, 'kanban');
-}
-
-function blog(tag: string, admin: AdminService) {
-  return !!admin.status.templates.blog && hasPrefix(tag, 'blog');
 }

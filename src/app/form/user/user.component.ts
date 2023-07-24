@@ -3,7 +3,7 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGr
 import { User } from '../../model/user';
 import { isMailbox } from '../../mods/mailbox';
 import { USER_REGEX } from '../../util/format';
-import { SelectorsFormComponent } from '../selectors/selectors.component';
+import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
   selector: 'app-user-form',
@@ -28,15 +28,15 @@ export class UserFormComponent implements OnInit {
   fill?: ElementRef;
 
   @ViewChild('notifications')
-  notifications!: SelectorsFormComponent;
+  notifications!: TagsFormComponent;
   @ViewChild('readAccess')
-  readAccess!: SelectorsFormComponent;
+  readAccess!: TagsFormComponent;
   @ViewChild('writeAccess')
-  writeAccess!: SelectorsFormComponent;
+  writeAccess!: TagsFormComponent;
   @ViewChild('tagReadAccess')
-  tagReadAccess!: SelectorsFormComponent;
+  tagReadAccess!: TagsFormComponent;
   @ViewChild('tagWriteAccess')
-  tagWriteAccess!: SelectorsFormComponent;
+  tagWriteAccess!: TagsFormComponent;
 
   ngOnInit(): void {
   }
