@@ -13,7 +13,6 @@ import { toJS } from 'mobx';
 import { AdminService } from '../../service/admin.service';
 import { emptyObject, writeObj } from '../../util/http';
 import { addAllHierarchicalTags, includesTag } from '../../util/tag';
-import { feedForm, FeedFormComponent } from './feed/feed.component';
 import { GenFormComponent } from './gen/gen.component';
 import { originForm, OriginFormComponent, pullForm, pushForm } from './origin/origin.component';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from "../../model/tag";
@@ -35,8 +34,6 @@ export class PluginsFormComponent implements AfterViewInit {
   @Output()
   togglePlugin = new EventEmitter<string>();
 
-  @ViewChild(FeedFormComponent)
-  feed?: FeedFormComponent;
   @ViewChild(OriginFormComponent)
   origin?: OriginFormComponent;
   @ViewChildren('gen')
@@ -92,7 +89,6 @@ export class PluginsFormComponent implements AfterViewInit {
   setValue(value: any) {
     value = toJS(value);
     this.plugins.patchValue(value);
-    this.feed?.setValue(value)
     this.origin?.setValue(value)
     if (this.gens) {
       this.gens.forEach(g => g.setValue(value))
@@ -153,7 +149,6 @@ function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
     case '+plugin/origin': return originForm(fb, admin);
     case '+plugin/origin/push': return pushForm(fb, admin);
     case '+plugin/origin/pull': return pullForm(fb, admin);
-    case '+plugin/feed': return feedForm(fb, admin);
   }
   if (admin.getPlugin(tag)?.config?.form || admin.getPlugin(tag)?.config?.advancedForm) {
     return fb.group({});

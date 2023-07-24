@@ -169,7 +169,7 @@ export class RefFormComponent implements OnInit {
     this.group.setControl('plugins', pluginsForm(this.fb, this.admin, ref.tags || []));
     this.group.patchValue({
       ...ref,
-      published: ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS),
+      published: ref.published ? ref.published.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : undefined,
     });
     defer(() => this.plugins.setValue(ref.plugins));
   }

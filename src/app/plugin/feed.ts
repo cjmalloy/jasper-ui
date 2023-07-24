@@ -20,6 +20,83 @@ export const feedPlugin: Plugin = {
         not scraped yet
       {{/if}}
     `,
+    form: [{
+      key: 'addTags',
+      type: 'tags',
+    }],
+    advancedForm: [{
+      key: 'scrapeInterval',
+      type: 'duration',
+      defaultValue: 'PT15M',
+    }, {
+      key: 'disableEtag',
+      type: 'boolean',
+      props: {
+        label: $localize`Disable Etag Caching:`
+      }
+    }, {
+      key: 'stripQuery',
+      type: 'boolean',
+      props: {
+        label: $localize`Strip Query:`
+      }
+    }, {
+      key: 'scrapeWebpage',
+      type: 'boolean',
+      props: {
+        label: $localize`Scrape Webpage:`
+      }
+    }, {
+      key: 'scrapeDescription',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Scrape Description:`
+      }
+    }, {
+      key: 'scrapeContents',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Scrape Contents:`,
+        title: $localize`Will overwrite description if both scraped and found.`
+      }
+    }, {
+      key: 'scrapeAuthors',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Scrape Authors:`
+      }
+    }, {
+      key: 'scrapeThumbnail',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Scrape Thumbnail:`
+      }
+    }, {
+      key: 'scrapeAudio',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Scrape Audio:`
+      }
+    }, {
+      key: 'scrapeVideo',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Scrape Video:`
+      }
+    }, {
+      key: 'scrapeEmbed',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Scrape Embed:`
+      }
+    }]
   },
   defaults: {
     scrapeInterval: 'PT15M',

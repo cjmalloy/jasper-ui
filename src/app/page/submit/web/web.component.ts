@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, without } from 'lodash-es';
+import { defer, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
@@ -73,7 +73,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
         this.addTag(...this.store.submit.tags);
-        if (this.feed) defer(() => this.refForm!.plugins.feed!.tags.addTag(...interestingTags(this.store.submit.tags)));
+        this.addFeedTags(...interestingTags(this.store.submit.tags));
         if (this.admin.status.plugins.thumbnail && (
             this.store.submit.tags.includes('plugin/video') ||
             this.store.submit.tags.includes('plugin/image') ||
@@ -103,7 +103,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
               this.webForm.get('title')!.setValue(username);
               const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
               this.addTag(tag);
-              defer(() => this.refForm!.plugins.feed!.tags.addTag(tag));
+              this.addFeedTags(tag);
             }
           }
 
@@ -148,15 +148,9 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     return !!this.webForm.value.tags.includes('+plugin/origin');
   }
 
-  get feedForm() {
-    return this.refForm!.plugins.feed;
-  }
-
   set url(value: string) {
     const plugins = this.admin.getPluginsForUrl(value);
-    if (this.feed && plugins.length) {
-      this.feedForm!.tags.addTag(...plugins.map(p => p.tag));
-    } else {
+    if (plugins.length) {
       this.addTag(...plugins.map(p => p.tag));
     }
     this.webForm.get('url')?.enable();
@@ -237,5 +231,14 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       this.webForm.markAsPristine();
       this.router.navigate(['/ref', this.url], { queryParams: { published }});
     });
+  }
+
+  private addFeedTags(...tags: string[]) {
+    if (!this.feed) return;
+    const ref = this.webForm.value || {};
+    ref.plugins ||= {};
+    ref.plugins['+plugin/feed'] ||= {};
+    ref.plugins['+plugin/feed'].addTags = uniq([...ref.plugins['+plugin/feed'].addTags || [], ...tags]);
+    this.refForm!.plugins.setValue(ref.plugins);
   }
 }
