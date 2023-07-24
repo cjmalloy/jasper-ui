@@ -21,7 +21,7 @@ export const thumbnailPlugin: Plugin = {
       props: {
         label: $localize`Show:`,
         options: [
-          { value: true, label: 'URL' },
+          { value: true, label: 'Image' },
           { value: false, label: 'Color' },
         ],
       },
