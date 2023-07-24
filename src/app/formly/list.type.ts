@@ -29,7 +29,7 @@ export class ListTypeComponent extends FieldArrayType {
 
   override add(index?: number) {
     // @ts-ignore
-    const overrideFocus = !this.field.fieldArray.focus && index === undefined;
+    const overrideFocus = !this.field.fieldArray.focus;
     // @ts-ignore
     if (overrideFocus) this.field.fieldArray.focus = true;
     super.add(...arguments);
@@ -40,7 +40,7 @@ export class ListTypeComponent extends FieldArrayType {
   maybeAdd(event: KeyboardEvent, index: number) {
     if (event.key === 'Enter' || this.formControl.length - 1 === index && event.key === 'Tab') {
       event.preventDefault();
-      this.add(index);
+      this.add(index + 1);
     }
   }
 
