@@ -94,22 +94,6 @@ export class ExtFormComponent implements OnInit {
     return this.config.get('userTheme') as UntypedFormControl;
   }
 
-  get columns() {
-    return this.config.get('columns') as UntypedFormControl;
-  }
-
-  get showNoColumn() {
-    return this.config.get('showNoColumn') as UntypedFormControl;
-  }
-
-  get swimLanes() {
-    return this.config.get('swimLanes') as UntypedFormControl;
-  }
-
-  get showNoSwimLane() {
-    return this.config.get('showNoSwimLane') as UntypedFormControl;
-  }
-
   setValue(ext: Ext) {
     if (!this.form) {
       this.form = this.admin.getTemplateForm(ext.tag);

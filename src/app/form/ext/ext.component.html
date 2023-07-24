@@ -17,44 +17,6 @@
 
   <ng-container [formGroup]="config">
 
-    <ng-container *ngIf="columns">
-      <label for="columns" i18n>Columns:</label>
-      <app-qtags id="columns"
-                 [group]="config"
-                 label="column"
-                 fieldName="columns"></app-qtags>
-     </ng-container>
-
-    <ng-container *ngIf="showNoColumn">
-      <label for="showNoColumn" i18n>Extra column for untagged Refs:</label>
-      <div>
-        <input id="showNoColumn" type="checkbox" formControlName="showNoColumn">
-      </div>
-      <ng-container *ngIf="showNoColumn.value">
-        <label for="noColumnTitle" i18n>Extra Column Title:</label>
-        <input type="text" id="noColumnTitle" formControlName="noColumnTitle">
-      </ng-container>
-    </ng-container>
-
-    <ng-container *ngIf="swimLanes">
-      <label for="swimLanes" i18n>Swim Lanes:</label>
-      <app-qtags id="swimLanes"
-                 [group]="config"
-                 label="swim lane"
-                 fieldName="swimLanes"></app-qtags>
-    </ng-container>
-
-    <ng-container *ngIf="showNoSwimLane">
-      <label for="showNoSwimLane" i18n>Extra swim lane for untagged Refs:</label>
-      <div>
-        <input id="showNoSwimLane" type="checkbox" formControlName="showNoSwimLane">
-      </div>
-      <ng-container *ngIf="config.get('showNoSwimLane')!.value">
-        <label for="noSwimLaneTitle" i18n>Extra Swim Lane Title:</label>
-        <input type="text" id="noSwimLaneTitle" formControlName="noSwimLaneTitle">
-      </ng-container>
-    </ng-container>
-
     <ng-container *ngIf="userThemes">
       <label for="userTheme" i18n>All Theme Override:</label>
       <div>

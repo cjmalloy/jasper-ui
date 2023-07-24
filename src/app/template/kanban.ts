@@ -1,3 +1,4 @@
+import { $localize } from '@angular/localize/init';
 import * as moment from 'moment';
 import { Template } from '../model/template';
 
@@ -13,6 +14,51 @@ export const kanbanTemplate: Template = {
     filters: [
       { query: 'kanban', label: $localize`📋️ kanban`, group: $localize`Templates 🎨️` },
     ],
+    form: [{
+      key: 'columns',
+      type: 'qtags',
+      props: {
+        label: $localize`Columns:`,
+        addText: $localize`+ Add another column`,
+      }
+    }, {
+      key: 'showNoColumn',
+      type: 'boolean',
+      props: {
+        label: $localize`Extra column for untagged Refs:`
+      }
+    }, {
+      key: 'noColumnTitle',
+      type: 'string',
+      props: {
+        label: $localize`Extra Column Title:`
+      },
+      expressions: {
+        hide: '!field.parent.model.showNoColumn'
+      },
+    }, {
+      key: 'swimLanes',
+      type: 'qtags',
+      props: {
+        label: $localize`Swim Lanes:`,
+        addText: $localize`+ Add another swim lane`,
+      }
+    }, {
+      key: 'showNoSwimLane',
+      type: 'boolean',
+      props: {
+        label: $localize`Extra swim lane for untagged Refs:`
+      }
+    }, {
+      key: 'noSwimLaneTitle',
+      type: 'string',
+      props: {
+        label: $localize`Extra Swim Lane Title:`
+      },
+      expressions: {
+        hide: '!field.parent.model.showNoSwimLane'
+      },
+    }]
   },
   defaults: {
     columns: []
