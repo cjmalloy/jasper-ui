@@ -9,54 +9,13 @@
   <label for="name" i18n>Name:</label>
   <input id="name" type="text" formControlName="name">
 
+  <formly-form *ngIf="form"
+               class="nested-form"
+               [form]="config"
+               [fields]="form"
+               [options]="options"></formly-form>
+
   <ng-container [formGroup]="config">
-
-    <formly-form *ngIf="form"
-                 class="nested-form"
-                 [form]="config"
-                 [fields]="form"
-                 [options]="options"></formly-form>
-
-    <ng-container *ngIf="liveSearch">
-      <label for="liveSearch" i18n>Live Search:</label>
-      <div i18n-title title="Search as you type."><input id="liveSearch" type="checkbox" formControlName="liveSearch"></div>
-    </ng-container>
-
-    <ng-container *ngIf="email">
-      <label for="email" i18n>e-Mail Address:</label>
-      <input id="email" type="email" formControlName="email">
-    </ng-container>
-
-    <ng-container *ngIf="subscriptions">
-      <label for="subscriptions" i18n>Subscriptions:</label>
-      <app-queries id="subscriptions"
-                   label="subscription"
-                   [group]="config"
-                   fieldName="subscriptions"></app-queries>
-    </ng-container>
-
-    <ng-container *ngIf="bookmarks">
-      <label for="bookmarks" i18n>Bookmarks:</label>
-      <app-queries id="bookmarks"
-                   label="bookmark"
-                   [group]="config"
-                   fieldName="bookmarks"></app-queries>
-    </ng-container>
-
-    <ng-container *ngIf="alarms">
-      <label for="alarms" i18n>Alarms:</label>
-      <app-queries id="alarms"
-                   label="alarm"
-                   [group]="config"
-                   fieldName="alarms"></app-queries>
-    </ng-container>
-
-    <ng-container *ngIf="editors">
-      <label for="editors" i18n>Editors:</label>
-      <app-tags id="editors"
-                [group]="config"
-                fieldName="editors"></app-tags>
-    </ng-container>
 
     <ng-container *ngIf="columns">
       <label for="columns" i18n>Columns:</label>

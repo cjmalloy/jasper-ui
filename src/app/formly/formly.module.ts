@@ -121,7 +121,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         defaultOptions: {
           props: {
             label: $localize`URLs: `,
-            addText: $localize`+ Add URL`,
+            addText: $localize`+ Add another URL`,
           },
           fieldArray: {
             type: 'url',
@@ -272,7 +272,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         defaultOptions: {
           props: {
             label: $localize`Tags: `,
-            addText: $localize`+ Add tag`,
+            addText: $localize`+ Add another tag`,
           },
           fieldArray: {
             type: 'tag',
@@ -285,9 +285,6 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         name: 'qtag',
         extends: 'tag',
         defaultOptions: {
-          props: {
-            label: $localize`Tag: `,
-          },
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || QUALIFIED_TAG_REGEX.test(c.value),
@@ -297,17 +294,10 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'qtags',
-        extends: 'list',
+        extends: 'tags',
         defaultOptions: {
-          props: {
-            label: $localize`Tags: `,
-            addText: $localize`+ Add tag`,
-          },
           fieldArray: {
             type: 'qtag',
-            props: {
-              label: $localize`🏷️`,
-            }
           },
         },
       }, {
@@ -330,7 +320,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         defaultOptions: {
           props: {
             label: $localize`Users: `,
-            addText: $localize`+ Add user`,
+            addText: $localize`+ Add another user`,
           },
           fieldArray: {
             type: 'user',
@@ -355,17 +345,10 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'qusers',
-        extends: 'list',
+        extends: 'users',
         defaultOptions: {
-          props: {
-            label: $localize`Users: `,
-            addText: $localize`+ Add user`,
-          },
           fieldArray: {
             type: 'quser',
-            props: {
-              label: $localize`🏷️`,
-            }
           },
         },
       }, {
@@ -384,12 +367,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'selectors',
-        extends: 'list',
+        extends: 'tags',
         defaultOptions: {
-          props: {
-            label: $localize`Tags: `,
-            addText: $localize`+ Add tag`,
-          },
           fieldArray: {
             type: 'selector',
             props: {
@@ -413,17 +392,14 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'queries',
-        extends: 'list',
+        extends: 'selectors',
         defaultOptions: {
           props: {
             label: $localize`Query: `,
-            addText: $localize`+ Add query`,
+            addText: $localize`+ Add another query`,
           },
           fieldArray: {
             type: 'query',
-            props: {
-              label: $localize`🔖️`,
-            }
           },
         },
       }, {

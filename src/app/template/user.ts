@@ -1,3 +1,4 @@
+import { $localize } from '@angular/localize/init';
 import * as moment from 'moment';
 import { Template } from '../model/template';
 
@@ -14,6 +15,46 @@ export const userTemplate: Template = {
     filters: [
       { query: '+user|_user', label: $localize`🧑️ user`, group: $localize`Templates 🎨️` },
     ],
+    form: [{
+      key: 'liveSearch',
+      type: 'boolean',
+      props: {
+        label: $localize`Live Search:`,
+        title: $localize`Search as you type.`,
+      }
+    }, {
+      key: 'email',
+      type: 'email',
+    }, {
+      key: 'subscriptions',
+      type: 'queries',
+      props: {
+        label: $localize`Subscriptions:`,
+        addText: $localize`+ Add another subscription`,
+      }
+    }, {
+      key: 'bookmarks',
+      type: 'queries',
+      props: {
+        label: $localize`Bookmarks:`,
+        addText: $localize`+ Add another bookmark`,
+      }
+    }, {
+      key: 'alarms',
+      type: 'queries',
+      props: {
+        label: $localize`Alarms:`,
+        addText: $localize`+ Add another alarm`,
+      }
+    }],
+    advancedForm: [{
+      key: 'editors',
+      type: 'tags',
+      props: {
+        label: $localize`Editors:`,
+        addText: $localize`+ Add another editor`,
+      }
+    }]
   },
   defaults: {
     subscriptions: defaultSubs,
@@ -24,8 +65,8 @@ export const userTemplate: Template = {
       email: { type: 'string' },
       lastNotified: { type: 'string' },
       subscriptions: { elements: { type: 'string' } },
-      alarms: { elements: { type: 'string' } },
       bookmarks: { elements: { type: 'string' } },
+      alarms: { elements: { type: 'string' } },
       editors: { elements: { type: 'string' } },
       userThemes: { values: { type: 'string' } },
       userTheme: { type: "string" },

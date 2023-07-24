@@ -86,32 +86,8 @@ export class ExtFormComponent implements OnInit {
     return this.config.get('theme') as UntypedFormControl;
   }
 
-  get liveSearch() {
-    return this.config.get('liveSearch') as UntypedFormControl;
-  }
-
-  get email() {
-    return this.config.get('email') as UntypedFormControl;
-  }
-
-  get subscriptions() {
-    return this.config.get('subscriptions') as UntypedFormControl;
-  }
-
   get pinned() {
     return this.config.get('pinned') as UntypedFormControl;
-  }
-
-  get bookmarks() {
-    return this.config.get('bookmarks') as UntypedFormControl;
-  }
-
-  get alarms() {
-    return this.config.get('alarms') as UntypedFormControl;
-  }
-
-  get editors() {
-    return this.config.get('editors') as UntypedFormControl;
   }
 
   get userTheme() {
@@ -144,6 +120,9 @@ export class ExtFormComponent implements OnInit {
     defer(() => {
       this.group!.patchValue(ext);
       this.formlyForm!.model = ext.config;
+      // TODO: Why aren't changed being detected?
+      // @ts-ignore
+      this.formlyForm.builder.build(this.formlyForm.field);
     });
   }
 }
