@@ -7,7 +7,6 @@ import { tap } from 'rxjs/operators';
 import { Plugin } from '../../../model/plugin';
 import { Template } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
-import { OEmbedService } from '../../../service/api/oembed.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
 import { ThemeService } from '../../../service/theme.service';
@@ -43,6 +42,7 @@ export class SettingsSetupPage implements OnInit {
   ) {
     theme.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
+      // TODO: conflict when plugins/templates have same name
       mods: fb.group(mapValues({...this.admin.def.plugins, ...this.admin.def.templates }, p => fb.control(false))),
     });
     this.reset();
