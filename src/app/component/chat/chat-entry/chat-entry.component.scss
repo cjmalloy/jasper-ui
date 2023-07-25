@@ -51,6 +51,7 @@
     display: none;
   }
   &:focus-within, &:hover, &.deleting, &.tagging, &.focused {
+    white-space: normal !important;
     height: unset;
     .actions {
       display: inline;
@@ -59,7 +60,6 @@
       height: unset;
       app-md {
         display: block;
-        white-space: normal;
       }
     }
   }
