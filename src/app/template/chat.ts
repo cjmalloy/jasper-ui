@@ -14,5 +14,30 @@ export const chatTemplate: Template = {
     filters: [
       { query: 'chat', label: $localize`💬️ chat`, group: $localize`Templates 🎨️` },
     ],
+    form: [{
+      key: 'addTags',
+      type: 'tags',
+      defaultValue: ['public', 'internal'],
+      props: {
+        label: $localize`Add Tags:`,
+      }
+    }, {
+      key: 'authorTags',
+      type: 'qtags',
+      defaultValue: ['user', 'plugin/from'],
+      props: {
+        label: $localize`Author Tags:`,
+        addText: $localize`+ Add another prefix`,
+      }
+    }],
   },
+  defaults: {
+    authorTags: ['user', 'plugin/from']
+  },
+  schema: {
+    optionalProperties: {
+      addTags: { elements: { type: 'string' } },
+      authorTags: { elements: { type: 'string' } },
+    }
+  }
 };

@@ -111,7 +111,7 @@ export class ChatEntryComponent {
   }
 
   get authors() {
-    return authors(this.ref);
+    return authors(this.ref, this.store.view.ext?.config?.authorTags || []);
   }
 
   get authorExts$() {

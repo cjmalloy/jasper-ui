@@ -23,9 +23,6 @@ export class ChatComponent implements OnDestroy {
   @HostBinding('class') css = 'chat ext';
   itemSize = 18.5;
 
-  @Input()
-  addTags = ['public'];
-
   @ViewChild(CdkVirtualScrollViewport)
   viewport!: CdkVirtualScrollViewport;
 
@@ -190,7 +187,7 @@ export class ChatComponent implements OnDestroy {
     if (!this.addText) return;
     this.scrollLock = undefined;
     const newTags = uniq([
-      ...this.addTags,
+      ...(uniq([this.store.view.localTag, ...this.store.view.ext?.config?.addTags || []])),
       ...this.plugins,
       this.store.account.localTag]);
     const ref = URI_REGEX.test(this.addText) ? {
@@ -220,9 +217,6 @@ export class ChatComponent implements OnDestroy {
             tags: [...ref.tags!, 'plugin/repost'],
             sources: [ ref.url ],
           });
-          return this.tags.patch(this.addTags, ref.url, ref.origin).pipe(
-            switchMap(() => this.refs.get(ref.url, ref.origin)),
-          );
         } else {
           pull(this.sending, ref);
           this.errored.push(ref);

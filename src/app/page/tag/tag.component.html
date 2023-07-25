@@ -43,8 +43,7 @@
       <app-kanban *ngIf="store.view.isTemplate('kanban')"
                   [tag]="store.view.tag!"></app-kanban>
       <app-chat *ngIf="store.view.isTemplate('chat')"
-                [query]="store.view.tag!"
-                [addTags]="['public', 'internal', store.view.localTag]"></app-chat>
+                [query]="store.view.tag!"></app-chat>
       <app-blog *ngIf="store.view.isTemplate('blog')"
                 [tag]="store.view.tag!"
                 [page]="query.page"
