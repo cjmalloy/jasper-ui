@@ -14,11 +14,5 @@ export const commentPlugin: Plugin = {
     ],
     reply: ['internal', 'plugin/comment'],
   },
-  defaults: {},
-  schema: {
-    optionalProperties: {
-      deleted: { type: 'boolean' },
-    },
-  },
   generateMetadata: true,
 };
