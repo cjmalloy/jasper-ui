@@ -24,6 +24,9 @@ export class OEmbedService {
       if (store.eventBus.event === '+plugin/oembed:defaults') {
         this.defaults().subscribe();
       }
+      if (store.eventBus.event === '+plugin/oembed:clear-cache') {
+        this.clearCache().subscribe();
+      }
     });
   }
 
@@ -47,6 +50,12 @@ export class OEmbedService {
 
   defaults(): Observable<void> {
     return this.http.post<void>(this.base + '/defaults', null).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  clearCache() {
+    return this.http.post(`${this.base}/clear-cache`, null).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }

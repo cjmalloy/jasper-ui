@@ -13,6 +13,7 @@ export const scrapePlugin: Plugin = {
     icons: [{ label: $localize`🪝`}],
     description: $localize`Configure CSS classes for scraping websites.`,
     hasDefaults: true,
+    hasClearCache: true,
     form: [{
       key: 'schemes',
       type: 'urls',

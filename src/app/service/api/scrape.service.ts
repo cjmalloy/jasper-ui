@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
-import { catchError, map, Observable, of, Subject } from 'rxjs';
+import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { mapRef, Ref } from '../../model/ref';
 import { catchAll } from '../../plugin/scrape';
@@ -32,7 +32,12 @@ export class ScrapeService {
         this.store.eventBus.runAndReload(this.feed(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
       }
       if (this.store.eventBus.event === '+plugin/scrape:defaults') {
-        refs.push(catchAll, store.account.origin).subscribe();
+        refs.push(catchAll, store.account.origin).pipe(
+          switchMap(() => this.clearConfigCache())
+        ).subscribe();
+      }
+      if (store.eventBus.event === '+plugin/scrape:clear-cache') {
+        this.clearConfigCache().subscribe();
       }
     });
   }
@@ -110,5 +115,11 @@ export class ScrapeService {
     if (url.startsWith('data:')) return url;
     if (this.config.preAuthScrape && this.store.account.user) this.scrape(url);
     return `${this.base}/fetch?url=${encodeURIComponent(url)}`;
+  }
+
+  clearConfigCache() {
+    return this.http.post(`${this.base}/clear-config-cache`, null).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 }

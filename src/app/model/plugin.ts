@@ -68,6 +68,10 @@ export interface Plugin extends Config {
      * Has built in defaults available. Should respond to the event `${tag}:defaults`.
      */
     hasDefaults?: boolean;
+    /**
+     * Has clear cache method available. Should respond to the event `${tag}:clear-cache`.
+     */
+    hasClearCache?: boolean;
   };
   /**
    * Generate separate Ref response metadata for this plugin.

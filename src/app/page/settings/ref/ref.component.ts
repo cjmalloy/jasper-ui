@@ -58,4 +58,9 @@ export class SettingsRefPage implements OnInit, OnDestroy {
     this.store.eventBus.fire(this.plugin.tag + ':defaults');
     this.store.eventBus.fire('');
   }
+
+  clearCache() {
+    this.store.eventBus.fire(this.plugin.tag + ':clear-cache');
+    this.store.eventBus.fire('');
+  }
 }
