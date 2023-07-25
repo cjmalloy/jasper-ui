@@ -5,8 +5,8 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
-import { deleteNotice } from '../../plugin/delete';
 import { getMailbox, mailboxes } from '../../mods/mailbox';
+import { deleteNotice } from '../../plugin/delete';
 import { score } from '../../plugin/vote';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
@@ -318,15 +318,10 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   delete() {
-    delete this.ref.title;
-    delete this.ref.comment;
-    delete this.ref.plugins;
-    this.ref.tags = ['plugin/comment', 'plugin/delete', 'internal']
-    this.store.eventBus.runAndReload(this.refs.update({
-      ...deleteNotice(this.ref),
-      sources: this.ref.sources,
-      tags: this.ref.tags,
-    }), this.ref);
+    const deleted = deleteNotice(this.ref);
+    deleted.sources = this.ref.sources;
+    deleted.tags = ['plugin/comment', 'plugin/delete', 'internal']
+    this.store.eventBus.runAndReload(this.refs.update(deleted), deleted);
   }
 
   loadMore() {
