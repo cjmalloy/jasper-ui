@@ -248,6 +248,7 @@ export const catchAll: Ref = {
         ".post-body",
         ".td-post-content",
         ".post_content",
+        ".storycontent",
         ".tam__single-content-output",
         ".js_post-content",
         ".js_starterpost",
