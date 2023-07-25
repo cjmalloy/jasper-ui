@@ -703,7 +703,7 @@ formly-list-section .form-array > formly-field > formly-group {
 
   formly-list-section .form-array {
     formly-field > formly-wrapper-form-field > label,
-    formly-field-input >.form-array {
+    formly-field-input > .form-array {
       margin: 0 4px;
     }
   }
@@ -758,6 +758,7 @@ formly-list-section .form-array > formly-field > formly-group {
 
   input {
     flex: 1;
+    flex-basis: 100%;
   }
 }
 
