@@ -58,6 +58,14 @@ export const kanbanTemplate: Template = {
       expressions: {
         hide: '!field.parent.model.showNoSwimLane'
       },
+    }, {
+      key: 'badges',
+      type: 'tags',
+      defaultValue: ['p1', 'p2', 'p3', 'p4', 'p5'],
+      props: {
+        label: $localize`Badges:`,
+        addText: $localize`+ Add another badge tag`,
+      }
     }]
   },
   defaults: {
@@ -73,6 +81,7 @@ export const kanbanTemplate: Template = {
       noColumnTitle: { type: 'string'},
       showNoSwimLane: { type: 'boolean'},
       noSwimLaneTitle: { type: 'string'},
+      badges: { elements: { type: 'string' } },
     },
   },
 };

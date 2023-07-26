@@ -11,7 +11,17 @@
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     </ng-template>
   </ng-container>
-  <a class="card-title" [routerLink]="['/ref', ref.url]">{{ title }}</a>
+  <a class="card-title grow" [routerLink]="['/ref', ref.url]">{{ title }}</a>
+  <ng-container *ngIf="badgeExts$ | async as tagExts; else tagNoExts">
+    <div class="badges" *ngFor="let e of tagExts">
+      <a class="tag badge" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+    </div>
+  </ng-container>
+  <ng-template #tagNoExts>
+    <div class="badges" *ngFor="let t of badges">
+      <a class="tag badge" [routerLink]="['/tag', t]">{{ t }}</a>
+    </div>
+  </ng-template>
 </div>
 <app-md *ngIf="currentText"
         [origin]="ref.origin || ''"
