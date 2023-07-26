@@ -14,7 +14,7 @@
   <a class="card-title grow" [routerLink]="['/ref', ref.url]">{{ title }}</a>
   <ng-container *ngIf="badgeExts$ | async as badgeExts">
     <div class="badges" *ngFor="let e of badgeExts">
-      <a class="tag badge" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+      <a class="tag badge" [routerLink]="['/tag', store.view.ext!.tag + ':' + e.tag]">{{ e.name || e.tag }}</a>
     </div>
   </ng-container>
 </div>

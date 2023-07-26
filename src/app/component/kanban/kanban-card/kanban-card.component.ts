@@ -48,13 +48,13 @@ export class KanbanCardComponent implements OnInit {
   private _ref!: Ref;
 
   constructor(
+    public store: Store,
     private admin: AdminService,
     private config: ConfigService,
     private auth: AuthzService,
     private refs: RefService,
     private tags: TaggingService,
     private exts: ExtService,
-    private store: Store,
     private scraper: ScrapeService,
     private overlay: Overlay,
     private el: ElementRef,
