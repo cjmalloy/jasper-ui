@@ -129,10 +129,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return this.ext?.config?.modmail;
   }
 
-  get isApprover() {
-    return this.ext?.config?.approvers?.includes(this.store.account.localTag);
-  }
-
   get user() {
     return !!this.admin.status.templates.user && hasPrefix(this._tag, 'user') && this.store.view.template !== 'user';
   }
@@ -155,10 +151,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (!this.admin.status.templates.dm) return false;
     if (!this.store.account.user) return false;
     return this.user || this.modmail;
-  }
-
-  get queue() {
-    return !!this.admin.status.templates.queue && hasPrefix(this._tag, 'queue');
   }
 
   get homeWriteAccess() {

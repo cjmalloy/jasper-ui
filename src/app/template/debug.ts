@@ -80,6 +80,7 @@ export const debugTemplate: Template = {
         label: $localize`Advanced:`,
       },
     }],
+    // language=Handlebars
     ui: `
      Input: {{ input }} <br>
      Number: {{ number }} <br>

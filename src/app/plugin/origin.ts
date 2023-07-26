@@ -61,6 +61,7 @@ export const originPullPlugin: Plugin = {
       communicate with remote users.
       You may configure if metadata is generated or plugins are validated. `,
     actions: [{ event: 'pull', label: $localize`pull` }],
+    // language=Handlebars
     infoUi: `
       {{#if lastPull}}
         last pulled {{fromNow lastPull}}
@@ -146,6 +147,7 @@ export const originPushPlugin: Plugin = {
       behind the local cursor. If writeOnly is set, this check is skipped and
       the lastModifiedWritten config is used instead.`,
     actions: [{ event: 'push', label: $localize`push` }],
+    // language=Handlebars
     infoUi: `
       {{#if lastPush}}
         last pushed {{fromNow lastPush}}
@@ -210,6 +212,7 @@ export const originTunnelPlugin: Plugin = {
     submitChild: $localize`🕳️️️ tunnel`,
     icons: [{ label: $localize`🕳️️️` }],
     description: $localize`Create an SSH tunnel`,
+    // language=Handlebars
     ui: `
       <div class="bubble form">
         <span class="nowrap">User Tag:</span>

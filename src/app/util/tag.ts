@@ -1,5 +1,4 @@
 import { filter, find, flatMap, without } from 'lodash-es';
-import { Ext } from '../model/ext';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
@@ -120,6 +119,8 @@ export function defaultOrigin(tag: string, origin?: string) {
 export function prefix(prefix: string, ...rest: string[]) {
   if (access(prefix) && access(rest[0])) {
     prefix = access(rest[0]) + prefix.substring(1);
+  } else if (access(rest[0])) {
+    prefix = access(rest[0]) + prefix;
   }
   return prefix + '/' + rest.join('/')
     .replace(/[+_@]/g, '')
@@ -182,7 +183,8 @@ export function protectedTag(tag: string) {
   return tag.startsWith('+');
 }
 
-export function access(tag: string) {
+export function access(tag?: string) {
+  if (!tag) return '';
   if (tag.startsWith('_')) return '_';
   if (tag.startsWith('+')) return '+';
   return '';

@@ -13,6 +13,7 @@ export const feedPlugin: Plugin = {
     icons: [{ label: $localize`🗞️` }],
     description: $localize`Import entries from an RSS / Atom feed. The feed will be scraped on an interval you specify.`,
     actions: [{ event: 'scrape', label: $localize`scrape` }],
+    // language=Handlebars
     infoUi: `
       {{#if lastScrape}}
         last scraped {{fromNow lastScrape}}

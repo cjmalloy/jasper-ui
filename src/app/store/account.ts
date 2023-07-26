@@ -95,6 +95,19 @@ export class AccountStore {
     return 'anon';
   }
 
+  get roles(): Roles {
+    return {
+      debug: this.debug,
+      tag: this.tag,
+      sysadmin: this.sa,
+      admin: this.admin,
+      mod: this.mod,
+      editor: this.editor,
+      user: this.user,
+      viewer: this.viewer,
+    };
+  }
+
   get config() {
     return {
       ...(this.defaultConfig || {}),

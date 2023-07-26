@@ -1,6 +1,8 @@
+import { toJS } from 'mobx';
 import * as moment from 'moment';
 import { Ext } from './ext';
 import { Config } from './tag';
+import { Roles } from './user';
 
 export type TemplateType = 'core' | 'feature' | 'theme' | 'tool';
 
@@ -50,10 +52,11 @@ export interface TemplateScope {
   template: Template;
 }
 
-export function getTemplateScope(template: Template, ext: Ext): TemplateScope {
+export function getTemplateScope(account: Roles, template: Template, ext: Ext): TemplateScope {
   return {
-    ext,
-    template,
+    account: toJS(account),
+    ext: toJS(ext),
+    template: toJS(template),
     ...(ext.config || {}),
   };
 }

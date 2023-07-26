@@ -48,6 +48,7 @@ export const pollPlugin: Plugin = {
         content: ' ☑️ ';
       }
     `,
+    // language=Handlebars
     ui: `
       <div class="bubble poll-results">
         <div>

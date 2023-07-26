@@ -14,6 +14,32 @@ export const queueTemplate: Template = {
     filters: [
       { query: 'queue', label: $localize`🚧️ queue`, group: $localize`Templates 🎨️` },
     ],
+    // language=Handlebars
+    ui: `
+      {{#if bounty}}
+        <div class="ext-text">
+          <b i18n>Bounty:</b> {{ bounty }}
+        </div>
+      {{/if}}
+      {{#if maxAge}}
+        <div class="ext-text">
+          <b>Max Age:</b> {{ maxAge }}
+        </div>
+      {{/if}}
+      {{#if approvers}}
+        <div class="ext-text">
+          <b i18n>Approvers:</b>
+          <br>
+          {{#each approvers}}
+            <a class="tag" href="/tag/{{this}}">{{this}}</a>
+            <br>
+          {{/each}}
+        </div>
+      {{/if}}
+      {{#if (includes approvers account.tag)}}
+        <a class="sidebar-link" href="/tag/{{prefix 'plugin/invoice' tag}}">invoices</a>
+      {{/if}}
+    `,
     form: [{
       key: 'bounty',
       type: 'string',

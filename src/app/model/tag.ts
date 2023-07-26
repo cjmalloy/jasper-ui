@@ -4,7 +4,7 @@ import { Schema } from 'jtd';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
 import { v4 as uuid } from 'uuid';
-import { hasTag } from '../util/tag';
+import { hasTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
 import { Ref } from './ref';
 import { Role } from './user';
@@ -59,6 +59,10 @@ export interface Config extends Tag {
      * Description of what this is used for.
      */
     description?: string,
+    /**
+     * Optional handlebars template to use as a UI.
+     */
+    ui?: string,
     /**
      * Optional CSS to be added to <head> on load.
      */
@@ -275,12 +279,20 @@ export function active(ref: Ref, o: TagAction | ResponseAction | Icon) {
 // @ts-ignore
 window.global = {};
 
+Handlebars.registerHelper('prefix', (p: string, r: string) => {
+  return prefix(p, r);
+});
+
 Handlebars.registerHelper('uuid', () => uuid());
 
 Handlebars.registerHelper('fromNow', value => moment(value).fromNow());
 
 Handlebars.registerHelper('response', (ref: Ref, value: string) => {
   return ref.metadata?.userUrls?.includes(value);
+});
+
+Handlebars.registerHelper('includes', (array: string[], value: string) => {
+  return array?.includes(value);
 });
 
 Handlebars.registerHelper('count', (ref: Ref, tag: string) => {

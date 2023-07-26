@@ -158,27 +158,6 @@
             [text]="ext!.config!.sidebar"></app-md>
   </div>
 
-  <div *ngIf="queue" class="hide template-queue">
-    <div class="ext-text" *ngIf="ext?.config?.bounty">
-      <b i18n>Bounty:</b> {{ ext?.config?.bounty }}
-    </div>
-    <div class="ext-text" *ngIf="ext?.config?.maxAge">
-      <b i18n>Max Age:</b> {{ ext?.config?.maxAge }}
-    </div>
-    <div class="ext-text" *ngIf="ext?.config?.approvers?.length">
-      <b i18n>Approvers:</b>
-      <br>
-      <ng-container *ngFor="let a of ext!.config!.approvers!">
-        <a class="tag" [routerLink]="['/tag', a]">{{ a }}</a>
-        <br>
-      </ng-container>
-    </div>
-    <div *ngIf="isApprover">
-      <a class="sidebar-link"
-         [routerLink]="['/tag', prefix('plugin/invoice', ext!.tag)]" i18n>invoices</a>
-    </div>
-  </div>
-
   <div *ngIf="user || home" class="hide home">
     <div class="ext-text" *ngIf="$any(bookmarks$ | async)?.length" i18n>
       My Bookmarks:

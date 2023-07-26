@@ -193,6 +193,7 @@ export const debugPlugin: Plugin = {
         label: $localize`Advanced:`,
       },
     }],
+    // language=Handlebars
     ui: `{{#if show}}
      Input: {{ input }} <br>
      Number: {{ number }} <br>
