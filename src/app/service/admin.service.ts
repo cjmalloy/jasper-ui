@@ -8,6 +8,16 @@ import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Config, Tag } from '../model/tag';
 import { Template } from '../model/template';
+import { dmTemplate, inboxPlugin, outboxPlugin } from '../mods/mailbox';
+import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../mods/poll';
+import {
+  invoiceDisputedPlugin,
+  invoicePaidPlugin,
+  invoicePlugin,
+  invoiceRejectionPlugin,
+  queueTemplate
+} from '../mods/queue';
+import { terminalTheme } from '../mods/theme';
 import { aiPlugin, aiQueryPlugin } from '../plugin/ai';
 import { aprioriPlugin } from '../plugin/apriori';
 import { archivePlugin } from '../plugin/archive';
@@ -25,13 +35,11 @@ import { fullscreenPlugin } from '../plugin/fullscreen';
 import { graphPlugin } from '../plugin/graph';
 import { imagePlugin } from '../plugin/image';
 import { lockedPlugin } from '../plugin/locked';
-import { dmTemplate, inboxPlugin, outboxPlugin } from '../mods/mailbox';
 import { modlistPlugin } from '../plugin/modlist';
 import { oEmbedPlugin } from '../plugin/oembed';
 import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } from '../plugin/origin';
 import { pdfPlugin } from '../plugin/pdf';
 import { personPlugin } from '../plugin/person';
-import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../mods/poll';
 import { qrPlugin } from '../plugin/qr';
 import { repostPlugin } from '../plugin/repost';
 import { scrapePlugin } from '../plugin/scrape';
@@ -51,15 +59,7 @@ import { debugTemplate } from '../template/debug';
 import { folderTemplate } from '../template/folder';
 import { homeTemplate } from '../template/home';
 import { kanbanTemplate } from '../template/kanban';
-import {
-  invoiceDisputedPlugin,
-  invoicePaidPlugin,
-  invoicePlugin,
-  invoiceRejectionPlugin,
-  queueTemplate
-} from '../mods/queue';
 import { rootTemplate } from '../template/root';
-import { terminalTheme } from '../mods/theme';
 import { userTemplate } from '../template/user';
 import { getExtension, getHost } from '../util/hosts';
 import { hasPrefix, includesTag, tagIntersection } from '../util/tag';

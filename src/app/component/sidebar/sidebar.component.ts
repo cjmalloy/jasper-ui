@@ -1,5 +1,6 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
@@ -8,13 +9,12 @@ import { Template } from '../../model/template';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
+import { TemplateService } from '../../service/api/template.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { hasPrefix, localTag, prefix, tagOrigin } from '../../util/tag';
-import { autorun, IReactionDisposer } from "mobx";
-import { TemplateService } from "../../service/api/template.service";
 
 @Component({
   selector: 'app-sidebar',
