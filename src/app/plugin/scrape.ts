@@ -118,19 +118,6 @@ export const scrapePlugin: Plugin = {
         }
       },
     }, {
-      key: 'imageFixRegex',
-      type: 'list',
-      props: {
-        label: $localize`Image Fix RegEx: `,
-        addText: $localize`+ Add regex`,
-      },
-      fieldArray: {
-        type: 'string',
-        props: {
-          label: $localize`🎯️`,
-        }
-      },
-    }, {
       key: 'imageSelectors',
       type: 'list',
       props: {
@@ -182,7 +169,21 @@ export const scrapePlugin: Plugin = {
           label: $localize`🎯️`,
         }
       },
-    }]
+    }],
+    advancedForm: [{
+      key: 'imageFixRegex',
+      type: 'list',
+      props: {
+        label: $localize`Image Fix RegEx: `,
+        addText: $localize`+ Add regex`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }],
   },
   defaults: {
     text: true,
