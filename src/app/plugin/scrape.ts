@@ -53,11 +53,11 @@ export const scrapePlugin: Plugin = {
         label: $localize`Open Graph: `,
       },
     }, {
-      key: 'textSelectors',
+      key: 'removeSelectors',
       type: 'list',
       props: {
-        label: $localize`Text Selectors: `,
-        addText: $localize`+ Add text selector`,
+        label: $localize`Remove Selectors: `,
+        addText: $localize`+ Add remove selector`,
       },
       fieldArray: {
         type: 'string',
@@ -66,11 +66,11 @@ export const scrapePlugin: Plugin = {
         }
       },
     }, {
-      key: 'removeSelectors',
+      key: 'textSelectors',
       type: 'list',
       props: {
-        label: $localize`Remove Selectors: `,
-        addText: $localize`+ Add remove selector`,
+        label: $localize`Text Selectors: `,
+        addText: $localize`+ Add text selector`,
       },
       fieldArray: {
         type: 'string',
@@ -197,8 +197,8 @@ export const scrapePlugin: Plugin = {
       oembedJson: { type: 'boolean' },
       ldJson: { type: 'boolean' },
       openGraph: { type: 'boolean' },
-      textSelectors: { elements: { type: 'string' } },
       removeSelectors: { elements: { type: 'string' } },
+      textSelectors: { elements: { type: 'string' } },
       removeAfterSelectors: { elements: { type: 'string' } },
       publishedSelectors: { elements: { type: 'string' } },
       removeStyleSelectors: { elements: { type: 'string' } },
