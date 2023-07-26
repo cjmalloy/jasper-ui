@@ -59,6 +59,12 @@ export class ScrapeService {
     return this.http.get<Ref>(`${this.base}/web`, {
       params: params({ url }),
     }).pipe(
+      map(ref => {
+        if (!ref) {
+          throw "Web scrape failed";
+        }
+        return ref;
+      }),
       map(mapRef),
       catchError(err => this.login.handleHttpError(err)),
     );

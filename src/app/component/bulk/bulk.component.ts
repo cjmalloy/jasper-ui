@@ -92,8 +92,12 @@ export class BulkComponent implements OnInit, OnDestroy {
     this.serverError = [];
     this.batchRunning = true;
     concat(...this.queryStore.page!.content.map(c => (fn(c) || of(null)).pipe(
-      catchError((err: HttpErrorResponse) => {
-        this.serverError.push(...printError(err));
+      catchError(err => {
+        if (err instanceof HttpErrorResponse) {
+          this.serverError.push(...printError(err));
+        } else {
+          this.serverError.push(err+'');
+        }
         return of(null);
       }),
     ))).pipe(last()).subscribe(() => {
