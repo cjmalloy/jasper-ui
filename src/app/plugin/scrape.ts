@@ -103,6 +103,19 @@ export const scrapePlugin: Plugin = {
         }
       },
     }, {
+      key: 'publishedSelectors',
+      type: 'list',
+      props: {
+        label: $localize`Published Selectors: `,
+        addText: $localize`+ Add published selector`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
       key: 'imageFixRegex',
       type: 'list',
       props: {
@@ -185,6 +198,7 @@ export const scrapePlugin: Plugin = {
       textSelectors: { elements: { type: 'string' } },
       removeSelectors: { elements: { type: 'string' } },
       removeAfterSelectors: { elements: { type: 'string' } },
+      publishedSelectors: { elements: { type: 'string' } },
       removeStyleSelectors: { elements: { type: 'string' } },
       imageFixRegex: { elements: { type: 'string' } },
       imageSelectors: { elements: { type: 'string' } },
