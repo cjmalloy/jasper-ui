@@ -71,7 +71,7 @@ export function tagIntersection(expand: string[], targets: string[]) {
   return filter(targets, target => includesTag(target, expand));
 }
 
-export function includesTag(target: string, tags: string[])  {
+export function includesTag(target: string, tags?: string[])  {
   if (!target) return false;
   return !!find(tags, t => expandedTagsInclude(t, target));
 }

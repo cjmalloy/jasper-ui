@@ -1,15 +1,28 @@
-import { Component, ElementRef, HostBinding, HostListener, Input, OnInit } from '@angular/core';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
+import {
+  Component,
+  ElementRef,
+  HostBinding,
+  HostListener,
+  Input,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
+import { defer, intersection, without } from 'lodash-es';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
+import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
-import { hasComment, interestingTags, trimCommentForTitle } from '../../../util/format';
-import { hasTag } from '../../../util/tag';
-import { Store } from "../../../store/store";
-import { ConfigService } from "../../../service/config.service";
-import { defer, intersection } from 'lodash-es';
+import { ConfigService } from '../../../service/config.service';
+import { Store } from '../../../store/store';
+import { hasComment, trimCommentForTitle } from '../../../util/format';
+import { hasTag, includesTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-kanban-card',
@@ -22,8 +35,15 @@ export class KanbanCardComponent implements OnInit {
   @HostBinding('class.unlocked')
   unlocked = false;
 
+  @Input()
+  pressToUnlock = false;
+
   title = '';
   repostRef?: Ref;
+  overlayRef?: OverlayRef;
+
+  @ViewChild('cardMenu')
+  cardMenu!: TemplateRef<any>;
 
   private _ref!: Ref;
 
@@ -32,10 +52,13 @@ export class KanbanCardComponent implements OnInit {
     private config: ConfigService,
     private auth: AuthzService,
     private refs: RefService,
+    private tags: TaggingService,
     private exts: ExtService,
     private store: Store,
     private scraper: ScrapeService,
+    private overlay: Overlay,
     private el: ElementRef,
+    private viewContainerRef: ViewContainerRef,
   ) { }
 
   get ref() {
@@ -115,6 +138,10 @@ export class KanbanCardComponent implements OnInit {
     return this.exts.getCachedExts(this.badges);
   }
 
+  get allBadgeExts$() {
+    return this.exts.getCachedExts(this.store.view.ext?.config?.badges || []);
+  }
+
   @HostListener('touchend', ['$event'])
   touchend(e: TouchEvent) {
     this.unlocked = false;
@@ -137,4 +164,49 @@ export class KanbanCardComponent implements OnInit {
     return trimCommentForTitle(comment);
   }
 
+  @HostListener('contextmenu', ['$event'])
+  contextMenu(event: MouseEvent) {
+    if (this.pressToUnlock) {
+      // no badge menu on mobile
+      return;
+    }
+    event.preventDefault();
+    this.close();
+    defer(() => {
+      const positionStrategy = this.overlay.position()
+        .flexibleConnectedTo({x: event.x, y: event.y})
+        .withPositions([{
+          originX: 'center',
+          originY: 'center',
+          overlayX: 'start',
+          overlayY: 'top',
+        }]);
+      this.overlayRef = this.overlay.create({
+        positionStrategy,
+        scrollStrategy: this.overlay.scrollStrategies.close()
+      });
+      this.overlayRef.attach(new TemplatePortal(this.cardMenu, this.viewContainerRef));
+    });
+  }
+
+  @HostListener('window:contextmenu')
+  @HostListener('window:click')
+  close() {
+    this.overlayRef?.dispose();
+    this.overlayRef = undefined;
+  }
+
+  toggleBadge(tag: string) {
+    if (includesTag(tag, this.ref.tags)) {
+      this.tags.delete(tag, this.ref.url, this.ref.origin).subscribe(() => {
+        this.ref.tags = without(this.ref.tags, tag);
+      });
+    } else {
+      this.tags.create(tag, this.ref.url, this.ref.origin).subscribe(() => {
+        this.ref.tags ||= [];
+        this.ref.tags.push(tag);
+      });
+    }
+    this.close();
+  }
 }

@@ -12,18 +12,29 @@
     </ng-template>
   </ng-container>
   <a class="card-title grow" [routerLink]="['/ref', ref.url]">{{ title }}</a>
-  <ng-container *ngIf="badgeExts$ | async as tagExts; else tagNoExts">
-    <div class="badges" *ngFor="let e of tagExts">
+  <ng-container *ngIf="badgeExts$ | async as badgeExts">
+    <div class="badges" *ngFor="let e of badgeExts">
       <a class="tag badge" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
     </div>
   </ng-container>
-  <ng-template #tagNoExts>
-    <div class="badges" *ngFor="let t of badges">
-      <a class="tag badge" [routerLink]="['/tag', t]">{{ t }}</a>
-    </div>
-  </ng-template>
 </div>
 <app-md *ngIf="currentText"
         [origin]="ref.origin || ''"
         [plugins]="ref.tags || []"
         [text]="currentText"></app-md>
+
+<ng-template #cardMenu>
+  <div class="context-menu" (click)="$event.stopPropagation()">
+    <ng-container *ngIf="allBadgeExts$ | async as badgeExts">
+      <span i18n>Toggle Badges</span>
+      <ng-container *ngFor="let e of badgeExts">
+        <div (click)=" toggleBadge(e.tag)">
+          <input [id]="e.tag"
+                 type="checkbox"
+                 [checked]="ref.tags?.includes(e.tag)">
+          <label [for]="e.tag" i18n>{{ e.name || e.tag }}</label>
+        </div>
+      </ng-container>
+    </ng-container>
+  </div>
+</ng-template>
