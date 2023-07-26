@@ -1,7 +1,7 @@
 import * as FileSaver from 'file-saver';
 import * as JSZip from 'jszip';
 import { Page } from '../model/page';
-import { Ref } from '../model/ref';
+import { Ref, writeRef } from '../model/ref';
 import { Tag } from '../model/tag';
 import { Type } from '../store/view';
 
@@ -19,7 +19,7 @@ export function downloadRef(ref: Ref) {
 
 export function downloadPage(type: Type, page: Page<any>, query: String) {
   const zip = new JSZip();
-  zip.file(type + '.json', file(page.content));
+  zip.file(type + '.json', file(page.content!.map(writeRef)));
   zip.generateAsync({ type: 'blob' })
     .then(content => FileSaver.saveAs(content, `${query.replace('/', '_')}` + (page.totalPages > 1 ? ` (page ${page.number + 1} of ${page.totalPages})` : '') + '.zip'));
 }
