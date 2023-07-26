@@ -13,7 +13,8 @@ export const pollPlugin: Plugin = {
     icons: [
       { label: $localize`🗳️`, title: `{{lookup . (maxCount ref 'plugin/poll.')}} {{percent ref (maxCount ref 'plugin/poll.') 'plugin/poll.'}}%` },
     ],
-    submitInternal: $localize`🗳️ poll`,
+    submit: $localize`🗳️ poll`,
+    internal: true,
     actions: [
       { condition: 'a', response: 'plugin/poll.a', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`a`, labelOn: $localize`(a)`, title: `{{a}}: {{count ref 'plugin/poll.a'}} votes ({{percent ref 'a' 'plugin/poll.'}}%)` },
       { condition: 'b', response: 'plugin/poll.b', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`b`, labelOn: $localize`(b)`, title: `{{b}}: {{count ref 'plugin/poll.b'}} votes ({{percent ref 'b' 'plugin/poll.'}}%)` },

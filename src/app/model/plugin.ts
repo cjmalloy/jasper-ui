@@ -33,9 +33,9 @@ export interface Plugin extends Config {
      */
     submitChild?: string,
     /**
-     * Add plugin to submit tabs and generate internal URL.
+     * Autogenerate URL when submitting.
      */
-    submitInternal?: string,
+    internal?: boolean,
     /**
      * Add plugin to submit tabs and use DM UI.
      */

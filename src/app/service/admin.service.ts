@@ -275,29 +275,55 @@ export class AdminService {
     return findKey(dict, p => p.tag === tag) || tag || 'root';
   }
 
-  configProperty(name: string): [Plugin | Template] {
-    if (!this._cache.has(name)) {
-      this._cache.set(name, [
+  configProperty(...names: string[]): [Plugin | Template] {
+    const key = names.join(':');
+    if (!this._cache.has(key)) {
+      this._cache.set(key, [
         ...Object.values(this.status.plugins),
         ...Object.values(this.status.templates)
-      ].filter(p => p?.config?.[name]));
+      ].filter(p => {
+        for (const n of names) {
+          if (n.startsWith('!')) {
+            if (p?.config?.[n.substring(1)]) return false;
+          }
+          if (!p?.config?.[n]) return false;
+        }
+        return true;
+      }));
     }
-    return this._cache.get(name)!;
+    return this._cache.get(key)!;
   }
 
-
-  pluginConfigProperty(name: string): Plugin[] {
-    if (!this._cache.has(name)) {
-      this._cache.set(name, Object.values(this.status.plugins).filter(p => p?.config?.[name]));
+  pluginConfigProperty(...names: string[]): Plugin[] {
+    const key = names.join(':');
+    if (!this._cache.has(key)) {
+      this._cache.set(key, Object.values(this.status.plugins).filter(p => {
+        for (const n of names) {
+          if (n.startsWith('!')) {
+            if (p?.config?.[n.substring(1)]) return false;
+          }
+          if (!p?.config?.[n]) return false;
+        }
+        return true;
+      }));
     }
-    return this._cache.get(name)!;
+    return this._cache.get(key)!;
   }
 
-  templateConfigProperty(name: string): Template[] {
-    if (!this._cache.has('t:'+name)) {
-      this._cache.set('t:'+name, Object.values(this.status.templates).filter(p => p?.config?.[name]));
+  templateConfigProperty(...names: string[]): Template[] {
+    const key = 't!'+names.join(':');
+    if (!this._cache.has(key)) {
+      this._cache.set(key, Object.values(this.status.templates).filter(p => {
+        for (const n of names) {
+          if (n.startsWith('!')) {
+            if (p?.config?.[n.substring(1)]) return false;
+          }
+          if (!p?.config?.[n]) return false;
+        }
+        return true;
+      }));
     }
-    return this._cache.get('t:'+name)!;
+    return this._cache.get(key)!;
   }
 
   get defaultPlugins() {
@@ -323,7 +349,7 @@ export class AdminService {
   }
 
   get submit() {
-    return this.pluginConfigProperty('submit');
+    return this.pluginConfigProperty('submit', '!internal', '!settings');
   }
 
   get add() {
@@ -331,7 +357,7 @@ export class AdminService {
   }
 
   get submitInternal() {
-    return this.pluginConfigProperty('submitInternal');
+    return this.pluginConfigProperty('submit', 'internal', '!settings');
   }
 
   get submitDm() {
