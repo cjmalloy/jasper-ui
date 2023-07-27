@@ -9,11 +9,11 @@ import { catchError, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
-import { findExtension, Ref, writeRef } from '../../model/ref';
+import { findExtension, isRef, Ref, writeRef } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
+import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { findArchive } from '../../plugin/archive';
 import { deleteNotice } from '../../plugin/delete';
-import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -50,7 +50,6 @@ import { ViewerComponent } from '../viewer/viewer.component';
 })
 export class RefComponent implements OnInit, OnDestroy {
   css = 'ref list-item ';
-  @HostBinding('attr.tabindex') tabIndex = 0;
   tagRegex = TAGS_REGEX.source;
 
   private disposers: IReactionDisposer[] = [];
@@ -138,6 +137,11 @@ export class RefComponent implements OnInit, OnDestroy {
       .join(' ');
   }
 
+  @HostBinding('class.last-selected')
+  get lastSelected() {
+    return isRef(this.store.view.lastSelected, this.ref);
+  }
+
   @HostBinding('class.upload')
   get uploadedFile() {
     return this.ref.upload;
@@ -205,6 +209,13 @@ export class RefComponent implements OnInit, OnDestroy {
     if (this.ref.plugins?.['plugin/fullscreen'].optional) return;
     if (window.innerHeight != screen.height) {
       this.expanded = false;
+    }
+  }
+
+  @HostListener('click')
+  onClick() {
+    if (!this.lastSelected && this.store.view.lastSelected) {
+      this.store.view.clearLastSelected();
     }
   }
 

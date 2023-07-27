@@ -311,7 +311,7 @@ body.dark-theme {
   }
 
   .list-item:not(.full-page):not(.expand) {
-    &:focus-within {
+    &.last-selected {
       border: 1px dashed $border;
     }
   }

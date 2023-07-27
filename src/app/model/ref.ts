@@ -134,3 +134,9 @@ export function findExtension(ending: string, ref?: Ref, repost?: Ref) {
   }
   return undefined;
 }
+
+export function isRef(a?: Ref, b?: Ref) {
+  if (!a || !b) return false;
+  return (a.origin === b.origin || !a.origin && !b.origin) &&
+    a.url === b.url;
+}

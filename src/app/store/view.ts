@@ -31,6 +31,7 @@ export class ViewStore {
   defaultSort: RefSort | TagSort = 'published';
   defaultSearchSort: RefSort | TagSort = 'rank';
   ref?: Ref = {} as any;
+  lastSelected?: Ref = {} as any;
   versions = 0;
   ext?: Ext = {} as any;
   selectedUser?: User = {} as any;
@@ -50,10 +51,24 @@ export class ViewStore {
     autorun(() => {
       if (this.eventBus.event === 'refresh') {
         if (this.ref?.url && this.eventBus.isRef(this.ref)) {
-          runInAction(() => this.ref = this.eventBus.ref);
+          this.setRef(this.eventBus.ref);
         }
       }
     });
+  }
+
+  setRef(ref?: Ref) {
+    if (this.ref && !ref) {
+      this.lastSelected = this.ref;
+    }
+    this.ref = ref;
+    if (this.ref) {
+      this.lastSelected = this.ref;
+    }
+  }
+
+  clearLastSelected() {
+    this.lastSelected = undefined;
   }
 
   clear(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {

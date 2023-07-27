@@ -70,7 +70,7 @@ export class RefPage implements OnInit, OnDestroy {
         tap(count => runInAction(() => this.store.view.versions = count)),
         switchMap(count => count > 0 ? this.refs.get(url, origin) : of({url, origin})),
         catchError(err => this.refs.page({ url, size: 1 }).pipe(map(page => page.content[0] || {url, origin}))),
-        tap(ref => runInAction(() => this.store.view.ref = ref)),
+        tap(ref => this.store.view.setRef(ref)),
       ).subscribe();
     }));
   }
