@@ -1,5 +1,6 @@
 import { Component, HostBinding } from '@angular/core';
 import { FieldArrayType } from '@ngx-formly/core';
+import { defer } from 'lodash-es';
 
 @Component({
   selector: 'formly-list-section',
@@ -13,7 +14,7 @@ import { FieldArrayType } from '@ngx-formly/core';
             class="grow hide-errors"
             [field]="field"
             (focusout)="maybeRemove($event, i)"
-            (keydown)="maybeAdd($event, i)"></formly-field>
+            (keydown)="keydown($event, i)"></formly-field>
           <button type="button" (click)="remove(i)" i18n>&ndash;</button>
         </div>
         <formly-error *ngIf="showError" [field]="field"></formly-error>
@@ -28,19 +29,34 @@ export class ListTypeComponent extends FieldArrayType {
   }
 
   override add(index?: number) {
-    // @ts-ignore
-    const overrideFocus = !this.field.fieldArray.focus;
-    // @ts-ignore
-    if (overrideFocus) this.field.fieldArray.focus = true;
     super.add(...arguments);
-    // @ts-ignore
-    if (overrideFocus) this.field.fieldArray.focus = false;
+    this.focus(index);
   }
 
-  maybeAdd(event: KeyboardEvent, index: number) {
-    if (event.key === 'Enter' || this.formControl.length - 1 === index && event.key === 'Tab') {
+  keydown(event: KeyboardEvent, index: number) {
+    // @ts-ignore
+    if (this.field.fieldArray.fieldGroup) return;
+    if (event.key === 'Enter' || this.formControl.length - 1 === index && event.key === 'Tab' && !event.shiftKey) {
       event.preventDefault();
       this.add(index + 1);
+    }
+    if (!this.model[index] && event.key === 'Backspace') {
+      event.preventDefault();
+      if (index === 0) {
+        this.remove(index);
+        this.focus(index);
+      } else {
+        this.focus(index - 1, true);
+      }
+    }
+    if (!this.model[index] && event.key === 'Delete') {
+      event.preventDefault();
+      if (index === this.field.fieldGroup!.length - 1) {
+        this.remove(index);
+        this.focus(index - 1);
+      } else {
+        this.focus(index + 1, true);
+      }
     }
   }
 
@@ -48,5 +64,19 @@ export class ListTypeComponent extends FieldArrayType {
     // @ts-ignore
     if (this.field.fieldArray.fieldGroup) return;
     if (!(event.target as any).value) this.remove(i);
+  }
+
+  focus(index?: number, select = false) {
+    if (this.field.fieldGroup?.length === 0) return;
+    if (index === undefined || index >= this.field.fieldGroup!.length) index = this.field.fieldGroup!.length - 1;
+    if (index < 0) index = 0;
+    const selector = '#' + this.field.fieldGroup![index].id;
+    defer(() => {
+      const el = document.querySelector(selector) as HTMLInputElement;
+      el.focus();
+      if (select) {
+        el.setSelectionRange(0, el.value.length);
+      }
+    });
   }
 }
