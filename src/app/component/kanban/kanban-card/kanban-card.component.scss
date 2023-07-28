@@ -22,5 +22,10 @@
 
   .badges {
     float: right;
+    .badge {
+      margin: 4px;
+      line-height: 21px;
+      display: block;
+    }
   }
 }

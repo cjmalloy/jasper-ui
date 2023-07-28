@@ -1,3 +1,6 @@
+<div class="badges" *ngIf="badgeExts$ | async as badgeExts">
+  <a class="tag badge" *ngFor="let e of badgeExts" [routerLink]="['/tag', store.view.ext!.tag + ':' + e.tag]">{{ e.name || e.tag }}</a>
+</div>
 <div class="row">
   <ng-container *ngIf="thumbnail">
     <div class="thumbnail"
@@ -12,11 +15,6 @@
     </ng-template>
   </ng-container>
   <a class="card-title grow" [routerLink]="['/ref', ref.url]">{{ title }}</a>
-  <ng-container *ngIf="badgeExts$ | async as badgeExts">
-    <div class="badges" *ngFor="let e of badgeExts">
-      <a class="tag badge" [routerLink]="['/tag', store.view.ext!.tag + ':' + e.tag]">{{ e.name || e.tag }}</a>
-    </div>
-  </ng-container>
 </div>
 <app-md *ngIf="currentText"
         [origin]="ref.origin || ''"
