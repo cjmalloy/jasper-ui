@@ -292,6 +292,11 @@ $tablet-width: 767px;
     display: flex !important;
     flex-direction: column;
 
+
+    app-select-plugin select {
+      width: unset;
+    }
+
     label {
       text-align: left;
     }

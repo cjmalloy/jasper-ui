@@ -19,7 +19,6 @@ import { Ref } from '../../model/ref';
 import { isWiki, wikiUriFormat } from '../../plugin/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
-import { ScrapeService } from '../../service/api/scrape.service';
 import { AuthzService } from '../../service/authz.service';
 import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
