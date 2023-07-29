@@ -260,6 +260,7 @@ video.qr-preview {
 }
 
 .context-menu {
+  user-select: none;
   border-radius: 2px;
   padding: 4px;
   white-space: nowrap;
