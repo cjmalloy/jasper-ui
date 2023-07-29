@@ -12,6 +12,7 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { defer, intersection, without } from 'lodash-es';
+import { Subscription } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
@@ -46,6 +47,7 @@ export class KanbanCardComponent implements OnInit {
   cardMenu!: TemplateRef<any>;
 
   private _ref!: Ref;
+  private overlayEvents?: Subscription;
 
   constructor(
     public store: Store,
@@ -183,17 +185,20 @@ export class KanbanCardComponent implements OnInit {
         }]);
       this.overlayRef = this.overlay.create({
         positionStrategy,
-        scrollStrategy: this.overlay.scrollStrategies.close()
+        scrollStrategy: this.overlay.scrollStrategies.close(),
       });
       this.overlayRef.attach(new TemplatePortal(this.cardMenu, this.viewContainerRef));
+      this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((event: MouseEvent) => {
+        if (event.type === 'touchstart' || event.type === 'mousedown' || event.type === 'contextmenu') this.close();
+      });
     });
   }
 
-  @HostListener('window:contextmenu')
-  @HostListener('window:click')
   close() {
     this.overlayRef?.dispose();
+    this.overlayEvents?.unsubscribe();
     this.overlayRef = undefined;
+    this.overlayEvents = undefined;
   }
 
   toggleBadge(tag: string) {
