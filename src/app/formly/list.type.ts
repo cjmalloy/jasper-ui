@@ -36,9 +36,21 @@ export class ListTypeComponent extends FieldArrayType {
   keydown(event: KeyboardEvent, index: number) {
     // @ts-ignore
     if (this.field.fieldArray.fieldGroup) return;
-    if (event.key === 'Enter' || this.formControl.length - 1 === index && event.key === 'Tab' && !event.shiftKey) {
-      event.preventDefault();
-      this.add(index + 1);
+    if (!event.shiftKey) {
+      if (event.key === 'Enter' || event.key === 'Tab' && this.formControl.length - 1 === index) {
+        event.preventDefault();
+        // @ts-ignore
+        if (!event.target?.value) return;
+        this.add(index + 1);
+        this.focus(index + 1);
+      }
+    } else {
+      if (event.key === 'Enter' || event.key === 'Tab' && index === 0) {
+        event.preventDefault();
+        // @ts-ignore
+        if (!event.target?.value) return;
+        this.add(index);
+      }
     }
     if (!this.model[index] && event.key === 'Backspace') {
       event.preventDefault();
