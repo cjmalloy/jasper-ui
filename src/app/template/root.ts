@@ -18,6 +18,7 @@ export const rootTemplate: Template = {
       modmail: { type: 'boolean' },
       themes: { values: { type: 'string' } },
       theme: { type: 'string' },
+      defaultSort: { type: 'string' },
     },
   },
 };

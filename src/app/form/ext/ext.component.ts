@@ -1,5 +1,5 @@
 import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { defer, uniq } from 'lodash-es';
 import { Ext } from '../../model/ext';
@@ -9,6 +9,8 @@ import { TAG_REGEX } from '../../util/format';
 import { hasPrefix } from '../../util/tag';
 import { linksForm } from '../links/links.component';
 import { themesForm } from '../themes/themes.component';
+import { defaultDesc } from "../../util/query";
+import { allRefSorts } from "../../component/sort/sort.component";
 
 @Component({
   selector: 'app-ext-form',
@@ -17,6 +19,7 @@ import { themesForm } from '../themes/themes.component';
 })
 export class ExtFormComponent implements OnInit {
   @HostBinding('class') css = 'nested-form';
+  allSorts = allRefSorts;
 
   @Input()
   group!: UntypedFormGroup;
@@ -37,7 +40,6 @@ export class ExtFormComponent implements OnInit {
   };
 
   constructor(
-    private fb: UntypedFormBuilder,
     private admin: AdminService,
   ) { }
 
@@ -55,7 +57,30 @@ export class ExtFormComponent implements OnInit {
   }
 
   get modmail() {
-    return this.config.get('modmail') as UntypedFormControl;
+    return this.config.get('modmail') as FormControl<boolean>;
+  }
+
+  get defaultSort() {
+    return this.config.get('defaultSort') as FormControl<string>;
+  }
+
+  get sortCol() {
+    if (!this.defaultSort.value) return undefined;
+    if (!this.defaultSort.value.includes(',')) return this.defaultSort.value;
+    return this.defaultSort.value.split(',')[0];
+  }
+
+  get sortDir() {
+    if (!this.defaultSort.value.includes(',')) return defaultDesc.includes(this.defaultSort.value) ? 'DESC' : 'ASC';
+    return this.defaultSort.value.split(',')[1];
+  }
+
+  setSortCol(value: string) {
+    this.defaultSort.setValue(value + ',' + this.sortDir);
+  }
+
+  setSortDir(value: string) {
+    this.defaultSort.setValue(this.sortCol + ',' + value);
   }
 
   get sidebar() {
@@ -112,6 +137,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService, l
   if (admin.status.templates.root) {
     configControls = {
       ...configControls,
+      defaultSort: ['published'],
       sidebar: [''],
       modmail: [false],
       pinned: linksForm(fb, ext.config?.pinned || []),

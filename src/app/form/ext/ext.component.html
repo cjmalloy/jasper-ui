@@ -9,6 +9,20 @@
   <label for="name" i18n>Name:</label>
   <input id="name" type="text" formControlName="name">
 
+  <ng-container *ngIf="defaultSort">
+    <label for="defaultSort" i18n>Default Sort:</label>
+    <span class="form-array">
+      <select id="defaultSort" (input)="setSortCol($any($event.target).value)">
+        <option></option>
+        <option *ngFor="let opt of allSorts"
+                [selected]="sortCol === opt.value"
+                [value]="opt.value">{{ opt.label || opt.value }}</option>
+      </select>
+      <button *ngIf="sortDir === 'DESC'" type="button" (click)="setSortDir('ASC')">🔽️</button>
+      <button *ngIf="sortDir === 'ASC'" type="button" (click)="setSortDir('DESC')">🔼️</button>
+    </span>
+  </ng-container>
+
   <formly-form *ngIf="form"
                class="nested-form"
                [form]="config"
