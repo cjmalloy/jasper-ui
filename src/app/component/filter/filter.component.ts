@@ -99,7 +99,7 @@ export class FilterComponent implements OnInit, OnDestroy {
           }
           this.loadFilter({
             group: $localize`Badges`,
-            label: $localize`Unbadged`,
+            label: $localize`🚫️ no badges`,
             query: exts.map(e => '!' + e.tag).join(':'),
           });
         });
