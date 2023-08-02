@@ -154,7 +154,7 @@ export class AdminService {
     },
   };
 
- _cache = new Map<string, any>();
+  _cache = new Map<string, any>();
 
   constructor(
     private config: ConfigService,
@@ -496,11 +496,11 @@ export class AdminService {
         return includesTag(p.tag, match);
       }).map(addParent(p))
         .map(i => {
-        if (!i.response) i.tag ||= p.tag;
-        if (i.tag === p.tag)  i.title ||= p.name;
-        i.title ||= i.tag;
-        return i;
-      }))
+          if (!i.response) i.tag ||= p.tag;
+          if (i.tag === p.tag)  i.title ||= p.name;
+          i.title ||= i.tag;
+          return i;
+        }))
       .filter(i => !i.role || this.auth.hasRole(i.role));
   }
 
