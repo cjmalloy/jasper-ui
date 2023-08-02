@@ -35,8 +35,9 @@ export class SettingsMePage {
     private admin: AdminService,
     private fb: FormBuilder,
   ) {
-    this.editForm = extForm(fb, store.account.ext!, this.admin, true);
-    this.editForm.patchValue(store.account.ext!);
+    const ext = { ...store.account.ext! };
+    this.editForm = extForm(fb, ext, this.admin, true);
+    this.editForm.patchValue(ext);
     defer(() => this.form!.setValue(store.account.ext!));
   }
 
