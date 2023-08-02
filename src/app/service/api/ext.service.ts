@@ -70,7 +70,7 @@ export class ExtService {
   getCachedExt(tag: string) {
     if (!this._cache.has(tag)) {
       if (isQuery(tag)) {
-        this._cache.set(tag, of({ name: tag, tag: tag, origin: '' } as Ext))
+        this._cache.set(tag, of({ name: tag, tag: tag, origin: '' } as Ext));
       } else {
         this._cache.set(tag, this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
           catchError(err => of({ name: tag, tag: localTag(tag), origin: tagOrigin(tag) } as Ext)),
