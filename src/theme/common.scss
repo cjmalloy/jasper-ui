@@ -692,7 +692,14 @@ formly-list-section .form-array > formly-field > formly-group {
   grid-auto-rows: min-content;
   padding: 10px;
 
-  .nested-form, formly-field, formly-group, formly-wrapper-form-field, formly-field-textarea, formly-field-input, formly-field-select, formly-list-section {
+  .nested-form,
+  formly-field,
+  formly-group,
+  formly-wrapper-form-field,
+  formly-field-textarea,
+  formly-field-input,
+  formly-field-select,
+  formly-list-section {
     margin: 0;
     display: contents;
     & > * {
@@ -706,9 +713,9 @@ formly-list-section .form-array > formly-field > formly-group {
     }
   }
 
-  formly-list-section .form-array {
-    formly-field > formly-wrapper-form-field > label,
-    formly-field-input > .form-array {
+  formly-list-section > .form-group > .form-array > formly-field > formly-wrapper-form-field {
+    & > label,
+    & > formly-field-input > .form-array {
       margin: 0 4px;
     }
   }

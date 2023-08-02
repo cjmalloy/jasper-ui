@@ -10,6 +10,7 @@ import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
 import { UrlFilter } from '../../util/query';
+import { Ext } from '../../model/ext';
 
 type FilterItem = { filter: UrlFilter, label: string, time?: boolean };
 
@@ -52,6 +53,11 @@ export class FilterComponent implements OnInit, OnDestroy {
   }
 
   @Input()
+  set ext(value: Ext | undefined) {
+    if (value) this.type = 'ref';
+  }
+
+  @Input()
   set type(value: Type) {
     if (value === 'ref') {
       this.allFilters = [
@@ -76,6 +82,12 @@ export class FilterComponent implements OnInit, OnDestroy {
           ],
         },
       ];
+      for (const f of this.store.view.ext?.config?.filters || []) this.loadFilter({
+        group: this.store.view.ext!.name || this.store.view.ext!.tag,
+        label: f.label,
+        query: !f.response ? f.query : undefined,
+        response: f.response ? f.query : undefined,
+      });
       for (const f of this.admin.filters) this.loadFilter(f);
     } else {
       this.allFilters = [
@@ -95,7 +107,7 @@ export class FilterComponent implements OnInit, OnDestroy {
     if (!filter.scheme && !this.auth.queryReadAccess(filter.query || filter.response)) return;
     let group = find(this.allFilters, f => f.label === (filter.group || ''));
     if (group) {
-      group.filters.push(this.convertFilter(filter))
+      group.filters.push(this.convertFilter(filter));
     } else {
       this.allFilters.push({
         label: filter.group || '',
