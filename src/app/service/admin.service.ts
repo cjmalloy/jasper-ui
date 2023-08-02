@@ -285,8 +285,9 @@ export class AdminService {
         for (const n of names) {
           if (n.startsWith('!')) {
             if (p?.config?.[n.substring(1)]) return false;
+          } else {
+            if (!p?.config?.[n]) return false;
           }
-          if (!p?.config?.[n]) return false;
         }
         return true;
       }));
@@ -301,8 +302,9 @@ export class AdminService {
         for (const n of names) {
           if (n.startsWith('!')) {
             if (p?.config?.[n.substring(1)]) return false;
+          } else {
+            if (!p?.config?.[n]) return false;
           }
-          if (!p?.config?.[n]) return false;
         }
         return true;
       }));
@@ -317,8 +319,9 @@ export class AdminService {
         for (const n of names) {
           if (n.startsWith('!')) {
             if (p?.config?.[n.substring(1)]) return false;
+          } else {
+            if (!p?.config?.[n]) return false;
           }
-          if (!p?.config?.[n]) return false;
         }
         return true;
       }));
