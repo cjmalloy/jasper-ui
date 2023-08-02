@@ -202,7 +202,7 @@ export interface FilterConfig {
    * generating metadata to work.
    * If set, query  and scheme must not be set.
    */
-  response?: `plugin/${string}` | `-plugin/${string}`;
+  response?: `plugin/${string}` | `!plugin/${string}`;
   label?: string;
   group?: string;
 }

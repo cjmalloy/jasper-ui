@@ -96,7 +96,7 @@ export const invoicePlugin: Plugin = {
       { response: 'plugin/invoice.paid', clear: ['plugin/invoice.rejected'], labelOff: $localize`paid`, labelOn: $localize`unpaid`, visible: 'recipient' },
     ],
     filters: [
-      { response: '-plugin/invoice.paid', label: $localize`🧾️ unpaid`, group: $localize`Invoices` },
+      { response: '!plugin/invoice.paid', label: $localize`🧾️ unpaid`, group: $localize`Invoices` },
       { response: 'plugin/invoice.paid', label: $localize`💸️ paid`, group: $localize`Invoices` },
       { response: 'plugin/invoice.rejected', label: $localize`👎️ rejected`, group: $localize`Invoices` },
       { response: 'plugin/invoice.disputed', label: $localize`⚠️ disputed`, group: $localize`Invoices` },

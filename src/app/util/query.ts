@@ -17,7 +17,7 @@ export type UrlFilter = Filter |
   `query/${string}` |
   `scheme/${string}` |
   `plugin/${string}` |
-  `-plugin/${string}`;
+  `!plugin/${string}`;
 
 export function getArgs(
   tagOrSimpleQuery?: string,
@@ -83,7 +83,7 @@ function getRefFilter(filter?: UrlFilter[]): RefQueryArgs {
     } else if (hasPrefix(f, 'plugin')) {
       result.pluginResponse ||= [];
       result.pluginResponse.push(f);
-    } else if (f.startsWith('-') && hasPrefix(f.substring(1), 'plugin')) {
+    } else if (f.startsWith('!') && hasPrefix(f.substring(1), 'plugin')) {
       result.noPluginResponse ||= [];
       result.noPluginResponse.push(f.substring(1));
     } else if (f.startsWith('modified/before/')) {
