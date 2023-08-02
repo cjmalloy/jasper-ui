@@ -23,7 +23,7 @@ export const oEmbedPlugin: Plugin = {
       type: 'list',
       props: {
         label: $localize`Endpoints:`,
-        addText: $localize`+ Add endpoint`,
+        addText: $localize`+ Add another endpoint`,
       },
       fieldArray: {
         fieldGroup: [{
@@ -40,7 +40,7 @@ export const oEmbedPlugin: Plugin = {
           type: 'urls',
           props: {
             label: $localize`Schemes:`,
-            addText: $localize`+ Add scheme`
+            addText: $localize`+ Add another scheme`
           },
           fieldArray: {
             props: {
@@ -52,7 +52,7 @@ export const oEmbedPlugin: Plugin = {
           type: 'list',
           props: {
             label: $localize`Formats:`,
-            addText: $localize`+ Add format`
+            addText: $localize`+ Add another format`
           },
           fieldArray: {
             type: 'string',

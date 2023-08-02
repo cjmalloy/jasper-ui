@@ -9,8 +9,8 @@ import { TAG_REGEX } from '../../util/format';
 import { hasPrefix } from '../../util/tag';
 import { linksForm } from '../links/links.component';
 import { themesForm } from '../themes/themes.component';
-import { defaultDesc } from "../../util/query";
-import { allRefSorts } from "../../component/sort/sort.component";
+import { defaultDesc } from '../../util/query';
+import { allRefSorts } from '../../component/sort/sort.component';
 
 @Component({
   selector: 'app-ext-form',
