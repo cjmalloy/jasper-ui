@@ -1,7 +1,7 @@
 import { filter, uniq, without } from 'lodash-es';
 import { Filter, RefPageArgs, RefQueryArgs, RefSort } from '../model/ref';
 import { TagQueryArgs } from '../model/tag';
-import { fixClientQuery } from './tag';
+import { fixClientQuery, hasPrefix } from './tag';
 
 export const defaultDesc = ['created', 'published', 'modified', 'metadataModified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
 
@@ -80,10 +80,10 @@ function getRefFilter(filter?: UrlFilter[]): RefQueryArgs {
     if (f.startsWith('query/')) continue;
     if (f.startsWith('scheme/')) {
       result.scheme = f.substring('scheme/'.length)
-    } else if (f.startsWith('plugin/')) {
+    } else if (hasPrefix(f, 'plugin')) {
       result.pluginResponse ||= [];
       result.pluginResponse.push(f);
-    } else if (f.startsWith('-plugin/')) {
+    } else if (f.startsWith('-') && hasPrefix(f.substring(1), 'plugin')) {
       result.noPluginResponse ||= [];
       result.noPluginResponse.push(f.substring(1));
     } else if (f.startsWith('modified/before/')) {
