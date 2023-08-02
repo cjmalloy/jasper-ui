@@ -11,6 +11,7 @@ import { Store } from '../../store/store';
 import { Type } from '../../store/view';
 import { UrlFilter } from '../../util/query';
 import { Ext } from '../../model/ext';
+import { ExtService } from '../../service/api/ext.service';
 
 type FilterItem = { filter: UrlFilter, label: string, time?: boolean };
 
@@ -42,8 +43,9 @@ export class FilterComponent implements OnInit, OnDestroy {
   constructor(
     public router: Router,
     public admin: AdminService,
-    private auth: AuthzService,
     public store: Store,
+    private exts: ExtService,
+    private auth: AuthzService,
   ) {
     this.disposers.push(autorun(() => {
       this.filters = toJS(this.store.view.filter);
@@ -82,6 +84,26 @@ export class FilterComponent implements OnInit, OnDestroy {
           ],
         },
       ];
+      if (this.store.view.ext?.config?.badges?.length) {
+        this.allFilters.push({
+          label: $localize`Badges`,
+          filters: [],
+        });
+        this.exts.getCachedExts(this.store.view.ext?.config?.badges).subscribe(exts => {
+          for (const e of exts) {
+            this.loadFilter({
+              group: $localize`Badges`,
+              label: e.name || e.tag,
+              query: e.tag,
+            });
+          }
+          this.loadFilter({
+            group: $localize`Badges`,
+            label: $localize`Unbadged`,
+            query: exts.map(e => '!' + e.tag).join(':'),
+          });
+        });
+      }
       for (const f of this.store.view.ext?.config?.filters || []) this.loadFilter({
         group: this.store.view.ext!.name || this.store.view.ext!.tag,
         label: f.label,
