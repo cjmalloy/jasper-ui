@@ -196,7 +196,11 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   setFilters() {
     const filters = filter(this.filters, f => !!f);
-    this.router.navigate([], { queryParams: { filter: filters.length ? filters : null, pageNumber: null }, queryParamsHandling: 'merge' });
+    this.router.navigate([], {
+      queryParams: { filter: filters.length ? filters : null, pageNumber: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   toIso(date: string) {

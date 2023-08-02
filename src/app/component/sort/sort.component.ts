@@ -113,7 +113,11 @@ export class SortComponent implements OnInit, OnDestroy {
 
   setSort() {
     const sort = filter(this.sorts, f => !!f && !f.startsWith(','));
-    this.router.navigate([], { queryParams: { sort: sort.length ? sort : null, pageNumber: null }, queryParamsHandling: 'merge' });
+    this.router.navigate([], {
+      queryParams: { sort: sort.length ? sort : null, pageNumber: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   sortCol(sort: string) {
