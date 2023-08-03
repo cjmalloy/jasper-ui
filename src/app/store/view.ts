@@ -230,14 +230,14 @@ export class ViewStore {
 
   get sort() {
     const sort = this.route.routeSnapshot?.queryParams['sort'];
-    if (!sort) return [this.search ? this.defaultSearchSort : (this.ext?.config.defaultSort || this.defaultSort)];
+    if (!sort) return [this.search ? this.defaultSearchSort : (this.ext?.config?.defaultSort || this.defaultSort)];
     if (!Array.isArray(sort)) return [sort]
     return sort;
   }
 
   get isSorted() {
     if (this.sort.length > 1) return true;
-    return this.sort[0] !== (this.search ? this.defaultSearchSort : (this.ext?.config.defaultSort || this.defaultSort));
+    return this.sort[0] !== (this.search ? this.defaultSearchSort : (this.ext?.config?.defaultSort || this.defaultSort));
   }
 
   get isVoteSorted() {
