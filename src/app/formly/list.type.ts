@@ -11,7 +11,8 @@ import { defer } from 'lodash-es';
       <ng-container *ngFor="let field of field.fieldGroup; let i = index">
         <div class="form-array">
           <formly-field
-            class="grow hide-errors"
+            class="grow"
+            [class.hide-errors]="!groupArray"
             [field]="field"
             (focusout)="maybeRemove($event, i)"
             (keydown)="keydown($event, i)"></formly-field>
@@ -28,14 +29,18 @@ export class ListTypeComponent extends FieldArrayType {
     return this.props.title || '';
   }
 
+  get groupArray() {
+    // @ts-ignore
+    return this.field.fieldArray.fieldGroup;
+  }
+
   override add(index?: number) {
     super.add(...arguments);
     this.focus(index);
   }
 
   keydown(event: KeyboardEvent, index: number) {
-    // @ts-ignore
-    if (this.field.fieldArray.fieldGroup) return;
+    if (this.groupArray) return;
     if (!event.shiftKey) {
       if (event.key === 'Enter' || event.key === 'Tab' && this.formControl.length - 1 === index) {
         event.preventDefault();
@@ -73,12 +78,12 @@ export class ListTypeComponent extends FieldArrayType {
   }
 
   maybeRemove(event: FocusEvent, i: number) {
-    // @ts-ignore
-    if (this.field.fieldArray.fieldGroup) return;
+    if (this.groupArray) return;
     if (!(event.target as any).value) this.remove(i);
   }
 
   focus(index?: number, select = false) {
+    if (this.groupArray) return;
     if (this.field.fieldGroup?.length === 0) return;
     if (index === undefined || index >= this.field.fieldGroup!.length) index = this.field.fieldGroup!.length - 1;
     if (index < 0) index = 0;
