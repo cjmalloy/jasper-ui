@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
-import { defer } from 'lodash-es';
+import { cloneDeep, defer } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -35,10 +35,10 @@ export class SettingsMePage {
     private admin: AdminService,
     private fb: FormBuilder,
   ) {
-    const ext = { ...store.account.ext! };
+    const ext = cloneDeep(store.account.ext!);
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);
-    defer(() => this.form!.setValue(store.account.ext!));
+    defer(() => this.form!.setValue(ext));
   }
 
   save() {
