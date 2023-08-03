@@ -9,13 +9,31 @@ import { FormlyFieldConfig } from '@ngx-formly/core/lib/models';
       Must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
     </span>
     <ng-template #tag>
-      <span *ngIf="field.type === 'tag' && field.formControl?.errors?.['pattern'] else qtag" i18n>
+      <span *ngIf="field.type === 'tag' && field.formControl?.errors?.['pattern'] else origin" i18n>
         Tags must be lower case letters, numbers, periods and forward slashes.<br>
         Must not start with a forward slash or period.<br>
         Must not or contain two forward slashes or periods in a row.<br>
         Protected tags start with a plus sign.<br>
         Private tags start with an underscore.<br>
         (i.e. "science", "my/tag", or "_my/private/tag")
+      </span>
+    </ng-template>
+    <ng-template #origin>
+      <span *ngIf="field.type === 'origin' && field.formControl?.errors?.['pattern'] else plugin" i18n>
+        Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.<br>
+        The default origin is blank.<br>
+        (i.e. "@origin", "@my.origin", or "")
+      </span>
+    </ng-template>
+    <ng-template #plugin>
+      <span *ngIf="field.type === 'plugin' && field.formControl?.errors?.['pattern'] else qtag" i18n>
+        Plugin tags must start with the "plugin/", "+plugin/" or "_plugin/" prefix.<br>
+        Tags must be lower case letters, numbers, periods and forward slashes.<br>
+        Must not start with a forward slash or period.<br>
+        Must not or contain two forward slashes or periods in a row.<br>
+        Protected tags start with a plus sign.<br>
+        Private tags start with an underscore.<br>
+        (i.e. "plugin/thumbnail", "plugin/image" "+plugin/feed", or "_plugin/admin")
       </span>
     </ng-template>
     <ng-template #qtag>

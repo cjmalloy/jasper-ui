@@ -7,6 +7,7 @@ import { FormlySelectModule } from '@ngx-formly/core/select';
 import * as moment from 'moment';
 import {
   ORIGIN_REGEX,
+  PLUGIN_REGEX,
   QUALIFIED_TAG_REGEX,
   QUALIFIED_USER_REGEX,
   QUERY_REGEX,
@@ -263,6 +264,21 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
               expression: (c: AbstractControl) => !c.value || ORIGIN_REGEX.test(c.value),
               message: $localize`Origins must be lower case letters, numbers, periods, and start with @.
                 Must not start with a period or contain two periods in a row.`,
+            }
+          },
+        },
+      }, {
+        name: 'plugin',
+        extends: 'input',
+        defaultOptions: {
+          props: {
+            type: 'email',
+            label: $localize`Plugin:`,
+          },
+          validators: {
+            pattern: {
+              expression: (c: AbstractControl) => !c.value || PLUGIN_REGEX.test(c.value),
+              message: 'Error message contains HTML, so there is a special override in errors.ts',
             }
           },
         },
