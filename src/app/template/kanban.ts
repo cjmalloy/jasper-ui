@@ -15,6 +15,12 @@ export const kanbanTemplate: Template = {
       { query: 'kanban', label: $localize`📋️ kanban`, group: $localize`Templates 🎨️` },
     ],
     form: [{
+      key: 'private',
+      type: 'boolean',
+      props: {
+        label: $localize`Private:`
+      }
+    }, {
       key: 'columns',
       type: 'qtags',
       props: {
@@ -68,7 +74,7 @@ export const kanbanTemplate: Template = {
       }
     }]
   },
-  defaults: {
+  defaults: <KanbanConfig> {
     columns: []
   },
   schema: {
@@ -76,6 +82,7 @@ export const kanbanTemplate: Template = {
       columns: { elements: { type: 'string' } },
     },
     optionalProperties: {
+      private: { type: 'boolean'},
       swimLanes: { elements: { type: 'string' } },
       showNoColumn: { type: 'boolean'},
       noColumnTitle: { type: 'string'},
@@ -85,3 +92,14 @@ export const kanbanTemplate: Template = {
     },
   },
 };
+
+export interface KanbanConfig {
+  private?: boolean;
+  columns: string[];
+  swimLanes?: string[];
+  showNoColumn?: boolean;
+  noColumnTitle?: string;
+  showNoSwimLane?: boolean;
+  noSwimLaneTitle?: string;
+  badges?: string[];
+}

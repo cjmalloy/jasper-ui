@@ -8,6 +8,7 @@ import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
 import { defaultOrigin } from '../../util/tag';
+import { KanbanConfig } from '../../template/kanban';
 
 export interface KanbanDrag {
   from: string;
@@ -74,12 +75,16 @@ export class KanbanComponent implements OnInit, OnDestroy {
     return ':!' + this.swimLanes.join(':!');
   }
 
+  get kanbanConfig(): KanbanConfig {
+    return this.ext!.config;
+  }
+
   /**
    * Tags to apply to new Refs created on the board.
    */
   addingTags(tags: { col?: string, sl?: string }) {
     const result = [];
-    if (!this.ext!.tag.startsWith('_')) {
+    if (!this.kanbanConfig.private) {
       result.push('public');
     }
     result.push(this.ext!.tag);
