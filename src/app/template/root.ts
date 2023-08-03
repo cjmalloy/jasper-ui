@@ -11,10 +11,10 @@ export const rootTemplate: Template = {
     description: $localize`Add common features Ext tag pages: Adding pinned Refs, sidebar markdown,
     a custom theme and a set of non-global custom themes to choose from in addition to global themes.`,
     form: [{
-      key: 'filters',
+      key: 'queryFilters',
       type: 'list',
       props: {
-        label: $localize`Filters:`,
+        label: $localize`Query Filters:`,
         addText: $localize`+ Add another filter`,
       },
       fieldArray: {
@@ -30,12 +30,28 @@ export const rootTemplate: Template = {
           props: {
             required: true,
           }
+        }]
+      }
+    }, {
+      key: 'responseFilters',
+      type: 'list',
+      props: {
+        label: $localize`Response Filters:`,
+        addText: $localize`+ Add another reponse filter`,
+      },
+      fieldArray: {
+        fieldGroup: [{
+          key: 'label',
+          type: 'string',
+          props: {
+            label: $localize`Label:`
+          }
         }, {
           key: 'response',
-          type: 'boolean',
+          type: 'plugin',
           props: {
-            label: $localize`Response:`
-          },
+            required: true,
+          }
         }]
       }
     }]
@@ -45,13 +61,20 @@ export const rootTemplate: Template = {
       pinned: { elements: { type: 'string' } },
       sidebar: { type: 'string' },
       modmail: { type: 'boolean' },
-      filters: { elements: {
+      queryFilters: { elements: {
         properties: {
           query: { type: 'string' },
         },
         optionalProperties: {
           label: { type: 'string' },
-          response: { type: 'boolean' },
+        }
+      }},
+      responseFilters: { elements: {
+        properties: {
+          response: { type: 'string' },
+        },
+        optionalProperties: {
+          label: { type: 'string' },
         }
       }},
       themes: { values: { type: 'string' } },
@@ -65,7 +88,8 @@ export interface RootConfig {
   pinned?: string[];
   sidebar?: string;
   modmail?: boolean;
-  filters?: { query: string, label?: string, response?: boolean }[];
+  queryFilters?: { query: string, label?: string}[];
+  responseFilters?: { response: `plugin/${string}` | `!plugin/${string}`, label?: string }[];
   themes?: Record<string, string>;
   theme?: string;
   defaultSort?: string;

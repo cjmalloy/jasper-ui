@@ -9,6 +9,7 @@ import { UrlFilter } from '../util/query';
 import { hasPrefix, isQuery, localTag } from '../util/tag';
 import { EventBus } from './bus';
 import {AccountStore} from "./account";
+import { RootConfig } from '../template/root';
 
 /**
  * ID for current view. Only includes pages that make queries.
@@ -79,6 +80,10 @@ export class ViewStore {
     this.pinned = undefined;
     this.defaultSort = defaultSort;
     this.defaultSearchSort = defaultSearchSort;
+  }
+
+  get config(): RootConfig | undefined {
+    return this.ext?.config;
   }
 
   get url() {

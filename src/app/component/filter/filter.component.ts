@@ -104,11 +104,13 @@ export class FilterComponent implements OnInit, OnDestroy {
           });
         });
       }
-      for (const f of this.store.view.ext?.config?.filters || []) this.loadFilter({
+      for (const f of this.store.view.config?.queryFilters || []) this.loadFilter({
         group: this.store.view.ext!.name || this.store.view.ext!.tag,
-        label: f.label,
-        query: !f.response ? f.query : undefined,
-        response: f.response ? f.query : undefined,
+        ...f,
+      });
+      for (const f of this.store.view.config?.responseFilters || []) this.loadFilter({
+        group: this.store.view.ext!.name || this.store.view.ext!.tag,
+        ...f,
       });
       for (const f of this.admin.filters) this.loadFilter(f);
     } else {
