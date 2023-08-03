@@ -15,6 +15,9 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { hasPrefix, localTag, prefix, tagOrigin } from '../../util/tag';
+import { extSelector } from '../../util/format';
+import { RootConfig } from '../../template/root';
+import { UserConfig } from '../../template/user';
 
 @Component({
   selector: 'app-sidebar',
@@ -125,6 +128,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return !!this.admin.status.templates.root && !!this._tag;
   }
 
+  get rootConfig() {
+    if (!this.root) return null;
+    return this.ext?.config as RootConfig;
+  }
+
+
   get modmail() {
     return this.ext?.config?.modmail;
   }
@@ -133,16 +142,29 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return !!this.admin.status.templates.user && hasPrefix(this._tag, 'user') && this.store.view.template !== 'user';
   }
 
+  get userConfig() {
+    if (!this.user) return null;
+    return this.ext?.config as UserConfig;
+  }
+
   get bookmarks$() {
-    return this.exts.getCachedExts(this.ext?.config?.bookmarks || []);
+    return this.exts.getCachedExts(this.userConfig?.bookmarks || []);
+  }
+
+  get userSubs() {
+    return this.userConfig?.subscriptions?.filter((s: string) => hasPrefix(s, 'user'));
   }
 
   get userSubs$() {
-    return this.exts.getCachedExts(this.ext?.config?.subscriptions?.filter((s: string) => hasPrefix(s, 'user')));
+    return this.exts.getCachedExts(this.userSubs || []);
+  }
+
+  get tagSubs() {
+    return this.userConfig?.subscriptions?.filter((s: string) => !hasPrefix(s, 'user'));
   }
 
   get tagSubs$() {
-    return this.exts.getCachedExts(this.ext?.config?.subscriptions?.filter((s: string) => !hasPrefix(s, 'user')));
+    return this.exts.getCachedExts(this.tagSubs || []);
   }
 
   get messages() {
@@ -195,5 +217,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   set showRemotes(value: boolean) {
     this.router.navigate([], { queryParams: { showRemotes: value ? true : null }, queryParamsHandling: 'merge' })
+  }
+
+  extLink(selector: string, ext: Ext) {
+    return extSelector(selector, ext, this.store.account.origin);
   }
 }
