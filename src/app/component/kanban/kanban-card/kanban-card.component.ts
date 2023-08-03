@@ -57,7 +57,6 @@ export class KanbanCardComponent implements OnInit {
     private refs: RefService,
     private tags: TaggingService,
     private exts: ExtService,
-    private scraper: ScrapeService,
     private overlay: Overlay,
     private el: ElementRef,
     private viewContainerRef: ViewContainerRef,
@@ -189,7 +188,14 @@ export class KanbanCardComponent implements OnInit {
       });
       this.overlayRef.attach(new TemplatePortal(this.cardMenu, this.viewContainerRef));
       this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((event: MouseEvent) => {
-        if (event.type === 'touchstart' || event.type === 'mousedown' || event.type === 'contextmenu') this.close();
+        switch (event.type) {
+          case 'click':
+          case 'pointerdown':
+          case 'touchstart':
+          case 'mousedown':
+          case 'contextmenu':
+            this.close();
+        }
       });
     });
   }
