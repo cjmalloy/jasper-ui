@@ -1,5 +1,5 @@
 <div class="link" [class.remote]="!local">
-  <a [routerLink]="['/tag', qualifiedTag]">{{ ext.name || ext.tag }}</a>
+  <a [routerLink]="['/tag', extLink]">{{ ext.name || ext.tag }}</a>
   <span *ngIf="ext.name" class="host">({{ qualifiedTag }})</span>
   <span *ngIf="!ext.name && ext.origin" class="host">({{ ext.origin }})</span>
 </div>
@@ -15,14 +15,14 @@
       <span class="icon" (click)="clickIcon(icon)" [title]="icon.tag">{{ icon.config!.view! }}</span>
     </ng-container>
     <ng-container *ngIf="!local" i18n>
-      on <a [routerLink]="['/tag', ext.origin]">{{ ext.origin }}</a>
+      on <a [routerLink]="['/tag', ext.origin]">{{ ext.origin || 'default' }}</a>
     </ng-container>
   </div>
   <div class="actions">
     <ng-container *ngIf="!ext.upload">
       <a *ngIf="parent"
          [routerLink]="['/tags', parent]" i18n>parent</a>
-      <a [routerLink]="['/tags', ext.tag]" i18n>tags</a>
+      <a [routerLink]="['/tags', extLink]" i18n>tags</a>
       <a *ngIf="!local"
          class="fake-link"
          (click)="copy()" i18n>copy</a>

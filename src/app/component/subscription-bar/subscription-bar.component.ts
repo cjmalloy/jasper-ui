@@ -5,6 +5,8 @@ import { ExtService } from '../../service/api/ext.service';
 import { ConfigService } from '../../service/config.service';
 import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
+import { Ext } from '../../model/ext';
+import { extSelector } from '../../util/format';
 
 @Component({
   selector: 'app-subscription-bar',
@@ -42,5 +44,9 @@ export class SubscriptionBarComponent implements OnInit {
     const index = navigation.currentEntry?.index || 0;
     console.log(index);
     if (index > this.startIndex) this.location.back();
+  }
+
+  extLink(selector: string, ext: Ext) {
+    return extSelector(selector, ext, this.store.account.origin);
   }
 }

@@ -5,6 +5,7 @@ import { Template, TemplateType } from '../model/template';
 import { reverseOrigin } from '../mods/mailbox';
 import { config } from '../service/config.service';
 import { hasPrefix, hasTag } from './tag';
+import { Ext } from '../model/ext';
 
 export const URI_REGEX = /^[^\s:/?#]+:(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
 export const TAG_REGEX = /^[_+]?[a-z0-9]+([./][a-z0-9]+)*$/;
@@ -143,4 +144,19 @@ export function getRe(title?: string) {
   if (!title) return '';
   if (title.startsWith($localize`Re: `)) return title;
   return $localize`Re: ` + title;
+}
+
+export function extSelector(selector: string, ext: Ext, local: string) {
+  if (selector.includes('@')) return selector;
+  return extLink(ext, local);
+}
+
+export function extLink(ext: Ext, local: string) {
+  return tagLink(ext.tag, ext.origin || '', local);
+}
+
+export function tagLink(tag: string, origin: string, local: string) {
+  if (local === origin || !local && !origin) return tag;
+  if (!origin) return tag + '@';
+  return tag + origin;
 }

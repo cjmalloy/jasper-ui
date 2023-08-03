@@ -11,8 +11,8 @@
     </ng-container>
     <a [routerLink]="['/tags', store.view.noQuery]" [class.current-page]="store.view.tags" i18n>tags</a>
     <ng-container *ngIf="bookmarkExts$ | async as bookmarkExts; else bookNoExts">
-      <ng-container *ngFor="let b of bookmarkExts">
-        &bullet; <a [routerLink]="['/tag', b.tag + b.origin]" routerLinkActive="current-page">{{ b.name || (b.tag + b.origin) }}</a>
+      <ng-container *ngFor="let b of bookmarkExts; let i = index">
+        &bullet; <a [routerLink]="['/tag', extLink(store.account.bookmarks[i], b)]" routerLinkActive="current-page">{{ b.name || extLink(store.account.bookmarks[i], b) }}</a>
       </ng-container>
     </ng-container>
     <ng-template #bookNoExts>
@@ -21,8 +21,8 @@
       </ng-container>
     </ng-template>
     <ng-container *ngIf="subExts$ | async as subExts; else subNoExts">
-      <ng-container *ngFor="let sub of subExts">
-        &bullet; <a [routerLink]="['/tag', sub.tag + sub.origin]" routerLinkActive="current-page">{{ sub.name || (sub.tag + sub.origin) }}</a>
+      <ng-container *ngFor="let sub of subExts; let i = index">
+        &bullet; <a [routerLink]="['/tag', extLink(store.account.subs[i], sub)]" routerLinkActive="current-page">{{ sub.name || extLink(store.account.subs[i], sub) }}</a>
       </ng-container>
     </ng-container>
     <ng-template #subNoExts>
