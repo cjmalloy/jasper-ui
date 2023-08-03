@@ -4,7 +4,7 @@ import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
 import { config } from '../service/config.service';
-import { defaultSubs } from '../template/user';
+import { defaultSubs, UserConfig } from '../template/user';
 import { hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
@@ -15,7 +15,7 @@ export class AccountStore {
   origin = '';
   access?: User = {} as User;
   ext?: Ext = {} as Ext;
-  defaultConfig: any = {};
+  defaultConfig: UserConfig = {};
 
   /**
    * Is Sysadmin.
@@ -64,7 +64,7 @@ export class AccountStore {
     // Initial observables may not be null for MobX
     this.access = undefined;
     this.ext = undefined;
-    this.defaultConfig = undefined;
+    this.defaultConfig = {};
   }
 
   get sysAdmin() {
@@ -108,7 +108,7 @@ export class AccountStore {
     };
   }
 
-  get config() {
+  get config(): UserConfig {
     return {
       ...(this.defaultConfig || {}),
       ...(this.ext?.config || {}),

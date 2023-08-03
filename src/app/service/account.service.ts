@@ -13,6 +13,7 @@ import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { UserService } from './api/user.service';
 import { AuthnService } from './authn.service';
+import { UserConfig } from '../template/user';
 
 export const CACHE_MS = 15 * 1000;
 
@@ -262,7 +263,7 @@ export class AccountService {
       })));
   }
 
-  addConfigArray(name: string, value: any) {
+  addConfigArray(name: keyof UserConfig, value: any) {
     if (!this.store.account.config[name]) {
       value = [value];
     } else {
@@ -278,7 +279,7 @@ export class AccountService {
           config: {
             ...this.store.account.config,
             [name]: [
-              ...(this.store.account.config[name] || []),
+              ...(this.store.account.config[name] as any[] || []),
               value
             ],
           },

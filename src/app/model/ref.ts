@@ -47,14 +47,14 @@ export type RefQueryArgs = RefFilter & {
   responses?: string;
   sources?: string;
   search?: string;
-  modifiedAfter?: string;
-  modifiedBefore?: string;
-  publishedAfter?: string;
-  publishedBefore?: string;
-  createdAfter?: string;
-  createdBefore?: string;
-  responseAfter?: string;
-  responseBefore?: string;
+  modifiedAfter?: string | moment.Moment;
+  modifiedBefore?: string | moment.Moment;
+  publishedAfter?: string | moment.Moment;
+  publishedBefore?: string | moment.Moment;
+  createdAfter?: string | moment.Moment;
+  createdBefore?: string | moment.Moment;
+  responseAfter?: string | moment.Moment;
+  responseBefore?: string | moment.Moment;
 };
 
 export type RefPageArgs = RefQueryArgs & {

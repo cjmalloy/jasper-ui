@@ -16,6 +16,7 @@ import { URI_REGEX } from '../../../util/format';
 import { fixUrl } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { KanbanDrag } from '../kanban.component';
+import { KanbanConfig } from '../../../template/kanban';
 
 @Component({
   selector: 'app-kanban-column',
@@ -33,7 +34,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   addTags: string[] = [];
 
   _query = '';
-  size = 20;
   pages?: Page<Ref>[];
   mutated = false;
   addText = '';
@@ -62,18 +62,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  get hasMore() {
-    if (!this.pages || !this.pages.length) return false;
-    return !this.pages[this.pages.length - 1].last;
-  }
-
-  @Input()
-  set query(value: string) {
-    if (this._query === value) return;
-    this._query = value;
-    this.clear();
-  }
-
   ngAfterViewInit(): void {
     this.updates?.pipe(
       takeUntil(this.destroy$),
@@ -85,6 +73,26 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  get kanbanConfig(): KanbanConfig {
+    return this.store.view.ext!.config;
+  }
+
+  get size() {
+    return this.store.account.config.kanbanLoadSize || 10;
+  }
+
+  get hasMore() {
+    if (!this.pages || !this.pages.length) return false;
+    return !this.pages[this.pages.length - 1].last;
+  }
+
+  @Input()
+  set query(value: string) {
+    if (this._query === value) return;
+    this._query = value;
+    this.clear();
   }
 
   @HostListener('touchstart', ['$event'])
@@ -104,7 +112,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
       this.filter,
       this.search,
       0,
-      this.size
+      this.size,
     )).subscribe(page => {
       this.pages = [page];
     });

@@ -60,3 +60,14 @@ export const rootTemplate: Template = {
     },
   },
 };
+
+export interface RootConfig {
+  pinned?: string[];
+  sidebar?: string;
+  modmail?: boolean;
+  filters?: { query: string, label?: string, response?: boolean }[];
+  themes?: Record<string, string>;
+  theme?: string;
+  defaultSort?: string;
+}
+

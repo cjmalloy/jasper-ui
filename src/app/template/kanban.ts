@@ -1,6 +1,7 @@
 import { $localize } from '@angular/localize/init';
 import * as moment from 'moment';
 import { Template } from '../model/template';
+import { RootConfig } from './root';
 
 export const kanbanTemplate: Template = {
   tag: 'kanban',
@@ -93,7 +94,7 @@ export const kanbanTemplate: Template = {
   },
 };
 
-export interface KanbanConfig {
+export interface KanbanConfig extends RootConfig {
   private?: boolean;
   columns: string[];
   swimLanes?: string[];

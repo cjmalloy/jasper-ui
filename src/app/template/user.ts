@@ -1,6 +1,7 @@
 import { $localize } from '@angular/localize/init';
 import * as moment from 'moment';
 import { Template } from '../model/template';
+import { RootConfig } from './root';
 
 export const defaultSubs = ['+meta', 'science', 'politics', 'history', 'news', 'funny'];
 
@@ -54,9 +55,15 @@ export const userTemplate: Template = {
         label: $localize`Editors:`,
         addText: $localize`+ Add another editor`,
       }
+    }, {
+      key: 'kanbanLoadSize',
+      type: 'number',
+      props: {
+        label: $localize`Kanban Load Size:`,
+      }
     }]
   },
-  defaults: {
+  defaults: <UserConfig> {
     subscriptions: defaultSubs,
   },
   schema: {
@@ -70,6 +77,20 @@ export const userTemplate: Template = {
       editors: { elements: { type: 'string' } },
       userThemes: { values: { type: 'string' } },
       userTheme: { type: "string" },
+      kanbanLoadSize: { type: "uint8" },
     }
   },
 };
+
+export interface UserConfig extends RootConfig {
+  liveSearch?: boolean;
+  email?: string;
+  lastNotified?: string;
+  subscriptions?: string[];
+  bookmarks?: string[];
+  alarms?: string[];
+  editors?: string[];
+  userThemes?: Record<string, string>;
+  userTheme?: string;
+  kanbanLoadSize?: number;
+}
