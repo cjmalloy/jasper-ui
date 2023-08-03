@@ -4,13 +4,13 @@
        class="kanban"
        cdkDropListGroup
        cdkScrollable
-       [class.single-column]="(columns.length || 0) + (ext.config.showNoColumn ? 1 : 0) === 1"
-       [style.grid-template-columns]="(swimLanes ? 'auto ' : '') + (ext.config.showNoColumn ? '1fr ' : '') + (columns.length ? 'repeat(' + columns.length + ', 1fr)' : '')">
+       [class.single-column]="(columns.length || 0) + (showNoColumn ? 1 : 0) === 1"
+       [style.grid-template-columns]="(swimLanes ? 'auto ' : '') + (showNoColumn ? '1fr ' : '') + (columns.length ? 'repeat(' + columns.length + ', 1fr)' : '')">
     <div class="kanban-header"
          cdkDropList
          [cdkDropListData]="{col: '-'+ext.tag}"
          (cdkDropListDropped)="drop($any($event))"
-         [style.grid-column]="'1 / ' + (1 + (swimLanes ? 1 : 0) + (ext.config.showNoColumn ? 1 : 0) + ext.config.columns.length)">
+         [style.grid-column]="'1 / ' + (1 + (swimLanes ? 1 : 0) + (showNoColumn ? 1 : 0) + columns.length)">
       <div class="kanban-options">
         <h2>{{ ext.name || ext.tag }}</h2>
         <div *ngIf="ext?.config.swimLanes?.length"
@@ -24,7 +24,7 @@
       <div class="kanban-remove">🗑️</div>
     </div>
     <div *ngIf="swimLanes"><!-- corner spacer --></div>
-    <a *ngIf="ext.config.showNoColumn"
+    <a *ngIf="showNoColumn"
        class="column-title tag"
        [routerLink]="['/tag', ext.tag + andNoCols]"
        title="No matching column tag">{{ ext.config.noColumnTitle || 'untagged' }}</a>
@@ -37,7 +37,7 @@
         <a class="swim-lane-title tag"
            [routerLink]="['/tag', ext.tag + ':' + sl]"
            [title]="sl">{{ (exts.getCachedExt(sl) | async)?.name || sl }}</a>
-        <app-kanban-column *ngIf="ext.config.showNoColumn"
+        <app-kanban-column *ngIf="showNoColumn"
                            cdkDropList
                            cdkScrollable
                            [cdkDropListData]="{sl}"
@@ -54,11 +54,11 @@
                            [query]="getQuery({col, sl})"
                            [addTags]="addingTags({col, sl})"></app-kanban-column>
       </ng-container>
-      <ng-container *ngIf="ext.config.showNoSwimLane">
+      <ng-container *ngIf="showNoSwimLane">
         <a class="swim-lane-title tag"
            [routerLink]="['/tag', ext.tag + andNoSl]"
            title="No matching swim lane">{{ ext.config.noSwimLaneTitle || 'untagged' }}</a>
-        <app-kanban-column *ngIf="ext.config.showNoColumn"
+        <app-kanban-column *ngIf="showNoColumn"
                            cdkDropList
                            cdkScrollable
                            [cdkDropListData]="{}"
@@ -77,7 +77,7 @@
       </ng-container>
     </ng-container>
     <ng-template #noSwimLanes>
-      <app-kanban-column *ngIf="ext.config.showNoColumn"
+      <app-kanban-column *ngIf="showNoColumn"
                          cdkDropList
                          cdkScrollable
                          [cdkDropListData]="{}"

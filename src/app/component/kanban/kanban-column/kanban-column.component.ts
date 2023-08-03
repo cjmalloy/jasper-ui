@@ -1,5 +1,4 @@
 import { AfterViewInit, Component, HostBinding, HostListener, Input, OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -44,7 +43,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     public config: ConfigService,
-    private route: ActivatedRoute,
     private admin: AdminService,
     private store: Store,
     private oembeds: OembedStore,
@@ -75,8 +73,11 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     this.disposers.length = 0;
   }
 
-  get kanbanConfig(): KanbanConfig {
-    return this.store.view.ext!.config;
+  @Input()
+  set query(value: string) {
+    if (this._query === value) return;
+    this._query = value;
+    this.clear();
   }
 
   get size() {
@@ -86,13 +87,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   get hasMore() {
     if (!this.pages || !this.pages.length) return false;
     return !this.pages[this.pages.length - 1].last;
-  }
-
-  @Input()
-  set query(value: string) {
-    if (this._query === value) return;
-    this._query = value;
-    this.clear();
   }
 
   @HostListener('touchstart', ['$event'])

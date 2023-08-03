@@ -55,14 +55,16 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   get columns(): string[] {
-    return this.ext?.config.columns;
+    if (this.filteredColumn) return [this.filteredColumn];
+    return this.kanbanConfig.columns;
   }
 
   get swimLanes(): string[] | undefined {
     if (this.disableSwimLanes) return undefined;
-    if (!this.ext?.config.swimLanes) return undefined;
-    if (!this.ext?.config.swimLanes.length) return undefined;
-    return this.ext?.config.swimLanes;
+    if (!this.kanbanConfig.swimLanes) return undefined;
+    if (!this.kanbanConfig.swimLanes.length) return undefined;
+    if (this.filteredSwimLane) return [this.filteredSwimLane];
+    return this.kanbanConfig.swimLanes;
   }
 
   get andNoCols() {
@@ -77,6 +79,31 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   get kanbanConfig(): KanbanConfig {
     return this.ext!.config;
+  }
+
+  get filteredColumn() {
+    for (const f of this.store.view.queryFilters) {
+      if (this.kanbanConfig.columns.includes(f)) return f;
+    }
+    return undefined;
+  }
+
+  get filteredSwimLane() {
+    if (!this.kanbanConfig.swimLanes) return undefined;
+    for (const f of this.store.view.queryFilters) {
+      if (this.kanbanConfig.swimLanes.includes(f)) return f;
+    }
+    return undefined;
+  }
+
+  get showNoColumn() {
+    if (this.filteredColumn) return false;
+    return this.kanbanConfig.showNoColumn;
+  }
+
+  get showNoSwimLane() {
+    if (this.filteredSwimLane) return false;
+    return this.kanbanConfig.showNoSwimLane;
   }
 
   /**

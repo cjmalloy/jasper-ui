@@ -256,6 +256,12 @@ export class ViewStore {
     return filter;
   }
 
+  get queryFilters(): string[] {
+    return this.filter
+      .filter(f => f.startsWith('query/'))
+      .map(f => f.substring('query/'.length));
+  }
+
   get search() {
     return this.route.routeSnapshot?.queryParams['search'];
   }
