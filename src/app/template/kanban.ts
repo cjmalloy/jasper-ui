@@ -68,7 +68,6 @@ export const kanbanTemplate: Template = {
     }, {
       key: 'badges',
       type: 'tags',
-      defaultValue: ['p1', 'p2', 'p3', 'p4', 'p5'],
       props: {
         label: $localize`Badges:`,
         addText: $localize`+ Add another badge tag`,
@@ -76,7 +75,8 @@ export const kanbanTemplate: Template = {
     }]
   },
   defaults: <KanbanConfig> {
-    columns: []
+    columns: [],
+    badges: ['p1', 'p2', 'p3', 'p4', 'p5']
   },
   schema: {
     properties: {
