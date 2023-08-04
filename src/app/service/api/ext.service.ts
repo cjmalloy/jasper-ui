@@ -62,7 +62,7 @@ export class ExtService {
     );
   }
 
-  getCachedExts(tags: string[]): Observable<Ext[]> {
+  getCachedExts(tags?: string[]): Observable<Ext[]> {
     if (!tags) return of([]);
     return concat(...tags.map(t => this.getCachedExt(t))).pipe(toArray());
   }

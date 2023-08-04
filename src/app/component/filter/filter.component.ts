@@ -12,6 +12,10 @@ import { Type } from '../../store/view';
 import { UrlFilter } from '../../util/query';
 import { Ext } from '../../model/ext';
 import { ExtService } from '../../service/api/ext.service';
+import { RootConfig } from '../../template/root';
+import { KanbanConfig } from '../../template/kanban';
+import { UserConfig } from '../../template/user';
+import { BookmarkService } from '../../service/bookmark.service';
 
 type FilterItem = { filter: UrlFilter, label: string, time?: boolean };
 
@@ -46,6 +50,7 @@ export class FilterComponent implements OnInit, OnDestroy {
     public store: Store,
     private exts: ExtService,
     private auth: AuthzService,
+    private bookmarks: BookmarkService,
   ) {
     this.disposers.push(autorun(() => {
       this.filters = toJS(this.store.view.filter);
@@ -62,34 +67,13 @@ export class FilterComponent implements OnInit, OnDestroy {
   @Input()
   set type(value: Type) {
     if (value === 'ref') {
-      this.allFilters = [
-        { label: $localize`Filters`,
-          filters : [
-            { filter: 'untagged', label: $localize`🏷️⃠ untagged` },
-            { filter: 'uncited', label: $localize`💌️⃠ uncited` },
-            { filter: 'unsourced', label: $localize`📜️⃠ unsourced` },
-            { filter: 'query/internal', label: $localize`🕵️️ internal` },
-          ],
-        },
-        { label: $localize`Time`,
-          filters : [
-            this.modifiedBeforeFilter,
-            this.modifiedAfterFilter,
-            this.responseBeforeFilter,
-            this.responseAfterFilter,
-            this.publishedBeforeFilter,
-            this.publishedAfterFilter,
-            this.createdBeforeFilter,
-            this.createdAfterFilter,
-          ],
-        },
-      ];
-      if (this.store.view.ext?.config?.badges?.length) {
+      this.allFilters = [];
+      if (this.kanbanConfig?.badges?.length) {
         this.allFilters.push({
           label: $localize`Badges`,
           filters: [],
         });
-        this.exts.getCachedExts(this.store.view.ext?.config?.badges).subscribe(exts => {
+        this.exts.getCachedExts(this.kanbanConfig?.badges).subscribe(exts => {
           for (const e of exts) {
             this.loadFilter({
               group: $localize`Badges`,
@@ -104,13 +88,74 @@ export class FilterComponent implements OnInit, OnDestroy {
           });
         });
       }
-      for (const f of this.store.view.config?.queryFilters || []) this.loadFilter({
+      if (this.kanbanConfig?.columns?.length) {
+        this.allFilters.push({
+          label: $localize`Kanban`,
+          filters: [],
+        });
+        this.exts.getCachedExts(this.kanbanConfig?.columns).subscribe(exts => {
+          for (const e of exts) {
+            this.loadFilter({
+              group: $localize`Kanban`,
+              label: e.name || e.tag,
+              query: e.tag,
+            });
+          }
+          if (this.kanbanConfig?.showNoColumn) {
+            this.loadFilter({
+              group: $localize`Kanban`,
+              label: $localize`🚫️ no column`,
+              query: exts.map(e => '!' + e.tag).join(':'),
+            });
+          }
+          if (this.kanbanConfig?.swimLanes) {
+            this.exts.getCachedExts(this.kanbanConfig?.swimLanes).subscribe(exts => {
+              for (const e of exts) {
+                this.loadFilter({
+                  group: $localize`Kanban`,
+                  label: e.name || e.tag,
+                  query: e.tag,
+                });
+              }
+              if (this.kanbanConfig?.showNoSwimLane) {
+                this.loadFilter({
+                  group: $localize`Kanban`,
+                  label: $localize`🚫️ no swim lane`,
+                  query: exts.map(e => '!' + e.tag).join(':'),
+                });
+              }
+            });
+          }
+        });
+      }
+      for (const f of this.rootConfig?.queryFilters || []) this.loadFilter({
         group: this.store.view.ext!.name || this.store.view.ext!.tag,
         ...f,
       });
-      for (const f of this.store.view.config?.responseFilters || []) this.loadFilter({
+      for (const f of this.rootConfig?.responseFilters || []) this.loadFilter({
         group: this.store.view.ext!.name || this.store.view.ext!.tag,
         ...f,
+      });
+      this.allFilters.push({
+        label: $localize`Filters`,
+        filters : [
+          { filter: 'untagged', label: $localize`🏷️⃠ untagged` },
+          { filter: 'uncited', label: $localize`💌️⃠ uncited` },
+          { filter: 'unsourced', label: $localize`📜️⃠ unsourced` },
+          { filter: 'query/internal', label: $localize`🕵️️ internal` },
+        ],
+      }, {
+        label: $localize`Time`,
+        filters : [
+          this.modifiedBeforeFilter,
+          this.modifiedAfterFilter,
+          this.responseBeforeFilter,
+          this.responseAfterFilter,
+          this.publishedBeforeFilter,
+          this.publishedAfterFilter,
+          this.createdBeforeFilter,
+          this.createdAfterFilter,
+        ],
       });
       for (const f of this.admin.filters) this.loadFilter(f);
     } else {
@@ -125,6 +170,21 @@ export class FilterComponent implements OnInit, OnDestroy {
       for (const f of this.admin.tagFilters) this.loadFilter(f);
     }
     this.syncDates();
+  }
+
+  get rootConfig() {
+    if (!this.admin.status.templates.root) return undefined;
+    return this.store.view.ext?.config as RootConfig;
+  }
+
+  get userConfig() {
+    if (!this.admin.status.templates.user) return undefined;
+    return this.store.view.ext?.config as UserConfig;
+  }
+
+  get kanbanConfig() {
+    if (!this.admin.status.templates.kanban) return undefined;
+    return this.store.view.ext?.config as KanbanConfig;
   }
 
   loadFilter(filter: FilterConfig) {
@@ -232,11 +292,7 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   setFilters() {
     const filters = filter(this.filters, f => !!f);
-    this.router.navigate([], {
-      queryParams: { filter: filters.length ? filters : null, pageNumber: null },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    });
+    this.bookmarks.setFilters(filters);
   }
 
   toIso(date: string) {

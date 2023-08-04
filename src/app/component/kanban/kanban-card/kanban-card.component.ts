@@ -24,6 +24,7 @@ import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 import { hasComment, trimCommentForTitle } from '../../../util/format';
 import { hasTag, includesTag } from '../../../util/tag';
+import { BookmarkService } from '../../../service/bookmark.service';
 
 @Component({
   selector: 'app-kanban-card',
@@ -51,6 +52,7 @@ export class KanbanCardComponent implements OnInit {
 
   constructor(
     public store: Store,
+    public bookmarks: BookmarkService,
     private admin: AdminService,
     private config: ConfigService,
     private auth: AuthzService,

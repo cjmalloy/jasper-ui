@@ -1,5 +1,5 @@
 <div class="badges" *ngIf="badgeExts$ | async as badgeExts">
-  <a class="tag badge" *ngFor="let e of badgeExts" [routerLink]="['/tag', store.view.ext!.tag + ':' + e.tag]">{{ e.name || e.tag }}</a>
+  <a class="tag badge" *ngFor="let e of badgeExts" (click)="bookmarks.toggleFilter(e.tag)">{{ e.name || e.tag }}</a>
 </div>
 <div class="row">
   <ng-container *ngIf="thumbnail">

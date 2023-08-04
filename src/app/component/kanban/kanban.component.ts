@@ -1,6 +1,6 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { uniq } from 'lodash-es';
+import { filter, uniq, without } from 'lodash-es';
 import { catchError, of, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { Ref } from '../../model/ref';
@@ -9,6 +9,8 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
 import { defaultOrigin } from '../../util/tag';
 import { KanbanConfig } from '../../template/kanban';
+import { Router } from '@angular/router';
+import { BookmarkService } from '../../service/bookmark.service';
 
 export interface KanbanDrag {
   from: string;
@@ -31,6 +33,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   updates = new Subject<KanbanDrag>();
 
   constructor(
+    public bookmarks: BookmarkService,
     private store: Store,
     public exts: ExtService,
     private tags: TaggingService,
@@ -55,6 +58,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   get columns(): string[] {
+    if (this.filteredNoColumn) return [];
     if (this.filteredColumn) return [this.filteredColumn];
     return this.kanbanConfig.columns;
   }
@@ -63,18 +67,30 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (this.disableSwimLanes) return undefined;
     if (!this.kanbanConfig.swimLanes) return undefined;
     if (!this.kanbanConfig.swimLanes.length) return undefined;
+    if (this.filteredNoSwimLane) return [];
     if (this.filteredSwimLane) return [this.filteredSwimLane];
     return this.kanbanConfig.swimLanes;
   }
 
   get andNoCols() {
-    if (!this.columns?.length) return '';
-    return ':!' + this.columns.join(':!');
+    if (!this.kanbanConfig.columns?.length) return '';
+    return ':' + this.noCols;
   }
 
   get andNoSl() {
-    if (!this.swimLanes?.length) return '';
-    return ':!' + this.swimLanes.join(':!');
+    if (!this.kanbanConfig.swimLanes?.length) return '';
+    return ':' + this.noSl;
+  }
+
+  get noCols() {
+    if (!this.kanbanConfig.columns?.length) return '';
+    return this.kanbanConfig.columns.map(t => '!' + t).join(':');
+  }
+
+  get noSl() {
+    if (this.disableSwimLanes) return '';
+    if (!this.kanbanConfig.swimLanes?.length) return '';
+    return this.kanbanConfig.swimLanes.map(t => '!' + t).join(':');
   }
 
   get kanbanConfig(): KanbanConfig {
@@ -88,20 +104,39 @@ export class KanbanComponent implements OnInit, OnDestroy {
     return undefined;
   }
 
+  get filteredNoColumn() {
+    if (!this.kanbanConfig.columns) return false;
+    for (const f of this.store.view.queryFilters) {
+      if (this.noCols === f) return true;
+    }
+    return false;
+  }
+
   get filteredSwimLane() {
     if (!this.kanbanConfig.swimLanes) return undefined;
     for (const f of this.store.view.queryFilters) {
       if (this.kanbanConfig.swimLanes.includes(f)) return f;
+      if (this.noSl === f) return f;
     }
     return undefined;
   }
 
+  get filteredNoSwimLane() {
+    if (!this.kanbanConfig.swimLanes) return false;
+    for (const f of this.store.view.queryFilters) {
+      if (this.noSl === f) return true;
+    }
+    return false;
+  }
+
   get showNoColumn() {
+    if (this.filteredNoColumn) return true;
     if (this.filteredColumn) return false;
     return this.kanbanConfig.showNoColumn;
   }
 
   get showNoSwimLane() {
+    if (this.filteredNoSwimLane) return true;
     if (this.filteredSwimLane) return false;
     return this.kanbanConfig.showNoSwimLane;
   }
