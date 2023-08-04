@@ -18,6 +18,7 @@ import { UserConfig } from '../../template/user';
 import { BookmarkService } from '../../service/bookmark.service';
 
 type FilterItem = { filter: UrlFilter, label: string, time?: boolean };
+type FilterGroup = { filters: FilterItem[], label: string };
 
 @Component({
   selector: 'app-filter',
@@ -40,7 +41,7 @@ export class FilterComponent implements OnInit, OnDestroy {
   publishedAfterFilter: FilterItem = { filter: `published/after/${moment().toISOString()}`, label: $localize`📅️ published after` };
   createdBeforeFilter: FilterItem = { filter: `created/before/${moment().toISOString()}`, label: $localize`✨️ created before` };
   createdAfterFilter: FilterItem = { filter: `created/after/${moment().toISOString()}`, label: $localize`✨️ created after` };
-  allFilters: { filters: FilterItem[], label: string }[] = [];
+  allFilters: FilterGroup[] = [];
 
   filters: UrlFilter[] = [];
 
@@ -68,6 +69,36 @@ export class FilterComponent implements OnInit, OnDestroy {
   set type(value: Type) {
     if (value === 'ref') {
       this.allFilters = [];
+      for (const f of this.rootConfig?.queryFilters || []) this.loadFilter({
+        group: this.store.view.ext!.name || this.store.view.ext!.tag,
+        ...f,
+      });
+      for (const f of this.rootConfig?.responseFilters || []) this.loadFilter({
+        group: this.store.view.ext!.name || this.store.view.ext!.tag,
+        ...f,
+      });
+      for (const f of this.admin.filters) this.loadFilter(f);
+      this.pushFilter({
+        label: $localize`Filters`,
+        filters : [
+          { filter: 'untagged', label: $localize`🏷️⃠ untagged` },
+          { filter: 'uncited', label: $localize`💌️⃠ uncited` },
+          { filter: 'unsourced', label: $localize`📜️⃠ unsourced` },
+          { filter: 'query/internal', label: $localize`🕵️️ internal` },
+        ],
+      }, {
+        label: $localize`Time`,
+        filters : [
+          this.modifiedBeforeFilter,
+          this.modifiedAfterFilter,
+          this.responseBeforeFilter,
+          this.responseAfterFilter,
+          this.publishedBeforeFilter,
+          this.publishedAfterFilter,
+          this.createdBeforeFilter,
+          this.createdAfterFilter,
+        ],
+      });
       if (this.kanbanConfig?.badges?.length) {
         this.allFilters.push({
           label: $localize`Badges`,
@@ -128,36 +159,6 @@ export class FilterComponent implements OnInit, OnDestroy {
           }
         });
       }
-      for (const f of this.rootConfig?.queryFilters || []) this.loadFilter({
-        group: this.store.view.ext!.name || this.store.view.ext!.tag,
-        ...f,
-      });
-      for (const f of this.rootConfig?.responseFilters || []) this.loadFilter({
-        group: this.store.view.ext!.name || this.store.view.ext!.tag,
-        ...f,
-      });
-      this.allFilters.push({
-        label: $localize`Filters`,
-        filters : [
-          { filter: 'untagged', label: $localize`🏷️⃠ untagged` },
-          { filter: 'uncited', label: $localize`💌️⃠ uncited` },
-          { filter: 'unsourced', label: $localize`📜️⃠ unsourced` },
-          { filter: 'query/internal', label: $localize`🕵️️ internal` },
-        ],
-      }, {
-        label: $localize`Time`,
-        filters : [
-          this.modifiedBeforeFilter,
-          this.modifiedAfterFilter,
-          this.responseBeforeFilter,
-          this.responseAfterFilter,
-          this.publishedBeforeFilter,
-          this.publishedAfterFilter,
-          this.createdBeforeFilter,
-          this.createdAfterFilter,
-        ],
-      });
-      for (const f of this.admin.filters) this.loadFilter(f);
     } else {
       this.allFilters = [
         { label: $localize`Time`,
@@ -197,6 +198,17 @@ export class FilterComponent implements OnInit, OnDestroy {
         label: filter.group || '',
         filters: [this.convertFilter(filter)],
       });
+    }
+  }
+
+  pushFilter(...fgs: FilterGroup[]) {
+    for (const fg of fgs) {
+      let group = find(this.allFilters, f => f.label === (fg.label || ''));
+      if (group) {
+        group.filters.push(...fg.filters);
+      } else {
+        this.allFilters.push(fg);
+      }
     }
   }
 
