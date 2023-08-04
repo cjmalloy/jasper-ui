@@ -850,7 +850,6 @@ formly-list-section .form-array > formly-field > formly-group {
 .list-item {
   display: block;
   max-width: calc(100vw - 8px);
-  overflow: hidden;
   border: 1px solid transparent;
   margin: 2px;
   padding: 2px;
@@ -1320,25 +1319,38 @@ ngx-monaco-editor {
 
   * {
     cursor: pointer;
-    transition: transform 100ms ease-in-out;
+    transition: transform 100ms ease-in-out, filter 100ms ease-in-out;
     filter: grayscale(1);
     &:hover {
       filter: grayscale(1) brightness(1.1);
     }
     &:active {
-      filter: grayscale(1) brightness(0.5) blur(0.5px);
+      transform: scale(0.9);
+      filter: grayscale(1) brightness(0.7) blur(0.1px);
     }
   }
 
-  .on {
+  .vote-up.on {
     transform: scale(1.5);
     filter: hue-rotate(180deg);
     &:hover {
-      filter: hue-rotate(180deg) brightness(1.1);
+      filter: brightness(1.1) hue-rotate(180deg);
     }
     &:active {
-      transform: scale(1);
-      filter: hue-rotate(180deg) brightness(0.5) blur(0.5px);
+      transform: scale(0.9);
+      filter: brightness(0.7) blur(0.1px) hue-rotate(180deg);
+    }
+  }
+
+  .vote-down.on {
+    transform: scale(1.2);
+    filter: hue-rotate(0);
+    &:hover {
+      filter: brightness(1.1);
+    }
+    &:active {
+      transform: scale(0.9);
+      filter: brightness(0.7) blur(0.1px);
     }
   }
 
