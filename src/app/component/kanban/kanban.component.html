@@ -26,16 +26,16 @@
     <div *ngIf="swimLanes"><!-- corner spacer --></div>
     <a *ngIf="showNoColumn"
        class="column-title tag"
-       [routerLink]="['/tag', ext.tag + andNoCols]"
+       (click)="bookmarks.toggleFilter(noCols)"
        title="No matching column tag">{{ ext.config.noColumnTitle || 'untagged' }}</a>
     <a *ngFor="let col of columns"
        class="column-title tag"
-       [routerLink]="['/tag', ext.tag + ':' + col]"
+       (click)="bookmarks.toggleFilter(col)"
        [title]="col">{{ (exts.getCachedExt(col) | async)?.name || col }}</a>
     <ng-container *ngIf="swimLanes else noSwimLanes">
       <ng-container *ngFor="let sl of swimLanes">
         <a class="swim-lane-title tag"
-           [routerLink]="['/tag', ext.tag + ':' + sl]"
+           (click)="bookmarks.toggleFilter(sl)"
            [title]="sl">{{ (exts.getCachedExt(sl) | async)?.name || sl }}</a>
         <app-kanban-column *ngIf="showNoColumn"
                            cdkDropList
@@ -56,7 +56,7 @@
       </ng-container>
       <ng-container *ngIf="showNoSwimLane">
         <a class="swim-lane-title tag"
-           [routerLink]="['/tag', ext.tag + andNoSl]"
+           (click)="bookmarks.toggleFilter(noSl)"
            title="No matching swim lane">{{ ext.config.noSwimLaneTitle || 'untagged' }}</a>
         <app-kanban-column *ngIf="showNoColumn"
                            cdkDropList

@@ -272,6 +272,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
   }
 
   clickIcon(i: Icon) {
+    // TODO: bookmark service
     if (i.response) {
       this.router.navigate([], { queryParams: { filter: this.store.view.toggleFilter(i.response) }, queryParamsHandling: 'merge' });
     }
