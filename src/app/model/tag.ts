@@ -68,6 +68,10 @@ export interface Config extends Tag {
      */
     css?: string,
     /**
+     * Optional Less to be added to <head> on load.
+     */
+    less?: string,
+    /**
      * Optional script to be added to <head> on load.
      */
     snippet?: string,
