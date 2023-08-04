@@ -28,6 +28,7 @@ export type Type = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
 export class ViewStore {
 
   defaultPageSize = 20;
+  defaultKanbanLoadSize = 8;
   defaultBlogPageSize = 5;
   defaultSort: RefSort | TagSort = 'published';
   defaultSearchSort: RefSort | TagSort = 'rank';
@@ -271,6 +272,10 @@ export class ViewStore {
   }
 
   get pageSize() {
+    if (this.route.routeSnapshot?.queryParams['pageSize']) {
+      return parseInt(this.route.routeSnapshot?.queryParams['pageSize']);
+    }
+    if (this.isTemplate('kanban')) return this.account.config.kanbanLoadSize || this.defaultKanbanLoadSize;
     return parseInt(this.route.routeSnapshot?.queryParams['pageSize'] ?? (this.isTemplate('blog') ? this.defaultBlogPageSize : this.defaultPageSize));
   }
 

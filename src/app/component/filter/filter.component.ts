@@ -303,8 +303,7 @@ export class FilterComponent implements OnInit, OnDestroy {
   }
 
   setFilters() {
-    const filters = filter(this.filters, f => !!f);
-    this.bookmarks.setFilters(filters);
+    this.bookmarks.filters = filter(this.filters, f => !!f);
   }
 
   toIso(date: string) {

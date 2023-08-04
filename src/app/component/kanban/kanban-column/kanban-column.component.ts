@@ -16,6 +16,7 @@ import { fixUrl } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { KanbanDrag } from '../kanban.component';
 import { KanbanConfig } from '../../../template/kanban';
+import { BookmarkService } from '../../../service/bookmark.service';
 
 @Component({
   selector: 'app-kanban-column',
@@ -81,7 +82,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   }
 
   get size() {
-    return this.store.account.config.kanbanLoadSize || 10;
+    return this.store.view.pageSize;
   }
 
   get hasMore() {

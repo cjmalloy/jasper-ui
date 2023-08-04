@@ -1,42 +1,40 @@
 <div class="controls">
-  <label i18n>more results: </label>
-
-  <ng-container *ngIf="hasQuery">
-    <a class="first-page"
+  <ng-container *ngIf="page">
+    <label i18n>more results: </label>
+    <ng-container *ngIf="hasQuery">
+      <a class="first-page"
+         routerLink="./"
+         [class.disabled]="page.first"
+         [queryParams]="{ pageNumber: null }"
+         queryParamsHandling="merge" i18n>first</a>
+      |
+      <a class="prev-page"
+         routerLink="./"
+         routerLinkActive="disabled"
+         [queryParams]="{ pageNumber: prev }"
+         queryParamsHandling="merge" i18n>prev</a>
+      |
+    </ng-container>
+    <a class="next-page"
        routerLink="./"
-       [class.disabled]="page.first"
-       [queryParams]="{ pageNumber: null }"
-       queryParamsHandling="merge" i18n>first</a>
+       [class.disabled]="page.last"
+       [queryParams]="{ pageNumber: next }"
+       (click)="scrollUp()"
+       queryParamsHandling="merge" i18n>next</a>
     |
-    <a class="prev-page"
+    <a class="last-page"
        routerLink="./"
-       routerLinkActive="disabled"
-       [queryParams]="{ pageNumber: prev }"
-       queryParamsHandling="merge" i18n>prev</a>
-    |
+       [class.disabled]="page.last"
+       [queryParams]="{ pageNumber: last }"
+       queryParamsHandling="merge" i18n>last</a>
   </ng-container>
-  <a class="next-page"
-     routerLink="./"
-     [class.disabled]="page.last"
-     [queryParams]="{ pageNumber: next }"
-     (click)="scrollUp()"
-     queryParamsHandling="merge" i18n>next</a>
-  |
-  <a class="last-page"
-     routerLink="./"
-     [class.disabled]="page.last"
-     [queryParams]="{ pageNumber: last }"
-     queryParamsHandling="merge" i18n>last</a>
 
   <label for="pageSize" i18n> size: </label>
   <select id="pageSize" [(ngModel)]="pageSize">
-    <option [value]="5">5</option>
-    <option [value]="20">20</option>
-    <option [value]="50">50</option>
-    <option [value]="100">100</option>
-    <option [value]="500">500</option>
+    <option *ngIf="outOfRange(store.view.pageSize)" [value]="store.view.pageSize">{{ store.view.pageSize }}</option>
+    <option *ngFor="let size of pageSizes" [value]="size">{{ size }}</option>
   </select>
 </div>
-<div class="print-view" i18n>
+<div *ngIf="page" class="print-view" i18n>
   Page {{ page.number + 1 }} of {{ page.totalPages }} (size: {{ page.size }})
 </div>
