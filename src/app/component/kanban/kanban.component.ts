@@ -78,6 +78,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   get andNoSl() {
+    if (this.disableSwimLanes) return '';
     if (!this.kanbanConfig.swimLanes?.length) return '';
     return ':' + this.noSl;
   }
