@@ -1,14 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
-import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ThemeService } from '../../service/theme.service';
@@ -43,9 +42,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     private theme: ThemeService,
     private admin: AdminService,
     public router: Router,
-    private route: ActivatedRoute,
     public store: Store,
-    private account: AccountService,
     private exts: ExtService,
     private fb: UntypedFormBuilder,
   ) {
