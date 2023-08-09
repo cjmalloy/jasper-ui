@@ -30,6 +30,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
   disableSwimLanes = false;
   error: any;
   updates = new Subject<KanbanDrag>();
+  private defaultConfig: KanbanConfig = {
+    columns: []
+  };
 
   constructor(
     public bookmarks: BookmarkService,
@@ -94,7 +97,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   get kanbanConfig(): KanbanConfig {
-    return this.ext!.config;
+    return this.ext?.config || this.defaultConfig;
   }
 
   get filteredColumn() {

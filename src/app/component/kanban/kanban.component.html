@@ -14,7 +14,7 @@
          [style.grid-column]="'1 / ' + (1 + (swimLanes ? 1 : 0) + (showNoColumn ? 1 : 0) + columns.length)">
       <div class="kanban-options">
         <h2>{{ ext.name || ext.tag }}</h2>
-        <div *ngIf="ext?.config.swimLanes?.length"
+        <div *ngIf="kanbanConfig.swimLanes?.length"
              class="disable-swim-lanes">
           <input id="disable-swim-lanes"
                  type="checkbox"
@@ -29,7 +29,7 @@
     <a *ngIf="showNoColumn"
        class="column-title tag"
        (click)="bookmarks.toggleFilter(noCols)"
-       title="No matching column tag">{{ ext.config.noColumnTitle || 'untagged' }}</a>
+       title="No matching column tag">{{ kanbanConfig.noColumnTitle || 'untagged' }}</a>
     <a *ngFor="let col of columns"
        class="column-title tag"
        (click)="bookmarks.toggleFilter(col)"
@@ -59,7 +59,7 @@
       <ng-container *ngIf="showNoSwimLane">
         <a class="swim-lane-title tag"
            (click)="bookmarks.toggleFilter(noSl)"
-           title="No matching swim lane">{{ ext.config.noSwimLaneTitle || 'untagged' }}</a>
+           title="No matching swim lane">{{ kanbanConfig.noSwimLaneTitle || 'untagged' }}</a>
         <app-kanban-column *ngIf="showNoColumn"
                            cdkDropList
                            cdkScrollable
