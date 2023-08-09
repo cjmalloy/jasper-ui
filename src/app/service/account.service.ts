@@ -73,7 +73,10 @@ export class AccountService {
   private get loadUserExt$() {
     if (!this.store.account.signedIn) return of(undefined);
     if (!this.admin.status.templates.user) return of(undefined);
-    return this.userExt$.pipe(switchMap(ext => ext ? of(ext) : this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin })));
+    return this.userExt$.pipe(
+      catchError(() => of(undefined)),
+      switchMap(ext => ext ? of(ext) : this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin }))
+    );
   }
 
   clearCache() {
