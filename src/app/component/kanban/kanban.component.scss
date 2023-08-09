@@ -46,7 +46,7 @@
       flex-grow: 1;
       text-align: center;
     }
-    .disable-swim-lanes {
+    :not(:first-child) {
       align-self: flex-end;
     }
   }

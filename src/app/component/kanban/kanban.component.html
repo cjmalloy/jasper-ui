@@ -7,6 +7,7 @@
        [class.single-column]="(columns.length || 0) + (showNoColumn ? 1 : 0) === 1"
        [style.grid-template-columns]="(swimLanes ? 'auto ' : '') + (showNoColumn ? '1fr ' : '') + (columns.length ? 'repeat(' + columns.length + ', 1fr)' : '')">
     <div class="kanban-header"
+         style="max-width: 90vw"
          cdkDropList
          [cdkDropListData]="{col: '-'+ext.tag}"
          (cdkDropListDropped)="drop($any($event))"
@@ -19,8 +20,8 @@
                  type="checkbox"
                  [(ngModel)]="disableSwimLanes">
           <label for="disable-swim-lanes" i18n>Hide Swim Lanes</label>
-          <app-page-controls></app-page-controls>
         </div>
+        <app-page-controls></app-page-controls>
       </div>
       <div class="kanban-remove">🗑️</div>
     </div>
