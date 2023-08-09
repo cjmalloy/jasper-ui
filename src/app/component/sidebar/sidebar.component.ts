@@ -110,7 +110,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       if (!this.store.view.template) {
         this.template = undefined;
       } else if (this.template?.tag !== this.store.view.template) {
-        this.templates.get(this.store.view.template).pipe(
+        this.templates.get(this.store.view.template + this.store.account.origin).pipe(
           catchError(() => of(undefined))
         ).subscribe(t => this.template = t);
       }
