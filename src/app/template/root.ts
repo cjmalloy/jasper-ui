@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Template } from '../model/template';
+import { $localize } from '@angular/localize/init';
 
 export const rootTemplate: Template = {
   tag: '',
@@ -11,6 +12,19 @@ export const rootTemplate: Template = {
     description: $localize`Add common features Ext tag pages: Adding pinned Refs, sidebar markdown,
     a custom theme and a set of non-global custom themes to choose from in addition to global themes.`,
     form: [{
+      key: 'addTags',
+      type: 'tags',
+      defaultValue: ['public'],
+      props: {
+        label: $localize`Add Tags:`
+      },
+    }, {
+      key: 'submitText',
+      type: 'boolean',
+      props: {
+        label: $localize`Text Posts:`
+      }
+    }, {
       key: 'queryFilters',
       type: 'list',
       props: {
@@ -80,6 +94,8 @@ export const rootTemplate: Template = {
       themes: { values: { type: 'string' } },
       theme: { type: 'string' },
       defaultSort: { type: 'string' },
+      submitText: { type: 'boolean'},
+      addTags: { elements: { type: 'string' } },
     },
   },
 };
@@ -93,5 +109,7 @@ export interface RootConfig {
   themes?: Record<string, string>;
   theme?: string;
   defaultSort?: string;
+  submitText?: boolean;
+  addTags?: string[];
 }
 

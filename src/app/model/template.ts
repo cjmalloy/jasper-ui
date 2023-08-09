@@ -17,7 +17,11 @@ export interface Template extends Config {
      * Do not render forms from inherited Templates. If unset forms
      * will stack from abstract to specific inheritance.
      */
-    overrideForm?: boolean;
+    overrideForm?: boolean,
+    /**
+     * Submit text instead of links by default.
+     */
+    submitText?: boolean,
   };
 }
 

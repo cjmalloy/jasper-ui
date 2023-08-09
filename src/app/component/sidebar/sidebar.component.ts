@@ -18,6 +18,7 @@ import { hasPrefix, localTag, prefix, tagOrigin } from '../../util/tag';
 import { extSelector } from '../../util/format';
 import { RootConfig } from '../../template/root';
 import { UserConfig } from '../../template/user';
+import { defer } from 'lodash-es';
 
 @Component({
   selector: 'app-sidebar',
@@ -31,8 +32,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   prefix = prefix;
 
   @Input()
-  ext?: Ext;
-  @Input()
   showToggle = true;
   @Input()
   home = false;
@@ -41,7 +40,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   floating = true;
 
   _tag = '';
+  _ext?: Ext;
   localTag?: string;
+  addTags: string[] = [];
   local = true;
   plugin?: Plugin;
   template?: Template;
@@ -95,6 +96,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
   }
 
+  get ext(): Ext | undefined {
+    return this._ext;
+  }
+
+  @Input()
+  set ext(value: Ext | undefined) {
+    this._ext = value;
+    if (value) {
+      this.addTags = [...this.rootConfig?.addTags || [], this.localTag!];
+    } else {
+      this.addTags = [];
+    }
+  }
+
   get expanded(): boolean {
     return this._expanded;
   }
@@ -130,12 +145,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   get rootConfig() {
     if (!this.root) return null;
-    return this.ext?.config as RootConfig;
+    return this._ext?.config as RootConfig;
   }
 
 
   get modmail() {
-    return this.ext?.config?.modmail;
+    return this._ext?.config?.modmail;
   }
 
   get user() {
@@ -144,7 +159,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   get userConfig() {
     if (!this.user) return null;
-    return this.ext?.config as UserConfig;
+    return this._ext?.config as UserConfig;
   }
 
   get bookmarks$() {

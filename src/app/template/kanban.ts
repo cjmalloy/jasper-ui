@@ -75,6 +75,7 @@ export const kanbanTemplate: Template = {
     }]
   },
   defaults: <KanbanConfig> {
+    submitText: true,
     columns: [],
     badges: ['p1', 'p2', 'p3', 'p4', 'p5']
   },
@@ -83,7 +84,6 @@ export const kanbanTemplate: Template = {
       columns: { elements: { type: 'string' } },
     },
     optionalProperties: {
-      private: { type: 'boolean'},
       swimLanes: { elements: { type: 'string' } },
       showNoColumn: { type: 'boolean'},
       noColumnTitle: { type: 'string'},
@@ -95,7 +95,6 @@ export const kanbanTemplate: Template = {
 };
 
 export interface KanbanConfig extends RootConfig {
-  private?: boolean;
   columns: string[];
   swimLanes?: string[];
   showNoColumn?: boolean;

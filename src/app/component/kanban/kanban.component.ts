@@ -1,6 +1,6 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { filter, uniq, without } from 'lodash-es';
+import { uniq } from 'lodash-es';
 import { catchError, of, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { Ref } from '../../model/ref';
@@ -9,7 +9,6 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
 import { defaultOrigin } from '../../util/tag';
 import { KanbanConfig } from '../../template/kanban';
-import { Router } from '@angular/router';
 import { BookmarkService } from '../../service/bookmark.service';
 
 export interface KanbanDrag {
@@ -146,10 +145,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
    * Tags to apply to new Refs created on the board.
    */
   addingTags(tags: { col?: string, sl?: string }) {
-    const result = [];
-    if (!this.kanbanConfig.private) {
-      result.push('public');
-    }
+    const result = [ ...this.kanbanConfig.addTags || [] ];
     result.push(this.ext!.tag);
     if (tags.col) result.push(tags.col);
     if (tags.sl) result.push(tags.sl);

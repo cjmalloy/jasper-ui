@@ -79,7 +79,11 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         }
         this.url.setValue(url);
         this.url.disable();
-        this.addTag(...this.store.submit.tags);
+        if (this.store.submit.tags.length) {
+          this.tags.tags.clear();
+          this.addTag(...this.store.submit.tags);
+          this.addTag(this.store.account.localTag);
+        }
         for (const s of this.store.submit.sources) {
           this.addSource(s)
         }
