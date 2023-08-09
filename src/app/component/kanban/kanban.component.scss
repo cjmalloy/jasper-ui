@@ -41,12 +41,13 @@
   .kanban-options {
     display: flex;
     flex-direction: column;
-    h2 {
+     & > h2 {
       margin: 0;
       flex-grow: 1;
       text-align: center;
     }
-    :not(:first-child) {
+    & > div {
+      position: absolute;
       align-self: flex-end;
     }
   }

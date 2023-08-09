@@ -273,6 +273,12 @@ $tablet-width: 767px;
       margin-left: -3px;
   }
 
+  .kanban-header {
+    .kanban-options > div {
+        position: relative !important;
+    }
+  }
+
   .cdk-overlay-pane .editor textarea {
     margin-left: 2px;
   }
