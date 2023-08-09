@@ -122,6 +122,8 @@ export class UploadPage implements OnDestroy {
           models.ref?.forEach(ref => this.refs.count({ url: ref.url }).subscribe(count  => {
             if (count) {
               this.store.submit.foundRef(ref.url);
+              // TODO: diff existing refs
+              // this.refs.get(ref.url, ref.origin).subscribe(diff => this.store.submit.diffRef(diff));
             }
           }));
           models.ext?.forEach(ext => this.exts.count({ query: ext.tag }).subscribe(count  => {
