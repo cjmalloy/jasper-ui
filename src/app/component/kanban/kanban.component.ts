@@ -87,13 +87,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   get noCols() {
     if (!this.kanbanConfig.columns?.length) return '';
-    return this.kanbanConfig.columns.map(t => '!' + t).join(':');
+    return this.kanbanConfig.columns.map(t => t.startsWith('!') ? t.substring(1) : ('!' + t)).join(':');
   }
 
   get noSl() {
     if (this.disableSwimLanes) return '';
     if (!this.kanbanConfig.swimLanes?.length) return '';
-    return this.kanbanConfig.swimLanes.map(t => '!' + t).join(':');
+    return this.kanbanConfig.swimLanes.map(t => t.startsWith('!') ? t.substring(1) : ('!' + t)).join(':');
   }
 
   get kanbanConfig(): KanbanConfig {
