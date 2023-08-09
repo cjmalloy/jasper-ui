@@ -132,7 +132,7 @@ export class ExtFormComponent implements OnInit {
   }
 }
 
-export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService, locked: boolean) {
+export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: AdminService, locked: boolean) {
   let configControls = {};
   if (admin.status.templates.root) {
     configControls = {
@@ -140,8 +140,8 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext, admin: AdminService, l
       defaultSort: ['published'],
       sidebar: [''],
       modmail: [false],
-      pinned: linksForm(fb, ext.config?.pinned || []),
-      themes: themesForm(fb, ext.config?.themes || []),
+      pinned: linksForm(fb, ext?.config?.pinned || []),
+      themes: themesForm(fb, ext?.config?.themes || []),
       theme: [''],
     };
   }
