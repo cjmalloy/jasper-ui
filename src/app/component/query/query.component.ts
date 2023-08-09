@@ -1,8 +1,8 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { Ext } from '../../model/ext';
 import { ExtService } from '../../service/api/ext.service';
 import { fixClientQuery, localTag, tagOrigin } from '../../util/tag';
+import { AdminService } from '../../service/admin.service';
 
 export type Crumb = { text: string, tag?: string };
 
@@ -17,11 +17,11 @@ export class QueryComponent implements OnInit {
 
   private _query = '';
   breadcrumbs: Crumb[] = [];
-  tagExts: Ext[] = [];
 
   constructor(
     private router: Router,
     private exts: ExtService,
+    private admin: AdminService,
   ) { }
 
   ngOnInit(): void {
@@ -79,8 +79,12 @@ export class QueryComponent implements OnInit {
     for (const t of crumbs) {
       if (t.tag && !t.tag.startsWith('@')) {
         this.exts.getCachedExt(t.tag).subscribe(ext => {
-          this.tagExts.push(ext);
-          if (ext?.modifiedString && ext?.name) t.text = ext.name;
+          if (ext?.modifiedString && ext?.name) {
+            t.text = ext.name;
+          } else {
+            const template = this.admin.getTemplate(localTag(t.tag));
+            if (template?.name) t.text = template.name;
+          }
         });
       }
     }
