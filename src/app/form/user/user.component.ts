@@ -54,7 +54,7 @@ export class UserFormComponent implements OnInit {
     const ns = (user.readAccess || []).filter(isMailbox);
     while (notifications.length < ns.length) this.notifications.addTag('placeholder')
     const ra = (user.readAccess || []).filter(t => !isMailbox(t));
-    while (readAccess.length < ra.length) this.readAccess.addTag()
+    while (readAccess.length < ra.length) this.readAccess.addTag('placeholder')
     while (writeAccess.length < (user.writeAccess?.length || 0)) this.writeAccess.addTag('placeholder');
     while (tagReadAccess.length < (user.tagReadAccess?.length || 0)) this.tagReadAccess.addTag('placeholder');
     while (tagWriteAccess.length < (user.tagWriteAccess?.length || 0)) this.tagWriteAccess.addTag('placeholder');
