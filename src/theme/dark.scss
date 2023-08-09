@@ -304,6 +304,9 @@ body.dark-theme {
 
   .thumbnail, .image-expand, video, .embed-expand, .qr-expand {
     filter: drop-shadow(0px 0px 0.5px #ffffff);
+    &iframe {
+      filter: none;
+    }
   }
 
   .thumbnail.default-thumbnail {
