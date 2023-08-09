@@ -16,9 +16,8 @@ import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { hasPrefix, localTag, prefix, tagOrigin } from '../../util/tag';
 import { extSelector } from '../../util/format';
-import { RootConfig } from '../../template/root';
-import { UserConfig } from '../../template/user';
-import { defer } from 'lodash-es';
+import { RootConfig } from '../../mods/template/root';
+import { UserConfig } from '../../mods/template/user';
 
 @Component({
   selector: 'app-sidebar',

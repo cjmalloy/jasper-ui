@@ -3,7 +3,7 @@ import { runInAction } from 'mobx';
 import { catchError, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
-import { isPushing, isReplicating } from '../plugin/origin';
+import { isPushing, isReplicating } from '../mods/plugin/origin';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';

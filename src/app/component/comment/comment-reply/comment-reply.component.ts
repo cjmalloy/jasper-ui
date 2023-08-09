@@ -7,7 +7,7 @@ import { catchError, Subject, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../../model/ref';
-import { commentPlugin } from '../../../plugin/comment';
+import { commentPlugin } from '../../../mods/plugin/comment';
 import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';

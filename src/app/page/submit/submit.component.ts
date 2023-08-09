@@ -16,7 +16,7 @@ import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
-import { isWiki, wikiUriFormat } from '../../plugin/wiki';
+import { isWiki, wikiUriFormat } from '../../mods/plugin/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';

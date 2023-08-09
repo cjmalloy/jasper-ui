@@ -4,7 +4,7 @@ import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { DEFAULT_WIKI_PREFIX } from '../plugin/wiki';
+import { DEFAULT_WIKI_PREFIX } from '../mods/plugin/wiki';
 import { EventBus } from './bus';
 
 export class SubmitStore {

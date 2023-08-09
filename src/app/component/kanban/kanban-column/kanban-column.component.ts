@@ -15,8 +15,6 @@ import { URI_REGEX } from '../../../util/format';
 import { fixUrl } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { KanbanDrag } from '../kanban.component';
-import { KanbanConfig } from '../../../template/kanban';
-import { BookmarkService } from '../../../service/bookmark.service';
 
 @Component({
   selector: 'app-kanban-column',

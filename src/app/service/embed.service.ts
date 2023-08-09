@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
 import { catchError, of } from 'rxjs';
 import { Oembed } from '../model/oembed';
-import { wikiUriFormat } from '../plugin/wiki';
+import { wikiUriFormat } from '../mods/plugin/wiki';
 import { Store } from '../store/store';
 import { delay } from '../util/async';
 import { Embed } from '../util/embed';

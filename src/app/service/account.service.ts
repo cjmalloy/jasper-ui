@@ -13,7 +13,7 @@ import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { UserService } from './api/user.service';
 import { AuthnService } from './authn.service';
-import { UserConfig } from '../template/user';
+import { UserConfig } from '../mods/template/user';
 
 export const CACHE_MS = 15 * 1000;
 

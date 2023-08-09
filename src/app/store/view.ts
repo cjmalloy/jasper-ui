@@ -1,5 +1,5 @@
 import { without } from 'lodash-es';
-import { action, autorun, makeAutoObservable, runInAction } from 'mobx';
+import { action, autorun, makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Ref, RefSort } from '../model/ref';
@@ -8,8 +8,8 @@ import { User } from '../model/user';
 import { UrlFilter } from '../util/query';
 import { hasPrefix, isQuery, localTag } from '../util/tag';
 import { EventBus } from './bus';
-import {AccountStore} from "./account";
-import { RootConfig } from '../template/root';
+import { AccountStore } from "./account";
+import { RootConfig } from '../mods/template/root';
 
 /**
  * ID for current view. Only includes pages that make queries.

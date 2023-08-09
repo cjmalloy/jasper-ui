@@ -12,7 +12,7 @@ import { LinksFormComponent } from '../../../form/links/links.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
-import { wikiTitleFormat, wikiUriFormat } from '../../../plugin/wiki';
+import { wikiTitleFormat, wikiUriFormat } from '../../../mods/plugin/wiki';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';

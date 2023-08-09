@@ -1,4 +1,4 @@
-import { findArchive } from '../../src/app/plugin/archive';
+import { findArchive } from '../../src/app/mods/plugin/archive';
 
 describe('Smoke Tests', {
   testIsolation: false
