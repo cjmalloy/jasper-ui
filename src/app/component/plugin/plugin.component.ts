@@ -78,7 +78,7 @@ export class PluginComponent implements OnInit {
     if (!plugin.schema) delete plugin.schema;
     if (plugin.schema) plugin.schema = JSON.parse(plugin.schema);
     this.plugins.update(plugin).pipe(
-      switchMap(() => this.plugins.get(this.plugin.tag)),
+      switchMap(() => this.plugins.get(this.plugin.tag + this.plugin.origin)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

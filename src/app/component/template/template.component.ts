@@ -78,7 +78,7 @@ export class TemplateComponent implements OnInit {
     if (!template.schema) delete template.schema;
     if (template.schema) template.schema = JSON.parse(template.schema);
     this.templates.update(template).pipe(
-      switchMap(() => this.templates.get(this.template.tag)),
+      switchMap(() => this.templates.get(this.template.tag + this.template.origin)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
