@@ -41,7 +41,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   _tag = '';
   _ext?: Ext;
   localTag?: string;
-  addTags: string[] = [];
+  addTags?: string[];
   local = true;
   plugin?: Plugin;
   template?: Template;
@@ -102,10 +102,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @Input()
   set ext(value: Ext | undefined) {
     this._ext = value;
-    if (value) {
+    if (value && !this.home) {
       this.addTags = [...this.rootConfig?.addTags || [], this.localTag!];
     } else {
-      this.addTags = [];
+      this.addTags = undefined;
     }
   }
 
