@@ -109,6 +109,10 @@ export class ViewStore {
     return s.firstChild?.routeConfig?.path === 'alts';
   }
 
+  get extExists() {
+    return !!this.ext?.modifiedString;
+  }
+
   get tags() {
     const s = this.route.routeSnapshot?.firstChild;
     return s?.url[0].path === 'tags';

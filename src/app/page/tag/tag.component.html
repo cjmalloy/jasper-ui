@@ -1,18 +1,26 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
     <h5 class="fake-link" routerLink=".." [queryParams]="{}">{{ store.view.name }}</h5>
-    <ng-container *ngFor="let t of templates">
-      <ng-container *ngIf="store.view.isTemplate(t.tag)">
-        <a routerLink="./"
-           [class.current-tab]="store.view.noView"
-           [queryParams]="{view: null}"
-           queryParamsHandling="merge" i18n>{{ t.config?.view || t.tag }}</a>
+    <ng-container *ngIf="store.view.extExists else noExt">
+      <ng-container *ngFor="let t of templates">
+        <ng-container *ngIf="store.view.isTemplate(t.tag)">
+          <a routerLink="./"
+             [class.current-tab]="store.view.noView"
+             [queryParams]="{view: null}"
+             queryParamsHandling="merge" i18n>{{ t.config?.view || t.tag }}</a>
+        </ng-container>
       </ng-container>
+      <a routerLink="./"
+         [class.current-tab]="isTemplate ? store.view.list : store.view.noView"
+         [queryParams]="{view: isTemplate ? 'list' : null}"
+         queryParamsHandling="merge" i18n>list</a>
     </ng-container>
-    <a routerLink="./"
-       [class.current-tab]="isTemplate ? store.view.list : store.view.noView"
-       [queryParams]="{view: isTemplate ? 'list' : null}"
-       queryParamsHandling="merge" i18n>list</a>
+    <ng-template #noExt>
+      <a routerLink="./"
+         [class.current-tab]="!store.view.graph"
+         [queryParams]="{view: null}"
+         queryParamsHandling="merge" i18n>list</a>
+    </ng-template>
     <ng-container *ngIf="admin.status.plugins.graph">
       <a routerLink="./"
          [class.current-tab]="store.view.graph"
