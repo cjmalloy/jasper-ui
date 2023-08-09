@@ -63,6 +63,7 @@
   <label for="plugins">
     <span class="mobile-inline" i18n>Add Plugin: &nbsp;</span>
     <app-select-plugin #pluginSelect
+                       class="shrink"
                        [add]="true"
                        i18n-title title="Add Plugin"
                        (pluginChange)="togglePlugin($event); pluginSelect.plugin = ''"></app-select-plugin>
