@@ -23,7 +23,7 @@ export const kanbanTemplate: Template = {
       }
     }, {
       key: 'columns',
-      type: 'selectors',
+      type: 'tags',
       props: {
         label: $localize`Columns:`,
         addText: $localize`+ Add another column`,
@@ -45,7 +45,7 @@ export const kanbanTemplate: Template = {
       },
     }, {
       key: 'swimLanes',
-      type: 'selectors',
+      type: 'tags',
       props: {
         label: $localize`Swim Lanes:`,
         addText: $localize`+ Add another swim lane`,
@@ -67,7 +67,7 @@ export const kanbanTemplate: Template = {
       },
     }, {
       key: 'badges',
-      type: 'qtags',
+      type: 'tags',
       props: {
         label: $localize`Badges:`,
         addText: $localize`+ Add another badge tag`,
