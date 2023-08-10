@@ -105,7 +105,7 @@
                   [appTitle]="icon"
                   [ref]="ref">{{ icon.label }}</span>
           </ng-container>
-          <app-md *ngFor="let ui of infoUis" [origin]="ref?.origin || ''" [text]="render(ui)"></app-md>
+          <app-md *ngFor="let ui of infoUis" [origin]="ref.origin || ''" [text]="render(ui)"></app-md>
           <ng-container *ngIf="!userAuthors.length && ref.created && !local" i18n>
             on <a class="origin tag" [routerLink]="['/tag', ref.origin || '*']">{{ ref.origin || 'default' }}</a>
           </ng-container>
