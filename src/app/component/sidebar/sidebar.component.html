@@ -160,11 +160,10 @@
     </ng-container>
   </div>
 
-  <ng-container *ngIf="ui && ext">
-    <div class="hide ui"
-         [appTemplateUi]="ui"
-         [ext]="ext"></div>
-  </ng-container>
+  <app-md *ngIf="ui && ext"
+          class="hide ui"
+          [origin]="ext?.origin || ''"
+          [text]="render(ui)"></app-md>
 
   <div *ngIf="root" class="hide template-root">
     <app-md *ngIf="ext?.config?.sidebar"

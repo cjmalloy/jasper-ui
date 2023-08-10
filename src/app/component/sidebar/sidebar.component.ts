@@ -5,7 +5,7 @@ import { catchError, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
-import { Template } from '../../model/template';
+import { getTemplateScope, Template } from '../../model/template';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -18,6 +18,7 @@ import { hasPrefix, localTag, prefix, tagOrigin } from '../../util/tag';
 import { extSelector } from '../../util/format';
 import { RootConfig } from '../../mods/template/root';
 import { UserConfig } from '../../mods/template/user';
+import { hydrate } from '../../model/tag';
 
 @Component({
   selector: 'app-sidebar',
@@ -235,5 +236,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   extLink(selector: string, ext: Ext) {
     return extSelector(selector, ext, this.store.account.origin);
+  }
+
+  render(uis: Template[]): string {
+    return uis.map(t => hydrate(t.config, 'ui', getTemplateScope(this.store.account.roles, t, this.ext!))).join();
   }
 }

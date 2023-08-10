@@ -16,10 +16,12 @@ export class MdComponent implements OnInit {
   origin? = '';
   @Input()
   plugins?: string[];
+  @Input()
+  border = false;
 
   @HostBinding("class.expand")
   get comment() {
-    return !this.plugins?.includes('plugin/table');
+    return this.border && !this.plugins?.includes('plugin/table');
   }
 
   postProcessMarkdown: Subject<void> = new Subject();

@@ -8,9 +8,19 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
-import { Plugin } from '../../model/plugin';
+import { getPluginScope, Plugin } from '../../model/plugin';
 import { findExtension, isRef, Ref, writeRef } from '../../model/ref';
-import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
+import {
+  Action,
+  active,
+  hydrate,
+  Icon,
+  ResponseAction,
+  sortOrder,
+  TagAction,
+  Visibility,
+  visible
+} from '../../model/tag';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { findArchive } from '../../mods/plugin/archive';
 import { deleteNotice } from '../../mods/plugin/delete';
@@ -760,5 +770,9 @@ export class RefComponent implements OnInit, OnDestroy {
     if (this.thread) return 'Re:';
     if (!comment) return this.url;
     return trimCommentForTitle(comment);
+  }
+
+  render(ui: Plugin): string {
+    return hydrate(ui.config, 'ui', getPluginScope(ui, this.ref));
   }
 }

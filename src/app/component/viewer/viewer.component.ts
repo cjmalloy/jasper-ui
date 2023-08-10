@@ -12,6 +12,8 @@ import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { hasComment } from '../../util/format';
 import { hasTag } from '../../util/tag';
+import { hydrate } from '../../model/tag';
+import { getPluginScope, Plugin } from '../../model/plugin';
 
 @Component({
   selector: 'app-viewer',
@@ -189,5 +191,9 @@ export class ViewerComponent {
     if (!url) return url;
     if (!this.admin.status.plugins.pdf?.config?.cache) return url;
     return this.scraper.getFetch(url);
+  }
+
+  render(ui: Plugin): string {
+    return hydrate(ui.config, 'ui', getPluginScope(ui, this.ref));
   }
 }
