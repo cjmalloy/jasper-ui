@@ -215,6 +215,7 @@ export class BulkComponent implements OnInit, OnDestroy {
         return this.scraper.feed(ref.url, ref.origin());
       } else {
         return this.scraper.webScrape(ref.url).pipe(switchMap(scraped => {
+          scraped.origin = ref.origin;
           scraped.modifiedString = ref.modifiedString;
           scraped.sources = uniq([...ref.sources || [], ...scraped.sources || []]);
           scraped.alternateUrls = uniq([...ref.alternateUrls || [], ...scraped.alternateUrls || []]);
