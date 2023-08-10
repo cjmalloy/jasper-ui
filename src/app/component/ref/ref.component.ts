@@ -772,7 +772,7 @@ export class RefComponent implements OnInit, OnDestroy {
     return trimCommentForTitle(comment);
   }
 
-  render(ui: Plugin): string {
-    return hydrate(ui.config, 'ui', getPluginScope(ui, this.ref));
+  renderInfo(plugin: Plugin): string {
+    return hydrate(plugin.config, 'infoUi', getPluginScope(plugin, this.ref));
   }
 }

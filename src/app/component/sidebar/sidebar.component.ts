@@ -238,7 +238,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return extSelector(selector, ext, this.store.account.origin);
   }
 
-  render(uis: Template[]): string {
-    return uis.map(t => hydrate(t.config, 'ui', getTemplateScope(this.store.account.roles, t, this.ext!))).join();
+  render(templates: Template[]): string {
+    return templates.map(t => hydrate(t.config, 'ui', getTemplateScope(this.store.account.roles, t, this.ext!))).join();
   }
 }

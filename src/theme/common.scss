@@ -1117,6 +1117,12 @@ button.backup, button.upload, input.upload {
   font-size: 80%;
 }
 
+.inline {
+  &, * {
+    display: inline !important;
+  }
+}
+
 .md {
   max-width: 60em;
   overflow-wrap: break-word;

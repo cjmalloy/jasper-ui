@@ -17,6 +17,9 @@ export class MdComponent implements OnInit {
   @Input()
   plugins?: string[];
   @Input()
+  @HostBinding("class.inline")
+  inline = false;
+  @Input()
   border = false;
 
   @HostBinding("class.expand")

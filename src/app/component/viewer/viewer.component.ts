@@ -193,7 +193,7 @@ export class ViewerComponent {
     return this.scraper.getFetch(url);
   }
 
-  render(ui: Plugin): string {
-    return hydrate(ui.config, 'ui', getPluginScope(ui, this.ref));
+  render(plugin: Plugin): string {
+    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref));
   }
 }

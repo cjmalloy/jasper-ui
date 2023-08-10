@@ -330,7 +330,8 @@ Handlebars.registerHelper('maxCount', (ref: Ref, prefix: string) => {
   return max;
 });
 
-export function hydrate(config: any, field: string, model: any) {
+export function hydrate(config: any, field: string, model: any): string {
+  if (!config[field]) return '';
   config._cache ||= {};
   config._cache[field] ||= Handlebars.compile(config[field]);
   return config._cache[field](model);
