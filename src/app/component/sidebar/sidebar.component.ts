@@ -84,12 +84,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
       const origin = tagOrigin(value);
       this.local = !origin || origin === this.store.account.origin;
       this.localTag = localTag(value);
+      this.addTags = [...this.rootConfig?.addTags || [], this.localTag!];
       this.plugin = this.admin.getPlugin(value);
       this.writeAccess = this.auth.tagWriteAccess(value);
       this.ui = this.admin.getTemplateUi(value);
     } else {
       this.local = true;
       this.localTag = undefined;
+      this.addTags = undefined;
       this.plugin = undefined;
       this.writeAccess = false;
       this.ui = [];
