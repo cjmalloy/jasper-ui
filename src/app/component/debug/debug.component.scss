@@ -12,14 +12,14 @@ details {
     app-loading {
       position: absolute;
     }
-    span:after {
+    & > span:after {
       content: '🐞️';
       transform: rotate(-90deg);
     }
   }
 }
 
-details[open] summary span:after {
+details[open] summary > span:after {
   content: '🐞️';
   transform: rotate(-180deg);
 }

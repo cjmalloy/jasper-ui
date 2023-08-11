@@ -208,16 +208,14 @@ body.light-theme {
   }
 
   details.advanced {
-    summary {
-      span {
-        border: 1px solid $border;
-        border-left: none;
-        border-right: none;
-        transition: background-color 0.2s;
+    summary > span {
+      border: 1px solid $border;
+      border-left: none;
+      border-right: none;
+      transition: background-color 0.2s;
 
-        &:hover {
-          background-color: $bg-accent;
-        }
+      &:hover {
+        background-color: $bg-accent;
       }
     }
   }

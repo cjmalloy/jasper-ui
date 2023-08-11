@@ -608,7 +608,7 @@ details.advanced {
     &:first-of-type {
       list-style-type: none;
     }
-    span {
+    & > span {
       display: block;
       cursor: pointer;
       padding: 4px;
@@ -626,20 +626,25 @@ details.advanced {
 
 details.advanced[open] {
   max-height: 1000px;
-  summary span {
+  summary > span {
     &:after {
       content: '🔆';
       transform: rotate(-120deg);
     }
   }
+  .summary-closed {
+    display: none;
+  }
 }
 
 details.mini:not([open]) {
   float: right;
-  margin-top: -4px !important;
-  margin-right: 4px !important;
-  summary span {
+  margin: -4px 4px 4px 0 !important;
+  summary > span {
     border: none !important;
+  }
+  .summary-open {
+    display: none;
   }
 }
 
@@ -783,6 +788,24 @@ formly-list-section .form-array > formly-field > formly-group {
     margin: 8px -8px;
     .form {
       padding: 16px;
+    }
+  }
+
+  details.mini:not([open]) {
+    float: right;
+    margin: -4px 4px 4px 0 !important;
+    summary > span {
+      float: none;
+      border: none !important;
+    }
+  }
+
+  details.mini[open] {
+    float: none;
+    margin: -23px 4px 4px 0 !important;
+    summary > span {
+      float: right;
+      border: none !important;
     }
   }
 

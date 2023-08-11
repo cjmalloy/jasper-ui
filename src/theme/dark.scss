@@ -216,20 +216,18 @@ body.dark-theme {
   }
 
   details.advanced {
-    summary {
-      span {
-        border: 1px solid $border;
-        border-left: none;
-        border-right: none;
-        transition: background-color 0.2s;
+    summary > span {
+      border: 1px solid $border;
+      border-left: none;
+      border-right: none;
+      transition: background-color 0.2s;
 
-        &:hover {
-          background-color: rgba(255, 255, 255, 0.2);
-        }
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
 
-        &:after {
-          filter: drop-shadow(0 0 2px $bg);
-        }
+      &:after {
+        filter: drop-shadow(0 0 2px $bg);
       }
     }
   }
