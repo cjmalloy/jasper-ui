@@ -37,6 +37,9 @@ export class ExtFormComponent implements OnInit {
   advancedForm?: FormlyFieldConfig[];
 
   options: FormlyFormOptions = {
+    formState: {
+      config: {}
+    }
   };
 
   constructor(
@@ -124,6 +127,7 @@ export class ExtFormComponent implements OnInit {
     }
     defer(() => {
       this.group!.patchValue(ext);
+      this.options.formState.config = ext.config;
       this.formlyForm!.model = ext.config;
       // TODO: Why aren't changed being detected?
       // @ts-ignore

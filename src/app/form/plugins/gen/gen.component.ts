@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angu
 import { UntypedFormGroup } from '@angular/forms';
 import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { Plugin } from '../../../model/plugin';
+import { defer } from 'lodash-es';
 
 @Component({
   selector: 'app-form-gen',
@@ -23,6 +24,9 @@ export class GenFormComponent implements OnInit {
   formlyForm?: FormlyForm;
 
   options: FormlyFormOptions = {
+    formState: {
+      config: {},
+    },
   };
 
   constructor() { }
@@ -40,13 +44,18 @@ export class GenFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.group.patchValue(this.plugin.defaults);
+    this.options.formState.config = this.plugin.defaults;
   }
 
   setValue(value: any) {
-    if (!this.formlyForm) return;
-    this.formlyForm.model = value[this.plugin.tag];
-    // TODO: Why aren't changed being detected?
-    // @ts-ignore
-    this.formlyForm.builder.build(this.formlyForm.field);
+    defer(() => {
+      if (!this.formlyForm) return;
+      this.group.patchValue(value[this.plugin.tag]);
+      this.options.formState.config = value[this.plugin.tag];
+      this.formlyForm.model = value[this.plugin.tag];
+      // TODO: Why aren't changed being detected?
+      // @ts-ignore
+      this.formlyForm.builder.build(this.formlyForm.field);
+    });
   }
 }

@@ -29,10 +29,17 @@ export const scrapePlugin: Plugin = {
         }
       },
     }, {
-      key: 'text',
-      type: 'boolean',
+      key: 'removeSelectors',
+      type: 'list',
       props: {
-        label: $localize`Text: `,
+        label: $localize`Remove Selectors: `,
+        addText: $localize`+ Add remove selector`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
       },
     },  {
       key: 'oembedJson',
@@ -53,50 +60,18 @@ export const scrapePlugin: Plugin = {
         label: $localize`Open Graph: `,
       },
     }, {
-      key: 'removeSelectors',
-      type: 'list',
+      key: 'text',
+      type: 'boolean',
       props: {
-        label: $localize`Remove Selectors: `,
-        addText: $localize`+ Add remove selector`,
-      },
-      fieldArray: {
-        type: 'string',
-        props: {
-          label: $localize`🎯️`,
-        }
+        label: $localize`Text: `,
       },
     }, {
       key: 'textSelectors',
       type: 'list',
+      expressions: { hide: '!formState.config.text' },
       props: {
         label: $localize`Text Selectors: `,
         addText: $localize`+ Add text selector`,
-      },
-      fieldArray: {
-        type: 'string',
-        props: {
-          label: $localize`🎯️`,
-        }
-      },
-    }, {
-      key: 'removeAfterSelectors',
-      type: 'list',
-      props: {
-        label: $localize`Remove After Selectors: `,
-        addText: $localize`+ Add remove after selector`,
-      },
-      fieldArray: {
-        type: 'string',
-        props: {
-          label: $localize`🎯️`,
-        }
-      },
-    }, {
-      key: 'removeStyleSelectors',
-      type: 'list',
-      props: {
-        label: $localize`Remove Style Selectors: `,
-        addText: $localize`+ Add remove style selector`,
       },
       fieldArray: {
         type: 'string',
@@ -171,11 +146,38 @@ export const scrapePlugin: Plugin = {
       },
     }],
     advancedForm: [{
+      key: 'removeAfterSelectors',
+      type: 'list',
+      props: {
+        label: $localize`Remove Inside Text Selectors: `,
+        addText: $localize`+ Add after selector`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
+      key: 'removeStyleSelectors',
+      type: 'list',
+      props: {
+        label: $localize`Remove Style Selectors: `,
+        addText: $localize`+ Add remove style selector`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
       key: 'imageFixRegex',
       type: 'list',
       props: {
         label: $localize`Image Fix RegEx: `,
         addText: $localize`+ Add regex`,
+        title: $localize`Will delete any matches from image URLs`,
       },
       fieldArray: {
         type: 'string',
