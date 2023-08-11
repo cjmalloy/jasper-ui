@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observable, reaction, toJS } from 'mobx';
 import { catchError, Observable, throwError } from 'rxjs';
 import { Ref } from '../model/ref';
 import { printError } from '../util/http';
@@ -19,6 +19,7 @@ export class EventBus {
       catchError: false,
       isRef: false,
     });
+    reaction(() => this.event, () => console.log('🚌️ Event Bus:', this.event, toJS(this.errors), toJS(this.ref)));
   }
 
   fire(event: string, ref?: Ref) {
