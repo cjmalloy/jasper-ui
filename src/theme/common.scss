@@ -593,7 +593,7 @@ video.qr-preview {
 }
 
 details.advanced {
-  transition: max-height 0.4s;
+  transition: max-height 1s;
   max-height: 32px;
   overflow: hidden;
 
@@ -625,7 +625,7 @@ details.advanced {
 }
 
 details.advanced[open] {
-  max-height: 300px;
+  max-height: 1000px;
   summary span {
     &:after {
       content: '🔆';
@@ -783,10 +783,6 @@ formly-list-section .form-array > formly-field > formly-group {
     margin: 8px -8px;
     .form {
       padding: 16px;
-    }
-
-    &[open] {
-      max-height: 554px;
     }
   }
 
