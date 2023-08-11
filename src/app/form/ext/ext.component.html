@@ -57,7 +57,7 @@
         </select>
 
         <details *ngIf="themes" class="advanced mini">
-          <summary i18n-title title="Custom Themes"><span></span></summary>
+          <summary i18n-title title="Custom Themes"><span><span class="summary-open" i18n>Custom Themes</span></span></summary>
           <app-themes id="themes"
                       [group]="config"
                       fieldName="themes"></app-themes>
