@@ -69,7 +69,7 @@ export const originPullPlugin: Plugin = {
         not pulled yet
       {{/if}}
     `,
-    form: [{
+    advancedForm: [{
       key: 'query',
       type: 'query'
     }, {
@@ -155,7 +155,7 @@ export const originPushPlugin: Plugin = {
         not pushed yet
       {{/if}}
     `,
-    form: [{
+    advancedForm: [{
       key: 'query',
       type: 'query'
     }, {
