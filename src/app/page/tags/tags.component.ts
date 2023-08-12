@@ -35,8 +35,9 @@ export class TagsPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.template || this.defaultTitle;
-      const query =
-        this.store.view.noTemplate
+      const query = this.store.view.home
+        ? [...this.store.account.subs, ...this.store.account.bookmarks ].join('|')
+        : this.store.view.noTemplate
           ? ['!+user:!_user', ...this.templates.map(t => '!' + t.tag).flatMap(getPrefixes)].join(':')
           : this.store.view.template
             ? getPrefixes(this.store.view.template).join('|')

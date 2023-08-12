@@ -1,8 +1,9 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
     <h5>{{ title }}</h5>
-    <a routerLink="/tags" [queryParams]="{ noTemplate: null }" [class.current-tab]="store.view.allTags && !store.view.noTemplate" queryParamsHandling="merge" i18n>all</a>
-    <a routerLink="/tags" [queryParams]="{ noTemplate: true }" routerLinkActive="current-tab" queryParamsHandling="merge" i18n-title title="🏷️ Tags" i18n>🏷️</a>
+    <a routerLink="/tags" [queryParams]="{ noTemplate: null, home: true }" [class.current-tab]="store.view.allTags && store.view.home" queryParamsHandling="merge" i18n>home</a>
+    <a routerLink="/tags" [queryParams]="{ noTemplate: null, home: null }" [class.current-tab]="store.view.allTags && !store.view.noTemplate && !store.view.home" queryParamsHandling="merge" i18n>all</a>
+    <a routerLink="/tags" [queryParams]="{ noTemplate: true, home: null }" routerLinkActive="current-tab" queryParamsHandling="merge" i18n-title title="🏷️ Tags" i18n>🏷️</a>
     <a *ngFor="let tmpl of templates"
        [routerLink]="['/tags', tmpl.tag]"
        [queryParams]="{ noTemplate: null }"
