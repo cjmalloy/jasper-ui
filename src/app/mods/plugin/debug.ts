@@ -6,6 +6,7 @@ export const debugPlugin: Plugin = {
   name: $localize`🐞️ Debug`,
   config: {
     type: 'tool',
+    experimental: true,
     add: true,
     submit: '🐞️ debug',
     internal: true,

@@ -4,7 +4,7 @@ import { Ext } from './ext';
 import { Config } from './tag';
 import { Roles } from './user';
 
-export type TemplateType = 'core' | 'feature' | 'theme' | 'tool';
+export type TemplateType = 'core' | 'config' | 'icon' | 'feature' | 'theme';
 
 export interface Template extends Config {
   type?: 'template';

@@ -34,7 +34,7 @@ import { feedPlugin } from '../mods/plugin/feed';
 import { fullscreenPlugin } from '../mods/plugin/fullscreen';
 import { graphPlugin } from '../mods/plugin/graph';
 import { imagePlugin } from '../mods/plugin/image';
-import { lockedPlugin } from '../mods/plugin/locked';
+import { lockedIcon } from '../mods/locked';
 import { modlistPlugin } from '../mods/plugin/modlist';
 import { oEmbedPlugin } from '../mods/plugin/oembed';
 import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } from '../mods/plugin/origin';
@@ -43,7 +43,6 @@ import { personPlugin } from '../mods/plugin/person';
 import { qrPlugin } from '../mods/plugin/qr';
 import { repostPlugin } from '../mods/plugin/repost';
 import { scrapePlugin } from '../mods/plugin/scrape';
-import { snippetPlugin } from '../mods/plugin/snippet';
 import { summaryPlugin, summaryQueryPlugin } from '../mods/plugin/summary';
 import { tablePlugin } from '../mods/plugin/table';
 import { thanksPlugin } from '../mods/plugin/thanks';
@@ -69,6 +68,7 @@ import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
+import { snippetConfig } from '../mods/snippet';
 
 @Injectable({
   providedIn: 'root',
@@ -85,8 +85,6 @@ export class AdminService {
       debugPlugin: debugPlugin,
       experiments: experimentsPlugin,
       breakpoint: breakpointPlugin,
-      snippets: snippetPlugin,
-      locked: lockedPlugin,
       modlist: modlistPlugin,
       banlist: banlistPlugin,
       oembed: oEmbedPlugin,
@@ -149,8 +147,14 @@ export class AdminService {
       chat: chatTemplate,
       dm: dmTemplate,
 
+      // Icons
+      lockedIcon: lockedIcon,
+
       // Themes
       terminalTheme: terminalTheme,
+
+      // Configs
+      snippets: snippetConfig,
     },
   };
 
