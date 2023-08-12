@@ -82,7 +82,7 @@ export class AdminService {
 
   def = {
     plugins: <Record<string, Plugin>> {
-      debug: debugPlugin,
+      debugPlugin: debugPlugin,
       experiments: experimentsPlugin,
       breakpoint: breakpointPlugin,
       snippets: snippetPlugin,
@@ -138,7 +138,7 @@ export class AdminService {
       thanks: thanksPlugin,
     },
     templates: <Record<string, Template>> {
-      debug: debugTemplate,
+      debugTemplate: debugTemplate,
       root: rootTemplate,
       user: userTemplate,
       folder: folderTemplate,
