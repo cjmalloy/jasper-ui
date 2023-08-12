@@ -69,6 +69,7 @@ import { TemplateService } from './api/template.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
 import { snippetConfig } from '../mods/snippet';
+import { privateIcon } from '../mods/private';
 
 @Injectable({
   providedIn: 'root',
@@ -149,6 +150,7 @@ export class AdminService {
 
       // Icons
       lockedIcon: lockedIcon,
+      privateIcon: privateIcon,
 
       // Themes
       terminalTheme: terminalTheme,
