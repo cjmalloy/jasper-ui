@@ -19,7 +19,7 @@ export class EventBus {
       catchError: false,
       isRef: false,
     });
-    reaction(() => this.event, () => console.log('🚌️ Event Bus:', this.event, toJS(this.errors), toJS(this.ref)));
+    reaction(() => this.event, () => console.log('🚌️ Event Bus:', this.event, this.event === 'error' ? toJS(this.errors) : '', toJS(this.ref)));
   }
 
   fire(event: string, ref?: Ref) {
