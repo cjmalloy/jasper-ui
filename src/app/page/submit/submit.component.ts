@@ -121,7 +121,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   get bannedUrls() {
-    return this.admin.status.plugins.banlist?.config?.bannedUrls || this.admin.def.plugins.banlist.config!.bannedUrls;
+    return this.admin.status.templates.banlist?.config?.bannedUrls || this.admin.def.templates.banlist.config!.bannedUrls;
   }
 
   submitInternal(tag: string) {
