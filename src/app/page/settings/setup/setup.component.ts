@@ -12,8 +12,9 @@ import { TemplateService } from '../../../service/api/template.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
-import { configGroups } from '../../../util/format';
+import { configGroups, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { Config } from '../../../model/tag';
 
 @Component({
   selector: 'app-settings-setup-page',
@@ -22,15 +23,13 @@ import { printError } from '../../../util/http';
 })
 export class SettingsSetupPage implements OnInit {
 
-  experiments = !!this.admin.getPlugin('plugin/experiments');
+  experiments = !!this.admin.getTemplate('experiments');
   selectAllToggle = false;
   submitted = false;
   adminForm: UntypedFormGroup;
   serverError: string[] = [];
   installMessages: string[] = [];
-  pluginGroups = configGroups(this.admin.def.plugins);
-  templateGroups = configGroups(this.admin.def.templates);
-  modGroups = configGroups({...this.admin.def.plugins, ...this.admin.def.templates }, true);
+  modGroups = configGroups({...this.admin.def.plugins, ...this.admin.def.templates });
 
   constructor(
     public admin: AdminService,
@@ -42,7 +41,6 @@ export class SettingsSetupPage implements OnInit {
   ) {
     theme.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
-      // TODO: conflict when plugins/templates have same name
       mods: fb.group(mapValues({...this.admin.def.plugins, ...this.admin.def.templates }, p => fb.control(false))),
     });
     this.reset();
@@ -131,10 +129,10 @@ export class SettingsSetupPage implements OnInit {
     this.installMessages.push($localize`Installing ${mod} mod...`);
     return concat(...[
       ...Object.values(this.admin.def.plugins)
-        .filter(p => p.config?.mod === mod)
+        .filter(p => modId(p) === mod)
         .map(p => this.installPlugin$(p, true)),
       ...Object.values(this.admin.def.templates)
-        .filter(t => t.config?.mod === mod)
+        .filter(t => modId(t) === mod)
         .map(t => this.installTemplate$(t, true)),
     ]).pipe(toArray());
   }
@@ -143,10 +141,10 @@ export class SettingsSetupPage implements OnInit {
     this.installMessages.push($localize`Deleting ${mod} mod...`);
     return concat(...[
       ...Object.values(this.admin.def.plugins)
-        .filter(p => p.config?.mod === mod)
+        .filter(p => modId(p) === mod)
         .map(p => this.deletePlugin$(p, true)),
       ...Object.values(this.admin.def.templates)
-        .filter(t => t.config?.mod === mod)
+        .filter(t => modId(t) === mod)
         .map(t => this.deleteTemplate$(t, true)),
     ]).pipe(toArray());
   }
@@ -177,19 +175,8 @@ export class SettingsSetupPage implements OnInit {
     sa(this.adminForm.get('mods') as UntypedFormGroup);
   }
 
-  updatePlugin(key: string) {
-    this.updatePlugin$(key).pipe(
-    ).subscribe(() => {
-      this.reset();
-    });
-  }
-
-  updateTemplate(key: string) {
-    this.updateTemplate$(key).subscribe(() => this.reset());
-  }
-
-  updateMod(mod: string) {
-    this.updateMod$(mod).subscribe(() => this.reset());
+  updateMod(config: Config) {
+    this.updateMod$(modId(config)).subscribe(() => this.reset());
   }
 
   updatePlugin$(key: string, mod = false) {
@@ -232,10 +219,10 @@ export class SettingsSetupPage implements OnInit {
     this.installMessages.push($localize`Updating ${mod} mod...`);
     return concat(...[
       ...Object.values(this.admin.def.plugins)
-        .filter(p => p.config?.mod === mod)
+        .filter(p => modId(p) === mod)
         .map(p => this.updatePlugin$(this.admin.keyOf(this.admin.def.plugins, p.tag), true)),
       ...Object.values(this.admin.def.templates)
-        .filter(t => t.config?.mod === mod)
+        .filter(t => modId(t) === mod)
         .map(t => this.updateTemplate$(this.admin.keyOf(this.admin.def.templates, t.tag), true)),
     ]).pipe(toArray());
   }
@@ -248,9 +235,10 @@ export class SettingsSetupPage implements OnInit {
     return this.admin.status.templates[key]?.config?.needsUpdate;
   }
 
-  needsModUpdate(mod: string) {
-    return Object.values(this.admin.status.plugins).find(p => mod === p?.config?.mod && p.config.needsUpdate) ||
-      Object.values(this.admin.status.templates).find(t => mod === t?.config?.mod && t.config.needsUpdate);
+  needsModUpdate(config: Config) {
+    const mod = modId(config);
+    return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p) && p.config?.needsUpdate) ||
+      Object.values(this.admin.status.templates).find(t => t && mod === modId(t) && t.config?.needsUpdate);
   }
 
 }

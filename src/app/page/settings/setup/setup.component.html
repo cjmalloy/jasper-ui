@@ -35,10 +35,10 @@
             <ng-container *ngFor="let e of group.value">
               <div *ngIf="experiments || !e[1].config?.experimental" [title]="e[1]!.config!.description || ''" class="nowrap">
                 <input id="mod-{{ e[0] }}" type="checkbox" [formControlName]="e[0]">
-                <label for="mod-{{ e[0] }}" [title]="e[1]!.config!.description || ''">{{ e[1].config!.mod }}</label>
+                <label for="mod-{{ e[0] }}" [title]="e[1]!.config!.description || ''">{{ e[1].config?.mod || e[1].name || e[1].tag }}</label>
                 <span *ngIf="e[1].config!.experimental">🧪️</span>
-                <span *ngIf="needsModUpdate(e[1].config!.mod!)" class="update">
-                <span class="fake-link no-select" (click)="updateMod(e[1].config!.mod!)" i18n>🌟️ update</span>
+                <span *ngIf="needsModUpdate(e[1])" class="update">
+                <span class="fake-link no-select" (click)="updateMod(e[1])" i18n>🌟️ update</span>
               </span>
               </div>
             </ng-container>
@@ -47,47 +47,6 @@
       </div>
     </div>
 
-    <h3 i18n>Templates:</h3>
-    <div class="bubble">
-      <div formGroupName="mods" class="form">
-        <ng-container *ngFor="let group of templateGroups | keyvalue">
-          <label [style.text-transform]="'capitalize'" i18n>{{ group.key }}</label>
-          <div>
-            <ng-container *ngFor="let e of group.value">
-              <div *ngIf="experiments || !e[1].config?.experimental || admin.status.templates[e[0]]" [title]="e[1].config?.description || ''" class="nowrap">
-                <input id="template-{{ e[0] }}" type="checkbox" [formControlName]="e[0]">
-                <label for="template-{{ e[0] }}" [title]="e[1].config?.description || ''">{{ e[1].name || e[0] || e[1].tag }}</label>
-                <span *ngIf="e[1].config?.experimental">🧪️</span>
-                <span *ngIf="needsTemplateUpdate(e[0])" class="update">
-                <span class="fake-link no-select" (click)="updateTemplate($any(e[0]))" i18n>🌟️ update</span>
-              </span>
-              </div>
-            </ng-container>
-          </div>
-        </ng-container>
-      </div>
-    </div>
-
-    <h3 i18n>Plugins:</h3>
-    <div class="bubble">
-      <div formGroupName="mods" class="form">
-        <ng-container *ngFor="let group of pluginGroups | keyvalue">
-          <label [style.text-transform]="'capitalize'" i18n>{{ group.key }}</label>
-          <div>
-            <ng-container *ngFor="let e of group.value">
-              <div *ngIf="experiments || !e[1].config?.experimental || admin.status.plugins[e[0]]" [title]="e[1].config?.description || ''" class="nowrap">
-                <input id="plugin-{{ e[0] }}" type="checkbox" [formControlName]="e[0]">
-                <label for="plugin-{{ e[0] }}" [title]="e[1].config?.description || ''">{{ e[1].name || e[0] || e[1].tag }}</label>
-                <span *ngIf="e[1].config?.experimental">🧪️</span>
-                <span *ngIf="needsPluginUpdate(e[0])" class="update">
-              <span class="fake-link no-select" (click)="updatePlugin($any(e[0]))" i18n>🌟️ update</span>
-            </span>
-              </div>
-            </ng-container>
-          </div>
-        </ng-container>
-      </div>
-    </div>
   </form>
   <span *ngIf="serverError.length || installMessages.length" class="log mobile-hide">
     <div *ngFor="let e of serverError" class="error">{{ e }}</div>

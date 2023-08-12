@@ -18,48 +18,44 @@ import {
   queueTemplate
 } from '../mods/queue';
 import { terminalTheme } from '../mods/theme';
-import { aiPlugin, aiQueryPlugin } from '../mods/plugin/ai';
-import { aprioriPlugin } from '../mods/plugin/apriori';
-import { archivePlugin } from '../mods/plugin/archive';
-import { audioPlugin } from '../mods/plugin/audio';
-import { banlistPlugin } from '../mods/plugin/banlist';
-import { commentPlugin } from '../mods/plugin/comment';
-import { breakpointPlugin, debugPlugin } from '../mods/plugin/debug';
-import { deletePlugin } from '../mods/plugin/delete';
-import { htmlPlugin, latexPlugin } from '../mods/plugin/editor';
-import { emailPlugin } from '../mods/plugin/email';
-import { embedPlugin } from '../mods/plugin/embed';
-import { experimentsPlugin } from '../mods/plugin/experiments';
-import { feedPlugin } from '../mods/plugin/feed';
-import { fullscreenPlugin } from '../mods/plugin/fullscreen';
-import { graphPlugin } from '../mods/plugin/graph';
-import { imagePlugin } from '../mods/plugin/image';
+import { aiPlugin, aiQueryPlugin } from '../mods/ai';
+import { archivePlugin } from '../mods/archive';
+import { audioPlugin } from '../mods/audio';
+import { commentPlugin } from '../mods/comment';
+import { deletePlugin } from '../mods/delete';
+import { htmlPlugin, latexPlugin } from '../mods/editor';
+import { emailPlugin } from '../mods/email';
+import { embedPlugin } from '../mods/embed';
+import { experimentsConfig } from '../mods/experiments';
+import { feedPlugin } from '../mods/feed';
+import { fullscreenPlugin } from '../mods/fullscreen';
+import { imagePlugin } from '../mods/image';
 import { lockedIcon } from '../mods/locked';
-import { modlistPlugin } from '../mods/plugin/modlist';
-import { oEmbedPlugin } from '../mods/plugin/oembed';
-import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } from '../mods/plugin/origin';
-import { pdfPlugin } from '../mods/plugin/pdf';
-import { personPlugin } from '../mods/plugin/person';
-import { qrPlugin } from '../mods/plugin/qr';
-import { repostPlugin } from '../mods/plugin/repost';
-import { scrapePlugin } from '../mods/plugin/scrape';
-import { summaryPlugin, summaryQueryPlugin } from '../mods/plugin/summary';
-import { tablePlugin } from '../mods/plugin/table';
-import { thanksPlugin } from '../mods/plugin/thanks';
-import { threadPlugin } from '../mods/plugin/thread';
-import { thumbnailPlugin } from '../mods/plugin/thumbnail';
-import { videoPlugin } from '../mods/plugin/video';
-import { voteDownPlugin, voteUpPlugin } from '../mods/plugin/vote';
-import { DEFAULT_WIKI_PREFIX, wikiPlugin } from '../mods/plugin/wiki';
+import { modlistConfig } from '../mods/modlist';
+import { oEmbedPlugin } from '../mods/oembed';
+import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } from '../mods/origin';
+import { pdfPlugin } from '../mods/pdf';
+import { personPlugin } from '../mods/person';
+import { qrPlugin } from '../mods/qr';
+import { repostPlugin } from '../mods/repost';
+import { scrapePlugin } from '../mods/scrape';
+import { summaryPlugin, summaryQueryPlugin } from '../mods/summary';
+import { tablePlugin } from '../mods/table';
+import { thanksConfig } from '../mods/thanks';
+import { threadPlugin } from '../mods/thread';
+import { thumbnailPlugin } from '../mods/thumbnail';
+import { videoPlugin } from '../mods/video';
+import { voteDownPlugin, voteUpPlugin } from '../mods/vote';
+import { DEFAULT_WIKI_PREFIX, wikiConfig } from '../mods/wiki';
 import { Store } from '../store/store';
-import { blogTemplate } from '../mods/template/blog';
-import { chatTemplate } from '../mods/template/chat';
-import { debugTemplate } from '../mods/template/debug';
-import { folderTemplate } from '../mods/template/folder';
-import { homeTemplate } from '../mods/template/home';
-import { kanbanTemplate } from '../mods/template/kanban';
-import { rootTemplate } from '../mods/template/root';
-import { userTemplate } from '../mods/template/user';
+import { blogTemplate } from '../mods/blog';
+import { chatTemplate } from '../mods/chat';
+import { breakpointPlugin, debugPlugin, debugTemplate } from '../mods/debug';
+import { folderTemplate } from '../mods/folder';
+import { homeTemplate } from '../mods/home';
+import { kanbanTemplate } from '../mods/kanban';
+import { rootTemplate } from '../mods/root';
+import { userTemplate } from '../mods/user';
 import { getExtension, getHost } from '../util/hosts';
 import { hasPrefix, includesTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
@@ -70,6 +66,8 @@ import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
 import { snippetConfig } from '../mods/snippet';
 import { privateIcon } from '../mods/private';
+import { banlistConfig } from '../mods/banlist';
+import { graphConfig } from '../mods/graph';
 
 @Injectable({
   providedIn: 'root',
@@ -84,10 +82,7 @@ export class AdminService {
   def = {
     plugins: <Record<string, Plugin>> {
       debugPlugin: debugPlugin,
-      experiments: experimentsPlugin,
       breakpoint: breakpointPlugin,
-      modlist: modlistPlugin,
-      banlist: banlistPlugin,
       oembed: oEmbedPlugin,
       scrape: scrapePlugin,
       origin: originPlugin,
@@ -96,9 +91,7 @@ export class AdminService {
       originTunnel: originTunnelPlugin,
       feed: feedPlugin,
       delete: deletePlugin,
-      wiki: wikiPlugin,
 
-      apriori: aprioriPlugin,
       inbox: inboxPlugin,
       outbox: outboxPlugin,
       comment: commentPlugin,
@@ -117,7 +110,6 @@ export class AdminService {
       html: htmlPlugin,
       person: personPlugin,
       repost: repostPlugin,
-      graph: graphPlugin,
       invoice: invoicePlugin,
       invoiceRejected: invoiceRejectionPlugin,
       invoiceDisputed: invoiceDisputedPlugin,
@@ -134,7 +126,6 @@ export class AdminService {
       pd: pollOptionDPlugin,
       voteUp: voteUpPlugin,
       voteDown: voteDownPlugin,
-      thanks: thanksPlugin,
     },
     templates: <Record<string, Template>> {
       debugTemplate: debugTemplate,
@@ -156,7 +147,13 @@ export class AdminService {
       terminalTheme: terminalTheme,
 
       // Configs
+      experiments: experimentsConfig,
+      wiki: wikiConfig,
+      graph: graphConfig,
+      modlist: modlistConfig,
+      banlist: banlistConfig,
       snippets: snippetConfig,
+      thanks: thanksConfig,
     },
   };
 

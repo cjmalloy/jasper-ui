@@ -46,10 +46,12 @@ export function addAllHierarchicalTags(tags?: string[])  {
   return flatMap(tags, t => addHierarchicalTags(t))
 }
 
-export function hasTag(tag?: string, ref?: Ref)  {
+export function hasTag(tag?: string, ref?: Ref) {
   if (!tag) return false;
   if (!ref?.tags) return false;
-  return !!find(ref.tags, t => expandedTagsInclude(t, tag));
+  const not = tag.startsWith('!');
+  if (not) tag = tag.substring(1);
+  return !!find(ref.tags, t => expandedTagsInclude(t, tag)) !== not;
 }
 
 export function hasMedia(ref?: Ref)  {

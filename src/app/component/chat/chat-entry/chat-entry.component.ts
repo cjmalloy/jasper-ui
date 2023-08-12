@@ -3,7 +3,7 @@ import { Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/c
 import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
-import { deleteNotice } from '../../../mods/plugin/delete';
+import { deleteNotice } from '../../../mods/delete';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';

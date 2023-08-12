@@ -8,7 +8,7 @@ import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
 import { defaultOrigin } from '../../util/tag';
-import { KanbanConfig } from '../../mods/template/kanban';
+import { KanbanConfig } from '../../mods/kanban';
 import { BookmarkService } from '../../service/bookmark.service';
 
 export interface KanbanDrag {

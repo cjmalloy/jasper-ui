@@ -22,8 +22,8 @@ import {
   visible
 } from '../../model/tag';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
-import { findArchive } from '../../mods/plugin/archive';
-import { deleteNotice } from '../../mods/plugin/delete';
+import { findArchive } from '../../mods/archive';
+import { deleteNotice } from '../../mods/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';

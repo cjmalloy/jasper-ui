@@ -3,15 +3,9 @@ import * as moment from 'moment';
 import { Ref } from './ref';
 import { Config } from './tag';
 
-export type PluginType = 'core' | 'feature' | 'editor' | 'viewer' | 'semantic' | 'tool';
-
 export interface Plugin extends Config {
   type?: 'plugin';
   config?: Config['config'] & {
-    /**
-     * Optional category for setup screen.
-     */
-    type?: PluginType,
     /**
      * Optional flag adding this plugin to the Ref form Add Plugin dropdown.
      */

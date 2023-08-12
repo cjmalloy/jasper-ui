@@ -12,9 +12,9 @@ import { Type } from '../../store/view';
 import { UrlFilter } from '../../util/query';
 import { Ext } from '../../model/ext';
 import { ExtService } from '../../service/api/ext.service';
-import { RootConfig } from '../../mods/template/root';
-import { KanbanConfig } from '../../mods/template/kanban';
-import { UserConfig } from '../../mods/template/user';
+import { RootConfig } from '../../mods/root';
+import { KanbanConfig } from '../../mods/kanban';
+import { UserConfig } from '../../mods/user';
 import { BookmarkService } from '../../service/bookmark.service';
 
 type FilterItem = { filter: UrlFilter, label: string, time?: boolean };

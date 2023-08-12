@@ -4,15 +4,11 @@ import { Ext } from './ext';
 import { Config } from './tag';
 import { Roles } from './user';
 
-export type TemplateType = 'core' | 'config' | 'icon' | 'feature' | 'theme';
+export type TemplateType = 'config' | 'icon' | 'feature' | 'theme' | 'tool';
 
 export interface Template extends Config {
   type?: 'template';
   config?: Config['config'] & {
-    /**
-     * Optional category for setup screen.
-     */
-    type?: TemplateType,
     /**
      * Do not render forms from inherited Templates. If unset forms
      * will stack from abstract to specific inheritance.

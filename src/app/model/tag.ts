@@ -26,6 +26,8 @@ export interface Tag extends HasOrigin {
   name?: string;
 }
 
+export type ModType = 'config' | 'icon' | 'feature' | 'view' | 'plugin' | 'editor' | 'semantic' | 'theme' | 'tool';
+
 export interface Config extends Tag {
   type?: 'plugin' | 'template';
   config?: {
@@ -38,6 +40,10 @@ export interface Config extends Tag {
      * Optional label which can be used to group plugins and templates.
      */
     mod?: string;
+    /**
+     * Optional category for setup screen.
+     */
+    type?: ModType,
     /**
      * Increment-only number to indicate version.
      */

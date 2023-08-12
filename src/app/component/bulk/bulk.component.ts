@@ -4,7 +4,7 @@ import { intersection, map, merge, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
 import { Action, sortOrder } from '../../model/tag';
-import { deleteNotice } from '../../mods/plugin/delete';
+import { deleteNotice } from '../../mods/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';

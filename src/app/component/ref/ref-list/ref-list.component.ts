@@ -4,7 +4,7 @@ import * as moment from 'moment';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
-import { score } from '../../../mods/plugin/vote';
+import { score } from '../../../mods/vote';
 
 @Component({
   selector: 'app-ref-list',

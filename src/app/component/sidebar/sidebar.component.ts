@@ -16,8 +16,8 @@ import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { hasPrefix, localTag, prefix, tagOrigin } from '../../util/tag';
 import { extSelector } from '../../util/format';
-import { RootConfig } from '../../mods/template/root';
-import { UserConfig } from '../../mods/template/user';
+import { RootConfig } from '../../mods/root';
+import { UserConfig } from '../../mods/user';
 import { hydrate } from '../../model/tag';
 
 @Component({

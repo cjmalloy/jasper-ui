@@ -21,7 +21,7 @@
          [queryParams]="{view: null}"
          queryParamsHandling="merge" i18n>list</a>
     </ng-template>
-    <ng-container *ngIf="admin.status.plugins.graph">
+    <ng-container *ngIf="admin.status.templates.graph">
       <a routerLink="./"
          [class.current-tab]="store.view.graph"
          [queryParams]="{view: 'graph'}"

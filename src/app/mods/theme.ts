@@ -11,31 +11,90 @@ export const terminalTheme: Template = {
     description: $localize`Adds a terminal graphics style theme to the global theme list. Will combine
     themes if multiple specified with the same name.`,
     themes: {
-      [$localize`Terminal`]: `
-        * {
-          font-family: monospace;
+      [$localize`Default`]:
+      // language=CSS
+      `
+        body.dark-theme {
+          --bg: #343434;
+          --bg-accent: rgba(90, 90, 90, 0.05);
+          --text: #c9c9c9;
+          --active: #dc5c5c;
+          --info: #969696;
+          --tag: #af5800;
+          --border: lightgrey;
+          --border-accent: rgba(255, 255, 255, 0.4);
+          --unselected-tab: grey;
+          --error: #dc5c5c;
+          --error-bg: #231010;
+          --warning: #967f46;
+          --mod: #4d9339;
+          --card: #3d3d3d;
+          --card-dragging: #4d4d4d;
+          --placeholder: #2c2c2c;
+          --deleting: #dc5c5c;
         }
-        body.dark-theme, body.dark-theme ::backdrop, body.dark-theme .editor.fullscreen app-md {
-          background-color: #333;
-          background-image: none;
-          background-blend-mode: normal;
-        }
-        body.dark-theme .container {
-          background: none;
-        }
-        body.light-theme, body.light-theme ::backdrop, body.light-theme .editor.fullscreen app-md {
-          background-color: #EEE;
-          background-image: none;
-          background-blend-mode: normal;
-        }
-        .sidebar details summary span:after {
-          content: '+';
-        }
-        .sidebar details[open] summary span:after {
-          content: '+';
-          transform: rotate(-135deg);
+        body.light-theme {
+          --bg: white;
+          --bg-accent: rgba(0, 0, 0, 0.05);
+          --text: black;
+          --blue: rgba(207, 221, 255, 0.7);
+          --active: #da0000;
+          --info: gray;
+          --tag: #3d3dbb;
+          --tag-accent: #f3ebc7;
+          --border: black;
+          --border-accent: rgba(0, 0, 0, 0.4);
+          --border-light: rgba(0, 0, 0, 0.2);
+          --unselected-tab: #b3b9c4;
+          --error: #da0000;
+          --error-bg: #ffa9a9;
+          --warning: #c1c500;
+          --mod: #136500;
+          --card: #f3ebc7;
+          --placeholder: #efebdf;
+          --deleting: #ffa9a9;
         }
       `,
+      [$localize`Terminal`]:
+      // language=CSS
+        `
+          * {
+            font-family: monospace;
+          }
+
+          body.dark-theme {
+            --bg: #333;
+            --tag: #364f57;
+            --mod: #b44125;
+          }
+
+          body.light-theme {
+            --bg: #EEE;
+          }
+
+          body.dark-theme, body.dark-theme ::backdrop, body.dark-theme .editor.fullscreen app-md {
+            background-image: none;
+            background-blend-mode: normal;
+          }
+
+          body.dark-theme .container {
+            background: none;
+          }
+
+          body.light-theme, body.light-theme ::backdrop, body.light-theme .editor.fullscreen app-md {
+            background-image: none;
+            background-blend-mode: normal;
+          }
+
+          .sidebar details summary > span:after {
+            content: '+';
+          }
+
+          .sidebar details[open] summary > span:after {
+            content: '+';
+            transform: rotate(-135deg);
+          }
+        `,
     },
   },
 };

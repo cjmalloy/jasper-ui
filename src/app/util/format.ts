@@ -1,11 +1,10 @@
 import { filter, sortBy, uniq } from 'lodash-es';
-import { Plugin, PluginType } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { Template, TemplateType } from '../model/template';
 import { reverseOrigin } from '../mods/mailbox';
 import { config } from '../service/config.service';
 import { hasPrefix, hasTag } from './tag';
 import { Ext } from '../model/ext';
+import { Config, ModType } from '../model/tag';
 
 export const URI_REGEX = /^[^\s:/?#]+:(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
 export const TAG_REGEX = /^[_+]?[a-z0-9]+([./][a-z0-9]+)*$/;
@@ -99,22 +98,24 @@ export function isTextPost(ref: Ref) {
 }
 
 export const DEFAULT_TYPE = 'feature';
-export function configGroups(def: Record<string, Plugin|Template>, mods = false): Record<PluginType|TemplateType, [string, Plugin|Template][]> {
+export function configGroups(def: Record<string, Config>): Record<ModType, [string, Config][]> {
   let result = Object.entries(def).reduce((result, item) => {
-    const mod = item[1].config?.mod;
-    if (mods == !!mod) {
-      const type: [string, Plugin|Template][] = result[item[1].config?.type || DEFAULT_TYPE] ||= [];
-      if (!mod || !type.find(i => mod === i[1].config?.mod)) {
-        type.push(item);
-      }
+    const mod = modId(item[1]);
+    const type: [string, Config][] = result[item[1].config?.type || DEFAULT_TYPE] ||= [];
+    if (!type.find(i => mod === modId(i[1]))) {
+      type.push(item);
     }
     return result;
-  }, {} as Record<PluginType|TemplateType, [string, Plugin|Template][]>)
-  for (const k of Object.keys(result) as PluginType|TemplateType[]) {
+  }, {} as Record<ModType, [string, Config][]>)
+  for (const k of Object.keys(result) as ModType[]) {
     // @ts-ignore
     result[k] = sortBy(result[k], [e => e[1]!.tag.match(/^[+_]/) ? e[1]!.tag.substring(1) : e[1]!.tag]);
   }
   return result;
+}
+
+export function modId(c: Config) {
+  return c.config?.mod || c.name || c.tag;
 }
 
 export function trimCommentForTitle(comment: string): string {

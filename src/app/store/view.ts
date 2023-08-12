@@ -9,7 +9,7 @@ import { UrlFilter } from '../util/query';
 import { hasPrefix, isQuery, localTag } from '../util/tag';
 import { EventBus } from './bus';
 import { AccountStore } from "./account";
-import { RootConfig } from '../mods/template/root';
+import { RootConfig } from '../mods/root';
 
 /**
  * ID for current view. Only includes pages that make queries.
@@ -217,6 +217,10 @@ export class ViewStore {
 
   get noTemplate(): boolean {
     return this.route.routeSnapshot?.queryParams['noTemplate'] === 'true';
+  }
+
+  get home(): boolean {
+    return this.route.routeSnapshot?.queryParams['home'] === 'true';
   }
 
   get query() {
