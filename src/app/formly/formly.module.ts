@@ -30,6 +30,7 @@ import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldSelect } from './select.type';
 import { FormlyFieldTextArea } from './textarea.type';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 @NgModule({
   declarations: [
@@ -56,6 +57,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
   imports: [
     BrowserModule,
     ReactiveFormsModule,
+    DragDropModule,
     OverlayModule,
     FormlySelectModule,
     FormlyModule.forRoot({

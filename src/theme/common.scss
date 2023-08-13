@@ -681,10 +681,6 @@ details.mini:not([open]) {
   margin: 0 !important;
 }
 
-formly-list-section .form-array > formly-field > formly-group {
-  width: 100%
-}
-
 .form,
 formly-list-section .form-array > formly-field > formly-group {
   max-width: 600px;
@@ -714,13 +710,6 @@ formly-list-section .form-array > formly-field > formly-group {
     }
   }
 
-  formly-list-section > .form-group > .form-array > formly-field > formly-wrapper-form-field {
-    & > label,
-    & > formly-field-input > .form-array {
-      margin: 0 4px;
-    }
-  }
-
   & > * {
     margin: 4px;
   }
@@ -732,20 +721,9 @@ formly-list-section .form-array > formly-field > formly-group {
   }
 
   label {
+    user-select: none;
     white-space: nowrap;
     text-align: right;
-  }
-
-  formly-field-radio, formly-field-multicheckbox {
-    margin: 0;
-    display: grid;
-    grid-template-columns: min-content auto;
-    * {
-      margin: 4px;
-    }
-    label {
-      text-align: left;
-    }
   }
 }
 
@@ -772,6 +750,68 @@ formly-list-section .form-array > formly-field > formly-group {
   input {
     flex: 1;
     flex-basis: 100%;
+  }
+}
+
+.drag-handle {
+  &:after {
+    content: '≡';
+  }
+  align-self: center;
+  user-select: none;
+  cursor: grab;
+  transition: transform 100ms ease-in-out;
+  transform: scale(2);
+  &:hover {
+    transform: scale(2.4);
+  }
+}
+
+formly-list-section > .form-group {
+  .form-array > formly-field > formly-group {
+    width: 100%
+  }
+  & > .form-array > formly-field > formly-wrapper-form-field {
+    & > label {
+      cursor: grab;
+      transition: transform 100ms ease-in-out;
+      &:hover {
+        transform: scale(1.2);
+      }
+    }
+    & > label,
+    & > formly-field-input > .form-array {
+      margin: 0 4px;
+    }
+  }
+
+  .cdk-drag-placeholder {
+    opacity: 0.5;
+    & > .cdk-drag-handle,
+    & > formly-field > formly-wrapper-form-field > .cdk-drag-handle {
+      visibility: hidden;
+    }
+  }
+}
+
+.list-drag.cdk-drag-preview {
+  cursor: grabbing !important;
+  & > formly-field > formly-group,
+  formly-field-input,
+  button {
+    visibility: hidden;
+  }
+}
+
+formly-field-radio, formly-field-multicheckbox {
+  margin: 0;
+  display: grid;
+  grid-template-columns: min-content auto;
+  * {
+    margin: 4px;
+  }
+  label {
+    text-align: left;
   }
 }
 

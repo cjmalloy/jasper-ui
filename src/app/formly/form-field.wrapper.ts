@@ -1,10 +1,11 @@
-import { Component, HostBinding } from '@angular/core';
+import { Component, HostBinding, Inject, Optional, ViewChild } from '@angular/core';
 import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
+import { CDK_DRAG_PARENT, CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'formly-wrapper-form-field',
   template: `
-    <label [attr.for]="id" class="form-label" [class.required]="props.required">
+    <label cdkDragHandle [attr.for]="id" class="form-label" [class.required]="props.required">
       {{ props.label || '' }}
     </label>
     <ng-template #fieldComponent></ng-template>
@@ -32,5 +33,18 @@ export class FormlyWrapperFormField extends FieldWrapper<FormlyFieldConfig> {
   @HostBinding('title')
   get title() {
     return this.props.title || '';
+  }
+
+  @ViewChild(CdkDragHandle) handle?: CdkDragHandle;
+
+  constructor(@Optional() @Inject(CDK_DRAG_PARENT) public cdk: CdkDrag) {
+    super();
+  }
+
+  ngAfterViewInit() {
+    if (this.cdk && this.props.label) {
+        // @ts-ignore
+      this.cdk._handles.reset([...this.cdk._handles._results, this.handle]);
+    }
   }
 }
