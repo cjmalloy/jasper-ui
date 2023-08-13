@@ -15,7 +15,6 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { hasPrefix, localTag, prefix, tagOrigin } from '../../util/tag';
-import { extSelector } from '../../util/format';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
 import { hydrate } from '../../model/tag';
@@ -234,10 +233,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   set showRemotes(value: boolean) {
     this.router.navigate([], { queryParams: { showRemotes: value ? true : null }, queryParamsHandling: 'merge' })
-  }
-
-  extLink(selector: string, ext: Ext) {
-    return extSelector(selector, ext, this.store.account.origin);
   }
 
   render(templates: Template[]): string {

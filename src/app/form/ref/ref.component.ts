@@ -50,7 +50,6 @@ export class RefFormComponent implements OnInit {
     private admin: AdminService,
     private editor: EditorService,
     private scrape: ScrapeService,
-    private store: Store,
     private oembeds: OembedStore,
   ) { }
 

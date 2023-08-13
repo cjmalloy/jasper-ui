@@ -15,7 +15,7 @@ import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 import { hasPrefix, parentTag } from '../../util/tag';
-import { extLink, tagLink } from '../../util/format';
+import { tagLink } from '../../util/format';
 
 @Component({
   selector: 'app-ext',
@@ -80,7 +80,7 @@ export class ExtComponent implements OnInit {
   get parent() {
     const p = parentTag(this.ext.tag);
     if (!p) return p;
-    return tagLink(p, this.ext.origin || '', this.store.account.origin);
+    return tagLink(p, this.ext.origin, this.store.account.origin);
   }
 
   get local() {
@@ -88,7 +88,7 @@ export class ExtComponent implements OnInit {
   }
 
   get extLink() {
-    return extLink(this.ext, this.store.account.origin);
+    return tagLink(this.ext.tag, this.ext.origin, this.store.account.origin);
   }
 
   save() {

@@ -12,7 +12,7 @@
     </ng-container>
     <ng-container *ngIf="bookmarkExts$ | async as bookmarkExts; else bookNoExts">
       <ng-container *ngFor="let b of bookmarkExts; let i = index">
-        &bullet; <a [routerLink]="['/tag', extLink(store.account.bookmarks[i], b)]" routerLinkActive="current-page">{{ b.name || extLink(store.account.bookmarks[i], b) }}</a>
+        &bullet; <a [routerLink]="['/tag', store.account.bookmarks[i]]" routerLinkActive="current-page">{{ b.name || store.account.bookmarks[i] }}</a>
       </ng-container>
     </ng-container>
     <ng-template #bookNoExts>
@@ -22,7 +22,7 @@
     </ng-template>
     <ng-container *ngIf="subExts$ | async as subExts; else subNoExts">
       <ng-container *ngFor="let sub of subExts; let i = index">
-        &bullet; <a [routerLink]="['/tag', extLink(store.account.subs[i], sub)]" routerLinkActive="current-page">{{ sub.name || extLink(store.account.subs[i], sub) }}</a>
+        &bullet; <a [routerLink]="['/tag', store.account.subs[i]]" routerLinkActive="current-page">{{ sub.name || store.account.subs[i] }}</a>
       </ng-container>
     </ng-container>
     <ng-template #subNoExts>

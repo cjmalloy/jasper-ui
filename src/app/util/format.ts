@@ -146,17 +146,8 @@ export function getRe(title?: string) {
   return $localize`Re: ` + title;
 }
 
-export function extSelector(selector: string, ext: Ext, local: string) {
-  if (selector.includes('@')) return selector;
-  return extLink(ext, local);
-}
-
-export function extLink(ext: Ext, local: string) {
-  return tagLink(ext.tag, ext.origin || '', local);
-}
-
-export function tagLink(tag: string, origin: string, local: string) {
+export function tagLink(tag: string, origin?: string, local?: string) {
   if (local === origin || !local && !origin) return tag;
-  if (!origin) return tag + '@';
-  return tag + origin;
+  if (local && !origin) return tag + '@';
+  return tag + (origin || '');
 }

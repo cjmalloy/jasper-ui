@@ -176,7 +176,7 @@
       My Bookmarks:
       <br>
       <ng-container *ngFor="let book of bookmarks$ | async; let i = index">
-        <a class="tag" [routerLink]="['/tag', extLink(userConfig!.bookmarks![i], book)]">{{ book.name || extLink(userConfig!.bookmarks![i], book) }}</a>
+        <a class="tag" [routerLink]="['/tag', userConfig!.bookmarks![i]]">{{ book.name || userConfig!.bookmarks![i] }}</a>
         <br>
       </ng-container>
       <br *ngIf="ext?.config?.subscriptions?.length">
@@ -185,7 +185,7 @@
       Following:
       <br>
       <ng-container *ngFor="let sub of userSubs$ | async; let i = index">
-        <a class="tag" [routerLink]="['/tag', extLink(userSubs![i], sub)]">{{ sub.name || extLink(userSubs![i], sub) }}</a>
+        <a class="tag" [routerLink]="['/tag', userSubs![i]]">{{ sub.name || userSubs![i] }}</a>
         <br>
       </ng-container>
     </div>
@@ -193,7 +193,7 @@
       Subscribed to:
       <br>
       <ng-container *ngFor="let sub of tagSubs$ | async; let i = index">
-        <a class="tag" [routerLink]="['/tag', extLink(tagSubs![i], sub)]">{{ sub.name || extLink(tagSubs![i], sub) }}</a>
+        <a class="tag" [routerLink]="['/tag', tagSubs![i]]">{{ sub.name || tagSubs![i] }}</a>
         <br>
       </ng-container>
     </div>
