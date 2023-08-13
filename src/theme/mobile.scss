@@ -239,6 +239,11 @@ $tablet-width: 767px;
     overflow-y: hidden;
     overflow-x: auto;
     white-space: nowrap;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 
     a, .fake-link {
       line-height: 28px;
