@@ -1,15 +1,20 @@
 import { Component, HostBinding } from '@angular/core';
 import { FieldArrayType } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'formly-list-section',
   template: `
     <label>{{ props.label || '' }}</label>
-    <div class="form-group">
+    <div class="form-group"
+         cdkDropList
+         cdkScrollable
+         (cdkDropListDropped)="drop($any($event))">
       <button type="button" (click)="add()">{{ props.addText }}</button>
       <ng-container *ngFor="let field of field.fieldGroup; let i = index">
-        <div class="form-array">
+        <div class="form-array list-drag"
+             cdkDrag>
           <formly-field
             class="grow"
             [class.hide-errors]="!groupArray"
@@ -34,7 +39,7 @@ export class ListTypeComponent extends FieldArrayType {
     return this.field.fieldArray.fieldGroup;
   }
 
-  override add(index?: number) {
+  override add(index?: number, ...rest: any[]) {
     super.add(...arguments);
     this.focus(index);
   }
@@ -95,5 +100,11 @@ export class ListTypeComponent extends FieldArrayType {
         el.setSelectionRange(0, el.value.length);
       }
     });
+  }
+
+  drop(event: CdkDragDrop<any>) {
+    const moved = this.model[event.previousIndex];
+    this.remove(event.previousIndex);
+    this.add(event.currentIndex - (event.currentIndex <= event.previousIndex ? 0 : 1), moved);
   }
 }
