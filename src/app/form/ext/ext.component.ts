@@ -49,13 +49,17 @@ export class ExtFormComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  get user() {
+    if (!this.admin.status.templates.user) return false;
+    return hasPrefix(this.group.get('tag')!.value, 'user');
+  }
+
   get config() {
     return this.group.get('config') as UntypedFormGroup;
   }
 
   get inbox() {
     if (!this.admin.status.plugins.inbox) return null;
-    if (hasPrefix(this.group.get('tag')!.value, 'user')) return null;
     return getMailbox(this.group.get('tag')!.value);
   }
 
@@ -106,16 +110,8 @@ export class ExtFormComponent implements OnInit {
     return uniq([...Object.keys(this.userThemes?.value), ...this.admin.themes.flatMap(p => Object.keys(p.config!.themes!))]);
   }
 
-  get theme() {
-    return this.config.get('theme') as UntypedFormControl;
-  }
-
   get pinned() {
     return this.config.get('pinned') as UntypedFormControl;
-  }
-
-  get userTheme() {
-    return this.config.get('userTheme') as UntypedFormControl;
   }
 
   setValue(ext: Ext) {
@@ -141,12 +137,19 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
   if (admin.status.templates.root) {
     configControls = {
       ...configControls,
-      defaultSort: ['published'],
+      defaultSort: [''],
       sidebar: [''],
       modmail: [false],
       pinned: linksForm(fb, ext?.config?.pinned || []),
       themes: themesForm(fb, ext?.config?.themes || []),
       theme: [''],
+    };
+  }
+  if (admin.status.templates.user && hasPrefix(ext?.tag, 'user')) {
+    configControls = {
+      ...configControls,
+      userThemes: themesForm(fb, ext?.config?.themes || []),
+      userTheme: [''],
     };
   }
   return fb.group({

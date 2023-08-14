@@ -15,6 +15,7 @@ export const userTemplate: Template = {
     filters: [
       { query: '+user|_user', label: $localize`🧑️ user`, group: $localize`Templates 🎨️` },
     ],
+    overrideForm: true,
     form: [{
       key: 'liveSearch',
       type: 'boolean',
@@ -55,12 +56,68 @@ export const userTemplate: Template = {
         addText: $localize`+ Add another editor`,
       }
     }, {
+      key: 'pinned',
+      type: 'urls',
+      props: {
+        label: $localize`Pinned:`,
+        addText: $localize`+ Add another pinned link`,
+      },
+      fieldArray: {
+        props: {
+          label: $localize`📌️`,
+        }
+      },
+    }, {
+      key: 'queryFilters',
+      type: 'list',
+      props: {
+        label: $localize`Query Filters:`,
+        addText: $localize`+ Add another query filter`,
+      },
+      fieldArray: {
+        fieldGroup: [{
+          key: 'label',
+          type: 'string',
+          props: {
+            label: $localize`Label:`
+          }
+        }, {
+          key: 'query',
+          type: 'query',
+          props: {
+            required: true,
+          }
+        }]
+      }
+    }, {
+      key: 'responseFilters',
+      type: 'list',
+      props: {
+        label: $localize`Response Filters:`,
+        addText: $localize`+ Add another response filter`,
+      },
+      fieldArray: {
+        fieldGroup: [{
+          key: 'label',
+          type: 'string',
+          props: {
+            label: $localize`Label:`
+          }
+        }, {
+          key: 'response',
+          type: 'plugin',
+          props: {
+            required: true,
+          }
+        }]
+      }
+    }, {
       key: 'kanbanLoadSize',
       type: 'number',
       props: {
         label: $localize`Kanban Load Size:`,
       }
-    }]
+    }],
   },
   defaults: <UserConfig> {
     subscriptions: defaultSubs,

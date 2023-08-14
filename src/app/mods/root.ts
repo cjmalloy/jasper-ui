@@ -11,11 +11,16 @@ export const rootTemplate: Template = {
     description: $localize`Add common features Ext tag pages: Adding pinned Refs, sidebar markdown,
     a custom theme and a set of non-global custom themes to choose from in addition to global themes.`,
     form: [{
-      key: 'addTags',
-      type: 'tags',
-      defaultValue: ['public'],
+      key: 'pinned',
+      type: 'urls',
       props: {
-        label: $localize`Add Tags:`
+        label: $localize`Pinned:`,
+        addText: $localize`+ Add another pinned link`,
+      },
+      fieldArray: {
+        props: {
+          label: $localize`📌️`,
+        }
       },
     }, {
       key: 'submitText',
@@ -24,11 +29,18 @@ export const rootTemplate: Template = {
         label: $localize`Text Posts:`
       }
     }, {
+      key: 'addTags',
+      type: 'tags',
+      defaultValue: ['public'],
+      props: {
+        label: $localize`Add Tags:`
+      },
+    }, {
       key: 'queryFilters',
       type: 'list',
       props: {
         label: $localize`Query Filters:`,
-        addText: $localize`+ Add another filter`,
+        addText: $localize`+ Add another query filter`,
       },
       fieldArray: {
         fieldGroup: [{
@@ -45,12 +57,13 @@ export const rootTemplate: Template = {
           }
         }]
       }
-    }, {
+    }],
+    advancedForm: [{
       key: 'responseFilters',
       type: 'list',
       props: {
         label: $localize`Response Filters:`,
-        addText: $localize`+ Add another reponse filter`,
+        addText: $localize`+ Add another response filter`,
       },
       fieldArray: {
         fieldGroup: [{
@@ -67,7 +80,10 @@ export const rootTemplate: Template = {
           }
         }]
       }
-    }]
+    }],
+  },
+  defaults: <RootConfig> {
+    defaultSort: 'published',
   },
   schema: {
     optionalProperties: {

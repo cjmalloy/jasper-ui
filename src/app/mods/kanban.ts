@@ -76,6 +76,7 @@ export const kanbanTemplate: Template = {
     }]
   },
   defaults: <KanbanConfig> {
+    defaultSort: 'modified,desc',
     submitText: true,
     columns: [],
     badges: ['p1', 'p2', 'p3', 'p4', 'p5']
