@@ -106,6 +106,6 @@ export class ListTypeComponent extends FieldArrayType {
   drop(event: CdkDragDrop<any>) {
     const moved = this.model[event.previousIndex];
     this.remove(event.previousIndex);
-    super.add(event.currentIndex - (event.currentIndex < event.previousIndex ? 0 : 1), moved);
+    super.add(event.currentIndex, moved);
   }
 }
