@@ -664,6 +664,16 @@ details.mini:not([open]) {
     max-height: 57px;
     line-height: 57px;
   }
+
+  .cdk-virtual-scroll-content-wrapper,
+  .form-container {
+    display: contents;
+  }
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .grow {
@@ -725,6 +735,12 @@ formly-list-section .form-array > formly-field > formly-group {
     white-space: nowrap;
     text-align: right;
   }
+}
+
+.form-container {
+  display: contents;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .form-group > * {
