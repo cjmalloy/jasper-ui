@@ -104,7 +104,16 @@
   </span>
 
   <div class="hide tag-header" *ngIf="home">
-    <h3><a [routerLink]="['/home']" i18n>Home</a></h3>
+    <ng-container *ngIf="!store.view.forYou">
+      <h3><a [routerLink]="['/home']" i18n>Home</a></h3>
+    </ng-container>
+
+    <ng-container *ngIf="store.view.forYou">
+      <h3><a [routerLink]="['/home']" [queryParams]="{ forYou: true }" i18n>For You</a></h3>
+      <p *ngIf="!store.account.userSubs.length" i18n>
+        Follow other users to see their subscriptions alongside yours here.
+      </p>
+    </ng-container>
 
     <ng-container *ngIf="homeWriteAccess">
       <a *ngIf="admin.status.templates.home"
