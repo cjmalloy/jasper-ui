@@ -86,10 +86,27 @@
   <ng-container *ngIf="advancedForm?.length">
     <details class="advanced">
       <summary><span i18n>Advanced</span></summary>
-      <formly-form class="form"
-                   [form]="config"
-                   [fields]="advancedForm!"
-                   [options]="options"></formly-form>
+
+      <div class="form">
+        <ng-container *ngIf="defaultSort && user">
+          <label for="defaultSortAdvanced" i18n>Default Sort:</label>
+          <span class="form-array">
+        <select id="defaultSortAdvanced" (input)="setSortCol($any($event.target).value)">
+          <option></option>
+          <option *ngFor="let opt of allSorts"
+                  [selected]="sortCol === opt.value"
+                  [value]="opt.value">{{ opt.label || opt.value }}</option>
+        </select>
+        <button *ngIf="sortDir === 'DESC'" type="button" (click)="setSortDir('ASC')">🔽️</button>
+        <button *ngIf="sortDir === 'ASC'" type="button" (click)="setSortDir('DESC')">🔼️</button>
+      </span>
+        </ng-container>
+
+        <formly-form class="nested-form"
+                     [form]="config"
+                     [fields]="advancedForm!"
+                     [options]="options"></formly-form>
+      </div>
     </details>
   </ng-container>
 
