@@ -55,10 +55,21 @@ export class QueryComponent implements OnInit {
 
   private queryCrumbs(query: string): Crumb[] {
     if (!query) return [];
-    return fixClientQuery(query).split(/([:|()])/g).flatMap(t => {
-      if (/[:|()]/.test(t)) return [{ text: t }];
+    return fixClientQuery(query).split(/([:|()]+)/g).flatMap(t => {
+      if (/[:|()]+/.test(t)) return [{ text: this.querySymbol(t.split('') as any) }];
       return this.tagCrumbs(t);
     });
+  }
+
+  private querySymbol(ops: (':' | '|' | '(' | ')')[]): string {
+    return ops.map(op => {
+      switch (op) {
+        case ':': return $localize`∩`;
+        case '|': return $localize`∪`;
+        case '(': return $localize`(`;
+        case ')': return $localize`)`;
+      }
+    }).join(' ');
   }
 
   private tagCrumbs(tag: string) {
