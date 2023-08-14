@@ -26,7 +26,7 @@ export interface Tag extends HasOrigin {
   name?: string;
 }
 
-export type ModType = 'config' | 'icon' | 'feature' | 'view' | 'plugin' | 'editor' | 'semantic' | 'theme' | 'tool';
+export type ModType = 'config' | 'icon' | 'feature' | 'template' | 'plugin' | 'editor' | 'semantic' | 'theme' | 'tool';
 
 export interface Config extends Tag {
   type?: 'plugin' | 'template';
