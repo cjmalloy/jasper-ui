@@ -81,8 +81,6 @@ export class AdminService {
 
   def = {
     plugins: <Record<string, Plugin>> {
-      debugPlugin: debugPlugin,
-      breakpoint: breakpointPlugin,
       oembed: oEmbedPlugin,
       scrape: scrapePlugin,
       origin: originPlugin,
@@ -126,6 +124,9 @@ export class AdminService {
       pd: pollOptionDPlugin,
       voteUp: voteUpPlugin,
       voteDown: voteDownPlugin,
+
+      debugPlugin: debugPlugin,
+      breakpoint: breakpointPlugin,
     },
     templates: <Record<string, Template>> {
       debugTemplate: debugTemplate,
