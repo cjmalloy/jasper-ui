@@ -1,4 +1,4 @@
-import { Component, HostBinding } from '@angular/core';
+import { Component, HostBinding, HostListener } from '@angular/core';
 import { FieldArrayType } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
@@ -10,11 +10,13 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
     <div class="form-group"
          cdkDropList
          cdkScrollable
+         [cdkDropListData]="this"
          (cdkDropListDropped)="drop($any($event))">
       <button type="button" (click)="add()">{{ props.addText }}</button>
       <ng-container *ngFor="let field of field.fieldGroup; let i = index">
         <div class="form-array list-drag"
              cdkDrag
+             [cdkDragData]="model[i]"
              cdkDragRootElement="formly-wrapper-form-field label">
           <div *ngIf="groupArray" cdkDragHandle class="drag-handle"></div>
           <formly-field class="grow"
@@ -30,6 +32,8 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
   `,
 })
 export class ListTypeComponent extends FieldArrayType {
+  private crtl = false;
+
   @HostBinding('title')
   get title() {
     return this.props.title || '';
@@ -43,6 +47,16 @@ export class ListTypeComponent extends FieldArrayType {
   override add(index?: number) {
     super.add(...arguments);
     this.focus(index);
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  windowKeydown(e: KeyboardEvent) {
+    this.crtl = e.ctrlKey;
+  }
+
+  @HostListener('window:keyup', ['$event'])
+  windowKeyup(e: KeyboardEvent) {
+    this.crtl = e.ctrlKey;
   }
 
   keydown(event: KeyboardEvent, index: number) {
@@ -103,9 +117,10 @@ export class ListTypeComponent extends FieldArrayType {
     });
   }
 
-  drop(event: CdkDragDrop<any>) {
-    const moved = this.model[event.previousIndex];
-    this.remove(event.previousIndex);
-    super.add(event.currentIndex, moved);
+  drop(event: CdkDragDrop<ListTypeComponent>) {
+    if (!this.crtl || event.previousContainer === event.container) {
+      event.previousContainer.data.remove(event.previousIndex);
+    }
+    super.add(event.currentIndex, event.item.data);
   }
 }
