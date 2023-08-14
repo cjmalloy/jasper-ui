@@ -18,6 +18,7 @@ import { Store } from '../../../store/store';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
+import { downloadSet } from '../../../util/download';
 
 @Component({
   selector: 'app-upload',
@@ -262,6 +263,11 @@ export class UploadPage implements OnDestroy {
   clear(upload: HTMLInputElement) {
     upload.value = '';
     this.store.submit.clearUpload();
+  }
+
+  download() {
+    if (this.store.submit.empty) return;
+    return downloadSet(this.store.submit.refs, this.store.submit.exts, 'uploads');
   }
 
   push() {
