@@ -159,7 +159,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get userConfig() {
-    if (!this.user) return null;
+    if (!this.user && !this.home) return null;
     return this._ext?.config as UserConfig;
   }
 
