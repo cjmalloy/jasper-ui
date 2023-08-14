@@ -98,7 +98,7 @@ export class ThemeService {
   }
 
   private getUserCss() {
-    return this.getTheme(this.store.account.config.userTheme!, [this.store.account.config.userThemes || {}, ...this.admin.themes.map(p => p.config!.themes!)]);
+    return this.getTheme(this.store.account.config.userTheme!, [this.store.account.config.themes || {}, ...this.admin.themes.map(p => p.config!.themes!)]);
   }
 
   private getExtCss() {

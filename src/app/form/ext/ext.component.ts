@@ -98,8 +98,8 @@ export class ExtFormComponent implements OnInit {
     return this.config.get('themes') as UntypedFormGroup;
   }
 
-  get userThemes() {
-    return this.config.get('userThemes') as UntypedFormGroup;
+  get userTheme() {
+    return this.config.get('userTheme') as UntypedFormGroup;
   }
 
   get themeValues() {
@@ -107,7 +107,7 @@ export class ExtFormComponent implements OnInit {
   }
 
   get userThemeValues() {
-    return uniq([...Object.keys(this.userThemes?.value), ...this.admin.themes.flatMap(p => Object.keys(p.config!.themes!))]);
+    return uniq([...Object.keys(this.themes?.value), ...this.admin.themes.flatMap(p => Object.keys(p.config!.themes!))]);
   }
 
   get pinned() {
@@ -148,7 +148,6 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
   if (admin.status.templates.user && hasPrefix(ext?.tag, 'user')) {
     configControls = {
       ...configControls,
-      userThemes: themesForm(fb, ext?.config?.themes || []),
       userTheme: [''],
     };
   }

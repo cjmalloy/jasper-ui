@@ -12,6 +12,16 @@
 
   <ng-container [formGroup]="config">
 
+    <ng-container *ngIf="userTheme">
+      <label for="userTheme" i18n>User Theme:</label>
+      <div i18n-title title="This theme will be used on every page. Tag page themes will be ignored.">
+        <select id="userTheme" formControlName="userTheme">
+          <option [ngValue]="undefined" i18n>default</option>
+          <option *ngFor="let t of userThemeValues" [ngValue]="t">{{ t }}</option>
+        </select>
+      </div>
+    </ng-container>
+
     <ng-container *ngIf="defaultSort && !user">
       <label for="defaultSort" i18n>Default Sort:</label>
       <span class="form-array">
@@ -49,23 +59,6 @@
       </div>
     </ng-container>
 
-    <ng-container *ngIf="userThemes">
-      <label for="userTheme" i18n>All Theme Override:</label>
-      <div>
-        <select id="userTheme" formControlName="userTheme">
-          <option [ngValue]="undefined" i18n>default</option>
-          <option *ngFor="let t of userThemeValues" [ngValue]="t">{{ t }}</option>
-        </select>
-
-        <details *ngIf="themes" class="advanced mini">
-          <summary i18n-title title="Custom User Themes"><span><span class="summary-open" i18n>Custom User Themes</span></span></summary>
-          <app-themes id="userThemes"
-                      [group]="config"
-                      fieldName="userThemes"></app-themes>
-        </details>
-      </div>
-    </ng-container>
-
     <ng-container *ngIf="themes">
       <label for="theme" i18n>Tag Page Theme:</label>
       <div>
@@ -92,15 +85,15 @@
         <ng-container *ngIf="defaultSort && user">
           <label for="defaultSortAdvanced" i18n>Default Sort:</label>
           <span class="form-array">
-        <select id="defaultSortAdvanced" (input)="setSortCol($any($event.target).value)">
-          <option></option>
-          <option *ngFor="let opt of allSorts"
-                  [selected]="sortCol === opt.value"
-                  [value]="opt.value">{{ opt.label || opt.value }}</option>
-        </select>
-        <button *ngIf="sortDir === 'DESC'" type="button" (click)="setSortDir('ASC')">🔽️</button>
-        <button *ngIf="sortDir === 'ASC'" type="button" (click)="setSortDir('DESC')">🔼️</button>
-      </span>
+            <select id="defaultSortAdvanced" (input)="setSortCol($any($event.target).value)">
+              <option></option>
+              <option *ngFor="let opt of allSorts"
+                      [selected]="sortCol === opt.value"
+                      [value]="opt.value">{{ opt.label || opt.value }}</option>
+            </select>
+            <button *ngIf="sortDir === 'DESC'" type="button" (click)="setSortDir('ASC')">🔽️</button>
+            <button *ngIf="sortDir === 'ASC'" type="button" (click)="setSortDir('DESC')">🔼️</button>
+          </span>
         </ng-container>
 
         <formly-form class="nested-form"

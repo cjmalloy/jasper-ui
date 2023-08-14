@@ -131,7 +131,6 @@ export const userTemplate: Template = {
       bookmarks: { elements: { type: 'string' } },
       alarms: { elements: { type: 'string' } },
       editors: { elements: { type: 'string' } },
-      userThemes: { values: { type: 'string' } },
       userTheme: { type: "string" },
       kanbanLoadSize: { type: "uint8" },
     }
@@ -146,7 +145,6 @@ export interface UserConfig extends RootConfig {
   bookmarks?: string[];
   alarms?: string[];
   editors?: string[];
-  userThemes?: Record<string, string>;
   userTheme?: string;
   kanbanLoadSize?: number;
 }
