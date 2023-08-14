@@ -6,10 +6,14 @@
     <a routerLink="/tags" [queryParams]="{ noTemplate: true, home: null }" routerLinkActive="current-tab" queryParamsHandling="merge" i18n-title title="🏷️ Tags" i18n>🏷️</a>
     <a *ngFor="let tmpl of templates"
        [routerLink]="['/tags', tmpl.tag]"
-       [queryParams]="{ noTemplate: null }"
+       [queryParams]="{ noTemplate: null, home: null }"
        routerLinkActive="current-tab"
        queryParamsHandling="merge" [title]="tmpl.name">{{ tmpl.config!.view }}</a>
-    <a routerLink="/tags/user" [queryParams]="{ noTemplate: null }" routerLinkActive="current-tab" queryParamsHandling="merge" i18n-title title="🧑️ User" i18n>🧑️</a>
+    <a routerLink="/tags/+user"
+       [queryParams]="{ noTemplate: null, home: null }"
+       routerLinkActive="current-tab"
+       queryParamsHandling="merge"
+       i18n-title title="🧑️ User" i18n>🧑️</a>
     <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
   </div>
