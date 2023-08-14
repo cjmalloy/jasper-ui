@@ -104,10 +104,10 @@ export class SettingsSetupPage implements OnInit {
     }).pipe(retry(10));
   }
 
-  deletePlugin$(status: Plugin, mod = false) {
-    if (!mod && status.config?.mod) return this.deleteMod$(status.config?.mod);
-    this.installMessages.push($localize`Deleting ${status.name || status.tag} plugin...`);
-    return this.plugins.delete(status.tag + (status.origin || ''));
+  deletePlugin$(p: Plugin, mod = false) {
+    if (!mod && p.config?.mod) return this.deleteMod$(p.config?.mod);
+    this.installMessages.push($localize`Deleting ${p.name || p.tag} plugin...`);
+    return this.plugins.delete(p.tag + this.store.account.origin);
   }
 
   installTemplate$(def: Template, mod = false) {
@@ -119,10 +119,10 @@ export class SettingsSetupPage implements OnInit {
     }).pipe(retry(10));
   }
 
-  deleteTemplate$(status: Template, mod = false) {
-    if (!mod && status.config?.mod) return this.deleteMod$(status.config?.mod);
-    this.installMessages.push($localize`Deleting ${status.name || status.tag} template...`);
-    return this.templates.delete(status.tag + (status.origin || ''));
+  deleteTemplate$(t: Template, mod = false) {
+    if (!mod && t.config?.mod) return this.deleteMod$(t.config?.mod);
+    this.installMessages.push($localize`Deleting ${t.name || t.tag} template...`);
+    return this.templates.delete(t.tag + (t.origin || ''));
   }
 
   installMod$(mod: string): Observable<any> {
