@@ -1,44 +1,46 @@
-$bg: #343434;
-$bg-accent: rgba(90, 90, 90, 0.05);
-$text: #c9c9c9;
-$active: #dc5c5c;
-$info: #969696;
-$tag: #af5800;
-$border: lightgrey;
-$border-accent: rgba(255, 255, 255, 0.4);
-$unselected-tab: grey;
-$error: #dc5c5c;
-$error-bg: #231010;
-$warning: #967f46;
-$mod: #4d9339;
-$card: #3d3d3d;
-$card-dragging: #4d4d4d;
-$placeholder: #2c2c2c;
-$deleting: #dc5c5c;
+// Dark Theme
 body.dark-theme {
+  --bg: #343434;
+  --bg-accent: rgba(90, 90, 90, 0.05);
+  --text: #c9c9c9;
+  --active: #dc5c5c;
+  --info: #969696;
+  --tag: #af5800;
+  --border: lightgrey;
+  --border-accent: rgba(255, 255, 255, 0.4);
+  --unselected-tab: grey;
+  --error: #dc5c5c;
+  --error-bg: #231010;
+  --warning: #967f46;
+  --mod: #4d9339;
+  --card: #3d3d3d;
+  --card-dragging: #4d4d4d;
+  --placeholder: #2c2c2c;
+  --deleting: #dc5c5c;
+
   @media not print {
     color-scheme: dark;
-    color: $text;
+    color: var(--text);
   }
 
   .debug {
     .subscription-bar:before {
-      color: $error;
+      color: var(--error);
     }
     footer p {
-      border-top: 2px solid $border;
-      border-bottom: 2px solid $border;
+      border-top: 2px solid var(--border);
+      border-bottom: 2px solid var(--border);
     }
   }
 
   &, ::backdrop, .editor.fullscreen app-md {
-    background-color: $bg;
+    background-color: var(--bg);
     background-image: url("~/assets/bg-dark.png");
     background-blend-mode: soft-light;
   }
 
   .resize-handle:after {
-    filter: drop-shadow(0.5px 0.5px 1px $border);
+    filter: drop-shadow(0.5px 0.5px 1px var(--border));
   }
 
   app-root > .container {
@@ -54,88 +56,88 @@ body.dark-theme {
   }
 
   a:active {
-    color: $text;
+    color: var(--text);
   }
 
   .editor-help-popup {
     justify-content: center;
     & > * {
       padding: 16px;
-      background-color: $card;
+      background-color: var(--card);
       border: 1px solid transparent;
       &:hover {
-        border: 1px solid $border;
+        border: 1px solid var(--border);
       }
     }
   }
 
   .floating-ribbons {
     div span {
-      border: 1px dashed $border;
+      border: 1px dashed var(--border);
     }
     div.on span {
-      border: 0.5px solid $border;
+      border: 0.5px solid var(--border);
     }
   }
 
   .toolbar {
     label {
-      border: 1px dashed $border;
+      border: 1px dashed var(--border);
     }
     label.on {
-      border: 0.5px solid $border;
+      border: 0.5px solid var(--border);
       backdrop-filter: contrast(0.1) brightness(0.6) blur(1.5px);
     }
   }
 
   .context-menu {
-    background-color: $card;
+    background-color: var(--card);
 
     div:hover {
-      background-color: $bg-accent;
+      background-color: var(--bg-accent);
     }
   }
 
   .warning {
-    color: $warning;
+    color: var(--warning);
   }
 
   .update {
     font-size: 80%;
-    color: $text;
+    color: var(--text);
     text-decoration: underline;
   }
 
   .error {
     font-size: 80%;
-    color: $error;
+    color: var(--error);
   }
 
   .error-404, .error-403 {
-    color: $error;
+    color: var(--error);
   }
 
   .error-404.submit-button {
     display: inline-block;
     margin: auto;
-    color: $text;
-    border: 1px solid $border;
+    color: var(--text);
+    border: 1px solid var(--border);
   }
 
   .tag {
-    color: $tag;
+    color: var(--tag);
   }
 
   .subscription-bar {
-    background-color: $bg;
+    background-color: var(--bg);
     border-bottom: 1px solid black;
 
     :link, :visited, a:active {
-      color: $text;
+      color: var(--text);
     }
 
     .current-page {
-      color: $active;
+      color: var(--active);
     }
 
     .light-toggle {
@@ -144,7 +146,7 @@ body.dark-theme {
       border: 0.5px solid transparent;
       background-color: rgba(255, 255, 255, 0.1);
       &:hover {
-        border: 0.5px dashed $border;
+        border: 0.5px dashed var(--border);
         background-color: rgba(255, 255, 255, 0.2);
       }
     }
@@ -152,7 +154,7 @@ body.dark-theme {
 
   .tabs {
     background-color: rgba(100, 100, 100, 0.3);
-    border-bottom: 1px solid $border;
+    border-bottom: 1px solid var(--border);
     background-image: url("~/assets/jasper-dark.png");
     background-position: 4px 0;
     background-repeat: no-repeat;
@@ -162,8 +164,8 @@ body.dark-theme {
     }
 
     & > a {
-      background-color: $unselected-tab;
-      border-bottom: 1px solid $border;
+      background-color: var(--unselected-tab);
+      border-bottom: 1px solid var(--border);
 
       &:hover {
         background-color: #a7a7a7;
@@ -174,22 +176,22 @@ body.dark-theme {
       }
 
       &.current-tab {
-        color: $active;
+        color: var(--active);
         background-color: #292929;
         background-image: url("~/assets/bg-dark.png");
         background-blend-mode: soft-light;
-        border-top: 1px solid $border;
-        border-left: 1px solid $border;
-        border-right: 1px solid $border;
+        border-top: 1px solid var(--border);
+        border-left: 1px solid var(--border);
+        border-right: 1px solid var(--border);
         border-bottom: 1px solid transparent;
       }
     }
 
     .settings {
-      background-color: $unselected-tab;
+      background-color: var(--unselected-tab);
 
       .author {
-        color: $tag;
+        color: var(--tag);
       }
 
       & > a {
@@ -201,12 +203,12 @@ body.dark-theme {
   }
 
   .sidebar {
-    background-color: $bg-accent;
+    background-color: var(--bg-accent);
     backdrop-filter: grayscale(1) contrast(0.2) brightness(0.4) blur(1px);
     box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
 
     .submit-button {
-      border: 1px solid $border;
+      border: 1px solid var(--border);
       transition: background-color 0.2s;
 
       &:hover {
@@ -217,7 +219,7 @@ body.dark-theme {
 
   details.advanced {
     summary > span {
-      border: 1px solid $border;
+      border: 1px solid var(--border);
       border-left: none;
       border-right: none;
       transition: background-color 0.2s;
@@ -227,37 +229,37 @@ body.dark-theme {
       }
 
       &:after {
-        filter: drop-shadow(0 0 2px $bg);
+        filter: drop-shadow(0 0 2px var(--bg));
       }
     }
   }
 
   .pinned .link {
     :link, :visited, :active {
-      color: $mod;
+      color: var(--mod);
     }
   }
 
   .list-container {
     .list-number {
-      color: $info;
+      color: var(--info);
     }
   }
 
   .log {
     padding: 8px;
     border-radius: 4px;
-    background-color: $card;
+    background-color: var(--card);
     backdrop-filter: blur(1px);
   }
 
   formly-list-section .form-array:not(:nth-child(2)) > formly-field > formly-group {
-    border-top: 0.5px dashed $border;
+    border-top: 0.5px dashed var(--border);
   }
 
   .editor:focus-within, .bubble, .plugins-form > * {
     border-radius: 8px;
-    background-color: $bg-accent;
+    background-color: var(--bg-accent);
     backdrop-filter: blur(1px);
     box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
   }
@@ -269,7 +271,7 @@ body.dark-theme {
 
     hr {
       border: none;
-      border-top: 0.5px dotted $border;
+      border-top: 0.5px dotted var(--border);
       position: relative;
       left: -8px;
       width: calc(100% + 16px);
@@ -280,22 +282,22 @@ body.dark-theme {
     }
 
     &:hover {
-      border: 1px dashed $border;
+      border: 1px dashed var(--border);
     }
   }
 
   .listbox .selected {
-    border: 1px dotted $border;
+    border: 1px dotted var(--border);
   }
 
   ngx-monaco-editor {
-    border: 1px solid $border;
+    border: 1px solid var(--border);
   }
 
   .page-controls {
     .disabled {
       &:link, &:active, &:visited {
-        color: $text;
+        color: var(--text);
       }
     }
   }
@@ -313,13 +315,13 @@ body.dark-theme {
 
   .list-item:not(.full-page):not(.expand) {
     &.last-selected {
-      border: 1px dashed $border;
+      border: 1px dashed var(--border);
     }
   }
 
   .comment-container {
     &:focus-visible {
-      border: 1px dashed $border;
+      border: 1px dashed var(--border);
     }
   }
 
@@ -329,7 +331,7 @@ body.dark-theme {
 
   .link {
     .host {
-      color: $info;
+      color: var(--info);
     }
   }
 
@@ -338,29 +340,29 @@ body.dark-theme {
   }
 
   .info {
-    color: $info;
+    color: var(--info);
 
     :link, :visited, a:active {
-      color: $tag;
+      color: var(--tag);
     }
 
     .collapsed {
       :link, :visited, a:active {
-        color: $info;
+        color: var(--info);
       }
     }
   }
 
   .ref.upload, .ext.upload {
-    border-left: 10px $warning groove !important;
+    border-left: 10px var(--warning) groove !important;
     &.exists {
-      border-left: 10px $error groove !important;
+      border-left: 10px var(--error) groove !important;
     }
   }
 
   .ref, .form, .editor {
     .expand {
-      border: 1px solid $border;
+      border: 1px solid var(--border);
     }
   }
 
@@ -371,20 +373,20 @@ body.dark-theme {
 
   .actions {
     :link, :visited, a:active, .fake-link {
-      color: $info;
+      color: var(--info);
     }
     input:invalid {
-      color: $error;
+      color: var(--error);
     }
   }
 
   .no-results {
-    color: $error;
+    color: var(--error);
   }
 
   hr {
     border: none;
-    border-top: 1px groove $border;
+    border-top: 1px groove var(--border);
   }
 
   .summary-box {
@@ -392,7 +394,7 @@ body.dark-theme {
     padding: 8px;
     border-radius: 8px;
     border: 1px dashed transparent;
-    background-color: $bg-accent;
+    background-color: var(--bg-accent);
     backdrop-filter: blur(1px);
     box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
   }
@@ -400,40 +402,40 @@ body.dark-theme {
   footer {
     hr {
       border: none;
-      border-top: 1px groove $border-accent;
+      border-top: 1px groove var(--border-accent);
       box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.3),
       0 6px 5px 1px rgba(0, 0, 0, 0.1);
     }
   }
 
   .login-popup {
-    background-color: $error-bg;
+    background-color: var(--error-bg);
   }
 
   .md {
     blockquote {
-      color: $info;
-      border-left: 2px solid $info;
+      color: var(--info);
+      border-left: 2px solid var(--info);
     }
 
     del {
-      color: $info;
+      color: var(--info);
     }
 
     hr {
       border: none;
-      background: $info;
+      background: var(--info);
     }
 
     table, th, tr, td {
-      border: 1px solid $info;
+      border: 1px solid var(--info);
       border-collapse: collapse;
     }
   }
 
   .kanban {
     .column-title, .swim-lane-title {
-      background-color: $bg-accent;
+      background-color: var(--bg-accent);
       backdrop-filter: blur(1px);
       box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
     }
@@ -441,18 +443,18 @@ body.dark-theme {
       border: 1px solid transparent;
 
       &:hover {
-        border: 1px dashed $border;
+        border: 1px dashed var(--border);
       }
     }
 
     .kanban-header {
       .kanban-remove {
-        background-color: $placeholder;
+        background-color: var(--placeholder);
       }
 
       &.cdk-drop-list-dragging {
         .kanban-remove {
-          background-color: $deleting;
+          background-color: var(--deleting);
         }
       }
     }
@@ -460,16 +462,16 @@ body.dark-theme {
 
   .kanban-card {
     border-radius: 4px;
-    background-color: $card;
+    background-color: var(--card);
     &.unlocked {
       border-radius: 5px;
-      border: 0.5px dashed $border-accent;
+      border: 0.5px dashed var(--border-accent);
     }
     &.cdk-drag-preview {
-      background-color: $card-dragging;
+      background-color: var(--card-dragging);
     }
     &.cdk-drag-placeholder {
-      background-color: $placeholder;
+      background-color: var(--placeholder);
     }
   }
 
@@ -485,7 +487,7 @@ body.dark-theme {
 
   .chat {
     .odd > * {
-      background-color: $bg-accent;
+      background-color: var(--bg-accent);
       backdrop-filter: blur(1px);
     }
   }
@@ -493,7 +495,7 @@ body.dark-theme {
   .file, .subfolder {
     :focus, :focus-within {
       .folder-icon {
-        filter: drop-shadow(0 0 2px $border);
+        filter: drop-shadow(0 0 2px var(--border));
       }
     }
   }

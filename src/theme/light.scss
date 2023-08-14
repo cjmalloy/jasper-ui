@@ -1,39 +1,41 @@
-$bg: white;
-$bg-accent: rgba(0, 0, 0, 0.05);
-$text: black;
-$blue: rgba(207, 221, 255, 0.7);
-$active: #da0000;
-$info: gray;
-$tag: #3d3dbb;
-$tag-accent: #f3ebc7;
-$border: black;
-$border-accent: rgba(0, 0, 0, 0.4);
-$border-light: rgba(0, 0, 0, 0.2);
-$unselected-tab: #b3b9c4;
-$error: #da0000;
-$error-bg: #ffa9a9;
-$warning: #c1c500;
-$mod: #136500;
-$card: #f3ebc7;
-$placeholder: #efebdf;
-$deleting: #ffa9a9;
+// Light Theme
 body.light-theme {
+  --bg: white;
+  --bg-accent: rgba(0, 0, 0, 0.05);
+  --text: black;
+  --blue: rgba(207, 221, 255, 0.7);
+  --active: #da0000;
+  --info: gray;
+  --tag: #3d3dbb;
+  --tag-accent: #f3ebc7;
+  --border: black;
+  --border-accent: rgba(0, 0, 0, 0.4);
+  --border-light: rgba(0, 0, 0, 0.2);
+  --unselected-tab: #b3b9c4;
+  --error: #da0000;
+  --error-bg: #ffa9a9;
+  --warning: #c1c500;
+  --mod: #136500;
+  --card: #f3ebc7;
+  --placeholder: #efebdf;
+  --deleting: #ffa9a9;
+
   color-scheme: light;
-  color: $text;
+  color: var(--text);
 
   &, ::backdrop, .editor.fullscreen app-md {
-    background-color: $bg;
+    background-color: var(--bg);
     background-image: url("~/assets/bg-light.png");
     background-blend-mode: darken;
   }
 
   .debug {
     .subscription-bar:before {
-      color: $error;
+      color: var(--error);
     }
     footer p {
-      border-top: 2px solid $border;
-      border-bottom: 2px solid $border;
+      border-top: 2px solid var(--border);
+      border-bottom: 2px solid var(--border);
       filter: brightness(3);
     }
   }
@@ -46,91 +48,91 @@ body.light-theme {
   }
 
   a:active {
-    color: $text;
+    color: var(--text);
   }
 
   .editor-help-popup {
     justify-content: center;
     & > * {
       padding: 16px;
-      background-color: $card;
+      background-color: var(--card);
       border: 1px solid transparent;
       &:hover {
-        border: 1px solid $border;
+        border: 1px solid var(--border);
       }
     }
   }
 
   .floating-ribbons {
     div span {
-      border: 1px dashed $border;
+      border: 1px dashed var(--border);
     }
     div.on span {
-      border: 0.5px solid $border;
+      border: 0.5px solid var(--border);
     }
   }
 
   .toolbar {
     label {
-      border: 1px dashed $border;
+      border: 1px dashed var(--border);
     }
     label.on {
-      border: 0.5px solid $border;
+      border: 0.5px solid var(--border);
       backdrop-filter: contrast(0.2) brightness(1.5) blur(1.5px);
     }
   }
 
   .context-menu {
-    background-color: $card;
+    background-color: var(--card);
 
     div:hover {
-      background-color: $bg-accent;
+      background-color: var(--bg-accent);
     }
   }
 
   .warning {
-    text-shadow: 0 0 2px $warning;
+    text-shadow: 0 0 2px var(--warning);
   }
 
   .update {
     font-size: 80%;
-    color: $text;
+    color: var(--text);
     text-decoration: underline;
   }
 
   .error {
     font-size: 80%;
-    color: $error;
+    color: var(--error);
   }
 
   .error-404, .error-403 {
-    color: $error;
+    color: var(--error);
   }
 
   .error-404.submit-button {
     display: inline-block;
     margin: auto;
-    color: $text;
-    border: 1px solid $border;
+    color: var(--text);
+    border: 1px solid var(--border);
   }
 
   .tag {
-    color: $tag;
-    background-color: $tag-accent;
+    color: var(--tag);
+    background-color: var(--tag-accent);
     padding: 0 2px;
     border-radius: 2px;
   }
 
   .subscription-bar {
-    background-color: $bg;
+    background-color: var(--bg);
     border-bottom: 1px solid black;
 
     :link, :visited, a:active {
-      color: $text;
+      color: var(--text);
     }
 
     .current-page {
-      color: $active;
+      color: var(--active);
     }
 
     .light-toggle {
@@ -139,22 +141,22 @@ body.light-theme {
       border: 0.5px solid transparent;
       background-color: rgba(0, 0, 0, 0.2);
       &:hover {
-        border: 0.5px dashed $border;
+        border: 0.5px dashed var(--border);
         background-color: rgba(0, 0, 0, 0.3);
       }
     }
   }
 
   .tabs {
-    background-color: $blue;
-    border-bottom: 1px solid $border;
+    background-color: var(--blue);
+    border-bottom: 1px solid var(--border);
     background-image: url("~/assets/jasper-light.png");
     background-position: 4px 0;
     background-repeat: no-repeat;
 
     & > a {
-      background-color: $unselected-tab;
-      border-bottom: 1px solid $border;
+      background-color: var(--unselected-tab);
+      border-bottom: 1px solid var(--border);
 
       &:hover {
         background-color: #dedddd;
@@ -165,22 +167,22 @@ body.light-theme {
       }
 
       &.current-tab {
-        color: $active;
-        background-color: $bg;
+        color: var(--active);
+        background-color: var(--bg);
         background-image: url("~/assets/bg-light.png");
         background-blend-mode: darken;
-        border-top: 1px solid $border;
-        border-left: 1px solid $border;
-        border-right: 1px solid $border;
+        border-top: 1px solid var(--border);
+        border-left: 1px solid var(--border);
+        border-right: 1px solid var(--border);
         border-bottom: 1px solid transparent;
       }
     }
 
     .settings {
-      background-color: $unselected-tab;
+      background-color: var(--unselected-tab);
 
       .author {
-        color: $tag;
+        color: var(--tag);
       }
 
       & > a {
@@ -192,55 +194,55 @@ body.light-theme {
   }
 
   .sidebar {
-    border-left: 1px dashed $border;
-    border-bottom: 1px dashed $border;
+    border-left: 1px dashed var(--border);
+    border-bottom: 1px dashed var(--border);
     backdrop-filter: grayscale(1) contrast(0.2) brightness(1.5) blur(1px);
     box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
 
     .submit-button {
-      border: 1px solid $border;
+      border: 1px solid var(--border);
       transition: background-color 0.2s;
 
       &:hover {
-        background-color: $bg-accent;
+        background-color: var(--bg-accent);
       }
     }
   }
 
   details.advanced {
     summary > span {
-      border: 1px solid $border;
+      border: 1px solid var(--border);
       border-left: none;
       border-right: none;
       transition: background-color 0.2s;
 
       &:hover {
-        background-color: $bg-accent;
+        background-color: var(--bg-accent);
       }
     }
   }
 
   .pinned .link {
     :link, :visited, :active {
-      color: $mod;
+      color: var(--mod);
     }
   }
 
   .list-container {
     .list-number {
-      color: $info;
+      color: var(--info);
     }
   }
 
   .log {
     padding: 8px;
     border-radius: 4px;
-    background-color: $card;
+    background-color: var(--card);
     backdrop-filter: blur(1px);
   }
 
   formly-list-section .form-array:not(:nth-child(2)) > formly-field > formly-group {
-    border-top: 0.5px dashed $border;
+    border-top: 0.5px dashed var(--border);
   }
 
   .editor:focus-within, .bubble, .plugins-form > * {
@@ -256,7 +258,7 @@ body.light-theme {
 
     hr {
       border: none;
-      border-top: 0.5px dotted $border;
+      border-top: 0.5px dotted var(--border);
       position: relative;
       left: -8px;
       width: calc(100% + 16px);
@@ -267,35 +269,35 @@ body.light-theme {
     }
 
     &:hover {
-      border: 1px dashed $border;
+      border: 1px dashed var(--border);
     }
   }
 
   .listbox .selected {
-    border: 1px dotted $border;
+    border: 1px dotted var(--border);
   }
 
   ngx-monaco-editor {
-    border: 1px solid $border;
+    border: 1px solid var(--border);
   }
 
   .page-controls {
     .disabled {
       &:link, &:active, &:visited {
-        color: $text;
+        color: var(--text);
       }
     }
   }
 
   .list-item:not(.full-page):not(.expand) {
     &.last-selected {
-      border: 1px dashed $border;
+      border: 1px dashed var(--border);
     }
   }
 
   .comment-container {
     &:focus-visible {
-      border: 1px dashed $border;
+      border: 1px dashed var(--border);
     }
   }
 
@@ -305,7 +307,7 @@ body.light-theme {
 
   .link {
     .host {
-      color: $info;
+      color: var(--info);
     }
   }
 
@@ -314,29 +316,29 @@ body.light-theme {
   }
 
   .info {
-    color: $info;
+    color: var(--info);
 
     :link, :visited, a:active {
-      color: $tag;
+      color: var(--tag);
     }
 
     .collapsed {
       :link, :visited, a:active {
-        color: $info;
+        color: var(--info);
       }
     }
   }
 
   .ref.upload, .ext.upload {
-    border-left: 10px $warning groove !important;
+    border-left: 10px var(--warning) groove !important;
     &.exists {
-      border-left: 10px $error groove !important;
+      border-left: 10px var(--error) groove !important;
     }
   }
 
   .ref, .form, .editor {
     .expand {
-      border: 1px solid $border;
+      border: 1px solid var(--border);
     }
   }
 
@@ -347,20 +349,20 @@ body.light-theme {
 
   .actions {
     :link, :visited, a:active, .fake-link {
-      color: $info;
+      color: var(--info);
     }
     input:invalid {
-      color: $error;
+      color: var(--error);
     }
   }
 
   .no-results {
-    color: $error;
+    color: var(--error);
   }
 
   hr {
     border: none;
-    border-top: 1px groove $border;
+    border-top: 1px groove var(--border);
   }
 
   .summary-box {
@@ -375,7 +377,7 @@ body.light-theme {
   footer {
     hr {
       border: none;
-      border-top: 1px groove $border-accent;
+      border-top: 1px groove var(--border-accent);
       box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.08),
       0 5px 5px 1px rgba(0, 0, 0, 0.1),
       0 4px 0.5px 0 white;
@@ -383,26 +385,26 @@ body.light-theme {
   }
 
   .login-popup {
-    background-color: $error-bg;
+    background-color: var(--error-bg);
   }
 
   .md {
     blockquote {
-      color: $info;
-      border-left: 2px solid $info;
+      color: var(--info);
+      border-left: 2px solid var(--info);
     }
 
     del {
-      color: $info;
+      color: var(--info);
     }
 
     hr {
       border: none;
-      background: $info;
+      background: var(--info);
     }
 
     table, th, tr, td {
-      border: 1px solid $info;
+      border: 1px solid var(--info);
       border-collapse: collapse;
     }
   }
@@ -413,24 +415,24 @@ body.light-theme {
       padding: 4px;
       background-color: transparent;
       backdrop-filter: blur(1px) sepia(5%);
-      border: 0.5px solid $border-light;
+      border: 0.5px solid var(--border-light);
     }
     .kanban-column {
       border: 1px solid transparent;
 
       &:hover {
-        border: 1px dashed $border;
+        border: 1px dashed var(--border);
       }
     }
 
     .kanban-header {
       .kanban-remove {
-        background-color: $placeholder;
+        background-color: var(--placeholder);
       }
 
       &.cdk-drop-list-dragging {
         .kanban-remove {
-          background-color: $deleting;
+          background-color: var(--deleting);
         }
       }
     }
@@ -438,13 +440,13 @@ body.light-theme {
 
   .kanban-card {
     border-radius: 4px;
-    background-color: $card;
+    background-color: var(--card);
     &.unlocked {
       border-radius: 5px;
-      border: 0.25px dashed $border-accent;
+      border: 0.25px dashed var(--border-accent);
     }
     &.cdk-drag-placeholder {
-      background-color: $placeholder;
+      background-color: var(--placeholder);
     }
   }
 
@@ -460,7 +462,7 @@ body.light-theme {
 
   .chat {
     .odd > * {
-      background-color: $bg-accent;
+      background-color: var(--bg-accent);
       backdrop-filter: blur(1px);
     }
   }
@@ -468,7 +470,7 @@ body.light-theme {
   .file, .subfolder {
     :focus, :focus-within {
       .folder-icon {
-        filter: drop-shadow(0 0 2px $border);
+        filter: drop-shadow(0 0 2px var(--border));
         background-color: red;
       }
     }
