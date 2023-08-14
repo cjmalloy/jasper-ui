@@ -177,6 +177,11 @@ export function publicTag(tag: string) {
   return !tag.startsWith('_') && !tag.startsWith('+');
 }
 
+export function setPublic(tag: string) {
+ if (publicTag(tag)) return tag;
+ return tag.substring(1);
+}
+
 export function privateTag(tag: string) {
   return tag.startsWith('_');
 }

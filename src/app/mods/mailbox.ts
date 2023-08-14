@@ -4,7 +4,7 @@ import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Template } from '../model/template';
 import { authors } from '../util/format';
-import { hasPrefix, localTag, prefix, removePrefix, tagOrigin } from '../util/tag';
+import { hasPrefix, localTag, prefix, publicTag, removePrefix, setPublic, tagOrigin } from '../util/tag';
 
 export const dmTemplate: Template = {
   tag: 'dm',
@@ -96,13 +96,13 @@ export function reverseOrigin(tag: string): string {
 }
 
 export function getMailbox(tag: string, local = ''): string {
-  if (hasPrefix(tag, 'plugin/inbox') || hasPrefix(tag, 'plugin/outbox')) return tag;
+  if (hasPrefix(tag, 'plugin/inbox') || hasPrefix(tag, 'plugin/outbox')) return setPublic(tag);
   if (hasPrefix(tag, 'plugin')) return tag;
   const origin = tagOrigin(tag);
   if (!origin || origin === local) {
-    return prefix('plugin/inbox', localTag(tag));
+    return setPublic(prefix('plugin/inbox', localTag(tag)));
   } else {
-    return prefix(`plugin/outbox/${origin.substring(1)}`, localTag(tag));
+    return setPublic(prefix(`plugin/outbox/${origin.substring(1)}`, localTag(tag)));
   }
 }
 
