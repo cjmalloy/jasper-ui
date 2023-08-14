@@ -89,7 +89,6 @@ export class AdminService {
       originTunnel: originTunnelPlugin,
       feed: feedPlugin,
       delete: deletePlugin,
-
       inbox: inboxPlugin,
       outbox: outboxPlugin,
       comment: commentPlugin,
