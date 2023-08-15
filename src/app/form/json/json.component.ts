@@ -1,7 +1,8 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
 import { Store } from '../../store/store';
+import { ConfigService } from '../../service/config.service';
 
 @Component({
   selector: 'app-json',
@@ -9,6 +10,7 @@ import { Store } from '../../store/store';
   styleUrls: ['./json.component.scss']
 })
 export class JsonComponent implements OnInit, OnDestroy {
+  @HostBinding('class') css = 'json-editor';
 
   private disposers: IReactionDisposer[] = [];
 
@@ -23,6 +25,7 @@ export class JsonComponent implements OnInit, OnDestroy {
   };
 
   constructor(
+    public config: ConfigService,
     private store: Store,
   ) {
     this.disposers.push(autorun(() => {

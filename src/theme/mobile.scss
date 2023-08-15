@@ -167,16 +167,39 @@ $tablet-width: 767px;
   textarea {
     margin: 0;
     resize: vertical;
-    width: calc(100vw - 12px);
+    width: calc(100vw - 12px) !important;
   }
 
-  .plugins-form textarea {
-    width: calc(100vw - 40px);
+  .editor textarea {
+    margin-left: -3px;
+  }
+
+  .json-editor ngx-monaco-editor {
+    margin: 0 0 0 -10px;
+    width: 100vw !important;
+  }
+
+  .plugins-form {
+    .json-editor ngx-monaco-editor,
+    textarea {
+      width: calc(100vw - 40px) !important;
+    }
   }
 
   ngx-monaco-editor {
     width: 100vw !important;
     max-height: 50vh;
+  }
+
+  .resize-handle:after {
+    content: '⬍';
+    font-size: 175%;
+    width: 24px;
+    height: 48px;
+    line-height: 48px;
+    background-image: none;
+    right: 22px;
+    bottom: -25px;
   }
 
   .voting {
@@ -272,10 +295,6 @@ $tablet-width: 767px;
 
   .fill-editor {
     margin: 0 !important;
-  }
-
-  .editor textarea {
-      margin-left: -3px;
   }
 
   .kanban-header {

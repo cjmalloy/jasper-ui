@@ -24,6 +24,7 @@ html, body {
 }
 
 .resize-handle {
+  touch-action: none;
   position: relative;
   &:after {
     content: '';
