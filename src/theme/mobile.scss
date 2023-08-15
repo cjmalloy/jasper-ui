@@ -305,7 +305,7 @@ $tablet-width: 767px;
 
 
     app-select-plugin select {
-      width: unset;
+      width: unset !important;
     }
 
     label {
