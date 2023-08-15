@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { defer, delay, pick } from 'lodash-es';
+import { defer, delay, find, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
 import { catchError, concat, lastValueFrom, of, switchMap, throwError } from 'rxjs';
@@ -101,16 +101,16 @@ export class UploadPage implements OnDestroy {
       }
     }
     this.read(files);
-    this.readScrape(audio, 'plugin/audio', this.store.account.localTag);
-    this.readScrape(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag);
-    this.readScrape(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag);
-    this.readData(texts, this.store.account.localTag);
-    this.readBookmarks(bookmarks, this.store.account.localTag);
-    this.readSitemap(sitemap, this.store.account.localTag);
-    this.readSheet(tables, 'plugin/table', this.store.account.localTag);
+    this.readScrape(audio, 'plugin/audio', this.store.account.localTag, ...this.store.submit.tags);
+    this.readScrape(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
+    this.readScrape(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
+    this.readData(texts, this.store.account.localTag, ...this.store.submit.tags);
+    this.readBookmarks(bookmarks, this.store.account.localTag, ...this.store.submit.tags);
+    this.readSitemap(sitemap, this.store.account.localTag, ...this.store.submit.tags);
+    this.readSheet(tables, 'plugin/table', this.store.account.localTag, ...this.store.submit.tags);
   }
 
-  read(files?: File[]) {
+  read(files?: File[], ...extraTags: string[]) {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
@@ -120,14 +120,17 @@ export class UploadPage implements OnDestroy {
             // Bail on existence checks for huge archives
             return models;
           }
-          models.ref?.forEach(ref => this.refs.count({ url: ref.url }).subscribe(count  => {
-            if (count) {
-              this.store.submit.foundRef(ref.url);
-              // TODO: diff existing refs
-              // this.refs.get(ref.url, ref.origin).subscribe(diff => this.store.submit.diffRef(diff));
-            }
-          }));
-          models.ext?.forEach(ext => this.exts.count({ query: ext.tag }).subscribe(count  => {
+          models.ref?.forEach(ref => {
+            ref.tags = uniq([...ref.tags || [], ...extraTags]);
+            this.refs.count({ url: ref.url }).subscribe(count  => {
+              if (count) {
+                this.store.submit.foundRef(ref.url);
+                // TODO: diff existing refs
+                // this.refs.get(ref.url, ref.origin).subscribe(diff => this.store.submit.diffRef(diff));
+              }
+            })
+          });
+          models.ext?.forEach(ext => this.exts.count({ query: ext.tag }).subscribe(count => {
             if (count) {
               this.store.submit.foundExt(ext.tag);
             }
@@ -150,7 +153,7 @@ export class UploadPage implements OnDestroy {
         upload: true,
         url,
         title: file.name,
-        tags: ['public', tag, ...extraTags],
+        tags: uniq(['public', tag, ...extraTags]),
         published: moment(),
       })));
     }
@@ -165,7 +168,7 @@ export class UploadPage implements OnDestroy {
         upload: true,
         url: 'internal:' + uuid(),
         title: file.name,
-        tags: ['public', tag, ...extraTags],
+        tags: uniq(['public', tag, ...extraTags]),
         plugins: { [tag]: { url: reader.result as string } },
         published: moment(),
       }));
@@ -182,7 +185,7 @@ export class UploadPage implements OnDestroy {
         upload: true,
         url: 'internal:' + uuid(),
         title: file.name,
-        tags: ['public', ...extraTags],
+        tags: uniq(['public', ...extraTags]),
         comment: reader.result as string,
         published: moment(),
       }));

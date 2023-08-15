@@ -681,9 +681,14 @@ details.mini:not([open]) {
   margin: 0 !important;
 }
 
+.max-form-width,
 .form,
 formly-list-section .form-array > formly-field > formly-group {
   max-width: 600px;
+}
+
+.form,
+formly-list-section .form-array > formly-field > formly-group {
   display: grid !important;
   grid-template-columns: min-content auto;
   grid-auto-rows: min-content;

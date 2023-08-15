@@ -113,12 +113,12 @@ export class ViewStore {
     return !!this.ext?.modifiedString;
   }
 
-  get tags() {
+  get tags(): boolean {
     const s = this.route.routeSnapshot?.firstChild;
     return s?.url[0].path === 'tags';
   }
 
-  get allTags() {
+  get allTags(): boolean {
     const s = this.route.routeSnapshot?.firstChild;
     return s?.url[0].path === 'tags' && !s?.params.template;
   }
@@ -225,6 +225,10 @@ export class ViewStore {
 
   get query() {
     return isQuery(this.tag) ? this.tag : '';
+  }
+
+  get queryTags() {
+    return this.tag.split(/[:|()]+/g).filter(t => !t.startsWith('!'));
   }
 
   get noQuery() {

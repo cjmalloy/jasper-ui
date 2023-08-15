@@ -1,5 +1,5 @@
 <ng-container *mobxAutorun>
-  <div class="padded list-container">
+  <div class="padded list-container max-form-width">
 
     <span></span>
     <div class="padded form-array">
@@ -11,6 +11,11 @@
       <ng-container *ngIf="!store.submit.empty">
         <button type="button" (click)="clear(upload)" i18n>clear</button>
       </ng-container>
+    </div>
+
+    <span><!-- Tags --></span>
+    <div class="form-array right">
+      <span *ngFor="let tag of store.submit.tags | plugins">{{ tag }}</span>
     </div>
 
     <ng-container *ngIf="!store.submit.empty">

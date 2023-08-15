@@ -41,7 +41,7 @@ export class AppComponent {
     event.preventDefault();
     this.store.submit.setFiles(files);
     if (!this.store.submit.upload) {
-      this.router.navigate(['/submit/upload']);
+      this.router.navigate(['/submit/upload'], { queryParams: { tag: this.store.view.queryTags }});
     }
   }
 
