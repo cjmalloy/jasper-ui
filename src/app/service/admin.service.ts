@@ -591,7 +591,7 @@ export class AdminService {
     const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
     if (form) {
       if (!tag || template!.config?.overrideForm) return form;
-      return [...this.getTemplateForm(parent!), ...form]
+      return [...form, ...this.getTemplateForm(parent!)]
     } else if (tag) {
       return this.getTemplateForm(parent!);
     }
@@ -604,7 +604,7 @@ export class AdminService {
     const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
     if (form) {
       if (!tag || template!.config?.overrideForm) return form;
-      return [...this.getTemplateAdvancedForm(parent!), ...form]
+      return [...form, ...this.getTemplateAdvancedForm(parent!)]
     } else if (tag) {
       return this.getTemplateAdvancedForm(parent!);
     }
