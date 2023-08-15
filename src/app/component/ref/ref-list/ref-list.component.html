@@ -13,7 +13,7 @@
                [showToggle]="true"
                [expanded]="expanded"></app-ref>
     </ng-container>
-    <div *cdkVirtualFor="let ref of page?.content; let i = index" class="form-container">
+    <ng-container *cdkVirtualFor="let ref of page?.content; let i = index" class="form-container">
       <div class="list-number"
            [style.transform]="removedScroll">{{ getNumber(i) }}</div>
       <app-ref [ref]="ref"
@@ -21,7 +21,7 @@
                [showToggle]="true"
                [showAlarm]="showAlarm"
                [expanded]="expanded"></app-ref>
-    </div>
+    </ng-container>
     <ng-container *ngFor="let ref of newRefs; let i = index">
       <div class="list-number">{{ getNumber(i + (page?.content?.length || 0)) }}</div>
       <app-ref [ref]="ref"
