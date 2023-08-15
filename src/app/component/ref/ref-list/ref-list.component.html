@@ -1,11 +1,11 @@
 <div [style.height.px]="contentHeight">
-  <cdk-virtual-scroll-viewport autosize
+  <cdk-virtual-scroll-viewport [itemSize]="itemSize"
+                               [minBufferPx]="1"
+                               [maxBufferPx]="2"
                                *ngIf="!graph"
                                class="list-container"
-                               (scroll)="scrollViewport($event)"
                                [style.height]="'calc(min(100vh, ' + contentHeight + 'px))'"
-                               [style.position]="'relative'"
-                               [style.top.px]="top">
+                               [style.transform]="transformScroll">
     <ng-container *ngFor="let ref of pinned">
       <div class="list-number">&bullet;</div>
       <app-ref class="pinned"
@@ -14,8 +14,10 @@
                [expanded]="expanded"></app-ref>
     </ng-container>
     <div *cdkVirtualFor="let ref of page?.content; let i = index" class="form-container">
-      <div class="list-number">{{ getNumber(i) }}</div>
+      <div class="list-number"
+           [style.transform]="removedScroll">{{ getNumber(i) }}</div>
       <app-ref [ref]="ref"
+               [style.transform]="removedScroll"
                [showToggle]="true"
                [showAlarm]="showAlarm"
                [expanded]="expanded"></app-ref>

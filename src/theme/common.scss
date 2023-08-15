@@ -943,6 +943,12 @@ formly-field-radio, formly-field-multicheckbox {
   display: block;
 }
 
+.ref-list {
+  .cdk-virtual-scroll-content-wrapper {
+    transform: none !important;
+  }
+}
+
 .ref.upload, .ext.upload {
   border-left: 10px palegoldenrod groove;
   &.exists {

@@ -6,8 +6,6 @@ import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { AutoSizeVirtualScrollStrategy } from '@angular/cdk-experimental/scrolling';
-import { defer } from 'lodash-es';
 
 
 @Component({
@@ -42,14 +40,16 @@ export class RefListComponent implements OnInit, OnDestroy {
 
   @ViewChild(CdkVirtualScrollViewport)
   viewport!: CdkVirtualScrollViewport;
-  top = 0;
+  transformScroll = 'translateY(0)';
+  removedScroll = 'translateY(0)';
 
   newRefs: Ref[] = [];
-  contentHeight = 3000;
+  itemSize = 63;
+  contentHeight = window.innerHeight;
+  maxScroll = 0;
 
   private _page?: Page<Ref>;
   private globalScroll = 0;
-  private last = '';
 
   constructor(
       private router: Router,
@@ -72,6 +72,7 @@ export class RefListComponent implements OnInit, OnDestroy {
           queryParamsHandling: 'merge',
         });
       }
+      this.contentHeight = this.itemSize * this.page!.content.length;
     }
   }
 
@@ -85,50 +86,18 @@ export class RefListComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
-  get ss() {
-    // @ts-ignore
-    return this.viewport._scrollStrategy as AutoSizeVirtualScrollStrategy;
-  }
-
   @HostListener('window:scroll', ['$event'])
   onScroll(event: Event) {
-    if (this.last === 'viewport') {
-      this.last = '';
-      return;
-    }
-    this.last = 'global';
-    defer(() => {
-      // @ts-ignore
-    this.contentHeight = Math.max(Math.max(61, this.ss._averager._averageItemSize) * this.page!.content.length, this.viewport.measureViewportSize( 'vertical'));
-      this.globalScroll = Math.floor(window.scrollY);
-      this.viewport.scrollToOffset(this.scroll);
-      this.top = this.scroll;
-      console.log('g', this.contentHeight , this.globalScroll, this.el.nativeElement.offsetTop);
-    });
-  }
-
-  scrollViewport(event: Event) {
-    if (this.last === 'global') {
-      this.last = '';
-      return;
-    }
-    this.last = 'viewport';
-    defer(() => {
-      // @ts-ignore
-      this.contentHeight = Math.max(Math.max(61, this.ss._averager._averageItemSize) * this.page!.content.length, this.viewport.measureViewportSize( 'vertical'));
-      const oldScroll = Math.floor(this.globalScroll - this.el.nativeElement.offsetTop);
-      this.globalScroll = Math.floor(Math.max(0, this.globalScroll + this.viewport.measureScrollOffset() - oldScroll));
-      if (oldScroll <= 0 || this.scroll <= 0) {
-        this.viewport.scrollToOffset(this.scroll, 'instant');
-      }
-      window.scrollTo({top: this.globalScroll });
-      this.top = this.scroll;
-      console.log('v', this.contentHeight , this.globalScroll, this.el.nativeElement.offsetTop, this.viewport.measureScrollOffset());
-    });
+    // @ts-ignore
+    this.maxScroll = this.contentHeight - this.viewport.measureViewportSize( 'vertical');
+    this.globalScroll = window.scrollY;
+    this.viewport.scrollTo({ top: this.scroll, behavior: 'instant' });
+    this.transformScroll = `translateY(${this.scroll}px)`;
+    this.removedScroll = `translateY(${this.itemSize * this.viewport.getRenderedRange().start}px)`;
   }
 
   get scroll() {
-    return Math.min(this.contentHeight - this.viewport.measureViewportSize( 'vertical'), Math.max(0, this.globalScroll - this.el.nativeElement.offsetTop));
+    return Math.min(this.maxScroll, Math.max(0, this.globalScroll - this.el.nativeElement.offsetTop));
   }
 
   getNumber(i: number) {
