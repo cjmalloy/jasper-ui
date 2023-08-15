@@ -53,8 +53,12 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
 
   private onResize = throttle(() => {
     if (this.config.mobile) {
-      this.el.nativeElement.style.minWidth = '';
-      this.el.nativeElement.style.width = this.max - 10 + 'px';
+      if (this.el.nativeElement.style.minWidth) {
+        this.el.nativeElement.style.minWidth = '';
+      }
+      if (this.el.nativeElement.style.width) {
+        this.el.nativeElement.style.width = '';
+      }
     } else if (this.dragging) {
       this.el.nativeElement.style.minWidth = '504px';
     } else {
