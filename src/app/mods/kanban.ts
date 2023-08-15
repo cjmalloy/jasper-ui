@@ -17,12 +17,6 @@ export const kanbanTemplate: Template = {
       { query: 'kanban', label: $localize`📋️ kanban`, group: $localize`Templates 🎨️` },
     ],
     form: [{
-      key: 'private',
-      type: 'boolean',
-      props: {
-        label: $localize`Private:`
-      }
-    }, {
       key: 'columns',
       type: 'tags',
       props: {
