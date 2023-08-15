@@ -6,7 +6,7 @@ import { of } from 'rxjs';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
 import { ConfigService } from './config.service';
-import * as less from 'less';
+import { render } from 'less';
 
 @Injectable({
   providedIn: 'root',
@@ -39,7 +39,7 @@ export class ThemeService {
   }
 
   setCustomLess(id: string, ...cs: (string | undefined)[]) {
-    cs.filter(c => !!c).map(c => less.render(c!).then(o => this.setCustomCss(id, o.css)));
+    cs.filter(c => !!c).map(c => render(c!).then(o => this.setCustomCss(id, o.css)));
   }
 
   setCustomCss(id: string, ...cs: (string | undefined)[]) {
