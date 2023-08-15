@@ -1,7 +1,9 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
     <h5 i18n>Settings</h5>
-    <a routerLink="./me" routerLinkActive="current-tab" i18n-title title="My settings" i18n>me</a>
+    <ng-container *ngIf="admin.status.templates.user && store.account.localTag">
+      <a routerLink="./me" routerLinkActive="current-tab" i18n-title title="My settings" i18n>me</a>
+    </ng-container>
     <a routerLink="./user" routerLinkActive="current-tab" i18n-title title="User permissions" i18n>user</a>
     <a routerLink="./ext" routerLinkActive="current-tab" i18n-title title="Tag Extensions" i18n>ext</a>
     <a *ngFor="let plugin of store.settings.plugins"

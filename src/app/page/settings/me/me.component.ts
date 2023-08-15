@@ -12,6 +12,7 @@ import { ExtService } from '../../../service/api/ext.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-settings-me-page',
@@ -34,11 +35,15 @@ export class SettingsMePage {
     private accounts: AccountService,
     private admin: AdminService,
     private fb: FormBuilder,
+    private router: Router,
   ) {
     const ext = cloneDeep(store.account.ext!);
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);
     defer(() => this.form!.setValue(ext));
+    if (!admin.status.templates.user || !store.account.localTag) {
+      router.navigate(['/settings/user']);
+    }
   }
 
   save() {

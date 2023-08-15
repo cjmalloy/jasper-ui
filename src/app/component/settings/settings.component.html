@@ -15,18 +15,21 @@
     <a routerLink="/settings" i18n>settings</a>
   </ng-container>
   <ng-container *ngIf="store.account.signedIn">
-    <a class="author"
-       [title]="fullUserTagAndRole"
-       [routerLink]="['/tag', store.account.tag]">{{ shortUserTag }}</a>
-    <ng-container *ngIf="admin.status.plugins.inbox && admin.status.templates.user">
-      <ng-container *ngIf="store.account.notifications as n; else noNotifications">
-        | {{ n }} <a class="inbox notification" routerLink="/inbox/unread">✉️</a>
+    <ng-container *ngIf="store.account.localTag">
+      <a class="author"
+         [title]="fullUserTagAndRole"
+         [routerLink]="['/tag', store.account.tag]">{{ shortUserTag }}</a>
+      <ng-container *ngIf="admin.status.plugins.inbox || (admin.status.templates.user && store.account.userTag)">
+        <ng-container *ngIf="admin.status.templates.user && store.account.userTag && store.account.notifications as n; else noNotifications">
+          | {{ n }} <a class="inbox notification" routerLink="/inbox/unread">✉️</a>
+        </ng-container>
+        <ng-template #noNotifications>
+          | <a class="inbox" routerLink="/inbox">✉️</a>
+        </ng-template>
       </ng-container>
-      <ng-template #noNotifications>
-        | <a class="inbox" routerLink="/inbox">✉️</a>
-      </ng-template>
+      |
     </ng-container>
-    | <a routerLink="/settings" i18n>settings</a>
+    <a routerLink="/settings" i18n>settings</a>
     <a *ngIf="store.view.updates"
        routerLink="/settings/setup"
        i18n-title title="Updates available in setup" i18n>🌟️</a>

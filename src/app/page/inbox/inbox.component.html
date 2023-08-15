@@ -4,14 +4,16 @@
     <a routerLink="./all" routerLinkActive="current-tab"
        i18n-title title="All Messages"
        i18n>all</a>
-    <ng-container *ngIf="admin.status.templates.user">
+    <ng-container *ngIf="admin.status.templates.user && store.account.userTag">
       <a routerLink="./unread" routerLinkActive="current-tab"
          i18n-title title="Unread"
          i18n>unread</a>
     </ng-container>
-    <a routerLink="./sent" routerLinkActive="current-tab"
-       i18n-title title="Sent"
-       i18n>sent</a>
+    <ng-container *ngIf="store.account.userTag">
+      <a routerLink="./sent" routerLinkActive="current-tab"
+         i18n-title title="Sent"
+         i18n>sent</a>
+    </ng-container>
     <ng-container *ngIf="store.account.ext?.config?.alarms?.length">
       <a routerLink="./alarms" routerLinkActive="current-tab"
          i18n-title title="Alarms"

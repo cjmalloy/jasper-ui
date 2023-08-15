@@ -85,6 +85,11 @@ export class AccountStore {
     return localTag(this.tag);
   }
 
+  get userTag() {
+     if (hasPrefix(localTag(this.tag), 'user')) return this.localTag;
+     return '';
+  }
+
   get role() {
     if (!this.signedIn) return '';
     if (this.admin) return 'admin';

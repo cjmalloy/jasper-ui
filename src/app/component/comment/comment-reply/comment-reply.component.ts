@@ -109,7 +109,7 @@ export class CommentReplyComponent implements AfterViewInit {
       alternateUrls: this.ed.getAlts(value),
       tags: removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
         ...this.publicTag,
-        this.store.account.localTag,
+        ...(this.store.account.localTag ? [this.store.account.localTag] : []),
         ...this.tags!,
         ...this.plugins,
         ...getTags(value),

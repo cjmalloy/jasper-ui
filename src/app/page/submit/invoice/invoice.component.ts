@@ -112,7 +112,7 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
       'internal',
       prefix('plugin/invoice', queueExt.tag),
       'plugin/qr',
-      this.store.account.localTag,
+      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
       ...this.plugins,
     ];
     for (const approver of queueExt.config.approvers) {

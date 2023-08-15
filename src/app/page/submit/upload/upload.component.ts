@@ -153,7 +153,7 @@ export class UploadPage implements OnDestroy {
         upload: true,
         url,
         title: file.name,
-        tags: uniq(['public', tag, ...extraTags]),
+        tags: uniq(['public', tag, ...extraTags.filter(t => !!t)]),
         published: moment(),
       })));
     }
@@ -168,7 +168,7 @@ export class UploadPage implements OnDestroy {
         upload: true,
         url: 'internal:' + uuid(),
         title: file.name,
-        tags: uniq(['public', tag, ...extraTags]),
+        tags: uniq(['public', tag, ...extraTags.filter(t => !!t)]),
         plugins: { [tag]: { url: reader.result as string } },
         published: moment(),
       }));
@@ -185,7 +185,7 @@ export class UploadPage implements OnDestroy {
         upload: true,
         url: 'internal:' + uuid(),
         title: file.name,
-        tags: uniq(['public', ...extraTags]),
+        tags: uniq(['public', ...extraTags.filter(t => !!t)]),
         comment: reader.result as string,
         published: moment(),
       }));
@@ -207,7 +207,7 @@ export class UploadPage implements OnDestroy {
             upload: true,
             url: a.href,
             title: a.innerText,
-            tags: ['public', ...extraTags],
+            tags: ['public', ...extraTags.filter(t => !!t)],
             published: moment(),
           });
         }
@@ -230,7 +230,7 @@ export class UploadPage implements OnDestroy {
           this.store.submit.addRefs({
             upload: true,
             url: loc,
-            tags: ['public', ...extraTags],
+            tags: ['public', ...extraTags.filter(t => !!t)],
             published: moment(),
           });
         }
@@ -253,7 +253,7 @@ export class UploadPage implements OnDestroy {
             upload: true,
             url: 'internal:' + uuid(),
             title,
-            tags: ['public', ...extraTags],
+            tags: ['public', ...extraTags.filter(t => !!t)],
             comment,
             published: moment(),
           });

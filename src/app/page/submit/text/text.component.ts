@@ -68,7 +68,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   ngAfterViewInit(): void {
     defer(() => {
       this.addTag('public');
-      this.addTag(this.store.account.localTag);
+      if (this.store.account.localTag) this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
         let url = this.store.submit.url || 'comment:' + uuid();
         if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
@@ -82,7 +82,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         if (this.store.submit.tags.length) {
           this.tags.tags.clear();
           this.addTag(...this.store.submit.tags);
-          this.addTag(this.store.account.localTag);
+          if (this.store.account.localTag) this.addTag(this.store.account.localTag);
         }
         for (const s of this.store.submit.sources) {
           this.addSource(s)

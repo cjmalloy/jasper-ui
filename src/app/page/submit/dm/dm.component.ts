@@ -113,7 +113,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
             ['notes'] :
             ['dm', 'locked', ...this.to.value.split(/\s+/).map((t: string) => getMailbox(t, this.store.account.origin))]
         ),
-      this.store.account.localTag,
+      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
       ...this.plugins,
       ...this.store.submit.tags,
     ]);
