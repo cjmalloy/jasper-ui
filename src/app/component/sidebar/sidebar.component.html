@@ -61,9 +61,19 @@
       </div>
     </ng-container>
     <ng-container *ngIf="store.account.tag !== tag && messages">
-      <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
-        <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
-      </div>
+      <ng-container *ngIf="mailPlugin else noMailPlugin">
+        <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag, tag: mailPlugin.tag }">
+          <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message
+          &nbsp;
+          &nbsp;
+          {{ mailPlugin.config?.submit || '' }}</label>
+        </div>
+      </ng-container>
+      <ng-template #noMailPlugin>
+        <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
+          <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
+        </div>
+      </ng-template>
     </ng-container>
     <ng-container *ngIf="store.account.editor && (store.view.current === 'user' || store.view.template === 'user')">
       <div class="submit-button" routerLink="/user">

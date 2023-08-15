@@ -18,6 +18,7 @@ import { hasPrefix, localTag, prefix, tagOrigin } from '../../util/tag';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
 import { hydrate } from '../../model/tag';
+import { getMailbox } from '../../mods/mailbox';
 
 @Component({
   selector: 'app-sidebar',
@@ -44,6 +45,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   addTags?: string[];
   local = true;
   plugin?: Plugin;
+  mailPlugin?: Plugin;
   template?: Template;
   writeAccess = false;
   ui: Template[] = [];
@@ -85,6 +87,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.localTag = localTag(value);
       this.addTags = [...this.rootConfig?.addTags || [], this.localTag!];
       this.plugin = this.admin.getPlugin(value);
+      this.mailPlugin = this.admin.getPlugin(getMailbox(value, this.store.account.origin));
       this.writeAccess = this.auth.tagWriteAccess(value);
       this.ui = this.admin.getTemplateUi(value);
     } else {
@@ -92,6 +95,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.localTag = undefined;
       this.addTags = undefined;
       this.plugin = undefined;
+      this.mailPlugin = undefined;
       this.writeAccess = false;
       this.ui = [];
     }
