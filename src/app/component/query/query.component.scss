@@ -13,6 +13,10 @@ div {
 }
 
 .breadcrumbs {
+  .tag {
+    white-space: nowrap;
+    line-height: 200%;
+  }
   .op {
     font-family: KaTeX_Main, "Times New Roman", serif;
     font-size: 150%;
