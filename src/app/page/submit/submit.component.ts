@@ -224,7 +224,7 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   showUpload() {
     if (this.store.submit.empty) return false;
-    this.router.navigate(['/submit/upload']);
+    this.router.navigate(['/submit/upload'], { queryParamsHandling: 'merge'});
     return true;
 
   }
