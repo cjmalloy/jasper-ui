@@ -49,7 +49,7 @@ export class QueryComponent implements OnInit {
       .replace(/\|+/g, '|')
       .replace(/[\s|]*:[\s|]*/g, ':')
       .replace(/\s+/g, '+')
-      .replace(/[^_+/a-z-0-9.:|!@()]+/g, '');
+      .replace(/[^_+/a-z-0-9.:|!@*()]+/g, '');
     this.router.navigate(['/tag', query], { queryParams: { pageNumber: null },  queryParamsHandling: 'merge'});
   }
 
