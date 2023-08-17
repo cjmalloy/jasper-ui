@@ -155,7 +155,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (!tags) return '';
     const cols =  tags.col ? ':' + tags.col : this.andNoCols;
     const sl =  tags.sl ? ':' + tags.sl : this.andNoSl;
-    return this.query + cols + sl;
+    return '(' + this.query + ')' + cols + sl;
   }
 
   drop(event: CdkDragDrop<{ sl?: string, col?: string }>) {
