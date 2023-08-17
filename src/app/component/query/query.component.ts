@@ -80,7 +80,6 @@ export class QueryComponent implements OnInit {
         i--;
       }
     }
-    // (blog/a/b|blog/a/c):(kanban/jasper/content|kanban/jasper/testing)
     for (let i = 0; i < result.length - 2; i++) {
       const op1 = result[i];
       const a = result[i + 1];
@@ -97,7 +96,6 @@ export class QueryComponent implements OnInit {
     });
   }
 
-  // (kanban/jasper/testing|kanban/jasper/content):!doing/dev
   private querySymbol(...ops: ('/' | '{' | '}' | ',' | ':' | '|' | '(' | ')' | `!`)[]): string {
     return ops.map(op => {
       switch (op) {

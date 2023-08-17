@@ -68,7 +68,6 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   @Input()
   set type(value: Type) {
-    // (kanban/jasper/testing|kanban/jasper/content):doing/dev
     if (value === 'ref') {
       this.allFilters = [];
       for (const ext of this.store.view.exts) {
