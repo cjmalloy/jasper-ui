@@ -49,7 +49,9 @@ export class CustomUrlSerializer implements UrlSerializer {
     const parts = new URL('http://test.com/' + url);
     let path = parts.pathname.substring(1);
     path = path.replace(/%7C/g, '|');
-    path = encodeURIComponent(path);
+    path = encodeURIComponent(path)
+        .replace(/\(/g, '%28')
+        .replace(/\)/g, '%29');
     return path + parts.search + parts.hash;
   }
 
