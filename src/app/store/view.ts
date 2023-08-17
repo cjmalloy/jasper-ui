@@ -122,15 +122,15 @@ export class ViewStore {
   }
 
   get activeExts() {
-    return this.activeTemplates
+    return uniq(this.activeTemplates
         .flatMap(t => this.exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag)))
-        .filter(x => !!x);
+        .filter(x => !!x));
   }
 
   get activeTemplates(): Template[] {
-    return this.queryTags
+    return uniq(this.queryTags
         .map(tag => this.extTemplates.find(t => hasPrefix(tag, t.tag))!)
-        .filter(t => !!t);
+        .filter(t => !!t));
   }
 
   get hasTemplate() {
