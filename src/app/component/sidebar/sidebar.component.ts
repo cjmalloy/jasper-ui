@@ -14,7 +14,7 @@ import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
-import { hasPrefix, localTag, prefix, tagOrigin } from '../../util/tag';
+import { hasPrefix, localTag, prefix, tagOrigin, topAnds } from '../../util/tag';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
 import { hydrate } from '../../model/tag';
@@ -85,7 +85,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       const origin = tagOrigin(value);
       this.local = !origin || origin === this.store.account.origin;
       this.localTag = localTag(value);
-      this.addTags = [...this.rootConfig?.addTags || [], this.localTag!];
+      this.addTags = [...this.rootConfig?.addTags || [], ...topAnds(value).map(localTag)];
       this.plugin = this.admin.getPlugin(value);
       this.mailPlugin = this.admin.getPlugin(getMailbox(value, this.store.account.origin));
       this.writeAccess = this.auth.tagWriteAccess(value);

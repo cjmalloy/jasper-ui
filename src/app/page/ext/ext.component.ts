@@ -61,7 +61,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       if (!this.store.view.tag) {
         this.template = '';
         this.tag.setValue('');
-        runInAction(() => this.store.view.ext = undefined);
+        runInAction(() => this.store.view.exts = []);
       } else {
         const tag = this.store.view.localTag + this.store.account.origin;
         this.exts.get(tag).pipe(
@@ -80,7 +80,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
         return;
       }
     }
-    runInAction(() => this.store.view.ext = ext);
+    runInAction(() => this.store.view.exts = ext ? [ext] : []);
     if (ext) {
       this.editForm = extForm(this.fb, ext, this.admin, true);
       this.editForm.patchValue(ext);

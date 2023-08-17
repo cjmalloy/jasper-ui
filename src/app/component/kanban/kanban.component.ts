@@ -7,7 +7,6 @@ import { Ref } from '../../model/ref';
 import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
-import { defaultOrigin } from '../../util/tag';
 import { KanbanConfig } from '../../mods/kanban';
 import { BookmarkService } from '../../service/bookmark.service';
 
@@ -26,10 +25,15 @@ export interface KanbanDrag {
 export class KanbanComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'kanban ext';
 
+  @Input()
+  query?: string;
+  @Input()
   ext?: Ext;
+
   disableSwimLanes = false;
   error: any;
   updates = new Subject<KanbanDrag>();
+
   private defaultConfig: KanbanConfig = {
     columns: []
   };
@@ -46,17 +50,6 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.updates.complete();
-  }
-
-  @Input()
-  set tag(value: string) {
-    if (this.ext?.tag === value) return;
-    this.exts.getCachedExt(defaultOrigin(value, this.store.account.origin)).pipe(
-      catchError(err => {
-        this.error = err;
-        return of(undefined);
-      }),
-    ).subscribe(ext => this.ext = ext);
   }
 
   get columns(): string[] {
@@ -148,7 +141,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
    * Tags to apply to new Refs created on the board.
    */
   addingTags(tags: { col?: string, sl?: string }) {
-    const result = [ ...this.kanbanConfig.addTags || [] ];
+    const result = [
+        ...this.kanbanConfig.addTags || [],
+        ...this.store.view.queryTags
+    ];
     result.push(this.ext!.tag);
     if (tags.col) result.push(tags.col);
     if (tags.sl) result.push(tags.sl);
@@ -157,10 +153,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   getQuery(tags?: { col?: string, sl?: string }) {
     if (!tags) return '';
-    const kanbanTag = defaultOrigin(this.ext!.tag, this.store.account.origin);
     const cols =  tags.col ? ':' + tags.col : this.andNoCols;
     const sl =  tags.sl ? ':' + tags.sl : this.andNoSl;
-    return kanbanTag + cols + sl;
+    return this.query + cols + sl;
   }
 
   drop(event: CdkDragDrop<{ sl?: string, col?: string }>) {

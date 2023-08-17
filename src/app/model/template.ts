@@ -4,8 +4,6 @@ import { Ext } from './ext';
 import { Config } from './tag';
 import { Roles } from './user';
 
-export type TemplateType = 'config' | 'icon' | 'feature' | 'theme' | 'tool';
-
 export interface Template extends Config {
   type?: 'template';
   config?: Config['config'] & {
@@ -14,6 +12,10 @@ export interface Template extends Config {
      * will stack from abstract to specific inheritance.
      */
     overrideForm?: boolean,
+    /**
+     * Show built-in custom view.
+     */
+    view?: string,
     /**
      * Submit text instead of links by default.
      */

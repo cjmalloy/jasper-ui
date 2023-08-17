@@ -1,20 +1,29 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
     <h5 class="fake-link" routerLink=".." [queryParams]="{}">{{ store.view.name }}</h5>
-    <ng-container *ngIf="store.view.extExists else noExt">
-      <ng-container *ngFor="let t of templates">
-        <ng-container *ngIf="store.view.isTemplate(t.tag)">
-          <a routerLink="./"
-             [class.current-tab]="store.view.noView"
-             [queryParams]="{view: null}"
-             queryParamsHandling="merge" i18n>{{ t.config?.view || t.tag }}</a>
-        </ng-container>
-      </ng-container>
+    <ng-container *ngIf="store.view.extTemplate else multipleExt">
       <a routerLink="./"
-         [class.current-tab]="isTemplate ? store.view.list : store.view.noView"
-         [queryParams]="{view: isTemplate ? 'list' : null}"
+         [class.current-tab]="store.view.noView"
+         [queryParams]="{view: null}"
+         queryParamsHandling="merge" i18n>{{ store.view.extTemplate.config?.view || store.view.extTemplate.tag }}</a>
+      <a routerLink="./"
+         [class.current-tab]="store.view.list"
+         [queryParams]="{view: 'list'}"
          queryParamsHandling="merge" i18n>list</a>
     </ng-container>
+    <ng-template #multipleExt>
+      <ng-container *ngIf="store.view.activeExts.length else noExt">
+        <a *ngFor="let x of store.view.activeExts; let i = index"
+           routerLink="./"
+           [class.current-tab]="store.view.viewTag=== x.tag"
+           [queryParams]="{view: i === 0 ? null : x.tag}"
+           queryParamsHandling="merge" i18n>{{ x.name || x.tag }}</a>
+        <a routerLink="./"
+           [class.current-tab]="store.view.list"
+           [queryParams]="{view: 'list'}"
+           queryParamsHandling="merge" i18n>list</a>
+      </ng-container>
+    </ng-template>
     <ng-template #noExt>
       <a routerLink="./"
          [class.current-tab]="!store.view.graph"
@@ -31,12 +40,12 @@
     <app-settings></app-settings>
   </div>
   <app-sidebar [floating]="floatingSidebar"
-               [tag]="store.view.tag!"
-               [ext]="store.view.ext"></app-sidebar>
+               [ext]="store.view.ext"
+               [tag]="store.view.tag"></app-sidebar>
   <div *ngIf="query.error?.status === 403 else accessGranted" class="error-403" i18n>Access Denied</div>
   <ng-template #accessGranted>
     <!-- TODO: allow paging with graph -->
-    <app-ref-list *ngIf="showList else tmpl"
+    <app-ref-list *ngIf="store.view.showList else tmpl"
                   [page]="query.page"
                   [pinned]="store.view.pinned"
                   [tag]="store.view.tag"
@@ -45,15 +54,16 @@
                   [showVotes]="store.view.isVoteSorted"></app-ref-list>
     <ng-template #tmpl>
       <app-folder *ngIf="store.view.isTemplate('folder')"
-                  [tag]="store.view.tag!"
-                  [ext]="store.view.ext!"
+                  [tag]="store.view.viewTag"
+                  [ext]="store.view.viewExt!"
                   [page]="query.page"></app-folder>
       <app-kanban *ngIf="store.view.isTemplate('kanban')"
-                  [tag]="store.view.tag!"></app-kanban>
+                  [query]="store.view.tag"
+                  [ext]="store.view.viewExt"></app-kanban>
       <app-chat *ngIf="store.view.isTemplate('chat')"
-                [query]="store.view.tag!"></app-chat>
+                [query]="store.view.viewTag!"></app-chat>
       <app-blog *ngIf="store.view.isTemplate('blog')"
-                [tag]="store.view.tag!"
+                [tag]="store.view.viewTag!"
                 [page]="query.page"
                 [pinned]="store.view.pinned"></app-blog>
     </ng-template>

@@ -16,6 +16,7 @@ import { RootConfig } from '../../mods/root';
 import { KanbanConfig } from '../../mods/kanban';
 import { UserConfig } from '../../mods/user';
 import { BookmarkService } from '../../service/bookmark.service';
+import { hasPrefix } from '../../util/tag';
 
 type FilterItem = { filter: UrlFilter, label: string, time?: boolean };
 type FilterGroup = { filters: FilterItem[], label: string };
@@ -61,22 +62,23 @@ export class FilterComponent implements OnInit, OnDestroy {
   }
 
   @Input()
-  set ext(value: Ext | undefined) {
-    if (value) this.type = 'ref';
+  set activeExts(value: Ext[]) {
+    if (value.length) this.type = 'ref';
   }
 
   @Input()
   set type(value: Type) {
+    // (kanban/jasper/testing|kanban/jasper/content):doing/dev
     if (value === 'ref') {
       this.allFilters = [];
-      for (const f of this.rootConfig?.queryFilters || []) this.loadFilter({
-        group: this.store.view.ext!.name || this.store.view.ext!.tag,
-        ...f,
-      });
-      for (const f of this.rootConfig?.responseFilters || []) this.loadFilter({
-        group: this.store.view.ext!.name || this.store.view.ext!.tag,
-        ...f,
-      });
+      for (const ext of this.store.view.exts) {
+        for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
+          this.loadFilter({
+            group: ext.name || ext.tag,
+            ...f,
+          });
+        }
+      }
       for (const f of this.admin.filters) this.loadFilter(f);
       this.pushFilter({
         label: $localize`Filters`,
@@ -99,65 +101,67 @@ export class FilterComponent implements OnInit, OnDestroy {
           this.createdAfterFilter,
         ],
       });
-      if (this.kanbanConfig?.badges?.length) {
-        this.allFilters.push({
-          label: $localize`Badges`,
-          filters: [],
-        });
-        this.exts.getCachedExts(this.kanbanConfig?.badges).subscribe(exts => {
-          for (const e of exts) {
+      for (const k of this.kanbanConfigs) {
+        if (k.badges?.length) {
+          this.allFilters.push({
+            label: $localize`Badges`,
+            filters: [],
+          });
+          this.exts.getCachedExts(k.badges).subscribe(exts => {
+            for (const e of exts) {
+              this.loadFilter({
+                group: $localize`Badges`,
+                label: e.name || e.tag,
+                query: e.tag,
+              });
+            }
             this.loadFilter({
               group: $localize`Badges`,
-              label: e.name || e.tag,
-              query: e.tag,
-            });
-          }
-          this.loadFilter({
-            group: $localize`Badges`,
-            label: $localize`🚫️ no badges`,
-            query: exts.map(e => '!' + e.tag).join(':'),
-          });
-        });
-      }
-      if (this.kanbanConfig?.columns?.length) {
-        this.allFilters.push({
-          label: $localize`Kanban`,
-          filters: [],
-        });
-        this.exts.getCachedExts(this.kanbanConfig?.columns).subscribe(exts => {
-          for (const e of exts) {
-            this.loadFilter({
-              group: $localize`Kanban`,
-              label: e.name || e.tag,
-              query: e.tag,
-            });
-          }
-          if (this.kanbanConfig?.showNoColumn) {
-            this.loadFilter({
-              group: $localize`Kanban`,
-              label: $localize`🚫️ no column`,
+              label: $localize`🚫️ no badges`,
               query: exts.map(e => '!' + e.tag).join(':'),
             });
-          }
-          if (this.kanbanConfig?.swimLanes) {
-            this.exts.getCachedExts(this.kanbanConfig?.swimLanes).subscribe(exts => {
-              for (const e of exts) {
-                this.loadFilter({
-                  group: $localize`Kanban`,
-                  label: e.name || e.tag,
-                  query: e.tag,
-                });
-              }
-              if (this.kanbanConfig?.showNoSwimLane) {
-                this.loadFilter({
-                  group: $localize`Kanban`,
-                  label: $localize`🚫️ no swim lane`,
-                  query: exts.map(e => '!' + e.tag).join(':'),
-                });
-              }
-            });
-          }
-        });
+          });
+        }
+        if (k.columns?.length) {
+          this.allFilters.push({
+            label: $localize`Kanban`,
+            filters: [],
+          });
+          this.exts.getCachedExts(k.columns).subscribe(exts => {
+            for (const e of exts) {
+              this.loadFilter({
+                group: $localize`Kanban`,
+                label: e.name || e.tag,
+                query: e.tag,
+              });
+            }
+            if (k.showNoColumn) {
+              this.loadFilter({
+                group: $localize`Kanban`,
+                label: $localize`🚫️ no column`,
+                query: exts.map(e => '!' + e.tag).join(':'),
+              });
+            }
+            if (k.swimLanes) {
+              this.exts.getCachedExts(k.swimLanes).subscribe(exts => {
+                for (const e of exts) {
+                  this.loadFilter({
+                    group: $localize`Kanban`,
+                    label: e.name || e.tag,
+                    query: e.tag,
+                  });
+                }
+                if (k.showNoSwimLane) {
+                  this.loadFilter({
+                    group: $localize`Kanban`,
+                    label: $localize`🚫️ no swim lane`,
+                    query: exts.map(e => '!' + e.tag).join(':'),
+                  });
+                }
+              });
+            }
+          });
+        }
       }
     } else {
       this.allFilters = [
@@ -173,19 +177,23 @@ export class FilterComponent implements OnInit, OnDestroy {
     this.syncDates();
   }
 
-  get rootConfig() {
-    if (!this.admin.status.templates.root) return undefined;
-    return this.store.view.ext?.config as RootConfig;
+  get rootConfigs() {
+    if (!this.admin.status.templates.root) return [];
+    return this.store.view.exts.map(x => x.config).filter(c => !!c) as RootConfig[];
   }
 
-  get userConfig() {
-    if (!this.admin.status.templates.user) return undefined;
-    return this.store.view.ext?.config as UserConfig;
+  get userConfigs() {
+    if (!this.admin.status.templates.user) return [];
+    return this.store.view.exts
+        .filter(x => hasPrefix(x.tag, 'user'))
+        .map(x => x.config).filter(c => !!c) as UserConfig[];
   }
 
-  get kanbanConfig() {
-    if (!this.admin.status.templates.kanban) return undefined;
-    return this.store.view.ext?.config as KanbanConfig;
+  get kanbanConfigs() {
+    if (!this.admin.status.templates.kanban) return [];
+    return this.store.view.exts
+        .filter(x => hasPrefix(x.tag, 'kanban'))
+        .map(x => x.config).filter(c => !!c) as KanbanConfig[];
   }
 
   loadFilter(filter: FilterConfig) {

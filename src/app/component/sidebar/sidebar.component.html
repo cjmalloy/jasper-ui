@@ -14,7 +14,7 @@
   <ng-container *ngIf="expanded && store.view.type && (!home || store.view.search || store.view.filter.length || !query.page?.empty)">
     <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
     <div class="row">
-      <app-filter [type]="store.view.type!" [ext]="store.view.ext"></app-filter>
+      <app-filter [type]="store.view.type!" [activeExts]="store.view.exts"></app-filter>
       <app-sort [type]="store.view.type!"></app-sort>
     </div>
   </ng-container>

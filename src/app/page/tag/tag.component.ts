@@ -1,5 +1,4 @@
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -11,7 +10,7 @@ import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
-import { defaultOrigin, hasPrefix, isPlugin } from '../../util/tag';
+import { defaultOrigin, isPlugin } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
@@ -26,9 +25,7 @@ export class TagPage implements OnInit, OnDestroy {
     return this.store.view.isTemplate('kanban');
   }
 
-  templates = this.admin.tmplView;
   floatingSidebar = true;
-  showList = false;
 
   constructor(
     public admin: AdminService,
@@ -36,7 +33,6 @@ export class TagPage implements OnInit, OnDestroy {
     public store: Store,
     public query: QueryStore,
     private theme: ThemeService,
-    private router: Router,
     private refs: RefService,
     private exts: ExtService,
   ) { }
@@ -46,10 +42,9 @@ export class TagPage implements OnInit, OnDestroy {
       !!this.admin.status.plugins.voteUp ? 'voteScoreDecay'
         : this.store.view.tag.includes('*') ? 'published'
         : 'created');
+    runInAction(() => this.store.view.extTemplates = this.admin.tmplView);
     this.disposers.push(autorun(() => {
-      this.theme.setTitle(this.store.view.name);
-      if (!this.fetchPage && !this.store.view.list) return;
-      var hideInternal = !isPlugin(this.store.view.tag) && !this.admin.getTemplates(this.store.view.tag).find(t => t.config?.internal);
+      const hideInternal = !isPlugin(this.store.view.tag) && !this.admin.getTemplates(this.store.view.tag).find(t => t.config?.internal);
       const args = getArgs(
         this.store.view.tag,
         this.store.view.sort,
@@ -61,17 +56,17 @@ export class TagPage implements OnInit, OnDestroy {
       defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
-      if (!this.store.view.tag || this.store.view.query) {
-        runInAction(() => this.store.view.ext = undefined);
+      this.theme.setTitle(this.store.view.name);
+      if (!this.store.view.queryTags.length) {
+        runInAction(() => this.store.view.exts = []);
       } else {
-        this.exts.getCachedExt(defaultOrigin(this.store.view.tag, this.store.account.origin)).pipe(
-          catchError(() => of(undefined)),
-        ).subscribe(ext => runInAction(() => this.store.view.ext = ext));
+        this.exts.getCachedExts(this.store.view.queryTags.map(t => defaultOrigin(t, this.store.account.origin))).pipe(
+          catchError(() => of([])),
+        ).subscribe(exts => runInAction(() => this.store.view.exts = exts));
       }
     }));
     this.disposers.push(autorun(() => {
-      this.showList = !!(!this.store.view.extExists || !this.isTemplate || this.store.view.list || this.store.view.query || this.store.view.graph);
-      this.floatingSidebar = this.showList || this.store.view.isTemplate('map');
+      this.floatingSidebar = this.store.view.showList || this.store.view.isTemplate('map');
       if (!this.store.view.ext?.config?.pinned?.length) {
         runInAction(() => this.store.view.pinned = undefined);
         return;
@@ -88,16 +83,4 @@ export class TagPage implements OnInit, OnDestroy {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }
-
-  get isTemplate() {
-    return !this.store.view.query && this.templates.find(t => hasPrefix(this.store.view.tag, t.tag));
-  }
-
-  get fetchPage() {
-    if (this.store.view.graph) return true;
-    if (this.store.view.isTemplate('blog')) return true;
-    if (this.store.view.isTemplate('folder')) return true;
-    return !this.isTemplate;
-  }
-
 }

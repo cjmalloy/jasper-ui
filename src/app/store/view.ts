@@ -1,4 +1,4 @@
-import { without } from 'lodash-es';
+import { uniq, without } from 'lodash-es';
 import { action, autorun, makeAutoObservable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
@@ -6,10 +6,11 @@ import { Ref, RefSort } from '../model/ref';
 import { TagSort } from '../model/tag';
 import { User } from '../model/user';
 import { UrlFilter } from '../util/query';
-import { hasPrefix, isQuery, localTag } from '../util/tag';
+import { hasPrefix, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
 import { EventBus } from './bus';
 import { AccountStore } from "./account";
 import { RootConfig } from '../mods/root';
+import { Template } from '../model/template';
 
 /**
  * ID for current view. Only includes pages that make queries.
@@ -35,7 +36,8 @@ export class ViewStore {
   ref?: Ref = {} as any;
   lastSelected?: Ref = {} as any;
   versions = 0;
-  ext?: Ext = {} as any;
+  exts: Ext[] = [];
+  extTemplates: Template[] = [];
   selectedUser?: User = {} as any;
   pinned?: Ref[] = [];
   updates = false;
@@ -76,11 +78,21 @@ export class ViewStore {
   clear(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {
     this.ref = undefined;
     this.versions = 0;
-    this.ext = undefined;
+    this.exts = [];
+    this.extTemplates = [];
     this.selectedUser = undefined;
     this.pinned = undefined;
     this.defaultSort = defaultSort;
     this.defaultSearchSort = defaultSearchSort;
+  }
+
+  get ext() {
+    if (this.exts.length === 1) return this.exts[0];
+    return undefined;
+  }
+
+  get extTemplate() {
+    return this.ext && this.extTemplates.find(t => hasPrefix(this.ext!.tag, t.tag))
   }
 
   get config(): RootConfig | undefined {
@@ -109,8 +121,24 @@ export class ViewStore {
     return s.firstChild?.routeConfig?.path === 'alts';
   }
 
-  get extExists() {
-    return !!this.ext?.modifiedString;
+  get activeExts() {
+    return this.activeTemplates
+        .flatMap(t => this.exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag)))
+        .filter(x => !!x);
+  }
+
+  get activeTemplates(): Template[] {
+    return this.queryTags
+        .map(tag => this.extTemplates.find(t => hasPrefix(tag, t.tag))!)
+        .filter(t => !!t);
+  }
+
+  get hasTemplate() {
+    return !!this.activeTemplates.length;
+  }
+
+  isTemplate(template: string) {
+    return hasPrefix(this.viewExt?.tag, template);
   }
 
   get tags(): boolean {
@@ -211,6 +239,18 @@ export class ViewStore {
     return this.route.routeSnapshot?.firstChild?.params['tag'] || '';
   }
 
+  get viewTag(): string {
+    return this.view || this.activeExts[0].tag;
+  }
+
+  get showList() {
+    return this.list || this.graph || !this.activeExts || !this.hasTemplate;
+  }
+
+  get viewExt() {
+    return this.activeExts.find(x => x.tag === this.viewTag);
+  }
+
   get template(): string {
     return this.route.routeSnapshot?.firstChild?.params['template'] || '';
   }
@@ -228,7 +268,10 @@ export class ViewStore {
   }
 
   get queryTags() {
-    return this.tag.split(/[:|()]+/g).filter(t => !t.startsWith('!'));
+    return uniq([
+        ...topAnds(this.tag),
+        ...topAnds(this.tag).map(queryPrefix),
+    ].filter(t => t && !isQuery(t)));
   }
 
   get noQuery() {
@@ -296,24 +339,24 @@ export class ViewStore {
     return this.route.routeSnapshot?.queryParams['published'];
   }
 
+  get view(): string {
+    return this.route.routeSnapshot?.queryParams['view'];
+  }
+
   get noView() {
-    return !this.route.routeSnapshot?.queryParams['view'];
+    return !this.view;
   }
 
   get list() {
-    return this.route.routeSnapshot?.queryParams['view'] === 'list';
+    return this.view === 'list';
   }
 
   get graph() {
-    return this.route.routeSnapshot?.queryParams['view'] === 'graph';
+    return this.view === 'graph';
   }
 
   get showRemotes() {
     return this.route.routeSnapshot?.queryParams['showRemotes'] === 'true';
-  }
-
-  isTemplate(tag: string) {
-    return !isQuery(this.tag) && hasPrefix(this.tag, tag);
   }
 
   toggleTag(tag: string) {

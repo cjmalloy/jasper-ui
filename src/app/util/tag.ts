@@ -32,7 +32,7 @@ export function capturesAny(selectors?: string[], target?: string[]): string | u
   return undefined;
 }
 
-export function addHierarchicalTags(tag?: string)  {
+export function addHierarchicalTags(tag?: string): string[]  {
   if (!tag) return [];
   const result = [tag];
   while (tag.includes('/')) {
@@ -41,9 +41,16 @@ export function addHierarchicalTags(tag?: string)  {
   return result;
 }
 
-export function addAllHierarchicalTags(tags?: string[])  {
+export function addAllHierarchicalTags(tags?: string[]): string[]   {
   if (!tags || !tags.length) return [];
   return flatMap(tags, t => addHierarchicalTags(t))
+}
+
+export function getLargestPrefix(a: string, b: string) {
+  for (const p of addHierarchicalTags(a)) {
+    if (hasPrefix(b, p)) return p;
+  }
+  return '';
 }
 
 export function hasTag(tag?: string, ref?: Ref) {
@@ -156,8 +163,8 @@ export function getPrefixes(tag: string) {
 
 export function fixClientQuery(query: string) {
   return query.toLowerCase()
-    .replace(/[\s|]+/g, '|')
-    .replace(/([^+|:!(])\+/g, '$1|');
+      .replace(/([^+|:!(])\+/g, '$1|')
+      .replace(/[\s|]+/g, '|');
 }
 
 export function isQuery(query?: string) {
@@ -165,6 +172,34 @@ export function isQuery(query?: string) {
   if (query.startsWith('@')) return true;
   if (query === '*') return true;
   return /[:|!()]/g.test(query);
+}
+
+export function queryTags(query?: string): string[] {
+  if (!query) return [];
+  return query.split(/[:|()]/);
+}
+
+export function queryPrefix(query?: string): string {
+  if (!query) return '';
+  const parts = query.split(/[:|()]/).filter(t => !!t);
+  return parts.reduce(getLargestPrefix, parts[0]);
+}
+
+export function topAnds(query?: string): string[] {
+  if (!query) return [];
+  const as = query.split(':');
+  const result = [];
+  let brackets = 0;
+  for (const a of as) {
+    const count = (a.match(/\(/g)?.length || 0) - (a.match(/\)/g)?.length || 0);
+    if (!brackets) {
+      result.push(a);
+    } else {
+      result[result.length - 1] += a;
+    }
+    brackets += count;
+  }
+  return result;
 }
 
 export function isPlugin(query?: string) {
