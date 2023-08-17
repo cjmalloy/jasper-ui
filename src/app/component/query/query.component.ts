@@ -97,7 +97,8 @@ export class QueryComponent implements OnInit {
     });
   }
 
-  private querySymbol(...ops: ('/' | '{' | '}' | ',' | ':' | '|' | '(' | ')')[]): string {
+  // (kanban/jasper/testing|kanban/jasper/content):!doing/dev
+  private querySymbol(...ops: ('/' | '{' | '}' | ',' | ':' | '|' | '(' | ')' | `!`)[]): string {
     return ops.map(op => {
       switch (op) {
         case '/': return $localize`\u00A0/ `;
@@ -105,6 +106,7 @@ export class QueryComponent implements OnInit {
         case '|': return $localize` ∪ `;
         case '(': return $localize` (\u00A0`;
         case ')': return $localize`\u00A0) `;
+        case `!`: return $localize` ¬`;
         case `{`: return $localize` {\u00A0`;
         case `}`: return $localize`\u00A0} `;
         case `,`: return $localize`, `;
@@ -134,13 +136,21 @@ export class QueryComponent implements OnInit {
       }
       crumbs.push({text: origin, tag: origin });
     }
+    if (tag.startsWith('!')) {
+      for (const t of crumbs) {
+        if (t.text.startsWith('!')) t.text = t.text.substring(1);
+      }
+      crumbs.unshift({ text: this.querySymbol(`!`) });
+    }
     for (const t of crumbs) {
-      if (t.tag && !t.tag.startsWith('@')) {
-        this.exts.getCachedExt(t.tag).subscribe(ext => {
+      const tag = t.tag?.startsWith('!') ? t.tag.substring(1) : t.tag;
+      if (tag && !tag.startsWith('@')) {
+        this.exts.getCachedExt(tag).subscribe(ext => {
+          // TODO: possible delayed write
           if (ext?.modifiedString && ext?.name) {
             t.text = ext.name;
           } else {
-            const template = this.admin.getTemplate(localTag(t.tag));
+            const template = this.admin.getTemplate(localTag(tag));
             if (template?.name) t.text = template.name;
           }
         });
