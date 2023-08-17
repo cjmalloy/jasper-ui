@@ -81,9 +81,13 @@ input.big {
   height: 23px;
 }
 
-select.big {
-  height: 29px;
-  font-size: 16px;
+select {
+  height: 22px;
+
+  &.big {
+    height: 29px;
+    font-size: 16px;
+  }
 }
 
 .wide {
