@@ -241,8 +241,9 @@ export class ViewStore {
 
   get name() {
     const title = this.ext?.name || this.ext?.tag || this.tag;
-    if (title === '@*') return 'All';
-    if (title === '*') return 'Local';
+    if (title === '@*') return $localize`All`;
+    if (title === '*') return $localize`Local`;
+    if (isQuery(title)) return $localize`Query`;
     return title;
   }
 
