@@ -1,7 +1,7 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ExtService } from '../../service/api/ext.service';
-import { fixClientQuery, localTag, tagOrigin } from '../../util/tag';
+import { access, fixClientQuery, getLargestPrefix, localTag, tagOrigin } from '../../util/tag';
 import { AdminService } from '../../service/admin.service';
 
 export type Crumb = { text: string, tag?: string };
@@ -55,29 +55,76 @@ export class QueryComponent implements OnInit {
 
   private queryCrumbs(query: string): Crumb[] {
     if (!query) return [];
-    return fixClientQuery(query).split(/([:|()]+)/g).flatMap(t => {
-      if (/[:|()]+/.test(t)) return [{ text: this.querySymbol(t.split('') as any) }];
-      return this.tagCrumbs(t);
+    const result: Crumb[] = fixClientQuery(query).split(/([:|()])/g).filter(t => !!t).map(part => {
+      if (/[:|()]+/.test(part)) return { text: part };
+      return { text: '', tag: part };
+    });
+    for (let i = 0; i < result.length - 2; i++) {
+      const a = result[i];
+      const op = result[i + 1];
+      const b = result[i + 2];
+      if (!a.tag || op.tag || !b.tag) continue;
+      if (op.text !== '|') continue;
+      if (tagOrigin(a.tag) !== tagOrigin(b.tag)) continue;
+      const prefix = getLargestPrefix(a.tag, b.tag);
+      if (prefix) {
+        const origin = tagOrigin(a.tag);
+        const as = access(a.tag) + localTag(a.tag).substring(prefix.length + 1);
+        const bs = access(b.tag) + localTag(b.tag).substring(prefix.length + 1);
+        if (!as.startsWith('{')) {
+          result[i].tag = prefix + '/{' + as + ',' + bs + '}' + origin;
+        } else {
+          result[i].tag = prefix + '/' + as.substring(0, as.length - 1) + ',' + bs + '}' + origin;
+        }
+        result.splice(i + 1, 2);
+        i--;
+      }
+    }
+    // (blog/a/b|blog/a/c):(kanban/jasper/content|kanban/jasper/testing)
+    for (let i = 0; i < result.length - 2; i++) {
+      const op1 = result[i];
+      const a = result[i + 1];
+      const op2 = result[i + 2];
+      if (a.tag && op1.text === '(' && op2.text === ')') {
+        result.splice(i + 2, 1);
+        result.splice(i, 1);
+      }
+    }
+    return result.flatMap(c => {
+      if (!c.tag) return [{ text: this.querySymbol(...c.text.split('') as any)}];
+      if (c.tag) return this.tagCrumbs(c.tag);
+      return c;
     });
   }
 
-  private querySymbol(ops: (':' | '|' | '(' | ')')[]): string {
+  private querySymbol(...ops: ('/' | '{' | '}' | ',' | ':' | '|' | '(' | ')')[]): string {
     return ops.map(op => {
       switch (op) {
+        case '/': return $localize`/`;
         case ':': return $localize`∩`;
         case '|': return $localize`∪`;
         case '(': return $localize`(`;
         case ')': return $localize`)`;
+        case `{`: return $localize`{`;
+        case `}`: return $localize`}`;
+        case `,`: return $localize`,`;
       }
+      return op;
     }).join(' ');
   }
 
   private tagCrumbs(tag: string) {
-    const crumbs: Crumb[] = localTag(tag).split(/(\/)/g).map(t => ({ text: t }));
+    const crumbs: Crumb[] = localTag(tag).split(/([/{},])/g).filter(t => !!t).map(text => ({ text }));
+    let prefix = '';
     for (let i = 0; i < crumbs.length; i++) {
       const previous = i > 1 ? crumbs[i-2].tag + '/' : '';
-      if (crumbs[i].text !== '/') {
-        crumbs[i].tag = previous + crumbs[i].text;
+      if (crumbs[i].text === '{') {
+        prefix = previous;
+      }
+      if (!/[/{},]/g.test(crumbs[i].text)) {
+        crumbs[i].tag = (prefix || previous) + crumbs[i].text;
+      } else {
+        crumbs[i].text = this.querySymbol(crumbs[i].text as any);
       }
     }
     const origin = tagOrigin(tag);
