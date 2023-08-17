@@ -550,9 +550,13 @@ export class AdminService {
   }
 
   getTemplate(tag: string) {
-    tag = tag.replace('+', '');
     if (this.status.templates[tag]) return this.status.templates[tag];
-    return Object.values(this.status.templates).find(t => t?.tag === tag);
+    return Object.values(this.status.templates).find(t => {
+      tag = tag.replace('+', '');
+      if (t?.tag === tag) return true;
+      tag = tag.replace('_', '');
+      return t?.tag === tag;
+    });
   }
 
   defaultConfig(tag: string) {
