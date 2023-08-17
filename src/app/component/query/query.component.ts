@@ -100,14 +100,14 @@ export class QueryComponent implements OnInit {
   private querySymbol(...ops: ('/' | '{' | '}' | ',' | ':' | '|' | '(' | ')')[]): string {
     return ops.map(op => {
       switch (op) {
-        case '/': return $localize`/`;
-        case ':': return $localize`∩`;
-        case '|': return $localize`∪`;
-        case '(': return $localize`(`;
-        case ')': return $localize`)`;
-        case `{`: return $localize`{`;
-        case `}`: return $localize`}`;
-        case `,`: return $localize`,`;
+        case '/': return $localize`\u00A0/ `;
+        case ':': return $localize` ∩ `;
+        case '|': return $localize` ∪ `;
+        case '(': return $localize` (\u00A0`;
+        case ')': return $localize`\u00A0) `;
+        case `{`: return $localize` {\u00A0`;
+        case `}`: return $localize`\u00A0} `;
+        case `,`: return $localize`, `;
       }
       return op;
     }).join(' ');
