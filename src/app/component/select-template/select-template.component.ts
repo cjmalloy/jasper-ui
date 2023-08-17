@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
+import { access } from '../../util/tag';
 
 @Component({
   selector: 'app-select-template',
@@ -35,7 +36,11 @@ export class SelectTemplateComponent {
   @Input()
   set template(value: string) {
     if (this.select) {
-      this.select!.nativeElement.selectedIndex = this.templates.map(t => t.tag + '/').indexOf(value) + 1;
+      let hit = this.templates.map(t => t.tag).indexOf(value) + 1;
+      if (hit === -1) {
+        hit = this.templates.map(t => t.tag).indexOf(value.substring(access(value).length)) + 1;
+      }
+      this.select!.nativeElement.selectedIndex = hit;
     } else {
       defer(() => this.template = value);
     }

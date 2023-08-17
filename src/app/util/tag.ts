@@ -131,9 +131,10 @@ export function prefix(prefix: string, ...rest: string[]) {
   } else if (access(rest[0])) {
     prefix = access(rest[0]) + prefix;
   }
-  return prefix + '/' + rest.join('/')
+  return prefix + ('/' + rest.join('/'))
     .replace(/[+_@]/g, '')
-    .replace(/\/\//g, '/');
+    .replace(/\/\//g, '/')
+    .replace(/\/$/, '');
 }
 
 export function hasPrefix(tag?: string, prefix?: string) {

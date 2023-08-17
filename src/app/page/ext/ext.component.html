@@ -28,9 +28,6 @@
           Private tags start with an underscore.<br>
           (i.e. "science", "my/tag", or "_my/private/tag")
         </div>
-        <div class="error" *ngIf="tag.touched && tag.errors?.['required']" i18n>
-          Tag must not be blank.
-        </div>
       </div>
 
       <ng-container *ngFor="let e of serverError">

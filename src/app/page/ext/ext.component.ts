@@ -13,9 +13,9 @@ import { ExtService } from '../../service/api/ext.service';
 import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
-import { TAG_REGEX } from '../../util/format';
+import { TAG_SUFFIX_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
-import { hasPrefix, localTag } from '../../util/tag';
+import { access, hasPrefix, localTag, prefix } from '../../util/tag';
 
 @Component({
   selector: 'app-ext-page',
@@ -48,7 +48,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   ) {
     theme.setTitle($localize`Edit Tag`);
     this.extForm = fb.group({
-      tag: ['', [Validators.required, Validators.pattern(TAG_REGEX)]],
+      tag: ['', [Validators.pattern(TAG_SUFFIX_REGEX)]],
     });
   }
 
@@ -73,13 +73,6 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
 
   setExt(tag: string, ext?: Ext) {
     tag = localTag(tag);
-    for (const t of this.templates) {
-      if (tag === t.tag) {
-        this.template = t.tag + '/';
-        this.tag.setValue(tag.substring(t.tag.length + 1))
-        return;
-      }
-    }
     runInAction(() => this.store.view.exts = ext ? [ext] : []);
     if (ext) {
       this.editForm = extForm(this.fb, ext, this.admin, true);
@@ -88,8 +81,8 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     } else {
       for (const t of this.templates) {
         if (hasPrefix(tag, t.tag)) {
-          this.template = t.tag + '/';
-          this.tag.setValue(tag.substring(t.tag.length + 1))
+          this.template = t.tag;
+          this.tag.setValue(access(tag) + tag.substring(t.tag.length + access(tag).length + 1))
           return;
         }
       }
@@ -109,10 +102,9 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
 
   prefix(tag: string) {
     if (!this.template) return tag;
-    if (tag.startsWith('+') || tag.startsWith('_')) {
-      return tag.substring(0, 1) + this.template + tag.substring(1);
-    }
-    return this.template + tag;
+    if (!tag) return this.template;
+    if (access(this.template) && access(tag)) tag = tag.substring(access(tag).length);
+    return prefix(this.template, tag);
   }
 
   create() {

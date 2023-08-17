@@ -3,11 +3,11 @@ import { Ref } from '../model/ref';
 import { reverseOrigin } from '../mods/mailbox';
 import { config } from '../service/config.service';
 import { hasPrefix, hasTag } from './tag';
-import { Ext } from '../model/ext';
 import { Config, ModType } from '../model/tag';
 
 export const URI_REGEX = /^[^\s:/?#]+:(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
 export const TAG_REGEX = /^[_+]?[a-z0-9]+([./][a-z0-9]+)*$/;
+export const TAG_SUFFIX_REGEX = /^[+_]|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?$/;
 export const TAGS_REGEX = /^-?[_+]?[a-z0-9]+([.\/][a-z0-9]+)*(\s+-?[_+]?[a-z0-9]+([.\/][a-z0-9]+)*)*$/;
 export const USER_REGEX = /^[_+]user(\/[a-z0-9]+([./][a-z0-9]+)*)?$/;
 export const QUALIFIED_USER_REGEX = /^[_+]user(\/[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9]+)*)?$/;

@@ -3,6 +3,6 @@
           class="big"
           (input)="templateChange.next(select.value)">
     <option value="" i18n>🏷️</option>
-    <option *ngFor="let t of templates" [value]="t.tag ? t.tag + '/' : ''">{{ t.config?.submit }}</option>
+    <option *ngFor="let t of templates" [value]="t.tag">{{ t.config?.submit }}</option>
   </select>
 </ng-container>
