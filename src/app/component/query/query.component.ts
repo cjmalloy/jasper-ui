@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ExtService } from '../../service/api/ext.service';
 import { access, fixClientQuery, getLargestPrefix, getStrictPrefix, localTag, tagOrigin } from '../../util/tag';
 import { AdminService } from '../../service/admin.service';
+import { Store } from '../../store/store';
 
 export type Crumb = { text: string, tag?: string };
 
@@ -22,6 +23,7 @@ export class QueryComponent implements OnInit {
     private router: Router,
     private exts: ExtService,
     private admin: AdminService,
+    private store: Store,
   ) { }
 
   ngOnInit(): void {
@@ -98,13 +100,53 @@ export class QueryComponent implements OnInit {
 
   private querySymbol(...ops: ('/' | '{' | '}' | ',' | ':' | '|' | '(' | ')' | `!`)[]): string {
     return ops.map(op => {
+      if (this.store.account.config.queryStyle === 'set') {
+        switch (op) {
+          case '/': return $localize`\u00A0/ `;
+          case ':': return $localize` ∩ `;
+          case '|': return $localize` ∪ `;
+          case '(': return $localize` (\u00A0`;
+          case ')': return $localize`\u00A0) `;
+          case `!`: return $localize`' `;
+          case `{`: return $localize` {\u00A0`;
+          case `}`: return $localize`\u00A0} `;
+          case `,`: return $localize` ∪ `;
+        }
+      }
+      if (this.store.account.config.queryStyle === 'logic') {
+        switch (op) {
+          case '/': return $localize`\u00A0/ `;
+          case ':': return $localize` & `;
+          case '|': return $localize` | `;
+          case '(': return $localize` (\u00A0`;
+          case ')': return $localize`\u00A0) `;
+          case `!`: return $localize` ¬`;
+          case `{`: return $localize` {\u00A0`;
+          case `}`: return $localize`\u00A0} `;
+          case `,`: return $localize`, `;
+        }
+      }
+      if (this.store.account.config.queryStyle === 'code') {
+        switch (op) {
+          case '/': return $localize`\u00A0/ `;
+          case ':': return $localize` & `;
+          case '|': return $localize`, `;
+          case '(': return $localize` (\u00A0`;
+          case ')': return $localize`\u00A0) `;
+          case `!`: return $localize` !`;
+          case `{`: return $localize` {\u00A0`;
+          case `}`: return $localize`\u00A0} `;
+          case `,`: return $localize`, `;
+        }
+      }
+
       switch (op) {
         case '/': return $localize`\u00A0/ `;
-        case ':': return $localize` ∩ `;
-        case '|': return $localize` ∪ `;
+        case ':': return $localize` : `;
+        case '|': return $localize` | `;
         case '(': return $localize` (\u00A0`;
         case ')': return $localize`\u00A0) `;
-        case `!`: return $localize` ¬`;
+        case `!`: return $localize` !`;
         case `{`: return $localize` {\u00A0`;
         case `}`: return $localize`\u00A0} `;
         case `,`: return $localize`, `;
@@ -138,7 +180,12 @@ export class QueryComponent implements OnInit {
       for (const t of crumbs) {
         if (t.text.startsWith('!')) t.text = t.text.substring(1);
       }
-      crumbs.unshift({ text: this.querySymbol(`!`) });
+      const notOp = { text: this.querySymbol(`!`) };
+      if (notOp.text.startsWith(' ')) {
+        crumbs.unshift(notOp);
+      } else {
+        crumbs.push(notOp);
+      }
     }
     for (const t of crumbs) {
       const tag = t.tag?.startsWith('!') ? t.tag.substring(1) : t.tag;
