@@ -26,6 +26,7 @@ import { downloadPage } from '../../util/download';
 import { TAGS_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasTag } from '../../util/tag';
+import { Ext } from '../../model/ext';
 
 @Component({
   selector: 'app-bulk',
@@ -40,6 +41,8 @@ export class BulkComponent implements OnInit, OnDestroy {
 
   @Input()
   type: Type = 'ref';
+  @Input()
+  activeExts: Ext[] = [];
 
   actions: Action[] = [];
   batchRunning = false;
@@ -80,6 +83,10 @@ export class BulkComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  get defaultThumbnail() {
+    return this.activeExts.find(x => x.config?.defaultThumbnail)?.config?.defaultThumbnail || '';
   }
 
   get urls() {

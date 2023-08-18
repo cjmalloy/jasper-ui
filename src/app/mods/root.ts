@@ -80,6 +80,12 @@ export const rootTemplate: Template = {
           }
         }]
       }
+    }, {
+      key: 'defaultThumbnail',
+      type: 'url',
+      props: {
+        label: $localize`Default Thumbnail:`
+      }
     }],
   },
   defaults: <RootConfig> {
@@ -111,6 +117,7 @@ export const rootTemplate: Template = {
       defaultSort: { type: 'string' },
       submitText: { type: 'boolean'},
       addTags: { elements: { type: 'string' } },
+      defaultThumbnail: { type: 'string' },
     },
   },
 };
@@ -126,5 +133,6 @@ export interface RootConfig {
   defaultSort?: string;
   submitText?: boolean;
   addTags?: string[];
+  defaultThumbnail?: boolean;
 }
 
