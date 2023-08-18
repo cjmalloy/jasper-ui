@@ -10,6 +10,9 @@ export class AutofocusDirective {
   @Input('appAutofocus')
   enabled: boolean | '' = true;
 
+  @Input()
+  select = true;
+
   constructor(
     private elementRef: ElementRef,
     private router: Router,
@@ -26,6 +29,9 @@ export class AutofocusDirective {
   focus() {
     if (this.enabled === false) return;
     this.elementRef.nativeElement.focus();
+    if ('setSelectionRange' in this.elementRef.nativeElement) {
+      this.elementRef.nativeElement.setSelectionRange(0, this.elementRef.nativeElement.value?.length || 0)
+    }
   }
 
 }
