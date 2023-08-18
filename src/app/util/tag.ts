@@ -46,11 +46,15 @@ export function addAllHierarchicalTags(tags?: string[]): string[]   {
   return flatMap(tags, t => addHierarchicalTags(t))
 }
 
-export function getLargestPrefix(a: string, b: string) {
+export function getLargestPrefix(a?: string, b?: string) {
   for (const p of addHierarchicalTags(a)) {
     if (hasPrefix(b, p)) return p;
   }
   return '';
+}
+
+export function getStrictPrefix(a: string, b: string) {
+  return getLargestPrefix(parentTag(a), parentTag(b));
 }
 
 export function hasTag(tag?: string, ref?: Ref) {

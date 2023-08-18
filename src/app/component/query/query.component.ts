@@ -1,7 +1,7 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ExtService } from '../../service/api/ext.service';
-import { access, fixClientQuery, getLargestPrefix, localTag, tagOrigin } from '../../util/tag';
+import { access, fixClientQuery, getLargestPrefix, getStrictPrefix, localTag, tagOrigin } from '../../util/tag';
 import { AdminService } from '../../service/admin.service';
 
 export type Crumb = { text: string, tag?: string };
@@ -66,7 +66,7 @@ export class QueryComponent implements OnInit {
       if (!a.tag || op.tag || !b.tag) continue;
       if (op.text !== '|') continue;
       if (tagOrigin(a.tag) !== tagOrigin(b.tag)) continue;
-      const prefix = getLargestPrefix(a.tag, b.tag);
+      const prefix = getStrictPrefix(a.tag, b.tag);
       if (prefix) {
         const origin = tagOrigin(a.tag);
         const as = access(a.tag) + localTag(a.tag).substring(prefix.length + 1);
