@@ -49,6 +49,18 @@ export const userTemplate: Template = {
       }
     }],
     advancedForm: [{
+      key: 'queryStyle',
+      type: 'enum',
+      props: {
+        label: $localize`Query Style:`,
+        options: [
+          { label: $localize`Default` },
+          { value: 'code', label: $localize`Code` },
+          { value: 'set', label: $localize`Set` },
+          { value: 'logic', label: $localize`Logic` },
+        ],
+      },
+    }, {
       key: 'editors',
       type: 'tags',
       props: {
@@ -124,6 +136,7 @@ export const userTemplate: Template = {
   },
   schema: {
     optionalProperties: {
+      queryStyle: { type: 'string' },
       liveSearch: { type: 'boolean' },
       email: { type: 'string' },
       lastNotified: { type: 'string' },
@@ -138,6 +151,7 @@ export const userTemplate: Template = {
 };
 
 export interface UserConfig extends RootConfig {
+  queryStyle?: string;
   liveSearch?: boolean;
   email?: string;
   lastNotified?: string;
