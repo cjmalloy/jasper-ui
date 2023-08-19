@@ -718,6 +718,10 @@ formly-list-section .form-array > formly-field > formly-group {
       height: 0;
       margin: 0;
     }
+
+    & > label {
+      text-align: right;
+    }
   }
 
   & > * {
@@ -730,10 +734,13 @@ formly-list-section .form-array > formly-field > formly-group {
     margin: 0;
   }
 
+  & > label {
+    text-align: right;
+  }
+
   label {
     user-select: none;
     white-space: nowrap;
-    text-align: right;
   }
 }
 
