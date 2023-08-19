@@ -37,7 +37,7 @@ export class GenFormComponent implements OnInit {
 
   get childrenOn() {
     for (let i = this.children.length - 1; i >= 0; i--) {
-      if (this.plugins.contains(this.children[i].tag)) return i + 1;
+      if (this.plugins.contains(this.children[i].tag)) return i;
     }
     return 0;
   }
