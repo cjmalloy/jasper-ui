@@ -213,7 +213,6 @@ export class RefComponent implements OnInit, OnDestroy {
     });
   }
 
-  @HostListener('window:resize')
   @HostListener('fullscreenchange')
   onFullscreenChange() {
     if (!this.fullscreen) return;
