@@ -31,8 +31,13 @@
       <div class="toggle"
            *ngIf="showToggle && (thread || commentNoTitle || expandPlugins.length)"
            (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, ref.origin, expanded = !expanded)">
-        <span class="toggle-plus" *ngIf="!editing && !viewSource && !expanded">＋</span>
-        <span class="toggle-x" *ngIf="editing || viewSource || expanded">✕</span>
+        <ng-container *ngIf="(editing || viewSource || expanded) else toggleExpanded">
+          <span class="toggle-x">✕</span>
+        </ng-container>
+        <ng-template #toggleExpanded>
+          <span class="toggle-plus" *ngIf="!fullscreen">＋</span>
+          <span class="toggle-fullscreen" *ngIf="fullscreen">⛶</span>
+        </ng-template>
       </div>
       <div class="stack">
         <div class="info" [class.expanded]="!actionsExpanded">

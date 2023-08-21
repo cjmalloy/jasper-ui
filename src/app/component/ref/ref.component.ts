@@ -213,11 +213,12 @@ export class RefComponent implements OnInit, OnDestroy {
     });
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize() {
-    if (!hasTag('plugin/fullscreen', this.ref)) return;
-    if (this.ref.plugins?.['plugin/fullscreen'].optional) return;
-    if (window.innerHeight != screen.height) {
+  @HostListener('window:resize')
+  @HostListener('fullscreenchange')
+  onFullscreenChange() {
+    if (!this.fullscreen) return;
+    if (this.ref.plugins?.['plugin/fullscreen']?.optional) return;
+    if (!document.fullscreenElement) {
       this.expanded = false;
     }
   }
@@ -231,14 +232,12 @@ export class RefComponent implements OnInit, OnDestroy {
 
   @ViewChild(ViewerComponent)
   set viewer(value: ViewerComponent | undefined) {
-    if (!hasTag('plugin/fullscreen', this.ref)) return;
+    if (!this.fullscreen) return;
     if (value) {
       value.el.nativeElement.requestFullscreen().catch(() => {
         console.warn('Could not make fullscreen.');
         this.expanded = false;
       });
-    } else if (window.innerHeight == screen.height) {
-      document.exitFullscreen();
     }
   }
 
@@ -552,6 +551,10 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get downvote() {
     return hasUserUrlResponse('plugin/vote/down', this.ref);
+  }
+
+  get fullscreen() {
+    return hasTag('plugin/fullscreen', this.ref);
   }
 
   formatAuthor(user: string) {
