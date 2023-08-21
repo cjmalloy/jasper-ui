@@ -14,8 +14,7 @@ import { Store } from '../../store/store';
 export class SubscriptionBarComponent implements OnInit {
   @HostBinding('class') css = 'subscription-bar';
 
-  // @ts-ignore
-  private startIndex = navigation.currentEntry?.index || 0;
+  private startIndex = this.currentIndex;
 
   constructor(
     public config: ConfigService,
@@ -37,10 +36,15 @@ export class SubscriptionBarComponent implements OnInit {
     return this.exts.getCachedExts(this.store.account.subs);
   }
 
+  get currentIndex() {
+    if ('navigation' in window) {
+      // @ts-ignore
+      return navigation.currentEntry?.index || 0
+    }
+    return 0;
+  }
+
   back() {
-    // @ts-ignore
-    const index = navigation.currentEntry?.index || 0;
-    console.log(index);
-    if (index > this.startIndex) this.location.back();
+    if (this.currentIndex > this.startIndex) this.location.back();
   }
 }
