@@ -54,7 +54,7 @@
              [ref]="store.view.ref"
              [showToggle]="true"
              [expandInline]="!config.mobile"
-             [expanded]="store.local.isRefToggled(store.view.url, store.view.origin, !!store.view.ref.comment)"></app-ref>
+             [expanded]="expandedOnload && store.local.isRefToggled(store.view.url, store.view.origin, !!store.view.ref.comment)"></app-ref>
     <div *ngIf="refWarning"
          class="warning" i18n>
       * Published date was changed to be after source published date.

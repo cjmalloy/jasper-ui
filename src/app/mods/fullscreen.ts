@@ -16,11 +16,18 @@ export const fullscreenPlugin: Plugin = {
       props: {
         label: $localize`Optional: `,
       },
+    }, {
+      key: 'onload',
+      type: 'boolean',
+      props: {
+        label: $localize`On Load: `,
+      },
     }],
   },
   schema: {
     optionalProperties: {
-      "optional": { type: 'boolean' },
+      optional: { type: 'boolean' },
+      onload: { type: 'boolean' },
     },
   },
 };
