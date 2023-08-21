@@ -17,8 +17,9 @@ import { hasTag } from '../../util/tag';
   styleUrls: ['./ref.component.scss'],
 })
 export class RefPage implements OnInit, OnDestroy {
-
   private disposers: IReactionDisposer[] = [];
+
+  expandedOnload = false;
   error?: HttpErrorResponse;
   printError = printError;
 
@@ -29,6 +30,9 @@ export class RefPage implements OnInit, OnDestroy {
     private refs: RefService,
   ) {
     store.view.clear();
+    if (!hasTag('plugin/fullscreen', store.view.ref) || store.view.ref?.plugins?.['plugin/fullscreen']?.onload) {
+      this.expandedOnload = true;
+    }
   }
 
   get refWarning() {
