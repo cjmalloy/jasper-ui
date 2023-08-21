@@ -342,7 +342,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   }
 
   fullscreen() {
-    if (window.innerHeight == screen.height) {
+    if (document.fullscreenElement) {
       document.exitFullscreen();
     } else {
       this.figure.nativeElement.requestFullscreen();

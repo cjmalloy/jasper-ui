@@ -1,4 +1,13 @@
-import { Component, ElementRef, HostBinding, Inject, Input, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostBinding,
+  HostListener,
+  Inject,
+  Input,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import Hls from 'hls.js';
 import { defer, without } from 'lodash-es';
 import { Oembed } from '../../model/oembed';
@@ -45,7 +54,6 @@ export class ViewerComponent {
     private embeds: EmbedService,
     private refs: RefService,
     private store: Store,
-    @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
     public el: ElementRef,
   ) { }
 
