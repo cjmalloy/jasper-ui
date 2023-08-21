@@ -427,6 +427,7 @@ export class EmbedService {
       let oldHeight = doc.body.scrollHeight;
       let newHeight = false;
       const f = async () => {
+        if (document.fullscreenElement) return;
         const h = doc.body.scrollHeight;
         if (h !== oldHeight) {
           newHeight = true;
