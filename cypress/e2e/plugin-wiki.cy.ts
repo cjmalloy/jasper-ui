@@ -23,7 +23,7 @@ describe('Wiki Plugin', {
     cy.get('.full-page.ref .link a').should('have.text', 'Wiki test');
   });
   it('should rename page for URL', () => {
-    cy.visit('/ref/wiki:Wiki_test?debug=USER');
+    cy.visit('/ref/e/wiki:Wiki_test?debug=USER');
     cy.get('.full-page.ref .link a').should('have.text', 'Wiki test');
   });
   it('should have internal wiki link', () => {
