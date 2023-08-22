@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { VideoUploadComponent } from './video-upload.component';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('VideoUploadComponent', () => {
   let component: VideoUploadComponent;
@@ -8,7 +10,11 @@ describe('VideoUploadComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ VideoUploadComponent ]
+      declarations: [ VideoUploadComponent ],
+      imports: [
+        HttpClientTestingModule,
+        RouterTestingModule,
+      ]
     })
     .compileComponents();
 

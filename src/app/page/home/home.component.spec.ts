@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { HomePage } from './home.component';
+import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
 
 describe('HomePage', () => {
   let component: HomePage;
@@ -14,6 +15,10 @@ describe('HomePage', () => {
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
+      ],
+      providers: [
+        { provide: OAuthService, useValue: {} },
+        { provide: OAuthStorage, useValue: {} },
       ],
     })
     .compileComponents();

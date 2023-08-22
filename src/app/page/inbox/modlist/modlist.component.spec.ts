@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { InboxModlistPage } from './modlist.component';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('InboxModlistPage', () => {
   let component: InboxModlistPage;
@@ -8,7 +10,11 @@ describe('InboxModlistPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ InboxModlistPage ]
+      declarations: [ InboxModlistPage ],
+      imports: [
+        HttpClientTestingModule,
+        RouterTestingModule,
+      ]
     })
     .compileComponents();
 

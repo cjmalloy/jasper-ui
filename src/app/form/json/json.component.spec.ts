@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { JsonComponent } from './json.component';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('JsonComponent', () => {
   let component: JsonComponent;
@@ -12,6 +13,7 @@ describe('JsonComponent', () => {
       declarations: [ JsonComponent ],
       imports: [
         RouterTestingModule,
+        HttpClientTestingModule,
       ],
     })
     .compileComponents();

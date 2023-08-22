@@ -26,6 +26,7 @@ describe('CommentReplyComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(CommentReplyComponent);
     component = fixture.componentInstance;
+    component.to = { url: '' };
     fixture.detectChanges();
   });
 
