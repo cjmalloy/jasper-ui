@@ -10,7 +10,7 @@ describe('SettingsPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SettingsPage],
+      declarations: [ SettingsPage ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,

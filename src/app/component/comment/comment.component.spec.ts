@@ -10,7 +10,7 @@ describe('CommentComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CommentComponent],
+      declarations: [ CommentComponent ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,

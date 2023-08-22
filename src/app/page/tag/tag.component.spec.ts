@@ -11,7 +11,7 @@ describe('TagPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TagPage],
+      declarations: [ TagPage ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,

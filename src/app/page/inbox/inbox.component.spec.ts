@@ -10,7 +10,7 @@ describe('InboxPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [InboxPage],
+      declarations: [ InboxPage ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,

@@ -11,7 +11,7 @@ describe('SettingsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SettingsComponent],
+      declarations: [ SettingsComponent ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,

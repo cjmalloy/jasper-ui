@@ -11,7 +11,7 @@ describe('ThreadSummaryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ThreadSummaryComponent],
+      declarations: [ ThreadSummaryComponent ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,

@@ -16,7 +16,7 @@ describe('InboxUnreadPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [InboxUnreadPage],
+      declarations: [ InboxUnreadPage ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,

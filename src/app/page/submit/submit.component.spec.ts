@@ -11,7 +11,7 @@ describe('SubmitPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SubmitPage],
+      declarations: [ SubmitPage ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,

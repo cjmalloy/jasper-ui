@@ -10,7 +10,7 @@ describe('RefResponsesComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [RefResponsesComponent],
+      declarations: [ RefResponsesComponent ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,

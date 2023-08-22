@@ -11,7 +11,7 @@ describe('HomePage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [HomePage],
+      declarations: [ HomePage ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,

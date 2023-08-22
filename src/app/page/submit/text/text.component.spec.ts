@@ -12,7 +12,7 @@ describe('SubmitTextPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SubmitTextPage, TagsFormComponent],
+      declarations: [ SubmitTextPage, TagsFormComponent ],
       imports: [
         HttpClientTestingModule,
         ReactiveFormsModule,

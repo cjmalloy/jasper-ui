@@ -11,7 +11,7 @@ describe('CommentReplyComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CommentReplyComponent],
+      declarations: [ CommentReplyComponent ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,

@@ -12,7 +12,7 @@ describe('CreateExtPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ExtPage],
+      declarations: [ ExtPage ],
       imports: [
         HttpClientTestingModule,
         ReactiveFormsModule,

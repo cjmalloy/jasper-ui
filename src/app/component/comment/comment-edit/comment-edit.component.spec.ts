@@ -11,7 +11,7 @@ describe('CommentEditComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CommentEditComponent],
+      declarations: [ CommentEditComponent ],
       imports: [
         HttpClientTestingModule,
         RouterTestingModule,
