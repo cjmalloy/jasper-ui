@@ -19,8 +19,7 @@ describe('Origin Push Plugin', {
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('input[type=checkbox]').uncheck();
-    cy.get('#plugin-origin').check();
-    cy.get('#plugin-originPush').check();
+    cy.get('#mod-origin').check();
     cy.get('button').contains('Save').click();
   });
   it('creates a remote origin', () => {

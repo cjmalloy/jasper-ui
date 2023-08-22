@@ -22,12 +22,10 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('input[type=checkbox]').uncheck();
-    cy.get('#plugin-comment').check();
-    cy.get('#plugin-inbox').check();
-    cy.get('#plugin-outbox').check();
-    cy.get('#plugin-origin').check();
-    cy.get('#plugin-originPull').check();
-    cy.get('#template-user').check();
+    cy.get('#mod-comment').check();
+    cy.get('#mod-mailbox').check();
+    cy.get('#mod-origin').check();
+    cy.get('#mod-user').check();
     cy.get('button').contains('Save').click();
     cy.wait(200);
   });
@@ -48,12 +46,10 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit(replUrl + '/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.get('#plugin-comment').check();
-    cy.get('#plugin-inbox').check();
-    cy.get('#plugin-outbox').check();
-    cy.get('#plugin-origin').check();
-    cy.get('#plugin-originPull').check();
-    cy.get('#template-user').check();
+    cy.get('#mod-comment').check();
+    cy.get('#mod-mailbox').check();
+    cy.get('#mod-origin').check();
+    cy.get('#mod-user').check();
     cy.get('button').contains('Save').click();
   });
   it('@other: replicate @main', () => {

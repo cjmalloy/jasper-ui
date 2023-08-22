@@ -43,7 +43,7 @@ describe('Wiki Plugin', {
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('input[type=checkbox]').uncheck();
-    cy.get('#plugin-wiki').check();
+    cy.get('#mod-wiki').check();
     cy.get('button').contains('Save').click();
   });
   it('set external wiki', () => {

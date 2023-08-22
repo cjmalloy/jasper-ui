@@ -25,7 +25,7 @@ describe('Kanban Template with Swim Lanes', {
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('input[type=checkbox]').uncheck();
-    cy.get('#template-kanban').check();
+    cy.get('#mod-kanban').check();
     cy.get('button').contains('Save').click();
   });
   it('creates a board with swim lanes', () => {

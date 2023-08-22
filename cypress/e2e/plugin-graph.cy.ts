@@ -17,7 +17,7 @@ describe('Graph Plugin', {
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('input[type=checkbox]').uncheck();
-    cy.get('#plugin-graph').check();
+    cy.get('#mod-graph').check();
     cy.get('button').contains('Save').click();
   });
   it('creates a ref', () => {

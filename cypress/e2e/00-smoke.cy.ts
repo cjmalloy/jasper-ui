@@ -35,6 +35,7 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
+        debug: false,
         tag: '+user/debug',
         sysadmin: false,
         admin: true,
@@ -51,6 +52,7 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
+        debug: false,
         tag: '+user/debug',
         sysadmin: false,
         admin: false,
@@ -67,6 +69,7 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
+        debug: false,
         tag: '+user/debug',
         sysadmin: false,
         admin: false,
@@ -83,6 +86,7 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
+        debug: false,
         tag: '+user/debug',
         sysadmin: false,
         admin: false,
@@ -99,6 +103,7 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
+        debug: false,
         tag: '+user/debug',
         sysadmin: false,
         admin: false,
@@ -115,6 +120,7 @@ describe('Smoke Tests', {
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).deep.equal({
+        debug: false,
         tag: '+user/debug',
         sysadmin: false,
         admin: false,
