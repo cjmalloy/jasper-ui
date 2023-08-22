@@ -1,14 +1,12 @@
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { Component, HostBinding, Input, OnDestroy, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, map, switchMap, throwError } from 'rxjs';
+import { catchError, map, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
-import { TaggingService } from '../../service/api/tagging.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
@@ -47,10 +45,8 @@ export class ChatComponent implements OnDestroy {
 
   constructor(
     public admin: AdminService,
-    private route: ActivatedRoute,
     private store: Store,
     private refs: RefService,
-    private tags: TaggingService,
     private editor: EditorService,
   ) { }
 
@@ -66,7 +62,7 @@ export class ChatComponent implements OnDestroy {
   }
 
   get containerHeight() {
-    return Math.max(300, Math.min(1000, this.itemSize * (this.messages?.length || 1)));
+    return Math.max(300, Math.min(window.innerHeight - 400, this.itemSize * (this.messages?.length || 1)));
   }
 
   ngOnDestroy(): void {
