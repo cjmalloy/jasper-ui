@@ -30,6 +30,7 @@ describe('Kanban Template No Swimlanes', {
   });
   it('creates a board', () => {
     cy.visit('/?debug=MOD');
+    cy.get('.subs').contains('tabs').click();
     cy.contains('Edit').click();
     cy.get('#tag').type('kanban/test');
     cy.get('button').contains('Extend').click();

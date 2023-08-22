@@ -15,6 +15,7 @@ describe('Smoke Tests', {
     cy.get('button').contains('Save').click();
   });
   it('creates a ref', () => {
+    cy.visit('/?debug=ADMIN');
     cy.contains('Submit').click();
     cy.get('#url').type('https://www.jasper-kms.info/');
     cy.get('#scrape').uncheck();

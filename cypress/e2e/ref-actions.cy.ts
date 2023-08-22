@@ -13,6 +13,7 @@ describe('Ref Actions', {
     cy.get('button').contains('Save').click();
   });
   it('creates a ref', () => {
+    cy.visit('/?debug=MOD');
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Title');
