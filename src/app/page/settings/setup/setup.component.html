@@ -34,8 +34,8 @@
           <div>
             <ng-container *ngFor="let e of group.value">
               <div *ngIf="experiments || !e[1].config?.experimental" [title]="e[1]!.config!.description || ''" class="nowrap">
-                <input id="mod-{{ e[0] }}" type="checkbox" [formControlName]="e[0]">
-                <label for="mod-{{ e[0] }}" [title]="e[1]!.config!.description || ''">{{ e[1].config?.mod || e[1].name || e[1].tag }}</label>
+                <input id="mod-{{ modLabel(e[1].config?.mod || e[0]) }}" type="checkbox" [formControlName]="e[0]">
+                <label for="mod-{{ modLabel(e[1].config?.mod || e[0]) }}" [title]="e[1]!.config!.description || ''">{{ e[1].config?.mod || e[1].name || e[1].tag }}</label>
                 <span *ngIf="e[1].config!.experimental">🧪️</span>
                 <span *ngIf="needsModUpdate(e[1])" class="update">
                 <span class="fake-link no-select" (click)="updateMod(e[1])" i18n>🌟️ update</span>

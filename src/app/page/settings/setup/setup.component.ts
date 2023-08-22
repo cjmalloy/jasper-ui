@@ -241,4 +241,7 @@ export class SettingsSetupPage implements OnInit {
       Object.values(this.admin.status.templates).find(t => t && mod === modId(t) && t.config?.needsUpdate);
   }
 
+  modLabel(name: string) {
+    return name.replace(/\W/g, '').toLowerCase();
+  }
 }
