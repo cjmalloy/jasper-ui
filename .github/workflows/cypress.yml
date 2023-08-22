@@ -17,9 +17,11 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-      - run: npm ci
 
-      - name: Start containers
+      - name: Install lockfile
+        run: npm ci
+
+      - name: Run Cypress Tests
         run: npm run cy:ci
 
       - name: Publish Report
