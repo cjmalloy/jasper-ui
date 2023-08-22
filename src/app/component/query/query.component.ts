@@ -174,6 +174,7 @@ export class QueryComponent implements OnInit {
       for (const t of crumbs) {
         if (t.tag) t.tag += origin;
       }
+      crumbs.push({text: ' ' });
       crumbs.push({text: origin, tag: origin });
     }
     if (tag.startsWith('!')) {
