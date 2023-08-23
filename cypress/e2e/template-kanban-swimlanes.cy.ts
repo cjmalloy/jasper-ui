@@ -1,8 +1,9 @@
 import { addToBoard, dragCol } from './template-kanban';
+import { clearSetup } from './setup';
 
 export function loadBoard() {
   cy.intercept({pathname: '/api/v1/ref/page'}).as('page');
-  cy.visit('/tag/kanban%2fsl?debug=USER');
+  cy.visit('/tag/kanban/sl?debug=USER');
   cy.wait(new Array(9).fill('@page'), { timeout: 30_000 });
 }
 
@@ -17,41 +18,44 @@ describe('Kanban Template with Swim Lanes', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.get('input[type=checkbox]').uncheck();
-    cy.get('button').contains('Save').click();
+    clearSetup();
   });
   it('turn on kanban', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('input[type=checkbox]').uncheck();
+    cy.get('#mod-root').check();
     cy.get('#mod-kanban').check();
+    cy.intercept({method: 'POST', pathname: '/api/v1/*'}).as('install');
     cy.get('button').contains('Save').click();
+    cy.wait('@install');
+    cy.wait(16);
   });
   it('creates a board with swim lanes', () => {
     cy.visit('/?debug=MOD');
     cy.get('.subs').contains('tags').click();
-    cy.contains('Edit').click();
+    cy.contains('Extend').click();
     cy.get('#tag').type('kanban/sl');
     cy.get('button').contains('Extend').click();
-    cy.get('#name').type('Kanban Test');
-    cy.get('#columns button').click().click();
-    cy.get('#qtags-columns-0').type('doing');
-    cy.get('#qtags-columns-1').type('done');
+    cy.get('#name').type('Kanban Swim Lane Test');
+    cy.get('.columns button').click()
+        .type('doing{enter}')
+        .type('done');
     cy.get('#showNoColumn').click();
     cy.get('#noColumnTitle').type('todo');
-    cy.get('#swimLanes button').click().click();
-    cy.get('#qtags-swimLanes-0').type('alice');
-    cy.get('#qtags-swimLanes-1').type('bob');
+    cy.get('.swim-lanes button').click()
+        .type('alice{enter}')
+        .type('bob');
     cy.get('#showNoSwimLane').click();
     cy.get('button').contains('Save').click();
-    cy.get('h2').should('have.text', 'Kanban Test');
+    cy.get('h2').should('have.text', 'Kanban Swim Lane Test');
   });
   it('add to board', () => {
     loadBoard();
     addToBoard(7, 'first step');
     cy.get('.kanban-column:nth-of-type(7) a').contains('first step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'doing');
@@ -61,7 +65,7 @@ describe('Kanban Template with Swim Lanes', {
     loadBoard();
     dragCol(7, 8);
     cy.get('.kanban-column:nth-of-type(8) a').contains('first step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
     cy.get('.full-page.ref .tag:not(.user)').contains('doing').should('exist');
@@ -71,7 +75,7 @@ describe('Kanban Template with Swim Lanes', {
     loadBoard();
     dragCol(8, 9);
     cy.get('.kanban-column:nth-of-type(9) a').contains('first step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'doing');
@@ -81,7 +85,7 @@ describe('Kanban Template with Swim Lanes', {
     loadBoard();
     dragCol(9, 7);
     cy.get('.kanban-column:nth-of-type(7) a').contains('first step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'doing');
@@ -91,7 +95,7 @@ describe('Kanban Template with Swim Lanes', {
     loadBoard();
     dragCol(7, 1);
     cy.get('.kanban-column:nth-of-type(1) a').contains('first step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('alice').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'doing');
@@ -101,7 +105,7 @@ describe('Kanban Template with Swim Lanes', {
     loadBoard();
     dragCol(1, 2);
     cy.get('.kanban-column:nth-of-type(2) a').contains('first step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('alice').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
     cy.get('.full-page.ref .tag:not(.user)').contains('doing').should('exist');
@@ -111,7 +115,7 @@ describe('Kanban Template with Swim Lanes', {
     loadBoard();
     dragCol(2, 3);
     cy.get('.kanban-column:nth-of-type(3) a').contains('first step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('alice').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'doing');
@@ -121,7 +125,7 @@ describe('Kanban Template with Swim Lanes', {
     loadBoard();
     dragCol(3, 1);
     cy.get('.kanban-column:nth-of-type(1) a').contains('first step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('alice').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'doing');
@@ -131,7 +135,7 @@ describe('Kanban Template with Swim Lanes', {
     loadBoard();
     dragCol(1, 2);
     cy.get('.kanban-column:nth-of-type(2) a').contains('first step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('alice').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
     cy.get('.full-page.ref .tag:not(.user)').contains('doing').should('exist');
@@ -141,7 +145,7 @@ describe('Kanban Template with Swim Lanes', {
     loadBoard();
     dragCol(2, 4);
     cy.get('.kanban-column:nth-of-type(4) a').contains('first step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').contains('bob').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'doing');
@@ -151,7 +155,7 @@ describe('Kanban Template with Swim Lanes', {
     loadBoard();
     dragCol(4, 5);
     cy.get('.kanban-column:nth-of-type(5) a').contains('first step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').contains('bob').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('doing').should('exist');
@@ -161,7 +165,7 @@ describe('Kanban Template with Swim Lanes', {
     loadBoard();
     dragCol(5, 6);
     cy.get('.kanban-column:nth-of-type(6) a').contains('first step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'alice');
     cy.get('.full-page.ref .tag:not(.user)').contains('bob').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'doing');
@@ -177,7 +181,7 @@ describe('Kanban Template with Swim Lanes', {
     loadBoard();
     addToBoard(2, 'second step');
     cy.get('.kanban-column:nth-of-type(2) a').contains('second step').click();
-    cy.get('.full-page.ref .tag:not(.user)').contains('kanban/sl').should('exist');
+    cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('alice').should('exist');
     cy.get('.full-page.ref .tag:not(.user)').should('not.include.text', 'bob');
     cy.get('.full-page.ref .tag:not(.user)').contains('doing').should('exist');
@@ -190,7 +194,7 @@ describe('Kanban Template with Swim Lanes', {
     cy.get('.kanban-column').contains('second step').should('not.exist');
   });
   it('deletes board', () => {
-    cy.visit('/ext/kanban%2fsl?debug=MOD');
+    cy.visit('/ext/kanban/sl?debug=MOD');
     cy.get('button').contains('Delete').click();
     cy.contains('Not Found');
   });

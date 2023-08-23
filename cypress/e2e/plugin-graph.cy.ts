@@ -1,3 +1,5 @@
+import { clearSetup } from './setup';
+
 describe('Graph Plugin', {
   testIsolation: false
 }, () => {
@@ -9,8 +11,7 @@ describe('Graph Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.get('input[type=checkbox]').uncheck();
-    cy.get('button').contains('Save').click();
+    clearSetup();
   });
   it('turn on graphing', () => {
     cy.visit('/?debug=ADMIN');
@@ -18,7 +19,10 @@ describe('Graph Plugin', {
     cy.get('.tabs').contains('setup').click();
     cy.get('input[type=checkbox]').uncheck();
     cy.get('#mod-graph').check();
+    cy.intercept({method: 'POST', pathname: '/api/v1/*'}).as('install');
     cy.get('button').contains('Save').click();
+    cy.wait('@install');
+    cy.wait(16);
   });
   it('creates a ref', () => {
     cy.visit('/?debug=USER');

@@ -1,3 +1,5 @@
+import { clearSetup } from './setup';
+
 describe('Ref Actions', {
   testIsolation: false
 }, () => {
@@ -9,8 +11,7 @@ describe('Ref Actions', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.get('input[type=checkbox]').uncheck();
-    cy.get('button').contains('Save').click();
+    clearSetup();
   });
   it('creates a ref', () => {
     cy.visit('/?debug=MOD');

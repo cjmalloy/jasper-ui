@@ -1,4 +1,5 @@
 import { findArchive } from '../../src/app/mods/archive';
+import { clearSetup } from './setup';
 
 describe('Smoke Tests', {
   testIsolation: false
@@ -11,8 +12,7 @@ describe('Smoke Tests', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.get('input[type=checkbox]').uncheck();
-    cy.get('button').contains('Save').click();
+    clearSetup();
   });
   it('creates a ref', () => {
     cy.visit('/?debug=ADMIN');

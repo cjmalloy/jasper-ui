@@ -1,3 +1,5 @@
+import { clearSetup } from './setup';
+
 describe('Outbox Plugin: Remote Notifications', {
   testIsolation: false
 }, () => {
@@ -14,8 +16,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.get('input[type=checkbox]').uncheck();
-    cy.get('button').contains('Save').click();
+    clearSetup();
   });
   it('@main: turn on inbox, outbox and remote origins', () => {
     cy.visit('/?debug=ADMIN');

@@ -18,6 +18,7 @@ export const kanbanTemplate: Template = {
     ],
     form: [{
       key: 'columns',
+      className: 'columns',
       type: 'tags',
       props: {
         label: $localize`Columns:`,
@@ -25,12 +26,14 @@ export const kanbanTemplate: Template = {
       }
     }, {
       key: 'showNoColumn',
+      id: 'showNoColumn',
       type: 'boolean',
       props: {
         label: $localize`Extra column for untagged Refs:`
       }
     }, {
       key: 'noColumnTitle',
+      id: 'noColumnTitle',
       type: 'string',
       props: {
         label: $localize`Extra Column Title:`
@@ -40,6 +43,7 @@ export const kanbanTemplate: Template = {
       },
     }, {
       key: 'swimLanes',
+      className: 'swim-lanes',
       type: 'tags',
       props: {
         label: $localize`Swim Lanes:`,
@@ -47,12 +51,14 @@ export const kanbanTemplate: Template = {
       }
     }, {
       key: 'showNoSwimLane',
+      id: 'showNoSwimLane',
       type: 'boolean',
       props: {
         label: $localize`Extra swim lane for untagged Refs:`
       }
     }, {
       key: 'noSwimLaneTitle',
+      id: 'noSwimLaneTitle',
       type: 'string',
       props: {
         label: $localize`Extra Swim Lane Title:`
@@ -62,6 +68,7 @@ export const kanbanTemplate: Template = {
       },
     }, {
       key: 'badges',
+      className: 'badges',
       type: 'tags',
       props: {
         label: $localize`Badges:`,

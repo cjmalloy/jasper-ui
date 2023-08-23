@@ -1,3 +1,5 @@
+import { clearSetup } from './setup';
+
 describe('Origin Pull Plugin', {
   testIsolation: false
 }, () => {
@@ -11,15 +13,17 @@ describe('Origin Pull Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.get('input[type=checkbox]').uncheck();
-    cy.get('button').contains('Save').click();
+    clearSetup();
   });
   it('turn on pull', () => {
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('input[type=checkbox]').uncheck();
     cy.get('#mod-remoteorigin').check();
+    cy.intercept({method: 'POST', pathname: '/api/v1/*'}).as('install');
     cy.get('button').contains('Save').click();
+    cy.wait('@install');
+    cy.wait(16);
   });
   it('creates a remote origin', () => {
     cy.visit('/?debug=ADMIN');
