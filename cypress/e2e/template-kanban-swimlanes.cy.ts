@@ -30,7 +30,7 @@ describe('Kanban Template with Swim Lanes', {
   });
   it('creates a board with swim lanes', () => {
     cy.visit('/?debug=MOD');
-    cy.get('.subs').contains('tabs').click();
+    cy.get('.subs').contains('tags').click();
     cy.contains('Edit').click();
     cy.get('#tag').type('kanban/sl');
     cy.get('button').contains('Extend').click();
