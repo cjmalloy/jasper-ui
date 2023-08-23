@@ -53,6 +53,9 @@
                   [showAlarm]="!store.view.alarm"
                   [showVotes]="store.view.isVoteSorted"></app-ref-list>
     <ng-template #tmpl>
+      <div class="error-404" *ngIf="!loading && !store.view.viewExt">
+        Not Found
+      </div>
       <app-folder *ngIf="store.view.isTemplate('folder')"
                   [tag]="store.view.viewTag"
                   [ext]="store.view.viewExt!"

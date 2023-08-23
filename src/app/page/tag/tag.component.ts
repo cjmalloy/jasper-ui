@@ -26,6 +26,7 @@ export class TagPage implements OnInit, OnDestroy {
   }
 
   floatingSidebar = true;
+  loading = true;
 
   constructor(
     public admin: AdminService,
@@ -60,9 +61,13 @@ export class TagPage implements OnInit, OnDestroy {
       if (!this.store.view.queryTags.length) {
         runInAction(() => this.store.view.exts = []);
       } else {
+        this.loading = true;
         this.exts.getCachedExts(this.store.view.queryTags.map(t => defaultOrigin(t, this.store.account.origin))).pipe(
           catchError(() => of([])),
-        ).subscribe(exts => runInAction(() => this.store.view.exts = exts));
+        ).subscribe(exts => {
+          this.loading = false;
+          runInAction(() => this.store.view.exts = exts)
+        });
       }
     }));
     this.disposers.push(autorun(() => {
