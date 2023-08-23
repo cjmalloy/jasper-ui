@@ -21,6 +21,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.tabs').contains('setup').click();
     cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('installPlugin');
     cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('installTemplate');
+    cy.wait(1000);
 
     cy.get('#mod-comment').check();
     cy.get('button').contains('Save').click();
@@ -58,6 +59,8 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.tabs').contains('setup').click();
     cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('installPlugin');
     cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('installTemplate');
+    cy.wait(1000);
+
     cy.get('#mod-comment').check();
     cy.get('button').contains('Save').click();
     cy.wait('@installPlugin');

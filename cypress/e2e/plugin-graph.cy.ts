@@ -13,8 +13,9 @@ describe('Graph Plugin', {
   it('turn on graphing', () => {
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.get('#mod-graph').check();
     cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('installTemplate');
+    cy.wait(1000);
+    cy.get('#mod-graph').check();
     cy.get('button').contains('Save').click();
     cy.wait('@installTemplate');
   });

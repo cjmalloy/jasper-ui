@@ -16,8 +16,9 @@ describe('Origin Pull Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.get('#mod-remoteorigin').check();
     cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install');
+    cy.wait(1000);
+    cy.get('#mod-remoteorigin').check();
     cy.get('button').contains('Save').click();
     cy.wait('@install').wait('@install').wait('@install').wait('@install');
   });

@@ -16,7 +16,7 @@ describe('Smoke Tests', {
     cy.contains('Submit').click();
     cy.get('#url').type('https://www.jasper-kms.info/');
     cy.contains('Next').click();
-    cy.wait(16); // First part of 'Title' getting truncated
+    cy.wait(1000); // First part of 'Title' getting truncated
     cy.get('#title').type('Title');
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
