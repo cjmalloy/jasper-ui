@@ -39,7 +39,6 @@ describe('Ref Actions', {
   it('creates reply', () => {
     cy.get('.actions a').contains('reply').click();
     cy.get('#url').type('test:reply' + Math.random());
-    cy.get('#scrape').uncheck();
     cy.contains('Next').click();
     cy.get('#title').type('Reply');
     cy.get('#published').type('2020-01-02T00:00');

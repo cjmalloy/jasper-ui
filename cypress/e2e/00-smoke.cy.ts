@@ -18,7 +18,6 @@ describe('Smoke Tests', {
     cy.visit('/?debug=ADMIN');
     cy.contains('Submit').click();
     cy.get('#url').type('https://www.jasper-kms.info/');
-    cy.get('#scrape').uncheck();
     cy.contains('Next').click();
     cy.get('#title').type('Title');
     cy.get('button').contains('Submit').click();
