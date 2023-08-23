@@ -36,8 +36,9 @@ describe('Outbox Plugin: Remote Notifications', {
   });
   it('@main: replicate @other', () => {
     cy.visit('/?debug=ADMIN');
+    cy.get('.settings a').contains('settings').click();
+    cy.get('.tabs').contains('origin').click();
     cy.contains('Submit').click();
-    cy.get('.select-plugin select').select('+plugin/origin');
     cy.get('#url').type(replApi).blur();
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
@@ -68,8 +69,9 @@ describe('Outbox Plugin: Remote Notifications', {
   });
   it('@other: replicate @main', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
+    cy.get('.settings a').contains('settings').click();
+    cy.get('.tabs').contains('origin').click();
     cy.contains('Submit').click();
-    cy.get('.select-plugin select').select('+plugin/origin');
     cy.get('#url').type(mainApi).blur();
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @main');

@@ -24,8 +24,9 @@ describe('Origin Push Plugin', {
   });
   it('creates a remote origin', () => {
     cy.visit('/?debug=ADMIN');
+    cy.get('.settings a').contains('settings').click();
+    cy.get('.tabs').contains('origin').click();
     cy.contains('Submit').click();
-    cy.get('.select-plugin select').select('+plugin/origin');
     cy.get('#url').type(replOtherApiProxy);
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
