@@ -1,5 +1,5 @@
 import { addToBoard, dragCol } from './template-kanban';
-import { clearSetup } from './setup';
+import { clearMods } from './setup';
 
 export function loadBoard() {
   cy.intercept({pathname: '/api/v1/ref/page'}).as('page');
@@ -14,23 +14,20 @@ describe('Kanban Template No Swimlanes', {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 1000 * 60 });
   });
-  it('clear plugins', () => {
-    cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('setup').click();
-    clearSetup();
+  it('clear mods', () => {
+    clearMods();
   });
   it('turn on kanban', () => {
     cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
+    cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.get('input[type=checkbox]').uncheck();
     cy.get('#mod-root').check();
     cy.get('#mod-kanban').check();
-    cy.intercept({method: 'POST', pathname: '/api/v1/*'}).as('install');
+    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('install1');
+    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('install2');
     cy.get('button').contains('Save').click();
-    cy.wait('@install');
-    cy.wait(16);
+    cy.wait('@install1');
+    cy.wait('@install2');
   });
   it('creates a board', () => {
     cy.visit('/?debug=MOD');

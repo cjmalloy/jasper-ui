@@ -1,4 +1,4 @@
-import { clearSetup } from './setup';
+import { clearMods } from './setup';
 
 describe('Ref Actions', {
   testIsolation: false
@@ -7,11 +7,8 @@ describe('Ref Actions', {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 1000 * 60 });
   });
-  it('clear plugins', () => {
-    cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('setup').click();
-    clearSetup();
+  it('clear mods', () => {
+    clearMods();
   });
   it('creates a ref', () => {
     cy.visit('/?debug=MOD');

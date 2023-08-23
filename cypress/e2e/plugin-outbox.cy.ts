@@ -1,4 +1,4 @@
-import { clearSetup } from './setup';
+import { clearMods } from './setup';
 
 describe('Outbox Plugin: Remote Notifications', {
   testIsolation: false
@@ -12,23 +12,34 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit('/?debug=ADMIN');
     cy.contains('Home', { timeout: 1000 * 60 });
   });
-  it('clear plugins', () => {
-    cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('setup').click();
-    clearSetup();
+  it('clear mods', () => {
+    clearMods();
   });
   it('@main: turn on inbox, outbox and remote origins', () => {
     cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
+    cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.get('input[type=checkbox]').uncheck();
     cy.get('#mod-comment').check();
     cy.get('#mod-mailbox').check();
     cy.get('#mod-remoteorigin').check();
     cy.get('#mod-user').check();
+    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('install1');
+    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('install2');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install3');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install4');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install5');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install6');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install7');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install8');
     cy.get('button').contains('Save').click();
-    cy.wait(200);
+    cy.wait('@install1');
+    cy.wait('@install2');
+    cy.wait('@install3');
+    cy.wait('@install4');
+    cy.wait('@install5');
+    cy.wait('@install6');
+    cy.wait('@install7');
+    cy.wait('@install8');
   });
   it('@main: replicate @other', () => {
     cy.visit('/?debug=ADMIN');
@@ -45,13 +56,33 @@ describe('Outbox Plugin: Remote Notifications', {
   });
   it('@other: turn on outbox and remote origins', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
+    cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('#mod-comment').check();
     cy.get('#mod-mailbox').check();
     cy.get('#mod-remoteorigin').check();
     cy.get('#mod-user').check();
+    cy.get('#mod-comment').check();
+    cy.get('#mod-mailbox').check();
+    cy.get('#mod-remoteorigin').check();
+    cy.get('#mod-user').check();
+    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('install1');
+    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('install2');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install3');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install4');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install5');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install6');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install7');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install8');
     cy.get('button').contains('Save').click();
+    cy.wait('@install1');
+    cy.wait('@install2');
+    cy.wait('@install3');
+    cy.wait('@install4');
+    cy.wait('@install5');
+    cy.wait('@install6');
+    cy.wait('@install7');
+    cy.wait('@install8');
   });
   it('@other: replicate @main', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
@@ -86,7 +117,7 @@ describe('Outbox Plugin: Remote Notifications', {
   });
   it('@main: pull @other', () => {
     cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
+    cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
     cy.get('input[type=search]').type(replApi + '{enter}');
     cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
@@ -117,7 +148,7 @@ describe('Outbox Plugin: Remote Notifications', {
   });
   it('@other: pull @main', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
+    cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
     cy.get('input[type=search]').type(mainApi + '{enter}');
     cy.get('.link:not(.remote)').contains('@main').parent().parent().as('main');
@@ -145,7 +176,7 @@ describe('Outbox Plugin: Remote Notifications', {
   });
   it('@main: delete remote @other', () => {
     cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
+    cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
     cy.get('input[type=search]').type(replApi + '{enter}');
     cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
@@ -154,7 +185,7 @@ describe('Outbox Plugin: Remote Notifications', {
   });
   it('@other: delete remote @main', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
+    cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
     cy.get('input[type=search]').type(mainApi + '{enter}');
     cy.get('.link:not(.remote)').contains('@main').parent().parent().as('main');

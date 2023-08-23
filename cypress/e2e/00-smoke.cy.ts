@@ -1,5 +1,5 @@
 import { findArchive } from '../../src/app/mods/archive';
-import { clearSetup } from './setup';
+import { clearMods } from './setup';
 
 describe('Smoke Tests', {
   testIsolation: false
@@ -8,11 +8,8 @@ describe('Smoke Tests', {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 1000 * 60 * 5 }); // 5 minutes
   });
-  it('clear plugins', () => {
-    cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('setup').click();
-    clearSetup();
+  it('clear mods', () => {
+    clearMods();
   });
   it('creates a ref', () => {
     cy.visit('/?debug=ADMIN');

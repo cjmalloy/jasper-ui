@@ -1,4 +1,4 @@
-<div class="list-container">
+<div class="list-container" *ngIf="page">
   <ng-container *ngFor="let tag of page?.content; let i = index">
     <div class="list-number">{{ i + page!.number * page!.size + 1 }}</div>
     <app-plugin [plugin]="$any(tag)"></app-plugin>

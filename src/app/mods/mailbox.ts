@@ -4,7 +4,7 @@ import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Template } from '../model/template';
 import { authors } from '../util/format';
-import { hasPrefix, localTag, prefix, publicTag, removePrefix, setPublic, tagOrigin } from '../util/tag';
+import { hasPrefix, localTag, prefix, removePrefix, setPublic, tagOrigin } from '../util/tag';
 
 export const dmTemplate: Template = {
   tag: 'dm',

@@ -1,4 +1,4 @@
-import { clearSetup } from './setup';
+import { clearMods } from './setup';
 
 describe('Origin Push Plugin', {
   testIsolation: false
@@ -10,20 +10,23 @@ describe('Origin Push Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.contains('Home', { timeout: 1000 * 60 });
   });
-  it('clear plugins', () => {
-    cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('setup').click();
-    clearSetup();
+  it('clear mods', () => {
+    clearMods();
   });
   it('turn on push', () => {
-    cy.get('.settings').contains('settings').click();
+    cy.visit('/?debug=ADMIN');
+    cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.get('input[type=checkbox]').uncheck();
     cy.get('#mod-remoteorigin').check();
-    cy.intercept({method: 'POST', pathname: '/api/v1/*'}).as('install');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install1');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install2');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install3');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install4');
     cy.get('button').contains('Save').click();
-    cy.wait('@install');
+    cy.wait('@install1');
+    cy.wait('@install2');
+    cy.wait('@install3');
+    cy.wait('@install4');
     cy.wait(16);
   });
   it('creates a remote origin', () => {
@@ -48,7 +51,7 @@ describe('Origin Push Plugin', {
   });
   it('push to @other', () => {
     cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
+    cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
     cy.get('input[type=search]').type(replOtherApiProxy + '{enter}');
     cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
@@ -64,7 +67,7 @@ describe('Origin Push Plugin', {
   });
   it('@main: delete remote @other', () => {
     cy.visit('/?debug=ADMIN');
-    cy.get('.settings').contains('settings').click();
+    cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
     cy.get('input[type=search]').type(replOtherApiProxy + '{enter}');
     cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');

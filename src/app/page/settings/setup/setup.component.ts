@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { forOwn, mapValues } from 'lodash-es';
+import { forOwn, mapValues, uniq } from 'lodash-es';
 import { catchError, concat, last, Observable, retry, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Plugin } from '../../../model/plugin';
@@ -58,15 +58,16 @@ export class SettingsSetupPage implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    const installs: Observable<any>[] = [];
+    const deletes: string[] = [];
+    const installs: string[] = [];
     for (const plugin in this.admin.status.plugins) {
       const def = this.admin.def.plugins[plugin];
       const status = this.admin.status.plugins[plugin]!;
       if (!!status === !!this.adminForm.value.mods[plugin]) continue;
       if (this.adminForm.value.mods[plugin]) {
-        installs.push(this.installPlugin$(def));
+        installs.push(modId(def));
       } else {
-        installs.push(this.deletePlugin$(status));
+        deletes.push(modId(status));
       }
     }
     for (const template in this.admin.status.templates) {
@@ -74,17 +75,21 @@ export class SettingsSetupPage implements OnInit {
       const status = this.admin.status.templates[template]!;
       if (!!status === !!this.adminForm.value.mods[template]) continue;
       if (this.adminForm.value.mods[template]) {
-        installs.push(this.installTemplate$(def));
+        installs.push(modId(def));
       } else {
-        installs.push(this.deleteTemplate$(status));
+        deletes.push(modId(status));
       }
     }
-    concat(...installs).pipe(
+    concat(
+        ...uniq(deletes).map(m => this.deleteMod$(m)),
+        ...uniq(installs).map(m => this.installMod$(m))
+    ).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).pipe(last()).subscribe(() => {
+      last(),
+    ).subscribe(() => {
       this.submitted = true;
       this.reset();
       this.installMessages.push($localize`Success.`);
@@ -95,33 +100,29 @@ export class SettingsSetupPage implements OnInit {
     this.admin.init$.subscribe(() => this.adminForm.reset({ mods: { ...this.admin.status.plugins, ...this.admin.status.templates } }));
   }
 
-  installPlugin$(def: Plugin, mod = false) {
-    if (!mod && def.config?.mod) return this.installMod$(def.config?.mod);
-    this.installMessages.push($localize`Installing ${def.name || def.tag} plugin...`);
+  installPlugin$(def: Plugin) {
+    this.installMessages.push('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} plugin...`);
     return this.plugins.create({
       ...def,
       origin: this.store.account.origin,
     }).pipe(retry(10));
   }
 
-  deletePlugin$(p: Plugin, mod = false) {
-    if (!mod && p.config?.mod) return this.deleteMod$(p.config?.mod);
-    this.installMessages.push($localize`Deleting ${p.name || p.tag} plugin...`);
+  deletePlugin$(p: Plugin) {
+    this.installMessages.push('\u00A0'.repeat(4) + $localize`Deleting ${p.name || p.tag} plugin...`);
     return this.plugins.delete(p.tag + this.store.account.origin);
   }
 
-  installTemplate$(def: Template, mod = false) {
-    if (!mod && def.config?.mod) return this.installMod$(def.config?.mod);
-    this.installMessages.push($localize`Installing ${def.name || def.tag} template...`);
+  installTemplate$(def: Template) {
+    this.installMessages.push('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} template...`);
     return this.templates.create({
       ...def,
       origin: this.store.account.origin,
     }).pipe(retry(10));
   }
 
-  deleteTemplate$(t: Template, mod = false) {
-    if (!mod && t.config?.mod) return this.deleteMod$(t.config?.mod);
-    this.installMessages.push($localize`Deleting ${t.name || t.tag} template...`);
+  deleteTemplate$(t: Template) {
+    this.installMessages.push('\u00A0'.repeat(4) + $localize`Deleting ${t.name || t.tag} template...`);
     return this.templates.delete(t.tag + (t.origin || ''));
   }
 
@@ -130,10 +131,10 @@ export class SettingsSetupPage implements OnInit {
     return concat(...[
       ...Object.values(this.admin.def.plugins)
         .filter(p => modId(p) === mod)
-        .map(p => this.installPlugin$(p, true)),
+        .map(p => this.installPlugin$(p)),
       ...Object.values(this.admin.def.templates)
         .filter(t => modId(t) === mod)
-        .map(t => this.installTemplate$(t, true)),
+        .map(t => this.installTemplate$(t)),
     ]).pipe(toArray());
   }
 
@@ -142,20 +143,22 @@ export class SettingsSetupPage implements OnInit {
     return concat(...[
       ...Object.values(this.admin.def.plugins)
         .filter(p => modId(p) === mod)
-        .map(p => this.deletePlugin$(p, true)),
+        .map(p => this.deletePlugin$(p)),
       ...Object.values(this.admin.def.templates)
         .filter(t => modId(t) === mod)
-        .map(t => this.deleteTemplate$(t, true)),
+        .map(t => this.deleteTemplate$(t)),
     ]).pipe(toArray());
   }
 
   updateAll() {
     const updates = [];
     for (const plugin in this.admin.status.plugins) {
-      if (this.needsPluginUpdate(plugin)) updates.push(this.updatePlugin$(plugin, true));
+      const status = this.admin.status.plugins[plugin]!;
+      if (this.needsUpdate(status)) updates.push(this.updateMod$(modId(status)));
     }
     for (const template in this.admin.status.templates) {
-      if (this.needsTemplateUpdate(template)) updates.push(this.updateTemplate$(template, true));
+      const status = this.admin.status.templates[template]!;
+      if (this.needsUpdate(status)) updates.push(this.updateTemplate$(modId(status)));
     }
     concat(...updates).pipe(
       catchError((res: HttpErrorResponse) => {
@@ -179,11 +182,10 @@ export class SettingsSetupPage implements OnInit {
     this.updateMod$(modId(config)).subscribe(() => this.reset());
   }
 
-  updatePlugin$(key: string, mod = false) {
+  updatePlugin$(key: string) {
     const def = this.admin.def.plugins[key];
-    if (!mod && def.config?.mod) return this.updateMod$(def.config?.mod);
     const status = this.admin.status.plugins[key]!;
-    this.installMessages.push($localize`Updating ${def.name || def.tag} plugin...`);
+    this.installMessages.push('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} plugin...`);
     return this.plugins.update({
       ...def,
       defaults: {
@@ -193,15 +195,14 @@ export class SettingsSetupPage implements OnInit {
       origin: this.store.account.origin,
       modifiedString: status.modifiedString,
     }).pipe(
-      tap(() => this.installMessages.push($localize`Updated ${def.name || def.tag} plugin.`))
+      tap(() => this.installMessages.push('\u00A0'.repeat(4) + $localize`Updated ${def.name || def.tag} plugin.`))
     );
   }
 
-  updateTemplate$(key: string, mod = false) {
+  updateTemplate$(key: string) {
     const def = this.admin.def.templates[key];
-    if (!mod && def.config?.mod) return this.updateMod$(def.config?.mod);
     const status = this.admin.status.templates[key]!;
-    this.installMessages.push($localize`Updating ${def.name || def.tag} template...`);
+    this.installMessages.push('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} template...`);
     return this.templates.update({
       ...def,
       defaults: {
@@ -211,7 +212,7 @@ export class SettingsSetupPage implements OnInit {
       origin: this.store.account.origin,
       modifiedString: status.modifiedString,
     }).pipe(
-      tap(() => this.installMessages.push($localize`Updated ${def.name || def.tag} template.`)),
+      tap(() => this.installMessages.push('\u00A0'.repeat(4) + $localize`Updated ${def.name || def.tag} template.`)),
     );
   }
 
@@ -220,19 +221,15 @@ export class SettingsSetupPage implements OnInit {
     return concat(...[
       ...Object.values(this.admin.def.plugins)
         .filter(p => modId(p) === mod)
-        .map(p => this.updatePlugin$(this.admin.keyOf(this.admin.def.plugins, p.tag), true)),
+        .map(p => this.updatePlugin$(this.admin.keyOf(this.admin.def.plugins, p.tag))),
       ...Object.values(this.admin.def.templates)
         .filter(t => modId(t) === mod)
-        .map(t => this.updateTemplate$(this.admin.keyOf(this.admin.def.templates, t.tag), true)),
+        .map(t => this.updateTemplate$(this.admin.keyOf(this.admin.def.templates, t.tag))),
     ]).pipe(toArray());
   }
 
-  needsPluginUpdate(key: string) {
-    return this.admin.status.plugins[key]?.config?.needsUpdate;
-  }
-
-  needsTemplateUpdate(key: string) {
-    return this.admin.status.templates[key]?.config?.needsUpdate;
+  needsUpdate(mod: Config) {
+    return mod.config?.needsUpdate;
   }
 
   needsModUpdate(config: Config) {
