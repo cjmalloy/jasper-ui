@@ -21,15 +21,19 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.tabs').contains('setup').click();
     cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('installPlugin');
     cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('installTemplate');
+
     cy.get('#mod-comment').check();
     cy.get('button').contains('Save').click();
     cy.wait('@installPlugin');
+
     cy.get('#mod-mailbox').check();
     cy.get('button').contains('Save').click();
     cy.wait('@installTemplate').wait('@installPlugin').wait('@installPlugin');
+
     cy.get('#mod-remoteorigin').check();
     cy.get('button').contains('Save').click();
     cy.wait('@installPlugin').wait('@installPlugin').wait('@installPlugin').wait('@installPlugin');
+
     cy.get('#mod-user').check();
     cy.get('button').contains('Save').click();
     cy.wait('@installTemplate');
@@ -57,12 +61,15 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('#mod-comment').check();
     cy.get('button').contains('Save').click();
     cy.wait('@installPlugin');
+
     cy.get('#mod-mailbox').check();
     cy.get('button').contains('Save').click();
     cy.wait('@installTemplate').wait('@installPlugin').wait('@installPlugin');
+
     cy.get('#mod-remoteorigin').check();
     cy.get('button').contains('Save').click();
     cy.wait('@installPlugin').wait('@installPlugin').wait('@installPlugin').wait('@installPlugin');
+
     cy.get('#mod-user').check();
     cy.get('button').contains('Save').click();
     cy.wait('@installTemplate');
