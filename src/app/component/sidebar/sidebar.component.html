@@ -55,7 +55,7 @@
         </div>
       </ng-template>
     </ng-container>
-    <ng-container *ngIf="store.account.user && (home || store.account.tag === tag)">
+    <ng-container *ngIf="store.view.current === 'tag' && store.account.user && (home || store.account.tag === tag)">
       <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: store.account.tag }">
         <span i18n-title title="Notes" i18n>✍️</span> <label i18n>Notes</label>
       </div>
@@ -75,17 +75,17 @@
         </div>
       </ng-template>
     </ng-container>
-    <ng-container *ngIf="store.account.editor && (store.view.current === 'user' || store.view.template === 'user')">
+    <ng-container *ngIf="store.account.mod && store.view.current === 'user' || (writeAccess && store.view.userTemplate && store.account.tag !== store.view.template)">
       <div class="submit-button" routerLink="/user">
         <span i18n-title title="Create User" i18n>🧑️</span> <label i18n>Create User</label>
       </div>
     </ng-container>
-    <ng-container *ngIf="user && (store.account.mod || store.account.tag === tag)">
+    <ng-container *ngIf="writeAccess && user && store.view.current === 'user'">
       <div class="submit-button" [routerLink]="['/user', tag]">
         <span i18n-title title="Edit User" i18n>🧑️</span> <label i18n>Edit User</label>
       </div>
     </ng-container>
-    <ng-container *ngIf="store.account.editor && store.view.type === 'ext' && store.view.template !== 'user'">
+    <ng-container *ngIf="writeAccess && store.view.type === 'ext'">
       <div class="submit-button" [routerLink]="['/ext', store.view.template]">
         <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag
         &nbsp;
@@ -93,13 +93,9 @@
         {{ template?.name || '' }}</label>
       </div>
     </ng-container>
-    <ng-container *ngIf="store.account.viewer && store.view.template === 'user'">
-      <div class="submit-button" [routerLink]="['/ext', store.account.tag]">
-        <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag
-        &nbsp;
-        &nbsp;
-        🧑️ Your User Tag</label>
-      </div>
+    <ng-container *ngIf="store.view.type === 'ext' && !store.view.template">
+      <div class="submit-button" [routerLink]="['/ext']">
+        <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag</label></div>
     </ng-container>
     <ng-container *ngIf="local && writeAccess && store.view.noQuery">
       <div class="submit-button" [routerLink]="['/ext', tag]">

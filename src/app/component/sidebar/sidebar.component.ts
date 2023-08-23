@@ -159,7 +159,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get user() {
-    return !!this.admin.status.templates.user && hasPrefix(this._tag, 'user') && this.store.view.template !== 'user';
+    return !!this.admin.status.templates.user && hasPrefix(this._tag, 'user') && !this.store.view.userTemplate;
   }
 
   get userConfig() {

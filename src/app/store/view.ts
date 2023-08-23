@@ -255,6 +255,10 @@ export class ViewStore {
     return this.route.routeSnapshot?.firstChild?.params['template'] || '';
   }
 
+  get userTemplate() {
+    return hasPrefix(this.template, 'user');
+  }
+
   get noTemplate(): boolean {
     return this.route.routeSnapshot?.queryParams['noTemplate'] === 'true';
   }
