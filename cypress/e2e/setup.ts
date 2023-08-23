@@ -1,6 +1,6 @@
-export function clearMods() {
+export function clearMods(base = '') {
     cy.intercept({method: 'GET', pathname: '/api/v1/plugin/page'}).as('load');
-    cy.visit('/settings/plugin?debug=ADMIN&pageSize=2000');
+    cy.visit(base + '/settings/plugin?debug=ADMIN&pageSize=2000');
     cy.wait('@load');
     cy.intercept({method: 'DELETE', pathname: '/api/v1/plugin'}).as('clearPlugin');
     cy.get('.list-container').then(l => {
@@ -13,7 +13,7 @@ export function clearMods() {
         });
     });
     cy.intercept({method: 'GET', pathname: '/api/v1/template/page'}).as('load');
-    cy.visit('/settings/template?debug=ADMIN&pageSize=2000');
+    cy.visit(base + '/settings/template?debug=ADMIN&pageSize=2000');
     cy.wait('@load');
     cy.intercept({method: 'DELETE', pathname: '/api/v1/template'}).as('clearTemplate');
     cy.get('.list-container').then(l => {

@@ -53,6 +53,9 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');
   });
+  it('@other: clear mods', () => {
+    clearMods(replUrl);
+  });
   it('@other: turn on outbox and remote origins', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
