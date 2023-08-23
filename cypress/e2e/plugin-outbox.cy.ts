@@ -24,7 +24,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('input[type=checkbox]').uncheck();
     cy.get('#mod-comment').check();
     cy.get('#mod-mailbox').check();
-    cy.get('#mod-origin').check();
+    cy.get('#mod-remoteorigin').check();
     cy.get('#mod-user').check();
     cy.get('button').contains('Save').click();
     cy.wait(200);
@@ -48,7 +48,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.tabs').contains('setup').click();
     cy.get('#mod-comment').check();
     cy.get('#mod-mailbox').check();
-    cy.get('#mod-origin').check();
+    cy.get('#mod-remoteorigin').check();
     cy.get('#mod-user').check();
     cy.get('button').contains('Save').click();
   });
