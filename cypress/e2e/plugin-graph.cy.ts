@@ -14,7 +14,6 @@ describe('Graph Plugin', {
     clearSetup();
   });
   it('turn on graphing', () => {
-    cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('input[type=checkbox]').uncheck();
