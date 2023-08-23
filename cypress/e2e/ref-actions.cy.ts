@@ -28,9 +28,9 @@ describe('Ref Actions', {
     cy.get('#comment textarea').type('Comment field');
     cy.get('form .md').should('contain', 'Comment field');
     cy.get('button').contains('save').click();
-    cy.get('.full-page.ref').should('not.contain', 'Comment field');
-    cy.get('.full-page.ref .toggle-plus').click();
     cy.get('.full-page.ref').should('contain', 'Comment field');
+    cy.get('.full-page.ref .toggle-x').click();
+    cy.get('.full-page.ref').should('not.contain', 'Comment field');
   });
   xit('adds tag inline (this breaks loading "1 citation" text)', () => {
     cy.get('.actions a').contains('tag').click();
@@ -39,10 +39,7 @@ describe('Ref Actions', {
   });
   it('creates reply', () => {
     cy.get('.actions a').contains('reply').click();
-    cy.get('#url').type('test:reply' + Math.random());
-    cy.contains('Next').click();
     cy.get('#title').type('Reply');
-    cy.get('#published').type('2020-01-02T00:00');
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Reply');
   });
