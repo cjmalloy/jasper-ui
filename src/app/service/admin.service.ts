@@ -632,11 +632,11 @@ export class AdminService {
   }
 
   isWikiExternal() {
-    return !!this.status.plugins.wiki?.config?.external;
+    return !!this.status.templates.wiki?.config?.external;
   }
 
   getWikiPrefix() {
-    return this.status.plugins.wiki?.config?.prefix || DEFAULT_WIKI_PREFIX;
+    return this.status.templates.wiki?.config?.prefix || DEFAULT_WIKI_PREFIX;
   }
 
   needsUpdate(def: Plugin | Template, status: Plugin | Template) {

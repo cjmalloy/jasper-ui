@@ -33,19 +33,19 @@ describe('Wiki Plugin', {
   });
   it('click wiki link', () => {
     cy.get('a').contains('Other WIKI').click();
-    cy.url().then(url => cy.visit(url + '?debug=USER'));
+    cy.url().then(url => cy.visit(url.replace('/ref/', '/ref/e/') + '?debug=USER'));
     cy.get('.error-404').contains('Not Found');
     cy.get('.submit-button').contains('Submit Wiki').click();
     cy.get('h5').should('have.text', 'Submit');
     cy.get('#title').should('have.value', 'Other wiki');
   });
-  it('turn on wiki plugin', () => {
+  it('turn on wiki config', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('input[type=checkbox]').uncheck();
     cy.get('#mod-wiki').check();
-    cy.intercept({method: 'POST', pathname: '/api/v1/*'}).as('install');
+    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('install');
     cy.get('button').contains('Save').click();
     cy.wait('@install');
     cy.wait(16);
@@ -53,8 +53,8 @@ describe('Wiki Plugin', {
   it('set external wiki', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings').contains('settings').click();
-    cy.get('.tabs').contains('plugin').click();
-    cy.get('.plugin-list .actions').contains('edit').click();
+    cy.get('.tabs').contains('template').click();
+    cy.get('.template-list .actions').contains('edit').click();
     cy.wait(1000); // Warm up monaco editor
     cy.get('#config').click().focused().type('{ctrl}a{backspace}');
     cy.get('#config').type(JSON.stringify({ prefix: 'https://externalwiki/', external: true }), { parseSpecialCharSequences: false });
@@ -66,12 +66,12 @@ describe('Wiki Plugin', {
     cy.get('.tabs').should('not.have.text', 'wiki');
   });
   it('wiki link opens external', () => {
-    cy.visit('/ref/wiki:Wiki_test?debug=USER');
+    cy.visit('/ref/e/wiki:Wiki_test?debug=USER');
     cy.get('a').contains('Other WIKI').should('have.attr', 'href').should('eq', 'https://externalwiki/Other_wiki');
     cy.get('a').contains('Other WIKI').should('have.attr', 'target').should('eq', '_blank');
   });
   it('delete wiki', () => {
-    cy.visit('/ref/wiki:Wiki_test?debug=USER');
+    cy.visit('/ref/e/wiki:Wiki_test?debug=USER');
     cy.get('.full-page.ref .actions a').contains('delete').click();
     cy.get('.full-page.ref .actions a').contains('yes').click();
   });
