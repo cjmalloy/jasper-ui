@@ -87,6 +87,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.contains('Submit').click();
     cy.get('#url').type(mainApi).blur();
     cy.contains('Next').click();
+    cy.wait(1000) // First part of text is missing
     cy.get('#title').type('Testing Remote @main');
     cy.get('.floating-ribbons .plugin-origin-pull').click();
     cy.get('#local').type('@main');
