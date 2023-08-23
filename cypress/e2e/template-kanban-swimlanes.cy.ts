@@ -21,13 +21,14 @@ describe('Kanban Template with Swim Lanes', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.wait(100);
 
-    cy.get('#mod-root').check();
+    cy.wait(100);
+    cy.get('#mod-root').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
 
-    cy.get('#mod-kanban').check();
+    cy.wait(100);
+    cy.get('#mod-kanban').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
   });

@@ -13,8 +13,9 @@ describe('Graph Plugin', {
   it('turn on graphing', () => {
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
+
     cy.wait(100);
-    cy.get('#mod-graph').check();
+    cy.get('#mod-graph').check().should('be.checked').should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
   });

@@ -19,21 +19,24 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
+
     cy.wait(100);
-
-    cy.get('#mod-comment').check();
+    cy.get('#mod-comment').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
 
-    cy.get('#mod-mailbox').check();
+    cy.wait(100);
+    cy.get('#mod-mailbox').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
 
-    cy.get('#mod-remoteorigin').check();
+    cy.wait(100);
+    cy.get('#mod-remoteorigin').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
 
-    cy.get('#mod-user').check();
+    cy.wait(100);
+    cy.get('#mod-user').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
   });
@@ -58,21 +61,24 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit(replUrl + '/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
+
     cy.wait(100);
-
-    cy.get('#mod-comment').check();
+    cy.get('#mod-comment').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
 
-    cy.get('#mod-mailbox').check();
+    cy.wait(100);
+    cy.get('#mod-mailbox').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
 
-    cy.get('#mod-remoteorigin').check();
+    cy.wait(100);
+    cy.get('#mod-remoteorigin').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
 
-    cy.get('#mod-user').check();
+    cy.wait(100);
+    cy.get('#mod-user').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
   });

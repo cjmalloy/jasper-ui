@@ -40,8 +40,9 @@ describe('Wiki Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
+
     cy.wait(100);
-    cy.get('#mod-wiki').check();
+    cy.get('#mod-wiki').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
   });
