@@ -19,7 +19,7 @@
     </div>
   </ng-container>
   <app-debug *ngIf="expanded"></app-debug>
-  <app-bulk *ngIf="expanded && store.view.type" [type]="store.view.type!"></app-bulk>
+  <app-bulk *ngIf="expanded && store.view.type" [type]="store.view.type!" [activeExts]="store.view.exts"></app-bulk>
   <span class="button-bar">
     <ng-container *ngIf="store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')">
       <div *ngIf="plugin?.config?.submitDm else submitInternal" class="submit-button" routerLink="/submit/dm" [queryParams]="{ tag: plugin!.tag, url: genUrl }">
