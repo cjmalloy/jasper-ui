@@ -163,12 +163,15 @@ export class BulkComponent implements OnInit, OnDestroy {
 
   thumbnail(url: string) {
     this.thumbnailing = false;
-    this.batch(ref => this.refs.merge(ref.url, ref.origin!, {
-      tags: uniq([...(ref.tags || []), 'plugin/thumbnail']),
-      plugins: {
-        'plugin/thumbnail': {url}
-      }
-    }));
+    this.batch(ref => {
+      if (ref.plugins?.['plugin/thumbnail']?.url === url) return of(null);
+      return this.refs.merge(ref.url, ref.origin!, {
+        tags: uniq([...(ref.tags || []), 'plugin/thumbnail']),
+        plugins: {
+          'plugin/thumbnail': {url}
+        }
+      })
+    });
   }
 
   tag(tag: string) {
