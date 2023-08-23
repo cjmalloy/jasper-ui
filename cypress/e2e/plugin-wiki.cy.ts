@@ -41,10 +41,9 @@ describe('Wiki Plugin', {
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('#mod-wiki').check();
-    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('install');
+    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('installTemplate');
     cy.get('button').contains('Save').click();
-    cy.wait('@install');
-    cy.wait(16);
+    cy.wait('@installTemplate');
   });
   it('set external wiki', () => {
     cy.visit('/?debug=ADMIN');

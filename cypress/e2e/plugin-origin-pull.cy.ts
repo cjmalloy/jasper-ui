@@ -17,16 +17,9 @@ describe('Origin Pull Plugin', {
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('#mod-remoteorigin').check();
-    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install1');
-    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install2');
-    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install3');
-    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install4');
+    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('install');
     cy.get('button').contains('Save').click();
-    cy.wait('@install1');
-    cy.wait('@install2');
-    cy.wait('@install3');
-    cy.wait('@install4');
-    cy.wait(16);
+    cy.wait('@install').wait('@install').wait('@install').wait('@install');
   });
   it('creates a remote origin', () => {
     cy.visit('/?debug=ADMIN');

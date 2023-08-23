@@ -14,9 +14,9 @@ describe('Graph Plugin', {
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
     cy.get('#mod-graph').check();
-    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('install');
+    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('installTemplate');
     cy.get('button').contains('Save').click();
-    cy.wait('@install');
+    cy.wait('@installTemplate');
   });
   it('creates a ref', () => {
     cy.visit('/?debug=USER');
