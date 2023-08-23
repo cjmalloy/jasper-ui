@@ -29,7 +29,7 @@ describe('Origin Push Plugin', {
     cy.get('#url').type(replOtherApiProxy);
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
-    cy.get('#ribbon-plugin-push').click();
+    cy.get('.floating-ribbons .plugin-origin-push').click();
     cy.get('#remote').type('@other');
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');

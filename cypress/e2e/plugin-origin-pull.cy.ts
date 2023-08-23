@@ -23,12 +23,13 @@ describe('Origin Pull Plugin', {
   });
   it('creates a remote origin', () => {
     cy.visit('/?debug=ADMIN');
+    cy.get('.settings a').contains('settings').click();
+    cy.get('.tabs').contains('origin').click();
     cy.contains('Submit').click();
-    cy.get('.select-plugin select').select('+plugin/origin');
     cy.get('#url').type(replApiProxy);
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
-    cy.get('#ribbon-plugin-pull').click();
+    cy.get('.floating-ribbons .plugin-origin-pull').click();
     cy.get('#local').type('@other');
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');

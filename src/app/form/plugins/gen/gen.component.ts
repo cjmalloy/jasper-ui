@@ -58,4 +58,9 @@ export class GenFormComponent implements OnInit {
       this.formlyForm.builder.build(this.formlyForm.field);
     });
   }
+
+    cssClass(tag: string) {
+        return tag.replace(/\//g, '-')
+            .replace(/[^\w-]/g, '');
+    }
 }
