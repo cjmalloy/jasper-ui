@@ -19,25 +19,23 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('installPlugin');
-    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('installTemplate');
-    cy.wait(1000);
+    cy.wait(100);
 
     cy.get('#mod-comment').check();
     cy.get('button').contains('Save').click();
-    cy.wait('@installPlugin');
+    cy.get('.log').contains('Success');
 
     cy.get('#mod-mailbox').check();
     cy.get('button').contains('Save').click();
-    cy.wait('@installTemplate').wait('@installPlugin').wait('@installPlugin');
+    cy.get('.log').contains('Success');
 
     cy.get('#mod-remoteorigin').check();
     cy.get('button').contains('Save').click();
-    cy.wait('@installPlugin').wait('@installPlugin').wait('@installPlugin').wait('@installPlugin');
+    cy.get('.log').contains('Success');
 
     cy.get('#mod-user').check();
     cy.get('button').contains('Save').click();
-    cy.wait('@installTemplate');
+    cy.get('.log').contains('Success');
   });
   it('@main: replicate @other', () => {
     cy.visit('/?debug=ADMIN');
@@ -60,25 +58,23 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit(replUrl + '/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
-    cy.intercept({method: 'POST', pathname: '/api/v1/plugin'}).as('installPlugin');
-    cy.intercept({method: 'POST', pathname: '/api/v1/template'}).as('installTemplate');
-    cy.wait(1000);
+    cy.wait(100);
 
     cy.get('#mod-comment').check();
     cy.get('button').contains('Save').click();
-    cy.wait('@installPlugin');
+    cy.get('.log').contains('Success');
 
     cy.get('#mod-mailbox').check();
     cy.get('button').contains('Save').click();
-    cy.wait('@installTemplate').wait('@installPlugin').wait('@installPlugin');
+    cy.get('.log').contains('Success');
 
     cy.get('#mod-remoteorigin').check();
     cy.get('button').contains('Save').click();
-    cy.wait('@installPlugin').wait('@installPlugin').wait('@installPlugin').wait('@installPlugin');
+    cy.get('.log').contains('Success');
 
     cy.get('#mod-user').check();
     cy.get('button').contains('Save').click();
-    cy.wait('@installTemplate');
+    cy.get('.log').contains('Success');
   });
   it('@other: replicate @main', () => {
     cy.visit(replUrl + '/?debug=ADMIN');
