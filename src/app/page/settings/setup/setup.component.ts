@@ -228,8 +228,8 @@ export class SettingsSetupPage implements OnInit {
     ]).pipe(toArray());
   }
 
-  needsUpdate(mod: Config) {
-    return mod.config?.needsUpdate;
+  needsUpdate(mod?: Config) {
+    return mod?.config?.needsUpdate;
   }
 
   needsModUpdate(config: Config) {
