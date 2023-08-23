@@ -37,15 +37,13 @@ describe('Graph Plugin', {
   it('shows graph', () => {
     cy.get('.full-page .actions a').contains('edit').click();
     cy.get('#url').then($url => {
-      cy.get('.subs').contains('all').click();
-      cy.get('.search input').type($url.val() + '{enter}');
+      cy.visit('/tag/@*?search=' + $url.val() + '&debug=USER');
     });
     cy.get('.tabs').contains('graph').click();
     cy.get('figure').contains('Title');
   });
   it('creates reply', () => {
     cy.get('.ref .actions a').contains('reply').click();
-    cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Reply');
     cy.contains('show advanced').click();
     cy.get('#published').type('2020-01-02T00:00');
@@ -55,8 +53,7 @@ describe('Graph Plugin', {
   it('graphs reply', () => {
     cy.get('.full-page .actions a').contains('edit').click();
     cy.get('#url').then($url => {
-      cy.get('.subs').contains('all').click();
-      cy.get('.search input').type($url.val() + '{enter}');
+      cy.visit('/tag/@*?search=' + $url.val() + '&debug=USER');
     });
     cy.get('.tabs').contains('graph').click();
     cy.get('figure').contains('Reply');
