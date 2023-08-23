@@ -42,7 +42,7 @@ export class SettingsMePage {
     this.editForm.patchValue(ext);
     defer(() => this.form!.setValue(ext));
     if (!admin.status.templates.user || !store.account.localTag) {
-      router.navigate(['/settings/user']);
+      router.navigate(['/settings/user'], { replaceUrl: true });
     }
   }
 
