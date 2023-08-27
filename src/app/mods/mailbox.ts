@@ -109,7 +109,7 @@ export function getMailbox(tag: string, local = ''): string {
 export function getLocalMailbox(mailbox: string, local: string, origin: string, lookup?: Map<string, Map<string, string>>) {
   if (!origin || origin === local) return mailbox;
   if (hasPrefix(mailbox, 'plugin/outbox')) {
-    if (!lookup?.get(origin)) {
+    if (!lookup?.has(origin)) {
       console.warn('Cannot lookup mailbox translation for', origin);
       return undefined;
     }

@@ -79,7 +79,7 @@ export class OriginMapService {
         .map(remote => [config(remote)?.local || '', findLocalAlias(remote.url)]));
     return new Map(
       remotesForOrigin(this.store.account.origin || '')
-        .map(remote => remote.origin || '')
+        .map(remote => config(remote).local)
         .map(origin => [origin, originMapFor(origin)]));
   }
 }
