@@ -218,7 +218,7 @@ export class EmbedService {
     const images = el.querySelectorAll<HTMLImageElement>('img');
     images.forEach(t => {
       if (t.src || t.srcset) {
-        const srcsets = t.srcset ? t.srcset.split(',') : [t.src];
+        const srcsets = t.srcset ? t.srcset.split(', ') : [t.src];
         const url = t.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : t.src;
         const config = {} as any;
         if (t.style.width) config.width = t.style.width;
