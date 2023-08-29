@@ -162,7 +162,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get authorExts$() {
-    return this.exts.getCachedExts(this.authors);
+    return this.exts.getCachedExts(this.authors, this.ref.origin || '');
   }
 
   get mailboxes() {
@@ -186,7 +186,7 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get tagExts$() {
-    return this.exts.getCachedExts(this.tagged);
+    return this.exts.getCachedExts(this.tagged, this.ref.origin || '');
   }
 
   get deleted() {

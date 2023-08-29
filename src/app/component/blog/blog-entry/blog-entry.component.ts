@@ -187,7 +187,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
   }
 
   get authorExts$() {
-    return this.exts.getCachedExts(this.authors);
+    return this.exts.getCachedExts(this.authors, this.ref.origin || '');
   }
 
   get tags() {
@@ -197,7 +197,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
   }
 
   get tagExts$() {
-    return this.exts.getCachedExts(this.tags);
+    return this.exts.getCachedExts(this.tags, this.ref.origin || '');
   }
 
   get clickableLink() {

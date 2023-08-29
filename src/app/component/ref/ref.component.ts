@@ -307,7 +307,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get addTagExts$() {
-    return this.exts.getCachedExts(this.addTags || []);
+    return this.exts.getCachedExts(this.addTags || [], this.ref.origin || '');
   }
 
   get fromOrigin() {
@@ -430,7 +430,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get authorExts$() {
-    return this.exts.getCachedExts(this.authors);
+    return this.exts.getCachedExts(this.authors, this.ref.origin || '');
   }
 
   get recipients() {
@@ -438,7 +438,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get recipientExts$() {
-    return this.exts.getCachedExts(this.recipients);
+    return this.exts.getCachedExts(this.recipients, this.ref.origin || '');
   }
 
   get mailboxes() {
@@ -475,7 +475,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get tagExts$() {
-    return this.exts.getCachedExts(this.tags);
+    return this.exts.getCachedExts(this.tags, this.ref.origin || '');
   }
 
   get url() {

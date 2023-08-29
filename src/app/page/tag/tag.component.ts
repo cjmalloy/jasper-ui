@@ -62,7 +62,7 @@ export class TagPage implements OnInit, OnDestroy {
         runInAction(() => this.store.view.exts = []);
       } else {
         this.loading = true;
-        this.exts.getCachedExts(this.store.view.queryTags.map(t => defaultOrigin(t, this.store.account.origin))).pipe(
+        this.exts.getCachedExts(this.store.view.queryTags, this.store.account.origin).pipe(
           catchError(() => of([])),
         ).subscribe(exts => {
           this.loading = false;

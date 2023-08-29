@@ -35,12 +35,12 @@
     <a *ngFor="let col of columns"
        class="column-title tag"
        (click)="bookmarks.toggleFilter(col)"
-       [title]="col">{{ (exts.getCachedExt(col) | async)?.name || col }}</a>
+       [title]="col">{{ (exts.getCachedExt(col, ext.origin || '') | async)?.name || col }}</a>
     <ng-container *ngIf="swimLanes else noSwimLanes">
       <ng-container *ngFor="let sl of swimLanes">
         <a class="swim-lane-title tag"
            (click)="bookmarks.toggleFilter(sl)"
-           [title]="sl">{{ (exts.getCachedExt(sl) | async)?.name || sl }}</a>
+           [title]="sl">{{ (exts.getCachedExt(sl, ext.origin || '') | async)?.name || sl }}</a>
         <app-kanban-column *ngIf="showNoColumn"
                            cdkDropList
                            cdkScrollable

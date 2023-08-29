@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { defer, intersection, without } from 'lodash-es';
 import { Subscription } from 'rxjs';
+import { Ext } from "../../../model/ext";
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
@@ -138,11 +139,11 @@ export class KanbanCardComponent implements OnInit {
   }
 
   get badgeExts$() {
-    return this.exts.getCachedExts(this.badges);
+    return this.exts.getCachedExts(this.badges, this.ref.origin || '');
   }
 
   get allBadgeExts$() {
-    return this.exts.getCachedExts(this.store.view.ext?.config?.badges || []);
+    return this.exts.getCachedExts(this.store.view.ext?.config?.badges || [], this.ref.origin || '');
   }
 
   @HostListener('touchend', ['$event'])

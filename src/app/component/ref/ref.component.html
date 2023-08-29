@@ -76,7 +76,7 @@
             tagged
             <ng-container *ngIf="tagExts$ | async as tagExts; else tagNoExts">
               <ng-container *ngFor="let e of tagExts">
-                <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+                <a class="tag" [routerLink]="['/tag', e.tag + e.origin]">{{ e.name || e.tag }}</a>
               </ng-container>
             </ng-container>
             <ng-template #tagNoExts>

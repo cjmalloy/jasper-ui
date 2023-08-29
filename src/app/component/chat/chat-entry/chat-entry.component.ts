@@ -115,7 +115,7 @@ export class ChatEntryComponent {
   }
 
   get authorExts$() {
-    return this.exts.getCachedExts(this.authors);
+    return this.exts.getCachedExts(this.authors, this.ref.origin || '');
   }
 
   get clickableLink() {

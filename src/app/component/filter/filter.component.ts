@@ -100,13 +100,14 @@ export class FilterComponent implements OnInit, OnDestroy {
           this.createdAfterFilter,
         ],
       });
-      for (const k of this.kanbanConfigs) {
+      for (const e of this.kanbanConfigs) {
+        const k = e.config!;
         if (k.badges?.length) {
           this.allFilters.push({
             label: $localize`Badges`,
             filters: [],
           });
-          this.exts.getCachedExts(k.badges).subscribe(exts => {
+          this.exts.getCachedExts(k.badges, e.origin || '').subscribe(exts => {
             for (const e of exts) {
               this.loadFilter({
                 group: $localize`Badges`,
@@ -126,7 +127,7 @@ export class FilterComponent implements OnInit, OnDestroy {
             label: $localize`Kanban`,
             filters: [],
           });
-          this.exts.getCachedExts(k.columns).subscribe(exts => {
+          this.exts.getCachedExts(k.columns, e.origin || '').subscribe(exts => {
             for (const e of exts) {
               this.loadFilter({
                 group: $localize`Kanban`,
@@ -142,7 +143,7 @@ export class FilterComponent implements OnInit, OnDestroy {
               });
             }
             if (k.swimLanes) {
-              this.exts.getCachedExts(k.swimLanes).subscribe(exts => {
+              this.exts.getCachedExts(k.swimLanes, e.origin || '').subscribe(exts => {
                 for (const e of exts) {
                   this.loadFilter({
                     group: $localize`Kanban`,
@@ -192,7 +193,7 @@ export class FilterComponent implements OnInit, OnDestroy {
     if (!this.admin.status.templates.kanban) return [];
     return this.store.view.exts
         .filter(x => hasPrefix(x.tag, 'kanban'))
-        .map(x => x.config).filter(c => !!c) as KanbanConfig[];
+        .filter(x => x.config);
   }
 
   loadFilter(filter: FilterConfig) {
