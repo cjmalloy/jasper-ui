@@ -123,7 +123,7 @@ export class SettingsSetupPage implements OnInit {
 
   deleteTemplate$(t: Template) {
     this.installMessages.push('\u00A0'.repeat(4) + $localize`Deleting ${t.name || t.tag} template...`);
-    return this.templates.delete(t.tag + (t.origin || ''));
+    return this.templates.delete(t.tag + this.store.account.origin);
   }
 
   installMod$(mod: string): Observable<any> {
