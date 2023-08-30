@@ -50,7 +50,15 @@ import {
 } from '../../util/format';
 import { getScheme } from '../../util/hosts';
 import { printError } from '../../util/http';
-import { capturesAny, hasTag, hasUserUrlResponse, isOwnerTag, removeTag, tagOrigin } from '../../util/tag';
+import {
+  capturesAny,
+  defaultOrigin,
+  hasTag,
+  hasUserUrlResponse, implicitLocal,
+  isOwnerTag,
+  removeTag,
+  tagOrigin
+} from '../../util/tag';
 import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
@@ -553,6 +561,10 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get fullscreen() {
     return hasTag('plugin/fullscreen', this.ref);
+  }
+
+  implicitLocal(qt: string) {
+    return implicitLocal(qt, this.store.account.origin);
   }
 
   formatAuthor(user: string) {

@@ -126,6 +126,13 @@ export function defaultOrigin(tag: string, origin?: string) {
   return localTag(tag) + origin;
 }
 
+export function implicitLocal(tag: string, local: string) {
+  if (!tag) return tag;
+  if (!tag.includes('@')) return tag;
+  if (tagOrigin(tag) !== local) return tag;
+  return localTag(tag);
+}
+
 /**
  * Join multiple tags together, ignoring visibility modifiers '+' and '_' and
  * origin markers '@' for all but the first tag.
