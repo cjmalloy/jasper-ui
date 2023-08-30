@@ -11,14 +11,12 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { defer, intersection, without } from 'lodash-es';
+import { defer, difference, intersection, without } from 'lodash-es';
 import { Subscription } from 'rxjs';
-import { Ext } from "../../../model/ext";
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
-import { ScrapeService } from '../../../service/api/scrape.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { ConfigService } from '../../../service/config.service';
@@ -40,6 +38,8 @@ export class KanbanCardComponent implements OnInit {
 
   @Input()
   pressToUnlock = false;
+  @Input()
+  hideSwimLanes = true;
 
   title = '';
   repostRef?: Ref;
@@ -135,7 +135,9 @@ export class KanbanCardComponent implements OnInit {
   }
 
   get badges() {
-    return intersection(this.ref.tags, this.store.view.ext?.config?.badges || []);
+    const badges = intersection(this.ref.tags, this.store.view.ext?.config?.badges || []);
+    if (this.hideSwimLanes) return badges;
+    return difference(badges, this.store.view.ext?.config?.swimLanes || []);
   }
 
   get badgeExts$() {

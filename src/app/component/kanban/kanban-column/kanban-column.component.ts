@@ -27,6 +27,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
+  hideSwimLanes = true;
+  @Input()
   updates?: Observable<KanbanDrag>;
   @Input()
   addTags: string[] = [];

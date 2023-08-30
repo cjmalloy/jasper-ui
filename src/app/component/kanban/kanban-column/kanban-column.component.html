@@ -3,6 +3,7 @@
   <ng-container *ngFor="let page of pages">
     <app-kanban-card *ngFor="let ref of page.content"
                      cdkDrag
+                     [hideSwimLanes]="hideSwimLanes"
                      [cdkDragData]="ref"
                      [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
                      [pressToUnlock]="pressToUnlock"
