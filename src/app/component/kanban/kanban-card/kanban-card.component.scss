@@ -2,9 +2,14 @@
   flex-shrink: 0;
   display: block;
   max-height: 160px;
-  overflow: hidden;
   user-select: none;
   scroll-padding: 40px;
+
+  .kanban-card-container {
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+  }
 
   .thumbnail {
     min-width: 48px;
