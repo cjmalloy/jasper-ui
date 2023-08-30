@@ -30,8 +30,10 @@ export class ExtFormComponent implements OnInit {
 
   @ViewChild('fill')
   fill?: ElementRef;
-  @ViewChild(FormlyForm)
+  @ViewChild('formlyForm')
   formlyForm?: FormlyForm;
+  @ViewChild('advancedFormlyForm')
+  advancedFormlyForm?: FormlyForm;
 
   form?: FormlyFieldConfig[];
   advancedForm?: FormlyFieldConfig[];
@@ -121,14 +123,17 @@ export class ExtFormComponent implements OnInit {
     if (!this.advancedForm) {
       this.advancedForm = this.admin.getTemplateAdvancedForm(ext.tag);
     }
-    defer(() => {
+    defer(() =>  defer(() => {
       this.group!.patchValue(ext);
       this.options.formState.config = ext.config;
       this.formlyForm!.model = ext.config;
+      this.advancedFormlyForm!.model = ext.config;
       // TODO: Why aren't changed being detected?
       // @ts-ignore
       this.formlyForm.builder.build(this.formlyForm.field);
-    });
+      // @ts-ignore
+      this.advancedFormlyForm.builder.build(this.advancedFormlyForm.field);
+    }));
   }
 }
 
