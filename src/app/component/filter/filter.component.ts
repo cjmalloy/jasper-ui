@@ -128,18 +128,18 @@ export class FilterComponent implements OnInit, OnDestroy {
             filters: [],
           });
           this.exts.getCachedExts(k.columns, e.origin || '').subscribe(exts => {
-            for (const e of exts) {
-              this.loadFilter({
-                group: $localize`Kanban`,
-                label: e.name || e.tag,
-                query: e.tag,
-              });
-            }
             if (k.showColumnBacklog) {
               this.loadFilter({
                 group: $localize`Kanban`,
                 label: k.columnBacklogTitle || $localize`🚫️ no column`,
                 query: exts.map(e => '!' + e.tag).join(':'),
+              });
+            }
+            for (const e of exts) {
+              this.loadFilter({
+                group: $localize`Kanban`,
+                label: e.name || e.tag,
+                query: e.tag,
               });
             }
             if (k.swimLanes) {
