@@ -30,9 +30,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
   @Input()
   ext?: Ext;
 
-  disableSwimLanes = false;
   error: any;
   updates = new Subject<KanbanDrag>();
+
+  private _disableSwimLanes?: boolean;
 
   private defaultConfig: KanbanConfig = {
     columns: []
@@ -50,6 +51,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.updates.complete();
+  }
+  get disableSwimLanes(): boolean {
+    return this._disableSwimLanes === undefined ? !!this.kanbanConfig.hideSwimLanes : this._disableSwimLanes;
+  }
+
+  set disableSwimLanes(value: boolean) {
+    this._disableSwimLanes = value;
   }
 
   get columns(): string[] {

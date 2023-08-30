@@ -55,7 +55,10 @@ export const kanbanTemplate: Template = {
       type: 'boolean',
       props: {
         label: $localize`Extra swim lane for untagged Refs:`
-      }
+      },
+      expressions: {
+        hide: '!model.swimLanes || !model.swimLanes[0]'
+      },
     }, {
       key: 'noSwimLaneTitle',
       id: 'noSwimLaneTitle',
@@ -64,7 +67,17 @@ export const kanbanTemplate: Template = {
         label: $localize`Extra Swim Lane Title:`
       },
       expressions: {
-        hide: '!field.parent.model.showNoSwimLane'
+        hide: '!model.swimLanes || !model.swimLanes[0] || !model.showNoSwimLane'
+      },
+    }, {
+      key: 'hideSwimLanes',
+      id: 'hideSwimLanes',
+      type: 'boolean',
+      props: {
+        label: $localize`Hide Swim Lanes by Default:`
+      },
+      expressions: {
+        hide: '!model.swimLanes || !model.swimLanes[0]'
       },
     }, {
       key: 'badges',
@@ -88,6 +101,7 @@ export const kanbanTemplate: Template = {
     },
     optionalProperties: {
       swimLanes: { elements: { type: 'string' } },
+      hideSwimLanes: { type: 'boolean'},
       showNoColumn: { type: 'boolean'},
       noColumnTitle: { type: 'string'},
       showNoSwimLane: { type: 'boolean'},
@@ -100,6 +114,7 @@ export const kanbanTemplate: Template = {
 export interface KanbanConfig extends RootConfig {
   columns: string[];
   swimLanes?: string[];
+  hideSwimLanes?: boolean;
   showNoColumn?: boolean;
   noColumnTitle?: string;
   showNoSwimLane?: boolean;
