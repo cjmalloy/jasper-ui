@@ -61,7 +61,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   get columns(): string[] {
-    if (this.filteredNoColumn) return [];
+    if (this.filteredColumnBacklog) return [];
     if (this.filteredColumn) return [this.filteredColumn];
     return this.kanbanConfig.columns;
   }
@@ -70,28 +70,28 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (this.disableSwimLanes) return undefined;
     if (!this.kanbanConfig.swimLanes) return undefined;
     if (!this.kanbanConfig.swimLanes.length) return undefined;
-    if (this.filteredNoSwimLane) return [];
+    if (this.filteredSwimLaneBacklog) return [];
     if (this.filteredSwimLane) return [this.filteredSwimLane];
     return this.kanbanConfig.swimLanes;
   }
 
-  get andNoCols() {
+  get andColBacklog() {
     if (!this.kanbanConfig.columns?.length) return '';
-    return ':' + this.noCols;
+    return ':' + this.colBacklog;
   }
 
-  get andNoSl() {
+  get andSlBacklog() {
     if (this.disableSwimLanes) return '';
     if (!this.kanbanConfig.swimLanes?.length) return '';
-    return ':' + this.noSl;
+    return ':' + this.slBacklog;
   }
 
-  get noCols() {
+  get colBacklog() {
     if (!this.kanbanConfig.columns?.length) return '';
     return this.kanbanConfig.columns.map(t => t.startsWith('!') ? t.substring(1) : ('!' + t)).join(':');
   }
 
-  get noSl() {
+  get slBacklog() {
     if (this.disableSwimLanes) return '';
     if (!this.kanbanConfig.swimLanes?.length) return '';
     return this.kanbanConfig.swimLanes.map(t => t.startsWith('!') ? t.substring(1) : ('!' + t)).join(':');
@@ -108,10 +108,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
     return undefined;
   }
 
-  get filteredNoColumn() {
+  get filteredColumnBacklog() {
     if (!this.kanbanConfig.columns) return false;
     for (const f of this.store.view.queryFilters) {
-      if (this.noCols === f) return true;
+      if (this.colBacklog === f) return true;
     }
     return false;
   }
@@ -120,27 +120,27 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (!this.kanbanConfig.swimLanes) return undefined;
     for (const f of this.store.view.queryFilters) {
       if (this.kanbanConfig.swimLanes.includes(f)) return f;
-      if (this.noSl === f) return f;
+      if (this.slBacklog === f) return f;
     }
     return undefined;
   }
 
-  get filteredNoSwimLane() {
+  get filteredSwimLaneBacklog() {
     if (!this.kanbanConfig.swimLanes) return false;
     for (const f of this.store.view.queryFilters) {
-      if (this.noSl === f) return true;
+      if (this.slBacklog === f) return true;
     }
     return false;
   }
 
-  get showNoColumn() {
-    if (this.filteredNoColumn) return true;
+  get showColumnBacklog() {
+    if (this.filteredColumnBacklog) return true;
     if (this.filteredColumn) return false;
     return this.kanbanConfig.showColumnBacklog;
   }
 
-  get showNoSwimLane() {
-    if (this.filteredNoSwimLane) return true;
+  get showSwimLaneBacklog() {
+    if (this.filteredSwimLaneBacklog) return true;
     if (this.filteredSwimLane) return false;
     return this.kanbanConfig.showSwimLaneBacklog;
   }
@@ -161,8 +161,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   getQuery(tags?: { col?: string, sl?: string }) {
     if (!tags) return '';
-    const cols =  tags.col ? ':' + tags.col : this.andNoCols;
-    const sl =  tags.sl ? ':' + tags.sl : this.andNoSl;
+    const cols =  tags.col ? ':' + tags.col : this.andColBacklog;
+    const sl =  tags.sl ? ':' + tags.sl : this.andSlBacklog;
     return '(' + this.query + ')' + cols + sl;
   }
 

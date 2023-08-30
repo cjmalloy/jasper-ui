@@ -13,10 +13,10 @@ import { UrlFilter } from '../../util/query';
 import { Ext } from '../../model/ext';
 import { ExtService } from '../../service/api/ext.service';
 import { RootConfig } from '../../mods/root';
-import { KanbanConfig } from '../../mods/kanban';
 import { UserConfig } from '../../mods/user';
 import { BookmarkService } from '../../service/bookmark.service';
 import { hasPrefix } from '../../util/tag';
+import { KanbanConfig } from '../../mods/kanban';
 
 type FilterItem = { filter: UrlFilter, label: string, time?: boolean };
 type FilterGroup = { filters: FilterItem[], label: string };
@@ -101,7 +101,7 @@ export class FilterComponent implements OnInit, OnDestroy {
         ],
       });
       for (const e of this.kanbanConfigs) {
-        const k = e.config!;
+        const k = e.config! as KanbanConfig;
         if (k.badges?.length) {
           this.allFilters.push({
             label: $localize`Badges`,
@@ -135,10 +135,10 @@ export class FilterComponent implements OnInit, OnDestroy {
                 query: e.tag,
               });
             }
-            if (k.showNoColumn) {
+            if (k.showColumnBacklog) {
               this.loadFilter({
                 group: $localize`Kanban`,
-                label: $localize`🚫️ no column`,
+                label: k.columnBacklogTitle || $localize`🚫️ no column`,
                 query: exts.map(e => '!' + e.tag).join(':'),
               });
             }
@@ -151,10 +151,10 @@ export class FilterComponent implements OnInit, OnDestroy {
                     query: e.tag,
                   });
                 }
-                if (k.showNoSwimLane) {
+                if (k.showSwimLaneBacklog) {
                   this.loadFilter({
                     group: $localize`Kanban`,
-                    label: $localize`🚫️ no swim lane`,
+                    label: k.swimLaneBacklogTitle || $localize`🚫️ no swim lane`,
                     query: exts.map(e => '!' + e.tag).join(':'),
                   });
                 }
