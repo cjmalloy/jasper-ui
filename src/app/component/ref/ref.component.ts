@@ -731,9 +731,9 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   upload() {
+    this.ref.origin = this.store.account.origin;
     const ref = {
       ...this.ref,
-      origin: this.store.account.origin,
       tags: this.ref.tags?.filter(t => this.auth.canAddTag(t)),
     };
     ref.plugins = pick(ref.plugins as any, ref.tags as string[]);
