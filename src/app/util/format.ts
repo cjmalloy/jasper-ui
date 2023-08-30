@@ -121,7 +121,7 @@ export function modId(c: Config) {
 
 export function trimCommentForTitle(comment: string): string {
   if (!comment) return '';
-  comment = he.decode(comment);
+  comment = he.decode(comment.replace( /<[^>]+>/g, ''));
   if (comment.includes('\n')) {
     const lines = comment.split('\n').map(t => t.trim()).filter(t => t.length);
     const newText = lines.filter(l => !l.startsWith('>'));
