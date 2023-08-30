@@ -6,10 +6,10 @@
     <ng-container *ngIf="admin.status.templates.user && store.account.signedIn">
       &bullet; <a routerLink="/home" [queryParams]="{ forYou : true }" routerLinkActive="current-page" i18n>for you</a>
     </ng-container>
-    &bullet; <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
     <ng-container *ngIf="config.multiTenant">
       &bullet; <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a>
     </ng-container>
+    &bullet; <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
     <ng-container *ngIf="bookmarkExts$ | async as bookmarkExts; else bookNoExts">
       <ng-container *ngFor="let b of bookmarkExts; let i = index">
         &bullet; <a [routerLink]="['/tag', store.account.bookmarks[i]]" routerLinkActive="current-page">{{ b.name || store.account.bookmarks[i] }}</a>
