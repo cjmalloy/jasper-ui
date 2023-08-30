@@ -6,6 +6,11 @@ import { BackupService } from '../../../service/api/backup.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { printError } from '../../../util/http';
+import { ORIGIN_NOT_BLANK_REGEX } from '../../../util/format';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import * as moment from 'moment/moment';
+import { scrollToFirstInvalid } from '../../../util/form';
+import { OriginService } from '../../../service/api/origin.service';
 
 @Component({
   selector: 'app-settings-backup-page',
@@ -13,6 +18,10 @@ import { printError } from '../../../util/http';
   styleUrls: ['./backup.component.scss']
 })
 export class SettingsBackupPage implements OnInit {
+  originPattern = ORIGIN_NOT_BLANK_REGEX.source;
+
+  submitted = false;
+  originForm: UntypedFormGroup;
 
   list?: string[];
   uploading = false;
@@ -23,10 +32,16 @@ export class SettingsBackupPage implements OnInit {
     private route: ActivatedRoute,
     public store: Store,
     private backups: BackupService,
+    private origins: OriginService,
+    private fb: UntypedFormBuilder,
   ) {
     theme.setTitle($localize`Settings: Backup & Restore`);
     backups.list()
       .subscribe(list => this.list = list.sort().reverse());
+    this.originForm = fb.group({
+      origin: ['', [Validators.pattern(ORIGIN_NOT_BLANK_REGEX)]],
+      olderThan: [moment().format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS)],
+    });
   }
 
   ngOnInit(): void {
@@ -69,5 +84,25 @@ export class SettingsBackupPage implements OnInit {
         return throwError(() => res);
       }),
     ).subscribe();
+  }
+
+  deleteOrigin() {
+    this.serverError = [];
+    this.submitted = true;
+    this.originForm.markAllAsTouched();
+    if (!this.originForm.valid) {
+      scrollToFirstInvalid();
+      return;
+    }
+    const origin = this.originForm.value.origin;
+    const olderThan = moment(this.originForm.value.olderThan, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
+    this.origins.delete(origin, olderThan).pipe(
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(() => res);
+      }),
+    ).subscribe(() => {
+      this.submitted = true;
+    });
   }
 }
