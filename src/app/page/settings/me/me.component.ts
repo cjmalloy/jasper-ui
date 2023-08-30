@@ -13,13 +13,14 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { Router } from '@angular/router';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 
 @Component({
   selector: 'app-settings-me-page',
   templateUrl: './me.component.html',
   styleUrls: ['./me.component.scss']
 })
-export class SettingsMePage {
+export class SettingsMePage implements HasChanges {
   @HostBinding('class') css = 'full-page-form';
 
   @ViewChild('form')
@@ -44,6 +45,10 @@ export class SettingsMePage {
     if (!admin.status.templates.user || !store.account.localTag) {
       router.navigate(['/settings/user'], { replaceUrl: true });
     }
+  }
+
+  saveChanges() {
+    return !this.editForm?.dirty;
   }
 
   save() {
