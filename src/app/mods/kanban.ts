@@ -25,21 +25,21 @@ export const kanbanTemplate: Template = {
         addText: $localize`+ Add another column`,
       }
     }, {
-      key: 'showNoColumn',
-      id: 'showNoColumn',
+      key: 'showColumnBacklog',
+      id: 'showColumnBacklog',
       type: 'boolean',
       props: {
-        label: $localize`Extra column for untagged Refs:`
+        label: $localize`Show Columns Backlog:`
       }
     }, {
-      key: 'noColumnTitle',
-      id: 'noColumnTitle',
+      key: 'columnBacklogTitle',
+      id: 'columnBacklogTitle',
       type: 'string',
       props: {
-        label: $localize`Extra Column Title:`
+        label: $localize`Column Backlog Title:`
       },
       expressions: {
-        hide: '!field.parent.model.showNoColumn'
+        hide: '!field.parent.model.showColumnBacklog'
       },
     }, {
       key: 'swimLanes',
@@ -50,24 +50,24 @@ export const kanbanTemplate: Template = {
         addText: $localize`+ Add another swim lane`,
       }
     }, {
-      key: 'showNoSwimLane',
-      id: 'showNoSwimLane',
+      key: 'showSwimLaneBacklog',
+      id: 'showSwimLaneBacklog',
       type: 'boolean',
       props: {
-        label: $localize`Extra swim lane for untagged Refs:`
+        label: $localize`Show Swim Lane Backlog:`
       },
       expressions: {
         hide: '!model.swimLanes || !model.swimLanes[0]'
       },
     }, {
-      key: 'noSwimLaneTitle',
-      id: 'noSwimLaneTitle',
+      key: 'swimLaneBacklogTitle',
+      id: 'swimLaneBacklogTitle',
       type: 'string',
       props: {
-        label: $localize`Extra Swim Lane Title:`
+        label: $localize`Swim Lane Backlog Title:`
       },
       expressions: {
-        hide: '!model.swimLanes || !model.swimLanes[0] || !model.showNoSwimLane'
+        hide: '!model.swimLanes || !model.swimLanes[0] || !model.showSwimLaneBacklog'
       },
     }, {
       key: 'hideSwimLanes',
@@ -100,12 +100,12 @@ export const kanbanTemplate: Template = {
       columns: { elements: { type: 'string' } },
     },
     optionalProperties: {
+      showColumnBacklog: { type: 'boolean'},
+      columnBacklogTitle: { type: 'string'},
       swimLanes: { elements: { type: 'string' } },
       hideSwimLanes: { type: 'boolean'},
-      showNoColumn: { type: 'boolean'},
-      noColumnTitle: { type: 'string'},
-      showNoSwimLane: { type: 'boolean'},
-      noSwimLaneTitle: { type: 'string'},
+      showSwimLaneBacklog: { type: 'boolean'},
+      swimLaneBacklogTitle: { type: 'string'},
       badges: { elements: { type: 'string' } },
     },
   },
@@ -113,11 +113,11 @@ export const kanbanTemplate: Template = {
 
 export interface KanbanConfig extends RootConfig {
   columns: string[];
+  showColumnBacklog?: boolean;
+  columnBacklogTitle?: string;
   swimLanes?: string[];
   hideSwimLanes?: boolean;
-  showNoColumn?: boolean;
-  noColumnTitle?: string;
-  showNoSwimLane?: boolean;
-  noSwimLaneTitle?: string;
+  showSwimLaneBacklog?: boolean;
+  swimLaneBacklogTitle?: string;
   badges?: string[];
 }

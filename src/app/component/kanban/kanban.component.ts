@@ -136,13 +136,13 @@ export class KanbanComponent implements OnInit, OnDestroy {
   get showNoColumn() {
     if (this.filteredNoColumn) return true;
     if (this.filteredColumn) return false;
-    return this.kanbanConfig.showNoColumn;
+    return this.kanbanConfig.showColumnBacklog;
   }
 
   get showNoSwimLane() {
     if (this.filteredNoSwimLane) return true;
     if (this.filteredSwimLane) return false;
-    return this.kanbanConfig.showNoSwimLane;
+    return this.kanbanConfig.showSwimLaneBacklog;
   }
 
   /**

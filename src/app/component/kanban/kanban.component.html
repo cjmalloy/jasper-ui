@@ -31,7 +31,7 @@
     <a *ngIf="showNoColumn"
        class="column-title tag"
        (click)="bookmarks.toggleFilter(noCols)"
-       title="No matching column tag">{{ kanbanConfig.noColumnTitle || 'untagged' }}</a>
+       title="No matching column tag">{{ kanbanConfig.columnBacklogTitle || 'Backlog' }}</a>
     <a *ngFor="let col of columns"
        class="column-title tag"
        (click)="bookmarks.toggleFilter(col)"
@@ -61,7 +61,7 @@
       <ng-container *ngIf="showNoSwimLane">
         <a class="swim-lane-title tag"
            (click)="bookmarks.toggleFilter(noSl)"
-           title="No matching swim lane">{{ kanbanConfig.noSwimLaneTitle || 'untagged' }}</a>
+           title="No matching swim lane">{{ kanbanConfig.swimLaneBacklogTitle || 'Backlog' }}</a>
         <app-kanban-column *ngIf="showNoColumn"
                            cdkDropList
                            cdkScrollable
