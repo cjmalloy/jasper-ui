@@ -448,13 +448,8 @@ export class AdminService {
   }
 
   get filters() {
-    return this.pluginConfigProperty('filters')
+    return this.configProperty('filters')
       .flatMap(p => p.config?.filters!);
-  }
-
-  get tagFilters() {
-    return this.templateConfigProperty('filters')
-      .flatMap(t => t.config?.filters!);
   }
 
   getEmbeds(ref: Ref) {
