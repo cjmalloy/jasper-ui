@@ -68,11 +68,12 @@ export class ExtService {
   }
 
   getCachedExt(tag: string, origin?: string) {
-    if (!this._cache.has(tag)) {
+    const key = defaultOrigin(tag, origin);
+    if (!this._cache.has(key)) {
       if (isQuery(tag)) {
-        this._cache.set(tag, of({ name: tag, tag: tag, origin: origin } as Ext));
+        this._cache.set(key, of({ name: tag, tag: tag, origin: origin } as Ext));
       } else {
-        this._cache.set(tag, this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
+        this._cache.set(key, this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
           catchError(err => {
             if (origin === undefined) throw err;
             return this.get(defaultOrigin(tag, origin));
@@ -80,10 +81,10 @@ export class ExtService {
           catchError(err => of({ name: tag, tag: localTag(tag), origin: tagOrigin(tag) } as Ext)),
           shareReplay(1),
         ));
-        delay(() => this._cache.delete(tag), EXT_CACHE_MS);
+        delay(() => this._cache.delete(key), EXT_CACHE_MS);
       }
     }
-    return this._cache.get(tag)!;
+    return this._cache.get(key)!;
   }
 
   page(args?: TagPageArgs): Observable<Page<Ext>> {

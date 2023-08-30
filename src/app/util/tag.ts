@@ -120,6 +120,7 @@ export function tagOrigin(tag?: string) {
 
 export function defaultOrigin(tag: string, origin?: string) {
   if (!tag) return tag;
+  if (!origin) return tag;
   if (tag.includes('*')) return tag;
   if (tag.includes('@')) return tag;
   return localTag(tag) + origin;
