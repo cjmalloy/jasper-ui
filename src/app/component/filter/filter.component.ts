@@ -80,15 +80,15 @@ export class FilterComponent implements OnInit, OnDestroy {
       }
       for (const f of this.admin.filters) this.loadFilter(f);
       this.pushFilter({
-        label: $localize`Filters`,
+        label: $localize`Filters 🕵️️`,
         filters : [
           { filter: 'untagged', label: $localize`🏷️⃠ untagged` },
           { filter: 'uncited', label: $localize`💌️⃠ uncited` },
           { filter: 'unsourced', label: $localize`📜️⃠ unsourced` },
-          { filter: 'query/internal', label: $localize`🕵️️ internal` },
+          { filter: 'query/internal', label: $localize`⚙️ internal` },
         ],
       }, {
-        label: $localize`Time`,
+        label: $localize`Time ⏱️`,
         filters : [
           this.modifiedBeforeFilter,
           this.modifiedAfterFilter,
@@ -100,44 +100,25 @@ export class FilterComponent implements OnInit, OnDestroy {
           this.createdAfterFilter,
         ],
       });
-      for (const e of this.kanbanConfigs) {
+      for (const e of this.kanbanExts) {
+        const group = $localize`Kanban 📋️`;
         const k = e.config! as KanbanConfig;
-        if (k.badges?.length) {
-          this.allFilters.push({
-            label: $localize`Badges`,
-            filters: [],
-          });
-          this.exts.getCachedExts(k.badges, e.origin || '').subscribe(exts => {
-            for (const e of exts) {
-              this.loadFilter({
-                group: $localize`Badges`,
-                label: e.name || e.tag,
-                query: e.tag,
-              });
-            }
-            this.loadFilter({
-              group: $localize`Badges`,
-              label: $localize`🚫️ no badges`,
-              query: exts.map(e => '!' + e.tag).join(':'),
-            });
-          });
-        }
         if (k.columns?.length) {
           this.allFilters.push({
-            label: $localize`Kanban`,
+            label: group,
             filters: [],
           });
           this.exts.getCachedExts(k.columns, e.origin || '').subscribe(exts => {
             if (k.showColumnBacklog) {
               this.loadFilter({
-                group: $localize`Kanban`,
+                group,
                 label: k.columnBacklogTitle || $localize`🚫️ no column`,
                 query: exts.map(e => '!' + e.tag).join(':'),
               });
             }
             for (const e of exts) {
               this.loadFilter({
-                group: $localize`Kanban`,
+                group,
                 label: e.name || e.tag,
                 query: e.tag,
               });
@@ -146,18 +127,34 @@ export class FilterComponent implements OnInit, OnDestroy {
               this.exts.getCachedExts(k.swimLanes, e.origin || '').subscribe(exts => {
                 for (const e of exts) {
                   this.loadFilter({
-                    group: $localize`Kanban`,
+                    group,
                     label: e.name || e.tag,
                     query: e.tag,
                   });
                 }
                 if (k.showSwimLaneBacklog) {
                   this.loadFilter({
-                    group: $localize`Kanban`,
+                    group,
                     label: k.swimLaneBacklogTitle || $localize`🚫️ no swim lane`,
                     query: exts.map(e => '!' + e.tag).join(':'),
                   });
                 }
+              });
+            }
+            if (k.badges?.length) {
+              this.exts.getCachedExts(k.badges, e.origin || '').subscribe(exts => {
+                for (const e of exts) {
+                  this.loadFilter({
+                    group: group,
+                    label: e.name || e.tag,
+                    query: e.tag,
+                  });
+                }
+                this.loadFilter({
+                  group: group,
+                  label: $localize`🚫️ no badges`,
+                  query: exts.map(e => '!' + e.tag).join(':'),
+                });
               });
             }
           });
@@ -165,7 +162,7 @@ export class FilterComponent implements OnInit, OnDestroy {
       }
     } else {
       this.allFilters = [
-        { label: $localize`Time`,
+        { label: $localize`Time ⏱️`,
           filters : [
             this.modifiedBeforeFilter,
             this.modifiedAfterFilter,
@@ -188,7 +185,7 @@ export class FilterComponent implements OnInit, OnDestroy {
         .map(x => x.config).filter(c => !!c) as UserConfig[];
   }
 
-  get kanbanConfigs() {
+  get kanbanExts() {
     if (!this.admin.status.templates.kanban) return [];
     return this.store.view.exts
         .filter(x => hasPrefix(x.tag, 'kanban'))

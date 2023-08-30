@@ -14,8 +14,8 @@ export const lockedIcon: Template = {
       { label: $localize`🔒️`, title: $localize`Locked` },
     ],
     filters: [
-      { query: 'locked', label: $localize`🔒️ locked`, group: $localize`Filters` },
-      { query: '!locked', label: $localize`🔓️ unlocked`, group: $localize`Filters` },
+      { query: 'locked', label: $localize`🔒️ locked`, group: $localize`Filters 🕵️️` },
+      { query: '!locked', label: $localize`🔓️ unlocked`, group: $localize`Filters 🕵️️` },
     ],
   },
 };

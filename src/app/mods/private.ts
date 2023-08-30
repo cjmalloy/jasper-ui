@@ -14,8 +14,8 @@ export const privateIcon: Template = {
       { label: $localize`👁️`, tag: '!public', title: $localize`Private`, global: true },
     ],
     filters: [
-      { query: 'public', label: $localize`🌐️ public`, group: $localize`Filters` },
-      { query: '!public', label: $localize`👁️ private`, group: $localize`Filters` },
+      { query: 'public', label: $localize`🌐️ public`, group: $localize`Filters 🕵️️` },
+      { query: '!public', label: $localize`👁️ private`, group: $localize`Filters 🕵️️` },
     ],
   },
 };
