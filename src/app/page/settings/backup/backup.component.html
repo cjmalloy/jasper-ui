@@ -1,4 +1,3 @@
-
 <form class="form" [formGroup]="originForm" (ngSubmit)="deleteOrigin()">
   <span></span>
   <h2>Clear Origin</h2>
@@ -14,7 +13,6 @@
     <button type="submit" [disabled]="submitted && !originForm.valid" i18n>Delete</button>
   </span>
 </form>
-
 
 <button *ngIf="store.account.sysAdmin"
         (click)="backup()"
