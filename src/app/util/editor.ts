@@ -1,4 +1,5 @@
 import { difference, uniq } from 'lodash-es';
+import * as he from 'he';
 import { marked } from 'marked';
 import { getMailbox } from '../mods/mailbox';
 import { QUALIFIED_USER_REGEX, TAG_REGEX } from './format';
@@ -37,7 +38,7 @@ export function getLinks(markdown: string, withText?: RegExp) {
     if (t.type !== 'link') return;
     if (!t.href) return;
     if (withText && !withText.test(t.text)) return;
-    if (t.href.startsWith('mailto:')) t.href = new DOMParser().parseFromString(t.href, "text/html").documentElement.textContent!;
+    if (t.href.startsWith('mailto:')) t.href = he.decode(t.href);
     result.push(t.href);
   });
   return result;

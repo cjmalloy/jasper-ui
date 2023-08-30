@@ -1,4 +1,5 @@
 import { filter, sortBy, uniq } from 'lodash-es';
+import * as he from 'he';
 import { Ref } from '../model/ref';
 import { reverseOrigin } from '../mods/mailbox';
 import { config } from '../service/config.service';
@@ -120,6 +121,7 @@ export function modId(c: Config) {
 
 export function trimCommentForTitle(comment: string): string {
   if (!comment) return '';
+  comment = he.decode(comment);
   if (comment.includes('\n')) {
     const lines = comment.split('\n').map(t => t.trim()).filter(t => t.length);
     const newText = lines.filter(l => !l.startsWith('>'));
