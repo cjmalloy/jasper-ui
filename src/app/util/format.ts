@@ -139,6 +139,7 @@ export function trimTextForTitle(comment: string) {
 
 export function hasComment(comment?: string) {
   if (!comment) return false;
+  comment = he.decode(comment.replace( /<[^>]+>/g, ''));
   return trimCommentForTitle(comment) !== comment;
 }
 
