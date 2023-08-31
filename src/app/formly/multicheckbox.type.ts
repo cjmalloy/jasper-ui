@@ -27,10 +27,9 @@ export class FormlyFieldMultiCheckbox extends FieldType<FieldTypeConfig> {
   onChange(value: any, checked: boolean) {
     this.formControl.markAsDirty();
     if (this.props.type === 'array') {
-      this.formControl.patchValue(
-        checked
-          ? [...(this.formControl.value || []), value]
-          : [...(this.formControl.value || [])].filter((o) => o !== value),
+      this.formControl.patchValue(checked
+        ? [...(this.formControl.value || []), value]
+        : [...(this.formControl.value || [])].filter((o) => o !== value),
       );
     } else {
       this.formControl.patchValue({ ...this.formControl.value, [value]: checked });
