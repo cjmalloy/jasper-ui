@@ -61,19 +61,38 @@ export class ListTypeComponent extends FieldArrayType {
 
   keydown(event: KeyboardEvent, index: number) {
     if (this.groupArray) return;
+    const len = this.formControl.length;
     if (!event.shiftKey) {
-      if (event.key === 'Enter' || event.key === 'Tab' && this.formControl.length - 1 === index) {
+      if (event.key === 'Enter' || event.key === 'Tab' && len - 1 === index) {
+        if (!this.model[index]) {
+          if (event.key === 'Enter') {
+            if (len === 1) {
+              this.blur();
+            } else {
+              this.focus(len - 1 === index ? len - 2 : (index + 1));
+            }
+            event.preventDefault();
+          }
+          return;
+        }
         event.preventDefault();
-        // @ts-ignore
-        if (!event.target?.value) return;
         this.add(index + 1);
         this.focus(index + 1);
       }
     } else {
       if (event.key === 'Enter' || event.key === 'Tab' && index === 0) {
+        if (!this.model[index]) {
+          if (event.key === 'Enter') {
+            if (len === 1) {
+              this.blur();
+            } else {
+              this.focus(!index ? 1 : (index - 1));
+            }
+            event.preventDefault();
+          }
+          return;
+        }
         event.preventDefault();
-        // @ts-ignore
-        if (!event.target?.value) return;
         this.add(index);
       }
     }
@@ -114,6 +133,14 @@ export class ListTypeComponent extends FieldArrayType {
       if (select) {
         el.setSelectionRange(0, el.value.length);
       }
+    });
+  }
+
+  blur() {
+    const selector = '#' + this.field.fieldGroup![0].id;
+    defer(() => {
+      const el = document.querySelector(selector) as HTMLInputElement;
+      el.blur();
     });
   }
 
