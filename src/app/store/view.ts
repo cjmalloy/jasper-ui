@@ -123,11 +123,7 @@ export class ViewStore {
 
   get activeExts() {
     return uniq(this.activeTemplates
-        .flatMap(t => {
-          const exts = this.exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag));
-          if (exts.length) return exts;
-          return [{ tag: t.tag, origin: t.origin, name: t.config?.view || t.name, config: t.defaults }];
-        })
+        .flatMap(t => this.exts.filter(x => hasPrefix(x.tag, t.tag)))
         .filter(x => !!x));
   }
 

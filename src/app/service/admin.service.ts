@@ -58,7 +58,6 @@ import { rootTemplate } from '../mods/root';
 import { userTemplate } from '../mods/user';
 import { getExtension, getHost } from '../util/hosts';
 import { hasPrefix, includesTag, tagIntersection } from '../util/tag';
-import { ExtService } from './api/ext.service';
 import { OEmbedService } from './api/oembed.service';
 import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
@@ -68,6 +67,7 @@ import { snippetConfig } from '../mods/snippet';
 import { privateIcon } from '../mods/private';
 import { banlistConfig } from '../mods/banlist';
 import { graphConfig } from '../mods/graph';
+import { ScrapeService } from './api/scrape.service';
 
 @Injectable({
   providedIn: 'root',
@@ -167,18 +167,18 @@ export class AdminService {
     private auth: AuthzService,
     private plugins: PluginService,
     private templates: TemplateService,
-    private exts: ExtService,
     private oembed: OEmbedService,
+    private ss: ScrapeService,
     private store: Store,
   ) { }
 
-  get init$() {
+  init$(firstRun = false) {
     this._cache.clear();
     runInAction(() => this.store.view.updates = false);
     this.status.plugins =  mapValues(this.def.plugins, () => undefined);
     this.status.templates = mapValues(this.def.templates, () => undefined);
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
-      switchMap(() => this.firstRun$),
+      switchMap(() => firstRun ? this.firstRun$ : of(null)),
       tap(() => this.updates),
       catchError(() => of(null)),
     );
@@ -191,7 +191,7 @@ export class AdminService {
   }
 
   get firstRun$(): Observable<any> {
-    if (!this.store.account.admin || this.store.account.ext) return of(null);
+    if (!this.store.account.admin) return of(null);
     if (Object.values(this.status.plugins).filter(p => !!p).length > 0) return of(null);
     if (Object.values(this.status.templates).filter(t => !!t).length > 0) return of(null);
 
@@ -221,13 +221,10 @@ export class AdminService {
         return throwError(() => err);
       })
     )));
-    return this.exts.create({
-      tag: this.store.account.localTag,
-      origin: this.store.account.origin,
-    }).pipe(
+    return concat(...installs).pipe(
+      switchMap(() => this.init$()),
       tap(() => this.oembed.defaults()),
-      switchMap(() => concat(...installs)),
-      switchMap(() => this.init$)
+      tap(() => this.ss.defaults()),
     );
   }
 
@@ -627,6 +624,11 @@ export class AdminService {
       return this.getDefaults(parent!);
     }
     return {};
+  }
+
+  getDefaultExt(tag = '', origin = '') {
+    const template = this.getTemplate(tag);
+    return { tag, origin, name: template?.config?.view || template?.name, config: this.getDefaults(tag) };
   }
 
   isWikiExternal() {

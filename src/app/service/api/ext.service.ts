@@ -11,6 +11,7 @@ import { params } from '../../util/http';
 import { defaultOrigin, isQuery, localTag, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
+import { AdminService } from '../admin.service';
 
 export const EXT_CACHE_MS = 15 * 60 * 1000;
 
@@ -24,6 +25,7 @@ export class ExtService {
   constructor(
     private http: HttpClient,
     private config: ConfigService,
+    private admin: AdminService,
     private login: LoginService,
     private store: Store,
   ) { }
@@ -80,7 +82,7 @@ export class ExtService {
             if (origin === undefined) throw err;
             return this.get(defaultOrigin(tag, origin));
           }),
-          catchError(err => of({ tag: localTag(tag), origin: tagOrigin(tag) } as Ext)),
+          catchError(err => of(this.admin.getDefaultExt(localTag(tag), tagOrigin(defaultOrigin(tag, this.store.account.origin))))),
           shareReplay(1),
         ));
         delay(() => this._cache.delete(key), EXT_CACHE_MS);

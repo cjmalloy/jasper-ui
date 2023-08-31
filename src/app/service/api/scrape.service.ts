@@ -32,9 +32,7 @@ export class ScrapeService {
         this.store.eventBus.runAndReload(this.feed(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
       }
       if (this.store.eventBus.event === '+plugin/scrape:defaults') {
-        refs.push(catchAll, store.account.origin).pipe(
-          switchMap(() => this.clearConfigCache())
-        ).subscribe();
+        this.defaults().subscribe();
       }
       if (store.eventBus.event === '+plugin/scrape:clear-cache') {
         this.clearConfigCache().subscribe();
@@ -121,6 +119,12 @@ export class ScrapeService {
     if (url.startsWith('data:')) return url;
     if (this.config.preAuthScrape && this.store.account.user) this.scrape(url);
     return `${this.base}/fetch?url=${encodeURIComponent(url)}`;
+  }
+
+  defaults(): Observable<any> {
+    return this.refs.push(catchAll, this.store.account.origin).pipe(
+      switchMap(() => this.clearConfigCache())
+    );
   }
 
   clearConfigCache() {
