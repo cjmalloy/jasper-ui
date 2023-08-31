@@ -59,8 +59,8 @@ export class GenFormComponent implements OnInit {
     });
   }
 
-    cssClass(tag: string) {
-        return tag.replace(/\//g, '-')
-            .replace(/[^\w-]/g, '');
-    }
+  cssClass(tag: string) {
+    return tag.replace(/\//g, '-')
+      .replace(/[^\w-]/g, '');
+  }
 }
