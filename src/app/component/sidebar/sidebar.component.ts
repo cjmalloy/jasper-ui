@@ -1,7 +1,7 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, of, Subject } from 'rxjs';
+import { catchError, filter, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -70,6 +70,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
     } else {
       this._expanded = !!window.matchMedia('(min-width: 1024px)').matches;
     }
+    router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+    ).subscribe(() => {
+      if (this.config.mobile) this.expanded = false;
+    });
   }
 
   get tag() {
