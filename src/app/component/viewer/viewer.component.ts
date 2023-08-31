@@ -29,6 +29,11 @@ export class ViewerComponent {
 
   repost?: Ref;
   image? : string;
+  audioUrl = '';
+  videoUrl = '';
+  imageUrl = '';
+  pdfUrl = '';
+  qrUrl = '';
   uis = this.admin.getPluginUi(this.currentTags);
   embedReady = false;
 
@@ -59,6 +64,11 @@ export class ViewerComponent {
   @Input()
   set ref(value: Ref | undefined) {
     this._ref = value;
+    this.audioUrl = this.getAudioUrl();
+    this.videoUrl = this.getVideoUrl();
+    this.imageUrl = this.getImageUrl();
+    this.pdfUrl = this.getPdfUrl();
+    this.qrUrl = this.getQrUrl();
     this.uis = this.admin.getPluginUi(this.currentTags);
     if (hasTag('plugin/repost', this.ref)) {
       this.refs.get(value!.sources![0], value!.origin)
@@ -107,6 +117,7 @@ export class ViewerComponent {
         // Image embed
         this.tags = without(this.currentTags, 'plugin/embed');
         this.image = oembed.url;
+        this.imageUrl = this.getImageUrl();
       } else {
         this.embeds.writeIframe(oembed, this._iframe.nativeElement, this.embedWidth)
           .then(() => this.embedReady = true);
@@ -163,22 +174,30 @@ export class ViewerComponent {
     return '67vh';
   }
 
-  get audioUrl() {
-    const url = this.image || this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
+  getAudioUrl() {
+    if (!this.currentTags.includes('plugin/audio')) return '';
+    const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
     if (!this.admin.status.plugins.audio?.config?.cache) return url;
     return this.scraper.getFetch(url);
   }
 
-  get videoUrl() {
-    const url = this.image || this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
+  getVideoUrl() {
+    if (!this.currentTags.includes('plugin/video')) return '';
+    const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
     if (!this.admin.status.plugins.video?.config?.cache) return url;
     return this.scraper.getFetch(url);
   }
 
-  get imageUrl() {
+  getImageUrl() {
+    if (!this.currentTags.includes('plugin/image')) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
     if (!this.admin.status.plugins.imagePlugin?.config?.cache) return url;
     return this.scraper.getFetch(url);
+  }
+
+  getQrUrl() {
+    if (!this.currentTags.includes('plugin/qr')) return '';
+    return this.ref?.plugins?.['plugin/qr']?.url || this.ref?.url;
   }
 
   private get theme() {
@@ -190,7 +209,7 @@ export class ViewerComponent {
     return this.ref?.plugins?.['plugin/pdf']?.url || findExtension('.pdf', this.ref);
   }
 
-  get pdfUrl() {
+  getPdfUrl() {
     const url = this.pdf;
     if (!url) return url;
     if (!this.admin.status.plugins.pdf?.config?.cache) return url;

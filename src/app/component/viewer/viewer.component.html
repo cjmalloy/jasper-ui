@@ -1,46 +1,48 @@
-<app-ref *ngIf="repost"
-         class="expand"
-         [fetchRepost]="false"
-         [showToggle]="true"
-         [expandInline]="true"
-         [ref]="repost"></app-ref>
-<div *ngIf="currentTags.includes('plugin/embed')"
-     class="embed-container"
-     [class.twitter]="twitter">
-  <app-loading *ngIf="!embedReady"></app-loading>
-  <iframe #iframe
-          class="embed-expand"
-          [class.ready]="embedReady"
-          src="about:blank"
-          frameborder="0"
-          scrolling="yes"
-          allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen></iframe>
-</div>
-<div *ngIf="image || currentTags.includes('plugin/image')"
-     class="image-expand"
-     [appImageDim]="imageUrl"
-     [defaultWidth]="ref?.plugins?.['plugin/image']?.width"
-     [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
-     appResize></div>
-<video *ngIf="currentTags.includes('plugin/video')"
-       #video
-       class="video-expand"
-       autoplay
-       controls
-       appResize>
-  <source [src]="videoUrl">
-</video>
-<audio *ngIf="currentTags.includes('plugin/audio')"
-       class="audio-expand"
-       autoplay
-       controls>
-  <source [src]="audioUrl">
-</audio>
-<app-qr *ngIf="currentTags.includes('plugin/qr')"
-        class="qr-expand"
-        [url]="ref?.plugins?.['plugin/qr']?.url || ref?.url"
-        appResize></app-qr>
+<ng-container *ngIf="ref">
+  <app-ref *ngIf="repost"
+           class="expand"
+           [fetchRepost]="false"
+           [showToggle]="true"
+           [expandInline]="true"
+           [ref]="repost"></app-ref>
+  <div *ngIf="currentTags.includes('plugin/embed')"
+       class="embed-container"
+       [class.twitter]="twitter">
+    <app-loading *ngIf="!embedReady"></app-loading>
+    <iframe #iframe
+            class="embed-expand"
+            [class.ready]="embedReady"
+            src="about:blank"
+            frameborder="0"
+            scrolling="yes"
+            allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+  </div>
+  <div *ngIf="imageUrl"
+       class="image-expand"
+       [appImageDim]="imageUrl"
+       [defaultWidth]="ref.plugins?.['plugin/image']?.width"
+       [defaultHeight]="ref.plugins?.['plugin/image']?.height"
+       appResize></div>
+  <video *ngIf="videoUrl"
+         #video
+         class="video-expand"
+         autoplay
+         controls
+         appResize>
+    <source [src]="videoUrl">
+  </video>
+  <audio *ngIf="audioUrl"
+         class="audio-expand"
+         autoplay
+         controls>
+    <source [src]="audioUrl">
+  </audio>
+  <app-qr *ngIf="qrUrl"
+          class="qr-expand"
+          [url]="qrUrl"
+          appResize></app-qr>
+</ng-container>
 <app-md *ngIf="currentText"
         [origin]="ref?.origin || ''"
         [text]="currentText"
