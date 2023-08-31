@@ -15,6 +15,7 @@ import { URI_REGEX } from '../../../util/format';
 import { fixUrl } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { KanbanDrag } from '../kanban.component';
+import { Ext } from '../../../model/ext';
 
 @Component({
   selector: 'app-kanban-column',
@@ -32,6 +33,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   updates?: Observable<KanbanDrag>;
   @Input()
   addTags: string[] = [];
+  @Input()
+  ext?: Ext;
 
   _query = '';
   pages?: Page<Ref>[];

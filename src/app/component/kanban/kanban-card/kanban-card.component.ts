@@ -20,10 +20,10 @@ import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { ConfigService } from '../../../service/config.service';
-import { Store } from '../../../store/store';
 import { hasComment, trimCommentForTitle } from '../../../util/format';
 import { hasTag, includesTag } from '../../../util/tag';
 import { BookmarkService } from '../../../service/bookmark.service';
+import { Ext } from '../../../model/ext';
 
 @Component({
   selector: 'app-kanban-card',
@@ -40,6 +40,8 @@ export class KanbanCardComponent implements OnInit {
   pressToUnlock = false;
   @Input()
   hideSwimLanes = true;
+  @Input()
+  ext?: Ext;
 
   title = '';
   repostRef?: Ref;
@@ -52,7 +54,6 @@ export class KanbanCardComponent implements OnInit {
   private overlayEvents?: Subscription;
 
   constructor(
-    public store: Store,
     public bookmarks: BookmarkService,
     private admin: AdminService,
     private config: ConfigService,
@@ -135,9 +136,9 @@ export class KanbanCardComponent implements OnInit {
   }
 
   get badges() {
-    const badges = intersection(this.ref.tags, this.store.view.ext?.config?.badges || []);
+    const badges = intersection(this.ref.tags, this.ext?.config?.badges || []);
     if (this.hideSwimLanes) return badges;
-    return difference(badges, this.store.view.ext?.config?.swimLanes || []);
+    return difference(badges, this.ext?.config?.swimLanes || []);
   }
 
   get badgeExts$() {
@@ -145,7 +146,7 @@ export class KanbanCardComponent implements OnInit {
   }
 
   get allBadgeExts$() {
-    return this.exts.getCachedExts(this.store.view.ext?.config?.badges || [], this.ref.origin || '');
+    return this.exts.getCachedExts(this.ext?.config?.badges || [], this.ref.origin || '');
   }
 
   @HostListener('touchend', ['$event'])
