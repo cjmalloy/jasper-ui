@@ -1,13 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  HostBinding,
-  HostListener,
-  Inject,
-  Input,
-  ViewChild,
-  ViewContainerRef
-} from '@angular/core';
+import { Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
 import Hls from 'hls.js';
 import { defer, without } from 'lodash-es';
 import { Oembed } from '../../model/oembed';
@@ -21,8 +12,6 @@ import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { hasComment } from '../../util/format';
 import { hasTag } from '../../util/tag';
-import { hydrate } from '../../model/tag';
-import { getPluginScope, Plugin } from '../../model/plugin';
 
 @Component({
   selector: 'app-viewer',
@@ -199,9 +188,5 @@ export class ViewerComponent {
     if (!url) return url;
     if (!this.admin.status.plugins.pdf?.config?.cache) return url;
     return this.scraper.getFetch(url);
-  }
-
-  render(plugin: Plugin): string {
-    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref));
   }
 }

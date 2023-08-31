@@ -5,7 +5,7 @@ import { catchError, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
-import { getTemplateScope, Template } from '../../model/template';
+import { Template } from '../../model/template';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -17,7 +17,6 @@ import { Store } from '../../store/store';
 import { hasPrefix, localTag, prefix, tagOrigin, topAnds } from '../../util/tag';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
-import { hydrate } from '../../model/tag';
 import { getMailbox } from '../../mods/mailbox';
 
 @Component({
@@ -239,7 +238,4 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.router.navigate([], { queryParams: { showRemotes: value ? true : null }, queryParamsHandling: 'merge' })
   }
 
-  render(templates: Template[]): string {
-    return templates.map(t => hydrate(t.config, 'ui', getTemplateScope(this.store.account.roles, t, this.ext!))).join();
-  }
 }

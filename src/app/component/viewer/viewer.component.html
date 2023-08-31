@@ -42,7 +42,6 @@
         [url]="ref?.plugins?.['plugin/qr']?.url || ref?.url"
         appResize></app-qr>
 <app-md *ngIf="currentText"
-        [border]="true"
         [origin]="ref?.origin || ''"
         [text]="currentText"
         [plugins]="currentTags"></app-md>
@@ -51,7 +50,8 @@
        [src]="pdfUrl | safe"
        [style.width]="embedWidth"
        [style.height]="embedHeight">
-<app-md *ngFor="let ui of uis"
-        [origin]="ref?.origin || ''"
-        [text]="render(ui)"
-        [plugins]="currentTags"></app-md>
+<ng-container *ngFor="let ui of uis">
+  <div [appPluginUi]="ui"
+       [appMdPost]
+       [ref]="ref!"></div>
+</ng-container>

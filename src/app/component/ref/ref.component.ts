@@ -8,19 +8,9 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
-import { getPluginScope, Plugin } from '../../model/plugin';
+import { Plugin } from '../../model/plugin';
 import { findExtension, isRef, Ref, writeRef } from '../../model/ref';
-import {
-  Action,
-  active,
-  hydrate,
-  Icon,
-  ResponseAction,
-  sortOrder,
-  TagAction,
-  Visibility,
-  visible
-} from '../../model/tag';
+import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { findArchive } from '../../mods/archive';
 import { deleteNotice } from '../../mods/delete';
@@ -52,9 +42,9 @@ import { getScheme } from '../../util/hosts';
 import { printError } from '../../util/http';
 import {
   capturesAny,
-  defaultOrigin,
   hasTag,
-  hasUserUrlResponse, implicitLocal,
+  hasUserUrlResponse,
+  implicitLocal,
   isOwnerTag,
   removeTag,
   tagOrigin
@@ -806,9 +796,5 @@ export class RefComponent implements OnInit, OnDestroy {
     if (this.thread) return 'Re:';
     if (!comment) return this.url;
     return trimCommentForTitle(comment);
-  }
-
-  renderInfo(plugin: Plugin): string {
-    return hydrate(plugin.config, 'infoUi', getPluginScope(plugin, this.ref));
   }
 }
