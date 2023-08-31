@@ -28,7 +28,7 @@ export class ResizeDirective {
   constructor(private el: ElementRef) {}
 
   @HostListener('mousedown', ['$event'])
-  mousedown(e: MouseEvent) {
+  onMousedown(e: MouseEvent) {
     e.preventDefault();
     this.oldZoom = this.zoom;
     this.dragStart = {
@@ -42,7 +42,7 @@ export class ResizeDirective {
   }
 
   @HostListener('touchstart', ['$event'])
-  touchstart(e: TouchEvent) {
+  onTouchstart(e: TouchEvent) {
     if (e.touches.length != 2) return;
     e.preventDefault();
     this.oldZoom = this.zoom;
@@ -61,7 +61,7 @@ export class ResizeDirective {
   }
 
   @HostListener('click', ['$event'])
-  mouseup(e: MouseEvent) {
+  onClick(e: MouseEvent) {
     if (this.wasDragging) {
       e.preventDefault();
     }
@@ -69,7 +69,7 @@ export class ResizeDirective {
   }
 
   @HostListener('window:mousemove', ['$event'])
-  windowMousemove(e: MouseEvent) {
+  onMousemove(e: MouseEvent) {
     if (!this.dragStart || !this.startDim) return;
     if (!this.dragging) {
       if (Math.abs(e.clientX - this.dragStart.x) < this.minPx &&
@@ -89,7 +89,7 @@ export class ResizeDirective {
   }
 
   @HostListener('window:touchmove', ['$event'])
-  windowTouchmove(e: TouchEvent) {
+  onTouchmove(e: TouchEvent) {
     if (!this.dragStart || !this.startDim) return;
     if (!this.dragging) {
       this.dragging = true;
@@ -110,17 +110,11 @@ export class ResizeDirective {
     this.dim.y = this.startDim.y * (1 + l);
   }
 
+  @HostListener('window:contextmenu', ['$event'])
   @HostListener('window:mouseup', ['$event'])
-  windowMouseup(e: MouseEvent) {
-    delete this.dragStart;
-    if (this.dragging) {
-      this.dragging = false;
-      e.preventDefault();
-    }
-  }
-
   @HostListener('window:touchend', ['$event'])
-  windowTouchend(e: TouchEvent) {
+  @HostListener('window:touchcancel', ['$event'])
+  onCancel(e: Event) {
     delete this.dragStart;
     if (this.dragging) {
       this.dragging = false;
@@ -128,12 +122,4 @@ export class ResizeDirective {
     }
   }
 
-  @HostListener('window:touchcancel', ['$event'])
-  windowTouchcancel(e: TouchEvent) {
-    delete this.dragStart;
-    if (this.dragging) {
-      this.dragging = false;
-      e.preventDefault();
-    }
-  }
 }
