@@ -255,8 +255,12 @@ export class ViewStore {
     return this.route.routeSnapshot?.firstChild?.params['template'] || '';
   }
 
+  get localTemplate(): string {
+    return localTag(this.template);
+  }
+
   get userTemplate() {
-    return hasPrefix(this.template, 'user');
+    return hasPrefix(this.localTemplate, 'user');
   }
 
   get noTemplate(): boolean {
