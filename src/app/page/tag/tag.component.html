@@ -26,7 +26,7 @@
     </ng-template>
     <ng-template #noExt>
       <a routerLink="./"
-         [class.current-tab]="!store.view.graph"
+         [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
          queryParamsHandling="merge" i18n>list</a>
     </ng-template>

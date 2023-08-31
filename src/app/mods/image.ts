@@ -81,6 +81,8 @@ export const imageTemplate: Template = {
           }
           .ref {
             position: relative;
+            margin: 0;
+            padding: 0;
             .image-expand {
               position: relative;
             }

@@ -80,7 +80,7 @@ export class ExtService {
             if (origin === undefined) throw err;
             return this.get(defaultOrigin(tag, origin));
           }),
-          catchError(err => of({ name: tag, tag: localTag(tag), origin: tagOrigin(tag) } as Ext)),
+          catchError(err => of({ tag: localTag(tag), origin: tagOrigin(tag) } as Ext)),
           shareReplay(1),
         ));
         delay(() => this._cache.delete(key), EXT_CACHE_MS);

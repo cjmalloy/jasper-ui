@@ -283,6 +283,7 @@ export class ViewStore {
     return uniq([
         ...topAnds(this.tag),
         ...topAnds(this.tag).map(queryPrefix),
+        ...this.queryFilters,
     ].filter(t => t && !isQuery(t)));
   }
 
@@ -295,11 +296,10 @@ export class ViewStore {
   }
 
   get name() {
-    const title = this.ext?.name || this.ext?.tag || this.tag;
-    if (title === '@*') return $localize`All`;
-    if (title === '*') return $localize`Local`;
-    if (isQuery(title)) return $localize`Query`;
-    return title;
+    if (this.tag === '@*') return $localize`All`;
+    if (this.tag === '*') return $localize`Local`;
+    if (isQuery(this.tag)) return $localize`Query`;
+    return this.ext?.name || this.activeTemplates[0].name || this.ext?.tag || this.tag;
   }
 
   get sort() {
