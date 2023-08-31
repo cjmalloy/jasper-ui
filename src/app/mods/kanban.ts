@@ -92,14 +92,11 @@ export const kanbanTemplate: Template = {
   defaults: <KanbanConfig> {
     defaultSort: 'modified,desc',
     submitText: true,
-    columns: [],
     badges: ['p1', 'p2', 'p3', 'p4', 'p5']
   },
   schema: {
-    properties: {
-      columns: { elements: { type: 'string' } },
-    },
     optionalProperties: {
+      columns: { elements: { type: 'string' } },
       showColumnBacklog: { type: 'boolean'},
       columnBacklogTitle: { type: 'string'},
       swimLanes: { elements: { type: 'string' } },
@@ -112,7 +109,7 @@ export const kanbanTemplate: Template = {
 };
 
 export interface KanbanConfig extends RootConfig {
-  columns: string[];
+  columns?: string[];
   showColumnBacklog?: boolean;
   columnBacklogTitle?: string;
   swimLanes?: string[];

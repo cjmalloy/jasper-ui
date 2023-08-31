@@ -63,7 +63,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   get columns(): string[] {
     if (this.filteredColumnBacklog) return [];
     if (this.filteredColumn) return [this.filteredColumn];
-    return this.kanbanConfig.columns;
+    return this.kanbanConfig.columns || [this.ext!.tag];
   }
 
   get swimLanes(): string[] | undefined {
@@ -76,7 +76,6 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   get andColBacklog() {
-    if (!this.kanbanConfig.columns?.length) return '';
     return ':' + this.colBacklog;
   }
 
@@ -102,14 +101,14 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   get filteredColumn() {
+    const cols = this.kanbanConfig.columns || [this.ext?.tag];
     for (const f of this.store.view.queryFilters) {
-      if (this.kanbanConfig.columns.includes(f)) return f;
+      if (cols.includes(f)) return f;
     }
     return undefined;
   }
 
   get filteredColumnBacklog() {
-    if (!this.kanbanConfig.columns) return false;
     for (const f of this.store.view.queryFilters) {
       if (this.colBacklog === f) return true;
     }
