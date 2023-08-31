@@ -64,17 +64,20 @@ export const imageTemplate: Template = {
     css: `
       app-ref-list.plugin-image {
         .list-container {
-          @media (min-width: 300px) {
-            grid-template-columns: 100%;
+          grid-auto-flow: row dense;
+          margin: 4px;
+          gap: 8px;
+          @media (min-width: 500px) {
+            grid-template-columns:  1fr;
           }
-          @media (min-width: 600px) {
-            grid-template-columns: 50% 50%;
+          @media (min-width: 1000px) {
+            grid-template-columns:  1fr 1fr;
           }
-          @media (min-width: 900px) {
-            grid-template-columns: 33% 33% 33%;
+          @media (min-width: 1500px) {
+            grid-template-columns: 1fr 1fr 1fr;
           }
-          @media (min-width: 1200px) {
-            grid-template-columns: 25% 25% 25% 25%;
+          @media (min-width: 2000px) {
+            grid-template-columns: 1fr 1fr 1fr 1fr;
           }
           .list-number {
             display: none;
@@ -83,12 +86,20 @@ export const imageTemplate: Template = {
             position: relative;
             margin: 0;
             padding: 0;
+            border-radius: 7px;
+            overflow: hidden;
             .image-expand {
               position: relative;
+              min-width: 100%;
+              min-height: 100%;
+              margin: 0;
+              padding: 0;
             }
             & > .row {
               display: block;
               position: absolute;
+              top: 6px;
+              left: 6px;
               overflow: hidden;
               padding: 8px;
               border-radius: 8px;
@@ -109,10 +120,16 @@ export const imageTemplate: Template = {
         .list-container .ref > .row {
           backdrop-filter: grayscale(1) contrast(0.2) brightness(0.4) blur(8px);
         }
+        .list-container .ref {
+          backdrop-filter: grayscale(1) brightness(0.9) blur(0.5px);
+        }
       }
-      body.light-theme {
+      body.light-theme app-ref-list.plugin-image {
         .list-container .ref > .row {
           backdrop-filter: grayscale(1) contrast(0.2) brightness(1.5) blur(8px);
+        }
+        .list-container .ref {
+          backdrop-filter: grayscale(1) brightness(0.9) blur(0.5px);
         }
       }
     `,
