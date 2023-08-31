@@ -96,6 +96,7 @@ export class RefComponent implements OnInit, OnDestroy {
   deleted = false;
   actionsExpanded = false;
   title = '';
+  replyTags: string[] = [];
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
@@ -186,6 +187,7 @@ export class RefComponent implements OnInit, OnDestroy {
     this.viewSource = false;
     this.tagging = false;
     this.actionsExpanded = false;
+    this.replyTags = this.getReplyTags();
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
     this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
@@ -460,14 +462,14 @@ export class RefComponent implements OnInit, OnDestroy {
     return sources;
   }
 
-  get replyTags(): string[] {
+  getReplyTags(): string[] {
     const tags = [
-      ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply.filter(p => (this.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
-    if (hasTag('plugin/email', this.store.view.ref)) tags.push('internal', 'plugin/email');
-    if (hasTag('plugin/comment', this.store.view.ref)) tags.push('internal', 'plugin/comment');
-    if (hasTag('plugin/thread', this.store.view.ref)) tags.push('internal', 'plugin/thread');
+    if (hasTag('plugin/email', this.ref)) tags.push('internal', 'plugin/email');
+    if (hasTag('plugin/comment', this.ref)) tags.push('internal', 'plugin/comment');
+    if (hasTag('plugin/thread', this.ref)) tags.push('internal', 'plugin/thread');
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
