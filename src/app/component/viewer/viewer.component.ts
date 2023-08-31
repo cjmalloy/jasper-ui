@@ -189,7 +189,7 @@ export class ViewerComponent {
   }
 
   getImageUrl() {
-    if (!this.currentTags.includes('plugin/image')) return '';
+    if (!this.image && !this.currentTags.includes('plugin/image')) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
     if (!this.admin.status.plugins.imagePlugin?.config?.cache) return url;
     return this.scraper.getFetch(url);
