@@ -90,8 +90,10 @@ export class RefService {
     );
   }
 
-  update(ref: Ref): Observable<void> {
-    return this.http.put<void>(this.base, writeRef(ref)).pipe(
+  update(ref: Ref, force = false): Observable<void> {
+    return this.http.put<void>(this.base, writeRef(ref), {
+      params: !force ? undefined : { force: true },
+    }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }

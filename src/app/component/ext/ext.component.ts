@@ -16,6 +16,7 @@ import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 import { hasPrefix, parentTag } from '../../util/tag';
 import { tagLink } from '../../util/format';
+import { isObject } from 'lodash-es';
 
 @Component({
   selector: 'app-ext',
@@ -26,11 +27,11 @@ export class ExtComponent implements OnInit {
   @HostBinding('class') css = 'ext list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
-  @Input()
-  ext!: Ext;
-
   editForm!: UntypedFormGroup;
   submitted = false;
+  invalid = false;
+  overwrite = true;
+  force = false;
   icons: Template[] = [];
   editing = false;
   viewSource = false;
@@ -39,6 +40,8 @@ export class ExtComponent implements OnInit {
   deleted = false;
   writeAccess = false;
   serverError: string[] = [];
+
+  private _ext!: Ext;
 
   constructor(
     public admin: AdminService,
@@ -50,12 +53,36 @@ export class ExtComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.icons = this.admin.getTemplateView(this.ext.tag);
-    if (hasPrefix(this.ext.tag, 'user')) {
-      this.icons.push({tag: 'user', config: { view: $localize`🧑️` }});
+  }
+
+  get ext(): Ext {
+    return this._ext;
+  }
+
+  @Input()
+  set ext(value: Ext) {
+    this._ext = value;
+    this.submitted = false;
+    this.invalid = false;
+    this.overwrite = false;
+    this.force = false;
+    this.editing = false;
+    this.viewSource = false;
+    this.deleting = false;
+    this.deleted = false;
+    this.writeAccess = false;
+    this.serverError = [];
+    if (value) {
+      this.icons = this.admin.getTemplateView(value.tag);
+      if (hasPrefix(value.tag, 'user')) {
+        this.icons.push({tag: 'user', config: { view: $localize`🧑️` }});
+      }
+      this.editForm = extForm(this.fb, value, this.admin, true);
+      this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);
+    } else {
+      this.icons = [];
+      this.writeAccess = false;
     }
-    this.editForm = extForm(this.fb, this.ext, this.admin, true);
-    this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);
   }
 
   @HostBinding('class.upload')
@@ -98,32 +125,46 @@ export class ExtComponent implements OnInit {
       scrollToFirstInvalid();
       return;
     }
-    const ext = {
-      ...this.ext,
+    let ext = {
       ...this.editForm.value,
       tag: this.ext.tag, // Need to fetch because control is disabled
-      config: {
-        ...this.admin.getDefaults(this.ext.tag),
-        ...this.ext.config,
-        ...this.editForm.value.config,
-      },
+      modifiedString: this.ext.modifiedString,
     };
+    if (this.ext.upload || !this.invalid || !this.overwrite) {
+      const config = this.ext.config;
+      ext = {
+        ...this.ext,
+        ...ext,
+        config: {
+          ...isObject(config) ? config : {},
+          ...ext.config,
+        },
+      }
+    }
     if (this.ext.upload) {
       ext.upload = true;
       this.ext = ext;
-      this.upload();
+      this.store.submit.setExt(this.ext);
+    } else {
+      this.exts.update(ext, this.force).pipe(
+        switchMap(() => this.exts.get(this.qualifiedTag)),
+        catchError((res: HttpErrorResponse) => {
+          if (res.status === 400) {
+            if (this.invalid) {
+              this.force = true;
+            } else {
+              this.invalid = true;
+            }
+          }
+          this.serverError = printError(res);
+          return throwError(() => res);
+        }),
+      ).subscribe(tag => {
+        this.serverError = [];
+        this.editing = false;
+        this.ext = tag;
+      });
     }
-    this.exts.update(ext).pipe(
-      switchMap(() => this.exts.get(this.qualifiedTag)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(tag => {
-      this.serverError = [];
-      this.editing = false;
-      this.ext = tag;
-    });
   }
 
   upload() {

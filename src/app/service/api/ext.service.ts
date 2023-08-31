@@ -36,8 +36,10 @@ export class ExtService {
     return this.config.api + '/api/v1/repl/ext';
   }
 
-  create(ext: Ext): Observable<void> {
-    return this.http.post<void>(this.base, writeExt(ext)).pipe(
+  create(ext: Ext, force = false): Observable<void> {
+    return this.http.post<void>(this.base, writeExt(ext), {
+      params: !force ? undefined : { force: true },
+    }).pipe(
       tap(() => this._cache.delete(ext.tag)),
       catchError(err => this.login.handleHttpError(err)),
     );
@@ -106,8 +108,10 @@ export class ExtService {
     );
   }
 
-  update(ext: Ext): Observable<void> {
-    return this.http.put<void>(this.base, writeExt(ext)).pipe(
+  update(ext: Ext, force = false): Observable<void> {
+    return this.http.put<void>(this.base, writeExt(ext), {
+      params: !force ? undefined : { force: true },
+    }).pipe(
       tap(() => this._cache.delete(ext.tag)),
       catchError(err => this.login.handleHttpError(err)),
     );

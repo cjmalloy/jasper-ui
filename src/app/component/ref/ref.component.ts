@@ -86,6 +86,9 @@ export class RefComponent implements OnInit, OnDestroy {
   repostRef?: Ref;
   editForm: UntypedFormGroup;
   submitted = false;
+  invalid = false;
+  overwrite = true;
+  force = false;
   expandPlugins: string[] = [];
   editorPlugins: string[] = [];
   icons: Icon[] = [];
@@ -183,6 +186,9 @@ export class RefComponent implements OnInit, OnDestroy {
   set ref(value: Ref) {
     this._ref = value;
     this.submitted = false;
+    this.invalid = false;
+    this.overwrite = false;
+    this.force = false;
     this.deleted = false;
     this.deleting = false;
     this.editing = false;
@@ -699,22 +705,39 @@ export class RefComponent implements OnInit, OnDestroy {
     }
     const tags = uniq([...without(this.editForm.value.tags, ...this.admin.editorTags), ...this.editorPlugins]);
     const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
-    const ref = {
-      ...this.ref,
+    let ref = {
       ...this.editForm.value,
       tags,
       published,
-      plugins: writePlugins(tags, {
-        ...this.ref.plugins,
-        ...this.editForm.value.plugins,
-      }),
+      plugins: writePlugins(tags, this.editForm.value.plugins),
     };
+    if (this.ref.upload || !this.invalid || !this.overwrite) {
+      ref = {
+        ...this.ref,
+        ...ref,
+        plugins: {
+          ...this.ref.plugins,
+          ...ref.plugins,
+        },
+      }
+    }
     if (this.ref.upload) {
       ref.upload = true;
       this.ref = ref;
       this.store.submit.setRef(this.ref);
     } else {
-      this.store.eventBus.runAndReload(this.refs.update(ref), ref);
+      this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
+        catchError((res: HttpErrorResponse) => {
+          if (res.status === 400) {
+            if (this.invalid) {
+              this.force = true;
+            } else {
+              this.invalid = true;
+            }
+          }
+          return throwError(() => res);
+        }),
+      ), ref);
     }
   }
 

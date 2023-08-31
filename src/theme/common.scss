@@ -298,6 +298,13 @@ video.qr-preview {
   overflow: hidden;
 }
 
+.overwrite.warning,
+.force.error {
+  font-size: 100% !important;
+  margin-right: 16px !important;
+  padding: 0 !important;
+}
+
 .hide-errors .error {
   display: none;
 }

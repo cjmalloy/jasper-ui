@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer } from 'lodash-es';
+import { defer, isObject } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
@@ -32,6 +32,9 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   template = '';
   created = false;
   submitted = false;
+  invalid = false;
+  overwrite = true;
+  force = false;
   extForm: UntypedFormGroup;
   editForm!: UntypedFormGroup;
   serverError: string[] = [];
@@ -148,17 +151,31 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       scrollToFirstInvalid();
       return;
     }
-    const ext = this.store.view.ext!;
-    this.exts.update({
-      ...ext,
+    let ext = {
       ...this.editForm.value,
-      tag: ext.tag, // Need to fetch because control is disabled
-      config: {
-        ...ext.config,
-        ...this.editForm.value.config,
-      },
-    }).pipe(
+      tag: this.store.view.ext!.tag, // Need to fetch because control is disabled
+      modifiedString: this.store.view.ext!.modifiedString,
+    };
+    if (!this.invalid || !this.overwrite) {
+      const config = this.store.view.ext!.config;
+      ext = {
+        ...this.store.view.ext,
+        ...ext,
+        config: {
+          ...isObject(config) ? config : {},
+          ...ext.config,
+        },
+      }
+    }
+    this.exts.update(ext, this.force).pipe(
       catchError((res: HttpErrorResponse) => {
+        if (res.status === 400) {
+          if (this.invalid) {
+            this.force = true;
+          } else {
+            this.invalid = true;
+          }
+        }
         this.serverError = printError(res);
         return throwError(() => res);
       }),
