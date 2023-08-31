@@ -116,9 +116,13 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           }
           this.oembeds.get(url).subscribe(oembed => {
             if (!oembed) return;
-            this.addTag('plugin/embed');
             if (oembed?.thumbnail_url) {
-              this.addTag('plugin/thumbnail');
+              defer(() => this.addPlugin('plugin/thumbnail', { url: oembed.thumbnail_url }));
+            }
+            if (oembed.url && oembed.type === 'photo') {
+              defer(() => this.addPlugin('plugin/image', { url: oembed.url }));
+            } else {
+              this.addTag('plugin/embed');
             }
             if (oembed?.provider_name === 'Twitter') {
               let comment = oembed.html!.replace(/(<([^>]+)>)/gi, "").trim().replace(/\s+/gi, ' ');
@@ -180,6 +184,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   addPlugin(tag: string, plugin: any) {
     this.refForm!.tags.addTag(tag);
     this.refForm!.plugins.setValue({
+      ...this.webForm.value.plugins,
       [tag]: plugin,
     });
     this.submitted = false;
