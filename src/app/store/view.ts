@@ -299,7 +299,7 @@ export class ViewStore {
     if (this.tag === '@*') return $localize`All`;
     if (this.tag === '*') return $localize`Local`;
     if (isQuery(this.tag)) return $localize`Query`;
-    return this.ext?.name || this.activeTemplates[0].name || this.ext?.tag || this.tag;
+    return this.ext?.name || this.activeTemplates[0]?.name || this.ext?.tag || this.tag;
   }
 
   get sort() {
