@@ -32,6 +32,9 @@ export class TemplateComponent implements OnInit {
   @HostBinding('class.deleted')
   deleted = false;
   serverError: string[] = [];
+  configErrors: string[] = [];
+  defaultsErrors: string[] = [];
+  schemaErrors: string[] = [];
 
   constructor(
     public admin: AdminService,
@@ -71,12 +74,28 @@ export class TemplateComponent implements OnInit {
       ...this.template,
       ...this.editForm.value,
     };
-    if (!template.config) delete template.config;
-    if (template.config) template.config = JSON.parse(template.config);
-    if (!template.defaults) delete template.defaults;
-    if (template.defaults) template.defaults = JSON.parse(template.defaults);
-    if (!template.schema) delete template.schema;
-    if (template.schema) template.schema = JSON.parse(template.schema);
+    this.configErrors = [];
+    this.defaultsErrors = [];
+    this.schemaErrors = [];
+    try {
+      if (!template.config) delete template.config;
+      if (template.config) template.config = JSON.parse(template.config);
+    } catch (e: any) {
+      this.configErrors.push(e.message);
+    }
+    try {
+      if (!template.defaults) delete template.defaults;
+      if (template.defaults) template.defaults = JSON.parse(template.defaults);
+    } catch (e: any) {
+      this.defaultsErrors.push(e.message);
+    }
+    try {
+      if (!template.schema) delete template.schema;
+      if (template.schema) template.schema = JSON.parse(template.schema);
+    } catch (e: any) {
+      this.schemaErrors.push(e.message);
+    }
+    if (this.configErrors.length || this.defaultsErrors.length || this.schemaErrors.length) return;
     this.templates.update(template).pipe(
       switchMap(() => this.templates.get(this.template.tag + this.template.origin)),
       catchError((err: HttpErrorResponse) => {

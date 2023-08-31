@@ -11,6 +11,12 @@ export class PluginFormComponent implements OnInit {
 
   @Input()
   group!: UntypedFormGroup;
+  @Input()
+  configErrors: string[] = [];
+  @Input()
+  defaultsErrors: string[] = [];
+  @Input()
+  schemaErrors: string[] = [];
 
   constructor() { }
 

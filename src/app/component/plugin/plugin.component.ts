@@ -32,6 +32,9 @@ export class PluginComponent implements OnInit {
   @HostBinding('class.deleted')
   deleted = false;
   serverError: string[] = [];
+  configErrors: string[] = [];
+  defaultsErrors: string[] = [];
+  schemaErrors: string[] = [];
 
   constructor(
     public admin: AdminService,
@@ -71,12 +74,28 @@ export class PluginComponent implements OnInit {
       ...this.plugin,
       ...this.editForm.value,
     };
-    if (!plugin.config) delete plugin.config;
-    if (plugin.config) plugin.config = JSON.parse(plugin.config);
-    if (!plugin.defaults) delete plugin.defaults;
-    if (plugin.defaults) plugin.defaults = JSON.parse(plugin.defaults);
-    if (!plugin.schema) delete plugin.schema;
-    if (plugin.schema) plugin.schema = JSON.parse(plugin.schema);
+    this.configErrors = [];
+    this.defaultsErrors = [];
+    this.schemaErrors = [];
+    try {
+      if (!plugin.config) delete plugin.config;
+      if (plugin.config) plugin.config = JSON.parse(plugin.config);
+    } catch (e: any) {
+      this.configErrors.push(e.message);
+    }
+    try {
+      if (!plugin.defaults) delete plugin.defaults;
+      if (plugin.defaults) plugin.defaults = JSON.parse(plugin.defaults);
+    } catch (e: any) {
+      this.defaultsErrors.push(e.message);
+    }
+    try {
+      if (!plugin.schema) delete plugin.schema;
+      if (plugin.schema) plugin.schema = JSON.parse(plugin.schema);
+    } catch (e: any) {
+      this.schemaErrors.push(e.message);
+    }
+    if (this.configErrors.length || this.defaultsErrors.length || this.schemaErrors.length) return;
     this.plugins.update(plugin).pipe(
       switchMap(() => this.plugins.get(this.plugin.tag + this.plugin.origin)),
       catchError((err: HttpErrorResponse) => {

@@ -38,7 +38,10 @@
 
 <form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-  <app-template-form [group]="editForm"></app-template-form>
+  <app-template-form [group]="editForm"
+                     [configErrors]="configErrors"
+                     [defaultsErrors]="defaultsErrors"
+                     [schemaErrors]="schemaErrors"></app-template-form>
 
   <ng-container *ngFor="let e of serverError">
     <span><!-- Unexpected Error --></span>
