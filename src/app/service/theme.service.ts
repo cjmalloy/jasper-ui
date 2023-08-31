@@ -6,7 +6,6 @@ import { of } from 'rxjs';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
 import { ConfigService } from './config.service';
-import { render } from 'less';
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +24,6 @@ export class ThemeService {
     this.setTheme(localStorage.getItem('theme'));
     autorun(() => this.setCustomCss('custom-css', ...(this.store.account.config.userTheme ? this.getUserCss() : this.getExtCss())));
     this.admin.configProperty('css').forEach(p => this.setCustomCss(p.tag, p.config!.css));
-    this.admin.configProperty('less').forEach(p => this.setCustomLess(p.tag, p.config!.less));
     this.admin.configProperty('snippet').forEach(p => this.addSnippet(p.tag, p.config!.snippet));
     return of(null);
   }
@@ -36,10 +34,6 @@ export class ThemeService {
     } else {
       this.setTheme('light-theme');
     }
-  }
-
-  setCustomLess(id: string, ...cs: (string | undefined)[]) {
-    cs.filter(c => !!c).map(c => render(c!).then(o => this.setCustomCss(id, o.css)));
   }
 
   setCustomCss(id: string, ...cs: (string | undefined)[]) {
