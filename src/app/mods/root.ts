@@ -24,9 +24,25 @@ export const rootTemplate: Template = {
       },
     }, {
       key: 'submitText',
-      type: 'boolean',
+      type: 'select',
+      defaultValue: false,
       props: {
-        label: $localize`Text Posts:`
+        label: $localize`Submit:`,
+        options: [
+          { value: true, label: $localize`Text Posts` },
+          { value: false, label: $localize`Link Posts` },
+        ],
+      }
+    }, {
+      key: 'defaultExpanded',
+      type: 'select',
+      defaultValue: false,
+      props: {
+        label: $localize`Initial Toggle:`,
+        options: [
+          { value: true, label: $localize`Expanded` },
+          { value: false, label: $localize`Collapsed` },
+        ],
       }
     }, {
       key: 'addTags',
@@ -115,6 +131,7 @@ export const rootTemplate: Template = {
       themes: { values: { type: 'string' } },
       theme: { type: 'string' },
       defaultSort: { type: 'string' },
+      defaultExpanded: { type: 'boolean'},
       submitText: { type: 'boolean'},
       addTags: { elements: { type: 'string' } },
       defaultThumbnail: { type: 'string' },
@@ -131,6 +148,7 @@ export interface RootConfig {
   themes?: Record<string, string>;
   theme?: string;
   defaultSort?: string;
+  defaultExpanded?: boolean;
   submitText?: boolean;
   addTags?: string[];
   defaultThumbnail?: boolean;

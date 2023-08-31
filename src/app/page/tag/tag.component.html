@@ -15,7 +15,7 @@
       <ng-container *ngIf="store.view.activeExts.length else noExt">
         <a *ngFor="let x of store.view.activeExts; let i = index"
            routerLink="./"
-           [class.current-tab]="store.view.viewTag=== x.tag"
+           [class.current-tab]="store.view.viewTag === x.tag"
            [queryParams]="{view: i === 0 ? null : x.tag}"
            queryParamsHandling="merge" i18n>{{ x.name || x.tag }}</a>
         <a routerLink="./"
@@ -48,6 +48,7 @@
     <app-ref-list *ngIf="store.view.showList else tmpl"
                   [page]="query.page"
                   [pinned]="store.view.pinned"
+                  [expanded]="store.view.ext?.config?.defaultExpanded"
                   [tag]="store.view.tag"
                   [graph]="store.view.graph"
                   [showAlarm]="!store.view.alarm"
@@ -56,6 +57,15 @@
       <div class="error-404" *ngIf="!loading && !store.view.viewExt">
         Not Found
       </div>
+      <app-ref-list *ngIf="store.view.isTemplate('plugin')"
+                    [class]="cssClass(store.view.viewTag)"
+                    [page]="query.page"
+                    [pinned]="store.view.pinned"
+                    [expanded]="store.view.viewExt?.config?.defaultExpanded"
+                    [tag]="store.view.viewTag"
+                    [plugins]="[store.view.viewTag]"
+                    [showAlarm]="!store.view.alarm"
+                    [showVotes]="store.view.isVoteSorted"></app-ref-list>
       <app-folder *ngIf="store.view.isTemplate('folder')"
                   [tag]="store.view.viewTag"
                   [ext]="store.view.viewExt!"

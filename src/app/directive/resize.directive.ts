@@ -5,6 +5,11 @@ import { Directive, ElementRef, HostBinding, HostListener } from '@angular/core'
 })
 export class ResizeDirective {
 
+  @HostBinding('style.z-index')
+  get zIndex() {
+    return this.dirty ? 1 : 0;
+  }
+
   @HostBinding('style.width')
   get width() {
     return this.dim ? this.dim.x + 'px' : null;
@@ -16,7 +21,6 @@ export class ResizeDirective {
   };
 
   minPx = 2;
-
   zoom = 1;
   dim?: {x: number, y: number};
   oldZoom = 1;
@@ -24,6 +28,7 @@ export class ResizeDirective {
   startDim?: {x: number, y: number};
   dragging = false;
   wasDragging = false;
+  dirty = false;
 
   constructor(private el: ElementRef) {}
 
@@ -86,6 +91,7 @@ export class ResizeDirective {
     this.dim ??= { ...this.startDim };
     this.dim.x = this.startDim.x * (1 + l);
     this.dim.y = this.startDim.y * (1 + l);
+    this.dirty = true;
   }
 
   @HostListener('window:touchmove', ['$event'])
@@ -108,6 +114,7 @@ export class ResizeDirective {
     this.dim ??= { ...this.startDim };
     this.dim.x = this.startDim.x * (1 + l);
     this.dim.y = this.startDim.y * (1 + l);
+    this.dirty = true;
   }
 
   @HostListener('window:contextmenu', ['$event'])

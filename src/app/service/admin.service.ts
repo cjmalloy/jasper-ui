@@ -29,7 +29,7 @@ import { embedPlugin } from '../mods/embed';
 import { experimentsConfig } from '../mods/experiments';
 import { feedPlugin } from '../mods/feed';
 import { fullscreenPlugin } from '../mods/fullscreen';
-import { imagePlugin } from '../mods/image';
+import { imagePlugin, imageTemplate } from '../mods/image';
 import { lockedIcon } from '../mods/locked';
 import { modlistConfig } from '../mods/modlist';
 import { oEmbedPlugin } from '../mods/oembed';
@@ -115,7 +115,6 @@ export class AdminService {
       embed: embedPlugin,
       audio: audioPlugin,
       video: videoPlugin,
-      image: imagePlugin,
       poll: pollPlugin,
       pa: pollOptionAPlugin,
       pb: pollOptionBPlugin,
@@ -123,6 +122,8 @@ export class AdminService {
       pd: pollOptionDPlugin,
       voteUp: voteUpPlugin,
       voteDown: voteDownPlugin,
+
+      imagePlugin: imagePlugin,
 
       debugPlugin: debugPlugin,
       breakpoint: breakpointPlugin,
@@ -138,6 +139,8 @@ export class AdminService {
       blog: blogTemplate,
       chat: chatTemplate,
       dm: dmTemplate,
+
+      imageTemplate: imageTemplate,
 
       // Icons
       lockedIcon: lockedIcon,
@@ -422,7 +425,7 @@ export class AdminService {
         if (p === this.status.plugins.embed) return true;
         if (p === this.status.plugins.audio) return true;
         if (p === this.status.plugins.video) return true;
-        if (p === this.status.plugins.image) return true;
+        if (p === this.status.plugins.imagePlugin) return true;
         if (p === this.status.plugins.pdf) return true;
         if (p === this.status.plugins.repost) return true;
         return false;

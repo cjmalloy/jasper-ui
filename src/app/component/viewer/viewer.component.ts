@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, HostListener, Input, ViewChild } from '@angular/core';
 import Hls from 'hls.js';
 import { defer, without } from 'lodash-es';
 import { Oembed } from '../../model/oembed';
@@ -20,6 +20,7 @@ import { hasTag } from '../../util/tag';
 })
 export class ViewerComponent {
   @HostBinding('class') css = 'embed print-images';
+  @HostBinding('tabindex') tabIndex = 0;
 
   @Input()
   text? = '';
@@ -45,6 +46,11 @@ export class ViewerComponent {
     private store: Store,
     public el: ElementRef,
   ) { }
+
+  @HostListener('click')
+  onClick() {
+    this.el.nativeElement.focus();
+  }
 
   get ref() {
     return this._ref;
@@ -126,6 +132,7 @@ export class ViewerComponent {
   }
 
   get currentText() {
+    if (this.tags) return '';
     const value = this.text || this.ref?.comment || '';
     if (this.ref?.title || this.text || hasTag('plugin/thread', this.ref) || hasComment(this.ref?.comment)) return value;
     return '';
@@ -170,7 +177,7 @@ export class ViewerComponent {
 
   get imageUrl() {
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
-    if (!this.admin.status.plugins.image?.config?.cache) return url;
+    if (!this.admin.status.plugins.imagePlugin?.config?.cache) return url;
     return this.scraper.getFetch(url);
   }
 

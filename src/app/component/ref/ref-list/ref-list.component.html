@@ -4,12 +4,14 @@
     <app-ref class="pinned"
              [ref]="ref"
              [showToggle]="true"
+             [plugins]="plugins"
              [expanded]="expanded"></app-ref>
   </ng-container>
   <ng-container *ngFor="let ref of page?.content; let i = index">
     <div class="list-number">{{ getNumber(i) }}</div>
     <app-ref [ref]="ref"
              [showToggle]="true"
+             [plugins]="plugins"
              [showAlarm]="showAlarm"
              [expanded]="expanded"></app-ref>
   </ng-container>
@@ -17,6 +19,7 @@
     <div class="list-number">{{ getNumber(i + (page?.content?.length || 0)) }}</div>
     <app-ref [ref]="ref"
              [showToggle]="true"
+             [plugins]="plugins"
              [expanded]="expanded"></app-ref>
   </ng-container>
 </div>

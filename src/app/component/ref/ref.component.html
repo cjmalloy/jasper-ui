@@ -139,7 +139,8 @@
         </div>
         <app-viewer *ngIf="expanded && expandInline && !editing && !viewSource"
                     class="viewer-inline"
-                    [ref]="bareRef"></app-viewer>
+                    [ref]="bareRef"
+                    [tags]="plugins"></app-viewer>
         <div class="actions" [class.expanded]="actionsExpanded">
           <ng-container *ngIf="store.account.user && !ref.created && !ref.upload">
             <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
@@ -266,7 +267,8 @@
 </div>
 <app-viewer *ngIf="expanded && !expandInline && !editing && !viewSource"
             class="viewer-below"
-            [ref]="bareRef"></app-viewer>
+            [ref]="bareRef"
+            [tags]="plugins"></app-viewer>
 
 <form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
 

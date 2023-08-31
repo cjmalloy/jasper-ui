@@ -10,7 +10,7 @@ import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
-import { defaultOrigin, isPlugin } from '../../util/tag';
+import { isPlugin } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
@@ -87,5 +87,10 @@ export class TagPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  cssClass(tag: string) {
+    return tag.replace(/\//g, '-')
+      .replace(/[^\w-]/g, '');
   }
 }

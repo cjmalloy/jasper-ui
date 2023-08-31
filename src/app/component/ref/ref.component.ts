@@ -17,7 +17,6 @@ import { deleteNotice } from '../../mods/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
-import { OriginService } from '../../service/api/origin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { TaggingService } from '../../service/api/tagging.service';
@@ -45,6 +44,7 @@ import {
   hasTag,
   hasUserUrlResponse,
   implicitLocal,
+  includesTag,
   isOwnerTag,
   removeTag,
   tagOrigin
@@ -64,6 +64,8 @@ export class RefComponent implements OnInit, OnDestroy {
 
   @Input()
   expanded = false;
+  @Input()
+  plugins?: string[];
   @Input()
   expandInline = false;
   @Input()
@@ -111,7 +113,6 @@ export class RefComponent implements OnInit, OnDestroy {
     private exts: ExtService,
     public acts: ActionService,
     private scraper: ScrapeService,
-    private origins: OriginService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
@@ -369,7 +370,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get image() {
-    return this.admin.status.plugins.image &&
+    return this.admin.status.plugins.imagePlugin &&
       hasTag('plugin/image', this.currentRef);
   }
 
@@ -556,6 +557,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get fullscreen() {
+    if (this.plugins) return includesTag('plugin/fullscreen', this.plugins);
     return hasTag('plugin/fullscreen', this.ref);
   }
 
