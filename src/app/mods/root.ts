@@ -34,17 +34,6 @@ export const rootTemplate: Template = {
         ],
       }
     }, {
-      key: 'defaultExpanded',
-      type: 'select',
-      defaultValue: false,
-      props: {
-        label: $localize`Initial Toggle:`,
-        options: [
-          { value: true, label: $localize`Expanded` },
-          { value: false, label: $localize`Collapsed` },
-        ],
-      }
-    }, {
       key: 'addTags',
       type: 'tags',
       defaultValue: ['public'],

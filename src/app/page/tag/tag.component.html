@@ -48,7 +48,6 @@
     <app-ref-list *ngIf="store.view.showList else tmpl"
                   [page]="query.page"
                   [pinned]="store.view.pinned"
-                  [expanded]="store.view.ext?.config?.defaultExpanded"
                   [tag]="store.view.tag"
                   [graph]="store.view.graph"
                   [showAlarm]="!store.view.alarm"
