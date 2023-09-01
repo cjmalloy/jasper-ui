@@ -147,5 +147,6 @@ export const imageTemplate: Template = {
   defaults: {
     defaultExpanded: true,
     editable: false,
+    resizeable: false,
   }
 };
