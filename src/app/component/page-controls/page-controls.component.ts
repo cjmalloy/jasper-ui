@@ -14,7 +14,7 @@ export class PageControlsComponent implements OnInit {
 
   @Input()
   page?: Page<any>;
-  pageSizes = [5, 20, 50, 100, 500];
+  pageSizes = [6, 24, 48, 96, 480];
 
   constructor(
     public store: Store,
