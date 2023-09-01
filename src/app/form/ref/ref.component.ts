@@ -130,6 +130,7 @@ export class RefFormComponent implements OnInit {
   }
 
   scrapeComment() {
+    // TODO: oEmbed
     this.scrape$.subscribe(ref => {
       if (!hasMedia(ref) || hasMedia(this.group.value)) {
         this.setComment(ref.comment || '');
