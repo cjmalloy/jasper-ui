@@ -120,10 +120,11 @@ export const rootTemplate: Template = {
       themes: { values: { type: 'string' } },
       theme: { type: 'string' },
       defaultSort: { type: 'string' },
-      defaultExpanded: { type: 'boolean'},
       submitText: { type: 'boolean'},
       addTags: { elements: { type: 'string' } },
       defaultThumbnail: { type: 'string' },
+      defaultExpanded: { type: 'boolean'},
+      editable: { type: 'boolean'},
     },
   },
 };
@@ -137,9 +138,10 @@ export interface RootConfig {
   themes?: Record<string, string>;
   theme?: string;
   defaultSort?: string;
-  defaultExpanded?: boolean;
   submitText?: boolean;
   addTags?: string[];
   defaultThumbnail?: boolean;
+  defaultExpanded?: boolean;
+  editable?: boolean;
 }
 

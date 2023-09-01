@@ -61,6 +61,7 @@
                     [page]="query.page"
                     [pinned]="store.view.pinned"
                     [expanded]="store.view.viewExt?.config?.defaultExpanded"
+                    [editable]="store.view.viewExt?.config?.editable"
                     [tag]="store.view.viewTag"
                     [plugins]="[store.view.viewTag]"
                     [showAlarm]="!store.view.alarm"

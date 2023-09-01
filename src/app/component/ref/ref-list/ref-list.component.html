@@ -5,6 +5,7 @@
              [ref]="ref"
              [showToggle]="true"
              [plugins]="plugins"
+             [editable]="editable"
              [expanded]="expanded"></app-ref>
   </ng-container>
   <ng-container *ngFor="let ref of page?.content; let i = index">
@@ -12,6 +13,7 @@
     <app-ref [ref]="ref"
              [showToggle]="true"
              [plugins]="plugins"
+             [editable]="editable"
              [showAlarm]="showAlarm"
              [expanded]="expanded"></app-ref>
   </ng-container>
@@ -20,6 +22,7 @@
     <app-ref [ref]="ref"
              [showToggle]="true"
              [plugins]="plugins"
+             [editable]="editable"
              [expanded]="expanded"></app-ref>
   </ng-container>
 </div>

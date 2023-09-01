@@ -178,17 +178,19 @@
             <ng-container *ngIf="store.account.user && local">
               <a routerLink="/submit/web" [queryParams]="{ url, tag: 'plugin/repost' }" i18n>repost</a>
             </ng-container>
-            <a *ngIf="writeAccess else source"
-               class="fake-link"
-               (click)="editing = !editing" i18n>edit</a>
-            <ng-template #source>
-              <a *ngIf="!local"
+            <ng-container *ngIf="editable">
+              <a *ngIf="writeAccess else source"
                  class="fake-link"
-                 (click)="editing = !editing" i18n>diff</a>
-              <a *ngIf="local"
-                 class="fake-link"
-                 (click)="viewSource = !viewSource" i18n>source</a>
-            </ng-template>
+                 (click)="editing = !editing" i18n>edit</a>
+              <ng-template #source>
+                <a *ngIf="!local"
+                   class="fake-link"
+                   (click)="editing = !editing" i18n>diff</a>
+                <a *ngIf="local"
+                   class="fake-link"
+                   (click)="viewSource = !viewSource" i18n>source</a>
+              </ng-template>
+            </ng-container>
             <a *ngIf="!deleting && (store.account.sysMod || writeAccess)"
                class="fake-link"
                (click)="deleting = true" i18n>delete</a>

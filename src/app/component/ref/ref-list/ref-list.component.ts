@@ -24,6 +24,8 @@ export class RefListComponent implements OnInit, OnDestroy {
   @Input()
   plugins?: string[];
   @Input()
+  editable = false;
+  @Input()
   graph = false;
   @Input()
   showAlarm = true;
