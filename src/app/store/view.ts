@@ -28,7 +28,7 @@ export type Type = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
 
 export class ViewStore {
 
-  defaultPageSize = 20;
+  defaultPageSize = 24;
   defaultKanbanLoadSize = 8;
   defaultBlogPageSize = 5;
   defaultSort: RefSort | TagSort = 'published';
