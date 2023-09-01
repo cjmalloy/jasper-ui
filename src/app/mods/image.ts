@@ -96,7 +96,7 @@ export const imageTemplate: Template = {
               padding: 0;
             }
             & > .row {
-              display: block;
+              display: none;
               position: absolute;
               top: 6px;
               left: 6px;
@@ -105,13 +105,23 @@ export const imageTemplate: Template = {
               border-radius: 8px;
               z-index: 2;
             }
-            &:not(:hover) > .row,
+            &:hover > .row {
+              display: block;
+            }
             &:focus-within > .row:not(:focus-within) {
               display: none;
+            }
+            &.mobile-unlock > .row {
+              display: block !important;
             }
             .toggle,
             .thumbnail {
               display: none;
+            }
+            @media (max-width: 740px) {
+              .actions, .info {
+                height: 28px;
+              }
             }
           }
         }
@@ -136,5 +146,6 @@ export const imageTemplate: Template = {
   },
   defaults: {
     defaultExpanded: true,
+    editable: false,
   }
 };

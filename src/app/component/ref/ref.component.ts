@@ -50,6 +50,7 @@ import {
   tagOrigin
 } from '../../util/tag';
 import { ViewerComponent } from '../viewer/viewer.component';
+import { ConfigService } from '../../service/config.service';
 
 @Component({
   selector: 'app-ref',
@@ -58,9 +59,10 @@ import { ViewerComponent } from '../viewer/viewer.component';
 })
 export class RefComponent implements OnInit, OnDestroy {
   css = 'ref list-item ';
-  tagRegex = TAGS_REGEX.source;
-
+  @HostBinding('class.mobile-unlock') mobileUnlock = false;
   private disposers: IReactionDisposer[] = [];
+
+  tagRegex = TAGS_REGEX.source
 
   @Input()
   expanded = false;
@@ -107,6 +109,7 @@ export class RefComponent implements OnInit, OnDestroy {
   private _ref!: Ref;
 
   constructor(
+    private config: ConfigService,
     public admin: AdminService,
     public store: Store,
     private router: Router,
@@ -143,6 +146,15 @@ export class RefComponent implements OnInit, OnDestroy {
         this.expanded = false;
       }
     }));
+  }
+
+  @HostListener('press', ['$event'])
+  unlock(event: Event) {
+    if (!this.config.mobile) return;
+    if (!this.mobileUnlock) {
+      this.mobileUnlock = true;
+      event.preventDefault();
+    }
   }
 
   @HostBinding('class')
