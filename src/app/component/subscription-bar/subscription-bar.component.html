@@ -10,7 +10,7 @@
       &bullet; <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a>
     </ng-container>
     &bullet; <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
-    <ng-container *ngIf="bookmarkExts$ | async as bookmarkExts; else bookNoExts">
+    <ng-container *ngIf="bookmarkExts.length; else bookNoExts">
       <ng-container *ngFor="let b of bookmarkExts; let i = index">
         &bullet; <a [routerLink]="['/tag', store.account.bookmarks[i]]" routerLinkActive="current-page">{{ b.name || store.account.bookmarks[i] }}</a>
       </ng-container>
@@ -20,7 +20,7 @@
         &bullet; <a [routerLink]="['/tag', t]" routerLinkActive="current-page">{{ t }}</a>
       </ng-container>
     </ng-template>
-    <ng-container *ngIf="subExts$ | async as subExts; else subNoExts">
+    <ng-container *ngIf="subExts.length; else subNoExts">
       <ng-container *ngFor="let sub of subExts; let i = index">
         &bullet; <a [routerLink]="['/tag', store.account.subs[i]]" routerLinkActive="current-page">{{ sub.name || store.account.subs[i] }}</a>
       </ng-container>
