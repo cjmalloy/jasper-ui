@@ -86,12 +86,12 @@ export const imageTemplate: Template = {
             position: relative;
             margin: 0;
             padding: 0;
-            border-radius: 7px;
-            overflow: hidden;
             .image-expand {
               position: relative;
               min-width: 100%;
               min-height: 100%;
+              border-radius: 7px;
+              overflow: hidden;
               margin: 0;
               padding: 0;
             }
@@ -130,7 +130,7 @@ export const imageTemplate: Template = {
         .list-container .ref > .row {
           backdrop-filter: grayscale(1) contrast(0.2) brightness(0.4) blur(8px);
         }
-        .list-container .ref {
+        .list-container .ref .image-expand {
           backdrop-filter: grayscale(1) brightness(0.9) blur(0.5px);
         }
       }
@@ -138,7 +138,7 @@ export const imageTemplate: Template = {
         .list-container .ref > .row {
           backdrop-filter: grayscale(1) contrast(0.2) brightness(1.5) blur(8px);
         }
-        .list-container .ref {
+        .list-container .ref .image-expand {
           backdrop-filter: grayscale(1) brightness(0.9) blur(0.5px);
         }
       }
