@@ -125,6 +125,7 @@ export const rootTemplate: Template = {
       defaultThumbnail: { type: 'string' },
       defaultExpanded: { type: 'boolean'},
       editable: { type: 'boolean'},
+      resizeable: { type: 'boolean'},
     },
   },
 };
@@ -143,5 +144,6 @@ export interface RootConfig {
   defaultThumbnail?: boolean;
   defaultExpanded?: boolean;
   editable?: boolean;
+  resizeable?: boolean;
 }
 

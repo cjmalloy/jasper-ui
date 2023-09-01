@@ -1,9 +1,12 @@
-import { Directive, ElementRef, HostBinding, HostListener } from '@angular/core';
+import { Directive, ElementRef, HostBinding, HostListener, Input } from '@angular/core';
 
 @Directive({
   selector: '[appResize]'
 })
 export class ResizeDirective {
+
+  @Input('appResize')
+  enabled?: boolean;
 
   @HostBinding('style.z-index')
   get zIndex() {
@@ -34,6 +37,7 @@ export class ResizeDirective {
 
   @HostListener('mousedown', ['$event'])
   onMousedown(e: MouseEvent) {
+    if (this.enabled === false) return;
     e.preventDefault();
     this.oldZoom = this.zoom;
     this.dragStart = {
@@ -48,6 +52,7 @@ export class ResizeDirective {
 
   @HostListener('touchstart', ['$event'])
   onTouchstart(e: TouchEvent) {
+    if (this.enabled === false) return;
     if (e.touches.length != 2) return;
     e.preventDefault();
     this.oldZoom = this.zoom;
@@ -67,6 +72,7 @@ export class ResizeDirective {
 
   @HostListener('click', ['$event'])
   onClick(e: MouseEvent) {
+    if (this.enabled === false) return;
     if (this.wasDragging) {
       e.preventDefault();
     }
@@ -75,6 +81,7 @@ export class ResizeDirective {
 
   @HostListener('window:mousemove', ['$event'])
   onMousemove(e: MouseEvent) {
+    if (this.enabled === false) return;
     if (!this.dragStart || !this.startDim) return;
     if (!this.dragging) {
       if (Math.abs(e.clientX - this.dragStart.x) < this.minPx &&
@@ -96,6 +103,7 @@ export class ResizeDirective {
 
   @HostListener('window:touchmove', ['$event'])
   onTouchmove(e: TouchEvent) {
+    if (this.enabled === false) return;
     if (!this.dragStart || !this.startDim) return;
     if (!this.dragging) {
       this.dragging = true;
@@ -122,6 +130,7 @@ export class ResizeDirective {
   @HostListener('window:touchend', ['$event'])
   @HostListener('window:touchcancel', ['$event'])
   onCancel(e: Event) {
+    if (this.enabled === false) return;
     delete this.dragStart;
     if (this.dragging) {
       this.dragging = false;
