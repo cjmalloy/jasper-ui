@@ -58,6 +58,7 @@ import { rootTemplate } from '../mods/root';
 import { userTemplate } from '../mods/user';
 import { getExtension, getHost } from '../util/hosts';
 import { hasPrefix, includesTag, tagIntersection } from '../util/tag';
+import { ExtService } from './api/ext.service';
 import { OEmbedService } from './api/oembed.service';
 import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
@@ -167,18 +168,19 @@ export class AdminService {
     private auth: AuthzService,
     private plugins: PluginService,
     private templates: TemplateService,
+    private exts: ExtService,
     private oembed: OEmbedService,
     private ss: ScrapeService,
     private store: Store,
   ) { }
 
-  init$(firstRun = false) {
+  get init$() {
     this._cache.clear();
     runInAction(() => this.store.view.updates = false);
     this.status.plugins =  mapValues(this.def.plugins, () => undefined);
     this.status.templates = mapValues(this.def.templates, () => undefined);
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
-      switchMap(() => firstRun ? this.firstRun$ : of(null)),
+      switchMap(() => this.firstRun$),
       tap(() => this.updates),
       catchError(() => of(null)),
     );
@@ -191,7 +193,7 @@ export class AdminService {
   }
 
   get firstRun$(): Observable<any> {
-    if (!this.store.account.admin) return of(null);
+    if (!this.store.account.admin || this.store.account.ext) return of(null);
     if (Object.values(this.status.plugins).filter(p => !!p).length > 0) return of(null);
     if (Object.values(this.status.templates).filter(t => !!t).length > 0) return of(null);
 
@@ -221,10 +223,14 @@ export class AdminService {
         return throwError(() => err);
       })
     )));
-    return concat(...installs).pipe(
-      switchMap(() => this.init$()),
+    return this.exts.create({
+      tag: this.store.account.localTag,
+      origin: this.store.account.origin,
+    }).pipe(
       tap(() => this.oembed.defaults()),
       tap(() => this.ss.defaults()),
+      switchMap(() => concat(...installs)),
+      switchMap(() => this.init$)
     );
   }
 
@@ -623,12 +629,7 @@ export class AdminService {
     } else if (tag) {
       return this.getDefaults(parent!);
     }
-    return {};
-  }
-
-  getDefaultExt(tag = '', origin = '') {
-    const template = this.getTemplate(tag);
-    return { tag, origin, name: template?.config?.view || template?.name, config: this.getDefaults(tag) };
+    return undefined;
   }
 
   isWikiExternal() {

@@ -70,14 +70,6 @@ export class AccountService {
     );
   }
 
-  get firstRun$(): Observable<any> {
-    if (this.store.account.ext) return of(false);
-    return this.exts.create({
-      tag: this.store.account.localTag,
-      origin: this.store.account.origin,
-    }).pipe(map(() => of(true)));
-  }
-
   private get loadUserExt$() {
     if (!this.store.account.signedIn) return of(undefined);
     if (!this.admin.status.templates.user) return of(undefined);

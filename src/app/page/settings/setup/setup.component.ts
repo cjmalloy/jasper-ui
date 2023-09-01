@@ -97,7 +97,7 @@ export class SettingsSetupPage implements OnInit {
   }
 
   reset() {
-    this.admin.init$().subscribe(() => this.adminForm.reset({ mods: { ...this.admin.status.plugins, ...this.admin.status.templates } }));
+    this.admin.init$.subscribe(() => this.adminForm.reset({ mods: { ...this.admin.status.plugins, ...this.admin.status.templates } }));
   }
 
   installPlugin$(def: Plugin) {
