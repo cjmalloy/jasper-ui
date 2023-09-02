@@ -140,7 +140,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   @Input()
   set expanded(value: boolean) {
-    localStorage.setItem('sidebar-expanded', ""+value);
+    localStorage.setItem('sidebar-expanded', ''+value);
     this._expanded = value;
   }
 
@@ -264,5 +264,4 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (!t) return x;
     return { tag: t.tag, origin: t.origin, name: t.name, config: t.defaults };
   }
-
 }
