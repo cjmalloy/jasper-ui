@@ -11,9 +11,9 @@ import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
 import { findExtension, isRef, Ref, writeRef } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
-import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { findArchive } from '../../mods/archive';
 import { deleteNotice } from '../../mods/delete';
+import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -21,6 +21,7 @@ import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
+import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { downloadRef } from '../../util/download';
@@ -46,11 +47,11 @@ import {
   implicitLocal,
   includesTag,
   isOwnerTag,
+  localTag,
   removeTag,
   tagOrigin
 } from '../../util/tag';
 import { ViewerComponent } from '../viewer/viewer.component';
-import { ConfigService } from '../../service/config.service';
 
 @Component({
   selector: 'app-ref',
@@ -445,7 +446,11 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get authors() {
-    return authors(this.ref);
+    const lookup = this.store.origins.originMap.get(this.ref.origin || '');
+    return authors(this.ref).map(a => {
+      if (!tagOrigin(a)) return a;
+      return localTag(a) + (lookup?.get(tagOrigin(a)) || '');
+    });
   }
 
   get userAuthors() {
@@ -457,7 +462,12 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get recipients() {
-    return without(addressedTo(this.ref), ...this.authors);
+    const lookup = this.store.origins.originMap.get(this.ref.origin || '');
+    const recipients = addressedTo(this.ref).map(a => {
+      if (!tagOrigin(a)) return a;
+      return localTag(a) + (lookup?.get(tagOrigin(a)) || '');
+    });
+    return without(recipients, ...this.authors);
   }
 
   get recipientExts$() {
