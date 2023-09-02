@@ -111,7 +111,7 @@
                   [ref]="ref">{{ icon.label }}</span>
           </ng-container>
           <span *ngFor="let ui of infoUis"
-                [appPluginUi]="ui"
+                [appPluginInfoUi]="ui"
                 [appMdPost]
                 [ref]="ref"></span>
           <ng-container *ngIf="!userAuthors.length && ref.created && !local" i18n>
