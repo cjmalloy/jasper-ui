@@ -189,28 +189,27 @@
   </div>
 
   <div *ngIf="user || home" class="hide home">
-    <div class="ext-text" *ngIf="$any(bookmarks$ | async)?.length" i18n>
+    <div class="ext-text" *ngIf="bookmarkExts.length" i18n>
       My Bookmarks:
       <br>
-      <ng-container *ngFor="let book of bookmarks$ | async; let i = index">
+      <ng-container *ngFor="let book of bookmarkExts; let i = index">
         <a class="tag" [routerLink]="['/tag', userConfig!.bookmarks![i]]">{{ book.name || userConfig!.bookmarks![i] }}</a>
         <br>
       </ng-container>
-      <br *ngIf="ext?.config?.subscriptions?.length">
     </div>
-    <div class="ext-text" *ngIf="$any(userSubs$ | async)?.length" i18n>
+    <div class="ext-text" *ngIf="userSubExts.length" i18n>
       Following:
       <br>
-      <ng-container *ngFor="let sub of userSubs$ | async; let i = index">
-        <a class="tag" [routerLink]="['/tag', userSubs![i]]">{{ sub.name || userSubs![i] }}</a>
+      <ng-container *ngFor="let sub of userSubExts; let i = index">
+        <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]">{{ sub.name || (sub.tag + sub.origin) }}</a>
         <br>
       </ng-container>
     </div>
-    <div class="ext-text" *ngIf="$any(tagSubs$ | async)?.length" i18n>
+    <div class="ext-text" *ngIf="tagSubExts.length" i18n>
       Subscribed to:
       <br>
-      <ng-container *ngFor="let sub of tagSubs$ | async; let i = index">
-        <a class="tag" [routerLink]="['/tag', tagSubs![i]]">{{ sub.name || tagSubs![i] }}</a>
+      <ng-container *ngFor="let sub of tagSubExts; let i = index">
+        <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]">{{ sub.name || (sub.tag + sub.origin) }}</a>
         <br>
       </ng-container>
     </div>

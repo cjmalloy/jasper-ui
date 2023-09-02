@@ -1,7 +1,7 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, filter, of, Subject } from 'rxjs';
+import { catchError, filter, map, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -49,6 +49,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   writeAccess = false;
   ui: Template[] = [];
   genUrl = 'internal:' + uuid();
+  bookmarkExts: Ext[] = [];
+  tagSubExts: Ext[] = [];
+  userSubExts: Ext[] = [];
 
   @HostBinding('class.expanded')
   private _expanded = false;
@@ -112,10 +115,22 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @Input()
   set ext(value: Ext | undefined) {
     this._ext = value;
-    if (value && !this.home) {
-      this.addTags = [...this.rootConfig?.addTags || [], this.localTag!];
+    if (value) {
+      if (!this.home) {
+        this.addTags = [...this.rootConfig?.addTags || [], this.localTag!];
+      }
+      this.bookmarks$.pipe(
+        map(xs => xs.map(x => this.getTemplate(x))),
+      ).subscribe(xs => this.bookmarkExts = xs);
+      this.tagSubs$.pipe(
+        map(xs => xs.map(x => this.getTemplate(x))),
+      ).subscribe(xs => this.tagSubExts = xs);
+      this.userSubs$.subscribe(xs => this.userSubExts = xs);
     } else {
       this.addTags = undefined;
+      this.bookmarkExts = [];
+      this.tagSubExts = [];
+      this.userSubExts = [];
     }
   }
 
@@ -241,6 +256,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   set showRemotes(value: boolean) {
     this.router.navigate([], { queryParams: { showRemotes: value ? true : null }, queryParamsHandling: 'merge' })
+  }
+
+  private getTemplate(x: Ext): Ext {
+    if (x.modifiedString) return x;
+    const t = this.admin.getTemplate(x.tag);
+    if (!t) return x;
+    return { tag: t.tag, origin: t.origin, name: t.name, config: t.defaults };
   }
 
 }
