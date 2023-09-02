@@ -158,7 +158,7 @@ export class SettingsSetupPage implements OnInit {
     }
     for (const template in this.admin.status.templates) {
       const status = this.admin.status.templates[template]!;
-      if (this.needsUpdate(status)) updates.push(this.updateTemplate$(modId(status)));
+      if (this.needsUpdate(status)) updates.push(this.updateMod$(modId(status)));
     }
     concat(...updates).pipe(
       catchError((res: HttpErrorResponse) => {
