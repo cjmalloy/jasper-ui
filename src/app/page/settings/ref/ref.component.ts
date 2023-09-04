@@ -38,7 +38,7 @@ export class SettingsRefPage implements OnInit, OnDestroy {
       this.writeAccess = this.auth.canAddTag(this.plugin.tag);
       this.theme.setTitle($localize`Settings: ${this.plugin.config?.settings || this.plugin.tag}`);
       const args = getArgs(
-        this.plugin.tag + this.plugin.origin,
+        this.plugin.tag + (this.store.view.showRemotes ? '' : (this.plugin.origin || '@')),
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,
