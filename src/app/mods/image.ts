@@ -128,7 +128,8 @@ export const imageTemplate: Template = {
       }
       body.dark-theme app-ref-list.plugin-image {
         .list-container .ref > .row {
-          backdrop-filter: grayscale(1) contrast(0.2) brightness(0.4) blur(8px);
+          backdrop-filter: grayscale(1) contrast(0.4) brightness(0.4) blur(8px);
+          border: 0.5px solid rgba(255, 255, 255, 0.2);
         }
         .list-container .ref .image-expand {
           backdrop-filter: grayscale(1) brightness(0.9) blur(0.5px);
@@ -136,7 +137,7 @@ export const imageTemplate: Template = {
       }
       body.light-theme app-ref-list.plugin-image {
         .list-container .ref > .row {
-          backdrop-filter: grayscale(1) contrast(0.2) brightness(1.5) blur(8px);
+          backdrop-filter: grayscale(1) contrast(0.3) brightness(1.5) blur(8px);
         }
         .list-container .ref .image-expand {
           backdrop-filter: grayscale(1) brightness(0.9) blur(0.5px);
