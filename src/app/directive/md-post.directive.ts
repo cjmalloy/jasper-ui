@@ -58,8 +58,8 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
       const url = ref as string;
       ref = { url, origin: this.origin };
     }
-    c.instance.ref = ref;
     c.instance.tags = expandPlugins;
+    c.instance.ref = ref;
     return c;
   }
 
