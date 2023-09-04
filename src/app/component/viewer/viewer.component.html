@@ -23,6 +23,7 @@
        [appImageDim]="imageUrl"
        [defaultWidth]="ref.plugins?.['plugin/image']?.width"
        [defaultHeight]="ref.plugins?.['plugin/image']?.height"
+       [grid]="resizeable"
        [appResize]="resizeable"></div>
   <video *ngIf="videoUrl"
          #video

@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, OnInit } from '@angular/core';
+import { Directive, ElementRef, HostListener, Input, OnInit } from '@angular/core';
 import { ConfigService } from '../service/config.service';
 import { Dim, height, ImageDimService, width } from '../service/image-dim.service';
 
@@ -6,17 +6,24 @@ import { Dim, height, ImageDimService, width } from '../service/image-dim.servic
   selector: '[appImageDim]'
 })
 export class ImageDimDirective implements OnInit {
+  @Input()
+  grid = false;
   @Input('defaultWidth')
   defaultWidth?: number;
   @Input('defaultHeight')
   defaultHeight?: number;
+
+  private dim: Dim = { width: 0, height: 0};
+
+  resizeObserver = new ResizeObserver(() => this.onResize());
 
   constructor(
     private config: ConfigService,
     private elRef: ElementRef,
     private ids: ImageDimService,
   ) {
-    this.el.style.backgroundImage = `url("./assets/image-loading.png")`;
+    this.el.style.backgroundImage = `url("./assets/image-loading.png")`
+    this.resizeObserver.observe(this.el);
   }
 
   ngOnInit() {
@@ -51,27 +58,32 @@ export class ImageDimDirective implements OnInit {
     this.el.style.backgroundSize = 'contain';
     this.ids.getImageDim(value)
       .then((d: Dim) => {
-        if (this.defaultWidth && this.defaultHeight) {
-          this.el.style.backgroundSize = '100% 100%';
-          return;
-        }
-        const parentWidth = this.el.parentElement.offsetWidth;
-        if (this.config.mobile && (!this.defaultWidth || this.defaultWidth >= window.innerWidth)) {
-          this.el.style.width = parentWidth + 'px';
-          this.el.style.height = this.defaultHeightPx || height(parentWidth, d) + 'px';
-        } else if (d.width > parentWidth && (!this.defaultWidth || this.defaultWidth >= parentWidth)) {
-          this.el.style.width = '100%';
-          this.el.style.height = this.defaultHeightPx || height(this.defaultWidth || parentWidth, d) + 'px';
-        } else if (this.defaultWidth) {
-          this.el.style.width = this.defaultWidthPx;
-          this.el.style.height = this.defaultHeightPx || height(this.defaultWidth, d) + 'px';
-        } else if (this.defaultHeight) {
-          this.el.style.width = width(this.defaultHeight, d) + 'px';
-          this.el.style.height = this.defaultHeightPx;
-        } else {
-          this.el.style.width = d.width + 'px';
-          this.el.style.height = d.height + 'px';
-        }
+        this.dim = d;
+        this.onResize();
       });
+  }
+
+  private onResize() {
+    if (this.defaultWidth && this.defaultHeight) {
+      this.el.style.backgroundSize = '100% 100%';
+      return;
+    }
+    const parentWidth = this.el.parentElement.offsetWidth;
+    if (this.config.mobile && (!this.defaultWidth || this.defaultWidth >= window.innerWidth)) {
+      this.el.style.width = parentWidth + 'px';
+      this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
+    } else if (this.grid || this.dim.width > parentWidth && (!this.defaultWidth || this.defaultWidth >= parentWidth)) {
+      this.el.style.width = '100%';
+      this.el.style.height = this.defaultHeightPx || height(this.defaultWidth || parentWidth, this.dim) + 'px';
+    } else if (this.defaultWidth) {
+      this.el.style.width = this.defaultWidthPx;
+      this.el.style.height = this.defaultHeightPx || height(this.defaultWidth, this.dim) + 'px';
+    } else if (this.defaultHeight) {
+      this.el.style.width = width(this.defaultHeight, this.dim) + 'px';
+      this.el.style.height = this.defaultHeightPx;
+    } else {
+      this.el.style.width = this.dim.width + 'px';
+      this.el.style.height = this.dim.height + 'px';
+    }
   }
 }
