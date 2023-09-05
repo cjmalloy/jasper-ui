@@ -52,13 +52,13 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
       this.origin));
   }
 
-  createEmbed(ref: Ref | string, expandPlugins: string[] = []): ComponentRef<ViewerComponent> {
+  createEmbed(ref: Ref | string, expandPlugins?: string[]): ComponentRef<ViewerComponent> {
     const c = this.viewContainerRef.createComponent(ViewerComponent);
     if (isString(ref)) {
       const url = ref as string;
       ref = { url, origin: this.origin };
     }
-    c.instance.tags = expandPlugins;
+    if (expandPlugins?.length) c.instance.tags = expandPlugins;
     c.instance.ref = ref;
     return c;
   }
