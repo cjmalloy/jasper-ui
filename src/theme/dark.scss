@@ -466,7 +466,6 @@ body.dark-theme {
     background-color: var(--card);
     &.unlocked {
       border-radius: 5px;
-      border: 0.5px dashed var(--border-accent);
     }
     &.cdk-drag-preview {
       background-color: var(--card-dragging);
