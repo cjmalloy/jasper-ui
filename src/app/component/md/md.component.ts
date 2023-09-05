@@ -17,14 +17,7 @@ export class MdComponent implements OnInit {
   @Input()
   plugins?: string[];
 
-  @HostBinding("class.expand")
-  get comment() {
-    return !this.plugins?.includes('plugin/table');
-  }
-
   postProcessMarkdown: Subject<void> = new Subject();
-  private _text = '';
-  private _value? = '';
 
   katexOptions = {
     throwOnError: false,
@@ -34,12 +27,20 @@ export class MdComponent implements OnInit {
     ],
   };
 
+  private _text = '';
+  private _value? = '';
+
   constructor(
     public admin: AdminService,
     public store: Store,
   ) { }
 
   ngOnInit(): void {
+  }
+
+  @HostBinding("class.expand")
+  get comment() {
+    return !this.plugins?.includes('plugin/table');
   }
 
   get text(): string {
@@ -53,10 +54,14 @@ export class MdComponent implements OnInit {
   }
 
   get value() {
-    if (this._value) return this._value;
     if (this.plugins?.includes('plugin/table')) {
-      const wb = XLSX.read(this._text, {type: 'string'});
-      return this._value = XLSX.utils.sheet_to_html(wb.Sheets[wb.SheetNames[0]], {header: ''});
+      if (this._value) return this._value;
+      try {
+        const wb = XLSX.read(this._text, {type: 'string'});
+        return this._value = XLSX.utils.sheet_to_html(wb.Sheets[wb.SheetNames[0]], {header: ''});
+      } catch (e: any) {
+        return `<p class="error">${e.message}</p>`
+      }
     }
     return this._value = this._text;
   }
