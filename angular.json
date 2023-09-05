@@ -32,7 +32,8 @@
               "file-saver",
               "jszip",
               "qrcode",
-              "jsqr"
+              "jsqr",
+              "he"
             ],
             "assets": [
               "src/favicon.ico",
