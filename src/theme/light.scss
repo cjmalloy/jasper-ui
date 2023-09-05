@@ -443,7 +443,6 @@ body.light-theme {
     background-color: var(--card);
     &.unlocked {
       border-radius: 5px;
-      border: 0.25px dashed var(--border-accent);
     }
     &.cdk-drag-placeholder {
       background-color: var(--placeholder);

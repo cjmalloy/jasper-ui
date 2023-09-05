@@ -154,8 +154,8 @@ export class KanbanCardComponent implements OnInit {
     this.unlocked = false;
   }
 
-  @HostListener('press', ['$event'])
-  unlock(event: any) {
+  @HostListener('press')
+  unlock() {
     if (!this.config.mobile) return;
     this.unlocked = true;
     this.el.nativeElement.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
@@ -175,6 +175,7 @@ export class KanbanCardComponent implements OnInit {
   contextMenu(event: MouseEvent) {
     if (this.pressToUnlock) {
       // no badge menu on mobile
+      this.unlock();
       return;
     }
     event.preventDefault();
