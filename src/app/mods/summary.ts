@@ -13,7 +13,7 @@ export const summaryQueryPlugin: Plugin = {
     description: $localize`Send this Ref to the ai to create a summary response.`,
     icons: [{ label: $localize`✂️️💭️`}],
     filters: [
-      { query: 'plugin/summary', label: $localize`✂️️💭️ summarize query`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/summary', label: $localize`✂️️💭️ summarize`, group: $localize`Notifications ✉️` },
     ],
     actions: [
       { tag: 'plugin/summary', labelOff: $localize`summarize`, global: true }
