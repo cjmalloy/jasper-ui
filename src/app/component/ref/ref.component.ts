@@ -151,13 +151,11 @@ export class RefComponent implements OnInit, OnDestroy {
     }));
   }
 
-  @HostListener('press', ['$event'])
+  @HostListener('contextmenu', ['$event'])
   unlock(event: Event) {
     if (!this.config.mobile) return;
-    if (!this.mobileUnlock) {
-      this.mobileUnlock = true;
-      event.preventDefault();
-    }
+    this.mobileUnlock = !this.mobileUnlock;
+    event.preventDefault();
   }
 
   @HostBinding('class')
