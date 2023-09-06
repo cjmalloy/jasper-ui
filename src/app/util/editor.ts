@@ -35,11 +35,19 @@ export function getIfNew<T>(list: T[], old?: T[]): T[] {
 export function getLinks(markdown: string, withText?: RegExp) {
   const result: string[] = [];
   marked.walkTokens(marked.lexer(markdown), t => {
-    if (t.type !== 'link') return;
-    if (!t.href) return;
-    if (withText && !withText.test(t.text)) return;
-    if (t.href.startsWith('mailto:')) t.href = he.decode(t.href);
-    result.push(t.href);
+    if (t.type === 'link') {
+      if (!t.href) return;
+      if (withText && !withText.test(t.text)) return;
+      if (t.href.startsWith('mailto:')) t.href = he.decode(t.href);
+      result.push(t.href);
+      // @ts-ignore
+    }
+    if (withText) return;
+    const customType = t as any;
+    if (customType.type === 'embed' || customType.type === 'wiki' || customType.type === 'wiki-embed') {
+      if (!customType.text) return;
+      result.push(customType.text);
+    }
   });
   return result;
 }

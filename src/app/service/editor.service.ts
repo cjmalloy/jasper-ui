@@ -20,6 +20,13 @@ export class EditorService {
     private store: Store,
   ) { }
 
+  localUrl(url: string) {
+    if (url.startsWith(this.config.base)) return true
+    if (url.startsWith(getPath(this.config.base)!)) return true;
+    if (url.startsWith('/')) return true;
+    return false;
+  }
+
   getUrlType(url: string) {
     if (url.startsWith(this.config.base)) {
       url = url.substring(this.config.base.length);

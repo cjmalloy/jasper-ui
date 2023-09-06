@@ -139,6 +139,7 @@ import { DebugService } from './service/debug.service';
 import { OriginMapService } from './service/origin-map.service';
 import { ThemeService } from './service/theme.service';
 import { HammerConfig } from './hammer.config';
+import { NavComponent } from './component/nav/nav.component';
 
 const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ThemeService) => () =>
   config.load$.pipe(
@@ -285,6 +286,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     InboxAlarmsPage,
     InputDoneDirective,
     SettingsMePage,
+    NavComponent,
   ],
   imports: [
     BrowserModule,

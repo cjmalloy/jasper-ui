@@ -8,6 +8,7 @@ import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { EmbedService } from '../service/embed.service';
 import { Embed } from '../util/embed';
+import { NavComponent } from '../component/nav/nav.component';
 
 @Directive({
   selector: '[appMdPost]'
@@ -50,6 +51,15 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
       this,
       (type, el, fn) => this.event(type, el, fn),
       this.origin));
+  }
+
+  createLink(url: string, text: string, title = '', css = ''): ComponentRef<NavComponent> {
+    const c = this.viewContainerRef.createComponent(NavComponent);
+    c.instance.url = url;
+    c.instance.text = text;
+    c.instance.title = title;
+    c.instance.css = css;
+    return c;
   }
 
   createEmbed(ref: Ref | string, expandPlugins?: string[]): ComponentRef<ViewerComponent> {

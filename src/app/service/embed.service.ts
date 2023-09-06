@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { escape } from 'lodash-es';
+import { defer, escape } from 'lodash-es';
 import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
@@ -11,9 +11,7 @@ import { delay } from '../util/async';
 import { Embed } from '../util/embed';
 import { tagOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
-import { OEmbedService } from './api/oembed.service';
 import { RefService } from './api/ref.service';
-import { ConfigService } from './config.service';
 import { EditorService } from './editor.service';
 
 @Injectable({
@@ -24,8 +22,6 @@ export class EmbedService {
   constructor(
     private store: Store,
     private admin: AdminService,
-    private config: ConfigService,
-    private oembed: OEmbedService,
     private editor: EditorService,
     private refs: RefService,
     private markdownService: MarkdownService,
@@ -106,7 +102,7 @@ export class EmbedService {
     }, {
       name: 'wiki',
       level: 'inline',
-      start: (src: string) => src.match(/\[\[?[a-zA-Z]/)?.index,
+      start: (src: string) => src.match(/\[\[[a-zA-Z]/)?.index,
       tokenizer(src: string, tokens: any): any {
         const rule = /^\[\[([^\]]+)]]/;
         const match = rule.exec(src);
@@ -130,6 +126,33 @@ export class EmbedService {
           return `<a target="_blank" href="${token.href}">${token.text}</a>`;
         } else {
           return `<a class="wiki ref" href="${token.href}">${token.text}</a>`;
+        }
+      }
+    }, {
+      name: 'wiki-embed',
+      level: 'inline',
+      start: (src: string) => src.match(/\[!\[[a-zA-Z]/)?.index,
+      tokenizer(src: string, tokens: any): any {
+        const rule = /^\[!\[([^\]]+)]]/;
+        const match = rule.exec(src);
+        if (match) {
+          const text = match[1];
+          const href = (self.admin.isWikiExternal() ? '' : '/ref/') + wikiUriFormat(text, self.admin.getWikiPrefix());
+          return {
+            type: 'wiki-embed',
+            href,
+            text,
+            raw: match[0],
+            tokens: [],
+          };
+        }
+        return undefined;
+      },
+      renderer(token: any): string {
+        if (self.admin.isWikiExternal()) {
+          return `<a target="_blank" href="${token.href}">${token.text}</a>`;
+        } else {
+          return `<a class="inline-embed">${token.href}</a>`;
         }
       }
     }, {
@@ -406,6 +429,13 @@ export class EmbedService {
           }
         }
       });
+    });
+    const links = el.querySelectorAll<HTMLAnchorElement>('a');
+    links.forEach(t => {
+      if (!this.editor.localUrl(t.href)) return;
+      const c = embed.createLink(t.href, t.innerText, t.title, t.className);
+      t.parentNode?.insertBefore(c.location.nativeElement, t);
+      t.remove();
     });
   }
 

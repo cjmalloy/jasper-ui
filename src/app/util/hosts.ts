@@ -24,6 +24,12 @@ export function getPath(url: string): string | null {
   return parsed.pathname;
 }
 
+export function getQuery(url: string): string {
+  const parsed = getUrl(url);
+  if (!parsed) return '';
+  return parsed.search;
+}
+
 export function getExtension(url: string): string | null {
   const parsed = getUrl(url);
   if (!parsed) return null;
