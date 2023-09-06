@@ -5,7 +5,7 @@ import { RootConfig } from './root';
 
 export const kanbanTemplate: Template = {
   tag: 'kanban',
-  name: $localize`📋️ Kanban Board`,
+  name: $localize`📋️ Kanban`,
   config: {
     type: 'template',
     default: true,
