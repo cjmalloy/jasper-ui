@@ -17,7 +17,6 @@ import { debounce, throttle, uniq, without } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
-import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 
@@ -78,7 +77,6 @@ export class EditorComponent implements AfterViewInit {
     private auth: AuthzService,
     public store: Store,
     private overlay: Overlay,
-    private exts: ExtService,
     private el: ElementRef,
     private vc: ViewContainerRef,
   ) {

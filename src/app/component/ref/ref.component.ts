@@ -228,8 +228,9 @@ export class RefComponent implements OnInit, OnDestroy {
 
   @ViewChild(RefFormComponent)
   set refForm(value: RefFormComponent) {
+    if (!value) return;
     defer(() => {
-      value?.setRef(this.ref);
+      value.setRef(this.ref);
       this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
     });
   }

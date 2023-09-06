@@ -25,10 +25,10 @@ export function extractPattern(markdown: string, pattern: RegExp, extractor?: Re
   return result;
 }
 
-export function getIfNew<T>(list: T[], old?: T[]): T[] | null {
+export function getIfNew<T>(list: T[], old?: T[]): T[] {
   old ??= [];
   const diff = difference(uniq(list), uniq(old));
-  if (!diff.length) return null;
+  if (!diff.length) return [];
   return list;
 }
 

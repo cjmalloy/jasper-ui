@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { without } from 'lodash-es';
+import { difference, uniq, without } from 'lodash-es';
 import { catchError, Subject, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { AccountService } from '../../../service/account.service';
@@ -62,12 +62,13 @@ export class CommentEditComponent implements AfterViewInit {
 
   get patchSources() {
     return getIfNew(
-      this.editor.getSources(this.comment.value),
+      uniq(difference(this.editor.getSources(this.comment.value), this.ref.sources || [])),
       this.ref.sources);
   }
 
   get patchAlts() {
-    return getIfNew(this.editor.getAlts(this.comment.value),
+    return getIfNew(
+      uniq(difference(this.editor.getAlts(this.comment.value), this.ref.alternateUrls || [])),
       this.ref.alternateUrls);
   }
 
@@ -77,28 +78,26 @@ export class CommentEditComponent implements AfterViewInit {
       path: '/comment',
       value: this.comment.value,
     }];
-    const tags = this.patchTags;
-    if (tags) {
+    for (const t of this.patchTags) {
       patches.push({
         op: 'add',
-        path: '/tags',
-        value: tags,
+        path: '/tags/-',
+        value: t,
       });
     }
-    const sources = this.patchSources;
-    if (sources) {
+    for (const s of this.patchSources) {
       patches.push({
         op: 'add',
-        path: '/sources',
-        value: sources,
+        path: '/sources/-',
+        value: s,
       });
     }
     const alts = this.patchAlts;
-    if (alts) {
+    for (const alt of this.patchAlts) {
       patches.push({
         op: 'add',
-        path: '/alternateUrls',
-        value: alts,
+        path: '/alternateUrls/-',
+        value: alt,
       });
     }
     this.refs.patch(this.ref.url, this.ref.origin!, patches).pipe(
