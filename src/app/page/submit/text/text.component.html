@@ -16,8 +16,8 @@
         </div>
       </div>
 
-      <label for="comment" *ngIf="!store.submit.wiki" i18n>Comment:</label>
-      <label for="comment" *ngIf="store.submit.wiki" i18n>Entry:</label>
+      <label for="comment" class="editor-label" *ngIf="!store.submit.wiki" i18n>Comment:</label>
+      <label for="comment" class="editor-label" *ngIf="store.submit.wiki" i18n>Entry:</label>
       <div #fill>
         <app-editor id="comment"
                     class="bubble"
