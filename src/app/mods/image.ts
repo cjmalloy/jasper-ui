@@ -67,9 +67,7 @@ export const imageTemplate: Template = {
           grid-auto-flow: row dense;
           margin: 4px;
           gap: 8px;
-          @media (min-width: 500px) {
-            grid-template-columns:  1fr;
-          }
+          grid-template-columns:  1fr;
           @media (min-width: 1000px) {
             grid-template-columns:  1fr 1fr;
           }

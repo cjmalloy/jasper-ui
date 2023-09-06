@@ -72,7 +72,7 @@ export class ImageDimDirective implements OnInit {
       return;
     }
     const parentWidth = this.el.parentElement.offsetWidth;
-    if (this.config.mobile && (!this.defaultWidth || this.defaultWidth >= window.innerWidth)) {
+    if (!this.grid && this.config.mobile && (!this.defaultWidth || this.defaultWidth >= window.innerWidth)) {
       this.el.style.width = parentWidth + 'px';
       this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
     } else if (this.grid || this.dim.width > parentWidth && (!this.defaultWidth || this.defaultWidth >= parentWidth)) {
