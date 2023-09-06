@@ -1201,9 +1201,13 @@ button.backup, button.upload, input.upload {
   font-size: 80%;
 }
 
-.inline {
+.inline-ui {
   &, * {
     display: inline !important;
+    white-space: nowrap;
+  }
+  br {
+    display: none !important;
   }
 }
 
