@@ -16,6 +16,7 @@ import { fixUrl } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { KanbanDrag } from '../kanban.component';
 import { Ext } from '../../../model/ext';
+import { uniq } from 'lodash-es';
 
 @Component({
   selector: 'app-kanban-column',
@@ -157,7 +158,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     if (!this.addText) return;
     const tagsWithAuthor = !this.addTags.includes(this.store.account.localTag) ? [...this.addTags, this.store.account.localTag] : this.addTags;
     const isUrl = URI_REGEX.test(this.addText) && this.config.allowedSchemes.filter(s => this.addText.startsWith(s)).length;
-    const ref = isUrl ? {
+    const ref: Ref = isUrl ? {
       url: fixUrl(this.addText),
       origin: this.store.account.origin,
       tags: [...tagsWithAuthor],
@@ -169,13 +170,30 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     };
     this.oembeds.get(ref.url).pipe(
       tap(oembed => {
+        ref.tags ||= [];
         if (oembed) {
-          ref.title = oembed.title;
-          ref.tags.push('plugin/embed');
-          ref.tags.push('plugin/thumbnail');
+          if (oembed.title) {
+            ref.title = oembed.title;
+          }
+          if (oembed.thumbnail_url) {
+            ref.tags.push('plugin/thumbnail');
+            ref.plugins ||= {};
+            ref.plugins['plugin/thumbnail'] = { url: oembed.thumbnail_url };
+          }
+          if (oembed.url && oembed.type === 'photo') {
+            // Image embed
+            ref.tags.push('plugin/image');
+            ref.tags.push('plugin/thumbnail');
+            ref.plugins ||= {};
+            ref.plugins['plugin/image'] = { url: oembed.url };
+          } else {
+            ref.title = oembed.title;
+            ref.tags.push('plugin/embed');
+          }
         } else {
           ref.tags.push(...this.admin.getPluginsForUrl(ref.url).map(p => p.tag));
         }
+        ref.tags = uniq(ref.tags);
       }),
       switchMap(() => this.refs.create(ref)),
       tap(() => {
