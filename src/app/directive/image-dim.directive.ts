@@ -15,15 +15,14 @@ export class ImageDimDirective implements OnInit {
 
   private dim: Dim = { width: 0, height: 0};
 
-  resizeObserver = new ResizeObserver(() => this.onResize());
+  resizeObserver?: ResizeObserver;
 
   constructor(
     private config: ConfigService,
     private elRef: ElementRef,
     private ids: ImageDimService,
   ) {
-    this.el.style.backgroundImage = `url("./assets/image-loading.png")`
-    this.resizeObserver.observe(this.el);
+    this.el.style.backgroundImage = `url("./assets/image-loading.png")`;
   }
 
   ngOnInit() {
@@ -34,6 +33,10 @@ export class ImageDimDirective implements OnInit {
     } else {
       this.el.style.width = this.defaultWidthPx || '600px';
       this.el.style.height = this.defaultHeightPx || '600px';
+    }
+    if (this.grid) {
+      this.resizeObserver = new ResizeObserver(() => this.onResize());
+      this.resizeObserver.observe(this.el);
     }
   }
 
