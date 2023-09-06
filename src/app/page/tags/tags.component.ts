@@ -6,7 +6,7 @@ import { ThemeService } from '../../service/theme.service';
 import { ExtStore } from '../../store/ext';
 import { Store } from '../../store/store';
 import { getTagFilter, getTagQueryFilter } from '../../util/query';
-import { getPrefixes, hasPrefix } from '../../util/tag';
+import { braces, getPrefixes, hasPrefix } from '../../util/tag';
 
 @Component({
   selector: 'app-tags-page',
@@ -39,9 +39,9 @@ export class TagsPage implements OnInit, OnDestroy {
         = this.store.view.home ? [...this.store.account.subs, ...this.store.account.bookmarks ].join('|')
         : this.store.view.template ? getPrefixes(this.store.view.template).join('|')
         : this.store.view.noTemplate ? ['!+user:!_user', ...this.templates.map(t => '!' + t.tag).flatMap(getPrefixes)].join(':')
-        : '!+user:!_user';
+        : '@*';
       const args = {
-        query: query + getTagQueryFilter(this.store.view.filter),
+        query: braces(query) + getTagQueryFilter(this.store.view.filter) + ':' + (this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*')),
         search: this.store.view.search,
         sort: [...this.store.view.sort],
         page: this.store.view.pageNumber,
