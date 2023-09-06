@@ -110,7 +110,6 @@ import { RefSummaryComponent } from './page/ref/summary/summary.component';
 import { RefThreadComponent } from './page/ref/thread/thread.component';
 import { RefVersionsComponent } from './page/ref/versions/versions.component';
 import { SettingsBackupPage } from './page/settings/backup/backup.component';
-import { SettingsExtPage } from './page/settings/ext/ext.component';
 import { SettingsMePage } from './page/settings/me/me.component';
 import { SettingsPasswordPage } from './page/settings/password/password.component';
 import { SettingsPluginPage } from './page/settings/plugin/plugin.component';
@@ -201,7 +200,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     LoadingComponent,
     SettingsPage,
     SettingsRefPage,
-    SettingsExtPage,
     SettingsUserPage,
     SettingsSetupPage,
     SettingsPluginPage,
