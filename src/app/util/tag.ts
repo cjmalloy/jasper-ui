@@ -174,6 +174,10 @@ export function getPrefixes(tag: string) {
   return [tag, '+' + tag, '_' + tag].map(t => not ? '!' + t : t);
 }
 
+export function braces(query: string) {
+  return `(${query})`;
+}
+
 export function fixClientQuery(query: string) {
   return query.toLowerCase()
       .replace(/([^+|:!(])\+/g, '$1|')
