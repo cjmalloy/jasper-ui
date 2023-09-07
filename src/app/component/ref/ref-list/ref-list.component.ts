@@ -24,6 +24,8 @@ export class RefListComponent implements OnInit, OnDestroy {
   @Input()
   plugins?: string[];
   @Input()
+  showPageLast = true;
+  @Input()
   editable = true;
   @Input()
   resizeable = true;

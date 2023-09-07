@@ -38,6 +38,7 @@
                         [tag]="tag"
                         [content]="page.content"></app-force-directed>
     <app-page-controls *ngIf="pageControls && !graph"
+                       [showPageLast]="showPageLast"
                        [page]="page"></app-page-controls>
   </ng-template>
 </ng-container>

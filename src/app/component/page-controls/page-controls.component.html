@@ -23,6 +23,7 @@
        queryParamsHandling="merge" i18n>next</a>
     |
     <a class="last-page"
+       *ngIf="showPageLast"
        routerLink="./"
        [class.disabled]="page.last"
        [queryParams]="{ pageNumber: last }"

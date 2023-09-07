@@ -14,6 +14,9 @@ export class PageControlsComponent implements OnInit {
 
   @Input()
   page?: Page<any>;
+  @Input()
+  showPageLast = true;
+
   pageSizes = [6, 24, 48, 96, 480];
 
   constructor(
@@ -27,7 +30,7 @@ export class PageControlsComponent implements OnInit {
   }
 
   get hasQuery() {
-    return !!window.location.search;
+    return this.store.view.pageNumber !== undefined;
   }
 
   get prev() {

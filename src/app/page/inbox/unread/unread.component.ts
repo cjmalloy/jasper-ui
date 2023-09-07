@@ -1,14 +1,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { RefPageArgs } from '../../../model/ref';
 import { newest } from '../../../mods/mailbox';
 import { AccountService } from '../../../service/account.service';
-import { RefService } from '../../../service/api/ref.service';
 import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-unread',
@@ -22,11 +21,10 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
 
   constructor(
     private theme: ThemeService,
-    private route: ActivatedRoute,
     public store: Store,
     public query: QueryStore,
-    private refs: RefService,
     private account: AccountService,
+    private router: Router,
   ) {
     theme.setTitle($localize`Inbox: Unread`);
     store.view.clear();
@@ -35,10 +33,21 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
+      if (this.store.view.pageNumber) {
+        this.router.navigate([], {
+          queryParams: { pageNumber: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+        if (this.lastNotified) {
+          this.account.clearNotifications(this.lastNotified);
+        }
+      }
       const args: RefPageArgs = {
         query: this.store.account.notificationsQuery,
         modifiedAfter: this.store.account.config.lastNotified,
         sort: ['modified,ASC'],
+        size: this.store.view.pageSize,
       };
       defer(() => this.query.setArgs(args));
     }));
