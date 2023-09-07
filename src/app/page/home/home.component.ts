@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
+import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -16,9 +16,9 @@ import { getArgs } from '../../util/query';
   styleUrls: ['./home.component.scss'],
 })
 export class HomePage implements OnInit, OnDestroy {
-
   private disposers: IReactionDisposer[] = [];
 
+  floatingSidebar = true;
   homeRef?: Ref;
 
   constructor(
@@ -42,6 +42,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    runInAction(() => this.store.view.extTemplates = this.admin.tmplView);
     this.disposers.push(autorun(() => {
       if (this.store.view.forYou) {
         this.account.forYouQuery$.subscribe(q => {
@@ -66,6 +67,9 @@ export class HomePage implements OnInit, OnDestroy {
         );
         defer(() => this.query.setArgs(args));
       }
+    }));
+    this.disposers.push(autorun(() => {
+      this.floatingSidebar = !this.store.view.hasTemplate || this.store.view.isTemplate('map') || this.store.view.isTemplate('graph');
     }));
   }
 

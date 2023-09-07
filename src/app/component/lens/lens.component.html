@@ -1,0 +1,33 @@
+<ng-container *mobxAutorun>
+  <app-force-directed *ngIf="isTemplate('graph') else kanban"
+                      [tag]="tag"
+                      [content]="query.page?.content || []"></app-force-directed>
+  <ng-template #kanban>
+    <app-kanban *ngIf="isTemplate('kanban') else blog"
+                [query]="tag"
+                [ext]="ext!"></app-kanban>
+  </ng-template>
+  <ng-template #blog>
+    <app-blog *ngIf="isTemplate('blog') else chat"
+              [ext]="ext!"
+              [page]="query.page"></app-blog>
+  </ng-template>
+  <ng-template #chat>
+    <app-chat *ngIf="isTemplate('chat') else folder"
+              [query]="tag"></app-chat>
+  </ng-template>
+  <ng-template #folder>
+    <app-folder *ngIf="isTemplate('folder') else noTmpl"
+                [tag]="tag"
+                [page]="query.page"
+                [ext]="ext!"></app-folder>
+  </ng-template>
+  <ng-template #noTmpl>
+    <app-ref-list [class]="cssClass(ext?.tag)"
+                  [page]="query.page"
+                  [plugins]="ext ? [ext.tag] : undefined"
+                  [showAlarm]="showAlarm"
+                  [showVotes]="showVotes"
+                  [ext]="ext"></app-ref-list>
+  </ng-template>
+</ng-container>

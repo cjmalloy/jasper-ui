@@ -41,34 +41,14 @@
   <app-sidebar [floating]="floatingSidebar"
                [ext]="store.view.ext"
                [tag]="store.view.tag"></app-sidebar>
-  <div *ngIf="query.error?.status === 403 else accessGranted" class="error-403" i18n>Access Denied</div>
-  <ng-template #accessGranted>
-    <!-- TODO: allow paging with graph -->
-    <app-ref-list *ngIf="!store.view.viewExt || store.view.isTemplate('plugin') else tmpl"
-                  [class]="cssClass(store.view.viewTag)"
-                  [page]="query.page"
-                  [tag]="store.view.viewTag"
-                  [plugins]="store.view.viewTag ? [store.view.viewTag] : undefined"
-                  [showAlarm]="!store.view.alarm"
-                  [showVotes]="store.view.isVoteSorted"
-                  [ext]="store.view.viewExt"></app-ref-list>
-    <ng-template #tmpl>
-      <app-force-directed *ngIf="store.view.isTemplate('graph')"
-                          [tag]="store.view.viewTag"
-                          [content]="query.page?.content || []"></app-force-directed>
-      <app-folder *ngIf="store.view.isTemplate('folder')"
-                  [tag]="store.view.viewTag"
-                  [page]="query.page"
-                  [ext]="store.view.viewExt!"></app-folder>
-      <app-kanban *ngIf="store.view.isTemplate('kanban')"
-                  [query]="store.view.tag"
-                  [ext]="store.view.viewExt!"></app-kanban>
-      <app-chat *ngIf="store.view.isTemplate('chat')"
-                [query]="store.view.viewTag!"></app-chat>
-      <app-blog *ngIf="store.view.isTemplate('blog')"
-                [ext]="store.view.viewExt!"
-                [page]="query.page"></app-blog>
-    </ng-template>
+  <app-lens *ngIf="query.error?.status !== 403 else accessDenied"
+            [page]="query.page"
+            [showAlarm]="!store.view.alarm"
+            [showVotes]="store.view.isVoteSorted"
+            [tag]="store.view.tag"
+            [ext]="store.view.viewExt"></app-lens>
+  <ng-template #accessDenied>
+    <div class="error-403" i18n>Access Denied</div>
   </ng-template>
 
 </ng-container>

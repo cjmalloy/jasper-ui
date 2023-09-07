@@ -39,11 +39,13 @@ import { ForceDirectedComponent } from './component/graph/force-directed/force-d
 import { KanbanCardComponent } from './component/kanban/kanban-card/kanban-card.component';
 import { KanbanColumnComponent } from './component/kanban/kanban-column/kanban-column.component';
 import { KanbanComponent } from './component/kanban/kanban.component';
+import { LensComponent } from './component/lens/lens.component';
 import { ListEditorComponent } from './component/list-editor/list-editor.component';
 import { LoadingComponent } from './component/loading/loading.component';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { MdComponent } from './component/md/md.component';
 import { MobileTabSelectComponent } from './component/mobile-tab-select/mobile-tab-select.component';
+import { NavComponent } from './component/nav/nav.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
 import { PluginListComponent } from './component/plugin/plugin-list/plugin-list.component';
 import { PluginComponent } from './component/plugin/plugin.component';
@@ -90,6 +92,7 @@ import { TemplateFormComponent } from './form/template/template.component';
 import { ThemesFormComponent } from './form/themes/themes.component';
 import { UserFormComponent } from './form/user/user.component';
 import { JasperFormlyModule } from './formly/formly.module';
+import { HammerConfig } from './hammer.config';
 import { ExtPage } from './page/ext/ext.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAlarmsPage } from './page/inbox/alarms/alarms.component';
@@ -137,8 +140,6 @@ import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
 import { OriginMapService } from './service/origin-map.service';
 import { ThemeService } from './service/theme.service';
-import { HammerConfig } from './hammer.config';
-import { NavComponent } from './component/nav/nav.component';
 
 const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ThemeService) => () =>
   config.load$.pipe(
@@ -285,6 +286,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     InputDoneDirective,
     SettingsMePage,
     NavComponent,
+    LensComponent,
   ],
   imports: [
     BrowserModule,

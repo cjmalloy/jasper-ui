@@ -1,11 +1,10 @@
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, of } from 'rxjs';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
-import { RefService } from '../../service/api/ref.service';
 import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
@@ -34,7 +33,6 @@ export class TagPage implements OnInit, OnDestroy {
     public store: Store,
     public query: QueryStore,
     private theme: ThemeService,
-    private refs: RefService,
     private exts: ExtService,
   ) { }
 
@@ -78,10 +76,5 @@ export class TagPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-  }
-
-  cssClass(tag: string) {
-    return tag.replace(/\//g, '-')
-      .replace(/[^\w-]/g, '');
   }
 }
