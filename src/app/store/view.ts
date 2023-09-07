@@ -39,7 +39,6 @@ export class ViewStore {
   exts: Ext[] = [];
   extTemplates: Template[] = [];
   selectedUser?: User = {} as any;
-  pinned?: Ref[] = [];
   updates = false;
 
   constructor(
@@ -81,7 +80,6 @@ export class ViewStore {
     this.exts = [];
     this.extTemplates = [];
     this.selectedUser = undefined;
-    this.pinned = undefined;
     this.defaultSort = defaultSort;
     this.defaultSearchSort = defaultSearchSort;
   }
@@ -121,11 +119,23 @@ export class ViewStore {
     return s.firstChild?.routeConfig?.path === 'alts';
   }
 
-  get activeExts() {
+  get activeExts(): Ext[] {
     return uniq(this.activeTemplates
         .flatMap(t => {
           const exts = this.exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag));
           if (exts.length) return exts;
+          return [{ tag: t.tag, origin: t.origin, name: t.config?.view || t.name, config: t.defaults }];
+        })
+        .filter(x => !!x));
+  }
+
+  get globalExts(): Ext[] {
+    return uniq(this.globalTemplates
+        .flatMap(t => {
+          if (this.exts.find(x => x.modifiedString && hasPrefix(x.tag, t.tag))) {
+            // Already an active ext so ignore global
+            return [];
+          }
           return [{ tag: t.tag, origin: t.origin, name: t.config?.view || t.name, config: t.defaults }];
         })
         .filter(x => !!x));
@@ -137,8 +147,12 @@ export class ViewStore {
         .filter(t => !!t));
   }
 
+  get globalTemplates(): Template[] {
+    return this.extTemplates.filter(t => t.config?.global);
+  }
+
   get hasTemplate() {
-    return !!this.activeTemplates.length;
+    return !!this.activeTemplates.length && !!this.globalTemplates.length;
   }
 
   isTemplate(template: string) {
@@ -244,15 +258,11 @@ export class ViewStore {
   }
 
   get viewTag(): string {
-    return this.view || this.activeExts[0].tag;
-  }
-
-  get showList() {
-    return this.list || this.graph || !this.activeExts || !this.hasTemplate;
+    return this.view || this.activeExts[0]?.tag || '';
   }
 
   get viewExt() {
-    return this.activeExts.find(x => x.tag === this.viewTag);
+    return [...this.activeExts, ...this.globalExts].find(x => x.tag === this.viewTag);
   }
 
   get template(): string {

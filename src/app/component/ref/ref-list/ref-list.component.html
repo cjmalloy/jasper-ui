@@ -1,12 +1,12 @@
-<div class="list-container" *ngIf="!graph">
+<div class="list-container">
   <ng-container *ngFor="let ref of pinned">
     <div class="list-number">&bullet;</div>
     <app-ref class="pinned"
              [ref]="ref"
              [showToggle]="true"
              [plugins]="plugins"
-             [editable]="editable"
-             [resizeable]="resizeable"
+             [editable]="ext?.config?.editable"
+             [resizeable]="ext?.config?.resizeable"
              [expanded]="expanded"></app-ref>
   </ng-container>
   <ng-container *ngFor="let ref of page?.content; let i = index">
@@ -14,8 +14,8 @@
     <app-ref [ref]="ref"
              [showToggle]="true"
              [plugins]="plugins"
-             [editable]="editable"
-             [resizeable]="resizeable"
+             [editable]="ext?.config?.editable"
+             [resizeable]="ext?.config?.resizeable"
              [showAlarm]="showAlarm"
              [expanded]="expanded"></app-ref>
   </ng-container>
@@ -24,8 +24,8 @@
     <app-ref [ref]="ref"
              [showToggle]="true"
              [plugins]="plugins"
-             [editable]="editable"
-             [resizeable]="resizeable"
+             [editable]="ext?.config?.editable"
+             [resizeable]="ext?.config?.resizeable"
              [expanded]="expanded"></app-ref>
   </ng-container>
 </div>
@@ -34,10 +34,7 @@
     {{ emptyMessage }}
   </p>
   <ng-template #results>
-    <app-force-directed *ngIf="graph"
-                        [tag]="tag"
-                        [content]="page.content"></app-force-directed>
-    <app-page-controls *ngIf="pageControls && !graph"
+    <app-page-controls *ngIf="pageControls"
                        [showPageLast]="showPageLast"
                        [page]="page"></app-page-controls>
   </ng-template>

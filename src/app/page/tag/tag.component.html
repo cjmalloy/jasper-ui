@@ -30,12 +30,11 @@
          [queryParams]="{view: null}"
          queryParamsHandling="merge" i18n>list</a>
     </ng-template>
-    <ng-container *ngIf="admin.status.templates.graph">
-      <a routerLink="./"
-         [class.current-tab]="store.view.graph"
-         [queryParams]="{view: 'graph'}"
-         queryParamsHandling="merge" i18n>graph</a>
-    </ng-container>
+    <a *ngFor="let x of store.view.globalTemplates"
+       routerLink="./"
+       [class.current-tab]="store.view.view === x.tag"
+       [queryParams]="{view: x.tag}"
+       queryParamsHandling="merge" i18n>{{ x.config?.view || x.name || x.tag }}</a>
     <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
   </div>
@@ -45,41 +44,30 @@
   <div *ngIf="query.error?.status === 403 else accessGranted" class="error-403" i18n>Access Denied</div>
   <ng-template #accessGranted>
     <!-- TODO: allow paging with graph -->
-    <app-ref-list *ngIf="store.view.showList else tmpl"
+    <app-ref-list *ngIf="!store.view.viewExt || store.view.isTemplate('plugin') else tmpl"
+                  [class]="cssClass(store.view.viewTag)"
                   [page]="query.page"
-                  [pinned]="store.view.pinned"
-                  [tag]="store.view.tag"
-                  [graph]="store.view.graph"
+                  [tag]="store.view.viewTag"
+                  [plugins]="store.view.viewTag ? [store.view.viewTag] : undefined"
                   [showAlarm]="!store.view.alarm"
-                  [showVotes]="store.view.isVoteSorted"></app-ref-list>
+                  [showVotes]="store.view.isVoteSorted"
+                  [ext]="store.view.viewExt"></app-ref-list>
     <ng-template #tmpl>
-      <div class="error-404" *ngIf="!loading && !store.view.viewExt">
-        Not Found
-      </div>
-      <app-ref-list *ngIf="store.view.isTemplate('plugin')"
-                    [class]="cssClass(store.view.viewTag)"
-                    [page]="query.page"
-                    [pinned]="store.view.pinned"
-                    [expanded]="store.view.viewExt?.config?.defaultExpanded"
-                    [editable]="store.view.viewExt?.config?.editable"
-                    [resizeable]="store.view.viewExt?.config?.resizeable"
-                    [tag]="store.view.viewTag"
-                    [plugins]="[store.view.viewTag]"
-                    [showAlarm]="!store.view.alarm"
-                    [showVotes]="store.view.isVoteSorted"></app-ref-list>
+      <app-force-directed *ngIf="store.view.isTemplate('graph')"
+                          [tag]="store.view.viewTag"
+                          [content]="query.page?.content || []"></app-force-directed>
       <app-folder *ngIf="store.view.isTemplate('folder')"
                   [tag]="store.view.viewTag"
-                  [ext]="store.view.viewExt!"
-                  [page]="query.page"></app-folder>
+                  [page]="query.page"
+                  [ext]="store.view.viewExt!"></app-folder>
       <app-kanban *ngIf="store.view.isTemplate('kanban')"
                   [query]="store.view.tag"
-                  [ext]="store.view.viewExt"></app-kanban>
+                  [ext]="store.view.viewExt!"></app-kanban>
       <app-chat *ngIf="store.view.isTemplate('chat')"
                 [query]="store.view.viewTag!"></app-chat>
       <app-blog *ngIf="store.view.isTemplate('blog')"
-                [tag]="store.view.viewTag!"
-                [page]="query.page"
-                [pinned]="store.view.pinned"></app-blog>
+                [ext]="store.view.viewExt!"
+                [page]="query.page"></app-blog>
     </ng-template>
   </ng-template>
 

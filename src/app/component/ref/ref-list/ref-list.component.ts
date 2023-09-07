@@ -1,10 +1,13 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import * as moment from 'moment';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
+import { Ext } from '../../../model/ext';
+import { RefService } from '../../../service/api/ref.service';
+import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-ref-list',
@@ -16,21 +19,9 @@ export class RefListComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   @Input()
-  pinned?: Ref[] | null;
-  @Input()
-  expanded = false;
-  @Input()
-  tag?: string | null;
-  @Input()
   plugins?: string[];
   @Input()
   showPageLast = true;
-  @Input()
-  editable = true;
-  @Input()
-  resizeable = true;
-  @Input()
-  graph = false;
   @Input()
   showAlarm = true;
   @Input()
@@ -44,14 +35,49 @@ export class RefListComponent implements OnInit, OnDestroy {
   @Input()
   newRefs$?: Observable<Ref | null>;
 
+  pinned: Ref[] = [];
   newRefs: Ref[] = [];
 
   private _page?: Page<Ref>;
+  private _ext?: Ext;
+  private _expanded?: boolean;
 
-  constructor(private router: Router) { }
+  constructor(
+    private router: Router,
+    private refs: RefService,
+    private store: Store,
+  ) { }
+
+  get ext() {
+    return this._ext;
+  }
+
+  @Input()
+  set ext(value: Ext | undefined) {
+    this._ext = value;
+    if (!value?.config?.pinned?.length) {
+      this.pinned = [];
+    } else {
+      forkJoin((value.config.pinned as string[])
+        .map(pin => this.refs.get(pin, this.store.account.origin).pipe(
+          catchError(err => of({url: pin}))
+        )))
+        .subscribe(pinned => this.pinned = pinned);
+    }
+  }
 
   get page(): Page<Ref> | undefined {
     return this._page;
+  }
+
+  get expanded(): boolean {
+    if (this._expanded === undefined) return this._ext?.config?.defaultExpanded;
+    return this._expanded;
+  }
+
+  @Input()
+  set expanded(value: boolean) {
+    this._expanded = value;
   }
 
   @Input()

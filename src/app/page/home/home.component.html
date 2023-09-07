@@ -6,12 +6,6 @@
          [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
          queryParamsHandling="merge" i18n>list</a>
-      <ng-container *ngIf="admin.status.templates.graph">
-        <a routerLink="./"
-           [class.current-tab]="store.view.graph"
-           [queryParams]="{view: 'graph'}"
-           queryParamsHandling="merge" i18n>graph</a>
-      </ng-container>
     </ng-container>
     <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
@@ -22,6 +16,5 @@
               [ref]="homeRef"></app-viewer>
   <app-ref-list *ngIf="!query.page?.empty"
                 [page]="query.page"
-                [graph]="store.view.graph"
-                [showVotes]="store.view.isVoteSorted">></app-ref-list>
+                [showVotes]="store.view.isVoteSorted"></app-ref-list>
 </ng-container>

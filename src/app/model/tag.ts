@@ -57,6 +57,10 @@ export interface Config extends Tag {
      */
     default?: boolean;
     /**
+     * This view is available by default, no tagging required.
+     */
+    global?: boolean;
+    /**
      * Mark this as an experiment. Only show on setup page if
      * plugin/experiments is installed.
      */

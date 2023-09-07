@@ -71,16 +71,7 @@ export class TagPage implements OnInit, OnDestroy {
       }
     }));
     this.disposers.push(autorun(() => {
-      this.floatingSidebar = this.store.view.showList || this.store.view.isTemplate('map');
-      if (!this.store.view.ext?.config?.pinned?.length) {
-        runInAction(() => this.store.view.pinned = undefined);
-        return;
-      }
-      forkJoin((this.store.view.ext.config.pinned as string[])
-        .map(pin => this.refs.get(pin, this.store.account.origin).pipe(
-          catchError(err => of({url: pin}))
-        )))
-        .subscribe(pinned => runInAction(() => this.store.view.pinned = pinned));
+      this.floatingSidebar = !this.store.view.hasTemplate || this.store.view.isTemplate('map') || this.store.view.isTemplate('graph');
     }));
   }
 
