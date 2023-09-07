@@ -1,16 +1,20 @@
 import { Injectable } from '@angular/core';
-import { defer, escape } from 'lodash-es';
+import { escape, uniq } from 'lodash-es';
 import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
-import { catchError, of } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
+import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
 import { wikiUriFormat } from '../mods/wiki';
 import { Store } from '../store/store';
 import { delay } from '../util/async';
 import { Embed } from '../util/embed';
-import { tagOrigin } from '../util/tag';
+import { parseParams } from '../util/http';
+import { getFilters, getFiltersQuery, parseArgs } from '../util/query';
+import { isQuery, queryPrefix, tagOrigin, topAnds } from '../util/tag';
 import { AdminService } from './admin.service';
+import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { EditorService } from './editor.service';
 
@@ -24,6 +28,7 @@ export class EmbedService {
     private admin: AdminService,
     private editor: EditorService,
     private refs: RefService,
+    private exts: ExtService,
     private markdownService: MarkdownService,
   ) {
     markdownService.options = {
@@ -298,9 +303,9 @@ export class EmbedService {
     });
     const inlineQueries = el.querySelectorAll<HTMLAnchorElement>('.inline-query');
     inlineQueries.forEach(t => {
-      const query = this.editor.getQueryUrl(t.innerText);
-      this.refs.page({query, ...this.editor.getQueryParams(t.innerText)}).subscribe(page => {
-        const c = embed.createRefList(page);
+      const query = this.editor.getQuery(t.innerText);
+      this.loadQuery$(query, parseParams(t.innerText)).subscribe(({page, ext}) => {
+        const c = embed.createLens(page, query, ext);
         t.parentNode?.insertBefore(c.location.nativeElement, t);
         t.remove();
       });
@@ -347,10 +352,9 @@ export class EmbedService {
               t.expanded = !t.expanded;
             });
           } else if (type === 'tag') {
-            const query = this.editor.getQueryUrl(url);
-            // @ts-ignore
-            this.refs.page({query, ...this.editor.getQueryParams(url)}).subscribe(page => {
-              const c = embed.createRefList(page);
+            const query = this.editor.getQuery(url);
+            this.loadQuery$(query, parseParams(url)).subscribe(({page, ext}) => {
+              const c = embed.createLens(page, query, ext);
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
               t.expanded = !t.expanded;
@@ -396,9 +400,9 @@ export class EmbedService {
           } else {
             const type = this.editor.getUrlType(url);
             if (type === 'tag') {
-              const query = this.editor.getQueryUrl(url);
-              this.refs.page({query, ...this.editor.getQueryParams(url)}).subscribe(page => {
-                const c = embed.createRefList(page);
+              const query = this.editor.getQuery(url);
+              this.loadQuery$(query, parseParams(url)).subscribe(({page, ext}) => {
+                const c = embed.createLens(page, query, ext);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                 // @ts-ignore
                 t.expanded = !t.expanded;
@@ -485,6 +489,35 @@ export class EmbedService {
     doc.close();
   }
 
+  private loadQuery$(query: string, params: any) {
+    const view: string = params.view;
+    const filterQuery = getFiltersQuery(params.filter);
+    const fullQuery = query && filterQuery ? query + ':' + filterQuery : query || filterQuery || '';
+    return forkJoin({
+      page: this.refs.page({query: fullQuery, ...parseArgs(params)}),
+      ext: this.exts.getCachedExts(uniq([
+          ...topAnds(query),
+          ...topAnds(query).map(queryPrefix),
+          ...getFilters(params.filter),
+        ].filter(t => t && !isQuery(t)))).pipe(
+          map(exts => this.getExt(view, exts))
+      ),
+    });
+  }
+
+  private getExt(view: string, exts: Ext[]) {
+    if (view === 'list') return undefined;
+    if (!view) {
+      view = exts[0]?.tag;
+    }
+    const ext = exts.find(x => x.modifiedString && x.tag === view);
+    if (ext) return ext;
+    const t = this.admin.tmplView.find(t => t.tag === view);
+    if (t) {
+      return { tag: t.tag, origin: t.origin, name: t.config?.view || t.name, config: t.defaults };
+    }
+    return undefined;
+  }
 }
 
 export function transparentIframe(content: string, bgColor: string) {

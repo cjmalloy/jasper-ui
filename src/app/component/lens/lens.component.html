@@ -1,7 +1,7 @@
 <ng-container *mobxAutorun>
   <app-force-directed *ngIf="isTemplate('graph') else kanban"
                       [tag]="tag"
-                      [content]="query.page?.content || []"></app-force-directed>
+                      [content]="page?.content || []"></app-force-directed>
   <ng-template #kanban>
     <app-kanban *ngIf="isTemplate('kanban') else blog"
                 [query]="tag"
@@ -10,7 +10,7 @@
   <ng-template #blog>
     <app-blog *ngIf="isTemplate('blog') else chat"
               [ext]="ext!"
-              [page]="query.page"></app-blog>
+              [page]="page"></app-blog>
   </ng-template>
   <ng-template #chat>
     <app-chat *ngIf="isTemplate('chat') else folder"
@@ -19,12 +19,13 @@
   <ng-template #folder>
     <app-folder *ngIf="isTemplate('folder') else noTmpl"
                 [tag]="tag"
-                [page]="query.page"
+                [page]="page"
                 [ext]="ext!"></app-folder>
   </ng-template>
   <ng-template #noTmpl>
     <app-ref-list [class]="cssClass(ext?.tag)"
-                  [page]="query.page"
+                  [page]="page"
+                  [pageControls]="pageControls"
                   [plugins]="ext ? [ext.tag] : undefined"
                   [showAlarm]="showAlarm"
                   [showVotes]="showVotes"

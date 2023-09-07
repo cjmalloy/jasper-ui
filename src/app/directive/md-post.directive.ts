@@ -1,14 +1,15 @@
 import { ComponentRef, Directive, Inject, Input, OnDestroy, OnInit, ViewContainerRef } from '@angular/core';
 import { defer, isString } from 'lodash-es';
 import { Subject } from 'rxjs';
-import { RefListComponent } from '../component/ref/ref-list/ref-list.component';
+import { LensComponent } from '../component/lens/lens.component';
+import { NavComponent } from '../component/nav/nav.component';
 import { RefComponent } from '../component/ref/ref.component';
 import { ViewerComponent } from '../component/viewer/viewer.component';
+import { Ext } from '../model/ext';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { EmbedService } from '../service/embed.service';
 import { Embed } from '../util/embed';
-import { NavComponent } from '../component/nav/nav.component';
 
 @Directive({
   selector: '[appMdPost]'
@@ -80,10 +81,12 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
     return c;
   }
 
-  createRefList(page: Page<Ref>, pageControls?: boolean): ComponentRef<RefListComponent> {
-    const c = this.viewContainerRef.createComponent(RefListComponent);
+  createLens(page: Page<Ref>, tag: string, ext?: Ext): ComponentRef<LensComponent> {
+    const c = this.viewContainerRef.createComponent(LensComponent);
     c.instance.page = page;
-    c.instance.pageControls = !!pageControls;
+    c.instance.pageControls = false;
+    c.instance.tag = tag;
+    c.instance.ext = ext;
     return c;
   }
 }

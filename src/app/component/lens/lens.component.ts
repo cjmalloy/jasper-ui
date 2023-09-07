@@ -1,14 +1,11 @@
 import { Component, Input } from '@angular/core';
-import { Store } from '../../store/store';
-import { AdminService } from '../../service/admin.service';
-import { AccountService } from '../../service/account.service';
-import { QueryStore } from '../../store/query';
-import { ThemeService } from '../../service/theme.service';
-import { ExtService } from '../../service/api/ext.service';
-import { hasPrefix } from '../../util/tag';
 import { Ext } from '../../model/ext';
-import { Ref } from '../../model/ref';
 import { Page } from '../../model/page';
+import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
+import { AdminService } from '../../service/admin.service';
+import { QueryStore } from '../../store/query';
+import { hasPrefix } from '../../util/tag';
 
 @Component({
   selector: 'app-lens',
@@ -24,6 +21,8 @@ export class LensComponent {
   @Input()
   page?: Page<Ref>;
   @Input()
+  pageControls = true;
+  @Input()
   showAlarm = true;
   @Input()
   showVotes = false;
@@ -31,7 +30,6 @@ export class LensComponent {
   constructor(
     public admin: AdminService,
     public account: AccountService,
-    public store: Store,
     public query: QueryStore,
   ) { }
 

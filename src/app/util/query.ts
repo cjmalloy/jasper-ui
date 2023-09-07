@@ -35,7 +35,7 @@ export function getArgs(
     filters.push('query/(!internal|plugin/comment)');
   }
   filters = uniq(filters);
-  let queryFilter = filter(filters, f => f.startsWith('query/')).map(f => f.substring('query/'.length)).join(':');
+  let queryFilter = getFiltersQuery(filters);
   const query = queryFilter && tagOrSimpleQuery ? `(${tagOrSimpleQuery}):${queryFilter}` : tagOrSimpleQuery || queryFilter;
   if (sort?.length) {
     sort = Array.isArray(sort) ? [...sort] : [sort];
@@ -58,19 +58,24 @@ export function getArgs(
   };
 }
 
-export function parseArgs(url: string): RefPageArgs {
-  try {
-    const params = Object.fromEntries(new URL(url).searchParams);
-    params.page = params.pageNumber;
-    delete params.pageNumber;
-    params.size = params.pageSize;
-    delete params.pageSize;
-    return {
-      ...params,
-      ...getRefFilter(params.filter as any),
-    };
-  } catch {}
-  return {};
+export function getFilters(filters: UrlFilter[]){
+  return filter(filters, f => f.startsWith('query/'))
+    .map(f => f.substring('query/'.length));
+}
+
+export function getFiltersQuery(filters: UrlFilter[]){
+  return getFilters(filters).join(':');
+}
+
+export function parseArgs(params: any): RefPageArgs {
+  params.page = params.pageNumber;
+  delete params.pageNumber;
+  params.size = params.pageSize;
+  delete params.pageSize;
+  return {
+    ...params,
+    ...getRefFilter(params.filter as any),
+  };
 }
 
 function getRefFilter(filter?: UrlFilter[]): RefQueryArgs {

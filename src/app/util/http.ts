@@ -84,3 +84,13 @@ export function fixUrl(url: string) {
   }
   return url;
 }
+
+export function parseParams(url: string): any {
+  try {
+    return Object.fromEntries(new URL(url).searchParams);
+  } catch {}
+  try {
+    return Object.fromEntries(new URL('http://example.com/' + url).searchParams);
+  } catch {}
+  return {};
+}
