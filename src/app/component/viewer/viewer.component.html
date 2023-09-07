@@ -45,6 +45,7 @@
           [appResize]="resizeable"></app-qr>
 </ng-container>
 <app-md *ngIf="currentText"
+        class="expand"
         [origin]="ref?.origin || ''"
         [text]="currentText"
         [plugins]="currentTags"></app-md>

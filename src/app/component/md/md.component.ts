@@ -38,11 +38,6 @@ export class MdComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  @HostBinding("class.expand")
-  get comment() {
-    return !this.plugins?.includes('plugin/table');
-  }
-
   get text(): string {
     return this._text;
   }
