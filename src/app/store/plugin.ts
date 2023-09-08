@@ -21,6 +21,7 @@ export class PluginStore {
   ) {
     makeAutoObservable(this, {
       args: observable.struct,
+      page: observable.ref,
     });
     this.clear(); // Initial observables may not be null for MobX
     autorun(() => {

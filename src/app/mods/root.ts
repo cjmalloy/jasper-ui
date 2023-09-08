@@ -1,6 +1,6 @@
+import { $localize } from '@angular/localize/init';
 import * as moment from 'moment';
 import { Template } from '../model/template';
-import { $localize } from '@angular/localize/init';
 
 export const rootTemplate: Template = {
   tag: '',

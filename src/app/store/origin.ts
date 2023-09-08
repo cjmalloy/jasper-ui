@@ -10,8 +10,8 @@ export class OriginStore {
   constructor() {
     makeAutoObservable(this, {
       origins: observable.shallow,
-      reverseLookup: observable.shallow,
-      originMap: observable.shallow,
+      reverseLookup: observable.ref,
+      originMap: observable.ref,
     });
   }
 

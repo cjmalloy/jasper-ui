@@ -1,16 +1,20 @@
 import { Component, ElementRef, HostBinding, HostListener, Input, ViewChild } from '@angular/core';
 import Hls from 'hls.js';
 import { defer, without } from 'lodash-es';
+import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
-import { findExtension, Ref } from '../../model/ref';
+import { Page } from '../../model/page';
+import { findExtension, Ref, RefSort } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { ConfigService } from '../../service/config.service';
+import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { hasComment } from '../../util/format';
+import { UrlFilter } from '../../util/query';
 import { hasTag } from '../../util/tag';
 
 @Component({
@@ -30,6 +34,12 @@ export class ViewerComponent {
   disableResize = false;
 
   repost?: Ref;
+  page?: Page<Ref>;
+  ext?: Ext;
+  lensQuery = '';
+  lensSort: RefSort[] = [];
+  lensFilter: UrlFilter[] = [];
+  lensSearch = '';
   image? : string;
   audioUrl = '';
   videoUrl = '';
@@ -49,6 +59,7 @@ export class ViewerComponent {
     private config: ConfigService,
     private oembeds: OembedStore,
     private embeds: EmbedService,
+    private editor: EditorService,
     private refs: RefService,
     private store: Store,
     public el: ElementRef,
@@ -75,6 +86,18 @@ export class ViewerComponent {
     if (hasTag('plugin/repost', this.ref)) {
       this.refs.get(value!.sources![0], value!.origin)
         .subscribe(ref => this.repost = ref);
+    }
+    if (hasTag('plugin/lens', this.ref)) {
+      const queryUrl = value!.plugins?.['plugin/lens']?.url || value?.url;
+      this.embeds.loadQuery$(queryUrl)
+        .subscribe(({params, page, ext}) => {
+          this.page = page;
+          this.ext = ext;
+          this.lensQuery = this.editor.getQuery(queryUrl);
+          this.lensSort = params.sort;
+          this.lensFilter = params.filter;
+          this.lensSearch = params.search;
+        });
     }
     if (this.currentTags.includes('plugin/embed')) {
       let width = this.embed.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 400);

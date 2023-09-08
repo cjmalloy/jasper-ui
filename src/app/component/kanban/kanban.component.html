@@ -44,7 +44,9 @@
         <app-kanban-column *ngIf="showColumnBacklog"
                            cdkDropList
                            cdkScrollable
-                           [ext]="ext"
+                           [sort]="sort"
+                           [filter]="filter"
+                           [search]="search"
                            [hideSwimLanes]="disableSwimLanes"
                            [cdkDropListData]="{sl}"
                            (cdkDropListDropped)="drop($any($event))"
@@ -55,6 +57,9 @@
                            cdkDropList
                            cdkScrollable
                            [ext]="ext"
+                           [sort]="sort"
+                           [filter]="filter"
+                           [search]="search"
                            [hideSwimLanes]="disableSwimLanes"
                            [cdkDropListData]="{col, sl}"
                            (cdkDropListDropped)="drop($any($event))"
@@ -69,7 +74,9 @@
         <app-kanban-column *ngIf="showColumnBacklog"
                            cdkDropList
                            cdkScrollable
-                           [ext]="ext"
+                           [sort]="sort"
+                           [filter]="filter"
+                           [search]="search"
                            [hideSwimLanes]="disableSwimLanes"
                            [cdkDropListData]="{}"
                            (cdkDropListDropped)="drop($any($event))"
@@ -79,7 +86,9 @@
         <app-kanban-column *ngFor="let col of columns"
                            cdkDropList
                            cdkScrollable
-                           [ext]="ext"
+                           [sort]="sort"
+                           [filter]="filter"
+                           [search]="search"
                            [hideSwimLanes]="disableSwimLanes"
                            [cdkDropListData]="{col}"
                            (cdkDropListDropped)="drop($any($event))"

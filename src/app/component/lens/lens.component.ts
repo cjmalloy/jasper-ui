@@ -1,10 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
-import { Ref } from '../../model/ref';
+import { Ref, RefSort } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { QueryStore } from '../../store/query';
+import { UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 
 @Component({
@@ -18,6 +19,12 @@ export class LensComponent {
   ext?: Ext;
   @Input()
   tag = '';
+  @Input()
+  sort: RefSort[] = [];
+  @Input()
+  filter: UrlFilter[] = [];
+  @Input()
+  search = '';
   @Input()
   page?: Page<Ref>;
   @Input()

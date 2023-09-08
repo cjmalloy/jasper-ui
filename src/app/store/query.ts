@@ -20,6 +20,7 @@ export class QueryStore {
   ) {
     makeAutoObservable(this, {
       args: observable.struct,
+      page: observable.ref,
       clear: action,
     });
     this.clear(); // Initial observables may not be null for MobX

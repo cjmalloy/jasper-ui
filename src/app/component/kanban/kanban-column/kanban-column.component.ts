@@ -1,8 +1,9 @@
 import { AfterViewInit, Component, HostBinding, HostListener, Input, OnDestroy } from '@angular/core';
-import { autorun, IReactionDisposer } from 'mobx';
+import { uniq } from 'lodash-es';
 import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref, RefSort } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
@@ -15,8 +16,6 @@ import { URI_REGEX } from '../../../util/format';
 import { fixUrl } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { KanbanDrag } from '../kanban.component';
-import { Ext } from '../../../model/ext';
-import { uniq } from 'lodash-es';
 
 @Component({
   selector: 'app-kanban-column',
@@ -26,7 +25,6 @@ import { uniq } from 'lodash-es';
 export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   @HostBinding('class') css = 'kanban-column';
   private destroy$ = new Subject<void>();
-  private disposers: IReactionDisposer[] = [];
 
   @Input()
   hideSwimLanes = true;
@@ -36,14 +34,17 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   addTags: string[] = [];
   @Input()
   ext?: Ext;
+  @Input()
+  sort: RefSort[] = [];
+  @Input()
+  filter: UrlFilter[] = [];
+  @Input()
+  search = '';
 
   _query = '';
   pages?: Page<Ref>[];
   mutated = false;
   addText = '';
-  sort: RefSort[] = [];
-  filter: UrlFilter[] = [];
-  search = '';
   pressToUnlock = false;
 
   constructor(
@@ -54,12 +55,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     private refs: RefService,
     private tags: TaggingService,
   ) {
-    this.disposers.push(autorun(() => {
-      this.sort = this.store.view.sort;
-      this.filter = this.store.view.filter;
-      this.search = this.store.view.search;
-      if (this._query) this.clear();
-    }));
     if (config.mobile) {
       this.pressToUnlock = true;
     }
@@ -74,8 +69,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @Input()

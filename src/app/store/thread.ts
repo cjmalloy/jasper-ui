@@ -24,7 +24,9 @@ export class ThreadStore {
   ) {
     makeAutoObservable(this, {
       args: observable.struct,
-      cache: observable.shallow,
+      cache: observable.ref,
+      pages: observable.ref,
+      latest: observable.ref,
       clear: action,
       setArgs: action,
       add: action,

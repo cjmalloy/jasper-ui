@@ -12,7 +12,7 @@ export class EventBus {
 
   constructor() {
     makeAutoObservable(this, {
-      ref: observable.shallow,
+      ref: observable.ref,
       errors: observable.shallow,
       runAndReload: false,
       runAndRefresh: false,

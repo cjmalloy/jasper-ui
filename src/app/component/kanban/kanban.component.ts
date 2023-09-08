@@ -3,12 +3,13 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { uniq } from 'lodash-es';
 import { catchError, of, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
-import { Ref } from '../../model/ref';
+import { Ref, RefSort } from '../../model/ref';
+import { KanbanConfig } from '../../mods/kanban';
 import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
-import { Store } from '../../store/store';
-import { KanbanConfig } from '../../mods/kanban';
 import { BookmarkService } from '../../service/bookmark.service';
+import { Store } from '../../store/store';
+import { UrlFilter } from '../../util/query';
 
 export interface KanbanDrag {
   from: string;
@@ -29,6 +30,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
   query?: string;
   @Input()
   ext?: Ext;
+  @Input()
+  sort: RefSort[] = [];
+  @Input()
+  filter: UrlFilter[] = [];
+  @Input()
+  search = '';
 
   error: any;
   updates = new Subject<KanbanDrag>();

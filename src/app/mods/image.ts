@@ -1,7 +1,7 @@
+import { $localize } from '@angular/localize/init';
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Template } from '../model/template';
-import { $localize } from '@angular/localize/init';
 
 export const imagePlugin: Plugin = {
   tag: 'plugin/image',
@@ -40,7 +40,6 @@ export const imagePlugin: Plugin = {
       },
     }],
   },
-  defaults: {},
   schema: {
     optionalProperties: {
       url: { type: 'string' },

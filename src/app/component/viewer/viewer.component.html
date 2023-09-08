@@ -5,6 +5,14 @@
            [showToggle]="true"
            [expandInline]="true"
            [ref]="repost"></app-ref>
+  <app-lens *ngIf="page"
+            [page]="page"
+            [pageControls]="false"
+            [tag]="lensQuery"
+            [ext]="ext"
+            [sort]="lensSort"
+            [filter]="lensFilter"
+            [search]="lensSearch"></app-lens>
   <div *ngIf="currentTags.includes('plugin/embed')"
        class="embed-container"
        [class.twitter]="twitter">

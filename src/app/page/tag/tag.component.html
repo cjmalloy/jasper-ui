@@ -46,7 +46,10 @@
             [showAlarm]="!store.view.alarm"
             [showVotes]="store.view.isVoteSorted"
             [tag]="store.view.tag"
-            [ext]="store.view.viewExt"></app-lens>
+            [ext]="store.view.viewExt"
+            [sort]="store.view.sort"
+            [filter]="store.view.filter"
+            [search]="store.view.search"></app-lens>
   <ng-template #accessDenied>
     <div class="error-403" i18n>Access Denied</div>
   </ng-template>

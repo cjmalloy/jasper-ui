@@ -2,10 +2,10 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
+import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
-import { Ext } from '../../../model/ext';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 

@@ -3,9 +3,11 @@ import { escape, uniq } from 'lodash-es';
 import { marked } from 'marked';
 import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
-import { catchError, forkJoin, map, of } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
+import { Page } from '../model/page';
+import { Ref } from '../model/ref';
 import { wikiUriFormat } from '../mods/wiki';
 import { Store } from '../store/store';
 import { delay } from '../util/async';
@@ -303,9 +305,8 @@ export class EmbedService {
     });
     const inlineQueries = el.querySelectorAll<HTMLAnchorElement>('.inline-query');
     inlineQueries.forEach(t => {
-      const query = this.editor.getQuery(t.innerText);
-      this.loadQuery$(query, parseParams(t.innerText)).subscribe(({page, ext}) => {
-        const c = embed.createLens(page, query, ext);
+      this.loadQuery$(t.innerText).subscribe(({page, ext}) => {
+        const c = embed.createLens(page, this.editor.getQuery(t.innerText), ext);
         t.parentNode?.insertBefore(c.location.nativeElement, t);
         t.remove();
       });
@@ -352,9 +353,8 @@ export class EmbedService {
               t.expanded = !t.expanded;
             });
           } else if (type === 'tag') {
-            const query = this.editor.getQuery(url);
-            this.loadQuery$(query, parseParams(url)).subscribe(({page, ext}) => {
-              const c = embed.createLens(page, query, ext);
+            this.loadQuery$(url).subscribe(({page, ext}) => {
+              const c = embed.createLens(page, this.editor.getQuery(url), ext);
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
               t.expanded = !t.expanded;
@@ -400,9 +400,8 @@ export class EmbedService {
           } else {
             const type = this.editor.getUrlType(url);
             if (type === 'tag') {
-              const query = this.editor.getQuery(url);
-              this.loadQuery$(query, parseParams(url)).subscribe(({page, ext}) => {
-                const c = embed.createLens(page, query, ext);
+              this.loadQuery$(url).subscribe(({page, ext}) => {
+                const c = embed.createLens(page, this.editor.getQuery(url), ext);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                 // @ts-ignore
                 t.expanded = !t.expanded;
@@ -489,18 +488,22 @@ export class EmbedService {
     doc.close();
   }
 
-  private loadQuery$(query: string, params: any) {
+  loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext}> {
+    const query = this.editor.getQuery(url);
+    const params = parseParams(url);
     const view: string = params.view;
     const filterQuery = getFiltersQuery(params.filter);
     const fullQuery = query && filterQuery ? query + ':' + filterQuery : query || filterQuery || '';
+    const args = parseArgs(params);
     return forkJoin({
-      page: this.refs.page({query: fullQuery, ...parseArgs(params)}),
+      params: of(params),
+      page: this.refs.page({query: fullQuery, ...args}),
       ext: this.exts.getCachedExts(uniq([
-          ...topAnds(query),
-          ...topAnds(query).map(queryPrefix),
-          ...getFilters(params.filter),
-        ].filter(t => t && !isQuery(t)))).pipe(
-          map(exts => this.getExt(view, exts))
+        ...topAnds(query),
+        ...topAnds(query).map(queryPrefix),
+        ...getFilters(params.filter),
+      ].filter(t => t && !isQuery(t)))).pipe(
+        map(exts => this.getExt(view, exts))
       ),
     });
   }

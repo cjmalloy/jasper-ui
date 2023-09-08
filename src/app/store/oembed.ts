@@ -17,7 +17,7 @@ export class OembedStore {
     private oembeds: OEmbedService,
   ) {
     makeAutoObservable(this, {
-      cache: observable.shallow,
+      cache: observable.ref,
     });
   }
 

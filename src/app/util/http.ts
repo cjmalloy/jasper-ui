@@ -86,11 +86,18 @@ export function fixUrl(url: string) {
 }
 
 export function parseParams(url: string): any {
+  const params: any = {};
+  let p: URLSearchParams;
   try {
-    return Object.fromEntries(new URL(url).searchParams);
+    p = new URL(url).searchParams;
   } catch {}
   try {
-    return Object.fromEntries(new URL('http://example.com/' + url).searchParams);
-  } catch {}
-  return {};
+    p = new URL('http://example.com/' + url).searchParams;
+  } catch {
+    return params;
+  }
+  for (const key of p.keys()) {
+    params[key] = p.getAll(key).length > 1 ? p.getAll(key) : p.get(key)
+  }
+  return params;
 }

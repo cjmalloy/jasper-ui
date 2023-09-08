@@ -8,6 +8,7 @@ import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Config, Tag } from '../model/tag';
 import { Template } from '../model/template';
+import { lensPlugin, lensTemplate } from '../mods/lens';
 import { dmTemplate, inboxPlugin, outboxPlugin } from '../mods/mailbox';
 import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../mods/poll';
 import {
@@ -125,6 +126,7 @@ export class AdminService {
       voteDown: voteDownPlugin,
 
       imagePlugin: imagePlugin,
+      lensPlugin: lensPlugin,
 
       debugPlugin: debugPlugin,
       breakpoint: breakpointPlugin,
@@ -142,6 +144,7 @@ export class AdminService {
       dm: dmTemplate,
 
       imageTemplate: imageTemplate,
+      lensTemplate: lensTemplate,
 
       // Icons
       lockedIcon: lockedIcon,
@@ -431,6 +434,7 @@ export class AdminService {
         if (p === this.status.plugins.imagePlugin) return true;
         if (p === this.status.plugins.pdf) return true;
         if (p === this.status.plugins.repost) return true;
+        if (p === this.status.plugins.lensPlugin) return true;
         return false;
       }).map(p => p!.tag));
     }

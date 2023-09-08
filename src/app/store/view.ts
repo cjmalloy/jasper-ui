@@ -1,16 +1,16 @@
 import { uniq, without } from 'lodash-es';
-import { action, autorun, makeAutoObservable } from 'mobx';
+import { action, autorun, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Ref, RefSort } from '../model/ref';
 import { TagSort } from '../model/tag';
+import { Template } from '../model/template';
 import { User } from '../model/user';
+import { RootConfig } from '../mods/root';
 import { UrlFilter } from '../util/query';
 import { hasPrefix, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
-import { EventBus } from './bus';
 import { AccountStore } from "./account";
-import { RootConfig } from '../mods/root';
-import { Template } from '../model/template';
+import { EventBus } from './bus';
 
 /**
  * ID for current view. Only includes pages that make queries.
@@ -48,6 +48,8 @@ export class ViewStore {
   ) {
     makeAutoObservable(this, {
       clear: action,
+      exts: observable.shallow,
+      extTemplates: observable.shallow,
     });
     this.clear(); // Initial observables may not be null for MobX
 
