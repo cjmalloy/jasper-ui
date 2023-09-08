@@ -5,8 +5,8 @@
              [ref]="ref"
              [showToggle]="true"
              [plugins]="plugins"
-             [editable]="ext?.config?.editable"
-             [resizeable]="ext?.config?.resizeable"
+             [hideEdit]="ext?.config?.hideEdit"
+             [disableResize]="ext?.config?.disableResize"
              [expanded]="expanded"></app-ref>
   </ng-container>
   <ng-container *ngFor="let ref of page?.content; let i = index">
@@ -14,8 +14,8 @@
     <app-ref [ref]="ref"
              [showToggle]="true"
              [plugins]="plugins"
-             [editable]="ext?.config?.editable"
-             [resizeable]="ext?.config?.resizeable"
+             [hideEdit]="ext?.config?.hideEdit"
+             [disableResize]="ext?.config?.disableResize"
              [showAlarm]="showAlarm"
              [expanded]="expanded"></app-ref>
   </ng-container>
@@ -24,8 +24,8 @@
     <app-ref [ref]="ref"
              [showToggle]="true"
              [plugins]="plugins"
-             [editable]="ext?.config?.editable"
-             [resizeable]="ext?.config?.resizeable"
+             [hideEdit]="ext?.config?.hideEdit"
+             [disableResize]="ext?.config?.disableResize"
              [expanded]="expanded"></app-ref>
   </ng-container>
 </div>

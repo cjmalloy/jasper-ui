@@ -142,7 +142,7 @@
                     class="viewer-inline"
                     [ref]="bareRef"
                     [tags]="plugins"
-                    [resizeable]="resizeable"
+                    [disableResize]="disableResize"
                     (contextmenu)="unlockViewer($event)"></app-viewer>
         <div class="actions" [class.expanded]="actionsExpanded">
           <ng-container *ngIf="store.account.user && !ref.created && !ref.upload">
@@ -181,7 +181,7 @@
             <ng-container *ngIf="store.account.user && local">
               <a routerLink="/submit/web" [queryParams]="{ url, tag: 'plugin/repost' }" i18n>repost</a>
             </ng-container>
-            <ng-container *ngIf="editable">
+            <ng-container *ngIf="!hideEdit">
               <a *ngIf="writeAccess else source"
                  class="fake-link"
                  (click)="editing = !editing" i18n>edit</a>
@@ -275,7 +275,7 @@
             class="viewer-below"
             [ref]="bareRef"
             [tags]="plugins"
-            [resizeable]="resizeable"
+            [disableResize]="disableResize"
             (contextmenu)="unlockViewer($event)"></app-viewer>
 
 <form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">

@@ -74,9 +74,9 @@ export class RefComponent implements OnInit, OnDestroy {
   @Input()
   showToggle = false;
   @Input()
-  editable = true;
+  hideEdit = false;
   @Input()
-  resizeable = true;
+  disableResize = true;
   @Input()
   showAlarm = true;
   @Input()

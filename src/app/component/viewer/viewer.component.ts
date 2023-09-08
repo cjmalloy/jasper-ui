@@ -27,7 +27,7 @@ export class ViewerComponent {
   @Input()
   tags?: string[];
   @Input()
-  resizeable = true;
+  disableResize = false;
 
   repost?: Ref;
   image? : string;

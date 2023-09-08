@@ -124,8 +124,8 @@ export const rootTemplate: Template = {
       addTags: { elements: { type: 'string' } },
       defaultThumbnail: { type: 'string' },
       defaultExpanded: { type: 'boolean'},
-      editable: { type: 'boolean'},
-      resizeable: { type: 'boolean'},
+      hideEdit: { type: 'boolean'},
+      disableResize: { type: 'boolean'},
     },
   },
 };
@@ -143,7 +143,7 @@ export interface RootConfig {
   addTags?: string[];
   defaultThumbnail?: boolean;
   defaultExpanded?: boolean;
-  editable?: boolean;
-  resizeable?: boolean;
+  hideEdit?: boolean;
+  disableResize?: boolean;
 }
 
