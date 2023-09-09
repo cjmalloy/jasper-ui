@@ -87,6 +87,7 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
     c.instance.pageControls = false;
     c.instance.tag = tag;
     c.instance.ext = ext;
+    c.instance.size = params.size;
     c.instance.cols = params.cols;
     c.instance.sort = flatten([params.sort || []]);
     c.instance.filter = flatten([params.filter || []]);

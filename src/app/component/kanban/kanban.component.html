@@ -44,6 +44,8 @@
         <app-kanban-column *ngIf="showColumnBacklog"
                            cdkDropList
                            cdkScrollable
+                           [ext]="ext"
+                           [size]="size"
                            [sort]="sort"
                            [filter]="filter"
                            [search]="search"
@@ -57,6 +59,7 @@
                            cdkDropList
                            cdkScrollable
                            [ext]="ext"
+                           [size]="size"
                            [sort]="sort"
                            [filter]="filter"
                            [search]="search"
@@ -74,6 +77,8 @@
         <app-kanban-column *ngIf="showColumnBacklog"
                            cdkDropList
                            cdkScrollable
+                           [ext]="ext"
+                           [size]="size"
                            [sort]="sort"
                            [filter]="filter"
                            [search]="search"
@@ -86,6 +91,8 @@
         <app-kanban-column *ngFor="let col of columns"
                            cdkDropList
                            cdkScrollable
+                           [ext]="ext"
+                           [size]="size"
                            [sort]="sort"
                            [filter]="filter"
                            [search]="search"
@@ -102,6 +109,7 @@
                          cdkDropList
                          cdkScrollable
                          [ext]="ext"
+                         [size]="size"
                          [hideSwimLanes]="disableSwimLanes"
                          [cdkDropListData]="{}"
                          (cdkDropListDropped)="drop($any($event))"
@@ -112,6 +120,7 @@
                          cdkDropList
                          cdkScrollable
                          [ext]="ext"
+                         [size]="size"
                          [hideSwimLanes]="disableSwimLanes"
                          [cdkDropListData]="{col}"
                          (cdkDropListDropped)="drop($any($event))"

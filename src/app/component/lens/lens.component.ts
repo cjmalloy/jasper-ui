@@ -22,6 +22,8 @@ export class LensComponent {
   @Input()
   cols = 0;
   @Input()
+  size = 24;
+  @Input()
   sort: RefSort[] = [];
   @Input()
   filter: UrlFilter[] = [];

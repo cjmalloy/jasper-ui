@@ -35,6 +35,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   @Input()
   ext?: Ext;
   @Input()
+  size = 8;
+  @Input()
   sort: RefSort[] = [];
   @Input()
   filter: UrlFilter[] = [];
@@ -76,10 +78,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     if (this._query === value) return;
     this._query = value;
     this.clear();
-  }
-
-  get size() {
-    return this.store.view.pageSize;
   }
 
   get hasMore() {
