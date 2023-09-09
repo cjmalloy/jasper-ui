@@ -16,7 +16,7 @@ export class PageControlsComponent implements OnInit {
   @Input()
   showPageLast = true;
   @Input()
-  hideCols = true;
+  hideCols = false;
 
   pageSizes = [6, 24, 48, 96, 480];
   colSizes = [1, 2, 3, 4, 5, 6];
