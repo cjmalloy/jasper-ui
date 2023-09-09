@@ -173,6 +173,7 @@ export class ViewerComponent {
 
   get currentText() {
     if (this.tags) return '';
+    if (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract) return '';
     const value = this.text || this.ref?.comment || '';
     if (this.ref?.title || this.text || hasTag('plugin/thread', this.ref) || hasComment(this.ref?.comment)) return value;
     return '';

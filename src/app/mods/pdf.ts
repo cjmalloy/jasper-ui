@@ -23,12 +23,19 @@ export const pdfPlugin: Plugin = {
       props: {
         label: $localize`URL:`,
       },
+    }, {
+      key: 'showAbstract',
+      type: 'boolean',
+      props: {
+        label: $localize`Show Abstract:`,
+      },
     }],
   },
   defaults: {},
   schema: {
     optionalProperties: {
       url: { type: 'string' },
+      showAbstract: { type: 'boolean' },
     },
   },
 };

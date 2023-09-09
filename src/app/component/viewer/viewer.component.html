@@ -59,7 +59,7 @@
         [origin]="ref?.origin || ''"
         [text]="currentText"
         [plugins]="currentTags"></app-md>
-<embed *ngIf="pdfUrl && !currentText"
+<embed *ngIf="pdfUrl"
        type="application/pdf"
        [src]="pdfUrl | safe"
        [style.width]="embedWidth"
