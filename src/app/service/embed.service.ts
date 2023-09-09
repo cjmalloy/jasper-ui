@@ -165,9 +165,9 @@ export class EmbedService {
     }, {
       name: 'embed',
       level: 'inline',
-      start: (src: string) => src.match(/\[(ref|embed|query)]/)?.index,
+      start: (src: string) => src.match(/\[(ref|embed)]/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^\[(ref|embed|query)]\(([^\]]+)\)/;
+        const rule = /^\[(ref|embed)]\(([^\]]+)\)/;
         const match = rule.exec(src);
         if (match) {
           const css = match[1];
@@ -280,36 +280,41 @@ export class EmbedService {
     const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-embed');
     embedRefs.forEach(t => {
       const url = t.innerText;
-      this.refs.get(this.editor.getRefUrl(url), this.store.account.origin).pipe(
-        catchError(() => of(null)),
-      ).subscribe(ref => {
-        if (ref) {
-          const expandPlugins = this.admin.getEmbeds(ref);
-          if (ref.comment || expandPlugins.length) {
-            const c = embed.createEmbed(ref, expandPlugins);
-            t.parentNode?.insertBefore(c.location.nativeElement, t);
-          }
-        } else {
-          const embeds = this.admin.getPluginsForUrl(url);
-          if (embeds.length) {
-            const c = embed.createEmbed(url, embeds.map(p => p.tag));
-            t.parentNode?.insertBefore(c.location.nativeElement, t);
+      const type = this.editor.getUrlType(url);
+      if (type === 'ref') {
+        this.refs.get(this.editor.getRefUrl(url), this.store.account.origin).pipe(
+          catchError(() => of(null)),
+        ).subscribe(ref => {
+          if (ref) {
+            const expandPlugins = this.admin.getEmbeds(ref);
+            if (ref.comment || expandPlugins.length) {
+              const c = embed.createEmbed(ref, expandPlugins);
+              t.parentNode?.insertBefore(c.location.nativeElement, t);
+            }
           } else {
-            el = document.createElement('div');
-            el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
-            t.parentNode?.insertBefore(el, t);
+            const embeds = this.admin.getPluginsForUrl(url);
+            if (embeds.length) {
+              const c = embed.createEmbed(url, embeds.map(p => p.tag));
+              t.parentNode?.insertBefore(c.location.nativeElement, t);
+            } else {
+              el = document.createElement('div');
+              el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
+              t.parentNode?.insertBefore(el, t);
+            }
           }
-        }
-        t.remove();
-      });
-    });
-    const inlineQueries = el.querySelectorAll<HTMLAnchorElement>('.inline-query');
-    inlineQueries.forEach(t => {
-      this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
-        const c = embed.createLens(params, page, this.editor.getQuery(t.innerText), ext);
-        t.parentNode?.insertBefore(c.location.nativeElement, t);
-        t.remove();
-      });
+          t.remove();
+        });
+      } else if (type === 'tag') {
+        this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
+          const c = embed.createLens(params, page, this.editor.getQuery(t.innerText), ext);
+          t.parentNode?.insertBefore(c.location.nativeElement, t);
+          t.remove();
+        });
+      } else {
+        el = document.createElement('div');
+        el.innerHTML = `<span class="error">Can't embed ${escape(url)}.</span>`;
+        t.parentNode?.insertBefore(el, t.nextSibling);
+      }
     });
     const toggleFaces = '<span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span>';
     const inlineToggle = el.querySelectorAll<HTMLDivElement>('.toggle.inline');
