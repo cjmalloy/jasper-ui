@@ -158,7 +158,7 @@ export class BulkComponent implements OnInit, OnDestroy {
   }
 
   download() {
-    downloadPage(this.type, this.queryStore.page!, this.name);
+    downloadPage(this.type, this.queryStore.page!, this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name);
   }
 
   thumbnail(url: string) {
