@@ -10,6 +10,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 import { UrlFilter } from '../../util/query';
+import { isQuery, topAnds } from '../../util/tag';
 
 export interface KanbanDrag {
   from: string;
@@ -109,40 +110,43 @@ export class KanbanComponent implements OnInit, OnDestroy {
     return this.ext?.config || this.defaultConfig;
   }
 
-  get queryFilters(): string[] {
-    return this.filter
-      .filter(f => f.startsWith('query/'))
-      .map(f => f.substring('query/'.length));
+  get queryTags(): string[] {
+    return uniq([
+      ...topAnds(this.query).filter(t => !isQuery(t)),
+      ...this.filter
+        .filter(f => f.startsWith('query/'))
+        .map(f => f.substring('query/'.length)),
+    ]);
   }
 
   get filteredColumn() {
     const cols = this.kanbanConfig.columns || [this.ext?.tag];
-    for (const f of this.queryFilters) {
-      if (cols.includes(f)) return f;
+    for (const tag of this.queryTags) {
+      if (cols.includes(tag)) return tag;
     }
     return undefined;
   }
 
   get filteredColumnBacklog() {
-    for (const f of this.queryFilters) {
-      if (this.colBacklog === f) return true;
+    for (const tag of this.queryTags) {
+      if (this.colBacklog === tag) return true;
     }
     return false;
   }
 
   get filteredSwimLane() {
     if (!this.kanbanConfig.swimLanes) return undefined;
-    for (const f of this.queryFilters) {
-      if (this.kanbanConfig.swimLanes.includes(f)) return f;
-      if (this.slBacklog === f) return f;
+    for (const tag in this.queryTags) {
+      if (this.kanbanConfig.swimLanes.includes(tag)) return tag;
+      if (this.slBacklog === tag) return tag;
     }
     return undefined;
   }
 
   get filteredSwimLaneBacklog() {
     if (!this.kanbanConfig.swimLanes) return false;
-    for (const f of this.queryFilters) {
-      if (this.slBacklog === f) return true;
+    for (const tag of this.queryTags) {
+      if (this.slBacklog === tag) return true;
     }
     return false;
   }
