@@ -197,7 +197,12 @@ export class QueryComponent implements OnInit {
             t.text = ext.name;
           } else {
             const template = this.admin.getTemplate(localTag(tag));
-            if (template?.name) t.text = template.name;
+            if (template?.name) {
+              t.text = template.name;
+            } else {
+              const plugin = this.admin.getPlugin(localTag(tag));
+              if (plugin?.name) t.text = plugin.name;
+            }
           }
         });
       }
