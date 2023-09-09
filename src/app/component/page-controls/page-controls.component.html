@@ -36,7 +36,7 @@
     <option *ngFor="let size of pageSizes" [value]="size">{{ size }}</option>
   </select>
 
-  <ng-container *ngIf="cols || colsChanged">
+  <ng-container *ngIf="!hideCols && (cols || colsChanged)">
     <label for="cols" i18n> cols: </label>
     <select id="cols" [(ngModel)]="cols">
       <option [value]="0" i18n>default</option>
