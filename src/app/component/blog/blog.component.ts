@@ -18,6 +18,8 @@ export class BlogComponent implements OnInit {
   @HostBinding('class') css = 'blog ext';
 
   @Input()
+  pageControls = true;
+  @Input()
   emptyMessage = $localize`No blog entries found`;
 
   pinned: Ref[] = [];

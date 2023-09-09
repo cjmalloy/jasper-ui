@@ -5,6 +5,7 @@
   <app-kanban *ngIf="isTemplate('kanban') else blog"
               [query]="tag"
               [ext]="ext!"
+              [pageControls]="pageControls"
               [size]="size"
               [sort]="sort"
               [filter]="filter"
@@ -14,6 +15,7 @@
   <app-blog *ngIf="isTemplate('blog') else chat"
             [ext]="ext!"
             [page]="page"
+            [pageControls]="pageControls"
             [cols]="cols ?? ext?.config?.defaultCols"></app-blog>
 </ng-template>
 <ng-template #chat>

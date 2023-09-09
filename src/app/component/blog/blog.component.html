@@ -11,7 +11,7 @@
   <p class="no-results" *ngIf="page.empty">
     {{ emptyMessage }}
   </p>
-  <app-page-controls *ngIf="!page.empty"
+  <app-page-controls *ngIf="pageControls && !page.empty"
                      [defaultCols]="cols"
                      [page]="page"></app-page-controls>
 </ng-container>
