@@ -140,7 +140,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   get filteredSwimLane() {
     if (!this.kanbanConfig.swimLanes) return undefined;
-    for (const tag in this.queryTags) {
+    for (const tag of this.queryTags) {
       if (this.kanbanConfig.swimLanes.includes(tag)) return tag;
       if (this.slBacklog === tag) return tag;
     }
