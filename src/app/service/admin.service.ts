@@ -18,6 +18,7 @@ import {
   invoiceRejectionPlugin,
   queueTemplate
 } from '../mods/queue';
+import { seamlessPlugin } from '../mods/seamless';
 import { terminalTheme } from '../mods/theme';
 import { aiPlugin, aiQueryPlugin } from '../mods/ai';
 import { archivePlugin } from '../mods/archive';
@@ -97,6 +98,7 @@ export class AdminService {
       thread: threadPlugin,
       email: emailPlugin,
       fullscreen: fullscreenPlugin,
+      seamless: seamlessPlugin,
       thumbnail: thumbnailPlugin,
       table: tablePlugin,
       aiQuery: aiQueryPlugin,
