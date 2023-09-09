@@ -281,7 +281,13 @@ export class EmbedService {
     embedRefs.forEach(t => {
       const url = t.innerText;
       const type = this.editor.getUrlType(url);
-      if (type === 'ref') {
+      if (type === 'tag') {
+        this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
+          const c = embed.createLens(params, page, this.editor.getQuery(t.innerText), ext);
+          t.parentNode?.insertBefore(c.location.nativeElement, t);
+          t.remove();
+        });
+      } else {
         this.refs.get(this.editor.getRefUrl(url), this.store.account.origin).pipe(
           catchError(() => of(null)),
         ).subscribe(ref => {
@@ -304,16 +310,6 @@ export class EmbedService {
           }
           t.remove();
         });
-      } else if (type === 'tag') {
-        this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
-          const c = embed.createLens(params, page, this.editor.getQuery(t.innerText), ext);
-          t.parentNode?.insertBefore(c.location.nativeElement, t);
-          t.remove();
-        });
-      } else {
-        el = document.createElement('div');
-        el.innerHTML = `<span class="error">Can't embed ${escape(url)}.</span>`;
-        t.parentNode?.insertBefore(el, t.nextSibling);
       }
     });
     const toggleFaces = '<span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span>';
