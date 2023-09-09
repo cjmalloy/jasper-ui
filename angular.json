@@ -126,7 +126,10 @@
               "browserTarget": "jasper-ui:build:production"
             },
             "development": {
-              "browserTarget": "jasper-ui:build:development"
+              "browserTarget": "jasper-ui:build:development",
+              "headers": {
+                "Content-Security-Policy": "default-src 'self' http://localhost:8081; frame-src * data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com https://platform.twitter.com; style-src 'self' 'unsafe-inline'; media-src * data:; img-src * data: blob:; font-src 'self' data:"
+              }
             }
           },
           "defaultConfiguration": "development"
