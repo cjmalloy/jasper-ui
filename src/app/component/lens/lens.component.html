@@ -29,6 +29,7 @@
                 [page]="page"
                 [pageControls]="pageControls"
                 [plugins]="ext ? [ext.tag] : undefined"
+                [cols]="cols ?? ext?.config?.defaultCols"
                 [showAlarm]="showAlarm"
                 [showVotes]="showVotes"
                 [ext]="ext"></app-ref-list>

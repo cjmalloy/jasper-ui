@@ -91,6 +91,22 @@ export const rootTemplate: Template = {
       props: {
         label: $localize`Default Thumbnail:`
       }
+    }, {
+      key: 'defaultCols',
+      type: 'select',
+      props: {
+        label: $localize`Select:`,
+        options: [
+          { value: null, label: $localize`Default` },
+          { value: '1', label: $localize`1 Column` },
+          { value: '2', label: $localize`2 Columns` },
+          { value: '3', label: $localize`3 Columns` },
+          { value: '4', label: $localize`4 Columns` },
+          { value: '4', label: $localize`5 Columns` },
+          { value: '4', label: $localize`6 Columns` },
+          { value: '4', label: $localize`7 Columns` },
+        ],
+      },
     }],
   },
   defaults: <RootConfig> {
@@ -126,6 +142,7 @@ export const rootTemplate: Template = {
       defaultExpanded: { type: 'boolean'},
       hideEdit: { type: 'boolean'},
       disableResize: { type: 'boolean'},
+      defaultCols: { type: 'int8'},
     },
   },
 };
@@ -145,5 +162,6 @@ export interface RootConfig {
   defaultExpanded?: boolean;
   hideEdit?: boolean;
   disableResize?: boolean;
+  defaultCols?: number;
 }
 

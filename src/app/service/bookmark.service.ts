@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { without } from 'lodash-es';
 import { Router } from '@angular/router';
+import { without } from 'lodash-es';
 import { Store } from '../store/store';
 
 @Injectable({
@@ -39,5 +39,9 @@ export class BookmarkService {
 
   set pageSize(value: number) {
     this.router.navigate([], { queryParams: { pageSize: value }, queryParamsHandling: 'merge' });
+  }
+
+  set cols(value: number) {
+    this.router.navigate([], { queryParams: { cols: value }, queryParamsHandling: 'merge' });
   }
 }

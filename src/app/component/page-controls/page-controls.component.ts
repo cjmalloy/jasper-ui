@@ -1,8 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { Page } from '../../model/page';
-import { Store } from '../../store/store';
 import { BookmarkService } from '../../service/bookmark.service';
+import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-page-controls',
@@ -18,6 +17,8 @@ export class PageControlsComponent implements OnInit {
   showPageLast = true;
 
   pageSizes = [6, 24, 48, 96, 480];
+  colSizes = [1, 2, 3, 4, 5, 6];
+  colsChanged = false;
 
   constructor(
     public store: Store,
@@ -27,6 +28,11 @@ export class PageControlsComponent implements OnInit {
   @HostBinding('class.print-hide')
   get fullResults() {
     return this.page?.totalPages === 1;
+  }
+
+  @Input()
+  set defaultCols(value: number | undefined) {
+    this.colsChanged ||= value !== undefined;
   }
 
   get hasQuery() {
@@ -53,6 +59,17 @@ export class PageControlsComponent implements OnInit {
     this.bookmarks.pageSize = value;
   }
 
+  get cols() {
+    if (this.store.view.cols) {
+      this.colsChanged = true;
+    }
+    return this.store.view.cols;
+  }
+
+  set cols(value: number) {
+    this.bookmarks.cols = value;
+  }
+
   ngOnInit(): void {
   }
 
@@ -60,7 +77,11 @@ export class PageControlsComponent implements OnInit {
     window.scrollTo(0, 0);
   }
 
-  outOfRange(size: number) {
+  outOfPageSizeRange(size: number) {
     return !this.pageSizes.includes(size);
+  }
+
+  outOfColSizeRange(size: number) {
+    return !this.colSizes.includes(size);
   }
 }

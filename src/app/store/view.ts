@@ -314,6 +314,10 @@ export class ViewStore {
     return this.ext?.name || this.activeTemplates[0]?.name || this.ext?.tag || this.tag;
   }
 
+  get cols() {
+    return parseInt(this.route.routeSnapshot?.queryParams['cols'] || this.ext?.config?.defaultCols || 0);
+  }
+
   get sort() {
     const sort = this.route.routeSnapshot?.queryParams['sort'];
     if (!sort) return [this.search ? this.defaultSearchSort : (this.ext?.config?.defaultSort || this.defaultSort)];

@@ -37,6 +37,7 @@ export class ViewerComponent {
   page?: Page<Ref>;
   ext?: Ext;
   lensQuery = '';
+  lensCols = 0;
   lensSort: RefSort[] = [];
   lensFilter: UrlFilter[] = [];
   lensSearch = '';
@@ -94,6 +95,7 @@ export class ViewerComponent {
           this.page = page;
           this.ext = ext;
           this.lensQuery = this.editor.getQuery(queryUrl);
+          this.lensCols = params.cols;
           this.lensSort = params.sort;
           this.lensFilter = params.filter;
           this.lensSearch = params.search;

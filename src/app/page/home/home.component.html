@@ -45,5 +45,9 @@
               [ref]="homeRef"></app-viewer>
   <app-lens [page]="query.page"
             [showVotes]="store.view.isVoteSorted"
-            [ext]="store.view.viewExt"></app-lens>
+            [ext]="store.view.viewExt"
+            [cols]="store.view.cols"
+            [sort]="store.view.sort"
+            [filter]="store.view.filter"
+            [search]="store.view.search"></app-lens>
 </ng-container>

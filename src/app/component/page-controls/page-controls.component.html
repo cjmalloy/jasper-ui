@@ -32,9 +32,18 @@
 
   <label for="pageSize" i18n> size: </label>
   <select id="pageSize" [(ngModel)]="pageSize">
-    <option *ngIf="outOfRange(store.view.pageSize)" [value]="store.view.pageSize">{{ store.view.pageSize }}</option>
+    <option *ngIf="outOfPageSizeRange(store.view.pageSize)" [value]="store.view.pageSize">{{ store.view.pageSize }}</option>
     <option *ngFor="let size of pageSizes" [value]="size">{{ size }}</option>
   </select>
+
+  <ng-container *ngIf="cols || colsChanged">
+    <label for="cols" i18n> cols: </label>
+    <select id="cols" [(ngModel)]="cols">
+      <option [value]="0" i18n>default</option>
+      <option *ngIf="outOfColSizeRange(store.view.cols || 1)" [value]="store.view.cols">{{ store.view.cols }}</option>
+      <option *ngFor="let size of colSizes" [value]="size">{{ size }}</option>
+    </select>
+  </ng-container>
 </div>
 <div *ngIf="page" class="print-view" i18n>
   Page {{ page.number + 1 }} of {{ page.totalPages }} (size: {{ page.size }})

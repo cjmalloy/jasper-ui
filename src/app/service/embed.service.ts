@@ -305,8 +305,8 @@ export class EmbedService {
     });
     const inlineQueries = el.querySelectorAll<HTMLAnchorElement>('.inline-query');
     inlineQueries.forEach(t => {
-      this.loadQuery$(t.innerText).subscribe(({page, ext}) => {
-        const c = embed.createLens(page, this.editor.getQuery(t.innerText), ext);
+      this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
+        const c = embed.createLens(params, page, this.editor.getQuery(t.innerText), ext);
         t.parentNode?.insertBefore(c.location.nativeElement, t);
         t.remove();
       });
@@ -353,8 +353,8 @@ export class EmbedService {
               t.expanded = !t.expanded;
             });
           } else if (type === 'tag') {
-            this.loadQuery$(url).subscribe(({page, ext}) => {
-              const c = embed.createLens(page, this.editor.getQuery(url), ext);
+            this.loadQuery$(url).subscribe(({params, page, ext}) => {
+              const c = embed.createLens(params, page, this.editor.getQuery(url), ext);
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
               t.expanded = !t.expanded;
@@ -400,8 +400,8 @@ export class EmbedService {
           } else {
             const type = this.editor.getUrlType(url);
             if (type === 'tag') {
-              this.loadQuery$(url).subscribe(({page, ext}) => {
-                const c = embed.createLens(page, this.editor.getQuery(url), ext);
+              this.loadQuery$(url).subscribe(({params, page, ext}) => {
+                const c = embed.createLens(params, page, this.editor.getQuery(url), ext);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                 // @ts-ignore
                 t.expanded = !t.expanded;

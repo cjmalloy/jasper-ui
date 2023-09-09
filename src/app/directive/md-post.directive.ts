@@ -1,5 +1,5 @@
 import { ComponentRef, Directive, Inject, Input, OnDestroy, OnInit, ViewContainerRef } from '@angular/core';
-import { defer, isString } from 'lodash-es';
+import { defer, flatten, isString } from 'lodash-es';
 import { Subject } from 'rxjs';
 import { LensComponent } from '../component/lens/lens.component';
 import { NavComponent } from '../component/nav/nav.component';
@@ -81,12 +81,16 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
     return c;
   }
 
-  createLens(page: Page<Ref>, tag: string, ext?: Ext): ComponentRef<LensComponent> {
+  createLens(params: any, page: Page<Ref>, tag: string, ext?: Ext): ComponentRef<LensComponent> {
     const c = this.viewContainerRef.createComponent(LensComponent);
     c.instance.page = page;
     c.instance.pageControls = false;
     c.instance.tag = tag;
     c.instance.ext = ext;
+    c.instance.cols = params.cols;
+    c.instance.sort = flatten([params.sort || []]);
+    c.instance.filter = flatten([params.filter || []]);
+    c.instance.search = params.search;
     return c;
   }
 }

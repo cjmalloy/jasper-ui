@@ -37,10 +37,12 @@ export class RefListComponent implements OnInit, OnDestroy {
 
   pinned: Ref[] = [];
   newRefs: Ref[] = [];
+  colStyle = '';
 
   private _page?: Page<Ref>;
   private _ext?: Ext;
   private _expanded?: boolean;
+  private _cols = 0;
 
   constructor(
     private router: Router,
@@ -64,6 +66,20 @@ export class RefListComponent implements OnInit, OnDestroy {
         )))
         .subscribe(pinned => this.pinned = pinned);
     }
+  }
+
+  @Input()
+  set cols(value: number) {
+    this._cols = value;
+    if (!value) {
+      this.colStyle = '';
+    } else {
+      this.colStyle = ' 1fr'.repeat(value);
+    }
+  }
+
+  get cols() {
+    return this._cols;
   }
 
   get page(): Page<Ref> | undefined {
