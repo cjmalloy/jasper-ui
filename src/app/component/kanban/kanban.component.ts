@@ -107,16 +107,22 @@ export class KanbanComponent implements OnInit, OnDestroy {
     return this.ext?.config || this.defaultConfig;
   }
 
+  get queryFilters(): string[] {
+    return this.filter
+      .filter(f => f.startsWith('query/'))
+      .map(f => f.substring('query/'.length));
+  }
+
   get filteredColumn() {
     const cols = this.kanbanConfig.columns || [this.ext?.tag];
-    for (const f of this.store.view.queryFilters) {
+    for (const f of this.queryFilters) {
       if (cols.includes(f)) return f;
     }
     return undefined;
   }
 
   get filteredColumnBacklog() {
-    for (const f of this.store.view.queryFilters) {
+    for (const f of this.queryFilters) {
       if (this.colBacklog === f) return true;
     }
     return false;
@@ -124,7 +130,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   get filteredSwimLane() {
     if (!this.kanbanConfig.swimLanes) return undefined;
-    for (const f of this.store.view.queryFilters) {
+    for (const f of this.queryFilters) {
       if (this.kanbanConfig.swimLanes.includes(f)) return f;
       if (this.slBacklog === f) return f;
     }
@@ -133,7 +139,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   get filteredSwimLaneBacklog() {
     if (!this.kanbanConfig.swimLanes) return false;
-    for (const f of this.store.view.queryFilters) {
+    for (const f of this.queryFilters) {
       if (this.slBacklog === f) return true;
     }
     return false;
