@@ -73,3 +73,12 @@
     }
   }
 }
+
+@media (max-width: 450px) {
+  .disable-swim-lanes {
+    margin-top: 10px;
+  }
+  .kanban-options > * {
+    position: relative;
+  }
+}
