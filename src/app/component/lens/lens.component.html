@@ -12,7 +12,8 @@
 <ng-template #blog>
   <app-blog *ngIf="isTemplate('blog') else chat"
             [ext]="ext!"
-            [page]="page"></app-blog>
+            [page]="page"
+            [cols]="cols ?? ext?.config?.defaultCols"></app-blog>
 </ng-template>
 <ng-template #chat>
   <app-chat *ngIf="isTemplate('chat') else folder"

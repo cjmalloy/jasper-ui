@@ -1,14 +1,18 @@
 <ng-container *ngIf="page else loading">
-  <app-blog-entry *ngFor="let ref of pinned"
-                  class="pinned"
-                  [ref]="ref"></app-blog-entry>
-  <app-blog-entry *ngFor="let ref of page?.content"
-                  [ref]="ref"
-                  [blog]="ext"></app-blog-entry>
+  <div [class.grid-layout]="colStyle"
+       [style.grid-template-columns]="colStyle">
+    <app-blog-entry *ngFor="let ref of pinned"
+                    class="pinned"
+                    [ref]="ref"></app-blog-entry>
+    <app-blog-entry *ngFor="let ref of page?.content"
+                    [ref]="ref"
+                    [blog]="ext"></app-blog-entry>
+  </div>
   <p class="no-results" *ngIf="page.empty">
     {{ emptyMessage }}
   </p>
   <app-page-controls *ngIf="!page.empty"
+                     [defaultCols]="cols"
                      [page]="page"></app-page-controls>
 </ng-container>
 <ng-template #loading>

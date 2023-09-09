@@ -21,10 +21,12 @@ export class BlogComponent implements OnInit {
   emptyMessage = $localize`No blog entries found`;
 
   pinned: Ref[] = [];
+  colStyle = '';
   error: any;
 
   private _page?: Page<Ref>;
   private _ext?: Ext;
+  private _cols = 0;
 
   constructor(
     private router: Router,
@@ -34,6 +36,20 @@ export class BlogComponent implements OnInit {
 
   get page(): Page<Ref> | undefined {
     return this._page;
+  }
+
+  @Input()
+  set cols(value: number) {
+    this._cols = value;
+    if (!value) {
+      this.colStyle = '';
+    } else {
+      this.colStyle = ' 1fr'.repeat(value);
+    }
+  }
+
+  get cols() {
+    return this._cols;
   }
 
   get ext() {
