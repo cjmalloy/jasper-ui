@@ -15,8 +15,11 @@ export const seamlessPlugin: Plugin = {
     icons: [{ label: $localize`🪡`}],
     // language=CSS
     css: `
-      .ref.plugin-seamless > app-viewer > .expand {
+      .ref.plugin-seamless {
+        & > app-viewer > .expand,
+        & > .row > .stack > .link-below > .stack > app-viewer > .expand {
           border: none !important;
+        }
       }
     `,
   },
