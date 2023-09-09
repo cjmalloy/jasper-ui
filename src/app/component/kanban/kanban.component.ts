@@ -31,6 +31,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
   @Input()
   ext?: Ext;
   @Input()
+  size = 8;
+  @Input()
   sort: RefSort[] = [];
   @Input()
   filter: UrlFilter[] = [];
