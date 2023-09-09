@@ -33,6 +33,7 @@ export class RefAltsComponent implements OnInit, OnDestroy {
         number: 0,
         size: 0,
         totalElements: 0,
+        numberOfElements: 0,
         totalPages: 1,
       });
       this.theme.setTitle($localize`Alts: ` + (this.store.view.ref?.title || this.store.view.url))

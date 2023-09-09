@@ -13,8 +13,8 @@
 </ng-template>
 <div class="spacer"></div>
 <a *ngIf="hasMore"
-   class="fake-link no-select"
-   (click)="loadMore()" i18n>load more</a>
+   class="fake-link no-select has-more"
+   (click)="loadMore()" i18n>load more <span *ngIf="more" class="more">({{ more }})</span></a>
 <input type="text"
        i18n-placeholder
        placeholder="Add..."

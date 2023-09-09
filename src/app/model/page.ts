@@ -6,6 +6,7 @@ export interface Page<T> {
   number: number;
   totalPages: number;
   size: number;
+  numberOfElements: number;
   totalElements: number;
 }
 
@@ -29,6 +30,7 @@ export namespace Page {
       number: 0,
       totalPages: 1,
       size: content.length,
+      numberOfElements: content.length,
       totalElements: content.length,
     }
   }

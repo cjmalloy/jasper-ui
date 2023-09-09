@@ -80,6 +80,17 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     this.clear();
   }
 
+  get more() {
+    if (!this.pages || !this.pages.length) return 0;
+    let count = 0;
+    let total = 0;
+    for (const p of this.pages) {
+      count += p.numberOfElements || 0;
+      total = Math.max(total, p.totalElements);
+    }
+    return total - count;
+  }
+
   get hasMore() {
     if (!this.pages || !this.pages.length) return false;
     return !this.pages[this.pages.length - 1].last;

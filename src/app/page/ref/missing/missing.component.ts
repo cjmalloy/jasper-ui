@@ -35,6 +35,7 @@ export class RefMissingComponent implements OnInit, OnDestroy {
         number: 0,
         size: 0,
         totalElements: 0,
+        numberOfElements: 0,
         totalPages: 1,
       });
       this.theme.setTitle($localize`Missing Sources: ` + (this.store.view.ref?.title || this.store.view.url));

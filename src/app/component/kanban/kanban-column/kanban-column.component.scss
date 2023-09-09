@@ -39,6 +39,15 @@
     text-align: center;
   }
 
+  .has-more {
+    .more {
+      opacity: 0;
+      transition: opacity 0.1s ease-in-out;
+    }
+    &:hover .more {
+      opacity: 1;
+    }
+  }
 }
 
 .cdk-drag-animating {
