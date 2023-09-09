@@ -5,7 +5,7 @@ import { Template } from '../model/template';
 
 export const seamlessPlugin: Plugin = {
   tag: 'plugin/seamless',
-  name: $localize`🪡 seamless`,
+  name: $localize`🪡 Seamless`,
   config: {
     type: 'plugin',
     default: true,
