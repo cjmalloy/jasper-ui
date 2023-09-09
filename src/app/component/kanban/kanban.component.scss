@@ -3,7 +3,10 @@
   overflow-x: auto;
   overflow-y: visible;
   max-width: 100vw;
-  padding-bottom: 120px;
+
+  &.full-page {
+    padding-bottom: 120px;
+  }
 
   &.single-column {
     .column-title, .kanban-column {

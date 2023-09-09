@@ -34,6 +34,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
   @Input()
   pageControls = true;
   @Input()
+  fullPage = false;
+  @Input()
   size = 8;
   @Input()
   sort: RefSort[] = [];

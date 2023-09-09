@@ -5,6 +5,7 @@
   <app-kanban *ngIf="isTemplate('kanban') else blog"
               [query]="tag"
               [ext]="ext!"
+              [fullPage]="fullPage"
               [pageControls]="pageControls"
               [size]="size"
               [sort]="sort"
