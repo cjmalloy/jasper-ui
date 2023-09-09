@@ -1,6 +1,7 @@
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
+import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { View } from '../../store/view';
 
@@ -19,6 +20,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   constructor(
     public router: Router,
     public store: Store,
+    public admin: AdminService,
   ) {
     this.disposers.push(autorun(() => {
       this.searchValue = toJS(this.store.view.search);
@@ -39,7 +41,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   viewName(view?: View) {
     switch (view) {
-      case 'tag': return this.store.view.ext?.name || this.store.view.tag;
+      case 'tag': return this.store.view.ext?.name || this.admin.getPlugin(this.store.view.tag)?.name || this.store.view.tag;
       case 'query': return $localize`query results`;
       case 'home': return this.store.account.signedIn ? $localize`subscriptions` : $localize`home page`;
       case 'all': return $localize`all`;
