@@ -22,7 +22,7 @@ export class LensComponent {
   @Input()
   fullPage = false;
   @Input()
-  cols = 0;
+  cols? = 0;
   @Input()
   size = 24;
   @Input()
