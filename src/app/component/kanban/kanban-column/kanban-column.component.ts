@@ -73,6 +73,10 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  trackByUrlOrigin(index: number, value: Ref) {
+    return value.origin + '@' + value.url;
+  }
+
   @Input()
   set query(value: string) {
     if (this._query === value) return;

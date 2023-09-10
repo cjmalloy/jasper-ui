@@ -50,6 +50,10 @@ export class RefListComponent implements OnInit, OnDestroy {
     private store: Store,
   ) { }
 
+  trackByUrlOrigin(index: number, value: Ref) {
+    return value.origin + '@' + value.url;
+  }
+
   get ext() {
     return this._ext;
   }

@@ -32,12 +32,12 @@
        class="column-title tag"
        (click)="bookmarks.toggleFilter(colBacklog)"
        title="No matching column tag">{{ kanbanConfig.columnBacklogTitle || 'Backlog' }}</a>
-    <a *ngFor="let col of columns"
+    <a *ngFor="let col of columns trackBy: trackByIdx"
        class="column-title tag"
        (click)="bookmarks.toggleFilter(col)"
        [title]="col">{{ (exts.getCachedExt(col, ext.origin || '') | async)?.name || col }}</a>
     <ng-container *ngIf="swimLanes else noSwimLanes">
-      <ng-container *ngFor="let sl of swimLanes">
+      <ng-container *ngFor="let sl of swimLanes trackBy: trackByIdx">
         <a class="swim-lane-title tag"
            (click)="bookmarks.toggleFilter(sl)"
            [title]="sl">{{ (exts.getCachedExt(sl, ext.origin || '') | async)?.name || sl }}</a>
@@ -55,7 +55,7 @@
                            [updates]="updates"
                            [query]="getQuery({sl})"
                            [addTags]="addingTags({sl})"></app-kanban-column>
-        <app-kanban-column *ngFor="let col of columns"
+        <app-kanban-column *ngFor="let col of columns trackBy: trackByIdx"
                            cdkDropList
                            cdkScrollable
                            [ext]="ext"
@@ -88,7 +88,7 @@
                            [updates]="updates"
                            [query]="getQuery({})"
                            [addTags]="addingTags({})"></app-kanban-column>
-        <app-kanban-column *ngFor="let col of columns"
+        <app-kanban-column *ngFor="let col of columns trackBy: trackByIdx"
                            cdkDropList
                            cdkScrollable
                            [ext]="ext"
@@ -116,7 +116,7 @@
                          [updates]="updates"
                          [query]="getQuery({})"
                          [addTags]="addingTags({})"></app-kanban-column>
-      <app-kanban-column *ngFor="let col of columns"
+      <app-kanban-column *ngFor="let col of columns trackBy: trackByIdx"
                          cdkDropList
                          cdkScrollable
                          [ext]="ext"

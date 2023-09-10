@@ -66,6 +66,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.updates.complete();
   }
+
+  trackByIdx(index: number, value: string) {
+    return index;
+  }
+
   get disableSwimLanes(): boolean {
     return this._disableSwimLanes === undefined ? !!this.kanbanConfig.hideSwimLanes : this._disableSwimLanes;
   }

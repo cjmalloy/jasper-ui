@@ -36,6 +36,10 @@ export class BlogComponent implements OnInit {
     private refs: RefService,
   ) { }
 
+  trackByUrlOrigin(index: number, value: Ref) {
+    return value.origin + '@' + value.url;
+  }
+
   get page(): Page<Ref> | undefined {
     return this._page;
   }

@@ -1,10 +1,10 @@
 <ng-container *ngIf="page else loading">
   <div [class.grid-layout]="colStyle"
        [style.grid-template-columns]="colStyle">
-    <app-blog-entry *ngFor="let ref of pinned"
+    <app-blog-entry *ngFor="let ref of pinned trackBy: trackByUrlOrigin"
                     class="pinned"
                     [ref]="ref"></app-blog-entry>
-    <app-blog-entry *ngFor="let ref of page?.content"
+    <app-blog-entry *ngFor="let ref of page?.content trackBy: trackByUrlOrigin"
                     [ref]="ref"
                     [blog]="ext"></app-blog-entry>
   </div>
