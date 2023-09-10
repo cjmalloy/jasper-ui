@@ -273,7 +273,8 @@ video.qr-preview {
               0 8px 10px 1px rgba(0, 0, 0, 0.14),
               0 3px 14px 2px rgba(0, 0, 0, 0.12);
 
-  div {
+  div, a {
+    display: block;
     border-radius: 2px;
     margin: 4px;
     padding: 4px;
@@ -1086,6 +1087,8 @@ formly-field-radio, formly-field-multicheckbox {
 .actions {
   padding: 2px 0;
   height: 14px;
+}
+.actions, .advanced-actions {
   font-size: 80%;
   font-weight: bold;
   white-space: nowrap;

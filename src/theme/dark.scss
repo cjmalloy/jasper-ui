@@ -374,7 +374,7 @@ body.dark-theme {
       border: none !important;
   }
 
-  .actions {
+  .actions, .advanced-actions {
     :link, :visited, a:active, .fake-link {
       color: var(--info);
     }

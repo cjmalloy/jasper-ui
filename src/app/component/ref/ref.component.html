@@ -235,18 +235,10 @@
               <a class="fake-link" (click)="deleting = false">no</a>&nbsp;
             </span>
           </ng-container>
-          <a class="fake-link"
-             (click)="download()" i18n>download</a>
-          <a *ngIf="mediaAttachment"
-             class="fake-link"
-             (click)="downloadMedia()" i18n>media</a>
           <ng-container *ngIf="canInvoice">
             <a routerLink="/submit/invoice"
                [queryParams]="{url: ref.url}" i18n>invoice</a>
           </ng-container>
-          <!-- TODO: Make these events in plugin -->
-          <a *ngIf="pdf" target="_blank" [href]="pdfUrl" i18n>pdf</a>
-          <a *ngIf="archive" target="_blank" [href]="archive" i18n>archive</a>
           <ng-container *ngFor="let a of actions">
             <a *ngIf="showAction(a)"
                class="fake-link"
@@ -256,19 +248,26 @@
                [field]="label(a)"
                [ref]="ref"></a>
           </ng-container>
-          <span *ngIf="advancedActionsVisible"
-                class="fake-link show-more"
+          <span class="fake-link show-more"
                 (click)="showAdvanced($event)">…</span>
           <ng-template #actionsMenu>
             <div class="context-menu advanced-actions" (click)="$event.stopPropagation()">
+              <a class="fake-link"
+                 (click)="download()" i18n>download</a>
+              <a *ngIf="mediaAttachment"
+                 class="fake-link"
+                 (click)="downloadMedia()" i18n>media</a>
+              <!-- TODO: Make these events in plugin -->
+              <a *ngIf="pdf" target="_blank" [href]="pdfUrl" i18n>pdf</a>
+              <a *ngIf="archive" target="_blank" [href]="archive" i18n>archive</a>
               <ng-container *ngFor="let a of advancedActions">
-                <div *ngIf="showAction(a)"
+                <a *ngIf="showAction(a)"
                    class="fake-link"
                    (click)="closeAdvanced() || acts.apply(ref, a)"
                    [appTitle]="a"
                    [appActionLabel]="a"
                    [field]="label(a)"
-                   [ref]="ref"></div>
+                   [ref]="ref"></a>
               </ng-container>
             </div>
           </ng-template>

@@ -109,7 +109,6 @@ export class RefComponent implements OnInit, OnDestroy {
   alarm?: string;
   actions: Action[] = [];
   advancedActions: Action[] = [];
-  advancedActionsVisible = false;
   infoUis: Plugin[] = [];
   publishedLabel = $localize`published`;
   tagging = false;
@@ -230,7 +229,6 @@ export class RefComponent implements OnInit, OnDestroy {
     this.actions = this.ref.created ? sortOrder(this.admin.getActions(value.tags, value.plugins)) : [];
     // TODO: detect width and move actions that don't fit into advanced actions
     this.advancedActions = this.ref.created ? sortOrder(this.admin.getAdvancedActions(value.tags, value.plugins)) : [];
-    this.advancedActionsVisible = !!this.advancedActions.find(a => this.showAction(a));
     this.infoUis = this.admin.getPluginInfoUis(value.tags);
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
 

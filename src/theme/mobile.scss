@@ -254,7 +254,7 @@ $tablet-width: 767px;
     }
   }
 
-  .info, .actions {
+  .info, .actions, .advanced-actions * {
     font-size: 16px;
     line-height: 28px;
     height: 28px;
@@ -284,6 +284,10 @@ $tablet-width: 767px;
         padding-bottom: 10px;
       }
     }
+  }
+
+  .show-more {
+    opacity: 1 !important;
   }
 
   .expand {
