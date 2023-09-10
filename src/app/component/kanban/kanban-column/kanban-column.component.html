@@ -1,15 +1,13 @@
-<app-loading *ngIf="!pages else loaded"></app-loading>
+<app-loading *ngIf="!page else loaded"></app-loading>
 <ng-template #loaded>
-  <ng-container *ngFor="let page of pages">
-    <app-kanban-card *ngFor="let ref of page.content trackBy: trackByUrlOrigin"
-                     cdkDrag
-                     [hideSwimLanes]="hideSwimLanes"
-                     [cdkDragData]="ref"
-                     [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
-                     [pressToUnlock]="pressToUnlock"
-                     [ref]="ref"
-                     [ext]="ext"></app-kanban-card>
-  </ng-container>
+  <app-kanban-card *ngFor="let ref of page!.content trackBy: trackByUrlOrigin"
+                   cdkDrag
+                   [hideSwimLanes]="hideSwimLanes"
+                   [cdkDragData]="ref"
+                   [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
+                   [pressToUnlock]="pressToUnlock"
+                   [ref]="ref"
+                   [ext]="ext"></app-kanban-card>
 </ng-template>
 <div class="spacer"></div>
 <a *ngIf="hasMore"
