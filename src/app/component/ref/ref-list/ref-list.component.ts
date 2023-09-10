@@ -86,7 +86,7 @@ export class RefListComponent implements OnInit, OnDestroy {
 
   get cols() {
     if (this._cols) return this._cols;
-    return this.ext?.config.defaultCols;
+    return this.ext?.config?.defaultCols;
   }
 
   get page(): Page<Ref> | undefined {
