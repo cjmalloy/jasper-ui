@@ -93,6 +93,11 @@
         {{ template?.name || '' }}</label>
       </div>
     </ng-container>
+
+    <ng-container *ngIf="homeWriteAccess">
+      <div class="submit-button" [routerLink]="['/ext', '+home']">
+        <span i18n-title title="Edit Home Page" i18n>🏡️</span> <label i18n>Home Page</label></div>
+    </ng-container>
     <ng-container *ngIf="store.view.type === 'ext' && !store.view.template">
       <div class="submit-button" [routerLink]="['/ext']">
         <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag</label></div>
@@ -120,12 +125,6 @@
         Follow other users to see their subscriptions alongside yours here.
       </p>
     </ng-container>
-
-    <a *ngIf="homeWriteAccess"
-       class="sidebar-link edit"
-       [routerLink]="['/ext', '+home']" i18n>
-      edit
-    </a>
   </div>
   <div class="hide tag-header" *ngIf="!home && store.view.tag">
     <h3 *ngIf="store.view.current === 'tag'">{{ ext?.name || tag }}</h3>
