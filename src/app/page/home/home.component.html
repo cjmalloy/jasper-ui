@@ -40,9 +40,7 @@
   </div>
   <app-sidebar [home]="true"
                [floating]="floatingSidebar"
-               [ext]="store.account.ext"></app-sidebar>
-  <app-viewer *ngIf="homeRef"
-              [ref]="homeRef"></app-viewer>
+               [ext]="homeExt"></app-sidebar>
   <app-lens [page]="query.page"
             [showVotes]="store.view.isVoteSorted"
             [ext]="store.view.viewExt"

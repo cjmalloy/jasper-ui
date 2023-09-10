@@ -164,7 +164,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get root() {
-    return !!this.admin.status.templates.root && !!this._tag;
+    return !!this.admin.status.templates.root;
   }
 
   get rootConfig() {
@@ -183,7 +183,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   get userConfig() {
     if (!this.user && !this.home) return null;
-    return this._ext?.config as UserConfig;
+    return this.store.account.ext?.config as UserConfig;
   }
 
   get bookmarks$() {

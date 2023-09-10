@@ -1,10 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { Ref } from '../../model/ref';
+import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
-import { RefService } from '../../service/api/ref.service';
+import { ExtService } from '../../service/api/ext.service';
 import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
@@ -19,7 +19,7 @@ export class HomePage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   floatingSidebar = true;
-  homeRef?: Ref;
+  homeExt?: Ext;
 
   constructor(
     private theme: ThemeService,
@@ -27,17 +27,13 @@ export class HomePage implements OnInit, OnDestroy {
     public account: AccountService,
     public store: Store,
     public query: QueryStore,
-    private refs: RefService,
+    private exts: ExtService,
   ) {
     theme.setTitle($localize`Home`);
     store.view.clear(!!this.admin.status.plugins.voteUp ? 'voteScoreDecay' : 'published');
     query.clear();
     if (admin.status.templates.home) {
-      refs.page({query: '+home', sort: ['published,DESC'], size: 1}).subscribe(page => {
-        if (!page.empty) {
-          this.homeRef = page.content[0];
-        }
-      });
+      exts.getCachedExt('+home').subscribe(x => this.homeExt = x);
     }
   }
 
