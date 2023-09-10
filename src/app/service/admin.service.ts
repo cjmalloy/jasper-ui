@@ -38,6 +38,7 @@ import { oEmbedPlugin } from '../mods/oembed';
 import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } from '../mods/origin';
 import { pdfPlugin } from '../mods/pdf';
 import { personPlugin } from '../mods/person';
+import { pipPlugin } from '../mods/pip';
 import { qrPlugin } from '../mods/qr';
 import { repostPlugin } from '../mods/repost';
 import { scrapePlugin } from '../mods/scrape';
@@ -129,6 +130,7 @@ export class AdminService {
 
       imagePlugin: imagePlugin,
       lensPlugin: lensPlugin,
+      pipPlugin: pipPlugin,
 
       debugPlugin: debugPlugin,
       breakpoint: breakpointPlugin,
