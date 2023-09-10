@@ -44,7 +44,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   search = '';
 
   _query = '';
-  pages?: Page<Ref>[];
+  page?: Page<Ref>;
   mutated = false;
   addText = '';
   pressToUnlock = false;
@@ -85,19 +85,13 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   }
 
   get more() {
-    if (!this.pages || !this.pages.length) return 0;
-    let count = 0;
-    let total = 0;
-    for (const p of this.pages) {
-      count += p.numberOfElements || 0;
-      total = Math.max(total, p.totalElements);
-    }
-    return total - count;
+    if (!this.page) return 0;
+    return this.page.totalElements - this.page.numberOfElements;
   }
 
   get hasMore() {
-    if (!this.pages || !this.pages.length) return false;
-    return !this.pages[this.pages.length - 1].last;
+    if (!this.page) return false;
+    return !this.page.last;
   }
 
   @HostListener('touchstart', ['$event'])
@@ -119,43 +113,31 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
       0,
       this.size,
     )).subscribe(page => {
-      this.pages = [page];
+      this.page = page;
     });
   }
 
   update(event: KanbanDrag) {
-    if (!this.pages) return;
+    if (!this.page) return;
     if (event.from === this._query) {
-      for (const p of this.pages) {
-        if (p.content.includes(event.ref)) {
-          p.content.splice(p.content.indexOf(event.ref), 1);
-          break;
-        }
+      if (this.page.content.includes(event.ref)) {
+        this.page.content.splice(this.page.content.indexOf(event.ref), 1);
       }
     }
     if (event.to === this._query) {
-      this.pages[Math.floor(event.index / this.size)].content.splice(event.index % this.size, 0, event.ref);
+      this.page.content.splice(Math.min(event.index, this.page.numberOfElements - 1), 0, event.ref);
     }
   }
 
   loadMore() {
-    if (this.pages && this.mutated) {
-      for (let i = 0; i < this.pages.length; i++) {
+    const pageNumber = this.page?.number || 0;
+    if (this.page && this.mutated) {
+      for (let i = 0; i <= pageNumber; i++) {
         this.refreshPage(i);
       }
     }
     this.mutated = false;
-    this.refs.page(getArgs(
-      this._query,
-      this.sort,
-      this.filter,
-      this.search,
-      this.pages?.length || 0,
-      this.size
-    )).subscribe(page => {
-      if (!this.pages) this.pages = [];
-      this.pages.push(page);
-    });
+    this.refreshPage(pageNumber + 1);
   }
 
   add() {
@@ -229,8 +211,11 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
       }),
     ).subscribe(posted => {
       this.mutated = true;
-      if (!this.pages) this.pages = [{ content: []} as any];
-      this.pages[this.pages.length - 1].content.push(posted || ref)
+      if (!this.page) {
+        console.error('Should not happen, will probably get cleared.');
+        this.page = {content: []} as any;
+      }
+      this.page!.content.push(posted || ref)
     });
     this.addText = '';
   }
@@ -244,8 +229,13 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
       i,
       this.size
     )).subscribe(page => {
-      if (!this.pages) this.pages = [];
-      this.pages[i] = page;
+      const pageOffset = this.page!.numberOfElements;
+      this.page!.number = page.number;
+      this.page!.numberOfElements += page.numberOfElements;
+      this.page!.last = page.last;
+      for (let offset = 0; offset < page.numberOfElements; offset++) {
+        this.page!.content[pageOffset + offset] = page.content[offset];
+      }
     });
   }
 
