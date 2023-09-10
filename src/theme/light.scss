@@ -416,6 +416,9 @@ body.light-theme {
       background-color: transparent;
       backdrop-filter: blur(1px) sepia(5%);
       border: 0.5px solid var(--border-light);
+      &:hover {
+        box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.2);
+      }
     }
     .kanban-column {
       border: 1px solid transparent;
@@ -444,6 +447,9 @@ body.light-theme {
     &.unlocked {
       border-radius: 5px;
       border: 0.25px dashed var(--border-accent);
+    }
+    &:hover {
+      filter: drop-shadow(0 0 0.5px var(--border));
     }
     &.cdk-drag-placeholder {
       background-color: var(--placeholder);
