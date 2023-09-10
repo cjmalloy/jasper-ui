@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostBinding, HostListener, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostBinding, HostListener, Input, ViewChild } from '@angular/core';
 import Hls from 'hls.js';
 import { defer, without } from 'lodash-es';
 import { Ext } from '../../model/ext';
@@ -22,7 +22,7 @@ import { hasTag } from '../../util/tag';
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss']
 })
-export class ViewerComponent {
+export class ViewerComponent implements AfterViewInit {
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
 
@@ -66,6 +66,14 @@ export class ViewerComponent {
     private store: Store,
     public el: ElementRef,
   ) { }
+
+  async ngAfterViewInit() {
+    if (this.currentTags.includes('plugin/pip')) {
+      // @ts-ignore
+      const pipWindow = await documentPictureInPicture.requestWindow();
+      pipWindow.document.body.append(this.el.nativeElement);
+    }
+  }
 
   @HostListener('click')
   onClick() {
