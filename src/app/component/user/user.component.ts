@@ -5,9 +5,11 @@ import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
+import { Ext } from '../../model/ext';
 import { getRole, Profile } from '../../model/profile';
 import { User } from '../../model/user';
 import { AdminService } from '../../service/admin.service';
+import { ExtService } from '../../service/api/ext.service';
 import { ProfileService } from '../../service/api/profile.service';
 import { UserService } from '../../service/api/user.service';
 import { AuthzService } from '../../service/authz.service';
@@ -38,6 +40,7 @@ export class UserComponent implements OnInit {
   user?: User;
 
   editForm: UntypedFormGroup;
+  ext?: Ext;
   changingPassword = false;
   changingRole = false;
   submitted = false;
@@ -59,6 +62,7 @@ export class UserComponent implements OnInit {
     private auth: AuthzService,
     private profiles: ProfileService,
     private users: UserService,
+    private exts: ExtService,
     private fb: FormBuilder,
   ) {
     this.editForm = userForm(fb, true);
@@ -72,6 +76,8 @@ export class UserComponent implements OnInit {
   ngOnInit(): void {
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
     if (this.user && !this.profile) {
+      this.exts.getCachedExt(this.user.tag, this.user.origin)
+        .subscribe(x => this.ext = x);
       this.profiles.getProfile(this.qualifiedTag)
         .subscribe(profile => this.profile = profile);
     }

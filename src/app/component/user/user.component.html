@@ -1,5 +1,5 @@
 <div class="link">
-  <a [routerLink]="['/tag', qualifiedTag]">{{ user?.name || localTag }}</a>
+  <a [routerLink]="['/tag', qualifiedTag]">{{ user?.name || ext?.name || localTag }}</a>
   <span *ngIf="user?.name" class="host">({{ qualifiedTag }})</span>
   <span *ngIf="!user?.name && origin" class="host">({{ origin }})</span>
 </div>
