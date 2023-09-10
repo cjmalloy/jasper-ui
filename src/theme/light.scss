@@ -245,13 +245,13 @@ body.light-theme {
     border-top: 0.5px dashed var(--border);
   }
 
-  .editor:focus-within, .bubble, .plugins-form > * {
+  .editor:focus-within, .bubble, .plugins-form > *, blockquote {
     border-radius: 8px;
     backdrop-filter: blur(1px) sepia(5%);
     box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
   }
 
-  .bubble, .plugins-form > * {
+  .bubble, .plugins-form > *, blockquote {
     margin-top: 8px;
     padding: 8px;
     border: 1px dashed transparent;
@@ -267,7 +267,9 @@ body.light-theme {
     &:first-child {
       margin: 0;
     }
+  }
 
+  .bubble, .plugins-form > * {
     &:hover {
       border: 1px dashed var(--border);
     }
