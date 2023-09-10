@@ -181,7 +181,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       }),
     ).subscribe(() => {
       this.editForm.markAsPristine();
-      if (ext.tag === '+home' && this.admin.status.templates.home) {
+      if (ext.tag === 'home' && this.admin.status.templates.home) {
         this.router.navigate(['/home']);
       } else {
         this.router.navigate(['/tag', ext.tag]);

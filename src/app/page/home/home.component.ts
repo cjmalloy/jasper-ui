@@ -33,7 +33,7 @@ export class HomePage implements OnInit, OnDestroy {
     store.view.clear(!!this.admin.status.plugins.voteUp ? 'voteScoreDecay' : 'published');
     query.clear();
     if (admin.status.templates.home) {
-      exts.getCachedExt('+home').subscribe(x => this.homeExt = x);
+      exts.getCachedExt('home').subscribe(x => this.homeExt = x);
     }
   }
 

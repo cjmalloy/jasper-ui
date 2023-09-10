@@ -95,7 +95,7 @@
     </ng-container>
 
     <ng-container *ngIf="homeWriteAccess">
-      <div class="submit-button" [routerLink]="['/ext', '+home']">
+      <div class="submit-button" [routerLink]="['/ext', 'home']">
         <span i18n-title title="Edit Home Page" i18n>🏡️</span> <label i18n>Home Page</label></div>
     </ng-container>
     <ng-container *ngIf="store.view.type === 'ext' && !store.view.template">
