@@ -1,6 +1,6 @@
 import * as moment from 'moment';
-import { Template } from '../model/template';
 import { Plugin } from '../model/plugin';
+import { Template } from '../model/template';
 
 export const debugTemplate: Template = {
   tag: 'debug',
@@ -153,7 +153,7 @@ export const debugPlugin: Plugin = {
       { label: $localize`🐞️` },
       { label: $localize`🔴️`, response: 'plugin/breakpoint', global: true },
     ],
-    actions: [
+    advancedActions: [
       { response: 'plugin/breakpoint', labelOff: $localize`break`, labelOn: $localize`clear`, global: true },
     ],
     filters: [

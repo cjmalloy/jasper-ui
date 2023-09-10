@@ -15,7 +15,7 @@ export const summaryQueryPlugin: Plugin = {
     filters: [
       { query: 'plugin/summary', label: $localize`✂️️💭️ summarize`, group: $localize`Notifications ✉️` },
     ],
-    actions: [
+    advancedActions: [
       { tag: 'plugin/summary', labelOff: $localize`summarize`, global: true }
     ],
   },
