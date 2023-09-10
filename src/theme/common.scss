@@ -1273,6 +1273,14 @@ ngx-monaco-editor {
     border-radius: 12px;
     font-weight: bold;
     text-align: center;
+
+    transform: scale(1);
+    transform-origin: center;
+    transition: transform 0.1s cubic-bezier(.47,1.64,.8,1.2);
+    &:hover {
+      z-index: 1;
+      transform: scale(1.01);
+    }
   }
 
   .kanban-header {
@@ -1292,6 +1300,10 @@ ngx-monaco-editor {
   padding: 4px;
   margin-top: 2px;
 
+  .md p {
+    text-align: left;
+  }
+
   &.no-write {
     cursor: not-allowed !important;
 
@@ -1310,6 +1322,10 @@ ngx-monaco-editor {
   &.unlocked {
     z-index: 1;
     transform: scale(1.05);
+  }
+  &:hover {
+    z-index: 1;
+    transform: scale(1.01);
   }
 
   &:not(.no-write) {
