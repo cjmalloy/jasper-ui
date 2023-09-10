@@ -432,6 +432,18 @@ body.dark-theme {
       background: var(--info);
     }
 
+    code {
+      border-radius: 2px;
+      border: 2px solid var(--bg);
+      background: var(--bg);
+    }
+
+    pre > code {
+      border-radius: unset;
+      border: none;
+      background: transparent;
+    }
+
     table, th, tr, td {
       border: 1px solid var(--info);
       border-collapse: collapse;
