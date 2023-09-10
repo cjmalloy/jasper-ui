@@ -6,6 +6,7 @@ import { toJS } from 'mobx';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { Ext, writeExt } from '../../model/ext';
+import { Plugin } from '../../model/plugin';
 import { Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -33,6 +34,8 @@ export class ExtComponent implements OnInit {
   overwrite = true;
   force = false;
   icons: Template[] = [];
+  template?: Template;
+  plugin?: Plugin;
   editing = false;
   viewSource = false;
   deleting = false;
@@ -66,6 +69,8 @@ export class ExtComponent implements OnInit {
     this.invalid = false;
     this.overwrite = false;
     this.force = false;
+    this.template = this.admin.getTemplate(value.tag);
+    this.plugin = this.admin.getPlugin(value.tag);
     this.editing = false;
     this.viewSource = false;
     this.deleting = false;
