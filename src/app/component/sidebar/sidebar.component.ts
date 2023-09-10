@@ -215,7 +215,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get homeWriteAccess() {
-    return this.home && this.auth.tagWriteAccess('+home');
+    return this.home && this.admin.status.templates.home && this.auth.tagWriteAccess('+home');
   }
 
   subscribe() {
