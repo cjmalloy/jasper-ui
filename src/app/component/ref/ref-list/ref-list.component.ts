@@ -37,7 +37,6 @@ export class RefListComponent implements OnInit, OnDestroy {
 
   pinned: Ref[] = [];
   newRefs: Ref[] = [];
-  colStyle = '';
 
   private _page?: Page<Ref>;
   private _ext?: Ext;
@@ -73,17 +72,21 @@ export class RefListComponent implements OnInit, OnDestroy {
   }
 
   @Input()
-  set cols(value: number) {
-    this._cols = value;
-    if (!value) {
-      this.colStyle = '';
+  set cols(value: number | undefined) {
+    this._cols = value || 0;
+  }
+
+  get colStyle() {
+    if (!this.cols) {
+      return '';
     } else {
-      this.colStyle = ' 1fr'.repeat(value);
+      return ' 1fr'.repeat(this.cols);
     }
   }
 
   get cols() {
-    return this._cols;
+    if (this._cols) return this._cols;
+    return this.ext?.config.defaultCols;
   }
 
   get page(): Page<Ref> | undefined {

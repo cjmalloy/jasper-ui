@@ -31,11 +31,11 @@
 </ng-template>
 <ng-template #noTmpl>
   <app-ref-list [class]="cssClass(ext?.tag)"
+                [ext]="ext"
                 [page]="page"
                 [pageControls]="pageControls"
                 [plugins]="ext ? [ext.tag] : undefined"
-                [cols]="cols ?? ext?.config?.defaultCols"
+                [cols]="cols"
                 [showAlarm]="showAlarm"
-                [showVotes]="showVotes"
-                [ext]="ext"></app-ref-list>
+                [showVotes]="showVotes"></app-ref-list>
 </ng-template>
