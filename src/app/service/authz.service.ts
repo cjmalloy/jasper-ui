@@ -87,7 +87,7 @@ export class AuthzService {
     tag = localTag(tag);
     if (tag === 'locked') return false;
     if (this.store.account.mod) return true;
-    if (this.store.account.editor && !privateTag(tag)) return true;
+    if (this.store.account.editor && publicTag(tag)) return true;
     if (this.store.account.localTag === tag) return true;
     if (!this.store.account.access) return false;
     if (capturesAny(this.store.account.access.tagWriteAccess, [tag])) return true;
