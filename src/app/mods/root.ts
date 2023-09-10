@@ -94,8 +94,9 @@ export const rootTemplate: Template = {
     }, {
       key: 'defaultCols',
       type: 'select',
+      defaultValue: null,
       props: {
-        label: $localize`Select:`,
+        label: $localize`Columns:`,
         options: [
           { value: null, label: $localize`Default` },
           { value: '1', label: $localize`1 Column` },
