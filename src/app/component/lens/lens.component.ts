@@ -46,6 +46,11 @@ export class LensComponent {
     public query: QueryStore,
   ) { }
 
+  get plugins() {
+    if (hasPrefix(this.ext?.tag, 'plugin')) return [this.ext!.tag];
+    return undefined;
+  }
+
   isTemplate(template: string) {
     return hasPrefix(this.ext?.tag, template);
   }
