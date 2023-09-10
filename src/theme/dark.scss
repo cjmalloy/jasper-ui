@@ -385,6 +385,10 @@ body.dark-theme {
     color: var(--error);
   }
 
+  .load-more {
+    color: var(--info);
+  }
+
   hr {
     border: none;
     border-top: 1px groove var(--border);
@@ -439,6 +443,9 @@ body.dark-theme {
       background-color: var(--bg-accent);
       backdrop-filter: blur(1px);
       box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
+      &:hover {
+        box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.2);
+      }
     }
     .kanban-column {
       border: 1px solid transparent;
@@ -467,6 +474,9 @@ body.dark-theme {
     &.unlocked {
       border-radius: 5px;
       border: 0.5px dashed var(--border-accent);
+    }
+    &:hover {
+      filter: drop-shadow(0 0 0.5px var(--border));
     }
     &.cdk-drag-preview {
       background-color: var(--card-dragging);
