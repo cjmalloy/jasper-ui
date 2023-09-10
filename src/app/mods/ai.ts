@@ -16,6 +16,9 @@ export const aiQueryPlugin: Plugin = {
     filters: [
       { query: 'plugin/inbox/ai', label: $localize`👻️💭️ ai query`, group: $localize`Notifications ✉️` },
     ],
+    advancedActions: [
+      { tag: 'plugin/inbox/ai', labelOff: $localize`ask ai`, global: true }
+    ],
   },
 };
 

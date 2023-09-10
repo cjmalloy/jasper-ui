@@ -256,6 +256,22 @@
                [field]="label(a)"
                [ref]="ref"></a>
           </ng-container>
+          <span *ngIf="advancedActionsVisible"
+                class="fake-link show-more"
+                (click)="showAdvanced($event)">…</span>
+          <ng-template #actionsMenu>
+            <div class="context-menu advanced-actions" (click)="$event.stopPropagation()">
+              <ng-container *ngFor="let a of advancedActions">
+                <div *ngIf="showAction(a)"
+                   class="fake-link"
+                   (click)="closeAdvanced() || acts.apply(ref, a)"
+                   [appTitle]="a"
+                   [appActionLabel]="a"
+                   [field]="label(a)"
+                   [ref]="ref"></div>
+              </ng-container>
+            </div>
+          </ng-template>
         </div>
       </div>
       <div class="toggle actions-toggle"

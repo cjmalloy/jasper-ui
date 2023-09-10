@@ -1,0 +1,10 @@
+.show-more {
+  opacity: 0;
+  transition: opacity 0.1s ease-in-out;
+}
+
+.actions:hover {
+  .show-more {
+    opacity: 1;
+  }
+}

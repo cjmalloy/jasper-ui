@@ -102,6 +102,10 @@ export interface Config extends Tag {
     */
     actions?: Action[],
     /**
+    * Add an action to the Ref actions overflow bar.
+    */
+    advancedActions?: Action[],
+    /**
      * Add themes.
      */
     themes?: Record<string, string>,

@@ -1,11 +1,23 @@
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  HostBinding,
+  HostListener,
+  Input,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, pick, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, throwError } from 'rxjs';
+import { catchError, Subscription, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
@@ -65,6 +77,9 @@ export class RefComponent implements OnInit, OnDestroy {
 
   tagRegex = TAGS_REGEX.source
 
+  @ViewChild('actionsMenu')
+  actionsMenu!: TemplateRef<any>;
+
   @Input()
   expanded = false;
   @Input()
@@ -93,6 +108,8 @@ export class RefComponent implements OnInit, OnDestroy {
   icons: Icon[] = [];
   alarm?: string;
   actions: Action[] = [];
+  advancedActions: Action[] = [];
+  advancedActionsVisible = false;
   infoUis: Plugin[] = [];
   publishedLabel = $localize`published`;
   tagging = false;
@@ -108,8 +125,10 @@ export class RefComponent implements OnInit, OnDestroy {
   taggingAccess = false;
   serverError: string[] = [];
   publishChanged = false;
+  overlayRef?: OverlayRef;
 
   private _ref!: Ref;
+  private overlayEvents?: Subscription;
 
   constructor(
     private config: ConfigService,
@@ -124,6 +143,8 @@ export class RefComponent implements OnInit, OnDestroy {
     private scraper: ScrapeService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
+    private overlay: Overlay,
+    private viewContainerRef: ViewContainerRef,
   ) {
     this.editForm = refForm(fb);
     this.disposers.push(autorun(() => {
@@ -207,6 +228,9 @@ export class RefComponent implements OnInit, OnDestroy {
     this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
     this.alarm = capturesAny(this.store.account.alarms, value.tags);
     this.actions = this.ref.created ? sortOrder(this.admin.getActions(value.tags, value.plugins)) : [];
+    // TODO: detect width and move actions that don't fit into advanced actions
+    this.advancedActions = this.ref.created ? sortOrder(this.admin.getAdvancedActions(value.tags, value.plugins)) : [];
+    this.advancedActionsVisible = !!this.advancedActions.find(a => this.showAction(a));
     this.infoUis = this.admin.getPluginInfoUis(value.tags);
     this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
 
@@ -824,5 +848,42 @@ export class RefComponent implements OnInit, OnDestroy {
     if (this.thread) return 'Re:';
     if (!comment) return this.url;
     return trimCommentForTitle(comment);
+  }
+
+  showAdvanced(event: MouseEvent) {
+    this.closeAdvanced();
+    defer(() => {
+      const positionStrategy = this.overlay.position()
+        .flexibleConnectedTo({x: event.x, y: event.y})
+        .withPositions([{
+          originX: 'center',
+          originY: 'center',
+          overlayX: 'start',
+          overlayY: 'top',
+        }]);
+      this.overlayRef = this.overlay.create({
+        positionStrategy,
+        scrollStrategy: this.overlay.scrollStrategies.close(),
+      });
+      this.overlayRef.attach(new TemplatePortal(this.actionsMenu, this.viewContainerRef));
+      this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((event: MouseEvent) => {
+        switch (event.type) {
+          case 'click':
+          case 'pointerdown':
+          case 'touchstart':
+          case 'mousedown':
+          case 'contextmenu':
+            this.closeAdvanced();
+        }
+      });
+    });
+  }
+
+  closeAdvanced() {
+    this.overlayRef?.dispose();
+    this.overlayEvents?.unsubscribe();
+    this.overlayRef = undefined;
+    this.overlayEvents = undefined;
+    return false;
   }
 }

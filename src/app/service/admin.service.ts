@@ -451,6 +451,10 @@ export class AdminService {
     return this.configProperty('actions');
   }
 
+  get advancedActions() {
+    return this.configProperty('advancedActions');
+  }
+
   get published() {
     return this.pluginConfigProperty('published');
   }
@@ -492,6 +496,17 @@ export class AdminService {
     const match = ['plugin', ...(tags || [])];
     return this.actions
       .flatMap(p => p.config!.actions!.filter(a => {
+        if (a.condition && !config?.[p.tag]?.[a.condition]) return false;
+        if (a.global) return true;
+        return includesTag(p.tag, match);
+      }).map(addParent(p)))
+      .filter(a => !a.role || this.auth.hasRole(a.role));
+  }
+
+  getAdvancedActions(tags?: string[], config?: any) {
+    const match = ['plugin', ...(tags || [])];
+    return this.advancedActions
+      .flatMap(p => p.config!.advancedActions!.filter(a => {
         if (a.condition && !config?.[p.tag]?.[a.condition]) return false;
         if (a.global) return true;
         return includesTag(p.tag, match);
