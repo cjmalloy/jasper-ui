@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { pluginForm } from '../../form/plugin/plugin.component';
 import { Plugin, writePlugin } from '../../model/plugin';
+import { configDeleteNotice, tagDeleteNotice } from "../../mods/delete";
 import { AdminService } from '../../service/admin.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { Store } from '../../store/store';
@@ -128,7 +129,9 @@ export class PluginComponent implements OnInit {
   }
 
   delete() {
-    this.plugins.delete(this.qualifiedTag).pipe(
+    (this.admin.status.plugins.delete ?
+      this.plugins.update(configDeleteNotice(this.plugin)) :
+      this.plugins.delete(this.qualifiedTag)).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

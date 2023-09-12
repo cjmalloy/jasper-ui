@@ -80,7 +80,9 @@ export class AdminService {
 
   status = {
     plugins: <Record<string, Plugin | undefined>> {},
+    disabledPlugins: <Record<string, Plugin | undefined>> {},
     templates: <Record<string, Template | undefined>> {},
+    disabledTemplates: <Record<string, Template | undefined>> {},
   };
 
   def = {
@@ -184,8 +186,10 @@ export class AdminService {
   get init$() {
     this._cache.clear();
     runInAction(() => this.store.view.updates = false);
-    this.status.plugins =  mapValues(this.def.plugins, () => undefined);
+    this.status.plugins = mapValues(this.def.plugins, () => undefined);
+    this.status.disabledPlugins = {};
     this.status.templates = mapValues(this.def.templates, () => undefined);
+    this.status.disabledTemplates = {};
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
       tap(() => this.updates),
@@ -272,7 +276,11 @@ export class AdminService {
   private pluginToStatus(list: Plugin[]) {
     for (const p of list) {
       const key = this.keyOf(this.def.plugins, p.tag);
-      this.status.plugins[key] = p;
+      if (p.config?.deleted || p.config?.disabled) {
+        this.status.disabledPlugins[key] = p;
+      } else {
+        this.status.plugins[key] = p;
+      }
       p.config ||= {};
       p.config.needsUpdate ||= this.needsUpdate(this.def.plugins[key], p);
     }
@@ -281,7 +289,11 @@ export class AdminService {
   private templateToStatus(list: Template[]) {
     for (const t of list) {
       const key = this.keyOf(this.def.templates, t.tag);
-      this.status.templates[key] = t;
+      if (t.config?.deleted || t.config?.disabled) {
+        this.status.disabledTemplates[key] = t;
+      } else {
+        this.status.templates[key] = t;
+      }
       t.config ||= {};
       t.config.needsUpdate ||= this.needsUpdate(this.def.templates[key], t);
     }
