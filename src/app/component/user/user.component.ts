@@ -8,6 +8,7 @@ import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { Ext } from '../../model/ext';
 import { getRole, Profile } from '../../model/profile';
 import { User } from '../../model/user';
+import { tagDeleteNotice } from "../../mods/delete";
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ProfileService } from '../../service/api/profile.service';
@@ -218,7 +219,9 @@ export class UserComponent implements OnInit {
   delete() {
     this.serverError = [];
     if (this.user) {
-      this.users.delete(this.qualifiedTag).pipe(
+      (this.admin.status.plugins.delete
+        ? this.users.update(tagDeleteNotice(this.user))
+        : this.users.delete(this.qualifiedTag)).pipe(
         catchError((err: HttpErrorResponse) => {
           this.serverError.push(...printError(err));
           return throwError(() => err);

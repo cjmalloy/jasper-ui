@@ -63,7 +63,7 @@ export class TemplateService {
     );
   }
 
-  delete(tag: string): Observable<void> {
+  delete(tag: string): Observable<any> {
     return this.http.delete<void>(this.base, {
       params: { tag },
     }).pipe(

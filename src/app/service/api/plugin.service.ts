@@ -63,7 +63,7 @@ export class PluginService {
     );
   }
 
-  delete(tag: string): Observable<void> {
+  delete(tag: string): Observable<any> {
     return this.http.delete<void>(this.base, {
       params: params({ tag }),
     }).pipe(

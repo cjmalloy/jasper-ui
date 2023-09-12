@@ -115,8 +115,8 @@ export function configGroups(def: Record<string, Config>): Record<ModType, [stri
   return result;
 }
 
-export function modId(c: Config) {
-  return c.config?.mod || c.name || c.tag;
+export function modId(c?: Config) {
+  return c?.config?.mod || c?.name || c?.tag || '';
 }
 
 export function trimCommentForTitle(comment: string): string {

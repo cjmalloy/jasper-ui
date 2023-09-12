@@ -4,7 +4,7 @@ import { intersection, map, merge, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
 import { Action, sortOrder } from '../../model/tag';
-import { deleteNotice } from '../../mods/delete';
+import { configDeleteNotice, deleteNotice, tagDeleteNotice } from '../../mods/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -133,6 +133,16 @@ export class BulkComponent implements OnInit, OnDestroy {
     }
   }
 
+  get tagService() {
+    switch (this.type) {
+      case 'ref': throw 'Not a tag';
+      case 'ext': return this.exts
+      case 'user': return this.users
+      case 'plugin': return this.plugins;
+      case 'template': return this.templates;
+    }
+  }
+
   get empty() {
     return !this.queryStore.page?.content?.length;
   }
@@ -213,8 +223,14 @@ export class BulkComponent implements OnInit, OnDestroy {
         ? this.refs.update(deleteNotice(ref))
         : this.refs.delete(ref.url, ref.origin)
       );
+    } else if (this.type === 'ext' || this.type === 'user') {
+      this.batch(tag => this.admin.status.plugins.delete
+        ? this.tagService.update(tagDeleteNotice(tag))
+        : this.tagService.delete(tag.tag + tag.origin))
     } else {
-      this.batch(tag => this.service.delete(tag.tag + tag.origin))
+      this.batch(tag => this.admin.status.plugins.delete
+        ? this.tagService.update(configDeleteNotice(tag))
+        : this.tagService.delete(tag.tag + tag.origin))
     }
   }
 

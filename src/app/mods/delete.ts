@@ -1,6 +1,8 @@
 import * as moment from 'moment';
+import { Ext } from "../model/ext";
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
+import { Config, Tag } from "../model/tag";
 
 export const deletePlugin: Plugin = {
   tag: 'plugin/delete',
@@ -23,5 +25,22 @@ export function deleteNotice(ref: Ref): Ref {
     created: ref.created,
     published: ref.published,
     modifiedString: ref.modifiedString,
+  };
+}
+
+export function tagDeleteNotice(tag: Tag) {
+  return {
+    tag: tag.tag,
+    origin: tag.origin,
+    modifiedString: tag.modifiedString,
+  };
+}
+
+export function configDeleteNotice(config: Config) {
+  return {
+    tag: config.tag,
+    origin: config.origin,
+    config: { deleted: true },
+    modifiedString: config.modifiedString,
   };
 }

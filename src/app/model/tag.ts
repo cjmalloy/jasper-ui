@@ -49,6 +49,14 @@ export interface Config extends Tag {
      */
     version?: number;
     /**
+     * Flag for replicating a deleted config.
+     */
+    deleted?: boolean;
+    /**
+     * Flag for disabling a config without deleting.
+     */
+    disabled?: boolean;
+    /**
      * Disable update checking.
      */
     noUpdate?: boolean;

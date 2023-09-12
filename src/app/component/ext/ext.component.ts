@@ -8,6 +8,7 @@ import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { Ext, writeExt } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
 import { Template } from '../../model/template';
+import { tagDeleteNotice } from "../../mods/delete";
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
@@ -201,7 +202,9 @@ export class ExtComponent implements OnInit {
   }
 
   delete() {
-    this.exts.delete(this.qualifiedTag).pipe(
+    (this.admin.status.plugins.delete ?
+      this.exts.update(tagDeleteNotice(this.ext)) :
+      this.exts.delete(this.qualifiedTag)).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
