@@ -60,13 +60,13 @@ export function params(obj?: Record<string, any>): Record<string, any> | undefin
 export function printError(res: HttpErrorResponse): string[] {
   let result = [];
   const problem = res.error as Problem;
-  if (problem.fieldErrors) {
+  if (problem?.fieldErrors) {
     for (const fe of problem.fieldErrors) {
       result.push(`Error: ${fe.objectName} ${fe.field} ${fe.message}`);
     }
     return result;
   }
-  if (problem.violations) {
+  if (problem?.violations) {
     for (const v of problem.violations) {
       result.push(`Error: ${v.field} ${v.message}`);
     }
