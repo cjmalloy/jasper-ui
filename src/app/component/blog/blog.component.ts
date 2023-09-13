@@ -4,6 +4,7 @@ import { catchError, forkJoin, of } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
+import { RootConfig } from "../../mods/root";
 import { ExtService } from '../../service/api/ext.service';
 import { runInAction } from 'mobx';
 import { RefService } from '../../service/api/ref.service';
@@ -28,7 +29,7 @@ export class BlogComponent implements OnInit {
 
   private _page?: Page<Ref>;
   private _ext?: Ext;
-  private _cols = 0;
+  private _cols? = 0;
 
   constructor(
     private router: Router,
@@ -45,7 +46,7 @@ export class BlogComponent implements OnInit {
   }
 
   @Input()
-  set cols(value: number) {
+  set cols(value: number | undefined) {
     this._cols = value;
     if (!value) {
       this.colStyle = '';
@@ -55,11 +56,16 @@ export class BlogComponent implements OnInit {
   }
 
   get cols() {
-    return this._cols;
+    if (this._cols) return this._cols;
+    return this.config?.defaultCols;
   }
 
   get ext() {
     return this._ext;
+  }
+
+  get config() {
+    return this.ext?.config as RootConfig | undefined;
   }
 
   @Input()
