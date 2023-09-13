@@ -85,6 +85,7 @@ export class FilterComponent implements OnInit, OnDestroy {
           { filter: 'untagged', label: $localize`🏷️⃠ untagged` },
           { filter: 'uncited', label: $localize`💌️⃠ uncited` },
           { filter: 'unsourced', label: $localize`📜️⃠ unsourced` },
+          { filter: 'obsolete', label: $localize`⏮️ obsolete` },
           { filter: 'query/internal', label: $localize`⚙️ internal` },
         ],
       }, {
