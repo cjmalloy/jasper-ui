@@ -64,7 +64,7 @@ export class RefPage implements OnInit, OnDestroy {
       const url = this.store.view.url;
       const origin = this.store.view.origin !== undefined ? this.store.view.origin : this.store.account.origin;
       if (!url) return;
-      this.refs.count({ url }).pipe(
+      this.refs.count({ url, obsolete: true }).pipe(
         catchError(err => {
           this.error = err;
           return of(0);

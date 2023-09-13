@@ -24,12 +24,14 @@ export interface Metadata {
   internalResponses?: number;
   plugins?: Record<string, number>;
   userUrls?: string[];
+  obsolete?: boolean;
 }
 
 export type Filter =
   'untagged' |
   'uncited' |
-  'unsourced';
+  'unsourced' |
+  'obsolete';
 
 type FilterObj = {
   [name in Filter]?: boolean;
@@ -44,6 +46,7 @@ export type RefFilter = FilterObj & {
 export type RefQueryArgs = RefFilter & {
   query?: string;
   url?: string;
+  obsolete?: boolean;
   responses?: string;
   sources?: string;
   search?: string;
@@ -69,6 +72,7 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
   'published' | 'published,ASC' | 'published,DESC' |
   'metadataModified' | 'metadataModified,ASC' | 'metadataModified,DESC' |
   'url' | 'url,ASC' | 'url,DESC' |
+  'obsolete' | 'obsolete,ASC' | 'obsolete,DESC' |
   'scheme' | 'scheme,ASC' | 'scheme,DESC' |
   'title' | 'title,ASC' | 'title,DESC' |
   'origin' | 'origin,ASC' | 'origin,DESC' |
