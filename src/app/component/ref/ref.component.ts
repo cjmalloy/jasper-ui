@@ -17,7 +17,7 @@ import { Router } from '@angular/router';
 import { defer, pick, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, Subscription, throwError } from 'rxjs';
+import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
@@ -793,15 +793,20 @@ export class RefComponent implements OnInit, OnDestroy {
     }, true).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          this.refs.get(this.ref.url, this.ref.origin)
-            .subscribe(ref => this.ref.created = ref.created);
+          if (window.confirm('An old version already exists. Overwrite it?')) {
+            // TODO: Show diff and merge or split
+            return this.refs.push(this.ref, this.store.account.origin);
+          } else {
+            return throwError(() => 'Cancelled')
+          }
         }
         this.serverError = printError(err);
         return throwError(() => err);
       }),
+      switchMap(() => this.refs.get(this.ref.url, this.store.account.origin)),
     ).subscribe(ref => {
       this.store.submit.removeRef(this.ref);
-      this.router.navigate(['/ref', this.ref.url], { queryParams: { origin: this.store.account.origin }})
+      this.ref = ref;
     });
   }
 

@@ -1,8 +1,16 @@
 <div class="kanban-card-container">
-  <div class="badges" *ngIf="badgeExts$ | async as badgeExts">
-    <a class="tag badge" *ngFor="let e of badgeExts"
-       (click)="bookmarks.toggleFilter(e.tag)"
-       [title]="e.name && e.tag">{{ e.name || e.tag }}</a>
+  <div class="badges">
+    <!-- TODO: Check if local version is mostly identical -->
+    <a class="tag badge"
+       *ngIf="remote"
+       (click)="copy()"
+       i18n-title title="Copy remote ref">📥️</a>
+    <ng-container *ngIf="badgeExts$ | async as badgeExts">
+      <a class="tag badge"
+         *ngFor="let e of badgeExts"
+         (click)="bookmarks.toggleFilter(e.tag)"
+         [title]="e.name && e.tag">{{ e.name || e.tag }}</a>
+    </ng-container>
   </div>
   <div class="row">
     <ng-container *ngIf="thumbnail">

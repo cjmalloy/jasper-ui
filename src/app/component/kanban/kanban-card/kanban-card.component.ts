@@ -1,29 +1,22 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
-import {
-  Component,
-  ElementRef,
-  HostBinding,
-  HostListener,
-  Input,
-  OnInit,
-  TemplateRef,
-  ViewChild,
-  ViewContainerRef
-} from '@angular/core';
-import { defer, difference, intersection, without } from 'lodash-es';
-import { Subscription } from 'rxjs';
+import { HttpErrorResponse } from "@angular/common/http";
+import { Component, ElementRef, HostBinding, HostListener, Input, OnInit, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { defer, difference, intersection, uniq, without } from 'lodash-es';
+import { catchError, Subscription, switchMap, throwError } from 'rxjs';
+import { Ext } from '../../../model/ext';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
-import { ConfigService } from '../../../service/config.service';
-import { hasComment, trimCommentForTitle } from '../../../util/format';
-import { hasTag, includesTag } from '../../../util/tag';
 import { BookmarkService } from '../../../service/bookmark.service';
-import { Ext } from '../../../model/ext';
+import { ConfigService } from '../../../service/config.service';
+import { Store } from "../../../store/store";
+import { hasComment, trimCommentForTitle } from '../../../util/format';
+import { printError } from "../../../util/http";
+import { hasTag, includesTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-kanban-card',
@@ -54,6 +47,7 @@ export class KanbanCardComponent implements OnInit {
   private overlayEvents?: Subscription;
 
   constructor(
+    private store: Store,
     public bookmarks: BookmarkService,
     private admin: AdminService,
     private config: ConfigService,
@@ -65,6 +59,9 @@ export class KanbanCardComponent implements OnInit {
     private el: ElementRef,
     private viewContainerRef: ViewContainerRef,
   ) { }
+
+  ngOnInit(): void {
+  }
 
   get ref() {
     return this._ref;
@@ -85,7 +82,12 @@ export class KanbanCardComponent implements OnInit {
     }
   }
 
-  ngOnInit(): void {
+  get remote() {
+    return this.origin !== this.store.account.origin;
+  }
+
+  get origin() {
+    return this.repost ? this.repostRef?.origin : this.ref.origin;
   }
 
   @HostBinding('class.no-write')
@@ -225,5 +227,34 @@ export class KanbanCardComponent implements OnInit {
       });
     }
     this.close();
+  }
+
+
+  copy() {
+    const tags = uniq([
+      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+      ...(this.ref.tags || []).filter(t => this.auth.canAddTag(t))
+    ]);
+    const ref = {
+      ...this.ref,
+      origin: this.store.account.origin,
+      tags,
+    };
+    this.refs.create(ref, true).pipe(
+      catchError((err: HttpErrorResponse) => {
+        if (err.status === 409) {
+          if (window.confirm('An old version already exists. Overwrite it?')) {
+            // TODO: Show diff and merge or split
+            return this.refs.push(ref, this.store.account.origin)
+              .pipe(switchMap(() => this.refs.get(ref.url, this.store.account.origin)));
+          } else {
+            return throwError(() => 'Cancelled')
+          }
+        }
+        // TODO: better error messages
+        console.error(printError(err));
+        return throwError(() => err);
+      }),
+    ).subscribe(() => this.ref = ref);
   }
 }
