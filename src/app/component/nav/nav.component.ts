@@ -1,4 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { AdminService } from "../../service/admin.service";
+import { ExtService } from "../../service/api/ext.service";
 import { getPath, getQuery } from '../../util/hosts';
 import { ConfigService } from '../../service/config.service';
 
@@ -7,7 +9,7 @@ import { ConfigService } from '../../service/config.service';
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.scss']
 })
-export class NavComponent {
+export class NavComponent implements OnInit {
 
   @Input()
   url: string = '';
@@ -18,11 +20,31 @@ export class NavComponent {
   @Input()
   css = 'css';
 
+  nav?: (string|number)[];
+
   constructor(
     private config: ConfigService,
+    private admin: AdminService,
+    private exts: ExtService,
   ) { }
 
-  get nav() {
+  ngOnInit() {
+    this.nav = this.getNav();
+    if (this.nav[0] === '/tag') {
+      this.exts.getCachedExt(this.nav[1] as string)
+      .subscribe(ext => {
+        const tmpl = this.admin.getTemplate(ext.tag);
+        const plugin = this.admin.getPlugin(ext.tag);
+        if (ext.modifiedString) {
+          this.text = ext.name || this.text;
+        } else {
+          this.text = tmpl?.name || plugin?.name || this.text;
+        }
+      });
+    }
+  }
+
+  getNav() {
     let path = getPath(this.url) || '';
     const basePath = getPath(this.config.base)!;
     if (path.startsWith(basePath)) {
