@@ -87,7 +87,7 @@ export class EmbedService {
       level: 'inline',
       start: (src: string) => src.match(/#/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^#([a-z0-9]+([./][a-z0-9]+)*)/;
+        const rule = /^#[+_]?([a-z0-9]+([./][a-z0-9]+)*)/;
         const match = rule.exec(src);
         if (match) {
           const text = match[0];
