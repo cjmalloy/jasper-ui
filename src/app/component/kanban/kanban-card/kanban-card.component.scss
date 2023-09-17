@@ -12,6 +12,14 @@
     width: 100%;
   }
 
+  &.full-size {
+    max-height: unset;
+    overflow: visible;
+    .kanban-card-container {
+      overflow: visible;
+    }
+  }
+
   .thumbnail {
     min-width: 48px;
     min-height: 48px;

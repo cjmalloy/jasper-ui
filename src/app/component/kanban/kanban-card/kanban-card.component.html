@@ -27,6 +27,9 @@
     </ng-container>
     <a class="card-title grow" [routerLink]="['/ref', ref.url]">{{ title }}</a>
   </div>
+  <app-chess *ngIf="chess"
+             [white]="chessWhite"
+             [ref]="ref"></app-chess>
   <app-md *ngIf="currentText"
           [origin]="ref.origin || ''"
           [plugins]="ref.tags || []"

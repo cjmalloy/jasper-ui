@@ -38,6 +38,9 @@ export class KanbanCardComponent implements OnInit {
 
   title = '';
   repostRef?: Ref;
+  @HostBinding('class.full-size')
+  chess = false;
+  chessWhite = true;
   overlayRef?: OverlayRef;
 
   @ViewChild('cardMenu')
@@ -71,14 +74,18 @@ export class KanbanCardComponent implements OnInit {
   set ref(value: Ref) {
     this._ref = value;
     this.title = this.getTitle();
-    if (this.repost && value && (!this.repostRef || this.repostRef.url != value.url && this.repostRef.origin === value.origin)) {
-      this.refs.get(this.url, value.origin)
-        .subscribe(ref => {
-          this.repostRef = ref;
-          if (this.bareRepost) {
-            this.title = this.getTitle();
-          }
-        });
+    if (value) {
+      this.chess = !!value.tags?.includes('plugin/chess');
+      this.chessWhite = !!value.tags?.includes(this.store.account.localTag);
+      if (this.repost && value && (!this.repostRef || this.repostRef.url != value.url && this.repostRef.origin === value.origin)) {
+        this.refs.get(this.url, value.origin)
+          .subscribe(ref => {
+            this.repostRef = ref;
+            if (this.bareRepost) {
+              this.title = this.getTitle();
+            }
+          });
+      }
     }
   }
 
@@ -108,6 +115,7 @@ export class KanbanCardComponent implements OnInit {
   }
 
   get currentText() {
+    if (this.chess) return '';
     const value = this.ref?.comment || this.repostRef?.comment || '';
     if (this.ref?.title || hasComment(value)) return value;
     return '';
