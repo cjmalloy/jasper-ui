@@ -4,6 +4,7 @@ import { Chess, Square } from 'chess.js';
 import { defer, flatten } from 'lodash-es';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
+import { AuthzService } from '../../service/authz.service';
 
 export type PieceType = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
 export type PieceColor = 'b' | 'w';
@@ -20,8 +21,6 @@ export class ChessComponent implements OnInit {
   @HostBinding('class') css = 'chess-board';
 
   @Input()
-  ref?: Ref;
-  @Input()
   white = true;
 
   turn: PieceColor = 'w';
@@ -32,11 +31,14 @@ export class ChessComponent implements OnInit {
   pieces: (Piece | null)[] = [];
   dim = 32;
   fontSize = 32;
+  writeAccess = false;
 
+  private _ref?: Ref;
   private resizeObserver = new ResizeObserver(() => this.onResize());
   private fen = '';
 
   constructor(
+    private auth: AuthzService,
     private refs: RefService,
     private el: ElementRef<HTMLTextAreaElement>,
   ) {
@@ -44,6 +46,7 @@ export class ChessComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.writeAccess = this.auth.writeAccess(this.ref!);
     this.onResize();
     this.chess.clear();
     try {
@@ -73,19 +76,15 @@ export class ChessComponent implements OnInit {
     console.log(this.chess.ascii());
   }
 
-//   rnb1k3/pppp1p2/3bpq2/8/5P1r/4PQ1N/PPPP2P1/RNB1KB2 w Qq - 1 1
-//
-// +------------------------+
-//   8 | r  n  b  .  k  .  .  . |
-//   7 | p  p  p  p  .  p  .  . |
-//   6 | .  .  .  b  p  q  .  . |
-//   5 | .  .  .  .  .  .  .  . |
-//   4 | .  .  .  .  .  P  .  r |
-//   3 | .  .  .  .  P  Q  .  N |
-//   2 | P  P  P  P  .  .  P  . |
-//   1 | R  N  B  .  K  B  .  . |
-// +------------------------+
-//   a  b  c  d  e  f  g  h
+  get ref() {
+    return this._ref;
+  }
+
+  @Input()
+  set ref(value: Ref | undefined) {
+    this._ref = value;
+    this.ngOnInit();
+  }
 
   onResize() {
     this.dim = this.el.nativeElement.offsetWidth / 8;
@@ -188,6 +187,7 @@ export class ChessComponent implements OnInit {
   }
 
   clickSquare(index: number) {
+    if (!this.writeAccess) return;
     const square = this.getCoord(index);
     const p = this.chess.get(square);
     if (this.from === square) {
