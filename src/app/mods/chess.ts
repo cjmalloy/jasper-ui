@@ -13,7 +13,7 @@ export const chessPlugin: Plugin = {
     internal: true,
     description: $localize`Activates built-in Chess game`,
     filters: [
-      { query: 'chess', label: $localize`♘ chess`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/chess', label: $localize`♘ chess`, group: $localize`Plugins 🧰️` },
     ],
     // language=CSS
     css: `
