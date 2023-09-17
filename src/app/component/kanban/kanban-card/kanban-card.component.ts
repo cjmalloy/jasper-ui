@@ -1,7 +1,19 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from "@angular/common/http";
-import { Component, ElementRef, HostBinding, HostListener, Input, OnInit, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostBinding,
+  HostListener,
+  Input,
+  OnInit,
+  Output,
+  TemplateRef,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { defer, difference, intersection, uniq, without } from 'lodash-es';
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
@@ -35,6 +47,9 @@ export class KanbanCardComponent implements OnInit {
   hideSwimLanes = true;
   @Input()
   ext?: Ext;
+
+  @Output()
+  copied = new EventEmitter<Ref>();
 
   title = '';
   repostRef?: Ref;
@@ -263,6 +278,10 @@ export class KanbanCardComponent implements OnInit {
         console.error(printError(err));
         return throwError(() => err);
       }),
-    ).subscribe(() => this.ref = ref);
+      switchMap(() => this.refs.get(ref.url, this.store.account.origin)),
+    ).subscribe(ref => {
+      this.ref = ref;
+      this.copied.emit(ref);
+    });
   }
 }

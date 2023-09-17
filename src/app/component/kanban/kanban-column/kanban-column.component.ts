@@ -129,6 +129,13 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  copy(ref: Ref) {
+    if (!this.page) return;
+    const index = this.page.content.findIndex(r => r.url === ref.url);
+    if (index < 0) return;
+    this.page.content.splice(index, 1, ref);
+  }
+
   loadMore() {
     const pageNumber = this.page?.number || 0;
     if (this.page && this.mutated) {
