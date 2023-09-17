@@ -28,6 +28,9 @@ export const chessPlugin: Plugin = {
 
       body.light-theme {
         .chess-board {
+          border: 0.5px solid transparent;
+        }
+        .chess-board {
           .tile {
             &.light {
               background: repeating-linear-gradient(-80deg, rgba(200, 140, 50, 0.9), rgba(210, 140, 50, 0.9), rgba(180, 130, 45, 0.9) 50%) !important;
