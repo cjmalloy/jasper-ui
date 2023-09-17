@@ -49,6 +49,7 @@ export class ViewerComponent implements AfterViewInit {
   pdfUrl = '';
   qrUrl = '';
   chess = false;
+  chessWhite = true;
   uis = this.admin.getPluginUi(this.currentTags);
   embedReady = false;
 
@@ -94,6 +95,7 @@ export class ViewerComponent implements AfterViewInit {
     this.pdfUrl = this.getPdfUrl();
     this.qrUrl = this.getQrUrl();
     this.chess = this.currentTags.includes('plugin/chess');
+    this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
     this.uis = this.admin.getPluginUi(this.currentTags);
     if (hasTag('plugin/repost', this.ref)) {
       this.refs.get(value!.sources![0], value!.origin)

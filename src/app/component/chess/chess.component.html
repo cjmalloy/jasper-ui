@@ -1,7 +1,7 @@
 <div *ngFor="let p of pieces; let i = index" class="tile {{ color(i) }}"
-     [class.from]="getCoord(i) === from"
-     [class.move]="moves.includes(getCoord(i))"
-     (click)="clickSquare(i)"
+     [class.from]="getCoord(white ? i : 63 - i) === from"
+     [class.move]="moves.includes(getCoord(white ? i : 63 - i))"
+     (click)="clickSquare(white ? i : 63 - i)"
      cdkDropList
      [cdkDropListData]="white ? i : 63 - i"
      (cdkDropListDropped)="drop($any($event))">
