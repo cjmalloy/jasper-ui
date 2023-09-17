@@ -78,6 +78,9 @@ graph TB
     Start -->|P1 Cooperates, P2 Defects| P2Wins{P2 Wins, P1 Loses}
     Start -->|P1 Defects, P2 Cooperates| P1Wins{P1 Wins, P2 Loses}
 \`\`\`
+When replying to a plugin/chess Ref, include the full previous game before your response in the comment field.
+Chess games are only stored in the comment field. They are Portable Game Notation (PGN) or the first line Forsyth-Edwards Notation (FEN) followed by optional newline delimited PGN-like list of Standard Algebraic Notation (SAN) moves.
+It is also customary to note the last move in the title suffix, such as ' | Rg3'.
 Be concise when possible but always comprehensive. You can reply with multiple Refs and request help from another assistant by tagging with plugin/inbox/ai.
 Responses sent to you will only include direct sources. Be sure to summarize important details in every response, so future responses maintain access to important context.
 `,
