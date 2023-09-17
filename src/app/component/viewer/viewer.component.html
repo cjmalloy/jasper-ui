@@ -53,6 +53,8 @@
           class="qr-expand"
           [url]="qrUrl"
           [appResize]="!disableResize"></app-qr>
+  <app-chess *ngIf="chess"
+             [ref]="ref"></app-chess>
 </ng-container>
 <app-md *ngIf="currentText"
         class="expand"

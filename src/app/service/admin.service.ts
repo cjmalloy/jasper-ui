@@ -4,74 +4,69 @@ import { findKey, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { catchError, concat, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { chessPlugin, chessTemplate } from '../mods/chess';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Config, Tag } from '../model/tag';
 import { Template } from '../model/template';
-import { lensPlugin, lensTemplate } from '../mods/lens';
-import { dmTemplate, inboxPlugin, outboxPlugin } from '../mods/mailbox';
-import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../mods/poll';
-import {
-  invoiceDisputedPlugin,
-  invoicePaidPlugin,
-  invoicePlugin,
-  invoiceRejectionPlugin,
-  queueTemplate
-} from '../mods/queue';
-import { seamlessPlugin } from '../mods/seamless';
-import { terminalTheme } from '../mods/theme';
 import { aiPlugin, aiQueryPlugin } from '../mods/ai';
 import { archivePlugin } from '../mods/archive';
 import { audioPlugin } from '../mods/audio';
+import { banlistConfig } from '../mods/banlist';
+import { blogTemplate } from '../mods/blog';
+import { chatTemplate } from '../mods/chat';
 import { commentPlugin } from '../mods/comment';
+import { breakpointPlugin, debugPlugin, debugTemplate } from '../mods/debug';
 import { deletePlugin } from '../mods/delete';
 import { htmlPlugin, latexPlugin } from '../mods/editor';
 import { emailPlugin } from '../mods/email';
 import { embedPlugin } from '../mods/embed';
 import { experimentsConfig } from '../mods/experiments';
 import { feedPlugin } from '../mods/feed';
+import { folderTemplate } from '../mods/folder';
 import { fullscreenPlugin } from '../mods/fullscreen';
+import { graphConfig } from '../mods/graph';
+import { homeTemplate } from '../mods/home';
 import { imagePlugin, imageTemplate } from '../mods/image';
+import { kanbanTemplate } from '../mods/kanban';
+import { lensPlugin, lensTemplate } from '../mods/lens';
 import { lockedIcon } from '../mods/locked';
+import { dmTemplate, inboxPlugin, outboxPlugin } from '../mods/mailbox';
 import { modlistConfig } from '../mods/modlist';
 import { oEmbedPlugin } from '../mods/oembed';
 import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } from '../mods/origin';
 import { pdfPlugin } from '../mods/pdf';
 import { personPlugin } from '../mods/person';
 import { pipPlugin } from '../mods/pip';
+import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../mods/poll';
+import { privateIcon } from '../mods/private';
 import { qrPlugin } from '../mods/qr';
+import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin, queueTemplate } from '../mods/queue';
 import { repostPlugin } from '../mods/repost';
+import { rootTemplate } from '../mods/root';
 import { scrapePlugin } from '../mods/scrape';
+import { seamlessPlugin } from '../mods/seamless';
+import { snippetConfig } from '../mods/snippet';
 import { summaryPlugin, summaryQueryPlugin } from '../mods/summary';
 import { tablePlugin } from '../mods/table';
 import { thanksConfig } from '../mods/thanks';
+import { terminalTheme } from '../mods/theme';
 import { threadPlugin } from '../mods/thread';
 import { thumbnailPlugin } from '../mods/thumbnail';
+import { userTemplate } from '../mods/user';
 import { videoPlugin } from '../mods/video';
 import { voteDownPlugin, voteUpPlugin } from '../mods/vote';
 import { DEFAULT_WIKI_PREFIX, wikiConfig } from '../mods/wiki';
 import { Store } from '../store/store';
-import { blogTemplate } from '../mods/blog';
-import { chatTemplate } from '../mods/chat';
-import { breakpointPlugin, debugPlugin, debugTemplate } from '../mods/debug';
-import { folderTemplate } from '../mods/folder';
-import { homeTemplate } from '../mods/home';
-import { kanbanTemplate } from '../mods/kanban';
-import { rootTemplate } from '../mods/root';
-import { userTemplate } from '../mods/user';
 import { getExtension, getHost } from '../util/hosts';
 import { hasPrefix, includesTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { OEmbedService } from './api/oembed.service';
 import { PluginService } from './api/plugin.service';
+import { ScrapeService } from './api/scrape.service';
 import { TemplateService } from './api/template.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
-import { snippetConfig } from '../mods/snippet';
-import { privateIcon } from '../mods/private';
-import { banlistConfig } from '../mods/banlist';
-import { graphConfig } from '../mods/graph';
-import { ScrapeService } from './api/scrape.service';
 
 @Injectable({
   providedIn: 'root',
@@ -133,6 +128,7 @@ export class AdminService {
       imagePlugin: imagePlugin,
       lensPlugin: lensPlugin,
       pipPlugin: pipPlugin,
+      chessPlugin: chessPlugin,
 
       debugPlugin: debugPlugin,
       breakpoint: breakpointPlugin,
@@ -151,6 +147,7 @@ export class AdminService {
 
       imageTemplate: imageTemplate,
       lensTemplate: lensTemplate,
+      chessTemplate: chessTemplate,
 
       // Icons
       lockedIcon: lockedIcon,
@@ -451,6 +448,7 @@ export class AdminService {
         if (p === this.status.plugins.pdf) return true;
         if (p === this.status.plugins.repost) return true;
         if (p === this.status.plugins.lensPlugin) return true;
+        if (p === this.status.plugins.chessPlugin) return true;
         return false;
       }).map(p => p!.tag));
     }

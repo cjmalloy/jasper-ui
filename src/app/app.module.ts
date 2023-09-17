@@ -22,6 +22,7 @@ import { BlogComponent } from './component/blog/blog.component';
 import { BulkComponent } from './component/bulk/bulk.component';
 import { ChatEntryComponent } from './component/chat/chat-entry/chat-entry.component';
 import { ChatComponent } from './component/chat/chat.component';
+import { ChessComponent } from './component/chess/chess.component';
 import { CommentEditComponent } from './component/comment/comment-edit/comment-edit.component';
 import { CommentReplyComponent } from './component/comment/comment-reply/comment-reply.component';
 import { CommentThreadComponent } from './component/comment/comment-thread/comment-thread.component';
@@ -278,6 +279,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     InboxDmsPage,
     UploadPage,
     InboxModlistPage,
+    ChessComponent,
     TagsPage,
     PluginsPipe,
     ActionLabelDirective,
