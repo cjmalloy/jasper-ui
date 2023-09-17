@@ -4,7 +4,6 @@ import { findKey, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { catchError, concat, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { chessPlugin, chessTemplate } from '../mods/chess';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Config, Tag } from '../model/tag';
@@ -15,6 +14,7 @@ import { audioPlugin } from '../mods/audio';
 import { banlistConfig } from '../mods/banlist';
 import { blogTemplate } from '../mods/blog';
 import { chatTemplate } from '../mods/chat';
+import { chessPlugin, chessTemplate } from '../mods/chess';
 import { commentPlugin } from '../mods/comment';
 import { breakpointPlugin, debugPlugin, debugTemplate } from '../mods/debug';
 import { deletePlugin } from '../mods/delete';
@@ -41,7 +41,13 @@ import { pipPlugin } from '../mods/pip';
 import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../mods/poll';
 import { privateIcon } from '../mods/private';
 import { qrPlugin } from '../mods/qr';
-import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin, queueTemplate } from '../mods/queue';
+import {
+  invoiceDisputedPlugin,
+  invoicePaidPlugin,
+  invoicePlugin,
+  invoiceRejectionPlugin,
+  queueTemplate
+} from '../mods/queue';
 import { repostPlugin } from '../mods/repost';
 import { rootTemplate } from '../mods/root';
 import { scrapePlugin } from '../mods/scrape';
