@@ -609,10 +609,6 @@ export class RefComponent implements OnInit, OnDestroy {
     return hasTag('plugin/fullscreen', this.ref);
   }
 
-  implicitLocal(qt: string) {
-    return implicitLocal(qt, this.store.account.origin);
-  }
-
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
       user = user.replace(this.store.account.origin, '');

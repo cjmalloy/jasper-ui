@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
-import { catchError, concat, map, Observable, of, shareReplay, toArray } from 'rxjs';
+import { catchError, concat, map, Observable, of, shareReplay, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext, mapTag, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
@@ -77,10 +77,15 @@ export class ExtService {
       } else {
         this._cache.set(key, this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
           catchError(err => {
-            if (origin === undefined) throw err;
+            if (origin === undefined) throw throwError(() => err);
             return this.get(defaultOrigin(tag, origin));
           }),
-          catchError(err => of({ tag: localTag(tag), origin: tagOrigin(tag) } as Ext)),
+          catchError(err => {
+            if (tag.includes('@')) throw throwError(() => err);
+            return this.page({ query: localTag(tag), sort: ['modified,DESC'] }).pipe(map(p => p.content[0]));
+          }),
+          catchError(err => of(null)),
+          map(x => x ? x : { tag: localTag(tag), origin: tagOrigin(tag) } as Ext),
           shareReplay(1),
         ));
         delay(() => this._cache.delete(key), EXT_CACHE_MS);
