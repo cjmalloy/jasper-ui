@@ -46,8 +46,8 @@ export class ChessComponent implements OnInit {
   ngOnInit(): void {
     this.onResize();
     this.chess.clear();
-    if (this.ref?.comment) {
-      try {
+    try {
+      if (this.ref?.comment) {
         const lines = this.ref.comment.trim().split('\n');
         this.chess.load(lines[0]);
         this.fen = this.chess.fen();
@@ -61,9 +61,11 @@ export class ChessComponent implements OnInit {
             console.log(e);
           }
         }
-      } catch (e) {
-        this.chess.loadPgn(this.ref.comment);
+      } else {
+        this.chess.loadPgn('');
       }
+    } catch (e) {
+      this.chess.loadPgn(this.ref?.comment || '');
     }
     this.pieces = flatten(this.chess.board());
     this.turn = this.chess.turn();
