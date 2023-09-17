@@ -112,6 +112,11 @@ select {
   }
 }
 
+.cdk-drop-list-dragging,
+.cdk-drop-list-receiving {
+  cursor: grabbing !important;
+}
+
 .floating-ribbons > * {
   transition: right 0.1s cubic-bezier(.47,1.64,.8,1.2);
   transition-delay: 0.1s;
@@ -1340,7 +1345,6 @@ ngx-monaco-editor {
   }
 
   &.cdk-drag-preview {
-    cursor: grabbing !important;
     transition: transform 0s;
     box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
                 0 8px 10px 1px rgba(0, 0, 0, 0.14),
@@ -1425,7 +1429,6 @@ ngx-monaco-editor {
   }
 }
 
-
 .chess-piece {
   cursor: grab;
   text-align: center;
@@ -1438,13 +1441,17 @@ ngx-monaco-editor {
     color: #111;
     filter: drop-shadow(0 0 1px rgba(200, 200, 200, 0.5));
   }
-  &.cdk-drag-preview {
-    cursor: grabbing !important;
-  }
   &.cdk-drag-placeholder {
     display: none !important;
   }
   &.cdk-drag-disabled {
     cursor: default !important;
+  }
+}
+
+.cdk-drop-list-dragging {
+  .chess-piece {
+    transform: scale(0.9) !important;
+    transition: transform 0.1s ease-in-out;
   }
 }
