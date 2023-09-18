@@ -39,7 +39,7 @@
     <app-settings></app-settings>
   </div>
   <app-sidebar [floating]="floatingSidebar"
-               [ext]="store.view.ext"
+               [ext]="store.view.viewExt"
                [tag]="store.view.tag"></app-sidebar>
   <app-lens *ngIf="query.error?.status !== 403 else accessDenied"
             [page]="query.page"
