@@ -1,4 +1,6 @@
+import { isEqual } from 'lodash-es';
 import * as moment from 'moment';
+import { hasPrefix, publicTag } from '../util/tag';
 import { HasOrigin } from './tag';
 
 export interface Ref extends HasOrigin {
@@ -143,4 +145,17 @@ export function isRef(a?: Ref, b?: Ref) {
   if (!a || !b) return false;
   return (a.origin === b.origin || !a.origin && !b.origin) &&
     a.url === b.url;
+}
+
+export function equalsRef(a?: Ref, b?: Ref) {
+  if (!a || !b) return false;
+  const compareTag = (t: string) => publicTag(t) && !hasPrefix(t, 'plugin/inbox') && !hasPrefix(t, 'plugin/outbox');
+  return a.url === b.url &&
+    a.title === b.title &&
+    a.comment === b.comment &&
+    a.published?.isSame(b.published) &&
+    isEqual(a.alternateUrls, b.alternateUrls) &&
+    isEqual(a.sources, b.sources) &&
+    isEqual(a.tags?.filter(compareTag), b.tags?.filter(compareTag)) &&
+    isEqual(a.plugins, b.plugins);
 }

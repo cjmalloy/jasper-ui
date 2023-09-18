@@ -17,7 +17,7 @@ import {
 import { defer, difference, intersection, uniq, without } from 'lodash-es';
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
-import { Ref } from '../../../model/ref';
+import { equalsRef, Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -258,27 +258,30 @@ export class KanbanCardComponent implements OnInit {
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
       ...(this.ref.tags || []).filter(t => this.auth.canAddTag(t))
     ]);
-    const ref = {
+    const copied = {
       ...this.ref,
       origin: this.store.account.origin,
       tags,
     };
-    this.refs.create(ref, true).pipe(
+    this.refs.create(copied, true).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          if (window.confirm('An old version already exists. Overwrite it?')) {
-            // TODO: Show diff and merge or split
-            return this.refs.push(ref, this.store.account.origin)
-              .pipe(switchMap(() => this.refs.get(ref.url, this.store.account.origin)));
-          } else {
-            return throwError(() => 'Cancelled')
-          }
+          return this.refs.get(this.ref.url, this.store.account.origin).pipe(
+            switchMap(ref => {
+              if (equalsRef(ref, copied) || window.confirm('An old version already exists. Overwrite it?')) {
+                // TODO: Show diff and merge or split
+                return this.refs.push(this.ref, this.store.account.origin);
+              } else {
+                return throwError(() => 'Cancelled')
+              }
+            })
+          );
         }
         // TODO: better error messages
         console.error(printError(err));
         return throwError(() => err);
       }),
-      switchMap(() => this.refs.get(ref.url, this.store.account.origin)),
+      switchMap(() => this.refs.get(copied.url, this.store.account.origin)),
     ).subscribe(ref => {
       this.ref = ref;
       this.copied.emit(ref);
