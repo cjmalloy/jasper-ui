@@ -751,10 +751,10 @@ export class RefComponent implements OnInit, OnDestroy {
       ref = {
         ...this.ref,
         ...ref,
-        plugins: {
+        plugins: writePlugins(tags, {
           ...this.ref.plugins,
           ...ref.plugins,
-        },
+        }),
       }
     }
     if (this.ref.upload) {
