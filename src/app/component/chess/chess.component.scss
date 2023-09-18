@@ -2,7 +2,7 @@
   aspect-ratio: 1;
   max-height: 90vh;
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(8, 1fr) !important;
   user-select: none;
 
   .tile {
