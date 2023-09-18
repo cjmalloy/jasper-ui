@@ -1,5 +1,5 @@
 import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, HostBinding, HostListener, Input, OnInit } from '@angular/core';
 import { Chess, Square } from 'chess.js';
 import { defer, flatten } from 'lodash-es';
 import { Ref } from '../../model/ref';
@@ -41,11 +41,10 @@ export class ChessComponent implements OnInit {
     private auth: AuthzService,
     private refs: RefService,
     private el: ElementRef<HTMLTextAreaElement>,
-  ) {
-    this.resizeObserver.observe(el.nativeElement);
-  }
+  ) { }
 
   ngOnInit(): void {
+    this.resizeObserver.observe(this.el.nativeElement);
     this.writeAccess = this.auth.writeAccess(this.ref!);
     this.onResize();
     this.chess.clear();
@@ -86,9 +85,10 @@ export class ChessComponent implements OnInit {
     this.ngOnInit();
   }
 
+  @HostListener('window:resize')
   onResize() {
-    this.dim = this.el.nativeElement.offsetWidth / 8;
-    this.fontSize = 0.75 * this.el.nativeElement.offsetWidth / 8;
+    this.dim = Math.floor(this.el.nativeElement.offsetWidth / 8);
+    this.fontSize = Math.floor(0.75 * this.dim);
   }
 
   drawPiece(p?: Piece | null) {
