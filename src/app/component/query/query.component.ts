@@ -1,9 +1,9 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { ExtService } from '../../service/api/ext.service';
-import { access, fixClientQuery, getLargestPrefix, getStrictPrefix, localTag, tagOrigin } from '../../util/tag';
 import { AdminService } from '../../service/admin.service';
+import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
+import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '../../util/tag';
 
 export type Crumb = { text: string, tag?: string };
 
