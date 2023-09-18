@@ -23,6 +23,9 @@ export const chessPlugin: Plugin = {
         }
         .chess-piece {
           opacity: 0.8;
+          &.b {
+            filter: drop-shadow(0 0 1px white) drop-shadow(1px 1px 2px black) !important;
+          }
         }
       }
 
@@ -50,6 +53,7 @@ export const chessPlugin: Plugin = {
           &.b {
             opacity: 0.90;
             color: #00184b !important;
+            filter: drop-shadow(0 0 1px white) drop-shadow(1px 1px 2px black) !important;
           }
         }
       }
