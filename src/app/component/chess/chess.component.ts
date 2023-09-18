@@ -167,7 +167,7 @@ export class ChessComponent implements OnInit {
 
       if (!this.ref) return;
       const title = (this.ref.title || '').replace(/\|.*/, '') + ' | ' + move.san;
-      const comment = this.fen + '\n\n' + this.chess.history().join('\n');
+      const comment = this.fen + '\n\n' + this.chess.history().join('  \n');
       this.refs.patch(this.ref.url, this.ref.origin!, [{
         op: 'add',
         path: '/title',
