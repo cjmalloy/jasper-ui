@@ -94,7 +94,7 @@ export class ViewerComponent implements AfterViewInit {
     this.imageUrl = this.getImageUrl();
     this.pdfUrl = this.getPdfUrl();
     this.qrUrl = this.getQrUrl();
-    this.chess = this.currentTags.includes('plugin/chess');
+    this.chess = !!this.admin.getPlugin('plugin/chess') && this.currentTags.includes('plugin/chess');
     this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
     this.uis = this.admin.getPluginUi(this.currentTags);
     if (hasTag('plugin/repost', this.ref)) {

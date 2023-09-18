@@ -90,7 +90,7 @@ export class KanbanCardComponent implements OnInit {
     this._ref = value;
     this.title = this.getTitle();
     if (value) {
-      this.chess = !!value.tags?.includes('plugin/chess');
+      this.chess = !!this.admin.getPlugin('plugin/chess') && !!value.tags?.includes('plugin/chess');
       this.chessWhite = !!value.tags?.includes(this.store.account.localTag);
       if (this.repost && value && (!this.repostRef || this.repostRef.url != value.url && this.repostRef.origin === value.origin)) {
         this.refs.get(this.url, value.origin)
