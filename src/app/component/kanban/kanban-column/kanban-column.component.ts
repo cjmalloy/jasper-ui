@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, HostBinding, HostListener, Input, OnDestroy } from '@angular/core';
-import { uniq } from 'lodash-es';
+import { AfterViewInit, Component, HostBinding, HostListener, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { intersection, uniq } from 'lodash-es';
 import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -22,10 +22,12 @@ import { KanbanDrag } from '../kanban.component';
   templateUrl: './kanban-column.component.html',
   styleUrls: ['./kanban-column.component.scss']
 })
-export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
+export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy {
   @HostBinding('class') css = 'kanban-column';
   private destroy$ = new Subject<void>();
 
+  @Input()
+  query = '';
   @Input()
   hideSwimLanes = true;
   @Input()
@@ -43,7 +45,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
   @Input()
   search = '';
 
-  _query = '';
   page?: Page<Ref>;
   mutated = false;
   addText = '';
@@ -68,6 +69,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
     ).subscribe(event => this.update(event));
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (intersection(Object.keys(changes), ['query', 'sort', 'filter', 'search']).length) {
+      this.clear()
+    }
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -75,13 +82,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
 
   trackByUrlOrigin(index: number, value: Ref) {
     return value.origin + '@' + value.url;
-  }
-
-  @Input()
-  set query(value: string) {
-    if (this._query === value) return;
-    this._query = value;
-    this.clear();
   }
 
   get more() {
@@ -106,7 +106,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
 
   clear() {
     this.refs.page(getArgs(
-      this._query,
+      this.query,
       this.sort,
       this.filter,
       this.search,
@@ -119,12 +119,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
 
   update(event: KanbanDrag) {
     if (!this.page) return;
-    if (event.from === this._query) {
+    if (event.from === this.query) {
       if (this.page.content.includes(event.ref)) {
         this.page.content.splice(this.page.content.indexOf(event.ref), 1);
       }
     }
-    if (event.to === this._query) {
+    if (event.to === this.query) {
       this.page.content.splice(Math.min(event.index, this.page.numberOfElements - 1), 0, event.ref);
     }
   }
@@ -229,7 +229,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnDestroy {
 
   private refreshPage(i: number) {
     this.refs.page(getArgs(
-      this._query,
+      this.query,
       this.sort,
       this.filter,
       this.search,
