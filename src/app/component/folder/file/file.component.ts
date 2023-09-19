@@ -60,7 +60,7 @@ export class FileComponent implements OnInit {
 
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
-    return this.ref.origin || (this.store.account.origin ? '' : undefined);
+    return this.ref.origin || '';
   }
 
   @Input()

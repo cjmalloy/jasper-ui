@@ -24,7 +24,7 @@
   <div class="stack">
     <div class="link" [class.remote]="!local">
       <a *ngIf="clickableLink" [href]="ref.url | safe" target="_blank">{{ title }}</a>
-      <a *ngIf="!clickableLink" [routerLink]="['/ref', ref.url]" [queryParams]="{ nonLocalOrigin }">{{ title }}</a><wbr>
+      <a *ngIf="!clickableLink" [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }">{{ title }}</a><wbr>
       <span class="host">({{ host }})</span>
     </div>
     <div class="link-below">
@@ -137,6 +137,9 @@
           <ng-container *ngIf="addOrigin" i18n>
             to <a class="origin tag" [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
           </ng-container>
+          <ng-container *ngIf="nonLocalOrigin" i18n>
+            on <a class="origin tag" [routerLink]="['/tag', nonLocalOrigin]">{{ ref.origin || 'default' }}</a>
+          </ng-container>
         </div>
         <app-viewer *ngIf="expanded && expandInline && !editing && !viewSource"
                     class="viewer-inline"
@@ -149,17 +152,17 @@
             <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
           </ng-container>
           <ng-container *ngIf="ref.created && !ref.upload">
-            <a [routerLink]="['/ref', ref.url]" [queryParams]="{ nonLocalOrigin }" i18n>permalink</a>
+            <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }" i18n>permalink</a>
             <a *ngIf="store.account.user && !dm" routerLink="/submit/text" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags}" i18n>reply</a>
             <a *ngIf="store.account.user && dm" routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
-            <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ nonLocalOrigin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
-            <a *ngIf="!comments && threads" [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ nonLocalOrigin }" i18n>{threads, plural, =1 {1&thinsp;reply} other {{{ threads }}&thinsp;replies}}</a>
-            <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ nonLocalOrigin }" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}</a>
-            <a *ngIf="parentComment" [routerLink]="['/ref', parentComment, 'comments']" [queryParams]="{ nonLocalOrigin }" i18n>parent</a>
-            <a *ngIf="parentCommentTop" [routerLink]="['/ref', parentCommentTop, 'comments']" [queryParams]="{ nonLocalOrigin }" i18n>top</a>
-            <a *ngIf="parentThreadTop" [routerLink]="['/ref', parentThreadTop, 'thread']" [queryParams]="{ nonLocalOrigin }" i18n>parent</a>
-            <a *ngIf="!parentComment && !parentThreadTop && sources === 1" [routerLink]="['/ref', this.ref.sources![0]]" [queryParams]="{ nonLocalOrigin }" i18n>parent</a>
-            <a *ngIf="!parentComment && !parentThreadTop && sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ nonLocalOrigin }" i18n>{{ sources }}&thinsp;sources</a>
+            <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
+            <a *ngIf="!comments && threads" [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{threads, plural, =1 {1&thinsp;reply} other {{{ threads }}&thinsp;replies}}</a>
+            <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}</a>
+            <a *ngIf="parentComment" [routerLink]="['/ref', parentComment, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>parent</a>
+            <a *ngIf="parentCommentTop" [routerLink]="['/ref', parentCommentTop, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>top</a>
+            <a *ngIf="parentThreadTop" [routerLink]="['/ref', parentThreadTop, 'thread']" [queryParams]="{ origin: nonLocalOrigin }" i18n>parent</a>
+            <a *ngIf="!parentComment && !parentThreadTop && sources === 1" [routerLink]="['/ref', this.ref.sources![0]]" [queryParams]="{ origin: nonLocalOrigin }" i18n>parent</a>
+            <a *ngIf="!parentComment && !parentThreadTop && sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{{ sources }}&thinsp;sources</a>
             <a *ngIf="taggingAccess"
                class="fake-link"
                (click)="tagging = !tagging" i18n>tag</a>
@@ -204,7 +207,7 @@
           </ng-container>
           <ng-container *ngIf="ref.upload">
             <ng-container *ngIf="ref.exists">
-              <a [routerLink]="['/ref', ref.url]" [queryParams]="{ nonLocalOrigin }" i18n>permalink</a>
+              <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }" i18n>permalink</a>
             </ng-container>
             <ng-container *ngIf="store.account.user">
               <span class="fake-link" (click)="upload()" i18n>upload</span>
@@ -278,11 +281,11 @@
       <div class="toggle view"
            *ngIf="!admin.status.plugins.comment"
            [routerLink]="['/ref', ref.url]"
-           [queryParams]="{ nonLocalOrigin }">🖇️️</div>
+           [queryParams]="{ origin: nonLocalOrigin }">🖇️️</div>
       <div class="toggle comments"
            *ngIf="admin.status.plugins.comment"
            [routerLink]="['/ref', ref.url]"
-           [queryParams]="{ nonLocalOrigin }">💬️</div>
+           [queryParams]="{ origin: nonLocalOrigin }">💬️</div>
     </div>
   </div>
 </div>

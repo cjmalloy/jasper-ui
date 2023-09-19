@@ -96,7 +96,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
 
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
-    return this.ref.origin || (this.store.account.origin ? '' : undefined);
+    return this.ref.origin || '';
   }
 
   getTitle() {

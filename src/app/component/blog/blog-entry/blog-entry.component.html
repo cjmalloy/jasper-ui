@@ -50,12 +50,12 @@
           </ng-container>
         </div>
         <div class="actions">
-          <a [routerLink]="['/ref', ref.url]" [queryParams]="{ nonLocalOrigin }" i18n>permalink</a>
+          <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }" i18n>permalink</a>
           <a *ngIf="store.account.user" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
-          <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ nonLocalOrigin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
-          <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ nonLocalOrigin }" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
-          <a *ngIf="sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ nonLocalOrigin }" i18n>parent</a>
-          <a *ngIf="sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ nonLocalOrigin }" i18n>{{ sources }}&thinsp;sources</a>
+          <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
+          <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
+          <a *ngIf="sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin: nonLocalOrigin }" i18n>parent</a>
+          <a *ngIf="sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{{ sources }}&thinsp;sources</a>
           <a *ngIf="taggingAccess"
              class="fake-link"
              (click)="tagging = !tagging" i18n>tag</a>

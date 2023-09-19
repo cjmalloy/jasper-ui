@@ -43,9 +43,9 @@
        *ngIf="ref.created"
        [style.pointer-events]="allowActions ? 'auto' : 'none'">
     <a *ngIf="comments"
-       [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ nonLocalOrigin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
+       [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
     <a *ngIf="!comments"
-       [routerLink]="['/ref', ref.url]" [queryParams]="{ nonLocalOrigin }" i18n>permalink</a>
+       [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }" i18n>permalink</a>
     <a *ngIf="!deleting && (store.account.sysMod || writeAccess)"
        class="fake-link"
        (click)="deleting = true" i18n>delete</a>

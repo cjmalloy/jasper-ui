@@ -91,10 +91,10 @@
                         [ref]="ref"
                         [commentEdited$]="commentEdited$"></app-comment-edit>
       <div class="actions">
-        <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ nonLocalOrigin }" i18n>permalink</a>
+        <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>permalink</a>
         <a class="fake-link" (click)="replying = !replying" i18n>reply</a>
-        <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ nonLocalOrigin }" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
-        <a *ngIf="sources > 2" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ nonLocalOrigin }" i18n>{{ sources }}&thinsp;sources</a>
+        <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
+        <a *ngIf="sources > 2" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{{ sources }}&thinsp;sources</a>
         <a class="fake-link"
            *ngIf="writeAccess"
            (click)="editing = !editing" i18n>edit</a>
@@ -158,7 +158,7 @@
     </span>
     <a class="load-more"
        *ngIf="!collapsed && context >= maxContext"
-       [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ nonLocalOrigin }" i18n>
+       [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>
       continue this thread
     </a>
   </ng-container>
