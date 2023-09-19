@@ -76,8 +76,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         this.addFeedTags(...interestingTags(this.store.submit.tags));
         if (this.admin.status.plugins.thumbnail && (
             this.store.submit.tags.includes('plugin/video') ||
-            this.store.submit.tags.includes('plugin/image') ||
-            this.store.submit.tags.includes('plugin/embed'))) {
+            this.store.submit.tags.includes('plugin/image'))) {
           this.addTag('plugin/thumbnail')
         }
         if (this.origin) {

@@ -76,6 +76,15 @@ export function printError(res: HttpErrorResponse): string[] {
 }
 
 export function fixUrl(url: string) {
+  url = url.trim();
+  if (url.startsWith('<a')) {
+    url = url.substring(url.toLowerCase().indexOf('href="') + 'href="'.length)
+    return url.substring(0, url.indexOf('"'));
+  }
+  if (url.startsWith('<iframe')) {
+    url = url.substring(url.toLowerCase().indexOf('src="') + 'src="'.length);
+    return url.substring(0, url.indexOf('"'));
+  }
   if (url.startsWith('https://youtu.be/')) {
     return 'https://www.youtube.com/watch?v=' + url.substring('https://youtu.be/'.length);
   }

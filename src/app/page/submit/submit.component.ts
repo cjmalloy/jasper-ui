@@ -156,12 +156,15 @@ export class SubmitPage implements OnInit, OnDestroy {
     return false;
   }
 
-  submit(url?: string) {
+  submit() {
     let tags = this.store.submit.tags;
+    if (this.url.value.trim().toLowerCase().startsWith('<iframe')) {
+      tags.push('plugin/embed');
+    }
     if (this.store.submit.web && this.plugin && !tags.includes(this.plugin)) {
       tags = uniq([this.plugin, ...tags]);
     }
-    url ||= this.fixed(this.url.value);
+    const url = this.fixed(this.url.value);
     this.router.navigate(['./submit', this.editor(this.linkType(url))], {
       queryParams: {
         url,
