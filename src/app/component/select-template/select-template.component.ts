@@ -41,8 +41,6 @@ export class SelectTemplateComponent {
         hit = this.templates.map(t => t.tag).indexOf(value.substring(access(value).length)) + 1;
       }
       this.select!.nativeElement.selectedIndex = hit;
-    } else {
-      defer(() => this.template = value);
     }
   }
 
