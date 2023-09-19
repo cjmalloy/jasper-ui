@@ -37,6 +37,7 @@ export class RefVersionsComponent implements OnInit, OnDestroy {
         this.store.view.pageSize,
       );
       args.url = this.store.view.url;
+      args.obsolete = true;
       defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
