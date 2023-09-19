@@ -52,7 +52,7 @@ export const chessPlugin: Plugin = {
 
           &.b {
             opacity: 0.90;
-            color: #00184b !important;
+            color: #123 !important;
             filter: drop-shadow(0 0 1px white) drop-shadow(1px 1px 2px black) !important;
           }
         }
