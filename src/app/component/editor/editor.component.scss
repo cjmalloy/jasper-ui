@@ -1,19 +1,19 @@
 :host.fullscreen {
-  textarea, app-md {
+  textarea, ngx-editor, app-md {
     resize: none;
     overflow: auto;
     min-width: unset !important;
     max-width: unset !important;
   }
   &.stacked {
-    textarea, app-md {
+    textarea, ngx-editor, app-md {
       width: calc(100vw - 32px) !important;
       height: calc(50vh - 32px) !important;
     }
   }
 
   &:not(.stacked) {
-    textarea, app-md {
+    textarea, ngx-editor, app-md {
       width: calc(50vw - 18px) !important;
       height: calc(100vh - 64px) !important;
     }
@@ -23,7 +23,7 @@
   }
 
   &:not(.preview) {
-    textarea {
+    textarea, ngx-editor {
       width: calc(100vw - 32px) !important;
       height: calc(100vh - 64px) !important;
     }

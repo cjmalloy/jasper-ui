@@ -8,7 +8,7 @@
             (click)="toggleHelp()"
             i18n-title title="Help"
             i18n>❓️</button>
-    <button *ngIf="fullscreen || currentText"
+    <button *ngIf="!html && (fullscreen || currentText)"
             type="button"
             (click)="toggleStacked()"
             i18n-title title="Stacked or side by side layout toggle">
@@ -32,6 +32,7 @@
     </div>
   </div>
   <textarea #editor
+            *ngIf="!html"
             [formControl]="control"
             (focusin)="editing = true"
             (input)="setText($any($event).target.value)"
@@ -39,6 +40,16 @@
             [appFillWidth]="fillWidth"
             [padding]="padding"
             [appAutofocus]="autoFocus"></textarea>
+  <ng-container *ngIf="html">
+    <ngx-editor-menu [editor]="ed"> </ngx-editor-menu>
+    <ngx-editor #pm
+                [editor]="ed"
+                [formControl]="control"
+                (focusin)="editing = true"
+                (input)="setText($any($event).target.value)"
+                (blur)="syncText($any($event).target.value)"
+                [appAutofocus]="autoFocus"></ngx-editor>
+  </ng-container>
   <div class="floating-toggles">
   </div>
 </div>

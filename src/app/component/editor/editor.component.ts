@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
 import { debounce, throttle, uniq, without } from 'lodash-es';
+import { Editor } from 'ngx-editor';
 import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -41,6 +42,8 @@ export class EditorComponent implements AfterViewInit {
 
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('pm')
+  pm?: ElementRef<HTMLTextAreaElement>;
 
   @Input()
   control!: UntypedFormControl;
@@ -71,6 +74,8 @@ export class EditorComponent implements AfterViewInit {
   private _text? = '';
   private _editing = false;
 
+  private _ed?: Editor;
+
   constructor(
     private admin: AdminService,
     private accounts: AccountService,
@@ -85,6 +90,15 @@ export class EditorComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.tags = this._tags;
+  }
+
+  get ed(): Editor {
+    this._ed ||= new Editor({ features: { linkOnPaste: true, resizeImage: false }});
+    return this._ed;
+  }
+
+  get html() {
+    return this.tags?.includes('plugin/html');
   }
 
   @Input()
@@ -161,7 +175,10 @@ export class EditorComponent implements AfterViewInit {
 
   toggleStacked() {
     if (this.fullscreen) {
-      if (this.stacked) {
+      if (this.html) {
+        this.store.local.showFullscreenPreview = this.preview = true;
+        this.store.local.editorStacked = this.stacked = false;
+      } else if (this.stacked) {
         if (this.preview) {
           this.store.local.showFullscreenPreview = this.preview = false;
         } else {
@@ -194,6 +211,7 @@ export class EditorComponent implements AfterViewInit {
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
       this.overlayRef.keydownEvents().subscribe(event => event.key === "Escape" && this.toggleFullscreen(false));
       this.editor?.nativeElement.focus();
+      this.pm?.nativeElement.focus();
     } else {
       this.stacked = true;
       this.preview = this.store.local.showPreview;

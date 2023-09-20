@@ -8,6 +8,7 @@ import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/pla
 import { FormlyModule } from '@ngx-formly/core';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { MobxAngularModule } from 'mobx-angular';
+import { NgxEditorModule } from 'ngx-editor';
 import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { retry, switchMap, timer } from 'rxjs';
@@ -305,6 +306,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     ScrollingModule,
     FormlyModule,
     JasperFormlyModule,
+    NgxEditorModule,
     OAuthModule.forRoot({
       resourceServer: {
         sendAccessToken: false,

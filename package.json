@@ -40,6 +40,7 @@
     "mobx-angular": "^4.7.2",
     "moment": "^2.29.4",
     "monaco-editor": "^0.43.0",
+    "ngx-editor": "^16.0.1",
     "ngx-markdown": "^16.0.0",
     "ngx-monaco-editor": "^12.0.0",
     "qrcode": "^1.5.3",
