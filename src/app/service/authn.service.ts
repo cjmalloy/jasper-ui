@@ -29,6 +29,10 @@ export class AuthnService {
     this.moduleConfig.resourceServer.sendAccessToken = true;
   }
 
+  get token() {
+    return this.storage.getItem('access_token') || '';
+  }
+
   get init$() {
     if (this.config.token) {
       this.token = this.config.token;

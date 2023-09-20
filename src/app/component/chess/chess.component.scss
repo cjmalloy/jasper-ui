@@ -27,5 +27,25 @@
     aspect-ratio: 1 / 1;
     max-height: 100%;
     overflow: hidden;
+
+    &.bounce {
+      animation-duration: 3s;
+      animation-name: bounce;
+      animation-iteration-count: 1;
+    }
+  }
+}
+
+@keyframes bounce {
+  from {
+    transform: scale(100%);
+  }
+
+  50% {
+    transform: scale(200%);
+  }
+
+  to {
+    transform: scale(100%);
   }
 }

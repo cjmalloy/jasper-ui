@@ -6,6 +6,7 @@
      [cdkDropListData]="white ? i : 63 - i"
      (cdkDropListDropped)="drop($any($event))">
   <div *ngIf="(white ? p : pieces[63-i]) as rp" class="chess-piece {{ rp?.color }}"
+       [class.bounce]="rp.square===bounce"
        cdkDrag
        cdkDragBoundary=".chess-board"
        [cdkDragData]="rp"
