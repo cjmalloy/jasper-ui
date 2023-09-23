@@ -5,6 +5,7 @@ import { defer, flatten } from 'lodash-es';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
+import { Store } from '../../store/store';
 
 export type PieceType = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
 export type PieceColor = 'b' | 'w';
@@ -40,6 +41,7 @@ export class ChessComponent implements OnInit {
   constructor(
     private auth: AuthzService,
     private refs: RefService,
+    private store: Store,
     private el: ElementRef<HTMLTextAreaElement>,
   ) { }
 
@@ -179,6 +181,7 @@ export class ChessComponent implements OnInit {
       }]).subscribe(() => {
         this.ref!.title = title;
         this.ref!.comment = comment;
+        this.store.eventBus.reload(this.ref);
       });
     }
     delete this.from;
