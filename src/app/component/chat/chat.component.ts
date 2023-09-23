@@ -1,12 +1,14 @@
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { Component, HostBinding, Input, OnDestroy, ViewChild } from '@angular/core';
-import { defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
+import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, map, throwError } from 'rxjs';
+import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { StompService } from '../../service/api/stomp.service';
+import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
@@ -19,6 +21,7 @@ import { getArgs } from '../../util/query';
 })
 export class ChatComponent implements OnDestroy {
   @HostBinding('class') css = 'chat ext';
+  private destroy$ = new Subject<void>();
   itemSize = 18.5;
 
   @ViewChild(CdkVirtualScrollViewport)
@@ -42,12 +45,15 @@ export class ChatComponent implements OnDestroy {
   private timeoutId?: number;
   private retries = 0;
   private lastScrolled = 0;
+  private watch?: Subscription;
 
   constructor(
+    private config: ConfigService,
     public admin: AdminService,
     private store: Store,
     private refs: RefService,
     private editor: EditorService,
+    private stomps: StompService,
   ) { }
 
   @Input()
@@ -67,13 +73,23 @@ export class ChatComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.clearPoll();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   clear() {
     this.messages = undefined;
     this.cursor = undefined;
     this.loadPrev(true);
+    if (this.config.websockets) {
+      this.watch?.unsubscribe();
+      this.watch = this.stomps.watchTag(this.query).pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(() =>  this.refresh());
+    }
   }
+
+  refresh = debounce(() => this.loadMore(), 400);
 
   loadMore() {
     this.clearPoll();
@@ -159,6 +175,14 @@ export class ChatComponent implements OnDestroy {
     });
   }
 
+  fetch() {
+    if (this.watch) {
+      this.refresh();
+    } else {
+      this.setPoll(false);
+    }
+  }
+
   clearPoll() {
     if (this.timeoutId !== undefined) {
       clearTimeout(this.timeoutId)
@@ -167,12 +191,13 @@ export class ChatComponent implements OnDestroy {
   }
 
   setPoll(backoff: boolean) {
+    this.clearPoll();
+    if (this.watch) return;
     if (backoff) {
       this.retries++;
     } else {
       this.retries = 0;
     }
-    this.clearPoll();
     this.timeoutId = window.setTimeout(() => this.loadMore(),
       // 1 second to ~4 minutes in 10 steps
       Math.max(1000, 250 * Math.pow(2, Math.min(10, this.retries))));
@@ -220,7 +245,7 @@ export class ChatComponent implements OnDestroy {
         return throwError(err);
       }),
     ).subscribe(ref => {
-      this.setPoll(false);
+      this.fetch();
     });
   }
 
