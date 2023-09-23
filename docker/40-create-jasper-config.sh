@@ -20,7 +20,7 @@ config="
   \"scim\": ${JASPER_SCIM-false},
   \"multiTenant\": ${JASPER_MULTI_TENANT-false},
   \"websockets\": ${JASPER_WEBSOCKETS-true},
-  \"support\": ${JASPER_SUPPORT-"+support"},
+  \"support\": \"${JASPER_SUPPORT-+support"}\",
   \"allowedSchemes\": ${JASPER_ALLOWED_SCHEMES-[\"http:\", \"https:\", \"ftp:\", \"tel:\", \"mailto:\", \"magnet:\"]},
   \"maxPlugins\": ${JASPER_MAX_PLUGINS-0},
   \"maxTemplates\": ${JASPER_MAX_TEMPLATES-0},
