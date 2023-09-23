@@ -73,16 +73,15 @@ export class ChessComponent implements OnInit, OnDestroy {
             .filter(m => !!m);
           if (!this.bounce && moves.length) {
             // TODO: queue all moves and animate one by one
-            this.bounce = moves[moves.length-1].replace(/[^a-h1-8]/g, '').substring(-2);
-            delay(() => this.bounce = '', 3000);
+            this.bounce = moves[moves.length-1].replace(/[^a-h1-8]/g, '');
+            if (this.bounce.length > 2) this.bounce = this.bounce.substring(this.bounce.length - 2, this.bounce.length);
+            delay(() => this.bounce = '', 3400);
           }
-          this.ref = {
-            ...this.ref!,
-            title: u.title,
-            comment: u.comment,
-            modifiedString: u.modifiedString,
-          };
-          this.store.eventBus.reload(u);
+          this.ref!.title = u.title
+          this.ref!.comment = u.comment
+          this.ref!.modifiedString = u.modifiedString
+          this.ref = this.ref;
+          this.store.eventBus.refresh(this.ref);
         })));
       });
     }
