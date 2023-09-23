@@ -1,10 +1,14 @@
 import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, HostBinding, HostListener, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, HostBinding, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
 import { Chess, Square } from 'chess.js';
-import { defer, flatten } from 'lodash-es';
+import { defer, delay, flatten, uniq } from 'lodash-es';
+import { toJS } from 'mobx';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
+import { StompService } from '../../service/api/stomp.service';
 import { AuthzService } from '../../service/authz.service';
+import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 export type PieceType = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
@@ -18,8 +22,9 @@ type Piece = { type: PieceType, color: PieceColor, square: Square, };
   styleUrls: ['./chess.component.scss'],
   hostDirectives: [CdkDropListGroup]
 })
-export class ChessComponent implements OnInit {
+export class ChessComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'chess-board';
+  private destroy$ = new Subject<void>();
 
   @Input()
   white = true;
@@ -33,19 +38,54 @@ export class ChessComponent implements OnInit {
   dim = 32;
   fontSize = 32;
   writeAccess = false;
+  bounce = '';
 
   private _ref?: Ref;
   private resizeObserver = new ResizeObserver(() => this.onResize());
   private fen = '';
+  private watches: Subscription[] = [];
+  /**
+   * Flag to prevent animations for own moves.
+   */
+  private patchingComment = '';
 
   constructor(
+    private config: ConfigService,
     private auth: AuthzService,
     private refs: RefService,
     private store: Store,
+    private stomps: StompService,
     private el: ElementRef<HTMLTextAreaElement>,
   ) { }
 
   ngOnInit(): void {
+    if (this.ref && this.config.websockets) {
+      this.watches.forEach(w => w.unsubscribe());
+      this.watches = [];
+      this.refs.page({ url: this.ref.url, obsolete: true, size: 500, sort: ['modified,DESC']}).subscribe(page => {
+        this.stomps.watchRef(this.ref!.url, uniq(page.content.map(r => r.origin))).forEach(w => this.watches.push(w.pipe(
+          takeUntil(this.destroy$),
+        ).subscribe(u => {
+          const moves = (u.comment?.substring(this.patchingComment.length || this.ref?.comment?.length || 0) || '')
+            .trim()
+            .split(/\s+/g)
+            .map(m => m.trim())
+            .filter(m => !!m);
+          if (!this.bounce && moves.length) {
+            // TODO: queue all moves and animate one by one
+            this.bounce = moves[moves.length-1].replace(/[^a-h1-8]/g, '').substring(-2);
+            delay(() => this.bounce = '', 3000);
+          }
+          this.ref = {
+            ...this.ref!,
+            title: u.title,
+            comment: u.comment,
+            modifiedString: u.modifiedString,
+          };
+          this.store.eventBus.reload(u);
+        })));
+      });
+    }
     this.resizeObserver.observe(this.el.nativeElement);
     this.writeAccess = this.auth.writeAccess(this.ref!);
     this.onResize();
@@ -77,14 +117,27 @@ export class ChessComponent implements OnInit {
     console.log(this.chess.ascii());
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   get ref() {
     return this._ref;
   }
 
   @Input()
   set ref(value: Ref | undefined) {
-    this._ref = value;
-    this.ngOnInit();
+    delete this.from;
+    delete this.to;
+    const newRef = this.ref?.url !== value?.url;
+    this._ref = toJS(value);
+    if (newRef) {
+      this.ngOnInit();
+    } else {
+      // TODO: Animate
+      this.ngOnInit();
+    }
   }
 
   @HostListener('window:resize')
@@ -169,7 +222,7 @@ export class ChessComponent implements OnInit {
 
       if (!this.ref) return;
       const title = (this.ref.title || '').replace(/\s*\|.*/, '') + ' | ' + move.san;
-      const comment = this.fen + '\n\n' + this.chess.history().join('  \n');
+      this.patchingComment = this.fen + '\n\n' + this.chess.history().join('  \n');
       this.refs.patch(this.ref.url, this.ref.origin!, [{
         op: 'add',
         path: '/title',
@@ -177,10 +230,11 @@ export class ChessComponent implements OnInit {
       }, {
         op: 'add',
         path: '/comment',
-        value: comment,
+        value: this.patchingComment,
       }]).subscribe(() => {
         this.ref!.title = title;
-        this.ref!.comment = comment;
+        this.ref!.comment = this.patchingComment;
+        this.patchingComment = '';
         this.store.eventBus.reload(this.ref);
       });
     }

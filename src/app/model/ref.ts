@@ -16,6 +16,16 @@ export interface Ref extends HasOrigin {
   created?: moment.Moment;
 }
 
+export interface RefUpdates extends HasOrigin {
+  url: string;
+  title?: string;
+  comment?: string;
+  sources?: string[];
+  alternateUrls?: string[];
+  published?: moment.Moment;
+  created?: moment.Moment;
+}
+
 export interface RefNode extends Ref {
   responses?: string[]
 }
