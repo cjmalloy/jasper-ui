@@ -11,6 +11,7 @@ import { HasChanges } from '../../../guard/pending-changes.guard';
 import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
+import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
@@ -34,9 +35,11 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   serverError: string[] = [];
 
   defaultTo?: string;
-  defaultNotes = $localize`Notes: ${moment().format('dddd, MMMM Do YYYY, h:mm:ss a')}`
+  defaultNotes = $localize`Notes: ${moment().format('dddd, MMMM Do YYYY, h:mm:ss a')}`;
+  loadedParams = false;
 
   constructor(
+    private config: ConfigService,
     private theme: ThemeService,
     public admin: AdminService,
     private router: Router,
@@ -74,9 +77,12 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
         }
         if (!this.to.value || hasPrefix(this.to.value, 'user')) {
           this.defaultTo = $localize`DM from ${this.store.account.tag}`;
+        } else if (this.to.value === this.config.support) {
+          this.defaultTo = $localize`Support Request`;
         } else {
           this.defaultTo = $localize`Message to Moderators of ${this.to.value}`;
         }
+        this.loadedParams = true;
       }));
     });
   }
@@ -153,7 +159,13 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   setDefaultTitle() {
-    if (this.title.value && ![this.defaultTo, this.defaultNotes].includes(this.title.value)) return;
-    this.title.setValue(this.notes ? this.defaultNotes : this.defaultTo);
+    defer(() => {
+      if (!this.loadedParams) {
+        this.setDefaultTitle();
+        return;
+      }
+      if (this.title.value && ![this.defaultTo, this.defaultNotes].includes(this.title.value)) return;
+      this.title.setValue(this.notes ? this.defaultNotes : this.defaultTo);
+    });
   }
 }

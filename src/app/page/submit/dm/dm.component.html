@@ -37,7 +37,7 @@
                 [fillWidth]="fill"
                 (syncEditor)="syncEditor()"
                 (syncTags)="plugins = $event"
-                [autoFocus]="!!to.value"></app-editor>
+                [autoFocus]="true"></app-editor>
   </div>
 
   <ng-container *ngFor="let e of serverError">

@@ -21,6 +21,7 @@ export class ConfigService {
   signup = '';
   scim = false;
   multiTenant = false;
+  support = '+support';
   allowedSchemes = ['http:', 'https:', 'ftp:', 'tel:', 'mailto:', 'magnet:'];
   modSeals = ['seal', '+seal', 'seal', '_moderated'];
   editorSeals = ['qc'];

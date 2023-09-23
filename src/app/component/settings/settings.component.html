@@ -39,5 +39,8 @@
     <ng-container *ngIf="!authn.clientAuth && config.logout">
       | <a [href]="config.logout" i18n>logout</a>
     </ng-container>
+    <ng-container *ngIf="config.support">
+      | <a routerLink="/submit/dm" [queryParams]="{ to: config.support }" i18n>help</a>
+    </ng-container>
   </ng-container>
 </ng-container>
