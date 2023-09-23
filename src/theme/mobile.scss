@@ -128,6 +128,26 @@ $tablet-width: 767px;
     display: inline !important;
   }
 
+  .subscription-bar {
+    height: 20px;
+    padding: 2px 8px 2px 0;
+
+    .subs {
+      line-height: 20px;
+      font-size: 16px;
+      margin: 0 !important;
+      padding: 0;
+      *:first-child {
+        margin-left: 10px;
+      }
+    }
+
+    .light-toggle {
+      font-size: 13px;
+      padding: 2px 20px 12px 20px;
+    }
+  }
+
   .tabs {
     h5 {
       flex-basis: 100%;
