@@ -203,9 +203,9 @@ export class RefComponent implements OnInit, OnDestroy {
     return this._ref;
   }
 
-  get nonLocalOrigin() {
-    if (this.ref.origin === this.store.account.origin) return undefined;
-    return this.ref.origin || '';
+  get obsoleteOrigin() {
+    if (this.ref.metadata?.obsolete) return this.ref.origin;
+    return undefined;
   }
 
   @Input()
