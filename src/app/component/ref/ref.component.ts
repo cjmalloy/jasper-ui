@@ -56,11 +56,11 @@ import {
   capturesAny,
   hasTag,
   hasUserUrlResponse,
-  implicitLocal,
   includesTag,
   isOwnerTag,
   localTag,
   removeTag,
+  subOrigin,
   tagOrigin
 } from '../../util/tag';
 import { ViewerComponent } from '../viewer/viewer.component';
@@ -362,11 +362,8 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get addOrigin() {
-    if (this.feed) {
-      return this.ref.plugins!['+plugin/feed'].origin;
-    }
     if (this.originPull) {
-      return this.ref.plugins?.['+plugin/origin']?.local;
+      return subOrigin(this.ref.origin, this.ref.plugins?.['+plugin/origin']?.local);
     }
     if (this.originPush) {
       return this.ref.plugins?.['+plugin/origin']?.remote;
