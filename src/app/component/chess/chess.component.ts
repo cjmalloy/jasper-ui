@@ -48,6 +48,10 @@ export class ChessComponent implements OnInit, OnDestroy {
    * Flag to prevent animations for own moves.
    */
   private patchingComment = '';
+  /**
+   * Queued animation.
+   */
+  private incoming?: Square;
 
   constructor(
     public config: ConfigService,
@@ -69,19 +73,23 @@ export class ChessComponent implements OnInit, OnDestroy {
           const moves = (u.comment?.substring(this.patchingComment.length || this.ref?.comment?.length || 0) || '')
             .trim()
             .split(/\s+/g)
-            .map(m => m.trim())
+            .map(m => m.trim() as Square)
             .filter(m => !!m);
-          if (!this.bounce && moves.length) {
-            // TODO: queue all moves and animate one by one
-            this.bounce = moves[moves.length-1].replace(/[^a-h1-8]/g, '');
-            if (this.bounce.length > 2) this.bounce = this.bounce.substring(this.bounce.length - 2, this.bounce.length);
-            delay(() => this.bounce = '', 3400);
-          }
-          this.ref!.title = u.title
-          this.ref!.comment = u.comment
-          this.ref!.modifiedString = u.modifiedString
+          if (!moves.length) return;
+          // TODO: queue all moves and animate one by one
+          const move = moves.shift()!;
+          this.ref!.title = u.title;
+          this.ref!.comment = u.comment;
           this.ref = this.ref;
           this.store.eventBus.refresh(this.ref);
+          this.ref!.modifiedString = u.modifiedString;
+          const lastMove = this.incoming = move.replace(/[^a-h1-8]/g, '') as Square;
+          requestAnimationFrame(() => {
+            if (lastMove != this.incoming) return;
+            this.bounce = this.incoming;
+            if (this.bounce.length > 2) this.bounce = this.bounce.substring(this.bounce.length - 2, this.bounce.length);
+            delay(() => this.bounce = '', 3400);
+          });
         })));
       });
     }
