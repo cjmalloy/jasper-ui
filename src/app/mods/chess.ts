@@ -89,6 +89,7 @@ export const chessTemplate: Template = {
             display: none;
           }
           .ref {
+            break-inside: avoid;
             .toggle {
               display: none;
             }
