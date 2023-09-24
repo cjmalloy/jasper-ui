@@ -76,9 +76,7 @@ export class ChessComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    if (this.ref && this.config.websockets) {
-      this.watches.forEach(w => w.unsubscribe());
-      this.watches = [];
+    if (!this.watches.length && this.ref && this.config.websockets) {
       this.refs.page({ url: this.ref.url, obsolete: true, size: 500, sort: ['modified,DESC']}).subscribe(page => {
         this.stomps.watchRef(this.ref!.url, uniq(page.content.map(r => r.origin))).forEach(w => this.watches.push(w.pipe(
           takeUntil(this.destroy$),
@@ -124,10 +122,19 @@ export class ChessComponent implements OnInit, OnDestroy {
       });
     }
     this.onResize();
+    this.reset(this.ref?.comment);
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  reset(board?: string) {
     this.chess.clear();
     try {
-      if (this.ref?.comment) {
-        const lines = this.ref.comment.trim().split('\n');
+      if (board) {
+        const lines = board.trim().split('\n');
         this.chess.load(lines[0]);
         this.fen = this.chess.fen();
         lines.shift();
@@ -144,17 +151,12 @@ export class ChessComponent implements OnInit, OnDestroy {
         this.chess.loadPgn('');
       }
     } catch (e) {
-      this.chess.loadPgn(this.ref?.comment || '');
+      this.chess.loadPgn(board || '');
     }
     this.pieces = flatten(this.chess.board());
     this.turn = this.chess.turn();
     this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
     console.log(this.chess.ascii());
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   get ref() {
@@ -168,10 +170,12 @@ export class ChessComponent implements OnInit, OnDestroy {
     const newRef = this.ref?.url !== value?.url;
     this._ref = toJS(value);
     if (newRef) {
+      this.watches.forEach(w => w.unsubscribe());
+      this.watches = [];
       this.ngOnInit();
     } else {
       // TODO: Animate
-      this.ngOnInit();
+      this.reset(value?.comment);
     }
   }
 
