@@ -126,6 +126,15 @@ export function defaultOrigin(tag: string, origin?: string) {
   return localTag(tag) + origin;
 }
 
+export function subOrigin(local?: string, origin?: string) {
+  if (!local) local = "";
+  if (!origin) origin = "";
+  if (!local) return origin;
+  if (!origin) return local;
+  if (!origin.startsWith("@")) origin = origin.substring(1);
+  return local + '.' + origin;
+}
+
 export function implicitLocal(tag: string, local: string) {
   if (!tag) return tag;
   if (!tag.includes('@')) return tag;
