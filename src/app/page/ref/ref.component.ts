@@ -62,15 +62,13 @@ export class RefPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const url = this.store.view.url;
-      const origin = this.store.view.origin !== undefined ? this.store.view.origin : this.store.account.origin;
       if (!url) return;
       this.refs.count({ url, obsolete: true }).pipe(
         catchError(err => {
           this.error = err;
           return of(0);
         }),
-        tap(count => runInAction(() => this.store.view.versions = count)),
-        switchMap(count => count > 0 ? this.refs.get(url, origin) : of({url, origin})),
+        switchMap(count => this.store.view.origin !== undefined ? this.refs.get(url, this.store.view.origin) : of({url, origin: this.store.view.origin})),
         catchError(err => this.refs.page({ url, size: 1 }).pipe(map(page => page.content[0] || {url, origin}))),
         tap(ref => this.store.view.setRef(ref)),
       ).subscribe();
