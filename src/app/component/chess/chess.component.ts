@@ -50,7 +50,7 @@ export class ChessComponent implements OnInit, OnDestroy {
   private patchingComment = '';
 
   constructor(
-    private config: ConfigService,
+    public config: ConfigService,
     private auth: AuthzService,
     private refs: RefService,
     private store: Store,
