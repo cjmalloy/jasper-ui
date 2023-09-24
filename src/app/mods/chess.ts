@@ -90,6 +90,9 @@ export const chessTemplate: Template = {
           }
           .ref {
             break-inside: avoid;
+            .chess-board {
+              max-height: unset;
+            }
             .toggle {
               display: none;
             }

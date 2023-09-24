@@ -1444,7 +1444,7 @@ ngx-monaco-editor {
   &.cdk-drag-placeholder {
     display: none !important;
   }
-  &.cdk-drag-disabled {
+  &.disabled {
     cursor: default !important;
   }
 }

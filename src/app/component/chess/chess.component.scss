@@ -1,6 +1,6 @@
 :host {
   aspect-ratio: 1 / 1;
-  max-height: 90vh;
+  max-height: calc(100vh - 150px);
   display: grid !important;
   grid-template-columns: repeat(8, 1fr) !important;
   user-select: none;

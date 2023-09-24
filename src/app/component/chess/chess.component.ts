@@ -3,7 +3,7 @@ import { Component, ElementRef, HostBinding, HostListener, Input, OnDestroy, OnI
 import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, uniq } from 'lodash-es';
 import { toJS } from 'mobx';
-import { Subject, Subscription, takeUntil } from 'rxjs';
+import { catchError, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
@@ -38,6 +38,7 @@ export class ChessComponent implements OnInit, OnDestroy {
   dim = 32;
   fontSize = 32;
   writeAccess = false;
+  created = true;
   bounce = '';
 
   private _ref?: Ref;
@@ -94,7 +95,22 @@ export class ChessComponent implements OnInit, OnDestroy {
       });
     }
     this.resizeObserver.observe(this.el.nativeElement);
-    this.writeAccess = this.auth.writeAccess(this.ref!);
+    if (this.local) {
+      this.writeAccess = this.auth.writeAccess(this.ref!);
+    } else {
+      this.writeAccess = true;
+      this.refs.get(this.ref!.url, this.store.account.origin).pipe(
+        catchError(err => {
+          if (err.status === 404) {
+            this.created = false;
+          }
+          return throwError(() => err);
+        })
+      ).subscribe(ref => {
+        this.created = true;
+        this.writeAccess = this.auth.writeAccess(ref)
+      });
+    }
     this.onResize();
     this.chess.clear();
     try {
@@ -145,6 +161,10 @@ export class ChessComponent implements OnInit, OnDestroy {
       // TODO: Animate
       this.ngOnInit();
     }
+  }
+
+  get local() {
+    return this.ref?.origin === this.store.account.origin;
   }
 
   @HostListener('window:resize')
@@ -230,7 +250,7 @@ export class ChessComponent implements OnInit, OnDestroy {
       if (!this.ref) return;
       const title = (this.ref.title || '').replace(/\s*\|.*/, '') + ' | ' + move.san;
       this.patchingComment = this.fen + '\n\n' + this.chess.history().join('  \n');
-      this.refs.patch(this.ref.url, this.ref.origin!, [{
+      (this.created ? this.refs.patch(this.ref.url, this.store.account.origin, [{
         op: 'add',
         path: '/title',
         value: title,
@@ -238,7 +258,13 @@ export class ChessComponent implements OnInit, OnDestroy {
         op: 'add',
         path: '/comment',
         value: this.patchingComment,
-      }]).subscribe(() => {
+      }]) : this.refs.create({
+        ...this.ref,
+        origin: this.store.account.origin,
+        title,
+        comment: this.patchingComment,
+      })).subscribe(() => {
+        this.ref!.origin = this.store.account.origin;
         this.ref!.title = title;
         this.ref!.comment = this.patchingComment;
         this.patchingComment = '';
