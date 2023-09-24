@@ -3,11 +3,13 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
+  EventEmitter,
   HostBinding,
   HostListener,
   Input,
   OnDestroy,
   OnInit,
+  Output,
   TemplateRef,
   ViewChild,
   ViewContainerRef
@@ -96,6 +98,8 @@ export class RefComponent implements OnInit, OnDestroy {
   showAlarm = true;
   @Input()
   fetchRepost = true;
+  @Output()
+  copied = new EventEmitter<string>();
 
   repostRef?: Ref;
   editForm: UntypedFormGroup;

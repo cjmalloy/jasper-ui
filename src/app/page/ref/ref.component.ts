@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, map, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { isWiki } from '../../mods/wiki';
 import { AdminService } from '../../service/admin.service';
@@ -63,13 +62,20 @@ export class RefPage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       const url = this.store.view.url;
       if (!url) return;
-      this.refs.page({ url, size: 1 }).pipe(
-        tap(page => runInAction(() => {
-          this.store.view.setRef(page.content[0]);
-          this.store.view.versions = page.totalElements;
-        })),
-      ).subscribe();
+      this.reload(url);
     }));
+  }
+
+  reload(url?: string) {
+    url ||= this.store.view.ref?.url;
+    if (!url) return;
+    this.refs.page({ url, size: 1 }).pipe(
+      tap(page => runInAction(() => {
+        this.store.view.setRef(page.content[0]);
+        this.store.view.versions = page.totalElements;
+      })),
+    ).subscribe();
+
   }
 
   ngOnDestroy() {

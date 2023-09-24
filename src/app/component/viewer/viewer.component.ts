@@ -1,4 +1,14 @@
-import { AfterViewInit, Component, ElementRef, HostBinding, HostListener, Input, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostBinding,
+  HostListener,
+  Input,
+  Output,
+  ViewChild
+} from '@angular/core';
 import Hls from 'hls.js';
 import { defer, without } from 'lodash-es';
 import { Ext } from '../../model/ext';
@@ -32,6 +42,8 @@ export class ViewerComponent implements AfterViewInit {
   tags?: string[];
   @Input()
   disableResize = false;
+  @Output()
+  copied = new EventEmitter<string>();
 
   repost?: Ref;
   page?: Page<Ref>;

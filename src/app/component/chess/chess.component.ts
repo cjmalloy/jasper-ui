@@ -1,5 +1,15 @@
 import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, HostBinding, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostBinding,
+  HostListener,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
+} from '@angular/core';
 import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, uniq } from 'lodash-es';
 import { toJS } from 'mobx';
@@ -28,6 +38,8 @@ export class ChessComponent implements OnInit, OnDestroy {
 
   @Input()
   white = true;
+  @Output()
+  copied = new EventEmitter<string>();
 
   turn: PieceColor = 'w';
   from?: Square;
@@ -264,10 +276,13 @@ export class ChessComponent implements OnInit, OnDestroy {
         title,
         comment: this.patchingComment,
       })).subscribe(() => {
-        this.ref!.origin = this.store.account.origin;
         this.ref!.title = title;
         this.ref!.comment = this.patchingComment;
         this.patchingComment = '';
+        if (!this.local) {
+          this.ref!.origin = this.store.account.origin;
+          this.copied.emit(this.store.account.origin)
+        }
         this.store.eventBus.reload(this.ref);
       });
     }

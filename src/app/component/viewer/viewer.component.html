@@ -55,7 +55,8 @@
           [appResize]="!disableResize"></app-qr>
   <app-chess *ngIf="chess"
              [white]="chessWhite"
-             [ref]="ref"></app-chess>
+             [ref]="ref"
+             (copied)="copied.emit($event)"></app-chess>
 </ng-container>
 <app-md *ngIf="currentText"
         class="expand"

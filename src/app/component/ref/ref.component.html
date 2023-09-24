@@ -143,7 +143,8 @@
                     [ref]="bareRef"
                     [tags]="plugins"
                     [disableResize]="disableResize"
-                    (contextmenu)="unlockViewer($event)"></app-viewer>
+                    (contextmenu)="unlockViewer($event)"
+                    (copied)="copied.emit($event)"></app-viewer>
         <div class="actions" [class.expanded]="actionsExpanded">
           <ng-container *ngIf="store.account.user && !ref.created && !ref.upload">
             <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
@@ -291,7 +292,8 @@
             [ref]="bareRef"
             [tags]="plugins"
             [disableResize]="disableResize"
-            (contextmenu)="unlockViewer($event)"></app-viewer>
+            (contextmenu)="unlockViewer($event)"
+            (copied)="copied.emit($event)"></app-viewer>
 
 <form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
