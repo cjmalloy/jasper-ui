@@ -96,7 +96,7 @@ export class ViewStore {
   }
 
   get config(): RootConfig | undefined {
-    return this.ext?.config;
+    return this.viewExt?.config;
   }
 
   get url() {
@@ -311,23 +311,23 @@ export class ViewStore {
     if (this.tag === '@*') return $localize`All`;
     if (this.tag === '*') return $localize`Local`;
     if (isQuery(this.tag)) return $localize`Query`;
-    return this.ext?.name || this.activeTemplates[0]?.name || this.ext?.tag || this.tag;
+    return this.viewExt?.name || this.activeTemplates[0]?.name || this.viewExt?.tag || this.tag;
   }
 
   get cols() {
-    return parseInt(this.route.routeSnapshot?.queryParams['cols'] || this.ext?.config?.defaultCols || 0);
+    return parseInt(this.route.routeSnapshot?.queryParams['cols'] || this.viewExt?.config?.defaultCols || 0);
   }
 
   get sort() {
     const sort = this.route.routeSnapshot?.queryParams['sort'];
-    if (!sort) return [this.search ? this.defaultSearchSort : (this.ext?.config?.defaultSort || this.defaultSort)];
+    if (!sort) return [this.search ? this.defaultSearchSort : (this.viewExt?.config?.defaultSort || this.defaultSort)];
     if (!Array.isArray(sort)) return [sort]
     return sort;
   }
 
   get isSorted() {
     if (this.sort.length > 1) return true;
-    return this.sort[0] !== (this.search ? this.defaultSearchSort : (this.ext?.config?.defaultSort || this.defaultSort));
+    return this.sort[0] !== (this.search ? this.defaultSearchSort : (this.viewExt?.config?.defaultSort || this.defaultSort));
   }
 
   get isVoteSorted() {
