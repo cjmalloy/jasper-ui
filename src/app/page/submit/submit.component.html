@@ -1,5 +1,6 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
+    <a class="logo" routerLink="/"></a>
     <h5 i18n>Submit</h5>
     <a routerLink="/submit"
        [class.current-tab]="store.submit.web && !store.submit.internal"

@@ -155,9 +155,9 @@ body.dark-theme {
   .tabs {
     background-color: rgba(100, 100, 100, 0.3);
     border-bottom: 1px solid var(--border);
-    background-image: url("~/assets/jasper-dark.png");
-    background-position: 4px 0;
-    background-repeat: no-repeat;
+    .logo {
+      background-image: url("~/assets/jasper-dark.png");
+    }
 
     h5 {
       text-decoration: brown;

@@ -150,9 +150,10 @@ body.light-theme {
   .tabs {
     background-color: var(--blue);
     border-bottom: 1px solid var(--border);
-    background-image: url("~/assets/jasper-light.png");
-    background-position: 4px 0;
-    background-repeat: no-repeat;
+
+    .logo {
+      background-image: url("~/assets/jasper-light.png");
+    }
 
     & > a {
       background-color: var(--unselected-tab);

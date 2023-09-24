@@ -1,5 +1,6 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
+    <a class="logo" routerLink="/"></a>
     <a routerLink="." [queryParams]="{origin: store.view.origin}" [class.current-tab]="store.view.summary"
        i18n-title title="Summary View"
        i18n>view</a>
