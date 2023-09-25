@@ -54,8 +54,8 @@ export class TagPage implements OnInit, OnDestroy {
       );
       defer(() => this.query.setArgs(args));
     }));
+    this.disposers.push(autorun(() => this.theme.setTitle(this.store.view.name)));
     this.disposers.push(autorun(() => {
-      this.theme.setTitle(this.store.view.name);
       if (!this.store.view.queryTags.length) {
         runInAction(() => this.store.view.exts = []);
         this.loading = false;

@@ -311,7 +311,7 @@ export class ViewStore {
     if (this.tag === '@*') return $localize`All`;
     if (this.tag === '*') return $localize`Local`;
     if (isQuery(this.tag)) return $localize`Query`;
-    return this.viewExt?.name || this.activeTemplates[0]?.name || this.viewExt?.tag || this.tag;
+    return this.exts[0]?.name || this.activeTemplates[0]?.name || this.viewExt?.name || this.viewExt?.tag || this.tag;
   }
 
   get cols() {
