@@ -32,7 +32,7 @@ export class InboxAllPage implements OnInit, OnDestroy {
       const args = getArgs(
         this.store.account.inboxQuery,
         this.store.view.sort,
-        this.store.view.filter,
+        this.store.view.filter.includes('query/plugin/delete') ? this.store.view.filter : ['query/!plugin/delete', ...this.store.view.filter],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,

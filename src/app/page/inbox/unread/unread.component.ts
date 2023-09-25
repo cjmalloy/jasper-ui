@@ -44,7 +44,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
         }
       }
       const args: RefPageArgs = {
-        query: this.store.account.notificationsQuery,
+        query: '!plugin/delete:(' + this.store.account.notificationsQuery + ')',
         modifiedAfter: this.store.account.config.lastNotified,
         sort: ['modified,ASC'],
         size: this.store.view.pageSize,
