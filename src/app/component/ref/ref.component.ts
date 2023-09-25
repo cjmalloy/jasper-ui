@@ -823,8 +823,8 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   delete() {
-    (this.admin.status.plugins.delete
-      ? this.refs.update(deleteNotice(this.ref))
+    (hasTag('locked', this.ref) ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin)
+      : this.admin.status.plugins.delete ? this.refs.update(deleteNotice(this.ref))
       : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
       catchError((err: HttpErrorResponse) => {

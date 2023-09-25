@@ -195,7 +195,7 @@
                    (click)="viewSource = !viewSource" i18n>source</a>
               </ng-template>
             </ng-container>
-            <a *ngIf="!deleting && (store.account.sysMod || writeAccess)"
+            <a *ngIf="!deleting && (store.account.sysMod || taggingAccess)"
                class="fake-link"
                (click)="deleting = true" i18n>delete</a>
             <span *ngIf="deleting" class="delete-confirm" i18n> are you sure?&nbsp;
@@ -228,7 +228,7 @@
               <a class="fake-link"
                  (click)="editing = !editing" i18n>edit</a>
             </ng-container>
-            <a *ngIf="!deleting && (store.account.sysMod || writeAccess)"
+            <a *ngIf="!deleting"
                class="fake-link"
                (click)="deleting = true" i18n>remove</a>
             <span *ngIf="deleting" class="delete-confirm" i18n> are you sure?&nbsp;

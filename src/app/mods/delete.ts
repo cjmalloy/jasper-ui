@@ -1,8 +1,9 @@
+import { uniq } from 'lodash-es';
 import * as moment from 'moment';
-import { Ext } from "../model/ext";
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Config, Tag } from "../model/tag";
+import { hasTag } from '../util/tag';
 
 export const deletePlugin: Plugin = {
   tag: 'plugin/delete',
