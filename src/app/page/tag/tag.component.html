@@ -1,7 +1,7 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
     <a class="logo" routerLink="/"></a>
-    <h5 class="fake-link" routerLink=".." [queryParams]="{}">{{ store.view.name }}</h5>
+    <h5 class="fake-link" routerLink="." [queryParams]="{}">{{ store.view.name }}</h5>
     <ng-container *ngIf="store.view.extTemplate else multipleExt">
       <a routerLink="./"
          [class.current-tab]="store.view.noView"

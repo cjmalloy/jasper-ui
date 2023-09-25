@@ -7,7 +7,7 @@
                        [tags]="replyTags"
                        [newComments$]="newComments$"></app-comment-reply>
     <div class="summary-box" *ngIf="comments">
-      <h5 i18n>Comments:</h5>
+      <h5 routerLink="./comments" i18n>Comments:</h5>
       <app-thread-summary query="plugin/comment:!plugin/delete"
                           [source]="store.view.ref"
                           [newComments$]="newComments$"
@@ -16,7 +16,7 @@
       <a *ngIf="moreComments" routerLink="./comments" queryParamsHandling="merge" class="load-more" i18n>more comments</a>
     </div>
     <div class="summary-box" *ngIf="threads">
-      <h5 i18n>Threads:</h5>
+      <h5 routerLink="./thread" i18n>Threads:</h5>
       <app-thread-summary query="plugin/thread:!plugin/comment:!plugin/delete"
                           [source]="store.view.ref"
                           [newComments$]="newComments$"
@@ -28,7 +28,7 @@
          class="load-more no-select" i18n>load more</a>
     </div>
     <div class="summary-box" *ngIf="responses">
-      <h5 i18n>Responses:</h5>
+      <h5 routerLink="./responses" i18n>Responses:</h5>
       <app-ref-list [page]="query.page"
                     [pageControls]="false"></app-ref-list>
       <a *ngIf="responses > summaryItems"

@@ -1,7 +1,7 @@
 <ng-container *mobxAutorun>
   <div #tabs class="tabs">
     <a class="logo" routerLink="/"></a>
-    <h5>{{ title }}</h5>
+    <h5 class="fake-link" routerLink=".">{{ title }}</h5>
     <a routerLink="/tags" [queryParams]="{ noTemplate: null, home: true }" [class.current-tab]="store.view.allTags && store.view.home" queryParamsHandling="merge" i18n>home</a>
     <a routerLink="/tags" [queryParams]="{ noTemplate: null, home: null }" [class.current-tab]="store.view.allTags && !store.view.noTemplate && !store.view.home" queryParamsHandling="merge" i18n>all</a>
     <a routerLink="/tags" [queryParams]="{ noTemplate: true, home: null }" [class.current-tab]="store.view.noTemplate || (store.view.template && !store.view.userTemplate && !templateExists)" queryParamsHandling="merge" i18n-title title="🏷️ Tags" i18n>🏷️</a>
