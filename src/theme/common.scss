@@ -340,7 +340,7 @@ video.qr-preview {
   user-select: none;
   font-size: 10px;
   border-bottom: 1px solid transparent;
-  padding: 4px 8px 2px;
+  padding: 4px 8px 2px 0;
 
   .back-button {
     display: none;
@@ -390,6 +390,13 @@ video.qr-preview {
   .subs {
     font-size: 12px;
     margin-top: 2px;
+    mask-image: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.1) 2px, white 8px, white calc(100% - 18px), rgba(255, 255, 255, 0.1) calc(100% - 6px), rgba(255, 255, 255, 0));
+    *:first-child{
+      margin-left: 10px;
+    }
+    *:last-child {
+      margin-right: 10px;
+    }
   }
 
   .light-toggle {
