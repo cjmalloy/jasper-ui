@@ -150,7 +150,7 @@ $tablet-width: 767px;
     h5 {
       flex-basis: 100%;
     }
-    & > a:not(.current-tab) {
+    & > a:not(.current-tab):not(.logo) {
       display: none;
     }
   }
