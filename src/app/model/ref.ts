@@ -1,9 +1,9 @@
 import { isEqual } from 'lodash-es';
 import * as moment from 'moment';
 import { hasPrefix, publicTag } from '../util/tag';
-import { HasOrigin } from './tag';
+import { Cursor } from './tag';
 
-export interface Ref extends HasOrigin {
+export interface Ref extends Cursor {
   url: string;
   tags?: string[];
   title?: string;
@@ -16,7 +16,7 @@ export interface Ref extends HasOrigin {
   created?: moment.Moment;
 }
 
-export interface RefUpdates extends HasOrigin {
+export interface RefUpdates extends Cursor {
   url: string;
   title?: string;
   comment?: string;

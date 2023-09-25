@@ -9,18 +9,18 @@ import { filterModels } from '../util/zip';
 import { Ref } from './ref';
 import { Role } from './user';
 
-export interface HasModified {
+export interface HasOrigin {
+  origin?: string;
+}
+export interface Cursor extends HasOrigin {
   upload?: boolean;
   exists?: boolean;
   modified?: moment.Moment;
+  // Saved to pass modified check since moment looses precision
   modifiedString?: string;
 }
 
-export interface HasOrigin extends HasModified {
-  origin?: string;
-}
-
-export interface Tag extends HasOrigin {
+export interface Tag extends Cursor {
   type?: 'ext' | 'user' | 'plugin' | 'template';
   tag: string;
   name?: string;
