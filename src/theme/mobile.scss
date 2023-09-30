@@ -104,7 +104,7 @@ $tablet-width: 767px;
 /* Special width for settings tabs */
 @media (max-width: $settings-tabs-width) {
   .settings .tabs {
-    & > a:not(.current-tab) {
+    & > a:not(.current-tab):not(.logo) {
       display: none;
     }
     app-mobile-tab-select {
