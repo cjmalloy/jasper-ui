@@ -27,10 +27,10 @@ import { folderTemplate } from '../mods/folder';
 import { fullscreenPlugin } from '../mods/fullscreen';
 import { graphConfig } from '../mods/graph';
 import { homeTemplate } from '../mods/home';
+import { lockedIcon, privateIcon } from '../mods/icons';
 import { imagePlugin, imageTemplate } from '../mods/image';
 import { kanbanTemplate } from '../mods/kanban';
 import { lensPlugin, lensTemplate } from '../mods/lens';
-import { lockedIcon } from '../mods/locked';
 import { dmTemplate, inboxPlugin, outboxPlugin } from '../mods/mailbox';
 import { modlistConfig } from '../mods/modlist';
 import { oEmbedPlugin } from '../mods/oembed';
@@ -39,7 +39,6 @@ import { pdfPlugin } from '../mods/pdf';
 import { personPlugin } from '../mods/person';
 import { pipPlugin } from '../mods/pip';
 import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../mods/poll';
-import { privateIcon } from '../mods/private';
 import { qrPlugin } from '../mods/qr';
 import {
   invoiceDisputedPlugin,
