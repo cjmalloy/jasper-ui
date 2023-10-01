@@ -16,7 +16,7 @@
     <a class="fake-link"
        (click)="showUpload() || uploadFile.click()"
        [class.current-tab]="store.submit.upload"
-       i18n-title title="Upload Refs and Exts"
+       i18n-title title="Upload"
        i18n>upload</a>
     <ng-container *ngIf="!admin.isWikiExternal()">
       <a routerLink="/submit"
