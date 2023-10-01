@@ -346,7 +346,7 @@ export class RefComponent implements OnInit, OnDestroy {
 
   get addTags() {
     if (this.feed) {
-      return interestingTags(this.ref.plugins!['+plugin/feed'].addTags);
+      return interestingTags(this.ref.plugins?.['+plugin/feed']?.addTags);
     }
     if (this.originPull) {
       return interestingTags(this.ref.plugins?.['+plugin/origin']?.addTags);

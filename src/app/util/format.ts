@@ -67,9 +67,9 @@ export function interestingTags(tags?: string[]): string[] {
 }
 
 export function prefixTag(tag: string, tags: string[]) {
-  if (tag.startsWith('_') || tag.startsWith('+')) return false;
+  if (!tag || tag.startsWith('_') || tag.startsWith('+')) return false;
   for (const t of tags) {
-    if (t === tag) continue;
+    if (!t || t === tag) continue;
     if (t.startsWith(tag + '/')) return true;
   }
   return false;
