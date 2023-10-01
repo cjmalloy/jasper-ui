@@ -1,4 +1,6 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { NavComponent } from './nav.component';
 
@@ -8,7 +10,11 @@ describe('NavComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [NavComponent]
+      declarations: [NavComponent],
+      imports: [
+        HttpClientTestingModule,
+        RouterTestingModule,
+      ]
     });
     fixture = TestBed.createComponent(NavComponent);
     component = fixture.componentInstance;

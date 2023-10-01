@@ -27,6 +27,7 @@ describe('PageControlsComponent', () => {
       last: false,
       number: 0,
       size: 0,
+      numberOfElements: 0,
       totalElements: 0,
       totalPages: 0
     };
