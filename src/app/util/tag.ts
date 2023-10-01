@@ -213,17 +213,25 @@ export function queryPrefix(query?: string): string {
 
 export function topAnds(query?: string): string[] {
   if (!query) return [];
+  const ors = query.split('|');
+  ors.pop();
+  let brackets = 0;
+  for (const o of ors) {
+    brackets += o.match(/\(/g)?.length || 0;
+    brackets -= o.match(/\)/g)?.length || 0;
+    if (!brackets) return []; // Top Level OR
+  }
   const as = query.split(':');
   const result = [];
-  let brackets = 0;
+  brackets = 0;
   for (const a of as) {
-    const count = (a.match(/\(/g)?.length || 0) - (a.match(/\)/g)?.length || 0);
     if (!brackets) {
       result.push(a);
     } else {
       result[result.length - 1] += a;
     }
-    brackets += count;
+    brackets += a.match(/\(/g)?.length || 0;
+    brackets -= a.match(/\)/g)?.length || 0;
   }
   return result;
 }

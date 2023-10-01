@@ -87,12 +87,11 @@ export class ViewStore {
   }
 
   get ext() {
-    if (this.exts.length === 1) return this.exts[0];
-    return undefined;
+    return this.exts[0];
   }
 
   get extTemplate() {
-    return this.ext && this.extTemplates.find(t => hasPrefix(this.ext!.tag, t.tag))
+    return this.exts.length === 1 && this.extTemplates.find(t => this.exts.find(x => hasPrefix(x.tag, t.tag)));
   }
 
   get config(): RootConfig | undefined {
@@ -264,7 +263,7 @@ export class ViewStore {
   }
 
   get viewExt() {
-    return [...this.activeExts, ...this.globalExts].find(x => x.tag === this.viewTag);
+    return [...this.activeExts, ...this.globalExts].find(x => x.tag === this.viewTag) || this.exts[0];
   }
 
   get template(): string {
