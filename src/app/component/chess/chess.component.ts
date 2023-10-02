@@ -95,7 +95,7 @@ export class ChessComponent implements OnInit, OnDestroy {
           this.ref = this.ref;
           this.store.eventBus.refresh(this.ref);
           this.ref!.modifiedString = u.modifiedString;
-          const lastMove = this.incoming = move.replace(/[^a-h1-8]/g, '') as Square;
+          const lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
           requestAnimationFrame(() => {
             if (lastMove != this.incoming) return;
             this.bounce = this.incoming;
@@ -316,6 +316,16 @@ export class ChessComponent implements OnInit, OnDestroy {
     } else if (this.from) {
       this.to = square;
       this.move(this.from, square);
+    }
+  }
+
+  private getMoveCoord(move: string, turn: PieceColor): Square {
+    if (move === 'O-O') {
+      return turn === 'w' ? 'g1' : 'g8';
+    } else if (move === 'O-O-O') {
+      return turn === 'w' ? 'c1' : 'c8';
+    } else {
+      return move.replace(/[^a-h1-8]/g, '') as Square;
     }
   }
 }
