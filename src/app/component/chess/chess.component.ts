@@ -130,6 +130,11 @@ export class ChessComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  trackByPiece(index: number, value: Piece | null) {
+    if (!value) return index;
+    return `${value.color}-${value.type}`;
+  }
+
   reset(board?: string) {
     this.chess.clear();
     try {
