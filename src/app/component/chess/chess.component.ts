@@ -65,6 +65,7 @@ export class ChessComponent implements OnInit, OnDestroy {
    * Queued animation.
    */
   private incoming?: Square;
+  private board?: string;
 
   constructor(
     public config: ConfigService,
@@ -136,6 +137,8 @@ export class ChessComponent implements OnInit, OnDestroy {
   }
 
   reset(board?: string) {
+    if (this.board === board) return;
+    this.board = board;
     this.chess.clear();
     try {
       if (board) {
