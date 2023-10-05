@@ -4,7 +4,6 @@ import {
   ElementRef,
   EventEmitter,
   HostBinding,
-  HostListener,
   Input,
   Output,
   ViewChild
@@ -87,11 +86,6 @@ export class ViewerComponent implements AfterViewInit {
       const pipWindow = await documentPictureInPicture.requestWindow();
       pipWindow.document.body.append(this.el.nativeElement);
     }
-  }
-
-  @HostListener('click')
-  onClick() {
-    this.el.nativeElement.focus();
   }
 
   get ref() {
