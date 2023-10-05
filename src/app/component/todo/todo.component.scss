@@ -1,0 +1,40 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  max-width: 300px;
+  padding: 4px 10px 50px;
+
+  input {
+    margin: 8px;
+    width: calc(100% - 24px);
+    height: 24px;
+  }
+
+  .spacer {
+    min-height: 4px;
+  }
+
+  &:hover, &:focus-within {
+    padding-bottom: 4px;
+  }
+
+  &:hover input, input:focus {
+    display: block !important;
+  }
+
+  &.cdk-drop-list-dragging,
+  &.cdk-drop-list-receiving {
+    padding-bottom: 50px;
+    .spacer, input {
+      display: none !important;
+    }
+  }
+
+  &.cdk-drop-list-dragging .todo-item {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

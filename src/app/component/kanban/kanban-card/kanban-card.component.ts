@@ -54,6 +54,7 @@ export class KanbanCardComponent implements OnInit {
   title = '';
   repostRef?: Ref;
   @HostBinding('class.full-size')
+  todo = false;
   chess = false;
   chessWhite = true;
   overlayRef?: OverlayRef;
@@ -90,6 +91,7 @@ export class KanbanCardComponent implements OnInit {
     this._ref = value;
     this.title = this.getTitle();
     if (value) {
+      this.todo = !!this.admin.getPlugin('plugin/todo') && !!value.tags?.includes('plugin/todo');
       this.chess = !!this.admin.getPlugin('plugin/chess') && !!value.tags?.includes('plugin/chess');
       this.chessWhite = !!value.tags?.includes(this.store.account.localTag);
       if (this.repost && value && (!this.repostRef || this.repostRef.url != value.url && this.repostRef.origin === value.origin)) {
@@ -130,7 +132,7 @@ export class KanbanCardComponent implements OnInit {
   }
 
   get currentText() {
-    if (this.chess) return '';
+    if (this.chess || this.todo) return '';
     const value = this.ref?.comment || this.repostRef?.comment || '';
     if (this.ref?.title || hasComment(value)) return value;
     return '';
@@ -251,7 +253,6 @@ export class KanbanCardComponent implements OnInit {
     }
     this.close();
   }
-
 
   copy() {
     const tags = uniq([

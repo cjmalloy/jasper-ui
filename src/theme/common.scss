@@ -1362,8 +1362,59 @@ ngx-monaco-editor {
   &.cdk-drag-preview {
     transition: transform 0s;
     box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
-                0 8px 10px 1px rgba(0, 0, 0, 0.14),
-                0 3px 14px 2px rgba(0, 0, 0, 0.12);
+    0 8px 10px 1px rgba(0, 0, 0, 0.14),
+    0 3px 14px 2px rgba(0, 0, 0, 0.12);
+  }
+
+  &.cdk-drag-placeholder {
+    transition: transform 0s;
+    * {
+      visibility: hidden !important;
+    }
+  }
+}
+
+.todo-item {
+  padding: 4px;
+  margin-top: 2px;
+
+  .md p {
+    text-align: left;
+  }
+
+  &.no-write {
+    cursor: not-allowed !important;
+
+    &.cdk-drag-preview {
+      pointer-events: auto !important;
+      * {
+        pointer-events: none !important;
+      }
+      cursor: not-allowed !important;
+    }
+  }
+
+  transform: scale(1);
+  transform-origin: center;
+  transition: transform 0.1s cubic-bezier(.47,1.64,.8,1.2);
+  &.unlocked {
+    z-index: 1;
+    transform: scale(1.05);
+  }
+  &:hover {
+    z-index: 1;
+    transform: scale(1.01);
+  }
+
+  &:not(.no-write) {
+    cursor: grab;
+  }
+
+  &.cdk-drag-preview {
+    transition: transform 0s;
+    box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+    0 8px 10px 1px rgba(0, 0, 0, 0.14),
+    0 3px 14px 2px rgba(0, 0, 0, 0.12);
   }
 
   &.cdk-drag-placeholder {

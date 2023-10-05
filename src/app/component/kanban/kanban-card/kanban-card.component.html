@@ -30,6 +30,8 @@
   <app-chess *ngIf="chess"
              [white]="chessWhite"
              [ref]="ref"></app-chess>
+  <app-todo *ngIf="todo"
+             [ref]="ref"></app-todo>
   <app-md *ngIf="currentText"
           [origin]="ref.origin || ''"
           [plugins]="ref.tags || []"

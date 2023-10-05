@@ -59,6 +59,7 @@ export class ViewerComponent implements AfterViewInit {
   imageUrl = '';
   pdfUrl = '';
   qrUrl = '';
+  todo = false;
   chess = false;
   chessWhite = true;
   uis = this.admin.getPluginUi(this.currentTags);
@@ -100,6 +101,7 @@ export class ViewerComponent implements AfterViewInit {
     this.imageUrl = this.getImageUrl();
     this.pdfUrl = this.getPdfUrl();
     this.qrUrl = this.getQrUrl();
+    this.todo = !!this.admin.getPlugin('plugin/todo') && this.currentTags.includes('plugin/todo');
     this.chess = !!this.admin.getPlugin('plugin/chess') && this.currentTags.includes('plugin/chess');
     this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
     this.uis = this.admin.getPluginUi(this.currentTags);
@@ -189,10 +191,15 @@ export class ViewerComponent implements AfterViewInit {
     return this.oembed?.provider_name === 'Twitter';
   }
 
+  get hideComment() {
+    return this.tags
+      || this.chess
+      || this.todo
+      || (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract);
+  }
+
   get currentText() {
-    if (this.tags) return '';
-    if (this.chess) return '';
-    if (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract) return '';
+    if (this.hideComment) return '';
     const value = this.text || this.ref?.comment || '';
     if (this.ref?.title || this.text || hasTag('plugin/thread', this.ref) || hasComment(this.ref?.comment)) return value;
     return '';

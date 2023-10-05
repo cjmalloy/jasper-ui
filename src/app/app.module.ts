@@ -63,6 +63,8 @@ import { SortComponent } from './component/sort/sort.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { TemplateListComponent } from './component/template/template-list/template-list.component';
 import { TemplateComponent } from './component/template/template.component';
+import { TodoItemComponent } from './component/todo/item/item.component';
+import { TodoComponent } from './component/todo/todo.component';
 import { UserListComponent } from './component/user/user-list/user-list.component';
 import { UserComponent } from './component/user/user.component';
 import { ViewerComponent } from './component/viewer/viewer.component';
@@ -289,6 +291,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     SettingsMePage,
     NavComponent,
     LensComponent,
+    TodoComponent,
+    TodoItemComponent,
   ],
   imports: [
     BrowserModule,

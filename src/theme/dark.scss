@@ -257,7 +257,7 @@ body.dark-theme {
     border-top: 0.5px dashed var(--border);
   }
 
-  .editor:focus-within, .bubble, .plugins-form > *, blockquote {
+  .editor:focus-within, .bubble, .plugins-form > *, blockquote, .full-page .todo-list {
     border-radius: 8px;
     background-color: var(--bg-accent);
     backdrop-filter: blur(1px);
@@ -484,6 +484,24 @@ body.dark-theme {
   }
 
   .kanban-card {
+    border-radius: 4px;
+    background-color: var(--card);
+    &.unlocked {
+      border-radius: 5px;
+      border: 0.5px dashed var(--border-accent);
+    }
+    &:hover {
+      filter: drop-shadow(0 0 0.5px var(--border));
+    }
+    &.cdk-drag-preview {
+      background-color: var(--card-dragging);
+    }
+    &.cdk-drag-placeholder {
+      background-color: var(--placeholder);
+    }
+  }
+
+  .todo-item {
     border-radius: 4px;
     background-color: var(--card);
     &.unlocked {

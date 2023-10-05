@@ -53,6 +53,9 @@
           class="qr-expand"
           [url]="qrUrl"
           [appResize]="!disableResize"></app-qr>
+  <app-todo *ngIf="todo"
+            [ref]="ref"
+            (copied)="copied.emit($event)"></app-todo>
   <app-chess *ngIf="chess"
              [white]="chessWhite"
              [ref]="ref"

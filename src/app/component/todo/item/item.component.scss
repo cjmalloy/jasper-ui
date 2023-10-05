@@ -1,0 +1,14 @@
+:host {
+  flex-shrink: 0;
+  display: block;
+  max-height: 160px;
+  user-select: none;
+  scroll-padding: 40px;
+  overflow: hidden;
+
+  .todo-item-container {
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+  }
+}

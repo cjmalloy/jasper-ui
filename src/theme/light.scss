@@ -475,6 +475,21 @@ body.light-theme {
     }
   }
 
+  .todo-item {
+    border-radius: 4px;
+    background-color: var(--card);
+    &.unlocked {
+      border-radius: 5px;
+      border: 0.25px dashed var(--border-accent);
+    }
+    &:hover {
+      filter: drop-shadow(0 0 0.5px var(--border));
+    }
+    &.cdk-drag-placeholder {
+      background-color: var(--placeholder);
+    }
+  }
+
   .blog {
     .blog-entry {
       .blog-body {

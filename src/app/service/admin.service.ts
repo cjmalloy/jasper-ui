@@ -58,6 +58,7 @@ import { thanksConfig } from '../mods/thanks';
 import { terminalTheme } from '../mods/theme';
 import { threadPlugin } from '../mods/thread';
 import { thumbnailPlugin } from '../mods/thumbnail';
+import { todoPlugin, todoTemplate } from '../mods/todo';
 import { userTemplate } from '../mods/user';
 import { videoPlugin } from '../mods/video';
 import { voteDownPlugin, voteUpPlugin } from '../mods/vote';
@@ -134,6 +135,7 @@ export class AdminService {
       lensPlugin: lensPlugin,
       pipPlugin: pipPlugin,
       chessPlugin: chessPlugin,
+      todoPlugin: todoPlugin,
 
       debugPlugin: debugPlugin,
       breakpoint: breakpointPlugin,
@@ -153,6 +155,7 @@ export class AdminService {
       imageTemplate: imageTemplate,
       lensTemplate: lensTemplate,
       chessTemplate: chessTemplate,
+      todoTemplate: todoTemplate,
 
       // Icons
       lockedIcon: lockedIcon,
@@ -454,6 +457,7 @@ export class AdminService {
         if (p === this.status.plugins.repost) return true;
         if (p === this.status.plugins.lensPlugin) return true;
         if (p === this.status.plugins.chessPlugin) return true;
+        if (p === this.status.plugins.todoPlugin) return true;
         return false;
       }).map(p => p!.tag));
     }
