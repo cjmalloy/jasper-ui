@@ -2,8 +2,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
+import { isObject } from 'lodash-es';
 import { toJS } from 'mobx';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, map, Observable, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { Ext, writeExt } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -15,10 +16,9 @@ import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
+import { tagLink } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasPrefix, parentTag } from '../../util/tag';
-import { tagLink } from '../../util/format';
-import { isObject } from 'lodash-es';
 
 @Component({
   selector: 'app-ext',
@@ -203,7 +203,7 @@ export class ExtComponent implements OnInit {
 
   delete() {
     (this.admin.status.plugins.delete ?
-      this.exts.update(tagDeleteNotice(this.ext)) :
+      this.exts.update(tagDeleteNotice(this.ext)).pipe(map(() => {})) :
       this.exts.delete(this.qualifiedTag)).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);

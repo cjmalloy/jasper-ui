@@ -36,8 +36,8 @@ export class RefService {
     return this.config.api + '/api/v1/repl/ref';
   }
 
-  create(ref: Ref, force = false): Observable<void> {
-    return this.http.post<void>(this.base, writeRef(ref), {
+  create(ref: Ref, force = false): Observable<string> {
+    return this.http.post<string>(this.base, writeRef(ref), {
       params: !force ? undefined : { force: true },
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
@@ -90,27 +90,27 @@ export class RefService {
     );
   }
 
-  update(ref: Ref, force = false): Observable<void> {
-    return this.http.put<void>(this.base, writeRef(ref), {
+  update(ref: Ref, force = false): Observable<string> {
+    return this.http.put<string>(this.base, writeRef(ref), {
       params: !force ? undefined : { force: true },
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  patch(url: string, origin: string, patch: any[]): Observable<void> {
-    return this.http.patch<void>(this.base, patch, {
+  patch(url: string, origin: string, cursor: string, patch: any[]): Observable<string> {
+    return this.http.patch<string>(this.base, patch, {
       headers: { 'Content-Type': 'application/json-patch+json' },
-      params: params({ url, origin }),
+      params: params({ url, origin, cursor }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  merge(url: string, origin: string, patch: Partial<Ref>): Observable<void> {
-    return this.http.patch<void>(this.base, patch, {
+  merge(url: string, origin: string, cursor: string, patch: Partial<Ref>): Observable<string> {
+    return this.http.patch<string>(this.base, patch, {
       headers: { 'Content-Type': 'application/merge-patch+json' },
-      params: params({ url, origin }),
+      params: params({ url, origin, cursor }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );

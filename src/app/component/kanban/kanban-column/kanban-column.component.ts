@@ -1,6 +1,15 @@
-import { AfterViewInit, Component, HostBinding, HostListener, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  HostBinding,
+  HostListener,
+  Input,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges
+} from '@angular/core';
 import { intersection, uniq } from 'lodash-es';
-import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, map, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../../model/ext';
@@ -190,7 +199,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         }
         ref.tags = uniq(ref.tags);
       }),
-      switchMap(() => this.refs.create(ref)),
+      switchMap(() => this.refs.create(ref).pipe(map(() => {}))),
       tap(() => {
         if (this.admin.status.plugins.voteUp) {
           this.tags.createResponse('plugin/vote/up', ref.url);

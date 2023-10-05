@@ -108,13 +108,13 @@ export class DebugComponent {
     this.batch(ref => {
       if (!ref.sources?.includes(url)) {
         if (ref.sources) {
-          return this.refs.patch(ref.url, ref.origin!, [{
+          return this.refs.patch(ref.url, ref.origin!, ref.modifiedString, [{
             op: 'add',
             path: '/sources/-',
             value: url,
           }]);
         } else {
-          return this.refs.patch(ref.url, ref.origin!, [{
+          return this.refs.patch(ref.url, ref.origin!, ref.modifiedString, [{
             op: 'add',
             path: '/sources',
             value: [url],

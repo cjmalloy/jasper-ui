@@ -13,6 +13,7 @@ import {
 import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, uniq } from 'lodash-es';
 import { toJS } from 'mobx';
+import * as moment from 'moment';
 import { catchError, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
@@ -273,29 +274,26 @@ export class ChessComponent implements OnInit, OnDestroy {
 
       if (!this.ref) return;
       const title = (this.ref.title || '').replace(/\s*\|.*/, '') + ' | ' + move.san;
-      this.patchingComment = this.fen + '\n\n' + this.chess.history().join('  \n');
-      (this.created ? this.refs.patch(this.ref.url, this.store.account.origin, [{
-        op: 'add',
-        path: '/title',
-        value: title,
-      }, {
-        op: 'add',
-        path: '/comment',
-        value: this.patchingComment,
-      }]) : this.refs.create({
+      const comment = this.patchingComment = this.fen + '\n\n' + this.chess.history().join('  \n');
+      (this.created ? this.refs.merge(this.ref.url, this.store.account.origin, this.ref!.modifiedString!,
+        { title, comment }
+      ) : this.refs.create({
         ...this.ref,
         origin: this.store.account.origin,
         title,
-        comment: this.patchingComment,
-      })).subscribe(() => {
+        comment,
+      })).subscribe(modifiedString => {
+        if (this.patchingComment !== comment) return;
         this.ref!.title = title;
-        this.ref!.comment = this.patchingComment;
+        this.ref!.comment = comment;
+        this.ref!.modified = moment(modifiedString);
+        this.ref!.modifiedString = modifiedString;
         this.patchingComment = '';
         if (!this.local) {
           this.ref!.origin = this.store.account.origin;
           this.copied.emit(this.store.account.origin)
         }
-        this.store.eventBus.reload(this.ref);
+        this.store.eventBus.refresh(this.ref);
       });
     }
     delete this.from;

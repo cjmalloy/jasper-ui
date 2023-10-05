@@ -92,7 +92,7 @@ export class FolderComponent implements OnInit {
     subfolders.sort();
     if (!this.different(subfolders)) return of(null);
     this.subfolders = subfolders;
-    return this.exts.patch(this._tag, [{
+    return this.exts.patch(this._tag, this.ext.modifiedString!, [{
       op: 'add',
       path: '/config/subfolders',
       value: subfolders,

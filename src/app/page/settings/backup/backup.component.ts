@@ -1,16 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { BackupService } from '../../../service/api/backup.service';
+import { OriginService } from '../../../service/api/origin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
-import { printError } from '../../../util/http';
-import { ORIGIN_NOT_BLANK_REGEX } from '../../../util/format';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import * as moment from 'moment/moment';
 import { scrollToFirstInvalid } from '../../../util/form';
-import { OriginService } from '../../../service/api/origin.service';
+import { ORIGIN_NOT_BLANK_REGEX } from '../../../util/format';
+import { printError } from '../../../util/http';
 
 @Component({
   selector: 'app-settings-backup-page',

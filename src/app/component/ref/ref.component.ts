@@ -19,7 +19,7 @@ import { Router } from '@angular/router';
 import { defer, pick, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
@@ -824,7 +824,7 @@ export class RefComponent implements OnInit, OnDestroy {
 
   delete() {
     (hasTag('locked', this.ref) ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin)
-      : this.admin.status.plugins.delete ? this.refs.update(deleteNotice(this.ref))
+      : this.admin.status.plugins.delete ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
       : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
       catchError((err: HttpErrorResponse) => {

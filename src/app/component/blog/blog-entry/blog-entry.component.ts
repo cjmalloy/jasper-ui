@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { defer, intersection, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, map, switchMap, throwError } from 'rxjs';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { Ext } from '../../../model/ext';
@@ -331,7 +331,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
 
   delete() {
     (this.admin.status.plugins.delete
-        ? this.refs.update(deleteNotice(this.ref))
+        ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
         : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
       catchError((err: HttpErrorResponse) => {

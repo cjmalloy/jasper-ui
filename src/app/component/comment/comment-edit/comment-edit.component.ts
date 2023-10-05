@@ -100,7 +100,7 @@ export class CommentEditComponent implements AfterViewInit {
         value: alt,
       });
     }
-    this.refs.patch(this.ref.url, this.ref.origin!, patches).pipe(
+    this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);

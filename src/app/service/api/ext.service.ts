@@ -36,8 +36,8 @@ export class ExtService {
     return this.config.api + '/api/v1/repl/ext';
   }
 
-  create(ext: Ext, force = false): Observable<void> {
-    return this.http.post<void>(this.base, writeExt(ext), {
+  create(ext: Ext, force = false): Observable<string> {
+    return this.http.post<string>(this.base, writeExt(ext), {
       params: !force ? undefined : { force: true },
     }).pipe(
       tap(() => this._cache.delete(ext.tag)),
@@ -115,8 +115,8 @@ export class ExtService {
     );
   }
 
-  update(ext: Ext, force = false): Observable<void> {
-    return this.http.put<void>(this.base, writeExt(ext), {
+  update(ext: Ext, force = false): Observable<string> {
+    return this.http.put<string>(this.base, writeExt(ext), {
       params: !force ? undefined : { force: true },
     }).pipe(
       tap(() => this._cache.delete(ext.tag)),
@@ -124,20 +124,20 @@ export class ExtService {
     );
   }
 
-  patch(tag: string, patch: any[]): Observable<void> {
-    return this.http.patch<void>(this.base, patch, {
+  patch(tag: string, cursor: string, patch: any[]): Observable<string> {
+    return this.http.patch<string>(this.base, patch, {
       headers: { 'Content-Type': 'application/json-patch+json' },
-      params: params({ tag }),
+      params: params({ tag, cursor }),
     }).pipe(
       tap(() => this._cache.delete(tag)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  merge(tag: string, patch: Partial<Ext>): Observable<void> {
-    return this.http.patch<void>(this.base, patch, {
+  merge(tag: string, cursor: string, patch: Partial<Ext>): Observable<string> {
+    return this.http.patch<string>(this.base, patch, {
       headers: { 'Content-Type': 'application/merge-patch+json' },
-      params: params({ tag }),
+      params: params({ tag, cursor }),
     }).pipe(
       tap(() => this._cache.delete(tag)),
       catchError(err => this.login.handleHttpError(err)),

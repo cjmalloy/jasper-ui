@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, map, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
 import { AdminService } from '../../../service/admin.service';
@@ -206,7 +206,7 @@ export class ChatEntryComponent {
   }
 
   approve() {
-    this.refs.patch(this.ref.url, this.ref.origin!, [{
+    this.refs.patch(this.ref.url, this.ref.origin!, this.ref.modifiedString!, [{
       op: 'add',
       path: '/tags/-',
       value: '_moderated',
@@ -224,7 +224,7 @@ export class ChatEntryComponent {
 
   delete() {
     (this.admin.status.plugins.delete
-        ? this.refs.update(deleteNotice(this.ref))
+        ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
         : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
       catchError((err: HttpErrorResponse) => {

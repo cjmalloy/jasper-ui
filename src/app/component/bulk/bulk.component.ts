@@ -175,7 +175,7 @@ export class BulkComponent implements OnInit, OnDestroy {
     this.thumbnailing = false;
     this.batch(ref => {
       if (ref.plugins?.['plugin/thumbnail']?.url === url) return of(null);
-      return this.refs.merge(ref.url, ref.origin!, {
+      return this.refs.merge(ref.url, ref.origin!, ref.modifiedString, {
         tags: uniq([...(ref.tags || []), 'plugin/thumbnail']),
         plugins: {
           'plugin/thumbnail': {url}
@@ -193,7 +193,7 @@ export class BulkComponent implements OnInit, OnDestroy {
   approve() {
     this.batch(ref => {
       if (!hasTag('_moderated', ref)) {
-        return this.refs.patch(ref.url, ref.origin!, [{
+        return this.refs.patch(ref.url, ref.origin!, ref.modifiedString, [{
           op: 'add',
           path: '/tags/-',
           value: '_moderated',

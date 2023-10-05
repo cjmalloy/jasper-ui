@@ -6,6 +6,7 @@ import { catchError, forkJoin, map, Observable, of, shareReplay, throwError } fr
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
 import { User } from '../model/user';
+import { UserConfig } from '../mods/user';
 import { Store } from '../store/store';
 import { hasPrefix } from '../util/tag';
 import { AdminService } from './admin.service';
@@ -13,7 +14,6 @@ import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { UserService } from './api/user.service';
 import { AuthnService } from './authn.service';
-import { UserConfig } from '../mods/user';
 
 export const CACHE_MS = 15 * 1000;
 
@@ -75,7 +75,8 @@ export class AccountService {
     if (!this.admin.status.templates.user) return of(undefined);
     return this.userExt$.pipe(
       catchError(() => of(undefined)),
-      switchMap(ext => ext ? of(ext) : this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin }))
+      switchMap(ext => ext ? of(ext) : this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin })),
+      map(() => {}),
     );
   }
 
@@ -171,11 +172,7 @@ export class AccountService {
     if (!this.admin.status.templates.user) throw 'User template not installed';
     this.subscriptions$.pipe(
       map(subs => subs.indexOf(tag)),
-      switchMap(index => this.exts.patch(this.store.account.tag,[{
-        op: 'remove',
-        path: '/config/subscriptions/' + index,
-      }]))
-    ).pipe(
+      switchMap(index => this.removeConfigArray('subscriptions', index)),
       tap(() => this.clearCache()),
       switchMap(() => this.subscriptions$),
     ).subscribe();
@@ -195,11 +192,7 @@ export class AccountService {
     if (!this.admin.status.templates.user) throw 'User template not installed';
     this.bookmarks$.pipe(
       map(subs => subs.indexOf(tag)),
-      switchMap(index => this.exts.patch(this.store.account.tag,[{
-        op: 'remove',
-        path: '/config/bookmarks/' + index,
-      }]))
-    ).pipe(
+      switchMap(index => this.removeConfigArray('bookmarks', index)),
       tap(() => this.clearCache()),
       switchMap(() => this.bookmarks$),
     ).subscribe();
@@ -219,11 +212,7 @@ export class AccountService {
     if (!this.admin.status.templates.user) throw 'User template not installed';
     this.alarms$.pipe(
       map(subs => subs.indexOf(tag)),
-      switchMap(index => this.exts.patch(this.store.account.tag,[{
-        op: 'remove',
-        path: '/config/alarms/' + index,
-      }]))
-    ).pipe(
+      switchMap(index => this.removeConfigArray('alarms', index)),
       tap(() => this.clearCache()),
       switchMap(() => this.alarms$),
     ).subscribe();
@@ -251,17 +240,19 @@ export class AccountService {
   }
 
   updateConfig(name: string, value: any) {
-    return this.exts.patch(this.store.account.ext!.tag + this.store.account.ext!.origin, [{
+    return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
         op: 'add',
         path: '/config/' + name,
         value: value,
-      }]).pipe(tap(() => runInAction(() => {
+      }]).pipe(tap(cursor => runInAction(() => {
         this.store.account.ext = <Ext> {
           ...this.store.account.ext,
           config: {
             ...this.store.account.config,
             [name]: value,
           },
+          modified: moment(cursor),
+          modifiedString: cursor,
         };
       })));
   }
@@ -272,11 +263,11 @@ export class AccountService {
     } else {
       name += '/-';
     }
-    return this.exts.patch(this.store.account.ext!.tag + this.store.account.ext!.origin, [{
+    return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
         op: 'add',
         path: '/config/' + name,
         value: value,
-      }]).pipe(tap(() => runInAction(() => {
+      }]).pipe(tap(cursor => runInAction(() => {
         this.store.account.ext = <Ext> {
           ...this.store.account.ext,
           config: {
@@ -286,6 +277,25 @@ export class AccountService {
               value
             ],
           },
+          modified: moment(cursor),
+          modifiedString: cursor,
+        };
+      })));
+  }
+
+  removeConfigArray(name: keyof UserConfig, index: number) {
+    return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
+      op: 'remove',
+      path: '/config/' + name + '/' + index,
+    }]).pipe(tap(cursor => runInAction(() => {
+        this.store.account.ext = <Ext> {
+          ...this.store.account.ext,
+          config: {
+            ...this.store.account.config,
+            [name]: (this.store.account.config[name] as any[] || []).splice(index, 1),
+          },
+          modified: moment(cursor),
+          modifiedString: cursor,
         };
       })));
   }

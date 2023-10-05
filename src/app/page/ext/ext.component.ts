@@ -4,7 +4,7 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } 
 import { Router } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, of, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -195,7 +195,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     // TODO: Better dialogs
     if (window.confirm($localize`Are you sure you want to delete this tag extension?`)) {
       (this.admin.status.plugins.delete ?
-        this.exts.update(tagDeleteNotice(ext)) :
+        this.exts.update(tagDeleteNotice(ext)).pipe(map(() => {})) :
         this.exts.delete(ext.tag + ext.origin)).pipe(
         catchError((res: HttpErrorResponse) => {
           this.serverError = printError(res);

@@ -35,6 +35,10 @@ export class EventBus {
     }
   }
 
+  /**
+   * Download latest revision of ref from the server and then trigger the
+   * 'refresh' event.
+   */
   reload(ref?: Ref) {
     this.event = 'reload';
     if (ref) {
@@ -42,6 +46,9 @@ export class EventBus {
     }
   }
 
+  /**
+   * Notify latest version of ref is not available.
+   */
   refresh(ref?: Ref) {
     this.event = 'refresh';
     if (ref) {
