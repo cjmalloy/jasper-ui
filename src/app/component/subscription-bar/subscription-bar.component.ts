@@ -62,7 +62,13 @@ export class SubscriptionBarComponent implements OnInit, OnDestroy {
   private getTemplate(x: Ext): Ext {
     if (x.modifiedString) return x;
     const t = this.admin.getTemplate(x.tag);
-    if (!t) return x;
-    return { tag: t.tag, origin: x.origin, name: t.name, config: t.defaults };
+    if (t) {
+      return { tag: t.tag, origin: x.origin, name: t.name, config: t.defaults };
+    }
+    const p = this.admin.getPlugin(x.tag);
+    if (p) {
+      return { tag: p.tag, origin: x.origin, name: p.name, config: p.defaults };
+    }
+    return x;
   }
 }
