@@ -39,18 +39,25 @@
 
   .tabs,
   .print-images,
-  .thumbnail {
+  .thumbnail,
+  .logo {
     color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
   .tabs {
     background-color: unset !important;
-    background-image: url("~/assets/jasper-light.png") !important;
+    .logo {
+      background-image: url("~/assets/jasper-light.png") !important;
+    }
   }
 
   .image-expand {
     max-width: 100% !important;
+  }
+  .md code {
+    border: unset !important;
+    background-color: unset !important;
   }
 
 }
