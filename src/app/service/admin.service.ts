@@ -38,7 +38,14 @@ import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } 
 import { pdfPlugin } from '../mods/pdf';
 import { personPlugin } from '../mods/person';
 import { pipPlugin } from '../mods/pip';
-import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin } from '../mods/poll';
+import {
+  pollOptionAPlugin,
+  pollOptionBPlugin,
+  pollOptionCPlugin,
+  pollOptionDPlugin,
+  pollPlugin,
+  pollTemplate
+} from '../mods/poll';
 import { qrPlugin } from '../mods/qr';
 import {
   invoiceDisputedPlugin,
@@ -123,11 +130,6 @@ export class AdminService {
       embed: embedPlugin,
       audio: audioPlugin,
       video: videoPlugin,
-      poll: pollPlugin,
-      pa: pollOptionAPlugin,
-      pb: pollOptionBPlugin,
-      pc: pollOptionCPlugin,
-      pd: pollOptionDPlugin,
       voteUp: voteUpPlugin,
       voteDown: voteDownPlugin,
 
@@ -135,6 +137,11 @@ export class AdminService {
       lensPlugin: lensPlugin,
       pipPlugin: pipPlugin,
       chessPlugin: chessPlugin,
+      pollPlugin: pollPlugin,
+      pollPluginA: pollOptionAPlugin,
+      pollPluginB: pollOptionBPlugin,
+      pollPluginC: pollOptionCPlugin,
+      pollPluginD: pollOptionDPlugin,
       todoPlugin: todoPlugin,
 
       debugPlugin: debugPlugin,
@@ -155,6 +162,7 @@ export class AdminService {
       imageTemplate: imageTemplate,
       lensTemplate: lensTemplate,
       chessTemplate: chessTemplate,
+      pollTemplate: pollTemplate,
       todoTemplate: todoTemplate,
 
       // Icons
