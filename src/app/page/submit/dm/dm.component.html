@@ -30,7 +30,14 @@
     <label for="title" i18n>Title:</label>
     <input id="title" type="text" [formControl]="title">
 
-    <span><!-- Message --></span>
+    <span>
+      <span i18n>Mesage:</span>
+      <app-select-plugin #pluginSelect
+                         class="shrink"
+                         [text]="true"
+                         i18n-title title="Add Plugin"
+                         (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
+    </span>
     <div #fill>
       <app-editor class="bubble"
                   [control]="comment"
@@ -44,7 +51,7 @@
     <span><!-- Viewer --></span>
     <div>
       <app-viewer [text]="dmForm.value.comment"
-                  [tags]="store.submit.tags"
+                  [tags]="tags"
                   (comment)="comment.setValue($event)"></app-viewer>
     </div>
 

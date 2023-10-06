@@ -11,6 +11,7 @@ import { HasChanges } from '../../../guard/pending-changes.guard';
 import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
+import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
@@ -44,6 +45,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     public admin: AdminService,
     private router: Router,
     public store: Store,
+    public bookmarks: BookmarkService,
     private refs: RefService,
     private editor: EditorService,
     private fb: UntypedFormBuilder,

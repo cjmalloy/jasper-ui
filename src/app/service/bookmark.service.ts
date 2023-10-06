@@ -33,6 +33,34 @@ export class BookmarkService {
     });
   }
 
+  toggleTag(tag: string) {
+    const tags = this.tags;
+    if (tag) {
+      if (tags.includes(tag)) {
+        for (let i = tags.length - 1; i >= 0; i--) {
+          if (tag === tags[i] || tags[i].startsWith(tag + '/')) {
+            tags.splice(i, 1);
+          }
+        }
+      } else {
+        tags.push(tag);
+      }
+    }
+    this.tags = tags;
+  }
+
+  get tags() {
+    return this.store.submit.tags;
+  }
+
+  set tags(tags: string[]) {
+    this.router.navigate([], {
+      queryParams: { tag: tags.length ? tags : null, pageNumber: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
   get pageSize() {
     return this.store.view.pageSize;
   }
