@@ -8,6 +8,7 @@ import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
+import { BookmarkService } from '../../service/bookmark.service';
 import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
@@ -48,6 +49,7 @@ export class RefFormComponent implements OnInit {
   constructor(
     private fb: UntypedFormBuilder,
     private admin: AdminService,
+    private bookmarks: BookmarkService,
     private editor: EditorService,
     private scrape: ScrapeService,
     private oembeds: OembedStore,
@@ -147,6 +149,7 @@ export class RefFormComponent implements OnInit {
   }
 
   togglePlugin(tag: string) {
+    this.bookmarks.toggleTag(tag);
     if (tag) {
       if (this.tags.includesTag(tag)) {
         this.tags.removeTagOrSuffix(tag);

@@ -69,7 +69,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   ngAfterViewInit(): void {
     defer(() => {
-      this.addTag('public');
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
         this.addTag(...this.store.submit.tags);

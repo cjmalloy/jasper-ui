@@ -41,7 +41,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   _tag = '';
   _ext?: Ext;
   localTag?: string;
-  addTags?: string[];
+  addTags = this.admin.status.templates.root?.defaults || [];
   local = true;
   plugin?: Plugin;
   mailPlugin?: Plugin;
@@ -93,14 +93,18 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.local = !origin || origin === this.store.account.origin;
       this.localTag = localTag(value);
       this.plugin = this.admin.getPlugin(value);
-      this.addTags = [...this.rootConfig?.addTags || (this.plugin?.tag ? [this.plugin!.tag] : []), ...topAnds(value).map(localTag)];
+      if (this.home) {
+        this.addTags = this.rootConfig?.addTags || [];
+      } else {
+        this.addTags = [...this.rootConfig?.addTags || (this.plugin?.tag ? [this.plugin!.tag] : []), ...topAnds(value).map(localTag)];
+      }
       this.mailPlugin = this.admin.getPlugin(getMailbox(value, this.store.account.origin));
       this.writeAccess = this.auth.tagWriteAccess(value);
       this.ui = this.admin.getTemplateUi(value);
     } else {
       this.local = true;
       this.localTag = undefined;
-      this.addTags = undefined;
+      this.addTags = this.rootConfig?.addTags || [];
       this.plugin = undefined;
       this.mailPlugin = undefined;
       this.writeAccess = false;
@@ -116,9 +120,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   set ext(value: Ext | undefined) {
     this._ext = value;
     if (value) {
-      if (!this.home) {
-        this.addTags = [...this.rootConfig?.addTags || [], this.localTag!];
-      }
       this.bookmarks$.pipe(
         map(xs => xs.map(x => this.getTemplate(x))),
       ).subscribe(xs => this.bookmarkExts = xs);
@@ -127,11 +128,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
       ).subscribe(xs => this.tagSubExts = xs);
       this.userSubs$.subscribe(xs => this.userSubExts = xs);
     } else {
-      this.addTags = undefined;
       this.bookmarkExts = [];
       this.tagSubExts = [];
       this.userSubExts = [];
     }
+    this.tag = value?.tag || '';
   }
 
   get expanded(): boolean {
@@ -168,8 +169,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get rootConfig() {
-    if (!this.root) return null;
-    return this._ext?.config as RootConfig;
+    if (!this.root) return undefined;
+    return (this._ext?.config || this.admin.status.templates.root!.defaults) as RootConfig;
   }
 
 

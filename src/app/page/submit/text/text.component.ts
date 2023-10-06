@@ -16,6 +16,7 @@ import { wikiTitleFormat, wikiUriFormat } from '../../../mods/wiki';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
+import { BookmarkService } from '../../../service/bookmark.service';
 import { EditorService } from '../../../service/editor.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
@@ -50,6 +51,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     public admin: AdminService,
     private router: Router,
     public store: Store,
+    private bookmarks: BookmarkService,
     private editor: EditorService,
     private refs: RefService,
     private ts: TaggingService,
@@ -67,7 +69,6 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   ngAfterViewInit(): void {
     defer(() => {
-      this.addTag('public');
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
         let url = this.store.submit.url || 'comment:' + uuid();
@@ -123,6 +124,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   togglePlugin(tag: string) {
+    this.bookmarks.toggleTag(tag);
     if (tag) {
       if (this.tags.includesTag(tag)) {
         this.tags.removeTagOrSuffix(tag);

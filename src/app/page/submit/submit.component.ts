@@ -69,13 +69,14 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    for (const t of this.store.submit.tags) {
-      if (prefix('plugin', t)) {
-        this.plugin = t;
-        break;
-      }
-    }
     this.disposers.push(autorun(() => {
+      this.plugin = '';
+      for (const t of this.store.submit.tags) {
+        if (prefix('plugin', t)) {
+          this.plugin = t;
+          break;
+        }
+      }
       this.validations.length = 0;
       if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
         this.validations.push({ name: 'Valid title', passed: false, test: url => of(this.linkType(this.fixed(url))) });

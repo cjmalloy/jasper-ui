@@ -114,6 +114,7 @@ export const rootTemplate: Template = {
   },
   defaults: <RootConfig> {
     defaultSort: 'published',
+    addTags: ['public'],
   },
   schema: {
     optionalProperties: {
