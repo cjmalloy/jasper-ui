@@ -64,7 +64,7 @@ export class TodoItemComponent implements OnInit {
   set line(value: string) {
     this._line = value;
     if (value) {
-      this.checked = !!/^[\s-]*\[([\sxX]*)]/.exec(value)![1].trim();
+      this.checked = !!/^[\s-]*\[([\sxX]*)]/.exec(value)?.[1]?.trim() || false;
       this.text = this._line.replace(/^[\s-]*\[[\sxX]*]\s*/g, '');
     } else {
       this.checked = false;
