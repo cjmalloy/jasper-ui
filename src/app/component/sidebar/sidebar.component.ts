@@ -1,5 +1,6 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, filter, map, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -96,7 +97,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       if (this.home) {
         this.addTags = this.rootConfig?.addTags || [];
       } else {
-        this.addTags = [...this.rootConfig?.addTags || (this.plugin?.tag ? [this.plugin!.tag] : []), ...topAnds(value).map(localTag)];
+        this.addTags = uniq([...this.rootConfig?.addTags || (this.plugin?.tag ? [this.plugin!.tag] : []), ...topAnds(value).map(localTag)]);
       }
       this.mailPlugin = this.admin.getPlugin(getMailbox(value, this.store.account.origin));
       this.writeAccess = this.auth.tagWriteAccess(value);
