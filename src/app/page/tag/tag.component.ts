@@ -70,7 +70,7 @@ export class TagPage implements OnInit, OnDestroy {
       }
     }));
     this.disposers.push(autorun(() => {
-      this.floatingSidebar = !this.store.view.hasTemplate || this.store.view.isTemplate('map') || this.store.view.isTemplate('graph');
+      this.floatingSidebar = this.store.view.list || !this.store.view.hasTemplate || this.store.view.isTemplate('map') || this.store.view.isTemplate('graph');
     }));
   }
 

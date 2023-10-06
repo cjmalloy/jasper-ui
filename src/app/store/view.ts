@@ -153,7 +153,7 @@ export class ViewStore {
   }
 
   get hasTemplate() {
-    return !!this.activeTemplates.length && !!this.globalTemplates.length;
+    return !!this.activeTemplates.length || !!this.globalTemplates.length;
   }
 
   isTemplate(template: string) {
