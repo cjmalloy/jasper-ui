@@ -5,8 +5,8 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
-import { getMailbox, mailboxes } from '../../mods/mailbox';
 import { deleteNotice } from '../../mods/delete';
+import { getMailbox, mailboxes } from '../../mods/mailbox';
 import { score } from '../../mods/vote';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
@@ -175,6 +175,7 @@ export class CommentComponent implements OnInit, OnDestroy {
       ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
+    if (hasTag('public', this.ref)) tags.unshift('public');
     if (hasTag('plugin/email', this.ref)) tags.push('plugin/email');
     if (hasTag('plugin/comment', this.ref)) tags.push('plugin/comment');
     if (hasTag('plugin/thread', this.ref)) tags.push('plugin/thread');
