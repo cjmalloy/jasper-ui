@@ -18,14 +18,18 @@ export class TodoComponent {
 
   @Input()
   origin = '';
+  @Input()
+  tags?: string[];
+  @Output()
+  comment = new EventEmitter<string>();
   @Output()
   copied = new EventEmitter<string>();
 
   lines: string[] = [];
-  addText = '';
+  addText = ``;
   pressToUnlock = false;
   serverErrors: string[] = [];
-  private _ref: Ref = {} as Ref;
+  private _ref?: Ref;
 
   constructor(
     public config: ConfigService,
@@ -47,7 +51,7 @@ export class TodoComponent {
   }
 
   @Input()
-  set ref(value: Ref) {
+  set ref(value: Ref | undefined) {
     this._ref = value;
     if (value) {
       this.lines = value.comment?.split('\n')?.filter(l => !!l) || [];
@@ -74,6 +78,8 @@ export class TodoComponent {
   }
 
   save(comment: string) {
+    this.comment.emit(comment);
+    if (!this.ref) return;
     this.refs.merge(this.ref.url, this.store.account.origin, this.ref.modifiedString!,
       { comment }
     ).pipe(
@@ -93,7 +99,8 @@ export class TodoComponent {
     });
   }
 
-  add() {
+  add(cancel?: Event) {
+    cancel?.preventDefault();
     this.addText = this.addText.trim();
     if (!this.addText) return;
     this.lines.push(`- [ ] ${this.addText}`);

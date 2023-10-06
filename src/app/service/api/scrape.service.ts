@@ -115,7 +115,8 @@ export class ScrapeService {
     );
   }
 
-  getFetch(url: string) {
+  getFetch(url?: string) {
+    if (!url) return '';
     if (url.startsWith('data:')) return url;
     if (this.config.preAuthScrape && this.store.account.user) this.scrape(url);
     return `${this.base}/fetch?url=${encodeURIComponent(url)}`;

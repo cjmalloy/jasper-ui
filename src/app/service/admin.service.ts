@@ -406,8 +406,8 @@ export class AdminService {
     return this.pluginConfigProperty('submit', 'internal', '!settings');
   }
 
-  get submitDm() {
-    return this.pluginConfigProperty('submitDm');
+  get submitText() {
+    return this.pluginConfigProperty('submitText');
   }
 
   get settings() {

@@ -38,9 +38,11 @@ export class ViewerComponent implements AfterViewInit {
   @Input()
   text? = '';
   @Input()
-  tags?: string[];
+  origin? = '';
   @Input()
   disableResize = false;
+  @Output()
+  comment = new EventEmitter<string>();
   @Output()
   copied = new EventEmitter<string>();
 
@@ -66,6 +68,7 @@ export class ViewerComponent implements AfterViewInit {
   embedReady = false;
 
   private _ref?: Ref;
+  private _tags?: string[];
   private _oembed?: Oembed;
   private _iframe!: ElementRef;
 
@@ -89,13 +92,14 @@ export class ViewerComponent implements AfterViewInit {
     }
   }
 
-  get ref() {
-    return this._ref;
-  }
+  // TODO: WTF?
+  // @HostListener('click')
+  // onClick() {
+  //   this.el.nativeElement.focus();
+  // }
 
-  @Input()
-  set ref(value: Ref | undefined) {
-    this._ref = value;
+
+  init() {
     this.audioUrl = this.getAudioUrl();
     this.videoUrl = this.getVideoUrl();
     this.imageUrl = this.getImageUrl();
@@ -105,12 +109,12 @@ export class ViewerComponent implements AfterViewInit {
     this.chess = !!this.admin.getPlugin('plugin/chess') && this.currentTags.includes('plugin/chess');
     this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
     this.uis = this.admin.getPluginUi(this.currentTags);
-    if (hasTag('plugin/repost', this.ref)) {
-      this.refs.get(value!.sources![0], value!.origin)
+    if (this.ref && hasTag('plugin/repost', this.ref)) {
+      this.refs.get(this.ref.sources![0], this.ref.origin)
         .subscribe(ref => this.repost = ref);
     }
-    if (hasTag('plugin/lens', this.ref)) {
-      const queryUrl = value!.plugins?.['plugin/lens']?.url || value?.url;
+    const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || this.ref?.url;
+    if (queryUrl && hasTag('plugin/lens', this.ref)) {
       this.embeds.loadQuery$(queryUrl)
         .subscribe(({params, page, ext}) => {
           this.page = page;
@@ -123,15 +127,35 @@ export class ViewerComponent implements AfterViewInit {
           this.lensSearch = params.search;
         });
     }
-    if (this.currentTags.includes('plugin/embed')) {
+    if (this.ref?.url && this.currentTags.includes('plugin/embed')) {
       let width = this.embed.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 400);
       let height = this.embed.height || window.innerHeight;
       if (hasTag('plugin/fullscreen', this.ref)) {
         width = screen.width;
         height = screen.height;
       }
-      this.oembeds.get(value!.url, this.theme, width, height).subscribe(oembed => this.oembed = oembed);
+      this.oembeds.get(this.ref.url, this.theme, width, height).subscribe(oembed => this.oembed = oembed);
     }
+  }
+
+  get ref() {
+    return this._ref;
+  }
+
+  @Input()
+  set ref(value: Ref | undefined) {
+    this._ref = value;
+    this.init();
+  }
+
+  get tags() {
+    return this._tags;
+  }
+
+  @Input()
+  set tags(value: string[] | undefined) {
+    this._tags = value;
+    this.init();
   }
 
   get iframe(): ElementRef {
@@ -192,7 +216,8 @@ export class ViewerComponent implements AfterViewInit {
   }
 
   get hideComment() {
-    return this.tags
+    if (this.admin.getPlugin('plugin/table') && this.currentTags.includes('plugin/table')) return false;
+    return !!this.tags
       || this.chess
       || this.todo
       || (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract);
@@ -233,21 +258,21 @@ export class ViewerComponent implements AfterViewInit {
   getAudioUrl() {
     if (!this.currentTags.includes('plugin/audio')) return '';
     const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
-    if (!this.admin.status.plugins.audio?.config?.cache) return url;
+    if (!this.admin.getPlugin('plugin/audio')?.config?.cache) return url;
     return this.scraper.getFetch(url);
   }
 
   getVideoUrl() {
     if (!this.currentTags.includes('plugin/video')) return '';
     const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
-    if (!this.admin.status.plugins.video?.config?.cache) return url;
+    if (!this.admin.getPlugin('plugin/video')?.config?.cache) return url;
     return this.scraper.getFetch(url);
   }
 
   getImageUrl() {
     if (!this.image && !this.currentTags.includes('plugin/image')) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
-    if (!this.admin.status.plugins.imagePlugin?.config?.cache) return url;
+    if (!this.admin.getPlugin('plugin/image')?.config?.cache) return url;
     return this.scraper.getFetch(url);
   }
 
@@ -268,7 +293,7 @@ export class ViewerComponent implements AfterViewInit {
   getPdfUrl() {
     const url = this.pdf;
     if (!url) return url;
-    if (!this.admin.status.plugins.pdf?.config?.cache) return url;
+    if (!this.admin.getPlugin('plugin/pdf')?.config?.cache) return url;
     return this.scraper.getFetch(url);
   }
 }

@@ -13,6 +13,8 @@ export class SelectPluginComponent {
 
   @Input()
   add = false;
+  @Input()
+  text = false;
   @Output()
   pluginChange = new EventEmitter<string>();
 
@@ -21,6 +23,7 @@ export class SelectPluginComponent {
 
   submitPlugins = this.admin.submit.filter(p => this.auth.canAddTag(p.tag));
   addPlugins = this.admin.add.filter(p => this.auth.canAddTag(p.tag));
+  textPlugins = this.admin.submitText.filter(p => this.auth.canAddTag(p.tag));
 
   constructor(
     private admin: AdminService,
@@ -37,7 +40,7 @@ export class SelectPluginComponent {
   }
 
   get plugins() {
-    return this.add ? this.addPlugins : this.submitPlugins;
+    return this.add ? this.addPlugins : this.text ? this.textPlugins : this.submitPlugins;
   }
 
 }

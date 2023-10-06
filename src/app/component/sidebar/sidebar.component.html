@@ -22,29 +22,19 @@
   <app-bulk *ngIf="expanded && store.view.type" [type]="store.view.type!" [activeExts]="store.view.exts"></app-bulk>
   <span class="button-bar">
     <ng-container *ngIf="store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')">
-      <div *ngIf="plugin?.config?.submitDm else submitInternal" class="submit-button" routerLink="/submit/dm" [queryParams]="{ tag: plugin!.tag, url: genUrl }">
+      <div *ngIf="plugin?.config?.submitText || rootConfig?.submitText else submitInternal" class="submit-button" routerLink="/submit/text" [queryParams]="{ tag: addTags }">
         <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
         &nbsp;
         &nbsp;
-        {{ plugin!.config!.submitDm }}</label>
+        {{ plugin?.config?.submitText || '' }}</label>
       </div>
       <ng-template #submitInternal>
-        <div *ngIf="plugin?.config?.submit && plugin?.config?.internal else submitText" class="submit-button" routerLink="/submit/web" [queryParams]="{ tag: plugin!.tag, url: genUrl }">
+        <div *ngIf="plugin?.config?.submit && plugin?.config?.internal else submit" class="submit-button" routerLink="/submit/web" [queryParams]="{ tag: plugin!.tag, url: genUrl }">
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
           &nbsp;
           &nbsp;
           {{ plugin!.config!.submit }}</label>
         </div>
-      </ng-template>
-      <ng-template #submitText>
-        <ng-container *ngIf="!user">
-          <div *ngIf="rootConfig?.submitText else submit" class="submit-button" routerLink="/submit/text" [queryParams]="{ tag: addTags }">
-            <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
-            &nbsp;
-            &nbsp;
-            {{ plugin?.config?.submit || '' }}</label>
-          </div>
-        </ng-container>
       </ng-template>
       <ng-template #submit>
         <div class="submit-button" routerLink="/submit" [queryParams]="{ tag: addTags }">
@@ -66,7 +56,7 @@
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message
           &nbsp;
           &nbsp;
-          {{ mailPlugin.config?.submitDm || '' }}</label>
+          {{ mailPlugin.config?.submitText || '' }}</label>
         </div>
       </ng-container>
       <ng-template #noMailPlugin>

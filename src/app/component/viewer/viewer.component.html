@@ -1,4 +1,4 @@
-<ng-container *ngIf="ref">
+<ng-container *ngIf="ref || tags">
   <app-ref *ngIf="repost"
            class="expand"
            [fetchRepost]="false"
@@ -31,8 +31,8 @@
   <div *ngIf="imageUrl"
        class="image-expand"
        [appImageDim]="imageUrl"
-       [defaultWidth]="ref.plugins?.['plugin/image']?.width"
-       [defaultHeight]="ref.plugins?.['plugin/image']?.height"
+       [defaultWidth]="ref?.plugins?.['plugin/image']?.width"
+       [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
        [grid]="disableResize"
        [appResize]="!disableResize"></div>
   <video *ngIf="videoUrl"
@@ -55,15 +55,18 @@
           [appResize]="!disableResize"></app-qr>
   <app-todo *ngIf="todo"
             [ref]="ref"
+            [tags]="tags"
+            (comment)="comment.emit($event)"
             (copied)="copied.emit($event)"></app-todo>
   <app-chess *ngIf="chess"
              [white]="chessWhite"
              [ref]="ref"
+             (comment)="comment.emit($event)"
              (copied)="copied.emit($event)"></app-chess>
 </ng-container>
 <app-md *ngIf="currentText"
         class="expand"
-        [origin]="ref?.origin || ''"
+        [origin]="origin || ref?.origin || ''"
         [text]="currentText"
         [plugins]="currentTags"></app-md>
 <embed *ngIf="pdfUrl"

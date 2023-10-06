@@ -23,17 +23,17 @@ export interface Plugin extends Config {
      */
     submit?: string,
     /**
-     * Nest this plugin within its parent.
-     */
-    submitChild?: string,
-    /**
      * Autogenerate URL when submitting.
      */
     internal?: boolean,
     /**
-     * Add plugin to submit tabs and use DM UI.
+     * Add plugin to text dropdown.
      */
-    submitDm?: string,
+    submitText?: string,
+    /**
+     * Nest this plugin within its parent.
+     */
+    submitChild?: string,
     /**
      * Add tab on the settings page for this plugin using this label.
      */

@@ -122,6 +122,16 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     this.submitted = false;
   }
 
+  togglePlugin(tag: string) {
+    if (tag) {
+      if (this.tags.includesTag(tag)) {
+        this.tags.removeTagOrSuffix(tag);
+      } else {
+        this.tags.addTag(tag);
+      }
+    }
+  }
+
   syncEditor() {
     this.editor.syncEditor(this.fb, this.textForm);
   }

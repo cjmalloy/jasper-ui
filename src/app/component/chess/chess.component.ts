@@ -40,6 +40,8 @@ export class ChessComponent implements OnInit, OnDestroy {
   @Input()
   white = true;
   @Output()
+  comment = new EventEmitter<string>();
+  @Output()
   copied = new EventEmitter<string>();
 
   turn: PieceColor = 'w';
@@ -47,7 +49,7 @@ export class ChessComponent implements OnInit, OnDestroy {
   to?: Square;
   moves: Square[] = [];
   chess = new Chess();
-  pieces: (Piece | null)[] = [];
+  pieces: (Piece | null)[] = flatten(this.chess.board());
   dim = 32;
   fontSize = 32;
   writeAccess = false;
@@ -108,7 +110,7 @@ export class ChessComponent implements OnInit, OnDestroy {
     }
     this.resizeObserver.observe(this.el.nativeElement);
     if (this.local) {
-      this.writeAccess = this.auth.writeAccess(this.ref!);
+      this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
     } else {
       this.writeAccess = true;
       this.refs.get(this.ref!.url, this.store.account.origin).pipe(
@@ -189,7 +191,7 @@ export class ChessComponent implements OnInit, OnDestroy {
   }
 
   get local() {
-    return this.ref?.origin === this.store.account.origin;
+    return !this.ref?.created || this.ref.upload || this.ref?.origin === this.store.account.origin;
   }
 
   @HostListener('window:resize')
@@ -272,9 +274,10 @@ export class ChessComponent implements OnInit, OnDestroy {
         });
       }
 
+      const comment = this.patchingComment = (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
+      this.comment.emit(comment)
       if (!this.ref) return;
       const title = (this.ref.title || '').replace(/\s*\|.*/, '') + ' | ' + move.san;
-      const comment = this.patchingComment = this.fen + '\n\n' + this.chess.history().join('  \n');
       (this.created ? this.refs.merge(this.ref.url, this.store.account.origin, this.ref!.modifiedString!,
         { title, comment }
       ) : this.refs.create({

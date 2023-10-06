@@ -16,8 +16,15 @@
         </div>
       </div>
 
-      <label for="comment" class="editor-label" *ngIf="!store.submit.wiki" i18n>Comment:</label>
-      <label for="comment" class="editor-label" *ngIf="store.submit.wiki" i18n>Entry:</label>
+      <div *ngIf="!store.submit.wiki" class="editor-label" i18n>
+        <label for="comment">Comment:</label>
+        <app-select-plugin #pluginSelect
+                           class="shrink"
+                           [text]="true"
+                           i18n-title title="Add Plugin"
+                           (pluginChange)="togglePlugin($event); pluginSelect.plugin = ''"></app-select-plugin>
+      </div>
+      <label *ngIf="store.submit.wiki" for="comment" class="editor-label" i18n>Entry:</label>
       <div #fill>
         <app-editor id="comment"
                     class="bubble"
@@ -26,6 +33,13 @@
                     (syncTags)="plugins = $event"
                     [fillWidth]="fill"
                     [autoFocus]="store.submit.wiki"></app-editor>
+      </div>
+
+      <span><!-- Viewer --></span>
+      <div>
+        <app-viewer [text]="textForm.value.comment"
+                    [tags]="$any(textForm.value).tags"
+                    (comment)="comment.setValue($event)"></app-viewer>
       </div>
 
       <label for="tags" i18n>Tags</label>
