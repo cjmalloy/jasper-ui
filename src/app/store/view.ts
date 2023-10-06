@@ -263,6 +263,7 @@ export class ViewStore {
   }
 
   get viewExt() {
+    if (this.list) return undefined;
     return [...this.activeExts, ...this.globalExts].find(x => x.tag === this.viewTag) || this.exts[0];
   }
 
