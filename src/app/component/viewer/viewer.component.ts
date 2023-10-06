@@ -63,6 +63,7 @@ export class ViewerComponent implements AfterViewInit {
   imageUrl = '';
   pdfUrl = '';
   qrUrl = '';
+  playlist = false;
   todo = false;
   chess = false;
   chessWhite = true;
@@ -100,6 +101,7 @@ export class ViewerComponent implements AfterViewInit {
     this.imageUrl = this.getImageUrl();
     this.pdfUrl = this.getPdfUrl();
     this.qrUrl = this.getQrUrl();
+    this.playlist = !!this.admin.getPlugin('plugin/playlist') && this.currentTags.includes('plugin/playlist');
     this.todo = !!this.admin.getPlugin('plugin/todo') && this.currentTags.includes('plugin/todo');
     this.chess = !!this.admin.getPlugin('plugin/chess') && this.currentTags.includes('plugin/chess');
     this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);

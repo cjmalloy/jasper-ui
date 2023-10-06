@@ -38,6 +38,7 @@ import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } 
 import { pdfPlugin } from '../mods/pdf';
 import { personPlugin } from '../mods/person';
 import { pipPlugin } from '../mods/pip';
+import { playlistPlugin, playlistTemplate } from '../mods/playlist';
 import {
   pollOptionAPlugin,
   pollOptionBPlugin,
@@ -145,6 +146,7 @@ export class AdminService {
       pollPluginC: pollOptionCPlugin,
       pollPluginD: pollOptionDPlugin,
       todoPlugin: todoPlugin,
+      playlistPlugin: playlistPlugin,
 
       debugPlugin: debugPlugin,
       breakpoint: breakpointPlugin,
@@ -166,6 +168,7 @@ export class AdminService {
       chessTemplate: chessTemplate,
       pollTemplate: pollTemplate,
       todoTemplate: todoTemplate,
+      playlistTemplate: playlistTemplate,
 
       // Icons
       lockedIcon: lockedIcon,
@@ -468,6 +471,7 @@ export class AdminService {
         if (p === this.status.plugins.lensPlugin) return true;
         if (p === this.status.plugins.chessPlugin) return true;
         if (p === this.status.plugins.todoPlugin) return true;
+        if (p === this.status.plugins.playlistPlugin) return true;
         return false;
       }).map(p => p!.tag));
     }

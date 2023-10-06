@@ -48,6 +48,7 @@ import { MdComponent } from './component/md/md.component';
 import { MobileTabSelectComponent } from './component/mobile-tab-select/mobile-tab-select.component';
 import { NavComponent } from './component/nav/nav.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
+import { PlaylistComponent } from './component/playlist/playlist.component';
 import { PluginListComponent } from './component/plugin/plugin-list/plugin-list.component';
 import { PluginComponent } from './component/plugin/plugin.component';
 import { QrComponent } from './component/qr/qr.component';
@@ -291,6 +292,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     LensComponent,
     TodoComponent,
     TodoItemComponent,
+    PlaylistComponent,
   ],
   imports: [
     BrowserModule,

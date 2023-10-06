@@ -5,6 +5,8 @@
            [showToggle]="true"
            [expandInline]="true"
            [ref]="repost"></app-ref>
+  <app-playlist *ngIf="playlist"
+                [ref]="ref"></app-playlist>
   <app-lens *ngIf="page"
             [page]="page"
             [pageControls]="false"
