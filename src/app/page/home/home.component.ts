@@ -30,9 +30,9 @@ export class HomePage implements OnInit, OnDestroy {
     private exts: ExtService,
   ) {
     theme.setTitle($localize`Home`);
-    store.view.clear(!!this.admin.status.plugins.voteUp ? 'voteScoreDecay' : 'published');
+    store.view.clear(!!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay' : 'published');
     query.clear();
-    if (admin.status.templates.home) {
+    if (admin.getTemplate('home')) {
       exts.getCachedExt('home').subscribe(x => this.homeExt = x);
     }
   }

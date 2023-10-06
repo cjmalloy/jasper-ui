@@ -25,7 +25,7 @@ export class OriginMapService {
 
   get init$() {
     this.origins = [];
-    if (!this.admin.status.plugins.origin) return of(null);
+    if (!this.admin.getPlugin('plugin/origin')) return of(null);
     return this.loadOrigins$().pipe(
       tap(() => runInAction(() => {
         this.store.origins.origins = this.origins;

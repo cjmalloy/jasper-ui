@@ -142,7 +142,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
 
   get canInvoice() {
     if (!this.local) return false;
-    if (!this.admin.status.plugins.invoice) return false;
+    if (!this.admin.getPlugin('plugin/invoice')) return false;
     if (!this.isAuthor) return false;
     if (!this.ref.sources || !this.ref.sources.length) return false;
     return hasTag('plugin/comment', this.ref) ||
@@ -154,7 +154,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
   }
 
   get pdf() {
-    if (!this.admin.status.plugins.pdf) return null;
+    if (!this.admin.getPlugin('plugin/pdf')) return null;
     return this.ref.plugins?.['plugin/pdf']?.url || this.findPdf;
   }
 
@@ -205,7 +205,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
   }
 
   get comments() {
-    if (!this.admin.status.plugins.comment) return 0;
+    if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
@@ -330,7 +330,7 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
   }
 
   delete() {
-    (this.admin.status.plugins.delete
+    (this.admin.getPlugin('plugin/delete')
         ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
         : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(

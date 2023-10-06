@@ -38,7 +38,7 @@ export class TagPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.store.view.clear(
-      !!this.admin.status.plugins.voteUp ? 'voteScoreDecay'
+      !!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay'
         : this.store.view.tag.includes('*') ? 'published'
         : 'created');
     runInAction(() => this.store.view.extTemplates = this.admin.tmplView);

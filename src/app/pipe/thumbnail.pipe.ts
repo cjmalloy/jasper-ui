@@ -44,7 +44,7 @@ export class ThumbnailPipe implements PipeTransform {
 
   cssUrl(url: string | null) {
     if (!url) return '';
-    if (this.admin.status.plugins.thumbnail?.config?.cache) {
+    if (this.admin.getPlugin('plugin/thumbnail')?.config?.cache) {
       url = this.scraper.getFetch(url);
     }
     return `url("${url}")`;

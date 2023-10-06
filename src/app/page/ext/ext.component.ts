@@ -182,7 +182,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       }),
     ).subscribe(() => {
       this.editForm.markAsPristine();
-      if (ext.tag === 'home' && this.admin.status.templates.home) {
+      if (ext.tag === 'home' && this.admin.getTemplate('home')) {
         this.router.navigate(['/home']);
       } else {
         this.router.navigate(['/tag', ext.tag]);
@@ -194,7 +194,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     const ext = this.store.view.ext!;
     // TODO: Better dialogs
     if (window.confirm($localize`Are you sure you want to delete this tag extension?`)) {
-      (this.admin.status.plugins.delete ?
+      (this.admin.getPlugin('plugin/delete') ?
         this.exts.update(tagDeleteNotice(ext)).pipe(map(() => {})) :
         this.exts.delete(ext.tag + ext.origin)).pipe(
         catchError((res: HttpErrorResponse) => {

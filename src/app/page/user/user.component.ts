@@ -172,7 +172,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
   delete() {
     // TODO: Better dialogs
     if (window.confirm($localize`Are you sure you want to delete this user?`)) {
-      (this.admin.status.plugins.delete
+      (this.admin.getPlugin('plugin/delete')
         ? this.users.update(tagDeleteNotice(this.store.view.selectedUser!))
         : this.users.delete(this.store.view.localTag + this.store.account.origin)).pipe(
         catchError((res: HttpErrorResponse) => {

@@ -129,7 +129,7 @@ export class PluginComponent implements OnInit {
   }
 
   delete() {
-    (this.admin.status.plugins.delete ?
+    (this.admin.getPlugin('plugin/delete') ?
       this.plugins.update(configDeleteNotice(this.plugin)) :
       this.plugins.delete(this.qualifiedTag)).pipe(
       catchError((err: HttpErrorResponse) => {

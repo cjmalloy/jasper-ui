@@ -57,12 +57,12 @@ export class SortComponent implements OnInit, OnDestroy {
   set type(value: Type) {
     if (value === 'ref') {
       this.allSorts = [...allRefSorts];
-      if (this.admin.status.plugins.comment) {
+      if (this.admin.getPlugin('plugin/comment')) {
         this.allSorts.splice(7, 0, { value: 'commentCount', label: $localize`💬️ comments` });
       }
-      if (this.admin.status.plugins.voteUp) {
+      if (this.admin.getPlugin('plugin/vote/up')) {
         this.allSorts.splice(0, 0, { value: 'voteCount', label: '❤️ top' });
-        if (this.admin.status.plugins.voteDown) {
+        if (this.admin.getPlugin('plugin/vote/down')) {
           this.allSorts.splice(0, 0, { value: 'voteScore', label: '📈️ score' });
         }
         this.allSorts.splice(0, 0, { value: 'voteScoreDecay', label: '🔥️ hot' });

@@ -139,7 +139,7 @@ export class KanbanCardComponent implements OnInit {
   }
 
   get thumbnail() {
-    return this.admin.status.plugins.thumbnail &&
+    return this.admin.getPlugin('plugin/thumbnail') &&
       hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
   }
 

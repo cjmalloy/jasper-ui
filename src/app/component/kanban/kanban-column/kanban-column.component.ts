@@ -201,7 +201,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       }),
       switchMap(() => this.refs.create(ref).pipe(map(() => {}))),
       tap(() => {
-        if (this.admin.status.plugins.voteUp) {
+        if (this.admin.getPlugin('plugin/vote/up')) {
           this.tags.createResponse('plugin/vote/up', ref.url);
         }
       }),

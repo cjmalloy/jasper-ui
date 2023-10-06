@@ -219,7 +219,7 @@ export class UserComponent implements OnInit {
   delete() {
     this.serverError = [];
     if (this.user) {
-      (this.admin.status.plugins.delete
+      (this.admin.getPlugin('plugin/delete')
         ? this.users.update(tagDeleteNotice(this.user))
         : this.users.delete(this.qualifiedTag)).pipe(
         catchError((err: HttpErrorResponse) => {

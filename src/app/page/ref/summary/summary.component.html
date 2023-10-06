@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   <ng-container *ngIf="store.view.ref; else loading">
-    <app-comment-reply *ngIf="admin.status.plugins.comment"
+    <app-comment-reply *ngIf="admin.getPlugin('plugin/comment')"
                        [to]="store.view.ref"
                        [top]="top"
                        quote=""

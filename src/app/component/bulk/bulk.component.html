@@ -59,7 +59,7 @@
          (click)="deleting = false" i18n>no</a>&nbsp;
     </span>
     <ng-container *ngIf="type === 'ref'">
-      <ng-container *ngIf="admin.status.plugins.invoice">
+      <ng-container *ngIf="admin.getPlugin('plugin/invoice')">
         <a routerLink="/submit/invoice"
            [queryParams]="{url: urls}" i18n>invoice</a>
       </ng-container>

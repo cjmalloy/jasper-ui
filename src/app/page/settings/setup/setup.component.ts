@@ -125,7 +125,7 @@ export class SettingsSetupPage implements OnInit {
 
   deletePlugin$(p: Plugin) {
     this.installMessages.push('\u00A0'.repeat(4) + $localize`Deleting ${p.name || p.tag} plugin...`);
-    return (this.admin.status.plugins.delete
+    return (this.admin.getPlugin('plugin/delete')
       ? this.plugins.update(configDeleteNotice(p))
       : this.plugins.delete(p.tag + this.store.account.origin));
   }
@@ -143,7 +143,7 @@ export class SettingsSetupPage implements OnInit {
 
   deleteTemplate$(t: Template) {
     this.installMessages.push('\u00A0'.repeat(4) + $localize`Deleting ${t.name || t.tag} template...`);
-    return (this.admin.status.plugins.delete
+    return (this.admin.getPlugin('plugin/delete')
       ? this.templates.update(configDeleteNotice(t))
       : this.templates.delete(t.tag + this.store.account.origin));
   }

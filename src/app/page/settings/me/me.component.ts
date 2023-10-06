@@ -42,7 +42,7 @@ export class SettingsMePage implements HasChanges {
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);
     defer(() => this.form!.setValue(ext));
-    if (!admin.status.templates.user || !store.account.localTag) {
+    if (!admin.getTemplate('user') || !store.account.localTag) {
       router.navigate(['/settings/user'], { replaceUrl: true });
     }
   }

@@ -1,15 +1,15 @@
 <div class="row">
-  <div *ngIf="store.account.user && admin.status.plugins.voteUp"
+  <div *ngIf="store.account.user && admin.getPlugin('plugin/vote/up')"
        class="voting">
     <div class="vote-up"
          [class.on]="upvote"
          (click)="voteUp()"></div>
     <div class="vote-down"
-         *ngIf="admin.status.plugins.voteDown"
+         *ngIf="admin.getPlugin('plugin/vote/down')"
          [class.on]="downvote"
          (click)="voteDown()"></div>
   </div>
-  <ng-container *ngIf="admin.status.plugins.thumbnail">
+  <ng-container *ngIf="admin.getPlugin('plugin/thumbnail')">
     <div class="thumbnail"
          *ngIf="thumbnailUrl else defaultThumbnail"
          [style.background-image]="[repostRef, ref] | thumbnail | async"
@@ -277,11 +277,11 @@
       <div class="toggle actions-toggle"
            (click)="actionsExpanded = !actionsExpanded">⚙️</div>
       <div class="toggle view"
-           *ngIf="!admin.status.plugins.comment"
+           *ngIf="!admin.getPlugin('plugin/comment')"
            [routerLink]="['/ref', ref.url]"
            [queryParams]="{ origin: obsoleteOrigin }">🖇️️</div>
       <div class="toggle comments"
-           *ngIf="admin.status.plugins.comment"
+           *ngIf="admin.getPlugin('plugin/comment')"
            [routerLink]="['/ref', ref.url]"
            [queryParams]="{ origin: obsoleteOrigin }">💬️</div>
     </div>

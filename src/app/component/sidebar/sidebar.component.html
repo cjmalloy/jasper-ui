@@ -118,7 +118,7 @@
   </div>
   <div class="hide tag-header" *ngIf="!home && store.view.tag">
     <h3 *ngIf="store.view.current === 'tag'">{{ ext?.name || tag }}</h3>
-    <ng-container *ngIf="store.account.signedIn && tag && admin.status.templates.user">
+    <ng-container *ngIf="store.account.signedIn && tag && admin.getTemplate('user')">
       <button *ngIf="inBookmarks; else notBookmarked"
               class="bookmark"
               i18n-title title="Remove from top bar"

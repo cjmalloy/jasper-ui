@@ -39,8 +39,7 @@ export class ChatComponent implements OnDestroy {
   errored: Ref[] = [];
   scrollLock?: number;
 
-  emoji = this.admin.status.plugins.emoji;
-  latex = this.admin.status.plugins.latex;
+  latex = this.admin.getPlugin('plugin/latex');
 
   private timeoutId?: number;
   private retries = 0;

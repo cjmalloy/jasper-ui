@@ -175,19 +175,19 @@ export class FilterComponent implements OnInit, OnDestroy {
   }
 
   get rootConfigs() {
-    if (!this.admin.status.templates.root) return [];
+    if (!this.admin.getTemplate('')) return [];
     return this.store.view.exts.map(x => x.config).filter(c => !!c) as RootConfig[];
   }
 
   get userConfigs() {
-    if (!this.admin.status.templates.user) return [];
+    if (!this.admin.getTemplate('user')) return [];
     return this.store.view.exts
         .filter(x => hasPrefix(x.tag, 'user'))
         .map(x => x.config).filter(c => !!c) as UserConfig[];
   }
 
   get kanbanExts() {
-    if (!this.admin.status.templates.kanban) return [];
+    if (!this.admin.getTemplate('kanban')) return [];
     return this.store.view.exts
         .filter(x => hasPrefix(x.tag, 'kanban'))
         .filter(x => x.config);

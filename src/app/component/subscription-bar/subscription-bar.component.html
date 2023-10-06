@@ -3,7 +3,7 @@
   <div class="subs">
     <a [routerLink]="['/tags', store.view.noQuery]" [class.current-page]="store.view.tags" [queryParams]="{ home: store.view.current === 'home' }" i18n>tags</a>
     &bullet; <a routerLink="/home" [class.current-page]="store.view.current === 'home' && !store.view.forYou" i18n>home</a>
-    <ng-container *ngIf="admin.status.templates.user && store.account.signedIn">
+    <ng-container *ngIf="admin.getTemplate('user') && store.account.signedIn">
       &bullet; <a routerLink="/home" [queryParams]="{ forYou : true }" routerLinkActive="current-page" i18n>for you</a>
     </ng-container>
     <ng-container *ngIf="config.multiTenant">

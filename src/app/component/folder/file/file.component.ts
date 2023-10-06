@@ -86,7 +86,7 @@ export class FileComponent implements OnInit {
   }
 
   get thumbnail() {
-    return this.admin.status.plugins.thumbnail &&
+    return this.admin.getPlugin('plugin/thumbnail') &&
       hasTag('plugin/thumbnail', this.ref);
   }
 }

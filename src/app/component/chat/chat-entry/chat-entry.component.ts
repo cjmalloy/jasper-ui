@@ -178,7 +178,7 @@ export class ChatEntryComponent {
   }
 
   get comments() {
-    if (!this.admin.status.plugins.comment) return 0;
+    if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
@@ -223,7 +223,7 @@ export class ChatEntryComponent {
   }
 
   delete() {
-    (this.admin.status.plugins.delete
+    (this.admin.getPlugin('plugin/delete')
         ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
         : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(

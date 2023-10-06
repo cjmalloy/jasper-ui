@@ -73,7 +73,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       this.disposers.push(autorun(() => {
         this.addTag(...this.store.submit.tags);
         this.addFeedTags(...interestingTags(this.store.submit.tags));
-        if (this.admin.status.plugins.thumbnail && (
+        if (this.admin.getPlugin('plugin/thumbnail') && (
             this.store.submit.tags.includes('plugin/video') ||
             this.store.submit.tags.includes('plugin/image'))) {
           this.addTag('plugin/thumbnail')
@@ -222,7 +222,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       plugins: writePlugins(tags, this.webForm.value.plugins),
     }).pipe(
       tap(() => {
-        if (this.admin.status.plugins.voteUp) {
+        if (this.admin.getPlugin('plugin/vote/up')) {
           this.ts.createResponse('plugin/vote/up', this.url).subscribe();
         }
       }),

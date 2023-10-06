@@ -40,19 +40,19 @@ export const scrapePlugin: Plugin = {
           label: $localize`🎯️`,
         }
       },
-    },  {
+    }, {
       key: 'oembedJson',
       type: 'boolean',
       props: {
         label: $localize`oEmbed: `,
       },
-    },  {
+    }, {
       key: 'ldJson',
       type: 'boolean',
       props: {
         label: $localize`Linked Data: `,
       },
-    },  {
+    }, {
       key: 'openGraph',
       type: 'boolean',
       props: {

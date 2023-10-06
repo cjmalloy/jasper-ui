@@ -30,7 +30,7 @@
          queryParamsHandling="merge" i18n>wiki</a>
     </ng-container>
     <a routerLink="/submit/dm"
-       *ngIf="admin.status.templates.dm"
+       *ngIf="admin.getTemplate('dm')"
        [class.current-tab]="store.submit.subpage === 'dm'"
        [queryParams]="{ url: null }"
        i18n-title title="Direct Message"

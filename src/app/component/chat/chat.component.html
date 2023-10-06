@@ -31,14 +31,7 @@
           (click)="add()" i18n>⏎</button>
 </div>
 <span class="hints">
-  <ng-container *ngIf="admin.status.plugins.emoji">
-    <input id="emoji" type="checkbox" [(ngModel)]="emoji">
-    <label for="emoji" i18n>
-      Emoji plugin
-      <sup><a target="_blank" href="https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md">help</a></sup>
-    </label>
-  </ng-container>
-  <ng-container *ngIf="admin.status.plugins.latex">
+  <ng-container *ngIf="admin.getPlugin('plugin/latex')">
     <input id="latex" type="checkbox" [(ngModel)]="latex">
     <label for="latex" i18n>
       LaTeX plugin

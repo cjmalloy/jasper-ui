@@ -119,7 +119,7 @@ export class CommentReplyComponent implements AfterViewInit {
     };
     this.refs.create(ref).pipe(
       tap(() => {
-        if (this.admin.status.plugins.voteUp) {
+        if (this.admin.getPlugin('plugin/vote/up')) {
           this.ts.createResponse('plugin/vote/up', url).subscribe();
         }
       }),

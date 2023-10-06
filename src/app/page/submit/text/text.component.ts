@@ -158,7 +158,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       tags,
     }).pipe(
       tap(() => {
-        if (this.admin.status.plugins.voteUp) {
+        if (this.admin.getPlugin('plugin/vote/up')) {
           this.ts.createResponse('plugin/vote/up', this.url.value).subscribe();
         }
       }),

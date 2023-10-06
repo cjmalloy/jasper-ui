@@ -288,7 +288,7 @@ export class ViewerComponent implements AfterViewInit {
   }
 
   get pdf() {
-    if (!this.admin.status.plugins.pdf) return undefined;
+    if (!this.admin.getPlugin('plugin/pdf')) return undefined;
     return this.ref?.plugins?.['plugin/pdf']?.url || findExtension('.pdf', this.ref);
   }
 

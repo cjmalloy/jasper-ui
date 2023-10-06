@@ -50,7 +50,7 @@ export class ExtFormComponent implements OnInit {
   }
 
   get user() {
-    if (!this.admin.status.templates.user) return false;
+    if (!this.admin.getTemplate('user')) return false;
     return hasPrefix(this.group.get('tag')!.value, 'user');
   }
 
@@ -59,7 +59,7 @@ export class ExtFormComponent implements OnInit {
   }
 
   get inbox() {
-    if (!this.admin.status.plugins.inbox) return null;
+    if (!this.admin.getPlugin('plugin/inbox')) return null;
     return getMailbox(this.group.get('tag')!.value);
   }
 
@@ -134,7 +134,7 @@ export class ExtFormComponent implements OnInit {
 
 export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: AdminService, locked: boolean) {
   let configControls = {};
-  if (admin.status.templates.root) {
+  if (admin.getTemplate('')) {
     configControls = {
       ...configControls,
       defaultSort: [''],
@@ -145,7 +145,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
       theme: [''],
     };
   }
-  if (admin.status.templates.user && hasPrefix(ext?.tag, 'user')) {
+  if (admin.getTemplate('user') && hasPrefix(ext?.tag, 'user')) {
     configControls = {
       ...configControls,
       userTheme: [''],

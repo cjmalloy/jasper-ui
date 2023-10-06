@@ -72,7 +72,7 @@ export class AccountService {
 
   private get loadUserExt$() {
     if (!this.store.account.signedIn) return of(undefined);
-    if (!this.admin.status.templates.user) return of(undefined);
+    if (!this.admin.getTemplate('user')) return of(undefined);
     return this.userExt$.pipe(
       catchError(() => of(undefined)),
       switchMap(ext => ext ? of(ext) : this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin })),
@@ -127,7 +127,7 @@ export class AccountService {
   }
 
   get subscriptions$(): Observable<string[]> {
-    if (!this.admin.status.templates.user) return of(this.store.account.subs);
+    if (!this.admin.getTemplate('user')) return of(this.store.account.subs);
     return this.userExt$.pipe(
       catchError(() => of(null)),
       map(() => this.store.account.subs),
@@ -135,7 +135,7 @@ export class AccountService {
   }
 
   get bookmarks$(): Observable<string[]> {
-    if (!this.admin.status.templates.user) return of(this.store.account.bookmarks);
+    if (!this.admin.getTemplate('user')) return of(this.store.account.bookmarks);
     return this.userExt$.pipe(
       catchError(() => of(null)),
       map(() => this.store.account.bookmarks),
@@ -143,7 +143,7 @@ export class AccountService {
   }
 
   get alarms$(): Observable<string[]> {
-    if (!this.admin.status.templates.user) return of(this.store.account.alarms);
+    if (!this.admin.getTemplate('user')) return of(this.store.account.alarms);
     return this.userExt$.pipe(
       catchError(() => of(null)),
       map(() => this.store.account.alarms),
@@ -151,7 +151,7 @@ export class AccountService {
   }
 
   get theme$(): Observable<string | undefined> {
-    if (!this.admin.status.templates.user) return of(this.store.account.config.theme);
+    if (!this.admin.getTemplate('user')) return of(this.store.account.config.theme);
     return this.userExt$.pipe(
       catchError(() => of(null)),
       map(() => this.store.account.config.theme),
@@ -160,7 +160,7 @@ export class AccountService {
 
   addSub(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.admin.status.templates.user) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.addConfigArray('subscriptions', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.subscriptions$),
@@ -169,7 +169,7 @@ export class AccountService {
 
   removeSub(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.admin.status.templates.user) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.subscriptions$.pipe(
       map(subs => subs.indexOf(tag)),
       switchMap(index => this.removeConfigArray('subscriptions', index)),
@@ -180,7 +180,7 @@ export class AccountService {
 
   addBookmark(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.admin.status.templates.user) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.addConfigArray('bookmarks', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.bookmarks$),
@@ -189,7 +189,7 @@ export class AccountService {
 
   removeBookmark(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.admin.status.templates.user) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.bookmarks$.pipe(
       map(subs => subs.indexOf(tag)),
       switchMap(index => this.removeConfigArray('bookmarks', index)),
@@ -200,7 +200,7 @@ export class AccountService {
 
   addAlarm(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.admin.status.templates.user) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.addConfigArray('alarms', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.alarms$),
@@ -209,7 +209,7 @@ export class AccountService {
 
   removeAlarm(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.admin.status.templates.user) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.alarms$.pipe(
       map(subs => subs.indexOf(tag)),
       switchMap(index => this.removeConfigArray('alarms', index)),
@@ -220,7 +220,7 @@ export class AccountService {
 
   checkNotifications() {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.admin.status.templates.user) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.userExt$.pipe(
       switchMap(() => this.refs.count({
         query: this.store.account.notificationsQuery,
@@ -231,7 +231,7 @@ export class AccountService {
 
   clearNotifications(readDate: moment.Moment) {
     if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.admin.status.templates.user) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw 'User template not installed';
     const lastNotified = readDate.add(1, 'millisecond').toISOString();
     this.updateConfig('lastNotified', lastNotified).subscribe(() => {
       this.clearCache();

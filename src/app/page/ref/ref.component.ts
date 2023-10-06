@@ -37,12 +37,12 @@ export class RefPage implements OnInit, OnDestroy {
   }
 
   get comments() {
-    if (!this.admin.status.plugins.comment) return 0;
+    if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
   get threads() {
-    if (!this.admin.status.plugins.thread) return 0;
+    if (!this.admin.getPlugin('plugin/thread')) return 0;
     return hasTag('plugin/thread', this.store.view.ref) || this.store.view.ref?.metadata?.plugins?.['plugin/thread'];
   }
 

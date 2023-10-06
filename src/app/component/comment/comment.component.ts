@@ -142,7 +142,7 @@ export class CommentComponent implements OnInit, OnDestroy {
 
   get canInvoice() {
     if (this.ref.origin) return false;
-    if (!this.admin.status.plugins.invoice) return false;
+    if (!this.admin.getPlugin('plugin/invoice')) return false;
     if (!this.isAuthor) return false;
     if (!this.ref.sources || !this.ref.sources.length) return false;
     return hasTag('plugin/comment', this.ref) ||

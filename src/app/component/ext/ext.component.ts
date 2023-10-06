@@ -202,7 +202,7 @@ export class ExtComponent implements OnInit {
   }
 
   delete() {
-    (this.admin.status.plugins.delete ?
+    (this.admin.getPlugin('plugin/delete') ?
       this.exts.update(tagDeleteNotice(this.ext)).pipe(map(() => {})) :
       this.exts.delete(this.qualifiedTag)).pipe(
       catchError((err: HttpErrorResponse) => {

@@ -2,7 +2,7 @@
   <div #tabs class="tabs">
     <a class="logo" routerLink="/"></a>
     <h5 i18n>Settings</h5>
-    <ng-container *ngIf="admin.status.templates.user && store.account.localTag">
+    <ng-container *ngIf="admin.getTemplate('user') && store.account.localTag">
       <a routerLink="./me" routerLinkActive="current-tab" i18n-title title="My settings" i18n>me</a>
     </ng-container>
     <a routerLink="./user" routerLinkActive="current-tab" i18n-title title="User permissions" i18n>user</a>

@@ -42,7 +42,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   _tag = '';
   _ext?: Ext;
   localTag?: string;
-  addTags = this.admin.status.templates.root?.defaults || [];
+  addTags = this.admin.getTemplate('')?.defaults || [];
   local = true;
   plugin?: Plugin;
   mailPlugin?: Plugin;
@@ -166,12 +166,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get root() {
-    return !!this.admin.status.templates.root;
+    return !!this.admin.getTemplate('');
   }
 
   get rootConfig() {
     if (!this.root) return undefined;
-    return (this._ext?.config || this.admin.status.templates.root!.defaults) as RootConfig;
+    return (this._ext?.config || this.admin.getTemplate('')!.defaults) as RootConfig;
   }
 
 
@@ -180,7 +180,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get user() {
-    return !!this.admin.status.templates.user && hasPrefix(this._tag, 'user') && !this.store.view.userTemplate;
+    return !!this.admin.getTemplate('user') && hasPrefix(this._tag, 'user') && !this.store.view.userTemplate;
   }
 
   get userConfig() {
@@ -210,14 +210,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   get messages() {
     if (this.home) return false;
-    if (!this.admin.status.plugins.inbox) return false;
-    if (!this.admin.status.templates.dm) return false;
+    if (!this.admin.getPlugin('plugin/inbox')) return false;
+    if (!this.admin.getTemplate('dm')) return false;
     if (!this.store.account.user) return false;
     return this.user || this.modmail;
   }
 
   get homeWriteAccess() {
-    return this.home && this.admin.status.templates.home && this.auth.tagWriteAccess('home');
+    return this.home && this.admin.getTemplate('home') && this.auth.tagWriteAccess('home');
   }
 
   subscribe() {

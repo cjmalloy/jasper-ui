@@ -133,7 +133,7 @@ export class EditorComponent implements AfterViewInit {
     } else {
       this.syncTags.next(this._tags = [...this.tags || [], tag]);
     }
-    if (this.admin.status.templates.user) {
+    if (this.admin.getTemplate('user')) {
       this.accounts.updateConfig('editors', this.tags).subscribe();
     }
   }

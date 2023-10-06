@@ -5,7 +5,7 @@
     <a routerLink="./all" routerLinkActive="current-tab"
        i18n-title title="All Messages"
        i18n>all</a>
-    <ng-container *ngIf="admin.status.templates.user && store.account.userTag">
+    <ng-container *ngIf="admin.getTemplate('user') && store.account.userTag">
       <a routerLink="./unread" routerLinkActive="current-tab"
          i18n-title title="Unread"
          i18n>unread</a>
@@ -20,12 +20,12 @@
          i18n-title title="Alarms"
          i18n>alarms</a>
     </ng-container>
-    <ng-container *ngIf="admin.status.templates.dm">
+    <ng-container *ngIf="admin.getPlugin('plugin/dm')">
       <a routerLink="./dms" routerLinkActive="current-tab"
          i18n-title title="Direct Messages"
          i18n>dms</a>
     </ng-container>
-    <ng-container *ngIf="admin.status.plugins.modlist">
+    <ng-container *ngIf="admin.getPlugin('plugin/modlist')">
       <a routerLink="./modlist" routerLinkActive="current-tab"
          i18n-title title="Moderation List"
          i18n>modlist</a>

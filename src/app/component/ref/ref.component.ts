@@ -314,35 +314,35 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get feed() {
-    return !!this.admin.status.plugins.feed && hasTag('+plugin/feed', this.ref);
+    return !!this.admin.getPlugin('plugin/feed') && hasTag('+plugin/feed', this.ref);
   }
 
   get thread() {
-    return !!this.admin.status.plugins.thread && hasTag('plugin/thread', this.ref);
+    return !!this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.ref);
   }
 
   get comment() {
-    return !!this.admin.status.plugins.comment && hasTag('plugin/comment', this.ref);
+    return !!this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.ref);
   }
 
   get dm() {
-    return !!this.admin.status.templates.dm && hasTag('dm', this.ref);
+    return !!this.admin.getTemplate('dm') && hasTag('dm', this.ref);
   }
 
   get email() {
-    return !!this.admin.status.templates.email && hasTag('email', this.ref);
+    return !!this.admin.getTemplate('email') && hasTag('email', this.ref);
   }
 
   get remote() {
-    return !!this.admin.status.plugins.origin && hasTag('+plugin/origin', this.ref);
+    return !!this.admin.getPlugin('plugin/origin') && hasTag('+plugin/origin', this.ref);
   }
 
   get originPull() {
-    return !!this.admin.status.plugins.originPull && hasTag('+plugin/origin/pull', this.ref);
+    return !!this.admin.getPlugin('plugin/origin/pull') && hasTag('+plugin/origin/pull', this.ref);
   }
 
   get originPush() {
-    return !!this.admin.status.plugins.originPush && hasTag('+plugin/origin/push', this.ref);
+    return !!this.admin.getPlugin('plugin/origin/push') && hasTag('+plugin/origin/push', this.ref);
   }
 
   get addTags() {
@@ -377,7 +377,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get thumbnail() {
-    return this.admin.status.plugins.thumbnail &&
+    return this.admin.getPlugin('plugin/thumbnail') &&
       (hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef));
   }
 
@@ -401,17 +401,17 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get audio() {
-    return this.admin.status.plugins.audio &&
+    return this.admin.getPlugin('plugin/audio') &&
       hasTag('plugin/audio', this.currentRef);
   }
 
   get video() {
-    return this.admin.status.plugins.video &&
+    return this.admin.getPlugin('plugin/video') &&
       hasTag('plugin/video', this.currentRef);
   }
 
   get image() {
-    return this.admin.status.plugins.imagePlugin &&
+    return this.admin.getPlugin('plugin/image') &&
       hasTag('plugin/image', this.currentRef);
   }
 
@@ -431,7 +431,7 @@ export class RefComponent implements OnInit, OnDestroy {
   get canInvoice() {
     if (!this.ref.created) return false;
     if (!this.local) return false;
-    if (!this.admin.status.plugins.invoice) return false;
+    if (!this.admin.getPlugin('plugin/invoice')) return false;
     if (!this.isAuthor) return false;
     if (!this.ref.sources || !this.ref.sources.length) return false;
     return hasTag('plugin/comment', this.ref) ||
@@ -439,14 +439,14 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get pdf() {
-    if (!this.admin.status.plugins.pdf) return undefined;
+    if (!this.admin.getPlugin('plugin/pdf')) return undefined;
     return this.ref.plugins?.['plugin/pdf']?.url || this.repostRef?.plugins?.['plugin/pdf']?.url || findExtension('.pdf', this.ref, this.repostRef);
   }
 
   get pdfUrl() {
     const url = this.pdf;
     if (!url) return url;
-    if (!this.admin.status.plugins.pdf?.config?.cache) return url;
+    if (!this.admin.getPlugin('plugin/pdf')?.config?.cache) return url;
     return this.scraper.getFetch(url);
   }
 
@@ -554,12 +554,12 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get comments() {
-    if (!this.admin.status.plugins.comment) return 0;
+    if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
   get threads() {
-    if (!this.admin.status.plugins.thread) return 0;
+    if (!this.admin.getPlugin('plugin/thread')) return 0;
     return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
   }
 
@@ -825,7 +825,7 @@ export class RefComponent implements OnInit, OnDestroy {
 
   delete() {
     (hasTag('locked', this.ref) ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin)
-      : this.admin.status.plugins.delete ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
+      : this.admin.getPlugin('plugin/delete') ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
       : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
       catchError((err: HttpErrorResponse) => {
