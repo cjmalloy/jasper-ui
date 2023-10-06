@@ -26,18 +26,22 @@ export class PlaylistComponent {
   set ref(value: Ref | undefined) {
     this._ref = value;
     if (value?.sources?.length) {
-      this.index = -1;
-      this.next();
+      this.index = 0;
+      this.fetch();
     }
+  }
+
+  fetch() {
+    this.refs.page({url: this.ref!.sources![this.index], size: 1 }).subscribe(page => this.page = page.content[0]);
   }
 
   back() {
     this.index = (this.index - 1 + this.ref!.sources!.length) % this.ref!.sources!.length;
-    this.refs.get(this.ref!.sources![this.index]).subscribe(ref => this.page = ref);
+    this.fetch();
   }
 
   next() {
     this.index = (this.index + 1) % this.ref!.sources!.length;
-    this.refs.get(this.ref!.sources![this.index]).subscribe(ref => this.page = ref);
+    this.fetch();
   }
 }
