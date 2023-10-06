@@ -9,6 +9,7 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { intersection, uniq } from 'lodash-es';
+import * as moment from 'moment';
 import { catchError, map, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -199,7 +200,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         }
         ref.tags = uniq(ref.tags);
       }),
-      switchMap(() => this.refs.create(ref).pipe(map(() => {}))),
+      switchMap(() => this.refs.create(ref)),
       tap(() => {
         if (this.admin.getPlugin('plugin/vote/up')) {
           this.tags.createResponse('plugin/vote/up', ref.url);
@@ -213,7 +214,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         if (err.status === 409) {
           // Ref already exists, just tag it
           return this.tags.patch(this.addTags, ref.url, ref.origin).pipe(
-            switchMap(() => this.refs.get(ref.url, ref.origin)),
             catchError(err => {
               if (err.status === 403) {
                 // Can't edit Ref, repost it
@@ -225,13 +225,15 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         }
         return throwError(err);
       }),
-    ).subscribe(posted => {
+    ).subscribe(cursor => {
       this.mutated = true;
       if (!this.page) {
         console.error('Should not happen, will probably get cleared.');
         this.page = {content: []} as any;
       }
-      this.page!.content.push(posted || ref)
+      ref.modified = moment(cursor);
+      ref.modifiedString = cursor;
+      this.page!.content.push(ref)
     });
     this.addText = '';
   }
@@ -263,7 +265,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       tags: ['plugin/repost', ...tags],
       sources: [url],
     }).pipe(
-      switchMap(() => this.refs.get(rp, this.store.account.origin)),
       catchError(err => {
         if (err.status === 403) {
           // TODO: better error message
