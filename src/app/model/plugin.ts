@@ -29,7 +29,7 @@ export interface Plugin extends Config {
     /**
      * Add plugin to text dropdown.
      */
-    submitText?: string,
+    submitText?: boolean,
     /**
      * Nest this plugin within its parent.
      */
