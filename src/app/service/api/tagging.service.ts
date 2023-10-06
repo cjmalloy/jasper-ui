@@ -20,28 +20,28 @@ export class TaggingService {
     return this.config.api + '/api/v1/tags';
   }
 
-  create(tag: string, url: string, origin = ''): Observable<void> {
+  create(tag: string, url: string, origin = ''): Observable<string> {
     if (tag.includes(' ')) {
       return this.patch(tag.split(/\s+/), url, origin);
     }
     if (tag.startsWith('-')) return this.delete(tag.substring(1), url, origin);
-    return this.http.post<void>(this.base, null, {
+    return this.http.post<string>(this.base, null, {
       params: params({ tag, url, origin }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  delete(tag: string, url: string, origin = ''): Observable<void> {
-    return this.http.delete<void>(this.base, {
+  delete(tag: string, url: string, origin = ''): Observable<string> {
+    return this.http.delete<string>(this.base, {
       params: params({ tag, url, origin }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  patch(tags: string[], url: string, origin = ''): Observable<void> {
-    return this.http.patch<void>(this.base, null, {
+  patch(tags: string[], url: string, origin = ''): Observable<string> {
+    return this.http.patch<string>(this.base, null, {
       params: params({ tags, url, origin }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),

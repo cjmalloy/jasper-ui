@@ -824,7 +824,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   delete() {
-    (hasTag('locked', this.ref) ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin)
+    (hasTag('locked', this.ref) ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin).pipe(map(() => {}))
       : this.admin.getPlugin('plugin/delete') ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
       : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
