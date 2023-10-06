@@ -225,6 +225,7 @@ export class RefComponent implements OnInit, OnDestroy {
     this.viewSource = false;
     this.tagging = false;
     this.actionsExpanded = false;
+    if (value?.upload) this.editForm.get('url')!.enable();
     this.replyTags = this.getReplyTags();
     this.writeAccess = this.auth.writeAccess(value);
     this.taggingAccess = this.auth.taggingAccess(value);
