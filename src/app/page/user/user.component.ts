@@ -1,14 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, of, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { tagDeleteNotice } from "../../mods/delete";
-import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProfileService } from '../../service/api/profile.service';
 import { UserService } from '../../service/api/user.service';
@@ -17,7 +16,7 @@ import { ThemeService } from '../../service/theme.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
-import { prefix } from '../../util/tag';
+import { prefix, setPublic } from '../../util/tag';
 
 @Component({
   selector: 'app-user-page',
@@ -40,9 +39,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
     private admin: AdminService,
     public config: ConfigService,
     public router: Router,
-    private route: ActivatedRoute,
     public store: Store,
-    private account: AccountService,
     private profiles: ProfileService,
     private users: UserService,
     private fb: UntypedFormBuilder,
@@ -78,8 +75,8 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
             defer(() => this.userForm.setUser({
               tag: this.store.view.localTag,
               origin: this.store.view.origin,
-              readAccess: this.admin.readAccess.map(t => prefix(t, this.store.view.localTag)),
-              writeAccess: this.admin.writeAccess.map(t => prefix(t, this.store.view.localTag)),
+              readAccess: this.admin.readAccess.map(t => prefix(t, setPublic(this.store.view.localTag))),
+              writeAccess: this.admin.writeAccess.map(t => prefix(t, setPublic(this.store.view.localTag))),
             }));
           }
         }));

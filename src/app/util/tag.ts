@@ -147,15 +147,13 @@ export function implicitLocal(tag: string, local: string) {
  * origin markers '@' for all but the first tag.
  */
 export function prefix(prefix: string, ...rest: string[]) {
-  if (access(prefix) && access(rest[0])) {
-    prefix = access(rest[0]) + prefix.substring(1);
-  } else if (access(rest[0])) {
-    prefix = access(rest[0]) + prefix;
+  if (access(rest[0])) {
+    prefix = access(rest[0]) + setPublic(prefix);
   }
-  return prefix + ('/' + rest.join('/'))
-    .replace(/[+_@]/g, '')
+  const origin = tagOrigin(rest[rest.length - 1]);
+  return prefix + ('/' + rest.map(r => localTag(setPublic(r))).join('/'))
     .replace(/\/\//g, '/')
-    .replace(/\/$/, '');
+    .replace(/\/$/, '') + origin;
 }
 
 export function hasPrefix(tag?: string, prefix?: string) {
