@@ -123,8 +123,8 @@ export class ViewerComponent implements AfterViewInit {
         });
     }
     if (this.ref?.url && this.currentTags.includes('plugin/embed')) {
-      let width = this.embed.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 400);
-      let height = this.embed.height || window.innerHeight;
+      let width = this.embed?.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 400);
+      let height = this.embed?.height || window.innerHeight;
       if (hasTag('plugin/fullscreen', this.ref)) {
         width = screen.width;
         height = screen.height;
