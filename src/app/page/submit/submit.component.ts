@@ -125,14 +125,6 @@ export class SubmitPage implements OnInit, OnDestroy {
     return this.admin.getTemplate('banlist')?.config?.bannedUrls || this.admin.def.templates.banlist.config!.bannedUrls;
   }
 
-  get stripTrackers() {
-    return this.admin.getTemplate('banlist')?.config?.stripTrackers || this.admin.def.templates.banlist.config!.stripTrackers;
-  }
-
-  get expandShorteners() {
-    return this.admin.getTemplate('banlist')?.config?.expandShorteners || this.admin.def.templates.banlist.config!.expandShorteners;
-  }
-
   submitInternal(tag: string) {
     return uniq([...without(this.store.submit.tags, ...this.store.submit.submitInternal.map(p => p.tag)), tag]);
   }
@@ -141,15 +133,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     if (this.store.submit.wiki) {
       return wikiUriFormat(url, this.admin.getWikiPrefix());
     }
-    if (this.isTracking(url)) {
-      url = url.substring(0, url.indexOf('?'));
-    }
-    for (const prefix in this.expandShorteners) {
-      if (url.startsWith(prefix)) {
-        url = this.expandShorteners[prefix] + url.substring(prefix.length);
-      }
-    }
-    return fixUrl(url);
+    return fixUrl(url, this.admin.getTemplate('banlist') || this.admin.def.templates.banlist);
   }
 
   exists(url: string) {
@@ -168,15 +152,6 @@ export class SubmitPage implements OnInit, OnDestroy {
   isShortener(url: string) {
     url = url.toLowerCase();
     for (const frag of this.bannedUrls) {
-      if (url.includes(frag)) return true;
-    }
-    return false;
-  }
-
-  isTracking(url: string) {
-    if (!url.includes('?')) return false;
-    url = url.toLowerCase();
-    for (const frag of this.stripTrackers) {
       if (url.includes(frag)) return true;
     }
     return false;

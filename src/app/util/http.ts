@@ -2,6 +2,7 @@ import { HttpErrorResponse, HttpParameterCodec, HttpParams } from '@angular/comm
 import { isArray, isObject } from 'lodash-es';
 import { isMoment } from 'moment';
 import { Problem } from '../model/problem';
+import { banlistConfig } from '../mods/banlist';
 
 
 export class HttpUrlEncodingCodec implements HttpParameterCodec {
@@ -75,7 +76,7 @@ export function printError(res: HttpErrorResponse): string[] {
   return [problem?.detail || res.message];
 }
 
-export function fixUrl(url: string) {
+export function fixUrl(url: string, banlist: typeof banlistConfig) {
   url = url.trim();
   if (url.startsWith('<a')) {
     url = url.substring(url.toLowerCase().indexOf('href="') + 'href="'.length)
@@ -85,7 +86,35 @@ export function fixUrl(url: string) {
     url = url.substring(url.toLowerCase().indexOf('src="') + 'src="'.length);
     return url.substring(0, url.indexOf('"'));
   }
+  for (const prefix in banlist.config?.expandShorteners || []) {
+    if (url.startsWith(prefix)) {
+      url = banlist.config!.expandShorteners[prefix] + url.substring(prefix.length);
+    }
+  }
+  if (isTracking(url, banlist)) {
+    url = url.substring(0, url.indexOf('?'));
+  }
+  if (isShortener(url, banlist)) {
+    throw 'Banned URL';
+  }
   return url;
+}
+
+export function isShortener(url: string, banlist: typeof banlistConfig) {
+  url = url.toLowerCase();
+  for (const frag of banlist.config?.bannedUrls || []) {
+    if (url.includes(frag)) return true;
+  }
+  return false;
+}
+
+export function isTracking(url: string, banlist: typeof banlistConfig) {
+  if (!url.includes('?')) return false;
+  url = url.toLowerCase();
+  for (const frag of banlist.config?.stripTrackers || []) {
+    if (url.includes(frag)) return true;
+  }
+  return false;
 }
 
 export function parseParams(url: string): any {
