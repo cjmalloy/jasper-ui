@@ -1,6 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { Page } from '../../../model/page';
+import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
@@ -16,6 +18,8 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
+  page: Page<Ref> = Page.of([]);
+
   constructor(
     private theme: ThemeService,
     public admin: AdminService,
@@ -28,6 +32,9 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
+      this.page.content = this.store.view.ref?.sources?.map(url => ({ url })) || [];
+    }));
+    this.disposers.push(autorun(() => {
       const args = getArgs(
         '',
         this.store.view.sort,
@@ -38,6 +45,18 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
       );
       args.sources = this.store.view.url;
       defer(() => this.query.setArgs(args));
+    }));
+    this.disposers.push(autorun(() => {
+      for (let i = 0; i < (this.store.view.ref?.sources?.length || 0); i ++) {
+        if (this.page.content[i].created) continue;
+        const url = this.store.view.ref!.sources![i];
+        const existing = this.query.page?.content.find(r => r.url === url);
+        if (existing) this.page.content[i] = existing;
+        this.page = {
+          ...this.query.page!,
+          content: this.page.content,
+        };
+      }
     }));
     this.disposers.push(autorun(() => {
       this.theme.setTitle($localize`Sources: ` + (this.store.view.ref?.title || this.store.view.url));
