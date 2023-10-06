@@ -29,10 +29,6 @@
         <a routerLink="sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Sources"
            i18n>sources</a>
-        <h5 *ngIf="store.view.missingSources" class="print-inline" i18n>Missing Sources</h5>
-        <a routerLink="missing" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
-           i18n-title title="Missing Sources"
-           i18n>missing sources</a>
       </ng-container>
       <ng-container *ngIf="alts">
         <h5 *ngIf="store.view.alternateUrls" class="print-inline" i18n>Alternate URLs</h5>

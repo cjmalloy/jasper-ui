@@ -14,7 +14,6 @@ import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
 import { RefAltsComponent } from './page/ref/alts/alts.component';
 import { RefCommentsComponent } from './page/ref/comments/comments.component';
-import { RefMissingComponent } from './page/ref/missing/missing.component';
 import { RefPage } from './page/ref/ref.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
@@ -157,7 +156,6 @@ const routes: Routes = [
       { path: 'thread', component: RefThreadComponent, canDeactivate: [pendingChangesGuard] },
       { path: 'responses', component: RefResponsesComponent, canDeactivate: [pendingChangesGuard] },
       { path: 'sources', component: RefSourcesComponent, canDeactivate: [pendingChangesGuard] },
-      { path: 'missing', component: RefMissingComponent, canDeactivate: [pendingChangesGuard] },
       { path: 'alts', component: RefAltsComponent, canDeactivate: [pendingChangesGuard] },
       { path: 'versions', component: RefVersionsComponent, canDeactivate: [pendingChangesGuard] },
     ],
