@@ -81,6 +81,8 @@ graph TB
 When replying to a plugin/chess Ref, include the full previous game before your response in the comment field.
 Chess games are only stored in the comment field. They are Portable Game Notation (PGN) or the first line Forsyth-Edwards Notation (FEN) followed by optional newline delimited PGN-like list of Standard Algebraic Notation (SAN) moves.
 It is also customary to note the last move in the title suffix, such as ' | Rg3'.
+The DALL-E AI responds to the tag plugin/inbox/dalle. If you are requested to generate a DALL-E prompt, assume you are to forward your message to DALL-E by including this tag.
+Messages signed by DALL-E will have the tag +plugin/dalle.
 Be concise when possible but always comprehensive. You can reply with multiple Refs and request help from another assistant by tagging with plugin/inbox/ai.
 Responses sent to you will only include direct sources. Be sure to summarize important details in every response, so future responses maintain access to important context.
 `,
