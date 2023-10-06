@@ -16,7 +16,7 @@ import { isPlugin } from '../../util/tag';
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
 })
-export class TagPage implements OnInit, OnDestroy {
+export class TagPage implements OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @HostBinding('class.no-footer-padding')
@@ -34,14 +34,18 @@ export class TagPage implements OnInit, OnDestroy {
     public query: QueryStore,
     private theme: ThemeService,
     private exts: ExtService,
-  ) { }
-
-  ngOnInit(): void {
-    this.store.view.clear(
-      !!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay'
-        : this.store.view.tag.includes('*') ? 'published'
-        : 'created');
-    runInAction(() => this.store.view.extTemplates = this.admin.tmplView);
+  ) {
+    this.disposers.push(autorun(() => this.theme.setTitle(this.store.view.name)));
+    this.disposers.push(autorun(() => {
+      this.floatingSidebar = this.store.view.list || !this.store.view.hasTemplate || this.store.view.isTemplate('map') || this.store.view.isTemplate('graph');
+    }));
+    runInAction(() => {
+      this.store.view.clear(
+        !!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay'
+          : this.store.view.tag.includes('*') ? 'published'
+            : 'created');
+      this.store.view.extTemplates = this.admin.tmplView
+    });
     this.disposers.push(autorun(() => {
       const hideInternal = !isPlugin(this.store.view.tag) && !this.admin.getTemplates(this.store.view.tag).find(t => t.config?.internal);
       const args = getArgs(
@@ -54,7 +58,6 @@ export class TagPage implements OnInit, OnDestroy {
       );
       defer(() => this.query.setArgs(args));
     }));
-    this.disposers.push(autorun(() => this.theme.setTitle(this.store.view.name)));
     this.disposers.push(autorun(() => {
       if (!this.store.view.queryTags.length) {
         runInAction(() => this.store.view.exts = []);
@@ -68,9 +71,6 @@ export class TagPage implements OnInit, OnDestroy {
           runInAction(() => this.store.view.exts = exts)
         });
       }
-    }));
-    this.disposers.push(autorun(() => {
-      this.floatingSidebar = this.store.view.list || !this.store.view.hasTemplate || this.store.view.isTemplate('map') || this.store.view.isTemplate('graph');
     }));
   }
 
