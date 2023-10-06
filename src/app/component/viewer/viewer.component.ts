@@ -94,13 +94,6 @@ export class ViewerComponent implements AfterViewInit {
     }
   }
 
-  // TODO: WTF?
-  // @HostListener('click')
-  // onClick() {
-  //   this.el.nativeElement.focus();
-  // }
-
-
   init() {
     this.audioUrl = this.getAudioUrl();
     this.videoUrl = this.getVideoUrl();
