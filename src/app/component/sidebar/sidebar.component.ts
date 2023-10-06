@@ -93,7 +93,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.local = !origin || origin === this.store.account.origin;
       this.localTag = localTag(value);
       this.plugin = this.admin.getPlugin(value);
-      this.addTags = [...this.rootConfig?.addTags || this.plugin?.tag ? [this.plugin!.tag] : [], ...topAnds(value).map(localTag)];
+      this.addTags = [...this.rootConfig?.addTags || (this.plugin?.tag ? [this.plugin!.tag] : []), ...topAnds(value).map(localTag)];
       this.mailPlugin = this.admin.getPlugin(getMailbox(value, this.store.account.origin));
       this.writeAccess = this.auth.tagWriteAccess(value);
       this.ui = this.admin.getTemplateUi(value);
