@@ -82,11 +82,10 @@
                 [ref]="ref">{{ icon.label }}</span>
         </ng-container>
       </div>
-      <app-md *ngIf="!editing"
-              class="comment-body"
-              [origin]="ref.origin!"
-              [plugins]="ref.tags!"
-              [text]="ref.comment || ''"></app-md>
+      <app-viewer *ngIf="!editing"
+                  class="comment-body"
+                  [expand]="false"
+                  [ref]="ref"></app-viewer>
       <app-comment-edit *ngIf="editing"
                         [ref]="ref"
                         [commentEdited$]="commentEdited$"></app-comment-edit>

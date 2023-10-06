@@ -36,6 +36,8 @@ export class ViewerComponent implements AfterViewInit {
   @HostBinding('tabindex') tabIndex = 0;
 
   @Input()
+  expand = true;
+  @Input()
   text? = '';
   @Input()
   origin? = '';
@@ -226,7 +228,7 @@ export class ViewerComponent implements AfterViewInit {
   get currentText() {
     if (this.hideComment) return '';
     const value = this.text || this.ref?.comment || '';
-    if (this.ref?.title || this.text || hasTag('plugin/thread', this.ref) || hasComment(this.ref?.comment)) return value;
+    if (this.ref?.title || this.text || hasTag('plugin/comment', this.ref) || hasTag('plugin/thread', this.ref) || hasComment(this.ref?.comment)) return value;
     return '';
   }
 
