@@ -85,12 +85,6 @@ export function fixUrl(url: string) {
     url = url.substring(url.toLowerCase().indexOf('src="') + 'src="'.length);
     return url.substring(0, url.indexOf('"'));
   }
-  if (url.startsWith('https://youtu.be/')) {
-    return 'https://www.youtube.com/watch?v=' + url.substring('https://youtu.be/'.length);
-  }
-  if (url.startsWith('https://twitter.com/') && url.includes('?')) {
-    return url.substring(0, url.indexOf('?'));
-  }
   return url;
 }
 

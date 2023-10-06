@@ -18,7 +18,16 @@ export const banlistConfig: Template = {
       '//bit.do/',
       '//mcaf.ee/',
       '//su.pr/',
-    ]
+    ],
+    stripTrackers: [
+      '//x.com/',
+      '//twitter.com/',
+      '//www.amazon.',
+    ],
+    expandShorteners: {
+      'https://youtu.be/': 'https://www.youtube.com/watch?v=',
+      'https://m.youtube.com/': 'https://www.youtube.com/',
+    },
   },
 };
 
