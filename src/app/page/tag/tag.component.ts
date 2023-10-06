@@ -16,7 +16,7 @@ import { isPlugin } from '../../util/tag';
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
 })
-export class TagPage implements OnDestroy {
+export class TagPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @HostBinding('class.no-footer-padding')
@@ -47,18 +47,6 @@ export class TagPage implements OnDestroy {
       this.store.view.extTemplates = this.admin.tmplView
     });
     this.disposers.push(autorun(() => {
-      const hideInternal = !isPlugin(this.store.view.tag) && !this.admin.getTemplates(this.store.view.tag).find(t => t.config?.internal);
-      const args = getArgs(
-        this.store.view.tag,
-        this.store.view.sort,
-        hideInternal ? uniq(['query/!internal', ...this.store.view.filter]) as UrlFilter[] : this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
-      );
-      defer(() => this.query.setArgs(args));
-    }));
-    this.disposers.push(autorun(() => {
       if (!this.store.view.queryTags.length) {
         runInAction(() => this.store.view.exts = []);
         this.loading = false;
@@ -71,6 +59,21 @@ export class TagPage implements OnDestroy {
           runInAction(() => this.store.view.exts = exts)
         });
       }
+    }));
+  }
+
+  ngOnInit() {
+    this.disposers.push(autorun(() => {
+      const hideInternal = !isPlugin(this.store.view.tag) && !this.admin.getTemplates(this.store.view.tag).find(t => t.config?.internal);
+      const args = getArgs(
+        this.store.view.tag,
+        this.store.view.sort,
+        hideInternal ? uniq(['query/!internal', ...this.store.view.filter]) as UrlFilter[] : this.store.view.filter,
+        this.store.view.search,
+        this.store.view.pageNumber,
+        this.store.view.pageSize,
+      );
+      defer(() => this.query.setArgs(args));
     }));
   }
 
