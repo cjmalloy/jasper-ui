@@ -32,11 +32,11 @@ export class NavComponent implements OnInit {
     this.nav = this.getNav();
     if (this.nav[0] === '/tag') {
       this.exts.getCachedExt(this.nav[1] as string)
-      .subscribe(ext => {
-        const tmpl = this.admin.getTemplate(ext.tag);
-        const plugin = this.admin.getPlugin(ext.tag);
-        if (ext.modifiedString) {
-          this.text = ext.name || this.text;
+      .subscribe(x => {
+        const tmpl = this.admin.getTemplate(x.tag);
+        const plugin = this.admin.getPlugin(x.tag);
+        if (x.modifiedString) {
+          this.text = x.name || this.text;
         } else {
           this.text = tmpl?.name || plugin?.name || this.text;
         }

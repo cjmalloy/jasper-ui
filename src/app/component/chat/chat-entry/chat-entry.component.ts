@@ -115,7 +115,15 @@ export class ChatEntryComponent {
   }
 
   get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '');
+    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(
+      map(xs => xs.map(x => {
+        if (x.modifiedString) return x;
+        const tmpl = this.admin.getTemplate(x.tag);
+        const plugin = this.admin.getPlugin(x.tag);
+        x.name ||= tmpl?.name || plugin?.name;
+        return x;
+      }))
+    );
   }
 
   get clickableLink() {

@@ -356,7 +356,15 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get addTagExts$() {
-    return this.exts.getCachedExts(this.addTags || [], this.ref.origin || '');
+    return this.exts.getCachedExts(this.addTags || [], this.ref.origin || '').pipe(
+      map(xs => xs.map(x => {
+        if (x.modifiedString) return x;
+        const tmpl = this.admin.getTemplate(x.tag);
+        const plugin = this.admin.getPlugin(x.tag);
+        x.name ||= tmpl?.name || plugin?.name;
+        return x;
+      }))
+    );
   }
 
   get fromOrigin() {
@@ -480,7 +488,15 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '');
+    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(
+      map(xs => xs.map(x => {
+        if (x.modifiedString) return x;
+        const tmpl = this.admin.getTemplate(x.tag);
+        const plugin = this.admin.getPlugin(x.tag);
+        x.name ||= tmpl?.name || plugin?.name;
+        return x;
+      }))
+    );
   }
 
   get recipients() {
@@ -493,7 +509,15 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get recipientExts$() {
-    return this.exts.getCachedExts(this.recipients, this.ref.origin || '');
+    return this.exts.getCachedExts(this.recipients, this.ref.origin || '').pipe(
+      map(xs => xs.map(x => {
+        if (x.modifiedString) return x;
+        const tmpl = this.admin.getTemplate(x.tag);
+        const plugin = this.admin.getPlugin(x.tag);
+        x.name ||= tmpl?.name || plugin?.name;
+        return x;
+      }))
+    );
   }
 
   get mailboxes() {
@@ -531,7 +555,15 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get tagExts$() {
-    return this.exts.getCachedExts(this.tags, this.ref.origin || '');
+    return this.exts.getCachedExts(this.tags, this.ref.origin || '').pipe(
+      map(xs => xs.map(x => {
+        if (x.modifiedString) return x;
+        const tmpl = this.admin.getTemplate(x.tag);
+        const plugin = this.admin.getPlugin(x.tag);
+        x.name ||= tmpl?.name || plugin?.name;
+        return x;
+      }))
+    );
   }
 
   get url() {

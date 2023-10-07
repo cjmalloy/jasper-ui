@@ -23,11 +23,13 @@ export function templates(tags?: string[], template?: string) {
   return filter(tags, t => hasPrefix(t, template));
 }
 
-export function authors(ref: Ref, prefixes = ['user', 'plugin/from']) {
+export function authors(ref: Ref, prefixes = ['user', '+plugin', 'plugin/from']) {
   const authors = [];
   for (const p of prefixes) {
     if (p === 'user') {
       authors.push(...templates(ref.tags || [], 'user').map(t => t + (ref.origin || '')));
+    } else if (p === '+plugin') {
+      authors.push(...templates(ref.tags || [], '+plugin').map(t => t + (ref.origin || '')));
     } else if (p === 'plugin/from') {
       authors.push(...templates(ref.tags || [], 'plugin/from').map(t => reverseOrigin(t.substring('plugin/from/'.length))));
     } else {

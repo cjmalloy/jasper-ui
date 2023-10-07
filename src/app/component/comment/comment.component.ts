@@ -2,7 +2,7 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { Router } from '@angular/router';
 import { uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { Subject, takeUntil } from 'rxjs';
+import { map, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
@@ -162,7 +162,15 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '');
+    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(
+      map(xs => xs.map(x => {
+        if (x.modifiedString) return x;
+        const tmpl = this.admin.getTemplate(x.tag);
+        const plugin = this.admin.getPlugin(x.tag);
+        x.name ||= tmpl?.name || plugin?.name;
+        return x;
+      }))
+    );
   }
 
   get mailboxes() {
@@ -187,7 +195,15 @@ export class CommentComponent implements OnInit, OnDestroy {
   }
 
   get tagExts$() {
-    return this.exts.getCachedExts(this.tagged, this.ref.origin || '');
+    return this.exts.getCachedExts(this.tagged, this.ref.origin || '').pipe(
+      map(xs => xs.map(x => {
+        if (x.modifiedString) return x;
+        const tmpl = this.admin.getTemplate(x.tag);
+        const plugin = this.admin.getPlugin(x.tag);
+        x.name ||= tmpl?.name || plugin?.name;
+        return x;
+      }))
+    );
   }
 
   get deleted() {
