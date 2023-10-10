@@ -1,4 +1,7 @@
 :host {
+  --dim: 60px;
+  --piece-size: 45px;
+
   aspect-ratio: 1 / 1;
   max-height: calc(100vh - 150px);
   display: grid !important;
@@ -27,6 +30,8 @@
     aspect-ratio: 1 / 1;
     max-height: 100%;
     overflow: hidden;
+    line-height: var(--dim);
+    font-size: var(--piece-size);
 
     &.bounce {
       animation-duration: 3s;

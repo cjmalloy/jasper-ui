@@ -50,8 +50,6 @@ export class ChessComponent implements OnInit, OnDestroy {
   moves: Square[] = [];
   chess = new Chess();
   pieces: (Piece | null)[] = flatten(this.chess.board());
-  dim = 32;
-  fontSize = 32;
   writeAccess = false;
   created = true;
   bounce = '';
@@ -196,8 +194,10 @@ export class ChessComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize')
   onResize() {
-    this.dim = Math.floor(this.el.nativeElement.offsetWidth / 8);
-    this.fontSize = Math.floor(0.75 * this.dim);
+    const dim = Math.floor(this.el.nativeElement.offsetWidth / 8);
+    const fontSize = Math.floor(0.75 * dim);
+    this.el.nativeElement.style.setProperty('--dim', dim + 'px')
+    this.el.nativeElement.style.setProperty('--piece-size', fontSize + 'px')
   }
 
   drawPiece(p?: Piece | null) {
