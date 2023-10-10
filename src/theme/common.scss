@@ -1510,6 +1510,9 @@ ngx-monaco-editor {
   &.cdk-drag-placeholder {
     display: none !important;
   }
+  &.cdk-drag-preview {
+    font-size: var(--drag-piece-size) !important;
+  }
   &.disabled {
     cursor: default !important;
   }

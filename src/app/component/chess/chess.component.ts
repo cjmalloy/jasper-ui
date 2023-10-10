@@ -1,15 +1,5 @@
 import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
-import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  HostBinding,
-  HostListener,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output
-} from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, uniq } from 'lodash-es';
 import { toJS } from 'mobx';
@@ -74,7 +64,7 @@ export class ChessComponent implements OnInit, OnDestroy {
     private refs: RefService,
     private store: Store,
     private stomps: StompService,
-    private el: ElementRef<HTMLTextAreaElement>,
+    private el: ElementRef<HTMLDivElement>,
   ) { }
 
   ngOnInit(): void {
@@ -196,8 +186,14 @@ export class ChessComponent implements OnInit, OnDestroy {
   onResize() {
     const dim = Math.floor(this.el.nativeElement.offsetWidth / 8);
     const fontSize = Math.floor(0.75 * dim);
-    this.el.nativeElement.style.setProperty('--dim', dim + 'px')
-    this.el.nativeElement.style.setProperty('--piece-size', fontSize + 'px')
+    this.el.nativeElement.style.setProperty('--dim', dim + 'px');
+    this.el.nativeElement.style.setProperty('--piece-size', fontSize + 'px');
+  }
+
+  setPieceSize() {
+    const dim = Math.floor(this.el.nativeElement.offsetWidth / 8);
+    const fontSize = Math.floor(0.75 * dim);
+    document.body.style.setProperty('--drag-piece-size', fontSize + 'px');
   }
 
   drawPiece(p?: Piece | null) {
