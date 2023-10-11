@@ -143,6 +143,7 @@ import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
 import { OriginMapService } from './service/origin-map.service';
 import { ThemeService } from './service/theme.service';
+import { BackgammonComponent } from './component/backgammon/backgammon.component';
 
 const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ThemeService) => () =>
   config.load$.pipe(
@@ -293,6 +294,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     TodoComponent,
     TodoItemComponent,
     PlaylistComponent,
+    BackgammonComponent,
   ],
   imports: [
     BrowserModule,
