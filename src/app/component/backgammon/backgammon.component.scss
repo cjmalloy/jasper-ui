@@ -1,0 +1,210 @@
+:host {
+  --bg: rgba(255, 255, 255, 0.1);
+  --dim: 30px;
+  --piece-size: 30px;
+  --black: #111;
+  --red: #A33;
+  --play: rgba(255, 255, 0, 0.3);
+  --brown: #431;
+  --brown-alt: #422;
+  --glow: rgba(200, 200, 200, 0.5);
+  --move: rgba(0, 128, 0, 0.5);
+  filter: drop-shadow(0 0 1px var(--glow));
+
+  max-height: calc(100vh - 150px);
+  max-width: calc(100vw - 16px);
+  width: calc(28 * var(--dim));
+  height: calc(26 * var(--dim));
+  display: grid !important;
+  grid-template-columns: repeat(14, 1fr) !important;
+  user-select: none;
+  background-color: var(--bg);
+
+  .dice {
+    cursor: grabbing;
+    position: absolute;
+    text-align: center;
+    top: 50%;
+    &.disabled {
+      cursor: not-allowed;
+    }
+    &.red {
+      left: 75%;
+    }
+    &.black {
+      position: absolute;
+      left: 25%;
+    }
+    &.clickme {
+      cursor: grabbing !important;
+      &:before {
+        content: '🎲️ ';
+      }
+    }
+    &.play {
+      cursor: wait;
+      animation-duration: 20s;
+      animation-name: play;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+    @keyframes play {
+      from {
+        box-shadow: 6px 4px 30px var(--play);
+      }
+
+      25% {
+        box-shadow: -8px 4px 20px var(--play);
+      }
+
+      50% {
+        box-shadow: -8px -8px 15px var(--play);
+      }
+
+      75% {
+        box-shadow: 6px -8px 10px var(--play);
+      }
+
+      to {
+        box-shadow: 6px 4px 30px var(--play);
+      }
+    }
+    &.rolling {
+      animation-duration: 0.15s;
+      animation-name: rolling;
+      animation-iteration-count: 5;
+    }
+    @keyframes rolling {
+      from {
+        margin: 0;
+      }
+
+      25% {
+        margin-top: calc(var(--piece-size) / 4);
+        margin-left: calc(var(--piece-size) / 4);
+      }
+
+      50% {
+        margin-top: calc(var(--piece-size) / 2);
+        margin-left: 0;
+      }
+
+      75% {
+        margin-top: calc(var(--piece-size) / 4);
+        margin-left: calc(var(--piece-size) / 4);
+      }
+
+      to {
+        margin: 0;
+      }
+    }
+  }
+
+  .backgammon-piece {
+    font-size: var(--piece-size);
+    position: relative;
+    width: calc(2 * var(--dim));
+    height: calc(2 * var(--dim));
+    transform: translate(0, 0) translate3d(0, 0, 0) !important;
+  }
+
+  .backgammon-off, .backgammon-bar {
+    display: flex;
+    flex-direction: column-reverse;
+    align-self: flex-end;
+    width: calc(2 * var(--dim));
+    height: calc(13 * var(--dim));
+    background: linear-gradient(to right, var(--brown) 10%, var(--brown-alt) 12%, var(--brown) 15%, var(--brown) 85%, var(--brown-alt) 88%, var(--brown) 90%);
+    &.red {
+      flex-direction: column;
+      align-self: flex-start;
+    }
+
+    &.move {
+      box-shadow: inset 3px 3px var(--dim) var(--move),
+                  inset -3px -3px var(--dim) var(--move);
+    }
+  }
+
+  .backgammon-spot {
+    display: flex;
+    flex-direction: column-reverse;
+    align-self: flex-end;
+    border: var(--dim) solid transparent;
+    height: 0;
+    width: 0;
+
+    &.move {
+      &.top {
+        border-top: calc(10 * var(--dim)) solid var(--move) !important;
+      }
+      &:not(.top) {
+        border-bottom: calc(10 * var(--dim)) solid var(--move) !important;
+      }
+    }
+
+    &.cdk-drop-list-dragging {
+      &.top {
+        border-top: calc(10 * var(--dim)) solid var(--glow) !important;
+      }
+      &:not(.top) {
+        border-bottom: calc(10 * var(--dim)) solid var(--glow) !important;
+      }
+    }
+
+    border-top: calc(3 * var(--dim)) solid transparent;
+    border-bottom: calc(10 * var(--dim)) solid var(--black);
+    &.red {
+      border-bottom: calc(10 * var(--dim)) solid var(--red);
+    }
+
+    .backgammon-piece {
+      &:hover {
+        filter: drop-shadow(0 0 3px var(--glow));
+      }
+      transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) !important;
+      &.stacked {
+        transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.2 * var(--dim)), calc(9 * var(--dim)), 1px) !important;
+        &.double-stacked {
+          transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.4 * var(--dim)), calc(18 * var(--dim)), 2px) !important;
+        }
+      }
+      &.bounce {
+        animation-duration: 3s;
+        animation-name: bounce;
+        animation-iteration-count: 1;
+      }
+      @keyframes bounce {
+        from {
+          margin: calc(2 * var(--piece-size)) 0;
+        }
+
+        to {
+          margin: 0;
+        }
+      }
+    }
+
+    &.top {
+      flex-direction: column;
+      align-self: flex-start;
+      border-bottom: none;
+
+      border-bottom: calc(3 * var(--dim)) solid transparent;
+      border-top: calc(10 * var(--dim)) solid var(--black);
+      &.red {
+        border-top: calc(10 * var(--dim)) solid var(--red);
+      }
+
+      .backgammon-piece {
+        transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) !important;
+        &.stacked {
+          transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.2 * var(--dim)), calc(-9 * var(--dim)), 0) !important;
+          &.double-stacked {
+            transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.4 * var(--dim)), calc(-18 * var(--dim)), 0) !important;
+          }
+        }
+      }
+    }
+  }
+}

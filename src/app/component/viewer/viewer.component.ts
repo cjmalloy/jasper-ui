@@ -65,6 +65,7 @@ export class ViewerComponent implements AfterViewInit {
   qrUrl = '';
   playlist = false;
   todo = false;
+  backgammon = false;
   chess = false;
   chessWhite = true;
   uis = this.admin.getPluginUi(this.currentTags);
@@ -103,6 +104,7 @@ export class ViewerComponent implements AfterViewInit {
     this.qrUrl = this.getQrUrl();
     this.playlist = !!this.admin.getPlugin('plugin/playlist') && this.currentTags.includes('plugin/playlist');
     this.todo = !!this.admin.getPlugin('plugin/todo') && this.currentTags.includes('plugin/todo');
+    this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && this.currentTags.includes('plugin/backgammon');
     this.chess = !!this.admin.getPlugin('plugin/chess') && this.currentTags.includes('plugin/chess');
     this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
     this.uis = this.admin.getPluginUi(this.currentTags);
@@ -215,6 +217,7 @@ export class ViewerComponent implements AfterViewInit {
   get hideComment() {
     if (this.admin.getPlugin('plugin/table') && this.currentTags.includes('plugin/table')) return false;
     return !!this.tags
+      || this.backgammon
       || this.chess
       || this.todo
       || (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract);
