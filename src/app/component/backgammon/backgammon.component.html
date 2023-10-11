@@ -1,0 +1,105 @@
+<div *ngFor="let s of spots trackBy: trackByIdx"
+     class="backgammon-spot"
+     [style.grid-column]="s.col > 6 ? s.col + 2 : s.col + 1"
+     [style.grid-row]="s.top ? 1 : 2"
+     [class.move]="s.move"
+     [class.red]="s.red"
+     [class.top]="s.top"
+     [class.drag-source]="dragSource===s.index"
+     cdkDropList
+     [cdkDropListData]="red ? s.index : 23 - s.index"
+     (cdkDropListDropped)="drop($any($event))">
+  <div *ngFor="let p of s.pieces trackBy: trackByColor; let pi = index"
+       class="backgammon-piece"
+       [class.stacked]="pi > 4"
+       [class.double-stacked]="pi > 9"
+       [class.bounce]="s.index === bounce && pi === s.pieces.length - 1"
+       (click)="setMoves(s.index)"
+       cdkDrag
+       cdkDragBoundary=".backgammon-board"
+       (cdkDragStarted)="onDragStarted(s.index)"
+       (cdkDragExited)="dragSource = -1"
+       [cdkDragData]="p">{{ drawPiece(p) }}</div>
+</div>
+<div class="backgammon-off black"
+     [style.grid-column]="1"
+     [style.grid-row]="1"
+     [class.move]="moveBlackOff"
+     cdkDropList
+     [cdkDropListData]="-2"
+     (cdkDropListDropped)="drop($any($event))"></div>
+<div class="backgammon-off red"
+     [style.grid-column]="1"
+     [style.grid-row]="2"
+     [class.move]="moveRedOff"
+     cdkDropList
+     [cdkDropListData]="-2"
+     (cdkDropListDropped)="drop($any($event))"></div>
+<div class="backgammon-bar black"
+     [style.grid-column]="8"
+     [style.grid-row]="1"
+     [class.move]="moves[-2]"
+     [class.drag-source]="dragSource===-1"
+     cdkDropList
+     [cdkDropListData]="-1">
+  <ng-container *ngFor="let p of bar trackBy: trackByColor; let pi = index">
+    <div *ngIf="p === 'b'"
+         class="backgammon-piece"
+         [class.bounce]="bounce === -1 && pi === bar.length - 1"
+         (click)="setMovesBar('b')"
+         cdkDrag
+         cdkDragBoundary=".backgammon-board"
+         (cdkDragStarted)="onDragStarted(-1)"
+         [cdkDragData]="p">{{ drawPiece(p) }}</div>
+  </ng-container>
+</div>
+<div class="backgammon-bar red"
+     [style.grid-column]="8"
+     [style.grid-row]="2"
+     [class.drag-source]="dragSource===-1"
+     cdkDropList
+     [cdkDropListData]="-1">
+  <ng-container *ngFor="let p of bar trackBy: trackByColor; let pi = index">
+    <div *ngIf="p === 'r'"
+         class="backgammon-piece"
+         [class.bounce]="bounce === -1 && pi === bar.length - 1"
+         (click)="setMovesBar('r')"
+         cdkDrag
+         cdkDragBoundary=".backgammon-board"
+         (cdkDragStarted)="onDragStarted(-1)"
+         [cdkDragData]="p">{{ drawPiece(p) }}</div>
+  </ng-container>
+</div>
+
+<div class="red dice bubble"
+     [class.clickme]="!winner && (first && turn === 'r' || !moves.length && turn === 'b')"
+     [class.play]="moves.length && turn === 'r'"
+     [class.rolling]="rolling === 'r'"
+     [class.disabled]="winner || moves.length || redDice[0] && turn !== 'b'"
+     (click)="roll('r')"
+     i18n-title title="Red">
+  <span *ngIf="winner === 'r'" i18n>Red Wins 🎲️<br></span>
+  <span *ngIf="!redDice[0] else redStarted" i18n>🎲️ Roll</span>
+  <ng-template #redStarted>
+    <span *ngIf="redDice[0] && !redDice[1] else redRolled" i18n>{{ redDice[0] }}</span>
+  </ng-template>
+  <ng-template #redRolled>
+    <span *ngIf="redDice[1]" i18n>{{ redDice[0] }} - {{ redDice[1] }}</span>
+  </ng-template>
+</div>
+<div class="black dice bubble"
+     [class.clickme]="!winner && (first && turn === 'b' || !moves.length && turn === 'r')"
+     [class.play]="moves.length && turn === 'b'"
+     [class.rolling]="rolling === 'b'"
+     [class.disabled]="winner || moves.length || blackDice[0] && turn !== 'r'"
+     (click)="roll('b')"
+     i18n-title title="Black">
+  <span *ngIf="winner === 'b'" i18n>Black Wins 🎲️<br></span>
+  <span *ngIf="!blackDice[0] else blackStarted" i18n>🎲️ Roll</span>
+  <ng-template #blackStarted>
+    <span *ngIf="blackDice[0] && !blackDice[1] else blackRolled" i18n>{{ blackDice[0] }}</span>
+  </ng-template>
+  <ng-template #blackRolled>
+    <span *ngIf="blackDice[1]" i18n>{{ blackDice[0] }} - {{ blackDice[1] }}</span>
+  </ng-template>
+</div>

@@ -48,6 +48,7 @@ export class ViewStore {
   ) {
     makeAutoObservable(this, {
       clear: action,
+      setRef: action,
       exts: observable.shallow,
       extTemplates: observable.shallow,
     });
