@@ -1,6 +1,6 @@
 import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { Chess, Square } from 'chess.js';
+import { Chess, Move, Square } from 'chess.js';
 import { defer, delay, flatten, uniq } from 'lodash-es';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
@@ -269,35 +269,38 @@ export class ChessComponent implements OnInit, OnDestroy {
           }
         });
       }
-
-      const comment = this.patchingComment = (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
-      this.comment.emit(comment)
-      if (!this.ref) return;
-      const title = (this.ref.title || '').replace(/\s*\|.*/, '') + ' | ' + move.san;
-      (this.created ? this.refs.merge(this.ref.url, this.store.account.origin, this.ref!.modifiedString!,
-        { title, comment }
-      ) : this.refs.create({
-        ...this.ref,
-        origin: this.store.account.origin,
-        title,
-        comment,
-      })).subscribe(modifiedString => {
-        if (this.patchingComment !== comment) return;
-        this.ref!.title = title;
-        this.ref!.comment = comment;
-        this.ref!.modified = moment(modifiedString);
-        this.ref!.modifiedString = modifiedString;
-        this.patchingComment = '';
-        if (!this.local) {
-          this.ref!.origin = this.store.account.origin;
-          this.copied.emit(this.store.account.origin)
-        }
-        this.store.eventBus.refresh(this.ref);
-      });
     }
+    this.save(move!);
     delete this.from;
     delete this.to;
     this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
+  }
+
+  save(move?: Move) {
+    const comment = this.patchingComment = (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
+    this.comment.emit(comment)
+    if (!this.ref) return;
+    const title = move && this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + move.san : '';
+    (this.created ? this.refs.merge(this.ref.url, this.store.account.origin, this.ref!.modifiedString!,
+      { title, comment }
+    ) : this.refs.create({
+      ...this.ref,
+      origin: this.store.account.origin,
+      title,
+      comment,
+    })).subscribe(modifiedString => {
+      if (this.patchingComment !== comment) return;
+      this.ref!.title = title;
+      this.ref!.comment = comment;
+      this.ref!.modified = moment(modifiedString);
+      this.ref!.modifiedString = modifiedString;
+      this.patchingComment = '';
+      if (!this.local) {
+        this.ref!.origin = this.store.account.origin;
+        this.copied.emit(this.store.account.origin)
+      }
+      this.store.eventBus.refresh(this.ref);
+    });
   }
 
   clickSquare(index: number) {
