@@ -166,7 +166,7 @@ export class ChessComponent implements OnInit, OnDestroy {
   set ref(value: Ref | undefined) {
     delete this.from;
     delete this.to;
-    const newRef = this.ref?.url !== value?.url;
+    const newRef = this.ref && this.ref.url !== value?.url;
     this._ref = toJS(value);
     if (newRef) {
       this.watches.forEach(w => w.unsubscribe());
