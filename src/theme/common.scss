@@ -1518,6 +1518,32 @@ ngx-monaco-editor {
   }
 }
 
+.backgammon-piece {
+  cursor: grab;
+  text-align: center;
+  vertical-align: middle;
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1), scale 250ms cubic-bezier(0, 0, 0.2, 1);
+
+  &.cdk-drag-preview {
+    font-size: var(--drag-piece-size) !important;
+    transform: scale(1.2);
+  }
+  &.disabled {
+    cursor: default !important;
+  }
+}
+
+.backgammon-spot, .backgammon-off {
+  .backgammon-piece.cdk-drag-placeholder {
+    opacity: 0;
+  }
+  &:not(.drag-source) {
+    .backgammon-piece.cdk-drag-placeholder {
+      height: 0 !important;
+    }
+  }
+}
+
 .cdk-drop-list-dragging {
   .chess-piece {
     transform: scale(0.9) !important;

@@ -1,0 +1,53 @@
+<div *ngFor="let s of spots trackBy: trackByIdx"
+     class="backgammon-spot"
+     [style.grid-column]="s.col > 6 ? s.col + 1 : s.col"
+     [style.grid-row]="s.top ? 1 : 2"
+     [class.red]="s.red"
+     [class.top]="s.top"
+     [class.drag-source]="dragSource===s.index"
+     cdkDropList
+     [cdkDropListData]="red ? s.index : 23 - s.index"
+     (cdkDropListDropped)="drop($any($event))">
+  <div *ngFor="let p of s.pieces trackBy: trackByColor; let pi = index"
+       class="backgammon-piece"
+       [class.stacked]="pi > 4"
+       [class.double-stacked]="pi > 9"
+       [class.bounce]="s.index === bounce && pi === s.pieces.length - 1"
+       cdkDrag
+       cdkDragBoundary=".backgammon-board"
+       (cdkDragStarted)="onDragStarted(s.index)"
+       (cdkDragExited)="dragSource = -1"
+       [cdkDragData]="p">{{ drawPiece(p) }}</div>
+</div>
+<div class="backgammon-off red"
+     [style.grid-column]="7"
+     [style.grid-row]="1"
+     [class.drag-source]="dragSource===-1"
+     cdkDropList
+     [cdkDropListData]="-1">
+  <ng-container *ngFor="let p of off trackBy: trackByColor; let pi = index">
+    <div *ngIf="p === 'r'"
+         class="backgammon-piece"
+         [class.bounce]="bounce === -1 && pi === off.length - 1"
+         cdkDrag
+         cdkDragBoundary=".backgammon-board"
+         (cdkDragStarted)="onDragStarted(-1)"
+         [cdkDragData]="p">{{ drawPiece(p) }}</div>
+  </ng-container>
+</div>
+<div class="backgammon-off black"
+     [style.grid-column]="7"
+     [style.grid-row]="2"
+     [class.drag-source]="dragSource===-1"
+     cdkDropList
+     [cdkDropListData]="-1">
+  <ng-container *ngFor="let p of off trackBy: trackByColor; let pi = index">
+    <div *ngIf="p === 'b'"
+         class="backgammon-piece"
+         [class.bounce]="bounce === -1 && pi === off.length - 1"
+         cdkDrag
+         cdkDragBoundary=".backgammon-board"
+         (cdkDragStarted)="onDragStarted(-1)"
+         [cdkDragData]="p">{{ drawPiece(p) }}</div>
+  </ng-container>
+</div>
