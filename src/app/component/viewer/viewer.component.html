@@ -60,6 +60,11 @@
             [tags]="tags"
             (comment)="comment.emit($event)"
             (copied)="copied.emit($event)"></app-todo>
+  <app-backgammon *ngIf="backgammon"
+                  [red]="backgammonRed"
+                  [ref]="ref"
+                  (comment)="comment.emit($event)"
+                  (copied)="copied.emit($event)"></app-backgammon>
   <app-chess *ngIf="chess"
              [white]="chessWhite"
              [ref]="ref"
