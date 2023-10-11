@@ -11,6 +11,7 @@ import { Template } from '../model/template';
 import { aiPlugin, aiQueryPlugin, aiTemplate, dallePlugin, dalleQueryPlugin, dalleTemplate } from '../mods/ai';
 import { archivePlugin } from '../mods/archive';
 import { audioPlugin } from '../mods/audio';
+import { backgammonPlugin, backgammonTemplate } from "../mods/backgammon";
 import { banlistConfig } from '../mods/banlist';
 import { blogTemplate } from '../mods/blog';
 import { chatTemplate } from '../mods/chat';
@@ -140,6 +141,7 @@ export class AdminService {
       lensPlugin: lensPlugin,
       pipPlugin: pipPlugin,
       chessPlugin: chessPlugin,
+      backgammonPlugin: backgammonPlugin,
       pollPlugin: pollPlugin,
       pollPluginA: pollOptionAPlugin,
       pollPluginB: pollOptionBPlugin,
@@ -166,6 +168,7 @@ export class AdminService {
       imageTemplate: imageTemplate,
       lensTemplate: lensTemplate,
       chessTemplate: chessTemplate,
+      bacgammonTemplate: backgammonTemplate,
       pollTemplate: pollTemplate,
       todoTemplate: todoTemplate,
       playlistTemplate: playlistTemplate,
@@ -471,6 +474,7 @@ export class AdminService {
         if (p === this.status.plugins.pdf) return true;
         if (p === this.status.plugins.repost) return true;
         if (p === this.status.plugins.lensPlugin) return true;
+        if (p === this.status.plugins.backgammonPlugin) return true;
         if (p === this.status.plugins.chessPlugin) return true;
         if (p === this.status.plugins.todoPlugin) return true;
         if (p === this.status.plugins.playlistPlugin) return true;

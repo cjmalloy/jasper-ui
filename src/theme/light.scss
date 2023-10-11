@@ -515,4 +515,15 @@ body.light-theme {
       }
     }
   }
+
+  .backgammon-board {
+    --bg: rgba(187, 147, 71, 0.5);
+    --black: #333;
+    --red: #A55;
+    --play: #DDD;
+    --brown: #862;
+    --brown-alt: #975;
+    --glow: rgba(0, 0, 0, 0.5);
+    --move: rgba(82, 136, 82, 0.5);
+  }
 }
