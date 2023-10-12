@@ -10,7 +10,7 @@ export const oEmbedPlugin: Plugin = {
     settings: $localize`oembed`,
     submit: $localize`📡️ oembed`,
     internal: true,
-    icons: [{ label: $localize`📡️`}],
+    icons: [{ label: $localize`📡️`, order: 3}],
     description: $localize`Register an oEmbed API.`,
     hasDefaults: true,
     form: [{

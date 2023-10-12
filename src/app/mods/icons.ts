@@ -12,7 +12,7 @@ export const lockedIcon: Template = {
     description: $localize`Show locked icon on locked Refs and add filters for
       locked and unlocked Refs`,
     icons: [
-      { label: $localize`🔒️`, title: $localize`Locked` },
+      { label: $localize`🔒️`, title: $localize`Locked`, order: -2 },
     ],
     filters: [
       { query: 'locked', label: $localize`🔒️ locked`, group: $localize`Filters 🕵️️` },
@@ -32,7 +32,7 @@ export const privateIcon: Template = {
     description: $localize`Show private icon on non-public Refs and add filters for
       private and public Refs`,
     icons: [
-      { label: $localize`👁️`, tag: '!public', title: $localize`Private`, global: true },
+      { label: $localize`👁️`, tag: '!public', title: $localize`Private`, order: -2, global: true },
     ],
     filters: [
       { query: 'public', label: $localize`🌐️ public`, group: $localize`Filters 🕵️️` },
