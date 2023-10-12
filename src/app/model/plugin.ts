@@ -43,6 +43,10 @@ export interface Plugin extends Config {
      */
     editor?: string,
     /**
+     * Show plugin as signature for existing tag.
+     */
+    signature?: string,
+    /**
      * List of file extensions that match this plugin.
      */
     extensions?: string[],

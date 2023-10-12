@@ -61,6 +61,7 @@ import {
   includesTag,
   isOwnerTag,
   localTag,
+  prefix,
   removeTag,
   subOrigin,
   tagOrigin
@@ -492,10 +493,17 @@ export class RefComponent implements OnInit, OnDestroy {
       map(xs => xs.map(x => {
         if (x.modifiedString) return x;
         const tmpl = this.admin.getTemplate(x.tag);
-        const plugin = this.admin.getPlugin(x.tag);
-        x.name ||= tmpl?.name || plugin?.name;
+        let plugin = this.admin.getPlugin(x.tag);
+        if (plugin?.config?.signature) {
+          plugin = this.admin.getPlugin(plugin.config.signature) || plugin;
+          x.tag = plugin?.tag || x.tag;
+          x.name ||= plugin?.name;
+        } else if (x.tag.startsWith('+plugin/')) {
+          x.tag = '';
+        }
+        x.name ||= tmpl?.name;
         return x;
-      }))
+      }).filter(x => !!x.tag))
     );
   }
 
@@ -513,8 +521,13 @@ export class RefComponent implements OnInit, OnDestroy {
       map(xs => xs.map(x => {
         if (x.modifiedString) return x;
         const tmpl = this.admin.getTemplate(x.tag);
-        const plugin = this.admin.getPlugin(x.tag);
-        x.name ||= tmpl?.name || plugin?.name;
+        let plugin = this.admin.getPlugin(prefix('plugin/inbox', x.tag));
+        if (plugin?.config?.signature) {
+          plugin = this.admin.getPlugin(plugin.config.signature) || plugin;
+          x.tag = plugin?.tag || x.tag;
+          x.name ||= plugin?.name;
+        }
+        x.name ||= tmpl?.name;
         return x;
       }))
     );
@@ -559,8 +572,7 @@ export class RefComponent implements OnInit, OnDestroy {
       map(xs => xs.map(x => {
         if (x.modifiedString) return x;
         const tmpl = this.admin.getTemplate(x.tag);
-        const plugin = this.admin.getPlugin(x.tag);
-        x.name ||= tmpl?.name || plugin?.name;
+        x.name ||= tmpl?.name;
         return x;
       }))
     );

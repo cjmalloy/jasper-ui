@@ -8,7 +8,7 @@ import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Config, Tag } from '../model/tag';
 import { Template } from '../model/template';
-import { aiPlugin, aiQueryPlugin, aiTemplate, dallePlugin, dalleQueryPlugin, dalleTemplate } from '../mods/ai';
+import { aiPlugin, aiQueryPlugin, dallePlugin, dalleQueryPlugin } from '../mods/ai';
 import { archivePlugin } from '../mods/archive';
 import { audioPlugin } from '../mods/audio';
 import { backgammonPlugin, backgammonTemplate } from "../mods/backgammon";
@@ -172,8 +172,6 @@ export class AdminService {
       pollTemplate: pollTemplate,
       todoTemplate: todoTemplate,
       playlistTemplate: playlistTemplate,
-      aiTemplate: aiTemplate,
-      dalleTemplate: dalleTemplate,
 
       // Icons
       lockedIcon: lockedIcon,
