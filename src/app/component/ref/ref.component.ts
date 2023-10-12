@@ -315,7 +315,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get feed() {
-    return !!this.admin.getPlugin('plugin/feed') && hasTag('+plugin/feed', this.ref);
+    return !!this.admin.getPlugin('+plugin/feed') && hasTag('+plugin/feed', this.ref);
   }
 
   get thread() {
@@ -335,7 +335,7 @@ export class RefComponent implements OnInit, OnDestroy {
   }
 
   get remote() {
-    return !!this.admin.getPlugin('plugin/origin') && hasTag('+plugin/origin', this.ref);
+    return !!this.admin.getPlugin('+plugin/origin') && hasTag('+plugin/origin', this.ref);
   }
 
   get originPull() {
