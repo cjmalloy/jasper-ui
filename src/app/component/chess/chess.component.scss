@@ -7,6 +7,16 @@
   display: grid !important;
   grid-template-columns: repeat(8, 1fr) !important;
   user-select: none;
+  z-index: 1;
+
+  &.flip {
+    transition: 1s ease-in-out transform;
+    transform: rotate(180deg);
+    .chess-piece {
+      transition: 1s ease-in-out transform;
+      transform: rotate(-180deg);
+    }
+  }
 
   .tile {
     aspect-ratio: 1 / 1;

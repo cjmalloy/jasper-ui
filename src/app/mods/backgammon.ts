@@ -15,6 +15,9 @@ export const backgammonPlugin: Plugin = {
     filters: [
       { query: 'plugin/backgammon', label: $localize`🎲️ backgammon`, group: $localize`Plugins 🧰️` },
     ],
+    actions: [
+      { event: 'flip', label: $localize`flip` },
+    ],
     // language=CSS
     css: `
       body.dark-theme {

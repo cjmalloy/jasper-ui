@@ -15,6 +15,9 @@ export const chessPlugin: Plugin = {
     filters: [
       { query: 'plugin/chess', label: $localize`♟️ chess`, group: $localize`Plugins 🧰️` },
     ],
+    actions: [
+      { event: 'flip', label: $localize`flip` },
+    ],
     // language=CSS
     css: `
       body.dark-theme {
