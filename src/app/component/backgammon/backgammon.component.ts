@@ -465,7 +465,7 @@ export class BackgammonComponent implements OnInit, OnDestroy {
 
   onClick(index: number) {
     const p = this.spots[index].pieces[0];
-    if (this.turn && this.start && this.moves[this.start]?.includes(index)) {
+    if (this.turn && this.start >= 0 && this.moves[this.start]?.includes(index)) {
       this.move(this.turn, this.start, index);
       this.check();
     }
