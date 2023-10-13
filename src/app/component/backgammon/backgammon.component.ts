@@ -51,7 +51,7 @@ export class BackgammonComponent implements OnInit, OnDestroy {
   moves: number[][] = [];
 
   bounce = -1;
-  start = -1;
+  start?: number;
   winner?: Piece;
   rolling?: Piece;
   dragSource = -1;
@@ -465,11 +465,11 @@ export class BackgammonComponent implements OnInit, OnDestroy {
 
   onClick(index: number) {
     const p = this.spots[index].pieces[0];
-    if (this.turn && this.start >= 0 && this.moves[this.start]?.includes(index)) {
+    if (this.turn && this.start !== undefined && this.moves[this.start]?.includes(index)) {
       this.move(this.turn, this.start, index);
       this.check();
     }
-    this.start = -1;
+    delete this.start;
     if (p !== this.turn) return this.clearMoves();
     const moves = this.moves[index];
     if (!moves) return this.clearMoves();
@@ -482,6 +482,7 @@ export class BackgammonComponent implements OnInit, OnDestroy {
   }
 
   onClickBar(p: Piece) {
+    this.start = -1;
     const moves = this.moves[-1];
     if (!moves) return this.clearMoves();
     for (const s of this.spots) {
