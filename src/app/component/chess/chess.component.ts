@@ -48,6 +48,7 @@ export class ChessComponent implements OnInit, OnDestroy {
   flip = false;
 
   private _ref?: Ref;
+  private cursor?: string;
   private resizeObserver = new ResizeObserver(() => this.onResize());
   private fen = '';
   private watches: Subscription[] = [];
@@ -99,7 +100,7 @@ export class ChessComponent implements OnInit, OnDestroy {
           this.ref!.comment = u.comment;
           this.ref = this.ref;
           this.store.eventBus.refresh(this.ref);
-          this.ref!.modifiedString = u.modifiedString;
+          if (u.origin === this.store.account.origin) this.ref!.modifiedString = u.modifiedString;
           const lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
           requestAnimationFrame(() => {
             if (lastMove != this.incoming) return;
@@ -124,6 +125,7 @@ export class ChessComponent implements OnInit, OnDestroy {
         })
       ).subscribe(ref => {
         this.created = true;
+        this.cursor = ref.modifiedString;
         this.writeAccess = this.auth.writeAccess(ref)
       });
     }
@@ -297,8 +299,13 @@ export class ChessComponent implements OnInit, OnDestroy {
     this.comment.emit(comment)
     if (!this.ref) return;
     const title = move && this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + move.san : '';
-    (this.created ? this.refs.merge(this.ref.url, this.store.account.origin, this.ref!.modifiedString!,
+    (this.created ? this.refs.merge(this.ref.url, this.store.account.origin, this.local ? this.ref!.modifiedString! : this.cursor!,
       { title, comment }
+    ).pipe(
+      catchError(err => {
+        window.alert('Error syncing game. Please reload.');
+        return throwError(() => err);
+      })
     ) : this.refs.create({
       ...this.ref,
       origin: this.store.account.origin,

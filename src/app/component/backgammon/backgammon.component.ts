@@ -69,6 +69,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   resizing = 0;
 
   private _ref?: Ref;
+  private cursor?: string;
   private resizeObserver = new ResizeObserver(() => this.onResize());
   private watches: Subscription[] = [];
   /**
@@ -118,7 +119,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
           this.ref!.comment = u.comment;
           this.ref = this.ref;
           this.store.eventBus.refresh(this.ref);
-          this.ref!.modifiedString = u.modifiedString;
+          if (u.origin === this.store.account.origin) this.ref!.modifiedString = u.modifiedString;
           if (move.includes('-')) {
             const lastRoll = this.incomingRolling = move.split(' ')[0] as Piece;
             requestAnimationFrame(() => {
@@ -151,7 +152,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
         })
       ).subscribe(ref => {
         this.created = true;
-        this.writeAccess = this.auth.writeAccess(ref)
+        this.cursor = ref.modifiedString;
+        this.writeAccess = this.auth.writeAccess(ref);
       });
     }
     this.onResize();
@@ -463,7 +465,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     const comment = this.patchingComment = this.board.join('  \n');
     this.comment.emit(comment)
     if (!this.ref) return;
-    (this.created ? this.refs.merge(this.ref.url, this.store.account.origin, this.ref!.modifiedString!,
+    (this.created ? this.refs.merge(this.ref.url, this.store.account.origin, this.local ? this.ref.modifiedString! : this.cursor!,
       { comment }
     ) : this.refs.create({
       ...this.ref,
@@ -584,6 +586,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   roll(p: Piece) {
+    if (!this.writeAccess) throw $localize`Access Denied`;
     const ds = p === 'r' ? this.redDice : this.blackDice;
     if (this.winner) throw $localize`Game Over`;
     if ((!this.first || this.turn !== p) && this.moves.length) throw $localize`Must move`;
@@ -616,15 +619,5 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   r() {
     // TODO: Hash cursor
     return Math.floor(Math.random() * 6) + 1;
-  }
-
-  getCol(col: number) {
-    if (this.red) {
-      return col > 6 ? col + 2 : col + 1
-    } else {
-      col = 11 - col;
-      return col > 6 ? col + 2 : col + 1
-    }
-
   }
 }
