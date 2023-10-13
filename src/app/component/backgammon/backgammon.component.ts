@@ -496,6 +496,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
       this.move(this.turn, this.start, index);
       this.check();
     }
+    if (index === this.start) {
+      delete this.start;
+      return this.clearMoves();
+    }
     delete this.start;
     if (p !== this.turn) return this.clearMoves();
     const moves = this.moves[index];
