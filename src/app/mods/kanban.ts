@@ -13,6 +13,7 @@ export const kanbanTemplate: Template = {
     submit: $localize`📋️ kanban/`,
     view: $localize`📋️`,
     description: $localize`Activates built-in Kanban mode for viewing Refs.`,
+    icons: [{ thumbnail: $localize`📋️` }],
     filters: [
       { query: 'kanban', label: $localize`📋️ kanban`, group: $localize`Templates 🎨️` },
     ],

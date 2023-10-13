@@ -402,7 +402,13 @@ export class RefComponent implements OnInit, OnDestroy {
     if (this.thumbnailUrl) {
       return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
     }
-    return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || this.icons.filter(i => (i.order || 0) >= 0 && this.showIcon(i))[0]?.label || '';
+    return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || this.thumbnailEmojiDefaults || '';
+  }
+
+  get thumbnailEmojiDefaults() {
+    const iconLabel = this.icons.filter(i => i.label && (i.order || 0) >= 0 && this.showIcon(i))[0];
+    const iconThumbnail = this.icons.filter(i => i.thumbnail && this.showIcon(i))[0];
+    return iconLabel?.label || iconThumbnail?.thumbnail;
   }
 
   get thumbnailRadius() {

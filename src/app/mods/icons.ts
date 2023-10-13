@@ -1,3 +1,4 @@
+import { $localize } from '@angular/localize/init';
 import * as moment from 'moment';
 import { Template } from '../model/template';
 
@@ -13,6 +14,7 @@ export const lockedIcon: Template = {
       locked and unlocked Refs`,
     icons: [
       { label: $localize`🔒️`, title: $localize`Locked`, order: -2 },
+      { thumbnail: $localize`🔒️`, order: -1 },
     ],
     filters: [
       { query: 'locked', label: $localize`🔒️ locked`, group: $localize`Filters 🕵️️` },
