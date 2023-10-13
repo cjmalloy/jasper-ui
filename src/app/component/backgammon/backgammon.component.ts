@@ -292,16 +292,7 @@ export class BackgammonComponent implements OnInit, OnDestroy {
 
   drop(event: CdkDragDrop<number, number, Piece>) {
     this.move(event.item.data, event.previousContainer.data, event.container.data);
-    this.save();
-    this.moves = [];
-    if (!this.redPips) {
-      this.winner = 'r';
-    } else if (!this.blackPips) {
-      this.winner = 'b';
-    } else {
-      this.moves = this.getAllMoves();
-    }
-    this.clearMoves();
+    this.check();
   }
 
   move(p: Piece, from: number, to: number) {
@@ -430,6 +421,19 @@ export class BackgammonComponent implements OnInit, OnDestroy {
     return [];
   }
 
+  check() {
+    this.save();
+    this.moves = [];
+    if (!this.redPips) {
+      this.winner = 'r';
+    } else if (!this.blackPips) {
+      this.winner = 'b';
+    } else {
+      this.moves = this.getAllMoves();
+    }
+    this.clearMoves();
+  }
+
   save() {
     const comment = this.patchingComment = this.board.join('  \n');
     this.comment.emit(comment)
@@ -463,17 +467,7 @@ export class BackgammonComponent implements OnInit, OnDestroy {
     const p = this.spots[index].pieces[0];
     if (this.turn && this.start && this.moves[this.start]?.includes(index)) {
       this.move(this.turn, this.start, index);
-      this.moves = this.getAllMoves();
-      this.save();
-      this.moves = [];
-      if (!this.redPips) {
-        this.winner = 'r';
-      } else if (!this.blackPips) {
-        this.winner = 'b';
-      } else {
-        this.moves = this.getAllMoves();
-      }
-      return this.clearMoves();
+      this.check();
     }
     this.start = -1;
     if (p !== this.turn) return this.clearMoves();
@@ -494,6 +488,24 @@ export class BackgammonComponent implements OnInit, OnDestroy {
       s.move = moves.find(m => m === s.index) !== undefined;
     }
     this.moveRedOff = this.moveBlackOff = false;
+  }
+
+  moveDouble(event: Event, index: number) {
+    event.preventDefault();
+    if (!this.turn) return;
+    const ds = this.dice[0] + (this.dice[1] || 0);
+    const to = this.turn === 'r' ? index + ds : index - ds;
+    this.move(this.turn, index, to);
+    this.check();
+  }
+
+  moveBarDouble(event: Event, p: Piece) {
+    event.preventDefault();
+    if (p !== this.turn) return;
+    const ds = this.dice[0] + (this.dice[1] || 0);
+    const to = p === 'r' ? ds : 24 - ds;
+    this.move(this.turn, -1, to);
+    this.check();
   }
 
   get dice() {

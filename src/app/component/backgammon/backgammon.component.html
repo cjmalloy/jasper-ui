@@ -9,7 +9,8 @@
      cdkDropList
      [cdkDropListData]="red ? s.index : 23 - s.index"
      (cdkDropListDropped)="drop($any($event))"
-     (click)="onClick(s.index)">
+     (click)="onClick(s.index)"
+     (contextmenu)="moveDouble($event, s.index)">
   <div *ngFor="let p of s.pieces trackBy: trackByColor; let pi = index"
        class="backgammon-piece"
        [class.stacked]="pi > 4"
@@ -42,7 +43,8 @@
      [class.drag-source]="dragSource===-1"
      cdkDropList
      [cdkDropListData]="-1"
-     (click)="onClickBar('b')">
+     (click)="onClickBar('b')"
+     (contextmenu)="moveBarDouble($event, 'b')">
   <ng-container *ngFor="let p of bar trackBy: trackByColor; let pi = index">
     <div *ngIf="p === 'b'"
          class="backgammon-piece"
@@ -59,7 +61,8 @@
      [class.drag-source]="dragSource===-1"
      cdkDropList
      [cdkDropListData]="-1"
-     (click)="onClickBar('r')">
+     (click)="onClickBar('r')"
+     (contextmenu)="moveBarDouble($event, 'r')">
   <ng-container *ngFor="let p of bar trackBy: trackByColor; let pi = index">
     <div *ngIf="p === 'r'"
          class="backgammon-piece"
