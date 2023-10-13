@@ -13,6 +13,7 @@ export const debugTemplate: Template = {
     description: $localize`Debugging template will every feature turned on.`,
     submit: $localize`🐞️ debug/`,
     view: $localize`🐞️`,
+    icons: [{ thumbnail: $localize`🐞️` }],
     filters: [
       { query: 'debug', label: $localize`🐞️ debug`, group: $localize`Templates 🎨️` },
     ],
