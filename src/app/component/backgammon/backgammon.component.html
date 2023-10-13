@@ -8,13 +8,13 @@
      [class.drag-source]="dragSource===s.index"
      cdkDropList
      [cdkDropListData]="red ? s.index : 23 - s.index"
-     (cdkDropListDropped)="drop($any($event))">
+     (cdkDropListDropped)="drop($any($event))"
+     (click)="onClick(s.index)">
   <div *ngFor="let p of s.pieces trackBy: trackByColor; let pi = index"
        class="backgammon-piece"
        [class.stacked]="pi > 4"
        [class.double-stacked]="pi > 9"
        [class.bounce]="s.index === bounce && pi === s.pieces.length - 1"
-       (click)="setMoves(s.index)"
        cdkDrag
        cdkDragBoundary=".backgammon-board"
        (cdkDragStarted)="onDragStarted(s.index)"
@@ -41,12 +41,12 @@
      [class.move]="moves[-2]"
      [class.drag-source]="dragSource===-1"
      cdkDropList
-     [cdkDropListData]="-1">
+     [cdkDropListData]="-1"
+     (click)="onClickBar('b')">
   <ng-container *ngFor="let p of bar trackBy: trackByColor; let pi = index">
     <div *ngIf="p === 'b'"
          class="backgammon-piece"
          [class.bounce]="bounce === -1 && pi === bar.length - 1"
-         (click)="setMovesBar('b')"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
@@ -58,12 +58,12 @@
      [style.grid-row]="2"
      [class.drag-source]="dragSource===-1"
      cdkDropList
-     [cdkDropListData]="-1">
+     [cdkDropListData]="-1"
+     (click)="onClickBar('r')">
   <ng-container *ngFor="let p of bar trackBy: trackByColor; let pi = index">
     <div *ngIf="p === 'r'"
          class="backgammon-piece"
          [class.bounce]="bounce === -1 && pi === bar.length - 1"
-         (click)="setMovesBar('r')"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"

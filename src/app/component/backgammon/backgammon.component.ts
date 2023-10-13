@@ -51,6 +51,7 @@ export class BackgammonComponent implements OnInit, OnDestroy {
   moves: number[][] = [];
 
   bounce = -1;
+  start = -1;
   winner?: Piece;
   rolling?: Piece;
   dragSource = -1;
@@ -218,9 +219,9 @@ export class BackgammonComponent implements OnInit, OnDestroy {
   onDragStarted(index: number) {
     this.dragSource = index;
     if (index < 0) {
-      this.setMovesBar(this.turn!);
+      this.onClickBar(this.turn!);
     } else {
-      this.setMoves(index);
+      this.onClick(index);
     }
     const dim = Math.floor(this.el.nativeElement.offsetWidth / 24);
     const fontSize = Math.floor(1.5 * dim);
@@ -458,11 +459,27 @@ export class BackgammonComponent implements OnInit, OnDestroy {
     this.moveRedOff = this.moveBlackOff = false;
   }
 
-  setMoves(index: number) {
+  onClick(index: number) {
     const p = this.spots[index].pieces[0];
+    if (this.turn && this.start && this.moves[this.start]?.includes(index)) {
+      this.move(this.turn, this.start, index);
+      this.moves = this.getAllMoves();
+      this.save();
+      this.moves = [];
+      if (!this.redPips) {
+        this.winner = 'r';
+      } else if (!this.blackPips) {
+        this.winner = 'b';
+      } else {
+        this.moves = this.getAllMoves();
+      }
+      return this.clearMoves();
+    }
+    this.start = -1;
     if (p !== this.turn) return this.clearMoves();
     const moves = this.moves[index];
     if (!moves) return this.clearMoves();
+    this.start = index;
     for (const s of this.spots) {
       s.move = moves.find(m => m === s.index) !== undefined;
     }
@@ -470,7 +487,7 @@ export class BackgammonComponent implements OnInit, OnDestroy {
     this.moveBlackOff = this.turn === 'b' && moves.includes(-2);
   }
 
-  setMovesBar(p: Piece) {
+  onClickBar(p: Piece) {
     const moves = this.moves[-1];
     if (!moves) return this.clearMoves();
     for (const s of this.spots) {
