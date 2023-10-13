@@ -2,7 +2,7 @@ import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { Chess, Move, Square } from 'chess.js';
 import { defer, delay, flatten, uniq } from 'lodash-es';
-import { toJS } from 'mobx';
+import { autorun, IReactionDisposer, toJS } from 'mobx';
 import * as moment from 'moment';
 import { catchError, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
@@ -26,9 +26,10 @@ type Piece = { type: PieceType, color: PieceColor, square: Square, };
 export class ChessComponent implements OnInit, OnDestroy {
   @HostBinding('class') css = 'chess-board';
   private destroy$ = new Subject<void>();
+  private disposers: IReactionDisposer[] = [];
 
   @Input()
-  white = true;
+  white = true; // TODO: Save in local storage
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -43,6 +44,8 @@ export class ChessComponent implements OnInit, OnDestroy {
   writeAccess = false;
   created = true;
   bounce = '';
+  @HostBinding('class.flip')
+  flip = false;
 
   private _ref?: Ref;
   private resizeObserver = new ResizeObserver(() => this.onResize());
@@ -65,7 +68,18 @@ export class ChessComponent implements OnInit, OnDestroy {
     private store: Store,
     private stomps: StompService,
     private el: ElementRef<HTMLDivElement>,
-  ) { }
+  ) {
+    this.disposers.push(autorun(() => {
+      if (this.store.eventBus.event === 'flip' && this.store.eventBus.ref?.url === this.ref?.url) {
+        this.flip = true;
+        delay(() => {
+          this.flip = false;
+          this.white = !this.white;
+        }, 1000);
+        defer(() => this.store.eventBus.fire('flip-done'));
+      }
+    }));
+  }
 
   ngOnInit(): void {
     if (!this.watches.length && this.ref && this.config.websockets) {
@@ -120,6 +134,8 @@ export class ChessComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   trackByPiece(index: number, value: Piece | null) {

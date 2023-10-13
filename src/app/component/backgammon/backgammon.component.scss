@@ -19,6 +19,20 @@
   grid-template-columns: repeat(14, 1fr) !important;
   user-select: none;
   background-color: var(--bg);
+  z-index: 1;
+
+  &.loaded {
+    transition: 1s ease-in-out transform;
+    .backgammon-piece, .dice {
+      transition: 1s ease-in-out transform;
+    }
+  }
+  &:not(.red) {
+    transform: rotate(180deg);
+    .backgammon-piece, .dice {
+      transform: rotate(-180deg);
+    }
+  }
 
   .dice {
     cursor: grabbing;

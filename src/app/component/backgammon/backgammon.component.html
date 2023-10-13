@@ -7,7 +7,7 @@
      [class.top]="s.top"
      [class.drag-source]="dragSource===s.index"
      cdkDropList
-     [cdkDropListData]="red ? s.index : 23 - s.index"
+     [cdkDropListData]="s.index"
      (cdkDropListDropped)="drop($any($event))"
      (click)="onClick(s.index)"
      (contextmenu)="moveDouble($event, s.index)">
@@ -28,14 +28,16 @@
      [class.move]="moveBlackOff"
      cdkDropList
      [cdkDropListData]="-2"
-     (cdkDropListDropped)="drop($any($event))"></div>
+     (cdkDropListDropped)="drop($any($event))"
+     (click)="onClickOff('b')"></div>
 <div class="backgammon-off red"
      [style.grid-column]="1"
      [style.grid-row]="2"
      [class.move]="moveRedOff"
      cdkDropList
      [cdkDropListData]="-2"
-     (cdkDropListDropped)="drop($any($event))"></div>
+     (cdkDropListDropped)="drop($any($event))"
+     (click)="onClickOff('r')"></div>
 <div class="backgammon-bar black"
      [style.grid-column]="8"
      [style.grid-row]="1"

@@ -1,5 +1,6 @@
 import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -11,8 +12,8 @@ import {
   Output
 } from '@angular/core';
 import { Square } from 'chess.js';
-import { delay, filter, range, uniq } from 'lodash-es';
-import { toJS } from 'mobx';
+import { defer, delay, filter, range, uniq } from 'lodash-es';
+import { autorun, IReactionDisposer, toJS } from 'mobx';
 import * as moment from 'moment/moment';
 import { catchError, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
@@ -31,12 +32,14 @@ export type Spot = { index: number, col: number, red: boolean, move?: boolean, t
   styleUrls: ['./backgammon.component.scss'],
   hostDirectives: [CdkDropListGroup]
 })
-export class BackgammonComponent implements OnInit, OnDestroy {
+export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   @HostBinding('class') css = 'backgammon-board';
   private destroy$ = new Subject<void>();
+  private disposers: IReactionDisposer[] = [];
 
   @Input()
-  red = true;
+  @HostBinding('class.red')
+  red = true; // TODO: Save in local storage
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -60,6 +63,8 @@ export class BackgammonComponent implements OnInit, OnDestroy {
   redDice: number[] = [];
   blackDice: number[] = [];
   diceUsed: number[] = [];
+  @HostBinding('class.loaded')
+  loaded = false;
 
   private _ref?: Ref;
   private resizeObserver = new ResizeObserver(() => this.onResize());
@@ -84,7 +89,14 @@ export class BackgammonComponent implements OnInit, OnDestroy {
     private refs: RefService,
     private stomps: StompService,
     private el: ElementRef<HTMLDivElement>,
-  ) {  }
+  ) {
+    this.disposers.push(autorun(() => {
+      if (this.store.eventBus.event === 'flip' && this.store.eventBus.ref?.url === this.ref?.url) {
+        this.red = !this.red;
+        defer(() => this.store.eventBus.fire('flip-done'));
+      }
+    }));
+  }
 
   ngOnInit(): void {
     if (!this.watches.length && this.ref && this.config.websockets) {
@@ -144,9 +156,15 @@ export class BackgammonComponent implements OnInit, OnDestroy {
     this.reset(this.ref?.comment);
   }
 
+  ngAfterViewInit() {
+    this.loaded = true;
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   get ref() {
@@ -353,11 +371,11 @@ export class BackgammonComponent implements OnInit, OnDestroy {
     const np = p === 'r' ? 'b' : 'r';
     for (const d of ds) {
       const i = p === 'r' ? index + d : index - d;
-      if (i < 0) continue;
-      if (i > 23) continue;
+      if (i < 0 || i > 23) continue;
       if (this.spots[i].pieces.length > 1 && this.spots[i].pieces[0] === np) continue;
       const rest = [...ds];
       rest.splice(ds.indexOf(d), 1);
+      // TODO: check closed moves with piece missing
       result.push(i, ...this.getMoves(p, i, rest));
     }
     if (this.closed) {
@@ -491,11 +509,19 @@ export class BackgammonComponent implements OnInit, OnDestroy {
     this.moveRedOff = this.moveBlackOff = false;
   }
 
+  onClickOff(p: Piece) {
+    if (this.start !== undefined && this.moves[this.start]?.includes(-2)) {
+      this.move(p, this.start, -2);
+      this.check();
+    }
+  }
+
   moveDouble(event: Event, index: number) {
     event.preventDefault();
     if (!this.turn) return;
     const ds = this.dice[0] + (this.dice[1] || 0);
-    const to = this.turn === 'r' ? index + ds : index - ds;
+    let to = this.turn === 'r' ? index + ds : index - ds;
+    if (to < 0 || to > 23) to = -2;
     this.move(this.turn, index, to);
     this.check();
   }
@@ -583,5 +609,15 @@ export class BackgammonComponent implements OnInit, OnDestroy {
   r() {
     // TODO: Hash cursor
     return Math.floor(Math.random() * 6) + 1;
+  }
+
+  getCol(col: number) {
+    if (this.red) {
+      return col > 6 ? col + 2 : col + 1
+    } else {
+      col = 11 - col;
+      return col > 6 ? col + 2 : col + 1
+    }
+
   }
 }
