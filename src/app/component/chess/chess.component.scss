@@ -3,7 +3,7 @@
   --piece-size: 45px;
 
   aspect-ratio: 1 / 1;
-  max-height: calc(100vh - 150px);
+  max-height: calc(100vh - 20px);
   display: grid !important;
   grid-template-columns: repeat(8, 1fr) !important;
   user-select: none;

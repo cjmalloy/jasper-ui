@@ -11,8 +11,8 @@
   --move: rgba(0, 128, 0, 0.5);
   filter: drop-shadow(0 0 1px var(--glow));
 
-  max-height: calc(100vh - 150px);
-  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 20px);
+  max-width: calc(100vw - 20px);
   width: calc(28 * var(--dim));
   height: calc(26 * var(--dim));
   display: grid !important;
@@ -27,6 +27,12 @@
       transition: 1s ease-in-out transform;
     }
   }
+  &.resizing {
+    transition: none !important;
+    .backgammon-piece, .dice {
+      transition: none !important;
+    }
+  }
   &:not(.red) {
     transform: rotate(180deg);
     .backgammon-piece, .dice {
@@ -38,6 +44,7 @@
     cursor: grabbing;
     position: absolute;
     text-align: center;
+    font-size: calc(var(--piece-size) / 2);
     top: calc(50% - var(--dim));
     &.disabled {
       cursor: not-allowed;

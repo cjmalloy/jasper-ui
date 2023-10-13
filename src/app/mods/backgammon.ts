@@ -50,17 +50,18 @@ export const backgammonTemplate: Template = {
           grid-auto-flow: row dense;
           margin: 4px;
           gap: 8px;
-          grid-template-columns:  1fr;
+          grid-template-columns: minmax(0, 1fr);
           @media (min-width: 1500px) {
-            grid-template-columns:  1fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
           }
           @media (min-width: 2000px) {
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
           }
           .list-number {
             display: none;
           }
           .ref {
+            min-width: 0;
             break-inside: avoid;
             .backgammon-board {
               max-height: unset;

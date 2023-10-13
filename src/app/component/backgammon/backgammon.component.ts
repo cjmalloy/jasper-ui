@@ -65,6 +65,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   diceUsed: number[] = [];
   @HostBinding('class.loaded')
   loaded = false;
+  @HostBinding('class.resizing')
+  resizing = 0;
 
   private _ref?: Ref;
   private resizeObserver = new ResizeObserver(() => this.onResize());
@@ -135,7 +137,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
         })));
       });
     }
-    this.resizeObserver.observe(this.el.nativeElement);
+    this.resizeObserver.observe(this.el.nativeElement.parentElement!);
     if (this.local) {
       this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
     } else {
@@ -220,10 +222,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @HostListener('window:resize')
   onResize() {
-    const dim = Math.floor(Math.min(this.el.nativeElement.offsetWidth, this.el.nativeElement.offsetHeight) / 26);
+    const dim = Math.floor(Math.min(
+      innerWidth - 20,
+      innerHeight - 20,
+      this.el.nativeElement.parentElement?.offsetWidth || 100,
+    ) / 28);
     const fontSize = Math.floor(1.5 * dim);
     this.el.nativeElement.style.setProperty('--dim', dim + 'px')
-    this.el.nativeElement.style.setProperty('--piece-size', fontSize + 'px')
+    this.el.nativeElement.style.setProperty('--piece-size', fontSize + 'px');
+    clearTimeout(this.resizing);
+    this.resizing = delay(() => this.resizing = 0, 1000);
   }
 
   trackByColor(index: number, value: string) {
