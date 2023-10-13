@@ -11,7 +11,6 @@ import {
   OnInit,
   Output
 } from '@angular/core';
-import { Square } from 'chess.js';
 import { defer, delay, filter, range, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import * as moment from 'moment/moment';
@@ -24,7 +23,15 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 export type Piece = 'r' | 'b';
-export type Spot = { index: number, col: number, red: boolean, move?: boolean, top: boolean, pieces: Piece[]};
+export type Spot = {
+  index: number,
+  col: number,
+  red: boolean,
+  move?: boolean,
+  bounce?: 0,
+  top: boolean
+  pieces: Piece[],
+};
 
 @Component({
   selector: 'app-backgammon',
@@ -53,7 +60,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   moveBlackOff = false;
   moves: number[][] = [];
 
-  bounce = -1;
+  bounce? = 0;
   start?: number;
   winner?: Piece;
   rolling?: Piece;
@@ -79,7 +86,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Queued animation.
    */
-  private incoming = -1;
+  private incoming: number[] = [];
   /**
    * Queued animation.
    */
@@ -107,32 +114,48 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
         this.stomps.watchRef(this.ref!.url, uniq(page.content.map(r => r.origin))).forEach(w => this.watches.push(w.pipe(
           takeUntil(this.destroy$),
         ).subscribe(u => {
-          const moves = (u.comment?.substring(this.patchingComment.length || this.ref?.comment?.length || 0) || '')
+          const prev = (u.comment?.substring(this.patchingComment.length || this.ref?.comment?.length || 0) || '')
           .trim()
           .split('\n')
-          .map(m => m.trim() as Square)
+          .map(m => m.trim())
           .filter(m => !!m);
-          if (!moves.length) return;
+          const current = (u.comment?.substring(this.patchingComment.length || this.ref?.comment?.length || 0) || '')
+          .trim()
+          .split('\n')
+          .map(m => m.trim())
+          .filter(m => !!m);
+          for (let i = 0; i < Math.min(prev.length, current.length); i++) {
+            if (prev[i] !== current[i]) {
+              prev.splice(0, i + 1);
+              current.splice(0, i + 1);
+              break;
+            }
+          }
+          if (!current.length && !prev.length) return;
           // TODO: queue all moves and animate one by one
-          const move = moves.shift()!;
           this.ref!.title = u.title;
           this.ref!.comment = u.comment;
           this.ref = this.ref;
           this.store.eventBus.refresh(this.ref);
           if (u.origin === this.store.account.origin) this.ref!.modifiedString = u.modifiedString;
-          if (move.includes('-')) {
-            const lastRoll = this.incomingRolling = move.split(' ')[0] as Piece;
+          const roll = current.find(m => m.includes('-'));
+          if (roll) {
+            const lastRoll = this.incomingRolling = roll.split(' ')[0] as Piece;
             requestAnimationFrame(() => {
               if (lastRoll != this.incomingRolling) return;
               this.rolling = this.incomingRolling;
               delay(() => this.rolling = undefined, 3400);
             });
           } else {
-            const lastMove = this.incoming = parseInt(move.split(/\D+/g).filter(m => !!m).pop()!) - 1;
+            const lastMove = this.incoming = current.map(m => parseInt(m.split(/\D+/g).filter(m => !!m).pop()!) - 1);
             requestAnimationFrame(() => {
               if (lastMove != this.incoming) return;
-              this.bounce = this.incoming;
-              delay(() => this.bounce = -1, 3400);
+              this.setBounce(this.incoming);
+              this.bounce = delay(() => {
+                this.setBounce([]);
+                clearTimeout(this.bounce);
+                delete this.bounce;
+              }, 3400);
             });
           }
         })));
@@ -488,6 +511,15 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   clearMoves() {
     for (const s of this.spots) s.move = false;
     this.moveRedOff = this.moveBlackOff = false;
+  }
+
+  setBounce(bs: number[]) {
+    for (const s of this.spots) {
+      s.bounce = 0;
+      for (const b of bs) {
+        if (b === s.index) s.bounce!++;
+      }
+    }
   }
 
   onClick(index: number) {

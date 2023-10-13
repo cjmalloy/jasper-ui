@@ -147,6 +147,25 @@
     }
   }
 
+  .backgammon-spot, .backgammon-bar, .backgammon-off {
+    .backgammon-piece {
+      &.bounce {
+        animation-duration: 3s;
+        animation-name: bounce;
+        animation-iteration-count: 1;
+      }
+      @keyframes bounce {
+        from {
+          margin: calc(2 * var(--piece-size)) 0;
+        }
+
+        to {
+          margin: 0;
+        }
+      }
+    }
+  }
+
   .backgammon-spot {
     display: flex;
     flex-direction: column-reverse;
@@ -188,20 +207,6 @@
         transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.2 * var(--dim)), calc(9 * var(--dim)), 1px) !important;
         &.double-stacked {
           transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.4 * var(--dim)), calc(18 * var(--dim)), 2px) !important;
-        }
-      }
-      &.bounce {
-        animation-duration: 3s;
-        animation-name: bounce;
-        animation-iteration-count: 1;
-      }
-      @keyframes bounce {
-        from {
-          margin: calc(2 * var(--piece-size)) 0;
-        }
-
-        to {
-          margin: 0;
         }
       }
     }

@@ -15,7 +15,7 @@
        class="backgammon-piece"
        [class.stacked]="pi > 4"
        [class.double-stacked]="pi > 9"
-       [class.bounce]="s.index === bounce && pi === s.pieces.length - 1"
+       [class.bounce]="s.bounce && pi >= s.pieces.length - s.bounce"
        cdkDrag
        cdkDragBoundary=".backgammon-board"
        (cdkDragStarted)="onDragStarted(s.index)"
@@ -50,8 +50,7 @@
      (contextmenu)="moveBarDouble($event, 'b')">
   <ng-container *ngFor="let p of bar trackBy: trackByColor; let pi = index">
     <div *ngIf="p === 'b'"
-         class="backgammon-piece"
-         [class.bounce]="bounce === -1 && pi === bar.length - 1"
+         class="backgammon-piece bounce"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
@@ -69,8 +68,7 @@
      (contextmenu)="moveBarDouble($event, 'r')">
   <ng-container *ngFor="let p of bar trackBy: trackByColor; let pi = index">
     <div *ngIf="p === 'r'"
-         class="backgammon-piece"
-         [class.bounce]="bounce === -1 && pi === bar.length - 1"
+         class="backgammon-piece bounce"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
