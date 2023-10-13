@@ -329,7 +329,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     const dice = this.getDiceUsed(p, from, to, this.dice);
     this.diceUsed.push(...dice);
     const previous = from < 0 ? this.bar : this.spots[from].pieces;
-    previous.splice(previous.findIndex(p => p === p), 1);
+    previous.splice(previous.findIndex(c => c === p), 1);
     if (to === -2) {
       this.pushMove(p, from, to);
       return;
