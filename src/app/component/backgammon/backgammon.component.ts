@@ -124,30 +124,40 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
         this.stomps.watchRef(this.ref!.url, uniq(page.content.map(r => r.origin))).forEach(w => this.watches.push(w.pipe(
           takeUntil(this.destroy$),
         ).subscribe(u => {
-          const prev = (u.comment?.substring(this.patchingComment.length || this.ref?.comment?.length || 0) || '')
-          .trim()
-          .split('\n')
-          .map(m => m.trim())
-          .filter(m => !!m);
-          const current = (u.comment?.substring(this.patchingComment.length || this.ref?.comment?.length || 0) || '')
-          .trim()
-          .split('\n')
-          .map(m => m.trim())
-          .filter(m => !!m);
-          for (let i = 0; i < Math.min(prev.length, current.length); i++) {
+          if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
+          else this.ref!.modifiedString = u.modifiedString;
+          const prev = [...this.board];
+          const current = (u.comment || '')
+            .trim()
+            .split('\n')
+            .map(m => m.trim())
+            .filter(m => !!m);
+          const minLen = Math.min(prev.length, current.length);
+          for (let i = 0; i < minLen; i++) {
             if (prev[i] !== current[i]) {
-              prev.splice(0, i + 1);
-              current.splice(0, i + 1);
+              prev.splice(0, i);
+              current.splice(0, i);
               break;
             }
+            if (i === minLen - 1) {
+              prev.splice(0, minLen);
+              current.splice(0, minLen);
+            }
           }
-          if (!current.length && !prev.length) return;
-          // TODO: queue all moves and animate one by one
-          this.ref!.title = u.title;
+          const multiple = current[0]?.replace(/\(\d\)/, '');
+          if (prev.length === 1 && current.length === 1 && prev[0].replace(/\(\d\)/, '') === multiple) {
+            prev.length = 0;
+            current[0] = multiple;
+          }
+          if (prev.length) {
+            window.alert($localize`Game history was rewritten!`);
+            this.ref = u;
+            this.store.eventBus.refresh(u);
+          }
+          if (prev.length || !current.length) return;
           this.ref!.comment = u.comment;
-          this.ref = this.ref;
           this.store.eventBus.refresh(this.ref);
-          if (u.origin === this.store.account.origin) this.ref!.modifiedString = u.modifiedString;
+          this.load(current);
           const roll = current.find(m => m.includes('-'));
           if (roll) {
             const lastRoll = this.incomingRolling = roll.split(' ')[0] as Piece;
@@ -216,16 +226,12 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
   set ref(value: Ref | undefined) {
-    this.board.length = 0;
-    const newRef = this.ref && this.ref.url !== value?.url;
+    const newRef = !this.ref || this.ref?.url !== value?.url;
     this._ref = toJS(value);
-    if (newRef) {
+    if (!value || newRef) {
       this.watches.forEach(w => w.unsubscribe());
       this.watches = [];
-      this.ngOnInit();
-    } else {
-      // TODO: Animate
-      this.reset(value?.comment);
+      if (value) this.ngOnInit();
     }
   }
 
@@ -304,7 +310,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     document.body.style.setProperty('--drag-piece-size', fontSize + 'px');
   }
 
-  reset(board?: string) {
+  reset(board = '') {
     delete this.turn;
     this.board = [];
     this.bar = [];
@@ -320,38 +326,42 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     this.spots[16].pieces = [...'rrr'] as Piece[];
     this.spots[18].pieces = [...'rrrrr'] as Piece[];
     this.spots[23].pieces = [...'bb'] as Piece[];
-    if (board) {
-      for (const m of board.split('\n').map(m => m.trim()).filter(m => !!m)) {
-        const parts = m.split(/[\s/*()]+/g).filter(p => !!p);
-        const p = parts[0] as Piece;
-        if (m.includes('-')) {
-          const ds = p === 'r' ? this.redDice : this.blackDice;
-          ds[0] = parseInt(m[2]);
-          ds[1] = parseInt(m[4]);
-          this.board.push(`${p} ${ds[0]}-${ds[1]}`);
-          this.diceUsed = [];
-          if (!this.turn && this.redDice[0] && this.blackDice[0]) {
-            if (this.redDice[0] === this.blackDice[0]) {
-              this.redDice = [];
-              this.blackDice = [];
-            } else {
-              this.turn = this.redDice[0] > this.blackDice[0] ? 'r' : 'b';
-            }
-          } else if (this.turn) {
-            this.turn = p;
+    this.load(board.split('\n').map(m => m.trim()).filter(m => !!m));
+  }
+
+  load(moves?: string[]) {
+    this.moves = this.getAllMoves();
+    if (!moves) return;
+    for (const m of moves) {
+      const parts = m.split(/[\s/*()]+/g).filter(p => !!p);
+      const p = parts[0] as Piece;
+      if (m.includes('-')) {
+        const ds = p === 'r' ? this.redDice : this.blackDice;
+        ds[0] = parseInt(m[2]);
+        ds[1] = parseInt(m[4]);
+        this.board.push(`${p} ${ds[0]}-${ds[1]}`);
+        this.diceUsed = [];
+        if (!this.turn && this.redDice[0] && this.blackDice[0]) {
+          if (this.redDice[0] === this.blackDice[0]) {
+            this.redDice = [];
+            this.blackDice = [];
+          } else {
+            this.turn = this.redDice[0] > this.blackDice[0] ? 'r' : 'b';
           }
-        } else {
-          const bar = m.includes('bar');
-          const off = m.includes('off');
-          const from = bar ? 0 : parseInt(parts[1]);
-          const to = off ? -1 : parseInt(parts[2]);
-          const multiple = parseInt(parts[3] || '1');
-          for (let i = 0; i < multiple; i++) {
-            this.move(p, from - 1, to - 1);
-          }
+        } else if (this.turn) {
+          this.turn = p;
         }
-        this.moves = this.getAllMoves();
+      } else {
+        const bar = m.includes('bar');
+        const off = m.includes('off');
+        const from = bar ? 0 : parseInt(parts[1]);
+        const to = off ? -1 : parseInt(parts[2]);
+        const multiple = parseInt(parts[3] || '1');
+        for (let i = 0; i < multiple; i++) {
+          this.move(p, from - 1, to - 1);
+        }
       }
+      this.moves = this.getAllMoves();
     }
     if (!this.redPips) {
       this.moves = [];
