@@ -417,10 +417,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
         for (const p of spot.pieces) {
           if (ds.includes(i)) {
             if (p === this.turn) {
-              result.push(-2);
-              break;
-            } else {
               ds.splice(ds.indexOf(i), 1);
+              break;
             }
           }
         }
@@ -438,9 +436,23 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (to === -2) {
       const d = p === 'r' ? 24 - from : from + 1;
-      for (let i = d; i <= 6; i++) {
-        if (ds.includes(i)) return [i];
+      if (ds.includes(d)) return [d];
+      const u: number[] = [];
+      let v = 0;
+      for (const i of ds) {
+        if (i > d) continue;
+        v += i;
+        u.push(i);
+        if (v >= d) return u;
       }
+      u.length = 0;
+      v = 0;
+      for (const i of ds) {
+        v += i;
+        u.push(i);
+        if (v >= d) return u;
+      }
+      throw $localize`Illegal move`;
     }
     if (this.doubles) {
       const result: number[] = [];
