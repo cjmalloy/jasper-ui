@@ -2,13 +2,13 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from "@angular/common/http";
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
   HostBinding,
   HostListener,
   Input,
-  OnInit,
   Output,
   TemplateRef,
   ViewChild,
@@ -17,7 +17,7 @@ import {
 import { defer, difference, intersection, uniq, without } from 'lodash-es';
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
-import { equalsRef, Ref } from '../../../model/ref';
+import { equalsRef, isRef, Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -35,7 +35,7 @@ import { hasTag, includesTag } from '../../../util/tag';
   templateUrl: './kanban-card.component.html',
   styleUrls: ['./kanban-card.component.scss']
 })
-export class KanbanCardComponent implements OnInit {
+export class KanbanCardComponent implements AfterViewInit {
   @HostBinding('class') css = 'kanban-card';
 
   @HostBinding('class.unlocked')
@@ -79,7 +79,10 @@ export class KanbanCardComponent implements OnInit {
     private viewContainerRef: ViewContainerRef,
   ) { }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
+    if (this.lastSelected) {
+      this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
+    }
   }
 
   get ref() {
@@ -103,6 +106,13 @@ export class KanbanCardComponent implements OnInit {
             }
           });
       }
+    }
+  }
+
+  @HostListener('click')
+  onClick() {
+    if (!this.lastSelected && this.store.view.lastSelected) {
+      this.store.view.clearLastSelected();
     }
   }
 
@@ -174,6 +184,11 @@ export class KanbanCardComponent implements OnInit {
 
   get allBadgeExts$() {
     return this.exts.getCachedExts(this.ext?.config?.badges || [], this.ref.origin || '');
+  }
+
+  @HostBinding('class.last-selected')
+  get lastSelected() {
+    return isRef(this.store.view.lastSelected, this.ref);
   }
 
   @HostListener('touchend', ['$event'])

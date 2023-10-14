@@ -316,7 +316,7 @@ body.dark-theme {
     filter: none;
   }
 
-  .list-item:not(.full-page):not(.expand) {
+  .list-item:not(.full-page):not(.expand), .kanban-card {
     &.last-selected {
       border: 1px dashed var(--border);
     }

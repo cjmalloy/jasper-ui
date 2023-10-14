@@ -2,13 +2,14 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  AfterViewInit,
   Component,
+  ElementRef,
   EventEmitter,
   HostBinding,
   HostListener,
   Input,
   OnDestroy,
-  OnInit,
   Output,
   TemplateRef,
   ViewChild,
@@ -73,7 +74,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
 })
-export class RefComponent implements OnInit, OnDestroy {
+export class RefComponent implements AfterViewInit, OnDestroy {
   css = 'ref list-item ';
   @HostBinding('class.mobile-unlock') mobileUnlock = false;
   private disposers: IReactionDisposer[] = [];
@@ -149,6 +150,7 @@ export class RefComponent implements OnInit, OnDestroy {
     private fb: UntypedFormBuilder,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
+    private el: ElementRef<HTMLDivElement>,
   ) {
     this.editForm = refForm(fb);
     this.disposers.push(autorun(() => {
@@ -174,6 +176,17 @@ export class RefComponent implements OnInit, OnDestroy {
         this.expanded = false;
       }
     }));
+  }
+
+  ngAfterViewInit(): void {
+    if (this.lastSelected) {
+      this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   unlockViewer(event: Event) {
@@ -288,14 +301,6 @@ export class RefComponent implements OnInit, OnDestroy {
         this.expanded = false;
       });
     }
-  }
-
-  ngOnInit(): void {
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get local() {
