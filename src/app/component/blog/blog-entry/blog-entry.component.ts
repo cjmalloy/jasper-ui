@@ -190,9 +190,18 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(
       map(xs => xs.map(x => {
         if (x.modifiedString) return x;
+        x = {...x};
         const tmpl = this.admin.getTemplate(x.tag);
-        const plugin = this.admin.getPlugin(x.tag);
-        x.name ||= tmpl?.name || plugin?.name;
+        let plugin = this.admin.getPlugin(x.tag);
+        x.name ||= plugin?.name || tmpl?.name;
+        if (plugin?.config?.signature) {
+          plugin = this.admin.getPlugin(plugin.config.signature) || plugin;
+          x.tag = plugin?.tag || x.tag;
+          x.name ||= plugin?.name;
+        } else if (x.tag.startsWith('+plugin/')) {
+          x.tag = '';
+        }
+        x.name ||= tmpl?.name;
         return x;
       }))
     );
@@ -208,9 +217,9 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     return this.exts.getCachedExts(this.tags, this.ref.origin || '').pipe(
       map(xs => xs.map(x => {
         if (x.modifiedString) return x;
+        x = {...x};
         const tmpl = this.admin.getTemplate(x.tag);
-        const plugin = this.admin.getPlugin(x.tag);
-        x.name ||= tmpl?.name || plugin?.name;
+        x.name ||= tmpl?.name;
         return x;
       }))
     );

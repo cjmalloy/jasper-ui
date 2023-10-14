@@ -118,9 +118,10 @@ export class ChatEntryComponent {
     return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(
       map(xs => xs.map(x => {
         if (x.modifiedString) return x;
+        x = {...x};
         const tmpl = this.admin.getTemplate(x.tag);
         const plugin = this.admin.getPlugin(x.tag);
-        x.name ||= tmpl?.name || plugin?.name;
+        x.name ||= plugin?.name || tmpl?.name;
         return x;
       }))
     );

@@ -109,12 +109,6 @@ export class ViewStore {
     return !s.firstChild?.routeConfig?.path;
   }
 
-  get missingSources() {
-    const s = this.route.routeSnapshot?.firstChild;
-    if (s?.url[0].path !== 'ref') return false;
-    return s.firstChild?.routeConfig?.path === 'missing';
-  }
-
   get alternateUrls() {
     const s = this.route.routeSnapshot?.firstChild;
     if (s?.url[0].path !== 'ref') return false;

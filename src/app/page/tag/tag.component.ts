@@ -44,7 +44,7 @@ export class TagPage implements OnInit, OnDestroy {
         !!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay'
           : this.store.view.tag.includes('*') ? 'published'
             : 'created');
-      this.store.view.extTemplates = this.admin.tmplView
+      this.store.view.extTemplates = this.admin.tmplView;
     });
     this.disposers.push(autorun(() => {
       if (!this.store.view.queryTags.length) {

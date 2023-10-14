@@ -360,9 +360,10 @@ export class RefComponent implements OnInit, OnDestroy {
     return this.exts.getCachedExts(this.addTags || [], this.ref.origin || '').pipe(
       map(xs => xs.map(x => {
         if (x.modifiedString) return x;
+        x = {...x};
         const tmpl = this.admin.getTemplate(x.tag);
         const plugin = this.admin.getPlugin(x.tag);
-        x.name ||= tmpl?.name || plugin?.name;
+        x.name ||= plugin?.name || tmpl?.name;
         return x;
       }))
     );
@@ -498,6 +499,7 @@ export class RefComponent implements OnInit, OnDestroy {
     return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(
       map(xs => xs.map(x => {
         if (x.modifiedString) return x;
+        x = {...x};
         const tmpl = this.admin.getTemplate(x.tag);
         let plugin = this.admin.getPlugin(x.tag);
         if (plugin?.config?.signature) {
@@ -526,6 +528,7 @@ export class RefComponent implements OnInit, OnDestroy {
     return this.exts.getCachedExts(this.recipients, this.ref.origin || '').pipe(
       map(xs => xs.map(x => {
         if (x.modifiedString) return x;
+        x = {...x};
         const tmpl = this.admin.getTemplate(x.tag);
         let plugin = this.admin.getPlugin(prefix('plugin/inbox', x.tag));
         if (plugin?.config?.signature) {
@@ -577,6 +580,7 @@ export class RefComponent implements OnInit, OnDestroy {
     return this.exts.getCachedExts(this.tags, this.ref.origin || '').pipe(
       map(xs => xs.map(x => {
         if (x.modifiedString) return x;
+        x = {...x};
         const tmpl = this.admin.getTemplate(x.tag);
         x.name ||= tmpl?.name;
         return x;
