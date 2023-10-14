@@ -34,6 +34,7 @@ COPY --from=builder app ./
 CMD ng test --karma-config karma-ci.conf.js
 
 FROM nginx:alpine-slim as deploy
+RUN apk add jq moreutils
 WORKDIR /usr/share/nginx/html/
 COPY --from=builder app/dist/jasper-ui ./
 ARG BASE_HREF="/"
@@ -45,3 +46,4 @@ COPY docker/40-create-jasper-config.sh /docker-entrypoint.d
 COPY docker/50-set-base-href.sh /docker-entrypoint.d
 COPY docker/60-set-title.sh /docker-entrypoint.d
 COPY docker/70-csp.sh /docker-entrypoint.d
+COPY docker/80-nsgw.sh /docker-entrypoint.d
