@@ -270,7 +270,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   onDragStarted(index: number) {
     this.dragSource = index;
     if (index < 0) {
-      this.onClickBar(this.turn!);
+      this.onClickBar();
     } else {
       this.onClick(index);
     }
@@ -544,7 +544,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     this.moveBlackOff = this.turn === 'b' && moves.includes(-2);
   }
 
-  onClickBar(p: Piece) {
+  onClickBar() {
     this.start = -1;
     const moves = this.moves[-1];
     if (!moves) return this.clearMoves();
@@ -554,9 +554,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     this.moveRedOff = this.moveBlackOff = false;
   }
 
-  onClickOff(p: Piece) {
+  onClickOff() {
     if (this.start !== undefined && this.moves[this.start]?.includes(-2)) {
-      this.move(p, this.start, -2);
+      this.move(this.turn!, this.start, -2);
       this.check();
     }
   }
