@@ -378,10 +378,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   pushMove(p: Piece, from: number, to: number, hit?: boolean) {
-    const last = this.board[this.board.length-1];
+    const last = this.board[this.board.length-1] || undefined;
     const move = p + ' ' + (from < 0 ? 'bar' : from + 1) + '/' + (to < 0 ? 'off' : to + 1) + (hit ? '*' : '');
-    const base = last.replace(/\(\d+\)/g, '');
-    if (!hit && !last.includes('*') && base === move.replace(/\(\d+\)/g, '')) {
+    const base = last?.replace(/\(\d+\)/g, '');
+    if (last && !hit && !last.includes('*') && base === move.replace(/\(\d+\)/g, '')) {
       const multiple = parseInt(last.match(/\((\d+)\)/)?.[1] || '1') + 1;
       this.board[this.board.length-1] = base + (hit ? '*' : '') + '(' + multiple + ')';
     } else {
