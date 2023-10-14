@@ -23,7 +23,7 @@ export class InboxModlistPage implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     theme.setTitle($localize`Inbox: Modlist`);
-    store.view.clear();
+    store.view.clear('modified');
     query.clear();
   }
 

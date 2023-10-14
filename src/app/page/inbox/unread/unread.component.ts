@@ -27,7 +27,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
     private router: Router,
   ) {
     theme.setTitle($localize`Inbox: Unread`);
-    store.view.clear();
+    store.view.clear('modified');
     query.clear();
   }
 

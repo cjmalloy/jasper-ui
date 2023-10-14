@@ -23,7 +23,7 @@ export class InboxAlarmsPage implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     theme.setTitle($localize`Inbox: Alarms`);
-    store.view.clear();
+    store.view.clear('modified');
     query.clear();
   }
 

@@ -23,7 +23,7 @@ export class InboxDmsPage implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     theme.setTitle($localize`Inbox: DMs`);
-    store.view.clear();
+    store.view.clear('modified');
     query.clear();
   }
 
