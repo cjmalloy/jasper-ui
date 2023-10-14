@@ -48,9 +48,10 @@
      [cdkDropListData]="-1"
      (click)="onClickBar()"
      (contextmenu)="moveBarDouble($event, 'b')">
-  <ng-container *ngFor="let p of bar trackBy: trackByColor; let pi = index">
+  <ng-container *ngFor="let p of blackBar trackBy: trackByColor; let pi = index">
     <div *ngIf="p === 'b'"
-         class="backgammon-piece bounce"
+         class="backgammon-piece"
+         [class.bounce]="pi >= blackBar.length - redBarBounce"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
@@ -66,9 +67,9 @@
      [cdkDropListData]="-1"
      (click)="onClickBar()"
      (contextmenu)="moveBarDouble($event, 'r')">
-  <ng-container *ngFor="let p of bar trackBy: trackByColor; let pi = index">
-    <div *ngIf="p === 'r'"
-         class="backgammon-piece bounce"
+  <ng-container *ngFor="let p of redBar trackBy: trackByColor; let pi = index">
+    <div class="backgammon-piece"
+         [class.bounce]="pi >= redBar.length - redBarBounce"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"

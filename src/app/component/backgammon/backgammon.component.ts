@@ -61,6 +61,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   moves: number[][] = [];
 
   bounce? = 0;
+  redBarBounce = 0;
+  blackBarBounce = 0;
   start?: number;
   winner?: Piece;
   rolling?: Piece;
@@ -87,6 +89,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
    * Queued animation.
    */
   private incoming: number[] = [];
+  /**
+   * Queued red bar animation.
+   */
+  private incomingRedBar = 0;
+  /**
+   * Queued black bar animation.
+   */
+  private incomingBlackBar = 0;
   /**
    * Queued animation.
    */
@@ -146,15 +156,21 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
               this.rolling = this.incomingRolling;
               delay(() => this.rolling = undefined, 3400);
             });
-          } else {
-            const lastMove = this.incoming = current.map(m => parseInt(m.split(/\D+/g).filter(m => !!m).pop()!) - 1);
+          }
+          if (current.find(m => m.includes('/'))) {
+            const lastMove = this.incoming = current.filter(m => m.includes('/')).map(m => parseInt(m.split(/\D+/g).filter(m => !!m).pop()!) - 1);
+            this.incomingRedBar = current.filter(m => m.includes('*') && m.startsWith('b')).length;
+            this.incomingBlackBar = current.filter(m => m.includes('*') && m.startsWith('r')).length;
             requestAnimationFrame(() => {
               if (lastMove != this.incoming) return;
               this.setBounce(this.incoming);
+              this.redBarBounce ||= this.incomingRedBar;
+              this.blackBarBounce ||= this.incomingBlackBar;
+              clearTimeout(this.bounce);
               this.bounce = delay(() => {
-                this.setBounce([]);
-                clearTimeout(this.bounce);
+                this.clearBounce();
                 delete this.bounce;
+                this.incomingRedBar = this.incomingBlackBar = 0;
               }, 3400);
             });
           }
@@ -215,6 +231,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get local() {
     return !this.ref?.created || this.ref.upload || this.ref?.origin === this.store.account.origin;
+  }
+
+  get redBar() {
+    return this.bar.filter(b => b === 'r');
+  }
+
+  get blackBar() {
+    return this.bar.filter(b => b === 'b');
   }
 
   get doubles() {
@@ -528,9 +552,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     this.moveRedOff = this.moveBlackOff = false;
   }
 
-  setBounce(bs: number[]) {
+  clearBounce() {
     for (const s of this.spots) {
       s.bounce = 0;
+    }
+  }
+
+  setBounce(bs: number[]) {
+    for (const s of this.spots) {
       for (const b of bs) {
         if (b === s.index) s.bounce!++;
       }
