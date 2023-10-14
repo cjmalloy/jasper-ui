@@ -69,7 +69,7 @@ export class RefPage implements OnInit, OnDestroy {
   reload(url?: string) {
     url ||= this.store.view.ref?.url;
     if (!url) return;
-    this.refs.page({ url, size: 1 }).pipe(
+    this.refs.page({ url, obsolete: true, size: 1 }).pipe(
       tap(page => runInAction(() => {
         this.store.view.setRef(page.content[0]);
         this.store.view.versions = page.totalElements;
