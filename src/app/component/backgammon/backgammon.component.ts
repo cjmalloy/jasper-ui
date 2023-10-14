@@ -357,7 +357,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
       this.pushMove(p, from, to);
       return;
     }
-    let path = from < 0 ? (p === 'r' ? 0 : 24) : from;
+    let path = from < 0 ? (p === 'r' ? -1 : 24) : from;
     for (const d of dice.map(d => p=== 'r' ? d : -d)) {
       path += d;
       const hop = this.spots[path].pieces;
@@ -445,7 +445,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.doubles) {
       const result: number[] = [];
       if (to < 0) {
-        to = p === 'r' ? 24 : 0;
+        to = p === 'r' ? 24 : -1;
       }
       result.length = Math.abs(from - to) / ds[0];
       result.fill(ds[0]);
