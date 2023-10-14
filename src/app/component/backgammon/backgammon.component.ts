@@ -145,7 +145,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
             }
           }
           const multiple = current[0]?.replace(/\(\d\)/, '');
-          if (prev.length === 1 && current.length === 1 && prev[0].replace(/\(\d\)/, '') === multiple) {
+          if (prev.length === 1 && current.length && prev[0].replace(/\(\d\)/, '') === multiple) {
             prev.length = 0;
             current[0] = multiple;
           }
