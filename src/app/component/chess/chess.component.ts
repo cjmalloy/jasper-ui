@@ -88,19 +88,39 @@ export class ChessComponent implements OnInit, OnDestroy {
         this.stomps.watchRef(this.ref!.url, uniq(page.content.map(r => r.origin))).forEach(w => this.watches.push(w.pipe(
           takeUntil(this.destroy$),
         ).subscribe(u => {
-          const moves = (u.comment?.substring(this.patchingComment.length || this.ref?.comment?.length || 0) || '')
+          if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
+          else this.ref!.modifiedString = u.modifiedString;
+          const prev = (this.patchingComment || this.ref?.comment || '')
             .trim()
             .split(/\s+/g)
             .map(m => m.trim() as Square)
             .filter(m => !!m);
-          if (!moves.length) return;
-          // TODO: queue all moves and animate one by one
-          const move = moves.shift()!;
+          const current = (u.comment || '')
+            .trim()
+            .split(/\s+/g)
+            .map(m => m.trim() as Square)
+            .filter(m => !!m);
+          const minLen = Math.min(prev.length, current.length);
+          for (let i = 0; i < minLen; i++) {
+            if (prev[i] !== current[i] || i === minLen - 1) {
+              prev.splice(0, i + 1);
+              current.splice(0, i + 1);
+              break;
+            }
+          }
+          if (prev.length) {
+            window.alert($localize`Game history was rewritten!`);
+            this.ref = u;
+            this.store.eventBus.refresh(u);
+          }
+          if (prev.length || !current.length) return;
+          for (const m of current) this.chess.move(m);
+          this.check();
           this.ref!.title = u.title;
           this.ref!.comment = u.comment;
-          this.ref = this.ref;
           this.store.eventBus.refresh(this.ref);
-          if (u.origin === this.store.account.origin) this.ref!.modifiedString = u.modifiedString;
+          // TODO: queue all moves and animate one by one
+          const move = current.shift()!;
           const lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
           requestAnimationFrame(() => {
             if (lastMove != this.incoming) return;
@@ -182,17 +202,12 @@ export class ChessComponent implements OnInit, OnDestroy {
 
   @Input()
   set ref(value: Ref | undefined) {
-    delete this.from;
-    delete this.to;
-    const newRef = this.ref && this.ref.url !== value?.url;
+    const newRef = !this.ref || this.ref?.url !== value?.url;
     this._ref = toJS(value);
-    if (newRef) {
+    if (!value || newRef) {
       this.watches.forEach(w => w.unsubscribe());
       this.watches = [];
-      this.ngOnInit();
-    } else {
-      // TODO: Animate
-      this.reset(value?.comment);
+      if (value) this.ngOnInit();
     }
   }
 
@@ -267,28 +282,32 @@ export class ChessComponent implements OnInit, OnDestroy {
     const isPromotion = !!this.chess.moves({ verbose: true }).find((move) => move.from === from && move.to === to && move.flags.includes('p'));
     const move = this.chess.move({from, to, promotion: isPromotion ? window.prompt('Promotion:') as Exclude<PieceType, 'p' | 'k'> : undefined});
     if (move) {
-      this.pieces = flatten(this.chess.board());
-      this.turn = this.chess.turn();
-      console.log(this.chess.ascii());
-      if (this.chess.isGameOver()) {
-        defer(() => {
-          if (this.chess.isCheckmate()) {
-            window.alert($localize`Checkmate!`);
-          } else if (this.chess.isStalemate()) {
-            window.alert($localize`Stalemate!`);
-          } else if (this.chess.isThreefoldRepetition()) {
-            window.alert($localize`Threefold Repetition!`);
-          } else if (this.chess.isInsufficientMaterial()) {
-            window.alert($localize`Insufficient Material!`);
-          } else if (this.chess.isDraw()) {
-            window.alert($localize`Draw!`);
-          } else {
-            window.alert($localize`Game Over!`);
-          }
-        });
-      }
+      this.check();
+      this.save(move!);
     }
-    this.save(move!);
+  }
+
+  check() {
+    this.pieces = flatten(this.chess.board());
+    this.turn = this.chess.turn();
+    console.log(this.chess.ascii());
+    if (this.chess.isGameOver()) {
+      defer(() => {
+        if (this.chess.isCheckmate()) {
+          window.alert($localize`Checkmate!`);
+        } else if (this.chess.isStalemate()) {
+          window.alert($localize`Stalemate!`);
+        } else if (this.chess.isThreefoldRepetition()) {
+          window.alert($localize`Threefold Repetition!`);
+        } else if (this.chess.isInsufficientMaterial()) {
+          window.alert($localize`Insufficient Material!`);
+        } else if (this.chess.isDraw()) {
+          window.alert($localize`Draw!`);
+        } else {
+          window.alert($localize`Game Over!`);
+        }
+      });
+    }
     delete this.from;
     delete this.to;
     this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
