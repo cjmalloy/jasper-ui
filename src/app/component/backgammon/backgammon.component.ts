@@ -296,6 +296,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     if (index < 0) {
       this.onClickBar();
     } else {
+      delete this.start;
       this.onClick(index);
     }
     const dim = Math.floor(this.el.nativeElement.offsetWidth / 24);
