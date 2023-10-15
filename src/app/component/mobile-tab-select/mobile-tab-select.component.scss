@@ -1,4 +1,8 @@
-select {
-  width: 38px;
+:host select {
+  width: 46px;
   text-align: center;
+}
+.macos :host select {
+  height: 26px;
+  border-radius: 0;
 }
