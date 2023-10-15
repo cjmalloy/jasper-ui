@@ -1,5 +1,15 @@
 import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostBinding,
+  HostListener,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
+} from '@angular/core';
 import { Chess, Move, Square } from 'chess.js';
 import { defer, delay, flatten, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
@@ -42,7 +52,6 @@ export class ChessComponent implements OnInit, OnDestroy {
   chess = new Chess();
   pieces: (Piece | null)[] = flatten(this.chess.board());
   writeAccess = false;
-  created = true;
   bounce = '';
   @HostBinding('class.flip')
   flip = false;
@@ -134,17 +143,17 @@ export class ChessComponent implements OnInit, OnDestroy {
     this.resizeObserver.observe(this.el.nativeElement);
     if (this.local) {
       this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
+      this.cursor = this.ref?.modifiedString;
     } else {
       this.writeAccess = true;
       this.refs.get(this.ref!.url, this.store.account.origin).pipe(
         catchError(err => {
           if (err.status === 404) {
-            this.created = false;
+            delete this.cursor;
           }
           return throwError(() => err);
         })
       ).subscribe(ref => {
-        this.created = true;
         this.cursor = ref.modifiedString;
         this.writeAccess = this.auth.writeAccess(ref)
       });
@@ -318,7 +327,7 @@ export class ChessComponent implements OnInit, OnDestroy {
     this.comment.emit(comment)
     if (!this.ref) return;
     const title = move && this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + move.san : '';
-    (this.created ? this.refs.merge(this.ref.url, this.store.account.origin, this.local ? this.ref!.modifiedString! : this.cursor!,
+    (this.cursor ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor,
       { title, comment }
     ).pipe(
       catchError(err => {

@@ -67,7 +67,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   winner?: Piece;
   rolling?: Piece;
   dragSource = -1;
-  created = true;
   writeAccess = false;
   redDice: number[] = [];
   blackDice: number[] = [];
@@ -190,17 +189,17 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     this.resizeObserver.observe(this.el.nativeElement.parentElement!);
     if (this.local) {
       this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
+      this.cursor = this.ref?.modifiedString;
     } else {
       this.writeAccess = true;
       this.refs.get(this.ref!.url, this.store.account.origin).pipe(
         catchError(err => {
           if (err.status === 404) {
-            this.created = false;
+            delete this.cursor;
           }
           return throwError(() => err);
         })
       ).subscribe(ref => {
-        this.created = true;
         this.cursor = ref.modifiedString;
         this.writeAccess = this.auth.writeAccess(ref);
       });
@@ -538,7 +537,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     const comment = this.patchingComment = this.board.join('  \n');
     this.comment.emit(comment)
     if (!this.ref) return;
-    (this.created ? this.refs.merge(this.ref.url, this.store.account.origin, this.local ? this.ref.modifiedString! : this.cursor!,
+    (this.cursor ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor,
       { comment }
     ) : this.refs.create({
       ...this.ref,
@@ -548,7 +547,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.patchingComment !== comment) return;
       this.ref!.comment = comment;
       this.ref!.modified = moment(modifiedString);
-      this.ref!.modifiedString = modifiedString;
+      this.cursor = this.ref!.modifiedString = modifiedString;
       this.patchingComment = '';
       if (!this.local) {
         this.ref!.origin = this.store.account.origin;
