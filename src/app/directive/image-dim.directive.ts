@@ -1,4 +1,5 @@
 import { Directive, ElementRef, HostListener, Input, OnInit } from '@angular/core';
+import ResizeObserver from 'resize-observer-polyfill';
 import { ConfigService } from '../service/config.service';
 import { Dim, height, ImageDimService, width } from '../service/image-dim.service';
 
