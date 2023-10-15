@@ -625,21 +625,34 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  moveDouble(event: Event, index: number) {
+  moveHighest(event: Event, index: number) {
     event.preventDefault();
     if (!this.turn) return;
-    const ds = this.dice[0] + (this.dice[1] || 0);
-    let to = this.turn === 'r' ? index + ds : index - ds;
+    const ds = this.dice;
+    let d = Math.max(ds[0], (ds[1] || 0));
+    let to = this.turn === 'r' ? index + d : index - d;
     if (to < 0 || to > 23) to = -2;
+    if (!this.moves[index].includes(to)) {
+      d = Math.min(ds[0], (ds[1] || 7));
+      to = this.turn === 'r' ? index + d : index - d;
+      if (to < 0 || to > 23) to = -2;
+      if (!this.moves[index].includes(to)) return;
+    }
     this.move(this.turn, index, to);
     this.check();
   }
 
-  moveBarDouble(event: Event, p: Piece) {
+  moveBarHighest(event: Event) {
     event.preventDefault();
-    if (p !== this.turn) return;
-    const ds = this.dice[0] + (this.dice[1] || 0);
-    const to = p === 'r' ? ds : 24 - ds;
+    if (!this.turn) return;
+    const ds = this.dice;
+    let d = Math.max(ds[0], (ds[1] || 0));
+    let to = this.turn === 'r' ? d - 1 : 24 - d;
+    if (!this.moves[-1].includes(to)) {
+      d = Math.min(ds[0], (ds[1] || 7));
+      to = this.turn === 'r' ? d - 1 : 24 - d;
+      if (!this.moves[-1].includes(to)) return;
+    }
     this.move(this.turn, -1, to);
     this.check();
   }
