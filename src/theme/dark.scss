@@ -21,6 +21,33 @@ body.dark-theme {
   @media not print {
     color-scheme: dark;
     color: var(--text);
+    @supports not (color-scheme: dark) {
+      input, textarea {
+        color: white;
+        background-color: rgb(59, 59, 59);
+        border: 1px solid rgb(118, 118, 118);
+        border-radius: 2px;
+        &::-webkit-calendar-picker-indicator {
+          filter: invert(1);
+        }
+      }
+      input[type=checkbox] {
+        background-color: rgb(59, 59, 59);
+      }
+      input:disabled {
+        color: rgb(170, 170, 170);
+      }
+      button:not(:disabled) {
+        color: white;
+        background-color: rgb(107, 107, 107);
+        border: 2px solid rgb(107, 107, 107);
+      }
+      select:not(:disabled) {
+        color: white;
+        background-color: rgb(59, 59, 59);
+        border: 1px solid rgb(118, 118, 118);
+      }
+    }
   }
 
   .debug {
@@ -33,7 +60,10 @@ body.dark-theme {
     }
   }
 
-  &, ::backdrop, .editor.fullscreen app-md {
+  background-color: var(--bg);
+  background-image: url("~/assets/bg-dark.png");
+  background-blend-mode: soft-light;
+  ::backdrop, .editor.fullscreen app-md {
     background-color: var(--bg);
     background-image: url("~/assets/bg-dark.png");
     background-blend-mode: soft-light;
