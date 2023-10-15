@@ -266,6 +266,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  get inRedHome() {
+    for (let i = 18; i < 24; i++) if (this.spots[i].pieces[0] === 'b') return true;
+    return false;
+  }
+
+  get inBlackHome() {
+    for (let i = 0; i < 7; i++) if (this.spots[i].pieces[0] === 'r') return true;
+    return false;
+  }
+
   get redPips() {
     return this.spots.flatMap(s => s.pieces.filter(p => p === 'r')).length;
   }
@@ -653,6 +663,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
       result.splice(result.indexOf(u), 1);
     }
     return result;
+  }
+
+  get gammon() {
+    return this.winner === 'r'  && this.blackPips === 15
+      || this.winner === 'b'  && this.redPips === 15;
+  }
+
+  get backgammon() {
+    return this.winner === 'r'  && this.blackPips === 15 && (this.blackBar.length || this.inRedHome)
+      || this.winner === 'b'  && this.redPips === 15 && (this.redBar.length || this.inBlackHome);
   }
 
   getAllMoves() {
