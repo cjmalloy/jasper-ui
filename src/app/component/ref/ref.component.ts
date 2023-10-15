@@ -189,6 +189,9 @@ export class RefComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    if (this.scrollToLatest && this.lastSelected) {
+      this.store.view.clearLastSelected();
+    }
   }
 
   unlockViewer(event: Event) {
