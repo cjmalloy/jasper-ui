@@ -1,4 +1,8 @@
 select {
-  width: 38px;
+  width: 46px;
+  border-radius: 0;
   text-align: center;
+}
+.macos select {
+  height: 26px;
 }

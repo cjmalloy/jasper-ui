@@ -14,6 +14,7 @@ import { Chess, Move, Square } from 'chess.js';
 import { defer, delay, flatten, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import * as moment from 'moment';
+import ResizeObserver from 'resize-observer-polyfill';
 import { catchError, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
