@@ -33,6 +33,8 @@ export type Spot = {
   pieces: Piece[],
 };
 
+const MAX_PLAYERS = 2;
+
 @Component({
   selector: 'app-backgammon',
   templateUrl: './backgammon.component.html',
@@ -78,7 +80,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _ref?: Ref;
   private cursor?: string;
-  private resizeObserver = new ResizeObserver(() => this.onResize());
+  private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watches: Subscription[] = [];
   /**
    * Flag to prevent animations for own moves.
@@ -119,7 +121,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (!this.watches.length && this.ref && this.config.websockets) {
-      this.refs.page({ url: this.ref.url, obsolete: true, size: 500, sort: ['modified,DESC']}).subscribe(page => {
+      this.refs.page({ url: this.ref.url, obsolete: true, size: MAX_PLAYERS, sort: ['modified,DESC']}).subscribe(page => {
         this.stomps.watchRef(this.ref!.url, uniq(page.content.map(r => r.origin))).forEach(w => this.watches.push(w.pipe(
           takeUntil(this.destroy$),
         ).subscribe(u => {
@@ -186,7 +188,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
         })));
       });
     }
-    this.resizeObserver.observe(this.el.nativeElement.parentElement!);
+    this.resizeObserver?.observe(this.el.nativeElement.parentElement!);
     if (this.local) {
       this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
       this.cursor = this.ref?.modifiedString;
@@ -217,6 +219,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.resizeObserver?.disconnect();
   }
 
   get ref() {

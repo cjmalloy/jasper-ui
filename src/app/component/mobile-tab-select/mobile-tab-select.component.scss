@@ -1,4 +1,10 @@
-select {
-  width: 38px;
-  text-align: center;
+:host {
+  margin: 0 4px;
+  select {
+    height: 27px;
+    line-height: 27px;
+    width: 39px;
+    text-align: center;
+  }
+
 }

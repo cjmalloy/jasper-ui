@@ -38,4 +38,12 @@
 <body class="init-theme">
   <app-root></app-root>
 </body>
+<script>
+  if (navigator.vendor && navigator.vendor.indexOf('Apple') > -1 &&
+    navigator.userAgent &&
+    navigator.userAgent.indexOf('CriOS') < 0 &&
+    navigator.userAgent.indexOf('FxiOS') < 0) {
+    document.body.classList.add('macos');
+  }
+</script>
 </html>

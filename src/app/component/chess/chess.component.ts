@@ -58,7 +58,7 @@ export class ChessComponent implements OnInit, OnDestroy {
 
   private _ref?: Ref;
   private cursor?: string;
-  private resizeObserver = new ResizeObserver(() => this.onResize());
+  private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private fen = '';
   private watches: Subscription[] = [];
   /**
@@ -140,7 +140,7 @@ export class ChessComponent implements OnInit, OnDestroy {
         })));
       });
     }
-    this.resizeObserver.observe(this.el.nativeElement);
+    this.resizeObserver?.observe(this.el.nativeElement);
     if (this.local) {
       this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
       this.cursor = this.ref?.modifiedString;
@@ -167,6 +167,7 @@ export class ChessComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.resizeObserver?.disconnect();
   }
 
   trackByPiece(index: number, value: Piece | null) {

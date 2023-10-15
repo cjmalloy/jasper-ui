@@ -2,7 +2,7 @@
         class="big"
         (input)="addFilter($any(create.value))"
         i18n-title title="Filter">
-  <option class="unselected">🪄️ filter</option>
+  <option class="unselected" i18n>{{ emoji }} filter</option>
   <optgroup *ngFor="let g of allFilters" [label]="g.label">
     <option *ngFor="let f of g.filters" [value]="f.filter">{{ f.label || f.filter }}</option>
   </optgroup>
