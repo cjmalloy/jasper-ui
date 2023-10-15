@@ -34,6 +34,9 @@ export function getArgs(
     filters = without(filters, 'query/!internal', 'query/plugin/comment');
     filters.push('query/(!internal|plugin/comment)');
   }
+  if (filters?.includes('query/plugin/delete')) {
+    filters = without(filters, 'query/!plugin/delete');
+  }
   filters = uniq(filters);
   let queryFilter = getFiltersQuery(filters);
   const query = queryFilter && tagOrSimpleQuery ? `(${tagOrSimpleQuery}):${queryFilter}` : tagOrSimpleQuery || queryFilter;

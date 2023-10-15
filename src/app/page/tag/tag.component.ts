@@ -43,7 +43,7 @@ export class TagPage implements OnInit, OnDestroy {
       this.store.view.clear(
         !!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay'
           : this.store.view.tag.includes('*') ? 'published'
-            : 'created');
+          : 'created');
       this.store.view.extTemplates = this.admin.tmplView;
     });
     this.disposers.push(autorun(() => {
@@ -68,7 +68,7 @@ export class TagPage implements OnInit, OnDestroy {
       const args = getArgs(
         this.store.view.tag,
         this.store.view.sort,
-        hideInternal ? uniq(['query/!internal', ...this.store.view.filter]) as UrlFilter[] : this.store.view.filter,
+        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete'] : ['query/!plugin/delete'], ...this.store.view.filter]) as UrlFilter[],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
