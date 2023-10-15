@@ -172,7 +172,7 @@ export class AccountStore {
   get notificationsQuery() {
     if (!this.signedIn) return undefined;
     const alarms = this.config.alarms?.length ? '|' + this.config.alarms.join('|') : '';
-    return `!${this.tag}:(` + this.inboxQuery + ')' + alarms;
+    return `!${this.tag}:!plugin/delete:(` + this.inboxQuery + ')' + alarms;
   }
 
   get subscriptionQuery() {
