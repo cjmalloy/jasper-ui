@@ -21,6 +21,7 @@ import { StompService } from '../../service/api/stomp.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
+import { hash } from 'src/app/model/tag';
 
 export type Piece = 'r' | 'b';
 export type Spot = {
@@ -158,7 +159,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
           if (prev.length || !current.length) return;
           this.ref!.comment = u.comment;
           this.store.eventBus.refresh(this.ref);
-          this.load(current);
+          this.load(current, u.origin !== this.store.account.origin);
           const roll = current.find(m => m.includes('-'));
           if (roll) {
             const lastRoll = this.incomingRolling = roll.split(' ')[0] as Piece;
@@ -220,6 +221,42 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.resizeObserver?.disconnect();
+  }
+
+  hash(step = 0) {
+    let ts = this.cursor;
+    if (!ts) {
+      if (!this.board.length) {
+        // Allow first move to use local cursor
+        ts = this.ref?.modifiedString;
+      } else {
+        console.warn($localize`Can only use RNG after remote turn.`);
+        return Math.random();
+      }
+    }
+    return hash(ts, step);
+  }
+
+  remoteHash(step = 0) {
+    let ts = this.ref?.modifiedString;
+    if (!ts) {
+      if (!this.board.length) {
+        // Allow first move to use local cursor
+        ts = this.cursor;
+      } else {
+        console.warn($localize`Can only use RNG after remote turn.`);
+        return Math.random();
+      }
+    }
+    return hash(ts, step);
+  }
+
+  rng(step = 0) {
+    return Math.floor(this.remoteHash(step) * 6) + 1;
+  }
+
+  checkRng(step = 0) {
+    return Math.floor(this.hash(step) * 6) + 1;
   }
 
   get ref() {
@@ -341,7 +378,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     this.load(board.split('\n').map(m => m.trim()).filter(m => !!m));
   }
 
-  load(moves?: string[]) {
+  load(moves?: string[], checkRng = false) {
     this.moves = this.getAllMoves();
     if (!moves) return;
     for (const m of moves) {
@@ -351,6 +388,13 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
         const ds = p === 'r' ? this.redDice : this.blackDice;
         ds[0] = parseInt(m[2]);
         ds[1] = parseInt(m[4]);
+        if (checkRng) {
+          // This does not work when observing a game between two separate players
+          // Need to maintain second last remote cursor
+          if (ds[0] !== this.checkRng(0) || ds[1] !== this.checkRng(3)) {
+            window.alert(`Dice were ${ds[0]}-${ds[1]} but should be ${this.checkRng(0)}-${this.checkRng(3)}`)
+          }
+        }
         this.board.push(`${p} ${ds[0]}-${ds[1]}`);
         this.diceUsed = [];
         if (!this.turn && this.redDice[0] && this.blackDice[0]) {
@@ -718,13 +762,13 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     if ((!this.first || this.turn !== p) && this.moves.length) throw $localize`Must move`;
     if (!this.turn) {
       if (ds[0]) return;
-      ds[0] = this.r();
+      ds[0] = this.rng(0);
       this.board.push(`${p} ${ds[0]}-0`);
     } else {
       if (!this.first && this.turn === p) throw $localize`Not your turn`;
       this.turn = p;
-      ds[0] = this.r();
-      ds[1] = this.r();
+      ds[0] = this.rng(0);
+      ds[1] = this.rng(3);
       this.board.push(`${p} ${ds[0]}-${ds[1]}`)
     }
     if (!this.turn && this.redDice[0] && this.blackDice[0]) {
@@ -740,10 +784,5 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     this.diceUsed = [];
     this.moves = this.getAllMoves();
     this.save();
-  }
-
-  r() {
-    // TODO: Hash cursor
-    return Math.floor(Math.random() * 6) + 1;
   }
 }
