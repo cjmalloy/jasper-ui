@@ -1328,14 +1328,14 @@ ngx-monaco-editor {
   }
 
   &.no-write {
-    cursor: not-allowed !important;
+    cursor: no-drop !important;
 
     &.cdk-drag-preview {
       pointer-events: auto !important;
       * {
         pointer-events: none !important;
       }
-      cursor: not-allowed !important;
+      cursor: no-drop !important;
     }
   }
 
@@ -1383,14 +1383,14 @@ ngx-monaco-editor {
   }
 
   &.no-write {
-    cursor: not-allowed !important;
+    cursor: no-drop !important;
 
     &.cdk-drag-preview {
       pointer-events: auto !important;
       * {
         pointer-events: none !important;
       }
-      cursor: not-allowed !important;
+      cursor: no-drop !important;
     }
   }
 
