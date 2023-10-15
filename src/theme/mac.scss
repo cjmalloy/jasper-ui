@@ -1,0 +1,10 @@
+body.macos {
+  .tabs {
+    select {
+      border-radius: 0;
+      -webkit-appearance: none;
+      padding-left: 10px;
+      background-color: var(--bg);
+    }
+  }
+}

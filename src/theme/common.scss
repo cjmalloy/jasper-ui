@@ -85,7 +85,9 @@ select {
   height: 22px;
 
   &.big {
+    --webkit-appearance: none;
     height: 29px;
+    line-height: 29px;
     font-size: 16px;
   }
 }
@@ -465,7 +467,6 @@ video.qr-preview {
 
   select {
     position: relative;
-    height: 24px;
     bottom: -1px;
     outline: none !important;
   }
@@ -1004,7 +1005,6 @@ formly-field-radio, formly-field-multicheckbox {
 
   .toggle-plus {
     position: relative;
-    top: -0.5px;
   }
   .toggle-x {
     position: relative;

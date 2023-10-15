@@ -1,5 +1,6 @@
 import { AfterViewInit, Directive, ElementRef, HostListener, Input, OnDestroy } from '@angular/core';
 import { throttle } from 'lodash-es';
+import ResizeObserver from 'resize-observer-polyfill';
 import { ConfigService } from '../service/config.service';
 
 @Directive({

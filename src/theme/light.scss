@@ -23,7 +23,10 @@ body.light-theme {
   color-scheme: light;
   color: var(--text);
 
-  &, ::backdrop, .editor.fullscreen app-md {
+  background-color: var(--bg);
+  background-image: url("~/assets/bg-light.png");
+  background-blend-mode: darken;
+  ::backdrop, .editor.fullscreen app-md {
     background-color: var(--bg);
     background-image: url("~/assets/bg-light.png");
     background-blend-mode: darken;
