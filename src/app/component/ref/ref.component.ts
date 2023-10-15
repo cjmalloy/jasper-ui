@@ -93,6 +93,8 @@ export class RefComponent implements AfterViewInit, OnDestroy {
   @Input()
   showToggle = false;
   @Input()
+  scrollToLatest = false;
+  @Input()
   hideEdit = false;
   @Input()
   disableResize = false;
@@ -179,7 +181,7 @@ export class RefComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    if (this.lastSelected) {
+    if (this.scrollToLatest && this.lastSelected) {
       this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
     }
   }
