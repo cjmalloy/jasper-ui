@@ -24,7 +24,7 @@ import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
-import { equalsRef, findExtension, isRef, Ref, writeRef } from '../../model/ref';
+import { equalsRef, findExtension, Ref, writeRef } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { findArchive } from '../../mods/archive';
 import { deleteNotice } from '../../mods/delete';
@@ -92,6 +92,8 @@ export class RefComponent implements AfterViewInit, OnDestroy {
   expandInline = false;
   @Input()
   showToggle = false;
+  @Input()
+  scrollToLatest = false;
   @Input()
   hideEdit = false;
   @Input()
@@ -179,7 +181,7 @@ export class RefComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    if (this.lastSelected) {
+    if (this.scrollToLatest && this.lastSelected) {
       this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
     }
   }
@@ -204,7 +206,7 @@ export class RefComponent implements AfterViewInit, OnDestroy {
 
   @HostBinding('class.last-selected')
   get lastSelected() {
-    return isRef(this.store.view.lastSelected, this.ref);
+    return this.store.view.lastSelected?.url === this.ref.url;
   }
 
   @HostBinding('class.upload')

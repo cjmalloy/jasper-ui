@@ -88,7 +88,7 @@
       <span></span>
       <ng-container *ngFor="let ref of store.submit.refs; let i = index">
         <div class="list-number">{{ i + 1 }}</div>
-        <app-ref [ref]="ref" [showToggle]="true"></app-ref>
+        <app-ref [ref]="ref" [showToggle]="true" [scrollToLatest]="true"></app-ref>
       </ng-container>
     </ng-container>
   </div>

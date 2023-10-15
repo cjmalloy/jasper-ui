@@ -17,7 +17,7 @@ import {
 import { defer, difference, intersection, uniq, without } from 'lodash-es';
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
-import { equalsRef, isRef, Ref } from '../../../model/ref';
+import { equalsRef, Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -188,7 +188,7 @@ export class KanbanCardComponent implements AfterViewInit {
 
   @HostBinding('class.last-selected')
   get lastSelected() {
-    return isRef(this.store.view.lastSelected, this.ref);
+    return this.store.view.lastSelected?.url === this.ref.url;
   }
 
   @HostListener('touchend', ['$event'])
