@@ -52,9 +52,27 @@
     &.red {
       left: calc(21 * var(--dim));
     }
+    &.winner {
+      left: calc(19.5 * var(--dim));
+    }
+    &.gammon {
+      left: calc(19 * var(--dim));
+    }
+    &.backgammon {
+      left: calc(18.5 * var(--dim));
+    }
     &.black {
       position: absolute;
       left: calc(7 * var(--dim));
+      &.winner {
+        left: calc(5.5 * var(--dim));
+      }
+      &.gammon {
+        left: calc(5 * var(--dim));
+      }
+      &.backgammon {
+        left: calc(4.5 * var(--dim));
+      }
     }
     &.clickme {
       cursor: grabbing !important;
