@@ -459,19 +459,19 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.closed) {
       const needDice = p === 'r' ? 24 - index : index + 1;
-      for (let i = 6; i > needDice; i--) {
-        const spot = this.spots[p === 'r' ? 24 - i : i - 1];
-        for (const p of spot.pieces) {
-          if (ds.includes(i)) {
-            if (p === this.turn) {
-              ds.splice(ds.indexOf(i), 1);
-              break;
-            }
+      if (ds.find(d => d === needDice)) {
+        result.push(-2);
+      } else {
+        for (let i = 6; i > needDice; i--) {
+          const spot = this.spots[p === 'r' ? 24 - i : i - 1];
+          for (const p of spot.pieces) {
+            if (p !== this.turn) break;
+            if (!ds.find(d => d >= i)) return uniq(result)
           }
         }
-      }
-      if (ds.find(d => d >= needDice)) {
-        result.push(-2);
+        if (ds.find(d => d >= needDice)) {
+          result.push(-2);
+        }
       }
     }
     return uniq(result);
