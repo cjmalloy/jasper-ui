@@ -15,9 +15,10 @@ export class MobileTabSelectComponent {
   @Input('tabs')
   set tabs(value: HTMLElement) {
     this.options = [];
+    this.map.clear();
     if (!value) return;
     defer(() => {
-      for (const c of value.querySelectorAll('.tabs > a') as any as HTMLAnchorElement[] || []) {
+      for (const c of value.querySelectorAll('.tabs > a:not(.logo)') as any as HTMLAnchorElement[] || []) {
         const value = c.title || c.innerText;
         this.options.push(value);
         this.map.set(value, c);
