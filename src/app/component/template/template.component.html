@@ -8,7 +8,7 @@
 </div>
 <div class="stack">
   <div class="info">
-    <span [title]="template.modified?.toISOString()" i18n>modified {{ template.modified?.fromNow() }}</span>
+    <span [title]="template.modified?.toISO()" i18n>modified {{ template.modified?.toRelative() }}</span>
     <ng-container *ngIf="!local" i18n>
       on <a [routerLink]="['/tag', template.origin]">{{ template.origin }}</a>
     </ng-container>

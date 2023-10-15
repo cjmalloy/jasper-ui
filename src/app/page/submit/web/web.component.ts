@@ -3,8 +3,8 @@ import { AfterViewInit, Component, HostBinding, OnDestroy, ViewChild } from '@an
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -215,7 +215,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       return;
     }
     const tags = [...without(this.webForm.value.tags, ...this.admin.editorTags), ...this.plugins];
-    const published = this.webForm.value.published ? moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
+    const published = this.webForm.value.published ? DateTime.fromFormat(this.webForm.value.published, 'YYYY-MM-DDTHH:mm:ss') : DateTime.now();
     this.refs.create({
       ...this.webForm.value,
       url: this.url, // Need to pull separately since control is locked

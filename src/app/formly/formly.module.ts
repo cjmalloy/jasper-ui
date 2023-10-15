@@ -1,10 +1,11 @@
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { NgModule } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormlyModule } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 import {
   ORIGIN_REGEX,
   PLUGIN_REGEX,
@@ -30,7 +31,6 @@ import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldSelect } from './select.type';
 import { FormlyFieldTextArea } from './textarea.type';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
-import { DragDropModule } from '@angular/cdk/drag-drop';
 
 @NgModule({
   declarations: [
@@ -208,7 +208,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
           },
           validators: {
             interval: {
-              expression: (c: AbstractControl) =>  moment.duration(c.value).isValid(),
+              expression: (c: AbstractControl) =>  Duration.fromISO(c.value).isValid,
               message: $localize`Scrape Duration must be valid time span (HH:MM:SS) or ISO 8601 Duration.`,
             }
           },

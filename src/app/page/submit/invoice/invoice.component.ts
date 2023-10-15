@@ -3,7 +3,7 @@ import { Component, HostBinding, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { flatten, uniq } from 'lodash-es';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { catchError, map, mergeMap, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -134,7 +134,7 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
       scrollToFirstInvalid();
       return;
     }
-    const published = this.invoiceForm.value.published ? moment(this.invoiceForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
+    const published = this.invoiceForm.value.published ? DateTime.fromFormat(this.invoiceForm.value.published, 'YYYY-MM-DDTHH:mm:ss') : DateTime.now();
     this.exts.getCachedExt(this.queue!).pipe(
       switchMap(queueExt => this.refs.create({
         ...this.invoiceForm.value,

@@ -1,8 +1,17 @@
-import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostBinding,
+  Input,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
-import * as moment from 'moment';
 import { Ext } from '../../model/ext';
 import { Filter } from '../../model/ref';
 import { FilterConfig } from '../../model/tag';
@@ -40,14 +49,14 @@ export class FilterComponent implements OnChanges, OnDestroy {
   @Input()
   type?: Type;
 
-  modifiedBeforeFilter: FilterItem = { filter: `modified/before/${moment().toISOString()}`, label: $localize`🕓️ modified before` };
-  modifiedAfterFilter: FilterItem = { filter: `modified/after/${moment().toISOString()}`, label: $localize`🕓️ modified after` };
-  responseBeforeFilter: FilterItem = { filter: `response/before/${moment().toISOString()}`, label: $localize`🧵️ response before` };
-  responseAfterFilter: FilterItem = { filter: `response/after/${moment().toISOString()}`, label: $localize`🧵️ response after` };
-  publishedBeforeFilter: FilterItem = { filter: `published/before/${moment().toISOString()}`, label: $localize`📅️ published before` };
-  publishedAfterFilter: FilterItem = { filter: `published/after/${moment().toISOString()}`, label: $localize`📅️ published after` };
-  createdBeforeFilter: FilterItem = { filter: `created/before/${moment().toISOString()}`, label: $localize`✨️ created before` };
-  createdAfterFilter: FilterItem = { filter: `created/after/${moment().toISOString()}`, label: $localize`✨️ created after` };
+  modifiedBeforeFilter: FilterItem = { filter: `modified/before/${DateTime.now().toISO()}`, label: $localize`🕓️ modified before` };
+  modifiedAfterFilter: FilterItem = { filter: `modified/after/${DateTime.now().toISO()}`, label: $localize`🕓️ modified after` };
+  responseBeforeFilter: FilterItem = { filter: `response/before/${DateTime.now().toISO()}`, label: $localize`🧵️ response before` };
+  responseAfterFilter: FilterItem = { filter: `response/after/${DateTime.now().toISO()}`, label: $localize`🧵️ response after` };
+  publishedBeforeFilter: FilterItem = { filter: `published/before/${DateTime.now().toISO()}`, label: $localize`📅️ published before` };
+  publishedAfterFilter: FilterItem = { filter: `published/after/${DateTime.now().toISO()}`, label: $localize`📅️ published after` };
+  createdBeforeFilter: FilterItem = { filter: `created/before/${DateTime.now().toISO()}`, label: $localize`✨️ created before` };
+  createdAfterFilter: FilterItem = { filter: `created/after/${DateTime.now().toISO()}`, label: $localize`✨️ created after` };
 
   allFilters: FilterGroup[] = [];
   filters: UrlFilter[] = [];
@@ -349,12 +358,12 @@ export class FilterComponent implements OnChanges, OnDestroy {
   }
 
   toIso(date: string) {
-    return moment(date, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS).toISOString();
+    return DateTime.fromFormat(date, 'YYYY-MM-DDTHH:mm:ss').toISO()!;
   }
 
   toDate(filter: string) {
     if (filter.includes('/')) filter = filter.substring(filter.lastIndexOf('/') + 1);
-    return moment(filter).format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
+    return DateTime.fromISO(filter).toFormat('YYYY-MM-DDTHH:mm:ss');
   }
 
 }

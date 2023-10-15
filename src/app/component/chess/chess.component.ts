@@ -13,9 +13,9 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { Chess, Move, Square } from 'chess.js';
-import { defer, delay, flatten, uniq } from 'lodash-es';
+import { defer, delay, flatten } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import * as moment from 'moment';
 import { catchError, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
@@ -349,7 +349,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       if (this.patchingComment !== comment) return;
       this.ref!.title = title;
       this.ref!.comment = comment;
-      this.ref!.modified = moment(cursor);
+      this.ref!.modified = DateTime.fromISO(cursor);
       this.ref!.modifiedString = cursor;
       this.patchingComment = '';
       if (!this.local) {

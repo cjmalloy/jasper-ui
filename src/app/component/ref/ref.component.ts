@@ -22,8 +22,8 @@ import {
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer, delay, pick, uniq, without } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import * as moment from 'moment';
 import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
@@ -708,12 +708,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get publishedIsSubmitted() {
-    return !this.ref.published || Math.abs(this.ref.published.diff(this.ref.created, 'seconds')) <= 5;
+    return !this.ref.published || Math.abs(this.ref.published.diff(this.ref.created!, 'seconds').seconds) <= 5;
   }
 
   @memo
   get modifiedIsSubmitted() {
-    return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created, 'seconds')) <= 5;
+    return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created!, 'seconds').seconds) <= 5;
   }
 
   @memo
@@ -863,7 +863,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       return;
     }
     const tags = uniq([...without(this.editForm.value.tags, ...this.admin.editorTags), ...this.editorPlugins]);
-    const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
+    const published = DateTime.fromFormat(this.editForm.value.published, 'YYYY-MM-DDTHH:mm:ss');
     let ref = {
       ...this.editForm.value,
       tags,
@@ -885,7 +885,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.init();
       this.store.submit.setRef(this.ref);
     } else {
-      this.refreshTap = () => this.publishChanged = !published.isSame(this.ref.published);
+      this.refreshTap = () => this.publishChanged = !published.hasSame(this.ref.published!, 'millisecond');
       this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
         catchError((res: HttpErrorResponse) => {
           if (res.status === 400) {
@@ -952,7 +952,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
             if (err.status === 409) {
               return this.refs.get(this.ref.url, this.store.account.origin).pipe(
                 switchMap(existing => {
-                  if (existing.modified?.isSame(ref.modified) || equalsRef(existing, ref) || window.confirm('An old version already exists. Overwrite it?')) {
+                  if (existing.modified?.hasSame(ref.modified!, 'millisecond') || equalsRef(existing, ref) || window.confirm('An old version already exists. Overwrite it?')) {
                     // TODO: Show diff and merge or split
                     return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
                   } else {

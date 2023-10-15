@@ -1,6 +1,16 @@
-import { AfterViewInit, Component, HostBinding, HostListener, Input, NgZone, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  HostBinding,
+  HostListener,
+  Input,
+  NgZone,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges
+} from '@angular/core';
 import { intersection, uniq } from 'lodash-es';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -235,7 +245,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         console.error('Should not happen, will probably get cleared.');
         this.page = {content: []} as any;
       }
-      ref.modified = moment(cursor);
+      ref.modified = DateTime.fromISO(cursor);
       ref.modifiedString = cursor;
       this.page!.content.push(ref)
     });

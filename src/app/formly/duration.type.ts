@@ -1,13 +1,7 @@
 import { ChangeDetectionStrategy, Component, Directive, ElementRef, forwardRef } from '@angular/core';
-import {
-  AbstractControl,
-  ControlValueAccessor,
-  NG_VALUE_ACCESSOR,
-  ValidationErrors,
-  ValidatorFn
-} from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 
 @Component({
   selector: 'formly-field-input',
@@ -50,7 +44,7 @@ export class DurationInputAccessor implements ControlValueAccessor {
 
   registerOnChange(fn: any) {
     this.onChange = (value: any) => {
-      fn(moment.duration(value));
+      fn(Duration.fromISO(value));
     };
   }
 

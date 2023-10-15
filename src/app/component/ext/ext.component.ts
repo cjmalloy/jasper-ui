@@ -12,6 +12,7 @@ import {
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { isObject } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
 import { catchError, of, switchMap, throwError } from 'rxjs';
@@ -202,7 +203,7 @@ export class ExtComponent implements OnChanges {
       }),
     ).subscribe(cursor => {
       this.ext.modifiedString = cursor;
-      this.ext.modified = moment(cursor);
+      this.ext.modified = DateTime.fromISO(cursor);
       this.ext.origin = this.store.account.origin;
       this.store.submit.removeExt(this.ext);
       this.init();
