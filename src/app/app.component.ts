@@ -2,7 +2,6 @@ import { Component, HostBinding, isDevMode } from '@angular/core';
 import { Router } from '@angular/router';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
-import { file } from './util/download';
 
 @Component({
   selector: 'app-root',
@@ -15,12 +14,15 @@ export class AppComponent {
   electron = this.config.electron;
 
   debug = !isDevMode() && this.store.account.debug;
+  website = 'https://github.com/cjmalloy/jasper-ui';
 
   constructor(
     public config: ConfigService,
     public store: Store,
     private router: Router,
-  ) { }
+  ) {
+    if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/pkgs/container/jasper-ui/' + this.config.version;
+  }
 
   dragOver(event: DragEvent) {
     event.preventDefault();
