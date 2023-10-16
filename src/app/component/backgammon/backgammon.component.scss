@@ -222,9 +222,9 @@
       }
       transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) !important;
       &.stacked {
-        transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.2 * var(--dim)), calc(9 * var(--dim)), 1px) !important;
+        transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.1 * var(--dim)), calc(9 * var(--dim)), 1px) !important;
         &.double-stacked {
-          transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.4 * var(--dim)), calc(18 * var(--dim)), 2px) !important;
+          transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.2 * var(--dim)), calc(18 * var(--dim)), 2px) !important;
         }
       }
     }
@@ -243,9 +243,9 @@
       .backgammon-piece {
         transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) !important;
         &.stacked {
-          transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.2 * var(--dim)), calc(-9 * var(--dim)), 0) !important;
+          transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.1 * var(--dim)), calc(-9 * var(--dim)), 0) !important;
           &.double-stacked {
-            transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.4 * var(--dim)), calc(-18 * var(--dim)), 0) !important;
+            transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.2 * var(--dim)), calc(-18 * var(--dim)), 0) !important;
           }
         }
       }
