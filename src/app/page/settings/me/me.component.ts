@@ -77,6 +77,7 @@ export class SettingsMePage implements HasChanges {
       }),
     ).subscribe(() => {
       this.editForm.markAsPristine();
+      this.router.navigate(['/tag', this.store.account.tag]);
     });
   }
 
