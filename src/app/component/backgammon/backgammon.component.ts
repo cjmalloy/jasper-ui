@@ -627,7 +627,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
 
   moveHighest(event: Event, index: number) {
     event.preventDefault();
-    if (!this.turn) return;
+    if (!this.turn || !this.moves[index]) return;
     const ds = this.dice;
     let d = Math.max(ds[0], (ds[1] || 0));
     let to = this.turn === 'r' ? index + d : index - d;
@@ -644,7 +644,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
 
   moveBarHighest(event: Event) {
     event.preventDefault();
-    if (!this.turn) return;
+    if (!this.turn || !this.moves[-1]) return;
     const ds = this.dice;
     let d = Math.max(ds[0], (ds[1] || 0));
     let to = this.turn === 'r' ? d - 1 : 24 - d;
