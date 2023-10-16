@@ -3,8 +3,8 @@ import { makeAutoObservable } from 'mobx';
 import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
-import { config } from '../service/config.service';
 import { defaultSubs, UserConfig } from '../mods/user';
+import { config } from '../service/config.service';
 import { hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
@@ -178,6 +178,63 @@ export class AccountStore {
   get subscriptionQuery() {
     if (!this.tagSubs.length) return 'none';
     return '!internal:(' + this.tagSubs.join('|') + ')';
+  }
+
+  querySymbol(...ops: ('/' | '{' | '}' | ',' | ':' | '|' | '(' | ')' | `!`)[]): string {
+    return ops.map(op => {
+      if (this.config.queryStyle === 'set') {
+        switch (op) {
+          case '/': return $localize`\u00A0/ `;
+          case ':': return $localize` ∩ `;
+          case '|': return $localize` ∪ `;
+          case '(': return $localize` (\u00A0`;
+          case ')': return $localize`\u00A0) `;
+          case `!`: return $localize`' `;
+          case `{`: return $localize` {\u00A0`;
+          case `}`: return $localize`\u00A0} `;
+          case `,`: return $localize`, `;
+        }
+      }
+      if (this.config.queryStyle === 'logic') {
+        switch (op) {
+          case '/': return $localize`\u00A0/ `;
+          case ':': return $localize` & `;
+          case '|': return $localize` | `;
+          case '(': return $localize` (\u00A0`;
+          case ')': return $localize`\u00A0) `;
+          case `!`: return $localize` ¬`;
+          case `{`: return $localize` {\u00A0`;
+          case `}`: return $localize`\u00A0} `;
+          case `,`: return $localize` | `;
+        }
+      }
+      if (this.config.queryStyle === 'code') {
+        switch (op) {
+          case '/': return $localize`\u00A0/ `;
+          case ':': return $localize` & `;
+          case '|': return $localize`, `;
+          case '(': return $localize` (\u00A0`;
+          case ')': return $localize`\u00A0) `;
+          case `!`: return $localize` !`;
+          case `{`: return $localize` {\u00A0`;
+          case `}`: return $localize`\u00A0} `;
+          case `,`: return $localize`, `;
+        }
+      }
+
+      switch (op) {
+        case '/': return $localize`\u00A0/ `;
+        case ':': return $localize` : `;
+        case '|': return $localize` | `;
+        case '(': return $localize` (\u00A0`;
+        case ')': return $localize`\u00A0) `;
+        case `!`: return $localize` !`;
+        case `{`: return $localize` {\u00A0`;
+        case `}`: return $localize`\u00A0} `;
+        case `,`: return $localize`, `;
+      }
+      return op;
+    }).join(' ');
   }
 
   setRoles(roles: Roles) {

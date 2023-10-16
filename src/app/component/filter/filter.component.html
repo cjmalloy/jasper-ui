@@ -14,6 +14,7 @@
         <option *ngFor="let f of g.filters" [value]="f.filter">{{ f.label || f.filter }}</option>
       </optgroup>
     </select>
+    <button *ngIf="filter.startsWith('query/')" type="button" (click)="toggleQuery(i)">{{ store.account.querySymbol('!') }}</button>
     <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
   </div>
   <input *ngIf="filter.startsWith('modified/')"

@@ -92,67 +92,10 @@ export class QueryComponent implements OnInit {
       }
     }
     return result.flatMap(c => {
-      if (!c.tag) return [{ text: this.querySymbol(...c.text.split('') as any)}];
+      if (!c.tag) return [{ text: this.store.account.querySymbol(...c.text.split('') as any)}];
       if (c.tag) return this.tagCrumbs(c.tag);
       return c;
     });
-  }
-
-  private querySymbol(...ops: ('/' | '{' | '}' | ',' | ':' | '|' | '(' | ')' | `!`)[]): string {
-    return ops.map(op => {
-      if (this.store.account.config.queryStyle === 'set') {
-        switch (op) {
-          case '/': return $localize`\u00A0/ `;
-          case ':': return $localize` ∩ `;
-          case '|': return $localize` ∪ `;
-          case '(': return $localize` (\u00A0`;
-          case ')': return $localize`\u00A0) `;
-          case `!`: return $localize`' `;
-          case `{`: return $localize` {\u00A0`;
-          case `}`: return $localize`\u00A0} `;
-          case `,`: return $localize`, `;
-        }
-      }
-      if (this.store.account.config.queryStyle === 'logic') {
-        switch (op) {
-          case '/': return $localize`\u00A0/ `;
-          case ':': return $localize` & `;
-          case '|': return $localize` | `;
-          case '(': return $localize` (\u00A0`;
-          case ')': return $localize`\u00A0) `;
-          case `!`: return $localize` ¬`;
-          case `{`: return $localize` {\u00A0`;
-          case `}`: return $localize`\u00A0} `;
-          case `,`: return $localize` | `;
-        }
-      }
-      if (this.store.account.config.queryStyle === 'code') {
-        switch (op) {
-          case '/': return $localize`\u00A0/ `;
-          case ':': return $localize` & `;
-          case '|': return $localize`, `;
-          case '(': return $localize` (\u00A0`;
-          case ')': return $localize`\u00A0) `;
-          case `!`: return $localize` !`;
-          case `{`: return $localize` {\u00A0`;
-          case `}`: return $localize`\u00A0} `;
-          case `,`: return $localize`, `;
-        }
-      }
-
-      switch (op) {
-        case '/': return $localize`\u00A0/ `;
-        case ':': return $localize` : `;
-        case '|': return $localize` | `;
-        case '(': return $localize` (\u00A0`;
-        case ')': return $localize`\u00A0) `;
-        case `!`: return $localize` !`;
-        case `{`: return $localize` {\u00A0`;
-        case `}`: return $localize`\u00A0} `;
-        case `,`: return $localize`, `;
-      }
-      return op;
-    }).join(' ');
   }
 
   private tagCrumbs(tag: string) {
@@ -166,7 +109,7 @@ export class QueryComponent implements OnInit {
       if (!/[/{},]/g.test(crumbs[i].text)) {
         crumbs[i].tag = (prefix || previous) + crumbs[i].text;
       } else {
-        crumbs[i].text = this.querySymbol(crumbs[i].text as any);
+        crumbs[i].text = this.store.account.querySymbol(crumbs[i].text as any);
       }
     }
     const origin = tagOrigin(tag);
@@ -181,7 +124,7 @@ export class QueryComponent implements OnInit {
       for (const t of crumbs) {
         if (t.text.startsWith('!')) t.text = t.text.substring(1);
       }
-      const notOp = { text: this.querySymbol(`!`) };
+      const notOp = { text: this.store.account.querySymbol('!') };
       if (notOp.text.startsWith(' ')) {
         crumbs.unshift(notOp);
       } else {

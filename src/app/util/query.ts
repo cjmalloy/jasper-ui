@@ -19,6 +19,15 @@ export type UrlFilter = Filter |
   `plugin/${string}` |
   `!plugin/${string}`;
 
+export function toggle(f: UrlFilter): UrlFilter {
+  if (!f.startsWith('query/')) return f;
+  if (f.startsWith('query/!')) {
+    return 'query/' + f.substring('query/!'.length) as UrlFilter;
+  } else {
+    return 'query/!' + f.substring('query/'.length) as UrlFilter;
+  }
+}
+
 export function getArgs(
   tagOrSimpleQuery?: string,
   sort?: RefSort | RefSort[],

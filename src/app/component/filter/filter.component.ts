@@ -1,22 +1,22 @@
 import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { filter, find } from 'lodash-es';
+import { filter, find, pullAll } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import * as moment from 'moment';
+import { Ext } from '../../model/ext';
 import { Filter } from '../../model/ref';
 import { FilterConfig } from '../../model/tag';
-import { AdminService } from '../../service/admin.service';
-import { AuthzService } from '../../service/authz.service';
-import { Store } from '../../store/store';
-import { Type } from '../../store/view';
-import { UrlFilter } from '../../util/query';
-import { Ext } from '../../model/ext';
-import { ExtService } from '../../service/api/ext.service';
+import { KanbanConfig } from '../../mods/kanban';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
+import { AdminService } from '../../service/admin.service';
+import { ExtService } from '../../service/api/ext.service';
+import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
+import { Store } from '../../store/store';
+import { Type } from '../../store/view';
+import { toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
-import { KanbanConfig } from '../../mods/kanban';
 
 type FilterItem = { filter: UrlFilter, label: string, time?: boolean };
 type FilterGroup = { filters: FilterItem[], label: string };
@@ -42,8 +42,8 @@ export class FilterComponent implements OnInit, OnDestroy {
   publishedAfterFilter: FilterItem = { filter: `published/after/${moment().toISOString()}`, label: $localize`📅️ published after` };
   createdBeforeFilter: FilterItem = { filter: `created/before/${moment().toISOString()}`, label: $localize`✨️ created before` };
   createdAfterFilter: FilterItem = { filter: `created/after/${moment().toISOString()}`, label: $localize`✨️ created after` };
-  allFilters: FilterGroup[] = [];
 
+  allFilters: FilterGroup[] = [];
   filters: UrlFilter[] = [];
 
   constructor(
@@ -57,7 +57,7 @@ export class FilterComponent implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       this.filters = toJS(this.store.view.filter);
       if (!Array.isArray(this.filters)) this.filters = [this.filters];
-      this.syncDates();
+      this.sync();
     }));
   }
 
@@ -82,9 +82,9 @@ export class FilterComponent implements OnInit, OnDestroy {
       this.pushFilter({
         label: $localize`Filters 🕵️️`,
         filters : [
-          { filter: 'untagged', label: $localize`🏷️⃠ untagged` },
-          { filter: 'uncited', label: $localize`💌️⃠ uncited` },
-          { filter: 'unsourced', label: $localize`📜️⃠ unsourced` },
+          { filter: 'untagged', label: $localize`🚫️🏷️ untagged` },
+          { filter: 'uncited', label: $localize`🚫️💌️ uncited` },
+          { filter: 'unsourced', label: $localize`🚫️📜️ unsourced` },
           { filter: 'obsolete', label: $localize`⏮️ obsolete` },
           { filter: 'query/internal', label: $localize`⚙️ internal` },
         ],
@@ -171,7 +171,7 @@ export class FilterComponent implements OnInit, OnDestroy {
         },
       ];
     }
-    this.syncDates();
+    this.sync();
   }
 
   get rootConfigs() {
@@ -191,6 +191,54 @@ export class FilterComponent implements OnInit, OnDestroy {
     return this.store.view.exts
         .filter(x => hasPrefix(x.tag, 'kanban'))
         .filter(x => x.config);
+  }
+
+  sync() {
+    const setToggles: UrlFilter[] = [];
+    for (const f of this.filters) {
+      if (f.startsWith('modified/before')) {
+        this.modifiedBeforeFilter.filter = f;
+      } else if (f.startsWith('modified/after')) {
+        this.modifiedAfterFilter.filter = f;
+      } else if (f.startsWith('response/before')) {
+        this.responseBeforeFilter.filter = f;
+      } else if (f.startsWith('response/after')) {
+        this.responseAfterFilter.filter = f;
+      } else if (f.startsWith('published/before')) {
+        this.publishedBeforeFilter.filter = f;
+      } else if (f.startsWith('published/after')) {
+        this.publishedAfterFilter.filter = f;
+      } else if (f.startsWith('created/before')) {
+        this.createdBeforeFilter.filter = f;
+      } else if (f.startsWith('created/after')) {
+        this.createdAfterFilter.filter = f;
+      } else if (!this.allFilters.find(g => g.filters.find(i => i.filter === f))) {
+        // Current filter is missing
+        if (f.startsWith('query/')) setToggles.push(f);
+        if (f.startsWith('scheme/')) this.loadFilter({ group: $localize`Schemes 🏳️️`, scheme: f.substring('scheme/'.length)});
+        if (f.startsWith('plugin/')) this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
+      }
+    }
+    for (const f of setToggles) {
+      const set = this.allFilters.filter(g => g.filters.find(i => i.filter === toggle(f)));
+      if (set.length) {
+        set.forEach(g => {
+          // Toggle all negated versions of this filter
+          const target = g.filters.find(i => i.filter === toggle(f));
+          if (target) {
+            target.filter = f;
+            if (f.startsWith('query/!')) {
+              target.label = this.store.account.querySymbol('!') + target.label;
+            } else {
+              target.label = target.label.substring(this.store.account.querySymbol('!').length);
+            }
+          }
+        });
+      } else {
+        this.loadFilter({ group: $localize`Queries 🔎️️`, query: f.substring('query/'.length)});
+      }
+    }
+    this.filters = pullAll(this.filters, setToggles.map(toggle));
   }
 
   loadFilter(filter: FilterConfig) {
@@ -219,12 +267,13 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   convertFilter(filter: FilterConfig): FilterItem {
     if (filter.scheme) {
-      return { filter: `scheme/${filter.scheme}`, label: filter.label || '' };
+      return { filter: `scheme/${filter.scheme}`, label: filter.label || filter.scheme };
     } else if (filter.query) {
-      return { filter: `query/${filter.query}`, label: filter.label || '' };
-    } else {
-      return { filter: filter.response!, label: filter.label || '' };
+      return { filter: `query/${filter.query}`, label: filter.label || filter.query };
+    } else if (filter.response) {
+      return { filter: filter.response, label: filter.label || filter.response };
     }
+    throw 'Can\'t convert filter';
   }
 
   ngOnInit(): void {
@@ -249,57 +298,33 @@ export class FilterComponent implements OnInit, OnDestroy {
     this.setFilters();
   }
 
+  toggleQuery(index: number) {
+    this.filters[index] = toggle(this.filters[index])!;
+    this.setFilters();
+  }
+
   setModified(index: number, before: boolean, isoDate: string) {
     this.filters[index] = `modified/${before ? 'before' : 'after'}/${isoDate}`;
-    this.syncDates();
+    this.sync();
     this.setFilters();
   }
 
   setResponse(index: number, before: boolean, isoDate: string) {
     this.filters[index] = `response/${before ? 'before' : 'after'}/${isoDate}`;
-    this.syncDates();
+    this.sync();
     this.setFilters();
   }
 
   setPublished(index: number, before: boolean, isoDate: string) {
     this.filters[index] = `published/${before ? 'before' : 'after'}/${isoDate}`;
-    this.syncDates();
+    this.sync();
     this.setFilters();
   }
 
   setCreated(index: number, before: boolean, isoDate: string) {
     this.filters[index] = `created/${before ? 'before' : 'after'}/${isoDate}`;
-    this.syncDates();
+    this.sync();
     this.setFilters();
-  }
-
-  syncDates() {
-    for (const f of this.filters) {
-      if (f.startsWith('modified/before')) {
-        this.modifiedBeforeFilter.filter = f;
-      }
-      if (f.startsWith('modified/after')) {
-        this.modifiedAfterFilter.filter = f;
-      }
-      if (f.startsWith('response/before')) {
-        this.responseBeforeFilter.filter = f;
-      }
-      if (f.startsWith('response/after')) {
-        this.responseAfterFilter.filter = f;
-      }
-      if (f.startsWith('published/before')) {
-        this.publishedBeforeFilter.filter = f;
-      }
-      if (f.startsWith('published/after')) {
-        this.publishedAfterFilter.filter = f;
-      }
-      if (f.startsWith('created/before')) {
-        this.createdBeforeFilter.filter = f;
-      }
-      if (f.startsWith('created/after')) {
-        this.createdAfterFilter.filter = f;
-      }
-    }
   }
 
   removeFilter(index: number) {
