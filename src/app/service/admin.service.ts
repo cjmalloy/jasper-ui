@@ -59,7 +59,7 @@ import {
   queueTemplate
 } from '../mods/queue';
 import { repostPlugin } from '../mods/repost';
-import { rootTemplate } from '../mods/root';
+import { rngPlugin, rootTemplate } from '../mods/root';
 import { scrapePlugin } from '../mods/scrape';
 import { seamlessPlugin } from '../mods/seamless';
 import { snippetConfig } from '../mods/snippet';
@@ -139,6 +139,7 @@ export class AdminService {
       voteUp: voteUpPlugin,
       voteDown: voteDownPlugin,
 
+      rngPlugin: rngPlugin,
       imagePlugin: imagePlugin,
       lensPlugin: lensPlugin,
       pipPlugin: pipPlugin,

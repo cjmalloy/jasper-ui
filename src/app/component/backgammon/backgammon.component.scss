@@ -111,7 +111,7 @@
     &.rolling {
       animation-duration: 0.15s;
       animation-name: rolling;
-      animation-iteration-count: 5;
+      animation-iteration-count: infinite;
     }
     @keyframes rolling {
       from {

@@ -20,17 +20,6 @@ export interface Cursor extends HasOrigin {
   modifiedString?: string;
 }
 
-export function hash(ts?: string, shift = 0) {
-  if (shift > 5) throw 'Only 6 numbers available';
-  const m = ts?.match(/(\d{6})Z?$/)?.[1].split('')!;
-  if (!m) throw 'No hash available';
-  while (shift) {
-    shift--;
-    m.unshift(m.pop()!);
-  }
-  return parseInt(m.join('')) / 1000000.0;
-}
-
 export interface Tag extends Cursor {
   type?: 'ext' | 'user' | 'plugin' | 'template';
   tag: string;
