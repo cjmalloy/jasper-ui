@@ -42,7 +42,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   _tag = '';
   _ext?: Ext;
   localTag?: string;
-  addTags = this.admin.getTemplate('')?.defaults || [];
+  addTags = this.admin.getTemplate('')?.defaults?.addTags || [];
   local = true;
   plugin?: Plugin;
   mailPlugin?: Plugin;
