@@ -7,7 +7,7 @@ services:
     ports:
       - 8081:8081
     environment:
-      SPRING_PROFILES_ACTIVE: dev,default-user,storage,feed-burst,pull-burst,push-burst
+      SPRING_PROFILES_ACTIVE: prod,default-user,storage,feed-burst,pull-burst,push-burst
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
@@ -28,4 +28,4 @@ services:
       - 8082:80
     environment:
       JASPER_API: //localhost:8081
-      CSP_DEFAULT_SRC: http://localhost:8081
+      CSP_DEFAULT_SRC: http://localhost:8081 ws://localhost:8081
