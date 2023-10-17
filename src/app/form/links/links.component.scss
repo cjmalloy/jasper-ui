@@ -1,0 +1,15 @@
+:host {
+  display: contents !important;
+  & > formly-form {
+    display: contents !important;
+    & > formly-field {
+      display: contents !important;
+      & > formly-group {
+        display: contents !important;
+        & > formly-field {
+          display: contents !important;
+        }
+      }
+    }
+  }
+}

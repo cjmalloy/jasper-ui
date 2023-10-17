@@ -783,6 +783,10 @@ formly-list-section .form-array > formly-field > formly-group {
   &:first-child {
     margin-top: 0;
   }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
 .form-array {

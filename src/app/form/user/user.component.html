@@ -38,34 +38,29 @@
     <option value="ROLE_ANONYMOUS" i18n>anon</option>
   </select>
 
-  <label for="notifications" i18n-title title="Includes read access" i18n>Notifications:</label>
   <app-tags #notifications
-            id="notifications"
+            i18n-label label="Notifications:"
             fieldName="notifications"
             emoji="✉️"
             [group]="group"></app-tags>
 
-  <label for="readAccess" i18n>Read Access:</label>
   <app-tags #readAccess
-            id="readAccess"
+            i18n-label label="Read Access:"
             fieldName="readAccess"
             [group]="group"></app-tags>
 
-  <label for="writeAccess" i18n>Write Access:</label>
   <app-tags #writeAccess
-            id="writeAccess"
+            i18n-label label="Write Access:"
             fieldName="writeAccess"
             [group]="group"></app-tags>
 
-  <label for="tagReadAccess" i18n>Tag Read Access:</label>
   <app-tags #tagReadAccess
-            id="tagReadAccess"
+            i18n-label label="Tag Read Access:"
             fieldName="tagReadAccess"
             [group]="group"></app-tags>
 
-  <label for="tagWriteAccess" i18n>Tag Write Access:</label>
   <app-tags #tagWriteAccess
-            id="tagWriteAccess"
+            i18n-label label="Tag Write Access:"
             fieldName="tagWriteAccess"
             [group]="group"></app-tags>
 

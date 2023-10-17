@@ -1,5 +1,5 @@
 import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, map, of, switchMap } from 'rxjs';
@@ -11,9 +11,8 @@ import { ScrapeService } from '../../service/api/scrape.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
-import { Store } from '../../store/store';
 import { getScheme } from '../../util/hosts';
-import { hasMedia, hasTag } from '../../util/tag';
+import { hasMedia } from '../../util/tag';
 import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
@@ -137,7 +136,7 @@ export class RefFormComponent implements OnInit {
       if (!hasMedia(ref) || hasMedia(this.group.value)) {
         this.setComment(ref.comment || '');
       }
-      this.tags.addTag(...(ref.tags || []));
+      this.tags.model = [...ref.tags || []];
       this.plugins.tags = this.group.value.tags;
       defer(() => {
         this.plugins.setValue({
@@ -160,15 +159,9 @@ export class RefFormComponent implements OnInit {
   }
 
   setRef(ref: Ref) {
-    const sourcesForm = this.group.get('sources') as UntypedFormArray;
-    const altsForm = this.group.get('alternateUrls') as UntypedFormArray;
-    const tagsForm = this.group.get('tags') as UntypedFormArray;
-    while (sourcesForm.length > (ref?.sources?.length || 0)) this.sources.removeLink(0);
-    while (sourcesForm.length < (ref?.sources?.length || 0)) this.sources.addLink('placeholder');
-    while (altsForm.length > (ref?.alternateUrls?.length || 0)) this.alts.removeLink(0);
-    while (altsForm.length < (ref?.alternateUrls?.length || 0)) this.alts.addLink('placeholder');
-    while (tagsForm.length > (ref?.tags?.length || 0)) this.tags.removeTag(0);
-    while (tagsForm.length < (ref?.tags?.length || 0)) this.tags.addTag('placeholder');
+    this.sources.model = [...ref?.sources || []];
+    this.alts.model = [...ref?.alternateUrls || []];
+    this.tags.model = [...ref.tags || []];
     this.group.setControl('plugins', pluginsForm(this.fb, this.admin, ref.tags || []));
     this.group.patchValue({
       ...ref,
