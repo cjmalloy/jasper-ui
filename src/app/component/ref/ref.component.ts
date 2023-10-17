@@ -417,6 +417,11 @@ export class RefComponent implements AfterViewInit, OnDestroy {
     return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
   }
 
+  get file() {
+    return this.admin.getPlugin('plugin/file') &&
+      hasTag('plugin/file', this.currentRef);
+  }
+
   get audio() {
     return this.admin.getPlugin('plugin/audio') &&
       hasTag('plugin/audio', this.currentRef);
@@ -433,6 +438,9 @@ export class RefComponent implements AfterViewInit, OnDestroy {
   }
 
   get mediaAttachment() {
+    if (this.file) {
+      return this.link;
+    }
     if (this.audio) {
       return this.currentRef?.plugins?.['plugin/audio']?.url;
     }
@@ -555,6 +563,11 @@ export class RefComponent implements AfterViewInit, OnDestroy {
     return this.repost ? this.ref.sources![0] : this.ref.url;
   }
 
+  get link() {
+    if (this.file) return this.scraper.getFetch(this.url);
+    return this.url;
+  }
+
   get currentRef() {
     return this.repost ? this.repostRef : this.ref;
   }
@@ -568,6 +581,7 @@ export class RefComponent implements AfterViewInit, OnDestroy {
   }
 
   get clickableLink() {
+    if (this.file) return true;
     return clickableLink(this.url);
   }
 

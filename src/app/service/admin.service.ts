@@ -25,6 +25,7 @@ import { emailPlugin } from '../mods/email';
 import { embedPlugin } from '../mods/embed';
 import { experimentsConfig } from '../mods/experiments';
 import { feedPlugin } from '../mods/feed';
+import { filePlugin } from '../mods/file';
 import { folderTemplate } from '../mods/folder';
 import { fullscreenPlugin } from '../mods/fullscreen';
 import { graphConfig } from '../mods/graph';
@@ -150,6 +151,7 @@ export class AdminService {
       pollPluginD: pollOptionDPlugin,
       todoPlugin: todoPlugin,
       playlistPlugin: playlistPlugin,
+      filePlugin: filePlugin,
 
       debugPlugin: debugPlugin,
       breakpoint: breakpointPlugin,
