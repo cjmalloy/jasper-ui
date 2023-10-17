@@ -29,7 +29,7 @@ services:
       - 8080:80
     environment:
       JASPER_API: http://localhost:8081
-      CSP_DEFAULT_SRC: http://localhost:8081
+      CSP_DEFAULT_SRC: http://localhost:8081 ws://localhost:8081
       JASPER_TITLE: CYPRESS
     depends_on:
       - web
@@ -60,7 +60,7 @@ services:
       - 8082:80
     environment:
       JASPER_API: http://localhost:8083
-      CSP_DEFAULT_SRC: http://localhost:8083
+      CSP_DEFAULT_SRC: http://localhost:8083 ws://localhost:8083
       JASPER_TITLE: REPL
     depends_on:
       - repl-web
