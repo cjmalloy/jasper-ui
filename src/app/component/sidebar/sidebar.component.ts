@@ -95,7 +95,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.localTag = localTag(value);
       this.plugin = this.admin.getPlugin(value);
       if (this.home) {
-        this.addTags = this.rootConfig?.addTags || [];
+        this.addTags = this.rootConfig?.addTags || ['public'];
       } else {
         this.addTags = uniq([...this.rootConfig?.addTags || (this.plugin?.tag ? [this.plugin!.tag] : []), ...topAnds(value).map(localTag)]);
       }
@@ -105,7 +105,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     } else {
       this.local = true;
       this.localTag = undefined;
-      this.addTags = this.rootConfig?.addTags || [];
+      this.addTags = this.rootConfig?.addTags || ['public'];
       this.plugin = undefined;
       this.mailPlugin = undefined;
       this.writeAccess = false;

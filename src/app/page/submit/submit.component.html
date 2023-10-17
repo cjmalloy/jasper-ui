@@ -17,10 +17,10 @@
        i18n-title title="Text Post"
        queryParamsHandling="merge" i18n>text</a>
     <a class="fake-link"
-       (click)="showUpload() || uploadFile.click()"
+       routerLink="/submit/upload"
        [class.current-tab]="store.submit.upload"
        i18n-title title="Upload"
-       i18n>upload</a>
+       queryParamsHandling="merge" i18n>upload</a>
     <ng-container *ngIf="!admin.isWikiExternal()">
       <a routerLink="/submit"
          [class.current-tab]="store.submit.wiki"
@@ -45,12 +45,6 @@
     <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     <app-settings></app-settings>
   </div>
-
-  <input #uploadFile
-         type="file"
-         class="upload"
-         (change)="upload(uploadFile?.files!)"
-         multiple>
   <router-outlet></router-outlet>
 
   <div class="full-page-form" *ngIf="!store.submit.subpage">

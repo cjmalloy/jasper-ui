@@ -220,16 +220,4 @@ export class SubmitPage implements OnInit, OnDestroy {
       queryParamsHandling: 'merge'
     });
   }
-
-  upload(fileList?: FileList) {
-    this.store.submit.setFiles(fileList as any);
-    this.router.navigate(['/submit/upload']);
-  }
-
-  showUpload() {
-    if (this.store.submit.empty) return false;
-    this.router.navigate(['/submit/upload'], { queryParamsHandling: 'merge'});
-    return true;
-
-  }
 }
