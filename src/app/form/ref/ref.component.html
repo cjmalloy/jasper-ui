@@ -5,24 +5,14 @@
     <input id="url" type="text" formControlName="url">
     <button type="button" (click)="alts.addLink('')" i18n>📎️</button>
   </div>
-
-  <label for="alts"
-         [class.no-margin]="!alts.links?.length">
-    <span *ngIf="alts.links?.length"
-          class="mobile-hide"
-          i18n-title title="Alternate URLs" i18n>Alts:</span>
-    <span *ngIf="alts.links?.length"
-          class="mobile-block"
-          i18n>Alternate URLs:</span>
-  </label>
   <app-links #alts
-             id="alts"
-             label="alternate URL"
-             [class.no-margin]="!alts.links?.length"
+             fieldName="alternateUrls"
+             i18n-label label="Alts:"
+             [showLabel]="!!alts.links?.length"
+             i18n-emoji emoji="📎️"
              [showAdd]="false"
              [group]="group"
-             fieldName="alternateUrls"
-             [alt]="true"></app-links>
+             [class.no-margin]="!alts.links?.length"></app-links>
 
   <label for="title" i18n>Title:</label>
   <div class="form-array">
@@ -48,18 +38,15 @@
       Published date is required.
     </div>
   </div>
-
-  <label for="sources"
-         [class.no-margin]="!sources.links?.length">
-    <ng-container *ngIf="sources.links?.length" i18n>Sources:</ng-container>
-  </label>
   <app-links #sources
              id="sources"
-             label="source"
-             [class.no-margin]="!sources.links?.length"
+             fieldName="sources"
+             i18n-label label="Sources:"
+             [showLabel]="!!sources.links?.length"
+             i18n-emoji emoji="🔗️"
              [showAdd]="false"
              [group]="group"
-             fieldName="sources"></app-links>
+             [class.no-margin]="!sources.links?.length"></app-links>
 
   <label for="plugins"
          style="margin-top: 7px">
@@ -89,7 +76,6 @@
                 (syncTags)="editorTags.next($event)"></app-editor>
   </div>
 
-  <label for="tags" i18n>Tags:</label>
-  <app-tags id="tags" [group]="group"></app-tags>
+  <app-tags [group]="group"></app-tags>
 
 </ng-container>

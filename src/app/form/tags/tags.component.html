@@ -1,33 +1,4 @@
-<ng-container [formGroup]="group">
-  <ng-container [formArrayName]="fieldName">
-    <button type="button" (click)="addTag('')" i18n>+ Add another tag</button>
-
-    <ng-container *ngFor="let tag of tags.controls; let i=index">
-      <div class="form-array">
-        <label for="tags-{{ fieldName }}-{{ i }}" i18n>{{ emoji }}</label>
-        <div class="grow">
-          <input id="tags-{{ fieldName }}-{{ i }}"
-                 size="10"
-                 type="email"
-                 autocorrect="off"
-                 autocapitalize="none"
-                 [appAutofocus]="i === autofocus"
-                 (blur)="!$any($event.target).value && removeTag(i)"
-                 (appInputDone)="addTag('')"
-                 enterkeyhint="enter"
-                 [last]="i === tags.controls.length - 1"
-                 [formControl]="$any(tag)">
-        </div>
-        <button type="button" (click)="removeTag(i)" i18n>&ndash;</button>
-      </div>
-      <div class="error" *ngIf="tags.at(i).touched && tags.at(i).errors?.['pattern']" i18n>
-        Tags must be lower case letters, numbers, periods and forward slashes.
-        Must not start with a forward slash or period.
-        Must not or contain two forward slashes or periods in a row.
-        Protected tags start with a plus sign.
-        Private tags start with an underscore.<br>
-        (i.e. "science", "my/tag", or "_my/private/tag")
-      </div>
-    </ng-container>
-  </ng-container>
-</ng-container>
+<formly-form class="form"
+             [model]="model"
+             [form]="tags"
+             [fields]="[field]"></formly-form>

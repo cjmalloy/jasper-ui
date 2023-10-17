@@ -16,14 +16,22 @@ export class LinksFormComponent implements OnInit {
   group?: UntypedFormGroup;
   @Input()
   fieldName = 'links';
-  @Input()
-  label = 'link';
-  @Input()
-  showAdd = true;
 
-  @Input()
-  alt = false;
-  autofocus = -1;
+  model: string[] = [];
+  field = {
+    type: 'urls',
+    props: {
+      showLabel: true,
+      label: $localize`Sources: `,
+      showAdd: true,
+      addText: $localize`+ Add another source`,
+    },
+    fieldArray: {
+      props: {
+        label: $localize`🔗️`,
+      }
+    },
+  };
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -32,16 +40,41 @@ export class LinksFormComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  @Input()
+  set emoji(value: string) {
+    this.field.fieldArray.props.label = value;
+  }
+
+  @Input()
+  set label(value: string) {
+    this.field.props.label = value;
+  }
+
+  @Input()
+  set showLabel(value: boolean) {
+    this.field.props.showLabel = value;
+  }
+
+  @Input()
+  set add(value: string) {
+    this.field.props.addText = value;
+  }
+
+  @Input()
+  set showAdd(value: boolean) {
+    this.field.props.showAdd = value;
+  }
+
   get links() {
-    return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
+    return this.group?.get(this.fieldName) as UntypedFormArray;
   }
 
   addLink(...values: string[]) {
     if (!values.length) return;
-    this.autofocus = values[0] ? -1 : this.links!.length;
+    this.model = this.links.value;
     for (const value of values) {
-      if (value && value !== 'placeholder' && this.links!.value.includes(value)) return;
-      this.links!.push(this.fb.control(value, LinksFormComponent.validators));
+      if (value && value !== 'placeholder' && this.model.includes(value)) return;
+      this.model.push(value);
     }
   }
 

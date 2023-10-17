@@ -46,18 +46,13 @@ export class UserFormComponent implements OnInit {
   }
 
   setUser(user: User) {
-    const notifications = this.group.get('notifications') as UntypedFormArray;
-    const readAccess = this.group.get('readAccess') as UntypedFormArray;
-    const writeAccess = this.group.get('writeAccess') as UntypedFormArray;
-    const tagReadAccess = this.group.get('tagReadAccess') as UntypedFormArray;
-    const tagWriteAccess = this.group.get('tagWriteAccess') as UntypedFormArray;
     const ns = (user.readAccess || []).filter(isMailbox);
-    while (notifications.length < ns.length) this.notifications.addTag('placeholder')
+    this.notifications.model = ns;
     const ra = (user.readAccess || []).filter(t => !isMailbox(t));
-    while (readAccess.length < ra.length) this.readAccess.addTag('placeholder')
-    while (writeAccess.length < (user.writeAccess?.length || 0)) this.writeAccess.addTag('placeholder');
-    while (tagReadAccess.length < (user.tagReadAccess?.length || 0)) this.tagReadAccess.addTag('placeholder');
-    while (tagWriteAccess.length < (user.tagWriteAccess?.length || 0)) this.tagWriteAccess.addTag('placeholder');
+    this.readAccess.model = ra;
+    this.writeAccess.model = [...user.writeAccess || []];
+    this.tagReadAccess.model = [...user.tagReadAccess || []];
+    this.tagWriteAccess.model = [...user.tagWriteAccess || []];
     this.group.patchValue({
       ...user,
       notifications: ns,

@@ -15,12 +15,24 @@ export class TagsFormComponent implements OnInit {
 
   @Input()
   group!: UntypedFormGroup;
-  @Input()
+  @Input('fieldName')
   fieldName = 'tags';
-  @Input()
-  emoji = '🏷️';
 
-  autofocus = -1;
+  model: string[] = [];
+  field = {
+    type: 'tags',
+    props: {
+      showLabel: true,
+      label: $localize`Tags: `,
+      showAdd: true,
+      addText: $localize`+ Add another tag`,
+    },
+    fieldArray: {
+      props: {
+        label: $localize`🏷️`,
+      }
+    },
+  };
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -29,25 +41,46 @@ export class TagsFormComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  @Input()
+  set emoji(value: string) {
+    this.field.fieldArray.props.label = value;
+  }
+
+  @Input()
+  set label(value: string) {
+    this.field.props.label = value;
+  }
+
+  @Input()
+  set showLabel(value: boolean) {
+    this.field.props.showLabel = value;
+  }
+
+  @Input()
+  set add(value: string) {
+    this.field.props.addText = value;
+  }
+
+  @Input()
+  set showAdd(value: boolean) {
+    this.field.props.showAdd = value;
+  }
+
   get tags() {
     return this.group.get(this.fieldName) as UntypedFormArray;
   }
 
   addTag(...values: string[]) {
     if (!values.length) return;
-    this.autofocus = values[0] ? -1 : this.tags.length;
+    this.model = this.tags.value;
     for (const value of values) {
-      if (value && value !== 'placeholder' && this.tags.value.includes(value)) return;
-      this.tags.push(this.fb.control(value, TagsFormComponent.validators));
+      if (value && value !== 'placeholder' && this.model.includes(value)) return;
+      this.model.push(value);
     }
   }
 
   removeTag(index: number) {
     this.tags.removeAt(index);
-  }
-
-  setValue(addTags: string[]) {
-    while (this.tags.length < addTags.length) this.addTag(addTags[this.tags.length]);
   }
 
   includesTag(tag: string) {
@@ -68,8 +101,4 @@ export class TagsFormComponent implements OnInit {
       if (!tags.includes(parent)) this.addTag(parent);
     }
   }
-}
-
-export function tagsForm(fb: UntypedFormBuilder, tags: string[]) {
-  return fb.array(map(tags, v => fb.control(v, TagsFormComponent.validators)));
 }

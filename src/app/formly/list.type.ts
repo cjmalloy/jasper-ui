@@ -6,13 +6,13 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
 @Component({
   selector: 'formly-list-section',
   template: `
-    <label>{{ props.label || '' }}</label>
+    <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>
     <div class="form-group"
          cdkDropList
          cdkScrollable
          [cdkDropListData]="this"
          (cdkDropListDropped)="drop($any($event))">
-      <button type="button" (click)="add()">{{ props.addText }}</button>
+      <button *ngIf="props.showAdd !== false" type="button" (click)="add()">{{ props.addText }}</button>
       <ng-container *ngFor="let field of field.fieldGroup; let i = index">
         <div class="form-array list-drag"
              cdkDrag

@@ -123,7 +123,9 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
         extends: 'list',
         defaultOptions: {
           props: {
+            showLabel: true,
             label: $localize`URLs: `,
+            showAdd: true,
             addText: $localize`+ Add another URL`,
           },
           fieldArray: {
