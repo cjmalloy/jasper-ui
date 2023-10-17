@@ -136,7 +136,7 @@ export class RefFormComponent implements OnInit {
       if (!hasMedia(ref) || hasMedia(this.group.value)) {
         this.setComment(ref.comment || '');
       }
-      this.tags.model = [...ref.tags || []];
+      this.tags.addTag(...(ref.tags || []));
       this.plugins.tags = this.group.value.tags;
       defer(() => {
         this.plugins.setValue({
