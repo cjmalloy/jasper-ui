@@ -1,7 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, delay, find, pick, uniq } from 'lodash-es';
+import { FormlyFormOptions } from '@ngx-formly/core';
+import { defer, delay, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
 import { catchError, concat, lastValueFrom, of, switchMap, throwError } from 'rxjs';
@@ -9,16 +11,18 @@ import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
 import { Ext, mapTag } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
+import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
+import { BookmarkService } from '../../../service/bookmark.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
+import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
-import { downloadSet } from '../../../util/download';
 
 @Component({
   selector: 'app-upload',
@@ -34,15 +38,19 @@ export class UploadPage implements OnDestroy {
 
   serverErrors: string[] = [];
   processing = false;
+  webCache = this.admin.getPlugin('plugin/file');
 
   constructor(
     public store: Store,
+    public bookmarks: BookmarkService,
+    private theme: ThemeService,
+    private admin: AdminService,
     private refs: RefService,
     private exts: ExtService,
     private scraper: ScrapeService,
     private auth: AuthzService,
     private router: Router,
-    private theme: ThemeService,
+    private fb: FormBuilder,
   ) {
     theme.setTitle($localize`Submit: Upload`);
     this.disposers.push(autorun(() => {
@@ -153,7 +161,21 @@ export class UploadPage implements OnDestroy {
         upload: true,
         url,
         title: file.name,
-        tags: uniq(['public', tag, ...extraTags.filter(t => !!t)]),
+        tags: uniq([tag, ...extraTags.filter(t => !!t)]),
+        published: moment(),
+      })));
+    }
+  }
+
+  cache(files: File[]) {
+    if (!files) return;
+    for (let i = 0; i < files?.length; i++) {
+      const file = files[i];
+      this.scraper.cache(file).subscribe(url => runInAction(() => this.store.submit.addRefs({
+        upload: true,
+        url,
+        title: file.name,
+        tags: uniq([this.store.account.localTag, ...this.store.submit.tags, 'plugin/file']),
         published: moment(),
       })));
     }

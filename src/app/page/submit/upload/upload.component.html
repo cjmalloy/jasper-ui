@@ -10,31 +10,50 @@
       </span>
     </p>
 
-    <span></span>
-    <div class="padded form-array">
-      <button type="button" (click)="upload.click()" i18n-title title="Upload Refs and Exts" i18n>+ add files</button>
-      <span i18n>or drag and drop files anywhere</span>
-      <input #upload type="file"
-             accept=".json,.zip,.png,.jpg,.jpeg,.gif,.svg,.webp,.3gp,.mpg,.mpeg,.mp4,.m4v,.m4p,.webm,.ogv,.m3u8,.mov,.mp3,.aac,.flac,.m4a,.ogg,.wav,.xls,.xlsx,.csv,.odx,.txt"
-             (change)="store.submit.setFiles($any(upload.files))"
-             multiple/>
-      <ng-container *ngIf="!store.submit.empty">
-        <button type="button" (click)="clear(upload)" i18n>clear</button>
-      </ng-container>
-    </div>
-
     <span><!-- Tags --></span>
     <div class="form-array right">
-      <span *ngFor="let tag of store.submit.tags | plugins">{{ tag }}</span>
+      <formly-form class="form"
+                   [model]="store.submit.tags"
+                   (modelChange)="bookmarks.tags = $event"
+                   [fields]="[{ type: 'tags'}]"></formly-form>
+    </div>
+
+    <span><!-- Default upload --></span>
+    <div>
+      <div class="padded form-array">
+        <span i18n>drop files anywhere to </span>
+        <button type="button" (click)="upload.click()" i18n-title title="Upload Refs and Exts" i18n>+ add</button>
+        <span i18n>Refs and Exts</span>
+        <input #upload type="file"
+               accept=".json,.zip,.png,.jpg,.jpeg,.gif,.svg,.webp,.3gp,.mpg,.mpeg,.mp4,.m4v,.m4p,.webm,.ogv,.m3u8,.mov,.mp3,.aac,.flac,.m4a,.ogg,.wav,.xls,.xlsx,.csv,.odx,.txt"
+               (change)="store.submit.setFiles($any(upload.files))"
+               multiple/>
+      </div>
+
+      <div *ngIf="webCache" class="padded form-array">
+        <span i18n>or </span>
+        <button type="button" (click)="fileUpload.click()" i18n-title title="Cache Files" i18n>+ cache</button>
+        <span i18n>any kind of file</span>
+        <input #fileUpload type="file"
+               accept="*"
+               (change)="cache($any(fileUpload.files))"
+               multiple/>
+      </div>
     </div>
 
     <ng-container *ngIf="!store.submit.empty">
       <span></span>
-      <div class="padded form-array">
-        <button type="button" (click)="push()" i18n>upload all</button>
-        <button type="button" (click)="download()" i18n>download all</button>
-        <label for="overwrite" i18n>Overwrite existing</label>
-        <div><input id="overwrite" type="checkbox" [(ngModel)]="store.submit.overwrite"></div>
+      <div>
+        <hr>
+        <div class="padded form-array">
+          <button type="button" (click)="push()" i18n>upload all</button>
+          <div><input id="overwrite" type="checkbox" [(ngModel)]="store.submit.overwrite"></div>
+          <label for="overwrite" i18n>Overwrite existing</label>
+          <div class="form-array right">
+            <button type="button" (click)="download()" i18n>download all</button>
+            <button type="button" (click)="clear(upload)" i18n>clear</button>
+          </div>
+        </div>
       </div>
 
       <span></span>
