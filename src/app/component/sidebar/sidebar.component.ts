@@ -89,7 +89,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   set tag(value: string) {
     this._tag = value;
     if (value) {
-      if (this._tag === value) return;
       const origin = tagOrigin(value);
       this.local = !origin || origin === this.store.account.origin;
       this.localTag = localTag(value);
