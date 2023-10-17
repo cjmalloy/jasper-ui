@@ -21,7 +21,7 @@ export class AppComponent {
     public store: Store,
     private router: Router,
   ) {
-    if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/pkgs/container/jasper-ui/' + this.config.version;
+    if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
   }
 
   dragOver(event: DragEvent) {
