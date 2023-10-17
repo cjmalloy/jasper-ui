@@ -356,13 +356,6 @@ body.dark-theme {
     }
   }
 
-  .ref.upload, .ext.upload {
-    border-left: 10px var(--warning) groove !important;
-    &.exists {
-      border-left: 10px var(--error) groove !important;
-    }
-  }
-
   .ref, .form, .editor {
     .expand {
       border: 1px solid var(--border);

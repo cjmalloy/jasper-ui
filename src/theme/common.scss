@@ -982,9 +982,24 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .ref.upload, .ext.upload {
-  border-left: 10px palegoldenrod groove;
+  --upload-border: 30px;
+  --upload-border-margin: -6px;
+  position: relative;
+  padding-left: calc(var(--upload-border));
+  &:before {
+    position: absolute;
+    content: ' ';
+    height: 100%;
+    width: var(--upload-border);
+    left: var(--upload-border-margin);
+    box-sizing: border-box;
+    border: var(--upload-border) solid transparent;
+    border-left: var(--upload-border) solid var(--warning);
+  }
   &.exists {
-    border-left: 10px red groove;
+    &:before {
+      border-left: var(--upload-border) solid var(--error);
+    }
   }
 }
 
