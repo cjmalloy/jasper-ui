@@ -12,7 +12,7 @@ export const chatTemplate: Template = {
     submit: $localize`💬️ chat/`,
     view: $localize`💬️`,
     description: $localize`Activates built-in Chat mode for viewing Refs.`,
-    icons: [{ thumbnail: $localize`💬️` }],
+    icons: [{ thumbnail: $localize`💬️`, order: 1 }],
     filters: [
       { query: 'chat', label: $localize`💬️ chat`, group: $localize`Templates 🎨️` },
     ],

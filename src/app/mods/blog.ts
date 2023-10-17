@@ -11,7 +11,7 @@ export const blogTemplate: Template = {
     submit: $localize`📰️ blog/`,
     view: $localize`📰️`,
     description: $localize`Activates built-in Blog mode for viewing Refs.`,
-    icons: [{ thumbnail: $localize`📰️` }],
+    icons: [{ thumbnail: $localize`📰️`, order: 1 }],
     filters: [
       { query: 'blog', label: $localize`📰️ blog`, group: $localize`Templates 🎨️` },
     ],
