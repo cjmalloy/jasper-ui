@@ -52,11 +52,11 @@ export class TagPage implements OnInit, OnDestroy {
         this.loading = false;
       } else {
         this.loading = true;
-        this.exts.getCachedExts(this.store.view.queryTags).pipe(
-          catchError(() => of([])),
-        ).subscribe(exts => {
-          this.loading = false;
-          runInAction(() => this.store.view.exts = exts)
+        this.exts.getCachedExts(this.store.view.queryTags)
+          .pipe(this.admin.extFallbacks)
+          .subscribe(exts => {
+            this.loading = false;
+            runInAction(() => this.store.view.exts = exts);
         });
       }
     }));

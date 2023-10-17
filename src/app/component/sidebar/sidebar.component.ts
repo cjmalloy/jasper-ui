@@ -121,12 +121,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   set ext(value: Ext | undefined) {
     this._ext = value;
     if (value) {
-      this.bookmarks$.pipe(
-        map(xs => xs.map(x => this.getTemplate(x))),
-      ).subscribe(xs => this.bookmarkExts = xs);
-      this.tagSubs$.pipe(
-        map(xs => xs.map(x => this.getTemplate(x))),
-      ).subscribe(xs => this.tagSubExts = xs);
+      this.bookmarks$.subscribe(xs => this.bookmarkExts = xs);
+      this.tagSubs$.subscribe(xs => this.tagSubExts = xs);
       this.userSubs$.subscribe(xs => this.userSubExts = xs);
     } else {
       this.bookmarkExts = [];
@@ -189,7 +185,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get bookmarks$() {
-    return this.exts.getCachedExts(this.userConfig?.bookmarks || []);
+    return this.exts.getCachedExts(this.userConfig?.bookmarks || []).pipe(this.admin.extFallbacks);
   }
 
   get userSubs() {
@@ -197,7 +193,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get userSubs$() {
-    return this.exts.getCachedExts(this.userSubs || []);
+    return this.exts.getCachedExts(this.userSubs || []).pipe(this.admin.extFallbacks);
   }
 
   get tagSubs() {
@@ -205,7 +201,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   get tagSubs$() {
-    return this.exts.getCachedExts(this.tagSubs || []);
+    return this.exts.getCachedExts(this.tagSubs || []).pipe(this.admin.extFallbacks);
   }
 
   get messages() {

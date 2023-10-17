@@ -2,8 +2,9 @@ import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { findKey, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { catchError, concat, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Config, Tag } from '../model/tag';
@@ -268,6 +269,43 @@ export class AdminService {
 
   get localOriginQuery() {
     return this.store.account.origin || '*';
+  }
+
+  private get _extFallback() {
+    return (x: Ext) => {
+      if (x.modifiedString) return x;
+      x = {...x};
+      const tmpl = this.getTemplate(x.tag);
+      let plugin = this.getPlugin(x.tag);
+      x.name ||= plugin?.name || tmpl?.name;
+      return x;
+    };
+  }
+
+  get extFallback() {
+    return map(this._extFallback);
+  }
+
+  get extFallbacks() {
+    return map((xs: Ext[]) => xs.map(this._extFallback));
+  }
+
+  get authorFallback() {
+    return map((xs: Ext[]) => xs.map(x => {
+      if (x.modifiedString) return x;
+      x = {...x};
+      const tmpl = this.getTemplate(x.tag);
+      let plugin = this.getPlugin(x.tag);
+      if (plugin?.config?.signature) {
+        plugin = this.getPlugin(plugin.config.signature) || plugin;
+        x.tag = plugin?.tag || x.tag;
+        x.name ||= plugin?.name;
+      } else if (x.tag.startsWith('+plugin/')) {
+        x.tag = '';
+      }
+      x.name ||= tmpl?.name;
+      return x;
+    }));
   }
 
   private loadPlugins$(page = 0): Observable<null> {

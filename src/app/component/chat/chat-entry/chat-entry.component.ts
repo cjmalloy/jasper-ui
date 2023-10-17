@@ -115,16 +115,7 @@ export class ChatEntryComponent {
   }
 
   get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(
-      map(xs => xs.map(x => {
-        if (x.modifiedString) return x;
-        x = {...x};
-        const tmpl = this.admin.getTemplate(x.tag);
-        const plugin = this.admin.getPlugin(x.tag);
-        x.name ||= plugin?.name || tmpl?.name;
-        return x;
-      }))
-    );
+    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
   get clickableLink() {
