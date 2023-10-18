@@ -17,10 +17,11 @@ import { hasTag } from '../../util/tag';
 })
 export class RefPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
+  printError = printError;
 
   expandedOnload = false;
+  notFound = false;
   error?: HttpErrorResponse;
-  printError = printError;
 
   constructor(
     public config: ConfigService,
@@ -71,7 +72,8 @@ export class RefPage implements OnInit, OnDestroy {
     if (!url) return;
     this.refs.page({ url, obsolete: true, size: 1 }).pipe(
       tap(page => runInAction(() => {
-        this.store.view.setRef(page.content[0]);
+        this.notFound = !page.content[0];
+        this.store.view.setRef(page.content[0] || { url });
         this.store.view.versions = page.totalElements;
       })),
     ).subscribe();
