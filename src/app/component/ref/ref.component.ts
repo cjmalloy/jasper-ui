@@ -349,11 +349,11 @@ export class RefComponent implements AfterViewInit, OnDestroy {
   }
 
   get originPull() {
-    return !!this.admin.getPlugin('plugin/origin/pull') && hasTag('+plugin/origin/pull', this.ref);
+    return !!this.admin.getPlugin('+plugin/origin/pull') && hasTag('+plugin/origin/pull', this.ref);
   }
 
   get originPush() {
-    return !!this.admin.getPlugin('plugin/origin/push') && hasTag('+plugin/origin/push', this.ref);
+    return !!this.admin.getPlugin('+plugin/origin/push') && hasTag('+plugin/origin/push', this.ref);
   }
 
   get addTags() {
