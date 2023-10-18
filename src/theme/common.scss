@@ -82,11 +82,17 @@ input.big {
 }
 
 select {
-  height: 22px;
+  height: auto;
+  min-height: 22px;
+  margin: auto;
 
   &.big {
-    height: 29px;
+    outline: none !important;
+    cursor: pointer;
+    min-height: 29px;
+    line-height: 29px;
     font-size: 16px;
+    padding: 0 6px;
   }
 }
 
@@ -466,12 +472,12 @@ video.qr-preview {
 
   select {
     position: relative;
-    height: 24px;
     bottom: -1px;
     outline: none !important;
+    cursor: pointer;
   }
 
-  & > a {
+  & > a:not(.logo) {
     display: inline-block;
     position: relative;
     bottom: -1px;
@@ -480,6 +486,7 @@ video.qr-preview {
     padding: 2px 8px;
     font-weight: bold;
     border-bottom: 1px solid transparent;
+    line-height: 21px;
 
     &:link:hover,
     &.fake-link:hover {
@@ -610,7 +617,7 @@ video.qr-preview {
     }
 
     .alarm {
-      margin-left: -8px;
+      margin: 10px 0 10px -8px;
       padding: 1px;
     }
   }
@@ -632,7 +639,7 @@ video.qr-preview {
 
 details.advanced {
   transition: max-height 1s;
-  max-height: 32px;
+  max-height: 37px;
   overflow: hidden;
 
   summary {
@@ -688,6 +695,10 @@ details.mini:not([open]) {
 
 .row {
   display: flex;
+
+  &.center {
+    justify-content: center;
+  }
 }
 
 .list-container {
@@ -1024,7 +1035,6 @@ formly-field-radio, formly-field-multicheckbox {
 
   .toggle-plus {
     position: relative;
-    top: -0.5px;
   }
   .toggle-x {
     position: relative;

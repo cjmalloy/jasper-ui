@@ -15,6 +15,7 @@ import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
+import { emoji } from '../../util/emoji';
 import { toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 
@@ -45,6 +46,8 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   allFilters: FilterGroup[] = [];
   filters: UrlFilter[] = [];
+
+  emoji = emoji('🪄️') || '🔍️';
 
   constructor(
     public router: Router,

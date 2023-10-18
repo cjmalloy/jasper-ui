@@ -1,0 +1,25 @@
+body.macos {
+  .subscription-bar {
+    .back-button {
+      padding-top: 2px;
+    }
+  }
+  input[type=email], input[type=url], input[type=text], input[type=number], input[type=search], textarea {
+    appearance: none;
+    border-radius: 2px;
+    border: 1px solid var(--border-accent);
+    padding: 1px 2px;
+  }
+  .tabs select {
+    border-radius: 0;
+    appearance: none;
+    padding: 0 11px;
+  }
+
+  select.big {
+    font-size: 21px;
+  }
+  button {
+    min-height: 22.5px;
+  }
+}

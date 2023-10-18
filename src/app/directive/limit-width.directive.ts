@@ -7,7 +7,7 @@ import { ConfigService } from '../service/config.service';
 })
 export class LimitWidthDirective implements OnDestroy, AfterViewInit {
 
-  resizeObserver = new ResizeObserver(() => this.fill());
+  resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.fill()) || undefined;
 
   @Input()
   limitSibling = false;
@@ -26,7 +26,7 @@ export class LimitWidthDirective implements OnDestroy, AfterViewInit {
   @Input('appLimitWidth')
   set linked(value: HTMLElement | undefined | null) {
     this._linked = value!;
-    if (value) this.resizeObserver.observe(value);
+    if (value) this.resizeObserver?.observe(value);
   }
 
   ngAfterViewInit() {
@@ -34,7 +34,7 @@ export class LimitWidthDirective implements OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
-    this.resizeObserver.disconnect();
+    this.resizeObserver?.disconnect();
   }
 
   @HostListener('window:resize', ['$event'])

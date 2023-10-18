@@ -23,7 +23,10 @@ body.light-theme {
   color-scheme: light;
   color: var(--text);
 
-  &, ::backdrop, .editor.fullscreen app-md {
+  background-color: var(--bg);
+  background-image: url("~/assets/bg-light.png");
+  background-blend-mode: darken;
+  ::backdrop, .editor.fullscreen app-md {
     background-color: var(--bg);
     background-image: url("~/assets/bg-light.png");
     background-blend-mode: darken;
@@ -176,6 +179,14 @@ body.light-theme {
         border-left: 1px solid var(--border);
         border-right: 1px solid var(--border);
         border-bottom: 1px solid transparent;
+      }
+    }
+
+    select {
+      background-color: var(--unselected-tab);
+      border: 1px solid var(--border);
+      &:hover {
+        background-color: #dedddd;
       }
     }
 

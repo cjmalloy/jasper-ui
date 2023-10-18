@@ -1,11 +1,11 @@
-import { Directive, ElementRef, HostListener, Input, OnInit } from '@angular/core';
+import { Directive, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { ConfigService } from '../service/config.service';
 import { Dim, height, ImageDimService, width } from '../service/image-dim.service';
 
 @Directive({
   selector: '[appImageDim]'
 })
-export class ImageDimDirective implements OnInit {
+export class ImageDimDirective implements OnInit, OnDestroy {
   @Input()
   grid = false;
   @Input('defaultWidth')
@@ -35,9 +35,13 @@ export class ImageDimDirective implements OnInit {
       this.el.style.height = this.defaultHeightPx || '600px';
     }
     if (this.grid) {
-      this.resizeObserver = new ResizeObserver(() => this.onResize());
-      this.resizeObserver.observe(this.el);
+      this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize());
+      this.resizeObserver?.observe(this.el);
     }
+  }
+
+  ngOnDestroy() {
+    this.resizeObserver?.disconnect();
   }
 
   get el() {

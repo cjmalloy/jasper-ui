@@ -13,14 +13,14 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
   @Input()
   padding = 4;
 
-  resizeObserver = new ResizeObserver(() => this.onResize());
+  resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   dragging = false;
 
   constructor(
     private config: ConfigService,
     private el: ElementRef<HTMLTextAreaElement>,
   ) {
-    this.resizeObserver.observe(el.nativeElement);
+    this.resizeObserver?.observe(el.nativeElement);
   }
 
   ngAfterViewInit() {
@@ -28,7 +28,7 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
-    this.resizeObserver.disconnect();
+    this.resizeObserver?.disconnect();
   }
 
   @HostListener('window:resize', ['$event'])
