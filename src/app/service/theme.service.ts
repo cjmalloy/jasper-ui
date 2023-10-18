@@ -25,7 +25,15 @@ export class ThemeService {
     autorun(() => this.setCustomCss('custom-css', ...(this.store.account.config.userTheme ? this.getUserCss() : this.getExtCss())));
     this.admin.configProperty('css').forEach(p => this.setCustomCss(p.type + '-' + p.tag, p.config!.css));
     this.admin.configProperty('snippet').forEach(p => this.addSnippet(p.type + '-' + p.tag, p.config!.snippet));
+    const ql = matchMedia && matchMedia('(prefers-color-scheme: dark)');
+    ql.addEventListener && ql.addEventListener('change', e => {
+      if (!localStorage.getItem('theme')) this.setTheme();
+    });
     return of(null);
+  }
+
+  get systemTheme(): string {
+    return matchMedia && matchMedia('(prefers-color-scheme: dark)') ? 'dark-theme' : 'light-theme';
   }
 
   toggle() {
@@ -62,16 +70,10 @@ export class ThemeService {
     head.appendChild(nodes);
   }
 
-  getSystemTheme(): string {
-    const darkThemeMq = window.matchMedia('(prefers-color-scheme: dark)');
-    return darkThemeMq.matches ? 'dark-theme' : 'light-theme';
-  }
-
   setTheme(theme?: string | null) {
-    const sysDefault = this.getSystemTheme();
-    theme ??= sysDefault;
+    theme ??= this.systemTheme;
     if (this.store.theme === theme) return;
-    if (theme !== sysDefault) {
+    if (theme !== this.systemTheme) {
       localStorage.setItem('theme', theme);
     } else {
       localStorage.removeItem('theme');
