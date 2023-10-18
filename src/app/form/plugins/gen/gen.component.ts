@@ -23,6 +23,7 @@ export class GenFormComponent implements OnInit {
   @ViewChild(FormlyForm)
   formlyForm?: FormlyForm;
 
+  model: any;
   options: FormlyFormOptions = {
     formState: {
       config: {},
@@ -48,15 +49,7 @@ export class GenFormComponent implements OnInit {
   }
 
   setValue(value: any) {
-    defer(() => {
-      if (!this.formlyForm) return;
-      this.group.patchValue(value[this.plugin.tag]);
-      this.options.formState.config = value[this.plugin.tag];
-      this.formlyForm.model = value[this.plugin.tag];
-      // TODO: Why aren't changed being detected?
-      // @ts-ignore
-      this.formlyForm.builder.build(this.formlyForm.field);
-    });
+    this.model = value[this.plugin.tag];
   }
 
   cssClass(tag: string) {
