@@ -78,7 +78,7 @@ export class SettingsBackupPage implements OnInit {
 
   backfill() {
     this.serverError = [];
-    this.backups.backfill(this.store.account.origin).pipe(
+    this.backups.backfill().pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
