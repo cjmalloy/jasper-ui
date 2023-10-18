@@ -27,6 +27,7 @@ export class LinksFormComponent implements OnInit {
       addText: $localize`+ Add another source`,
     },
     fieldArray: {
+      focus: true,
       props: {
         label: $localize`🔗️`,
       }
@@ -72,7 +73,9 @@ export class LinksFormComponent implements OnInit {
   addLink(...values: string[]) {
     if (!values.length) return;
     this.model = this.links.value;
+    this.field.fieldArray.focus = true;
     for (const value of values) {
+      if (value) this.field.fieldArray.focus = false;
       if (value && value !== 'placeholder' && this.model.includes(value)) return;
       this.model.push(value);
     }
