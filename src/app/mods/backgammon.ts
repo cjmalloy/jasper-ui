@@ -75,6 +75,9 @@ export const backgammonTemplate: Template = {
               }
             }
           }
+          .embed {
+            display: block !important;
+          }
         }
       }
     `,
