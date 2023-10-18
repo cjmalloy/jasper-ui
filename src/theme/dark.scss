@@ -21,6 +21,45 @@ body.dark-theme {
   @media not print {
     color-scheme: dark;
     color: var(--text);
+    @supports not (color-scheme: dark) {
+      input[type=email], input[type=url], input[type=text], input[type=number], input[type=search], textarea {
+        appearance: none;
+        color: var(--text);
+        background-color: rgb(59, 59, 59);
+        border: 1px solid  rgb(133, 133, 133);
+        border-radius: 2px;
+        input:disabled {
+          color: rgb(170, 170, 170);
+        }
+      }
+      input[type=checkbox] {
+        background-color: rgb(59, 59, 59);
+      }
+      button {
+        color: var(--text);
+        appearance: none;
+        background-color: rgb(107, 107, 107);
+        border: 2px solid rgb(107, 107, 107);
+        border-radius: 2px;
+        &:disabled {
+          color: rgb(170, 170, 170);
+        }
+      }
+
+      &:not(.macos) {
+        input, textarea {
+          &::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+          }
+        }
+        select:not(:disabled) {
+          color: var(--text);
+          background-color: rgb(59, 59, 59);
+          border: 1px solid rgb(118, 118, 118);
+          border-radius: 2px;
+        }
+      }
+    }
   }
 
   .debug {
@@ -33,7 +72,10 @@ body.dark-theme {
     }
   }
 
-  &, ::backdrop, .editor.fullscreen app-md {
+  background-color: var(--bg);
+  background-image: url("~/assets/bg-dark.png");
+  background-blend-mode: soft-light;
+  ::backdrop, .editor.fullscreen app-md {
     background-color: var(--bg);
     background-image: url("~/assets/bg-dark.png");
     background-blend-mode: soft-light;
@@ -184,6 +226,14 @@ body.dark-theme {
         border-left: 1px solid var(--border);
         border-right: 1px solid var(--border);
         border-bottom: 1px solid transparent;
+      }
+    }
+
+    select {
+      background-color: var(--unselected-tab);
+      border: 1px solid var(--border);
+      &:hover {
+        background-color: #a7a7a7;
       }
     }
 

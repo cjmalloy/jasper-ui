@@ -118,7 +118,7 @@
   </div>
   <div class="hide tag-header" *ngIf="!home && store.view.tag">
     <h3 *ngIf="store.view.current === 'tag'">{{ ext?.name || tag }}</h3>
-    <ng-container *ngIf="store.account.signedIn && tag && admin.getTemplate('user')">
+    <div *ngIf="store.account.signedIn && tag && admin.getTemplate('user')" class="row center">
       <button *ngIf="inBookmarks; else notBookmarked"
               class="bookmark"
               i18n-title title="Remove from top bar"
@@ -159,7 +159,7 @@
                 i18n-title title="Add alarm"
                 class="alarm" i18n>🔔</button>
       </ng-template>
-    </ng-container>
+    </div>
   </div>
 
   <ng-container *ngIf="ui && ext">
