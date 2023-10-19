@@ -1,5 +1,10 @@
-import { Component, HostBinding, isDevMode } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, isDevMode } from '@angular/core';
 import { Router } from '@angular/router';
+import { autorun } from 'mobx';
+import { archivePlugin, archiveUrl, findArchive } from './mods/archive';
+import { pdfPlugin, pdfUrl } from './mods/pdf';
+import { AdminService } from './service/admin.service';
+import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 
@@ -8,7 +13,7 @@ import { Store } from './store/store';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
 
   @HostBinding('class.electron')
   electron = this.config.electron;
@@ -16,12 +21,39 @@ export class AppComponent {
   debug = !isDevMode() && this.store.account.debug;
   website = 'https://github.com/cjmalloy/jasper-ui';
 
+  pdfPlugin = this.admin.getPlugin('plugin/pdf') as typeof pdfPlugin || undefined;
+  archivePlugin = this.admin.getPlugin('plugin/archive') as typeof archivePlugin || undefined;
+
   constructor(
     public config: ConfigService,
     public store: Store,
+    private admin: AdminService,
+    private scraper: ScrapeService,
     private router: Router,
   ) {
     if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
+  }
+
+  ngAfterViewInit() {
+    if (this.pdfPlugin) {
+      autorun(() => {
+        if (this.store.eventBus.event === 'pdf') {
+          let url = pdfUrl(this.pdfPlugin, this.store.eventBus.ref, this.store.eventBus.repost);
+          if (!url) return;
+          if (this.pdfPlugin!.config?.cache) url = this.scraper.getFetch(url);
+          open(url, '_blank');
+        }
+      });
+    }
+    if (this.archivePlugin) {
+      autorun(() => {
+        if (this.store.eventBus.event === 'archive') {
+          let url = archiveUrl(this.archivePlugin, this.store.eventBus.ref, this.store.eventBus.repost);
+          if (!url) return;
+          open(url, '_blank');
+        }
+      });
+    }
   }
 
   dragOver(event: DragEvent) {

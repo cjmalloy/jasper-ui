@@ -280,6 +280,10 @@ export interface EventAction extends Visibility {
    */
   event: string;
   /**
+   * If set, makes this icon conditional on a ref scheme.
+   */
+  scheme?: `${string}:`;
+  /**
    * Handlebars template label.
    */
   label?: string;
@@ -296,7 +300,7 @@ export interface EmitAction extends Visibility {
   label?: string;
 }
 
-export function active(ref: Ref, o: TagAction | ResponseAction | Icon) {
+export function active(ref: Ref, o: TagAction | ResponseAction | EventAction | Icon) {
   if ('scheme' in o) return true;
   if (!('tag' in o || 'response' in o)) return true;
   if (('tag' in o) && hasTag(o.tag, ref)) return true;

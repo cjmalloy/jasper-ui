@@ -243,7 +243,7 @@
           <ng-container *ngFor="let a of actions">
             <a *ngIf="showAction(a)"
                class="fake-link"
-               (click)="acts.apply(ref, a)"
+               (click)="acts.apply(a, ref, repostRef)"
                [appTitle]="a"
                [appActionLabel]="a"
                [field]="label(a)"
@@ -258,13 +258,10 @@
               <a *ngIf="mediaAttachment"
                  class="fake-link"
                  (click)="downloadMedia()" i18n>media</a>
-              <!-- TODO: Make these events in plugin -->
-              <a *ngIf="pdf" target="_blank" [href]="pdfUrl" i18n>pdf</a>
-              <a *ngIf="archive" target="_blank" [href]="archive" i18n>archive</a>
               <ng-container *ngFor="let a of advancedActions">
                 <a *ngIf="showAction(a)"
                    class="fake-link"
-                   (click)="closeAdvanced() || acts.apply(ref, a)"
+                   (click)="closeAdvanced() || acts.apply(a, ref, repostRef)"
                    [appTitle]="a"
                    [appActionLabel]="a"
                    [field]="label(a)"

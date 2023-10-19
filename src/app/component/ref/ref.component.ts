@@ -463,27 +463,6 @@ export class RefComponent implements AfterViewInit, OnDestroy {
       !hasTag('internal', this.ref);
   }
 
-  get pdf() {
-    if (!this.admin.getPlugin('plugin/pdf')) return undefined;
-    return this.ref.plugins?.['plugin/pdf']?.url || this.repostRef?.plugins?.['plugin/pdf']?.url || findExtension('.pdf', this.ref, this.repostRef);
-  }
-
-  get pdfUrl() {
-    const url = this.pdf;
-    if (!url) return url;
-    if (!this.admin.getPlugin('plugin/pdf')?.config?.cache) return url;
-    return this.scraper.getFetch(url);
-  }
-
-  get archive() {
-    const plugin = this.admin.getPlugin('plugin/archive');
-    if (!plugin) return null;
-    return this.ref.plugins?.['plugin/archive']?.url ||
-      this.repostRef?.plugins?.['plugin/archive']?.url ||
-      findArchive(plugin, this.ref) ||
-      findArchive(plugin, this.repostRef);
-  }
-
   get isAuthor() {
     return isOwnerTag(this.store.account.tag, this.ref);
   }
@@ -719,6 +698,9 @@ export class RefComponent implements AfterViewInit, OnDestroy {
 
   showAction(a: Action) {
     if (!this.visible(a)) return false;
+    if ('scheme' in a) {
+      if (a.scheme !== getScheme(this.repostRef?.url || this.ref.url)) return false;
+    }
     if ('tag' in a) {
       if (a.tag === 'locked' && !this.writeAccess) return false;
       if (a.tag && !this.taggingAccess) return false;

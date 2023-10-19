@@ -91,12 +91,10 @@
             <a [routerLink]="['/submit/invoice']"
                [queryParams]="{url: ref.url}" i18n>invoice</a>
           </ng-container>
-          <a *ngIf="pdf" target="_blank" [href]="pdf" i18n>pdf</a>
-          <a *ngIf="archive" target="_blank" [href]="archive" i18n>archive</a>
           <ng-container *ngFor="let a of actions">
             <a *ngIf="showAction(a)"
                class="fake-link"
-               (click)="acts.apply(ref, a)"
+               (click)="acts.apply(a, ref)"
                [appTitle]="a"
                [appActionLabel]="a"
                [field]="label(a)"

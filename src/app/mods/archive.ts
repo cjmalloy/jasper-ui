@@ -15,6 +15,10 @@ export const archivePlugin: Plugin = {
     filters: [
       { query: 'plugin/archive', label: $localize`🗄️ archive`, group: $localize`Plugins 🧰️` },
     ],
+    advancedActions: [
+      { event: 'archive', label: $localize`archive`, global: true, scheme: 'http:' },
+      { event: 'archive', label: $localize`archive`, global: true, scheme: 'https:' },
+    ],
     hosts: [
       'archive.ph',
       '12ft.io',
@@ -37,14 +41,21 @@ export const archivePlugin: Plugin = {
   },
 };
 
-export function findArchive(plugin: Plugin, ref?: Ref) {
-  if (!ref) return null;
+export function findArchive(plugin: typeof archivePlugin, ref?: Ref) {
+  if (!ref) return '';
   if (ref.alternateUrls && plugin!.config?.hosts) {
     for (const s of ref.alternateUrls) {
       if (plugin!.config.hosts.includes(getHost(s)!)) return s;
     }
   }
   const scheme = getScheme(ref.url);
-  if (scheme !== 'http:' && scheme !== 'https:') return null;
+  if (scheme !== 'http:' && scheme !== 'https:') return '';
   return plugin!.config!.defaultArchive + ref.url;
+}
+
+export function archiveUrl(plugin: Plugin, ref?: Ref, repost?: Ref) {
+  return ref?.plugins?.['plugin/archive']?.url
+    || repost?.plugins?.['plugin/archive']?.url
+    || findArchive(plugin, ref)
+    || findArchive(plugin, repost);
 }

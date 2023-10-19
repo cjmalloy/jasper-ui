@@ -205,7 +205,7 @@ export class BulkComponent implements OnInit, OnDestroy {
   }
 
   doAction(a: Action) {
-    this.batch(ref => this.acts.apply(ref, a));
+    this.batch(ref => this.acts.apply(a, ref));
   }
 
   label(a: Action) {

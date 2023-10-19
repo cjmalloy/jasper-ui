@@ -8,6 +8,7 @@ export class EventBus {
 
   event = '';
   ref?: Ref = {} as any;
+  repost?: Ref = {} as any;
   errors: string[] = [];
 
   constructor() {
@@ -22,9 +23,10 @@ export class EventBus {
     reaction(() => this.event, () => console.log('🚌️ Event Bus:', this.event, this.event === 'error' ? toJS(this.errors) : '', toJS(this.ref)));
   }
 
-  fire(event: string, ref?: Ref) {
+  fire(event: string, ref?: Ref, repost?: Ref) {
     this.event = event;
     this.ref = ref;
+    this.repost = repost;
   }
 
   fireError(errors: string[], ref?: Ref) {
@@ -44,6 +46,7 @@ export class EventBus {
     if (ref) {
       this.ref = ref;
     }
+    this.repost = undefined;
   }
 
   /**
@@ -54,6 +57,7 @@ export class EventBus {
     if (ref) {
       this.ref = ref;
     }
+    this.repost = undefined;
   }
 
   runAndReload(o: Observable<any>, ref?: Ref) {

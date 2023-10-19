@@ -5,9 +5,7 @@ import { Ref } from '../model/ref';
 import { Action, active, EmitAction, emitModels, EventAction, ResponseAction, TagAction } from '../model/tag';
 import { Store } from '../store/store';
 import { ExtService } from './api/ext.service';
-import { OriginService } from './api/origin.service';
 import { RefService } from './api/ref.service';
-import { ScrapeService } from './api/scrape.service';
 import { TaggingService } from './api/tagging.service';
 
 @Injectable({
@@ -19,32 +17,30 @@ export class ActionService {
     private refs: RefService,
     private exts: ExtService,
     private tags: TaggingService,
-    private scraper: ScrapeService,
-    private origins: OriginService,
     private store: Store,
   ) { }
 
-  apply(ref: Ref, a: Action) {
+  apply(a: Action, ref: Ref, repost?: Ref) {
     if ('tag' in a) {
-      return this.tag(ref, a);
+      return this.tag(a, ref);
     }
     if ('response' in a) {
-      return this.respond(ref, a);
+      return this.respond(a, ref);
     }
     if ('event' in a) {
-      return this.event(ref, a);
+      return this.event(a, ref, repost);
     }
     if ('emit' in a) {
-      return this.emit(ref, a);
+      return this.emit(a, ref);
     }
     throw 'Invalid action';
   }
 
-  event(ref: Ref, a: EventAction) {
-    this.store.eventBus.fire(a.event, ref);
+  event(a: EventAction, ref: Ref, repost?: Ref) {
+    this.store.eventBus.fire(a.event, ref, repost);
   }
 
-  emit(ref: Ref, a: EmitAction) {
+  emit(a: EmitAction, ref: Ref) {
     const models = emitModels(a, ref, this.store.account.localTag);
     const uploads = [
       ...models.ref.map(ref=>  this.refs.create(ref)),
@@ -53,13 +49,13 @@ export class ActionService {
     concat(...uploads).pipe(last()).subscribe();
   }
 
-  tag(ref: Ref, a: TagAction) {
+  tag(a: TagAction, ref: Ref) {
     const on = active(ref, a);
     const patch = (on ? '-' : '') + a.tag;
     this.store.eventBus.runAndReload(this.tags.create(patch, ref.url, ref.origin), ref);
   }
 
-  respond(ref: Ref, a: ResponseAction) {
+  respond(a: ResponseAction, ref: Ref) {
     const on = active(ref, a);
     if (on) {
       ref.metadata ||= {};

@@ -126,7 +126,7 @@
         <ng-container *ngFor="let a of actions">
           <a *ngIf="showAction(a)"
              class="fake-link"
-             (click)="acts.apply(ref, a)"
+             (click)="acts.apply(a, ref)"
              [appTitle]="a"
              [appActionLabel]="a"
              [field]="label(a)"
