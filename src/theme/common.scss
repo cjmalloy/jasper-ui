@@ -46,6 +46,10 @@ html, body {
   flex-grow: 1;
 }
 
+.hide {
+  display: none !important;
+}
+
 :link, .fake-link {
   text-decoration: none;
 }

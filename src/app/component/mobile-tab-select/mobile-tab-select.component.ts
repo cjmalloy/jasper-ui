@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { defer } from 'lodash-es';
 
 @Component({
@@ -7,6 +7,11 @@ import { defer } from 'lodash-es';
   styleUrls: ['./mobile-tab-select.component.scss']
 })
 export class MobileTabSelectComponent {
+
+  @HostBinding('class.hide')
+  get noOptions() {
+    return this.options.length < 2;
+  }
 
   options: string[] = [];
 
