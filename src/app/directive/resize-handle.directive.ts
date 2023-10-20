@@ -1,6 +1,6 @@
 import { Directive, ElementRef, HostBinding, HostListener, Input } from '@angular/core';
-import { relativeX, relativeY } from '../util/math';
 import { ConfigService } from '../service/config.service';
+import { relativeX, relativeY } from '../util/math';
 
 @Directive({
   selector: '[appResizeHandle]'
@@ -29,6 +29,7 @@ export class ResizeHandleDirective {
 
   @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent) {
+    if (event.button) return;
     if (this.hit(event)) {
       this.dragging = true;
       this.cursor = 'grabbing';

@@ -16,12 +16,12 @@ export class ResizeDirective {
   @HostBinding('style.width')
   get width() {
     return this.dim ? this.dim.x + 'px' : null;
-  };
+  }
 
   @HostBinding('style.height')
   get height() {
     return this.dim ? this.dim.y + 'px' : null;
-  };
+  }
 
   minPx = 2;
   zoom = 1;
@@ -38,6 +38,7 @@ export class ResizeDirective {
   @HostListener('mousedown', ['$event'])
   onMousedown(e: MouseEvent) {
     if (this.enabled === false) return;
+    if (e.button) return;
     e.preventDefault();
     this.oldZoom = this.zoom;
     this.dragStart = {
