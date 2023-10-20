@@ -8,7 +8,7 @@ import { defer } from 'lodash-es';
 })
 export class MobileTabSelectComponent {
 
-  @HostBinding('class.hide')
+  @HostBinding('class.dn')
   get noOptions() {
     return this.options.length < 2;
   }
