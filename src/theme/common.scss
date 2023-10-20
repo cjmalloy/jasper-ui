@@ -1460,8 +1460,11 @@ ngx-monaco-editor {
 }
 
 .blog {
-
   .blog-entry {
+    .blog-title {
+      max-width: 40em;
+      word-wrap: break-word;
+    }
     display: block;
     max-width: calc(100vw - 8px);
     overflow: hidden;
