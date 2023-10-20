@@ -2,11 +2,14 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, filter, map, of, Subject } from 'rxjs';
+import { catchError, filter, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
 import { Template } from '../../model/template';
+import { getMailbox } from '../../mods/mailbox';
+import { RootConfig } from '../../mods/root';
+import { UserConfig } from '../../mods/user';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -16,9 +19,6 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { hasPrefix, localTag, prefix, tagOrigin, topAnds } from '../../util/tag';
-import { RootConfig } from '../../mods/root';
-import { UserConfig } from '../../mods/user';
-import { getMailbox } from '../../mods/mailbox';
 
 @Component({
   selector: 'app-sidebar',
@@ -77,7 +77,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => {
-      if (this.config.mobile) this.expanded = false;
+      if (this.config.mobile || this.store.view.current === 'ref/summary') {
+        this.expanded = false;
+      }
     });
   }
 
@@ -253,12 +255,5 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   set showRemotes(value: boolean) {
     this.router.navigate([], { queryParams: { showRemotes: value ? true : null }, queryParamsHandling: 'merge' })
-  }
-
-  private getTemplate(x: Ext): Ext {
-    if (x.modifiedString) return x;
-    const t = this.admin.getTemplate(x.tag);
-    if (!t) return x;
-    return { tag: t.tag, origin: t.origin, name: t.name, config: t.defaults };
   }
 }
