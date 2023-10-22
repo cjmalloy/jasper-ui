@@ -451,7 +451,7 @@ export class EmbedService {
     iframe.style.width = (oembed.width ? oembed.width + 'px' : width);
     if (oembed.height) iframe.style.height = oembed.height + 'px';
     if (oembed.html) {
-      this.writeIframeHtml(oembed.html || '', iframe);
+      this.writeIframeHtml(oembed.html || '', iframe, oembed.provider_url === 'https://www.wolframcloud.com');
     } else {
       iframe.src = oembed.url;
     }
@@ -482,10 +482,18 @@ export class EmbedService {
     }
   }
 
-  writeIframeHtml(html: string, iframe: HTMLIFrameElement) {
+  writeIframeHtml(html: string, iframe: HTMLIFrameElement, wolfram = false) {
     const doc = iframe.contentWindow!.document;
     doc.open();
     doc.write(transparentIframe(html, this.iframeBg));
+    if (wolfram) {
+      doc.write(`
+        <style>
+          body > div > div:last-child {
+            display: none;
+          }
+        </style>`);
+    }
     doc.close();
   }
 
@@ -536,7 +544,7 @@ export function transparentIframe(content: string, bgColor: string) {
     }
     </style>
   </head>
-    <body>${content}</body>
+  <body>${content}</body>
   </html>
   `;
 }
