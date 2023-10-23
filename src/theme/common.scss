@@ -1,3 +1,25 @@
+// Common to all themes
+body {
+  --bg: white;
+  --bg-accent: rgba(0, 0, 0, 0.05);
+  --text: black;
+  --blue: rgba(207, 221, 255, 0.7);
+  --active: #da0000;
+  --info: gray;
+  --tag: #3d3dbb;
+  --tag-accent: #f3ebc7;
+  --border: black;
+  --border-accent: rgba(0, 0, 0, 0.4);
+  --border-light: rgba(0, 0, 0, 0.2);
+  --unselected-tab: #b3b9c4;
+  --error: #da0000;
+  --error-bg: #ffa9a9;
+  --warning: #c1c500;
+  --mod: #136500;
+  --card: #f3ebc7;
+  --placeholder: #efebdf;
+  --deleting: #ffa9a9;
+}
 
 html, body {
   font-family: Arial, Helvetica, sans-serif;
@@ -8,7 +30,7 @@ html, body {
 
 .debug {
   .subscription-bar:before {
-    color: red;
+    color: var(--error);
     font-size: 14px;
     content: 'DEBUG!';
   }
@@ -20,6 +42,391 @@ html, body {
     line-height: 72px;
     background-repeat: repeat-x !important;
     background-image: url("~/assets/debug.png") !important;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
+  }
+}
+
+.editor-help-popup {
+  justify-content: center;
+  & > * {
+    padding: 16px;
+    background-color: var(--card);
+    border: 1px solid transparent;
+    &:hover {
+      border: 1px solid var(--border);
+    }
+  }
+}
+
+.floating-ribbons {
+  div span {
+    border: 1px dashed var(--border);
+  }
+  div.on span {
+    border: 0.5px solid var(--border);
+  }
+}
+
+.toolbar {
+  label {
+    border: 1px dashed var(--border);
+  }
+  label.on {
+    border: 0.5px solid var(--border);
+  }
+}
+
+.context-menu {
+  background-color: var(--card);
+
+  div:hover {
+    background-color: var(--bg-accent);
+  }
+}
+
+.update {
+  font-size: 80%;
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.error {
+  font-size: 80%;
+  color: var(--error);
+}
+
+.error-404, .error-403 {
+  color: var(--error);
+}
+
+.error-404.submit-button {
+  display: inline-block;
+  margin: auto;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.tag {
+  color: var(--tag) !important;
+}
+
+.subscription-bar {
+  background-color: var(--bg);
+  border-bottom: 1px solid black;
+
+  :link, :visited, a:active {
+    color: var(--text);
+  }
+
+  .current-page {
+    color: var(--active);
+  }
+
+  .light-toggle {
+    border-radius: 16px;
+    transition: all 0.2s;
+    border: 0.5px solid transparent;
+    &:hover {
+      border: 0.5px dashed var(--border);
+    }
+  }
+}
+
+.tabs {
+  display: flex;
+  user-select: none;
+  flex-wrap: wrap;
+  min-height: 60px;
+  height: auto;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 100vw;
+  border-bottom: 1px solid var(--border);
+
+  .logo {
+    width: 120px;
+    height: 56px;
+    background-color: transparent !important;
+    border: none !important;
+    background-position: 4px 0;
+    background-repeat: no-repeat;
+  }
+
+  & > * {
+    align-self: flex-end;
+  }
+
+  &.empty > a:not(.logo),
+  &.empty > app-mobile-tab-select {
+    mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
+  }
+
+  h5 {
+    margin: 4px;
+    min-width: 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  select {
+    position: relative;
+    bottom: -1px;
+    outline: none !important;
+    cursor: pointer;
+    background-color: var(--unselected-tab);
+    border: 1px solid var(--border);
+  }
+
+  & > a:not(.logo) {
+    display: inline-block;
+    position: relative;
+    bottom: -1px;
+
+    margin: 0 4px;
+    padding: 2px 8px;
+    font-weight: bold;
+    border-bottom: 1px solid transparent;
+    line-height: 21px;
+    background-color: var(--unselected-tab);
+    border-bottom: 1px solid var(--border);
+
+    &:link:hover,
+    &.fake-link:hover {
+      text-decoration: none;
+    }
+
+    &:link, &:visited, &:active, &.fake-link {
+      color: black !important;
+    }
+
+    &.current-tab {
+      color: var(--active) !important;
+      background-color: var(--bg);
+      border-top: 1px solid var(--border);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid transparent;
+    }
+  }
+
+  .settings {
+    margin-left: auto;
+    border-top-left-radius: 8px;
+    display: inline-block;
+    justify-self: flex-end;
+    user-select: none;
+
+    font-size: 80%;
+    padding: 4px;
+    font-weight: bold;
+    background-color: var(--unselected-tab);
+
+    .author {
+      color: var(--tag) !important;
+    }
+
+    & > a {
+      &:link, &:visited, &:active, &.fake-link {
+        color: black !important;
+      }
+    }
+  }
+}
+
+.sidebar {
+  .submit-button {
+    border: 1px solid var(--border);
+    transition: background-color 0.2s;
+    &:hover {
+      background-color: var(--bg-accent);
+    }
+  }
+}
+
+details.advanced {
+  summary > span {
+    border: 1px solid var(--border);
+    border-left: none;
+    border-right: none;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: var(--bg-accent);
+    }
+  }
+}
+
+.pinned .link {
+  :link, :visited, :active {
+    color: var(--mod);
+  }
+}
+
+.list-container {
+  .list-number {
+    color: var(--info);
+  }
+}
+
+.log {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: var(--card);
+  backdrop-filter: blur(1px);
+}
+
+formly-list-section .form-array:not(:nth-child(2)) > formly-field > formly-group {
+  border-top: 0.5px dashed var(--border);
+}
+
+.editor:focus-within, .bubble, .plugins-form > *, blockquote, .full-page .todo-list {
+  border-radius: 8px;
+  box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
+}
+
+.bubble, .plugins-form > *, blockquote {
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px dashed transparent;
+
+  hr {
+    border: none;
+    border-top: 0.5px dotted var(--border);
+    position: relative;
+    left: -8px;
+    width: calc(100% + 16px);
+  }
+
+  &:first-child {
+    margin: 0;
+  }
+}
+
+.bubble, .plugins-form > * {
+  &:hover {
+    border: 1px dashed var(--border);
+  }
+}
+
+.listbox .selected {
+  border: 1px dotted var(--border);
+}
+
+ngx-monaco-editor {
+  border: 1px solid var(--border);
+}
+
+.page-controls {
+  .disabled {
+    &:link, &:active, &:visited {
+      color: var(--text) !important;
+    }
+  }
+}
+
+.list-item:not(.full-page):not(.expand), .kanban-card {
+  &.last-selected {
+    border: 1px dashed var(--border);
+  }
+}
+
+.comment-container {
+  &:focus-visible {
+    border: 1px dashed var(--border);
+  }
+}
+
+.link {
+  .host {
+    color: var(--info);
+  }
+}
+
+.info {
+  color: var(--info);
+
+  :link, :visited, a:active {
+    color: var(--tag);
+  }
+
+  .collapsed {
+    :link, :visited, a:active {
+      color: var(--info);
+    }
+  }
+}
+
+.ref, .form, .editor {
+  .expand {
+    border: 1px solid var(--border);
+  }
+}
+
+.actions, .advanced-actions {
+  :link, :visited, a:active, .fake-link {
+    color: var(--info) !important;
+  }
+  input:invalid {
+    color: var(--error);
+  }
+}
+
+.no-results {
+  color: var(--error);
+}
+
+.load-more {
+  color: var(--info);
+}
+
+hr {
+  border: none;
+  border-top: 1px groove var(--border);
+}
+
+.summary-box {
+  margin: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px dashed transparent;
+  box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
+}
+
+.login-popup {
+  background-color: var(--error-bg);
+}
+
+.md {
+  blockquote {
+    color: var(--info);
+    border-left: 2px solid var(--info);
+  }
+
+  del {
+    color: var(--info);
+  }
+
+  hr {
+    border: none;
+    background: var(--info);
+  }
+
+  code {
+    border-radius: 2px;
+    border: 2px solid var(--bg);
+    background: var(--bg);
+  }
+
+  pre > code {
+    border-radius: unset;
+    border: none;
+    background: transparent;
+  }
+
+  table, th, tr, td {
+    border: 1px solid var(--info);
+    border-collapse: collapse;
   }
 }
 
@@ -435,82 +842,6 @@ video.qr-preview {
         opacity: 0;
       }
     }
-  }
-
-}
-
-.tabs {
-  display: flex;
-  user-select: none;
-  flex-wrap: wrap;
-  min-height: 60px;
-  height: auto;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  max-width: 100vw;
-
-  .logo {
-    width: 120px;
-    height: 56px;
-    background-color: transparent !important;
-    border: none !important;
-    background-position: 4px 0;
-    background-repeat: no-repeat;
-  }
-
-  & > * {
-    align-self: flex-end;
-  }
-
-  &.empty > a:not(.logo),
-  &.empty > app-mobile-tab-select {
-    mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
-  }
-
-  h5 {
-    margin: 4px;
-    min-width: 0;
-    text-overflow: ellipsis;
-    overflow: hidden;
-  }
-
-  select {
-    position: relative;
-    bottom: -1px;
-    outline: none !important;
-    cursor: pointer;
-  }
-
-  & > a:not(.logo) {
-    display: inline-block;
-    position: relative;
-    bottom: -1px;
-
-    margin: 0 4px;
-    padding: 2px 8px;
-    font-weight: bold;
-    border-bottom: 1px solid transparent;
-    line-height: 21px;
-
-    &:link:hover,
-    &.fake-link:hover {
-      text-decoration: none;
-    }
-
-    &.current-tab {
-    }
-  }
-
-  .settings {
-    margin-left: auto;
-    border-top-left-radius: 8px;
-    display: inline-block;
-    justify-self: flex-end;
-    user-select: none;
-
-    font-size: 80%;
-    padding: 4px;
-    font-weight: bold;
   }
 }
 
@@ -1365,6 +1696,25 @@ ngx-monaco-editor {
       transform: scale(1.01);
     }
   }
+  .kanban-column {
+    border: 1px solid transparent;
+
+    &:hover {
+      border: 1px dashed var(--border);
+    }
+  }
+
+  .kanban-header {
+    .kanban-remove {
+      background-color: var(--placeholder);
+    }
+
+    &.cdk-drop-list-dragging {
+      .kanban-remove {
+        background-color: var(--deleting);
+      }
+    }
+  }
 
   .kanban-header {
     margin-top: 8px;
@@ -1382,6 +1732,17 @@ ngx-monaco-editor {
 .kanban-card {
   padding: 4px;
   margin-top: 2px;
+  background-color: var(--card);
+  &.unlocked {
+    border-radius: 5px;
+    border: 0.25px dashed var(--border-accent);
+  }
+  &:hover {
+    filter: drop-shadow(0 0 0.5px var(--border));
+  }
+  &.cdk-drag-placeholder {
+    background-color: var(--placeholder);
+  }
 
   .md p {
     text-align: left;
@@ -1437,6 +1798,18 @@ ngx-monaco-editor {
 .todo-item {
   padding: 4px;
   margin-top: 2px;
+  border-radius: 4px;
+  background-color: var(--card);
+  &.unlocked {
+    border-radius: 5px;
+    border: 0.25px dashed var(--border-accent);
+  }
+  &:hover {
+    filter: drop-shadow(0 0 0.5px var(--border));
+  }
+  &.cdk-drag-placeholder {
+    background-color: var(--placeholder);
+  }
 
   .md p {
     text-align: left;
@@ -1491,6 +1864,11 @@ ngx-monaco-editor {
       max-width: 40em;
       word-wrap: break-word;
     }
+    .blog-body {
+      .expand {
+        border: none;
+      }
+    }
     display: block;
     max-width: calc(100vw - 8px);
     overflow: hidden;
@@ -1509,6 +1887,11 @@ ngx-monaco-editor {
 }
 
 .chat {
+  .odd > * {
+    background-color: var(--bg-accent);
+    backdrop-filter: blur(1px);
+  }
+
   .gutter {
     opacity: 0.5;
   }
@@ -1555,6 +1938,11 @@ ngx-monaco-editor {
   .folder-icon {
     font-size: 32px;
     cursor: default;
+  }
+  :focus, :focus-within {
+    .folder-icon {
+      filter: drop-shadow(0 0 2px var(--border));
+    }
   }
 }
 

@@ -62,16 +62,6 @@ body.dark-theme {
     }
   }
 
-  .debug {
-    .subscription-bar:before {
-      color: var(--error);
-    }
-    footer p {
-      border-top: 2px solid var(--border);
-      border-bottom: 2px solid var(--border);
-    }
-  }
-
   background-color: var(--bg);
   background-image: url("~/assets/bg-dark.png");
   background-blend-mode: soft-light;
@@ -93,7 +83,7 @@ body.dark-theme {
     color: #5769c2;
   }
 
-  :visited {
+  :not(.actions) :visited {
     color: #c66acb;
   }
 
@@ -101,73 +91,14 @@ body.dark-theme {
     color: var(--text);
   }
 
-  .editor-help-popup {
-    justify-content: center;
-    & > * {
-      padding: 16px;
-      background-color: var(--card);
-      border: 1px solid transparent;
-      &:hover {
-        border: 1px solid var(--border);
-      }
-    }
-  }
-
-  .floating-ribbons {
-    div span {
-      border: 1px dashed var(--border);
-    }
-    div.on span {
-      border: 0.5px solid var(--border);
-    }
-  }
-
   .toolbar {
-    label {
-      border: 1px dashed var(--border);
-    }
     label.on {
-      border: 0.5px solid var(--border);
       backdrop-filter: contrast(0.1) brightness(0.6) blur(1.5px);
-    }
-  }
-
-  .context-menu {
-    background-color: var(--card);
-
-    div:hover {
-      background-color: var(--bg-accent);
     }
   }
 
   .warning {
     color: var(--warning);
-  }
-
-  .update {
-    font-size: 80%;
-    color: var(--text);
-    text-decoration: underline;
-  }
-
-  .error {
-    font-size: 80%;
-    color: var(--error);
-  }
-
-  .error-404, .error-403 {
-    color: var(--error);
-  }
-
-  .error-404.submit-button {
-    display: inline-block;
-    margin: auto;
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-
-  .tag {
-    color: var(--tag);
   }
 
   .subscription-bar {
@@ -183,12 +114,8 @@ body.dark-theme {
     }
 
     .light-toggle {
-      border-radius: 16px;
-      transition: all 0.2s;
-      border: 0.5px solid transparent;
       background-color: rgba(255, 255, 255, 0.1);
       &:hover {
-        border: 0.5px dashed var(--border);
         background-color: rgba(255, 255, 255, 0.2);
       }
     }
@@ -196,7 +123,6 @@ body.dark-theme {
 
   .tabs {
     background-color: rgba(100, 100, 100, 0.3);
-    border-bottom: 1px solid var(--border);
     .logo {
       background-image: url("~/assets/jasper-dark.png");
     }
@@ -206,49 +132,19 @@ body.dark-theme {
     }
 
     & > a {
-      background-color: var(--unselected-tab);
-      border-bottom: 1px solid var(--border);
-
       &:hover {
         background-color: #a7a7a7;
-      }
-
-      &:link, &:visited, &:active, &.fake-link {
-        color: black;
       }
 
       &.current-tab {
-        color: var(--active);
         background-color: #292929;
         background-image: url("~/assets/bg-dark.png");
         background-blend-mode: soft-light;
-        border-top: 1px solid var(--border);
-        border-left: 1px solid var(--border);
-        border-right: 1px solid var(--border);
-        border-bottom: 1px solid transparent;
       }
     }
 
-    select {
-      background-color: var(--unselected-tab);
-      border: 1px solid var(--border);
-      &:hover {
-        background-color: #a7a7a7;
-      }
-    }
-
-    .settings {
-      background-color: var(--unselected-tab);
-
-      .author {
-        color: var(--tag);
-      }
-
-      & > a {
-        &:link, &:visited, &:active, &.fake-link {
-          color: black;
-        }
-      }
+    select:hover {
+      background-color: #a7a7a7;
     }
   }
 
@@ -257,101 +153,24 @@ body.dark-theme {
     backdrop-filter: grayscale(1) contrast(0.2) brightness(0.4) blur(1px);
     box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
 
-    .submit-button {
-      border: 1px solid var(--border);
-      transition: background-color 0.2s;
-
-      &:hover {
-        background-color: rgba(255, 255, 255, 0.2);
-      }
+    .submit-button:hover {
+      background-color: rgba(255, 255, 255, 0.2);
     }
   }
 
-  details.advanced {
-    summary > span {
-      border: 1px solid var(--border);
-      border-left: none;
-      border-right: none;
-      transition: background-color 0.2s;
-
-      &:hover {
-        background-color: rgba(255, 255, 255, 0.2);
-      }
-
-      &:after {
-        filter: drop-shadow(0 0 2px var(--bg));
-      }
+  details.advanced summary > span {
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.2);
     }
-  }
 
-  .pinned .link {
-    :link, :visited, :active {
-      color: var(--mod);
+    &:after {
+      filter: drop-shadow(0 0 2px var(--bg));
     }
-  }
-
-  .list-container {
-    .list-number {
-      color: var(--info);
-    }
-  }
-
-  .log {
-    padding: 8px;
-    border-radius: 4px;
-    background-color: var(--card);
-    backdrop-filter: blur(1px);
-  }
-
-  formly-list-section .form-array:not(:nth-child(2)) > formly-field > formly-group {
-    border-top: 0.5px dashed var(--border);
   }
 
   .editor:focus-within, .bubble, .plugins-form > *, blockquote, .full-page .todo-list {
-    border-radius: 8px;
     background-color: var(--bg-accent);
     backdrop-filter: blur(1px);
-    box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
-  }
-
-  .bubble, .plugins-form > *, blockquote {
-    margin-top: 8px;
-    padding: 8px;
-    border: 1px dashed transparent;
-
-    hr {
-      border: none;
-      border-top: 0.5px dotted var(--border);
-      position: relative;
-      left: -8px;
-      width: calc(100% + 16px);
-    }
-
-    &:first-child {
-      margin: 0;
-    }
-  }
-
-  .bubble, .plugins-form > * {
-    &:hover {
-      border: 1px dashed var(--border);
-    }
-  }
-
-  .listbox .selected {
-    border: 1px dotted var(--border);
-  }
-
-  ngx-monaco-editor {
-    border: 1px solid var(--border);
-  }
-
-  .page-controls {
-    .disabled {
-      &:link, &:active, &:visited {
-        color: var(--text);
-      }
-    }
   }
 
   .thumbnail, .image-expand, video, .embed-expand, .qr-expand {
@@ -366,50 +185,12 @@ body.dark-theme {
     filter: none;
   }
 
-  .list-item:not(.full-page):not(.expand), .kanban-card {
-    &.last-selected {
-      border: 1px dashed var(--border);
-    }
-  }
-
-  .comment-container {
-    &:focus-visible {
-      border: 1px dashed var(--border);
-    }
-  }
-
   .comment-children {
     border-left: 1px dotted rgba(211, 211, 211, 0.3);
   }
 
-  .link {
-    .host {
-      color: var(--info);
-    }
-  }
-
   .toggle {
     background-color: #525252;
-  }
-
-  .info {
-    color: var(--info);
-
-    :link, :visited, a:active {
-      color: var(--tag);
-    }
-
-    .collapsed {
-      :link, :visited, a:active {
-        color: var(--info);
-      }
-    }
-  }
-
-  .ref, .form, .editor {
-    .expand {
-      border: 1px solid var(--border);
-    }
   }
 
   .thread .ref,
@@ -419,36 +200,9 @@ body.dark-theme {
     box-shadow: 1px 1px 2.5px #000;
   }
 
-  .actions, .advanced-actions {
-    :link, :visited, a:active, .fake-link {
-      color: var(--info);
-    }
-    input:invalid {
-      color: var(--error);
-    }
-  }
-
-  .no-results {
-    color: var(--error);
-  }
-
-  .load-more {
-    color: var(--info);
-  }
-
-  hr {
-    border: none;
-    border-top: 1px groove var(--border);
-  }
-
   .summary-box {
-    margin: 8px;
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px dashed transparent;
     background-color: var(--bg-accent);
     backdrop-filter: blur(1px);
-    box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
   }
 
   footer {
@@ -456,44 +210,7 @@ body.dark-theme {
       border: none;
       border-top: 1px groove var(--border-accent);
       box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.3),
-      0 6px 5px 1px rgba(0, 0, 0, 0.1);
-    }
-  }
-
-  .login-popup {
-    background-color: var(--error-bg);
-  }
-
-  .md {
-    blockquote {
-      color: var(--info);
-      border-left: 2px solid var(--info);
-    }
-
-    del {
-      color: var(--info);
-    }
-
-    hr {
-      border: none;
-      background: var(--info);
-    }
-
-    code {
-      border-radius: 2px;
-      border: 2px solid var(--bg);
-      background: var(--bg);
-    }
-
-    pre > code {
-      border-radius: unset;
-      border: none;
-      background: transparent;
-    }
-
-    table, th, tr, td {
-      border: 1px solid var(--info);
-      border-collapse: collapse;
+                  0 6px 5px 1px rgba(0, 0, 0, 0.1);
     }
   }
 
@@ -507,85 +224,17 @@ body.dark-theme {
                     0 0 1px rgba(255, 255, 255, 0.5);
       }
     }
-    .kanban-column {
-      border: 1px solid transparent;
-
-      &:hover {
-        border: 1px dashed var(--border);
-      }
-    }
-
-    .kanban-header {
-      .kanban-remove {
-        background-color: var(--placeholder);
-      }
-
-      &.cdk-drop-list-dragging {
-        .kanban-remove {
-          background-color: var(--deleting);
-        }
-      }
-    }
   }
 
   .kanban-card {
-    border-radius: 4px;
-    background-color: var(--card);
-    &.unlocked {
-      border-radius: 5px;
-      border: 0.5px dashed var(--border-accent);
-    }
-    &:hover {
-      filter: drop-shadow(0 0 0.5px var(--border));
-    }
     &.cdk-drag-preview {
       background-color: var(--card-dragging);
-    }
-    &.cdk-drag-placeholder {
-      background-color: var(--placeholder);
     }
   }
 
   .todo-item {
-    border-radius: 4px;
-    background-color: var(--card);
-    &.unlocked {
-      border-radius: 5px;
-      border: 0.5px dashed var(--border-accent);
-    }
-    &:hover {
-      filter: drop-shadow(0 0 0.5px var(--border));
-    }
     &.cdk-drag-preview {
       background-color: var(--card-dragging);
-    }
-    &.cdk-drag-placeholder {
-      background-color: var(--placeholder);
-    }
-  }
-
-  .blog {
-    .blog-entry {
-      .blog-body {
-        .expand {
-          border: none;
-        }
-      }
-    }
-  }
-
-  .chat {
-    .odd > * {
-      background-color: var(--bg-accent);
-      backdrop-filter: blur(1px);
-    }
-  }
-
-  .file, .subfolder {
-    :focus, :focus-within {
-      .folder-icon {
-        filter: drop-shadow(0 0 2px var(--border));
-      }
     }
   }
 
