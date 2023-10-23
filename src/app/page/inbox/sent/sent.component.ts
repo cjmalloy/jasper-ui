@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { AdminService } from '../../../service/admin.service';
@@ -8,11 +8,12 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  selector: 'app-sent',
+  selector: 'app-inbox-sent',
   templateUrl: './sent.component.html',
   styleUrls: ['./sent.component.scss']
 })
 export class InboxSentPage implements OnInit, OnDestroy {
+  @HostBinding('class') css = 'inbox-sent';
 
   private disposers: IReactionDisposer[] = [];
 

@@ -170,6 +170,18 @@ $tablet-width: 767px;
     }
   }
 
+  .thread .ref,
+  .full-page.ref.thread {
+    padding: 4px 2px;
+    margin: 4px;
+    .expand {
+      padding: 2px;
+    }
+    .info, .actions {
+      padding: 2px 10px;
+    }
+  }
+
   .buttons.right {
     padding-right: 27px;
   }
@@ -308,6 +320,9 @@ $tablet-width: 767px;
     .embed {
       width: calc(100vw - 10px);
     }
+    &.thread .embed {
+      width: calc(100vw - 14px);
+    }
   }
 
   .info, .actions, .advanced-actions * {
@@ -389,7 +404,7 @@ $tablet-width: 767px;
     margin-left: 2px;
   }
 
-  .full-page {
+  .full-page.ref, .thread .ref {
     .toggle.actions-toggle, .toggle.comments {
       display: none;
     }

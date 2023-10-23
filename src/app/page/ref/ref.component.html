@@ -47,9 +47,10 @@
   <app-sidebar></app-sidebar>
   <ng-container *ngIf="store.view.ref else loading">
     <app-ref class="full-page"
+             [class.thread]="store.view.current === 'ref/thread'"
              [ref]="store.view.ref"
-             [showToggle]="true"
-             [expandInline]="!config.mobile"
+             [showToggle]="store.view.current !== 'ref/thread'"
+             [expandInline]="!config.mobile || !!threads"
              [expanded]="expandedOnload && store.local.isRefToggled(store.view.url, store.view.origin, !!store.view.ref.comment)"
              (copied)="reload()"></app-ref>
     <div *ngIf="newResponses"

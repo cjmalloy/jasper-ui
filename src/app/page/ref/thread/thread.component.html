@@ -1,7 +1,9 @@
 <ng-container *mobxAutorun>
   <app-ref-list [page]="query.page"
                 [newRefs$]="newComments$"
-                [expanded]="true"></app-ref-list>
+                [showToggle]="false"
+                [expanded]="true"
+                [expandInline]="true"></app-ref-list>
   <ng-container *ngIf="store.view.ref; else loading">
     <app-comment-reply [to]="query.page?.content?.[(query.page?.content?.length || 0) - 1] || store.view.ref"
                        [top]="top"

@@ -6,32 +6,35 @@
     <app-ref class="pinned"
              [ref]="ref"
              [scrollToLatest]="true"
-             [showToggle]="true"
              [plugins]="plugins"
              [hideEdit]="ext?.config?.hideEdit"
              [disableResize]="ext?.config?.disableResize"
-             [expanded]="expanded"></app-ref>
+             [showToggle]="showToggle"
+             [expanded]="expanded"
+             [expandInline]="expandInline"></app-ref>
   </ng-container>
   <ng-container *ngFor="let ref of page?.content trackBy: trackByUrlOrigin; let i = index">
     <div class="list-number">{{ getNumber(i) }}</div>
     <app-ref [ref]="ref"
              [scrollToLatest]="true"
-             [showToggle]="true"
              [plugins]="plugins"
              [hideEdit]="ext?.config?.hideEdit"
              [disableResize]="ext?.config?.disableResize"
              [showAlarm]="showAlarm"
-             [expanded]="expanded"></app-ref>
+             [showToggle]="showToggle"
+             [expanded]="expanded"
+             [expandInline]="expandInline"></app-ref>
   </ng-container>
   <ng-container *ngFor="let ref of newRefs trackBy: trackByUrlOrigin; let i = index">
     <div class="list-number">{{ getNumber(i + (page?.content?.length || 0)) }}</div>
     <app-ref [ref]="ref"
              [scrollToLatest]="true"
-             [showToggle]="true"
              [plugins]="plugins"
              [hideEdit]="ext?.config?.hideEdit"
              [disableResize]="ext?.config?.disableResize"
-             [expanded]="expanded"></app-ref>
+             [showToggle]="showToggle"
+             [expanded]="expanded"
+             [expandInline]="expandInline"></app-ref>
   </ng-container>
 </div>
 <ng-container *ngIf="page else loading">

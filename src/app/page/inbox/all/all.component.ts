@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { AdminService } from '../../../service/admin.service';
@@ -8,11 +8,12 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  selector: 'app-all',
+  selector: 'app-inbox-all',
   templateUrl: './all.component.html',
   styleUrls: ['./all.component.scss'],
 })
 export class InboxAllPage implements OnInit, OnDestroy {
+  @HostBinding('class') css = 'inbox-all';
 
   private disposers: IReactionDisposer[] = [];
 

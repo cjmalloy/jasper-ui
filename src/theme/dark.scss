@@ -218,6 +218,12 @@ body.dark-theme {
     border-left: 1px dotted rgba(211, 211, 211, 0.3);
   }
 
+  .thread .ref, .thread.ref {
+    --thread-sent: rgba(32, 128, 255, 0.15);
+    --thread-recieved: rgba(255, 255, 255, 0.1);
+    box-shadow: 1px 1px 2.5px #000;
+  }
+
   .summary-box {
     background-color: var(--bg-accent);
     backdrop-filter: blur(1px);
