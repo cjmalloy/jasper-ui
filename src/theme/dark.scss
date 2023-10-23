@@ -412,9 +412,11 @@ body.dark-theme {
     }
   }
 
-  .thread .ref .expand,
-  .bubble .ref.expand {
-      border: none !important;
+  .thread .ref,
+  .full-page.ref.thread {
+    --thread-sent: rgba(32, 128, 255, 0.15);
+    --thread-recieved: rgba(255, 255, 255, 0.1);
+    box-shadow: 1px 1px 2.5px #000;
   }
 
   .actions, .advanced-actions {

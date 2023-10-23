@@ -349,9 +349,11 @@ body.light-theme {
     }
   }
 
-  .thread .ref .expand,
-  .bubble .ref.expand {
-    border: none !important;
+  .thread .ref,
+  .full-page.ref.thread {
+    --thread-sent: rgba(32, 32, 255, 0.1);
+    --thread-recieved: rgba(243, 235, 199, 0.3);
+    box-shadow: 1px 1px 2.5px rgba(0, 0, 0, 0.8);
   }
 
   .actions, .advanced-actions {

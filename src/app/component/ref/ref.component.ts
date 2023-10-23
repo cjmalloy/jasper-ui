@@ -463,6 +463,7 @@ export class RefComponent implements AfterViewInit, OnDestroy {
       !hasTag('internal', this.ref);
   }
 
+  @HostBinding('class.sent')
   get isAuthor() {
     return isOwnerTag(this.store.account.tag, this.ref);
   }

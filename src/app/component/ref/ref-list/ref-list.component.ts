@@ -29,6 +29,10 @@ export class RefListComponent implements OnInit, OnDestroy {
   @Input()
   emptyMessage = 'No results found';
   @Input()
+  showToggle = true;
+  @Input()
+  expandInline = true;
+  @Input()
   showVotes = false;
   @Input()
   hideNewZeroVoteScores = true;

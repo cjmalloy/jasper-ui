@@ -30,7 +30,11 @@ export class RefPage implements OnInit, OnDestroy {
     private refs: RefService,
   ) {
     store.view.clear();
-    this.disposers.push(autorun(() => this.expandedOnload = store.view.ref && (!hasTag('plugin/fullscreen', store.view.ref) || store.view.ref?.plugins?.['plugin/fullscreen']?.onload)));
+    this.disposers.push(autorun(() => {
+      this.expandedOnload = store.view.current !== 'ref/thread'
+        || store.view.ref && (!hasTag('plugin/fullscreen', store.view.ref)
+        || store.view.ref?.plugins?.['plugin/fullscreen']?.onload);
+    }));
   }
 
   get refWarning() {

@@ -256,6 +256,12 @@ $tablet-width: 767px;
     width: 100vw;
   }
 
+  .thread {
+    .embed {
+      width: calc(100vw - 64px) !important;
+    }
+  }
+
   .audio-expand {
     width: 100%;
     margin: 10px 0;
@@ -332,7 +338,7 @@ $tablet-width: 767px;
     margin-left: 2px;
   }
 
-  .full-page {
+  .full-page.ref, .thread .ref {
     .toggle.actions-toggle, .toggle.comments {
       display: none;
     }
