@@ -72,15 +72,13 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
   }
 
   get replyTags(): string[] {
-    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
+    const tags = [
       'internal',
       'plugin/comment',
       ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
-    ]));
-  }
-
-  get tagged() {
-    return interestingTags(this.store.view.ref!.tags);
+    ];
+    if (hasTag('public', this.store.view.ref)) tags.unshift('public');
+    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 }

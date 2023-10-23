@@ -116,19 +116,21 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   }
 
   get replyTags(): string[] {
-    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
+    const tags = [
       'internal',
-      hasTag('plugin/email', this.store.view.ref) ? 'plugin/email'
-      : hasTag('plugin/comment', this.store.view.ref) ? 'plugin/comment'
-      : hasTag('plugin/thread', this.store.view.ref) ? 'plugin/thread'
-      : 'plugin/comment',
       ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
-    ]));
-  }
-
-  get tagged() {
-    return interestingTags(this.store.view.ref!.tags);
+    ];
+    if (hasTag('public', this.store.view.ref)) tags.unshift('public');
+    if (hasTag('plugin/email', this.store.view.ref)) {
+      tags.push('plugin/email');
+      tags.push('plugin/thread')
+    } else if (hasTag('plugin/thread', this.store.view.ref)) {
+      tags.push('plugin/thread');
+    } else {
+      tags.push('plugin/comment');
+    }
+    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
   get moreComments() {
