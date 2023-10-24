@@ -1,6 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
+import flatten from 'css-flatten';
 import { autorun, runInAction } from 'mobx';
 import { of } from 'rxjs';
 import { Store } from '../store/store';
@@ -11,6 +12,8 @@ import { ConfigService } from './config.service';
   providedIn: 'root',
 })
 export class ThemeService {
+
+  nesting = CSS.supports('selector(& > *)');
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -52,7 +55,9 @@ export class ThemeService {
     const head = this.document.getElementsByTagName('head')[0];
     const style = this.document.createElement('style');
     style.id = id;
-    for (const css of cs) style.innerHTML += css + '\n\n';
+    for (const css of cs) {
+      style.innerHTML += (this.nesting ? css : flatten(css || '')) + '\n\n';
+    }
     head.appendChild(style);
   }
 
