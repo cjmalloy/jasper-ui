@@ -17,6 +17,7 @@ import * as moment from 'moment/moment';
 import { catchError, Observable, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
+import { backgammonRngDicePlugin } from '../../mods/backgammon';
 import { seed } from '../../mods/root';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -191,8 +192,23 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!value || newRef) {
       this.watches.forEach(w => w.unsubscribe());
       this.watches = [];
-      if (value) this.ngOnInit();
+      if (value) {
+        if (this.rngOn && !hasTag('plugin/rng', value)) {
+          this.tags.create('plugin/rng', value.url, this.store.account.origin).subscribe(c => {
+            if (moment(c).isAfter(this.cursor)) {
+              this.cursor = c;
+              value.tags ||= [];
+              value.tags.push('plugin/rng')
+            }
+          });
+        }
+        this.ngOnInit();
+      }
     }
+  }
+
+  get rngOn() {
+    return hasTag('plugin/backgammon/rng.dice', this.ref);
   }
 
   get local() {
@@ -309,7 +325,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
         const ds = p === 'r' ? this.redDice : this.blackDice;
         ds[0] = parseInt(m[2]);
         ds[1] = parseInt(m[4]);
-        if (checkRng) {
+        if (this.rngOn && checkRng) {
           if (!this.remoteSeed) {
             if (!window.confirm($localize`Dice are not random! Allow?`)) return;
           }
@@ -778,24 +794,26 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   roll(p: Piece, retry = 3): any {
     this.rolling = p;
     if (!this.writeAccess) throw $localize`Access Denied`;
-    if (!this.localPlay && (!this.seed || this.remoteCursor && moment(this.cursor).isBefore(moment(this.remoteCursor)))) {
-      switch (retry) {
-        case 3: return this.save().subscribe(() => defer(() => this.roll(p, 2)));
-        case 2: return delay(() => this.roll(p, 0), 2000);
-        case 1: return delay(() => this.roll(p, 1), 400);
-        case 0:
-        if ((!this.seed || this.remoteCursor) && !window.confirm($localize`Still waiting for seed... switch to local play?`)) {
-          delete this.rolling;
-          return;
-        } else {
-          this.localPlay = true;
+    if (this.rngOn) {
+      if (!this.localPlay && (!this.seed || this.remoteCursor && moment(this.cursor).isBefore(moment(this.remoteCursor)))) {
+        switch (retry) {
+          case 3: return this.save().subscribe(() => defer(() => this.roll(p, 2)));
+          case 2: return delay(() => this.roll(p, 0), 2000);
+          case 1: return delay(() => this.roll(p, 1), 400);
+          case 0:
+            if ((!this.seed || this.remoteCursor) && !window.confirm($localize`Still waiting for seed... switch to local play?`)) {
+              delete this.rolling;
+              return;
+            } else {
+              this.localPlay = true;
+            }
         }
       }
-    }
-    if (!this.localPlay && this.seed && this.lastRoll === this.seed) {
-      if (!window.confirm($localize`Not your turn. Really roll?`)) {
-        delete this.rolling;
-        return;
+      if (!this.localPlay && this.seed && this.lastRoll === this.seed) {
+        if (!window.confirm($localize`Not your turn. Really roll?`)) {
+          delete this.rolling;
+          return;
+        }
       }
     }
     const ds = p === 'r' ? this.redDice : this.blackDice;

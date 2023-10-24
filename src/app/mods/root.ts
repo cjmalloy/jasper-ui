@@ -3,7 +3,6 @@ import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Template } from '../model/template';
-import { hasPrefix } from '../util/tag';
 
 export const rootTemplate: Template = {
   tag: '',

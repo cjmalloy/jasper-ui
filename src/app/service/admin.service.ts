@@ -12,7 +12,7 @@ import { Template } from '../model/template';
 import { aiPlugin, aiQueryPlugin, dallePlugin, dalleQueryPlugin } from '../mods/ai';
 import { archivePlugin } from '../mods/archive';
 import { audioPlugin } from '../mods/audio';
-import { backgammonPlugin, backgammonTemplate } from "../mods/backgammon";
+import { backgammonPlugin, backgammonRngDicePlugin, backgammonTemplate } from '../mods/backgammon';
 import { banlistConfig } from '../mods/banlist';
 import { blogTemplate } from '../mods/blog';
 import { chatTemplate } from '../mods/chat';
@@ -145,6 +145,7 @@ export class AdminService {
       pipPlugin: pipPlugin,
       chessPlugin: chessPlugin,
       backgammonPlugin: backgammonPlugin,
+      backgammonRngDicePlugin: backgammonRngDicePlugin,
       pollPlugin: pollPlugin,
       pollPluginA: pollOptionAPlugin,
       pollPluginB: pollOptionBPlugin,
