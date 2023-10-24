@@ -12,7 +12,7 @@ import { Template } from '../model/template';
 import { aiPlugin, aiQueryPlugin, dallePlugin, dalleQueryPlugin } from '../mods/ai';
 import { archivePlugin } from '../mods/archive';
 import { audioPlugin } from '../mods/audio';
-import { backgammonPlugin, backgammonTemplate } from "../mods/backgammon";
+import { backgammonPlugin, backgammonRngDicePlugin, backgammonTemplate } from '../mods/backgammon';
 import { banlistConfig } from '../mods/banlist';
 import { blogTemplate } from '../mods/blog';
 import { chatTemplate } from '../mods/chat';
@@ -59,7 +59,7 @@ import {
   queueTemplate
 } from '../mods/queue';
 import { repostPlugin } from '../mods/repost';
-import { rootTemplate } from '../mods/root';
+import { rngPlugin, rootTemplate } from '../mods/root';
 import { scrapePlugin } from '../mods/scrape';
 import { seamlessPlugin } from '../mods/seamless';
 import { snippetConfig } from '../mods/snippet';
@@ -139,11 +139,13 @@ export class AdminService {
       voteUp: voteUpPlugin,
       voteDown: voteDownPlugin,
 
+      rngPlugin: rngPlugin,
       imagePlugin: imagePlugin,
       lensPlugin: lensPlugin,
       pipPlugin: pipPlugin,
       chessPlugin: chessPlugin,
       backgammonPlugin: backgammonPlugin,
+      backgammonRngDicePlugin: backgammonRngDicePlugin,
       pollPlugin: pollPlugin,
       pollPluginA: pollOptionAPlugin,
       pollPluginB: pollOptionBPlugin,

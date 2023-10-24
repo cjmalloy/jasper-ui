@@ -24,7 +24,7 @@ import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { hasComment } from '../../util/format';
 import { UrlFilter } from '../../util/query';
-import { hasTag } from '../../util/tag';
+import { expandedTagsInclude, hasTag, includesTag } from '../../util/tag';
 
 @Component({
   selector: 'app-viewer',
@@ -102,10 +102,10 @@ export class ViewerComponent implements AfterViewInit {
     this.imageUrl = this.getImageUrl();
     this.pdfUrl = this.getPdfUrl();
     this.qrUrl = this.getQrUrl();
-    this.playlist = !!this.admin.getPlugin('plugin/playlist') && this.currentTags.includes('plugin/playlist');
-    this.todo = !!this.admin.getPlugin('plugin/todo') && this.currentTags.includes('plugin/todo');
-    this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && this.currentTags.includes('plugin/backgammon');
-    this.chess = !!this.admin.getPlugin('plugin/chess') && this.currentTags.includes('plugin/chess');
+    this.playlist = !!this.admin.getPlugin('plugin/playlist') && includesTag('plugin/playlist', this.currentTags);
+    this.todo = !!this.admin.getPlugin('plugin/todo') && includesTag('plugin/todo', this.currentTags);
+    this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && includesTag('plugin/backgammon', this.currentTags);
+    this.chess = !!this.admin.getPlugin('plugin/chess') && includesTag('plugin/chess', this.currentTags);
     this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
     this.uis = this.admin.getPluginUi(this.currentTags);
     if (this.ref && hasTag('plugin/repost', this.ref)) {
