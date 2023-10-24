@@ -294,7 +294,10 @@ $tablet-width: 767px;
   }
 
   .ref {
-    max-width: calc(min(100%, 100vw - 20px));
+    max-width: 100vw;
+    .row {
+      max-width: calc(100vw - 12px);
+    }
     .info, .actions {
       height: 0;
 
