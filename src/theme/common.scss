@@ -820,6 +820,11 @@ formly-list-section .form-array > formly-field > formly-group {
     flex: 1;
     flex-basis: 100%;
   }
+
+  select {
+    margin-left: 0;
+    margin-right: 0;
+  }
 }
 
 .drag-handle {
