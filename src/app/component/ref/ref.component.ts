@@ -275,10 +275,8 @@ export class RefComponent implements AfterViewInit, OnDestroy {
   @ViewChild(RefFormComponent)
   set refForm(value: RefFormComponent) {
     if (!value) return;
-    defer(() => {
-      value.setRef(this.ref);
-      this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
-    });
+    value.setRef(this.ref);
+    this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
   }
 
   @HostListener('fullscreenchange')

@@ -10,6 +10,7 @@ import {
   ViewChildren
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { defer } from 'lodash-es';
 import { toJS } from 'mobx';
 import { Plugin } from '../../model/plugin';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
@@ -87,9 +88,7 @@ export class PluginsFormComponent implements AfterViewInit {
   setValue(value: any) {
     value = toJS(value);
     this.plugins.patchValue(value);
-    if (this.gens) {
-      this.gens.forEach(g => g.setValue(value))
-    }
+    defer(() => this.gens!.forEach(g => g.setValue(value)));
   }
 
   updateForm() {

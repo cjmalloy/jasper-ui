@@ -163,11 +163,11 @@ export class RefFormComponent implements OnInit {
     this.alts.model = [...ref?.alternateUrls || []];
     this.tags.model = [...ref.tags || []];
     this.group.setControl('plugins', pluginsForm(this.fb, this.admin, ref.tags || []));
+    this.plugins.setValue(ref.plugins);
     this.group.patchValue({
       ...ref,
       published: ref.published ? ref.published.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : undefined,
     });
-    defer(() => this.plugins.setValue(ref.plugins));
   }
 }
 
