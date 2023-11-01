@@ -92,7 +92,6 @@ export class CommentEditComponent implements AfterViewInit {
         value: s,
       });
     }
-    const alts = this.patchAlts;
     for (const alt of this.patchAlts) {
       patches.push({
         op: 'add',
