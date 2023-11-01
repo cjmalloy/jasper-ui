@@ -96,7 +96,7 @@ export class CommentReplyComponent implements AfterViewInit {
     const value = this.comment.value;
     this.comment.setValue('');
     this.editor?.syncText('');
-    const ref = {
+    const ref: Ref = {
       url,
       origin: this.store.account.origin,
       title: hasTag('plugin/email', this.to) ? getRe(this.to.title) : '',
@@ -118,7 +118,9 @@ export class CommentReplyComponent implements AfterViewInit {
       published: moment(),
     };
     this.refs.create(ref).pipe(
-      tap(() => {
+      tap(cursor => {
+        ref.modifiedString = cursor;
+        ref.modified = moment(cursor);
         if (this.admin.getPlugin('plugin/vote/up')) {
           this.ts.createResponse('plugin/vote/up', url).subscribe();
         }
