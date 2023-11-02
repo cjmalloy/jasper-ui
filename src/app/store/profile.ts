@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { autorun, makeAutoObservable, observable, runInAction } from 'mobx';
+import { action, autorun, makeObservable, observable, runInAction } from 'mobx';
 import { catchError, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { Profile, ProfilePageArgs } from '../model/profile';
@@ -11,17 +11,17 @@ import { ProfileService } from '../service/api/profile.service';
 })
 export class ProfileStore {
 
+  @observable.struct
   args?: ProfilePageArgs = {} as any;
+  @observable.ref
   page?: Page<Profile> = {} as any;
+  @observable
   error?: HttpErrorResponse = {} as any;
 
   constructor(
     private profiles: ProfileService,
   ) {
-    makeAutoObservable(this, {
-      args: observable.struct,
-      page: observable.ref,
-    });
+    makeObservable(this);
     this.clear(); // Initial observables may not be null for MobX
     autorun(() => {
       runInAction(() => {
@@ -39,12 +39,14 @@ export class ProfileStore {
     });
   }
 
+  @action
   clear() {
     this.args = undefined;
     this.page = undefined;
     this.error = undefined;
   }
 
+  @action
   setArgs(args: ProfilePageArgs) {
     this.args = args;
   }

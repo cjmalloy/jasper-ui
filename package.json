@@ -40,7 +40,7 @@
     "jszip": "^3.10.1",
     "jtd": "^0.1.1",
     "lodash-es": "^4.17.21",
-    "mobx": "^6.10.0",
+    "mobx": "^6.11.0-pre",
     "mobx-angular": "^4.7.2",
     "moment": "^2.29.4",
     "monaco-editor": "^0.44.0",
@@ -89,7 +89,8 @@
     "mobx-angular": {
       "@angular/common": "$@angular/common",
       "@angular/core": "$@angular/core",
-      "@angular/cdk": "$@angular/cdk"
+      "@angular/cdk": "$@angular/cdk",
+      "mobx": "$mobx"
     },
     "dagre-d3": {
       "d3": "$d3"

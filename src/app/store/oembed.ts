@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { makeAutoObservable, observable, runInAction } from 'mobx';
+import { action, makeObservable, observable, runInAction } from 'mobx';
 import { catchError, Observable, of, shareReplay, Subject } from 'rxjs';
 import { Oembed } from '../model/oembed';
 import { OEmbedService } from '../service/api/oembed.service';
@@ -9,6 +9,7 @@ import { OEmbedService } from '../service/api/oembed.service';
 })
 export class OembedStore {
 
+  @observable.ref
   cache = new Map<string, Observable<Oembed | null>>();
 
   private loading: (() => void)[] = [];
@@ -16,11 +17,10 @@ export class OembedStore {
   constructor(
     private oembeds: OEmbedService,
   ) {
-    makeAutoObservable(this, {
-      cache: observable.ref,
-    });
+    makeObservable(this);
   }
 
+  @action
   get(url: string, theme?: string, maxwidth?: number, maxheight?: number) {
     const key = `${url}-${theme}-${maxwidth}-${maxheight}`;
     if (!this.cache.has(key)) {

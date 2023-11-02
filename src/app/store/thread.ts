@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { action, makeAutoObservable, observable, runInAction } from 'mobx';
+import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 import { catchError, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs, RefSort } from '../model/ref';
@@ -12,30 +12,27 @@ import { getArgs, UrlFilter } from '../util/query';
 })
 export class ThreadStore {
 
+  @observable
   defaultBatchSize = 500;
+  @observable.struct
   args?: RefPageArgs = {} as any;
+  @observable.ref
   pages: Page<Ref>[] = [];
+  @observable
   error?: HttpErrorResponse = {} as any;
+  @observable.ref
   cache = new Map<string | undefined, Ref[]>();
+  @observable.ref
   latest: Ref[] = [];
 
   constructor(
     private refs: RefService,
   ) {
-    makeAutoObservable(this, {
-      args: observable.struct,
-      cache: observable.ref,
-      pages: observable.ref,
-      latest: observable.ref,
-      clear: action,
-      setArgs: action,
-      add: action,
-      addPage: action,
-      loadMore: action,
-    });
+    makeObservable(this);
     this.clear(); // Initial observables may not be null for MobX
   }
 
+  @action
   clear() {
     this.error = undefined;
     this.args = {
@@ -46,6 +43,7 @@ export class ThreadStore {
     this.cache.clear();
   }
 
+  @action
   setArgs(top: Ref, sort?: RefSort | RefSort[], filters?: UrlFilter[], search?: string) {
     this.clear();
     this.args = {
@@ -57,6 +55,7 @@ export class ThreadStore {
     this.loadMore();
   }
 
+  @action
   add(ref: Ref) {
     if (this.cache.has(ref.sources?.[0])) {
       const arr = this.cache.get(ref.sources?.[0])!;
@@ -66,6 +65,7 @@ export class ThreadStore {
     }
   }
 
+  @action
   addPage(page: Page<Ref>) {
     if (!page.content.length) return;
     this.pages.push(page);
@@ -112,6 +112,7 @@ export class ThreadStore {
     }));
   }
 
+  @computed
   get hasMore() {
     if (!this.pages.length) return false;
     return this.pages.length < this.pages[0].totalPages;

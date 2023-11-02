@@ -1,58 +1,66 @@
 import { assign, difference, max, min, pull, pullAll, remove } from 'lodash-es';
-import { makeAutoObservable, observable } from 'mobx';
-import { RouterStore } from 'mobx-angular';
+import { action, computed, makeObservable, observable } from 'mobx';
 import { Page } from '../model/page';
 import { RefNode } from '../model/ref';
 import { findNode, graphable, GraphLink, GraphNode, links, linkSources, unloadedReferences } from '../util/graph';
 
 export class GraphStore {
 
+  @observable.shallow
   selected: GraphNode[] = [];
+  @observable.shallow
   nodes: GraphNode[] = [];
+  @observable.shallow
   links: GraphLink[] = [];
+  @observable
   loading: string[] = [];
+  @observable
   timeline = false;
+  @observable
   arrows = false;
+  @observable
   showUnloaded = true;
 
-  constructor(
-    public route: RouterStore,
-  ) {
-    makeAutoObservable(this, {
-      selected: observable.shallow,
-      nodes: observable.shallow,
-      links: observable.shallow,
-    });
+  constructor() {
+    makeObservable(this);
   }
 
+  @computed
   get unloaded(): string[] {
     return this.nodes.filter(n => n.unloaded).map(n => n.url);
   }
 
+  @computed
   get graphable(): GraphNode[] {
     return graphable(...this.nodes);
   }
 
+  @computed
   get unloadedNotLoading(): string[] {
     return difference(this.unloaded, this.loading);
   }
 
+  @computed
   get selectedPage() {
     return Page.of(this.selected.filter(s => !s.unloaded));
   }
 
+  @computed
   get minPublished() {
     return min(this.graphable.map(r => r.published).filter(p => !!p));
   }
 
+  @computed
   get maxPublished() {
     return max(this.graphable.map(r => r.published).filter(p => !!p));
   }
 
+  @computed
   get publishedDiff() {
     return this.maxPublished?.diff(this.minPublished) || 0;
   }
 
+  @action
   set(refs: RefNode[]) {
     this.loading = [];
     this.nodes = [...refs];
@@ -63,6 +71,7 @@ export class GraphStore {
     this.links = links(this.nodes, ...this.nodes);
   }
 
+  @action
   load(...refs: RefNode[]) {
     for (const ref of refs) {
       const found = findNode(this.nodes, ref.url);
@@ -83,6 +92,7 @@ export class GraphStore {
     pullAll(this.loading, refs.map(r => r.url));
   }
 
+  @action
   remove(refs: RefNode[]) {
     pullAll(this.nodes, refs);
     pullAll(this.selected, refs);
@@ -91,6 +101,7 @@ export class GraphStore {
     }
   }
 
+  @action
   toggleShowUnloaded() {
     this.showUnloaded = !this.showUnloaded;
     if (this.showUnloaded) {
@@ -103,18 +114,22 @@ export class GraphStore {
     this.links = links(this.nodes, ...this.nodes);
   }
 
+  @action
   select(...refs: GraphNode[]) {
     this.selected = [...refs];
   }
 
+  @action
   selectAll() {
     this.selected = [...this.nodes];
   }
 
+  @action
   clearSelection() {
     this.selected.length = 0;
   }
 
+  @action
   getLoading(number: number) {
     if (this.unloadedNotLoading.length === 0) return [];
     const more = this.unloadedNotLoading.slice(0, number);
@@ -122,10 +137,12 @@ export class GraphStore {
     return more;
   }
 
+  @action
   startLoading(...url: string[]) {
     this.loading.push(...url);
   }
 
+  @action
   notFound(url: string) {
     let ref = findNode(this.nodes, url);
     if (!ref) {
@@ -143,6 +160,7 @@ export class GraphStore {
     return ref;
   }
 
+  @action
   grabNodeOrSelection(ref: RefNode) {
     if (!this.selected.includes(ref)) {
       this.selected = [ref];

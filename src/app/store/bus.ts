@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { makeAutoObservable, observable, reaction, toJS } from 'mobx';
+import { action, makeObservable, observable, reaction, toJS } from 'mobx';
 import { catchError, Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
@@ -7,29 +7,28 @@ import { printError } from '../util/http';
 
 export class EventBus {
 
+  @observable
   event = '';
+  @observable.ref
   ref?: Ref = {} as any;
+  @observable
   repost?: Ref = {} as any;
+  @observable.shallow
   errors: string[] = [];
 
   constructor() {
-    makeAutoObservable(this, {
-      ref: observable.ref,
-      errors: observable.shallow,
-      runAndReload: false,
-      runAndRefresh: false,
-      catchError$: false,
-      isRef: false,
-    });
+    makeObservable(this);
     reaction(() => this.event, () => console.log('🚌️ Event Bus:', this.event, this.event === 'error' ? toJS(this.errors) : '', toJS(this.ref)));
   }
 
+  @action
   fire(event: string, ref?: Ref, repost?: Ref) {
     this.event = event;
     this.ref = ref;
     this.repost = repost;
   }
 
+  @action
   fireError(errors: string[], ref?: Ref) {
     this.event = 'error';
     this.errors = [...errors];
@@ -42,6 +41,7 @@ export class EventBus {
    * Download latest revision of ref from the server and then trigger the
    * 'refresh' event.
    */
+  @action
   reload(ref?: Ref) {
     this.event = 'reload';
     if (ref) {
@@ -53,6 +53,7 @@ export class EventBus {
   /**
    * Notify latest version of ref is not available.
    */
+  @action
   refresh(ref?: Ref) {
     this.event = 'refresh';
     if (ref) {

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { autorun, makeAutoObservable, observable, runInAction } from 'mobx';
+import { action, autorun, makeObservable, observable, runInAction } from 'mobx';
 import { catchError, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { TagPageArgs } from '../model/tag';
@@ -12,17 +12,17 @@ import { TemplateService } from '../service/api/template.service';
 })
 export class TemplateStore {
 
+  @observable.struct
   args?: TagPageArgs = {} as any;
+  @observable.ref
   page?: Page<Template> = {} as any;
+  @observable
   error?: HttpErrorResponse = {} as any;
 
   constructor(
     private templates: TemplateService,
   ) {
-    makeAutoObservable(this, {
-      args: observable.struct,
-      page: observable.ref,
-    });
+    makeObservable(this);
     this.clear(); // Initial observables may not be null for MobX
     autorun(() => {
       runInAction(() => {
@@ -30,29 +30,30 @@ export class TemplateStore {
         this.error = undefined;
       });
       if (this.args) {
-        this.refresh();
+        this.templates.page(this.args).pipe(
+          catchError((err: HttpErrorResponse) => {
+            runInAction(() => this.error = err);
+            return throwError(() => err);
+          }),
+        ).subscribe(p => runInAction(() => this.page = p));
       }
     });
   }
 
+  @action
   clear() {
     this.args = undefined;
     this.page = undefined;
     this.error = undefined;
   }
 
+  @action
   setArgs(args: TagPageArgs) {
     this.args = args;
   }
 
+  @action
   refresh() {
-    if (!this.args) return;
-    this.templates.page(this.args).pipe(
-      catchError((err: HttpErrorResponse) => {
-        runInAction(() => this.error = err);
-        return throwError(() => err);
-      }),
-    ).subscribe(p => runInAction(() => this.page = p));
+    this.args = { ...this.args };
   }
-
 }
