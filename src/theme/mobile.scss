@@ -187,11 +187,17 @@ $tablet-width: 767px;
   textarea {
     margin: 0;
     resize: vertical;
-    width: calc(100vw - 12px) !important;
+    width: 100% !important;
   }
 
   .editor textarea {
     margin-left: -3px;
+  }
+
+  .app-comment-reply, app-comment-edit {
+    .editor textarea {
+      margin-left: -11px;
+    }
   }
 
   .json-editor ngx-monaco-editor {
@@ -239,21 +245,17 @@ $tablet-width: 767px;
     .comment-children {
       margin-left: 2px;
     }
-
-    .comment-container {
-      max-width: calc(100% - 8px);
-    }
   }
 
   .comment-reply, .comment-edit {
-    width: calc(100vw - 8px);
+    width: calc(min(100%, 100vw - 8px));
   }
 
-  .embed {
+  .embed:not(.comment-body) {
     position: relative;
     left: 0;
     margin: 0;
-    width: 100vw;
+    width: calc(min(100%, 100vw - 8px));
   }
 
   .audio-expand {
