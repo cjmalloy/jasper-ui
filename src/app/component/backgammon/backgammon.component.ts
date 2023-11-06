@@ -70,6 +70,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   rolling?: Piece;
   dragSource = -1;
   writeAccess = false;
+  lastTie = 0;
   redDice: number[] = [];
   blackDice: number[] = [];
   diceUsed: number[] = [];
@@ -355,10 +356,12 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
         this.diceUsed = [];
         if (!this.turn && this.redDice[0] && this.blackDice[0]) {
           if (this.redDice[0] === this.blackDice[0]) {
+            this.lastTie = this.redDice[0];
             this.redDice = [];
             this.blackDice = [];
           } else {
             this.turn = this.redDice[0] > this.blackDice[0] ? 'r' : 'b';
+            this.lastTie = 0;
           }
         } else if (this.turn) {
           this.turn = p;
@@ -728,11 +731,13 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
       this.board.push(`${p} ${ds[0]}-${ds[1]}`)
     }
     if (!this.turn && this.redDice[0] && this.blackDice[0]) {
-      if (this.redDice[0] === this.blackDice[0]) {
+      if (this.redDice[0] !== this.blackDice[0]) {
+        this.lastTie = this.redDice[0];
         this.redDice = [];
         this.blackDice = [];
       } else {
         this.turn = this.redDice[0] > this.blackDice[0] ? 'r' : 'b';
+        this.lastTie = 0;
       }
     }
     this.rolling = p;

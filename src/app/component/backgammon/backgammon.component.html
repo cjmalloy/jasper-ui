@@ -94,10 +94,8 @@
     <span *ngIf="gammon && !backgammon" i18n-title title="Gammon">🎲️🎲️</span>
     <span *ngIf="!gammon">🎲️</span>
   </div>
-  <div *ngIf="!redDice[0] else redStarted" i18n>🎲️ Roll</div>
-  <ng-template #redStarted>
-    <div *ngIf="redDice[0] && !redDice[1] else redRolled" i18n>{{ redDice[0] }}</div>
-  </ng-template>
+  <div *ngIf="!redDice[0]" i18n>🎲️ Roll</div>
+  <div *ngIf="lastTie || redDice[0] && !redDice[1] else redRolled" i18n>{{ redDice[0] || lastTie }}</div>
   <ng-template #redRolled>
     <div *ngIf="redDice[1]" i18n>{{ redDice[0] }} - {{ redDice[1] }}</div>
   </ng-template>
@@ -118,10 +116,8 @@
     <span *ngIf="gammon && !backgammon" i18n-title title="Gammon">🎲️🎲️</span>
     <span *ngIf="!gammon">🎲️</span>
   </div>
-  <div *ngIf="!blackDice[0] else blackStarted" i18n>🎲️ Roll</div>
-  <ng-template #blackStarted>
-    <div *ngIf="blackDice[0] && !blackDice[1] else blackRolled" i18n>{{ blackDice[0] }}</div>
-  </ng-template>
+  <div *ngIf="!blackDice[0]" i18n>🎲️ Roll</div>
+  <div *ngIf="lastTie || blackDice[0] && !blackDice[1] else blackRolled" i18n>{{ blackDice[0] || lastTie }}</div>
   <ng-template #blackRolled>
     <div *ngIf="blackDice[1]" i18n>{{ blackDice[0] }} - {{ blackDice[1] }}</div>
   </ng-template>
