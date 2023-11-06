@@ -20,13 +20,12 @@ import { Router } from '@angular/router';
 import { defer, pick, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, ignoreElements, Subscription, switchMap, throwError } from 'rxjs';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
-import { equalsRef, findExtension, Ref, writeRef } from '../../model/ref';
+import { equalsRef, Ref, writeRef } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
-import { findArchive } from '../../mods/archive';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { ActionService } from '../../service/action.service';
@@ -62,7 +61,6 @@ import {
   includesTag,
   isOwnerTag,
   localTag,
-  prefix,
   removeTag,
   subOrigin,
   tagOrigin
@@ -838,8 +836,8 @@ export class RefComponent implements AfterViewInit, OnDestroy {
   }
 
   delete() {
-    (hasTag('locked', this.ref) ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin).pipe(map(() => {}))
-      : this.admin.getPlugin('plugin/delete') ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
+    (hasTag('locked', this.ref) ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin).pipe(ignoreElements())
+      : this.admin.getPlugin('plugin/delete') ? this.refs.update(deleteNotice(this.ref)).pipe(ignoreElements())
       : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
       catchError((err: HttpErrorResponse) => {

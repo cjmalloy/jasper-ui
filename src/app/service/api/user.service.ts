@@ -47,8 +47,8 @@ export class UserService {
     );
   }
 
-  update(user: User): Observable<void> {
-    return this.http.put<void>(this.base, writeUser(user)).pipe(
+  update(user: User): Observable<string> {
+    return this.http.put<string>(this.base, writeUser(user)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }

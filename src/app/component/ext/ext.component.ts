@@ -4,7 +4,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { isObject } from 'lodash-es';
 import { toJS } from 'mobx';
-import { catchError, map, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, ignoreElements, Observable, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { Ext, writeExt } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -203,7 +203,7 @@ export class ExtComponent implements OnInit {
 
   delete() {
     (this.admin.getPlugin('plugin/delete') ?
-      this.exts.update(tagDeleteNotice(this.ext)).pipe(map(() => {})) :
+      this.exts.update(tagDeleteNotice(this.ext)).pipe(ignoreElements()) :
       this.exts.delete(this.qualifiedTag)).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);

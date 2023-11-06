@@ -2,7 +2,7 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { Router } from '@angular/router';
 import { uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { map, Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';

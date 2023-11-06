@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
-import { catchError, map, switchMap, throwError } from 'rxjs';
+import { catchError, ignoreElements, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
 import { AdminService } from '../../../service/admin.service';
@@ -224,7 +224,7 @@ export class ChatEntryComponent {
 
   delete() {
     (this.admin.getPlugin('plugin/delete')
-        ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
+        ? this.refs.update(deleteNotice(this.ref)).pipe(ignoreElements())
         : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
       catchError((err: HttpErrorResponse) => {
