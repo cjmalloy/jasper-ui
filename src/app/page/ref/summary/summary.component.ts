@@ -59,7 +59,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
     }));
-    this.newComments$.subscribe(c => {
+    this.newComments$.subscribe(c => runInAction(() => {
       if (c && this.store.view.ref) {
         this.store.view.ref.metadata ||= {};
         this.store.view.ref.metadata.plugins ||= {} as any;
@@ -72,7 +72,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
           this.store.view.ref.metadata.plugins!['plugin/thread']++;
         }
       }
-    });
+    }));
   }
 
   ngOnDestroy() {
