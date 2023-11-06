@@ -118,6 +118,7 @@ export const rootTemplate: Template = {
   },
   schema: {
     optionalProperties: {
+      showPinAction: { type: 'boolean' },
       pinned: { elements: { type: 'string' } },
       sidebar: { type: 'string' },
       modmail: { type: 'boolean' },
@@ -152,6 +153,7 @@ export const rootTemplate: Template = {
 };
 
 export interface RootConfig {
+  showPinAction?: boolean;
   pinned?: string[];
   sidebar?: string;
   modmail?: boolean;
