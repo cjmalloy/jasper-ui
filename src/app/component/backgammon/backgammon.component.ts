@@ -72,6 +72,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   writeAccess = false;
   redDice: number[] = [];
   blackDice: number[] = [];
+  redPipsOff = 0;
+  blackPipsOff = 0;
   diceUsed: number[] = [];
   @HostBinding('class.loaded')
   loaded = false;
@@ -280,10 +282,12 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get redPips() {
+    // return 15 - this.redPipsOff;
     return this.spots.flatMap(s => s.pieces.filter(p => p === 'r')).length;
   }
 
   get blackPips() {
+    // return 15 - this.blackPipsOff;
     return this.spots.flatMap(s => s.pieces.filter(p => p === 'b')).length;
   }
 
@@ -413,6 +417,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         hit = true;
         this.bar.push(p === 'r' ? 'b' : 'r');
+        p === 'r' ? this.blackPipsOff++ : this.redPipsOff++;
         hop.length = 0;
       }
     }
@@ -422,6 +427,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
       this.pushMove(p, from, to, hit);
     } else if (current.length === 1) {
       this.bar.push(current[0]);
+      p === 'r' ? this.blackPipsOff++ : this.redPipsOff++;
       current[0] = p;
       this.pushMove(p, from, to, hit);
     }
