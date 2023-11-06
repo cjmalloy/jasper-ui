@@ -1,7 +1,8 @@
 <div class="container"
      [class.debug]="debug"
      (dragover)="dragOver($event)"
-     (drop)="drop($event)">
+     (drop)="drop($event)"
+     cdkDropListGroup>
   <app-login-popup></app-login-popup>
   <app-subscription-bar></app-subscription-bar>
   <router-outlet></router-outlet>
