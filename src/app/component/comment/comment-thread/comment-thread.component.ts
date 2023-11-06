@@ -11,7 +11,7 @@ import { ThreadStore } from '../../../store/thread';
   styleUrls: ['./comment-thread.component.scss']
 })
 export class CommentThreadComponent implements OnInit, OnDestroy {
-  @HostBinding('class') css = 'comment-list';
+  @HostBinding('class') css = 'comment-thread';
   private destroy$ = new Subject<void>();
   private disposers: IReactionDisposer[] = [];
 
