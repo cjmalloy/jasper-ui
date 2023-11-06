@@ -5,6 +5,7 @@ import * as moment from 'moment';
 import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
+import { Cursor } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
@@ -28,7 +29,7 @@ export class ChatComponent implements OnDestroy {
   viewport!: CdkVirtualScrollViewport;
 
   _query!: string;
-  cursor?: string;
+  cursors: Cursor[] = [];
   loadingPrev = false;
   plugins = this.store.account.defaultEditors(['plugin/latex']);
   lastPoll = moment();
@@ -44,7 +45,7 @@ export class ChatComponent implements OnDestroy {
   private timeoutId?: number;
   private retries = 0;
   private lastScrolled = 0;
-  private watch?: Subscription;
+  private watches: Subscription[] = [];
 
   constructor(
     private config: ConfigService,
@@ -78,10 +79,10 @@ export class ChatComponent implements OnDestroy {
 
   clear() {
     this.messages = undefined;
-    this.cursor = undefined;
+    this.cursors = [];
     this.loadPrev(true);
     if (this.config.websockets) {
-      this.watch?.unsubscribe();
+      this.watches.forEach(w => w.unsubscribe());
       this.watch = this.stomps.watchTag(this.query).pipe(
         takeUntil(this.destroy$),
       ).subscribe(() =>  this.refresh());
@@ -92,11 +93,14 @@ export class ChatComponent implements OnDestroy {
 
   loadMore() {
     this.clearPoll();
-    if (!this.cursor) {
+    if (!this.cursors.length) {
       this.loadPrev(true);
       return;
     }
     this.lastPoll = moment();
+    for (const cursor of cursors) {
+
+    }
     this.refs.page({
       ...getArgs(
         this.query,
@@ -148,6 +152,12 @@ export class ChatComponent implements OnDestroy {
       if (!this.messages) this.messages = [];
       this.cursor ??= page.content[0]?.modifiedString;
       this.messages = [...page.content.reverse(), ...this.messages];
+      page.content.forEach(r => {
+        const cursor = this.cursors.find(c => c.origin === r.origin);
+        if (!cursor) {
+          this.cursors.push({ origin: r.origin, modifiedString: r.modifiedString });
+        }
+      });
       pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
       defer(() => this.viewport.checkViewportSize());
       if (scrollDown) {
