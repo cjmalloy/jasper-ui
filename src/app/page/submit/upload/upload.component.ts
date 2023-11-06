@@ -6,7 +6,7 @@ import { FormlyFormOptions } from '@ngx-formly/core';
 import { defer, delay, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
-import { catchError, concat, lastValueFrom, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, find, lastValueFrom, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
 import { Ext, mapTag } from '../../../model/ext';
@@ -216,23 +216,46 @@ export class UploadPage implements OnDestroy {
   }
 
   readBookmarks(files: File[], ...extraTags: string[]) {
-    if (!files) return;
+    if (!files.length) return;
+    const selector = window.prompt($localize`Bookmark tags`, 'a#video-title-link') || '';
+    if (!selector) return;
+    const linkField = window.prompt($localize`Bookmark link field`, 'href') || '';
+    if (!linkField) return;
+    const titleField = window.prompt($localize`Bookmark title field`, 'innerText') || '';
+    if (!titleField) return;
+    const baseHref = window.prompt($localize`Base HREF`, '') || '';
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       const reader = new FileReader();
       reader.onload = () => runInAction(() => {
         const html = reader.result as string;
-        const links = new DOMParser().parseFromString(html, 'text/html').documentElement.getElementsByTagName('a');
+        const dom = new DOMParser().parseFromString(html, 'text/html');
+        if (baseHref) {
+          const base = dom.createElement('base');
+          base.setAttribute('href', baseHref);
+          dom.head.append(base);
+        }
+        const links = dom.documentElement.querySelectorAll(selector);
+        const refs: Ref[] = [];
         for (let i = 0; i < links.length; i++) {
           const a = links.item(i)!;
-          this.store.submit.addRefs({
+          // @ts-ignore
+          const url = a[linkField];
+          if (refs.find(r => r.url === url)) {
+            console.warn('Skipping duplicate bookmark: ' + url);
+            continue;
+          }
+          // @ts-ignore
+          const title = a[titleField];
+          refs.push({
             upload: true,
-            url: a.href,
-            title: a.innerText,
+            url,
+            title,
             tags: ['public', ...extraTags.filter(t => !!t)],
             published: moment(),
           });
         }
+        this.store.submit.addRefs(...refs);
       });
       reader.readAsText(file);
     }
