@@ -35,6 +35,7 @@ import { imagePlugin, imageTemplate } from '../mods/image';
 import { kanbanTemplate } from '../mods/kanban';
 import { lensPlugin, lensTemplate } from '../mods/lens';
 import { dmTemplate, inboxPlugin, outboxPlugin } from '../mods/mailbox';
+import { modPlugin } from '../mods/mod';
 import { modlistConfig } from '../mods/modlist';
 import { oEmbedPlugin } from '../mods/oembed';
 import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } from '../mods/origin';
@@ -99,6 +100,7 @@ export class AdminService {
 
   def = {
     plugins: <Record<string, Plugin>> {
+      mod: modPlugin,
       oembed: oEmbedPlugin,
       scrape: scrapePlugin,
       origin: originPlugin,
