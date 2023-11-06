@@ -17,7 +17,7 @@ import { getArgs } from '../../../util/query';
 export class SettingsRefPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
-  plugin!: Plugin;
+  plugin?: Plugin;
   writeAccess = false;
 
   constructor(
@@ -34,11 +34,11 @@ export class SettingsRefPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.plugin = this.admin.getPlugin(this.store.settings.tag)!;
-      this.writeAccess = this.auth.canAddTag(this.plugin.tag);
-      this.theme.setTitle($localize`Settings: ${this.plugin.config?.settings || this.plugin.tag}`);
+      this.plugin = this.admin.getPlugin(this.store.settings.tag);
+      this.writeAccess = this.auth.canAddTag(this.store.settings.tag);
+      this.theme.setTitle($localize`Settings: ${this.plugin?.config?.settings || this.store.settings.tag}`);
       const args = getArgs(
-        this.plugin.tag + (this.store.view.showRemotes ? '' : (this.plugin.origin || '@')),
+        this.store.settings.tag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,
@@ -55,12 +55,12 @@ export class SettingsRefPage implements OnInit, OnDestroy {
   }
 
   loadDefaults() {
-    this.store.eventBus.fire(this.plugin.tag + ':defaults');
+    this.store.eventBus.fire(this.store.settings.tag + ':defaults');
     this.store.eventBus.fire('');
   }
 
   clearCache() {
-    this.store.eventBus.fire(this.plugin.tag + ':clear-cache');
+    this.store.eventBus.fire(this.store.settings.tag + ':clear-cache');
     this.store.eventBus.fire('');
   }
 }

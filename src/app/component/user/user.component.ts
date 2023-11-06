@@ -4,12 +4,12 @@ import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, forkJoin, map, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { Ext } from '../../model/ext';
 import { getRole, Profile } from '../../model/profile';
-import { User } from '../../model/user';
+import { Role, User } from '../../model/user';
 import { tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -36,10 +36,6 @@ export class UserComponent implements OnChanges {
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
-  @ViewChild('inlinePassword')
-  inlinePassword?: ElementRef;
-  @ViewChild('inlineRole')
-  inlineRole?: ElementRef;
 
   @Input()
   profile?: Profile;
@@ -48,8 +44,6 @@ export class UserComponent implements OnChanges {
 
   editForm: UntypedFormGroup;
   ext?: Ext;
-  changingPassword = false;
-  changingRole = false;
   submitted = false;
   editing = false;
   viewSource = false;
@@ -135,58 +129,78 @@ export class UserComponent implements OnChanges {
     downloadTag(user);
   }
 
-  setInlinePassword() {
-    if (!this.inlinePassword) return;
-    const password = (this.inlinePassword.nativeElement.value as string);
-    this.profiles.changePassword({ tag: this.qualifiedTag, password }).pipe(
+  setPassword$ = (password: string) => {
+    return this.profiles.changePassword({ tag: this.qualifiedTag, password }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).subscribe(() => {
-      this.changingPassword = false;
-    });
+    );
   }
 
-  setInlineRole() {
-    if (!this.inlineRole) return;
-    const role = (this.inlineRole.nativeElement.value as string).toUpperCase().trim();
-    this.profiles.changeRole({ tag: this.qualifiedTag, role }).pipe(
-      switchMap(() => this.profiles.getProfile(this.qualifiedTag)),
-      catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        return throwError(() => res);
-      }),
-    ).subscribe(profile => {
-      this.changingRole = false;
-      this.profile = profile;
-      this.init();
-    });
+  ban$ = () => {
+    return this.setRole$('ROLE_BANNED');
   }
 
-  activate() {
-    this.profiles.activate(this.qualifiedTag).pipe(
-      switchMap(() => this.profiles.getProfile(this.qualifiedTag)),
-      catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        return throwError(() => res);
-      }),
-    ).subscribe(profile => {
-      this.profile = profile;
-      this.init();
-    });
+  setRole$ = (role?: Role) => {
+    if (!role) return of(null);
+    this.serverError = [];
+    role = role.toUpperCase().trim() as Role;
+    if (this.config.scim) {
+      return this.profiles.changeRole({ tag: this.qualifiedTag, role }).pipe(
+        switchMap(() => this.profiles.getProfile(this.qualifiedTag)),
+        tap(profile => {
+          this.profile = profile;
+          this.init();
+        }),
+        catchError((res: HttpErrorResponse) => {
+          this.serverError = printError(res);
+          return throwError(() => res);
+        }),
+      );
+    } else {
+      this.user ||= { tag: this.qualifiedTag };
+      this.user.role = role;
+      return this.users.update(this.user).pipe(
+        tap(cursor => {
+          this.user!.modifiedString = cursor;
+          this.user!.modified = moment(cursor);
+          this.init();
+        }),
+        catchError((res: HttpErrorResponse) => {
+          this.serverError = printError(res);
+          return throwError(() => res);
+        }),
+      );
+    }
   }
 
-  deactivate() {
-    this.profiles.deactivate(this.qualifiedTag).pipe(
+  activate$ = () => {
+    return this.profiles.activate(this.qualifiedTag).pipe(
       switchMap(() => this.profiles.getProfile(this.qualifiedTag)),
+      tap(profile => {
+        this.profile = profile;
+        this.init();
+      }),
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).subscribe(profile => {
-      this.profile = profile;
-    });
+    );
+  }
+
+  deactivate$ = () => {
+    return this.profiles.deactivate(this.qualifiedTag).pipe(
+      switchMap(() => this.profiles.getProfile(this.qualifiedTag)),
+      tap(profile => {
+        this.profile = profile;
+        this.init();
+      }),
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(() => res);
+      }),
+    );
   }
 
   save() {

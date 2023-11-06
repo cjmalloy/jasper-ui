@@ -101,9 +101,9 @@ export class AuthzService {
       case 'ROLE_MOD': return this.store.account.mod;
       case 'ROLE_EDITOR': return this.store.account.editor;
       case 'ROLE_USER': return this.store.account.user;
-      case 'ROLE_VIEWER': return true;
+      case 'ROLE_VIEWER': return this.store.account.viewer;
       case 'ROLE_ANONYMOUS': return true;
+      case 'ROLE_BANNED': return this.store.account.banned;
     }
-    return false;
   }
 }

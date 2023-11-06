@@ -20,41 +20,24 @@
     </ng-template>
     <a class="fake-link"
        (click)="download()" i18n>download</a>
-    <a *ngIf="store.account.sysMod && config.scim && !profile"
-       class="fake-link"
-       (click)="activate()" i18n>sync</a>
+    <app-inline-button #action *ngIf="store.account.sysMod && config.scim && !profile" [action]="activate$" i18n>sync</app-inline-button>
     <ng-container *ngIf="profile && writeAccess">
-      <a class="fake-link"
-         (click)="changingPassword = !changingPassword" i18n>password</a>
-      <span *ngIf="changingPassword" class="inline-password">
-        <input #inlinePassword
-               (keydown)="$event.key === 'Enter' && setInlinePassword() || true"
-               type="password"
-               appAutofocus>
-        <button type="button" (click)="setInlinePassword()" i18n>+</button>
-      </span>
+      <app-inline-password #action [action]="setPassword$" i18n>password</app-inline-password>
     </ng-container>
-    <ng-container *ngIf="profile && store.account.mod && writeAccess">
-      <a class="fake-link"
-         (click)="changingRole = !changingRole" i18n>role</a>
-      <span *ngIf="changingRole" class="inline-role">
-        <select #inlineRole
-                [value]="profile.role"
-                (change)="setInlineRole()">
-          <option value="ROLE_SYSADMIN" i18n>sysadmin</option>
-          <option value="ROLE_ADMIN" i18n>admin</option>
-          <option value="ROLE_MOD" i18n>mod</option>
-          <option value="ROLE_EDITOR" i18n>editor</option>
-          <option value="ROLE_USER" i18n>user</option>
-          <option value="ROLE_VIEWER" i18n>viewer</option>
-        </select>&nbsp;
-      </span>
-      <a *ngIf="!profile.active"
-         class="fake-link"
-         (click)="activate()" i18n>activate</a>
-      <a *ngIf="profile.active"
-         class="fake-link"
-         (click)="deactivate()" i18n>deactivate</a>
+    <ng-container *ngIf="store.account.mod && writeAccess">
+      <app-confirm-action #action [action]="ban$" i18n>ban</app-confirm-action>
+      <app-inline-select #action [action]="setRole$" [value]="role">
+        <span i18n>role</span>
+        <option value="ROLE_SYSADMIN" i18n>sysadmin</option>
+        <option value="ROLE_ADMIN" i18n>admin</option>
+        <option value="ROLE_MOD" i18n>mod</option>
+        <option value="ROLE_EDITOR" i18n>editor</option>
+        <option value="ROLE_USER" i18n>user</option>
+        <option value="ROLE_VIEWER" i18n>viewer</option>
+        <option value="ROLE_BANNED" i18n>banned</option>
+      </app-inline-select>
+      <app-inline-button #action *ngIf="profile && !profile.active" [action]="activate$" i18n>activate</app-inline-button>
+      <app-inline-button #action *ngIf="profile?.active" [action]="deactivate$" i18n>deactivate</app-inline-button>
     </ng-container>
     <app-confirm-action #action *ngIf="store.account.sysMod || writeAccess" [action]="delete$" i18n>delete</app-confirm-action>
     <a *ngIf="user && !genKey && (store.account.sysMod || writeAccess)"

@@ -11,5 +11,10 @@
       <button type="button" *ngIf="plugin.config?.hasDefaults && writeAccess" (click)="clearCache()" i18n>🆑️ clear cache</button>
     </span>
   </div>
-  <app-ref-list [page]="query.page"></app-ref-list>
+  <ng-container *ngIf="query.error?.status !== 403 else accessDenied">
+    <app-ref-list [page]="query.page"></app-ref-list>
+  </ng-container>
+  <ng-template #accessDenied>
+    <div class="error-403" i18n>Access Denied</div>
+  </ng-template>
 </ng-container>
