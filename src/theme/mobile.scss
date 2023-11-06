@@ -187,11 +187,17 @@ $tablet-width: 767px;
   textarea {
     margin: 0;
     resize: vertical;
-    width: calc(100vw - 12px) !important;
+    width: 100% !important;
   }
 
   .editor textarea {
     margin-left: -3px;
+  }
+
+  .app-comment-reply, app-comment-edit {
+    .editor textarea {
+      margin-left: -11px;
+    }
   }
 
   .json-editor ngx-monaco-editor {
@@ -246,7 +252,7 @@ $tablet-width: 767px;
   }
 
   .comment-reply, .comment-edit {
-    width: calc(100vw - 8px);
+    width: 100%;
   }
 
   .embed {
