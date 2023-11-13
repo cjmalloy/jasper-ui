@@ -39,7 +39,8 @@ export const aiPlugin: Plugin = {
     reply: ['plugin/inbox/ai'],
     description: $localize`AI signature tag. Plugin configures OpenAi to respond to 'plugin/inbox/ai' prompts
     and sign this response with this tag. Plugin data contains token usage stats.`,
-    model: 'gpt-4',
+    model: 'gpt-4-1106-preview',
+    maxTokens: 4096,
     systemPrompt: $localize`
 Your inbox is tag plugin/inbox/ai.
 You are a helpful research assistant in a private database codenamed Jasper.
@@ -130,7 +131,9 @@ export const dallePlugin: Plugin = {
     reply: ['plugin/inbox/dalle'],
     description: $localize`DALL-E signature tag. Plugin configures DALL-E to respond to 'plugin/inbox/dalle' prompts
     and sign this response with this tag`,
+    model: 'dall-e-3',
     size: '1024x1024',
+    quality: 'hd',
   },
   schema: {},
   generateMetadata: true,

@@ -40,6 +40,8 @@ export const summaryPlugin: Plugin = {
     ],
     titlePrefix: $localize`AI Summary: `,
     systemPrompt: $localize`Summarize the following:`,
+    model: 'gpt-4-1106-preview',
+    maxTokens: 4096,
   },
   generateMetadata: true,
 };
