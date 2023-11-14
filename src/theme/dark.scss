@@ -226,6 +226,33 @@ body.dark-theme {
         border-left: 1px solid var(--border);
         border-right: 1px solid var(--border);
         border-bottom: 1px solid transparent;
+        &:nth-child(4) {
+          background-color: #262626;
+        }
+        &:nth-child(5) {
+          background-color: #272727;
+        }
+        &:nth-child(6) {
+          background-color: #282828;
+        }
+        &:nth-child(7) {
+          background-color: #292929;
+        }
+        &:nth-child(8) {
+          background-color: #292929;
+        }
+        &:nth-child(9) {
+          background-color: #292929;
+        }
+        &:nth-child(10) {
+          background-color: #292929;
+        }
+        &:nth-child(11) {
+          background-color: #282828;
+        }
+        &:nth-child(12) {
+          background-color: #282828;
+        }
       }
     }
 
