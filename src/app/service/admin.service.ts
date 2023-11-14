@@ -12,7 +12,7 @@ import { Template } from '../model/template';
 import { aiPlugin, aiQueryPlugin, dallePlugin, dalleQueryPlugin } from '../mods/ai';
 import { archivePlugin } from '../mods/archive';
 import { audioPlugin } from '../mods/audio';
-import { backgammonPlugin, backgammonTemplate } from "../mods/backgammon";
+import { backgammonPlugin, backgammonTemplate } from '../mods/backgammon';
 import { banlistConfig } from '../mods/banlist';
 import { blogTemplate } from '../mods/blog';
 import { chatTemplate } from '../mods/chat';
@@ -42,22 +42,9 @@ import { pdfPlugin } from '../mods/pdf';
 import { personPlugin } from '../mods/person';
 import { pipPlugin } from '../mods/pip';
 import { playlistPlugin, playlistTemplate } from '../mods/playlist';
-import {
-  pollOptionAPlugin,
-  pollOptionBPlugin,
-  pollOptionCPlugin,
-  pollOptionDPlugin,
-  pollPlugin,
-  pollTemplate
-} from '../mods/poll';
+import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin, pollTemplate } from '../mods/poll';
 import { qrPlugin } from '../mods/qr';
-import {
-  invoiceDisputedPlugin,
-  invoicePaidPlugin,
-  invoicePlugin,
-  invoiceRejectionPlugin,
-  queueTemplate
-} from '../mods/queue';
+import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin, queueTemplate } from '../mods/queue';
 import { repostPlugin } from '../mods/repost';
 import { rootTemplate } from '../mods/root';
 import { scrapePlugin } from '../mods/scrape';
@@ -554,7 +541,7 @@ export class AdminService {
       ...tags,
       ...this.getPluginsForUrl(ref.url).map(p => p.tag),
       ...(ref.alternateUrls || []).flatMap(url => this.getPluginsForUrl(url).map(p => p.tag)),
-    ], this.embeddable);
+    ], this.embeddable) as string[];
   }
 
   getPluginsForUrl(url: string) {

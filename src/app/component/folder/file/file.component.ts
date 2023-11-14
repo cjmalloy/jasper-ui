@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Ref } from '../../../model/ref';
 import { Action, Icon, sortOrder } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
@@ -14,11 +14,13 @@ import { hasTag } from '../../../util/tag';
   templateUrl: './file.component.html',
   styleUrls: ['./file.component.scss']
 })
-export class FileComponent implements OnInit {
+export class FileComponent implements OnChanges {
   @HostBinding('class') css = 'file';
   @HostBinding('attr.tabindex') tabIndex = 0;
   tagRegex = TAGS_REGEX.source;
 
+  @Input()
+  ref!: Ref;
   @Input()
   expanded = false;
   @Input()
@@ -38,14 +40,27 @@ export class FileComponent implements OnInit {
   taggingAccess = false;
   serverError: string[] = [];
 
-  private _ref!: Ref;
-
   constructor(
     public admin: AdminService,
     private scraper: ScrapeService,
     public store: Store,
     private auth: AuthzService,
   ) { }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ref) {
+      this.deleting = false;
+      this.editing = false;
+      this.viewSource = false;
+      this.tagging = false;
+      this.writeAccess = this.auth.writeAccess(this.ref);
+      this.taggingAccess = this.auth.taggingAccess(this.ref);
+      this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
+      this.actions = sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins));
+      this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
+      this.expandPlugins = this.admin.getEmbeds(this.ref);
+    }
+  }
 
   @HostBinding('class')
   get pluginClasses() {
@@ -54,31 +69,9 @@ export class FileComponent implements OnInit {
       .join(' ');
   }
 
-  get ref(): Ref {
-    return this._ref;
-  }
-
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
-  }
-
-  @Input()
-  set ref(value: Ref) {
-    this._ref = value;
-    this.deleting = false;
-    this.editing = false;
-    this.viewSource = false;
-    this.tagging = false;
-    this.writeAccess = this.auth.writeAccess(value);
-    this.taggingAccess = this.auth.taggingAccess(value);
-    this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
-    this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
-    this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
-    this.expandPlugins = this.admin.getEmbeds(value);
-  }
-
-  ngOnInit(): void {
   }
 
   get local() {

@@ -6,13 +6,15 @@ import {
   HostBinding,
   HostListener,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
-  Output
+  Output,
+  SimpleChanges
 } from '@angular/core';
 import { Chess, Move, Square } from 'chess.js';
 import { defer, delay, flatten, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, toJS } from 'mobx';
+import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
@@ -33,11 +35,13 @@ type Piece = { type: PieceType, color: PieceColor, square: Square, };
   styleUrls: ['./chess.component.scss'],
   hostDirectives: [CdkDropListGroup]
 })
-export class ChessComponent implements OnInit, OnDestroy {
+export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   @HostBinding('class') css = 'chess-board';
   private destroy$ = new Subject<void>();
   private disposers: IReactionDisposer[] = [];
 
+  @Input()
+  ref?: Ref;
   @Input()
   white = true; // TODO: Save in local storage
   @Output()
@@ -56,7 +60,6 @@ export class ChessComponent implements OnInit, OnDestroy {
   @HostBinding('class.flip')
   flip = false;
 
-  private _ref?: Ref;
   private cursor?: string;
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private fen = '';
@@ -162,6 +165,17 @@ export class ChessComponent implements OnInit, OnDestroy {
     this.reset(this.ref?.comment);
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ref) {
+      const newRef = changes.ref.firstChange || changes.ref.previousValue?.url !== changes.ref.currentValue?.url;
+      if (!this.ref || newRef) {
+        this.watches.forEach(w => w.unsubscribe());
+        this.watches = [];
+        if (this.ref) this.ngOnInit();
+      }
+    }
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -204,21 +218,6 @@ export class ChessComponent implements OnInit, OnDestroy {
     this.turn = this.chess.turn();
     this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
     console.log(this.chess.ascii());
-  }
-
-  get ref() {
-    return this._ref;
-  }
-
-  @Input()
-  set ref(value: Ref | undefined) {
-    const newRef = !this.ref || this.ref?.url !== value?.url;
-    this._ref = toJS(value);
-    if (!value || newRef) {
-      this.watches.forEach(w => w.unsubscribe());
-      this.watches = [];
-      if (value) this.ngOnInit();
-    }
   }
 
   get local() {

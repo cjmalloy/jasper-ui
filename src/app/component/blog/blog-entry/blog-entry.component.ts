@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, intersection, without } from 'lodash-es';
@@ -34,7 +34,7 @@ import { hasTag, isOwnerTag, tagOrigin } from '../../../util/tag';
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss']
 })
-export class BlogEntryComponent implements OnInit, OnDestroy {
+export class BlogEntryComponent implements OnChanges, OnDestroy {
   @HostBinding('class') css = 'blog-entry';
   @HostBinding('attr.tabindex') tabIndex = 0;
   tagRegex = TAGS_REGEX.source;
@@ -43,6 +43,8 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
 
   @Input()
   blog?: Ext;
+  @Input()
+  ref!: Ref;
 
   editForm: UntypedFormGroup;
   submitted = false;
@@ -59,8 +61,6 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
-
-  private _ref!: Ref;
 
   constructor(
     public admin: AdminService,
@@ -90,8 +90,25 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     }));
   }
 
-  get ref(): Ref {
-    return this._ref;
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ref?.currentValue) {
+      this.submitted = false;
+      this.deleted = false;
+      this.deleting = false;
+      this.editing = false;
+      this.viewSource = false;
+      this.tagging = false;
+      this.writeAccess = this.auth.writeAccess(this.ref);
+      this.taggingAccess = this.auth.taggingAccess(this.ref);
+      this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
+      this.actions = sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins));
+      this.title = this.getTitle() || '';
+    }
+  }
+
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   get nonLocalOrigin() {
@@ -108,36 +125,12 @@ export class BlogEntryComponent implements OnInit, OnDestroy {
     return comment.substring(0, 140);
   }
 
-  @Input()
-  set ref(value: Ref) {
-    this._ref = value;
-    this.submitted = false;
-    this.deleted = false;
-    this.deleting = false;
-    this.editing = false;
-    this.viewSource = false;
-    this.tagging = false;
-    this.writeAccess = this.auth.writeAccess(value);
-    this.taggingAccess = this.auth.taggingAccess(value);
-    this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
-    this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
-    this.title = this.getTitle() || '';
-  }
-
   @ViewChild(RefFormComponent)
   set refForm(value: RefFormComponent) {
     defer(() => {
       value?.setRef(this.ref);
       this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
     });
-  }
-
-  ngOnInit(): void {
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get canInvoice() {

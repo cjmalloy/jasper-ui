@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { filter, find, pullAll } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
@@ -27,13 +27,18 @@ type FilterGroup = { filters: FilterItem[], label: string };
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss']
 })
-export class FilterComponent implements OnInit, OnDestroy {
+export class FilterComponent implements OnChanges, OnDestroy {
   @HostBinding('class') css = 'filter form-group';
 
   private disposers: IReactionDisposer[] = [];
 
   @ViewChild('create')
   create?: ElementRef<HTMLSelectElement>;
+
+  @Input()
+  activeExts: Ext[] = [];
+  @Input()
+  type?: Type;
 
   modifiedBeforeFilter: FilterItem = { filter: `modified/before/${moment().toISOString()}`, label: $localize`🕓️ modified before` };
   modifiedAfterFilter: FilterItem = { filter: `modified/after/${moment().toISOString()}`, label: $localize`🕓️ modified after` };
@@ -64,117 +69,118 @@ export class FilterComponent implements OnInit, OnDestroy {
     }));
   }
 
-  @Input()
-  set activeExts(value: Ext[]) {
-    if (value.length) this.type = 'ref';
-  }
-
-  @Input()
-  set type(value: Type) {
-    if (value === 'ref') {
-      this.allFilters = [];
-      for (const ext of this.store.view.exts) {
-        for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
-          this.loadFilter({
-            group: ext.name || ext.tag,
-            ...f,
-          });
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.activeExts || changes.type) {
+      if (this.type === 'ref') {
+        this.allFilters = [];
+        for (const ext of this.store.view.exts) {
+          for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
+            this.loadFilter({
+              group: ext.name || ext.tag,
+              ...f,
+            });
+          }
         }
-      }
-      for (const f of this.admin.filters) this.loadFilter(f);
-      this.pushFilter({
-        label: $localize`Filters 🕵️️`,
-        filters : [
-          { filter: 'untagged', label: $localize`🚫️🏷️ untagged` },
-          { filter: 'uncited', label: $localize`🚫️💌️ uncited` },
-          { filter: 'unsourced', label: $localize`🚫️📜️ unsourced` },
-          { filter: 'obsolete', label: $localize`⏮️ obsolete` },
-          { filter: 'query/internal', label: $localize`⚙️ internal` },
-        ],
-      }, {
-        label: $localize`Time ⏱️`,
-        filters : [
-          this.modifiedBeforeFilter,
-          this.modifiedAfterFilter,
-          this.responseBeforeFilter,
-          this.responseAfterFilter,
-          this.publishedBeforeFilter,
-          this.publishedAfterFilter,
-          this.createdBeforeFilter,
-          this.createdAfterFilter,
-        ],
-      });
-      for (const e of this.kanbanExts) {
-        const group = $localize`Kanban 📋️`;
-        const k = e.config! as KanbanConfig;
-        if (k.columns?.length) {
-          this.allFilters.push({
-            label: group,
-            filters: [],
-          });
-          this.exts.getCachedExts(k.columns, e.origin || '').subscribe(exts => {
-            if (k.showColumnBacklog) {
-              this.loadFilter({
-                group,
-                label: k.columnBacklogTitle || $localize`🚫️ no column`,
-                query: exts.map(e => '!' + e.tag).join(':'),
-              });
-            }
-            for (const e of exts) {
-              this.loadFilter({
-                group,
-                label: e.name || e.tag,
-                query: e.tag,
-              });
-            }
-            if (k.swimLanes) {
-              this.exts.getCachedExts(k.swimLanes, e.origin || '').subscribe(exts => {
-                for (const e of exts) {
-                  this.loadFilter({
-                    group,
-                    label: e.name || e.tag,
-                    query: e.tag,
-                  });
-                }
-                if (k.showSwimLaneBacklog) {
-                  this.loadFilter({
-                    group,
-                    label: k.swimLaneBacklogTitle || $localize`🚫️ no swim lane`,
-                    query: exts.map(e => '!' + e.tag).join(':'),
-                  });
-                }
-              });
-            }
-            if (k.badges?.length) {
-              this.exts.getCachedExts(k.badges, e.origin || '').subscribe(exts => {
-                for (const e of exts) {
-                  this.loadFilter({
-                    group: group,
-                    label: e.name || e.tag,
-                    query: e.tag,
-                  });
-                }
-                this.loadFilter({
-                  group: group,
-                  label: $localize`🚫️ no badges`,
-                  query: exts.map(e => '!' + e.tag).join(':'),
-                });
-              });
-            }
-          });
-        }
-      }
-    } else {
-      this.allFilters = [
-        { label: $localize`Time ⏱️`,
+        for (const f of this.admin.filters) this.loadFilter(f);
+        this.pushFilter({
+          label: $localize`Filters 🕵️️`,
+          filters : [
+            { filter: 'untagged', label: $localize`🚫️🏷️ untagged` },
+            { filter: 'uncited', label: $localize`🚫️💌️ uncited` },
+            { filter: 'unsourced', label: $localize`🚫️📜️ unsourced` },
+            { filter: 'obsolete', label: $localize`⏮️ obsolete` },
+            { filter: 'query/internal', label: $localize`⚙️ internal` },
+          ],
+        }, {
+          label: $localize`Time ⏱️`,
           filters : [
             this.modifiedBeforeFilter,
             this.modifiedAfterFilter,
+            this.responseBeforeFilter,
+            this.responseAfterFilter,
+            this.publishedBeforeFilter,
+            this.publishedAfterFilter,
+            this.createdBeforeFilter,
+            this.createdAfterFilter,
           ],
-        },
-      ];
+        });
+        for (const e of this.kanbanExts) {
+          const group = $localize`Kanban 📋️`;
+          const k = e.config! as KanbanConfig;
+          if (k.columns?.length) {
+            this.allFilters.push({
+              label: group,
+              filters: [],
+            });
+            this.exts.getCachedExts(k.columns, e.origin || '').subscribe(exts => {
+              if (k.showColumnBacklog) {
+                this.loadFilter({
+                  group,
+                  label: k.columnBacklogTitle || $localize`🚫️ no column`,
+                  query: exts.map(e => '!' + e.tag).join(':'),
+                });
+              }
+              for (const e of exts) {
+                this.loadFilter({
+                  group,
+                  label: e.name || e.tag,
+                  query: e.tag,
+                });
+              }
+              if (k.swimLanes) {
+                this.exts.getCachedExts(k.swimLanes, e.origin || '').subscribe(exts => {
+                  for (const e of exts) {
+                    this.loadFilter({
+                      group,
+                      label: e.name || e.tag,
+                      query: e.tag,
+                    });
+                  }
+                  if (k.showSwimLaneBacklog) {
+                    this.loadFilter({
+                      group,
+                      label: k.swimLaneBacklogTitle || $localize`🚫️ no swim lane`,
+                      query: exts.map(e => '!' + e.tag).join(':'),
+                    });
+                  }
+                });
+              }
+              if (k.badges?.length) {
+                this.exts.getCachedExts(k.badges, e.origin || '').subscribe(exts => {
+                  for (const e of exts) {
+                    this.loadFilter({
+                      group: group,
+                      label: e.name || e.tag,
+                      query: e.tag,
+                    });
+                  }
+                  this.loadFilter({
+                    group: group,
+                    label: $localize`🚫️ no badges`,
+                    query: exts.map(e => '!' + e.tag).join(':'),
+                  });
+                });
+              }
+            });
+          }
+        }
+      } else {
+        this.allFilters = [
+          { label: $localize`Time ⏱️`,
+            filters : [
+              this.modifiedBeforeFilter,
+              this.modifiedAfterFilter,
+            ],
+          },
+        ];
+      }
+      this.sync();
     }
-    this.sync();
+  }
+
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   get rootConfigs() {
@@ -277,14 +283,6 @@ export class FilterComponent implements OnInit, OnDestroy {
       return { filter: filter.response, label: filter.label || filter.response };
     }
     throw 'Can\'t convert filter';
-  }
-
-  ngOnInit(): void {
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   addFilter(value: Filter) {

@@ -5,7 +5,9 @@ import {
   EventEmitter,
   HostBinding,
   Input,
+  OnChanges,
   Output,
+  SimpleChanges,
   ViewChild
 } from '@angular/core';
 import Hls from 'hls.js';
@@ -31,10 +33,17 @@ import { hasTag } from '../../util/tag';
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss']
 })
-export class ViewerComponent implements AfterViewInit {
+export class ViewerComponent implements OnChanges, AfterViewInit {
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
 
+  @ViewChild('iframe')
+  iframe!: ElementRef;
+
+  @Input()
+  ref?: Ref;
+  @Input()
+  tags?: string[];
   @Input()
   expand = true;
   @Input()
@@ -71,10 +80,7 @@ export class ViewerComponent implements AfterViewInit {
   uis = this.admin.getPluginUi(this.currentTags);
   embedReady = false;
 
-  private _ref?: Ref;
-  private _tags?: string[];
   private _oembed?: Oembed;
-  private _iframe!: ElementRef;
 
   constructor(
     public admin: AdminService,
@@ -88,33 +94,26 @@ export class ViewerComponent implements AfterViewInit {
     public el: ElementRef,
   ) { }
 
-  async ngAfterViewInit() {
-    if (this.currentTags.includes('plugin/pip')) {
-      // @ts-ignore
-      const pipWindow = await documentPictureInPicture.requestWindow();
-      pipWindow.document.body.append(this.el.nativeElement);
-    }
-  }
-
-  init() {
-    this.audioUrl = this.getAudioUrl();
-    this.videoUrl = this.getVideoUrl();
-    this.imageUrl = this.getImageUrl();
-    this.pdfUrl = this.getPdfUrl();
-    this.qrUrl = this.getQrUrl();
-    this.playlist = !!this.admin.getPlugin('plugin/playlist') && this.currentTags.includes('plugin/playlist');
-    this.todo = !!this.admin.getPlugin('plugin/todo') && this.currentTags.includes('plugin/todo');
-    this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && this.currentTags.includes('plugin/backgammon');
-    this.chess = !!this.admin.getPlugin('plugin/chess') && this.currentTags.includes('plugin/chess');
-    this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
-    this.uis = this.admin.getPluginUi(this.currentTags);
-    if (this.ref && hasTag('plugin/repost', this.ref)) {
-      this.refs.get(this.ref.sources![0], this.ref.origin)
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ref || changes.tags) {
+      this.audioUrl = this.getAudioUrl();
+      this.videoUrl = this.getVideoUrl();
+      this.imageUrl = this.getImageUrl();
+      this.pdfUrl = this.getPdfUrl();
+      this.qrUrl = this.getQrUrl();
+      this.playlist = !!this.admin.getPlugin('plugin/playlist') && this.currentTags.includes('plugin/playlist');
+      this.todo = !!this.admin.getPlugin('plugin/todo') && this.currentTags.includes('plugin/todo');
+      this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && this.currentTags.includes('plugin/backgammon');
+      this.chess = !!this.admin.getPlugin('plugin/chess') && this.currentTags.includes('plugin/chess');
+      this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
+      this.uis = this.admin.getPluginUi(this.currentTags);
+      if (this.ref && hasTag('plugin/repost', this.ref)) {
+        this.refs.get(this.ref.sources![0], this.ref.origin)
         .subscribe(ref => this.repost = ref);
-    }
-    const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || this.ref?.url;
-    if (queryUrl && hasTag('plugin/lens', this.ref)) {
-      this.embeds.loadQuery$(queryUrl)
+      }
+      const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || this.ref?.url;
+      if (queryUrl && hasTag('plugin/lens', this.ref)) {
+        this.embeds.loadQuery$(queryUrl)
         .subscribe(({params, page, ext}) => {
           this.page = page;
           this.ext = ext;
@@ -125,40 +124,25 @@ export class ViewerComponent implements AfterViewInit {
           this.lensFilter = params.filter;
           this.lensSearch = params.search;
         });
-    }
-    if (this.ref?.url && this.currentTags.includes('plugin/embed')) {
-      let width = this.embed?.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 400);
-      let height = this.embed?.height || window.innerHeight;
-      if (hasTag('plugin/fullscreen', this.ref)) {
-        width = screen.width;
-        height = screen.height;
       }
-      this.oembeds.get(this.ref.url, this.theme, width, height).subscribe(oembed => this.oembed = oembed);
+      if (this.ref?.url && this.currentTags.includes('plugin/embed')) {
+        let width = this.embed?.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 400);
+        let height = this.embed?.height || window.innerHeight;
+        if (hasTag('plugin/fullscreen', this.ref)) {
+          width = screen.width;
+          height = screen.height;
+        }
+        this.oembeds.get(this.ref.url, this.theme, width, height).subscribe(oembed => this.oembed = oembed);
+      }
     }
   }
 
-  get ref() {
-    return this._ref;
-  }
-
-  @Input()
-  set ref(value: Ref | undefined) {
-    this._ref = value;
-    this.init();
-  }
-
-  get tags() {
-    return this._tags;
-  }
-
-  @Input()
-  set tags(value: string[] | undefined) {
-    this._tags = value;
-    this.init();
-  }
-
-  get iframe(): ElementRef {
-    return this._iframe;
+  async ngAfterViewInit() {
+    if (this.currentTags.includes('plugin/pip')) {
+      // @ts-ignore
+      const pipWindow = await documentPictureInPicture.requestWindow();
+      pipWindow.document.body.append(this.el.nativeElement);
+    }
   }
 
   @ViewChild('video')
@@ -173,13 +157,8 @@ export class ViewerComponent implements AfterViewInit {
     }
   }
 
-  @ViewChild('iframe')
-  set iframe(value: ElementRef) {
-    this._iframe = value;
-  }
-
   set oembed(oembed: Oembed | null) {
-    if (!this._iframe) {
+    if (!this.iframe) {
       defer(() => this.oembed = oembed);
       return;
     }
@@ -191,14 +170,14 @@ export class ViewerComponent implements AfterViewInit {
         this.image = oembed.url;
         this.imageUrl = this.getImageUrl();
       } else {
-        this.embeds.writeIframe(oembed, this._iframe.nativeElement, this.embedWidth)
+        this.embeds.writeIframe(oembed, this.iframe.nativeElement, this.embedWidth)
           .then(() => this.embedReady = true);
       }
     } else {
       this.embedReady = true;
-      this._iframe.nativeElement.src = this.embed.url || this.ref?.url;
-      this._iframe.nativeElement.style.width = this.embedWidth;
-      this._iframe.nativeElement.style.height = this.embedHeight;
+      this.iframe.nativeElement.src = this.embed.url || this.ref?.url;
+      this.iframe.nativeElement.style.width = this.embedWidth;
+      this.iframe.nativeElement.style.height = this.embedHeight;
     }
   }
 

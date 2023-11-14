@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { intersection, uniq } from 'lodash-es';
 import { toJS } from 'mobx';
@@ -14,9 +14,13 @@ import { Store } from '../../store/store';
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss']
 })
-export class FolderComponent implements OnInit {
+export class FolderComponent implements OnChanges {
   @HostBinding('class') css = 'folder ext';
 
+  @Input()
+  tag = '';
+  @Input()
+  ext?: Ext;
   @Input()
   pinned?: Ref[] | null;
   @Input()
@@ -27,7 +31,6 @@ export class FolderComponent implements OnInit {
   flatten = false;
   subfolders: string[] = [];
 
-  private _tag = '';
   private _page?: Page<Ref>;
 
   constructor(
@@ -35,6 +38,17 @@ export class FolderComponent implements OnInit {
     private router: Router,
     private exts: ExtService,
   ) { }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.tag || changes.ext) {
+      this.subfolders = [];
+      this.flatten = this.ext?.config.flatten;
+      if (this.ext) {
+        this.subfolders = toJS(this.ext!.config.subfolders);
+      }
+      this.subfolderSearch();
+    }
+  }
 
   get page(): Page<Ref> | undefined {
     return this._page;
@@ -55,31 +69,10 @@ export class FolderComponent implements OnInit {
     }
   }
 
-  @Input()
-  set tag(value: string) {
-    this.subfolders = [];
-    this._tag = value;
-  }
-
-  get tag(): string {
-    return this._tag;
-  }
-
-  @Input()
-  set ext(value: Ext) {
-    if (value) {
-      this.flatten = value.config.flatten;
-      this.subfolders = toJS(value.config.subfolders);
-    } else {
-      this.subfolders = [];
-    }
-    this.subfolderSearch();
-  }
-
   subfolderSearch() {
-    if (!this._tag) return;
+    if (!this.tag) return;
     this.exts.page({
-      search: this._tag + '/',
+      search: this.tag + '/',
       size: 100
     }).pipe(
       map(page => this.getSubfolders(page.content.map(e => e.tag))),
@@ -92,25 +85,22 @@ export class FolderComponent implements OnInit {
     subfolders.sort();
     if (!this.different(subfolders)) return of(null);
     this.subfolders = subfolders;
-    return this.exts.patch(this._tag, this.ext.modifiedString!, [{
+    return this.exts.patch(this.tag, this.ext!.modifiedString!, [{
       op: 'add',
       path: '/config/subfolders',
       value: subfolders,
     }]);
   }
 
-  ngOnInit(): void {
-  }
-
   get parent() {
-    if (!this._tag.includes('/')) return '';
-    return this._tag.substring(0, this._tag.lastIndexOf('/'));
+    if (!this.tag.includes('/')) return '';
+    return this.tag.substring(0, this.tag.lastIndexOf('/'));
   }
 
   getSubfolders(tags: string[], strict = false) {
     return uniq(tags
-      .filter(t => t.startsWith(this._tag + '/'))
-      .map(t => t.substring(this._tag.length + 1))
+      .filter(t => t.startsWith(this.tag + '/'))
+      .map(t => t.substring(this.tag.length + 1))
       .filter(t => !strict || !t.includes('/'))
       .map(t => t.includes('/') ? t.substring(0, t.indexOf('')) : t)
       .filter(t => t)

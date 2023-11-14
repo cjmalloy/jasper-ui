@@ -1,17 +1,6 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  EventEmitter,
-  HostBinding,
-  Input,
-  Output,
-  TemplateRef,
-  ViewChild,
-  ViewContainerRef
-} from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
 import { debounce, throttle, uniq, without } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
@@ -25,7 +14,7 @@ import { Store } from '../../store/store';
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
-export class EditorComponent implements AfterViewInit {
+export class EditorComponent {
   @HostBinding('class') css = 'editor';
 
   id = uuid();
@@ -38,10 +27,17 @@ export class EditorComponent implements AfterViewInit {
   help = false;
   @HostBinding('class.preview')
   preview = true;
+  @HostBinding('style.padding.px')
+  padding = 8;
 
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
 
+  @ViewChild('help')
+  helpTemplate!: TemplateRef<any>;
+
+  @Input()
+  tags?: string[];
   @Input()
   control!: UntypedFormControl;
   @Input()
@@ -61,13 +57,6 @@ export class EditorComponent implements AfterViewInit {
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
 
-  @ViewChild('help')
-  helpTemplate!: TemplateRef<any>;
-
-  @HostBinding('style.padding.px')
-  padding = 8;
-
-  private _tags?: string[];
   private _text? = '';
   private _editing = false;
 
@@ -81,19 +70,6 @@ export class EditorComponent implements AfterViewInit {
     private vc: ViewContainerRef,
   ) {
     this.preview = store.local.showPreview;
-  }
-
-  ngAfterViewInit() {
-    this.tags = this._tags;
-  }
-
-  @Input()
-  set tags(value: string[] | undefined) {
-    this._tags = value;
-  }
-
-  get tags() {
-    return this._tags;
   }
 
   get fullTags() {
@@ -129,9 +105,9 @@ export class EditorComponent implements AfterViewInit {
 
   toggleTag(tag: string) {
     if (this.tags?.includes(tag)) {
-      this.syncTags.next(this._tags = without(this.tags!, tag));
+      this.syncTags.next(this.tags = without(this.tags!, tag));
     } else {
-      this.syncTags.next(this._tags = [...this.tags || [], tag]);
+      this.syncTags.next(this.tags = [...this.tags || [], tag]);
     }
     if (this.admin.getTemplate('user')) {
       this.accounts.updateConfig('editors', this.tags).subscribe();

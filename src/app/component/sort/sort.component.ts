@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostBinding, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { filter } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
@@ -28,13 +28,15 @@ export const allRefSorts: {value: RefSort, label: string}[] = [
   templateUrl: './sort.component.html',
   styleUrls: ['./sort.component.scss']
 })
-export class SortComponent implements OnInit, OnDestroy {
+export class SortComponent implements OnChanges, OnDestroy {
   @HostBinding('class') css = 'sort form-group';
-
   private disposers: IReactionDisposer[] = [];
 
   @ViewChild('create')
   create?: ElementRef<HTMLSelectElement>;
+
+  @Input()
+  type?: Type;
 
   allSorts: {value: RefSort | TagSort, label: string}[] = [
     { value: 'modified', label: $localize`🕓️ modified` },
@@ -53,35 +55,33 @@ export class SortComponent implements OnInit, OnDestroy {
     }));
   }
 
-  @Input()
-  set type(value: Type) {
-    if (value === 'ref') {
-      this.allSorts = [...allRefSorts];
-      if (this.admin.getPlugin('plugin/comment')) {
-        this.allSorts.splice(7, 0, { value: 'commentCount', label: $localize`💬️ comments` });
-      }
-      if (this.admin.getPlugin('plugin/vote/up')) {
-        this.allSorts.splice(0, 0, { value: 'voteCount', label: '❤️ top' });
-        if (this.admin.getPlugin('plugin/vote/down')) {
-          this.allSorts.splice(0, 0, { value: 'voteScore', label: '📈️ score' });
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.type) {
+      if (this.type === 'ref') {
+        this.allSorts = [...allRefSorts];
+        if (this.admin.getPlugin('plugin/comment')) {
+          this.allSorts.splice(7, 0, { value: 'commentCount', label: $localize`💬️ comments` });
         }
-        this.allSorts.splice(0, 0, { value: 'voteScoreDecay', label: '🔥️ hot' });
+        if (this.admin.getPlugin('plugin/vote/up')) {
+          this.allSorts.splice(0, 0, { value: 'voteCount', label: '❤️ top' });
+          if (this.admin.getPlugin('plugin/vote/down')) {
+            this.allSorts.splice(0, 0, { value: 'voteScore', label: '📈️ score' });
+          }
+          this.allSorts.splice(0, 0, { value: 'voteScoreDecay', label: '🔥️ hot' });
+        }
+        if (this.store.view.search) {
+          this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance` });
+        }
+      } else {
+        this.allSorts = [
+          { value: 'modified', label: $localize`🕓️ modified` },
+          { value: 'name', label: $localize`🇦️ name` },
+          { value: 'tag', label: $localize`🏷️ tag` },
+          { value: 'levels', label: $localize`/🏷️ level` },
+          { value: 'origin', label: $localize`🏛️ origin` },
+        ]
       }
-      if (this.store.view.search) {
-        this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance` });
-      }
-    } else {
-      this.allSorts = [
-        { value: 'modified', label: $localize`🕓️ modified` },
-        { value: 'name', label: $localize`🇦️ name` },
-        { value: 'tag', label: $localize`🏷️ tag` },
-        { value: 'levels', label: $localize`/🏷️ level` },
-        { value: 'origin', label: $localize`🏛️ origin` },
-      ]
     }
-  }
-
-  ngOnInit(): void {
   }
 
   ngOnDestroy() {

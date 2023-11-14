@@ -1,14 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  EventEmitter,
-  HostBinding,
-  Input,
-  Output,
-  QueryList,
-  ViewChild,
-  ViewChildren
-} from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, OnChanges, Output, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { toJS } from 'mobx';
@@ -25,46 +15,58 @@ import { GenFormComponent } from './gen/gen.component';
   templateUrl: './plugins.component.html',
   styleUrls: ['./plugins.component.scss']
 })
-export class PluginsFormComponent implements AfterViewInit {
+export class PluginsFormComponent implements OnChanges {
   @HostBinding('class') css = 'plugins-form';
-
-  @Input()
-  ref = '';
-  @Input()
-  fieldName = 'plugins';
-  @Output()
-  togglePlugin = new EventEmitter<string>();
 
   @ViewChildren('gen')
   gens?: QueryList<GenFormComponent>;
+  @Input()
+  fieldName = 'plugins';
+  @Input()
+  group: UntypedFormGroup;
+  @Output()
+  togglePlugin = new EventEmitter<string>();
 
   icons: Icon[] = [];
   forms: Plugin[] = [];
 
-  private _group: UntypedFormGroup;
   private _tags: string[] = [];
 
   constructor(
     public admin: AdminService,
     private fb: UntypedFormBuilder,
   ) {
-    this._group = fb.group({
+    this.group = fb.group({
       [this.fieldName]: pluginsForm(fb, admin, [])
     });
   }
 
-  ngAfterViewInit(): void {
-    this.updateForm();
-  }
-
-  get group(): UntypedFormGroup {
-    return this._group;
-  }
-
-  @Input()
-  set group(value: UntypedFormGroup) {
-    this._group = value;
-    this.updateForm();
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.group || changes.tags) {
+      if (this.plugins) {
+        for (const p in this.plugins.value) {
+          if (!this.tags.includes(p)) {
+            this.plugins.removeControl(p);
+          }
+        }
+      }
+      if (!this.plugins) {
+        this.group.addControl(this.fieldName, pluginsForm(this.fb, this.admin, this.tags));
+      } else if (this.tags) {
+        for (const t of this.tags) {
+          if (!this.plugins.contains(t)) {
+            const form = pluginForm(this.fb, this.admin, t);
+            if (form) {
+              this.plugins.addControl(t, form);
+            }
+          }
+        }
+      }
+      this.forms = this.admin.getPluginForms(this.tags);
+      this.icons = sortOrder(this.admin.getIcons(this.tags, this.plugins.value, getScheme(this.group.value.url))
+        .filter(i => !this.forms.find(p => p.tag === i.tag)))
+        .filter(i => this.showIcon(i));
+    }
   }
 
   get tags(): string[] {
@@ -74,11 +76,10 @@ export class PluginsFormComponent implements AfterViewInit {
   @Input()
   set tags(tags: string[]) {
     this._tags = addAllHierarchicalTags(tags);
-    this.updateForm();
   }
 
   get plugins() {
-    return this._group.get(this.fieldName) as UntypedFormGroup;
+    return this.group.get(this.fieldName) as UntypedFormGroup;
   }
 
   get empty() {
@@ -87,34 +88,10 @@ export class PluginsFormComponent implements AfterViewInit {
 
   setValue(value: any) {
     value = toJS(value);
-    this.plugins.patchValue(value);
-    defer(() => this.gens!.forEach(g => g.setValue(value)));
-  }
-
-  updateForm() {
-    if (this.plugins) {
-      for (const p in this.plugins.value) {
-        if (!this.tags.includes(p)) {
-          this.plugins.removeControl(p);
-        }
-      }
-    }
-    if (!this.plugins) {
-      this._group.addControl(this.fieldName, pluginsForm(this.fb, this.admin, this.tags));
-    } else if (this.tags) {
-      for (const t of this.tags) {
-        if (!this.plugins.contains(t)) {
-          const form = pluginForm(this.fb, this.admin, t);
-          if (form) {
-            this.plugins.addControl(t, form);
-          }
-        }
-      }
-    }
-    this.forms = this.admin.getPluginForms(this.tags);
-    this.icons = sortOrder(this.admin.getIcons(this.tags, this.plugins.value, getScheme(this.group.value.url))
-      .filter(i => !this.forms.find(p => p.tag === i.tag)))
-      .filter(i => this.showIcon(i));
+    defer(() => {
+      this.plugins.patchValue(value);
+      this.gens!.forEach(g => g.setValue(value))
+    });
   }
 
   visible(v: Visibility) {

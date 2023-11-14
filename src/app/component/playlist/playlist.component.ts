@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 
@@ -7,25 +7,20 @@ import { RefService } from '../../service/api/ref.service';
   templateUrl: './playlist.component.html',
   styleUrls: ['./playlist.component.scss']
 })
-export class PlaylistComponent {
+export class PlaylistComponent implements OnChanges {
+
+  @Input()
+  ref?: Ref;
 
   index = 0;
   page?: Ref;
-
-  private _ref?: Ref;
 
   constructor(
     private refs: RefService,
   ) { }
 
-  get ref() {
-    return this._ref;
-  }
-
-  @Input()
-  set ref(value: Ref | undefined) {
-    this._ref = value;
-    if (value?.sources?.length) {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ref?.currentValue?.sources?.length) {
       this.index = 0;
       this.fetch();
     }

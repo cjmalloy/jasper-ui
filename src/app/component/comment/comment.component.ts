@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -25,7 +25,7 @@ import { hasTag, hasUserUrlResponse, removeTag, tagOrigin } from '../../util/tag
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],
 })
-export class CommentComponent implements OnInit, OnDestroy {
+export class CommentComponent implements OnInit, OnChanges, OnDestroy {
   @HostBinding('class') css = 'comment';
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
@@ -36,11 +36,12 @@ export class CommentComponent implements OnInit, OnDestroy {
   maxContext = 20;
 
   @Input()
+  ref!: Ref;
+  @Input()
   depth?: number | null = 7;
   @Input()
   context = 0
 
-  _ref!: Ref;
   commentEdited$ = new Subject<Ref>();
   newComments = 0;
   newComments$ = new Subject<Ref | null>();
@@ -80,35 +81,6 @@ export class CommentComponent implements OnInit, OnDestroy {
     }));
   }
 
-  get nonLocalOrigin() {
-    if (this.ref.origin === this.store.account.origin) return undefined;
-    return this.ref.origin || '';
-  }
-
-  get ref(): Ref {
-    return this._ref;
-  }
-
-  @Input()
-  set ref(value: Ref) {
-    this._ref = value;
-    this.deleting = false;
-    this.editing = false;
-    this.tagging = false;
-    this.collapsed = this.store.local.isRefToggled('comment:' + this.ref.url, this.ref.origin);
-    this.writeAccess = this.auth.writeAccess(value);
-    this.taggingAccess = this.auth.taggingAccess(value);
-    this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
-    this.actions = sortOrder(this.admin.getActions(value.tags, value.plugins));
-  }
-
-  get top() {
-    if (hasTag('plugin/comment', this.store.view.ref)) {
-      return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0];
-    }
-    return this.store.view.ref?.url;
-  }
-
   ngOnInit(): void {
     this.newComments$.pipe(
       takeUntil(this.destroy$),
@@ -131,6 +103,19 @@ export class CommentComponent implements OnInit, OnDestroy {
     });
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ref) {
+      this.deleting = false;
+      this.editing = false;
+      this.tagging = false;
+      this.collapsed = this.store.local.isRefToggled('comment:' + this.ref.url, this.ref.origin);
+      this.writeAccess = this.auth.writeAccess(this.ref);
+      this.taggingAccess = this.auth.taggingAccess(this.ref);
+      this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
+      this.actions = sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins));
+    }
+  }
+
   ngOnDestroy(): void {
     this.commentEdited$.complete();
     this.newComments$.complete();
@@ -138,6 +123,18 @@ export class CommentComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  get nonLocalOrigin() {
+    if (this.ref.origin === this.store.account.origin) return undefined;
+    return this.ref.origin || '';
+  }
+
+  get top() {
+    if (hasTag('plugin/comment', this.store.view.ref)) {
+      return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0];
+    }
+    return this.store.view.ref?.url;
   }
 
   get canInvoice() {

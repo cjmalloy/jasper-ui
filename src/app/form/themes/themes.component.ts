@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 
@@ -7,15 +7,16 @@ import { mapValues } from 'lodash-es';
   templateUrl: './themes.component.html',
   styleUrls: ['./themes.component.scss']
 })
-export class ThemesFormComponent implements OnInit {
+export class ThemesFormComponent implements OnChanges {
   @HostBinding('class') css = 'form-group';
 
   @Input()
   fieldName = 'themes';
   @Input()
   label = $localize`theme`;
+  @Input()
+  group!: UntypedFormGroup;
 
-  _group!: UntypedFormGroup;
   keys: string[] = [];
   selectedTheme?: string;
 
@@ -23,20 +24,17 @@ export class ThemesFormComponent implements OnInit {
     private fb: UntypedFormBuilder,
   ) { }
 
-  ngOnInit(): void {
-  }
-
-  @Input()
-  set group(value: UntypedFormGroup) {
-    this._group = value;
-    this.keys = Object.keys(this.themes.value);
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.group?.currentValue) {
+      this.keys = Object.keys(this.themes.value);
+    }
   }
 
   get themes() {
-    if (!this._group.contains(this.fieldName)) {
-      this._group.addControl(this.fieldName, this.fb.group({}));
+    if (!this.group.contains(this.fieldName)) {
+      this.group.addControl(this.fieldName, this.fb.group({}));
     }
-    return this._group.get(this.fieldName) as UntypedFormGroup;
+    return this.group.get(this.fieldName) as UntypedFormGroup;
   }
 
   addTheme(name: string, value = '') {

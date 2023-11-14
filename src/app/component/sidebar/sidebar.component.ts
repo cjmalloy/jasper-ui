@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -25,12 +25,16 @@ import { hasPrefix, localTag, prefix, tagOrigin, topAnds } from '../../util/tag'
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
 })
-export class SidebarComponent implements OnInit, OnDestroy {
+export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @HostBinding('class') css = 'sidebar';
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
   prefix = prefix;
 
+  @Input()
+  tag = '';
+  @Input()
+  ext?: Ext;
   @Input()
   showToggle = true;
   @Input()
@@ -39,8 +43,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @HostBinding('class.floating')
   floating = true;
 
-  _tag = '';
-  _ext?: Ext;
   localTag?: string;
   addTags = this.admin.getTemplate('')?.defaults?.addTags || [];
   local = true;
@@ -83,66 +85,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     });
   }
 
-  get tag() {
-    return this._tag;
-  }
-
-  @Input()
-  set tag(value: string) {
-    this._tag = value;
-    if (value) {
-      const origin = tagOrigin(value);
-      this.local = !origin || origin === this.store.account.origin;
-      this.localTag = localTag(value);
-      this.plugin = this.admin.getPlugin(value);
-      if (this.home) {
-        this.addTags = this.rootConfig?.addTags || [];
-      } else {
-        this.addTags = uniq([...this.rootConfig?.addTags || (this.plugin?.tag ? [this.plugin!.tag] : []), ...topAnds(value).map(localTag)]);
-      }
-      this.mailPlugin = this.admin.getPlugin(getMailbox(value, this.store.account.origin));
-      this.writeAccess = this.auth.tagWriteAccess(value);
-      this.ui = this.admin.getTemplateUi(value);
-    } else {
-      this.local = true;
-      this.localTag = undefined;
-      this.addTags = this.rootConfig?.addTags || [];
-      this.plugin = undefined;
-      this.mailPlugin = undefined;
-      this.writeAccess = false;
-      this.ui = [];
-    }
-  }
-
-  get ext(): Ext | undefined {
-    return this._ext;
-  }
-
-  @Input()
-  set ext(value: Ext | undefined) {
-    this._ext = value;
-    if (value) {
-      this.bookmarks$.subscribe(xs => this.bookmarkExts = xs);
-      this.tagSubs$.subscribe(xs => this.tagSubExts = xs);
-      this.userSubs$.subscribe(xs => this.userSubExts = xs);
-    } else {
-      this.bookmarkExts = [];
-      this.tagSubExts = [];
-      this.userSubExts = [];
-    }
-    this.tag = value?.tag || '';
-  }
-
-  get expanded(): boolean {
-    return this._expanded;
-  }
-
-  @Input()
-  set expanded(value: boolean) {
-    localStorage.setItem('sidebar-expanded', ''+value);
-    this._expanded = value;
-  }
-
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       if (!this.store.view.template) {
@@ -155,11 +97,58 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }))
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.tag || changes.ext) {
+      if (this.ext) {
+        this.bookmarks$.subscribe(xs => this.bookmarkExts = xs);
+        this.tagSubs$.subscribe(xs => this.tagSubExts = xs);
+        this.userSubs$.subscribe(xs => this.userSubExts = xs);
+        this.tag = this.ext.tag || '';
+      } else {
+        this.bookmarkExts = [];
+        this.tagSubExts = [];
+        this.userSubExts = [];
+      }
+      if (this.tag) {
+        const origin = tagOrigin(this.tag);
+        this.local = !origin || origin === this.store.account.origin;
+        this.localTag = localTag(this.tag);
+        this.plugin = this.admin.getPlugin(this.tag);
+        if (this.home) {
+          this.addTags = this.rootConfig?.addTags || [];
+        } else {
+          this.addTags = uniq([...this.rootConfig?.addTags || (this.plugin?.tag ? [this.plugin!.tag] : []), ...topAnds(this.tag).map(localTag)]);
+        }
+        this.mailPlugin = this.admin.getPlugin(getMailbox(this.tag, this.store.account.origin));
+        this.writeAccess = this.auth.tagWriteAccess(this.tag);
+        this.ui = this.admin.getTemplateUi(this.tag);
+      } else {
+        this.local = true;
+        this.localTag = undefined;
+        this.addTags = this.rootConfig?.addTags || [];
+        this.plugin = undefined;
+        this.mailPlugin = undefined;
+        this.writeAccess = false;
+        this.ui = [];
+      }
+    }
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  get expanded(): boolean {
+    return this._expanded;
+  }
+
+  @Input()
+  set expanded(value: boolean) {
+    localStorage.setItem('sidebar-expanded', ''+value);
+    this._expanded = value;
   }
 
   get root() {
@@ -168,16 +157,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   get rootConfig() {
     if (!this.root) return undefined;
-    return (this._ext?.config || this.admin.getTemplate('')!.defaults) as RootConfig;
+    return (this.ext?.config || this.admin.getTemplate('')!.defaults) as RootConfig;
   }
 
 
   get modmail() {
-    return this._ext?.config?.modmail;
+    return this.ext?.config?.modmail;
   }
 
   get user() {
-    return !!this.admin.getTemplate('user') && hasPrefix(this._tag, 'user') && !this.store.view.userTemplate;
+    return !!this.admin.getTemplate('user') && hasPrefix(this.tag, 'user') && !this.store.view.userTemplate;
   }
 
   get userConfig() {
@@ -218,39 +207,39 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   subscribe() {
-    this.account.addSub(this._tag!);
+    this.account.addSub(this.tag!);
   }
 
   unsubscribe() {
-    this.account.removeSub(this._tag!);
+    this.account.removeSub(this.tag!);
   }
 
   bookmark() {
-    this.account.addBookmark(this._tag!);
+    this.account.addBookmark(this.tag!);
   }
 
   removeBookmark() {
-    this.account.removeBookmark(this._tag!);
+    this.account.removeBookmark(this.tag!);
   }
 
   addAlarm() {
-    this.account.addAlarm(this._tag!);
+    this.account.addAlarm(this.tag!);
   }
 
   removeAlarm() {
-    this.account.removeAlarm(this._tag!);
+    this.account.removeAlarm(this.tag!);
   }
 
   get inSubs() {
-    return this.store.account.subs.includes(this._tag!);
+    return this.store.account.subs.includes(this.tag!);
   }
 
   get inBookmarks() {
-    return this.store.account.bookmarks.includes(this._tag!);
+    return this.store.account.bookmarks.includes(this.tag!);
   }
 
   get inAlarms() {
-    return this.store.account.alarms.includes(this._tag!);
+    return this.store.account.alarms.includes(this.tag!);
   }
 
   set showRemotes(value: boolean) {

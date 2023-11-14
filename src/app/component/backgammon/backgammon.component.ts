@@ -7,12 +7,14 @@ import {
   HostBinding,
   HostListener,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
-  Output
+  Output,
+  SimpleChanges
 } from '@angular/core';
 import { defer, delay, filter, range, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, toJS } from 'mobx';
+import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment/moment';
 import { catchError, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
@@ -41,7 +43,7 @@ const MAX_PLAYERS = 2;
   styleUrls: ['./backgammon.component.scss'],
   hostDirectives: [CdkDropListGroup]
 })
-export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
+export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @HostBinding('class') css = 'backgammon-board';
   private destroy$ = new Subject<void>();
   private disposers: IReactionDisposer[] = [];
@@ -49,6 +51,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input()
   @HostBinding('class.red')
   red = true; // TODO: Save in local storage
+  @Input()
+  ref?: Ref;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -78,7 +82,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   @HostBinding('class.resizing')
   resizing = 0;
 
-  private _ref?: Ref;
   private cursor?: string;
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watches: Subscription[] = [];
@@ -214,27 +217,23 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     defer(() => this.loaded = true);
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ref) {
+      const newRef = changes.ref.firstChange || changes.ref.previousValue?.url != changes.ref.currentValue?.url;
+      if (!this.ref || newRef) {
+        this.watches.forEach(w => w.unsubscribe());
+        this.watches = [];
+        if (this.ref) this.ngOnInit();
+      }
+    }
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.resizeObserver?.disconnect();
-  }
-
-  get ref() {
-    return this._ref;
-  }
-
-  @Input()
-  set ref(value: Ref | undefined) {
-    const newRef = !this.ref || this.ref?.url !== value?.url;
-    this._ref = toJS(value);
-    if (!value || newRef) {
-      this.watches.forEach(w => w.unsubscribe());
-      this.watches = [];
-      if (value) this.ngOnInit();
-    }
   }
 
   get local() {

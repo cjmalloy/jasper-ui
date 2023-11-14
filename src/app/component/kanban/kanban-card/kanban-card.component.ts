@@ -1,6 +1,6 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { HttpErrorResponse } from "@angular/common/http";
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
@@ -9,7 +9,9 @@ import {
   HostBinding,
   HostListener,
   Input,
+  OnChanges,
   Output,
+  SimpleChanges,
   TemplateRef,
   ViewChild,
   ViewContainerRef
@@ -25,9 +27,9 @@ import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
-import { Store } from "../../../store/store";
+import { Store } from '../../../store/store';
 import { hasComment, trimCommentForTitle } from '../../../util/format';
-import { printError } from "../../../util/http";
+import { printError } from '../../../util/http';
 import { hasTag, includesTag } from '../../../util/tag';
 
 @Component({
@@ -35,12 +37,14 @@ import { hasTag, includesTag } from '../../../util/tag';
   templateUrl: './kanban-card.component.html',
   styleUrls: ['./kanban-card.component.scss']
 })
-export class KanbanCardComponent implements AfterViewInit {
+export class KanbanCardComponent implements OnChanges, AfterViewInit {
   @HostBinding('class') css = 'kanban-card';
 
   @HostBinding('class.unlocked')
   unlocked = false;
 
+  @Input()
+  ref!: Ref;
   @Input()
   pressToUnlock = false;
   @Input()
@@ -62,7 +66,6 @@ export class KanbanCardComponent implements AfterViewInit {
   @ViewChild('cardMenu')
   cardMenu!: TemplateRef<any>;
 
-  private _ref!: Ref;
   private overlayEvents?: Subscription;
 
   constructor(
@@ -79,33 +82,27 @@ export class KanbanCardComponent implements AfterViewInit {
     private viewContainerRef: ViewContainerRef,
   ) { }
 
-  ngAfterViewInit(): void {
-    if (this.lastSelected) {
-      this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ref) {
+      this.title = this.getTitle();
+      this.todo = !!this.admin.getPlugin('plugin/todo') && !!this.ref.tags?.includes('plugin/todo');
+      this.chess = !!this.admin.getPlugin('plugin/chess') && !!this.ref.tags?.includes('plugin/chess');
+      this.chessWhite = !!this.ref.tags?.includes(this.store.account.localTag);
+      if (this.repost && this.ref && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
+        this.refs.get(this.url, this.ref.origin)
+        .subscribe(ref => {
+          this.repostRef = ref;
+          if (this.bareRepost) {
+            this.title = this.getTitle();
+          }
+        });
+      }
     }
   }
 
-  get ref() {
-    return this._ref;
-  }
-
-  @Input()
-  set ref(value: Ref) {
-    this._ref = value;
-    this.title = this.getTitle();
-    if (value) {
-      this.todo = !!this.admin.getPlugin('plugin/todo') && !!value.tags?.includes('plugin/todo');
-      this.chess = !!this.admin.getPlugin('plugin/chess') && !!value.tags?.includes('plugin/chess');
-      this.chessWhite = !!value.tags?.includes(this.store.account.localTag);
-      if (this.repost && value && (!this.repostRef || this.repostRef.url != value.url && this.repostRef.origin === value.origin)) {
-        this.refs.get(this.url, value.origin)
-          .subscribe(ref => {
-            this.repostRef = ref;
-            if (this.bareRepost) {
-              this.title = this.getTitle();
-            }
-          });
-      }
+  ngAfterViewInit(): void {
+    if (this.lastSelected) {
+      this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
     }
   }
 

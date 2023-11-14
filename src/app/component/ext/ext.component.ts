@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { isObject } from 'lodash-es';
@@ -9,7 +9,7 @@ import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { Ext, writeExt } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
 import { Template } from '../../model/template';
-import { tagDeleteNotice } from "../../mods/delete";
+import { tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
@@ -25,9 +25,12 @@ import { hasPrefix, parentTag } from '../../util/tag';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss']
 })
-export class ExtComponent implements OnInit {
+export class ExtComponent implements OnChanges {
   @HostBinding('class') css = 'ext list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
+
+  @Input()
+  ext!: Ext;
 
   editForm!: UntypedFormGroup;
   submitted = false;
@@ -45,8 +48,6 @@ export class ExtComponent implements OnInit {
   writeAccess = false;
   serverError: string[] = [];
 
-  private _ext!: Ext;
-
   constructor(
     public admin: AdminService,
     public store: Store,
@@ -56,38 +57,31 @@ export class ExtComponent implements OnInit {
     private router: Router,
   ) { }
 
-  ngOnInit(): void {
-  }
-
-  get ext(): Ext {
-    return this._ext;
-  }
-
-  @Input()
-  set ext(value: Ext) {
-    this._ext = value;
-    this.submitted = false;
-    this.invalid = false;
-    this.overwrite = false;
-    this.force = false;
-    this.template = this.admin.getTemplate(value.tag);
-    this.plugin = this.admin.getPlugin(value.tag);
-    this.editing = false;
-    this.viewSource = false;
-    this.deleting = false;
-    this.deleted = false;
-    this.writeAccess = false;
-    this.serverError = [];
-    if (value) {
-      this.icons = this.admin.getTemplateView(value.tag);
-      if (hasPrefix(value.tag, 'user')) {
-        this.icons.push({tag: 'user', config: { view: $localize`🧑️` }});
-      }
-      this.editForm = extForm(this.fb, value, this.admin, true);
-      this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);
-    } else {
-      this.icons = [];
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ext) {
+      this.submitted = false;
+      this.invalid = false;
+      this.overwrite = false;
+      this.force = false;
+      this.template = this.admin.getTemplate(this.ext.tag);
+      this.plugin = this.admin.getPlugin(this.ext.tag);
+      this.editing = false;
+      this.viewSource = false;
+      this.deleting = false;
+      this.deleted = false;
       this.writeAccess = false;
+      this.serverError = [];
+      if (this.ext) {
+        this.icons = this.admin.getTemplateView(this.ext.tag);
+        if (hasPrefix(this.ext.tag, 'user')) {
+          this.icons.push({tag: 'user', config: { view: $localize`🧑️` }});
+        }
+        this.editForm = extForm(this.fb, this.ext, this.admin, true);
+        this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);
+      } else {
+        this.icons = [];
+        this.writeAccess = false;
+      }
     }
   }
 

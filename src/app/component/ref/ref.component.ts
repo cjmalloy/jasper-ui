@@ -9,8 +9,10 @@ import {
   HostBinding,
   HostListener,
   Input,
+  OnChanges,
   OnDestroy,
   Output,
+  SimpleChanges,
   TemplateRef,
   ViewChild,
   ViewContainerRef
@@ -72,7 +74,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
 })
-export class RefComponent implements AfterViewInit, OnDestroy {
+export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   css = 'ref list-item ';
   @HostBinding('class.mobile-unlock') mobileUnlock = false;
   private disposers: IReactionDisposer[] = [];
@@ -82,6 +84,8 @@ export class RefComponent implements AfterViewInit, OnDestroy {
   @ViewChild('actionsMenu')
   actionsMenu!: TemplateRef<any>;
 
+  @Input()
+  ref!: Ref;
   @Input()
   expanded = false;
   @Input()
@@ -132,7 +136,6 @@ export class RefComponent implements AfterViewInit, OnDestroy {
   publishChanged = false;
   overlayRef?: OverlayRef;
 
-  private _ref!: Ref;
   private overlayEvents?: Subscription;
 
   constructor(
@@ -178,6 +181,47 @@ export class RefComponent implements AfterViewInit, OnDestroy {
     }));
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ref) {
+      this.submitted = false;
+      this.invalid = false;
+      this.overwrite = false;
+      this.force = false;
+      this.deleted = false;
+      this.deleting = false;
+      this.editing = false;
+      this.viewSource = false;
+      this.tagging = false;
+      this.actionsExpanded = false;
+      if (this.ref?.upload) this.editForm.get('url')!.enable();
+      this.replyTags = this.getReplyTags();
+      this.writeAccess = this.auth.writeAccess(this.ref);
+      this.taggingAccess = this.auth.taggingAccess(this.ref);
+      this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
+      this.alarm = capturesAny(this.store.account.alarms, this.ref.tags);
+      this.actions = this.ref.created ? sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)) : [];
+      // TODO: detect width and move actions that don't fit into advanced actions
+      this.advancedActions = this.ref.created ? sortOrder(this.admin.getAdvancedActions(this.ref.tags, this.ref.plugins)) : [];
+      this.infoUis = this.admin.getPluginInfoUis(this.ref.tags);
+      this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
+
+      this.title = this.getTitle();
+      this.expandPlugins = this.admin.getEmbeds(this.ref);
+      if (this.repost) {
+        if (this.ref && this.fetchRepost && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
+          this.refs.get(this.url, this.ref.origin)
+          .subscribe(ref => {
+            this.repostRef = ref;
+            if (this.bareRepost) {
+              this.title = this.getTitle();
+              this.expandPlugins = this.admin.getEmbeds(ref);
+            }
+          });
+        }
+      }
+    }
+  }
+
   ngAfterViewInit(): void {
     if (this.scrollToLatest && this.lastSelected) {
       this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
@@ -220,54 +264,9 @@ export class RefComponent implements AfterViewInit, OnDestroy {
     return this.ref.exists;
   }
 
-  get ref(): Ref {
-    return this._ref;
-  }
-
   get obsoleteOrigin() {
     if (this.ref.metadata?.obsolete) return this.ref.origin;
     return undefined;
-  }
-
-  @Input()
-  set ref(value: Ref) {
-    this._ref = value;
-    this.submitted = false;
-    this.invalid = false;
-    this.overwrite = false;
-    this.force = false;
-    this.deleted = false;
-    this.deleting = false;
-    this.editing = false;
-    this.viewSource = false;
-    this.tagging = false;
-    this.actionsExpanded = false;
-    if (value?.upload) this.editForm.get('url')!.enable();
-    this.replyTags = this.getReplyTags();
-    this.writeAccess = this.auth.writeAccess(value);
-    this.taggingAccess = this.auth.taggingAccess(value);
-    this.icons = sortOrder(this.admin.getIcons(value.tags, value.plugins, getScheme(value.url)));
-    this.alarm = capturesAny(this.store.account.alarms, value.tags);
-    this.actions = this.ref.created ? sortOrder(this.admin.getActions(value.tags, value.plugins)) : [];
-    // TODO: detect width and move actions that don't fit into advanced actions
-    this.advancedActions = this.ref.created ? sortOrder(this.admin.getAdvancedActions(value.tags, value.plugins)) : [];
-    this.infoUis = this.admin.getPluginInfoUis(value.tags);
-    this.publishedLabel = this.admin.getPublished(value.tags).join($localize`/`) || this.publishedLabel;
-
-    this.title = this.getTitle();
-    this.expandPlugins = this.admin.getEmbeds(value);
-    if (this.repost) {
-      if (value && this.fetchRepost && (!this.repostRef || this.repostRef.url != value.url && this.repostRef.origin === value.origin)) {
-        this.refs.get(this.url, value.origin)
-          .subscribe(ref => {
-            this.repostRef = ref;
-            if (this.bareRepost) {
-              this.title = this.getTitle();
-              this.expandPlugins = this.admin.getEmbeds(ref);
-            }
-          });
-      }
-    }
   }
 
   @ViewChild(RefFormComponent)
