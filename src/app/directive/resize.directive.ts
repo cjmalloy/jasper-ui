@@ -1,4 +1,4 @@
-import { Directive, ElementRef, HostBinding, HostListener, Input } from '@angular/core';
+import { Directive, ElementRef, HostBinding, HostListener, Input, NgZone } from '@angular/core';
 
 @Directive({
   selector: '[appResize]'
@@ -33,7 +33,10 @@ export class ResizeDirective {
   wasDragging = false;
   dirty = false;
 
-  constructor(private el: ElementRef) {}
+  constructor(
+    private el: ElementRef,
+    private zone: NgZone,
+  ) { }
 
   @HostListener('mousedown', ['$event'])
   onMousedown(e: MouseEvent) {
@@ -89,41 +92,49 @@ export class ResizeDirective {
           Math.abs(e.clientY - this.dragStart.y) < this.minPx) {
         return;
       }
-      this.dragging = true;
-      this.wasDragging = true;
+      this.zone.run(() => {
+        this.dragging = true;
+        this.wasDragging = true;
+      });
     }
-    e.preventDefault();
-    const dx = (e.clientX - this.dragStart.x) / this.startDim.x;
-    const dy = (e.clientY - this.dragStart.y) / this.startDim.y;
-    const l = (dx + dy) / 2;
-    this.dim ??= { ...this.startDim };
-    this.dim.x = this.startDim.x * (1 + l);
-    this.dim.y = this.startDim.y * (1 + l);
-    this.dirty = true;
+    this.zone.run(() => {
+      if (!this.dragStart || !this.startDim) return;
+      e.preventDefault();
+      const dx = (e.clientX - this.dragStart.x) / this.startDim.x;
+      const dy = (e.clientY - this.dragStart.y) / this.startDim.y;
+      const l = (dx + dy) / 2;
+      this.dim ??= { ...this.startDim };
+      this.dim.x = this.startDim.x * (1 + l);
+      this.dim.y = this.startDim.y * (1 + l);
+      this.dirty = true;
+    });
   }
 
   @HostListener('window:touchmove', ['$event'])
   onTouchmove(e: TouchEvent) {
     if (this.enabled === false) return;
     if (!this.dragStart || !this.startDim) return;
-    if (!this.dragging) {
-      this.dragging = true;
-      this.wasDragging = true;
-    }
-    e.preventDefault();
-    const t1 = e.touches.item(0)!;
-    const t2 = e.touches.item(1) || t1;
-    const dims = {
-      w: Math.abs(t1.clientX - t2.clientX),
-      h: Math.abs(t1.clientY - t2.clientY),
-    };
-    const dx = (dims.w - this.dragStart.x) / this.startDim.x;
-    const dy = (dims.h - this.dragStart.y) / this.startDim.y;
-    const l = (dx + dy) / 2;
-    this.dim ??= { ...this.startDim };
-    this.dim.x = this.startDim.x * (1 + l);
-    this.dim.y = this.startDim.y * (1 + l);
-    this.dirty = true;
+    this.zone.run(() => {
+      if (!this.dragStart || !this.startDim) return;
+      if (!this.dragging) {
+        this.dragging = true;
+        this.wasDragging = true;
+      }
+      e.preventDefault();
+      const t1 = e.touches.item(0)!;
+      const t2 = e.touches.item(1) || t1;
+      const dims = {
+        w: Math.abs(t1.clientX - t2.clientX),
+        h: Math.abs(t1.clientY - t2.clientY),
+      };
+      const dx = (dims.w - this.dragStart.x) / this.startDim.x;
+      const dy = (dims.h - this.dragStart.y) / this.startDim.y;
+      const l = (dx + dy) / 2;
+      this.dim ??= { ...this.startDim };
+      this.dim.x = this.startDim.x * (1 + l);
+      this.dim.y = this.startDim.y * (1 + l);
+      this.dirty = true;
+    });
   }
 
   @HostListener('window:contextmenu', ['$event'])
