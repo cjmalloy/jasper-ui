@@ -27,7 +27,7 @@ export class LinksFormComponent implements OnInit {
       addText: $localize`+ Add another source`,
     },
     fieldArray: {
-      focus: true,
+      focus: false,
       props: {
         label: $localize`🔗️`,
       }
