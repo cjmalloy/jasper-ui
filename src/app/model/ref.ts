@@ -119,7 +119,6 @@ export function writeRef(ref: Ref): Ref {
   delete result.exists;
   delete result.metadata;
   delete result.modifiedString;
-  delete result.created;
   // Added by graphing
   delete result.unloaded;
   delete result.notFound;
