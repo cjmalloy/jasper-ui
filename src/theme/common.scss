@@ -520,6 +520,7 @@ video.qr-preview {
   transition: width .5s;
   width: 354px;
   margin-bottom: 100px;
+  margin-left: 4px;
   border-bottom-left-radius: 4px;
 
   &.floating {
