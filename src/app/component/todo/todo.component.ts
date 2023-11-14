@@ -1,5 +1,5 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, EventEmitter, HostBinding, HostListener, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, HostListener, Input, NgZone, Output } from '@angular/core';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
@@ -35,6 +35,7 @@ export class TodoComponent {
     public config: ConfigService,
     private store: Store,
     private refs: RefService,
+    private zone: NgZone,
   ) {
     if (config.mobile) {
       this.pressToUnlock = true;
@@ -43,7 +44,7 @@ export class TodoComponent {
 
   @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
-    this.pressToUnlock = true;
+    this.zone.run(() => this.pressToUnlock = true);
   }
 
   get ref() {

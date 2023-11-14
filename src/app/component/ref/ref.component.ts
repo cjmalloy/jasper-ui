@@ -9,6 +9,7 @@ import {
   HostBinding,
   HostListener,
   Input,
+  NgZone,
   OnChanges,
   OnDestroy,
   Output,
@@ -154,6 +155,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
     private el: ElementRef<HTMLDivElement>,
+    private zone: NgZone,
   ) {
     this.editForm = refForm(fb);
     this.disposers.push(autorun(() => {
@@ -890,7 +892,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
           case 'touchstart':
           case 'mousedown':
           case 'contextmenu':
-            this.closeAdvanced();
+            this.zone.run(() => this.closeAdvanced());
         }
       });
     });

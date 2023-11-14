@@ -1,16 +1,7 @@
-import {
-  AfterViewInit,
-  Component,
-  HostBinding,
-  HostListener,
-  Input,
-  OnChanges,
-  OnDestroy,
-  SimpleChanges
-} from '@angular/core';
+import { AfterViewInit, Component, HostBinding, HostListener, Input, NgZone, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { intersection, uniq } from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, map, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../../model/ext';
@@ -67,6 +58,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     private oembeds: OembedStore,
     private refs: RefService,
     private tags: TaggingService,
+    private zone: NgZone,
   ) {
     if (config.mobile) {
       this.pressToUnlock = true;
@@ -106,7 +98,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
-    this.pressToUnlock = true;
+    this.zone.run(() => this.pressToUnlock = true);
   }
 
   @HostListener('contextmenu', ['$event'])

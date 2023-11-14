@@ -1,23 +1,5 @@
-import { Overlay } from '@angular/cdk/overlay';
-import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  HostBinding,
-  HostListener,
-  Input,
-  OnInit,
-  Output,
-  ViewContainerRef
-} from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, NgZone, OnInit, Output } from '@angular/core';
 import { defer } from 'lodash-es';
-import { Ref } from '../../../model/ref';
-import { AdminService } from '../../../service/admin.service';
-import { ExtService } from '../../../service/api/ext.service';
-import { RefService } from '../../../service/api/ref.service';
-import { TaggingService } from '../../../service/api/tagging.service';
-import { AuthzService } from '../../../service/authz.service';
-import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 
@@ -51,6 +33,7 @@ export class TodoItemComponent implements OnInit {
     private store: Store,
     private config: ConfigService,
     private el: ElementRef,
+    private zone: NgZone,
   ) { }
 
   get local() {
@@ -74,7 +57,7 @@ export class TodoItemComponent implements OnInit {
 
   @HostListener('touchend', ['$event'])
   touchend(e: TouchEvent) {
-    this.unlocked = false;
+    this.zone.run(() => this.unlocked = false);
   }
 
   @HostListener('press', ['$event'])

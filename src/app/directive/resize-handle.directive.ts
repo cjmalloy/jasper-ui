@@ -1,4 +1,4 @@
-import { Directive, ElementRef, HostBinding, HostListener, Input } from '@angular/core';
+import { Directive, ElementRef, HostBinding, HostListener, Input, NgZone } from '@angular/core';
 import { ConfigService } from '../service/config.service';
 import { relativeX, relativeY } from '../util/math';
 
@@ -21,6 +21,7 @@ export class ResizeHandleDirective {
   constructor(
     private config: ConfigService,
     private el: ElementRef,
+    private zone: NgZone,
   ) { }
 
   get resizeCursor() {
@@ -46,15 +47,20 @@ export class ResizeHandleDirective {
   @HostListener('window:pointermove', ['$event'])
   onPointerMove(event: PointerEvent) {
     if (this.dragging) {
-      const dx = event.clientX - this.x;
-      const dy = event.clientY - this.y;
-      this.el.nativeElement.style.width = (this.width + dx) + 'px';
-      this.el.nativeElement.style.height = (this.height + dy) + 'px';
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
+      this.zone.run(() => {
+        const dx = event.clientX - this.x;
+        const dy = event.clientY - this.y;
+        this.el.nativeElement.style.width = (this.width + dx) + 'px';
+        this.el.nativeElement.style.height = (this.height + dy) + 'px';
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+      });
     } else {
-      this.cursor = this.hit(event) ? this.resizeCursor : 'auto';
+      const cursor = this.hit(event) ? this.resizeCursor : 'auto';
+      if (this.cursor !== cursor) {
+        this.zone.run(() => this.cursor = cursor);
+      }
     }
   }
 

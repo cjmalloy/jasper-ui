@@ -9,6 +9,7 @@ import {
   HostBinding,
   HostListener,
   Input,
+  NgZone,
   OnChanges,
   Output,
   SimpleChanges,
@@ -80,6 +81,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     private overlay: Overlay,
     private el: ElementRef,
     private viewContainerRef: ViewContainerRef,
+    private zone: NgZone,
   ) { }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -190,7 +192,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   @HostListener('touchend', ['$event'])
   touchend(e: TouchEvent) {
-    this.unlocked = false;
+    this.zone.run(() => this.unlocked = false);
   }
 
   @HostListener('press', ['$event'])
@@ -239,7 +241,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
           case 'touchstart':
           case 'mousedown':
           case 'contextmenu':
-            this.close();
+            this.zone.run(() => this.close());
         }
       });
     });
