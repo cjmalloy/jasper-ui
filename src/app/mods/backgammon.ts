@@ -48,7 +48,7 @@ export const backgammonTemplate: Template = {
       app-ref-list.plugin-backgammon {
         .list-container {
           grid-auto-flow: row dense;
-          margin: 4px;
+          padding: 4px;
           gap: 8px;
           grid-template-columns: minmax(0, 1fr);
           @media (min-width: 1500px) {

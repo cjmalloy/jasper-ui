@@ -77,7 +77,7 @@ export const chessTemplate: Template = {
       app-ref-list.plugin-chess {
         .list-container {
           grid-auto-flow: row dense;
-          margin: 4px;
+          padding: 4px;
           gap: 8px;
           grid-template-columns:  1fr;
           @media (min-width: 1000px) {
