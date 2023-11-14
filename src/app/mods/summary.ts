@@ -43,5 +43,6 @@ export const summaryPlugin: Plugin = {
     model: 'gpt-4-1106-preview',
     maxTokens: 4096,
   },
+  schema: {},
   generateMetadata: true,
 };
