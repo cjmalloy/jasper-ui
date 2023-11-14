@@ -183,44 +183,48 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     }));
   }
 
+  init() {
+    this.submitted = false;
+    this.invalid = false;
+    this.overwrite = false;
+    this.force = false;
+    this.deleted = false;
+    this.deleting = false;
+    this.editing = false;
+    this.viewSource = false;
+    this.tagging = false;
+    this.actionsExpanded = false;
+    if (this.ref?.upload) this.editForm.get('url')!.enable();
+    this.replyTags = this.getReplyTags();
+    this.writeAccess = this.auth.writeAccess(this.ref);
+    this.taggingAccess = this.auth.taggingAccess(this.ref);
+    this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
+    this.alarm = capturesAny(this.store.account.alarms, this.ref.tags);
+    this.actions = this.ref.created ? sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)) : [];
+    // TODO: detect width and move actions that don't fit into advanced actions
+    this.advancedActions = this.ref.created ? sortOrder(this.admin.getAdvancedActions(this.ref.tags, this.ref.plugins)) : [];
+    this.infoUis = this.admin.getPluginInfoUis(this.ref.tags);
+    this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
+
+    this.title = this.getTitle();
+    this.expandPlugins = this.admin.getEmbeds(this.ref);
+    if (this.repost) {
+      if (this.ref && this.fetchRepost && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
+        this.refs.get(this.url, this.ref.origin)
+        .subscribe(ref => {
+          this.repostRef = ref;
+          if (this.bareRepost) {
+            this.title = this.getTitle();
+            this.expandPlugins = this.admin.getEmbeds(ref);
+          }
+        });
+      }
+    }
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref) {
-      this.submitted = false;
-      this.invalid = false;
-      this.overwrite = false;
-      this.force = false;
-      this.deleted = false;
-      this.deleting = false;
-      this.editing = false;
-      this.viewSource = false;
-      this.tagging = false;
-      this.actionsExpanded = false;
-      if (this.ref?.upload) this.editForm.get('url')!.enable();
-      this.replyTags = this.getReplyTags();
-      this.writeAccess = this.auth.writeAccess(this.ref);
-      this.taggingAccess = this.auth.taggingAccess(this.ref);
-      this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
-      this.alarm = capturesAny(this.store.account.alarms, this.ref.tags);
-      this.actions = this.ref.created ? sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)) : [];
-      // TODO: detect width and move actions that don't fit into advanced actions
-      this.advancedActions = this.ref.created ? sortOrder(this.admin.getAdvancedActions(this.ref.tags, this.ref.plugins)) : [];
-      this.infoUis = this.admin.getPluginInfoUis(this.ref.tags);
-      this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
-
-      this.title = this.getTitle();
-      this.expandPlugins = this.admin.getEmbeds(this.ref);
-      if (this.repost) {
-        if (this.ref && this.fetchRepost && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-          this.refs.get(this.url, this.ref.origin)
-          .subscribe(ref => {
-            this.repostRef = ref;
-            if (this.bareRepost) {
-              this.title = this.getTitle();
-              this.expandPlugins = this.admin.getEmbeds(ref);
-            }
-          });
-        }
-      }
+      this.init();
     }
   }
 

@@ -94,46 +94,50 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     public el: ElementRef,
   ) { }
 
+  init() {
+    this.audioUrl = this.getAudioUrl();
+    this.videoUrl = this.getVideoUrl();
+    this.imageUrl = this.getImageUrl();
+    this.pdfUrl = this.getPdfUrl();
+    this.qrUrl = this.getQrUrl();
+    this.playlist = !!this.admin.getPlugin('plugin/playlist') && this.currentTags.includes('plugin/playlist');
+    this.todo = !!this.admin.getPlugin('plugin/todo') && this.currentTags.includes('plugin/todo');
+    this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && this.currentTags.includes('plugin/backgammon');
+    this.chess = !!this.admin.getPlugin('plugin/chess') && this.currentTags.includes('plugin/chess');
+    this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
+    this.uis = this.admin.getPluginUi(this.currentTags);
+    if (this.ref && hasTag('plugin/repost', this.ref)) {
+      this.refs.get(this.ref.sources![0], this.ref.origin)
+      .subscribe(ref => this.repost = ref);
+    }
+    const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || this.ref?.url;
+    if (queryUrl && hasTag('plugin/lens', this.ref)) {
+      this.embeds.loadQuery$(queryUrl)
+      .subscribe(({params, page, ext}) => {
+        this.page = page;
+        this.ext = ext;
+        this.lensQuery = this.editor.getQuery(queryUrl);
+        this.lensSize = params.size;
+        this.lensCols = params.cols;
+        this.lensSort = params.sort;
+        this.lensFilter = params.filter;
+        this.lensSearch = params.search;
+      });
+    }
+    if (this.ref?.url && this.currentTags.includes('plugin/embed')) {
+      let width = this.embed?.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 400);
+      let height = this.embed?.height || window.innerHeight;
+      if (hasTag('plugin/fullscreen', this.ref)) {
+        width = screen.width;
+        height = screen.height;
+      }
+      this.oembeds.get(this.ref.url, this.theme, width, height).subscribe(oembed => this.oembed = oembed);
+    }
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref || changes.tags) {
-      this.audioUrl = this.getAudioUrl();
-      this.videoUrl = this.getVideoUrl();
-      this.imageUrl = this.getImageUrl();
-      this.pdfUrl = this.getPdfUrl();
-      this.qrUrl = this.getQrUrl();
-      this.playlist = !!this.admin.getPlugin('plugin/playlist') && this.currentTags.includes('plugin/playlist');
-      this.todo = !!this.admin.getPlugin('plugin/todo') && this.currentTags.includes('plugin/todo');
-      this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && this.currentTags.includes('plugin/backgammon');
-      this.chess = !!this.admin.getPlugin('plugin/chess') && this.currentTags.includes('plugin/chess');
-      this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
-      this.uis = this.admin.getPluginUi(this.currentTags);
-      if (this.ref && hasTag('plugin/repost', this.ref)) {
-        this.refs.get(this.ref.sources![0], this.ref.origin)
-        .subscribe(ref => this.repost = ref);
-      }
-      const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || this.ref?.url;
-      if (queryUrl && hasTag('plugin/lens', this.ref)) {
-        this.embeds.loadQuery$(queryUrl)
-        .subscribe(({params, page, ext}) => {
-          this.page = page;
-          this.ext = ext;
-          this.lensQuery = this.editor.getQuery(queryUrl);
-          this.lensSize = params.size;
-          this.lensCols = params.cols;
-          this.lensSort = params.sort;
-          this.lensFilter = params.filter;
-          this.lensSearch = params.search;
-        });
-      }
-      if (this.ref?.url && this.currentTags.includes('plugin/embed')) {
-        let width = this.embed?.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 400);
-        let height = this.embed?.height || window.innerHeight;
-        if (hasTag('plugin/fullscreen', this.ref)) {
-          width = screen.width;
-          height = screen.height;
-        }
-        this.oembeds.get(this.ref.url, this.theme, width, height).subscribe(oembed => this.oembed = oembed);
-      }
+      this.init();
     }
   }
 

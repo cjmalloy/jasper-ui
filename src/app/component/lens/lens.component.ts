@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref, RefSort } from '../../model/ref';
@@ -13,7 +13,7 @@ import { hasPrefix } from '../../util/tag';
   templateUrl: './lens.component.html',
   styleUrls: ['./lens.component.scss']
 })
-export class LensComponent {
+export class LensComponent implements OnChanges {
 
   @Input()
   ext?: Ext;
@@ -40,15 +40,26 @@ export class LensComponent {
   @Input()
   showVotes = false;
 
+  plugins?: string[];
+
   constructor(
     public admin: AdminService,
     public account: AccountService,
     public query: QueryStore,
   ) { }
 
-  get plugins() {
-    if (hasPrefix(this.ext?.tag, 'plugin')) return [this.ext!.tag];
-    return undefined;
+  init() {
+    if (hasPrefix(this.ext?.tag, 'plugin')) {
+      this.plugins = [this.ext!.tag];
+    } else {
+      this.plugins = undefined;
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ext) {
+      this.init();
+    }
   }
 
   isTemplate(template: string) {

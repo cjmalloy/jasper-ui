@@ -71,6 +71,7 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
     }
     if (expandPlugins?.length) c.instance.tags = expandPlugins;
     c.instance.ref = ref;
+    c.instance.init();
     return c;
   }
 
@@ -78,6 +79,7 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
     const c = this.viewContainerRef.createComponent(RefComponent);
     c.instance.ref = ref;
     c.instance.showToggle = !!showToggle;
+    c.instance.init();
     return c;
   }
 
@@ -92,6 +94,7 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
     c.instance.sort = flatten([params.sort || []]);
     c.instance.filter = flatten([params.filter || []]);
     c.instance.search = params.search;
+    c.instance.init();
     return c;
   }
 }
