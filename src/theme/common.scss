@@ -1302,6 +1302,13 @@ button.backup, button.upload, input.upload {
     margin-left: 5px;
   }
 
+  figcaption {
+    margin: 4px;
+    padding: 2px;
+    font-weight: bold;
+    font-size: 90%;
+  }
+
   pre {
     padding: 10px !important;
   }
