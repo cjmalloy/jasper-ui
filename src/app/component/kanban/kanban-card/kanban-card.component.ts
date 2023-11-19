@@ -273,11 +273,13 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     if (includesTag(tag, this.ref.tags)) {
       this.tags.delete(tag, this.ref.url, this.ref.origin).subscribe(() => {
         this.ref.tags = without(this.ref.tags, tag);
+        this.init();
       });
     } else {
       this.tags.create(tag, this.ref.url, this.ref.origin).subscribe(() => {
         this.ref.tags ||= [];
         this.ref.tags.push(tag);
+        this.init();
       });
     }
     this.close();
