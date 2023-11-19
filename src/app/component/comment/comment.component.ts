@@ -72,6 +72,7 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
       if (this.store.eventBus.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
           this.ref = this.store.eventBus.ref!;
+          this.init();
         }
       }
       if (this.store.eventBus.event === 'error') {
