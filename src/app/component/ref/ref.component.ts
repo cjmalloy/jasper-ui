@@ -57,6 +57,7 @@ import {
 } from '../../util/format';
 import { getScheme } from '../../util/hosts';
 import { printError } from '../../util/http';
+import { memo, MemoCache } from '../../util/memo';
 import {
   capturesAny,
   hasTag,
@@ -184,6 +185,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   init() {
+    MemoCache.clear(this);
     this.submitted = false;
     this.invalid = false;
     this.overwrite = false;
@@ -311,54 +313,67 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     }
   }
 
+  @memo
   get local() {
     return this.ref.origin === this.store.account.origin;
   }
 
+  @memo
   get repost() {
     return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
   }
 
+  @memo
   get bareRepost() {
     return this.repost && !this.ref.title && !this.ref.comment;
   }
 
+  @memo
   get commentNoTitle() {
     return this.bareRef?.title && this.bareRef?.comment || hasComment(this.bareRef?.comment || '');
   }
 
+  @memo
   get feed() {
     return !!this.admin.getPlugin('+plugin/feed') && hasTag('+plugin/feed', this.ref);
   }
 
+  @memo
   get thread() {
     return !!this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.ref);
   }
 
+  @memo
   get comment() {
     return !!this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.ref);
   }
 
+  @memo
   get dm() {
     return !!this.admin.getTemplate('dm') && hasTag('dm', this.ref);
   }
 
+  @memo
   get email() {
     return !!this.admin.getTemplate('email') && hasTag('email', this.ref);
   }
 
+  @memo
   get remote() {
     return !!this.admin.getPlugin('+plugin/origin') && hasTag('+plugin/origin', this.ref);
   }
 
+  @memo
   get originPull() {
     return !!this.admin.getPlugin('+plugin/origin/pull') && hasTag('+plugin/origin/pull', this.ref);
   }
 
+  @memo
   get originPush() {
     return !!this.admin.getPlugin('+plugin/origin/push') && hasTag('+plugin/origin/push', this.ref);
   }
 
+  @memo
   get addTags() {
     if (this.feed) {
       return interestingTags(this.ref.plugins?.['+plugin/feed']?.addTags);
@@ -369,10 +384,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     return undefined;
   }
 
+  @memo
   get addTagExts$() {
     return this.exts.getCachedExts(this.addTags || [], this.ref.origin || '').pipe(this.admin.extFallbacks);
   }
 
+  @memo
   get fromOrigin() {
     if (this.originPush) {
       return this.ref.plugins?.['+plugin/origin']?.local;
@@ -380,6 +397,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     return undefined;
   }
 
+  @memo
   get addOrigin() {
     if (this.originPull) {
       return subOrigin(this.ref.origin, this.ref.plugins?.['+plugin/origin']?.local);
@@ -390,19 +408,23 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     return undefined;
   }
 
+  @memo
   get thumbnail() {
     return this.admin.getPlugin('plugin/thumbnail') &&
       (hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef));
   }
 
+  @memo
   get thumbnailUrl() {
     return this.thumbnail && !this.thumbnailColor;
   }
 
+  @memo
   get thumbnailColor() {
     return this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color || '';
   }
 
+  @memo
   get thumbnailEmoji() {
     if (this.thumbnailUrl) {
       return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
@@ -410,36 +432,43 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || this.thumbnailEmojiDefaults || '';
   }
 
+  @memo
   get thumbnailEmojiDefaults() {
     const iconLabel = this.icons.filter(i => i.label && (i.order || 0) >= 0 && this.showIcon(i))[0];
     const iconThumbnail = this.icons.filter(i => i.thumbnail && this.showIcon(i))[0];
     return iconLabel?.label || iconThumbnail?.thumbnail;
   }
 
+  @memo
   get thumbnailRadius() {
     return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
   }
 
+  @memo
   get file() {
     return this.admin.getPlugin('plugin/file') &&
       hasTag('plugin/file', this.currentRef);
   }
 
+  @memo
   get audio() {
     return this.admin.getPlugin('plugin/audio') &&
       hasTag('plugin/audio', this.currentRef);
   }
 
+  @memo
   get video() {
     return this.admin.getPlugin('plugin/video') &&
       hasTag('plugin/video', this.currentRef);
   }
 
+  @memo
   get image() {
     return this.admin.getPlugin('plugin/image') &&
       hasTag('plugin/image', this.currentRef);
   }
 
+  @memo
   get mediaAttachment() {
     if (this.file) {
       return this.link;
@@ -456,6 +485,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     return false;
   }
 
+  @memo
   get canInvoice() {
     if (!this.ref.created) return false;
     if (!this.local) return false;
@@ -466,14 +496,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       !hasTag('internal', this.ref);
   }
 
+  @memo
   get isAuthor() {
     return isOwnerTag(this.store.account.tag, this.ref);
   }
 
+  @memo
   get isRecipient() {
     return hasTag(this.store.account.mailbox, this.ref);
   }
 
+  @memo
   get authors() {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     return authors(this.ref).map(a => {
@@ -482,14 +515,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     });
   }
 
+  @memo
   get userAuthors() {
     return userAuthors(this.ref);
   }
 
+  @memo
   get authorExts$() {
     return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
+  @memo
   get recipients() {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     const recipients = addressedTo(this.ref).map(a => {
@@ -499,14 +535,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     return without(recipients, ...this.authors);
   }
 
+  @memo
   get recipientExts$() {
     return this.exts.getCachedExts(this.recipients, this.ref.origin || '').pipe(this.admin.authorFallback );
   }
 
+  @memo
   get mailboxes() {
     return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
   }
 
+  @memo
   get replySources() {
     const sources = [this.ref.url];
     if (this.comment || this.dm || this.email) {
@@ -517,6 +556,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     return sources;
   }
 
+  @memo
   getReplyTags(): string[] {
     const tags = [
       ...this.admin.reply.filter(p => (this.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
@@ -529,74 +569,90 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
+  @memo
   get replyTo() {
     return this.authors.join(' ')
   }
 
+  @memo
   get tags() {
     return interestingTags(this.ref.tags);
   }
 
+  @memo
   get tagExts$() {
     return this.exts.getCachedExts(this.tags, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
+  @memo
   get url() {
     return this.repost ? this.ref.sources![0] : this.ref.url;
   }
 
+  @memo
   get link() {
     if (this.file) return this.scraper.getFetch(this.url);
     return this.url;
   }
 
+  @memo
   get currentRef() {
     return this.repost ? this.repostRef : this.ref;
   }
 
+  @memo
   get bareRef() {
     return this.bareRepost ? this.repostRef : this.ref;
   }
 
+  @memo
   get host() {
     return urlSummary(this.url);
   }
 
+  @memo
   get clickableLink() {
     if (this.file) return true;
     return clickableLink(this.url);
   }
 
+  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
+  @memo
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
   }
 
+  @memo
   get responses() {
     return this.ref.metadata?.responses || 0;
   }
 
+  @memo
   get sources() {
     return this.ref.sources?.length || 0;
   }
 
+  @memo
   get parentComment() {
     if (!hasTag('plugin/comment', this.ref)) return false;
     if (this.sources === 1 || this.sources === 2) return this.ref.sources![0];
     return false;
   }
 
+  @memo
   get parentCommentTop() {
     if (!hasTag('plugin/comment', this.ref)) return false;
     if (this.sources === 2) return this.ref.sources![1];
     return false;
   }
 
+  @memo
   get parentThreadTop() {
     if (!hasTag('plugin/thread', this.ref)) return false;
     if (this.sources === 2) return this.ref.sources![1];
@@ -604,22 +660,27 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     return false;
   }
 
+  @memo
   get publishedIsSubmitted() {
     return !this.ref.published || Math.abs(this.ref.published.diff(this.ref.created, 'seconds')) <= 5;
   }
 
+  @memo
   get modifiedIsSubmitted() {
     return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created, 'seconds')) <= 5;
   }
 
+  @memo
   get upvote() {
     return hasUserUrlResponse('plugin/vote/up', this.ref);
   }
 
+  @memo
   get downvote() {
     return hasUserUrlResponse('plugin/vote/down', this.ref);
   }
 
+  @memo
   get fullscreen() {
     if (this.plugins) return includesTag('plugin/fullscreen', this.plugins);
     return hasTag('plugin/fullscreen', this.ref);
@@ -661,7 +722,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
           }
         }
       });
-      this.ref = this.ref;
+      this.init();
     } else {
       this.store.eventBus.runAndReload(this.ts.create(field.value, this.ref.url, this.ref.origin!), this.ref);
     }
@@ -778,7 +839,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     }
     if (this.ref.upload) {
       ref.upload = true;
-      this.ref = ref;
+      this.init();
       this.store.submit.setRef(this.ref);
     } else {
       this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
@@ -827,6 +888,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     ).subscribe(ref => {
       this.store.submit.removeRef(this.ref);
       this.ref = ref;
+      this.init();
     });
   }
 

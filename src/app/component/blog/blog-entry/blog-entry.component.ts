@@ -27,6 +27,7 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags, TAGS_REGEX } from '../../../util/format';
 import { getScheme } from '../../../util/hosts';
 import { printError } from '../../../util/http';
+import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, isOwnerTag, tagOrigin } from '../../../util/tag';
 
 @Component({
@@ -48,7 +49,6 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
 
   editForm: UntypedFormGroup;
   submitted = false;
-  title = '';
   icons: Icon[] = [];
   actions: Action[] = [];
   editorPlugins: string[] = [];
@@ -90,19 +90,23 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     }));
   }
 
+  init() {
+    MemoCache.clear(this);
+    this.submitted = false;
+    this.deleted = false;
+    this.deleting = false;
+    this.editing = false;
+    this.viewSource = false;
+    this.tagging = false;
+    this.writeAccess = this.auth.writeAccess(this.ref);
+    this.taggingAccess = this.auth.taggingAccess(this.ref);
+    this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
+    this.actions = sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins));
+  }
+
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref?.currentValue) {
-      this.submitted = false;
-      this.deleted = false;
-      this.deleting = false;
-      this.editing = false;
-      this.viewSource = false;
-      this.tagging = false;
-      this.writeAccess = this.auth.writeAccess(this.ref);
-      this.taggingAccess = this.auth.taggingAccess(this.ref);
-      this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
-      this.actions = sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins));
-      this.title = this.getTitle() || '';
+    if (changes.ref) {
+      this.init();
     }
   }
 
@@ -111,12 +115,14 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     this.disposers.length = 0;
   }
 
+  @memo
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
   }
 
-  getTitle() {
+  @memo
+  get title() {
     const title = (this.ref.title || '').trim();
     const comment = (this.ref.comment || '').trim();
     if (title) return this.ref.title;
@@ -133,6 +139,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     });
   }
 
+  @memo
   get canInvoice() {
     if (!this.local) return false;
     if (!this.admin.getPlugin('plugin/invoice')) return false;
@@ -142,15 +149,18 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
       !hasTag('internal', this.ref);
   }
 
+  @memo
   get local() {
     return this.ref.origin === this.store.account.origin;
   }
 
+  @memo
   get pdf() {
     if (!this.admin.getPlugin('plugin/pdf')) return null;
     return this.ref.plugins?.['plugin/pdf']?.url || this.findPdf;
   }
 
+  @memo
   get findPdf() {
     if (!this.ref.alternateUrls) return null;
     for (const s of this.ref.alternateUrls) {
@@ -161,55 +171,67 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     return null;
   }
 
+  @memo
   get archive() {
     const plugin = this.admin.getPlugin('plugin/archive');
     if (!plugin) return null;
     return this.ref.plugins?.['plugin/archive']?.url || findArchive(plugin, this.ref);
   }
 
+  @memo
   get isAuthor() {
     return isOwnerTag(this.store.account.tag, this.ref);
   }
 
+  @memo
   get isRecipient() {
     return hasTag(this.store.account.mailbox, this.ref);
   }
 
+  @memo
   get authors() {
     return authors(this.ref);
   }
 
+  @memo
   get authorExts$() {
     return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
+  @memo
   get tags() {
     let result = interestingTags(this.ref.tags);
     if (!this.blog?.config?.filterTags) return result;
     return intersection(result, this.blog.config.tags || []);
   }
 
+  @memo
   get tagExts$() {
     return this.exts.getCachedExts(this.tags, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
+  @memo
   get clickableLink() {
     return clickableLink(this.ref.url);
   }
 
+  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
+  @memo
   get responses() {
     return this.ref.metadata?.responses || 0;
   }
 
+  @memo
   get sources() {
     return this.ref.sources?.length || 0;
   }
 
+  @memo
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
       user = user.replace(this.store.account.origin, '');
@@ -242,6 +264,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
       this.serverError = [];
       this.tagging = false;
       this.ref = ref;
+      this.init();
     });
   }
 
@@ -319,6 +342,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
       this.serverError = [];
       this.editing = false;
       this.ref = ref;
+      this.init();
     });
   }
 

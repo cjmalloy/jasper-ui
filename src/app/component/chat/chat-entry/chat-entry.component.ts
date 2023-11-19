@@ -12,6 +12,7 @@ import { AuthzService } from '../../../service/authz.service';
 import { Store } from '../../../store/store';
 import { authors, clickableLink, formatAuthor, TAGS_REGEX, trimCommentForTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, tagOrigin } from '../../../util/tag';
 
 @Component({
@@ -54,28 +55,34 @@ export class ChatEntryComponent implements OnChanges {
     private refs: RefService,
   ) { }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref) {
-      this.writeAccess = this.auth.writeAccess(this.ref);
-      this.taggingAccess = this.auth.taggingAccess(this.ref);
-      if (this.ref && this.bareRepost && !this.repostRef) {
-        this.refs.get(this.url, this.ref.origin)
-        .subscribe(ref => {
-          this.repostRef = ref;
-          this.noComment = {
-            ...ref,
-            comment: ''
-          };
-        });
-      } else {
+  init() {
+    MemoCache.clear(this);
+    this.writeAccess = this.auth.writeAccess(this.ref);
+    this.taggingAccess = this.auth.taggingAccess(this.ref);
+    if (this.ref && this.bareRepost && !this.repostRef) {
+      this.refs.get(this.url, this.ref.origin)
+      .subscribe(ref => {
+        this.repostRef = ref;
         this.noComment = {
-          ...this.ref,
+          ...ref,
           comment: ''
         };
-      }
+      });
+    } else {
+      this.noComment = {
+        ...this.ref,
+        comment: ''
+      };
     }
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ref || changes.focused) {
+      this.init();
+    }
+  }
+
+  @memo
   get title() {
     const title = (this.ref?.title || '').trim();
     const comment = (this.ref?.comment || '').trim();
@@ -101,83 +108,102 @@ export class ChatEntryComponent implements OnChanges {
     }
   }
 
+  @memo
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
   }
 
+  @memo
   get authors() {
     return authors(this.ref, this.store.view.ext?.config?.authorTags || []);
   }
 
+  @memo
   get authorExts$() {
     return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
+  @memo
   get clickableLink() {
     return clickableLink(this.url);
   }
 
+  @memo
   get url() {
     return this.repost ? this.ref.sources![0] : this.ref.url;
   }
 
+  @memo
   get currentRef() {
     return this.repost ? this.repostRef : this.ref;
   }
 
+  @memo
   get bareRef() {
     return this.bareRepost ? this.repostRef : this.ref;
   }
 
+  @memo
   get repost() {
     return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
   }
 
+  @memo
   get bareRepost() {
     return this.repost && !this.ref.title && !this.ref.comment;
   }
 
+  @memo
   get approved() {
     return hasTag('_moderated', this.currentRef);
   }
 
+  @memo
   get locked() {
     return hasTag('locked', this.currentRef);
   }
 
+  @memo
   get qr() {
     return hasTag('plugin/qr', this.currentRef);
   }
 
+  @memo
   get audio() {
     return hasTag('plugin/audio', this.currentRef) ||
       this.admin.getPluginsForUrl(this.url).find(p => p.tag === 'plugin/audio');
   }
 
+  @memo
   get video() {
     return hasTag('plugin/video', this.currentRef) ||
       this.admin.getPluginsForUrl(this.url).find(p => p.tag === 'plugin/image');
   }
 
+  @memo
   get image() {
     return hasTag('plugin/image', this.currentRef) ||
       this.admin.getPluginsForUrl(this.url).find(p => p.tag === 'plugin/image');
   }
 
+  @memo
   get media() {
     return this.qr || this.audio || this.video || this.image;
   }
 
+  @memo
   get expand() {
     return this.currentRef?.comment || this.media;
   }
 
+  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
+  @memo
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
       user = user.replace(this.store.account.origin, '');
@@ -198,6 +224,7 @@ export class ChatEntryComponent implements OnChanges {
       this.serverError = [];
       this.tagging = false;
       this.ref = ref;
+      this.init();
     });
   }
 
@@ -215,6 +242,7 @@ export class ChatEntryComponent implements OnChanges {
     ).subscribe(ref => {
       this.serverError = [];
       this.ref = ref;
+      this.init();
     });
   }
 

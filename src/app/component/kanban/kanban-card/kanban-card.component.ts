@@ -31,6 +31,7 @@ import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 import { hasComment, trimCommentForTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, includesTag } from '../../../util/tag';
 
 @Component({
@@ -56,7 +57,6 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   @Output()
   copied = new EventEmitter<Ref>();
 
-  title = '';
   repostRef?: Ref;
   @HostBinding('class.full-size')
   todo = false;
@@ -84,21 +84,20 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     private zone: NgZone,
   ) { }
 
+  init() {
+    MemoCache.clear(this);
+    this.todo = !!this.admin.getPlugin('plugin/todo') && !!this.ref.tags?.includes('plugin/todo');
+    this.chess = !!this.admin.getPlugin('plugin/chess') && !!this.ref.tags?.includes('plugin/chess');
+    this.chessWhite = !!this.ref.tags?.includes(this.store.account.localTag);
+    if (this.repost && this.ref && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
+      this.refs.get(this.url, this.ref.origin)
+        .subscribe(ref => this.repostRef = ref);
+    }
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref) {
-      this.title = this.getTitle();
-      this.todo = !!this.admin.getPlugin('plugin/todo') && !!this.ref.tags?.includes('plugin/todo');
-      this.chess = !!this.admin.getPlugin('plugin/chess') && !!this.ref.tags?.includes('plugin/chess');
-      this.chessWhite = !!this.ref.tags?.includes(this.store.account.localTag);
-      if (this.repost && this.ref && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-        this.refs.get(this.url, this.ref.origin)
-        .subscribe(ref => {
-          this.repostRef = ref;
-          if (this.bareRepost) {
-            this.title = this.getTitle();
-          }
-        });
-      }
+      this.init();
     }
   }
 
@@ -115,31 +114,38 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     }
   }
 
+  @memo
   get remote() {
     return this.origin !== this.store.account.origin;
   }
 
+  @memo
   get origin() {
     return this.repost ? this.repostRef?.origin : this.ref.origin;
   }
 
+  @memo
   @HostBinding('class.no-write')
   get noWrite() {
     return !this.auth.writeAccess(this.ref);
   }
 
+  @memo
   get repost() {
     return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
   }
 
+  @memo
   get bareRepost() {
     return this.repost && !this.ref.title && !this.ref.comment;
   }
 
+  @memo
   get url() {
     return this.repost ? this.ref.sources![0] : this.ref.url;
   }
 
+  @memo
   get currentText() {
     if (this.chess || this.todo) return '';
     const value = this.ref?.comment || this.repostRef?.comment || '';
@@ -147,40 +153,48 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     return '';
   }
 
+  @memo
   get thumbnail() {
     return this.admin.getPlugin('plugin/thumbnail') &&
       hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
   }
 
+  @memo
   get thumbnailUrl() {
     return this.thumbnail && !this.thumbnailColor;
   }
 
+  @memo
   get thumbnailColor() {
     return this.thumbnail &&
       (this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color);
   }
 
+  @memo
   get thumbnailEmoji() {
     return this.thumbnail &&
       (this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji) || '';
   }
 
+  @memo
   get thumbnailRadius() {
     return this.thumbnail &&
       (this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius) || 0;
   }
 
+  @memo
   get badges() {
     const badges = intersection(this.ref.tags, this.ext?.config?.badges || []);
     if (this.hideSwimLanes) return badges;
     return difference(badges, this.ext?.config?.swimLanes || []);
   }
 
+  @memo
   get badgeExts$() {
     return this.exts.getCachedExts(this.badges, this.ref.origin || '');
   }
 
+  @memo
   get allBadgeExts$() {
     return this.exts.getCachedExts(this.ext?.config?.badges || [], this.ref.origin || '');
   }
@@ -203,7 +217,8 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     if ('vibrate' in navigator) defer(() => navigator.vibrate([2, 32, 2]));
   }
 
-  getTitle() {
+  @memo
+  get title() {
     if (this.bareRepost) return this.repostRef?.title || $localize`Repost`;
     const title = (this.ref.title || '').trim();
     const comment = (this.ref.comment || '').trim();
@@ -299,6 +314,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
       switchMap(() => this.refs.get(copied.url, this.store.account.origin)),
     ).subscribe(ref => {
       this.ref = ref;
+      this.init();
       this.copied.emit(ref);
     });
   }

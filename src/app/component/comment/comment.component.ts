@@ -18,6 +18,7 @@ import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags, TAGS_REGEX } from '../../util/format';
 import { getScheme } from '../../util/hosts';
+import { memo, MemoCache } from '../../util/memo';
 import { hasTag, hasUserUrlResponse, removeTag, tagOrigin } from '../../util/tag';
 
 @Component({
@@ -100,19 +101,25 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
     ).subscribe(ref => {
       this.editing = false;
       this.ref = ref;
+      this.init();
     });
+  }
+
+  init() {
+    MemoCache.clear(this);
+    this.deleting = false;
+    this.editing = false;
+    this.tagging = false;
+    this.collapsed = this.store.local.isRefToggled('comment:' + this.ref.url, this.ref.origin);
+    this.writeAccess = this.auth.writeAccess(this.ref);
+    this.taggingAccess = this.auth.taggingAccess(this.ref);
+    this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
+    this.actions = sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins));
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref) {
-      this.deleting = false;
-      this.editing = false;
-      this.tagging = false;
-      this.collapsed = this.store.local.isRefToggled('comment:' + this.ref.url, this.ref.origin);
-      this.writeAccess = this.auth.writeAccess(this.ref);
-      this.taggingAccess = this.auth.taggingAccess(this.ref);
-      this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
-      this.actions = sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins));
+      this.init();
     }
   }
 
@@ -125,11 +132,13 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
     this.disposers.length = 0;
   }
 
+  @memo
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
   }
 
+  @memo
   get top() {
     if (hasTag('plugin/comment', this.store.view.ref)) {
       return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0];
@@ -137,6 +146,7 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
     return this.store.view.ref?.url;
   }
 
+  @memo
   get canInvoice() {
     if (this.ref.origin) return false;
     if (!this.admin.getPlugin('plugin/invoice')) return false;
@@ -146,26 +156,32 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
       !hasTag('internal', this.ref);
   }
 
+  @memo
   get isAuthor() {
     return this.authors.includes(this.store.account.tag);
   }
 
+  @memo
   get isRecipient() {
     return hasTag(this.store.account.mailbox, this.ref);
   }
 
+  @memo
   get authors() {
     return authors(this.ref);
   }
 
+  @memo
   get authorExts$() {
     return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
+  @memo
   get mailboxes() {
     return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
   }
 
+  @memo
   get replyTags(): string[] {
     const tags = [
       'internal',
@@ -179,46 +195,57 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
+  @memo
   get tagged() {
     return interestingTags(this.ref.tags);
   }
 
+  @memo
   get tagExts$() {
     return this.exts.getCachedExts(this.tagged, this.ref.origin || '').pipe(this.admin.extFallbacks);
   }
 
+  @memo
   get deleted() {
     return hasTag('plugin/delete', this.ref);
   }
 
+  @memo
   get comments() {
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
+  @memo
   get moreComments() {
     return this.comments > (this.thread.cache.get(this.ref.url)?.length || 0) + this.newComments;
   }
 
+  @memo
   get responses() {
     return this.ref.metadata?.responses || 0;
   }
 
+  @memo
   get sources() {
     return this.ref.sources?.length || 0;
   }
 
+  @memo
   get upvote() {
     return hasUserUrlResponse('plugin/vote/up', this.ref);
   }
 
+  @memo
   get downvote() {
     return hasUserUrlResponse('plugin/vote/down', this.ref);
   }
 
+  @memo
   get score() {
     return score(this.ref);
   }
 
+  @memo
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
       user = user.replace(this.store.account.origin, '');

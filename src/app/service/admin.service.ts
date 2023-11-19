@@ -63,6 +63,7 @@ import { voteDownPlugin, voteUpPlugin } from '../mods/vote';
 import { DEFAULT_WIKI_PREFIX, wikiConfig } from '../mods/wiki';
 import { Store } from '../store/store';
 import { getExtension, getHost } from '../util/hosts';
+import { memo, MemoCache } from '../util/memo';
 import { hasPrefix, includesTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { OEmbedService } from './api/oembed.service';
@@ -196,6 +197,7 @@ export class AdminService {
 
   get init$() {
     this._cache.clear();
+    MemoCache.clear(this);
     runInAction(() => this.store.view.updates = false);
     this.status.plugins = mapValues(this.def.plugins, () => undefined);
     this.status.disabledPlugins = {};
@@ -609,6 +611,7 @@ export class AdminService {
       .flatMap(p => p.config!.published as string);
   }
 
+  @memo
   getPlugin(tag: string) {
     return Object.values(this.status.plugins).find(p => p?.tag === tag);
   }
@@ -653,6 +656,7 @@ export class AdminService {
     }, {});
   }
 
+  @memo
   getTemplates(tag = ''): Template[] {
     const template = this.getTemplate(tag);
     const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
