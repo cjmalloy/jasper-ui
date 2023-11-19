@@ -67,12 +67,12 @@ export class LinksFormComponent implements OnInit {
   }
 
   get links() {
-    return this.group?.get(this.fieldName) as UntypedFormArray;
+    return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
   }
 
   addLink(...values: string[]) {
     if (!values.length) return;
-    this.model = this.links.value;
+    this.model = this.links!.value;
     this.field.fieldArray.focus = true;
     for (const value of values) {
       if (value) this.field.fieldArray.focus = false;
