@@ -281,6 +281,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
       });
     }
     this.close();
+    this.init();
   }
 
   copy() {
