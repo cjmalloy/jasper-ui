@@ -40,8 +40,6 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   @ViewChild('fill')
   fill?: ElementRef;
-  @ViewChild('advancedForm')
-  advancedForm?: RefFormComponent;
 
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
@@ -95,6 +93,13 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  @ViewChild('advancedForm')
+  set advancedForm(value: RefFormComponent) {
+    if (value) {
+      value.setRef(this.textForm.value);
+    }
   }
 
   get url() {
