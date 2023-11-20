@@ -94,7 +94,7 @@
     </ng-container>
 
     <ng-container *ngIf="store.submit.exts.length && !store.submit.huge">
-      <span>Exts: </span>
+      <span class="upload-label">Exts: </span>
       <span></span>
       <ng-container *ngFor="let ext of store.submit.exts; let i = index">
         <div class="list-number">{{ i + 1 }}</div>
@@ -103,7 +103,7 @@
     </ng-container>
 
     <ng-container *ngIf="store.submit.refs.length && !store.submit.huge">
-      <span>Refs: </span>
+      <span class="upload-label">Refs: </span>
       <span></span>
       <ng-container *ngFor="let ref of store.submit.refs; let i = index">
         <div class="list-number">{{ i + 1 }}</div>
