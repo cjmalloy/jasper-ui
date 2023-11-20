@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, OnDestroy, ViewChild } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FormlyFormOptions } from '@ngx-formly/core';
@@ -30,6 +30,7 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
   styleUrls: ['./upload.component.scss']
 })
 export class UploadPage implements OnDestroy {
+  @HostBinding('class') css = 'full-page-upload';
   private disposers: IReactionDisposer[] = [];
   tagRegex = TAGS_REGEX.source;
 
