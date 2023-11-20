@@ -9,33 +9,35 @@
   <input type="datetime-local" step="1" formControlName="olderThan">
 
   <span><!-- Buttons --></span>
-  <span class="form-array right">
+  <span class="buttons form-array right">
     <button type="submit" [disabled]="submitted && !originForm.valid" i18n>Delete</button>
   </span>
 </form>
 
-<button *ngIf="store.account.sysAdmin"
-        (click)="backup()"
-        i18n-title
-        title="Create Backup"
-        class="backup" i18n>+ backup</button>
+<div class="buttons">
+  <button *ngIf="store.account.sysAdmin"
+          (click)="backup()"
+          i18n-title
+          title="Create Backup"
+          class="backup" i18n>+ backup</button>
 
-<button *ngIf="store.account.mod"
-        (click)="backfill()"
-        i18n-title
-        title="Backfill Metadata"
-        class="backfill" i18n>♻️ backfill</button>
+  <button *ngIf="store.account.mod"
+          (click)="backfill()"
+          i18n-title
+          title="Backfill Metadata"
+          class="backfill" i18n>♻️ backfill</button>
 
-<button *ngIf="!uploading"
-        (click)="uploadFile.click()"
-        i18n-title
-        title="Upload Backup"
-        class="upload" i18n>+ upload</button>
-<app-loading *ngIf="uploading"></app-loading>
-<input #uploadFile
-       type="file"
-       class="upload"
-       (change)="upload(uploadFile?.files!)">
+  <button *ngIf="!uploading"
+          (click)="uploadFile.click()"
+          i18n-title
+          title="Upload Backup"
+          class="upload" i18n>+ upload</button>
+  <app-loading *ngIf="uploading"></app-loading>
+  <input #uploadFile
+         type="file"
+         class="upload"
+         (change)="upload(uploadFile?.files!)">
+</div>
 
 <ng-container *ngFor="let e of serverError">
   <span><!-- Unexpected Error --></span>

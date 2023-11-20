@@ -47,7 +47,7 @@
     </ng-container>
 
     <span><!-- Buttons --></span>
-    <span class="form-array right">
+    <span class="buttons form-array right">
     <button type="submit" [disabled]="submitted && !profileForm.valid" i18n>{{ user ? 'Save' : 'Create' }}</button>
     <button *ngIf="user" type="button" (click)="delete()" i18n>Delete</button>
   </span>
