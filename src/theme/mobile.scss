@@ -156,12 +156,17 @@ $tablet-width: 767px;
   }
 
   .editor, .summary-box {
-    margin: 0 !important;
-    padding: 0 !important;
     background-color: unset !important;
     backdrop-filter: unset !important;
     box-shadow: unset !important;
     border: 1px solid transparent !important;
+  }
+
+  .ref, .comment-edit, .comment-reply {
+    .editor, .summary-box {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
   }
 
   .list-container {
@@ -193,6 +198,10 @@ $tablet-width: 767px;
   .editor textarea {
     margin-left: -3px;
     width: calc(100% - 3px);
+  }
+
+  .full-page-form .editor textarea {
+    margin-left: 0;
   }
 
   .app-comment-reply, app-comment-edit {
