@@ -185,8 +185,15 @@ select {
   }
 }
 
-.editor-label {
+.editor-label, .add-plugins-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-top: 12px !important;
+  line-height: 24px;
+  &>.select-plugin {
+    flex: 1;
+  }
 }
 
 .floating-ribbons {
