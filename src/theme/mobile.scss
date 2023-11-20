@@ -178,6 +178,7 @@ $tablet-width: 767px;
       opacity: 0;
       width: 0;
       padding: 0;
+      line-height: 0;
     }
     .link {
       -webkit-box-orient: vertical;
@@ -365,7 +366,7 @@ $tablet-width: 767px;
       padding-bottom: 10px;
     }
   }
-  .form {
+  .form, .full-page-upload .list-container {
     max-width: 100vw;
     display: flex !important;
     flex-direction: column;
