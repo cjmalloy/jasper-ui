@@ -218,6 +218,18 @@ $tablet-width: 767px;
     }
   }
 
+  .editor-label, .add-plugins-label {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    & > label {
+      margin-right: 20px;
+    }
+    & > .select-plugin {
+      flex: 1;
+    }
+  }
+
   .json-editor ngx-monaco-editor {
     margin: 0 0 0 -10px;
     width: 100vw !important;
@@ -369,11 +381,6 @@ $tablet-width: 767px;
     max-width: 100vw;
     display: flex !important;
     flex-direction: column;
-
-
-    app-select-plugin select {
-      width: unset !important;
-    }
 
     label {
       text-align: left !important;

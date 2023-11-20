@@ -48,15 +48,14 @@
              [group]="group"
              [class.no-margin]="!sources.links?.length"></app-links>
 
-  <label for="plugins"
-         style="margin-top: 7px">
-    <span class="mobile-inline" i18n>Add Plugin: &nbsp;</span>
+  <div class="add-plugins-label">
+    <label for="plugins" class="mobile-inline" i18n>Add Plugin:</label>
     <app-select-plugin #pluginSelect
                        class="shrink"
                        [add]="true"
                        i18n-title title="Add Plugin"
                        (pluginChange)="togglePlugin($event); pluginSelect.plugin = ''"></app-select-plugin>
-  </label>
+  </div>
   <app-form-plugins id="plugins"
                     (togglePlugin)="togglePlugin($event)"
                     [tags]="group.value.tags"

@@ -16,8 +16,8 @@
         </div>
       </div>
 
-      <div *ngIf="!store.submit.wiki" class="editor-label" i18n>
-        <label for="comment">Comment:</label>
+      <div *ngIf="!store.submit.wiki" class="editor-label">
+        <label for="comment" i18n>Comment:</label>
         <app-select-plugin #pluginSelect
                            class="shrink"
                            [text]="true"
