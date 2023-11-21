@@ -47,7 +47,7 @@ export class RefFormComponent implements OnInit {
 
   constructor(
     private fb: UntypedFormBuilder,
-    private admin: AdminService,
+    public admin: AdminService,
     private bookmarks: BookmarkService,
     private editor: EditorService,
     private scrape: ScrapeService,

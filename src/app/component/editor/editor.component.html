@@ -19,6 +19,10 @@
             type="button"
             (click)="scrape.emit()"
             i18n-title title="Scrape Webpage" i18n>🪝</button>
+    <button *ngIf="admin.getTemplate('htmlToMarkdown')"
+            type="button"
+            (click)="htmlToMarkdown()"
+            i18n-title title="Convert HTML to Markdown" i18n>⬇️</button>
     <div *ngFor="let plugin of editorPlugins; let i = index" class="editor-plugin">
       <input type="checkbox"
              [style.display]="'none'"

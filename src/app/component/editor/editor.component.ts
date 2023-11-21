@@ -2,6 +2,7 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
+import Europa from 'europa';
 import { debounce, throttle, uniq, without } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../service/account.service';
@@ -41,9 +42,11 @@ export class EditorComponent {
   @Input()
   control!: UntypedFormControl;
   @Input()
-  autoFocus = false
+  autoFocus = false;
   @Input()
-  showScrape = false
+  showScrape = false;
+  @Input()
+  url = '';
   @Input()
   fillWidth?: HTMLElement;
 
@@ -60,8 +63,10 @@ export class EditorComponent {
   private _text? = '';
   private _editing = false;
 
+  private europa?: Europa;
+
   constructor(
-    private admin: AdminService,
+    public admin: AdminService,
     private accounts: AccountService,
     private auth: AuthzService,
     public store: Store,
@@ -124,6 +129,7 @@ export class EditorComponent {
     if (!value) {
       // Do not throttle
       this._text = value;
+      this.store.local.saveEditing(value);
       this.syncEditor.next(this._text);
     }
     // Clear previous throttled values
@@ -131,6 +137,7 @@ export class EditorComponent {
   }
 
   syncTextThrottled = debounce((value: string) => {
+    if (this._text === value) return;
     this._text = value;
     this.syncEditor.next(this._text);
   }, 400);
@@ -194,5 +201,16 @@ export class EditorComponent {
       this.helpRef?.detach();
       this.helpRef?.dispose();
     }
+  }
+
+  htmlToMarkdown() {
+    this.europa ||= new Europa({
+      absolute: !!this.url,
+      baseUri: this.url,
+      inline: true,
+    });
+    const md = this.europa.convert(this.editor!.nativeElement.value);
+    this.control.setValue(md);
+    this.syncText(md);
   }
 }

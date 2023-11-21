@@ -30,6 +30,7 @@ import { folderTemplate } from '../mods/folder';
 import { fullscreenPlugin } from '../mods/fullscreen';
 import { graphConfig } from '../mods/graph';
 import { homeTemplate } from '../mods/home';
+import { htmlToMarkdownConfig } from '../mods/htmlToMarkdown';
 import { lockedIcon, privateIcon } from '../mods/icons';
 import { imagePlugin, imageTemplate } from '../mods/image';
 import { kanbanTemplate } from '../mods/kanban';
@@ -178,6 +179,7 @@ export class AdminService {
       modlist: modlistConfig,
       banlist: banlistConfig,
       snippets: snippetConfig,
+      htmlToMarkdown: htmlToMarkdownConfig,
       thanks: thanksConfig,
     },
   };
