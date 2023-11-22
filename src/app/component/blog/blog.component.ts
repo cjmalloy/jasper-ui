@@ -73,7 +73,7 @@ export class BlogComponent implements OnInit {
       this.pinned = [];
     } else {
       forkJoin((value.config.pinned as string[])
-        .map(pin => this.refs.get(pin, this.store.account.origin).pipe(
+        .map(pin => this.refs.getCurrent(pin).pipe(
           catchError(err => of({url: pin}))
         )))
         .subscribe(pinned => this.pinned = pinned);

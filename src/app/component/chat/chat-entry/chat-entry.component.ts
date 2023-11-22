@@ -60,14 +60,14 @@ export class ChatEntryComponent implements OnChanges {
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     if (this.ref && this.bareRepost && !this.repostRef) {
-      this.refs.get(this.url, this.ref.origin)
-      .subscribe(ref => {
-        this.repostRef = ref;
-        this.noComment = {
-          ...ref,
-          comment: ''
-        };
-      });
+      this.refs.getCurrent(this.url)
+        .subscribe(ref => {
+          this.repostRef = ref;
+          this.noComment = {
+            ...ref,
+            comment: ''
+          };
+        });
     } else {
       this.noComment = {
         ...this.ref,

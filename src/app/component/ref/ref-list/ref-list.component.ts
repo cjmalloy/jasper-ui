@@ -64,8 +64,8 @@ export class RefListComponent implements OnInit, OnDestroy {
       this.pinned = [];
     } else {
       forkJoin((value.config.pinned as string[])
-        .map(pin => this.refs.get(pin, this.store.account.origin).pipe(
-          catchError(err => of({url: pin}))
+        .map(pin => this.refs.getCurrent(pin).pipe(
+          catchError(err => of({ url: pin }))
         )))
         .subscribe(pinned => this.pinned = pinned);
     }

@@ -107,7 +107,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
     this.uis = this.admin.getPluginUi(this.currentTags);
     if (this.ref && hasTag('plugin/repost', this.ref)) {
-      this.refs.get(this.ref.sources![0], this.ref.origin)
+      this.refs.getCurrent(this.ref.sources![0])
       .subscribe(ref => this.repost = ref);
     }
     const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || this.ref?.url;

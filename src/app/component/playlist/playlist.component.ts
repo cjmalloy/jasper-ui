@@ -27,7 +27,7 @@ export class PlaylistComponent implements OnChanges {
   }
 
   fetch() {
-    this.refs.page({url: this.ref!.sources![this.index], size: 1 }).subscribe(page => this.page = page.content[0]);
+    this.refs.getCurrent(this.ref!.sources![this.index]).subscribe(ref => this.page = ref);
   }
 
   back() {

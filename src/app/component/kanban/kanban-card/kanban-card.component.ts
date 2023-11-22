@@ -90,7 +90,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     this.chess = !!this.admin.getPlugin('plugin/chess') && !!this.ref.tags?.includes('plugin/chess');
     this.chessWhite = !!this.ref.tags?.includes(this.store.account.localTag);
     if (this.repost && this.ref && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-      this.refs.get(this.url, this.ref.origin)
+      this.refs.getCurrent(this.url)
         .subscribe(ref => this.repostRef = ref);
     }
   }

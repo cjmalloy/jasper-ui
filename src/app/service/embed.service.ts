@@ -263,7 +263,7 @@ export class EmbedService {
     const inlineRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-ref');
     inlineRefs.forEach(t => {
       const url = t.innerText;
-      this.refs.get(this.editor.getRefUrl(url), this.store.account.origin).pipe(
+      this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
         catchError(() => of(null)),
       ).subscribe(ref => {
         if (ref) {
@@ -288,7 +288,7 @@ export class EmbedService {
           t.remove();
         });
       } else {
-        this.refs.get(this.editor.getRefUrl(url), this.store.account.origin).pipe(
+        this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
           catchError(() => of(null)),
         ).subscribe(ref => {
           if (ref) {
@@ -339,7 +339,7 @@ export class EmbedService {
           const url = t.title!;
           const type = this.editor.getUrlType(url);
           if (type === 'ref') {
-            this.refs.get(this.editor.getRefUrl(url), this.store.account.origin).pipe(
+            this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
               catchError(() => of(null)),
             ).subscribe(ref => {
               if (ref) {
@@ -408,7 +408,7 @@ export class EmbedService {
                 t.expanded = !t.expanded;
               });
             } else {
-              this.refs.get(this.editor.getRefUrl(url), this.store.account.origin).pipe(
+              this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
                 catchError(() => of(null)),
               ).subscribe(ref => {
                 if (ref) {

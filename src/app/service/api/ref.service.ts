@@ -61,6 +61,15 @@ export class RefService {
     );
   }
 
+  getCurrent(url: string): Observable<Ref> {
+    return this.page({ url, size: 1 }).pipe(
+      map(page => {
+        if (page.empty) throw { status: 404 };
+        return page.content[0];
+      }),
+    );
+  }
+
   exists(url: string, origin = ''): Observable<boolean> {
     return this.http.head(this.base, {
       params: params({ url, origin }),
