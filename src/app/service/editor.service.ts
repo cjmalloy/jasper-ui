@@ -54,8 +54,12 @@ export class EditorService {
       }
     }
     if (!ending) return url;
-    if (ending.indexOf('/') < 0) return decodeURIComponent(ending);
-    return decodeURIComponent(ending.substring(0, ending.indexOf('/')));
+    if (ending.startsWith('/e/')){
+      ending = ending.substring('/e/'.length);
+      if (ending.indexOf('/') < 0) return decodeURIComponent(ending);
+      return decodeURIComponent(ending.substring(0, ending.indexOf('/')));
+    }
+    return ending;
   }
 
   /**
