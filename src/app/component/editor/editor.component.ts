@@ -3,12 +3,27 @@ import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
 import Europa from 'europa';
+import { Plugin, PluginApi } from 'europa-core';
 import { debounce, throttle, uniq, without } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
+
+const superscriptProvider = (api: PluginApi): Plugin => ({
+  converters: {
+    SUP: {
+      startTag(conversion): boolean {
+        conversion.output('^');
+        conversion.atNoWhitespace = true;
+        return true;
+      },
+    },
+  },
+});
+
+Europa.registerPlugin(superscriptProvider);
 
 @Component({
   selector: 'app-editor',
