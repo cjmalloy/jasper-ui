@@ -18,6 +18,7 @@ import { isQuery, queryPrefix, tagOrigin, topAnds } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
+import { ConfigService } from './config.service';
 import { EditorService } from './editor.service';
 
 @Injectable({
@@ -26,6 +27,7 @@ import { EditorService } from './editor.service';
 export class EmbedService {
 
   constructor(
+    private config: ConfigService,
     private store: Store,
     private admin: AdminService,
     private editor: EditorService,
@@ -40,6 +42,15 @@ export class EmbedService {
       smartLists: true,
       smartypants: true,
     };
+    const renderImage = markdownService.renderer.image;
+    markdownService.renderer.image = (href: string | null, title: string | null, text: string) => {
+      let html = renderImage.call(markdownService.renderer, href, title, text);
+      if (!href) return html;
+      if (href.startsWith(this.config.base) || !href.startsWith('http')) {
+        return `<a class="inline-embed" title="${text}">${href}</a>`;
+      }
+      return html;
+    }
     const renderLink = markdownService.renderer.link;
     markdownService.renderer.link = (href: string | null, title: string | null, text: string) => {
       let html = renderLink.call(markdownService.renderer, href, title, text);
@@ -280,10 +291,12 @@ export class EmbedService {
     const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-embed');
     embedRefs.forEach(t => {
       const url = t.innerText;
+      const title = t.title;
       const type = this.editor.getUrlType(url);
       if (type === 'tag') {
         this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
           const c = embed.createLens(params, page, this.editor.getQuery(t.innerText), ext);
+          if (title) c.location.nativeElement.title = title;
           t.parentNode?.insertBefore(c.location.nativeElement, t);
           t.remove();
         });
@@ -295,12 +308,14 @@ export class EmbedService {
             const expandPlugins = this.admin.getEmbeds(ref);
             if (ref.comment || expandPlugins.length) {
               const c = embed.createEmbed(ref, expandPlugins);
+              if (title) c.location.nativeElement.title = title;
               t.parentNode?.insertBefore(c.location.nativeElement, t);
             }
           } else {
             const embeds = this.admin.getPluginsForUrl(url);
             if (embeds.length) {
               const c = embed.createEmbed(url, embeds.map(p => p.tag));
+              if (title) c.location.nativeElement.title = title;
               t.parentNode?.insertBefore(c.location.nativeElement, t);
             } else {
               el = document.createElement('div');
