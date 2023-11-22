@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, isDevMode } from '@angular/core';
 import * as moment from 'moment';
 import { tap } from 'rxjs/operators';
+import { memo } from '../util/memo';
 
 export function config(): ConfigService {
   // @ts-ignore
@@ -54,6 +55,7 @@ export class ConfigService {
     window.configService = this;
   }
 
+  @memo
   get base() {
     return document.getElementsByTagName('base')[0].href
   }
