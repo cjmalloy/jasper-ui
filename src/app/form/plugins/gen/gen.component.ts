@@ -56,4 +56,9 @@ export class GenFormComponent implements OnInit {
     return tag.replace(/\//g, '-')
       .replace(/[^\w-]/g, '');
   }
+
+  toggleChild(tag: string) {
+    this.togglePlugin.next(tag);
+    if ('vibrate' in navigator) defer(() => navigator.vibrate([5, 15, 30]));
+  }
 }

@@ -32,5 +32,5 @@
   <div *ngFor="let child of children"
        class="icon {{ cssClass(child.tag) }}"
        [class.on]="plugins.contains(child.tag)"
-       (click)="togglePlugin.next(child.tag)"><span>{{ child.config?.submitChild }}</span></div>
+       (click)="toggleChild(child.tag)"><span>{{ child.config?.submitChild }}</span></div>
 </div>
