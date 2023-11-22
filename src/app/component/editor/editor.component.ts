@@ -4,7 +4,7 @@ import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, Templa
 import { UntypedFormControl } from '@angular/forms';
 import Europa from 'europa';
 import { Plugin, PluginApi } from 'europa-core';
-import { debounce, throttle, uniq, without } from 'lodash-es';
+import { debounce, defer, throttle, uniq, without } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -132,6 +132,7 @@ export class EditorComponent {
     if (this.admin.getTemplate('user')) {
       this.accounts.updateConfig('editors', this.tags).subscribe();
     }
+    if ('vibrate' in navigator) defer(() => navigator.vibrate([32]));
   }
 
   setText = throttle((value: string) => {

@@ -202,10 +202,10 @@ select {
     position: relative;
     white-space: nowrap;
     cursor: pointer;
-    text-align: center;
     right: -100%;
-    margin: 4px;
+    margin: 4px !important;
     span {
+      margin-right: auto;
       display: inline-block;
       max-width: 128px;
       text-overflow: ellipsis;
