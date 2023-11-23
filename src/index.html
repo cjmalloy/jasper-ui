@@ -45,5 +45,8 @@
     navigator.userAgent.indexOf('FxiOS') < 0) {
     document.body.classList.add('macos');
   }
+  if (navigator.userAgent && /android/i.test(navigator.userAgent)) {
+    document.body.classList.add('android');
+  }
 </script>
 </html>
