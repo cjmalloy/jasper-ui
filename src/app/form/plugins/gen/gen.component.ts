@@ -59,6 +59,6 @@ export class GenFormComponent implements OnInit {
 
   toggleChild(tag: string) {
     this.togglePlugin.next(tag);
-    if ('vibrate' in navigator) defer(() => navigator.vibrate([5, 15, 30]));
+    if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
   }
 }

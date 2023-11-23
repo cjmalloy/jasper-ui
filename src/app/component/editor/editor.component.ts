@@ -132,7 +132,7 @@ export class EditorComponent {
     if (this.admin.getTemplate('user')) {
       this.accounts.updateConfig('editors', this.tags).subscribe();
     }
-    if ('vibrate' in navigator) defer(() => navigator.vibrate([5, 15, 30]));
+    if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
   }
 
   setText = throttle((value: string) => {

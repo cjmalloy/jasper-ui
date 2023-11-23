@@ -214,7 +214,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     if (!this.config.mobile) return;
     this.unlocked = true;
     this.el.nativeElement.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
-    if ('vibrate' in navigator) defer(() => navigator.vibrate([2, 32, 2]));
+    if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
   }
 
   @memo
