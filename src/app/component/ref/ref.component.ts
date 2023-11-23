@@ -139,6 +139,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   overlayRef?: OverlayRef;
 
   private overlayEvents?: Subscription;
+  private refreshTap?: () => void;
 
   constructor(
     private config: ConfigService,
@@ -164,6 +165,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
           this.ref = this.store.eventBus.ref!;
           this.init();
+          if (this.refreshTap) {
+            this.refreshTap();
+            delete this.refreshTap;
+          }
         }
       }
       if (this.store.eventBus.event === 'error') {
@@ -187,6 +192,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   init() {
     MemoCache.clear(this);
+    this.serverError.length = 0;
     this.submitted = false;
     this.invalid = false;
     this.overwrite = false;
@@ -843,6 +849,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.init();
       this.store.submit.setRef(this.ref);
     } else {
+      this.refreshTap = () => this.publishChanged = !published.isSame(this.ref.published);
       this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
         catchError((res: HttpErrorResponse) => {
           if (res.status === 400) {

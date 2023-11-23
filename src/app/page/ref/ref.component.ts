@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { tap } from 'rxjs/operators';
 import { isWiki } from '../../mods/wiki';
@@ -8,6 +9,7 @@ import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { printError } from '../../util/http';
+import { memo, MemoCache } from '../../util/memo';
 import { hasTag } from '../../util/tag';
 
 @Component({
@@ -17,31 +19,37 @@ import { hasTag } from '../../util/tag';
 })
 export class RefPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
-  printError = printError;
 
   expandedOnload = false;
-  notFound = false;
-  error?: HttpErrorResponse;
 
   constructor(
     public config: ConfigService,
     public admin: AdminService,
     public store: Store,
     private refs: RefService,
+    private router: Router,
   ) {
     store.view.clear();
-    this.disposers.push(autorun(() => this.expandedOnload = store.view.ref && (!hasTag('plugin/fullscreen', store.view.ref) || store.view.ref?.plugins?.['plugin/fullscreen']?.onload)));
+    this.disposers.push(autorun(() => {
+      MemoCache.clear(this);
+      this.expandedOnload = store.view.ref && (!hasTag('plugin/fullscreen', store.view.ref) || store.view.ref?.plugins?.['plugin/fullscreen']?.onload);
+    }));
   }
 
+  @memo
   get refWarning() {
-    return (this.store.view.ref?.sources?.length || 0) > 0 && this.store.view.published && !this.store.view.ref!.published!.isSame(this.store.view.published);
+    const warn = (this.store.view.ref?.sources?.length || 0) > 0 && this.store.view.published && !this.store.view.ref!.published!.isSame(this.store.view.published);
+    if (warn) this.router.navigate([], { queryParams: { published: null }, queryParamsHandling: 'merge', replaceUrl: true });
+    return warn;
   }
 
+  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
+  @memo
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return hasTag('plugin/thread', this.store.view.ref) || this.store.view.ref?.metadata?.plugins?.['plugin/thread'];
@@ -72,7 +80,6 @@ export class RefPage implements OnInit, OnDestroy {
     if (!url) return;
     this.refs.page({ url, obsolete: true, size: 1 }).pipe(
       tap(page => runInAction(() => {
-        this.notFound = !page.content[0];
         this.store.view.setRef(page.content[0] || { url });
         this.store.view.versions = page.totalElements;
       })),
@@ -85,6 +92,7 @@ export class RefPage implements OnInit, OnDestroy {
     this.disposers.length = 0;
   }
 
+  @memo
   isWiki(url: string) {
     return !this.admin.isWikiExternal() && isWiki(url, this.admin.getWikiPrefix());
   }
