@@ -1,12 +1,12 @@
 # Jasper-UI
-Reference client for Jasper KMS.
+Reference client for Jasper KM.
 
 [![Build & Test](https://github.com/cjmalloy/jasper-ui/actions/workflows/docker-image.yml/badge.svg)](https://github.com/cjmalloy/jasper-ui/actions/workflows/docker-image.yml)
 [![Cypress](https://github.com/cjmalloy/jasper-ui/actions/workflows/cypress.yml/badge.svg)](https://github.com/cjmalloy/jasper-ui/actions/workflows/cypress.yml)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/jasper)](https://artifacthub.io/packages/helm/jasper/jasper-ui)
 
 Jasper-UI is the reference client for the
-[Jasper Knowledge Management System](https://github.com/cjmalloy/jasper)
+[Jasper Knowledge Management Server](https://github.com/cjmalloy/jasper)
 
 ## Quickstart
 To start the server, client and database with a single admin user, run
