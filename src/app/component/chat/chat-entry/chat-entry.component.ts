@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { defer } from 'lodash-es';
-import { catchError, ignoreElements, switchMap, throwError } from 'rxjs';
+import { catchError, ignoreElements, map, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
@@ -240,7 +240,7 @@ export class ChatEntryComponent implements OnChanges {
   delete$ = () => {
     this.serverError = [];
     return (this.admin.getPlugin('plugin/delete')
-        ? this.refs.update(deleteNotice(this.ref)).pipe(ignoreElements())
+        ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
         : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
       tap(() => this.deleted = true),

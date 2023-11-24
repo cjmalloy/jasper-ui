@@ -4,10 +4,10 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angul
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, forkJoin, ignoreElements, of, throwError } from 'rxjs';
+import { catchError, forkJoin, map, of, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
-import { tagDeleteNotice } from "../../mods/delete";
+import { tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ProfileService } from '../../service/api/profile.service';
 import { UserService } from '../../service/api/user.service';
@@ -126,7 +126,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
     };
     delete updates.notifications;
     const entities = [
-      (this.store.view.selectedUser ? this.users.update(updates).pipe(ignoreElements()) : this.users.create(updates)).pipe(
+      (this.store.view.selectedUser ? this.users.update(updates).pipe(map(() => {})) : this.users.create(updates)).pipe(
         catchError((res: HttpErrorResponse) => {
           this.serverError.push(...printError(res));
           return throwError(() => res);
@@ -170,7 +170,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
     // TODO: Better dialogs
     if (window.confirm($localize`Are you sure you want to delete this user?`)) {
       (this.admin.getPlugin('plugin/delete')
-        ? this.users.update(tagDeleteNotice(this.store.view.selectedUser!)).pipe(ignoreElements())
+        ? this.users.update(tagDeleteNotice(this.store.view.selectedUser!)).pipe(map(() => {}))
         : this.users.delete(this.store.view.localTag + this.store.account.origin)).pipe(
         catchError((res: HttpErrorResponse) => {
           this.serverError = printError(res);

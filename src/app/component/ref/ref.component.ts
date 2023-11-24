@@ -25,7 +25,7 @@ import { Router } from '@angular/router';
 import { defer, pick, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, ignoreElements, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
@@ -904,8 +904,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   delete$ = () => {
     this.serverError = [];
-    return (hasTag('locked', this.ref) ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin).pipe(ignoreElements())
-      : this.admin.getPlugin('plugin/delete') ? this.refs.update(deleteNotice(this.ref)).pipe(ignoreElements())
+    return (hasTag('locked', this.ref) ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin).pipe(map(() => {}))
+      : this.admin.getPlugin('plugin/delete') ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
       : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
       tap(() => this.deleted = true),

@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { defer, intersection, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, ignoreElements, switchMap, throwError } from 'rxjs';
+import { catchError, ignoreElements, map, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
@@ -330,7 +330,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   delete$ = () => {
     this.serverError = [];
     return (this.admin.getPlugin('plugin/delete')
-        ? this.refs.update(deleteNotice(this.ref)).pipe(ignoreElements())
+        ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
         : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
       tap(() => this.deleted = true),

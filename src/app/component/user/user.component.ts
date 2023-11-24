@@ -3,7 +3,7 @@ import { Component, ElementRef, HostBinding, Input, OnChanges, QueryList, Simple
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
-import { catchError, forkJoin, ignoreElements, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, ignoreElements, map, Observable, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { Ext } from '../../model/ext';
@@ -202,7 +202,7 @@ export class UserComponent implements OnChanges {
       origin: this.origin,
       readAccess: uniq([...this.editForm.value.readAccess, ...this.editForm.value.notifications]),
     };
-    (this.user ? this.users.update(updates).pipe(ignoreElements()) : this.users.create(updates))
+    (this.user ? this.users.update(updates).pipe(map(() => {})) : this.users.create(updates))
       .pipe(
         catchError((err: HttpErrorResponse) => {
           this.serverError = printError(err);
@@ -240,7 +240,7 @@ export class UserComponent implements OnChanges {
     const os = [];
     if (this.user) {
       os.push((this.admin.getPlugin('plugin/delete')
-        ? this.users.update(tagDeleteNotice(this.user)).pipe(ignoreElements())
+        ? this.users.update(tagDeleteNotice(this.user)).pipe(map(() => {}))
         : this.users.delete(this.qualifiedTag)).pipe(
         catchError((err: HttpErrorResponse) => {
           this.serverError.push(...printError(err));
