@@ -1144,6 +1144,7 @@ formly-field-radio, formly-field-multicheckbox {
 .actions {
   padding: 2px 0;
   height: 14px;
+  user-select: none;
 }
 .actions, .advanced-actions {
   font-size: 80%;
