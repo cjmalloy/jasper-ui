@@ -39,10 +39,6 @@ export function getArgs(
   if (filters?.includes('query/internal')) {
     filters = without(filters, 'query/!internal', 'query/internal');
   }
-  if (filters?.includes('query/!internal') && filters?.includes('query/plugin/comment')) {
-    filters = without(filters, 'query/!internal', 'query/plugin/comment');
-    filters.push('query/(!internal|plugin/comment)');
-  }
   if (filters?.includes('query/plugin/delete')) {
     filters = without(filters, 'query/!plugin/delete');
   }

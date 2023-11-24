@@ -6,14 +6,14 @@
       <span *ngIf="selectedPlugin">{{ selectedPlugin.name || selectedPlugin.config?.submit || selectedPlugin.tag }}</span>
     </h5>
     <a routerLink="/submit"
-       [class.current-tab]="store.submit.web && !store.submit.internal"
-       [queryParams]="{ url: url.value, tag: store.submit.withoutInternal }"
+       [class.current-tab]="store.submit.web && !store.submit.genId"
+       [queryParams]="{ url: url.value, tag: store.submit.withoutGenId }"
        [replaceUrl]="true"
        i18n-title title="Link Post"
        queryParamsHandling="merge" i18n>link</a>
     <a routerLink="/submit/text"
        [class.current-tab]="store.submit.text"
-       [queryParams]="{ url: null, tag: store.submit.withoutInternal }"
+       [queryParams]="{ url: null, tag: store.submit.withoutGenId }"
        i18n-title title="Text Post"
        queryParamsHandling="merge" i18n>text</a>
     <a class="fake-link"
@@ -24,7 +24,7 @@
     <ng-container *ngIf="!admin.isWikiExternal()">
       <a routerLink="/submit"
          [class.current-tab]="store.submit.wiki"
-         [queryParams]="{ url: wikify, tag: store.submit.withoutInternal }"
+         [queryParams]="{ url: wikify, tag: store.submit.withoutGenId }"
          [replaceUrl]="true"
          i18n-title title="Wiki Page"
          queryParamsHandling="merge" i18n>wiki</a>
@@ -35,7 +35,7 @@
        [queryParams]="{ url: null }"
        i18n-title title="Direct Message"
        queryParamsHandling="merge" i18n>dm</a>
-    <a *ngFor="let p of store.submit.submitInternal"
+    <a *ngFor="let p of store.submit.submitGenId"
        routerLink="/submit/web"
        [class.current-tab]="store.submit.tags.includes(p.tag)"
        [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"

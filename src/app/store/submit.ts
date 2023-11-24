@@ -11,7 +11,7 @@ export class SubmitStore {
 
   wikiPrefix = DEFAULT_WIKI_PREFIX;
   maxPreview = 300;
-  submitInternal: Plugin[] = [];
+  submitGenId: Plugin[] = [];
   submitText: Plugin[] = [];
   files: File[] = [] as any;
   exts: Ext[] = [];
@@ -24,7 +24,7 @@ export class SubmitStore {
     private eventBus: EventBus,
   ) {
     makeAutoObservable(this, {
-      submitInternal: observable.shallow,
+      submitGenId: observable.shallow,
       submitText: observable.shallow,
       files: observable.shallow,
     });
@@ -104,16 +104,16 @@ export class SubmitStore {
     return !this.exts.length && !this.refs.length;
   }
 
-  get internal() {
-    return this.tags.find(t => this.submitInternal.find(p => p.tag === t));
+  get genId() {
+    return this.tags.find(t => this.submitGenId.find(p => p.tag === t));
   }
 
   get textPlugin() {
     return this.tags.find(t => this.submitText.find(p => p.tag === t));
   }
 
-  get withoutInternal() {
-    return without(this.tags, ...this.submitInternal.map(p => p.tag));
+  get withoutGenId() {
+    return without(this.tags, ...this.submitGenId.map(p => p.tag));
   }
 
   get huge() {

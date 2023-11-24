@@ -432,15 +432,15 @@ export class AdminService {
   }
 
   get submit() {
-    return this.pluginConfigProperty('submit', '!internal', '!settings');
+    return this.pluginConfigProperty('submit', '!genId', '!settings');
   }
 
   get add() {
     return this.pluginConfigProperty('add');
   }
 
-  get submitInternal() {
-    return this.pluginConfigProperty('submit', 'internal', '!settings');
+  get submitGenId() {
+    return this.pluginConfigProperty('submit', 'genId', '!settings');
   }
 
   get submitText() {
@@ -616,6 +616,10 @@ export class AdminService {
   @memo
   getPlugin(tag: string) {
     return Object.values(this.status.plugins).find(p => p?.tag === tag);
+  }
+
+  getPlugins(tags: string[]) {
+    return Object.values(this.status.plugins).filter(p => tags.includes(p?.tag || '')) as Plugin[];
   }
 
   getEditors(tags?: string[]) {

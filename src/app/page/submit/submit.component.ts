@@ -63,7 +63,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     });
     runInAction(() => {
       store.submit.wikiPrefix = admin.getWikiPrefix();
-      store.submit.submitInternal = this.admin.submitInternal.filter(p => this.auth.canAddTag(p.tag));
+      store.submit.submitGenId = this.admin.submitGenId.filter(p => this.auth.canAddTag(p.tag));
       store.submit.submitText = this.admin.submitText.filter(p => this.auth.canAddTag(p.tag));
     });
   }
@@ -126,7 +126,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   submitInternal(tag: string) {
-    return uniq([...without(this.store.submit.tags, ...this.store.submit.submitInternal.map(p => p.tag)), tag]);
+    return uniq([...without(this.store.submit.tags, ...this.store.submit.submitGenId.map(p => p.tag)), tag]);
   }
 
   fixed(url: string) {

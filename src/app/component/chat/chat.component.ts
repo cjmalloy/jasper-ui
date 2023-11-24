@@ -207,6 +207,7 @@ export class ChatComponent implements OnDestroy {
     if (!this.addText) return;
     this.scrollLock = undefined;
     const newTags = uniq([
+      'internal',
       ...(uniq([this.store.view.localTag, ...this.store.view.ext?.config?.addTags || []])),
       ...this.plugins,
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),]);

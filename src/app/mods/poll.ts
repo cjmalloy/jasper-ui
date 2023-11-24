@@ -16,6 +16,7 @@ export const pollPlugin: Plugin = {
       { label: $localize`🗳️`, title: `{{lookup . (maxCount ref 'plugin/poll.')}} {{percent ref (maxCount ref 'plugin/poll.') 'plugin/poll.'}}%` },
     ],
     submit: $localize`🗳️ poll`,
+    genId: true,
     internal: true,
     actions: [
       { condition: 'a', response: 'plugin/poll.a', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`a`, labelOn: $localize`(a)`, title: `{{a}}: {{count ref 'plugin/poll.a'}} votes ({{percent ref 'a' 'plugin/poll.'}}%)` },

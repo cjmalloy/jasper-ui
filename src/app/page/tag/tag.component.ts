@@ -63,7 +63,7 @@ export class TagPage implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.disposers.push(autorun(() => {
-      const hideInternal = !isPlugin(this.store.view.tag) && !this.admin.getTemplates(this.store.view.tag).find(t => t.config?.internal);
+      const hideInternal = !this.admin.getPlugins(this.store.view.queryTags).find(t => t.config?.internal);
       const args = getArgs(
         this.store.view.tag,
         this.store.view.sort,
