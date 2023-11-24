@@ -886,7 +886,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       }),
       switchMap(() => this.refs.get(this.ref.url, this.store.account.origin)),
     ).subscribe(ref => {
-      this.store.submit.removeRef(this.ref);
       this.ref = ref;
       this.init();
     });

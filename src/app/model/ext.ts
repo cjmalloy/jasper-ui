@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash-es';
 import * as moment from 'moment';
 import { Tag } from './tag';
 
@@ -22,4 +23,11 @@ export function writeExt(ext: Ext): Ext {
   delete result.exists;
   delete result.modifiedString;
   return result;
+}
+
+export function equalsExt(a?: Ext, b?: Ext) {
+  if (!a || !b) return false;
+  return a.tag === b.tag &&
+    a.name === b.name &&
+    isEqual(a.config, b.config);
 }
