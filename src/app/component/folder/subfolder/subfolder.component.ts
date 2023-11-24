@@ -3,7 +3,6 @@ import { Action, Icon } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
 import { Store } from '../../../store/store';
-import { TAGS_REGEX } from '../../../util/format';
 
 @Component({
   selector: 'app-subfolder',
@@ -13,7 +12,6 @@ import { TAGS_REGEX } from '../../../util/format';
 export class SubfolderComponent implements OnInit {
   @HostBinding('class') css = 'subfolder';
   @HostBinding('attr.tabindex') tabIndex = 0;
-  tagRegex = TAGS_REGEX.source;
 
   @Input()
   tag?: string;

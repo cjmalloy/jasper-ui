@@ -12,7 +12,7 @@
               </ng-container>
             </ng-container>
             <ng-template #authorNoExts>
-              <ng-container *ngFor="let t of this.authors">
+              <ng-container *ngFor="let t of authors">
                 <a class="user tag"
                    [title]="formatAuthor(t)"
                    [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
@@ -26,8 +26,6 @@
       [class.focused]="focused"
       [class.deleted]="deleted"
       [class.sending]="!ref.created"
-      [class.deleting]="deleting"
-      [class.tagging]="tagging"
       (pointerenter)="allowActions = true"
       (pointerleave)="allowActions = false">
   <div [class.has-title]="clickableLink || title">
@@ -46,27 +44,8 @@
        [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
     <a *ngIf="!comments"
        [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }" i18n>permalink</a>
-    <a *ngIf="!deleting && (store.account.sysMod || writeAccess)"
-       class="fake-link"
-       (click)="deleting = true" i18n>delete</a>
-    <span *ngIf="deleting" class="delete-confirm"> are you sure?&nbsp;
-        <a class="fake-link" (click)="delete()">yes</a>&nbsp;/&nbsp;
-        <a class="fake-link" (click)="deleting = false" i18n>no</a>&nbsp;
-      </span>
-    <a *ngIf="taggingAccess"
-       class="fake-link"
-       (click)="tagging = !tagging" i18n>tag</a>
-    <span *ngIf="tagging" class="inline-tagging">
-        <input #inlineTag
-               (keydown)="$event.key === 'Enter' && addInlineTag() || true"
-               type="text"
-               inputmode="email"
-               [pattern]="tagRegex"
-               autocorrect="off"
-               autocapitalize="none"
-               appAutofocus>
-        <button (click)="addInlineTag()" i18n>+</button>
-      </span>
+        <app-confirm-action #action *ngIf="store.account.sysMod || writeAccess" [action]="delete$" i18n>delete</app-confirm-action>
+        <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" (error)="serverError = [$event]" i18n>tag</app-inline-tag>
     <a *ngIf="!ref.origin && store.account.mod && !approved && !locked"
        class="fake-link"
        (click)="approve()" i18n>approve</a>

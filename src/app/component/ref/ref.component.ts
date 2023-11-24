@@ -13,9 +13,11 @@ import {
   OnChanges,
   OnDestroy,
   Output,
+  QueryList,
   SimpleChanges,
   TemplateRef,
   ViewChild,
+  ViewChildren,
   ViewContainerRef
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -23,7 +25,8 @@ import { Router } from '@angular/router';
 import { defer, pick, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, ignoreElements, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, ignoreElements, of, Subscription, switchMap, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
@@ -49,7 +52,6 @@ import {
   formatAuthor,
   hasComment,
   interestingTags,
-  TAGS_REGEX,
   templates,
   trimCommentForTitle,
   urlSummary,
@@ -69,6 +71,7 @@ import {
   subOrigin,
   tagOrigin
 } from '../../util/tag';
+import { ActionComponent } from '../action/action.component';
 import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
@@ -81,10 +84,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @HostBinding('class.mobile-unlock') mobileUnlock = false;
   private disposers: IReactionDisposer[] = [];
 
-  tagRegex = TAGS_REGEX.source
-
   @ViewChild('actionsMenu')
   actionsMenu!: TemplateRef<any>;
+  @ViewChildren('action')
+  actionComponents?: QueryList<ActionComponent>;
 
   @Input()
   ref!: Ref;
@@ -123,10 +126,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   advancedActions: Action[] = [];
   infoUis: Plugin[] = [];
   publishedLabel = $localize`published`;
-  tagging = false;
   editing = false;
   viewSource = false;
-  deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
   actionsExpanded = false;
@@ -198,11 +199,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.overwrite = false;
     this.force = false;
     this.deleted = false;
-    this.deleting = false;
     this.editing = false;
     this.viewSource = false;
-    this.tagging = false;
     this.actionsExpanded = false;
+    this.actionComponents?.forEach(c => c.reset());
     if (this.ref?.upload) this.editForm.get('url')!.enable();
     this.replyTags = this.getReplyTags();
     this.writeAccess = this.auth.writeAccess(this.ref);
@@ -708,20 +708,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     window.open(this.mediaAttachment, "_blank");
   }
 
-  addInlineTag(field: HTMLInputElement) {
-    if (field.validity.patternMismatch) {
-      this.serverError = [$localize`
-        Tags must be lower case letters, numbers, periods and forward slashes.
-        Must not start with a forward slash or period.
-        Must not or contain two forward slashes or periods in a row.
-        Protected tags start with a plus sign.
-        Private tags start with an underscore.`];
-      return;
-    }
+  tag$ = (tag: string) => {
     if (this.ref.upload) {
       runInAction(() => {
         this.ref.tags ||= [];
-        for (const t of (field.value || '').split(' ').filter(t => !!t)) {
+        for (const t of tag.split(' ').filter(t => !!t)) {
           if (t.startsWith('-')) {
             this.ref.tags = without(this.ref.tags, t.substring(1));
           } else if (!this.ref.tags.includes(t)) {
@@ -730,8 +721,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
         }
       });
       this.init();
+      return of(null);
     } else {
-      this.store.eventBus.runAndReload(this.ts.create(field.value, this.ref.url, this.ref.origin!), this.ref);
+      return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref.url, this.ref.origin!), this.ref);
     }
   }
 
@@ -910,27 +902,25 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.store.eventBus.runAndReload((this.store.submit.overwrite ? this.refs.push(ref) : this.refs.create(ref)), ref);
   }
 
-  delete() {
-    (hasTag('locked', this.ref) ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin).pipe(ignoreElements())
+  delete$ = () => {
+    this.serverError = [];
+    return (hasTag('locked', this.ref) ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin).pipe(ignoreElements())
       : this.admin.getPlugin('plugin/delete') ? this.refs.update(deleteNotice(this.ref)).pipe(ignoreElements())
       : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
+      tap(() => this.deleted = true),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-    ).subscribe(() => {
-      this.serverError = [];
-      this.deleting = false;
-      this.deleted = true;
-    });
+    );
   }
 
-  remove() {
+  remove$ = () => {
     this.serverError = [];
     this.store.submit.removeRef(this.ref);
-    this.deleting = false;
     this.deleted = true;
+    return of(null);
   }
 
   getTitle() {

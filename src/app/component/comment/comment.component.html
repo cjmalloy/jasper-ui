@@ -97,28 +97,8 @@
         <a class="fake-link"
            *ngIf="writeAccess"
            (click)="editing = !editing" i18n>edit</a>
-        <a class="fake-link"
-           *ngIf="!deleting && (store.account.sysMod || writeAccess)"
-           (click)="deleting = true" i18n>delete</a>
-        <span *ngIf="deleting" class="delete-confirm" i18n> are you sure?
-      <a class="fake-link" (click)="delete()">yes</a> /
-      <a class="fake-link" (click)="deleting = false">no</a>
-    </span>
-        <a class="fake-link"
-           *ngIf="taggingAccess"
-           (click)="tagging = !tagging" i18n>tag</a>
-        <span *ngIf="tagging" class="inline-tagging">
-      <input #inlineTag
-             (keydown)="$event.key === 'Enter' && addInlineTag(inlineTag) || true"
-             (input)="inlineTag.value = inlineTag.value.toLowerCase()"
-             type="text"
-             inputmode="email"
-             [pattern]="tagRegex"
-             autocorrect="off"
-             autocapitalize="none"
-             appAutofocus>
-      <button (click)="addInlineTag(inlineTag)" i18n>+</button>
-    </span>
+        <app-confirm-action #action *ngIf="store.account.sysMod || writeAccess" [action]="delete$" i18n>delete</app-confirm-action>
+        <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" (error)="serverError = [$event]" i18n>tag</app-inline-tag>
         <ng-container *ngIf="canInvoice">
           <a [routerLink]="['/submit/invoice']"
              [queryParams]="{ url: ref.url }" i18n>invoice</a>

@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -16,10 +16,11 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
-import { authors, formatAuthor, interestingTags, TAGS_REGEX } from '../../util/format';
+import { authors, formatAuthor, interestingTags } from '../../util/format';
 import { getScheme } from '../../util/hosts';
 import { memo, MemoCache } from '../../util/memo';
 import { hasTag, hasUserUrlResponse, removeTag, tagOrigin } from '../../util/tag';
+import { ActionComponent } from '../action/action.component';
 
 @Component({
   selector: 'app-comment',
@@ -30,11 +31,12 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
   @HostBinding('class') css = 'comment';
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
-  tagRegex = TAGS_REGEX.source;
-
   private disposers: IReactionDisposer[] = [];
 
   maxContext = 20;
+
+  @ViewChildren('action')
+  actionComponents?: QueryList<ActionComponent>;
 
   @Input()
   ref!: Ref;
@@ -51,8 +53,6 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
   collapsed = false;
   replying = false;
   editing = false;
-  tagging = false;
-  deleting = false;
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
@@ -108,9 +108,8 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
 
   init() {
     MemoCache.clear(this);
-    this.deleting = false;
     this.editing = false;
-    this.tagging = false;
+    this.actionComponents?.forEach(c => c.reset());
     this.collapsed = this.store.local.isRefToggled('comment:' + this.ref.url, this.ref.origin);
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
@@ -254,17 +253,9 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
     return formatAuthor(user);
   }
 
-  addInlineTag(field: HTMLInputElement) {
-    if (field.validity.patternMismatch) {
-      this.serverError = [$localize`
-        Tags must be lower case letters, numbers, periods and forward slashes.
-        Must not start with a forward slash or period.
-        Must not or contain two forward slashes or periods in a row.
-        Protected tags start with a plus sign.
-        Private tags start with an underscore.`];
-      return;
-    }
-    this.store.eventBus.runAndReload(this.ts.create(field.value.trim(), this.ref.url, this.ref.origin!), this.ref);
+  tag$ = (tag: string) => {
+    this.serverError = [];
+    return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref.url, this.ref.origin!), this.ref);
   }
 
   visible(v: Visibility) {
@@ -344,11 +335,11 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  delete() {
+  delete$ = () => {
     const deleted = deleteNotice(this.ref);
     deleted.sources = this.ref.sources;
-    deleted.tags = ['plugin/comment', 'plugin/delete', 'internal']
-    this.store.eventBus.runAndReload(this.refs.update(deleted), deleted);
+    deleted.tags = ['plugin/comment', 'plugin/delete', 'internal'];
+    return this.store.eventBus.runAndReload$(this.refs.update(deleted), deleted);
   }
 
   loadMore() {

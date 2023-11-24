@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { makeAutoObservable, observable, reaction, toJS } from 'mobx';
 import { catchError, Observable, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
 import { printError } from '../util/http';
 
@@ -17,7 +18,7 @@ export class EventBus {
       errors: observable.shallow,
       runAndReload: false,
       runAndRefresh: false,
-      catchError: false,
+      catchError$: false,
       isRef: false,
     });
     reaction(() => this.event, () => console.log('🚌️ Event Bus:', this.event, this.event === 'error' ? toJS(this.errors) : '', toJS(this.ref)));
@@ -61,14 +62,22 @@ export class EventBus {
   }
 
   runAndReload(o: Observable<any>, ref?: Ref) {
-    this.catchError(o, ref).subscribe(() => this.reload(ref));
+    this.runAndReload$(o, ref).subscribe();
+  }
+
+  runAndReload$(o: Observable<any>, ref?: Ref) {
+    return this.catchError$(o, ref).pipe(tap(() => this.reload(ref)));
   }
 
   runAndRefresh(o: Observable<any>, ref?: Ref) {
-    this.catchError(o, ref).subscribe(() => this.refresh(ref));
+    this.runAndRefresh$(o, ref).subscribe();
   }
 
-  catchError(o: Observable<any>, ref?: Ref) {
+  runAndRefresh$(o: Observable<any>, ref?: Ref) {
+    return this.catchError$(o, ref).pipe(tap(() => this.refresh(ref)));
+  }
+
+  catchError$(o: Observable<any>, ref?: Ref) {
     return o.pipe(
       catchError((err: HttpErrorResponse) => {
         this.fireError(printError(err), ref);

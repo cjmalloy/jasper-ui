@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostBinding, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { defer } from 'lodash-es';
 import { catchError, ignoreElements, switchMap, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
 import { AdminService } from '../../../service/admin.service';
@@ -10,10 +11,11 @@ import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { Store } from '../../../store/store';
-import { authors, clickableLink, formatAuthor, TAGS_REGEX, trimCommentForTitle } from '../../../util/format';
+import { authors, clickableLink, formatAuthor, trimCommentForTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, tagOrigin } from '../../../util/tag';
+import { ActionComponent } from '../../action/action.component';
 
 @Component({
   selector: 'app-chat-entry',
@@ -23,7 +25,9 @@ import { hasTag, tagOrigin } from '../../../util/tag';
 export class ChatEntryComponent implements OnChanges {
   @HostBinding('class') css = 'chat-entry';
   @HostBinding('attr.tabindex') tabIndex = 0;
-  tagRegex = TAGS_REGEX.source;
+
+  @ViewChildren('action')
+  actionComponents?: QueryList<ActionComponent>;
 
   @Input()
   ref!: Ref;
@@ -32,13 +36,8 @@ export class ChatEntryComponent implements OnChanges {
   @Input()
   loading = true;
 
-  @ViewChild('inlineTag')
-  inlineTag?: ElementRef;
-
   noComment: Ref = {} as any;
   repostRef?: Ref;
-  tagging = false;
-  deleting = false;
   deleted = false;
   writeAccess = false;
   taggingAccess = false;
@@ -57,6 +56,7 @@ export class ChatEntryComponent implements OnChanges {
 
   init() {
     MemoCache.clear(this);
+    this.actionComponents?.forEach(c => c.reset());
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     if (this.ref && this.bareRepost && !this.repostRef) {
@@ -77,8 +77,11 @@ export class ChatEntryComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref || changes.focused) {
+    if (changes.ref) {
       this.init();
+    } else if (changes.focused) {
+      MemoCache.clear(this);
+      if (!this.focused && !this._allowActions) this.actionComponents?.forEach(c => c.reset());
     }
   }
 
@@ -96,7 +99,7 @@ export class ChatEntryComponent implements OnChanges {
   }
 
   get allowActions(): boolean {
-    return this._allowActions || this.focused || this.tagging || this.deleting;
+    return this._allowActions || this.focused || !!this.actionComponents?.find(c => c.active());
   }
 
   set allowActions(value: boolean) {
@@ -211,21 +214,9 @@ export class ChatEntryComponent implements OnChanges {
     return formatAuthor(user);
   }
 
-  addInlineTag() {
-    if (!this.inlineTag) return;
-    const tag = (this.inlineTag.nativeElement.value as string).toLowerCase().trim();
-    this.ts.create(tag, this.ref.url, this.ref.origin!).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.tagging = false;
-      this.ref = ref;
-      this.init();
-    });
+  tag$ = (tag: string) => {
+    this.serverError = [];
+    return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref.url, this.ref.origin!), this.ref);
   }
 
   approve() {
@@ -246,20 +237,18 @@ export class ChatEntryComponent implements OnChanges {
     });
   }
 
-  delete() {
-    (this.admin.getPlugin('plugin/delete')
+  delete$ = () => {
+    this.serverError = [];
+    return (this.admin.getPlugin('plugin/delete')
         ? this.refs.update(deleteNotice(this.ref)).pipe(ignoreElements())
         : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
+      tap(() => this.deleted = true),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-    ).subscribe(() => {
-      this.serverError = [];
-      this.deleting = false;
-      this.deleted = true;
-    });
+    );
   }
 
 }

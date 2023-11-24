@@ -1,0 +1,17 @@
+<a class="fake-link"
+   (click)="editing = !editing">
+  <ng-content></ng-content>
+</a>
+<span *ngIf="editing" class="inline-tagging">
+  <input #inlineTag
+         (keydown)="$event.key === 'Enter' && addInlineTag(inlineTag) || true"
+         (input)="inlineTag.value = inlineTag.value.toLowerCase()"
+         type="text"
+         inputmode="email"
+         [pattern]="tagRegex"
+         autocorrect="off"
+         autocapitalize="none"
+         appAutofocus>
+  <button (click)="addInlineTag(inlineTag)" i18n>+</button>
+</span>
+<app-loading *ngIf="tagging" [inline]="true"></app-loading>

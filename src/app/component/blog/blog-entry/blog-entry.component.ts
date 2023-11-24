@@ -1,11 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, OnDestroy, QueryList, SimpleChanges, ViewChild, ViewChildren } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, intersection, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, ignoreElements, switchMap, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { Ext } from '../../../model/ext';
@@ -24,11 +25,12 @@ import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { downloadRef } from '../../../util/download';
 import { scrollToFirstInvalid } from '../../../util/form';
-import { authors, clickableLink, formatAuthor, interestingTags, TAGS_REGEX } from '../../../util/format';
+import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme } from '../../../util/hosts';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, isOwnerTag, tagOrigin } from '../../../util/tag';
+import { ActionComponent } from '../../action/action.component';
 
 @Component({
   selector: 'app-blog-entry',
@@ -38,9 +40,10 @@ import { hasTag, isOwnerTag, tagOrigin } from '../../../util/tag';
 export class BlogEntryComponent implements OnChanges, OnDestroy {
   @HostBinding('class') css = 'blog-entry';
   @HostBinding('attr.tabindex') tabIndex = 0;
-  tagRegex = TAGS_REGEX.source;
-
   private disposers: IReactionDisposer[] = [];
+
+  @ViewChildren('action')
+  actionComponents?: QueryList<ActionComponent>;
 
   @Input()
   blog?: Ext;
@@ -52,10 +55,8 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   icons: Icon[] = [];
   actions: Action[] = [];
   editorPlugins: string[] = [];
-  tagging = false;
   editing = false;
   viewSource = false;
-  deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
   writeAccess = false;
@@ -95,10 +96,9 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     MemoCache.clear(this);
     this.submitted = false;
     this.deleted = false;
-    this.deleting = false;
     this.editing = false;
     this.viewSource = false;
-    this.tagging = false;
+    this.actionComponents?.forEach(c => c.reset());
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
@@ -244,29 +244,9 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     downloadRef(writeRef(this.ref));
   }
 
-  addInlineTag(field: HTMLInputElement) {
-    if (field.validity.patternMismatch) {
-      this.serverError = [$localize`
-        Tags must be lower case letters, numbers, periods and forward slashes.
-        Must not start with a forward slash or period.
-        Must not or contain two forward slashes or periods in a row.
-        Protected tags start with a plus sign.
-        Private tags start with an underscore.`];
-      return;
-    }
-    const tag = field.value;
-    this.ts.create(tag, this.ref.url, this.ref.origin!).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
-      catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(ref => {
-      this.serverError = [];
-      this.tagging = false;
-      this.ref = ref;
-      this.init();
-    });
+  tag$ = (tag: string) => {
+    this.serverError = [];
+    return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref.url, this.ref.origin!), this.ref);
   }
 
   visible(v: Visibility) {
@@ -347,19 +327,17 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     });
   }
 
-  delete() {
-    (this.admin.getPlugin('plugin/delete')
+  delete$ = () => {
+    this.serverError = [];
+    return (this.admin.getPlugin('plugin/delete')
         ? this.refs.update(deleteNotice(this.ref)).pipe(ignoreElements())
         : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
+      tap(() => this.deleted = true),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-    ).subscribe(() => {
-      this.serverError = [];
-      this.deleting = false;
-      this.deleted = true;
-    });
+    );
   }
 }
