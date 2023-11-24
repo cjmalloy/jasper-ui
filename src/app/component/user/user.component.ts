@@ -1,14 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostBinding, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChild, ViewChildren } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
-import { catchError, ignoreElements, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, ignoreElements, Observable, switchMap, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { Ext } from '../../model/ext';
 import { getRole, Profile } from '../../model/profile';
 import { User } from '../../model/user';
-import { tagDeleteNotice } from "../../mods/delete";
+import { tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ProfileService } from '../../service/api/profile.service';
@@ -19,17 +20,21 @@ import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
+import { memo, MemoCache } from '../../util/memo';
 import { localTag, tagOrigin } from '../../util/tag';
+import { ActionComponent } from '../action/action.component';
 
 @Component({
   selector: 'app-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
 })
-export class UserComponent implements OnInit {
+export class UserComponent implements OnChanges {
   @HostBinding('class') css = 'profile list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
+  @ViewChildren('action')
+  actionComponents?: QueryList<ActionComponent>;
   @ViewChild('inlinePassword')
   inlinePassword?: ElementRef;
   @ViewChild('inlineRole')
@@ -45,11 +50,9 @@ export class UserComponent implements OnInit {
   changingPassword = false;
   changingRole = false;
   submitted = false;
-  tagging = false;
   editing = false;
   viewSource = false;
   genKey = false;
-  deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
   writeAccess = false;
@@ -69,35 +72,52 @@ export class UserComponent implements OnInit {
     this.editForm = userForm(fb, true);
   }
 
+  init() {
+    MemoCache.clear(this);
+    this.actionComponents?.forEach(c => c.reset());
+    this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
+    if (this.user && !this.profile) {
+      this.exts.getCachedExt(this.user.tag, this.user.origin)
+      .subscribe(x => this.ext = x);
+      this.profiles.getProfile(this.qualifiedTag)
+      .subscribe(profile => this.profile = profile);
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.user || changes.profile) {
+      this.init();
+    }
+  }
+
   @ViewChild(UserFormComponent)
   set refForm(value: UserFormComponent) {
     if (this.user) defer(() => value?.setUser(this.user!));
   }
 
-  ngOnInit(): void {
-    this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
-    if (this.user && !this.profile) {
-      this.exts.getCachedExt(this.user.tag, this.user.origin)
-        .subscribe(x => this.ext = x);
-      this.profiles.getProfile(this.qualifiedTag)
-        .subscribe(profile => this.profile = profile);
-    }
-  }
-
+  @memo
   get qualifiedTag() {
     return this.profile?.tag || (this.user!.tag + this.user!.origin);
   }
 
+  @memo
   get localTag() {
     return localTag(this.profile?.tag) || this.user!.tag;
   }
 
+  @memo
   get origin() {
     return tagOrigin(this.profile?.tag) || this.user?.origin || '';
   }
 
+  @memo
   get local() {
     return this.profile?.tag || (!this.user || this.user?.origin === this.store.account.origin);
+  }
+
+  @memo
+  get role() {
+    return getRole(this.profile?.role, this.user?.role);
   }
 
   download() {
@@ -112,10 +132,6 @@ export class UserComponent implements OnInit {
     delete user.type;
     delete user.modifiedString;
     downloadTag(user);
-  }
-
-  get role() {
-    return getRole(this.profile?.role, this.user?.role);
   }
 
   setInlinePassword() {
@@ -143,6 +159,7 @@ export class UserComponent implements OnInit {
     ).subscribe(profile => {
       this.changingRole = false;
       this.profile = profile;
+      this.init();
     });
   }
 
@@ -155,6 +172,7 @@ export class UserComponent implements OnInit {
       }),
     ).subscribe(profile => {
       this.profile = profile;
+      this.init();
     });
   }
 
@@ -195,6 +213,7 @@ export class UserComponent implements OnInit {
       this.serverError = [];
       this.editing = false;
       this.user = user;
+      this.init();
     });
   }
 
@@ -216,33 +235,30 @@ export class UserComponent implements OnInit {
     );
   }
 
-  delete() {
+  delete$ = () => {
     this.serverError = [];
+    const os = [];
     if (this.user) {
-      (this.admin.getPlugin('plugin/delete')
+      os.push((this.admin.getPlugin('plugin/delete')
         ? this.users.update(tagDeleteNotice(this.user)).pipe(ignoreElements())
         : this.users.delete(this.qualifiedTag)).pipe(
         catchError((err: HttpErrorResponse) => {
           this.serverError.push(...printError(err));
           return throwError(() => err);
         }),
-      ).subscribe(() => {
-        this.deleting = false;
-        this.deleted = true;
-      });
+      ));
     }
     if (this.profile) {
-      this.profiles.delete(this.qualifiedTag).pipe(
+      os.push(this.profiles.delete(this.qualifiedTag).pipe(
         catchError((err: HttpErrorResponse) => {
           this.serverError.push(...printError(err));
           return throwError(() => err);
         }),
-      ).subscribe(() => {
-        this.serverError = [];
-        this.deleting = false;
-        this.deleted = true;
-      });
+      ));
     }
+    return forkJoin(os).pipe(
+      tap(() => this.deleted = true),
+    );
   }
 
   keygen() {
@@ -259,6 +275,7 @@ export class UserComponent implements OnInit {
         this.user = user;
         this.serverError = [];
         this.genKey = false;
+        this.init();
       });
     }
   }

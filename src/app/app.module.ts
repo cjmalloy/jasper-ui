@@ -15,6 +15,8 @@ import { tap } from 'rxjs/operators';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { ConfirmActionComponent } from './component/action/confirm-action/confirm-action.component';
+import { InlineTagComponent } from './component/action/inline-tag/inline-tag.component';
 import { BackgammonComponent } from './component/backgammon/backgammon.component';
 import { BackupListComponent } from './component/backup/backup-list/backup-list.component';
 import { BackupComponent } from './component/backup/backup.component';
@@ -30,7 +32,6 @@ import { CommentThreadComponent } from './component/comment/comment-thread/comme
 import { CommentComponent } from './component/comment/comment.component';
 import { ThreadSummaryComponent } from './component/comment/thread-summary/thread-summary.component';
 import { DebugComponent } from './component/debug/debug.component';
-import { EditorComponent } from './form/editor/editor.component';
 import { ExtListComponent } from './component/ext/ext-list/ext-list.component';
 import { ExtComponent } from './component/ext/ext.component';
 import { FilterComponent } from './component/filter/filter.component';
@@ -85,6 +86,7 @@ import { RouterActivateDirective } from './directive/router-activate.directive';
 import { TemplateUiDirective } from './directive/template-ui.directive';
 import { TitleDirective } from './directive/title.directive';
 import { CodeComponent } from './form/code/code.component';
+import { EditorComponent } from './form/editor/editor.component';
 import { ExtFormComponent } from './form/ext/ext.component';
 import { JsonComponent } from './form/json/json.component';
 import { LinksFormComponent } from './form/links/links.component';
@@ -295,6 +297,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     TodoItemComponent,
     PlaylistComponent,
     BackgammonComponent,
+    ConfirmActionComponent,
+    InlineTagComponent,
   ],
   imports: [
     BrowserModule,

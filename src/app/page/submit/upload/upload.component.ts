@@ -2,7 +2,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, OnDestroy, ViewChild } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
-import { FormlyFormOptions } from '@ngx-formly/core';
 import { defer, delay, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
@@ -20,7 +19,6 @@ import { BookmarkService } from '../../../service/bookmark.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { downloadSet } from '../../../util/download';
-import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
@@ -32,7 +30,6 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
 export class UploadPage implements OnDestroy {
   @HostBinding('class') css = 'full-page-upload';
   private disposers: IReactionDisposer[] = [];
-  tagRegex = TAGS_REGEX.source;
 
   @ViewChild('tagInput')
   tagInput?: ElementRef;

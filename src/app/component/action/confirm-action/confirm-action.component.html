@@ -1,0 +1,10 @@
+<span *ngIf="!confirming && !acting"
+      class="fake-link"
+      (click)="confirming = true">
+  <ng-content></ng-content>
+</span>
+<span *ngIf="confirming" i18n> are you sure?&nbsp;
+  <a class="fake-link" (click)="confirm()">yes</a>&nbsp;/&nbsp;
+  <a class="fake-link" (click)="confirming = false">no</a>&nbsp;
+</span>
+<app-loading *ngIf="acting" [inline]="true"></app-loading>

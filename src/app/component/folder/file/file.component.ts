@@ -5,8 +5,9 @@ import { AdminService } from '../../../service/admin.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
 import { Store } from '../../../store/store';
-import { TAGS_REGEX, templates } from '../../../util/format';
+import { templates } from '../../../util/format';
 import { getScheme } from '../../../util/hosts';
+import { memo, MemoCache } from '../../../util/memo';
 import { hasTag } from '../../../util/tag';
 
 @Component({
@@ -17,7 +18,6 @@ import { hasTag } from '../../../util/tag';
 export class FileComponent implements OnChanges {
   @HostBinding('class') css = 'file';
   @HostBinding('attr.tabindex') tabIndex = 0;
-  tagRegex = TAGS_REGEX.source;
 
   @Input()
   ref!: Ref;
@@ -32,10 +32,8 @@ export class FileComponent implements OnChanges {
   icons: Icon[] = [];
   actions: Action[] = [];
   publishedLabel = $localize`published`;
-  tagging = false;
   editing = false;
   viewSource = false;
-  deleting = false;
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
@@ -49,10 +47,9 @@ export class FileComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref) {
-      this.deleting = false;
+      MemoCache.clear(this);
       this.editing = false;
       this.viewSource = false;
-      this.tagging = false;
       this.writeAccess = this.auth.writeAccess(this.ref);
       this.taggingAccess = this.auth.taggingAccess(this.ref);
       this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
@@ -62,6 +59,7 @@ export class FileComponent implements OnChanges {
     }
   }
 
+  @memo
   @HostBinding('class')
   get pluginClasses() {
     return this.css + templates(this.ref.tags, 'plugin')
@@ -69,15 +67,18 @@ export class FileComponent implements OnChanges {
       .join(' ');
   }
 
+  @memo
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
   }
 
+  @memo
   get local() {
     return this.ref.origin === this.store.account.origin;
   }
 
+  @memo
   get thumbnail() {
     return this.admin.getPlugin('plugin/thumbnail') &&
       hasTag('plugin/thumbnail', this.ref);
