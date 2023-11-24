@@ -19,7 +19,7 @@ import { getMailboxes, getTags } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasTag, removeTag } from '../../../util/tag';
-import { EditorComponent } from '../../editor/editor.component';
+import { EditorComponent } from '../../../form/editor/editor.component';
 
 @Component({
   selector: 'app-comment-reply',

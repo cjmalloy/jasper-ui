@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import Europa from 'europa';
+import { Plugin, PluginApi } from 'europa-core';
 import { difference, uniq } from 'lodash-es';
 import { LinksFormComponent } from '../form/links/links.component';
 import { TagsFormComponent } from '../form/tags/tags.component';
@@ -16,7 +18,20 @@ export class EditorService {
   constructor(
     private config: ConfigService,
     private store: Store,
-  ) { }
+  ) {
+    const superscriptProvider = (api: PluginApi): Plugin => ({
+      converters: {
+        SUP: {
+          startTag(conversion): boolean {
+            conversion.output('^');
+            conversion.atNoWhitespace = true;
+            return true;
+          },
+        },
+      },
+    });
+    Europa.registerPlugin(superscriptProvider);
+  }
 
   localUrl(url: string) {
     if (url.startsWith(this.config.base)) return true

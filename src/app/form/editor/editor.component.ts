@@ -11,20 +11,6 @@ import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 
-const superscriptProvider = (api: PluginApi): Plugin => ({
-  converters: {
-    SUP: {
-      startTag(conversion): boolean {
-        conversion.output('^');
-        conversion.atNoWhitespace = true;
-        return true;
-      },
-    },
-  },
-});
-
-Europa.registerPlugin(superscriptProvider);
-
 @Component({
   selector: 'app-editor',
   templateUrl: './editor.component.html',
