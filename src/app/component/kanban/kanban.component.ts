@@ -1,5 +1,5 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { uniq } from 'lodash-es';
 import { catchError, of, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
@@ -24,7 +24,7 @@ export interface KanbanDrag {
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.scss']
 })
-export class KanbanComponent implements OnInit, OnDestroy {
+export class KanbanComponent implements OnChanges, OnDestroy {
   @HostBinding('class') css = 'kanban ext';
 
   @Input()
@@ -60,7 +60,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
     private tags: TaggingService,
   ) { }
 
-  ngOnInit(): void {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ext) {
+      this.preloadExts();
+    }
   }
 
   ngOnDestroy() {
@@ -170,6 +173,14 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (this.filteredSwimLaneBacklog) return true;
     if (this.filteredSwimLane) return false;
     return this.kanbanConfig.showSwimLaneBacklog;
+  }
+
+  preloadExts() {
+    this.exts.getCachedExts([
+      ...this.kanbanConfig.columns ||[],
+      ...this.kanbanConfig.swimLanes ||[],
+      ...this.kanbanConfig.badges ||[],
+    ]).subscribe();
   }
 
   /**
