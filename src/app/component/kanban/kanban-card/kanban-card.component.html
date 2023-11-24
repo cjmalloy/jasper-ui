@@ -39,8 +39,8 @@
 
   <ng-template #cardMenu>
     <div class="context-menu" (click)="$event.stopPropagation()">
-      <ng-container *ngIf="allBadgeExts$ | async as badgeExts">
-        <span i18n>Toggle Badges</span>
+      <span i18n>Toggle Badges</span>
+      <ng-container *ngIf="allBadgeExts$ | async as badgeExts; else allBadgesNoExts">
         <ng-container *ngFor="let e of badgeExts">
           <div (click)=" toggleBadge(e.tag)">
             <input [id]="e.tag"
@@ -51,6 +51,16 @@
           </div>
         </ng-container>
       </ng-container>
+      <ng-template #allBadgesNoExts>
+        <ng-container *ngFor="let b of ext?.config?.badges || [],">
+          <div (click)=" toggleBadge(b)">
+            <input [id]="b"
+                   type="checkbox"
+                   [checked]="ref.tags?.includes(b)">
+            <label [for]="b" i18n>{{ b }}</label>
+          </div>
+        </ng-container>
+      </ng-template>
     </div>
   </ng-template>
 </div>
