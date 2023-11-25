@@ -98,7 +98,7 @@
            *ngIf="writeAccess"
            (click)="editing = !editing" i18n>edit</a>
         <app-confirm-action #action *ngIf="store.account.sysMod || writeAccess" [action]="delete$" i18n>delete</app-confirm-action>
-        <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" (error)="serverError = [$event]" i18n>tag</app-inline-tag>
+        <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
         <ng-container *ngIf="canInvoice">
           <a [routerLink]="['/submit/invoice']"
              [queryParams]="{ url: ref.url }" i18n>invoice</a>

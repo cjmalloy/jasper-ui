@@ -4,7 +4,7 @@
 </a>
 <span *ngIf="editing" class="inline-tagging">
   <input #inlineTag
-         (keydown)="$event.key === 'Enter' && addInlineTag(inlineTag) || true"
+         (keydown)="$event.key === 'Enter' && save(inlineTag) || true"
          (input)="inlineTag.value = inlineTag.value.toLowerCase()"
          type="text"
          inputmode="email"
@@ -12,6 +12,6 @@
          autocorrect="off"
          autocapitalize="none"
          appAutofocus>
-  <button type="button" (click)="addInlineTag(inlineTag)" i18n>+</button>
+  <button type="button" (click)="save(inlineTag)" i18n>+</button>
 </span>
-<app-loading *ngIf="tagging" [inline]="true"></app-loading>
+<app-loading *ngIf="acting" [inline]="true"></app-loading>

@@ -45,7 +45,7 @@
     <a *ngIf="!comments"
        [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }" i18n>permalink</a>
         <app-confirm-action #action *ngIf="store.account.sysMod || writeAccess" [action]="delete$" i18n>delete</app-confirm-action>
-        <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" (error)="serverError = [$event]" i18n>tag</app-inline-tag>
+        <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
     <a *ngIf="!ref.origin && store.account.mod && !approved && !locked"
        class="fake-link"
        (click)="approve()" i18n>approve</a>

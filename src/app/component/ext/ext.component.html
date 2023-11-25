@@ -29,7 +29,7 @@
         <a *ngIf="local" class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
       </ng-template>
       <a class="fake-link" (click)="download()" i18n>download</a>
-      <app-confirm-action #action *ngIf="store.account.sysMod || writeAccess" [action]="delete$"></app-confirm-action>
+      <app-confirm-action #action *ngIf="store.account.sysMod || writeAccess" [action]="delete$" i18n></app-confirm-action>
     </ng-container>
     <ng-container *ngIf="store.account.user && ext.upload">
       <a class="fake-link" (click)="upload()" i18n>upload</a>
@@ -37,7 +37,7 @@
       <a [routerLink]="['/tags', ext.tag]" i18n>tags</a>
       <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
       <a class="fake-link" (click)="download()" i18n>download</a>
-      <app-confirm-action #action [action]="delete$"></app-confirm-action>
+      <app-confirm-action #action [action]="delete$" i18n></app-confirm-action>
     </ng-container>
   </div>
 </div>

@@ -13,36 +13,35 @@ export class InlineTagComponent extends ActionComponent {
 
   @Input()
   action: (tag: string) => Observable<any|never> = () => of(null);
-  @Output()
-  error = new EventEmitter<string>();
 
   editing = false;
-  tagging = false;
+  acting = false;
 
   override reset() {
     this.editing = false;
-    this.tagging = false;
+    this.acting = false;
   }
 
   override active() {
-    return this.editing || this.tagging;
+    return this.editing || this.acting;
   }
 
-  addInlineTag(field: HTMLInputElement) {
+  save(field: HTMLInputElement) {
     if (field.validity.patternMismatch) {
-      this.error.next($localize`
+      field.setCustomValidity($localize`
         Tags must be lower case letters, numbers, periods and forward slashes.
         Must not start with a forward slash or period.
         Must not or contain two forward slashes or periods in a row.
         Protected tags start with a plus sign.
-        Private tags start with an underscore.`);
+        Private tags start with an underscore.`)
+      field.reportValidity();
       return;
     }
     this.editing = false;
-    this.tagging = true;
-    this.action((field.value || ''.trim())).pipe(
+    this.acting = true;
+    this.action((field.value || '').toLowerCase().trim()).pipe(
       catchError(() => of(null)),
-    ).subscribe(() => this.tagging = false);
+    ).subscribe(() => this.acting = false);
   }
 
 }

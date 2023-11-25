@@ -161,9 +161,7 @@
             <a *ngIf="parentThreadTop" [routerLink]="['/ref', parentThreadTop, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
             <a *ngIf="!parentComment && !parentThreadTop && sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
             <a *ngIf="!parentComment && !parentThreadTop && sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: obsoleteOrigin }" i18n>{{ sources }}&thinsp;sources</a>
-            <app-inline-tag #action *ngIf="taggingAccess"
-                            [action]="tag$"
-                            (error)="serverError = [$event]" i18n>tag</app-inline-tag>
+            <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
             <ng-container *ngIf="store.account.user && !local">
               <span class="fake-link" (click)="copy()" i18n>copy</span>
             </ng-container>
@@ -193,7 +191,7 @@
               <span class="fake-link" (click)="upload()" i18n>upload</span>
               <a *ngIf="store.account.user && !dm" routerLink="/submit/text" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags}" i18n>reply</a>
               <a *ngIf="store.account.user && dm" routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
-              <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" (error)="serverError = [$event]" i18n>tag</app-inline-tag>
+              <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
               <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
             </ng-container>
             <app-confirm-action #action [action]="remove$" i18n>remove</app-confirm-action>
