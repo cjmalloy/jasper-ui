@@ -6,5 +6,5 @@
 <ng-container *ngFor="let e of serverError">
   <div class="error" [title]="e">{{ e }}</div>
 </ng-container>
-<button (click)="reply()" i18n>reply</button>
-<button *ngIf="showCancel" (click)="cancel()" i18n>cancel</button>
+<button type="button" (click)="reply()" i18n>reply</button>
+<button type="button" *ngIf="showCancel" (click)="cancel()" i18n>cancel</button>

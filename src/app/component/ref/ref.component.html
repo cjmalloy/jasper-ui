@@ -275,7 +275,7 @@
       <label for="force" i18n>Force</label>
     </div>
     <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
-    <button (click)="editing = false" i18n>cancel</button>
+    <button type="button" (click)="editing = false" i18n>cancel</button>
   </span>
 </form>
 

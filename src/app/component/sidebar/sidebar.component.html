@@ -121,42 +121,50 @@
     <h3 *ngIf="store.view.current === 'tag'">{{ ext?.name || tag }}</h3>
     <div *ngIf="store.account.signedIn && tag && admin.getTemplate('user')" class="row center">
       <button *ngIf="inBookmarks; else notBookmarked"
+              type="button"
               class="bookmark"
               i18n-title title="Remove from top bar"
               (click)="removeBookmark()" i18n>&ndash; bookmark</button>
       <ng-template #notBookmarked>
-        <button (click)="bookmark()"
+        <button type="button"
+                (click)="bookmark()"
                 i18n-title title="Add to top bar"
                 class="bookmark" i18n>+ bookmark</button>
       </ng-template>
       <ng-container *ngIf="user">
         <button *ngIf="inSubs; else notFollowing"
+                type="button"
                 class="subscribe"
                 i18n-title title="Remove from home screen"
                 (click)="unsubscribe()" i18n>&ndash; unfollow</button>
         <ng-template #notFollowing>
-          <button (click)="subscribe()"
+          <button type="button"
+                  (click)="subscribe()"
                   i18n-title title="Add to home screen"
                   class="subscribe" i18n>+ follow</button>
         </ng-template>
       </ng-container>
       <ng-container *ngIf="!user">
         <button *ngIf="inSubs; else notInSubs"
+                type="button"
                 class="subscribe"
                 i18n-title title="Remove from home screen"
                 (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
         <ng-template #notInSubs>
-          <button (click)="subscribe()"
+          <button type="button"
+                  (click)="subscribe()"
                   i18n-title title="Add to home screen"
                   class="subscribe" i18n>+ subscribe</button>
         </ng-template>
       </ng-container>
       <button *ngIf="inAlarms; else notInAlarms"
+              type="button"
               class="alarm"
               i18n-title title="Remove alarm"
               (click)="removeAlarm()" i18n>🔇</button>
       <ng-template #notInAlarms>
-        <button (click)="addAlarm()"
+        <button type="button"
+                (click)="addAlarm()"
                 i18n-title title="Add alarm"
                 class="alarm" i18n>🔔</button>
       </ng-template>

@@ -12,6 +12,6 @@
          autocorrect="off"
          autocapitalize="none"
          appAutofocus>
-  <button (click)="addInlineTag(inlineTag)" i18n>+</button>
+  <button type="button" (click)="addInlineTag(inlineTag)" i18n>+</button>
 </span>
 <app-loading *ngIf="tagging" [inline]="true"></app-loading>

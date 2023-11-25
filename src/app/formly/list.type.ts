@@ -12,7 +12,7 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
          cdkScrollable
          [cdkDropListData]="this"
          (cdkDropListDropped)="drop($any($event))">
-      <button *ngIf="props.showAdd !== false" type="button" (click)="add()">{{ props.addText }}</button>
+      <button type="button" *ngIf="props.showAdd !== false" (click)="add()">{{ props.addText }}</button>
       <ng-container *ngFor="let field of field.fieldGroup; let i = index">
         <div class="form-array list-drag"
              cdkDrag

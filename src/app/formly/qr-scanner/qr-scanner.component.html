@@ -1,6 +1,6 @@
 <button type="button" (click)="imageFile.click()" i18n-title title="QR from photo or camera" i18n>📷️</button>
 <input #imageFile type="file" accept="image/*" (change)="readQr(imageFile.files!)"/>
-<button *ngIf="hasCamera" type="button" (click)="scanQr()" i18n-title title="Scan for QR with video" i18n>🤳️</button>
+<button type="button" *ngIf="hasCamera" (click)="scanQr()" i18n-title title="Scan for QR with video" i18n>🤳️</button>
 <ng-template #video>
   <video class="qr-preview"
          i18n-title title="Click anywhere to stop scanning"

@@ -10,7 +10,7 @@
            formControlName="tag"
            (keydown)="tag.errors || $event.key === 'Enter' && tagChanges.next(tagInput.value) || true"
            (blur)="tag.errors || tagChanges.next(tagInput.value)">
-    <button *ngIf="showClear" type="button" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
+    <button type="button" *ngIf="showClear" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
   </div>
   <span><!-- Tag Errors --></span>
   <div>

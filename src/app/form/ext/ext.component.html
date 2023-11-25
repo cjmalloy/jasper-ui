@@ -4,7 +4,7 @@
   <label for="tag" i18n>Tag:</label>
   <div class="form-array">
     <input id="tag" type="text" formControlName="tag">
-    <button *ngIf="showClear" type="button" (click)="clear.next()" i18n-title title="New Ext" i18n>🆑️</button>
+    <button type="button" *ngIf="showClear" (click)="clear.next()" i18n-title title="New Ext" i18n>🆑️</button>
   </div>
 
   <label for="name" i18n>Name:</label>
@@ -31,8 +31,8 @@
                   [selected]="sortCol === opt.value"
                   [value]="opt.value">{{ opt.label || opt.value }}</option>
         </select>
-        <button *ngIf="sortDir === 'DESC'" type="button" (click)="setSortDir('ASC')">🔽️</button>
-        <button *ngIf="sortDir === 'ASC'" type="button" (click)="setSortDir('DESC')">🔼️</button>
+        <button type="button" *ngIf="sortDir === 'DESC'" (click)="setSortDir('ASC')">🔽️</button>
+        <button type="button" *ngIf="sortDir === 'ASC'" (click)="setSortDir('DESC')">🔼️</button>
       </span>
     </ng-container>
 
@@ -92,8 +92,8 @@
                       [selected]="sortCol === opt.value"
                       [value]="opt.value">{{ opt.label || opt.value }}</option>
             </select>
-            <button *ngIf="sortDir === 'DESC'" type="button" (click)="setSortDir('ASC')">🔽️</button>
-            <button *ngIf="sortDir === 'ASC'" type="button" (click)="setSortDir('DESC')">🔼️</button>
+            <button type="button" *ngIf="sortDir === 'DESC'" (click)="setSortDir('ASC')">🔽️</button>
+            <button type="button" *ngIf="sortDir === 'ASC'" (click)="setSortDir('DESC')">🔼️</button>
           </span>
         </ng-container>
 

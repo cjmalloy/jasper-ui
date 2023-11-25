@@ -8,19 +8,19 @@
             (click)="toggleHelp()"
             i18n-title title="Help"
             i18n>❓️</button>
-    <button *ngIf="fullscreen || currentText"
-            type="button"
+    <button type="button"
+            *ngIf="fullscreen || currentText"
             (click)="toggleStacked()"
             i18n-title title="Stacked or side by side layout toggle">
       <span *ngIf="!fullscreen" i18n>📝️</span>
       <span *ngIf="fullscreen" i18n>/</span>
     </button>
-    <button *ngIf="showScrape"
-            type="button"
+    <button type="button"
+            *ngIf="showScrape"
             (click)="scrape.emit()"
             i18n-title title="Scrape Webpage" i18n>🪝</button>
-    <button *ngIf="admin.getTemplate('htmlToMarkdown')"
-            type="button"
+    <button type="button"
+            *ngIf="admin.getTemplate('htmlToMarkdown')"
             (click)="htmlToMarkdown()"
             i18n-title title="Convert HTML to Markdown" i18n>⬇️</button>
     <div *ngFor="let plugin of editorPlugins; let i = index" class="editor-plugin">
