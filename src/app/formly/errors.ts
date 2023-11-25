@@ -81,20 +81,20 @@ import { FormlyFieldConfig } from '@ngx-formly/core/lib/models';
     </ng-template>
     <ng-template #user>
       <span *ngIf="field.type === 'user' && field.formControl?.errors?.['pattern'] else quser" i18n>
-      User tags must start with the "+user/" or "_user/" prefix.<br>
-      Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-      tags start with an underscore.<br>
-      (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")
+        User tags must start with the "+user/" or "_user/" prefix.<br>
+        Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+        tags start with an underscore.<br>
+        (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")
       </span>
     </ng-template>
     <ng-template #quser>
       <span *ngIf="field.type === 'quser' && field.formControl?.errors?.['pattern'] else defaultMessage" i18n>
-      User tags must start with the "+user/" or "_user/" prefix.<br>
-      Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-      tags start with an underscore.<br>
-      Tags may be qualified with an origin.<br>
-      Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.<br>
-      (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")
+        User tags must start with the "+user/" or "_user/" prefix.<br>
+        Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+        tags start with an underscore.<br>
+        Tags may be qualified with an origin.<br>
+        Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.<br>
+        (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")
       </span>
     </ng-template>
     <ng-template #defaultMessage>
