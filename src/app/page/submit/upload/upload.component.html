@@ -61,14 +61,14 @@
         <input #tagInput
                id="add-tag"
                i18n-placeholder placeholder="Tag All"
-               (keydown)="$event.key === 'Enter' && tag(tagInput.value) || true"
+               (keydown)="$event.key === 'Enter' && tagAll(tagInput) || true"
                type="text"
                inputmode="email"
                [pattern]="tagRegex"
                autocorrect="off"
                autocapitalize="none"
                appAutofocus>
-        <button type="button" (click)="tag(tagInput.value)" i18n>+</button>
+        <button type="button" (click)="tagAll(tagInput)" i18n>+</button>
       </div>
 
       <span></span>

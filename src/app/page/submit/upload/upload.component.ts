@@ -33,9 +33,6 @@ export class UploadPage implements OnDestroy {
   private disposers: IReactionDisposer[] = [];
   tagRegex = TAGS_REGEX.source;
 
-  @ViewChild('tagInput')
-  tagInput?: ElementRef;
-
   serverErrors: string[] = [];
   processing = false;
   webCache = this.admin.getPlugin('plugin/file');
@@ -357,9 +354,21 @@ export class UploadPage implements OnDestroy {
     );
   }
 
-  tag(text: string) {
-    this.tagInput!.nativeElement.value = '';
-    this.store.submit.tagRefs(text.toLowerCase().trim().split(/\s+/));
+  tagAll(field: HTMLInputElement) {
+    if (field.validity.patternMismatch) {
+      field.setCustomValidity($localize`
+        Tags must be lower case letters, numbers, periods and forward slashes.
+        Must not start with a forward slash or period.
+        Must not or contain two forward slashes or periods in a row.
+        Protected tags start with a plus sign.
+        Private tags start with an underscore.`)
+      field.reportValidity();
+      return;
+    }
+    if (field.value) {
+      this.store.submit.tagRefs(field.value.toLowerCase().trim().split(/\s+/));
+      field.value = '';
+    }
   }
 
   private getModels(file: File): Promise<FilteredModels> {
