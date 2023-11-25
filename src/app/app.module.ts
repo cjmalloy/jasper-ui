@@ -17,6 +17,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ConfirmActionComponent } from './component/action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from './component/action/inline-tag/inline-tag.component';
+import { InlineUrlComponent } from './component/action/inline-url/inline-url.component';
 import { BackgammonComponent } from './component/backgammon/backgammon.component';
 import { BackupListComponent } from './component/backup/backup-list/backup-list.component';
 import { BackupComponent } from './component/backup/backup.component';
@@ -299,6 +300,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     BackgammonComponent,
     ConfirmActionComponent,
     InlineTagComponent,
+    InlineUrlComponent,
   ],
   imports: [
     BrowserModule,

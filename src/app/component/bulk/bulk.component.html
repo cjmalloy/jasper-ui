@@ -2,66 +2,18 @@
   <summary><span i18n>Bulk tools</span> <app-loading *ngIf="batchRunning"></app-loading></summary>
   <span *ngIf="empty" i18n>no results</span>
   <ng-container *ngIf="!empty">
-    <span class="fake-link"
-          (click)="download()" i18n>download</span>
+    <span class="fake-link" (click)="download()" i18n>download</span>
     <ng-container *ngIf="type === 'ref'">
-      <a class="fake-link"
-         (click)="toggle()" i18n>toggle</a>
-      <a *ngIf="store.account.user"
-         class="fake-link"
-         routerLink="/submit"
-         [queryParams]="{source: urls}" i18n>reply</a>
-      <a class="fake-link"
-         (click)="tagging = !tagging" i18n>tag</a>
-      <span *ngIf="tagging" class="inline-tagging">
-        <input #inlineTag
-               (keydown)="$event.key === 'Enter' && tag(inlineTag.value) || true"
-               type="text"
-               inputmode="email"
-               [pattern]="tagRegex"
-               autocorrect="off"
-               autocapitalize="none"
-               appAutofocus>
-        <button type="button" (click)="tag(inlineTag.value)" i18n>+</button>
-      </span>
-      <a class="fake-link"
-         (click)="thumbnailing = !thumbnailing" i18n>thumbnail</a>
-      <span *ngIf="thumbnailing" class="inline-thumbnailing">
-        <input #inlineThumbnail
-               [value]="defaultThumbnail"
-               (keydown)="$event.key === 'Enter' && thumbnail(inlineThumbnail.value) || true"
-               type="text"
-               inputmode="email"
-               autocorrect="off"
-               autocapitalize="none"
-               appAutofocus>
-        <button type="button" (click)="thumbnail(inlineThumbnail.value)" i18n>+</button>
-      </span>
-      <a *ngIf="!scraping"
-         class="fake-link"
-         (click)="scraping = true" i18n>scrape</a>
-      <span *ngIf="scraping"
-            class="delete-confirm"> are you sure?&nbsp;
-      <a class="fake-link"
-         (click)="scrape()">yes</a>&nbsp;/&nbsp;
-      <a class="fake-link"
-         (click)="scraping = false" i18n>no</a>&nbsp;
-    </span>
+      <a class="fake-link" (click)="toggle()" i18n>toggle</a>
+      <a *ngIf="store.account.user" class="fake-link" routerLink="/submit" [queryParams]="{source: urls}" i18n>reply</a>
+      <app-inline-tag [action]="tag$" i18n>tag</app-inline-tag>
+      <app-inline-url [action]="thumbnail$" i18n>thumbnail</app-inline-url>
+      <app-confirm-action [action]="scrape$" i18n>scrape</app-confirm-action>
     </ng-container>
-    <a *ngIf="!deleting"
-       class="fake-link"
-       (click)="deleting = true" i18n>delete</a>
-    <span *ngIf="deleting"
-        class="delete-confirm"> are you sure?&nbsp;
-      <a class="fake-link"
-         (click)="delete()">yes</a>&nbsp;/&nbsp;
-      <a class="fake-link"
-         (click)="deleting = false" i18n>no</a>&nbsp;
-    </span>
+    <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
     <ng-container *ngIf="type === 'ref'">
       <ng-container *ngIf="admin.getPlugin('plugin/invoice')">
-        <a routerLink="/submit/invoice"
-           [queryParams]="{url: urls}" i18n>invoice</a>
+        <a routerLink="/submit/invoice" [queryParams]="{url: urls}" i18n>invoice</a>
       </ng-container>
       <ng-container *ngFor="let a of actions">
         <a class="fake-link" (click)="doAction(a)">{{ label(a) }}</a>

@@ -3,6 +3,7 @@ import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core'
 import { intersection, map, merge, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Action, sortOrder } from '../../model/tag';
 import { configDeleteNotice, deleteNotice, tagDeleteNotice } from '../../mods/delete';
 import { ActionService } from '../../service/action.service';
@@ -47,10 +48,6 @@ export class BulkComponent implements OnInit, OnDestroy {
   actions: Action[] = [];
   batchRunning = false;
   toggled = false;
-  tagging = false;
-  thumbnailing = false;
-  deleting = false;
-  scraping = false;
   serverError: string[] = [];
 
   constructor(
@@ -94,11 +91,11 @@ export class BulkComponent implements OnInit, OnDestroy {
     return uniq(this.query.page!.content.map(ref => ref.url));
   }
 
-  batch(fn: (e: any) => Observable<any> | void) {
-    if (this.batchRunning) return;
+  batch$(fn: (e: any) => Observable<any> | void) {
+    if (this.batchRunning) return of(null);
     this.serverError = [];
     this.batchRunning = true;
-    concat(...this.queryStore.page!.content.map(c => (fn(c) || of(null)).pipe(
+    return concat(...this.queryStore.page!.content.map(c => (fn(c) || of(null)).pipe(
       catchError(err => {
         if (err instanceof HttpErrorResponse) {
           this.serverError.push(...printError(err));
@@ -107,10 +104,17 @@ export class BulkComponent implements OnInit, OnDestroy {
         }
         return of(null);
       }),
-    ))).pipe(last()).subscribe(() => {
-      this.queryStore.refresh();
-      this.batchRunning = false;
-    });
+    ))).pipe(
+      last(),
+      tap(() => {
+        this.queryStore.refresh();
+        this.batchRunning = false;
+      })
+    );
+  }
+
+  batch(fn: (e: any) => Observable<any> | void) {
+    return this.batch$(fn).subscribe();
   }
 
   get queryStore() {
@@ -171,9 +175,8 @@ export class BulkComponent implements OnInit, OnDestroy {
     downloadPage(this.type, this.queryStore.page!, this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name);
   }
 
-  thumbnail(url: string) {
-    this.thumbnailing = false;
-    this.batch(ref => {
+  thumbnail$ = (url: string) => {
+    return this.batch$(ref => {
       if (ref.plugins?.['plugin/thumbnail']?.url === url) return of(null);
       return this.refs.merge(ref.url, ref.origin!, ref.modifiedString, {
         tags: uniq([...(ref.tags || []), 'plugin/thumbnail']),
@@ -184,10 +187,8 @@ export class BulkComponent implements OnInit, OnDestroy {
     });
   }
 
-  tag(tag: string) {
-    this.tagging = false;
-    tag = tag.toLowerCase().trim();
-    this.batch(ref => this.ts.create(tag, ref.url, ref.origin!));
+  tag$ = (tag: string) => {
+    return this.batch$(ref => this.ts.create(tag, ref.url, ref.origin!));
   }
 
   approve() {
@@ -216,27 +217,25 @@ export class BulkComponent implements OnInit, OnDestroy {
     return a.label;
   }
 
-  delete() {
-    this.deleting = false;
+  delete$ = () => {
     if (this.type === 'ref') {
-      this.batch(ref => this.admin.getPlugin('plugin/delete')
+      return this.batch$(ref => this.admin.getPlugin('plugin/delete')
         ? this.refs.update(deleteNotice(ref))
         : this.refs.delete(ref.url, ref.origin)
       );
     } else if (this.type === 'ext' || this.type === 'user') {
-      this.batch(tag => this.admin.getPlugin('plugin/delete')
+      return this.batch$(tag => this.admin.getPlugin('plugin/delete')
         ? this.tagService.update(tagDeleteNotice(tag))
         : this.tagService.delete(tag.tag + tag.origin))
     } else {
-      this.batch(tag => this.admin.getPlugin('plugin/delete')
+      return this.batch$(tag => this.admin.getPlugin('plugin/delete')
         ? this.tagService.update(configDeleteNotice(tag))
         : this.tagService.delete(tag.tag + tag.origin))
     }
   }
 
-  scrape() {
-    this.scraping = false;
-    this.batch(ref => {
+  scrape$ = () => {
+    return this.batch$(ref => {
       if (hasTag('+plugin/feed', ref)) {
         return this.scraper.feed(ref.url, ref.origin());
       } else {
