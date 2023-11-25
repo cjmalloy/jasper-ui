@@ -50,6 +50,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   mutated = false;
   addText = '';
   pressToUnlock = false;
+  adding: string[] = [];
 
   constructor(
     public config: ConfigService,
@@ -153,17 +154,20 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     // TODO: Move to util function
     this.addText = this.addText.trim();
     if (!this.addText) return;
+    const text = this.addText;
+    this.addText = '';
+    this.adding.push(text);
     const tagsWithAuthor = !this.addTags.includes(this.store.account.localTag) ? [...this.addTags, this.store.account.localTag] : this.addTags;
-    const isUrl = URI_REGEX.test(this.addText) && this.config.allowedSchemes.filter(s => this.addText.startsWith(s)).length;
+    const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
     // TODO: support local urls
     const ref: Ref = isUrl ? {
-      url: fixUrl(this.addText, this.admin.getTemplate('banlist') || this.admin.def.templates.banlist),
+      url: fixUrl(text, this.admin.getTemplate('banlist') || this.admin.def.templates.banlist),
       origin: this.store.account.origin,
       tags: [...tagsWithAuthor],
     } : {
       url: 'comment:' + uuid(),
       origin: this.store.account.origin,
-      title: this.addText,
+      title: text,
       tags: [...tagsWithAuthor],
     };
     this.oembeds.get(ref.url).pipe(
@@ -220,6 +224,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       }),
     ).subscribe(cursor => {
       this.mutated = true;
+      this.adding.splice(this.adding.indexOf(text), 1);
       if (!this.page) {
         console.error('Should not happen, will probably get cleared.');
         this.page = {content: []} as any;
@@ -228,7 +233,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       ref.modifiedString = cursor;
       this.page!.content.push(ref)
     });
-    this.addText = '';
   }
 
   private refreshPage(i: number) {

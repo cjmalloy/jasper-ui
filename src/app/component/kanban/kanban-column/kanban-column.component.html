@@ -9,6 +9,9 @@
                    [ref]="ref"
                    [ext]="ext"
                    (copied)="copy($event)"></app-kanban-card>
+  <app-kanban-card *ngFor="let text of adding"
+                   [ref]="{ url: '', title: text }"
+                   [ext]="ext"></app-kanban-card>
 </ng-template>
 <div class="spacer"></div>
 <a *ngIf="hasMore"

@@ -1,5 +1,7 @@
 :host {
   opacity: 0;
+  cursor: wait;
+  user-select: none;
   display: block;
   text-align: center;
   font-size: 40px;

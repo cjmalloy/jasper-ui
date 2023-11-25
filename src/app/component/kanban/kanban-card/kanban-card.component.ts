@@ -116,7 +116,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   @memo
   get remote() {
-    return this.origin !== this.store.account.origin;
+    return this.ref.modified && this.origin !== this.store.account.origin;
   }
 
   @memo
