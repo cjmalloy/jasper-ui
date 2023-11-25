@@ -124,10 +124,16 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     if (!this.page) return;
     if (event.from === this.query) {
       if (this.page.content.includes(event.ref)) {
+        this.mutated ||= event.from !== event.to;
+        this.page.numberOfElements--;
+        this.page.totalElements--;
         this.page.content.splice(this.page.content.indexOf(event.ref), 1);
       }
     }
     if (event.to === this.query) {
+      this.mutated ||= event.from !== event.to;
+      this.page.numberOfElements++;
+      this.page.totalElements++;
       this.page.content.splice(Math.min(event.index, this.page.numberOfElements - 1), 0, event.ref);
     }
   }
@@ -244,9 +250,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       i,
       this.size
     )).subscribe(page => {
-      const pageOffset = this.page!.numberOfElements;
+      const pageOffset = i * this.size;
       this.page!.number = page.number;
-      this.page!.numberOfElements += page.numberOfElements;
+      this.page!.numberOfElements = Math.max(this.page!.numberOfElements, pageOffset + page.numberOfElements);
       this.page!.last = page.last;
       for (let offset = 0; offset < page.numberOfElements; offset++) {
         this.page!.content[pageOffset + offset] = page.content[offset];
