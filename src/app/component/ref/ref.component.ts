@@ -81,7 +81,6 @@ import { ViewerComponent } from '../viewer/viewer.component';
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   css = 'ref list-item ';
-  @HostBinding('class.mobile-unlock') mobileUnlock = false;
   private disposers: IReactionDisposer[] = [];
 
   @ViewChild('actionsMenu')
@@ -130,6 +129,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   viewSource = false;
   @HostBinding('class.deleted')
   deleted = false;
+  @HostBinding('class.mobile-unlock')
+  mobileUnlock = false;
   actionsExpanded = false;
   title = '';
   replyTags: string[] = [];
