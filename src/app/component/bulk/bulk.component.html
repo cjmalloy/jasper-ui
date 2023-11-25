@@ -29,7 +29,7 @@
       <span *ngIf="thumbnailing" class="inline-thumbnailing">
         <input #inlineThumbnail
                [value]="defaultThumbnail"
-               (keydown)="$event.key === 'Enter' && tag(inlineThumbnail.value) || true"
+               (keydown)="$event.key === 'Enter' && thumbnail(inlineThumbnail.value) || true"
                type="text"
                inputmode="email"
                autocorrect="off"
