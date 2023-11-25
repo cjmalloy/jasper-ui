@@ -19,27 +19,27 @@
       overflow: visible;
     }
   }
+}
 
-  .thumbnail {
-    min-width: 48px;
-    min-height: 48px;
-  }
+.thumbnail {
+  min-width: 48px;
+  min-height: 48px;
+}
 
-  .card-title {
-    -webkit-box-orient: vertical;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: normal;
-  }
+.card-title {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
 
-  .badges {
-    float: right;
-    .badge {
-      margin: 4px;
-      line-height: 21px;
-      display: block;
-    }
+.badges {
+  float: right;
+  .badge {
+    margin: 4px;
+    line-height: 21px;
+    display: block;
   }
 }
