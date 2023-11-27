@@ -23,8 +23,8 @@ export class UserService {
     return this.config.api + '/api/v1/user';
   }
 
-  create(user: User): Observable<void> {
-    return this.http.post<void>(this.base, writeUser(user)).pipe(
+  create(user: User): Observable<string> {
+    return this.http.post<string>(this.base, writeUser(user)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }

@@ -3,7 +3,8 @@ import { Component, ElementRef, HostBinding, Input, OnChanges, QueryList, Simple
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
-import { catchError, forkJoin, ignoreElements, map, Observable, switchMap, throwError } from 'rxjs';
+import * as moment from 'moment';
+import { catchError, forkJoin, map, Observable, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { Ext } from '../../model/ext';
@@ -195,24 +196,26 @@ export class UserComponent implements OnChanges {
       scrollToFirstInvalid();
       return;
     }
-    const updates = {
+    const updates: User = {
       ...(this.user || {}),
       ...this.editForm.value,
       tag: this.localTag,
       origin: this.origin,
       readAccess: uniq([...this.editForm.value.readAccess, ...this.editForm.value.notifications]),
     };
-    (this.user ? this.users.update(updates).pipe(map(() => {})) : this.users.create(updates))
-      .pipe(
-        catchError((err: HttpErrorResponse) => {
-          this.serverError = printError(err);
-          return throwError(() => err);
-        }),
-        switchMap(() => this.users.get(this.qualifiedTag)),
-      ).subscribe(user => {
+    (this.user
+      ? this.users.update(updates)
+      : this.users.create(updates)).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(cursor => {
+      this.user = updates;
+      this.user.modifiedString = cursor;
+      this.user.modified = moment(cursor);
       this.serverError = [];
       this.editing = false;
-      this.user = user;
       this.init();
     });
   }
