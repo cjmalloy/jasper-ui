@@ -15,17 +15,6 @@ docker compose file.
 
 ## Features
 
-## CSRF Protection
-All modifying or sensitive server endpoints in this project must not use GET as a method in order to prevent cross site
-request forgeries. All pages, upon load, with no user interaction, should not make any modifying or sensitive request.
-No combination of url path, parameters, or hash should cause such a request. CSRF attacks require that the app perform
-some action simply by loading a page.
-
-By preventing CSRF on the client side, we prevent the need to copy CSRF tokens into headers and can persist auth tokens
-in secure cookies. CSRF-TOKEN headers have issues where adding headers is difficult, such as loading images or
-downloading files in a new tab. By storing auth tokens in a secure cookie, we can allow the user to open a new tab and
-still be signed in.
-
 ### Text Editor
 Markdown editor with support for rendering both markdown and HTML.
 * Use `#tag` to create a tag link `[tag](/tag/politics)` (add a space for the usual markdown
