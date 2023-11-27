@@ -863,11 +863,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
       ...(this.ref.tags || []).filter(t => this.auth.canAddTag(t))
     ]);
-    const copied = {
+    const copied: Ref = {
       ...this.ref,
       origin: this.store.account.origin,
       tags,
     };
+    copied.plugins = pick(copied.plugins, tags || []);
     this.refs.create(copied, true).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
@@ -875,7 +876,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
             switchMap(ref => {
               if (equalsRef(ref, copied) || window.confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
-                return this.refs.push(this.ref, this.store.account.origin);
+                return this.refs.update(ref, true);
               } else {
                 return throwError(() => 'Cancelled')
               }
@@ -893,13 +894,32 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   upload() {
-    this.ref.origin = this.store.account.origin;
-    const ref = {
+    const ref: Ref = {
       ...this.ref,
+      origin: this.store.account.origin,
       tags: this.ref.tags?.filter(t => this.auth.canAddTag(t)),
     };
-    ref.plugins = pick(ref.plugins as any, ref.tags as string[]);
-    this.store.eventBus.runAndReload((this.store.submit.overwrite ? this.refs.push(ref) : this.refs.create(ref)), ref);
+    ref.plugins = pick(ref.plugins, ref.tags || []);
+    this.store.eventBus.runAndReload(
+      (this.store.submit.overwrite
+        ? this.refs.update(ref, true)
+        : this.refs.create(ref, true).pipe(
+          catchError((err: HttpErrorResponse) => {
+            if (err.status === 409) {
+              return this.refs.get(this.ref.url, this.store.account.origin).pipe(
+                switchMap(existing => {
+                  if (equalsRef(existing, ref) || window.confirm('An old version already exists. Overwrite it?')) {
+                    // TODO: Show diff and merge or split
+                    return this.refs.update(ref, true);
+                  } else {
+                    return throwError(() => 'Cancelled');
+                  }
+                })
+              );
+            }
+            return throwError(() => err);
+          }),
+        )), ref);
   }
 
   delete$ = () => {

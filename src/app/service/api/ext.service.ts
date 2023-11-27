@@ -32,22 +32,9 @@ export class ExtService {
     return this.config.api + '/api/v1/ext';
   }
 
-  private get repl() {
-    return this.config.api + '/api/v1/repl/ext';
-  }
-
   create(ext: Ext, force = false): Observable<string> {
     return this.http.post<string>(this.base, writeExt(ext), {
       params: !force ? undefined : { force: true },
-    }).pipe(
-      tap(() => this._cache.delete(ext.tag)),
-      catchError(err => this.login.handleHttpError(err)),
-    );
-  }
-
-  push(ext: Ext, origin = ''): Observable<void> {
-    return this.http.post<void>(this.repl, [writeExt(ext)], {
-      params: params({ origin }),
     }).pipe(
       tap(() => this._cache.delete(ext.tag)),
       catchError(err => this.login.handleHttpError(err)),

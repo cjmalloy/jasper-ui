@@ -302,7 +302,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
             switchMap(ref => {
               if (equalsRef(ref, copied) || window.confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
-                return this.refs.push(this.ref, this.store.account.origin);
+                return this.refs.update(copied, true);
               } else {
                 return throwError(() => 'Cancelled')
               }

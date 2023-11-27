@@ -4,6 +4,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { isObject } from 'lodash-es';
 import { toJS } from 'mobx';
+import * as moment from 'moment';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
@@ -181,18 +182,18 @@ export class ExtComponent implements OnChanges {
   }
 
   upload() {
-    this.ext.origin = this.store.account.origin;
     (this.store.submit.overwrite
-      ? this.exts.push(this.ext)
-      : this.exts.create(this.ext).pipe(map(() => {}))).pipe(
+      ? this.exts.update({ ...this.ext, origin: this.store.account.origin }, true)
+      : this.exts.create({ ...this.ext, origin: this.store.account.origin })).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-      switchMap(() => this.exts.get(this.ext.tag + this.ext.origin)),
-    ).subscribe(ext => {
-      this.ext = ext;
-      this.store.submit.setExt(ext);
+    ).subscribe(cursor => {
+      this.ext.modifiedString = cursor;
+      this.ext.modified = moment(cursor);
+      this.ext.origin = this.store.account.origin;
+      this.store.submit.removeExt(this.ext);
       this.init();
     });
   }
@@ -209,7 +210,7 @@ export class ExtComponent implements OnChanges {
             switchMap(ext => {
               if (equalsExt(ext, copied) || window.confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
-                return this.exts.push(this.ext, this.store.account.origin);
+                return this.exts.update(copied, true);
               } else {
                 return throwError(() => 'Cancelled')
               }

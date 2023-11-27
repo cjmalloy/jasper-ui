@@ -123,7 +123,7 @@ export class ScrapeService {
   }
 
   defaults(): Observable<any> {
-    return this.refs.push(catchAll, this.store.account.origin).pipe(
+    return this.refs.update(catchAll, true).pipe(
       switchMap(() => this.clearConfigCache())
     );
   }

@@ -4,11 +4,11 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } 
 import { Router } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, ignoreElements, map, of, switchMap, throwError } from 'rxjs';
+import { catchError, ignoreElements, of, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
-import { tagDeleteNotice } from "../../mods/delete";
+import { tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ThemeService } from '../../service/theme.service';
@@ -195,12 +195,12 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     // TODO: Better dialogs
     if (window.confirm($localize`Are you sure you want to delete this tag extension?`)) {
       (this.admin.getPlugin('plugin/delete')
-        ? this.exts.update(tagDeleteNotice(ext)).pipe(map(() => {}))
+        ? this.exts.update(tagDeleteNotice(ext)).pipe(ignoreElements())
         : this.exts.delete(ext.tag + ext.origin)).pipe(
-            catchError((res: HttpErrorResponse) => {
-              this.serverError = printError(res);
-              return throwError(() => res);
-            }),
+        catchError((res: HttpErrorResponse) => {
+          this.serverError = printError(res);
+          return throwError(() => res);
+        }),
       ).subscribe(() => {
         this.router.navigate(['/tag', ext.tag]);
       });

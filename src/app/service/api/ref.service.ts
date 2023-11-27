@@ -32,21 +32,9 @@ export class RefService {
     return this.config.api + '/api/v1/ref';
   }
 
-  private get repl() {
-    return this.config.api + '/api/v1/repl/ref';
-  }
-
   create(ref: Ref, force = false): Observable<string> {
     return this.http.post<string>(this.base, writeRef(ref), {
       params: !force ? undefined : { force: true },
-    }).pipe(
-      catchError(err => this.login.handleHttpError(err)),
-    );
-  }
-
-  push(ref: Ref, origin = ''): Observable<void> {
-    return this.http.post<void>(this.repl, [writeRef(ref)], {
-      params: params({ origin }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );

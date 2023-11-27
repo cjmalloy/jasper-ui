@@ -1,11 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostBinding, OnDestroy, ViewChild } from '@angular/core';
+import { Component, HostBinding, OnDestroy } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, delay, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
-import { catchError, concat, lastValueFrom, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, lastValueFrom, of } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
 import { Ext, mapTag } from '../../../model/ext';
@@ -296,34 +296,25 @@ export class UploadPage implements OnDestroy {
     if (this.processing || this.store.submit.empty) return;
     this.processing = true;
     const uploads = [
-      ...this.store.submit.exts.map(ext => this.uploadExt(ext)),
-      ...this.store.submit.refs.map(ref => this.uploadRef(ref)),
+      ...this.store.submit.exts.map(ext => this.uploadExt$(ext)),
+      ...this.store.submit.refs.map(ref => this.uploadRef$(ref)),
     ];
     return lastValueFrom(concat(...uploads))
       .then(() => delay(() => this.postNavigate(), 1000))
       .catch(() => null)
-      .then(() => this.processing = false);
+      .then(() => {
+        this.store.submit.clearUpload();
+        this.processing = false;
+      });
   }
 
-  uploadRef(ref: Ref) {
+  uploadRef$(ref: Ref) {
     ref = toJS(ref);
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
-    ref.plugins = pick(ref.plugins as any, ref.tags as string[]);
-    return this.refs.create({
-      ...ref,
-      origin: this.store.account.origin,
-    }).pipe(
-      catchError((res: HttpErrorResponse) => {
-        if (this.store.submit.overwrite) {
-          return this.refs.get(ref.url, this.store.account.origin).pipe(
-            switchMap(old => this.refs.push({
-              ...ref,
-              origin: this.store.account.origin,
-              modifiedString: old.modifiedString,
-            })));
-        }
-        return throwError(() => res);
-      }),
+    ref.plugins = pick(ref.plugins, ref.tags || []);
+    return (this.store.submit.overwrite
+      ? this.refs.update({ ...ref, origin: this.store.account.origin }, true)
+      : this.refs.create({ ...ref, origin: this.store.account.origin })).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverErrors.push(...printError(res));
         return of(null);
@@ -331,22 +322,10 @@ export class UploadPage implements OnDestroy {
     );
   }
 
-  uploadExt(ext: Ext) {
-    return this.exts.create({
-      ...ext,
-      origin: this.store.account.origin,
-    }).pipe(
-      catchError((res: HttpErrorResponse) => {
-        if (this.store.submit.overwrite) {
-          return this.exts.getCachedExt(ext.tag).pipe(
-            switchMap(old => this.exts.push({
-              ...ext,
-              origin: this.store.account.origin,
-              modifiedString: old.modifiedString,
-            })));
-        }
-        return throwError(() => res);
-      }),
+  uploadExt$(ext: Ext) {
+    return (this.store.submit.overwrite
+      ? this.exts.update({ ...ext, origin: this.store.account.origin }, true)
+      : this.exts.create({ ...ext, origin: this.store.account.origin })).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverErrors.push(...printError(res));
         return of(null);
