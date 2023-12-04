@@ -4,15 +4,17 @@ import { URI_REGEX } from '../../../util/format';
 import { ActionComponent } from '../action.component';
 
 @Component({
-  selector: 'app-inline-url',
-  templateUrl: './inline-url.component.html',
-  styleUrls: ['./inline-url.component.scss']
+  selector: 'app-inline-select',
+  templateUrl: './inline-select.component.html',
+  styleUrls: ['./inline-select.component.scss']
 })
-export class InlineUrlComponent extends ActionComponent {
+export class InlineSelectComponent extends ActionComponent {
   uriRegex = URI_REGEX.source;
 
   @Input()
-  action: (url: string) => Observable<any|never> = () => of(null);
+  action: (value: any) => Observable<any|never> = () => of(null);
+  @Input()
+  value?: any;
   @Output()
   error = new EventEmitter<string>();
 
@@ -28,12 +30,7 @@ export class InlineUrlComponent extends ActionComponent {
     return this.editing || this.acting;
   }
 
-  save(field: HTMLInputElement) {
-    if (field.validity.patternMismatch) {
-      field.setCustomValidity($localize`Must be a valid URI according to RFC 3986.`)
-      field.reportValidity();
-      return;
-    }
+  save(field: HTMLSelectElement) {
     this.editing = false;
     this.acting = true;
     this.action((field.value || '').trim()).pipe(

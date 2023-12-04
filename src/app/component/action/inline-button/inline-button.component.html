@@ -1,0 +1,6 @@
+<span *ngIf="!acting"
+      class="fake-link"
+      (click)="act()">
+  <ng-content></ng-content>
+</span>
+<app-loading *ngIf="acting" [inline]="true"></app-loading>

@@ -1,18 +1,16 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
-import { URI_REGEX } from '../../../util/format';
 import { ActionComponent } from '../action.component';
 
 @Component({
-  selector: 'app-inline-url',
-  templateUrl: './inline-url.component.html',
-  styleUrls: ['./inline-url.component.scss']
+  selector: 'app-inline-password',
+  templateUrl: './inline-password.component.html',
+  styleUrls: ['./inline-password.component.scss']
 })
-export class InlineUrlComponent extends ActionComponent {
-  uriRegex = URI_REGEX.source;
+export class InlinePasswordComponent extends ActionComponent {
 
   @Input()
-  action: (url: string) => Observable<any|never> = () => of(null);
+  action: (password: string) => Observable<any|never> = () => of(null);
   @Output()
   error = new EventEmitter<string>();
 
@@ -29,14 +27,14 @@ export class InlineUrlComponent extends ActionComponent {
   }
 
   save(field: HTMLInputElement) {
-    if (field.validity.patternMismatch) {
-      field.setCustomValidity($localize`Must be a valid URI according to RFC 3986.`)
-      field.reportValidity();
+    const password = (field.value || '').trim();
+    if (!password) {
+      this.editing = false;
       return;
     }
     this.editing = false;
     this.acting = true;
-    this.action((field.value || '').trim()).pipe(
+    this.action(password).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);
   }

@@ -16,6 +16,9 @@ import { tap } from 'rxjs/operators';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ConfirmActionComponent } from './component/action/confirm-action/confirm-action.component';
+import { InlineButtonComponent } from './component/action/inline-button/inline-button.component';
+import { InlinePasswordComponent } from './component/action/inline-password/inline-password.component';
+import { InlineSelectComponent } from './component/action/inline-select/inline-select.component';
 import { InlineTagComponent } from './component/action/inline-tag/inline-tag.component';
 import { InlineUrlComponent } from './component/action/inline-url/inline-url.component';
 import { BackgammonComponent } from './component/backgammon/backgammon.component';
@@ -302,6 +305,9 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     ConfirmActionComponent,
     InlineTagComponent,
     InlineUrlComponent,
+    InlinePasswordComponent,
+    InlineSelectComponent,
+    InlineButtonComponent,
   ],
   imports: [
     BrowserModule,
