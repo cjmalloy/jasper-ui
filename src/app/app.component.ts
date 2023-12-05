@@ -4,8 +4,10 @@ import { autorun } from 'mobx';
 import { archivePlugin, archiveUrl, findArchive } from './mods/archive';
 import { pdfPlugin, pdfUrl } from './mods/pdf';
 import { AdminService } from './service/admin.service';
+import { OriginService } from './service/api/origin.service';
 import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
+import { OriginStore } from './store/origin';
 import { Store } from './store/store';
 
 @Component({
@@ -29,6 +31,7 @@ export class AppComponent implements AfterViewInit {
     public store: Store,
     private admin: AdminService,
     private scraper: ScrapeService,
+    private origins: OriginService,
     private router: Router,
   ) {
     if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
