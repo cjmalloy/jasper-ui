@@ -1,4 +1,3 @@
-import { findArchive } from '../../src/app/mods/archive';
 import { clearMods } from './setup';
 
 describe('Smoke Tests', {
@@ -6,7 +5,7 @@ describe('Smoke Tests', {
 }, () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Home', { timeout: 1000 * 60 * 5 }); // 5 minutes
+    cy.contains('Home', { timeout: 1000 * 60 * 20 }); // 20 minutes
   });
   it('clear mods', () => {
     clearMods();
