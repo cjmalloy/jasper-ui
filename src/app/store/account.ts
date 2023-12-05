@@ -54,6 +54,11 @@ export class AccountStore {
    * May not be given write access to other tags.
    */
   viewer = false;
+  /**
+   * Is banned.
+   * No access, ban message shown instead.
+   */
+  banned = false;
   notifications = 0;
   authError = false;
 
@@ -110,6 +115,7 @@ export class AccountStore {
       editor: this.editor,
       user: this.user,
       viewer: this.viewer,
+      banned: this.banned,
     };
   }
 
@@ -251,6 +257,7 @@ export class AccountStore {
     this.editor = roles.editor;
     this.user = roles.user;
     this.viewer = roles.viewer;
+    this.banned = roles.banned;
   }
 
   defaultEditors(plugins: string[]) {

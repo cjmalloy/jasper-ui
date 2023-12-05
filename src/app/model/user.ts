@@ -11,7 +11,7 @@ export interface User extends Tag {
   pubKey?: string;
 }
 
-export type Role = 'ROLE_SYSADMIN' | 'ROLE_ADMIN' | 'ROLE_MOD' | 'ROLE_EDITOR' | 'ROLE_USER' | 'ROLE_VIEWER' | 'ROLE_ANONYMOUS';
+export type Role = 'ROLE_SYSADMIN' | 'ROLE_ADMIN' | 'ROLE_MOD' | 'ROLE_EDITOR' | 'ROLE_USER' | 'ROLE_VIEWER' | 'ROLE_ANONYMOUS' | 'ROLE_BANNED';
 
 export interface Roles {
   debug: boolean;
@@ -22,6 +22,7 @@ export interface Roles {
   editor: boolean;
   user: boolean;
   viewer: boolean;
+  banned: boolean;
 }
 
 export function mapUser(obj: any): User {

@@ -42,13 +42,18 @@
   <app-sidebar [home]="true"
                [floating]="floatingSidebar"
                [ext]="homeExt"></app-sidebar>
-  <app-lens [page]="query.page"
-            [showVotes]="store.view.isVoteSorted"
-            [ext]="homeExt"
-            [fullPage]="true"
-            [size]="store.view.pageSize"
-            [cols]="store.view.cols"
-            [sort]="store.view.sort"
-            [filter]="store.view.filter"
-            [search]="store.view.search"></app-lens>
+  <ng-container *ngIf="query.error?.status !== 403 else accessDenied">
+    <app-lens [page]="query.page"
+              [showVotes]="store.view.isVoteSorted"
+              [ext]="homeExt"
+              [fullPage]="true"
+              [size]="store.view.pageSize"
+              [cols]="store.view.cols"
+              [sort]="store.view.sort"
+              [filter]="store.view.filter"
+              [search]="store.view.search"></app-lens>
+  </ng-container>
+  <ng-template #accessDenied>
+    <div class="error-403" i18n>Access Denied</div>
+  </ng-template>
 </ng-container>

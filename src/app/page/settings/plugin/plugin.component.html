@@ -13,4 +13,9 @@
     <div class="error">{{ e }}</div>
   </ng-container>
 </ng-container>
-<app-plugin-list [page]="query.page"></app-plugin-list>
+<ng-container *ngIf="query.error?.status !== 403 else accessDenied">
+  <app-plugin-list [page]="query.page"></app-plugin-list>
+</ng-container>
+<ng-template #accessDenied>
+  <div class="error-403" i18n>Access Denied</div>
+</ng-template>

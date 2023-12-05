@@ -5,6 +5,9 @@
   <app-login-popup></app-login-popup>
   <app-subscription-bar></app-subscription-bar>
   <router-outlet></router-outlet>
+  <div *ngIf="store.account.banned" class="ban-message">
+    You have been banned.
+  </div>
   <div class="spacer"></div>
   <footer>
     <hr>
