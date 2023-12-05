@@ -219,16 +219,16 @@ export class BulkComponent implements OnInit, OnDestroy {
 
   delete$ = () => {
     if (this.type === 'ref') {
-      return this.batch$(ref => this.admin.getPlugin('plugin/delete')
+      return this.batch$(ref => ref.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
         ? this.refs.update(deleteNotice(ref))
         : this.refs.delete(ref.url, ref.origin)
       );
     } else if (this.type === 'ext' || this.type === 'user') {
-      return this.batch$(tag => this.admin.getPlugin('plugin/delete')
+      return this.batch$(tag => tag.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
         ? this.tagService.update(tagDeleteNotice(tag))
         : this.tagService.delete(tag.tag + tag.origin))
     } else {
-      return this.batch$(tag => this.admin.getPlugin('plugin/delete')
+      return this.batch$(tag => tag.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
         ? this.tagService.update(configDeleteNotice(tag))
         : this.tagService.delete(tag.tag + tag.origin))
     }
