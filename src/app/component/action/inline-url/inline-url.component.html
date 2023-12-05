@@ -6,6 +6,7 @@
   <input #inlineUrl
          (keydown)="$event.key === 'Enter' && save(inlineUrl) || true"
          (input)="inlineUrl.value = inlineUrl.value.toLowerCase()"
+         [value]="value"
          type="url"
          [pattern]="uriRegex"
          appAutofocus>

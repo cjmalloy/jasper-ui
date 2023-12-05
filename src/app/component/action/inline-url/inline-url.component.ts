@@ -13,6 +13,8 @@ export class InlineUrlComponent extends ActionComponent {
 
   @Input()
   action: (url: string) => Observable<any|never> = () => of(null);
+  @Input()
+  value = '';
   @Output()
   error = new EventEmitter<string>();
 

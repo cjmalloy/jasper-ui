@@ -7,7 +7,7 @@
       <a class="fake-link" (click)="toggle()" i18n>toggle</a>
       <a *ngIf="store.account.user" class="fake-link" routerLink="/submit" [queryParams]="{source: urls}" i18n>reply</a>
       <app-inline-tag [action]="tag$" i18n>tag</app-inline-tag>
-      <app-inline-url [action]="thumbnail$" i18n>thumbnail</app-inline-url>
+      <app-inline-url [action]="thumbnail$" [value]="defaultThumbnail" i18n>thumbnail</app-inline-url>
       <app-confirm-action [action]="scrape$" i18n>scrape</app-confirm-action>
     </ng-container>
     <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
