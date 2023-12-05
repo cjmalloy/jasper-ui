@@ -1,9 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { intersection, map, merge, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Ext } from '../../model/ext';
 import { Action, sortOrder } from '../../model/tag';
 import { configDeleteNotice, deleteNotice, tagDeleteNotice } from '../../mods/delete';
 import { ActionService } from '../../service/action.service';
@@ -24,19 +25,17 @@ import { TemplateStore } from '../../store/template';
 import { UserStore } from '../../store/user';
 import { Type } from '../../store/view';
 import { downloadPage } from '../../util/download';
-import { TAGS_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
+import { memo, MemoCache } from '../../util/memo';
 import { hasTag } from '../../util/tag';
-import { Ext } from '../../model/ext';
 
 @Component({
   selector: 'app-bulk',
   templateUrl: './bulk.component.html',
   styleUrls: ['./bulk.component.scss']
 })
-export class BulkComponent implements OnInit, OnDestroy {
+export class BulkComponent implements OnChanges, OnDestroy {
   @HostBinding('class') css = 'bulk actions';
-  tagRegex = TAGS_REGEX.source;
 
   private disposers: IReactionDisposer[] = [];
 
@@ -69,12 +68,16 @@ export class BulkComponent implements OnInit, OnDestroy {
     private scraper: ScrapeService,
   ) {
     this.disposers.push(autorun(() => {
+      MemoCache.clear(this);
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
       this.actions = sortOrder(this.admin.getActions(commonTags).filter(a => !('tag' in a) || this.auth.canAddTag(a.tag)));
     }));
   }
 
-  ngOnInit(): void {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.type || changes.activeExts) {
+      MemoCache.clear(this);
+    }
   }
 
   ngOnDestroy() {
@@ -82,10 +85,12 @@ export class BulkComponent implements OnInit, OnDestroy {
     this.disposers.length = 0;
   }
 
+  @memo
   get defaultThumbnail() {
-    return this.activeExts.find(x => x.config?.defaultThumbnail)?.config?.defaultThumbnail || '';
+    return [...this.activeExts, this.admin.getTemplate('')].find(x => x?.config?.defaultThumbnail)?.config?.defaultThumbnail || '';
   }
 
+  @memo
   get urls() {
     if (!this.query.page?.content.length) return [];
     return uniq(this.query.page!.content.map(ref => ref.url));
@@ -147,6 +152,7 @@ export class BulkComponent implements OnInit, OnDestroy {
     }
   }
 
+  @memo
   get empty() {
     return !this.queryStore.page?.content?.length;
   }
