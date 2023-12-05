@@ -1,5 +1,5 @@
 import { intersection, uniq } from 'lodash-es';
-import { makeAutoObservable } from 'mobx';
+import { action, computed, makeObservable, observable } from 'mobx';
 import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
@@ -10,11 +10,17 @@ import { OriginStore } from './origin';
 
 export class AccountStore {
 
+  @observable
   debug = false;
+  @observable
   tag = '';
+  @observable
   origin = '';
+  @observable
   access?: User = {} as User;
+  @observable
   ext?: Ext = {} as Ext;
+  @observable
   defaultConfig: UserConfig = {};
 
   /**
@@ -22,30 +28,35 @@ export class AccountStore {
    * Only used in multi-tenant to own all origins.
    * Equivalent to Admin in single tenant.
    */
+  @observable
   sa = false;
   /**
    * Is admin.
    * Owns everything.
    * Limited to origin in multi-tenant.
    */
+  @observable
   admin = false;
   /**
    * Is mod.
    * Owns everything except plugins and templates.
    * Limited to origin in multi-tenant.
    */
+  @observable
   mod = false;
   /**
    * Is editor.
    * Allowed to toggle any public tag (except public and locked) to any Ref in view.
    * Limited to origin in multi-tenant.
    */
+  @observable
   editor = false;
   /**
    * Is user.
    * Allowed to post Refs.
    * May be given access to other tags.
    */
+  @observable
   user = false;
   /**
    * Is viewer.
@@ -53,48 +64,58 @@ export class AccountStore {
    * May be given read access to other tags.
    * May not be given write access to other tags.
    */
+  @observable
   viewer = false;
   /**
    * Is banned.
    * No access, ban message shown instead.
    */
+  @observable
   banned = false;
+  @observable
   notifications = 0;
+  @observable
   authError = false;
 
   constructor(
     private origins: OriginStore,
   ) {
-    makeAutoObservable(this);
+    makeObservable(this);
     // Initial observables may not be null for MobX
     this.access = undefined;
     this.ext = undefined;
     this.defaultConfig = {};
   }
 
+  @computed
   get sysAdmin() {
     if (config().multiTenant) return this.sa;
     return this.admin;
   }
 
+  @computed
   get sysMod() {
     if (config().multiTenant) return this.sa;
     return this.mod;
   }
 
+  @computed
   get signedIn() {
     return !!this.tag;
   }
 
+  @computed
   get localTag() {
     return localTag(this.tag);
   }
 
+  @computed
   get userTag() {
      if (hasPrefix(localTag(this.tag), 'user')) return this.localTag;
      return '';
   }
 
+  @computed
   get role() {
     if (!this.signedIn) return '';
     if (this.admin) return 'admin';
@@ -105,6 +126,7 @@ export class AccountStore {
     return 'anon';
   }
 
+  @computed
   get roles(): Roles {
     return {
       debug: this.debug,
@@ -119,6 +141,7 @@ export class AccountStore {
     };
   }
 
+  @computed
   get config(): UserConfig {
     return {
       ...(this.defaultConfig || {}),
@@ -126,40 +149,49 @@ export class AccountStore {
     };
   }
 
+  @computed
   get subs(): string[] {
     return this.config.subscriptions || defaultSubs;
   }
 
+  @computed
   get userSubs(): string[] {
     return this.subs.filter(s => hasPrefix(s, 'user'));
   }
 
+  @computed
   get tagSubs(): string[] {
     return this.subs.filter(s => !hasPrefix(s, 'user'));
   }
 
+  @computed
   get bookmarks() {
     return this.config.bookmarks || [];
   }
 
+  @computed
   get alarms(): string[] {
     return this.config.alarms || [];
   }
 
+  @computed
   get mailbox() {
     if (!this.signedIn) return undefined;
     return getMailbox(this.tag);
   }
 
+  @computed
   get modmail() {
     return this.access?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => t + (this.origin || '@*'));
   }
 
+  @computed
   get outboxes() {
     return Array.from(this.origins.reverseLookup)
       .map(([remote, localAlias]) => prefix('plugin/outbox', localAlias, this.localTag) + remote);
   }
 
+  @computed
   get inboxQuery() {
     if (!this.signedIn) return undefined;
     let tags = [this.mailbox];
@@ -175,12 +207,14 @@ export class AccountStore {
     return uniq(tags).join('|');
   }
 
+  @computed
   get notificationsQuery() {
     if (!this.signedIn) return undefined;
     const alarms = this.config.alarms?.length ? '|' + this.config.alarms.join('|') : '';
     return `!${this.tag}:!plugin/delete:(` + this.inboxQuery + ')' + alarms;
   }
 
+  @computed
   get subscriptionQuery() {
     if (!this.tagSubs.length) return 'none';
     return '!internal:(' + this.tagSubs.join('|') + ')';
@@ -243,6 +277,7 @@ export class AccountStore {
     }).join(' ');
   }
 
+  @action
   setRoles(roles: Roles) {
     this.debug = roles.debug;
     this.origin = tagOrigin(roles.tag);
