@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, filter, of, Subject } from 'rxjs';
@@ -45,6 +45,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   localTag?: string;
   addTags = this.admin.getTemplate('')?.defaults?.addTags || [];
+  defaultThumbnail = this.admin.getTemplate('')?.defaults?.defaultThumbnail || '';
   local = true;
   plugin?: Plugin;
   mailPlugin?: Plugin;
@@ -61,7 +62,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(
     public router: Router,
-    public route: ActivatedRoute,
     public admin: AdminService,
     public store: Store,
     public query: QueryStore,
@@ -119,6 +119,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         } else {
           this.addTags = uniq([...this.rootConfig?.addTags || (this.plugin?.tag ? [this.plugin!.tag] : []), ...topAnds(this.tag).map(localTag)]);
         }
+        this.defaultThumbnail = this.rootConfig?.defaultThumbnail || '';
         this.mailPlugin = this.admin.getPlugin(getMailbox(this.tag, this.store.account.origin));
         this.writeAccess = this.auth.tagWriteAccess(this.tag);
         this.ui = this.admin.getTemplateUi(this.tag);
