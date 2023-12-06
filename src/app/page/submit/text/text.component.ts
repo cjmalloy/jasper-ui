@@ -22,6 +22,7 @@ import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
+import { hasTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-text',
@@ -83,6 +84,9 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
           this.addTag(...this.store.submit.tags);
           if (this.store.account.localTag) this.addTag(this.store.account.localTag);
         }
+        if (this.store.submit.thumbnail) {
+          this.addTag('plugin/thumbnail');
+        }
         for (const s of this.store.submit.sources) {
           this.addSource(s)
         }
@@ -98,7 +102,13 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   @ViewChild('advancedForm')
   set advancedForm(value: RefFormComponent) {
     if (value) {
-      value.setRef(this.textForm.value);
+      const ref = this.textForm.value;
+      if (this.store.submit.thumbnail) {
+        ref.plugins = {
+          'plugin/thumbnail': { url: this.store.submit.thumbnail },
+        };
+      }
+      value.setRef(ref);
     }
   }
 
@@ -154,14 +164,20 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     }
     const tags = uniq([...(this.textForm.value.tags || []), ...this.plugins]);
     const published = this.textForm.value.published ? moment(this.textForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
-    this.refs.create({
+    const ref = {
       ...this.textForm.value,
       url: this.url.value, // Need to pull separately since control is locked
       title: this.title.value, // Need to pull separately if disabled by wiki mode
       origin: this.store.account.origin,
       published,
       tags,
-    }).pipe(
+    };
+    if (!this.advanced && this.store.submit.thumbnail && hasTag('plugin/thumbnail', ref)) {
+      ref.plugins = {
+        'plugin/thumbnail': { url: this.store.submit.thumbnail },
+      };
+    }
+    this.refs.create(ref).pipe(
       tap(() => {
         if (this.admin.getPlugin('plugin/vote/up')) {
           this.ts.createResponse('plugin/vote/up', this.url.value).subscribe();

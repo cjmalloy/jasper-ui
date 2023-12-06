@@ -45,7 +45,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   localTag?: string;
   addTags = this.admin.getTemplate('')?.defaults?.addTags || [];
-  defaultThumbnail = this.admin.getTemplate('')?.defaults?.defaultThumbnail || '';
+  defaultThumbnail = this.admin.getTemplate('')?.defaults?.defaultThumbnail;
   local = true;
   plugin?: Plugin;
   mailPlugin?: Plugin;
@@ -119,7 +119,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         } else {
           this.addTags = uniq([...this.rootConfig?.addTags || (this.plugin?.tag ? [this.plugin!.tag] : []), ...topAnds(this.tag).map(localTag)]);
         }
-        this.defaultThumbnail = this.rootConfig?.defaultThumbnail || '';
+        this.defaultThumbnail = this.rootConfig?.defaultThumbnail;
         this.mailPlugin = this.admin.getPlugin(getMailbox(this.tag, this.store.account.origin));
         this.writeAccess = this.auth.tagWriteAccess(this.tag);
         this.ui = this.admin.getTemplateUi(this.tag);
