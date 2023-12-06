@@ -225,15 +225,17 @@ export class BulkComponent implements OnChanges, OnDestroy {
 
   delete$ = () => {
     if (this.type === 'ref') {
-      return this.batch$(ref => ref.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
+      return this.batch$(ref => ref.origin === this.store.account.origin && !hasTag('plugin/delete', ref) && this.admin.getPlugin('plugin/delete')
         ? this.refs.update(deleteNotice(ref))
         : this.refs.delete(ref.url, ref.origin)
       );
     } else if (this.type === 'ext' || this.type === 'user') {
+      // TODO: how to delete already deleted
       return this.batch$(tag => tag.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
         ? this.tagService.update(tagDeleteNotice(tag))
         : this.tagService.delete(tag.tag + tag.origin))
     } else {
+      // TODO: how to delete already deleted
       return this.batch$(tag => tag.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
         ? this.tagService.update(configDeleteNotice(tag))
         : this.tagService.delete(tag.tag + tag.origin))
