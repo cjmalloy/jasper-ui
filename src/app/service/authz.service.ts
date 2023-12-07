@@ -47,7 +47,6 @@ export class AuthzService {
   }
 
   queryReadAccess(query?: string): boolean {
-    if (!this.store.account.signedIn) return false;
     if (!query) return false;
     for (const part of query.split(/[-|:!()\s]+/)) {
       if (part && !this.tagReadAccess(part)) return false;
@@ -70,10 +69,10 @@ export class AuthzService {
   }
 
   tagReadAccess(tag?: string): boolean {
-    if (!this.store.account.signedIn) return false;
     if (!tag) return false;
     tag = localTag(tag);
     if (!privateTag(tag)) return true;
+    if (!this.store.account.signedIn) return false;
     if (this.store.account.mod) return true;
     if (this.store.account.localTag === tag) return true;
     if (!this.store.account.access) return false;
