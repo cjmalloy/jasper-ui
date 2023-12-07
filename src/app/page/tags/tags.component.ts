@@ -2,11 +2,12 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { AdminService } from '../../service/admin.service';
+import { AuthzService } from '../../service/authz.service';
 import { ThemeService } from '../../service/theme.service';
 import { ExtStore } from '../../store/ext';
 import { Store } from '../../store/store';
 import { getTagFilter, getTagQueryFilter } from '../../util/query';
-import { braces, getPrefixes, hasPrefix } from '../../util/tag';
+import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
 
 @Component({
   selector: 'app-tags-page',
@@ -26,6 +27,7 @@ export class TagsPage implements OnInit, OnDestroy {
     private admin: AdminService,
     public store: Store,
     public query: ExtStore,
+    private auth: AuthzService,
   ) {
     theme.setTitle($localize`Tags`);
     store.view.clear('modified,DESC', 'name,ASC');
@@ -36,9 +38,14 @@ export class TagsPage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.template || this.defaultTitle;
       const query
-        = this.store.view.home ? ['home|+home|_home', ...this.store.account.subs, ...this.store.account.bookmarks ].join('|')
-        : this.store.view.template ? getPrefixes(this.store.view.template).join('|')
-        : this.store.view.noTemplate ? ['!+user:!_user', ...this.templates.map(t => '!' + t.tag).flatMap(getPrefixes)].join(':')
+        = this.store.view.home
+        ? [...getPrefixes('home'), ...this.store.account.subs, ...this.store.account.bookmarks].filter(t => this.auth.tagReadAccess(t)).join('|')
+        : this.store.view.template
+        ? (publicTag(this.store.view.template)
+            ? getPrefixes(this.store.view.template).filter(t => this.auth.tagReadAccess(t)).join('|')
+            : this.store.view.template)
+        : this.store.view.noTemplate
+        ? ['!+user', '!_user', ...this.templates.map(t => '!' + t.tag).flatMap(getPrefixes)].filter(t => this.auth.tagReadAccess(t)).join(':')
         : '@*';
       const args = {
         query: braces(query) + getTagQueryFilter(this.store.view.filter) + ':' + (this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*')),
