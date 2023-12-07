@@ -182,6 +182,8 @@ export function getPrefixes(tag: string) {
 }
 
 export function braces(query: string) {
+  if (!query) return '';
+  if (!query.includes('|')) return query;
   return `(${query})`;
 }
 

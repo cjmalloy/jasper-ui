@@ -1,7 +1,7 @@
 import { filter, uniq, without } from 'lodash-es';
 import { Filter, RefPageArgs, RefQueryArgs, RefSort } from '../model/ref';
 import { TagQueryArgs } from '../model/tag';
-import { fixClientQuery, hasPrefix } from './tag';
+import { braces, fixClientQuery, hasPrefix } from './tag';
 
 export const defaultDesc = ['created', 'published', 'modified', 'metadataModified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
 
@@ -136,12 +136,13 @@ export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {
 }
 
 
-export function getTagQueryFilter(filter?: UrlFilter[]): string {
-  if (!filter) return '';
-  let result = '';
+export function getTagQueryFilter(query: string, filter?: UrlFilter[]): string {
+  if (!filter) return query;
+  let result = query;
   for (const f of filter) {
     if (f.startsWith('query/')) {
-      result += ':(' + f.substring('query/'.length) + ')';
+      if (result) result += ':';
+      result += braces(f.substring('query/'.length));
     }
   }
   return result;
