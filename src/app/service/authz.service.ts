@@ -70,6 +70,7 @@ export class AuthzService {
 
   tagReadAccess(tag?: string): boolean {
     if (!tag) return false;
+    if (tag.startsWith('!')) tag = tag.substring(1);
     tag = localTag(tag);
     if (!privateTag(tag)) return true;
     if (!this.store.account.signedIn) return false;
