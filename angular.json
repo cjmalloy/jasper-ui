@@ -123,13 +123,13 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "jasper-ui:build:production"
+              "buildTarget": "jasper-ui:build:production"
             },
             "development": {
-              "browserTarget": "jasper-ui:build:development",
               "headers": {
                 "Content-Security-Policy": "default-src 'self' ws://localhost:8081 http://localhost:8081; frame-src * data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com https://platform.twitter.com; style-src 'self' 'unsafe-inline'; media-src * data:; img-src * data: blob:; font-src 'self' data:"
-              }
+              },
+              "buildTarget": "jasper-ui:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -137,7 +137,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "jasper-ui:build"
+            "buildTarget": "jasper-ui:build"
           }
         },
         "test": {

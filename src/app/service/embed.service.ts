@@ -39,11 +39,9 @@ export class EmbedService {
       gfm: true,
       breaks: false,
       pedantic: false,
-      smartLists: true,
-      smartypants: true,
     };
     const renderImage = markdownService.renderer.image;
-    markdownService.renderer.image = (href: string | null, title: string | null, text: string) => {
+    markdownService.renderer.image = (href: string, title: string | null, text: string) => {
       let html = renderImage.call(markdownService.renderer, href, title, text);
       if (!href) return html;
       if (href.startsWith(this.config.base) || !href.startsWith('http')) {
@@ -52,7 +50,7 @@ export class EmbedService {
       return html;
     }
     const renderLink = markdownService.renderer.link;
-    markdownService.renderer.link = (href: string | null, title: string | null, text: string) => {
+    markdownService.renderer.link = (href: string, title: string | null, text: string) => {
       let html = renderLink.call(markdownService.renderer, href, title, text);
       if (!href) return html;
       if (text.toLowerCase().trim() === 'toggle' || this.admin.getPluginsForUrl(href).length) {

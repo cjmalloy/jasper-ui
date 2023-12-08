@@ -20,9 +20,9 @@ import { FormlyFieldConfig } from '@ngx-formly/core/lib/models';
     </ng-template>
     <ng-template #origin>
       <span *ngIf="field.type === 'origin' && field.formControl?.errors?.['pattern'] else plugin" i18n>
-        Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.<br>
+        Origins must start with an at sign (&#64;) and contain only lowercase letters, numbers, and periods.<br>
         The default origin is blank.<br>
-        (i.e. "@origin", "@my.origin", or "")
+        (i.e. "&#64;origin", "&#64;my.origin", or "")
       </span>
     </ng-template>
     <ng-template #plugin>
@@ -42,10 +42,10 @@ import { FormlyFieldConfig } from '@ngx-formly/core/lib/models';
         Must not start with a forward slash or period.<br>
         Must not or contain two forward slashes or periods in a row.<br>
         Tags may be qualified with an origin.<br>
-        Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.<br>
+        Origins must start with an at sign (&#64;) and contain only lowercase letters, numbers, and periods.<br>
         Protected tags start with a plus sign.<br>
         Private tags start with an underscore.<br>
-        (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")
+        (i.e. "science", "science&#64;origin" "my/tag", or "_my/private/tag")
       </span>
     </ng-template>
     <ng-template #query>
@@ -55,13 +55,13 @@ import { FormlyFieldConfig } from '@ngx-formly/core/lib/models';
         Must not start with a forward slash or period.<br>
         Must not or contain two forward slashes or periods in a row.<br>
         Use the local wildcard (*) to match all tags with a local origin.<br>
-        Tags may be qualified with an origin, or a wildcard origin (@*).<br>
-        Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.<br>
+        Tags may be qualified with an origin, or a wildcard origin (&#64;*).<br>
+        Origins must start with an at sign (&#64;) and contain only lowercase letters, numbers, and periods.<br>
         Use an origin without a tag to match all tags at that origin.<br>
-        The wildcard origin (@*) by itself will match everything.<br>
+        The wildcard origin (&#64;*) by itself will match everything.<br>
         Protected tags start with a plus sign.<br>
         Private tags start with an underscore.<br>
-        (i.e. "science:news", "science@origin science@other" "your/tag my/tag", "!cool", or "news:_my/private/tag")
+        (i.e. "science:news", "science&#64;origin science&#64;other" "your/tag my/tag", "!cool", or "news:_my/private/tag")
       </span>
     </ng-template>
     <ng-template #selector>
@@ -70,13 +70,13 @@ import { FormlyFieldConfig } from '@ngx-formly/core/lib/models';
         Must not start with a forward slash or period.<br>
         Must not or contain two forward slashes or periods in a row.<br>
         Use the local wildcard (*) to match all tags with a local origin.<br>
-        Tags may be qualified with an origin, or a wildcard origin (@*).<br>
-        Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.<br>
+        Tags may be qualified with an origin, or a wildcard origin (&#64;*).<br>
+        Origins must start with an at sign (&#64;) and contain only lowercase letters, numbers, and periods.<br>
         Use an origin without a tag to match all tags at that origin.<br>
-        The wildcard origin (@*) by itself will match everything.<br>
+        The wildcard origin (&#64;*) by itself will match everything.<br>
         Protected tags start with a plus sign.<br>
         Private tags start with an underscore.<br>
-        (i.e. "*", "science", "science@origin" "my/tag@", or "_my/private/tag")
+        (i.e. "*", "science", "science&#64;origin" "my/tag&#64;", or "_my/private/tag")
       </span>
     </ng-template>
     <ng-template #user>
@@ -93,7 +93,7 @@ import { FormlyFieldConfig } from '@ngx-formly/core/lib/models';
         Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
         tags start with an underscore.<br>
         Tags may be qualified with an origin.<br>
-        Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.<br>
+        Origins must start with an at sign (&#64;) and contain only lowercase letters, numbers, and periods.<br>
         (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")
       </span>
     </ng-template>
