@@ -604,6 +604,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
+  get defaultView() {
+    if (this.thread) return 'thread';
+    if (this.comment) return 'comments';
+    return undefined;
+  }
+
+  @memo
   get currentRef() {
     return this.repost ? this.repostRef : this.ref;
   }
