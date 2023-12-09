@@ -1,5 +1,5 @@
 <ng-container *mobxAutorun>
-  <div #tabs class="tabs">
+  <app-tabs>
     <a class="logo" routerLink="/"></a>
     <h5 class="fake-link" routerLink="." [queryParams]="{}">{{ store.view.name }}</h5>
     <ng-container *ngIf="store.view.extTemplate else multipleExt">
@@ -36,9 +36,7 @@
        [class.current-tab]="store.view.view === x.tag"
        [queryParams]="{view: x.tag}"
        queryParamsHandling="merge" i18n>{{ x.config?.view || x.name || x.tag }}</a>
-    <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
-    <app-settings></app-settings>
-  </div>
+  </app-tabs>
   <app-sidebar *ngIf="!loading"
                [floating]="floatingSidebar"
                [ext]="store.view.viewExt"

@@ -1,0 +1,9 @@
+<ng-content></ng-content>
+<div *ngIf="options.length > 1"
+     class="mobile-tab-select">
+  <select #select (input)="nav(select)">
+    <option i18n>🧭️</option>
+    <option *ngFor="let opt of options">{{ opt }}</option>
+  </select>
+</div>
+<app-settings></app-settings>

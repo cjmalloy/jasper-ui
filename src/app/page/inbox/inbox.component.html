@@ -1,5 +1,5 @@
 <ng-container *mobxAutorun>
-  <div #tabs class="tabs">
+  <app-tabs>
     <a class="logo" routerLink="/"></a>
     <h5 class="fake-link" routerLink="." i18n>Inbox</h5>
     <a routerLink="./all" routerLinkActive="current-tab"
@@ -30,9 +30,7 @@
          i18n-title title="Moderation List"
          i18n>modlist</a>
     </ng-container>
-    <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
-    <app-settings></app-settings>
-  </div>
+  </app-tabs>
   <app-sidebar *ngIf="store.view.type"></app-sidebar>
   <router-outlet></router-outlet>
 </ng-container>

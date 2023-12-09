@@ -1,5 +1,5 @@
 <ng-container *mobxAutorun>
-  <div #tabs class="tabs">
+  <app-tabs>
     <a class="logo" routerLink="/"></a>
     <h5 class="fake-link" routerLink=".">{{ title }}</h5>
     <a routerLink="/tags" [queryParams]="{ noTemplate: null, home: true }" [class.current-tab]="store.view.allTags && store.view.home" queryParamsHandling="merge" i18n>home</a>
@@ -15,9 +15,7 @@
        routerLinkActive="current-tab"
        queryParamsHandling="merge"
        i18n-title title="🧑️ User" i18n>🧑️</a>
-    <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
-    <app-settings></app-settings>
-  </div>
+  </app-tabs>
   <app-sidebar [tag]="store.view.template"></app-sidebar>
   <ng-container *ngIf="query.error?.status !== 403 else accessDenied">
     <app-ext-list [page]="query.page"></app-ext-list>
