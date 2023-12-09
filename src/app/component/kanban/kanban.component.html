@@ -5,7 +5,8 @@
        cdkDropListGroup
        cdkScrollable
        [class.single-column]="(columns.length || 0) + (showColumnBacklog ? 1 : 0) === 1"
-       [style.grid-template-columns]="(swimLanes ? 'auto ' : '') + (showColumnBacklog ? '1fr ' : '') + (columns.length ? 'repeat(' + columns.length + ', 1fr)' : '')">
+       [class.swimlanes]="swimLanes"
+       [style.--cols]="columns.length + (showColumnBacklog ? 1 : 0)">
     <div class="kanban-header"
          style="max-width: 90vw"
          cdkDropList

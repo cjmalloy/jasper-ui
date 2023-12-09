@@ -3,6 +3,11 @@
   overflow-x: auto;
   overflow-y: visible;
   max-width: 100vw;
+  --cols: 1;
+  grid-template-columns: repeat(var(--cols), minmax(200px, 1fr));
+  &.swimlanes {
+    grid-template-columns: auto repeat(var(--cols), minmax(200px, 1fr));
+  }
 
   &.full-page {
     padding-bottom: 120px;
