@@ -51,7 +51,6 @@ import { ListEditorComponent } from './component/list-editor/list-editor.compone
 import { LoadingComponent } from './component/loading/loading.component';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { MdComponent } from './component/md/md.component';
-import { MobileTabSelectComponent } from './component/mobile-tab-select/mobile-tab-select.component';
 import { NavComponent } from './component/nav/nav.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
 import { PlaylistComponent } from './component/playlist/playlist.component';
@@ -68,6 +67,7 @@ import { SettingsComponent } from './component/settings/settings.component';
 import { SidebarComponent } from './component/sidebar/sidebar.component';
 import { SortComponent } from './component/sort/sort.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
+import { TabsComponent } from './component/tabs/tabs.component';
 import { TemplateListComponent } from './component/template/template-list/template-list.component';
 import { TemplateComponent } from './component/template/template.component';
 import { TodoItemComponent } from './component/todo/item/item.component';
@@ -272,7 +272,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     FillWidthDirective,
     LimitWidthDirective,
     RefThreadComponent,
-    MobileTabSelectComponent,
     SelectTemplateComponent,
     FolderComponent,
     SubfolderComponent,
@@ -308,6 +307,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     InlinePasswordComponent,
     InlineSelectComponent,
     InlineButtonComponent,
+    TabsComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,5 +1,5 @@
 <ng-container *mobxAutorun>
-  <div #tabs class="tabs">
+  <app-tabs>
     <a class="logo" routerLink="/"></a>
     <h5></h5>
     <a routerLink="." [queryParams]="{origin: store.view.origin}" [class.current-tab]="store.view.summary"
@@ -42,10 +42,8 @@
            i18n-title title="Versions"
            i18n>versions</a>
       </ng-container>
-      <app-mobile-tab-select [tabs]="tabs"></app-mobile-tab-select>
     </ng-container>
-    <app-settings></app-settings>
-  </div>
+  </app-tabs>
   <app-sidebar></app-sidebar>
   <ng-container *ngIf="store.view.ref else loading">
     <app-ref class="full-page"

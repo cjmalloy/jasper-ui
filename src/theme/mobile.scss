@@ -9,7 +9,7 @@ $tablet-width: 767px;
 
 /* Tablet and Bigger Screens */
 @media (min-width: $mobile-width) {
-  app-mobile-tab-select {
+  .mobile-tab-select {
     display: none;
   }
 
@@ -108,7 +108,7 @@ $tablet-width: 767px;
     & > a:not(.current-tab):not(.logo) {
       display: none;
     }
-    app-mobile-tab-select {
+    .mobile-tab-select {
       display: block;
     }
   }

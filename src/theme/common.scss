@@ -616,13 +616,20 @@ video.qr-preview {
     overflow: hidden;
   }
 
-  select {
-    position: relative;
-    bottom: -1px;
-    outline: none !important;
-    cursor: pointer;
-    background-color: var(--unselected-tab);
-    border: 1px solid var(--border);
+  .mobile-tab-select {
+      margin: 0 4px;
+      select {
+        height: 27px;
+        line-height: 27px;
+        width: 39px;
+        text-align: center;
+        position: relative;
+        bottom: -1px;
+        outline: none !important;
+        cursor: pointer;
+        background-color: var(--unselected-tab);
+        border: 1px solid var(--border);
+      }
   }
 
   & > a:not(.logo) {
