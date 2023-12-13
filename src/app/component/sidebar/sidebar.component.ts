@@ -115,9 +115,9 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         this.localTag = localTag(this.tag);
         this.plugin = this.admin.getPlugin(this.tag);
         if (this.home) {
-          this.addTags = this.rootConfig?.addTags || [];
+          this.addTags = this.rootConfig?.addTags || ['public'];
         } else {
-          this.addTags = uniq([...this.rootConfig?.addTags || (this.plugin?.tag ? [this.plugin!.tag] : []), ...topAnds(this.tag).map(localTag)]);
+          this.addTags = uniq([...this.rootConfig?.addTags || (this.plugin?.tag ? [this.plugin!.tag, 'public'] : ['public']), ...topAnds(this.tag).map(localTag)]);
         }
         this.defaultThumbnail = this.rootConfig?.defaultThumbnail;
         this.mailPlugin = this.admin.getPlugin(getMailbox(this.tag, this.store.account.origin));
