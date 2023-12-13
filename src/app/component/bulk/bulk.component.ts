@@ -197,20 +197,6 @@ export class BulkComponent implements OnChanges, OnDestroy {
     return this.batch$(ref => this.ts.create(tag, ref.url, ref.origin!));
   }
 
-  approve() {
-    this.batch(ref => {
-      if (!hasTag('_moderated', ref)) {
-        return this.refs.patch(ref.url, ref.origin!, ref.modifiedString, [{
-          op: 'add',
-          path: '/tags/-',
-          value: '_moderated',
-        }]);
-      } else {
-        return of(null);
-      }
-    });
-  }
-
   doAction(a: Action) {
     this.batch(ref => this.acts.apply(a, ref));
   }
