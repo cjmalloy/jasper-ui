@@ -152,7 +152,6 @@ export class BulkComponent implements OnChanges, OnDestroy {
     }
   }
 
-  @memo
   get empty() {
     return !this.queryStore.page?.content?.length;
   }
