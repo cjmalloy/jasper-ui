@@ -1209,6 +1209,7 @@ formly-field-radio, formly-field-multicheckbox {
   padding-left: calc(var(--upload-border));
   &:before {
     position: absolute;
+    pointer-events: none;
     content: ' ';
     height: 100%;
     width: var(--upload-border);
