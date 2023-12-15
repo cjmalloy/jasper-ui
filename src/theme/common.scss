@@ -69,7 +69,7 @@ html, body {
 
 .pinned .link {
   :link, :visited, :active {
-    color: var(--mod);
+    color: var(--mod) !important;
   }
 }
 
