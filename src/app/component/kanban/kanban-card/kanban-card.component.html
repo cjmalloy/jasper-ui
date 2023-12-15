@@ -43,7 +43,7 @@
       <span i18n>Toggle Badges</span>
       <ng-container *ngIf="allBadgeExts$ | async as badgeExts; else allBadgesNoExts">
         <ng-container *ngFor="let e of badgeExts">
-          <div (click)=" toggleBadge(e.tag)">
+          <div (click)=" toggleBadge(e.tag)" (pointerup)="toggleBadge(e.tag)">
             <input [id]="e.tag"
                    type="checkbox"
                    [checked]="ref.tags?.includes(e.tag)">
@@ -54,7 +54,7 @@
       </ng-container>
       <ng-template #allBadgesNoExts>
         <ng-container *ngFor="let b of ext?.config?.badges || [],">
-          <div (click)=" toggleBadge(b)">
+          <div (click)=" toggleBadge(b)" (pointerup)="toggleBadge(b)">
             <input [id]="b"
                    type="checkbox"
                    [checked]="ref.tags?.includes(b)">
