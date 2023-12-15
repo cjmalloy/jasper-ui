@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { filter, find, pullAll } from 'lodash-es';
+import { filter, find, pullAll, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import * as moment from 'moment';
 import { Ext } from '../../model/ext';
@@ -112,14 +112,12 @@ export class FilterComponent implements OnChanges, OnDestroy {
               label: group,
               filters: [],
             });
-            this.exts.getCachedExts(k.columns, e.origin || '').subscribe(exts => {
-              if (k.showColumnBacklog) {
-                this.loadFilter({
-                  group,
-                  label: k.columnBacklogTitle || $localize`🚫️ no column`,
-                  query: exts.map(e => '!' + e.tag).join(':'),
-                });
-              }
+            const kanbanTags = uniq([
+              ...k.columns,
+              ...k.swimLanes || [],
+              ...k.badges || []
+            ]);
+            this.exts.getCachedExts(kanbanTags, e.origin || '').subscribe(exts => {
               for (const e of exts) {
                 this.loadFilter({
                   group,
@@ -127,38 +125,25 @@ export class FilterComponent implements OnChanges, OnDestroy {
                   query: e.tag,
                 });
               }
-              if (k.swimLanes) {
-                this.exts.getCachedExts(k.swimLanes, e.origin || '').subscribe(exts => {
-                  for (const e of exts) {
-                    this.loadFilter({
-                      group,
-                      label: e.name || e.tag,
-                      query: e.tag,
-                    });
-                  }
-                  if (k.showSwimLaneBacklog) {
-                    this.loadFilter({
-                      group,
-                      label: k.swimLaneBacklogTitle || $localize`🚫️ no swim lane`,
-                      query: exts.map(e => '!' + e.tag).join(':'),
-                    });
-                  }
+              if (k.columns?.length && k.showColumnBacklog) {
+                this.loadFilter({
+                  group,
+                  label: k.columnBacklogTitle || $localize`🚫️ no column`,
+                  query: (k.columns || []).map(t => '!' + t).join(':'),
+                });
+              }
+              if (k.swimLanes?.length && k.showSwimLaneBacklog) {
+                this.loadFilter({
+                  group,
+                  label: k.swimLaneBacklogTitle || $localize`🚫️ no swim lane`,
+                  query: k.swimLanes!.map(t => '!' + t).join(':'),
                 });
               }
               if (k.badges?.length) {
-                this.exts.getCachedExts(k.badges, e.origin || '').subscribe(exts => {
-                  for (const e of exts) {
-                    this.loadFilter({
-                      group: group,
-                      label: e.name || e.tag,
-                      query: e.tag,
-                    });
-                  }
-                  this.loadFilter({
-                    group: group,
-                    label: $localize`🚫️ no badges`,
-                    query: exts.map(e => '!' + e.tag).join(':'),
-                  });
+                this.loadFilter({
+                  group: group,
+                  label: $localize`🚫️ no badges`,
+                  query: k.badges.map(t => '!' + t).join(':'),
                 });
               }
             });
