@@ -52,6 +52,10 @@
              [expandInline]="!config.mobile"
              [expanded]="expandedOnload && store.local.isRefToggled(store.view.url, store.view.origin, !!store.view.ref.comment)"
              (copied)="reload()"></app-ref>
+    <div *ngIf="newResponses"
+         class="warning" i18n>
+      {{ newResponses }} new response(s)
+    </div>
     <div *ngIf="refWarning"
          class="warning" i18n>
       * Published date was changed to be after source published date.

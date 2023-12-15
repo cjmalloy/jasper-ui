@@ -48,4 +48,10 @@ export class StompService extends RxStomp {
       map(m => m.body as string),
     );
   }
+
+  watchResponse(url: string): Observable<string> {
+    return this.watch('/topic/response/' + encodeURIComponent(url), this.headers).pipe(
+      map(m => m.body as string),
+    );
+  }
 }

@@ -2,10 +2,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { isWiki } from '../../mods/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { StompService } from '../../service/api/stomp.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { printError } from '../../util/http';
@@ -19,8 +21,11 @@ import { hasTag } from '../../util/tag';
 })
 export class RefPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
+  private destroy$ = new Subject<void>();
 
   expandedOnload = false;
+  newResponses = 0;
+  private watch?: Subscription;
 
   constructor(
     public config: ConfigService,
@@ -28,12 +33,36 @@ export class RefPage implements OnInit, OnDestroy {
     public store: Store,
     private refs: RefService,
     private router: Router,
+    private stomp: StompService,
   ) {
     store.view.clear();
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
       this.expandedOnload = store.view.ref && (!hasTag('plugin/fullscreen', store.view.ref) || store.view.ref?.plugins?.['plugin/fullscreen']?.onload);
+      if (store.view.ref && this.config.websockets) {
+        this.watch?.unsubscribe();
+        this.watch = this.stomp.watchResponse(store.view.ref.url).pipe(
+          takeUntil(this.destroy$),
+        ).subscribe(url => {
+          this.newResponses++;
+        });
+      }
     }));
+  }
+
+  ngOnInit(): void {
+    this.disposers.push(autorun(() => {
+      const url = this.store.view.url;
+      if (!url) return;
+      this.reload(url);
+    }));
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   @memo
@@ -67,14 +96,6 @@ export class RefPage implements OnInit, OnDestroy {
     return this.store.view.ref?.alternateUrls?.length || 0;
   }
 
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
-      const url = this.store.view.url;
-      if (!url) return;
-      this.reload(url);
-    }));
-  }
-
   reload(url?: string) {
     url ||= this.store.view.ref?.url;
     if (!url) return;
@@ -85,11 +106,6 @@ export class RefPage implements OnInit, OnDestroy {
       })),
     ).subscribe();
 
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @memo
