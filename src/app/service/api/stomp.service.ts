@@ -44,8 +44,7 @@ export class StompService extends RxStomp {
   }
 
   watchTag(tag: string): Observable<string> {
-    // TODO: workaround +_ in destination
-    return this.watch('/topic/tag/' + tag.replace('_', '>').replace('+', '<'), this.headers).pipe(
+    return this.watch('/topic/tag/' + encodeURIComponent(tag), this.headers).pipe(
       map(m => m.body as string),
     );
   }
