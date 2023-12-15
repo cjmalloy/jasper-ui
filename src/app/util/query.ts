@@ -1,7 +1,7 @@
 import { filter, uniq, without } from 'lodash-es';
 import { Filter, RefPageArgs, RefQueryArgs, RefSort } from '../model/ref';
 import { TagQueryArgs } from '../model/tag';
-import { braces, fixClientQuery, hasPrefix } from './tag';
+import { braces, fixClientQuery, hasPrefix, topAnds } from './tag';
 
 export const defaultDesc = ['created', 'published', 'modified', 'metadataModified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
 
@@ -19,12 +19,13 @@ export type UrlFilter = Filter |
   `plugin/${string}` |
   `!plugin/${string}`;
 
-export function toggle(f: UrlFilter): UrlFilter {
-  if (!f.startsWith('query/')) return f;
-  if (f.startsWith('query/!')) {
-    return 'query/' + f.substring('query/!'.length) as UrlFilter;
+export function toggle(filter: UrlFilter): UrlFilter {
+  if (!filter.startsWith('query/')) return filter;
+  const query = filter.substring('query/'.length);
+  if (query.startsWith('!(')) {
+    return 'query/' + query.substring(2, query.length - 1) as UrlFilter;
   } else {
-    return 'query/!' + f.substring('query/'.length) as UrlFilter;
+    return 'query/!(' + query + ')' as UrlFilter;
   }
 }
 
@@ -66,9 +67,33 @@ export function getArgs(
   };
 }
 
-export function getFilters(filters: UrlFilter[]){
-  return filter(filters, f => f.startsWith('query/'))
-    .map(f => f.substring('query/'.length));
+export function getFilters(filters: UrlFilter[]) {
+  return (filters || [])
+    .filter(f => f.startsWith('query/'))
+    .map(f => getFilter(f as `query/${string}`));
+}
+
+export function getFilter(filter: `query/${string}`) {
+  const query = filter.substring('query/'.length);
+  if (!query.startsWith('!(')) return query;
+  return negate(query.substring(2, query.length - 1));
+}
+
+export function negate(query: string): string {
+  if (query.includes('(') || query.includes(':') && query.includes('|')) {
+    // TODO: Parse query to negate
+    console.error('Query parsing not implemented. Bailing on negate.');
+    return query;
+  }
+  if (query.includes(':')) {
+    return braces(query.split(':').map(negate).join('|'));
+  }
+  if (query.includes('|')) {
+    return query.split('|').map(negate).join(':');
+  }
+  // Single tag
+  if (query.startsWith('!')) return query.substring(1);
+  return '!' + query;
 }
 
 export function getFiltersQuery(filters: UrlFilter[]){
@@ -142,7 +167,7 @@ export function getTagQueryFilter(query: string, filter?: UrlFilter[]): string {
   for (const f of filter) {
     if (f.startsWith('query/')) {
       if (result) result += ':';
-      result += braces(f.substring('query/'.length));
+      result += braces(getFilter(f as `query/${string}`));
     }
   }
   return result;

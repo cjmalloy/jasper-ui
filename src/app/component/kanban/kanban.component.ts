@@ -1,6 +1,6 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { uniq } from 'lodash-es';
+import { uniq, without } from 'lodash-es';
 import { catchError, of, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { Ref, RefSort } from '../../model/ref';
@@ -85,7 +85,8 @@ export class KanbanComponent implements OnChanges, OnDestroy {
   get columns(): string[] {
     if (this.filteredColumnBacklog) return [];
     if (this.filteredColumn) return [this.filteredColumn];
-    return this.kanbanConfig.columns || [this.ext!.tag];
+    if (!this.kanbanConfig.columns) return [this.ext!.tag];
+    return without(this.kanbanConfig.columns, ...this.negateFilters);
   }
 
   get swimLanes(): string[] | undefined {
@@ -94,7 +95,7 @@ export class KanbanComponent implements OnChanges, OnDestroy {
     if (!this.kanbanConfig.swimLanes.length) return undefined;
     if (this.filteredSwimLaneBacklog) return [];
     if (this.filteredSwimLane) return [this.filteredSwimLane];
-    return this.kanbanConfig.swimLanes;
+    return without(this.kanbanConfig.swimLanes, ...this.negateFilters);
   }
 
   get andColBacklog() {
@@ -131,6 +132,12 @@ export class KanbanComponent implements OnChanges, OnDestroy {
     ]);
   }
 
+  get negateFilters(): string[] {
+    return this.filter
+      .filter(f => f.startsWith('query/!('))
+      .map(f => f.substring('query/!('.length, f.length - 1));
+  }
+
   get filteredColumn() {
     const cols = this.kanbanConfig.columns || [this.ext?.tag];
     for (const tag of this.queryTags) {
@@ -164,12 +171,14 @@ export class KanbanComponent implements OnChanges, OnDestroy {
   }
 
   get showColumnBacklog() {
+    if (this.negateFilters.includes(this.colBacklog)) return false;
     if (this.filteredColumnBacklog) return true;
     if (this.filteredColumn) return false;
     return this.kanbanConfig.showColumnBacklog;
   }
 
   get showSwimLaneBacklog() {
+    if (this.negateFilters.includes(this.slBacklog)) return false;
     if (this.filteredSwimLaneBacklog) return true;
     if (this.filteredSwimLane) return false;
     return this.kanbanConfig.showSwimLaneBacklog;

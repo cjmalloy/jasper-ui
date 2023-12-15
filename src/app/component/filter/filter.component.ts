@@ -221,7 +221,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
           const target = g.filters.find(i => i.filter === toggle(f));
           if (target) {
             target.filter = f;
-            if (f.startsWith('query/!')) {
+            if (f.startsWith('query/!(')) {
               target.label = this.store.account.querySymbol('!') + target.label;
             } else {
               target.label = target.label.substring(this.store.account.querySymbol('!').length);
@@ -229,6 +229,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
           }
         });
       } else {
+        // TODO: On page load Kanaban Exts are not loaded in time to find proper negate query filter
         this.loadFilter({ group: $localize`Queries 🔎️️`, query: f.substring('query/'.length)});
       }
     }
