@@ -52,7 +52,7 @@ export class ChatComponent implements OnDestroy {
     private store: Store,
     private refs: RefService,
     private editor: EditorService,
-    private stomps: StompService,
+    private stomp: StompService,
   ) { }
 
   @Input()
@@ -82,7 +82,7 @@ export class ChatComponent implements OnDestroy {
     this.loadPrev(true);
     if (this.config.websockets) {
       this.watch?.unsubscribe();
-      this.watch = this.stomps.watchTag(this.query).pipe(
+      this.watch = this.stomp.watchTag(this.query).pipe(
         takeUntil(this.destroy$),
       ).subscribe(() =>  this.refresh());
     }

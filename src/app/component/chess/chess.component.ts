@@ -79,7 +79,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     private auth: AuthzService,
     private refs: RefService,
     private store: Store,
-    private stomps: StompService,
+    private stomp: StompService,
     private el: ElementRef<HTMLDivElement>,
   ) {
     this.disposers.push(autorun(() => {
@@ -97,7 +97,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit(): void {
     if (!this.watches.length && this.ref && this.config.websockets) {
       this.refs.page({ url: this.ref.url, obsolete: true, size: 500, sort: ['modified,DESC']}).subscribe(page => {
-        this.stomps.watchRef(this.ref!.url, uniq(page.content.map(r => r.origin))).forEach(w => this.watches.push(w.pipe(
+        this.stomp.watchRef(this.ref!.url, uniq(page.content.map(r => r.origin))).forEach(w => this.watches.push(w.pipe(
           takeUntil(this.destroy$),
         ).subscribe(u => {
           if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
