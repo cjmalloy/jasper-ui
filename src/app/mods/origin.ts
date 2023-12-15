@@ -31,7 +31,8 @@ export const originPlugin: Plugin = {
       props: {
         label: $localize`Remote:`
       }
-    }, {
+    }],
+    advancedForm: [{
       key: 'proxy',
       id: 'proxy',
       type: 'url',
@@ -215,22 +216,11 @@ export const originTunnelPlugin: Plugin = {
     submitChild: $localize`🕳️️️ tunnel`,
     icons: [{ label: $localize`🕳️️️` }],
     description: $localize`Create an SSH tunnel`,
-    // language=Handlebars
-    ui: `
-      <div class="bubble form">
-        <span class="nowrap">User Tag:</span>
-        <div>{{ user }}</div>
-
-        <span class="nowrap">SSH Host:</span>
-        <div>{{ sshHost }}</div>
-      </div>
-    `,
-    form: [{
-      key: 'user',
-      type: 'input',
+    advancedForm: [{
+      key: 'remoteUser',
+      type: 'quser',
       props: {
-        label: $localize`User Tag:`,
-        required: true,
+        label: $localize`Remote User:`,
       },
     }, {
       key: 'sshHost',
@@ -238,14 +228,20 @@ export const originTunnelPlugin: Plugin = {
       props: {
         label: $localize`SSH Host:`,
       },
+    }, {
+      key: 'sshPort',
+      type: 'number',
+      props: {
+        label: $localize`SSH Port:`,
+        min: 22,
+      },
     }],
   },
   schema: {
-    properties: {
-      user: { type: 'string' },
-    },
     optionalProperties: {
+      remoteUser: { type: 'string' },
       sshHost: { type: 'string' },
+      sshPort: { type: 'uint8' },
     },
   },
 };
