@@ -1,11 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { intersection, map, merge, uniq } from 'lodash-es';
+import { intersection, map, merge, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
+import { Plugin } from '../../model/plugin';
+import { Ref } from '../../model/ref';
 import { Action, sortOrder } from '../../model/tag';
+import { Template } from '../../model/template';
+import { User } from '../../model/user';
 import { configDeleteNotice, deleteNotice, tagDeleteNotice } from '../../mods/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
@@ -96,11 +100,11 @@ export class BulkComponent implements OnChanges, OnDestroy {
     return uniq(this.query.page!.content.map(ref => ref.url));
   }
 
-  batch$(fn: (e: any) => Observable<any> | void) {
+  batch$<T>(fn: (e: T) => Observable<any> | void) {
     if (this.batchRunning) return of(null);
     this.serverError = [];
     this.batchRunning = true;
-    return concat(...this.queryStore.page!.content.map(c => (fn(c) || of(null)).pipe(
+    return concat(...this.queryStore.page!.content.map(c => (fn(c as T) || of(null)).pipe(
       catchError(err => {
         if (err instanceof HttpErrorResponse) {
           this.serverError.push(...printError(err));
@@ -181,9 +185,9 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   thumbnail$ = (url: string) => {
-    return this.batch$(ref => {
+    return this.batch$<Ref>(ref => {
       if (ref.plugins?.['plugin/thumbnail']?.url === url) return of(null);
-      return this.refs.merge(ref.url, ref.origin!, ref.modifiedString, {
+      return this.refs.merge(ref.url, ref.origin!, ref.modifiedString!, {
         tags: uniq([...(ref.tags || []), 'plugin/thumbnail']),
         plugins: {
           'plugin/thumbnail': {url}
@@ -193,7 +197,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   tag$ = (tag: string) => {
-    return this.batch$(ref => this.ts.create(tag, ref.url, ref.origin!));
+    return this.batch$<Ref>(ref => this.ts.create(tag, ref.url, ref.origin!));
   }
 
   doAction(a: Action) {
@@ -210,27 +214,27 @@ export class BulkComponent implements OnChanges, OnDestroy {
 
   delete$ = () => {
     if (this.type === 'ref') {
-      return this.batch$(ref => ref.origin === this.store.account.origin && !hasTag('plugin/delete', ref) && this.admin.getPlugin('plugin/delete')
+      return this.batch$<Ref>(ref => ref.origin === this.store.account.origin && !hasTag('plugin/delete', ref) && this.admin.getPlugin('plugin/delete')
         ? this.refs.update(deleteNotice(ref))
         : this.refs.delete(ref.url, ref.origin)
       );
     } else if (this.type === 'ext' || this.type === 'user') {
       // TODO: how to delete already deleted
-      return this.batch$(tag => tag.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
+      return this.batch$<Ext | User>(tag => tag.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
         ? this.tagService.update(tagDeleteNotice(tag))
         : this.tagService.delete(tag.tag + tag.origin))
     } else {
       // TODO: how to delete already deleted
-      return this.batch$(tag => tag.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
+      return this.batch$<Plugin | Template>(tag => tag.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
         ? this.tagService.update(configDeleteNotice(tag))
         : this.tagService.delete(tag.tag + tag.origin))
     }
   }
 
   scrape$ = () => {
-    return this.batch$(ref => {
+    return this.batch$<Ref>(ref => {
       if (hasTag('+plugin/feed', ref)) {
-        return this.scraper.feed(ref.url, ref.origin());
+        return this.scraper.feed(ref.url, ref.origin);
       } else {
         return this.scraper.webScrape(ref.url).pipe(switchMap(scraped => {
           if (ref.title && scraped.title?.includes(ref.title)) {
@@ -246,6 +250,23 @@ export class BulkComponent implements OnChanges, OnDestroy {
           return this.refs.update(scraped);
         }));
       }
+    });
+  }
+
+  copy$ = () => {
+    return this.batch$<Ref>(ref => {
+      if (ref.origin === this.store.account.origin) return of(null);
+      const tags = uniq([
+        ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+        ...(ref.tags || []).filter(t => this.auth.canAddTag(t))
+      ]);
+      const copied: Ref = {
+        ...ref,
+        origin: this.store.account.origin,
+        tags,
+      };
+      copied.plugins = pick(copied.plugins, tags || []);
+      return this.refs.create(copied, true);
     });
   }
 }

@@ -9,6 +9,7 @@
       <app-inline-tag [action]="tag$" i18n>tag</app-inline-tag>
       <app-inline-url [action]="thumbnail$" [value]="defaultThumbnail" i18n>thumbnail</app-inline-url>
       <app-confirm-action [action]="scrape$" i18n>scrape</app-confirm-action>
+      <app-confirm-action [action]="copy$" i18n>copy</app-confirm-action>
     </ng-container>
     <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
     <ng-container *ngIf="type === 'ref'">
