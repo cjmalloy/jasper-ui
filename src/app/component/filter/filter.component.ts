@@ -187,6 +187,16 @@ export class FilterComponent implements OnChanges, OnDestroy {
         .filter(x => x.config);
   }
 
+  /**
+   * Update list of available filters to match current filter set so that the
+   * select dropdown values match and it remains selected.
+   *
+   * For date-time filters, update the date-time to match the current query.
+   *
+   * For query filters, update the current toggled (negation) status.
+   *
+   * If a filter can't be matched, just add it to the allFilters list.
+   */
   sync() {
     const setToggles: UrlFilter[] = [];
     for (const f of this.filters) {
@@ -213,6 +223,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
         if (f.startsWith('plugin/')) this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
       }
     }
+    // Search all filters for the toggled (negated) version and sync it
     for (const f of setToggles) {
       const set = this.allFilters.filter(g => g.filters.find(i => i.filter === toggle(f)));
       if (set.length) {
