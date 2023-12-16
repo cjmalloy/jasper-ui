@@ -21,9 +21,9 @@ export class GraphService {
     return this.config.api + '/api/v1/graph';
   }
 
-  list(urls: string[], origin = ''): Observable<(RefNode | null)[]> {
+  list(urls: string[]): Observable<(RefNode | null)[]> {
     return this.http.get(`${this.base}/list`, {
-      params: params({ urls, origin }),
+      params: params({ urls }),
     }).pipe(
       map(res => res as any[]),
       map(res => res.map(mapRefOrNull)),
