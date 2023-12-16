@@ -16,12 +16,20 @@ export interface Ref extends Cursor {
   created?: moment.Moment;
 }
 
+/**
+ * Sent in response to websocket subscription.
+ *
+ * Only includes non-private tags and plugins, and does not
+ * include metadata.
+ */
 export interface RefUpdates extends Cursor {
   url: string;
+  tags?: string[];
   title?: string;
   comment?: string;
   sources?: string[];
   alternateUrls?: string[];
+  plugins?: Record<string, any>;
   published?: moment.Moment;
   created?: moment.Moment;
 }
