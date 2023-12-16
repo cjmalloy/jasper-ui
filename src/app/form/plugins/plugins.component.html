@@ -2,7 +2,7 @@
     <span *ngFor="let icon of icons"
           class="icon"
           [appTitle]="icon"
-          [ref]="group.value">{{ icon.label }}</span>
+          [ref]="group.value">{{ icon.label || icon.thumbnail }}</span>
 </div>
 <ng-container *ngFor="let plugin of forms">
   <app-form-gen #gen
