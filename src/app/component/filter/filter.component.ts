@@ -73,10 +73,10 @@ export class FilterComponent implements OnChanges, OnDestroy {
     if (changes.activeExts || changes.type) {
       if (this.type === 'ref') {
         this.allFilters = [];
-        for (const ext of this.store.view.exts) {
+        for (const ext of this.activeExts) {
           for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
             this.loadFilter({
-              group: ext.name || ext.tag,
+              group: ext.name || this.admin.getPlugin(ext.tag)?.name || this.admin.getTemplate(ext.tag)?.name || ext.tag,
               ...f,
             });
           }
@@ -170,19 +170,19 @@ export class FilterComponent implements OnChanges, OnDestroy {
 
   get rootConfigs() {
     if (!this.admin.getTemplate('')) return [];
-    return this.store.view.exts.map(x => x.config).filter(c => !!c) as RootConfig[];
+    return this.activeExts.map(x => x.config).filter(c => !!c) as RootConfig[];
   }
 
   get userConfigs() {
     if (!this.admin.getTemplate('user')) return [];
-    return this.store.view.exts
+    return this.activeExts
         .filter(x => hasPrefix(x.tag, 'user'))
         .map(x => x.config).filter(c => !!c) as UserConfig[];
   }
 
   get kanbanExts() {
     if (!this.admin.getTemplate('kanban')) return [];
-    return this.store.view.exts
+    return this.activeExts
         .filter(x => hasPrefix(x.tag, 'kanban'))
         .filter(x => x.config);
   }

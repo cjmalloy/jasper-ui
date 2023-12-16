@@ -20,6 +20,7 @@ export class HomePage implements OnInit, OnDestroy {
 
   floatingSidebar = true;
   homeExt?: Ext;
+  activeExts: Ext[] = [];
 
   constructor(
     private theme: ThemeService,
@@ -33,7 +34,10 @@ export class HomePage implements OnInit, OnDestroy {
     store.view.clear(!!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay' : 'published');
     query.clear();
     if (admin.getTemplate('home')) {
-      exts.getCachedExt('home').subscribe(x => this.homeExt = x);
+      exts.getCachedExt('home').subscribe(x => {
+        this.homeExt = x;
+        this.activeExts = [x, ...this.store.view.activeExts];
+      });
     }
   }
 
@@ -66,6 +70,13 @@ export class HomePage implements OnInit, OnDestroy {
     }));
     this.disposers.push(autorun(() => {
       this.floatingSidebar = !this.store.view.hasTemplate || this.store.view.isTemplate('map') || this.store.view.isTemplate('graph');
+    }));
+    this.disposers.push(autorun(() => {
+      if (this.homeExt) {
+        this.activeExts = [this.homeExt, ...this.store.view.activeExts];
+      } else {
+        this.activeExts = this.store.view.activeExts;
+      }
     }));
   }
 

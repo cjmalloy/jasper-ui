@@ -40,7 +40,8 @@
   <app-sidebar *ngIf="!loading"
                [floating]="floatingSidebar"
                [ext]="store.view.viewExt"
-               [tag]="store.view.tag"></app-sidebar>
+               [tag]="store.view.tag"
+               [activeExts]="store.view.activeExts"></app-sidebar>
   <ng-container *ngIf="query.error?.status !== 403 else accessDenied">
     <app-lens *ngIf="!loading"
               [page]="query.page"

@@ -36,6 +36,8 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   ext?: Ext;
   @Input()
+  activeExts: Ext[] = [];
+  @Input()
   showToggle = true;
   @Input()
   home = false;

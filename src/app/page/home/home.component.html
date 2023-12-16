@@ -39,7 +39,8 @@
   </app-tabs>
   <app-sidebar [home]="true"
                [floating]="floatingSidebar"
-               [ext]="homeExt"></app-sidebar>
+               [ext]="homeExt"
+               [activeExts]="activeExts"></app-sidebar>
   <ng-container *ngIf="query.error?.status !== 403 else accessDenied">
     <app-lens [page]="query.page"
               [showVotes]="store.view.isVoteSorted"
