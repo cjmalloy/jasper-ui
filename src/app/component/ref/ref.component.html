@@ -173,11 +173,7 @@
                  class="fake-link"
                  (click)="editing = !editing" i18n>edit</a>
               <ng-template #source>
-                <a *ngIf="!local"
-                   class="fake-link"
-                   (click)="editing = !editing" i18n>diff</a>
-                <a *ngIf="local"
-                   class="fake-link"
+                <a class="fake-link"
                    (click)="viewSource = !viewSource" i18n>source</a>
               </ng-template>
             </ng-container>
