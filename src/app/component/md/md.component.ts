@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
