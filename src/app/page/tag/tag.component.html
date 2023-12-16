@@ -31,7 +31,7 @@
          [queryParams]="{view: null}"
          queryParamsHandling="merge" i18n>list</a>
     </ng-template>
-    <a *ngFor="let x of store.view.globalTemplates"
+    <a *ngFor="let x of store.view.globalExts"
        routerLink="./"
        [class.current-tab]="store.view.view === x.tag"
        [queryParams]="{view: x.tag}"

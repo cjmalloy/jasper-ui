@@ -128,7 +128,7 @@ export class ViewStore {
   get globalExts(): Ext[] {
     return uniq(this.globalTemplates
         .flatMap(t => {
-          if (this.exts.find(x => x.modifiedString && hasPrefix(x.tag, t.tag))) {
+          if (this.exts.find(x => hasPrefix(x.tag, t.tag))) {
             // Already an active ext so ignore global
             return [];
           }
