@@ -162,9 +162,7 @@
             <a *ngIf="!parentComment && !parentThreadTop && sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
             <a *ngIf="!parentComment && !parentThreadTop && sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: obsoleteOrigin }" i18n>{{ sources }}&thinsp;sources</a>
             <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
-            <ng-container *ngIf="store.account.user && !local">
-              <span class="fake-link" (click)="copy()" i18n>copy</span>
-            </ng-container>
+            <app-inline-button #action *ngIf="store.account.user && !local" [action]="copy$" i18n>copy</app-inline-button>
             <ng-container *ngIf="store.account.user && local">
               <a routerLink="/submit/web" [queryParams]="{ url, tag: 'plugin/repost' }" i18n>repost</a>
             </ng-container>
@@ -184,7 +182,7 @@
               <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: obsoleteOrigin }" i18n>permalink</a>
             </ng-container>
             <ng-container *ngIf="store.account.user">
-              <span class="fake-link" (click)="upload()" i18n>upload</span>
+              <app-inline-button #action [action]="upload$" i18n>upload</app-inline-button>
               <a *ngIf="store.account.user && !dm" routerLink="/submit/text" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags}" i18n>reply</a>
               <a *ngIf="store.account.user && dm" routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
               <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>

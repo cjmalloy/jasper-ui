@@ -865,7 +865,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     }
   }
 
-  copy() {
+  copy$ = () => {
     const tags = uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
       ...(this.ref.tags || []).filter(t => this.auth.canAddTag(t))
@@ -876,7 +876,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       tags,
     };
     copied.plugins = pick(copied.plugins, tags || []);
-    this.refs.create(copied, true).pipe(
+    return this.refs.create(copied, true).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
           return this.refs.get(this.ref.url, this.store.account.origin).pipe(
@@ -894,20 +894,21 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
         return throwError(() => err);
       }),
       switchMap(() => this.refs.get(this.ref.url, this.store.account.origin)),
-    ).subscribe(ref => {
-      this.ref = ref;
-      this.init();
-    });
+      tap(ref => {
+        this.ref = ref;
+        this.init();
+      })
+    );
   }
 
-  upload() {
+  upload$ = () => {
     const ref: Ref = {
       ...this.ref,
       origin: this.store.account.origin,
       tags: this.ref.tags?.filter(t => this.auth.canAddTag(t)),
     };
     ref.plugins = pick(ref.plugins, ref.tags || []);
-    this.store.eventBus.runAndReload(
+    return this.store.eventBus.runAndReload$(
       (this.store.submit.overwrite
         ? this.refs.update(ref, true)
         : this.refs.create(ref, true).pipe(
