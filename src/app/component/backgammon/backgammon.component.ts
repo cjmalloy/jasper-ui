@@ -123,6 +123,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   ngOnInit(): void {
+    this.resizeObserver?.observe(this.el.nativeElement.parentElement!);
+    this.onResize();
+  }
+
+  init() {
     if (!this.watches.length && this.ref && this.config.websockets) {
       this.refs.page({ url: this.ref.url, obsolete: true, size: MAX_PLAYERS, sort: ['modified,DESC']}).subscribe(page => {
         this.stomp.watchRef(this.ref!.url, uniq(page.content.map(r => r.origin))).forEach(w => this.watches.push(w.pipe(
@@ -191,7 +196,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         })));
       });
     }
-    this.resizeObserver?.observe(this.el.nativeElement.parentElement!);
     if (this.local) {
       this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
       this.cursor = this.ref?.modifiedString;
@@ -209,7 +213,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         this.writeAccess = this.auth.writeAccess(ref);
       });
     }
-    this.onResize();
     this.reset(this.ref?.comment);
   }
 
@@ -223,7 +226,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       if (!this.ref || newRef) {
         this.watches.forEach(w => w.unsubscribe());
         this.watches = [];
-        if (this.ref) this.ngOnInit();
+        if (this.ref) this.init();
       }
     }
   }
