@@ -52,6 +52,7 @@ import { LoadingComponent } from './component/loading/loading.component';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { MdComponent } from './component/md/md.component';
 import { NavComponent } from './component/nav/nav.component';
+import { NotificationsPopupComponent } from './component/notifications-popup/notifications-popup.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
 import { PlaylistComponent } from './component/playlist/playlist.component';
 import { PluginListComponent } from './component/plugin/plugin-list/plugin-list.component';
@@ -308,6 +309,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     InlineSelectComponent,
     InlineButtonComponent,
     TabsComponent,
+    NotificationsPopupComponent,
   ],
   imports: [
     BrowserModule,

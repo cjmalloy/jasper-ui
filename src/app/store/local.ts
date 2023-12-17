@@ -38,4 +38,12 @@ export class LocalStore {
   get showPreview() {
     return localStorage.getItem('showPreview') !== 'false';
   }
+
+  set disableNotifications(value: boolean) {
+    localStorage.setItem('disableNotifications', ''+value);
+  }
+
+  get disableNotifications() {
+    return localStorage.getItem('disableNotifications') === 'true';
+  }
 }

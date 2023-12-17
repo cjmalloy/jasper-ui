@@ -1,0 +1,4 @@
+<ng-container *ngIf="notifications?.state === 'prompt'">
+  <div class="fake-link no-select" (click)="prompt()" i18n>Allow notifications.</div>
+  <button type="button" (click)="clear()" i18n>clear</button>
+</ng-container>

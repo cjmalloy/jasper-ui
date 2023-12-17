@@ -15,6 +15,7 @@ body {
   --error: #da0000;
   --error-bg: #ffa9a9;
   --warning: #c1c500;
+  --warning-bg: #fcffab;
   --mod: #136500;
   --card: #f3ebc7;
   --placeholder: #efebdf;
@@ -101,6 +102,10 @@ hr {
 
 .login-popup {
   background-color: var(--error-bg);
+}
+
+.notifications-popup {
+  background-color: var(--warning-bg);
 }
 
 .resize-handle {
@@ -1478,7 +1483,7 @@ footer {
   text-align: center;
 }
 
-.login-popup {
+.login-popup, .notifications-popup {
   position: fixed;
   width: 100vw;
   z-index: 2;

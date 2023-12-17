@@ -226,7 +226,12 @@ export class AccountService {
         query: this.store.account.notificationsQuery,
         modifiedAfter: this.store.account.config.lastNotified || moment().subtract(1, 'year'),
       })),
-    ).subscribe(count => runInAction(() => this.store.account.notifications = count));
+    ).subscribe(count => {
+      navigator.setAppBadge && navigator.setAppBadge(count);
+      // @ts-ignore
+      navigator.setClientBadge && navigator.setClientBadge(count);
+      runInAction(() => this.store.account.notifications = count);
+    });
   }
 
   clearNotifications(readDate: moment.Moment) {
