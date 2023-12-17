@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, HostBinding } from '@angular/core';
+import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 
 @Component({
@@ -12,11 +13,16 @@ export class NotificationsPopupComponent implements AfterViewInit {
   notifications?: PermissionStatus;
 
   constructor(
-    public store: Store,
+    private store: Store,
+    private admin: AdminService,
   ) { }
 
   ngAfterViewInit() {
-    if (!this.store.local.disableNotifications) this.check();
+    if (this.admin.getTemplate('user') &&
+      this.store.account.userTag &&
+      !this.store.local.disableNotifications) {
+      this.check();
+    }
   }
 
   check() {

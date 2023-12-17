@@ -13,6 +13,7 @@ describe('NotificationsPopupComponent', () => {
       declarations: [NotificationsPopupComponent],
       imports: [
         RouterTestingModule,
+        HttpClientTestingModule,
       ],
     })
     .compileComponents();
