@@ -2,7 +2,7 @@
   <app-tabs>
     <a class="logo" routerLink="/"></a>
     <h5 class="fake-link" routerLink="." [queryParams]="{}">{{ store.view.name }}</h5>
-    <ng-container *ngIf="store.view.extTemplate else multipleExt">
+    @if (store.view.extTemplate) {
       <a routerLink="./"
          [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
@@ -11,26 +11,22 @@
          [class.current-tab]="store.view.list"
          [queryParams]="{view: 'list'}"
          queryParamsHandling="merge" i18n>list</a>
-    </ng-container>
-    <ng-template #multipleExt>
-      <ng-container *ngIf="store.view.activeExts.length else noExt">
-        <a *ngFor="let x of store.view.activeExts; let i = index"
-           routerLink="./"
-           [class.current-tab]="store.view.viewTag === x.tag"
-           [queryParams]="{view: i === 0 ? null : x.tag}"
-           queryParamsHandling="merge" i18n>{{ x.name || x.tag }}</a>
-        <a routerLink="./"
-           [class.current-tab]="store.view.list"
-           [queryParams]="{view: 'list'}"
-           queryParamsHandling="merge" i18n>list</a>
-      </ng-container>
-    </ng-template>
-    <ng-template #noExt>
+    } @else if (store.view.activeExts.length) {
+      <a *ngFor="let x of store.view.activeExts; let i = index"
+         routerLink="./"
+         [class.current-tab]="store.view.viewTag === x.tag"
+         [queryParams]="{view: i === 0 ? null : x.tag}"
+         queryParamsHandling="merge" i18n>{{ x.name || x.tag }}</a>
+      <a routerLink="./"
+         [class.current-tab]="store.view.list"
+         [queryParams]="{view: 'list'}"
+         queryParamsHandling="merge" i18n>list</a>
+    } @else {
       <a routerLink="./"
          [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
          queryParamsHandling="merge" i18n>list</a>
-    </ng-template>
+    }
     <a *ngFor="let x of store.view.globalExts"
        routerLink="./"
        [class.current-tab]="store.view.view === x.tag"
