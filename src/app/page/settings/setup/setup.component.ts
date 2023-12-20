@@ -175,11 +175,11 @@ export class SettingsSetupPage implements OnInit {
   updateAll() {
     const updates = [];
     for (const plugin in this.admin.status.plugins) {
-      const status = this.admin.status.plugins[plugin]!;
+      const status = this.admin.status.plugins[plugin];
       if (this.needsUpdate(status)) updates.push(this.updateMod$(modId(status)));
     }
     for (const template in this.admin.status.templates) {
-      const status = this.admin.status.templates[template]!;
+      const status = this.admin.status.templates[template];
       if (this.needsUpdate(status)) updates.push(this.updateMod$(modId(status)));
     }
     concat(...updates).pipe(
@@ -206,16 +206,16 @@ export class SettingsSetupPage implements OnInit {
 
   updatePlugin$(key: string) {
     const def = this.admin.def.plugins[key];
-    const status = this.admin.status.plugins[key]!;
+    const status = this.admin.status.plugins[key];
     this.installMessages.push('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} plugin...`);
     return this.plugins.update({
       ...def,
       defaults: {
         ...def.defaults || {},
-        ...status.defaults || {},
+        ...status?.defaults || {},
       },
       origin: this.store.account.origin,
-      modifiedString: status.modifiedString,
+      modifiedString: status?.modifiedString,
     }).pipe(
       tap(() => this.installMessages.push('\u00A0'.repeat(4) + $localize`Updated ${def.name || def.tag} plugin.`))
     );
@@ -223,16 +223,16 @@ export class SettingsSetupPage implements OnInit {
 
   updateTemplate$(key: string) {
     const def = this.admin.def.templates[key];
-    const status = this.admin.status.templates[key]!;
+    const status = this.admin.status.templates[key];
     this.installMessages.push('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} template...`);
     return this.templates.update({
       ...def,
       defaults: {
         ...def.defaults || {},
-        ...status.defaults || {},
+        ...status?.defaults || {},
       },
       origin: this.store.account.origin,
-      modifiedString: status.modifiedString,
+      modifiedString: status?.modifiedString,
     }).pipe(
       tap(() => this.installMessages.push('\u00A0'.repeat(4) + $localize`Updated ${def.name || def.tag} template.`)),
     );
