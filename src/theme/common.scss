@@ -1234,6 +1234,7 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .toggle {
+  display: block;
   clear: both;
   margin: 4px 8px 4px 2px;
   flex-shrink: 0;
@@ -1243,15 +1244,9 @@ formly-field-radio, formly-field-multicheckbox {
   text-align: center;
   line-height: 24px;
   cursor: pointer;
-
-  .toggle-plus {
-    position: relative;
-    top: 1px;
-  }
-  .toggle-x {
-    position: relative;
-    top: 1px;
-  }
+  border: none;
+  font-size: 18px;
+  padding: 0;
 
   &.actions-toggle {
     margin: 4px 0 4px 8px;
