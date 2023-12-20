@@ -1293,7 +1293,7 @@ formly-field-radio, formly-field-multicheckbox {
     }
   }
 
-  .comment-body, .actions {
+  .comment-body, .row > .comment-container > .actions {
     padding: 4px;
     margin-left: 20px;
   }
