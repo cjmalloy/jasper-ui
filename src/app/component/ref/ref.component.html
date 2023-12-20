@@ -28,9 +28,10 @@
       <span class="host">({{ host }})</span>
     </div>
     <div class="link-below">
-      <div class="toggle"
-           *ngIf="showToggle && (thread || commentNoTitle || expandPlugins.length)"
-           (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, ref.origin, expanded = !expanded)">
+      <button *ngIf="showToggle && (thread || commentNoTitle || expandPlugins.length)"
+              type="button"
+              class="toggle"
+              (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, ref.origin, expanded = !expanded)">
         <ng-container *ngIf="(editing || viewSource || expanded) else toggleExpanded">
           <span class="toggle-x">✕</span>
         </ng-container>
@@ -38,7 +39,7 @@
           <span class="toggle-plus" *ngIf="!fullscreen">＋</span>
           <span class="toggle-fullscreen" *ngIf="fullscreen">⛶</span>
         </ng-template>
-      </div>
+      </button>
       <div class="stack">
         <div class="info" [class.expanded]="!actionsExpanded">
           <ng-container *ngIf="ref.created else notSubmitted">
