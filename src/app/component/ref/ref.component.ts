@@ -124,6 +124,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   actions: Action[] = [];
   advancedActions: Action[] = [];
   infoUis: Plugin[] = [];
+  submittedLabel = $localize`submitted`;
   publishedLabel = $localize`published`;
   editing = false;
   viewSource = false;
@@ -144,7 +145,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   private refreshTap?: () => void;
 
   constructor(
-    private config: ConfigService,
+    public config: ConfigService,
     public admin: AdminService,
     public store: Store,
     private router: Router,

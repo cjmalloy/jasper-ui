@@ -41,18 +41,23 @@
       </button>
       <div class="stack">
         <div class="info" [class.expanded]="!actionsExpanded">
-          @if (ref.created) {
-            <span *ngIf="publishedIsSubmitted" [title]="ref.created.toISOString()" i18n>submitted {{ ref.created.fromNow() }}</span>
-            <ng-container *ngIf="!publishedIsSubmitted">
-              <span [title]="ref.published!.toISOString()" i18n>
-                {{ publishedLabel }}
-                {{ ref.published!.fromNow() }}</span>
-            </ng-container>
-            <span *ngIf="!modifiedIsSubmitted"
-                  i18n-title
-                  title="last edited {{ ref.modified!.fromNow() }}">*</span>
-          } @else {
+          @if (!ref.created) {
             <span i18n>not found</span>
+          } @else {
+            @if (publishedIsSubmitted) {
+              <span [title]="ref.created.toISOString()">
+                {{ config.mobile ? '' : submittedLabel }}
+                {{ ref.created.fromNow() }}
+              </span>
+            } @else {
+              <span [title]="ref.published!.toISOString()" i18n>
+                {{ config.mobile ? '' : publishedLabel }}
+                {{ ref.published!.fromNow() }}
+              </span>
+            }
+            @if (!modifiedIsSubmitted) {
+              <span i18n-title  title="last edited {{ ref.modified!.fromNow() }}">*</span>
+            }
           }
           <ng-container *ngIf="authors.length" i18n>
             by
