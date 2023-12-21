@@ -12,5 +12,6 @@ _config.yml
 cypress.config.ts
 cypress.config.js
 docker-compose.yaml
+Dockerfile
 LICENSE
 README.md
