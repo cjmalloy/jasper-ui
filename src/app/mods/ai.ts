@@ -42,6 +42,7 @@ export const aiPlugin: Plugin = {
     model: 'gpt-4-1106-preview',
     fallback: ['gpt-4'],
     maxTokens: 4096,
+    maxContext: 7,
     systemPrompt: $localize`
 Your inbox is tag plugin/inbox/ai.
 You are a helpful research assistant in a private database codenamed Jasper.
