@@ -78,6 +78,10 @@ export interface Config extends Tag {
      */
     description?: string,
     /**
+     * Snippet added to the AI system prompt.
+     */
+    aiInstructions?: string,
+    /**
      * Optional handlebars template to use as a UI.
      */
     ui?: string,
