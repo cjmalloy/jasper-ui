@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Template } from '../model/template';
-import { authors } from '../util/format';
+import { userAuthors } from '../util/format';
 import { hasPrefix, localTag, prefix, removePrefix, setPublic, tagOrigin } from '../util/tag';
 
 export const dmTemplate: Template = {
@@ -135,7 +135,7 @@ export function getLocalMailbox(mailbox: string, local: string, origin: string, 
 export function mailboxes(ref: Ref, myUserTag: string, lookup?: Map<string, Map<string, string>>): string[] {
   const local = tagOrigin(myUserTag);
   return uniq([
-    ...authors(ref).filter(tag => tag !== myUserTag).map(tag => getMailbox(tag, local)),
+    ...userAuthors(ref).filter(tag => tag !== myUserTag).map(tag => getMailbox(tag, local)),
     ...notifications(ref).map(m => getLocalMailbox(m, local, ref.origin || '', lookup)).filter(t => !!t) as string[],
   ]);
 }
