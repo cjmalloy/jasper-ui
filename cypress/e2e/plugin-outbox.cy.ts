@@ -51,6 +51,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('#title').type('Testing Remote @other');
     cy.get('.floating-ribbons .plugin-origin-pull').click();
     cy.get('#local').type('@other');
+    cy.get('.plugins-form details.advanced summary').click();
     cy.get('#proxy').type(replApiProxy).blur();
     cy.get('#title').type('Testing Remote @other');
     cy.get('button').contains('Submit').click();
@@ -95,6 +96,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.wait(1000) // First part of text is missing
     cy.get('.floating-ribbons .plugin-origin-pull').click();
     cy.get('#local').type('@main');
+    cy.get('.plugins-form details.advanced summary').click();
     cy.get('#proxy').type(mainApiProxy).blur();
     cy.get('#title').type('Testing Remote @main');
     cy.get('button').contains('Submit').click();
