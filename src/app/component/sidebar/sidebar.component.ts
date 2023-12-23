@@ -100,7 +100,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.tag || changes.ext) {
+    if (changes.home || changes.tag || changes.ext) {
       if (this.ext) {
         this.bookmarks$.subscribe(xs => this.bookmarkExts = xs);
         this.tagSubs$.subscribe(xs => this.tagSubExts = xs);
