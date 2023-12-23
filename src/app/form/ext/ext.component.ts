@@ -103,11 +103,11 @@ export class ExtFormComponent implements OnInit {
   }
 
   get themeValues() {
-    return uniq([...Object.keys(this.themes?.value), ...this.admin.themes.flatMap(p => Object.keys(p.config!.themes!))]);
+    return uniq([...Object.keys(this.themes?.value || {}), ...this.admin.themes.flatMap(p => Object.keys(p.config?.themes || {}))]);
   }
 
   get userThemeValues() {
-    return uniq([...Object.keys(this.themes?.value), ...this.admin.themes.flatMap(p => Object.keys(p.config!.themes!))]);
+    return uniq([...Object.keys(this.themes?.value || {}), ...this.admin.themes.flatMap(p => Object.keys(p.config?.themes || {}))]);
   }
 
   get pinned() {
