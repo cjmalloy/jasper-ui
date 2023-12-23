@@ -30,10 +30,11 @@ describe('Origin Pull Plugin', {
     cy.contains('Submit').click();
     cy.get('#url').type(replApiProxy);
     cy.contains('Next').click();
-    cy.get('#title').type('Testing Remote @other');
+    cy.wait(400);
     cy.get('.floating-ribbons .plugin-origin-pull').click();
     cy.get('#local').type('@other');
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('#title').type('Testing Remote @other');
+    cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');
   });
   it('creates ref on remote', () => {
@@ -41,8 +42,9 @@ describe('Origin Pull Plugin', {
     openSidebar();
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
+    cy.wait(400);
     cy.get('#title').type('Pull Test');
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Pull Test');
   });
   it('pull @other', () => {

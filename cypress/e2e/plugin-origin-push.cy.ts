@@ -31,10 +31,11 @@ describe('Origin Push Plugin', {
     cy.contains('Submit').click();
     cy.get('#url').type(replOtherApiProxy);
     cy.contains('Next').click();
-    cy.get('#title').type('Testing Remote @other');
+    cy.wait(400);
     cy.get('.floating-ribbons .plugin-origin-push').click();
     cy.get('#remote').type('@other');
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('#title').type('Testing Remote @other');
+    cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');
   });
   it('creates ref', () => {
@@ -42,6 +43,7 @@ describe('Origin Push Plugin', {
     openSidebar();
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
+    cy.wait(1000);
     cy.get('#title').type('Push Test');
     cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Push Test');

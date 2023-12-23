@@ -52,7 +52,8 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.floating-ribbons .plugin-origin-pull').click();
     cy.get('#local').type('@other');
     cy.get('#proxy').type(replApiProxy).blur();
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('#title').type('Testing Remote @other');
+    cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');
   });
   it('@other: clear mods', () => {
@@ -92,11 +93,11 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('#url').type(mainApi).blur();
     cy.contains('Next').click();
     cy.wait(1000) // First part of text is missing
-    cy.get('#title').type('Testing Remote @main');
     cy.get('.floating-ribbons .plugin-origin-pull').click();
     cy.get('#local').type('@main');
     cy.get('#proxy').type(mainApiProxy).blur();
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('#title').type('Testing Remote @main');
+    cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @main');
   });
   it('@other: creates ref', () => {
