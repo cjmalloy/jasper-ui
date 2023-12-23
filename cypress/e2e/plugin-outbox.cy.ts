@@ -119,6 +119,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
+    openSidebar();
     cy.get('input[type=search]').type(replApi + '{enter}');
     cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
     cy.intercept({pathname: '/api/v1/origin/pull'}).as('pull');
@@ -150,6 +151,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit(replUrl + '/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
+    openSidebar();
     cy.get('input[type=search]').type(mainApi + '{enter}');
     cy.get('.link:not(.remote)').contains('@main').parent().parent().as('main');
     cy.intercept({pathname: '/api/v1/origin/pull'}).as('pull');
@@ -178,6 +180,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
+    openSidebar();
     cy.get('input[type=search]').type(replApi + '{enter}');
     cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
     cy.get('@other').find('.actions').contains('delete').click();
@@ -187,6 +190,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit(replUrl + '/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
+    openSidebar();
     cy.get('input[type=search]').type(mainApi + '{enter}');
     cy.get('.link:not(.remote)').contains('@main').parent().parent().as('main');
     cy.get('@main').find('.actions').contains('delete').click();

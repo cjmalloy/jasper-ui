@@ -1,4 +1,4 @@
-import { clearMods } from './setup';
+import { clearMods, openSidebar } from './setup';
 
 describe('Origin Pull Plugin', {
   testIsolation: false
@@ -47,6 +47,7 @@ describe('Origin Pull Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
+    openSidebar();
     cy.get('input[type=search]').type(replApiProxy + '{enter}');
     cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
     cy.intercept({pathname: '/api/v1/origin/pull'}).as('pull');
@@ -63,6 +64,7 @@ describe('Origin Pull Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
+    openSidebar();
     cy.get('input[type=search]').type(replApiProxy + '{enter}');
     cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
     cy.get('@other').find('.actions').contains('delete').click();

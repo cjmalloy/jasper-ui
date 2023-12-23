@@ -26,3 +26,11 @@ export function clearMods(base = '') {
         });
     });
 }
+
+export function openSidebar() {
+  cy.get('.sidebar').then($sidebar => {
+    if (!$sidebar.hasClass('expanded')) {
+      cy.get('.sidebar:not(.expanded) .row .toggle').click();
+    }
+  });
+}
