@@ -11,11 +11,15 @@ describe('Graph Plugin', {
     clearMods();
   });
   it('turn on graphing', () => {
-    cy.get('.settings a').contains('settings').click();
-    cy.get('.tabs').contains('setup').click();
+    cy.visit('/settings/setup?debug=ADMIN');
 
     cy.wait(100);
-    cy.get('#mod-graph').check().should('be.checked').should('be.checked');
+    cy.get('#mod-experiments').check().should('be.checked');
+    cy.get('button').contains('Save').click();
+    cy.reload();
+
+    cy.wait(100);
+    cy.get('#mod-graph').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
   });
