@@ -40,6 +40,7 @@ describe('Smoke Tests', {
         editor: true,
         user: true,
         viewer: true,
+        banned: false,
       });
     });
   });
@@ -57,6 +58,7 @@ describe('Smoke Tests', {
         editor: true,
         user: true,
         viewer: true,
+        banned: false,
       });
     });
   });
@@ -74,6 +76,7 @@ describe('Smoke Tests', {
         editor: true,
         user: true,
         viewer: true,
+        banned: false,
       });
     });
   });
@@ -91,6 +94,7 @@ describe('Smoke Tests', {
         editor: false,
         user: true,
         viewer: true,
+        banned: false,
       });
     });
   });
@@ -108,6 +112,7 @@ describe('Smoke Tests', {
         editor: false,
         user: false,
         viewer: true,
+        banned: false,
       });
     });
   });
@@ -125,6 +130,7 @@ describe('Smoke Tests', {
         editor: false,
         user: false,
         viewer: false,
+        banned: false,
       });
     });
   });
