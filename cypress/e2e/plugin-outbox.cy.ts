@@ -1,4 +1,4 @@
-import { clearMods } from './setup';
+import { clearMods, openSidebar } from './setup';
 
 describe('Outbox Plugin: Remote Notifications', {
   testIsolation: false
@@ -44,7 +44,8 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
-    cy.contains('Submit').click({ force: true });
+    openSidebar();
+    cy.contains('Submit').click();
     cy.get('#url').type(replApi).blur();
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
@@ -86,7 +87,8 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit(replUrl + '/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
-    cy.contains('Submit').click({ force: true });
+    openSidebar();
+    cy.contains('Submit').click();
     cy.get('#url').type(mainApi).blur();
     cy.contains('Next').click();
     cy.wait(1000) // First part of text is missing
@@ -99,7 +101,8 @@ describe('Outbox Plugin: Remote Notifications', {
   });
   it('@other: creates ref', () => {
     cy.visit(replUrl + '/?debug=USER&tag=bob');
-    cy.contains('Submit').click({ force: true });
+    openSidebar();
+    cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Ref from other');
     cy.get('#comment textarea').type('Hi +user/alice@main! How\'s it going? You should also see this +user/charlie.').blur();

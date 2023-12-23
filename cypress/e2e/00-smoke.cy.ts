@@ -1,4 +1,4 @@
-import { clearMods } from './setup';
+import { clearMods, openSidebar } from './setup';
 
 describe('Smoke Tests', {
   testIsolation: false
@@ -12,12 +12,14 @@ describe('Smoke Tests', {
   });
   it('creates a ref', () => {
     cy.visit('/?debug=ADMIN');
-    cy.contains('Submit').click({ force: true });
+    openSidebar();
+    cy.contains('Submit').click();
     cy.get('#url').type('https://www.jasper-kms.info/');
     cy.contains('Next').click();
     cy.wait(1000); // First part of 'Title' getting truncated
     cy.get('#title').type('Title');
-    cy.get('button').contains('Submit').click({ force: true });
+    openSidebar();
+    cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
   it('deletes a ref', () => {

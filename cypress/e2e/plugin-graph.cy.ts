@@ -1,4 +1,4 @@
-import { clearMods } from './setup';
+import { clearMods, openSidebar } from './setup';
 
 describe('Graph Plugin', {
   testIsolation: false
@@ -25,12 +25,13 @@ describe('Graph Plugin', {
   });
   it('creates a ref', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Submit').click({ force: true });
+    openSidebar();
+    cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Title');
     cy.contains('show advanced').click();
     cy.get('#published').type('2020-01-01T00:00');
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
   it('shows graph', () => {
@@ -46,7 +47,7 @@ describe('Graph Plugin', {
     cy.get('#title').type('Reply');
     cy.contains('show advanced').click();
     cy.get('#published').type('2020-01-02T00:00');
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Reply');
   });
   it('graphs reply', () => {

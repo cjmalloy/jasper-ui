@@ -1,4 +1,4 @@
-import { clearMods } from './setup';
+import { clearMods, openSidebar } from './setup';
 
 describe('Wiki Plugin', {
   testIsolation: false
@@ -12,7 +12,8 @@ describe('Wiki Plugin', {
   });
   it('creates a wiki', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Submit').click({ force: true });
+    openSidebar();
+    cy.contains('Submit').click();
     cy.get('.tabs').contains('wiki').click();
     cy.get('#url').type('WIKI TEST');
     cy.get('button').contains('Next').click();
@@ -58,7 +59,8 @@ describe('Wiki Plugin', {
   });
   it('submit wiki button removed', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Submit').click({ force: true });
+    openSidebar();
+    cy.contains('Submit').click();
     cy.get('.tabs').should('not.have.text', 'wiki');
   });
   it('wiki link opens external', () => {

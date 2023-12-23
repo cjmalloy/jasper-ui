@@ -1,4 +1,4 @@
-import { clearMods } from './setup';
+import { clearMods, openSidebar } from './setup';
 
 describe('Ref Actions', {
   testIsolation: false
@@ -12,7 +12,8 @@ describe('Ref Actions', {
   });
   it('creates a ref', () => {
     cy.visit('/?debug=MOD');
-    cy.contains('Submit').click({ force: true });
+    openSidebar();
+    cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Title');
     cy.contains('show advanced').click();

@@ -27,7 +27,8 @@ describe('Origin Push Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
-    cy.contains('Submit').click({ force: true });
+    openSidebar();
+    cy.contains('Submit').click();
     cy.get('#url').type(replOtherApiProxy);
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
@@ -38,7 +39,8 @@ describe('Origin Push Plugin', {
   });
   it('creates ref', () => {
     cy.visit('/?debug=USER&tag=bob');
-    cy.contains('Submit').click({ force: true });
+    openSidebar();
+    cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Push Test');
     cy.get('button').contains('Submit').click({ force: true });

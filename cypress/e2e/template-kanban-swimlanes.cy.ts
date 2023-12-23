@@ -1,5 +1,5 @@
 import { addToBoard, dragCol } from './template-kanban';
-import { clearMods } from './setup';
+import { clearMods, openSidebar } from './setup';
 
 export function loadBoard() {
   cy.intercept({pathname: '/api/v1/ref/page'}).as('page');
@@ -35,6 +35,7 @@ describe('Kanban Template with Swim Lanes', {
   it('creates a board with swim lanes', () => {
     cy.visit('/?debug=MOD');
     cy.get('.subs').contains('tags').click();
+    openSidebar();
     cy.contains('Extend').click();
     cy.get('#tag').type('kanban/sl');
     cy.get('button').contains('Extend').click();
