@@ -77,7 +77,7 @@ export function printError(res: HttpErrorResponse): string[] {
 }
 
 export function fixUrl(url: string, banlist: typeof banlistConfig) {
-  url = url.trim();
+  url = (url || '').trim();
   if (url.startsWith('<a')) {
     url = url.substring(url.toLowerCase().indexOf('href="') + 'href="'.length)
     return url.substring(0, url.indexOf('"'));
