@@ -109,7 +109,7 @@ export class RefFormComponent implements OnInit {
     this.scrape$.pipe(
       catchError(err => of({
         url: this.url.value,
-        title: '' ,
+        title: undefined,
       })),
       switchMap(ref => this.oembeds.get(ref.url).pipe(
         map(oembed => {
