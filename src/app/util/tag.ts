@@ -151,7 +151,7 @@ export function prefix(prefix: string, ...rest: string[]) {
     prefix = access(rest[0]) + setPublic(prefix);
   }
   const origin = tagOrigin(rest[rest.length - 1]);
-  return prefix + ('/' + rest.map(r => localTag(setPublic(r))).join('/'))
+  return prefix + ('/' + rest.map(r => r.startsWith('@') ? r.substring(1) : localTag(setPublic(r))).join('/'))
     .replace(/\/\//g, '/')
     .replace(/\/$/, '') + origin;
 }
