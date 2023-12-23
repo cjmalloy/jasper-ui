@@ -18,7 +18,7 @@ describe('Wiki Plugin', {
     cy.get('#url').type('WIKI TEST');
     cy.get('button').contains('Next').click();
     cy.get('#comment textarea').type('Link to [[Other WIKI]].');
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Wiki test');
   });
   it('should rename page for URL', () => {

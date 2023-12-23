@@ -2,6 +2,7 @@ import { difference, uniq } from 'lodash-es';
 import * as he from 'he';
 import { marked } from 'marked';
 import { getMailbox } from '../mods/mailbox';
+import { wikiUriFormat } from '../mods/wiki';
 import { QUALIFIED_USER_REGEX, TAG_REGEX } from './format';
 
 export function getMailboxes(markdown: string, origin = '') {
@@ -44,9 +45,12 @@ export function getLinks(markdown: string, withText?: RegExp) {
     }
     if (withText) return;
     const customType = t as any;
-    if (customType.type === 'embed' || customType.type === 'wiki' || customType.type === 'wiki-embed') {
-      if (!customType.text) return;
-      result.push(customType.text);
+    if (customType.text) {
+      if (customType.type === 'wiki' || customType.type === 'wiki-embed') {
+        result.push(wikiUriFormat(customType.text));
+      } else if (customType.type === 'embed') {
+        result.push(customType.text);
+      }
     }
   });
   return result;
