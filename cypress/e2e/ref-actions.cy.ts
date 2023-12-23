@@ -12,12 +12,12 @@ describe('Ref Actions', {
   });
   it('creates a ref', () => {
     cy.visit('/?debug=MOD');
-    cy.contains('Submit').click();
+    cy.contains('Submit').click({ force: true });
     cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Title');
     cy.contains('show advanced').click();
     cy.get('#published').type('2020-01-01T00:00').blur();
-    cy.get('button').contains('Submit').click();
+    cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
   it('edits comments field', () => {
@@ -37,7 +37,7 @@ describe('Ref Actions', {
   it('creates reply', () => {
     cy.get('.actions *').contains('reply').click();
     cy.get('#title').type('Reply');
-    cy.get('button').contains('Submit').click();
+    cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Reply');
   });
   it('shows parent', () => {

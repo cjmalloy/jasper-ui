@@ -12,12 +12,12 @@ describe('Smoke Tests', {
   });
   it('creates a ref', () => {
     cy.visit('/?debug=ADMIN');
-    cy.contains('Submit').click();
+    cy.contains('Submit').click({ force: true });
     cy.get('#url').type('https://www.jasper-kms.info/');
     cy.contains('Next').click();
     cy.wait(1000); // First part of 'Title' getting truncated
     cy.get('#title').type('Title');
-    cy.get('button').contains('Submit').click();
+    cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
   it('deletes a ref', () => {

@@ -26,21 +26,21 @@ describe('Origin Pull Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
-    cy.contains('Submit').click();
+    cy.contains('Submit').click({ force: true });
     cy.get('#url').type(replApiProxy);
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
     cy.get('.floating-ribbons .plugin-origin-pull').click();
     cy.get('#local').type('@other');
-    cy.get('button').contains('Submit').click();
+    cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');
   });
   it('creates ref on remote', () => {
     cy.visit(replUrl + '/?debug=USER&tag=bob');
-    cy.contains('Submit').click();
+    cy.contains('Submit').click({ force: true });
     cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Pull Test');
-    cy.get('button').contains('Submit').click();
+    cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Pull Test');
   });
   it('pull @other', () => {

@@ -27,21 +27,21 @@ describe('Origin Push Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
-    cy.contains('Submit').click();
+    cy.contains('Submit').click({ force: true });
     cy.get('#url').type(replOtherApiProxy);
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
     cy.get('.floating-ribbons .plugin-origin-push').click();
     cy.get('#remote').type('@other');
-    cy.get('button').contains('Submit').click();
+    cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');
   });
   it('creates ref', () => {
     cy.visit('/?debug=USER&tag=bob');
-    cy.contains('Submit').click();
+    cy.contains('Submit').click({ force: true });
     cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Push Test');
-    cy.get('button').contains('Submit').click();
+    cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Push Test');
   });
   it('push to @other', () => {

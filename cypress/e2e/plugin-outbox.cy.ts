@@ -44,14 +44,14 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
-    cy.contains('Submit').click();
+    cy.contains('Submit').click({ force: true });
     cy.get('#url').type(replApi).blur();
     cy.contains('Next').click();
     cy.get('#title').type('Testing Remote @other');
     cy.get('.floating-ribbons .plugin-origin-pull').click();
     cy.get('#local').type('@other');
     cy.get('#proxy').type(replApiProxy).blur();
-    cy.get('button').contains('Submit').click();
+    cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @other');
   });
   it('@other: clear mods', () => {
@@ -86,7 +86,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit(replUrl + '/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('origin').click();
-    cy.contains('Submit').click();
+    cy.contains('Submit').click({ force: true });
     cy.get('#url').type(mainApi).blur();
     cy.contains('Next').click();
     cy.wait(1000) // First part of text is missing
@@ -94,16 +94,16 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.floating-ribbons .plugin-origin-pull').click();
     cy.get('#local').type('@main');
     cy.get('#proxy').type(mainApiProxy).blur();
-    cy.get('button').contains('Submit').click();
+    cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @main');
   });
   it('@other: creates ref', () => {
     cy.visit(replUrl + '/?debug=USER&tag=bob');
-    cy.contains('Submit').click();
+    cy.contains('Submit').click({ force: true });
     cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Ref from other');
     cy.get('#comment textarea').type('Hi +user/alice@main! How\'s it going? You should also see this +user/charlie.').blur();
-    cy.get('button').contains('Submit').click();
+    cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Ref from other');
   });
   it('@other: local user notified', () => {

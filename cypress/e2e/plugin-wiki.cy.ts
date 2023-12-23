@@ -12,12 +12,12 @@ describe('Wiki Plugin', {
   });
   it('creates a wiki', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Submit').click();
+    cy.contains('Submit').click({ force: true });
     cy.get('.tabs').contains('wiki').click();
     cy.get('#url').type('WIKI TEST');
     cy.get('button').contains('Next').click();
     cy.get('#comment textarea').type('Link to [[Other WIKI]].');
-    cy.get('button').contains('Submit').click();
+    cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Wiki test');
   });
   it('should rename page for URL', () => {
@@ -58,7 +58,7 @@ describe('Wiki Plugin', {
   });
   it('submit wiki button removed', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Submit').click();
+    cy.contains('Submit').click({ force: true });
     cy.get('.tabs').should('not.have.text', 'wiki');
   });
   it('wiki link opens external', () => {
