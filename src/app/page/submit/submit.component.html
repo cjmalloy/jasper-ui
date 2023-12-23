@@ -35,13 +35,23 @@
        [queryParams]="{ url: null }"
        i18n-title title="Direct Message"
        queryParamsHandling="merge" i18n>dm</a>
-    <a *ngFor="let p of store.submit.submitGenId"
-       routerLink="/submit/web"
-       [class.current-tab]="store.submit.tags.includes(p.tag)"
-       [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
-       [replaceUrl]="true"
-       [title]="p.name"
-       queryParamsHandling="merge">{{ p.config!.submit }}</a>
+    @for (p of store.submit.submitGenId; track p) {
+      @if (p.config?.submitText) {
+        <a routerLink="/submit/text"
+           [class.current-tab]="store.submit.tags.includes(p.tag)"
+           [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
+           [replaceUrl]="true"
+           [title]="p.name"
+           queryParamsHandling="merge">{{ p.config!.submit }}</a>
+      } @else {
+        <a routerLink="/submit/web"
+           [class.current-tab]="store.submit.tags.includes(p.tag)"
+           [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
+           [replaceUrl]="true"
+           [title]="p.name"
+           queryParamsHandling="merge">{{ p.config!.submit }}</a>
+      }
+    }
   </app-tabs>
   <router-outlet></router-outlet>
 

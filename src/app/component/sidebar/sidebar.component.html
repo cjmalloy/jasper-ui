@@ -11,34 +11,34 @@
       </div>
     </div>
   </div>
-  <ng-container *ngIf="expanded && store.view.type && (!home || store.view.search || store.view.filter.length || !query.page?.empty)">
+  @if (expanded && store.view.type && (!home || store.view.search || store.view.filter.length || !query.page?.empty)) {
     <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
     <div class="row">
       <app-filter [type]="store.view.type!" [activeExts]="activeExts"></app-filter>
       <app-sort [type]="store.view.type!"></app-sort>
     </div>
-  </ng-container>
+  }
   <app-debug *ngIf="expanded"></app-debug>
   <app-bulk *ngIf="expanded && store.view.type" [type]="store.view.type!" [activeExts]="activeExts"></app-bulk>
   <span class="button-bar">
-    <ng-container *ngIf="store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')">
-      <div *ngIf="plugin?.config?.submitText || rootConfig?.submitText else submitInternal" class="submit-button" routerLink="/submit/text"
-           [queryParams]="{ tag: addTags, thumbnail: defaultThumbnail }">
+    @if (store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
+      @if (plugin?.config?.submitText || rootConfig?.submitText) {
+        <div class="submit-button" routerLink="/submit/text"
+             [queryParams]="{ tag: addTags, thumbnail: defaultThumbnail }">
         <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
         &nbsp;
         &nbsp;
-        {{ plugin?.name || '' }}</label>
+          {{ plugin?.name || '' }}</label>
       </div>
-      <ng-template #submitInternal>
-        <div *ngIf="plugin?.config?.submit && plugin?.config?.genId else submit" class="submit-button" routerLink="/submit/web"
+      } @else if (plugin?.config?.submit && plugin?.config?.genId) {
+        <div class="submit-button" routerLink="/submit/web"
              [queryParams]="{ tag: addTags, url: genUrl, thumbnail: defaultThumbnail }">
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
           &nbsp;
           &nbsp;
           {{ plugin!.config!.submit }}</label>
         </div>
-      </ng-template>
-      <ng-template #submit>
+      } @else {
         <div class="submit-button" routerLink="/submit"
              [queryParams]="{ tag: addTags, thumbnail: defaultThumbnail }">
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
@@ -46,139 +46,136 @@
           &nbsp;
           {{ plugin?.config?.submit || '' }}</label>
         </div>
-      </ng-template>
-    </ng-container>
-    <ng-container *ngIf="store.view.current === 'tag' && store.account.user && (home || store.account.tag === tag)">
+      }
+    }
+    @if (store.view.current === 'tag' && store.account.user && (home || store.account.tag === tag)) {
       <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: store.account.tag }">
         <span i18n-title title="Notes" i18n>✍️</span> <label i18n>Notes</label>
       </div>
-    </ng-container>
-    <ng-container *ngIf="store.account.tag !== tag && messages">
-      <ng-container *ngIf="mailPlugin else noMailPlugin">
+    }
+    @if (store.account.tag !== tag && messages) {
+      @if (mailPlugin) {
         <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag, tag: mailPlugin.tag }">
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message
           &nbsp;
           &nbsp;
           {{ mailPlugin.config?.submitText || '' }}</label>
         </div>
-      </ng-container>
-      <ng-template #noMailPlugin>
+      } @else {
         <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
         </div>
-      </ng-template>
-    </ng-container>
-    <ng-container *ngIf="store.account.mod && store.view.current === 'user' || (writeAccess && store.view.userTemplate && store.account.tag !== store.view.template)">
+      }
+    }
+    @if (store.account.mod && store.view.current === 'user' || (writeAccess && store.view.userTemplate && store.account.tag !== store.view.template)) {
       <div class="submit-button" routerLink="/user">
         <span i18n-title title="Create User" i18n>🧑️</span> <label i18n>Create User</label>
       </div>
-    </ng-container>
-    <ng-container *ngIf="writeAccess && user && store.view.current === 'user'">
+    }
+    @if (writeAccess && user && store.view.current === 'user') {
       <div class="submit-button" [routerLink]="['/user', tag]">
         <span i18n-title title="Edit User" i18n>🧑️</span> <label i18n>Edit User</label>
       </div>
-    </ng-container>
-    <ng-container *ngIf="writeAccess && store.view.type === 'ext'">
+    }
+    @if (writeAccess && store.view.type === 'ext') {
       <div class="submit-button" [routerLink]="['/ext', store.view.template]">
         <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag
         &nbsp;
         &nbsp;
         {{ template?.name || '' }}</label>
       </div>
-    </ng-container>
-
-    <ng-container *ngIf="homeWriteAccess">
+    }
+    @if (homeWriteAccess) {
       <div class="submit-button" [routerLink]="['/ext', 'home']">
-        <span i18n-title title="Edit Home Page" i18n>🏡️</span> <label i18n>Home Page</label></div>
-    </ng-container>
-    <ng-container *ngIf="store.view.type === 'ext' && !store.view.template">
+        <span i18n-title title="Edit Home Page" i18n>🏡️</span> <label i18n>Home Page</label>
+      </div>
+    }
+    @if (store.view.type === 'ext' && !store.view.template) {
       <div class="submit-button" [routerLink]="['/ext']">
-        <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag</label></div>
-    </ng-container>
-    <ng-container *ngIf="local && writeAccess && store.view.noQuery">
+        <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag</label>
+      </div>
+    }
+    @if (local && writeAccess && store.view.noQuery) {
       <div class="submit-button" [routerLink]="['/ext', tag]">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
       </div>
-    </ng-container>
-    <ng-container *ngIf="store.account.user && ext && (!local || !writeAccess) && store.view.noQuery">
+    }
+    @if (store.account.user && ext && (!local || !writeAccess) && store.view.noQuery) {
       <div class="submit-button" [routerLink]="['/tags', tag]">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
       </div>
-    </ng-container>
+    }
   </span>
 
   <div class="hide tag-header" *ngIf="home">
-    <ng-container *ngIf="!store.view.forYou">
-      <h3><a [routerLink]="['/home']" i18n>Home</a></h3>
-    </ng-container>
-
-    <ng-container *ngIf="store.view.forYou">
+    @if (store.view.forYou) {
       <h3><a [routerLink]="['/home']" [queryParams]="{ forYou: true }" i18n>For You</a></h3>
       <p *ngIf="!store.account.userSubs.length" i18n>
         Follow other users to see their subscriptions alongside yours here.
       </p>
-    </ng-container>
+    } @else {
+      <h3><a [routerLink]="['/home']" i18n>Home</a></h3>
+    }
   </div>
   <div class="hide tag-header" *ngIf="!home && store.view.tag">
     <h3 *ngIf="store.view.current === 'tag'">{{ ext?.name || tag }}</h3>
     <div *ngIf="store.account.signedIn && tag && admin.getTemplate('user')" class="row center">
-      <button *ngIf="inBookmarks; else notBookmarked"
-              type="button"
-              class="bookmark"
-              i18n-title title="Remove from top bar"
-              (click)="removeBookmark()" i18n>&ndash; bookmark</button>
-      <ng-template #notBookmarked>
+      @if (inBookmarks) {
+        <button type="button"
+                class="bookmark"
+                i18n-title title="Remove from top bar"
+                (click)="removeBookmark()" i18n>&ndash; bookmark</button>
+      } @else {
         <button type="button"
                 (click)="bookmark()"
                 i18n-title title="Add to top bar"
                 class="bookmark" i18n>+ bookmark</button>
-      </ng-template>
-      <ng-container *ngIf="user">
-        <button *ngIf="inSubs; else notFollowing"
-                type="button"
-                class="subscribe"
-                i18n-title title="Remove from home screen"
-                (click)="unsubscribe()" i18n>&ndash; unfollow</button>
-        <ng-template #notFollowing>
+      }
+      @if (user) {
+        @if (inSubs) {
+          <button type="button"
+                  class="subscribe"
+                  i18n-title title="Remove from home screen"
+                  (click)="unsubscribe()" i18n>&ndash; unfollow</button>
+        } @else {
           <button type="button"
                   (click)="subscribe()"
                   i18n-title title="Add to home screen"
                   class="subscribe" i18n>+ follow</button>
-        </ng-template>
-      </ng-container>
-      <ng-container *ngIf="!user">
-        <button *ngIf="inSubs; else notInSubs"
-                type="button"
-                class="subscribe"
-                i18n-title title="Remove from home screen"
-                (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
-        <ng-template #notInSubs>
+        }
+      } @else {
+        @if (inSubs) {
+          <button type="button"
+                  class="subscribe"
+                  i18n-title title="Remove from home screen"
+                  (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
+        } @else {
           <button type="button"
                   (click)="subscribe()"
                   i18n-title title="Add to home screen"
                   class="subscribe" i18n>+ subscribe</button>
-        </ng-template>
-      </ng-container>
-      <button *ngIf="inAlarms; else notInAlarms"
-              type="button"
-              class="alarm"
-              i18n-title title="Remove alarm"
-              (click)="removeAlarm()" i18n>🔇</button>
-      <ng-template #notInAlarms>
+        }
+      }
+      @if (inAlarms) {
+        <button type="button"
+                class="alarm"
+                i18n-title title="Remove alarm"
+                (click)="removeAlarm()" i18n>🔇</button>
+      } @else {
         <button type="button"
                 (click)="addAlarm()"
                 i18n-title title="Add alarm"
                 class="alarm" i18n>🔔</button>
-      </ng-template>
+      }
     </div>
   </div>
 
-  <ng-container *ngIf="ui && ext">
+  @if (ui && ext) {
     <div class="hide ui"
          [appTemplateUi]="ui"
          [appMdPost]
          [ext]="ext"></div>
-  </ng-container>
+  }
 
   <div *ngIf="root" class="hide template-root">
     <app-md *ngIf="ext?.config?.sidebar"
