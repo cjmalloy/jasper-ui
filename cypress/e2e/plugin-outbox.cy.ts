@@ -170,7 +170,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.wait('@notifications');
     cy.get('.settings .notification').click();
     cy.get('.tabs').contains('all').click();
-    cy.get('.ref-list .link.remote').contains('Re: Ref from other').parent().parent().as('ref');
+    cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice@main');
   });
   it('@other: check inbox was converted to outbox', () => {
@@ -179,7 +179,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.wait('@notifications');
     cy.get('.settings .notification').click();
     cy.get('.tabs').contains('all').click();
-    cy.get('.ref-list .link.remote').contains('Re: Ref from other').parent().parent().as('ref');
+    cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice@main');
   });
   it('@main: delete remote @other', () => {
