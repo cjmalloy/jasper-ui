@@ -23,7 +23,7 @@ describe('Smoke Tests', {
   it('deletes a ref', () => {
     cy.get('.full-page.ref .actions a').contains('delete').click();
     cy.get('.full-page.ref .actions a').contains('yes').click();
-    cy.visit(`/ref/${encodeURIComponent('https://www.jasper-kms.info/')}?debug=USER`);
+    cy.visit(`/ref/e/${encodeURIComponent('https://www.jasper-kms.info/')}?debug=USER`);
     cy.contains('Not Found');
   });
   it('loads the ADMIN user', () => {
