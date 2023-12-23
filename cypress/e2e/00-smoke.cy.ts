@@ -21,8 +21,8 @@ describe('Smoke Tests', {
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
   it('deletes a ref', () => {
-    cy.get('.full-page.ref .actions a').contains('delete').click();
-    cy.get('.full-page.ref .actions a').contains('yes').click();
+    cy.get('.full-page.ref .actions *').contains('delete').click();
+    cy.get('.full-page.ref .actions *').contains('yes').click();
     cy.visit(`/ref/e/${encodeURIComponent('https://www.jasper-kms.info/')}?debug=USER`);
     cy.contains('Not Found');
   });

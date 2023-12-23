@@ -21,7 +21,7 @@ describe('Ref Actions', {
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
   it('edits comments field', () => {
-    cy.get('.actions a').contains('edit').click();
+    cy.get('.actions *').contains('edit').click();
     cy.get('#comment textarea').type('Comment field');
     cy.get('form .md').should('contain', 'Comment field');
     cy.get('button').contains('save').click();
@@ -30,36 +30,36 @@ describe('Ref Actions', {
     cy.get('.full-page.ref').should('not.contain', 'Comment field');
   });
   xit('adds tag inline (this breaks loading "1 citation" text)', () => {
-    cy.get('.actions a').contains('tag').click();
+    cy.get('.actions *').contains('tag').click();
     cy.get('.inline-tagging input').type('cool{enter}');
     cy.get('.full-page.ref .tag:not(.user)').contains('cool').should('exist');
   });
   it('creates reply', () => {
-    cy.get('.actions a').contains('reply').click();
+    cy.get('.actions *').contains('reply').click();
     cy.get('#title').type('Reply');
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Reply');
   });
   it('shows parent', () => {
-    cy.get('.actions a').contains('parent').click();
+    cy.get('.actions *').contains('parent').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
     cy.title().should('includes', 'Title');
   });
   it('adds tag inline', () => {
-    cy.get('.actions a').contains('tag').click();
+    cy.get('.actions *').contains('tag').click();
     cy.get('.inline-tagging input').type('cool{enter}');
     cy.get('.full-page.ref .tag:not(.user)').contains('cool').should('exist');
   });
   it('shows responses', () => {
-    cy.get('.full-page.ref .actions a').contains('1 citation').click();
+    cy.get('.full-page.ref .actions *').contains('1 citation').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
     cy.title().should('includes', 'Responses: Title');
     cy.get('.ref-list .ref .link a').contains('Reply');
   });
   it('should delete reply', () => {
-    cy.get('.ref-list .ref .actions a').contains('delete').click();
-    cy.get('.ref-list .ref .actions a').contains('yes').click();
-    cy.get('.ref-list .ref .actions a').contains('parent').click();
+    cy.get('.ref-list .ref .actions *').contains('delete').click();
+    cy.get('.ref-list .ref .actions *').contains('yes').click();
+    cy.get('.ref-list .ref .actions *').contains('parent').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
 });

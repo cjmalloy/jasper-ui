@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { TAGS_REGEX } from '../../../util/format';
 import { ActionComponent } from '../action.component';
@@ -9,6 +9,7 @@ import { ActionComponent } from '../action.component';
   styleUrls: ['./inline-tag.component.scss']
 })
 export class InlineTagComponent extends ActionComponent {
+  @HostBinding('class') css = 'action';
   tagRegex = TAGS_REGEX.source;
 
   @Input()

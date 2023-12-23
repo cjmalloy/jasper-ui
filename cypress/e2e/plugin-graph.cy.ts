@@ -30,7 +30,7 @@ describe('Graph Plugin', {
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
   it('shows graph', () => {
-    cy.get('.full-page .actions a').contains('edit').click();
+    cy.get('.full-page .actions *').contains('edit').click();
     cy.get('#url').then($url => {
       cy.visit('/tag/@*?search=' + $url.val() + '&debug=USER');
     });
@@ -38,7 +38,7 @@ describe('Graph Plugin', {
     cy.get('figure').contains('Title');
   });
   it('creates reply', () => {
-    cy.get('.ref .actions a').contains('reply').click();
+    cy.get('.ref .actions *').contains('reply').click();
     cy.get('#title').type('Reply');
     cy.contains('show advanced').click();
     cy.get('#published').type('2020-01-02T00:00');
@@ -46,7 +46,7 @@ describe('Graph Plugin', {
     cy.get('.full-page.ref .link a').should('have.text', 'Reply');
   });
   it('graphs reply', () => {
-    cy.get('.full-page .actions a').contains('edit').click();
+    cy.get('.full-page .actions *').contains('edit').click();
     cy.get('#url').then($url => {
       cy.visit('/tag/@*?search=' + $url.val() + '&debug=USER');
     });

@@ -1,6 +1,5 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
-import { URI_REGEX } from '../../../util/format';
 import { ActionComponent } from '../action.component';
 
 @Component({
@@ -9,7 +8,7 @@ import { ActionComponent } from '../action.component';
   styleUrls: ['./inline-select.component.scss']
 })
 export class InlineSelectComponent extends ActionComponent {
-  uriRegex = URI_REGEX.source;
+  @HostBinding('class') css = 'action';
 
   @Input()
   action: (value: any) => Observable<any|never> = () => of(null);

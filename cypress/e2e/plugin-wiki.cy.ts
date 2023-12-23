@@ -68,7 +68,7 @@ describe('Wiki Plugin', {
   });
   it('delete wiki', () => {
     cy.visit('/ref/e/wiki:Wiki_test?debug=USER');
-    cy.get('.full-page.ref .actions a').contains('delete').click();
-    cy.get('.full-page.ref .actions a').contains('yes').click();
+    cy.get('.full-page.ref .actions *').contains('delete').click();
+    cy.get('.full-page.ref .actions *').contains('yes').click();
   });
 });

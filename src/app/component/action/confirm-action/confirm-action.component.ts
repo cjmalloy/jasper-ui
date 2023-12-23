@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { ActionComponent } from '../action.component';
 
@@ -8,6 +8,7 @@ import { ActionComponent } from '../action.component';
   styleUrls: ['./confirm-action.component.scss']
 })
 export class ConfirmActionComponent extends ActionComponent {
+  @HostBinding('class') css = 'action';
 
   @Input()
   action: () => Observable<any|never> = () => of(null);
