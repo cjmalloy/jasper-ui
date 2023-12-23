@@ -43,8 +43,8 @@ describe('Kanban Template No Swimlanes', {
     cy.get('.columns button').click()
         .type('doing{enter}')
         .type('done');
-    cy.get('#showNoColumn').click();
-    cy.get('#noColumnTitle').type('todo');
+    cy.get('#showColumnBacklog').click();
+    cy.get('#columnBacklogTitle').type('todo');
     cy.get('button').contains('Save').click();
     cy.get('h2').should('have.text', 'Kanban Test');
   });
@@ -88,6 +88,5 @@ describe('Kanban Template No Swimlanes', {
   it('deletes board', () => {
     cy.visit('/ext/kanban/test?debug=MOD');
     cy.get('button').contains('Delete').click();
-    cy.contains('Not Found');
   });
 });

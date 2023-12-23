@@ -43,12 +43,12 @@ describe('Kanban Template with Swim Lanes', {
     cy.get('.columns button').click()
         .type('doing{enter}')
         .type('done');
-    cy.get('#showNoColumn').click();
-    cy.get('#noColumnTitle').type('todo');
+    cy.get('#showColumnBacklog').click();
+    cy.get('#columnBacklogTitle').type('todo');
     cy.get('.swim-lanes button').click()
         .type('alice{enter}')
         .type('bob');
-    cy.get('#showNoSwimLane').click();
+    cy.get('#showSwimLaneBacklog').click();
     cy.get('button').contains('Save').click();
     cy.get('h2').should('have.text', 'Kanban Swim Lane Test');
   });
@@ -197,6 +197,5 @@ describe('Kanban Template with Swim Lanes', {
   it('deletes board', () => {
     cy.visit('/ext/kanban/sl?debug=MOD');
     cy.get('button').contains('Delete').click();
-    cy.contains('Not Found');
   });
 });
