@@ -186,7 +186,6 @@ export const originPushPlugin: Plugin = {
   },
   defaults: {
     pushInterval: 'PT15M',
-    writeOnly: true,
   },
   schema: {
     properties: {
