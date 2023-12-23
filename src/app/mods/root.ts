@@ -68,6 +68,12 @@ export const rootTemplate: Template = {
       }
     }],
     advancedForm: [{
+      key: 'dms',
+      type: 'tag',
+      props: {
+        label: $localize`DMs:`
+      }
+    }, {
       key: 'responseFilters',
       type: 'list',
       props: {
@@ -121,6 +127,7 @@ export const rootTemplate: Template = {
       pinned: { elements: { type: 'string' } },
       sidebar: { type: 'string' },
       modmail: { type: 'boolean' },
+      dms: { type: 'string' },
       queryFilters: { elements: {
         properties: {
           query: { type: 'string' },
@@ -155,6 +162,7 @@ export interface RootConfig {
   pinned?: string[];
   sidebar?: string;
   modmail?: boolean;
+  dms?: string;
   queryFilters?: { query: string, label?: string}[];
   responseFilters?: { response: `plugin/${string}` | `!plugin/${string}`, label?: string }[];
   themes?: Record<string, string>;

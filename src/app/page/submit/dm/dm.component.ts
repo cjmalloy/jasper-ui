@@ -67,19 +67,18 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   ngAfterViewInit(): void {
     defer(() => {
       this.disposers.push(autorun(() => {
-        if (this.store.submit.textPlugin === 'plugin/inbox/ai') {
-          this.to.setValue(this.store.submit.textPlugin);
+        if (this.store.submit.textPlugin === 'plugin/inbox/ai' || this.store.submit.to === 'ai') {
+          this.to.setValue('ai');
           this.title.setValue($localize`Chat with AI`);
-        }
-        if (this.store.submit.textPlugin === 'plugin/inbox/dalle') {
-          this.to.setValue(this.store.submit.textPlugin);
+        } else if (this.store.submit.textPlugin === 'plugin/inbox/dalle') {
+          this.to.setValue('dalle');
           this.title.setValue($localize`Draw something...`);
+        } if (this.store.submit.to) {
+          this.to.setValue(this.store.submit.to);
         }
+
         if (this.store.submit.sources) {
           this.sources.setValue(this.store.submit.sources)
-        }
-        if (this.store.submit.to) {
-          this.to.setValue(this.store.submit.to);
         }
         if (!this.to.value || hasPrefix(this.to.value, 'user')) {
           this.defaultTo = $localize`DM from ${this.store.account.tag}`;

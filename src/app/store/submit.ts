@@ -113,7 +113,7 @@ export class SubmitStore {
   }
 
   get textPlugin() {
-    return this.tags.find(t => this.submitText.find(p => p.tag === t));
+    return [...this.tags, this.to].find(t => this.submitText.find(p => p.tag === t));
   }
 
   get withoutGenId() {

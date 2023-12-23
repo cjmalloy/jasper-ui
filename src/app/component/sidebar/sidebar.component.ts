@@ -51,6 +51,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   local = true;
   plugin?: Plugin;
   mailPlugin?: Plugin;
+  tagTemplate?: Template;
   template?: Template;
   writeAccess = false;
   ui: Template[] = [];
@@ -123,6 +124,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         }
         this.defaultThumbnail = this.rootConfig?.defaultThumbnail;
         this.mailPlugin = this.admin.getPlugin(getMailbox(this.tag, this.store.account.origin));
+        this.tagTemplate = this.admin.getTemplate(this.tag);
         this.writeAccess = this.auth.tagWriteAccess(this.tag);
         this.ui = this.admin.getTemplateUi(this.tag);
       } else {
@@ -131,6 +133,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         this.addTags = this.rootConfig?.addTags || ['public'];
         this.plugin = undefined;
         this.mailPlugin = undefined;
+        this.tagTemplate = undefined;
         this.writeAccess = false;
         this.ui = [];
       }
@@ -160,12 +163,15 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   get rootConfig() {
     if (!this.root) return undefined;
-    return (this.ext?.config || this.admin.getTemplate('')!.defaults) as RootConfig;
+    return (this.ext?.config || this.tagTemplate?.defaults || this.admin.getTemplate('')!.defaults) as RootConfig;
   }
 
-
   get modmail() {
-    return this.ext?.config?.modmail;
+    return this.rootConfig?.modmail;
+  }
+
+  get dms() {
+    return this.rootConfig?.dms;
   }
 
   get user() {
@@ -202,7 +208,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     if (!this.admin.getPlugin('plugin/inbox')) return false;
     if (!this.admin.getTemplate('dm')) return false;
     if (!this.store.account.user) return false;
-    return this.user || this.modmail;
+    return this.user || this.modmail || this.dms;
   }
 
   get homeWriteAccess() {

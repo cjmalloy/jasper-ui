@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Template } from '../model/template';
 
 export const aiQueryPlugin: Plugin = {
   tag: 'plugin/inbox/ai',
@@ -86,6 +87,18 @@ Responses sent to you will only include direct sources. Be sure to summarize imp
   },
   schema: {},
   generateMetadata: true,
+};
+
+export const aiTemplate: Template = {
+  tag: 'plugin/openai',
+  name: $localize`👻️ OpenAI`,
+  config: {
+    mod: $localize`👻️ AI Chat`,
+    type: 'tool',
+  },
+  defaults: {
+    dms: 'plugin/inbox/ai',
+  }
 };
 
 export const dalleQueryPlugin: Plugin = {
