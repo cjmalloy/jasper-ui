@@ -102,6 +102,36 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Testing Remote @main');
   });
+  it('@main: pull @other', () => {
+    cy.visit('/?debug=ADMIN');
+    cy.get('.settings a').contains('settings').click();
+    cy.get('.tabs').contains('origin').click();
+    openSidebar();
+    cy.get('input[type=search]').type(replApi + '{enter}');
+    cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
+    cy.intercept({pathname: '/api/v1/origin/pull'}).as('pull');
+    cy.get('@other').find('.actions').contains('pull').click();
+    cy.wait('@pull');
+    cy.wait(2000);
+    cy.get('#show-remotes').check();
+    cy.get('input[type=search]').clear().type('{enter}');
+    cy.get('.ref-list .link.remote').contains('Testing Remote @main');
+  });
+  it('@other: pull @main', () => {
+    cy.visit(replUrl + '/?debug=ADMIN');
+    cy.get('.settings a').contains('settings').click();
+    cy.get('.tabs').contains('origin').click();
+    openSidebar();
+    cy.get('input[type=search]').type(mainApi + '{enter}');
+    cy.get('.link:not(.remote)').contains('@main').parent().parent().as('main');
+    cy.intercept({pathname: '/api/v1/origin/pull'}).as('pull');
+    cy.get('@main').find('.actions').contains('pull').click();
+    cy.wait('@pull');
+    cy.wait(2000);
+    cy.get('#show-remotes').check();
+    cy.get('input[type=search]').clear().type('{enter}');
+    cy.get('.ref-list .link.remote').contains('Testing Remote @other');
+  });
   it('@other: creates ref', () => {
     cy.visit(replUrl + '/?debug=USER&tag=bob');
     openSidebar();
@@ -116,6 +146,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=USER&tag=charlie');
     cy.wait('@notifications');
+    cy.wait(100);
     cy.get('.settings .notification').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link:not(.remote)').contains('Ref from other').parent().parent().as('ref');
@@ -131,12 +162,12 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.intercept({pathname: '/api/v1/origin/pull'}).as('pull');
     cy.get('@other').find('.actions').contains('pull').click();
     cy.wait('@pull');
-    cy.wait(100);
   });
   it('@main: check ref was pulled', () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit('/?debug=USER&tag=alice');
     cy.wait('@notifications');
+    cy.wait(100);
     cy.get('.settings .notification').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Ref from other').parent().parent().as('ref');
@@ -146,6 +177,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit('/?debug=USER&tag=alice');
     cy.wait('@notifications');
+    cy.wait(100);
     cy.get('.settings .inbox').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Ref from other').parent().parent().as('ref');
@@ -168,6 +200,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=USER&tag=bob');
     cy.wait('@notifications');
+    cy.wait(100);
     cy.get('.settings .notification').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().as('ref');
@@ -177,6 +210,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=USER&tag=charlie');
     cy.wait('@notifications');
+    cy.wait(100);
     cy.get('.settings .notification').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().as('ref');
