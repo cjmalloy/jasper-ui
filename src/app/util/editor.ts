@@ -6,12 +6,12 @@ import { wikiUriFormat } from '../mods/wiki';
 import { QUALIFIED_USER_REGEX, TAG_REGEX } from './format';
 
 export function getMailboxes(markdown: string, origin = '') {
-  return extractPattern(markdown, / [_+]user\/[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?/g, undefined, QUALIFIED_USER_REGEX)
+  return extractPattern(markdown, /[_+]user\/[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?/g, undefined, QUALIFIED_USER_REGEX)
     .map(u => getMailbox(u, origin));
 }
 
 export function getTags(markdown: string) {
-  return extractPattern(markdown, / #[a-z0-9]+([./][a-z0-9]+)*/g, / #([a-z0-9]+([./][a-z0-9]+)*)/, TAG_REGEX);
+  return extractPattern(markdown, /#[_+]?[a-z0-9]+([./][a-z0-9]+)*/g, /#([a-z0-9]+([./][a-z0-9]+)*)/, TAG_REGEX);
 }
 
 export function extractPattern(markdown: string, pattern: RegExp, extractor?: RegExp, validator?: RegExp) {
