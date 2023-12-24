@@ -111,11 +111,23 @@ export const originPullPlugin: Plugin = {
         label: $localize`Validate Plugins:`,
       }
     }, {
+      key: 'stripInvalidPlugins',
+      type: 'boolean',
+      props: {
+        label: $localize`Strip Invalid Plugins:`,
+      }
+    }, {
       key: 'validateTemplates',
       type: 'boolean',
       defaultValue: true,
       props: {
         label: $localize`Validate Templates:`,
+      }
+    }, {
+      key: 'stripInvalidTemplates',
+      type: 'boolean',
+      props: {
+        label: $localize`Strip Invalid Templates:`,
       }
     }, {
       key: 'validationOrigin',
@@ -143,7 +155,9 @@ export const originPullPlugin: Plugin = {
       batchSize: { type: 'int32' },
       generateMetadata: { type: 'boolean' },
       validatePlugins: { type: 'boolean' },
+      stripInvalidPlugins: { type: 'boolean' },
       validateTemplates: { type: 'boolean' },
+      stripInvalidTemplates: { type: 'boolean' },
       validationOrigin: { type: 'string' },
       originFromTag: { type: 'string' },
       addTags: { elements: { type: 'string' } },
