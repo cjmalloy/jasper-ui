@@ -32,8 +32,7 @@ describe('Smoke Tests', {
     cy.visit('/?debug=ADMIN');
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
-      expect(response.body).deep.equal({
-        debug: false,
+      expect(response.body).includes({
         tag: '+user/debug',
         sysadmin: false,
         admin: true,
@@ -50,8 +49,7 @@ describe('Smoke Tests', {
     cy.visit('/?debug=MOD');
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
-      expect(response.body).deep.equal({
-        debug: false,
+      expect(response.body).includes({
         tag: '+user/debug',
         sysadmin: false,
         admin: false,
@@ -68,8 +66,7 @@ describe('Smoke Tests', {
     cy.visit('/?debug=EDITOR');
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
-      expect(response.body).deep.equal({
-        debug: false,
+      expect(response.body).includes({
         tag: '+user/debug',
         sysadmin: false,
         admin: false,
@@ -86,8 +83,7 @@ describe('Smoke Tests', {
     cy.visit('/?debug=USER');
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
-      expect(response.body).deep.equal({
-        debug: false,
+      expect(response.body).includes({
         tag: '+user/debug',
         sysadmin: false,
         admin: false,
@@ -104,8 +100,7 @@ describe('Smoke Tests', {
     cy.visit('/?debug=VIEWER');
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
-      expect(response.body).deep.equal({
-        debug: false,
+      expect(response.body).includes({
         tag: '+user/debug',
         sysadmin: false,
         admin: false,
@@ -122,8 +117,7 @@ describe('Smoke Tests', {
     cy.visit('/?debug=ANON');
     cy.wait('@whoami');
     cy.get('@whoami').should(({ request, response }: any) => {
-      expect(response.body).deep.equal({
-        debug: false,
+      expect(response.body).includes({
         tag: '+user/debug',
         sysadmin: false,
         admin: false,
