@@ -39,7 +39,7 @@ services:
     ports:
       - 8081:80
     environment:
-      SPRING_PROFILES_ACTIVE: prod,jwt,feed-burst,push-burst,pull-burst,storage
+      SPRING_PROFILES_ACTIVE: prod,jwt
       SPRING_DATASOURCE_URL: jdbc:postgresql://db/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
@@ -77,7 +77,7 @@ services:
     ports:
       - 8083:80
     environment:
-      SPRING_PROFILES_ACTIVE: prod,jwt,feed-burst,push-burst,pull-burst,storage
+      SPRING_PROFILES_ACTIVE: prod,jwt
       SPRING_DATASOURCE_URL: jdbc:postgresql://repl-db/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
@@ -88,7 +88,6 @@ services:
       JASPER_CORS_EXPOSED_HEADERS: 'Authorization,Link,X-Total-Count'
       JASPER_CORS_ALLOW_CREDENTIALS: true
       JASPER_CORS_MAX_AGE: 1800
-      JASPER_SECURITY_CLIENTS_DEFAULT_DEFAULT_ROLE: ROLE_MOD
       JASPER_SECURITY_CLIENTS_DEFAULT_AUTHENTICATION_JWT_CLIENT_ID: ''
       JASPER_SECURITY_CLIENTS_DEFAULT_AUTHENTICATION_JWT_BASE64_SECRET: 'MjY0ZWY2ZTZhYmJhMTkyMmE5MTAxMTg3Zjc2ZDlmZWUwYjk0MDgzODA0MDJiOTgyNTk4MmNjYmQ4Yjg3MmVhYjk0MmE0OGFmNzE2YTQ5ZjliMTEyN2NlMWQ4MjA5OTczYjU2NzAxYTc4YThkMzYxNzdmOTk5MTIxODZhMTkwMDM='
       JASPER_HEAP: 128m
@@ -105,7 +104,7 @@ services:
     ports:
       - 8085:80
     environment:
-      SPRING_PROFILES_ACTIVE: prod,default-user,storage
+      SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:postgresql://repl-db/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
