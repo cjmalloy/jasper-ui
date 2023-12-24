@@ -112,7 +112,6 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.intercept({pathname: '/api/v1/origin/pull'}).as('pull');
     cy.get('@other').find('.actions').contains('pull').click();
     cy.wait('@pull');
-    cy.wait(2000);
     cy.get('#show-remotes').check();
     cy.get('input[type=search]').clear().type('{enter}');
     cy.get('.ref-list .link.remote').contains('Testing Remote @main');
@@ -127,7 +126,6 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.intercept({pathname: '/api/v1/origin/pull'}).as('pull');
     cy.get('@main').find('.actions').contains('pull').click();
     cy.wait('@pull');
-    cy.wait(2000);
     cy.get('#show-remotes').check();
     cy.get('input[type=search]').clear().type('{enter}');
     cy.get('.ref-list .link.remote').contains('Testing Remote @other');
