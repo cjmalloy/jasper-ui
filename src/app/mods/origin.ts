@@ -104,8 +104,23 @@ export const originPullPlugin: Plugin = {
         label: $localize`Generate Metadata:`,
       }
     }, {
+      key: 'validatePlugins',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Validate Plugins:`,
+      }
+    }, {
+      key: 'validateTemplates',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Validate Templates:`,
+      }
+    }, {
       key: 'validationOrigin',
       type: 'origin',
+      defaultValue: '',
       props: {
         label: $localize`Validation Origin:`,
       }
