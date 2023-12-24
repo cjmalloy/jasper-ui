@@ -18,7 +18,6 @@ describe('Smoke Tests', {
     cy.contains('Next').click();
     cy.wait(1000); // First part of 'Title' getting truncated
     cy.get('#title').type('Title');
-    openSidebar();
     cy.get('button').contains('Submit').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
