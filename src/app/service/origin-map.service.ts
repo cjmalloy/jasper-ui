@@ -46,7 +46,7 @@ export class OriginMapService {
       console.error(`Too many origins to load, only loaded ${alreadyLoaded}. Increase maxOrigins to load more.`)
       return of(null);
     }
-    return this.refs.page({query: '+plugin/origin', page, size: this.config.fetchBatch}).pipe(
+    return this.refs.page({ query: '+plugin/origin', page, size: this.config.fetchBatch, obsolete: true }).pipe(
       tap(batch => this.origins.push(...batch.content)),
       switchMap(batch => batch.last ? of(null) : this.loadOrigins$(page + 1)),
     );

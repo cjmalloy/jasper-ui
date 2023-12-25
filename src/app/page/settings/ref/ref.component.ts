@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { defer } from 'lodash-es';
+import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
@@ -40,7 +40,7 @@ export class SettingsRefPage implements OnInit, OnDestroy {
       const args = getArgs(
         this.store.settings.tag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
         this.store.view.sort,
-        this.store.view.filter,
+        uniq(['obsolete', ...this.store.view.filter]),
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
