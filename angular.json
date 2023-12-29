@@ -42,7 +42,6 @@
             ],
             "styles": [
               "src/styles.scss",
-              "node_modules/prismjs/themes/prism-okaidia.css",
               "node_modules/katex/dist/katex.min.css"
             ],
             "scripts": [
