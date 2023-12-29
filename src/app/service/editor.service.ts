@@ -172,9 +172,10 @@ export class EditorService {
     if (!alts) return markdown;
     let i = 0;
     for (const s of alts) {
+      const es = s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
       i++;
-      markdown = markdown.replace(new RegExp(`\\[alt\\d+]\\(${s}\\)`, 'g'), `[alt${i}](${s})`);
-      markdown = markdown.replace(new RegExp(`\\[\\[alt\\d+]]\\(${s}\\)`, 'g'), `[[alt${i}]](${s})`);
+      markdown = markdown.replace(new RegExp(`\\[alt\\d+]\\(${es}\\)`, 'g'), `[alt${i}](${s})`);
+      markdown = markdown.replace(new RegExp(`\\[\\[alt\\d+]]\\(${es}\\)`, 'g'), `[[alt${i}]](${s})`);
       markdown = markdown.replace(new RegExp(`(^|[^[])\\[alt${i}]([^[(]|$)`, 'g'), `$1[alt${i}](${s})$2`);
       markdown = markdown.replace(new RegExp(`\\[\\[alt${i}]]([^(]|$)`, 'g'), `[[alt${i}]](${s})$1`);
     }
