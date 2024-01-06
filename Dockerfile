@@ -33,7 +33,9 @@ RUN npm i -g @angular/cli
 COPY --from=builder app ./
 CMD ng test --karma-config karma-ci.conf.js
 
-FROM nginx:alpine-slim as deploy
+FROM ghcr.io/cjmalloy/docker-nginx-brotli:master as deploy
+RUN sed -i '1i load_module /usr/lib/nginx/modules/ngx_http_brotli_filter_module.so;' /etc/nginx/nginx.conf
+RUN sed -i '1i load_module /usr/lib/nginx/modules/ngx_http_brotli_static_module.so;' /etc/nginx/nginx.conf
 WORKDIR /usr/share/nginx/html/
 COPY --from=builder app/dist/jasper-ui ./
 ARG BASE_HREF="/"
