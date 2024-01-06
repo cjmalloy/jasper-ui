@@ -25,14 +25,14 @@ jobs:
         run: npm run cy:ci
 
       - name: Publish Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: cypress
           path: cypress/reports/html
 
       - name: Publish Videos
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: cypress-videos
