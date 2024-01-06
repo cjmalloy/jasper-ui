@@ -54,6 +54,7 @@ describe('Kanban Template with Swim Lanes', {
   });
   it('add to board', () => {
     loadBoard();
+    cy.wait(100);
     addToBoard(7, 'first step');
     cy.get('.kanban-column:nth-of-type(7) a').contains('first step').click();
     cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Swim Lane Test').should('exist');
