@@ -5,16 +5,16 @@
     <ng-container *ngIf="admin.getTemplate('user') && store.account.localTag">
       <a routerLink="./me" routerLinkActive="current-tab" i18n-title title="My settings" i18n>me</a>
     </ng-container>
-    <a routerLink="./user" routerLinkActive="current-tab" i18n-title title="User permissions" i18n>user</a>
+    <a *ngIf="store.account.admin" routerLink="./setup" routerLinkActive="current-tab" i18n-title title="Setup" i18n>setup</a>
     <a *ngFor="let plugin of store.settings.plugins"
        [routerLink]="['./ref', plugin.tag]"
        [replaceUrl]="true"
        routerLinkActive="current-tab"
        queryParamsHandling="merge"
        [title]="plugin.name || plugin.tag">{{ plugin.config?.settings || plugin.tag }}</a>
+    <a routerLink="./user" routerLinkActive="current-tab" i18n-title title="User permissions" i18n>user</a>
     <a routerLink="./plugin" routerLinkActive="current-tab" i18n-title title="Ref Plugins" i18n>plugin</a>
     <a routerLink="./template" routerLinkActive="current-tab" i18n-title title="Ext Templates" i18n>template</a>
-    <a *ngIf="store.account.admin" routerLink="./setup" routerLinkActive="current-tab" i18n-title title="Setup" i18n>setup</a>
     <a *ngIf="store.account.mod" routerLink="./backup" routerLinkActive="current-tab" i18n-title title="Backup" i18n>backup</a>
     <a *ngIf="config.scim && store.account.signedIn" routerLink="./password" routerLinkActive="current-tab" i18n-title title="Change Password" i18n>password</a>
   </app-tabs>
