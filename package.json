@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build --configuration production --source-map",
+    "postbuild": "for i in $(find dist/jasper-ui/ -type f -not -name \"*.br\" -print); do brotli -9 $i; done",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "e2e": "ng e2e",
