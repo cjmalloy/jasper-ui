@@ -881,10 +881,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
           return this.refs.get(this.ref.url, this.store.account.origin).pipe(
-            switchMap(ref => {
-              if (equalsRef(ref, copied) || window.confirm('An old version already exists. Overwrite it?')) {
+            switchMap(existing => {
+              if (equalsRef(existing, copied) || window.confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
-                return this.refs.update(ref, true);
+                return this.refs.update({ ...copied, modifiedString: existing.modifiedString }, true);
               } else {
                 return throwError(() => 'Cancelled')
               }
@@ -919,7 +919,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
                 switchMap(existing => {
                   if (equalsRef(existing, ref) || window.confirm('An old version already exists. Overwrite it?')) {
                     // TODO: Show diff and merge or split
-                    return this.refs.update(ref, true);
+                    return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
                   } else {
                     return throwError(() => 'Cancelled');
                   }
