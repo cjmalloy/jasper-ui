@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { defer, delay, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
-import { catchError, concat, lastValueFrom, of } from 'rxjs';
+import { catchError, concat, lastValueFrom, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
 import { Ext, mapTag } from '../../../model/ext';
@@ -315,6 +315,16 @@ export class UploadPage implements OnDestroy {
     return (this.store.submit.overwrite
       ? this.refs.update({ ...ref, origin: this.store.account.origin }, true)
       : this.refs.create({ ...ref, origin: this.store.account.origin })).pipe(
+      catchError((err: HttpErrorResponse) => {
+        if (err.status === 409 && this.store.submit.overwrite) {
+          return this.refs.get(ref.url, this.store.account.origin).pipe(
+            switchMap(existing => {
+              return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
+            })
+          );
+        }
+        return throwError(() => err);
+      }),
       catchError((res: HttpErrorResponse) => {
         this.serverErrors.push(...printError(res));
         return of(null);
@@ -326,6 +336,16 @@ export class UploadPage implements OnDestroy {
     return (this.store.submit.overwrite
       ? this.exts.update({ ...ext, origin: this.store.account.origin }, true)
       : this.exts.create({ ...ext, origin: this.store.account.origin })).pipe(
+      catchError((err: HttpErrorResponse) => {
+        if (err.status === 409 && this.store.submit.overwrite) {
+          return this.exts.get(ext.tag + this.store.account.origin).pipe(
+            switchMap(existing => {
+              return this.exts.update({ ...ext, modifiedString: existing.modifiedString }, true);
+            })
+          );
+        }
+        return throwError(() => err);
+      }),
       catchError((res: HttpErrorResponse) => {
         this.serverErrors.push(...printError(res));
         return of(null);
