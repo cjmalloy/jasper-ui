@@ -1506,12 +1506,12 @@ button.backup, button.upload, input.upload {
 }
 
 .inline-ui {
-  &, * {
+  &, & > *:not(dialog) {
     display: inline !important;
     white-space: nowrap;
-  }
-  br {
-    display: none !important;
+    & > br {
+      display: none !important;
+    }
   }
 }
 
