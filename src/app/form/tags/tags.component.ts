@@ -1,6 +1,7 @@
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { map } from 'lodash-es';
+import { UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
+import { some } from 'lodash-es';
+import { AdminService } from '../../service/admin.service';
 import { TAG_REGEX } from '../../util/format';
 import { includesTag } from '../../util/tag';
 
@@ -14,7 +15,7 @@ export class TagsFormComponent implements OnInit {
   @HostBinding('class') css = 'form-group';
 
   @Input()
-  group!: UntypedFormGroup;
+  group?: UntypedFormGroup;
   @Input('fieldName')
   fieldName = 'tags';
 
@@ -35,7 +36,7 @@ export class TagsFormComponent implements OnInit {
   };
 
   constructor(
-    private fb: UntypedFormBuilder,
+    private admin: AdminService,
   ) { }
 
   ngOnInit(): void {
@@ -67,10 +68,11 @@ export class TagsFormComponent implements OnInit {
   }
 
   get tags() {
-    return this.group.get(this.fieldName) as UntypedFormArray;
+    return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
   }
 
   addTag(...values: string[]) {
+    if (!this.tags) throw 'Not ready yet!';
     if (!values.length) return;
     this.model = this.tags.value;
     for (const value of values) {
@@ -80,14 +82,21 @@ export class TagsFormComponent implements OnInit {
   }
 
   removeTag(index: number) {
+    if (!this.tags) throw 'Not ready yet!';
     this.tags.removeAt(index);
   }
 
   includesTag(tag: string) {
-    return includesTag(tag, this.tags.value || []);
+    return includesTag(tag, this.tags?.value || []);
+  }
+
+  get editingViewer() {
+    if (!this.tags?.value) return false;
+    return some(this.admin.editingViewer, t => includesTag(t.tag, this.tags!.value));
   }
 
   removeTagOrSuffix(tag: string) {
+    if (!this.tags) throw 'Not ready yet!';
     let removed = false;
     const tags = this.tags.value || [];
     for (let i = tags.length - 1; i >= 0; i--) {

@@ -1,4 +1,4 @@
-<ng-container *ngIf="ref || tags">
+@if (ref || tags) {
   <app-ref *ngIf="repost"
            class="expand"
            [fetchRepost]="false"
@@ -57,19 +57,22 @@
           [appResize]="!disableResize"></app-qr>
   <app-todo *ngIf="todo"
             [ref]="ref"
+            [text]="text"
             [tags]="tags"
             (comment)="comment.emit($event)"
             (copied)="copied.emit($event)"></app-todo>
   <app-backgammon *ngIf="backgammon"
                   [ref]="ref"
+                  [text]="text"
                   (comment)="comment.emit($event)"
                   (copied)="copied.emit($event)"></app-backgammon>
   <app-chess *ngIf="chess"
              [white]="chessWhite"
              [ref]="ref"
+             [text]="text"
              (comment)="comment.emit($event)"
              (copied)="copied.emit($event)"></app-chess>
-</ng-container>
+}
 <app-md *ngIf="currentText"
         [class.expand]="expand"
         [origin]="origin || ref?.origin || ''"

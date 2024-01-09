@@ -25,6 +25,7 @@ export class TodoItemComponent implements OnInit {
   update = new EventEmitter<{ text: string, checked: boolean }>();
 
   checked = false;
+  editing = false;
   text = '';
 
   private _line = '';
@@ -71,5 +72,10 @@ export class TodoItemComponent implements OnInit {
   toggle() {
     this.checked = !this.checked;
     this.update.next({ text: this.text, checked: this.checked });
+  }
+
+  edit() {
+    this.update.next({ text: this.text, checked: this.checked });
+    this.editing = false;
   }
 }

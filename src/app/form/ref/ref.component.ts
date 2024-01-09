@@ -44,6 +44,7 @@ export class RefFormComponent implements OnInit {
 
   oembed?: Oembed;
   scraped?: Ref;
+  ref?: Ref;
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -63,7 +64,7 @@ export class RefFormComponent implements OnInit {
 
   @ViewChild('fill')
   set setFill(value: ElementRef) {
-    this.fill.next(value.nativeElement);
+    this.fill.next(value?.nativeElement);
   }
 
   get web() {
@@ -159,6 +160,7 @@ export class RefFormComponent implements OnInit {
   }
 
   setRef(ref: Ref) {
+    this.ref = ref;
     this.sources.model = [...ref?.sources || []];
     this.alts.model = [...ref?.alternateUrls || []];
     this.tags.model = [...ref.tags || []];

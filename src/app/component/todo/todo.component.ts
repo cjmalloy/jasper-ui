@@ -1,5 +1,15 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, EventEmitter, HostBinding, HostListener, Input, NgZone, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  HostBinding,
+  HostListener,
+  Input,
+  NgZone,
+  OnChanges,
+  Output,
+  SimpleChanges
+} from '@angular/core';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
@@ -13,9 +23,13 @@ import { printError } from '../../util/http';
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
 })
-export class TodoComponent {
+export class TodoComponent implements OnChanges {
   @HostBinding('class') css = 'todo-list';
 
+  @Input()
+  ref?: Ref;
+  @Input()
+  text? = '';
   @Input()
   origin = '';
   @Input()
@@ -29,7 +43,6 @@ export class TodoComponent {
   addText = ``;
   pressToUnlock = false;
   serverErrors: string[] = [];
-  private _ref?: Ref;
 
   constructor(
     public config: ConfigService,
@@ -42,21 +55,19 @@ export class TodoComponent {
     }
   }
 
+  init() {
+    this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ref || changes.text) {
+      this.init();
+    }
+  }
+
   @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
     this.zone.run(() => this.pressToUnlock = true);
-  }
-
-  get ref() {
-    return this._ref;
-  }
-
-  @Input()
-  set ref(value: Ref | undefined) {
-    this._ref = value;
-    if (value) {
-      this.lines = value.comment?.split('\n')?.filter(l => !!l) || [];
-    }
   }
 
   get local() {
@@ -74,7 +85,11 @@ export class TodoComponent {
   }
 
   update(line: {index: number, text: string, checked: boolean}) {
-    this.lines[line.index] = `- [${line.checked ? 'X' : ' '}] ${line.text}`;
+    if (!line.text) {
+      this.lines.splice(line.index, 1);
+    } else {
+      this.lines[line.index] = `- [${line.checked ? 'X' : ' '}] ${line.text}`;
+    }
     this.save(this.lines.join('\n'));
   }
 

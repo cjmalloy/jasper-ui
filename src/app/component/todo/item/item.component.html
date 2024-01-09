@@ -1,7 +1,18 @@
 <div class="todo-item-container row">
-  <input type="checkbox" [checked]="checked" (input)="toggle()">
-  <app-md *ngIf="text"
-          [origin]="origin"
-          [plugins]="plugins"
-          [text]="text"></app-md>
+  <input #checkbox type="checkbox" [checked]="checked" (input)="toggle()">
+  @if (editing) {
+    <textarea [value]="text"
+              (focusin)="editing = true"
+              (input)="text = $any($event).target.value"
+              (keydown)="$event.key === 'Enter' && edit() || true"
+              (blur)="edit()"
+              [appAutofocus]="true"></textarea>
+  } @else if (text) {
+    <app-md [origin]="origin"
+            [plugins]="plugins"
+            [text]="text"
+            tabindex="0"
+            (focus)="editing = true"
+            (click)="editing = editing || $event.target != checkbox"></app-md>
+  }
 </div>

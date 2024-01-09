@@ -61,20 +61,29 @@
                     [tags]="group.value.tags"
                     [group]="group"></app-form-plugins>
 
-  <label for="comment" class="editor-label" i18n>Abstract:</label>
-  <div class="fill-editor" #fill>
-    <app-editor id="comment"
-                class="bubble"
-                [control]="comment"
-                [tags]="getTags()"
-                [fillWidth]="fill"
-                [url]="web && url.value"
-                [showScrape]="!!admin.getPlugin('+plugin/scrape') && web && !oembed"
-                (scrape)="scrapeComment()"
-                (syncEditor)="syncEditor()"
-                (syncTags)="editorTags.next($event)"></app-editor>
-  </div>
+  @if (tags.editingViewer) {
+    <span><!-- Viewer --></span>
+    <div #fill>
+      <app-viewer [text]="ref?.comment"
+                  [tags]="$any(group.value).tags"
+                  (comment)="comment.setValue($event)"></app-viewer>
+    </div>
+  } @else {
+    <label for="comment" class="editor-label" i18n>Abstract:</label>
+    <div #fill class="fill-editor">
+      <app-editor id="comment"
+                  class="bubble"
+                  [control]="comment"
+                  [tags]="getTags()"
+                  [fillWidth]="fill"
+                  [url]="web && url.value"
+                  [showScrape]="!!admin.getPlugin('+plugin/scrape') && web && !oembed"
+                  (scrape)="scrapeComment()"
+                  (syncEditor)="syncEditor()"
+                  (syncTags)="editorTags.next($event)"></app-editor>
+    </div>
+  }
 
-  <app-tags [group]="group"></app-tags>
+  <app-tags #tags [group]="group"></app-tags>
 
 </ng-container>

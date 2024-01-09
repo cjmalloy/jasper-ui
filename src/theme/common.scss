@@ -1719,11 +1719,27 @@ ngx-monaco-editor {
   }
 }
 
+.nested-form .todo-list {
+  padding-bottom: 4px !important;
+  & > input {
+    display: block !important;
+  }
+  & > .spacer {
+    display: none !important;
+  }
+}
+
 .todo-item {
   padding: 4px;
   margin-top: 2px;
   border-radius: 4px;
   background-color: var(--card);
+
+  textarea {
+    height: 24px !important;
+    resize: none;
+  }
+
   &.unlocked {
     border-radius: 5px;
     border: 0.25px dashed var(--border-accent);

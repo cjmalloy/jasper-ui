@@ -16,33 +16,38 @@
         </div>
       </div>
 
-      <div *ngIf="!store.submit.wiki" class="editor-label">
-        <label for="comment" i18n>Comment:</label>
-        <app-select-plugin #pluginSelect
-                           class="shrink"
-                           [text]="true"
-                           i18n-title title="Add Plugin"
-                           (pluginChange)="togglePlugin($event); pluginSelect.plugin = ''"></app-select-plugin>
-      </div>
-      <label *ngIf="store.submit.wiki" for="comment" class="editor-label" i18n>Entry:</label>
-      <div #fill>
-        <app-editor id="comment"
-                    class="bubble"
-                    [control]="comment"
-                    (syncEditor)="syncEditor()"
-                    (syncTags)="plugins = $event"
-                    [fillWidth]="fill"
-                    [autoFocus]="store.submit.wiki"></app-editor>
-      </div>
+      @if (tags.editingViewer) {
+        <span><!-- Viewer --></span>
+        <div #fill>
+          <app-viewer [text]="textForm.value.comment"
+                      [tags]="$any(textForm.value).tags"
+                      (comment)="comment.setValue($event)"></app-viewer>
+        </div>
+      } @else {
+        @if (store.submit.wiki) {
+          <label for="comment" class="editor-label" i18n>Entry:</label>
+        } @else {
+          <div class="editor-label">
+            <label for="comment" i18n>Comment:</label>
+            <app-select-plugin #pluginSelect
+                               class="shrink"
+                               [text]="true"
+                               i18n-title title="Add Plugin"
+                               (pluginChange)="togglePlugin($event); pluginSelect.plugin = ''"></app-select-plugin>
+          </div>
+        }
+        <div #fill>
+          <app-editor id="comment"
+                      class="bubble"
+                      [control]="comment"
+                      (syncEditor)="syncEditor()"
+                      (syncTags)="plugins = $event"
+                      [fillWidth]="fill"
+                      [autoFocus]="store.submit.wiki"></app-editor>
+        </div>
+      }
 
-      <span><!-- Viewer --></span>
-      <div>
-        <app-viewer [text]="textForm.value.comment"
-                    [tags]="$any(textForm.value).tags"
-                    (comment)="comment.setValue($event)"></app-viewer>
-      </div>
-
-      <app-tags [group]="textForm"></app-tags>
+      <app-tags #tags [group]="textForm"></app-tags>
 
       <span><!-- Advanced --></span>
       <a class="fake-link no-select" (click)="advanced = true" i18n>show advanced</a>
