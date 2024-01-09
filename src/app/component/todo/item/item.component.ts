@@ -27,6 +27,7 @@ export class TodoItemComponent implements OnInit {
   checked = false;
   editing = false;
   text = '';
+  hovering = false;
 
   private _line = '';
 

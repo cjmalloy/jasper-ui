@@ -12,7 +12,9 @@
             [plugins]="plugins"
             [text]="text"
             tabindex="0"
-            (focus)="editing = !config.mobile"
+            (mouseover)="hovering = true"
+            (mouseout)="hovering = false"
+            (focus)="editing = !config.mobile && !hovering"
             (click)="editing = true"></app-md>
   }
 </div>
