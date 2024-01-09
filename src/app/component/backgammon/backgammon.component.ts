@@ -738,7 +738,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       }
     }
     this.rolling = p;
-    delay(() => this.rolling = undefined, 3400);
+    delay(() => this.rolling = undefined, 750);
     this.diceUsed = [];
     this.moves = this.getAllMoves();
     this.save();

@@ -46,10 +46,23 @@
     text-align: center;
     font-size: calc(var(--piece-size) / 2);
     top: calc(50% - var(--dim));
+    &.black, &.red {
+      &:after {
+        position: absolute;
+        text-align: center;
+        width: 100%;
+        left: 0;
+        top: -50%;
+        font-size: 50%;
+      }
+    }
     &.disabled {
       cursor: not-allowed;
     }
     &.red {
+      &:after {
+        content: '🔴️ Red';
+      }
       left: calc(21 * var(--dim));
     }
     &.winner {
@@ -62,6 +75,9 @@
       left: calc(18.5 * var(--dim));
     }
     &.black {
+      &:after {
+        content: '⚫️ Black';
+      }
       position: absolute;
       left: calc(7 * var(--dim));
       &.winner {
@@ -82,13 +98,17 @@
     }
     &.play {
       cursor: wait;
-      animation-duration: 20s;
+      animation-duration: 40s;
       animation-name: play;
       animation-iteration-count: infinite;
       animation-timing-function: linear;
     }
     @keyframes play {
       from {
+        box-shadow: 0 0 0 var(--play);
+      }
+
+      5% {
         box-shadow: 6px 4px 30px var(--play);
       }
 
