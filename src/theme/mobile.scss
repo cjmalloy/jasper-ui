@@ -284,14 +284,14 @@ $tablet-width: 767px;
   }
 
   .comment-reply, .comment-edit {
-    width: calc(min(100%, 100vw - 8px));
+    width: min(100%, 100vw - 8px);
   }
 
   .embed:not(.comment-body) {
     position: relative;
     left: 0;
     margin: 0;
-    width: calc(min(100%, 100vw - 8px));
+    width: min(100%, 100vw - 8px);
   }
 
   .audio-expand {
