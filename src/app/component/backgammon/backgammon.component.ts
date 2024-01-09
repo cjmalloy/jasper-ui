@@ -560,11 +560,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       ...this.ref,
       origin: this.store.account.origin,
       comment,
-    })).subscribe(modifiedString => {
+    })).subscribe(cursor => {
       if (this.patchingComment !== comment) return;
       this.ref!.comment = comment;
-      this.ref!.modified = moment(modifiedString);
-      this.cursor = this.ref!.modifiedString = modifiedString;
+      this.ref!.modified = moment(cursor);
+      this.cursor = this.ref!.modifiedString = cursor;
       this.patchingComment = '';
       if (!this.local) {
         this.ref!.origin = this.store.account.origin;

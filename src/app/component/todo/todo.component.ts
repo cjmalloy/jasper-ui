@@ -103,10 +103,10 @@ export class TodoComponent implements OnChanges {
         this.serverErrors = printError(err);
         return throwError(() => err);
       })
-    ).subscribe(modifiedString => {
+    ).subscribe(cursor => {
       this.ref!.comment = comment;
-      this.ref!.modified = moment(modifiedString);
-      this.ref!.modifiedString = modifiedString;
+      this.ref!.modified = moment(cursor);
+      this.ref!.modifiedString = cursor;
       if (!this.local) {
         this.ref!.origin = this.store.account.origin;
         this.copied.emit(this.store.account.origin);

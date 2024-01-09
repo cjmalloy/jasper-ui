@@ -344,12 +344,12 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       origin: this.store.account.origin,
       title,
       comment,
-    })).subscribe(modifiedString => {
+    })).subscribe(cursor => {
       if (this.patchingComment !== comment) return;
       this.ref!.title = title;
       this.ref!.comment = comment;
-      this.ref!.modified = moment(modifiedString);
-      this.ref!.modifiedString = modifiedString;
+      this.ref!.modified = moment(cursor);
+      this.ref!.modifiedString = cursor;
       this.patchingComment = '';
       if (!this.local) {
         this.ref!.origin = this.store.account.origin;
