@@ -63,6 +63,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   chess = false;
   chessWhite = true;
   overlayRef?: OverlayRef;
+  autoClose = true;
 
   @ViewChild('cardMenu')
   cardMenu!: TemplateRef<any>;
@@ -263,13 +264,14 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   }
 
   close() {
+    this.autoClose = true;
     this.overlayRef?.dispose();
     this.overlayEvents?.unsubscribe();
     this.overlayRef = undefined;
     this.overlayEvents = undefined;
   }
 
-  toggleBadge(tag: string) {
+  toggleBadge(tag: string, event?: MouseEvent) {
     if (includesTag(tag, this.ref.tags)) {
       this.tags.delete(tag, this.ref.url, this.ref.origin).subscribe(() => {
         this.ref.tags = without(this.ref.tags, tag);
@@ -282,7 +284,11 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
         this.init();
       });
     }
-    this.close();
+    if (this.autoClose || !event?.button) {
+      this.close();
+    } else {
+      event.preventDefault();
+    }
   }
 
   copy() {

@@ -43,7 +43,9 @@
       <span i18n>Toggle Badges</span>
       <ng-container *ngIf="allBadgeExts$ | async as badgeExts; else allBadgesNoExts">
         <ng-container *ngFor="let e of badgeExts">
-          <div (click)=" toggleBadge(e.tag)" (pointerup)="toggleBadge(e.tag)">
+          <div (contextmenu)="$event.preventDefault()"
+               (pointerdown)="autoClose = false"
+               (pointerup)="toggleBadge(e.tag, $event)">
             <input [id]="e.tag"
                    type="checkbox"
                    [checked]="ref.tags?.includes(e.tag)">
@@ -54,7 +56,9 @@
       </ng-container>
       <ng-template #allBadgesNoExts>
         <ng-container *ngFor="let b of ext?.config?.badges || [],">
-          <div (click)=" toggleBadge(b)" (pointerup)="toggleBadge(b)">
+          <div (contextmenu)="$event.preventDefault()"
+               (pointerdown)="autoClose = false"
+               (pointerup)="toggleBadge(b, $event)">
             <input [id]="b"
                    type="checkbox"
                    [checked]="ref.tags?.includes(b)">
