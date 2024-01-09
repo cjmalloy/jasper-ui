@@ -25,6 +25,7 @@ import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { hasComment } from '../../util/format';
+import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasTag } from '../../util/tag';
 
@@ -67,11 +68,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   lensFilter: UrlFilter[] = [];
   lensSearch = '';
   image? : string;
-  audioUrl = '';
-  videoUrl = '';
-  imageUrl = '';
-  pdfUrl = '';
-  qrUrl = '';
   playlist = false;
   todo = false;
   backgammon = false;
@@ -95,11 +91,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   ) { }
 
   init() {
-    this.audioUrl = this.getAudioUrl();
-    this.videoUrl = this.getVideoUrl();
-    this.imageUrl = this.getImageUrl();
-    this.pdfUrl = this.getPdfUrl();
-    this.qrUrl = this.getQrUrl();
+    MemoCache.clear(this);
     this.playlist = !!this.admin.getPlugin('plugin/playlist') && this.currentTags.includes('plugin/playlist');
     this.todo = !!this.admin.getPlugin('plugin/todo') && this.currentTags.includes('plugin/todo');
     this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && this.currentTags.includes('plugin/backgammon');
@@ -136,7 +128,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref || changes.tags) {
+    if (changes.ref || changes.tags || changes.text) {
       this.init();
     }
   }
@@ -172,7 +164,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
         // Image embed
         this.tags = without(this.currentTags, 'plugin/embed');
         this.image = oembed.url;
-        this.imageUrl = this.getImageUrl();
+        this.init();
       } else {
         this.embeds.writeIframe(oembed, this.iframe.nativeElement, this.embedWidth)
           .then(() => this.embedReady = true);
@@ -185,18 +177,22 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     }
   }
 
+  @memo
   get oembed() {
     return this._oembed!;
   }
 
+  @memo
   get hls() {
     return this.videoUrl.endsWith('.m3u8') || this.tags?.includes('plugin/hls');
   }
 
+  @memo
   get twitter() {
     return this.oembed?.provider_name === 'Twitter';
   }
 
+  @memo
   get hideComment() {
     if (this.admin.getPlugin('plugin/table') && this.currentTags.includes('plugin/table')) return false;
     return !!this.tags
@@ -206,6 +202,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       || (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract);
   }
 
+  @memo
   get currentText() {
     if (this.hideComment) return '';
     const value = this.text || this.ref?.comment || '';
@@ -213,10 +210,12 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     return '';
   }
 
+  @memo
   get currentTags() {
     return this.tags || this.ref?.tags || [];
   }
 
+  @memo
   get embed() {
     if (!this.currentTags.includes('plugin/embed')) return undefined;
     return this.ref?.plugins?.['plugin/embed'];
@@ -238,28 +237,32 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     return '67vh';
   }
 
-  getAudioUrl() {
+  @memo
+  get audioUrl() {
     if (!this.currentTags.includes('plugin/audio')) return '';
     const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
     if (!this.admin.getPlugin('plugin/audio')?.config?.cache) return url;
     return this.scraper.getFetch(url);
   }
 
-  getVideoUrl() {
+  @memo
+  get videoUrl() {
     if (!this.currentTags.includes('plugin/video')) return '';
     const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
     if (!this.admin.getPlugin('plugin/video')?.config?.cache) return url;
     return this.scraper.getFetch(url);
   }
 
-  getImageUrl() {
+  @memo
+  get imageUrl() {
     if (!this.image && !this.currentTags.includes('plugin/image')) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
     if (!this.admin.getPlugin('plugin/image')?.config?.cache) return url;
     return this.scraper.getFetch(url);
   }
 
-  getQrUrl() {
+  @memo
+  get qrUrl() {
     if (!this.currentTags.includes('plugin/qr')) return '';
     return this.ref?.plugins?.['plugin/qr']?.url || this.ref?.url;
   }
@@ -268,12 +271,14 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     return this.store.darkTheme ? 'dark' : undefined;
   }
 
+  @memo
   get pdf() {
     if (!this.admin.getPlugin('plugin/pdf')) return undefined;
     return this.ref?.plugins?.['plugin/pdf']?.url || findExtension('.pdf', this.ref);
   }
 
-  getPdfUrl() {
+  @memo
+  get pdfUrl() {
     const url = this.pdf;
     if (!url) return url;
     if (!this.admin.getPlugin('plugin/pdf')?.config?.cache) return url;
