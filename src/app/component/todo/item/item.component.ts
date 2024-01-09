@@ -32,7 +32,7 @@ export class TodoItemComponent implements OnInit {
 
   constructor(
     private store: Store,
-    private config: ConfigService,
+    public config: ConfigService,
     private el: ElementRef,
     private zone: NgZone,
   ) { }

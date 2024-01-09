@@ -12,7 +12,7 @@
             [plugins]="plugins"
             [text]="text"
             tabindex="0"
-            (focus)="editing = true"
-            (click)="editing = editing || $event.target != checkbox"></app-md>
+            (focus)="editing = !config.mobile"
+            (click)="editing = true"></app-md>
   }
 </div>
