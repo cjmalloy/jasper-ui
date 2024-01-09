@@ -33,7 +33,26 @@ export const backgammonPlugin: Plugin = {
         }
       }
     `,
+    form: [{
+      key: 'redName',
+      type: 'string',
+      props: {
+        label: $localize`Red Player Name`,
+      }
+    }, {
+      key: 'blackName',
+      type: 'string',
+      props: {
+        label: $localize`Black Player Name`,
+      }
+    }],
   },
+  schema: {
+    optionalProperties: {
+      redName: { type: 'string' },
+      blackName: { type: 'string' },
+    }
+  }
 };
 
 export const backgammonTemplate: Template = {

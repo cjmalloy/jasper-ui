@@ -9,6 +9,8 @@
   --brown-alt: #422;
   --glow: rgba(200, 200, 200, 0.5);
   --move: rgba(0, 128, 0, 0.5);
+  --red-name: '🔴️ Red';
+  --black-name: '⚫️ Black';
   filter: drop-shadow(0 0 1px var(--glow));
 
   max-height: calc(100vh - 20px);
@@ -50,6 +52,7 @@
       &:after {
         position: absolute;
         text-align: center;
+        white-space: nowrap;
         width: 100%;
         left: 0;
         top: -50%;
@@ -61,7 +64,7 @@
     }
     &.red {
       &:after {
-        content: '🔴️ Red';
+        content: var(--red-name);
       }
       left: calc(21 * var(--dim));
     }
@@ -76,7 +79,7 @@
     }
     &.black {
       &:after {
-        content: '⚫️ Black';
+        content: var(--black-name);
       }
       position: absolute;
       left: calc(7 * var(--dim));

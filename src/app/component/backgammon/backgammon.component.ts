@@ -130,6 +130,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   init() {
+    this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf?.redName || $localize`Red`) + '"');
+    this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
     if (!this.watches.length && this.ref && this.config.websockets) {
       this.refs.page({ url: this.ref.url, obsolete: true, size: MAX_PLAYERS, sort: ['modified,DESC']}).subscribe(page => {
         this.stomp.watchRef(this.ref!.url, uniq(page.content.map(r => r.origin))).forEach(w => this.watches.push(w.pipe(
@@ -239,6 +241,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.resizeObserver?.disconnect();
+  }
+
+  get bgConf() {
+    return this.ref?.plugins?.['plugin/backgammon'];
   }
 
   get local() {
