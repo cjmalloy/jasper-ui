@@ -11,7 +11,7 @@ import {
   ViewChild
 } from '@angular/core';
 import Hls from 'hls.js';
-import { defer, without } from 'lodash-es';
+import { defer, some, without } from 'lodash-es';
 import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
@@ -27,7 +27,7 @@ import { Store } from '../../store/store';
 import { hasComment } from '../../util/format';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
-import { hasTag } from '../../util/tag';
+import { hasTag, includesTag } from '../../util/tag';
 
 @Component({
   selector: 'app-viewer',
@@ -193,13 +193,14 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
+  get editingViewer() {
+    return some(this.admin.editingViewer, t => includesTag(t.tag, this.currentTags));
+  }
+
+  @memo
   get hideComment() {
     if (this.admin.getPlugin('plugin/table') && this.currentTags.includes('plugin/table')) return false;
-    return !!this.tags
-      || this.backgammon
-      || this.chess
-      || this.todo
-      || (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract);
+    return this.editingViewer || (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract);
   }
 
   @memo

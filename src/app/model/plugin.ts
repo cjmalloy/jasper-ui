@@ -49,6 +49,10 @@ export interface Plugin extends Config {
      */
     editor?: string,
     /**
+     * Disable the editor and use the viewer to edit.
+     */
+    editingViewer?: boolean;
+    /**
      * Show plugin as signature for existing tag.
      */
     signature?: string,

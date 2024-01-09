@@ -43,6 +43,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   ref?: Ref;
   @Input()
+  text? = '';
+  @Input()
   white = true; // TODO: Save in local storage
   @Output()
   comment = new EventEmitter<string>();
@@ -165,16 +167,16 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         this.writeAccess = this.auth.writeAccess(ref)
       });
     }
-    this.reset(this.ref?.comment);
+    this.reset(this.ref?.comment || this.text);
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref) {
-      const newRef = changes.ref.firstChange || changes.ref.previousValue?.url !== changes.ref.currentValue?.url;
+    if (changes.ref || changes.text) {
+      const newRef = changes.ref?.firstChange || changes.ref?.previousValue?.url !== changes.ref?.currentValue?.url;
       if (!this.ref || newRef) {
         this.watches.forEach(w => w.unsubscribe());
         this.watches = [];
-        if (this.ref) this.init();
+        if (this.ref || this.text != null) this.init();
       }
     }
   }

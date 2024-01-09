@@ -514,6 +514,10 @@ export class AdminService {
     return this._cache.get('embeddable')!;
   }
 
+  get editingViewer() {
+    return this.pluginConfigProperty('editingViewer');
+  }
+
   get icons() {
     return this.configProperty('icons');
   }
