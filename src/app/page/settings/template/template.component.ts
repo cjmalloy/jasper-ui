@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { mapTemplate, Template } from '../../../model/template';
 import { TemplateService } from '../../../service/api/template.service';
 import { ThemeService } from '../../../service/theme.service';
@@ -64,14 +64,9 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
   }
 
   uploadTemplate(template: Template) {
-    this.templates.create({
-      ...template,
-      origin: this.store.account.origin,
-    }).pipe(
+    return this.templates.delete(template.tag + this.store.account.origin).pipe(
+      switchMap(() => this.templates.create({ ...template, origin: this.store.account.origin })),
       catchError((res: HttpErrorResponse) => {
-        if (res.status === 409) {
-          return this.templates.update(template);
-        }
         this.serverError = printError(res);
         return throwError(() => res);
       }),

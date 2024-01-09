@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { mapPlugin, Plugin } from '../../../model/plugin';
 import { PluginService } from '../../../service/api/plugin.service';
 import { ThemeService } from '../../../service/theme.service';
@@ -64,14 +64,9 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
   }
 
   uploadPlugin(plugin: Plugin) {
-    this.plugins.create({
-      ...plugin,
-      origin: this.store.account.origin,
-    }).pipe(
+    return this.plugins.delete(plugin.tag + this.store.account.origin).pipe(
+      switchMap(() => this.plugins.create({ ...plugin, origin: this.store.account.origin })),
       catchError((res: HttpErrorResponse) => {
-        if (res.status === 409) {
-          return this.plugins.update(plugin);
-        }
         this.serverError = printError(res);
         return throwError(() => res);
       }),
