@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, HostBinding, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostBinding, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, uniq } from 'lodash-es';
+import { defer, some, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
@@ -19,7 +19,7 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { QUALIFIED_TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasPrefix } from '../../../util/tag';
+import { hasPrefix, includesTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-dm',
@@ -29,6 +29,9 @@ import { hasPrefix } from '../../../util/tag';
 export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   @HostBinding('class') css = 'full-page-form';
   private disposers: IReactionDisposer[] = [];
+
+  @ViewChild('fill')
+  fill?: ElementRef;
 
   submitted = false;
   dmForm: UntypedFormGroup;
@@ -128,6 +131,10 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       ...this.plugins,
       ...this.store.submit.tags,
     ]);
+  }
+
+  get editingViewer() {
+    return some(this.admin.editingViewer, t => includesTag(t.tag, this.tags));
   }
 
   syncEditor() {

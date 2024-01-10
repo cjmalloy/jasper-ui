@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   <form class="form" [formGroup]="dmForm" (ngSubmit)="submit()"
-        [appLimitWidth]="fill" [limitSibling]="true">
+        [appLimitWidth]="fill?.nativeElement" [limitSibling]="true">
 
     <ng-container *ngIf="!store.submit.textPlugin">
       <label for="to">To:</label>
@@ -30,30 +30,32 @@
     <label for="title" i18n>Title:</label>
     <input id="title" type="text" [formControl]="title">
 
-    <span>
-      <span i18n>Mesage:</span>
-      <app-select-plugin #pluginSelect
-                         class="shrink"
-                         [text]="true"
-                         i18n-title title="Add Plugin"
-                         (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-    </span>
-    <div #fill>
-      <app-editor class="bubble"
-                  [control]="comment"
-                  (focusin)="setDefaultTitle()"
-                  [fillWidth]="fill"
-                  (syncEditor)="syncEditor()"
-                  (syncTags)="plugins = $event"
-                  [autoFocus]="true"></app-editor>
-    </div>
-
-    <span><!-- Viewer --></span>
-    <div>
-      <app-viewer [text]="dmForm.value.comment"
-                  [tags]="tags"
-                  (comment)="comment.setValue($event)"></app-viewer>
-    </div>
+    @if (editingViewer) {
+      <span><!-- Viewer --></span>
+      <div #fill>
+        <app-viewer [text]="dmForm.value.comment"
+                    [tags]="tags"
+                    (comment)="comment.setValue($event)"></app-viewer>
+      </div>
+    } @else {
+      <span>
+        <span i18n>Mesage:</span>
+        <app-select-plugin #pluginSelect
+                           class="shrink"
+                           [text]="true"
+                           i18n-title title="Add Plugin"
+                           (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
+      </span>
+      <div #fill>
+        <app-editor class="bubble"
+                    [control]="comment"
+                    (focusin)="setDefaultTitle()"
+                    [fillWidth]="fill"
+                    (syncEditor)="syncEditor()"
+                    (syncTags)="plugins = $event"
+                    [autoFocus]="true"></app-editor>
+      </div>
+    }
 
     <ng-container *ngFor="let e of serverError">
       <span><!-- Unexpected Error --></span>
