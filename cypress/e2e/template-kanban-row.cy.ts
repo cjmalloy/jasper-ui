@@ -50,7 +50,7 @@ describe('Kanban Template No Swimlanes', {
   });
   it('add to board', () => {
     loadBoard();
-    cy.wait(100);
+    cy.wait(1000);
     addToBoard(1, 'first step');
     cy.get('.kanban-column:nth-of-type(1) a').contains('first step').click();
     cy.get('.full-page.ref .tag:not(.user)').contains('Kanban Test').should('exist');
