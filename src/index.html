@@ -9,6 +9,9 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="prefetch" href="/assets/jasper-dark.png">
   <link rel="prefetch" href="/assets/jasper-light.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#3d3dbb" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#af5800" />
   <style>
     body.init-theme {
       /* Prevent bright flash while loading */
@@ -37,6 +40,7 @@
 </head>
 <body class="init-theme">
   <app-root></app-root>
+  <noscript>Please enable JavaScript to continue using this application.</noscript>
 </body>
 <script>
   if (navigator.vendor && navigator.vendor.indexOf('Apple') > -1 &&

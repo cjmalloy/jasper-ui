@@ -59,8 +59,18 @@ export class AccountStore {
    * No access, ban message shown instead.
    */
   banned = false;
+  /**
+   * Unread inbox and alarms total count.
+   */
   notifications = 0;
+  /**
+   * Flag indicating the interceptor detected an unauthorized request.
+   */
   authError = false;
+  /**
+   * Flag indicating an unrecoverable error loading app from PWA cache.
+   */
+  unrecoverable = false;
 
   constructor(
     private origins: OriginStore,

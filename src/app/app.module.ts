@@ -2,9 +2,10 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from '@angular/cdk/overlay';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { APP_INITIALIZER, isDevMode, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
+import { ServiceWorkerModule } from '@angular/service-worker';
 import { FormlyModule } from '@ngx-formly/core';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { MobxAngularModule } from 'mobx-angular';
@@ -328,6 +329,13 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
       resourceServer: {
         sendAccessToken: false,
       }
+    }),
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      scope: '.',
+      enabled: !isDevMode(),
+      // Register the ServiceWorker as soon as the application is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000'
     })
   ],
   providers: [
