@@ -9,9 +9,21 @@
     <ng-container *ngIf="badgeExts$ | async as badgeExts">
       <a class="tag badge"
          *ngFor="let e of badgeExts"
-         (click)="bookmarks.toggleFilter(e.tag)"
+         (click)="bookmarks.toggleQuery(e.tag)"
          [title]="e.name && e.tag">{{ e.name || e.tag }}</a>
     </ng-container>
+    <a class="tag badge"
+       *ngIf="dependents"
+       (click)="bookmarks.toggleSources(ref.url)"
+       i18n-title title="Dependents">⤴️</a>
+    <a class="tag badge"
+       *ngIf="dependencies"
+       (click)="bookmarks.toggleResponses(ref.url)"
+       i18n-title title="Dependencies">⤵️</a>
+    <a class="tag badge"
+       *ngIf="comments"
+       [routerLink]="['/ref', ref.url, 'comments']"
+       i18n-title title="Comments">💬️</a>
   </div>
   <div class="row">
     <ng-container *ngIf="thumbnail">

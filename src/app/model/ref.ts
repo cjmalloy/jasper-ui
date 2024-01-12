@@ -58,13 +58,10 @@ type FilterObj = {
 };
 
 export type RefFilter = FilterObj & {
+  query?: string;
   scheme?: string;
   pluginResponse?: string[];
   noPluginResponse?: string[];
-};
-
-export type RefQueryArgs = RefFilter & {
-  query?: string;
   url?: string;
   obsolete?: boolean;
   responses?: string;
@@ -80,7 +77,7 @@ export type RefQueryArgs = RefFilter & {
   responseBefore?: string | moment.Moment;
 };
 
-export type RefPageArgs = RefQueryArgs & {
+export type RefPageArgs = RefFilter & {
   page?: number,
   size?: number,
   sort?: RefSort[],

@@ -220,6 +220,8 @@ export class FilterComponent implements OnChanges, OnDestroy {
         // Current filter is missing
         if (f.startsWith('query/')) setToggles.push(f);
         if (f.startsWith('scheme/')) this.loadFilter({ group: $localize`Schemes 🏳️️`, scheme: f.substring('scheme/'.length)});
+        if (f.startsWith('sources/')) this.loadFilter({ group: $localize`Filters 🕵️️`, label: $localize`Sources ⤴️`, sources: f.substring('sources/'.length) });
+        if (f.startsWith('responses/')) this.loadFilter({ group: $localize`Filters 🕵️️`, label: $localize`Responses ⤵️`, responses: f.substring('responses/'.length) });
         if (f.startsWith('plugin/')) this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
       }
     }
@@ -248,7 +250,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
   }
 
   loadFilter(filter: FilterConfig) {
-    if (!filter.scheme && !this.auth.queryReadAccess(filter.query || filter.response)) return;
+    if ((filter.query || filter.response) && !this.auth.queryReadAccess(filter.query || filter.response)) return;
     let group = find(this.allFilters, f => f.label === (filter.group || ''));
     if (group) {
       group.filters.push(this.convertFilter(filter));
@@ -272,7 +274,11 @@ export class FilterComponent implements OnChanges, OnDestroy {
   }
 
   convertFilter(filter: FilterConfig): FilterItem {
-    if (filter.scheme) {
+    if (filter.sources) {
+      return { filter: `sources/${filter.sources}`, label: filter.label || filter.sources };
+    } else if (filter.responses) {
+      return { filter: `responses/${filter.responses}`, label: filter.label || filter.responses };
+    } else if (filter.scheme) {
       return { filter: `scheme/${filter.scheme}`, label: filter.label || filter.scheme };
     } else if (filter.query) {
       return { filter: `query/${filter.query}`, label: filter.label || filter.query };

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { without } from 'lodash-es';
 import { Store } from '../store/store';
+import { UrlFilter } from '../util/query';
 
 @Injectable({
   providedIn: 'root'
@@ -13,12 +14,24 @@ export class BookmarkService {
     private router: Router,
   ) { }
 
-  toggleFilter(query: string) {
-    if (this.store.view.queryFilters.includes(query)) {
-      this.filters = without(this.store.view.filter, 'query/' + query);
+  toggleFilter(filter: UrlFilter) {
+    if (this.store.view.filter.includes(filter)) {
+      this.filters = without(this.store.view.filter, filter);
     } else {
-      this.filters = [...this.store.view.filter, 'query/' + query];
+      this.filters = [...this.store.view.filter, filter];
     }
+  }
+
+  toggleQuery(query: string) {
+    this.toggleFilter('query/' + query as UrlFilter);
+  }
+
+  toggleSources(url: string) {
+    this.toggleFilter('sources/' + url as UrlFilter);
+  }
+
+  toggleResponses(url: string) {
+    this.toggleFilter('responses/' + url as UrlFilter);
   }
 
   get filters() {

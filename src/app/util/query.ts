@@ -1,5 +1,5 @@
 import { filter, uniq, without } from 'lodash-es';
-import { Filter, RefPageArgs, RefQueryArgs, RefSort } from '../model/ref';
+import { Filter, RefPageArgs, RefFilter, RefSort } from '../model/ref';
 import { TagQueryArgs } from '../model/tag';
 import { braces, fixClientQuery, hasPrefix, topAnds } from './tag';
 
@@ -14,6 +14,8 @@ export type UrlFilter = Filter |
   `created/after/${string}` |
   `response/before/${string}` |
   `response/after/${string}` |
+  `sources/${string}` |
+  `responses/${string}` |
   `query/${string}` |
   `scheme/${string}` |
   `plugin/${string}` |
@@ -111,12 +113,16 @@ export function parseArgs(params: any): RefPageArgs {
   };
 }
 
-function getRefFilter(filter?: UrlFilter[]): RefQueryArgs {
+function getRefFilter(filter?: UrlFilter[]): RefFilter {
   if (!filter) return {};
-  let result: RefQueryArgs = {};
+  let result: RefFilter = {};
   for (const f of filter) {
     if (f.startsWith('query/')) continue;
-    if (f.startsWith('scheme/')) {
+    if (f.startsWith('sources/')) {
+      result.sources = f.substring('sources/'.length)
+    } else if (f.startsWith('responses/')) {
+      result.responses = f.substring('responses/'.length)
+    } else if (f.startsWith('scheme/')) {
       result.scheme = f.substring('scheme/'.length)
     } else if (hasPrefix(f, 'plugin')) {
       result.pluginResponse ||= [];
