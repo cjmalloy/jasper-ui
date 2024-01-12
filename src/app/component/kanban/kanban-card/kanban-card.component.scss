@@ -47,6 +47,8 @@ app-loading {
 
 .badges {
   float: right;
+  position: relative;;
+  z-index: 1;
   .badge {
     text-decoration: none;
     margin: 4px;
