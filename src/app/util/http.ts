@@ -89,6 +89,10 @@ export function fixUrl(url: string, banlist: typeof banlistConfig) {
   for (const prefix in banlist.config?.expandShorteners || []) {
     if (url.startsWith(prefix)) {
       url = banlist.config!.expandShorteners[prefix] + url.substring(prefix.length);
+      const search = url.lastIndexOf('?');
+      if (search != url.indexOf('?')) {
+        url = url.substring(0, search) + '&' + url.substring(search + 1);
+      }
     }
   }
   if (isTracking(url, banlist)) {

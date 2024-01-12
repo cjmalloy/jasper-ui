@@ -19,15 +19,16 @@ export const banlistConfig: Template = {
       '//mcaf.ee/',
       '//su.pr/',
     ],
+    expandShorteners: {
+      'https://youtu.be/': 'https://www.youtube.com/watch?v=',
+      'https://m.youtube.com/': 'https://www.youtube.com/',
+      'https://youtube.com/': 'https://www.youtube.com/',
+    },
     stripTrackers: [
       '//x.com/',
       '//twitter.com/',
       '//www.amazon.',
     ],
-    expandShorteners: {
-      'https://youtu.be/': 'https://www.youtube.com/watch?v=',
-      'https://m.youtube.com/': 'https://www.youtube.com/',
-    },
   },
 };
 
