@@ -21,6 +21,10 @@
        (click)="bookmarks.toggleResponses(ref.url)"
        i18n-title title="Dependencies">⤵️</a>
     <a class="tag badge"
+       *ngIf="thread"
+       [routerLink]="['/ref', thread, 'thread']"
+       i18n-title title="Thread">🧵️</a>
+    <a class="tag badge"
        *ngIf="comments"
        [routerLink]="['/ref', ref.url, 'comments']"
        i18n-title title="Comments">💬️</a>

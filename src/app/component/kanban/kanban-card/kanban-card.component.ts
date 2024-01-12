@@ -185,12 +185,18 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   @memo
   get dependents() {
-    return this.ref.sources?.length || 0;
+    return !hasTag('plugin/thread', this.ref) && this.ref.sources?.length || 0;
   }
 
   @memo
   get dependencies() {
     return this.ref.metadata?.responses || 0;
+  }
+
+  @memo
+  get thread() {
+    if (!hasTag('plugin/thread', this.ref) && !this.ref.metadata?.plugins?.['plugin/thread']) return '';
+    return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
   }
 
   @memo
