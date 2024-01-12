@@ -222,14 +222,24 @@ export interface Icon extends Visibility {
 export interface FilterConfig {
   /**
    * Filter based on a tag query.
-   * If set, response and scheme must not be set.
+   * If set, no other filter types must be set.
    */
   query?: string;
   /**
    * Filter based on URL scheme.
-   * If set, tag and response must not be set.
+   * If set, no other filter types must be set.
    */
   scheme?: string;
+  /**
+   * Filter based on sources to a Ref.
+   * If set, no other filter types must be set.
+   */
+  sources?: string;
+  /**
+   * Filter based on responses to a Ref.
+   * If set, no other filter types must be set.
+   */
+  responses?: string;
   /**
    * Filter based on plugin responses in metadata. Plugins must have be
    * generating metadata to work.

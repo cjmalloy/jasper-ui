@@ -184,6 +184,21 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
+  get dependents() {
+    return this.ref.sources?.length || 0;
+  }
+
+  @memo
+  get dependencies() {
+    return this.ref.metadata?.responses || 0;
+  }
+
+  @memo
+  get comments() {
+    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+  }
+
+  @memo
   get badges() {
     const badges = intersection(this.ref.tags, this.ext?.config?.badges || []);
     if (this.hideSwimLanes) return badges;
