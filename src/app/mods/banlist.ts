@@ -27,6 +27,7 @@ export const banlistConfig: Template = {
     stripTrackers: [
       '//x.com/',
       '//twitter.com/',
+      '//www.youtube.com/',
       '//www.amazon.',
     ],
   },

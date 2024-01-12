@@ -96,7 +96,13 @@ export function fixUrl(url: string, banlist: typeof banlistConfig) {
     }
   }
   if (isTracking(url, banlist)) {
-    url = url.substring(0, url.indexOf('?'));
+    if (url.startsWith('https://www.youtube.com')) {
+      if (url.includes('&si=')) {
+        url = url.substring(0, url.indexOf('&si='));
+      }
+    } else if (url.includes('?')) {
+      url = url.substring(0, url.indexOf('?'));
+    }
   }
   if (isShortener(url, banlist)) {
     throw 'Banned URL';
