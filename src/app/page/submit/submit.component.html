@@ -90,7 +90,7 @@
                autocomplete="off"
                formControlName="url"
                appAutofocus>
-        <app-qr-scanner *ngIf="!store.submit.wiki" (data)="scanQr($event)"></app-qr-scanner>
+        <app-qr-scanner *ngIf="admin.getPlugin('plugin/qr') && !store.submit.wiki" (data)="scanQr($event)"></app-qr-scanner>
       </div>
 
       <ng-container *ngFor="let e of serverErrors">
