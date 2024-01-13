@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { without } from 'lodash-es';
+import { filter, without } from 'lodash-es';
 import { Store } from '../store/store';
 import { UrlFilter } from '../util/query';
 
@@ -14,12 +14,17 @@ export class BookmarkService {
     private router: Router,
   ) { }
 
-  toggleFilter(filter: UrlFilter) {
-    if (this.store.view.filter.includes(filter)) {
-      this.filters = without(this.store.view.filter, filter);
+  toggleFilter(f: UrlFilter, ...clear: string[]) {
+    const filters = filter(this.store.view.filter, f => !clear.find(p => f.startsWith(p)));
+    if (filters.includes(f)) {
+      this.filters = without(filters, f);
     } else {
-      this.filters = [...this.store.view.filter, filter];
+      this.filters = [...filters, f];
     }
+  }
+
+  clearFilters(...prefix: string[]) {
+    this.filters = filter(this.store.view.filter, f => !prefix.find(p => f.startsWith(p)));
   }
 
   toggleQuery(query: string) {
@@ -27,11 +32,11 @@ export class BookmarkService {
   }
 
   toggleSources(url: string) {
-    this.toggleFilter('sources/' + url as UrlFilter);
+    this.toggleFilter('sources/' + url as UrlFilter, 'responses/', 'sources/');
   }
 
   toggleResponses(url: string) {
-    this.toggleFilter('responses/' + url as UrlFilter);
+    this.toggleFilter('responses/' + url as UrlFilter, 'responses/', 'sources/');
   }
 
   get filters() {
