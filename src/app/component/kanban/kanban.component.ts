@@ -9,8 +9,8 @@ import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
-import { UrlFilter } from '../../util/query';
-import { isQuery, topAnds } from '../../util/tag';
+import { negate, UrlFilter } from '../../util/query';
+import { isQuery, isSelector, topAnds } from '../../util/tag';
 
 export interface KanbanDrag {
   from: string;
@@ -128,14 +128,22 @@ export class KanbanComponent implements OnChanges, OnDestroy {
       ...topAnds(this.query).filter(t => !isQuery(t)),
       ...this.filter
         .filter(f => f.startsWith('query/'))
+        .filter(f => !f.startsWith('query/!('))
         .map(f => f.substring('query/'.length)),
     ]);
   }
 
   get negateFilters(): string[] {
-    return this.filter
-      .filter(f => f.startsWith('query/!('))
-      .map(f => f.substring('query/!('.length, f.length - 1));
+    // TODO: evaluate queries
+    return uniq([
+      ...topAnds(this.query).filter(t => isSelector(t))
+        .map(f => f.startsWith('!') ? f.substring(1) : '!' + f),
+      ...this.filter
+        .filter(f => f.startsWith('query/'))
+        .flatMap(f => f.startsWith('query/!(')
+          ? [f.substring('query/!('.length, f.length - 1)]
+          : topAnds(negate(f.substring('query/'.length)))),
+    ]);
   }
 
   get filteredColumn() {
