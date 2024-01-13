@@ -1,7 +1,7 @@
-import { filter, uniq, without } from 'lodash-es';
-import { Filter, RefPageArgs, RefFilter, RefSort } from '../model/ref';
+import { isArray, uniq, without } from 'lodash-es';
+import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 import { TagQueryArgs } from '../model/tag';
-import { braces, fixClientQuery, hasPrefix, topAnds } from './tag';
+import { braces, fixClientQuery, hasPrefix } from './tag';
 
 export const defaultDesc = ['created', 'published', 'modified', 'metadataModified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
 
@@ -70,7 +70,8 @@ export function getArgs(
 }
 
 export function getFilters(filters: UrlFilter[]) {
-  return (filters || [])
+  if (!filters) return [];
+  return (isArray(filters) ? filters : [filters])
     .filter(f => f.startsWith('query/'))
     .map(f => getFilter(f as `query/${string}`));
 }
@@ -98,7 +99,7 @@ export function negate(query: string): string {
   return '!' + query;
 }
 
-export function getFiltersQuery(filters: UrlFilter[]){
+export function getFiltersQuery(filters: UrlFilter[] | UrlFilter){
   return getFilters(filters).join(':');
 }
 
