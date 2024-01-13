@@ -404,14 +404,21 @@ $tablet-width: 767px;
     margin-left: 2px;
   }
 
-  .full-page.ref, .thread .ref {
+  .full-page.ref,
+  .thread .ref {
     .toggle.actions-toggle, .toggle.comments {
       display: none;
     }
-
     .info, .actions {
       height: 28px;
       padding-bottom: 10px;
+    }
+    &:not(.sent) {
+      justify-self: left;
+    }
+    &.sent {
+      margin-left: 0;
+      justify-self: right;
     }
   }
   .form, .full-page-upload .list-container {
