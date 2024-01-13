@@ -506,6 +506,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
+  @HostBinding('class.sent')
   get isAuthor() {
     return isOwnerTag(this.store.account.tag, this.ref);
   }

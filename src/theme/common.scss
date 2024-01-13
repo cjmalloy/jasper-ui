@@ -1213,6 +1213,12 @@ formly-field-radio, formly-field-multicheckbox {
   display: block;
 }
 
+.thread .ref .expand,
+.full-page.ref.thread .expand,
+.bubble .ref.expand {
+  border: none !important;
+}
+
 .ref.upload, .ext.upload {
   --upload-border: 30px;
   --upload-border-margin: -6px;
@@ -1233,6 +1239,26 @@ formly-field-radio, formly-field-multicheckbox {
     &:before {
       border-left: var(--upload-border) solid var(--error);
     }
+  }
+}
+
+.thread .ref,
+.full-page.ref.thread {
+  margin: 8px;
+  padding: 16px;
+  --thread-sent: rgba(39, 78, 124, 0.58);
+  --thread-recieved: rgba(128, 128, 128, 0.5);
+  border-radius: 32px;
+  &.sent {
+    background-color: var(--thread-sent);
+    border-bottom-right-radius: 2px;
+  }
+  &:not(.sent) {
+    background-color: var(--thread-recieved);
+    border-bottom-left-radius: 2px;
+  }
+  .link, .thumbnail {
+    display: none;
   }
 }
 

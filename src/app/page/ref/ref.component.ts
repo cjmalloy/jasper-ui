@@ -38,7 +38,9 @@ export class RefPage implements OnInit, OnDestroy {
     store.view.clear();
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
-      this.expandedOnload = store.view.ref && (!hasTag('plugin/fullscreen', store.view.ref) || store.view.ref?.plugins?.['plugin/fullscreen']?.onload);
+      this.expandedOnload = store.view.current !== 'ref/thread'
+        || store.view.ref && (!hasTag('plugin/fullscreen', store.view.ref)
+        || store.view.ref?.plugins?.['plugin/fullscreen']?.onload);
       if (store.view.ref && this.config.websockets) {
         this.watch?.unsubscribe();
         this.watch = this.stomp.watchResponse(store.view.ref.url).pipe(

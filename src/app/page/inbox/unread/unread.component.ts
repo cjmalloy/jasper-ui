@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { RefPageArgs } from '../../../model/ref';
@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./unread.component.scss'],
 })
 export class InboxUnreadPage implements OnInit, OnDestroy {
+  @HostBinding('class') css = 'unread';
 
   private disposers: IReactionDisposer[] = [];
   private lastNotified?: moment.Moment;

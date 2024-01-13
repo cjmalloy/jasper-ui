@@ -123,6 +123,12 @@ body.light-theme {
     border-left: 1px dotted rgba(128, 128, 128, 0.3);
   }
 
+  .thread .ref, .thread.ref {
+    --thread-sent: rgba(32, 32, 255, 0.1);
+    --thread-recieved: rgba(243, 235, 199, 0.3);
+    box-shadow: 1px 1px 2.5px rgba(0, 0, 0, 0.8);
+  }
+
   .summary-box {
     backdrop-filter: blur(1px) sepia(5%);
   }

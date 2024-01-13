@@ -117,7 +117,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       });
     }
     if (this.ref?.url && this.currentTags.includes('plugin/embed')) {
-      let width = this.embed?.width || (this.config.mobile ? (window.innerWidth - 12) : this.el.nativeElement.parentElement.offsetWidth - 400);
+      let width = this.embed?.width || (this.config.mobile ? (window.innerWidth - (this.thread ? 32 : 12)) : this.el.nativeElement.parentElement.offsetWidth - 400);
       let height = this.embed?.height || window.innerHeight;
       if (hasTag('plugin/fullscreen', this.ref)) {
         width = screen.width;
@@ -217,6 +217,12 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
+  get thread() {
+    if (!this.admin.getPlugin('plugin/thread')) return false;
+    return this.currentTags.includes('plugin/thread') || this.ref?.metadata?.plugins?.['plugin/thread'];
+  }
+
+  @memo
   get embed() {
     if (!this.currentTags.includes('plugin/embed')) return undefined;
     return this.ref?.plugins?.['plugin/embed'];
@@ -225,7 +231,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   get embedWidth() {
     if (this.embed?.width) return this.embed.width + 'px';
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
-      return 'calc(100vw - 12px)';
+      return this.thread ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
     }
     return '80vw';
   }

@@ -160,6 +160,12 @@
           }
           @if (ref.created && !ref.upload) {
             <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: obsoleteOrigin }" i18n>permalink</a>
+             @if (parentCommentTop) {
+              <a [routerLink]="['/ref', parentCommentTop, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>top</a>
+            }
+            @if (parentThreadTop) {
+              <a [routerLink]="['/ref', parentThreadTop, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
+            }
             @if (store.account.user && !dm) {
               <a routerLink="/submit/text" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags}" i18n>reply</a>
             } @else if (store.account.user && dm) {
@@ -176,13 +182,7 @@
             @if (parentComment) {
               <a [routerLink]="['/ref', parentComment, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
             }
-            @if (parentCommentTop) {
-              <a [routerLink]="['/ref', parentCommentTop, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>top</a>
-            }
-            @if (parentThreadTop) {
-              <a [routerLink]="['/ref', parentThreadTop, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
-            }
-            @if (!parentComment && !parentThreadTop && sources === 1) {
+           @if (!parentComment && !parentThreadTop && sources === 1) {
               <a *ngIf="!parentComment && !parentThreadTop && sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
             }
             @if (!parentComment && !parentThreadTop && sources > 1) {
