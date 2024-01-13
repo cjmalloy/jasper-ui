@@ -53,18 +53,23 @@ app-loading {
     cursor: pointer;
     text-decoration: none;
     margin: 4px;
+    margin-right: 7px;
     padding: 0 2px;
     border-radius: 4px;
     line-height: 21px;
     display: block;
+    border: 1px solid transparent;
     &.filtering {
-      background-color: var(--card);
-      filter: drop-shadow(-1px -1px 0.5px black) !important;
-    }
-    &:hover {
-      transform: scale(1.2);
+      transform: translate(1px, -1px);
       background-color: var(--card);
       filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black) !important;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    &:hover {
+      transform: scale(1.2) translate(1px, -1px);
+      background-color: var(--card);
+      filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black) !important;
+      border: 1px solid rgba(0, 0, 0, 0.1);
     }
     &:active {
       transform: scale(1.1);
