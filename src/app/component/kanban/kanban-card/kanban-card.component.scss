@@ -62,20 +62,21 @@ app-loading {
     &.filtering {
       transform: translate(1px, -1px);
       background-color: var(--card);
-      filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black) !important;
+      filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black);
       border: 1px solid rgba(0, 0, 0, 0.1);
     }
     &:hover {
       transform: scale(1.2) translate(1px, -1px);
       background-color: var(--card);
-      filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black) !important;
+      filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black);
       border: 1px solid rgba(0, 0, 0, 0.1);
     }
     &:active {
       transform: scale(1.1);
       margin-left: 2px;
       background-color: var(--card);
-      filter: drop-shadow(-1px -1px 0.5px black) !important;
+      filter: drop-shadow(-1px -1px 0.5px black);
+      border: 1px solid rgba(0, 0, 0, 0.1);
     }
   }
 }

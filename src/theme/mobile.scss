@@ -369,6 +369,22 @@ $tablet-width: 767px;
     }
   }
 
+  .badges .badge {
+    transform: none !important;
+    filter: none !important;
+    border: 1px solid transparent !important;
+    &.filtering {
+      transform: translate(1px, -1px) !important;
+      filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black) !important;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+    &:active {
+      transform: scale(1.1) !important;
+      filter: drop-shadow(-1px -1px 0.5px black) !important;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+  }
+
   .cdk-overlay-pane .editor textarea {
     margin-left: 2px;
   }
