@@ -50,9 +50,27 @@ app-loading {
   position: relative;;
   z-index: 1;
   .badge {
+    cursor: pointer;
     text-decoration: none;
     margin: 4px;
+    padding: 0 2px;
+    border-radius: 4px;
     line-height: 21px;
     display: block;
+    &.filtering {
+      background-color: var(--card);
+      filter: drop-shadow(-1px -1px 0.5px black) !important;
+    }
+    &:hover {
+      transform: scale(1.2);
+      background-color: var(--card);
+      filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black) !important;
+    }
+    &:active {
+      transform: scale(1.1);
+      margin-left: 2px;
+      background-color: var(--card);
+      filter: drop-shadow(-1px -1px 0.5px black) !important;
+    }
   }
 }

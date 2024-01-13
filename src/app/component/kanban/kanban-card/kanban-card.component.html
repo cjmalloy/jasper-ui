@@ -2,29 +2,30 @@
 <div class="kanban-card-container">
   <div class="badges">
     <!-- TODO: Check if local version is mostly identical -->
-    <a class="tag badge"
+    <a class="badge"
        *ngIf="remote"
        (click)="copy()"
        i18n-title title="Copy remote ref">📥️</a>
     <ng-container *ngIf="badgeExts$ | async as badgeExts">
-      <a class="tag badge"
+      <a class="badge"
          *ngFor="let e of badgeExts"
+         [class.filtering]="bookmarks.filters.includes($any('query/' + e.tag))"
          (click)="bookmarks.toggleQuery(e.tag)"
          [title]="e.name && e.tag">{{ e.name || e.tag }}</a>
     </ng-container>
-    <a class="tag badge"
+    <a class="badge"
        *ngIf="dependents"
        (click)="bookmarks.toggleSources(ref.url)"
        i18n-title title="Dependents">⤴️</a>
-    <a class="tag badge"
+    <a class="badge"
        *ngIf="dependencies"
        (click)="bookmarks.toggleResponses(ref.url)"
        i18n-title title="Dependencies">⤵️</a>
-    <a class="tag badge"
+    <a class="badge"
        *ngIf="thread"
        [routerLink]="['/ref', thread, 'thread']"
        i18n-title title="Thread">🧵️</a>
-    <a class="tag badge"
+    <a class="badge"
        *ngIf="comments"
        [routerLink]="['/ref', ref.url, 'comments']"
        i18n-title title="Comments">💬️</a>
