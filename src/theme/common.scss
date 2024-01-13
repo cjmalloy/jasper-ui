@@ -1257,8 +1257,19 @@ formly-field-radio, formly-field-multicheckbox {
     background-color: var(--thread-recieved);
     border-bottom-left-radius: 2px;
   }
-  .link, .thumbnail {
-    display: none;
+}
+.thread > .ref-list > .list-container {
+  & > .list-number {
+    font-size: 60%;
+    padding: 0;
+    line-height: unset;
+    margin-left: -8px;
+    transform: translate(12px, 8px);
+  }
+  & > .ref {
+    .link, .thumbnail {
+      display: none;
+    }
   }
 }
 
