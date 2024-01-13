@@ -1252,10 +1252,12 @@ formly-field-radio, formly-field-multicheckbox {
   &.sent {
     background-color: var(--thread-sent);
     border-bottom-right-radius: 2px;
+    border: 1px solid rgba(46, 87, 159, 0.3);
   }
   &:not(.sent) {
     background-color: var(--thread-recieved);
     border-bottom-left-radius: 2px;
+    border: 1px solid rgba(157, 157, 157, 0.3);
   }
 }
 .thread > .ref-list > .list-container {
