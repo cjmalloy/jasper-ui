@@ -2,11 +2,16 @@
 body.light-theme {
   --bg: white;
   --bg-accent: rgba(0, 0, 0, 0.05);
+  --bg-hover: rgba(255, 255, 255, 0.2);
+  --bg-active: rgba(255, 255, 255, 0.4);
   --text: black;
   --blue: rgba(207, 221, 255, 0.7);
   --active: #da0000;
   --info: gray;
   --tag: #3d3dbb;
+  --toggle: lightgray;
+  --toggle-accent: #777;
+  --toggle-active: #555;
   --tag-accent: #f3ebc7;
   --border: black;
   --border-accent: rgba(0, 0, 0, 0.4);
@@ -116,10 +121,6 @@ body.light-theme {
 
   .comment-children {
     border-left: 1px dotted rgba(128, 128, 128, 0.3);
-  }
-
-  .toggle {
-    background-color: lightgray;
   }
 
   .summary-box {

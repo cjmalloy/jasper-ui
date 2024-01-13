@@ -2,10 +2,15 @@
 body.dark-theme {
   --bg: #343434;
   --bg-accent: rgba(90, 90, 90, 0.05);
+  --bg-hover: rgba(255, 255, 255, 0.2);
+  --bg-active: rgba(255, 255, 255, 0.4);
   --text: #c9c9c9;
   --active: #dc5c5c;
   --info: #969696;
   --tag: #af5800;
+  --toggle: #525252;
+  --toggle-accent: #777;
+  --toggle-active: #888;
   --border: lightgrey;
   --border-accent: rgba(255, 255, 255, 0.4);
   --unselected-tab: grey;
@@ -184,17 +189,9 @@ body.dark-theme {
     background-color: var(--bg-accent);
     backdrop-filter: grayscale(1) contrast(0.2) brightness(0.4) blur(1px);
     box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
-
-    .submit-button:hover {
-      background-color: rgba(255, 255, 255, 0.2);
-    }
   }
 
   details.advanced summary > span {
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.2);
-    }
-
     &:after {
       filter: drop-shadow(0 0 2px var(--bg));
     }
@@ -219,10 +216,6 @@ body.dark-theme {
 
   .comment-children {
     border-left: 1px dotted rgba(211, 211, 211, 0.3);
-  }
-
-  .toggle {
-    background-color: #525252;
   }
 
   .summary-box {

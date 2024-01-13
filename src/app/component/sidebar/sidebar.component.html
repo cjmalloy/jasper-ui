@@ -23,7 +23,7 @@
   <span class="button-bar">
     @if (store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
       @if (plugin?.config?.submitText || rootConfig?.submitText) {
-        <div class="submit-button" routerLink="/submit/text"
+        <div class="submit-button" routerLink="/submit/text" tabindex="0"
              [queryParams]="{ tag: addTags, thumbnail: defaultThumbnail }">
         <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
         &nbsp;
@@ -31,7 +31,7 @@
           {{ plugin?.name || '' }}</label>
       </div>
       } @else if (plugin?.config?.submit && plugin?.config?.genId) {
-        <div class="submit-button" routerLink="/submit/web"
+        <div class="submit-button" routerLink="/submit/web" tabindex="0"
              [queryParams]="{ tag: addTags, url: genUrl, thumbnail: defaultThumbnail }">
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
           &nbsp;
@@ -39,7 +39,7 @@
           {{ plugin!.config!.submit }}</label>
         </div>
       } @else {
-        <div class="submit-button" routerLink="/submit"
+        <div class="submit-button" routerLink="/submit" tabindex="0"
              [queryParams]="{ tag: addTags, thumbnail: defaultThumbnail }">
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
           &nbsp;
@@ -49,40 +49,44 @@
       }
     }
     @if (store.view.current === 'tag' && store.account.user && (home || store.account.tag === tag)) {
-      <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: store.account.tag }">
+      <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
+           [queryParams]="{ to: store.account.tag }">
         <span i18n-title title="Notes" i18n>✍️</span> <label i18n>Notes</label>
       </div>
     }
     @if (store.account.tag !== tag && messages) {
       @if (dms) {
-        <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: dms }">
+        <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
+             [queryParams]="{ to: dms }">
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
         </div>
       } @else if (mailPlugin) {
-        <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag, tag: mailPlugin.tag }">
+        <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
+             [queryParams]="{ to: tag, tag: mailPlugin.tag }">
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message
           &nbsp;
           &nbsp;
           {{ mailPlugin.config?.submitText || '' }}</label>
         </div>
       } @else if (modmail) {
-        <div class="submit-button" routerLink="/submit/dm" [queryParams]="{ to: tag }">
+        <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
+             [queryParams]="{ to: tag }">
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
         </div>
       }
     }
     @if (store.account.mod && store.view.current === 'user' || (writeAccess && store.view.userTemplate && store.account.tag !== store.view.template)) {
-      <div class="submit-button" routerLink="/user">
+      <div class="submit-button" routerLink="/user" tabindex="0">
         <span i18n-title title="Create User" i18n>🧑️</span> <label i18n>Create User</label>
       </div>
     }
     @if (writeAccess && user && store.view.current === 'user') {
-      <div class="submit-button" [routerLink]="['/user', tag]">
+      <div class="submit-button" [routerLink]="['/user', tag]" tabindex="0">
         <span i18n-title title="Edit User" i18n>🧑️</span> <label i18n>Edit User</label>
       </div>
     }
     @if (writeAccess && store.view.type === 'ext') {
-      <div class="submit-button" [routerLink]="['/ext', store.view.template]">
+      <div class="submit-button" [routerLink]="['/ext', store.view.template]" tabindex="0">
         <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag
         &nbsp;
         &nbsp;
@@ -90,22 +94,22 @@
       </div>
     }
     @if (homeWriteAccess) {
-      <div class="submit-button" [routerLink]="['/ext', 'home']">
+      <div class="submit-button" [routerLink]="['/ext', 'home']" tabindex="0">
         <span i18n-title title="Edit Home Page" i18n>🏡️</span> <label i18n>Home Page</label>
       </div>
     }
     @if (store.view.type === 'ext' && !store.view.template) {
-      <div class="submit-button" [routerLink]="['/ext']">
+      <div class="submit-button" [routerLink]="['/ext']" tabindex="0">
         <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag</label>
       </div>
     }
     @if (local && writeAccess && store.view.noQuery) {
-      <div class="submit-button" [routerLink]="['/ext', tag]">
+      <div class="submit-button" [routerLink]="['/ext', tag]" tabindex="0">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
       </div>
     }
     @if (store.account.user && ext && (!local || !writeAccess) && store.view.noQuery) {
-      <div class="submit-button" [routerLink]="['/tags', tag]">
+      <div class="submit-button" [routerLink]="['/tags', tag]" tabindex="0">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
       </div>
     }
