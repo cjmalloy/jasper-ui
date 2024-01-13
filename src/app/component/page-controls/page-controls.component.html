@@ -5,7 +5,7 @@
       <a class="first-page"
          routerLink="./"
          [class.disabled]="page.first"
-         [queryParams]="{ pageNumber: null }"
+         [queryParams]="{ pageNumber: store.view.defaultPageNumber ? 0 : null }"
          queryParamsHandling="merge" i18n>first</a>
       |
       <a class="prev-page"

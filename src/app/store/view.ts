@@ -8,7 +8,7 @@ import { Template } from '../model/template';
 import { User } from '../model/user';
 import { RootConfig } from '../mods/root';
 import { UrlFilter } from '../util/query';
-import { hasPrefix, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
+import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
 import { AccountStore } from "./account";
 import { EventBus } from './bus';
 
@@ -346,8 +346,12 @@ export class ViewStore {
     return this.route.routeSnapshot?.queryParams['search'];
   }
 
+  get defaultPageNumber() {
+    return this.current === 'ref/thread' ? Math.floor((this.ref?.metadata?.plugins?.['plugin/thread'] || 0) / this.pageSize) : 0;
+  }
+
   get pageNumber() {
-    return this.route.routeSnapshot?.queryParams['pageNumber'];
+    return this.route.routeSnapshot?.queryParams['pageNumber'] || this.defaultPageNumber;
   }
 
   get pageSize() {
