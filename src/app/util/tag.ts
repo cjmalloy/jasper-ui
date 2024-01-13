@@ -200,6 +200,11 @@ export function isQuery(query?: string) {
   return /[:|!()]/g.test(query);
 }
 
+export function isSelector(selector?: string) {
+  if (selector?.startsWith('!')) return isQuery(selector.substring(1))
+  return isQuery(selector);
+}
+
 export function queryTags(query?: string): string[] {
   if (!query) return [];
   return query.split(/[:|()]/);
