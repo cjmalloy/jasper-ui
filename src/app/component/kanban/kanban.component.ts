@@ -133,9 +133,13 @@ export class KanbanComponent implements OnChanges, OnDestroy {
   }
 
   get negateFilters(): string[] {
-    return this.filter
-      .filter(f => f.startsWith('query/!('))
-      .map(f => f.substring('query/!('.length, f.length - 1));
+    return uniq([
+      ...topAnds(this.query).filter(t => !isQuery(t))
+        .map(f => f.startsWith('!') ? f.substring(1) : '!' + f),
+      ...this.filter
+        .filter(f => f.startsWith('query/!('))
+        .map(f => f.substring('query/!('.length, f.length - 1)),
+    ]);
   }
 
   get filteredColumn() {
