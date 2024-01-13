@@ -558,7 +558,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get replySources() {
     const sources = [this.ref.url];
-    if (this.comment || this.dm || this.email) {
+    if (this.comment || this.thread || this.email) {
       if (this.ref.sources?.length) {
         sources.push(this.ref.sources[1] || this.ref.sources[0]);
       }
