@@ -1,48 +1,61 @@
 <ng-container *mobxAutorun>
   <app-tabs>
     <a class="logo" routerLink="/"></a>
-    <h5></h5>
+    @switch (store.view.current) {
+      @case ('ref/comments') {
+        <h5 class="print-inline" i18n>Comments</h5>
+      }
+      @case ('ref/thread') {
+        <h5 class="print-inline" i18n>Thread</h5>
+      }
+      @case ('ref/responses') {
+        <h5 class="print-inline" i18n>Responses</h5>
+      }
+      @case ('ref/sources') {
+        <h5 class="print-inline" i18n>Sources</h5>
+      }
+      @case ('ref/alts') {
+        <h5 class="print-inline" i18n>Alternate URLs</h5>
+      }
+      @case ('ref/versions') {
+        <h5 class="print-inline" i18n>Versions</h5>
+      }
+    }
     <a routerLink="." [queryParams]="{origin: store.view.origin}" [class.current-tab]="store.view.summary"
        i18n-title title="Summary View"
        i18n>view</a>
-    <ng-container *ngIf="store.view.ref?.created">
-      <ng-container *ngIf="store.view.current === 'ref/comments' || comments">
-        <h5 *ngIf="store.view.current === 'ref/comments'" class="print-inline" i18n>Comments</h5>
+    @if (store.view.ref?.created) {
+      @if (store.view.current === 'ref/comments' || comments) {
         <a routerLink="comments" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Comments"
            i18n>comments</a>
-      </ng-container>
-      <ng-container *ngIf="store.view.current === 'ref/thread' || threads">
-        <h5 *ngIf="store.view.current === 'ref/thread'" class="print-inline" i18n>Thread</h5>
+      }
+      @if (store.view.current === 'ref/thread' || threads) {
         <a routerLink="thread" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Threads"
            i18n>threads</a>
-      </ng-container>
-      <ng-container *ngIf="store.view.current === 'ref/responses' || responses">
-        <h5 *ngIf="store.view.current === 'ref/responses'" class="print-inline" i18n>Responses</h5>
+      }
+      @if (store.view.current === 'ref/responses' || responses) {
         <a routerLink="responses" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Responses"
            i18n>responses</a>
-      </ng-container>
-      <ng-container *ngIf="store.view.current === 'ref/sources' || sources">
-        <h5 *ngIf="store.view.current === 'ref/sources'" class="print-inline" i18n>Sources</h5>
+      }
+      @if (store.view.current === 'ref/sources' || sources) {
         <a routerLink="sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Sources"
            i18n>sources</a>
-      </ng-container>
-      <ng-container *ngIf="alts">
-        <h5 *ngIf="store.view.alternateUrls" class="print-inline" i18n>Alternate URLs</h5>
+      }
+      @if (store.view.current === 'ref/alts' || alts) {
         <a routerLink="alts" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Alternate URLs"
            i18n>alts</a>
-      </ng-container>
-      <ng-container *ngIf="store.view.current === 'ref/versions' || store.view.versions > 1">
-        <h5 *ngIf="store.view.current === 'ref/versions'" class="print-inline" i18n>Versions</h5>
+      }
+      @if (store.view.current === 'ref/versions' || store.view.versions > 1) {
         <a routerLink="versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Versions"
            i18n>versions</a>
-      </ng-container>
-    </ng-container>
+      }
+    }
   </app-tabs>
   <app-sidebar></app-sidebar>
   <ng-container *ngIf="store.view.ref else loading">

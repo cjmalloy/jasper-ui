@@ -32,7 +32,7 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.page.content = this.store.view.ref?.sources?.map(url => ({ url })) || [];
+      this.page = Page.of(this.store.view.ref?.sources?.map(url => ({ url })) || []);
     }));
     this.disposers.push(autorun(() => {
       const args = getArgs(
@@ -47,16 +47,17 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
       defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
+      if (!this.query.page) return;
       for (let i = 0; i < (this.store.view.ref?.sources?.length || 0); i ++) {
         if (this.page.content[i].created) continue;
         const url = this.store.view.ref!.sources![i];
-        const existing = this.query.page?.content.find(r => r.url === url);
+        const existing = this.query.page.content.find(r => r.url === url);
         if (existing) this.page.content[i] = existing;
-        this.page = {
-          ...this.query.page!,
-          content: this.page.content,
-        };
       }
+      this.page = {
+        ...this.query.page,
+        content: this.page.content,
+      };
     }));
     this.disposers.push(autorun(() => {
       this.theme.setTitle($localize`Sources: ` + (this.store.view.ref?.title || this.store.view.url));
