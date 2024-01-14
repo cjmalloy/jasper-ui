@@ -60,11 +60,11 @@ export class RefThreadComponent {
       this.theme.setTitle($localize`Thread: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
     this.disposers.push(autorun(() => {
-      if (this.store.view.ref && this.config.websockets) {
+      if (this.store.view.top && this.config.websockets) {
         this.watch?.unsubscribe();
-        this.watch = this.stomp.watchResponse(this.top!).pipe(
+        this.watch = this.stomp.watchResponse(this.store.view.top.url).pipe(
           takeUntil(this.destroy$),
-          switchMap(url => this.refs.page({ url, obsolete: true, size: 1 }))
+          switchMap(url => this.refs.page({ url, size: 1 })) // TODO: fix race conditions
         ).subscribe(page => {
           if (this.query.page?.last) {
             this.newRefs$.next(page.content[0]);
@@ -87,13 +87,6 @@ export class RefThreadComponent {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-  }
-
-  get top() {
-    if (hasTag('plugin/comment', this.store.view.ref) || hasTag('plugin/thread', this.store.view.ref)) {
-      return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0] || this.store.view.ref?.url;
-    }
-    return this.store.view.ref?.url;
   }
 
   get mailboxes() {

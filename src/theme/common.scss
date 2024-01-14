@@ -1477,6 +1477,29 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
+.ref.parent-ref {
+  .link {
+    &:before {
+      content: '⤴️';
+      font-size: 80%;
+      padding-right: 8px;
+    }
+    a {
+      font-style: italic;
+      font-size: 90%;
+    }
+    .host {
+      font-size: 70%;
+    }
+  }
+  .info {
+    font-size: 70%;
+  }
+  .actions {
+    display: none;
+  }
+}
+
 .thread .ref .expand,
 .bubble .ref.expand {
   border: none !important;

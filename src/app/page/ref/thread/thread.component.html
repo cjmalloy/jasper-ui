@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
-  @if (top && top !== store.view.ref?.url) {
-    <span class="fake-link load-more" [routerLink]="['/ref', top, 'thread']" i18n>full thread</span>
+  @if (store.view.top && store.view.top.url !== store.view.ref?.url) {
+    <span class="parent-link fake-link load-more print-hide" [routerLink]="['/ref', store.view.top.url, 'thread']" i18n>full thread</span>
   }
   @if (query.page) {
     <app-ref-list [page]="query.page"

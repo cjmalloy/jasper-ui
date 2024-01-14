@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   <h1 class="print-block">
-    {{ store.view.ref?.title || store.view.ref?.url || '' }}
+    {{ store.view.ref?.title || (store.view.top?.title ? 'Re: ' + store.view.top?.title : store.view.ref?.url ) || '' }}
   </h1>
   <app-tabs>
     <a class="logo" routerLink="/"></a>
@@ -66,6 +66,16 @@
   </app-tabs>
   <app-sidebar></app-sidebar>
   <ng-container *ngIf="store.view.ref else loading">
+    @if (store.view.top && store.view.ref.url !== store.view.top.url) {
+      <app-ref class="full-page print-hide"
+               [class.thread]="store.view.current === 'ref/thread'"
+               [class.parent-ref]="true"
+               [ref]="store.view.top"
+               [showToggle]="false"
+               [expanded]="false"
+               (copied)="reload()"></app-ref>
+      <span class="parent-link fake-link load-more print-hide" [routerLink]="['/ref', store.view.top.url, 'thread']" i18n>full thread</span>
+    }
     <app-ref class="full-page"
              [class.thread]="store.view.current === 'ref/thread'"
              [ref]="store.view.ref"

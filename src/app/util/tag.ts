@@ -283,3 +283,7 @@ export function removeTag(tag: string | undefined, tags: string[]): string[] {
   }
   return tags;
 }
+
+export function top(ref?: Ref) {
+  return ref?.sources?.[1] || ref?.sources?.[0] || ref?.url || '';
+}

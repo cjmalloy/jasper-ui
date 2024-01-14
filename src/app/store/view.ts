@@ -34,6 +34,7 @@ export class ViewStore {
   defaultSort: RefSort | TagSort = 'published';
   defaultSearchSort: RefSort | TagSort = 'rank';
   ref?: Ref = {} as any;
+  top?: Ref = {} as any;
   lastSelected?: Ref = {} as any;
   versions = 0;
   exts: Ext[] = [];
@@ -79,6 +80,7 @@ export class ViewStore {
 
   clear(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {
     this.ref = undefined;
+    this.top = undefined;
     this.versions = 0;
     this.exts = [];
     this.extTemplates = [];

@@ -1,8 +1,7 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { Subject, Subscription, takeUntil } from 'rxjs';
+import { map, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { isWiki } from '../../mods/wiki';
 import { AdminService } from '../../service/admin.service';
@@ -10,9 +9,8 @@ import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { hasTag } from '../../util/tag';
+import { hasTag, top } from '../../util/tag';
 
 @Component({
   selector: 'app-ref-page',
@@ -105,6 +103,11 @@ export class RefPage implements OnInit, OnDestroy {
       tap(page => runInAction(() => {
         this.store.view.setRef(page.content[0] || { url });
         this.store.view.versions = page.totalElements;
+      })),
+      map(page => top(page.content[0])),
+      switchMap(top => !top ? of(null) : this.refs.page({ url: top, size: 1})),
+      tap(page => runInAction(() => {
+        this.store.view.top = page?.content[0];
       })),
     ).subscribe();
   }

@@ -28,7 +28,7 @@
       <span class="host">({{ host }})</span>
     </div>
     <div class="link-below">
-      <button *ngIf="showToggle && (thread || commentNoTitle || expandPlugins.length)"
+      <button *ngIf="!thread && showToggle && (commentNoTitle || expandPlugins.length)"
               type="button"
               class="toggle"
               (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, ref.origin, expanded = !expanded)">
