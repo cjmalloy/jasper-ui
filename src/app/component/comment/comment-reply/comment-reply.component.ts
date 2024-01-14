@@ -32,8 +32,6 @@ export class CommentReplyComponent implements AfterViewInit {
   @Input()
   to!: Ref;
   @Input()
-  top?: string;
-  @Input()
   tags: string[] = [];
   @Input()
   newComments$?: Subject<Ref|null>;
@@ -103,7 +101,7 @@ export class CommentReplyComponent implements AfterViewInit {
       comment: value,
       sources: uniq([
         this.to.url,
-        ...(this.top ? [this.top] : []),
+        ...[this.to.sources?.[1] || this.to.sources?.[0] || this.to.url],
         ...this.ed.getSources(value),
       ]),
       alternateUrls: this.ed.getAlts(value),

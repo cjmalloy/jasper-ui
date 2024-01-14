@@ -1,7 +1,6 @@
 <ng-container *mobxAutorun>
   <ng-container *ngIf="store.view.ref; else loading">
     <app-comment-reply [to]="store.view.ref"
-                       [top]="top"
                        quote=""
                        [tags]="replyTags"
                        [newComments$]="newComments$"></app-comment-reply>
