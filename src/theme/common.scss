@@ -1479,6 +1479,10 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .ref.parent-ref {
+  margin-left: 20px;
+  .thumbnail {
+    display: none;
+  }
   .link {
     &:before {
       content: '⤴️';
