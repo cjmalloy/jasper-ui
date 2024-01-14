@@ -4,7 +4,7 @@
   }
   @if (query.page && !query.page.empty) {
     <app-ref-list [page]="query.page"
-                  [newRefs$]="newComments$"
+                  [newRefs$]="newRefs$"
                   [showToggle]="false"
                   [expanded]="true"
                   [expandInline]="true"></app-ref-list>
@@ -13,7 +13,7 @@
     <app-comment-reply [to]="query.page?.content?.[(query.page?.content?.length || 0) - 1] || store.view.ref"
                        quote=""
                        [tags]="replyTags"
-                       [newComments$]="newComments$"></app-comment-reply>
+                       [newComments$]="newRefs$"></app-comment-reply>
   </ng-container>
   <ng-template #loading>
     <app-loading></app-loading>

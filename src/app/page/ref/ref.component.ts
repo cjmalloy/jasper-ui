@@ -107,7 +107,6 @@ export class RefPage implements OnInit, OnDestroy {
         this.store.view.versions = page.totalElements;
       })),
     ).subscribe();
-
   }
 
   @memo
