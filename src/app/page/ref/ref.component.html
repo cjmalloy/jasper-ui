@@ -66,7 +66,7 @@
   </app-tabs>
   <app-sidebar></app-sidebar>
   <ng-container *ngIf="store.view.ref else loading">
-    @if (store.view.top && store.view.ref.url !== store.view.top.url) {
+    @if (store.view.top && store.view.ref.url !== store.view.top.url && store.view.current !== 'ref/sources') {
       <app-ref class="full-page print-hide"
                [class.thread]="store.view.current === 'ref/thread'"
                [class.parent-ref]="true"
