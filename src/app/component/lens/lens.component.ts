@@ -75,7 +75,7 @@ export class LensComponent implements OnChanges {
   }
 
   get expandInline() {
-    if (this.ext?.config.expandInline === undefined) return !this.config.mobile;
-    return this.ext.config.expandInline;
+    if (this.ext?.config?.expandInline === undefined) return !this.config.mobile;
+    return this.ext?.config?.expandInline;
   }
 }
