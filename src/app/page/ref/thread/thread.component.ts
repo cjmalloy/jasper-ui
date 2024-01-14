@@ -1,10 +1,14 @@
 import { Component, HostBinding } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { Subject } from 'rxjs';
+import { Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
+import { RefService } from '../../../service/api/ref.service';
+import { StompService } from '../../../service/api/stomp.service';
+import { ConfigService } from '../../../service/config.service';
 import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
@@ -20,14 +24,20 @@ export class RefThreadComponent {
   @HostBinding('class') css = 'thread';
 
   private disposers: IReactionDisposer[] = [];
+  private destroy$ = new Subject<void>();
 
-  newComments$ = new Subject<Ref | null>();
+  newRefs$ = new Subject<Ref | null>();
+
+  private watch?: Subscription;
 
   constructor(
+    private config: ConfigService,
     private theme: ThemeService,
     public admin: AdminService,
     public store: Store,
     public query: QueryStore,
+    private stomp: StompService,
+    private refs: RefService,
   ) {
     query.clear();
     runInAction(() => store.view.defaultSort = 'published,ASC');
@@ -49,7 +59,18 @@ export class RefThreadComponent {
     this.disposers.push(autorun(() => {
       this.theme.setTitle($localize`Thread: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
-    this.newComments$.subscribe(c => {
+    this.disposers.push(autorun(() => {
+      if (this.store.view.ref && this.config.websockets) {
+        this.watch?.unsubscribe();
+        this.watch = this.stomp.watchResponse(this.top!).pipe(
+          takeUntil(this.destroy$),
+          switchMap(url => this.refs.page({ url, obsolete: true, size: 1 }))
+        ).subscribe(page => {
+          this.newRefs$.next(page.content[0]);
+        });
+      }
+    }));
+    this.newRefs$.subscribe(c => {
       if (c && this.store.view.ref) {
         this.store.view.ref.metadata ||= {};
         this.store.view.ref.metadata.plugins ||= {} as any;
@@ -60,6 +81,8 @@ export class RefThreadComponent {
   }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

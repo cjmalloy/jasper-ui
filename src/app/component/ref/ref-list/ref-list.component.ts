@@ -125,7 +125,7 @@ export class RefListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.newRefs$?.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(ref => ref && this.newRefs.push(ref));
+    ).subscribe(ref => ref && this.addNewRef(ref));
   }
 
   ngOnDestroy() {
@@ -144,5 +144,14 @@ export class RefListComponent implements OnInit, OnDestroy {
       return votes;
     }
     return i + this.page!.number * this.page!.size + 1;
+  }
+
+  addNewRef(ref: Ref) {
+    const index = this.newRefs.findIndex(r => r.url === ref.url);
+    if (index !== -1) {
+      this.newRefs[index] = ref;
+    } else {
+      this.newRefs.push(ref);
+    }
   }
 }
