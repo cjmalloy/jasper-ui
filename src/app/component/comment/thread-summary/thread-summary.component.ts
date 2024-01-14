@@ -17,6 +17,8 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   source?: Ref;
   @Input()
+  commentView = false;
+  @Input()
   query = '';
   @Input()
   depth = 1;
@@ -27,10 +29,10 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   showLoadMore = true;
   @Input()
-  newComments$!: Observable<Ref | null>;
+  newRefs$!: Observable<Ref | null>;
 
-  newComments: Ref[] = [];
-  comments: Ref[] = [];
+  newRefs: Ref[] = [];
+  list: Ref[] = [];
 
   constructor(
     private refs: RefService,
@@ -38,21 +40,21 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.newComments$.pipe(
+    this.newRefs$.pipe(
       takeUntil(this.destroy$),
     ).subscribe(comment =>
-      comment && this.newComments.unshift(comment));
+      comment && this.newRefs.unshift(comment));
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.source) {
-      this.newComments = [];
+      this.newRefs = [];
       this.refs.page({
         ...getArgs(this.query, this.store.view.sort, this.store.view.filter),
         responses: this.source?.url,
         size: this.pageSize,
       }).subscribe(page => {
-        this.comments = page.content;
+        this.list = page.content;
       });
     }
   }

@@ -23,7 +23,7 @@ describe('ThreadSummaryComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ThreadSummaryComponent);
     component = fixture.componentInstance;
-    component.newComments$ = new Subject();
+    component.newRefs$ = new Subject();
     fixture.detectChanges();
   });
 

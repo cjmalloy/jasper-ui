@@ -61,7 +61,6 @@
           }
           <ng-container *ngIf="authors.length" i18n>
             by
-
             <ng-container *ngIf="authorExts$ | async as authorExts; else authorNoExts">
               <ng-container *ngFor="let user of authorExts">
                 <a class="user tag"
@@ -159,7 +158,13 @@
             <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
           }
           @if (ref.created && !ref.upload) {
-            <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: obsoleteOrigin }" i18n>permalink</a>
+            @if (thread) {
+              <a [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" i18n>permalink</a>
+            } @else if (comment) {
+              <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>permalink</a>
+            } @else {
+              <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: obsoleteOrigin }" i18n>permalink</a>
+            }
              @if (parentCommentTop) {
               <a [routerLink]="['/ref', parentCommentTop, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>top</a>
             }

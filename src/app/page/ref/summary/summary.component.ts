@@ -21,7 +21,7 @@ import { hasTag, removeTag } from '../../../util/tag';
 })
 export class RefSummaryComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
-  newComments$ = new Subject<Ref | null>();
+  newRefs$ = new Subject<Ref | null>();
 
   summaryItems = 5;
 
@@ -59,7 +59,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
     }));
-    this.newComments$.subscribe(c => runInAction(() => {
+    this.newRefs$.subscribe(c => runInAction(() => {
       if (c && this.store.view.ref) {
         this.store.view.ref.metadata ||= {};
         this.store.view.ref.metadata.plugins ||= {} as any;
@@ -78,7 +78,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    this.newComments$.complete();
+    this.newRefs$.complete();
   }
 
   get top() {

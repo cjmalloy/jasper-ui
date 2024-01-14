@@ -4,21 +4,22 @@
                        [to]="store.view.ref"
                        quote=""
                        [tags]="replyTags"
-                       [newComments$]="newComments$"></app-comment-reply>
+                       [newComments$]="newRefs$"></app-comment-reply>
     <div class="summary-box" *ngIf="comments">
       <h5 routerLink="./comments" i18n>Comments:</h5>
       <app-thread-summary query="plugin/comment:!plugin/delete"
+                          [commentView]="true"
                           [source]="store.view.ref"
-                          [newComments$]="newComments$"
+                          [newRefs$]="newRefs$"
                           [depth]="1"
                           [pageSize]="summaryItems"></app-thread-summary>
       <a *ngIf="moreComments" routerLink="./comments" queryParamsHandling="merge" class="load-more" i18n>more comments</a>
     </div>
-    <div class="summary-box" *ngIf="threads">
+    <div class="summary-box thread" *ngIf="threads">
       <h5 routerLink="./thread" i18n>Threads:</h5>
       <app-thread-summary query="plugin/thread:!plugin/comment:!plugin/delete"
                           [source]="store.view.ref"
-                          [newComments$]="newComments$"
+                          [newRefs$]="newRefs$"
                           [depth]="1"
                           [pageSize]="summaryItems"></app-thread-summary>
       <a *ngIf="threads > summaryItems"
