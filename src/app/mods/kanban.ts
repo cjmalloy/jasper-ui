@@ -13,6 +13,19 @@ export const kanbanTemplate: Template = {
     submit: $localize`📋️ kanban/`,
     view: $localize`📋️`,
     description: $localize`Activates built-in Kanban mode for viewing Refs.`,
+    aiInstructions: `# kanban
+    The kanban Template is used to organize Refs on a kanban board. The kanban Ext
+    will customize what tags are used for columns, swim lanes and, badges.
+    You may have been given the Ext as context, in which case it is easier to determine correct tag names.
+    A user may ask you to add something to a kanban board such as kanban/testing.
+    This means you should add the kanban/testing tag to the Ref you are adding.
+    A user may also specifies a column. For example: add "fix mac" to the testing kanban
+    and assign it to chris. This means you should create a ticket with a blank title and
+    then comment "Fix Mac" with tags kanban/testing and assigned/chris.
+
+    Since templates are hierarchical, kanbans are also hierarchical. This means if
+    you add a Ref to kanban/a/b, it may also show up on kanban/a. Whether it actually
+    shows up or not depends on the kanban's columns, swim lanes and badges.`,
     icons: [{ thumbnail: $localize`📋️`, order: 1 }],
     filters: [
       { query: 'kanban', label: $localize`📋️ kanban`, group: $localize`Templates 🎨️` },
