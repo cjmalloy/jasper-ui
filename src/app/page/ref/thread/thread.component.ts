@@ -65,7 +65,7 @@ export class RefThreadComponent {
   }
 
   get top() {
-    if (hasTag('plugin/comment', this.store.view.ref)) {
+    if (hasTag('plugin/comment', this.store.view.ref) || hasTag('plugin/thread', this.store.view.ref)) {
       return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0];
     }
     return this.store.view.ref?.url;
