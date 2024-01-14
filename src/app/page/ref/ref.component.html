@@ -3,6 +3,9 @@
     <a class="logo" routerLink="/"></a>
     <h5></h5>
     @switch (store.view.current) {
+      @case ('ref/summary') {
+        <h5 class="print-inline" i18n>Summary</h5>
+      }
       @case ('ref/comments') {
         <h5 class="print-inline" i18n>Comments</h5>
       }
