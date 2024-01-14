@@ -1,4 +1,7 @@
 <ng-container *mobxAutorun>
+  <h1 class="print-block">
+    {{ store.view.ref?.title || store.view.ref?.url || '' }}
+  </h1>
   <app-tabs>
     <a class="logo" routerLink="/"></a>
     <h5></h5>
