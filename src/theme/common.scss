@@ -1257,6 +1257,7 @@ formly-field-radio, formly-field-multicheckbox {
   --thread-sent: rgba(39, 78, 124, 0.58);
   --thread-recieved: rgba(128, 128, 128, 0.5);
   border-radius: 32px;
+  overflow: hidden;
   &.sent {
     margin-left: 40px;
     background-color: var(--thread-sent);
