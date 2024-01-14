@@ -22,7 +22,7 @@ import {
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, pick, uniq, without } from 'lodash-es';
+import { defer, delay, pick, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
 import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -241,7 +241,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     if (this.scrollToLatest && this.lastSelected) {
-      this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
+      delay(() => this.el.nativeElement.scrollIntoView({ behavior: 'smooth' }), 400);
     }
   }
 
