@@ -54,10 +54,6 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
         const existing = this.query.page.content.find(r => r.url === url);
         if (existing) this.page.content[i] = existing;
       }
-      this.page = {
-        ...this.query.page,
-        content: this.page.content,
-      };
     }));
     this.disposers.push(autorun(() => {
       this.theme.setTitle($localize`Sources: ` + (this.store.view.ref?.title || this.store.view.url));

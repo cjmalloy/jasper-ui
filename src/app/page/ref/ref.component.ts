@@ -35,10 +35,12 @@ export class RefPage implements OnInit, OnDestroy {
   ) {
     store.view.clear();
     this.disposers.push(autorun(() => {
-      MemoCache.clear(this);
       this.expandedOnload = store.view.current !== 'ref/thread'
         || store.view.ref && (!hasTag('plugin/fullscreen', store.view.ref)
         || store.view.ref?.plugins?.['plugin/fullscreen']?.onload);
+    }));
+    this.disposers.push(autorun(() => {
+      MemoCache.clear(this);
       if (store.view.ref && this.config.websockets) {
         this.watch?.unsubscribe();
         this.watch = this.stomp.watchResponse(store.view.ref.url).pipe(
@@ -85,14 +87,17 @@ export class RefPage implements OnInit, OnDestroy {
     return hasTag('plugin/thread', this.store.view.ref) || this.store.view.ref?.metadata?.plugins?.['plugin/thread'];
   }
 
+  @memo
   get responses() {
     return this.store.view.ref?.metadata?.responses || 0;
   }
 
+  @memo
   get sources() {
     return this.store.view.ref?.sources?.length || 0;
   }
 
+  @memo
   get alts() {
     return this.store.view.ref?.alternateUrls?.length || 0;
   }
