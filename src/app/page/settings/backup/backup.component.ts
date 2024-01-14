@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostBinding, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
@@ -18,6 +18,7 @@ import { printError } from '../../../util/http';
   styleUrls: ['./backup.component.scss']
 })
 export class SettingsBackupPage implements OnInit {
+  @HostBinding('class') css = 'backup';
   originPattern = ORIGIN_NOT_BLANK_REGEX.source;
 
   submitted = false;

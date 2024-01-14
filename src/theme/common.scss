@@ -917,6 +917,13 @@ details.mini:not([open]) {
   }
 }
 
+.backup {
+  .list-container .list-number {
+    max-height: 48px;
+    line-height: 48px;
+  }
+}
+
 .grow {
   flex: 1;
   flex-basis: 100% !important;

@@ -53,9 +53,17 @@
     }
   }
 
+  .backup {
+    .list-container .list-number {
+      max-height: unset;
+      line-height: unset;
+    }
+  }
+
   .image-expand {
     max-width: 100% !important;
   }
+
   .md code {
     border: unset !important;
     background-color: unset !important;
