@@ -37,17 +37,19 @@
              [expandInline]="expandInline"></app-ref>
   </ng-container>
 </div>
-<ng-container *ngIf="page else loading">
-  <p class="no-results" *ngIf="page.empty else results">
-    {{ emptyMessage }}
-  </p>
-  <ng-template #results>
+@if (page) {
+  @if (emptyMessage && page.empty) {
+    <p class="no-results">{{ emptyMessage }}</p>
+  } @else {
     <app-page-controls *ngIf="pageControls"
                        [showPageLast]="showPageLast"
                        [page]="page"
                        [defaultCols]="cols"></app-page-controls>
-  </ng-template>
+  }
+} @else {
+  <app-loading></app-loading>
+}
+<ng-container *ngIf="page else loading">
 </ng-container>
 <ng-template #loading>
-  <app-loading></app-loading>
 </ng-template>

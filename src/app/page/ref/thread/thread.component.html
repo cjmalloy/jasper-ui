@@ -2,9 +2,10 @@
   @if (top && top !== store.view.ref?.url) {
     <span class="fake-link load-more" [routerLink]="['/ref', top, 'thread']" i18n>full thread</span>
   }
-  @if (query.page && !query.page.empty) {
+  @if (query.page) {
     <app-ref-list [page]="query.page"
                   [newRefs$]="newRefs$"
+                  emptyMessage=""
                   [showToggle]="false"
                   [expanded]="true"
                   [expandInline]="true"></app-ref-list>
