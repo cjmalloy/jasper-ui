@@ -13,8 +13,10 @@ $tablet-width: 767px;
     display: none;
   }
 
-  .toggle.actions-toggle, .toggle.comments {
-    display: none;
+  .toggle {
+    &.actions-toggle, &.view, &.threads, &.comments {
+      display: none;
+    }
   }
 
   .full-page-form {
@@ -176,6 +178,8 @@ $tablet-width: 767px;
     padding: 0;
     .thumbnail,
     .toggle.actions-toggle,
+    .toggle.view,
+    .toggle.threads,
     .toggle.comments {
       display: none;
     }

@@ -1332,7 +1332,7 @@ formly-field-radio, formly-field-multicheckbox {
     margin: 4px 0 4px 8px;
   }
 
-  &.comments {
+  &.threads, &.comments, &.view {
     margin: 4px 8px 4px 8px;
   }
 

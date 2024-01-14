@@ -255,14 +255,23 @@
       </div>
       <div class="toggle actions-toggle"
            (click)="actionsExpanded = !actionsExpanded">⚙️</div>
-      <div class="toggle view"
-           *ngIf="!admin.getPlugin('plugin/comment')"
-           [routerLink]="['/ref', ref.url]"
-           [queryParams]="{ origin: obsoleteOrigin }">🖇️️</div>
-      <div class="toggle comments"
-           *ngIf="admin.getPlugin('plugin/comment')"
-           [routerLink]="['/ref', ref.url]"
-           [queryParams]="{ origin: obsoleteOrigin }">💬️</div>
+      @if (thread) {
+        <div class="toggle threads"
+             [routerLink]="['/ref', ref.url, 'thread']"
+             [queryParams]="{ origin: obsoleteOrigin }">🧵️</div>
+      } @else if (comments) {
+        <div class="toggle comments"
+             [routerLink]="['/ref', ref.url, 'comments']"
+             [queryParams]="{ origin: obsoleteOrigin }">💬️</div>
+      } @else if (admin.getPlugin('plugin/comment')) {
+        <div class="toggle comments"
+             [routerLink]="['/ref', ref.url]"
+             [queryParams]="{ origin: obsoleteOrigin }">💬️</div>
+      } @else {
+        <div class="toggle view"
+             [routerLink]="['/ref', ref.url]"
+             [queryParams]="{ origin: obsoleteOrigin }">🖇️️</div>
+      }
     </div>
   </div>
 </div>
