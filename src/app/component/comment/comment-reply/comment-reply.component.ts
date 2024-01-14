@@ -97,7 +97,7 @@ export class CommentReplyComponent implements AfterViewInit {
     const ref: Ref = {
       url,
       origin: this.store.account.origin,
-      title: hasTag('plugin/email', this.to) ? getRe(this.to.title) : '',
+      title: (hasTag('plugin/email', this.to) || hasTag('plugin/thread', this.to)) ? getRe(this.to.title) : '',
       comment: value,
       sources: uniq([
         this.to.url,
