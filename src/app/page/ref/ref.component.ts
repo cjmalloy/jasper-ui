@@ -63,6 +63,7 @@ export class RefPage implements OnInit, OnDestroy {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.store.view.setRef(undefined);
   }
 
   @memo

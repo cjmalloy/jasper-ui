@@ -1,5 +1,5 @@
-import { uniq, without } from 'lodash-es';
-import { action, autorun, makeAutoObservable, observable } from 'mobx';
+import { delay, uniq, without } from 'lodash-es';
+import { action, autorun, makeAutoObservable, observable, runInAction } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Ref, RefSort } from '../model/ref';
@@ -65,13 +65,10 @@ export class ViewStore {
   }
 
   setRef(ref?: Ref) {
-    if (this.ref && !ref) {
+    if (this.ref && this.ref !== ref) {
       this.lastSelected = this.ref;
     }
     this.ref = ref;
-    if (this.ref) {
-      this.lastSelected = this.ref;
-    }
   }
 
   clearLastSelected() {
