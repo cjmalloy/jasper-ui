@@ -1,6 +1,7 @@
 <ng-container *mobxAutorun>
   <app-tabs>
     <a class="logo" routerLink="/"></a>
+    <h5></h5>
     @switch (store.view.current) {
       @case ('ref/comments') {
         <h5 class="print-inline" i18n>Comments</h5>
