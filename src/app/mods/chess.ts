@@ -84,15 +84,15 @@ export const chessTemplate: Template = {
           grid-auto-flow: row dense;
           padding: 4px;
           gap: 8px;
-          grid-template-columns:  1fr;
+          grid-template-columns:  minmax(0, 1fr);
           @media (min-width: 1000px) {
-            grid-template-columns:  1fr 1fr;
+            grid-template-columns:  minmax(0, 1fr) minmax(0, 1fr);
           }
           @media (min-width: 1500px) {
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
           }
           @media (min-width: 2000px) {
-            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
           }
           .list-number {
             display: none;
