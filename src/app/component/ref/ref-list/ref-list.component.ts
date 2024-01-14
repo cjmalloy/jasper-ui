@@ -7,6 +7,7 @@ import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
 import { RefService } from '../../../service/api/ref.service';
+import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 
 @Component({
@@ -31,7 +32,7 @@ export class RefListComponent implements OnInit, OnDestroy {
   @Input()
   showToggle = true;
   @Input()
-  expandInline = true;
+  expandInline = !this.config.mobile;
   @Input()
   showVotes = false;
   @Input()
@@ -48,6 +49,7 @@ export class RefListComponent implements OnInit, OnDestroy {
   private _cols = 0;
 
   constructor(
+    private config: ConfigService,
     private router: Router,
     private refs: RefService,
     private store: Store,

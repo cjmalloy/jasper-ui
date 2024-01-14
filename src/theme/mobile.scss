@@ -334,6 +334,15 @@ $tablet-width: 767px;
     height: 100vh;
   }
 
+  .full-page {
+    .embed {
+      width: calc(100vw - 10px);
+    }
+    &.thread .embed {
+      width: unset;
+    }
+  }
+
   .info, .actions, .advanced-actions * {
     font-size: 16px;
     line-height: 28px;

@@ -8,7 +8,7 @@
                   emptyMessage=""
                   [showToggle]="false"
                   [expanded]="true"
-                  [expandInline]="true"></app-ref-list>
+                  [expandInline]="!config.mobile"></app-ref-list>
   }
   <ng-container *ngIf="store.view.ref; else loading">
     <app-comment-reply [to]="query.page?.content?.[(query.page?.content?.length || 0) - 1] || store.view.ref"

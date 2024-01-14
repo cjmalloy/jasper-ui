@@ -4,6 +4,7 @@ import { Page } from '../../model/page';
 import { Ref, RefSort } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
+import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
@@ -43,6 +44,7 @@ export class LensComponent implements OnChanges {
   plugins?: string[];
 
   constructor(
+    private config: ConfigService,
     public admin: AdminService,
     public account: AccountService,
     public query: QueryStore,
@@ -70,5 +72,10 @@ export class LensComponent implements OnChanges {
     if (!tag) return '';
     return tag.replace(/\//g, '-')
       .replace(/[^\w-]/g, '');
+  }
+
+  get expandInline() {
+    if (this.ext?.config.expandInline === undefined) return !this.config.mobile;
+    return this.ext.config.expandInline;
   }
 }

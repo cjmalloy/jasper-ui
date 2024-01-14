@@ -31,7 +31,7 @@ export class RefThreadComponent {
   private watch?: Subscription;
 
   constructor(
-    private config: ConfigService,
+    public config: ConfigService,
     private theme: ThemeService,
     public admin: AdminService,
     public store: Store,

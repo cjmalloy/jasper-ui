@@ -96,6 +96,7 @@ export const lensTemplate: Template = {
   },
   defaults: {
     defaultExpanded: true,
+    expandInline: false,
     hideEdit: true,
     defaultCols: 2,
   }

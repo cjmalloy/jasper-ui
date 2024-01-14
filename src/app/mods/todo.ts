@@ -65,6 +65,7 @@ export const todoTemplate: Template = {
   },
   defaults: {
     defaultExpanded: true,
+    expandInline: false,
     defaultSort: 'modified,DESC',
     defaultCols: 0, // Leave to CSS screen size detection, but show cols dropdown
   }
