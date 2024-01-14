@@ -5,7 +5,7 @@ export const graphConfig: Template = {
   tag: 'graph',
   name: $localize`🎇️ Graph`,
   config: {
-    type: 'ext',
+    type: 'lens',
     experimental: true,
     global: true,
     view: $localize`graph`,

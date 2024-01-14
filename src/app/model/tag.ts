@@ -26,7 +26,7 @@ export interface Tag extends Cursor {
   name?: string;
 }
 
-export type ModType = 'config' | 'icon' | 'feature' | 'ext' | 'plugin' | 'editor' | 'semantic' | 'theme' | 'tool';
+export type ModType = 'config' | 'icon' | 'feature' | 'lens' | 'plugin' | 'editor' | 'semantic' | 'theme' | 'tool';
 
 export interface Config extends Tag {
   type?: 'plugin' | 'template';
