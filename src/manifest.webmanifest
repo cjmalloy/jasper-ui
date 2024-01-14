@@ -1,8 +1,8 @@
 {
   "name": "jasper-ui",
   "short_name": "jasper-ui",
-  "theme_color": "#af5800",
-  "background_color": "#343434",
+  "theme_color": "#235",
+  "background_color": "#333",
   "display": "minimal-ui",
   "scope": "./",
   "start_url": "./",
