@@ -23,6 +23,8 @@
        i18n-title title="Dependencies">⤵️</a>
     <a class="badge"
        *ngIf="thread"
+       (focus)="store.view.setLastSelected(ref)"
+       (pointerdown)="store.view.setLastSelected(ref)"
        [routerLink]="['/ref', thread, 'thread']"
        i18n-title title="Thread">🧵️</a>
     <a class="badge"

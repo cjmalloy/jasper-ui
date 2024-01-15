@@ -1,5 +1,5 @@
-import { delay, uniq, without } from 'lodash-es';
-import { action, autorun, makeAutoObservable, observable, runInAction } from 'mobx';
+import { uniq, without } from 'lodash-es';
+import { action, autorun, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Ref, RefSort } from '../model/ref';
@@ -8,7 +8,7 @@ import { Template } from '../model/template';
 import { User } from '../model/user';
 import { RootConfig } from '../mods/root';
 import { UrlFilter } from '../util/query';
-import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
+import { hasPrefix, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
 import { AccountStore } from "./account";
 import { EventBus } from './bus';
 
@@ -50,6 +50,7 @@ export class ViewStore {
     makeAutoObservable(this, {
       clear: action,
       setRef: action,
+      setLastSelected: action,
       exts: observable.shallow,
       extTemplates: observable.shallow,
     });
@@ -69,6 +70,10 @@ export class ViewStore {
       this.lastSelected = this.ref;
     }
     this.ref = ref;
+  }
+
+  setLastSelected(ref?: Ref) {
+    this.lastSelected = ref;
   }
 
   clearLastSelected() {

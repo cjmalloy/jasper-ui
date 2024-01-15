@@ -241,7 +241,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     if (this.scrollToLatest && this.lastSelected) {
-      delay(() => this.el.nativeElement.scrollIntoView({ behavior: 'smooth' }), 400);
+      delay(() => scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' }), 400);
     }
   }
 

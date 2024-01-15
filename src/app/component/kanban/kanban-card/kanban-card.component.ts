@@ -71,7 +71,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   private overlayEvents?: Subscription;
 
   constructor(
-    private store: Store,
+    public store: Store,
     public bookmarks: BookmarkService,
     private admin: AdminService,
     private config: ConfigService,
@@ -195,13 +195,15 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   @memo
   get thread() {
+    if (!this.admin.getPlugin('plugin/thread')) return '';
     if (!hasTag('plugin/thread', this.ref) && !this.ref.metadata?.plugins?.['plugin/thread']) return '';
     return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
   }
 
   @memo
   get comments() {
-    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+    if (!this.admin.getPlugin('plugin/comment')) return 0;
+    return hasTag('plugin/comment', this.ref) || this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
   @memo

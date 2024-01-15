@@ -1,6 +1,18 @@
-import { Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostBinding,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  QueryList,
+  SimpleChanges,
+  ViewChildren
+} from '@angular/core';
 import { Router } from '@angular/router';
-import { uniq, without } from 'lodash-es';
+import { delay, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../model/ref';
@@ -27,7 +39,7 @@ import { ActionComponent } from '../action/action.component';
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],
 })
-export class CommentComponent implements OnInit, OnChanges, OnDestroy {
+export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @HostBinding('class') css = 'comment';
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
@@ -40,6 +52,8 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input()
   ref!: Ref;
+  @Input()
+  scrollToLatest = false;
   @Input()
   depth?: number | null = 7;
   @Input()
@@ -67,6 +81,7 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
     private exts: ExtService,
     public acts: ActionService,
     private ts: TaggingService,
+    private el: ElementRef<HTMLDivElement>,
   ) {
     this.disposers.push(autorun(() => {
       if (this.store.eventBus.event === 'refresh') {
@@ -106,6 +121,12 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
+  ngAfterViewInit(): void {
+    if (this.scrollToLatest && this.lastSelected) {
+      delay(() => scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' }), 400);
+    }
+  }
+
   init() {
     MemoCache.clear(this);
     this.editing = false;
@@ -130,6 +151,11 @@ export class CommentComponent implements OnInit, OnChanges, OnDestroy {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  @HostBinding('class.last-selected')
+  get lastSelected() {
+    return this.store.view.lastSelected?.url === this.ref.url;
   }
 
   @memo

@@ -1201,7 +1201,9 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
-.list-item:not(.full-page):not(.expand), .kanban-card {
+.list-item:not(.full-page):not(.expand),
+.kanban-card,
+.comment {
   &.last-selected {
     border: 1px dashed var(--border);
   }

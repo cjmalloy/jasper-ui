@@ -18,6 +18,8 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   source?: Ref;
   @Input()
+  scrollToLatest = false;
+  @Input()
   depth = 7;
   @Input()
   pageSize?: number;

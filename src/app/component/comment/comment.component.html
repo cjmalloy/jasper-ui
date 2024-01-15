@@ -124,6 +124,7 @@
   <div class="comment-children"
        [class.hidden-without-removing]="collapsed">
     <app-comment-thread [source]="ref"
+                        [scrollToLatest]="scrollToLatest"
                         [depth]="depth! - 1"
                         [context]="context + 1"
                         [newComments$]="newComments$"></app-comment-thread>
