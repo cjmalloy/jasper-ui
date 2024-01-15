@@ -31,28 +31,28 @@
     </ng-container>
     <a routerLink="/submit/dm"
        *ngIf="admin.getTemplate('dm')"
-       [class.current-tab]="store.submit.subpage === 'dm'"
+       [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.url"
        [queryParams]="{ url: null }"
        i18n-title title="Direct Message"
        queryParamsHandling="merge" i18n>dm</a>
     @for (p of store.submit.submitGenId; track p) {
-      @if (p.config?.submitText) {
-        <a routerLink="/submit/text"
-           [class.current-tab]="store.submit.tags.includes(p.tag)"
+      @if (p.config?.submitDm) {
+        <a routerLink="/submit/dm"
+           [class.current-tab]="store.submit.tags.includes(p.tag) && store.submit.url"
            [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
            [replaceUrl]="true"
            [title]="p.name"
            queryParamsHandling="merge">{{ p.config!.submit }}</a>
-      } @else if (p.config?.submitDm) {
-        <a routerLink="/submit/dm"
-           [class.current-tab]="store.submit.tags.includes(p.tag)"
+      } @else if (p.config?.submitText) {
+        <a routerLink="/submit/text"
+           [class.current-tab]="store.submit.tags.includes(p.tag) && store.submit.url"
            [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
            [replaceUrl]="true"
            [title]="p.name"
            queryParamsHandling="merge">{{ p.config!.submit }}</a>
       } @else {
         <a routerLink="/submit/web"
-           [class.current-tab]="store.submit.tags.includes(p.tag)"
+           [class.current-tab]="store.submit.tags.includes(p.tag) && store.submit.url"
            [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
            [replaceUrl]="true"
            [title]="p.name"
