@@ -31,7 +31,7 @@
       <button *ngIf="showToggle && (thread || commentNoTitle || expandPlugins.length)"
               type="button"
               class="toggle"
-              (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, ref.origin, expanded = !expanded)">
+              (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, expanded = !expanded)">
         @if (editing || viewSource || expanded) {
           <span class="toggle-x">✕</span>
         } @else {

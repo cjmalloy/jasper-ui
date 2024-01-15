@@ -133,7 +133,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     MemoCache.clear(this);
     this.editing = false;
     this.actionComponents?.forEach(c => c.reset());
-    this.collapsed = this.store.local.isRefToggled('comment:' + this.ref.url, this.ref.origin);
+    this.collapsed = !this.store.local.isRefToggled('comment:' + this.ref.url, true);
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
