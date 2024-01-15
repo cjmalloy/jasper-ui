@@ -35,6 +35,10 @@ export interface Plugin extends Config {
     /**
      * Add plugin to text dropdown.
      */
+    submitDm?: boolean,
+    /**
+     * Add plugin to text dropdown.
+     */
     submitText?: boolean,
     /**
      * Nest this plugin within its parent.

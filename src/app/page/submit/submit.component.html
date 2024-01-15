@@ -43,6 +43,13 @@
            [replaceUrl]="true"
            [title]="p.name"
            queryParamsHandling="merge">{{ p.config!.submit }}</a>
+      } @else if (p.config?.submitDm) {
+        <a routerLink="/submit/dm"
+           [class.current-tab]="store.submit.tags.includes(p.tag)"
+           [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
+           [replaceUrl]="true"
+           [title]="p.name"
+           queryParamsHandling="merge">{{ p.config!.submit }}</a>
       } @else {
         <a routerLink="/submit/web"
            [class.current-tab]="store.submit.tags.includes(p.tag)"
