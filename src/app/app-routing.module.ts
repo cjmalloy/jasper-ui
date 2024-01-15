@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { DefaultUrlSerializer, RouterModule, Routes, UrlSerializer, UrlTree } from '@angular/router';
+import { clearLastSelected } from './guard/last-selected.guard';
 import { pendingChangesGuard } from './guard/pending-changes.guard';
 import { ExtPage } from './page/ext/ext.component';
 import { HomePage } from './page/home/home.component';
@@ -136,13 +137,13 @@ Location.prototype.normalize = function(url) {
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
-  { path: 'home', component: HomePage, canDeactivate: [pendingChangesGuard] },
+  { path: 'home', component: HomePage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
   { path: 'login', component: LoginPage },
   { path: 'all', redirectTo: 'tag/@*', pathMatch: 'full' },
   { path: 'tag', redirectTo: 'tag/@*', pathMatch: 'full' },
-  { path: 'tag/:tag', component: TagPage, canDeactivate: [pendingChangesGuard] },
-  { path: 'tags', component: TagsPage, canDeactivate: [pendingChangesGuard] },
-  { path: 'tags/:template', component: TagsPage, canDeactivate: [pendingChangesGuard] },
+  { path: 'tag/:tag', component: TagPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+  { path: 'tags', component: TagsPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+  { path: 'tags/:template', component: TagsPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
   { path: 'ext', component: ExtPage },
   { path: 'ext/:tag', component: ExtPage, canDeactivate: [pendingChangesGuard] },
   { path: 'user', component: UserPage },
@@ -151,25 +152,25 @@ const routes: Routes = [
     path: 'ref/:url',
     component: RefPage,
     children: [
-      { path: '', component: RefSummaryComponent, canDeactivate: [pendingChangesGuard] },
-      { path: 'comments', component: RefCommentsComponent, canDeactivate: [pendingChangesGuard] },
-      { path: 'thread', component: RefThreadComponent, canDeactivate: [pendingChangesGuard] },
-      { path: 'responses', component: RefResponsesComponent, canDeactivate: [pendingChangesGuard] },
-      { path: 'sources', component: RefSourcesComponent, canDeactivate: [pendingChangesGuard] },
-      { path: 'alts', component: RefAltsComponent, canDeactivate: [pendingChangesGuard] },
-      { path: 'versions', component: RefVersionsComponent, canDeactivate: [pendingChangesGuard] },
+      { path: '', component: RefSummaryComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'comments', component: RefCommentsComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'thread', component: RefThreadComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'responses', component: RefResponsesComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'sources', component: RefSourcesComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'alts', component: RefAltsComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'versions', component: RefVersionsComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
     ],
   }, {
     path: 'inbox',
     component: InboxPage,
     children: [
       { path: '', redirectTo: 'all', pathMatch: 'full' },
-      { path: 'all', component: InboxAllPage, canDeactivate: [pendingChangesGuard] },
-      { path: 'unread', component: InboxUnreadPage, canDeactivate: [pendingChangesGuard] },
-      { path: 'sent', component: InboxSentPage, canDeactivate: [pendingChangesGuard] },
-      { path: 'alarms', component: InboxAlarmsPage, canDeactivate: [pendingChangesGuard] },
-      { path: 'dms', component: InboxDmsPage, canDeactivate: [pendingChangesGuard] },
-      { path: 'modlist', component: InboxModlistPage, canDeactivate: [pendingChangesGuard] },
+      { path: 'all', component: InboxAllPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'unread', component: InboxUnreadPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'sent', component: InboxSentPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'alarms', component: InboxAlarmsPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'dms', component: InboxDmsPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'modlist', component: InboxModlistPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
     ],
   },
   { path: 'submit', component: SubmitPage,
@@ -188,7 +189,7 @@ const routes: Routes = [
       { path: '', redirectTo: 'me', pathMatch: 'full' },
       { path: 'me', component: SettingsMePage, canDeactivate: [pendingChangesGuard] },
       { path: 'user', component: SettingsUserPage, canDeactivate: [pendingChangesGuard] },
-      { path: 'ref/:tag', component: SettingsRefPage, canDeactivate: [pendingChangesGuard] },
+      { path: 'ref/:tag', component: SettingsRefPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'plugin', component: SettingsPluginPage, canDeactivate: [pendingChangesGuard] },
       { path: 'template', component: SettingsTemplatePage, canDeactivate: [pendingChangesGuard] },
       { path: 'password', component: SettingsPasswordPage },
