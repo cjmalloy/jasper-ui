@@ -1,11 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnChanges, OnDestroy, QueryList, SimpleChanges, ViewChild, ViewChildren } from '@angular/core';
+import {
+  Component,
+  HostBinding,
+  Input,
+  OnChanges,
+  OnDestroy,
+  QueryList,
+  SimpleChanges,
+  ViewChild,
+  ViewChildren
+} from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, intersection, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, ignoreElements, map, switchMap, throwError } from 'rxjs';
+import { catchError, map, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
@@ -21,6 +31,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
+import { BookmarkService } from '../../../service/bookmark.service';
 import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { downloadRef } from '../../../util/download';
@@ -72,6 +83,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     private refs: RefService,
     private exts: ExtService,
     public acts: ActionService,
+    private bookmarks: BookmarkService,
     private scraper: ScrapeService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
@@ -269,12 +281,11 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   }
 
   clickIcon(i: Icon) {
-    // TODO: bookmark service
     if (i.response) {
-      this.router.navigate([], { queryParams: { filter: this.store.view.toggleFilter(i.response) }, queryParamsHandling: 'merge' });
+      this.bookmarks.toggleFilter(i.response);
     }
     if (i.tag) {
-      this.router.navigate(['/tag', this.store.view.toggleTag(i.tag)], { queryParamsHandling: 'merge' });
+      this.bookmarks.toggleTag(i.tag);
     }
   }
 

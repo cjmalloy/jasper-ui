@@ -26,6 +26,7 @@ import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
+import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
@@ -81,6 +82,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     private exts: ExtService,
     public acts: ActionService,
     private ts: TaggingService,
+    private bookmarks: BookmarkService,
     private el: ElementRef<HTMLDivElement>,
   ) {
     this.disposers.push(autorun(() => {
@@ -301,12 +303,11 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   clickIcon(i: Icon) {
-    // TODO: bookmark service
     if (i.response) {
-      this.router.navigate([], { queryParams: { filter: this.store.view.toggleFilter(i.response) }, queryParamsHandling: 'merge' });
+      this.bookmarks.toggleFilter(i.response);
     }
     if (i.tag) {
-      this.router.navigate(['/tag', this.store.view.toggleTag(i.tag)], { queryParamsHandling: 'merge' });
+      this.bookmarks.toggleTag(i.tag);
     }
   }
 

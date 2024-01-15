@@ -41,6 +41,7 @@ import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
+import { BookmarkService } from '../../service/bookmark.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
@@ -155,6 +156,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     private refs: RefService,
     private exts: ExtService,
     public acts: ActionService,
+    private bookmarks: BookmarkService,
     private scraper: ScrapeService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
@@ -765,15 +767,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   clickIcon(i: Icon) {
-    // TODO: bookmark service
     if (i.response) {
-      this.router.navigate([], { queryParams: { filter: this.store.view.toggleFilter(i.response) }, queryParamsHandling: 'merge' });
+      this.bookmarks.toggleFilter(i.response);
     }
     if (i.tag) {
-      this.router.navigate(['/tag', this.store.view.toggleTag(i.tag)], { queryParamsHandling: 'merge' });
+      this.bookmarks.toggleTag(i.tag);
     }
     if (i.scheme) {
-      this.router.navigate([], { queryParams: { filter: this.store.view.toggleFilter(`scheme/${i.scheme}`) }, queryParamsHandling: 'merge' });
+      this.bookmarks.toggleFilter(`scheme/${i.scheme}`);
     }
   }
 

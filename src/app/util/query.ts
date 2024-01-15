@@ -167,7 +167,6 @@ export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {
   return result;
 }
 
-
 export function getTagQueryFilter(query: string, filter?: UrlFilter[]): string {
   if (!filter) return query;
   let result = query;

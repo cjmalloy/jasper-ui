@@ -1,5 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChild, ViewChildren } from '@angular/core';
+import {
+  Component,
+  HostBinding,
+  Input,
+  OnChanges,
+  QueryList,
+  SimpleChanges,
+  ViewChild,
+  ViewChildren
+} from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { isObject } from 'lodash-es';
@@ -15,6 +24,7 @@ import { tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
+import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
@@ -59,6 +69,7 @@ export class ExtComponent implements OnChanges {
     public store: Store,
     private auth: AuthzService,
     private exts: ExtService,
+    public bookmarks: BookmarkService,
     private fb: UntypedFormBuilder,
     private router: Router,
   ) { }
@@ -248,9 +259,5 @@ export class ExtComponent implements OnChanges {
 
   download() {
     downloadTag(writeExt(this.ext));
-  }
-
-  clickIcon(i: Template) {
-    this.router.navigate(['/tag', this.store.view.toggleTag(i.tag)], { queryParamsHandling: 'merge' });
   }
 }
