@@ -22,6 +22,11 @@ export const aiQueryPlugin: Plugin = {
       { tag: 'plugin/inbox/ai', labelOff: $localize`ask ai`, global: true }
     ],
   },
+  schema: {
+    optionalProperties: {
+      exts: { elements: { type: 'string' } },
+    }
+  }
 };
 
 export const aiPlugin: Plugin = {

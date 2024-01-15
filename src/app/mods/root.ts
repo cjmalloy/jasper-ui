@@ -184,7 +184,6 @@ export const rootTemplate: Template = {
       addTags: { elements: { type: 'string' } },
       defaultThumbnail: { type: 'string' },
       defaultExpanded: { type: 'boolean'},
-      expandInline: { type: 'string' },
       hideEdit: { type: 'boolean'},
       disableResize: { type: 'boolean'},
       defaultCols: { type: 'int8'},
@@ -206,7 +205,6 @@ export interface RootConfig {
   addTags?: string[];
   defaultThumbnail?: boolean;
   defaultExpanded?: boolean;
-  expandInline?: boolean;
   hideEdit?: boolean;
   disableResize?: boolean;
   defaultCols?: number;

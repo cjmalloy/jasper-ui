@@ -80,7 +80,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   styleUrls: ['./ref.component.scss'],
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
-  css = 'ref list-item ';
+  css = 'ref list-item';
   private disposers: IReactionDisposer[] = [];
 
   @ViewChild('actionsMenu')
@@ -261,7 +261,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @HostBinding('class')
   get pluginClasses() {
-    return this.css + templates(this.ref.tags, 'plugin')
+    return this.css + ' ' + templates(this.ref.tags, 'plugin')
       .map(t => t.replace(/\//g, '-'))
       .join(' ');
   }

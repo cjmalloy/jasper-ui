@@ -8,8 +8,10 @@ import { ViewerComponent } from '../component/viewer/viewer.component';
 import { Ext } from '../model/ext';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
+import { ConfigService } from '../service/config.service';
 import { EmbedService } from '../service/embed.service';
 import { Embed } from '../util/embed';
+import { hasTag } from '../util/tag';
 
 @Directive({
   selector: '[appMdPost]'
@@ -24,6 +26,7 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
   private subscriptions: (() => void)[] = [];
 
   constructor(
+    private config: ConfigService,
     private embeds: EmbedService,
     @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
   ) { }
@@ -79,6 +82,7 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
     const c = this.viewContainerRef.createComponent(RefComponent);
     c.instance.ref = ref;
     c.instance.showToggle = !!showToggle;
+    c.instance.expandInline = hasTag('plugin/thread', ref);
     c.instance.init();
     return c;
   }

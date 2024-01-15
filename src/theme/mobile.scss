@@ -172,8 +172,10 @@ $tablet-width: 767px;
     }
   }
 
-  .full-page.ref.thread,
-  .thread .ref {
+  .thread > .ref-list > .list-container > .ref,
+  .md .ref.plugin-thread,
+  .thread .ref.plugin-thread,
+  .full-page.ref.thread {
     margin: 4px;
     padding: 0;
     .thumbnail,

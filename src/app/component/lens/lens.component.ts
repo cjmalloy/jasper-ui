@@ -73,9 +73,4 @@ export class LensComponent implements OnChanges {
     return tag.replace(/\//g, '-')
       .replace(/[^\w-]/g, '');
   }
-
-  get expandInline() {
-    if (this.ext?.config?.expandInline === undefined) return !this.config.mobile;
-    return this.ext?.config?.expandInline;
-  }
 }

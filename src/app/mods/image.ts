@@ -144,7 +144,6 @@ export const imageTemplate: Template = {
   },
   defaults: {
     defaultExpanded: true,
-    expandInline: false,
     hideEdit: true,
     disableResize: true,
     defaultCols: 0, // Leave to CSS screen size detection, but show cols dropdown

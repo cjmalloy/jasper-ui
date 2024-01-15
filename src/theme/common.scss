@@ -1222,8 +1222,16 @@ formly-field-radio, formly-field-multicheckbox {
   display: block;
 }
 
-.thread .ref .expand,
-.full-page.ref.thread .expand,
+.thread > .ref-list > .list-container > .ref,
+.thread .ref.plugin-thread,
+.md .ref.plugin-thread,
+.full-page.ref.thread {
+  & > .embed > .expand,
+  & > .row > .stack > .link-below > .stack > .embed > .expand {
+    border: none !important;
+  }
+}
+
 .bubble .ref.expand {
   border: none !important;
 }
@@ -1251,7 +1259,9 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
-.thread .ref,
+.thread > .ref-list > .list-container > .ref,
+.thread .ref.plugin-thread,
+.md .ref.plugin-thread,
 .full-page.ref.thread {
   max-width: 60em;
   margin: 8px;
@@ -1271,10 +1281,13 @@ formly-field-radio, formly-field-multicheckbox {
     border-bottom-left-radius: 2px;
     border: 1px solid rgba(157, 157, 157, 0.3);
   }
-  .thumbnail {
+  & > .row > .thumbnail {
     display: none;
   }
-  .toggle {
+}
+.thread > .ref-list > .list-container > .ref,
+.full-page.ref.thread {
+  & > .row > .stack > .link-below > .toggle {
     display: none;
   }
 }
@@ -1286,8 +1299,9 @@ formly-field-radio, formly-field-multicheckbox {
     margin-left: -8px;
     transform: translate(12px, 8px);
   }
-  & > .ref {
-    .link, .thumbnail {
+  & > .ref > .row {
+    & > .stack > .link,
+    & > .thumbnail {
       display: none;
     }
   }
@@ -1508,11 +1522,6 @@ formly-field-radio, formly-field-multicheckbox {
   .actions {
     display: none;
   }
-}
-
-.thread .ref .expand,
-.bubble .ref.expand {
-  border: none !important;
 }
 
 .viewer-inline > * {

@@ -32,7 +32,7 @@ export class RefListComponent implements OnInit, OnDestroy {
   @Input()
   showToggle = true;
   @Input()
-  expandInline = !this.config.mobile;
+  expandInline = false;
   @Input()
   showVotes = false;
   @Input()
