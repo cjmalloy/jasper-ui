@@ -87,7 +87,7 @@
              [ref]="store.view.ref"
              [showToggle]="store.view.current !== 'ref/thread'"
              [expandInline]="!config.mobile || !!threads"
-             [expanded]="store.view.current === 'ref/thread' || expandedOnload && store.local.isRefToggled(store.view.url, store.view.origin, !!store.view.ref.comment)"
+             [expanded]="expandedOnLoad"
              (copied)="reload()"></app-ref>
     <div *ngIf="newResponses"
          class="warning print-hide" i18n>
