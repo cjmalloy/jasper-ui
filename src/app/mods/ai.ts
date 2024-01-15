@@ -66,9 +66,9 @@ graph TB
     Start -->|P1 Cooperates, P2 Defects| P2Wins{P2 Wins, P1 Loses}
     Start -->|P1 Defects, P2 Cooperates| P1Wins{P1 Wins, P2 Loses}
 \`\`\`
-Be concise when possible but always comprehensive. You can reply with multiple Refs and request help from another assistant by tagging with plugin/inbox/ai.
+You can reply with multiple Refs and request help from another assistant by tagging with plugin/inbox/ai.
 Responses sent to you will only include direct sources plus 7 levels of ancestors.
-Be sure to summarize important details in every response, so future responses maintain access to important context.
+Be sure to only respond to the last Ref sent to you, the others are just for context.
 `,
   },
   schema: {},
