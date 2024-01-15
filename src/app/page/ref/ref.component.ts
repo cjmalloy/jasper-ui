@@ -9,6 +9,7 @@ import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
+import { View } from '../../store/view';
 import { memo, MemoCache } from '../../util/memo';
 import { hasTag, top } from '../../util/tag';
 
@@ -21,9 +22,9 @@ export class RefPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  expandedOnload = false;
   newResponses = 0;
   private watch?: Subscription;
+  private currentView?: View;
 
   constructor(
     public config: ConfigService,
@@ -35,11 +36,6 @@ export class RefPage implements OnInit, OnDestroy {
   ) {
     store.view.clear();
     this.disposers.push(autorun(() => {
-      this.expandedOnload = store.view.current !== 'ref/thread'
-        || store.view.ref && (!hasTag('plugin/fullscreen', store.view.ref)
-        || store.view.ref?.plugins?.['plugin/fullscreen']?.onload);
-    }));
-    this.disposers.push(autorun(() => {
       MemoCache.clear(this);
       if (store.view.ref && this.config.websockets) {
         this.watch?.unsubscribe();
@@ -49,6 +45,10 @@ export class RefPage implements OnInit, OnDestroy {
           this.newResponses++;
         });
       }
+    }));
+    this.disposers.push(autorun(() => {
+      MemoCache.clear(this);
+      this.currentView = this.store.view.current;
     }));
   }
 
@@ -73,6 +73,15 @@ export class RefPage implements OnInit, OnDestroy {
     const warn = (this.store.view.ref?.sources?.length || 0) > 0 && this.store.view.published && !this.store.view.ref!.published!.isSame(this.store.view.published);
     if (this.store.view.published) this.router.navigate([], { queryParams: { published: null }, queryParamsHandling: 'merge', replaceUrl: true });
     return warn;
+  }
+
+  @memo
+  get expandedOnLoad() {
+    return this.store.view.current === 'ref/thread'
+      || this.store.local.isRefToggled(this.store.view.url, this.store.view.origin,
+        !!this.store.view.ref?.comment && (this.store.view.current === 'ref/summary' || this.store.view.current === 'ref/comments')
+        || this.store.view.ref && (!hasTag('plugin/fullscreen', this.store.view.ref)
+        || this.store.view.ref?.plugins?.['plugin/fullscreen']?.onload));
   }
 
   @memo

@@ -3,7 +3,7 @@ export class LocalStore {
 
   isRefToggled(url: string, origin: string = '', defaultValue = false) {
     const value = localStorage.getItem(`toggled:${origin || ''}:${url}`);
-    if (!value) return defaultValue;
+    if (value === null) return defaultValue;
     return value === 'true';
   }
 
