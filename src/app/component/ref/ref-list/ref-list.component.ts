@@ -7,8 +7,6 @@ import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
 import { RefService } from '../../../service/api/ref.service';
-import { ConfigService } from '../../../service/config.service';
-import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-ref-list',
@@ -49,10 +47,8 @@ export class RefListComponent implements OnInit, OnDestroy {
   private _cols = 0;
 
   constructor(
-    private config: ConfigService,
     private router: Router,
     private refs: RefService,
-    private store: Store,
   ) { }
 
   trackByUrlOrigin(index: number, value: Ref) {
@@ -149,6 +145,10 @@ export class RefListComponent implements OnInit, OnDestroy {
   }
 
   addNewRef(ref: Ref) {
+    if (this.page?.content.find(r => r.url === ref.url)) {
+      // TODO: Update Ref
+      return;
+    }
     const index = this.newRefs.findIndex(r => r.url === ref.url);
     if (index !== -1) {
       this.newRefs[index] = ref;
