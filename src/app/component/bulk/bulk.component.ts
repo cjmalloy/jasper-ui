@@ -46,6 +46,8 @@ export class BulkComponent implements OnChanges, OnDestroy {
   @Input()
   type: Type = 'ref';
   @Input()
+  viewExt?: Ext;
+  @Input()
   activeExts: Ext[] = [];
 
   actions: Action[] = [];
@@ -91,7 +93,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
 
   @memo
   get defaultThumbnail() {
-    return [...this.activeExts, this.admin.getTemplate('')].find(x => x?.config?.defaultThumbnail)?.config?.defaultThumbnail || '';
+    return [...(this.viewExt ? [this.viewExt] : []), ...this.activeExts, this.admin.getTemplate('')].find(x => x?.config?.defaultThumbnail)?.config?.defaultThumbnail || '';
   }
 
   @memo

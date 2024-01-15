@@ -119,6 +119,9 @@ export class ViewStore {
     return s.firstChild?.routeConfig?.path === 'alts';
   }
 
+  /**
+   * Exts for all active Templates. If no Ext is found a default will be created.
+   */
   get activeExts(): Ext[] {
     return uniq(this.activeTemplates
         .flatMap(t => {
@@ -129,6 +132,9 @@ export class ViewStore {
         .filter(x => !!x));
   }
 
+  /**
+   * Exts for all global Templates. If no Ext is found a default will be created.
+   */
   get globalExts(): Ext[] {
     return uniq(this.globalTemplates
         .flatMap(t => {
@@ -141,6 +147,9 @@ export class ViewStore {
         .filter(x => !!x));
   }
 
+  /**
+   * Templates found in top ands of query or filters.
+   */
   get activeTemplates(): Template[] {
     return uniq(this.queryTags
         .map(tag => this.extTemplates.find(t => hasPrefix(tag, t.tag))!)
@@ -258,10 +267,16 @@ export class ViewStore {
     return this.route.routeSnapshot?.firstChild?.params['tag'] || '';
   }
 
+  /**
+   * The main tag associated with this view.
+   */
   get viewTag(): string {
     return this.view || this.activeExts[0]?.tag || '';
   }
 
+  /**
+   * The main Ext associated with this view.
+   */
   get viewExt() {
     if (this.list) return undefined;
     return [...this.activeExts, ...this.globalExts].find(x => x.tag === this.viewTag) || this.exts[0];
