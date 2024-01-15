@@ -17,6 +17,10 @@ export interface Template extends Config {
      */
     view?: string,
     /**
+     * This view is available by default, no tagging required.
+     */
+    global?: boolean;
+    /**
      * Submit text instead of links by default.
      */
     submitText?: boolean,
