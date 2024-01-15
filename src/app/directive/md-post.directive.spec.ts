@@ -5,6 +5,7 @@ describe('MdPostDirective', () => {
     const directive = new MdPostDirective(
       {} as any,
       {} as any,
+      {} as any,
     );
     expect(directive).toBeTruthy();
   });
