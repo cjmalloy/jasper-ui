@@ -31,7 +31,7 @@ import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
 import { getScheme } from '../../util/hosts';
 import { memo, MemoCache } from '../../util/memo';
-import { hasTag, hasUserUrlResponse, removeTag, tagOrigin } from '../../util/tag';
+import { hasTag, hasUserUrlResponse, removeTag, tagOrigin, top } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 
 @Component({
@@ -166,10 +166,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @memo
   get top() {
-    if (hasTag('plugin/comment', this.store.view.ref)) {
-      return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0];
-    }
-    return this.store.view.ref?.url;
+    return top(this.ref);
   }
 
   @memo

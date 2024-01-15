@@ -8,8 +8,7 @@ import { AdminService } from '../../../service/admin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
-import { interestingTags } from '../../../util/format';
-import { hasTag, removeTag } from '../../../util/tag';
+import { hasTag, removeTag, top } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-comments',
@@ -57,10 +56,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
   }
 
   get top() {
-    if (hasTag('plugin/comment', this.store.view.ref)) {
-      return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0];
-    }
-    return this.store.view.ref?.url;
+    return top(this.store.view.ref);
   }
 
   get depth() {

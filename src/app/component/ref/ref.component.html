@@ -262,7 +262,9 @@
            (click)="actionsExpanded = !actionsExpanded">⚙️</div>
       @if (thread) {
         <div class="toggle threads"
-             [routerLink]="['/ref', ref.url, 'thread']"
+             (focus)="delayLastSelected()"
+             (pointerdown)="delayLastSelected()"
+             [routerLink]="['/ref', top, 'thread']"
              [queryParams]="{ origin: obsoleteOrigin }">🧵️</div>
       } @else if (comments) {
         <div class="toggle comments"

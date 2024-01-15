@@ -69,7 +69,8 @@ import {
   localTag,
   removeTag,
   subOrigin,
-  tagOrigin
+  tagOrigin,
+  top
 } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 import { ViewerComponent } from '../viewer/viewer.component';
@@ -240,9 +241,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    if (this.scrollToLatest && this.lastSelected) {
-      delay(() => scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' }), 400);
-    }
+    delay(() => {
+      if (this.scrollToLatest && this.lastSelected) {
+        scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' });
+      }
+    }, 400);
   }
 
   ngOnDestroy() {
@@ -656,6 +659,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
+  get top() {
+    return top(this.ref);
+  }
+
+  @memo
   get parentComment() {
     if (!hasTag('plugin/comment', this.ref)) return false;
     if (this.sources === 1 || this.sources === 2) return this.ref.sources![0];
@@ -1000,5 +1008,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.overlayRef = undefined;
     this.overlayEvents = undefined;
     return false;
+  }
+
+  delayLastSelected() {
+    delay(() => this.store.view.setLastSelected(this.ref), 200);
   }
 }

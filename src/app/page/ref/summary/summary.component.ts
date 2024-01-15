@@ -10,9 +10,8 @@ import { ThemeService } from '../../../service/theme.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
-import { interestingTags } from '../../../util/format';
 import { getArgs } from '../../../util/query';
-import { hasTag, removeTag } from '../../../util/tag';
+import { hasTag, removeTag, top } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-summary',
@@ -82,10 +81,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   }
 
   get top() {
-    if (hasTag('plugin/comment', this.store.view.ref)) {
-      return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0];
-    }
-    return this.store.view.ref?.url;
+    return top(this.store.view.ref);
   }
 
   getComments(r?: Ref) {

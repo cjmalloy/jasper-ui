@@ -1281,6 +1281,9 @@ formly-field-radio, formly-field-multicheckbox {
     border-bottom-left-radius: 2px;
     border: 1px solid rgba(157, 157, 157, 0.3);
   }
+  &.last-selected {
+    border: 1px dashed var(--border);
+  }
   & > .row > .thumbnail {
     display: none;
   }
