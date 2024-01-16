@@ -1,5 +1,5 @@
 import { ComponentRef, Directive, Inject, Input, OnDestroy, OnInit, ViewContainerRef } from '@angular/core';
-import { defer, flatten, isString } from 'lodash-es';
+import { defer, flatten, isString, uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
 import { CommentComponent } from '../component/comment/comment.component';
 import { LensComponent } from '../component/lens/lens.component';
@@ -10,7 +10,6 @@ import { Ext } from '../model/ext';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { AdminService } from '../service/admin.service';
-import { ConfigService } from '../service/config.service';
 import { EmbedService } from '../service/embed.service';
 import { Embed } from '../util/embed';
 import { hasTag } from '../util/tag';
@@ -73,6 +72,8 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
     if (isString(ref)) {
       const url = ref as string;
       ref = { url, origin: this.origin };
+    } else if (hasTag('plugin/seamless', ref)) {
+      expandPlugins = uniq([...(expandPlugins || []), 'plugin/seamless']);
     }
     if (expandPlugins?.length) c.instance.tags = expandPlugins;
     c.instance.ref = ref;

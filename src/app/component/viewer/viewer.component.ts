@@ -24,7 +24,7 @@ import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
-import { hasComment } from '../../util/format';
+import { hasComment, templates } from '../../util/format';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasTag, includesTag } from '../../util/tag';
@@ -139,6 +139,13 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       const pipWindow = await documentPictureInPicture.requestWindow();
       pipWindow.document.body.append(this.el.nativeElement);
     }
+  }
+
+  @HostBinding('class')
+  get pluginClasses() {
+    return this.css + ' ' + templates(this.tags, 'plugin')
+      .map(t => t.replace(/\//g, '-'))
+      .join(' ');
   }
 
   @ViewChild('video')

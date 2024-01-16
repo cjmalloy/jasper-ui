@@ -2,7 +2,7 @@ import { filter, find, flatMap, without } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
-export function qualifyTags(tags?: string[], origin?: string): string[] | undefined {
+export function qualifyTags(tags: string[] | undefined, origin: string | undefined): string[] | undefined {
   if (!tags) return undefined;
   if (!origin) return tags;
   return tags.map(t => t + origin);
@@ -21,7 +21,7 @@ export function captures(selector: string, target: string): boolean {
   return sOrigin === '@*' || sOrigin === tOrigin;
 }
 
-export function capturesAny(selectors?: string[], target?: string[]): string | undefined {
+export function capturesAny(selectors: string[] | undefined, target: string[] | undefined): string | undefined {
   if (!selectors || !target) return undefined;
   if (!selectors.length || !target.length) return undefined;
   for (const s of selectors) {
@@ -32,7 +32,7 @@ export function capturesAny(selectors?: string[], target?: string[]): string | u
   return undefined;
 }
 
-export function addHierarchicalTags(tag?: string): string[]  {
+export function addHierarchicalTags(tag: string | undefined): string[]  {
   if (!tag) return [];
   const result = [tag];
   while (tag.includes('/')) {
@@ -41,7 +41,7 @@ export function addHierarchicalTags(tag?: string): string[]  {
   return result;
 }
 
-export function addAllHierarchicalTags(tags?: string[]): string[]   {
+export function addAllHierarchicalTags(tags: string[] | undefined): string[]   {
   if (!tags || !tags.length) return [];
   return flatMap(tags, t => addHierarchicalTags(t))
 }
@@ -57,7 +57,7 @@ export function getStrictPrefix(a: string, b: string) {
   return getLargestPrefix(parentTag(a), parentTag(b));
 }
 
-export function hasTag(tag?: string, ref?: Ref) {
+export function hasTag(tag: string | undefined, ref: Ref | undefined) {
   if (!tag) return false;
   if (!ref?.tags) return false;
   const not = tag.startsWith('!');
@@ -65,7 +65,7 @@ export function hasTag(tag?: string, ref?: Ref) {
   return !!find(ref.tags, t => expandedTagsInclude(t, tag)) !== not;
 }
 
-export function hasMedia(ref?: Ref)  {
+export function hasMedia(ref: Ref | undefined)  {
   if (!ref?.tags) return false;
   return hasTag('plugin/image', ref) ||
     hasTag('plugin/video', ref) ||
