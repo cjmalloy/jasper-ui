@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   @if (store.view.top && store.view.top.url !== store.view.ref?.url) {
-    <span class="parent-link fake-link load-more print-hide" [routerLink]="['/ref', store.view.top.url, 'comments']" i18n>full Comments</span>
+    <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url, 'comments']" i18n>full Comments</span>
   }
   @if (store.view.ref) {
     <app-comment-reply [to]="store.view.ref"
