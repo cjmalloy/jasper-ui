@@ -1314,7 +1314,7 @@ formly-field-radio, formly-field-multicheckbox {
     transform: translate(12px, 8px);
   }
   & > .ref > .row {
-    & > .stack > .link,
+    & > .stack > .link:not(.clickable),
     & > .thumbnail {
       display: none;
     }
