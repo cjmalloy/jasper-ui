@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { RxStomp } from '@stomp/rx-stomp';
 import { map, Observable } from 'rxjs';
 import { mapRef, Ref, RefUpdates } from '../../model/ref';
+import { Store } from '../../store/store';
 import { AuthnService } from '../authn.service';
 import { ConfigService } from '../config.service';
 
@@ -12,6 +13,7 @@ export class StompService extends RxStomp {
 
   constructor(
     private config: ConfigService,
+    private store: Store,
     private auth: AuthnService,
   ) {
     super();
@@ -44,13 +46,13 @@ export class StompService extends RxStomp {
   }
 
   watchTag(tag: string): Observable<string> {
-    return this.watch('/topic/tag/' + encodeURIComponent(tag), this.headers).pipe(
+    return this.watch('/topic/tag/' + (this.store.account.origin || 'default') + '/' + encodeURIComponent(tag), this.headers).pipe(
       map(m => m.body as string),
     );
   }
 
   watchResponse(url: string): Observable<string> {
-    return this.watch('/topic/response/' + encodeURIComponent(url), this.headers).pipe(
+    return this.watch('/topic/response/' + (this.store.account.origin || 'default') + '/' + encodeURIComponent(url), this.headers).pipe(
       map(m => m.body as string),
     );
   }
