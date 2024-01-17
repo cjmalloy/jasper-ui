@@ -1777,6 +1777,10 @@ ngx-monaco-editor {
   margin-top: 2px;
   border-radius: 4px;
   background-color: var(--card);
+
+  .plugin-thread .toggle {
+    background-color: var(--toggle-accent);
+  }
   &.unlocked {
     border-radius: 5px;
     border: 0.25px dashed var(--border-accent);
