@@ -639,6 +639,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
+  get redundantLink() {
+    if (!this.clickableLink) return true;
+    return this.expandPlugins.length;
+  }
+
+  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
