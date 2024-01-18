@@ -1,4 +1,4 @@
-import { flatten, without } from 'lodash-es';
+import { flatten, isArray, without } from 'lodash-es';
 import { autorun, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
@@ -61,8 +61,10 @@ export class SubmitStore {
     return !!this.url?.startsWith(this.wikiPrefix);
   }
 
-  get to() {
-    return this.route.routeSnapshot?.queryParams['to'];
+  get to(): string[] {
+    const tag = this.route.routeSnapshot?.queryParams['to'];
+    if (!tag) return [];
+    return isArray(tag) ? tag : [tag];
   }
 
   get tag() {

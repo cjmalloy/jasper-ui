@@ -46,7 +46,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   floating = true;
 
   localTag?: string;
-  addTags = this.admin.getTemplate('')?.defaults?.addTags || [];
+  addTags: string[] = this.admin.getTemplate('')?.defaults?.addTags || [];
   defaultThumbnail = this.admin.getTemplate('')?.defaults?.defaultThumbnail;
   local = true;
   plugin?: Plugin;
@@ -118,9 +118,9 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         this.localTag = localTag(this.tag);
         this.plugin = this.admin.getPlugin(this.tag);
         if (this.home) {
-          this.addTags = this.rootConfig?.addTags || ['public'];
+          this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
         } else {
-          this.addTags = uniq([...this.rootConfig?.addTags || ['public'], ...topAnds(this.tag).map(localTag)]);
+          this.addTags = uniq([...this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'], ...topAnds(this.tag).map(localTag)]);
         }
         this.defaultThumbnail = this.rootConfig?.defaultThumbnail;
         this.mailPlugin = this.admin.getPlugin(getMailbox(this.tag, this.store.account.origin));
@@ -130,13 +130,14 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
       } else {
         this.local = true;
         this.localTag = undefined;
-        this.addTags = this.rootConfig?.addTags || ['public'];
+        this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
         this.plugin = undefined;
         this.mailPlugin = undefined;
         this.tagTemplate = undefined;
         this.writeAccess = false;
         this.ui = [];
       }
+      this.addTags = this.addTags.filter(t => this.auth.canAddTag(t));
     }
   }
 
@@ -171,7 +172,10 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   get dms() {
-    return this.rootConfig?.dms;
+    return uniq([
+      ...this.plugin?.config?.reply || [],
+      ...this.rootConfig?.dms ? [this.rootConfig?.dms] : [],
+    ]);
   }
 
   get user() {
