@@ -26,7 +26,7 @@ export const embedPlugin: Plugin = {
       type: 'number',
       props: {
         label: $localize`Width:`,
-        min: 200,
+        min: 50,
       },
       validation: {
         messages: {
@@ -38,7 +38,7 @@ export const embedPlugin: Plugin = {
       type: 'number',
       props: {
         label: $localize`Height:`,
-        min: 200
+        min: 50
       },
       validation: {
         messages: {
