@@ -1772,6 +1772,10 @@ ngx-monaco-editor {
   padding: 4px;
   grid-gap: 8px;
 
+  .column-title {
+    place-self: center;
+    width: calc(100% - 32px);
+  }
   .column-title, .swim-lane-title {
     margin: 8px 0;
     padding: 4px;
@@ -1788,6 +1792,7 @@ ngx-monaco-editor {
     }
   }
   .kanban-column {
+    place-self: center;
     border: 1px solid transparent;
 
     &:hover {
@@ -1796,22 +1801,15 @@ ngx-monaco-editor {
   }
 
   .kanban-header {
+    margin-top: 8px;
     .kanban-remove {
+      border-radius: 4px;
       background-color: var(--placeholder);
     }
-
     &.cdk-drop-list-dragging {
       .kanban-remove {
         background-color: var(--deleting);
       }
-    }
-  }
-
-  .kanban-header {
-    margin-top: 8px;
-
-    .kanban-remove {
-      border-radius: 4px;
     }
 
     .cdk-drag-placeholder {
