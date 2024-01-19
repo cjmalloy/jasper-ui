@@ -26,7 +26,7 @@
               [activeExts]="activeExts"></app-bulk>
   }
   <span class="button-bar">
-    @if (!plugin?.config?.reply && store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
+    @if (!user && !plugin?.config?.reply && store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
       @if (plugin?.config?.submitText || rootConfig?.submitText) {
         <div class="submit-button" routerLink="/submit/text" tabindex="0"
              [queryParams]="{ tag: addTags, thumbnail: defaultThumbnail }">
