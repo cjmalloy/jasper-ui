@@ -83,6 +83,9 @@ export const imageTemplate: Template = {
             position: relative;
             margin: 0;
             padding: 0;
+            .expand {
+              display: none;
+            }
             .image-expand {
               position: relative;
               min-width: 100%;
