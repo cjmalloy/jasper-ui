@@ -9,7 +9,7 @@ import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Config, Tag } from '../model/tag';
 import { Template } from '../model/template';
-import { aiPlugin, aiQueryPlugin, aiTemplate } from '../mods/ai';
+import { aiPlugin, aiQueryPlugin } from '../mods/ai';
 import { archivePlugin } from '../mods/archive';
 import { audioPlugin } from '../mods/audio';
 import { backgammonPlugin, backgammonTemplate } from '../mods/backgammon';
@@ -158,7 +158,6 @@ export class AdminService {
       chat: chatTemplate,
       dm: dmTemplate,
 
-      aiTemplate: aiTemplate,
       imageTemplate: imageTemplate,
       lensTemplate: lensTemplate,
       chessTemplate: chessTemplate,
@@ -297,6 +296,22 @@ export class AdminService {
         x.name ||= plugin?.name;
       } else if (x.tag.startsWith('+plugin/')) {
         x.tag = '';
+      }
+      x.name ||= tmpl?.name;
+      return x;
+    }));
+  }
+
+  get recipientFallback() {
+    return map((xs: Ext[]) => xs.map(x => {
+      if (x.modifiedString) return x;
+      x = {...x};
+      const tmpl = this.getTemplate('plugin/inbox/' + x.tag);
+      let plugin = this.getPlugin('plugin/inbox/' + x.tag);
+      if (plugin?.config?.signature) {
+        plugin = this.getPlugin(plugin.config.signature) || plugin;
+        x.tag = plugin?.tag || x.tag;
+        x.name ||= plugin?.name;
       }
       x.name ||= tmpl?.name;
       return x;
@@ -447,6 +462,10 @@ export class AdminService {
 
   get submitText() {
     return this.pluginConfigProperty('submitText');
+  }
+
+  get submitDm() {
+    return this.pluginConfigProperty('submitDm');
   }
 
   get settings() {

@@ -12,7 +12,7 @@ export class SubmitStore {
   wikiPrefix = DEFAULT_WIKI_PREFIX;
   maxPreview = 300;
   submitGenId: Plugin[] = [];
-  submitText: Plugin[] = [];
+  submitDm: Plugin[] = [];
   files: File[] = [] as any;
   exts: Ext[] = [];
   refs: Ref[] = [];
@@ -25,7 +25,7 @@ export class SubmitStore {
   ) {
     makeAutoObservable(this, {
       submitGenId: observable.shallow,
-      submitText: observable.shallow,
+      submitDm: observable.shallow,
       files: observable.shallow,
     });
 
@@ -114,8 +114,8 @@ export class SubmitStore {
     return this.tags.find(t => this.submitGenId.find(p => p.tag === t));
   }
 
-  get textPlugin() {
-    return [...this.tags, this.to].find(t => this.submitText.find(p => p.tag === t));
+  get dmPlugin() {
+    return [...this.tags, ...this.to].find(t => this.submitDm.find(p => p.tag === t));
   }
 
   get withoutGenId() {

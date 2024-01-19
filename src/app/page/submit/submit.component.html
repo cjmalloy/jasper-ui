@@ -31,15 +31,15 @@
     </ng-container>
     <a routerLink="/submit/dm"
        *ngIf="admin.getTemplate('dm')"
-       [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.url"
-       [queryParams]="{ url: null }"
+       [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.dmPlugin"
+       [queryParams]="{ to: null, tag: null }"
        i18n-title title="Direct Message"
        queryParamsHandling="merge" i18n>dm</a>
     @for (p of store.submit.submitGenId; track p) {
       @if (p.config?.submitDm) {
         <a routerLink="/submit/dm"
-           [class.current-tab]="store.submit.tags.includes(p.tag) && store.submit.url"
-           [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
+           [class.current-tab]="store.submit.subpage === 'dm' && store.submit.to[0] === p.tag"
+           [queryParams]="{ to: submitInternal(p.tag), tag: null }"
            [replaceUrl]="true"
            [title]="p.name"
            queryParamsHandling="merge">{{ p.config!.submit }}</a>

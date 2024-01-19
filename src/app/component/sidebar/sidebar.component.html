@@ -62,7 +62,7 @@
     @if (store.account.tag !== tag && messages) {
       @if (dms.length) {
         <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
-             [queryParams]="{ to: dms }">
+             [queryParams]="{ to: dms, tag: null }">
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
         </div>
       } @else if (mailPlugin) {
@@ -75,7 +75,7 @@
         </div>
       } @else if (modmail) {
         <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
-             [queryParams]="{ to: tag }">
+             [queryParams]="{ to: tag, tag: null }">
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
         </div>
       }

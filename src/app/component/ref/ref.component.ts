@@ -552,7 +552,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get recipientExts$() {
-    return this.exts.getCachedExts(this.recipients, this.ref.origin || '').pipe(this.admin.authorFallback );
+    return this.exts.getCachedExts(this.recipients, this.ref.origin || '').pipe(this.admin.recipientFallback);
   }
 
   @memo
