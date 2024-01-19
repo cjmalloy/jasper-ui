@@ -1564,6 +1564,36 @@ formly-field-radio, formly-field-multicheckbox {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+
+  &.loading {
+    border-radius: 16px;
+    opacity: 50%;
+    animation-duration: 4s;
+    animation-name: image-loading;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+  }
+  @keyframes image-loading {
+    from {
+      box-shadow: inset 0 0 5px grey;
+    }
+
+    5% {
+      box-shadow: inset 0 0 5px grey;
+    }
+
+    35% {
+      box-shadow: inset 0 0 30px grey;
+    }
+
+    70% {
+      box-shadow: inset 0 0 30px grey;
+    }
+
+    to {
+      box-shadow: inset 0 0 5px grey;
+    }
+  }
 }
 
 .video-expand {

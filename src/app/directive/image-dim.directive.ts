@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { Directive, ElementRef, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { ConfigService } from '../service/config.service';
 import { Dim, height, ImageDimService, width } from '../service/image-dim.service';
 
@@ -13,9 +13,11 @@ export class ImageDimDirective implements OnInit, OnDestroy {
   @Input('defaultHeight')
   defaultHeight?: number;
 
-  private dim: Dim = { width: 0, height: 0};
+  @HostBinding('class.loading')
+  loading = true;
 
-  resizeObserver?: ResizeObserver;
+  private dim: Dim = { width: 0, height: 0};
+  private resizeObserver?: ResizeObserver;
 
   constructor(
     private config: ConfigService,
@@ -61,10 +63,12 @@ export class ImageDimDirective implements OnInit, OnDestroy {
 
   @Input('appImageDim')
   set url(value: string) {
+    this.loading = true;
     this.el.style.backgroundImage = `url('${value}')`;
     this.el.style.backgroundSize = 'contain';
     this.ids.getImageDim(value)
       .then((d: Dim) => {
+        this.loading = false;
         this.dim = d;
         this.onResize();
       });
