@@ -77,6 +77,8 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   embedReady = false;
 
   private _oembed?: Oembed;
+  private width = 0;
+  private height = 0;
 
   constructor(
     public admin: AdminService,
@@ -117,13 +119,13 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       });
     }
     if (this.ref?.url && this.currentTags.includes('plugin/embed')) {
-      let width = this.embed?.width || (this.config.mobile ? (window.innerWidth - (this.thread ? 32 : 12)) : this.el.nativeElement.parentElement.offsetWidth - 400);
-      let height = this.embed?.height || window.innerHeight;
+      this.width = this.embed?.width || (this.config.mobile ? (window.innerWidth - (this.thread ? 32 : 12)) : this.el.nativeElement.parentElement.offsetWidth - 400);
+      this.height = this.embed?.height || window.innerHeight;
       if (hasTag('plugin/fullscreen', this.ref)) {
-        width = screen.width;
-        height = screen.height;
+        this.width = screen.width;
+        this.height = screen.height;
       }
-      this.oembeds.get(this.ref.url, this.theme, width, height).subscribe(oembed => this.oembed = oembed);
+      this.oembeds.get(this.ref.url, this.theme, this.width, this.height).subscribe(oembed => this.oembed = oembed);
     }
   }
 
@@ -166,6 +168,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       return;
     }
     this._oembed = oembed!;
+    const i = this.iframe.nativeElement;
     if (oembed) {
       if (oembed.url && oembed.type === 'photo') {
         // Image embed
@@ -173,16 +176,28 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
         this.image = oembed.url;
         this.init();
       } else {
-        this.embeds.writeIframe(oembed, this.iframe.nativeElement, this.embedWidth)
-          .then(() => this.embedReady = true);
+        this.embeds.writeIframe(oembed, i, this.embedWidth)
+          .then(() => {
+            if (oembed.width! > this.width) {
+              const s = this.width / oembed.width!;
+              const marginLeft = oembed.width! - this.width;
+              const marginTop = marginLeft * oembed.height! / oembed.width!;
+              i.style.transform = `scale(${s}, ${s})`;
+              i.style.transformOrigin = 'top left';
+              i.style.marginRight = -1 * marginLeft + 'px';
+              i.style.marginBottom = -1 * marginTop + 'px';
+            }
+            this.embedReady = true;
+          });
       }
     } else {
       this.embedReady = true;
-      this.iframe.nativeElement.src = this.embed.url || this.ref?.url;
-      this.iframe.nativeElement.style.width = this.embedWidth;
-      this.iframe.nativeElement.style.height = this.embedHeight;
+      i.src = this.embed.url || this.ref?.url;
+      i.style.width = this.embedWidth;
+      i.style.height = this.embedHeight;
     }
   }
+
 
   @memo
   get oembed() {
