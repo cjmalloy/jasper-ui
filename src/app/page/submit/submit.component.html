@@ -9,31 +9,31 @@
        [class.current-tab]="store.submit.web && !store.submit.genId"
        [queryParams]="{ url: url.value, tag: store.submit.withoutGenId }"
        [replaceUrl]="true"
-       i18n-title title="Link Post"
+       i18n-title title="📝️ Link Post"
        queryParamsHandling="merge" i18n>link</a>
     <a routerLink="/submit/text"
        [class.current-tab]="store.submit.text"
        [queryParams]="{ url: null, tag: store.submit.withoutGenId }"
-       i18n-title title="Text Post"
+       i18n-title title="📝️ Text Post"
        queryParamsHandling="merge" i18n>text</a>
     <a class="fake-link"
        routerLink="/submit/upload"
        [class.current-tab]="store.submit.upload"
-       i18n-title title="Upload"
+       i18n-title title="💾️ Upload"
        queryParamsHandling="merge" i18n>upload</a>
     <ng-container *ngIf="!admin.isWikiExternal()">
       <a routerLink="/submit"
          [class.current-tab]="store.submit.wiki"
          [queryParams]="{ url: wikify, tag: store.submit.withoutGenId }"
          [replaceUrl]="true"
-         i18n-title title="Wiki Page"
+         i18n-title title="📔️ Wiki Page"
          queryParamsHandling="merge" i18n>wiki</a>
     </ng-container>
     <a routerLink="/submit/dm"
        *ngIf="admin.getTemplate('dm')"
        [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.dmPlugin"
        [queryParams]="{ to: null, tag: null }"
-       i18n-title title="Direct Message"
+       i18n-title title="📨️ Direct Message"
        queryParamsHandling="merge" i18n>dm</a>
     @for (p of store.submit.submitGenId; track p) {
       @if (p.config?.submitDm) {
