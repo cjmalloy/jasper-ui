@@ -173,7 +173,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   get dms() {
     return uniq([
-      ...this.plugin?.config?.reply || [],
+      ...this.plugin?.config?.reply ? [ this.plugin.tag ] : [],
       ...this.rootConfig?.dms ? [this.rootConfig?.dms] : [],
     ]);
   }

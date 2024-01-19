@@ -70,11 +70,15 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   ngAfterViewInit(): void {
     defer(() => {
       this.disposers.push(autorun(() => {
-        if (this.store.submit.textPlugin === 'plugin/inbox/ai' || this.store.submit.to.includes('ai')) {
-          this.to.setValue('ai');
+        if (this.store.submit.textPlugin === 'plugin/inbox/ai/openai'
+          || this.store.submit.to.includes('plugin/inbox/ai/openai')
+          || this.store.submit.to.includes('+plugin/ai/openai')) {
+          this.to.setValue('plugin/inbox/ai/openai');
           this.title.setValue($localize`Chat with AI`);
-        } else if (this.store.submit.textPlugin === 'plugin/inbox/dalle') {
-          this.to.setValue('dalle');
+        } else if (this.store.submit.textPlugin === 'plugin/inbox/ai/dalle'
+          || this.store.submit.to.includes('plugin/inbox/ai/dalle')
+          || this.store.submit.to.includes('+plugin/ai/dalle')) {
+          this.to.setValue('plugin/inbox/ai/dalle');
           this.title.setValue($localize`Draw something...`);
         } if (this.store.submit.to) {
           // TODO: multiple recipients
@@ -126,12 +130,17 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       'internal', 'plugin/thread',
         ...(this.notes ?
             ['notes'] :
-            ['dm', 'locked', ...this.to.value.split(/\s+/).map((t: string) => getMailbox(t, this.store.account.origin))]
+            ['dm', 'locked', ...this.to.value.split(/\s+/).flatMap((t: string) => this.getMailboxes(t))]
         ),
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
       ...this.plugins,
       ...this.store.submit.tags,
     ]);
+  }
+
+  getMailboxes(tag: string): string[] {
+    tag = getMailbox(tag, this.store.account.origin);
+    return this.admin.getPlugin(tag)?.config?.reply || [ tag ];
   }
 
   get editingViewer() {
