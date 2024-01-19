@@ -10,7 +10,7 @@
       <a class="badge"
          *ngFor="let e of badgeExts"
          [class.filtering]="bookmarks.filters.includes($any('query/' + e.tag))"
-         (click)="bookmarks.toggleQuery(e.tag)"
+         (click)="bookmarks.toggleQuery($event.ctrlKey ? '!(' + e.tag + ')' : e.tag)"
          [title]="e.name && e.tag">{{ e.name || e.tag }}</a>
     </ng-container>
     <a class="badge"
