@@ -185,28 +185,23 @@ $tablet-width: 767px;
     .toggle.comments {
       display: none;
     }
-    .row {
-      padding-top: 16px;
-      padding-bottom: 4px;
-    }
-    .info, .actions, .link {
-      transition: none;
-      height: 28px;
-      padding: 0 8px;
-    }
     &:not(.sent) {
       justify-self: left;
     }
     &.sent {
       margin-left: 4px;
       justify-self: right;
-      .row {
-        padding-bottom: 16px;
-      }
     }
-    & > .row > .stack > .link-below > .stack {
-      & > .info, & > .actions {
+    & > .row > .stack {
+      padding: 8px;
+      & > .link-below > .stack > .info,
+      & > .link-below > .stack > .actions,
+      & > .link  {
         margin-left: 0;
+        transition: none;
+        height: 28px;
+        line-height: 28px;
+        padding: 0 8px;
       }
     }
   }
