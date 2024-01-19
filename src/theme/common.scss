@@ -1298,6 +1298,13 @@ formly-field-radio, formly-field-multicheckbox {
   & > .row > .thumbnail {
     display: none;
   }
+  & > .row > .stack > .link-below > .stack {
+    & > .info, & > .actions {
+      margin-left: -8px;
+      padding: 0 8px;
+      mask-image: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.1) 2px, white 8px, white calc(100% - 18px), rgba(255, 255, 255, 0.1) calc(100% - 6px), rgba(255, 255, 255, 0));
+    }
+  }
 }
 .thread > .ref-list > .list-container > .ref,
 .full-page.ref.thread {
