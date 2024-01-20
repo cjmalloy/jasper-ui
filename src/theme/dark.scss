@@ -219,8 +219,8 @@ body.dark-theme {
   }
 
   .thread > .ref-list > .list-container > .ref,
-  .thread .ref.plugin-thread,
-  .md .ref.plugin-thread,
+  .md .ref.plugin-thread:not(.list-item),
+  .thread .ref.plugin-thread:not(.list-item),
   .thread.ref {
     --thread-sent: rgba(32, 128, 255, 0.15);
     --thread-recieved: rgba(255, 255, 255, 0.1);
