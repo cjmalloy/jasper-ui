@@ -147,19 +147,20 @@ import { SafePipe } from './pipe/safe.pipe';
 import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
+import { ExtService } from './service/api/ext.service';
 import { AuthnService } from './service/authn.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
 import { OriginMapService } from './service/origin-map.service';
 import { ThemeService } from './service/theme.service';
 
-const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ThemeService) => () =>
+const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ThemeService, exts: ExtService) => () =>
   config.load$.pipe(
-    tap(() => console.log('-{1}- Loading Jasper')),
+    tap(() => console.log('-{ 1}- Loading Jasper')),
     switchMap(() => debug.init$),
-    tap(() => console.log('-{2}- Authenticating')),
+    tap(() => console.log('-{ 2}- Authenticating')),
     switchMap(() => authn.init$),
-    tap(() => console.log('-{3}- Authorizing')),
+    tap(() => console.log('-{ 3}- Authorizing')),
     switchMap(() => account.whoAmI$.pipe(
       retry({
         delay: (_, retryCount: number) =>
@@ -167,17 +168,19 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
           timer(1000 * Math.pow(2, Math.min(10, retryCount)))
       })
     )),
-    tap(() => console.log('-{4}- Checking if first run as admin')),
+    tap(() => console.log('-{ 4}- Checking if first run as admin')),
     switchMap(() => account.initExt$),
-    tap(() => console.log('-{5}- Loading plugins and templates')),
+    tap(() => console.log('-{ 5}- Loading plugins and templates')),
     switchMap(() => admin.init$),
-    tap(() => console.log('-{6}- Loading account information')),
+    tap(() => console.log('-{ 6}- Loading account information')),
     switchMap(() => account.init$),
-    tap(() => console.log('-{7}- Loading origins')),
+    tap(() => console.log('-{ 7}- Loading origins')),
     switchMap(() => origins.init$),
-    tap(() => console.log('-{8}- Loading themes')),
+    tap(() => console.log('-{ 8}- Loading themes')),
     switchMap(() => themes.init$),
-    tap(() => console.log('-{9}- Ready')),
+    tap(() => console.log('-{ 9}- Prefetching Exts')),
+    switchMap(() => exts.init$),
+    tap(() => console.log('-{10}- Ready')),
   );
 
 @NgModule({
@@ -345,7 +348,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     {
       provide: APP_INITIALIZER,
       useFactory: loadFactory,
-      deps: [ConfigService, DebugService, AuthnService, AdminService, AccountService, OriginMapService, ThemeService],
+      deps: [ConfigService, DebugService, AuthnService, AdminService, AccountService, OriginMapService, ThemeService, ExtService],
       multi: true,
     },
   ],
