@@ -38,4 +38,16 @@ export class LocalStore {
   get showPreview() {
     return localStorage.getItem('showPreview') !== 'false';
   }
+
+  loadExt(tag: string) {
+    const exts = localStorage.getItem(`loaded:ext`)?.split(',') || [];
+    if (!exts.includes(tag)) {
+      exts.push(tag);
+      localStorage.setItem(`loaded:ext`, exts.join(','));
+    }
+  }
+
+  get extPrefetch() {
+    return localStorage.getItem(`loaded:ext`)?.split(',') || [];
+  }
 }
