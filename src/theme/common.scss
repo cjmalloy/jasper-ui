@@ -1234,8 +1234,8 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .thread > .ref-list > .list-container > .ref,
-.thread .ref.plugin-thread,
-.md .ref.plugin-thread,
+.thread .ref.plugin-thread:not(.list-item),
+.md .ref.plugin-thread:not(.list-item),
 .full-page.ref.thread {
   & > .embed > .expand,
   & > .row > .stack > .link-below > .stack > .embed > .expand {
@@ -1271,8 +1271,8 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .thread > .ref-list > .list-container > .ref,
-.thread .ref.plugin-thread,
-.md .ref.plugin-thread,
+.thread .ref.plugin-thread:not(.list-item),
+.md .ref.plugin-thread:not(.list-item),
 .full-page.ref.thread {
   max-width: 60em;
   margin: 8px;
