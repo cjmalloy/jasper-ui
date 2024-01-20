@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
-import { catchError, concat, map, Observable, of, shareReplay, throwError, toArray } from 'rxjs';
+import { catchError, concat, map, Observable, of, shareReplay, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext, mapTag, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
@@ -32,6 +32,55 @@ export class ExtService {
     return this.config.api + '/api/v1/ext';
   }
 
+  get init$() {
+    return this.loadExts$().pipe(
+      catchError(() => of(null)),
+    );
+  }
+
+  private loadExts$(page = 0): Observable<null> {
+    const alreadyLoaded = page * this.config.fetchBatch;
+    if (alreadyLoaded >= this.config.maxExts) {
+      console.error(`Too many exts to prefetch, only loaded ${alreadyLoaded}. Increase maxExts to load more.`)
+      return of(null);
+    }
+    const prefetch = this.store.local.extPrefetch.slice(page * this.config.fetchBatch, (page + 1) * this.config.fetchBatch);
+    const setOrigin = (t: string) => {
+      const [tag, origin] = t.split(':');
+      if (tag.includes('@')) return tag;
+      if ((origin || '') !== this.store.account.origin) {
+        return tag + (origin || '') + '|' + tag + this.store.account.origin;
+      }
+      return tag + this.store.account.origin;
+    };
+    return this.page({ query: prefetch.map(setOrigin).join('|'), size: 1000 }).pipe(
+      tap(batch => {
+        for (const key of prefetch) {
+          const [tag, origin] = key.split(':');
+          if (!this._cache.has(key)) {
+            if (tag.includes('@')) {
+              this._cache.set(key, of(
+                batch.content.find(x => x.tag === localTag(tag) && x.origin === tagOrigin(tag))
+                || { tag: localTag(tag), origin: tagOrigin(tag) } as Ext));
+            } else if (origin) {
+              this._cache.set(key, of(
+                batch.content.find(x => x.tag === tag && x.origin === this.store.account.origin)
+                || batch.content.find(x => x.tag === tag && x.origin === origin)
+                || batch.content.find(x => x.tag === tag) // TODO: sort by modified
+                || { tag: localTag(tag), origin: tagOrigin(tag) } as Ext));
+            } else {
+              this._cache.set(key, of(
+                batch.content.find(x => x.tag === tag && x.origin === this.store.account.origin)
+                || batch.content.find(x => x.tag === tag) // TODO: sort by modified
+                || { tag: localTag(tag), origin: tagOrigin(tag) } as Ext));
+            }
+          }
+        }
+      }),
+      switchMap(batch => (page + 1) * this.config.fetchBatch >= this.store.local.extPrefetch.length ? of(null) : this.loadExts$(page + 1)),
+    );
+  }
+
   create(ext: Ext, force = false): Observable<string> {
     return this.http.post<string>(this.base, writeExt(ext), {
       params: !force ? undefined : { force: true },
@@ -46,7 +95,10 @@ export class ExtService {
       params: params({ tag }),
     }).pipe(
       map(mapTag),
-      tap(ext => this._cache.set(tag, of(ext))),
+      tap(ext => {
+        this._cache.set(tag + ':', of(ext));
+        this.store.local.loadExt([...this._cache.keys()]);
+      }),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -57,7 +109,10 @@ export class ExtService {
   }
 
   getCachedExt(tag: string, origin?: string) {
-    const key = defaultOrigin(tag, origin);
+    if (tag.endsWith('undefined')) {
+      console.log('gotcha');
+    }
+    const key = tag + ':' + (origin || '');
     if (!this._cache.has(key)) {
       if (isQuery(tag)) {
         this._cache.set(key, of({ name: tag, tag: tag, origin: origin } as Ext));
@@ -74,11 +129,17 @@ export class ExtService {
             );
           }),
           catchError(err => of(null)),
-          map(x => x ? x : { tag: localTag(tag), origin: tagOrigin(tag) } as Ext),
+          map(x => x ? x : { tag: localTag(tag), origin: tagOrigin(tag) || origin || '' } as Ext),
+          tap(x => {
+            this._cache.set(x.tag + x.origin + ':', of(x));
+            this.store.local.loadExt([...this._cache.keys()]);
+          }),
           shareReplay(1),
         ));
+        console.log('getCachedExt: adding', key);
         delay(() => this._cache.delete(key), EXT_CACHE_MS);
       }
+      this.store.local.loadExt([...this._cache.keys()]);
     }
     return this._cache.get(key)!;
   }

@@ -1,5 +1,6 @@
 
 export class LocalStore {
+  private _extPrefetch?: string;
 
   isRefToggled(url: string, defaultValue = false) {
     const value = localStorage.getItem(`toggled:${url}`);
@@ -37,5 +38,14 @@ export class LocalStore {
 
   get showPreview() {
     return localStorage.getItem('showPreview') !== 'false';
+  }
+
+  loadExt(tags: string[]) {
+    this._extPrefetch ||= localStorage.getItem(`loaded:ext`) || '';
+    localStorage.setItem(`loaded:ext`, tags.join(','));
+  }
+
+  get extPrefetch() {
+    return (this._extPrefetch || localStorage.getItem(`loaded:ext`))?.split(',') || [];
   }
 }
