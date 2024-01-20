@@ -9,7 +9,6 @@ import { Oembed } from '../model/oembed';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { wikiUriFormat } from '../mods/wiki';
-import { Store } from '../store/store';
 import { delay } from '../util/async';
 import { Embed } from '../util/embed';
 import { parseParams } from '../util/http';
@@ -28,7 +27,6 @@ export class EmbedService {
 
   constructor(
     private config: ConfigService,
-    private store: Store,
     private admin: AdminService,
     private editor: EditorService,
     private refs: RefService,
@@ -149,7 +147,7 @@ export class EmbedService {
       level: 'inline',
       start: (src: string) => src.match(/\[!\[[a-zA-Z]/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^\[!\[([^\]]+)]]/;
+        const rule = /^!\[\[([^\]]+)]]/;
         const match = rule.exec(src);
         if (match) {
           const text = match[1];
@@ -170,6 +168,29 @@ export class EmbedService {
         } else {
           return `<a class="inline-embed">${token.href}</a>`;
         }
+      }
+    }, {
+      name: 'bang-embed',
+      level: 'inline',
+      start: (src: string) => src.match(/!\[]\(/)?.index,
+      tokenizer(src: string, tokens: any): any {
+        const rule = /^!\[]\(([^\]]+)\)/;
+        const match = rule.exec(src);
+        if (match) {
+          const text = match[0];
+          const href = match[1];
+          return {
+            type: 'bang-embed',
+            href,
+            text,
+            raw: match[0],
+            tokens: [],
+          };
+        }
+        return undefined;
+      },
+      renderer(token: any): string {
+        return `<a class="inline-embed">${token.href}</a>`;
       }
     }, {
       name: 'embed',
@@ -315,10 +336,14 @@ export class EmbedService {
               const c = embed.createEmbed(url, embeds.map(p => p.tag));
               if (title) c.location.nativeElement.title = title;
               t.parentNode?.insertBefore(c.location.nativeElement, t);
-            } else {
+            } else if (url.startsWith('/ref/')) {
               el = document.createElement('div');
               el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
               t.parentNode?.insertBefore(el, t);
+            } else {
+              const c = embed.createEmbed({ url }, ['plugin/image']);
+              c.location.nativeElement.title = t.title;
+              t.parentNode?.insertBefore(c.location.nativeElement, t);
             }
           }
           t.remove();
