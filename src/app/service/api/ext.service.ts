@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
-import { catchError, concat, map, Observable, of, shareReplay, throwError, toArray } from 'rxjs';
+import { catchError, concat, map, Observable, of, shareReplay, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext, mapTag, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
@@ -32,6 +32,42 @@ export class ExtService {
     return this.config.api + '/api/v1/ext';
   }
 
+  get init$() {
+    return this.loadExts$().pipe(
+      catchError(() => of(null)),
+    );
+  }
+
+  private loadExts$(page = 0): Observable<null> {
+    const alreadyLoaded = page * this.config.fetchBatch;
+    if (alreadyLoaded >= this.config.maxExts) {
+      console.error(`Too many exts to prefetch, only loaded ${alreadyLoaded}. Increase maxExts to load more.`)
+      return of(null);
+    }
+    const prefetch = this.store.local.extPrefetch.slice(page * this.config.fetchBatch, (page + 1) * this.config.fetchBatch);
+    return this.page({query: prefetch.join('|'), page, size: this.config.fetchBatch}).pipe(
+      tap(batch => {
+        for (const ext of batch.content) {
+          if (ext.origin === this.store.account.origin) {
+            for (const key of prefetch.filter(t => localTag(t) === ext.tag)) {
+              this._cache.set(key, of(ext));
+              delay(() => this._cache.delete(key), EXT_CACHE_MS);
+            }
+          } else {
+            this._cache.set(ext.tag + ext.origin, of(ext));
+            delay(() => this._cache.delete(ext.tag + ext.origin), EXT_CACHE_MS);
+          }
+        }
+        for (const tag of prefetch) {
+          if (!this._cache.has(tag)) {
+            this._cache.set(tag, of({ tag: localTag(tag), origin: tagOrigin(tag) } as Ext));
+          }
+        }
+      }),
+      switchMap(batch => batch.last ? of(null) : this.loadExts$(page + 1)),
+    );
+  }
+
   create(ext: Ext, force = false): Observable<string> {
     return this.http.post<string>(this.base, writeExt(ext), {
       params: !force ? undefined : { force: true },
@@ -58,6 +94,7 @@ export class ExtService {
 
   getCachedExt(tag: string, origin?: string) {
     const key = defaultOrigin(tag, origin);
+    this.store.local.loadExt(key);
     if (!this._cache.has(key)) {
       if (isQuery(tag)) {
         this._cache.set(key, of({ name: tag, tag: tag, origin: origin } as Ext));
