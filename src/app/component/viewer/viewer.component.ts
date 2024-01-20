@@ -251,7 +251,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   get embedWidth() {
-    if (this.embed?.width) return this.embed.width + 'px';
+    if (this.embed?.width) return Math.min(this.embed.width, this.config.mobile ? (window.innerWidth - (this.thread ? 32 : 12)) : this.el.nativeElement.parentElement.offsetWidth - 32) + 'px';
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return this.thread ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
     }
@@ -259,7 +259,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   get embedHeight() {
-    if (this.embed?.height) return this.embed.height + 'px';
+    if (this.embed?.height) return Math.min(this.embed.height, window.innerHeight) + 'px';
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return '100vh';
     }
