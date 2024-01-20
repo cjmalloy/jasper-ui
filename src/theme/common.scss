@@ -1773,7 +1773,7 @@ ngx-monaco-editor {
   grid-gap: 8px;
 
   .column-title {
-    place-self: center;
+    justify-self: center;
     width: calc(100% - 32px);
   }
   .column-title, .swim-lane-title {
@@ -1792,7 +1792,7 @@ ngx-monaco-editor {
     }
   }
   .kanban-column {
-    place-self: center;
+    justify-self: center;
     border: 1px solid transparent;
 
     &:hover {
