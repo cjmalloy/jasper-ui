@@ -29,6 +29,7 @@ export class ConfigService {
 
   maxPlugins = 1000;
   maxTemplates = 1000;
+  maxExts = 1000;
   maxOrigins = 1000;
   fetchBatch = 50;
 

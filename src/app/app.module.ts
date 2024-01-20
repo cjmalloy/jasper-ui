@@ -10,7 +10,7 @@ import { FormlyModule } from '@ngx-formly/core';
 import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { of, retry, switchMap, timer } from 'rxjs';
+import { retry, switchMap, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -144,18 +144,17 @@ import { SafePipe } from './pipe/safe.pipe';
 import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
+import { ExtService } from './service/api/ext.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
 import { ModService } from './service/mod.service';
 import { OriginMapService } from './service/origin-map.service';
 
-const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ModService) => () =>
+const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ModService, exts: ExtService) => () =>
   config.load$.pipe(
     tap(() => console.log('-{1}- Loading Jasper')),
     switchMap(() => debug.init$),
-    tap(() => console.log('-{2}- Authenticating')),
-    switchMap(() => of(null)),
-    tap(() => console.log('-{3}- Authorizing')),
+    tap(() => console.log('-{2}- Authorizing')),
     switchMap(() => account.whoAmI$.pipe(
       retry({
         delay: (_, retryCount: number) =>
@@ -163,14 +162,16 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
           timer(1000 * Math.pow(2, Math.min(10, retryCount)))
       })
     )),
-    tap(() => console.log('-{4}- Checking if first run as admin')),
+    tap(() => console.log('-{3}- Checking if first run as admin')),
     switchMap(() => account.initExt$),
-    tap(() => console.log('-{5}- Loading plugins and templates')),
+    tap(() => console.log('-{4}- Loading plugins and templates')),
     switchMap(() => admin.init$),
-    tap(() => console.log('-{6}- Loading account information')),
+    tap(() => console.log('-{5}- Loading account information')),
     switchMap(() => account.init$),
-    tap(() => console.log('-{7}- Loading origins')),
+    tap(() => console.log('-{6}- Loading origins')),
     switchMap(() => origins.init$),
+    tap(() => console.log('-{7}- Prefetching Exts')),
+    switchMap(() => exts.init$),
     tap(() => console.log('-{8}- Loading themes')),
     switchMap(() => themes.init$),
     tap(() => console.log('-{9}- Ready')),
@@ -334,7 +335,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     {
       provide: APP_INITIALIZER,
       useFactory: loadFactory,
-      deps: [ConfigService, DebugService, AdminService, AccountService, OriginMapService, ModService],
+      deps: [ConfigService, DebugService, AdminService, AccountService, OriginMapService, ModService, ExtService],
       multi: true,
     },
   ],

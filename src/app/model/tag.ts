@@ -211,6 +211,12 @@ export function uniqueConfigs<T extends Visibility>(vs: T[]) {
   return uniqWith(vs, (a, b) => isEqual(omitBy(a as any, hiddenField), omitBy(b as any, hiddenField)));
 }
 
+export function latest<T extends Cursor>(cs: T[]) {
+  return cs.sort((a, b) => {
+    return (b.modified?.valueOf() || 0) - (a.modified?.valueOf() || 0);
+  });
+}
+
 export interface Icon extends Visibility {
   /**
    * Label to show in info row. Will also use as default thumbnail.
