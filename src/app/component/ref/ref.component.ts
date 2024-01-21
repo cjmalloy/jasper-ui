@@ -975,7 +975,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     const title = (this.ref.title || '').trim();
     const comment = (this.ref.comment || '').trim();
     if (title) return title;
-    if (this.thread) return 'Re:';
     if (!comment) return this.url;
     return trimCommentForTitle(comment);
   }
