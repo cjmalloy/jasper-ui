@@ -39,7 +39,7 @@
       @if (p.config?.submitDm) {
         <a routerLink="/submit/dm"
            [class.current-tab]="store.submit.subpage === 'dm' && store.submit.to[0] === p.tag"
-           [queryParams]="{ to: submitInternal(p.tag), tag: null }"
+           [queryParams]="{ to: p.tag, tag: null }"
            [replaceUrl]="true"
            [title]="p.name"
            queryParamsHandling="merge">{{ p.config!.submit }}</a>
