@@ -119,6 +119,7 @@ export const dallePlugin: Plugin = {
     model: 'dall-e-3',
     size: '1024x1024',
     quality: 'hd',
+    style: 'vivid',
   },
   schema: {},
   generateMetadata: true,
