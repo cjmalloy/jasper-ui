@@ -29,9 +29,8 @@ export class ImageDimDirective implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (this.config.mobile) {
-      this.el.style.width = this.defaultWidthPx || '100vw';
+      this.el.style.width = this.defaultWidthPx || 'calc(100vw - 32px)';
       this.el.style.height = this.defaultHeightPx || '80vh';
-      this.el.style.backgroundSize = 'cover';
     } else {
       this.el.style.width = this.defaultWidthPx || '600px';
       this.el.style.height = this.defaultHeightPx || '600px';
@@ -52,7 +51,7 @@ export class ImageDimDirective implements OnInit, OnDestroy {
 
   get defaultWidthPx() {
     if (!this.defaultWidth) return undefined;
-    if (this.config.mobile && this.defaultWidth > window.innerWidth) return '100vw'
+    if (this.config.mobile && this.defaultWidth > window.innerWidth) return 'calc(100vw - 32px)'
     return this.defaultWidth + 'px'
   }
 
@@ -64,11 +63,14 @@ export class ImageDimDirective implements OnInit, OnDestroy {
   @Input('appImageDim')
   set url(value: string) {
     this.loading = true;
-    this.el.style.backgroundImage = `url('${value}')`;
-    this.el.style.backgroundSize = 'contain';
+    this.el.style.backgroundRepeat = 'no-repeat';
+    this.el.style.backgroundPosition = 'center center';
+    this.el.style.backgroundSize = 'unset';
     this.ids.getImageDim(value)
       .then((d: Dim) => {
         this.loading = false;
+        this.el.style.backgroundImage = `url('${value}')`;
+        this.el.style.backgroundSize = this.config.mobile ? 'cover' : 'contain';
         this.dim = d;
         this.onResize();
       });

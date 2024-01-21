@@ -397,8 +397,12 @@ $tablet-width: 767px;
   }
 
   .image-expand {
-    width: 100vw;
+    width: calc(100vw - 20px);
     height: 100vh;
+  }
+
+  .thread .image-expand {
+    width: calc(100vw - 36px);
   }
 
   .fill-editor {
