@@ -16,6 +16,12 @@
         </div>
       </div>
 
+      <span><!-- Plugins --></span>
+      <app-form-plugins id="plugins"
+                        (togglePlugin)="bookmarks.toggleTag($event)"
+                        [tags]="textForm.value.tags"
+                        [group]="textForm"></app-form-plugins>
+
       @if (tags.editingViewer) {
         <span><!-- Viewer --></span>
         <div #fill>
@@ -33,7 +39,7 @@
                                class="shrink"
                                [text]="true"
                                i18n-title title="Add Plugin"
-                               (pluginChange)="togglePlugin($event); pluginSelect.plugin = ''"></app-select-plugin>
+                               (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
           </div>
         }
         <div #fill>

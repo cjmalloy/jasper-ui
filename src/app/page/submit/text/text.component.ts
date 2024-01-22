@@ -50,7 +50,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     public admin: AdminService,
     private router: Router,
     public store: Store,
-    private bookmarks: BookmarkService,
+    public bookmarks: BookmarkService,
     private editor: EditorService,
     private refs: RefService,
     private ts: TaggingService,
@@ -136,17 +136,6 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   addSource(value = '') {
     this.sources.push(this.fb.control(value, LinksFormComponent.validators))
     this.submitted = false;
-  }
-
-  togglePlugin(tag: string) {
-    this.bookmarks.toggleTag(tag);
-    if (tag) {
-      if (this.tags.includesTag(tag)) {
-        this.tags.removeTagOrSuffix(tag);
-      } else {
-        this.tags.addTag(tag);
-      }
-    }
   }
 
   syncEditor() {

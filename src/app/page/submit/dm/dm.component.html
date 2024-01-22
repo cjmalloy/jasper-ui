@@ -30,6 +30,12 @@
     <label for="title" i18n>Title:</label>
     <input id="title" type="text" [formControl]="title">
 
+    <span><!-- Plugins --></span>
+    <app-form-plugins id="plugins"
+                      (togglePlugin)="bookmarks.toggleTag($event)"
+                      [tags]="dmForm.value.tags"
+                      [group]="dmForm"></app-form-plugins>
+
     @if (editingViewer) {
       <span><!-- Viewer --></span>
       <div #fill>
