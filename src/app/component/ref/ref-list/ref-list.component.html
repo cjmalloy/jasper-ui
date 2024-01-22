@@ -5,6 +5,7 @@
     <div class="list-number">&bullet;</div>
     <app-ref class="pinned"
              [ref]="ref"
+             class="ref-list-item"
              [scrollToLatest]="true"
              [plugins]="plugins"
              [hideEdit]="ext?.config?.hideEdit"
@@ -16,6 +17,7 @@
   <ng-container *ngFor="let ref of page?.content trackBy: trackByUrlOrigin; let i = index">
     <div class="list-number">{{ getNumber(i) }}</div>
     <app-ref [ref]="ref"
+             class="ref-list-item"
              [scrollToLatest]="true"
              [plugins]="plugins"
              [hideEdit]="ext?.config?.hideEdit"
@@ -28,6 +30,7 @@
   <ng-container *ngFor="let ref of newRefs trackBy: trackByUrlOrigin; let i = index">
     <div class="list-number">{{ getNumber(i + (page?.content?.length || 0)) }}</div>
     <app-ref [ref]="ref"
+             class="ref-list-item"
              [scrollToLatest]="true"
              [plugins]="plugins"
              [hideEdit]="ext?.config?.hideEdit"
