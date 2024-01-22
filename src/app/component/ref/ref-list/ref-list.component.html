@@ -3,7 +3,7 @@
      [style.grid-template-columns]="colStyle">
   <ng-container *ngFor="let ref of pinned trackBy: trackByUrlOrigin">
     <div class="list-number">&bullet;</div>
-    <app-ref class="pinned"
+    <app-ref class="pinned ref-list-item"
              [ref]="ref"
              [scrollToLatest]="true"
              [plugins]="plugins"
@@ -15,7 +15,8 @@
   </ng-container>
   <ng-container *ngFor="let ref of page?.content trackBy: trackByUrlOrigin; let i = index">
     <div class="list-number">{{ getNumber(i) }}</div>
-    <app-ref [ref]="ref"
+    <app-ref class="ref-list-item"
+             [ref]="ref"
              [scrollToLatest]="true"
              [plugins]="plugins"
              [hideEdit]="ext?.config?.hideEdit"
@@ -27,7 +28,8 @@
   </ng-container>
   <ng-container *ngFor="let ref of newRefs trackBy: trackByUrlOrigin; let i = index">
     <div class="list-number">{{ getNumber(i + (page?.content?.length || 0)) }}</div>
-    <app-ref [ref]="ref"
+    <app-ref class="ref-list-item"
+             [ref]="ref"
              [scrollToLatest]="true"
              [plugins]="plugins"
              [hideEdit]="ext?.config?.hideEdit"
