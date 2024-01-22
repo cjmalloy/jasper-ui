@@ -2,9 +2,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { templateForm } from '../../form/template/template.component';
 import { Template, writeTemplate } from '../../model/template';
+import { tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
@@ -128,7 +130,12 @@ export class TemplateComponent implements OnInit {
   }
 
   delete() {
-    this.templates.delete(this.qualifiedTag).pipe(
+    const deleteNotice = !this.template.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+      ? this.templates.create(tagDeleteNotice(this.template))
+      : of(null);
+    return this.templates.delete(this.qualifiedTag).pipe(
+      tap(() => this.deleted = true),
+      switchMap(() => deleteNotice),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

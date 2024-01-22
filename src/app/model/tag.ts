@@ -49,10 +49,6 @@ export interface Config extends Tag {
      */
     version?: number;
     /**
-     * Flag for replicating a deleted config.
-     */
-    deleted?: boolean;
-    /**
      * Flag for disabling a config without deleting.
      */
     disabled?: boolean;
@@ -357,6 +353,7 @@ export function emitModels(action: EmitAction, ref: Ref, user: string) {
 
 export type TagQueryArgs = {
   query?: string,
+  deleted?: boolean,
   search?: string,
   modifiedBefore?: string,
   modifiedAfter?: string,

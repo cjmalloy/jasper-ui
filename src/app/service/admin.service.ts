@@ -345,7 +345,7 @@ export class AdminService {
   private pluginToStatus(list: Plugin[]) {
     for (const p of list) {
       const key = this.keyOf(this.def.plugins, p.tag);
-      if (p.config?.deleted || p.config?.disabled) {
+      if (p.config?.disabled) {
         this.status.disabledPlugins[key] = p;
       } else {
         this.status.plugins[key] = p;
@@ -358,7 +358,7 @@ export class AdminService {
   private templateToStatus(list: Template[]) {
     for (const t of list) {
       const key = this.keyOf(this.def.templates, t.tag);
-      if (t.config?.deleted || t.config?.disabled) {
+      if (t.config?.disabled) {
         this.status.disabledTemplates[key] = t;
       } else {
         this.status.templates[key] = t;

@@ -14,7 +14,7 @@ import { Router } from '@angular/router';
 import { isObject } from 'lodash-es';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
-import { catchError, map, of, switchMap, throwError } from 'rxjs';
+import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { equalsExt, Ext, writeExt } from '../../model/ext';
@@ -245,15 +245,17 @@ export class ExtComponent implements OnChanges {
       this.deleted = true;
       return of(null);
     } else {
-      return (this.admin.getPlugin('plugin/delete')
-        ? this.exts.update(tagDeleteNotice(this.ext)).pipe(map(() => {}))
-        : this.exts.delete(this.qualifiedTag)).pipe(
-            tap(() => this.deleted = true),
-            catchError((err: HttpErrorResponse) => {
-              this.serverError = printError(err);
-              return throwError(() => err);
-            }),
-          );
+      const deleteNotice = !this.ext.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+        ? this.exts.create(tagDeleteNotice(this.ext))
+        : of(null);
+      return this.exts.delete(this.qualifiedTag).pipe(
+        tap(() => this.deleted = true),
+        switchMap(() => deleteNotice),
+        catchError((err: HttpErrorResponse) => {
+          this.serverError = printError(err);
+          return throwError(() => err);
+        }),
+      );
     }
   }
 

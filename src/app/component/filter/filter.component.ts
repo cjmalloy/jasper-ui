@@ -150,14 +150,22 @@ export class FilterComponent implements OnChanges, OnDestroy {
           }
         }
       } else {
-        this.allFilters = [
-          { label: $localize`Time ⏱️`,
+        this.allFilters = [];
+        this.pushFilter({
+          label: $localize`Time ⏱️`,
+          filters : [
+            this.modifiedBeforeFilter,
+            this.modifiedAfterFilter,
+          ],
+        });
+        if (this.admin.getPlugin('plugin/delete')) {
+          this.pushFilter({
+            label: $localize`Filters 🕵️️`,
             filters : [
-              this.modifiedBeforeFilter,
-              this.modifiedAfterFilter,
+              { filter: 'plugin/delete', label: $localize`🗑️ deleted` },
             ],
-          },
-        ];
+          });
+        }
       }
       this.sync();
     }

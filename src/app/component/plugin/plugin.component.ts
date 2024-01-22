@@ -2,10 +2,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { pluginForm } from '../../form/plugin/plugin.component';
 import { Plugin, writePlugin } from '../../model/plugin';
-import { configDeleteNotice, tagDeleteNotice } from "../../mods/delete";
+import { tagDeleteNotice } from "../../mods/delete";
 import { AdminService } from '../../service/admin.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { Store } from '../../store/store';
@@ -129,9 +130,12 @@ export class PluginComponent implements OnInit {
   }
 
   delete() {
-    (this.admin.getPlugin('plugin/delete') ?
-      this.plugins.update(configDeleteNotice(this.plugin)) :
-      this.plugins.delete(this.qualifiedTag)).pipe(
+    const deleteNotice = !this.plugin.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+      ? this.plugins.create(tagDeleteNotice(this.plugin))
+      : of(null);
+    return this.plugins.delete(this.qualifiedTag).pipe(
+      tap(() => this.deleted = true),
+      switchMap(() => deleteNotice),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
