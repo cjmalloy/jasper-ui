@@ -36,7 +36,7 @@ export const chatTemplate: Template = {
     }],
   },
   defaults: {
-    authorTags: ['user', 'plugin/from']
+    authorTags: ['user', 'plugin/from', '+plugin']
   },
   schema: {
     optionalProperties: {
