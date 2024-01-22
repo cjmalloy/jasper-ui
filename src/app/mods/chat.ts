@@ -26,13 +26,6 @@ export const chatTemplate: Template = {
       { query: 'chat', label: $localize`🗨️ chat`, group: $localize`Templates 🎨️` },
     ],
     form: [{
-      key: 'addTags',
-      type: 'tags',
-      defaultValue: ['public', 'internal'],
-      props: {
-        label: $localize`Add Tags:`,
-      }
-    }, {
       key: 'authorTags',
       type: 'qtags',
       defaultValue: ['user', 'plugin/from'],
@@ -47,7 +40,6 @@ export const chatTemplate: Template = {
   },
   schema: {
     optionalProperties: {
-      addTags: { elements: { type: 'string' } },
       authorTags: { elements: { type: 'string' } },
     }
   }
