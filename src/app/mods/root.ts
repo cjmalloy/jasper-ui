@@ -44,9 +44,6 @@ export const rootTemplate: Template = {
     \`\`\`
     `,
     icons: [{ tag: 'plugin/delete', label: $localize`🗑️`, global: true }],
-    filters: [
-      { query: 'plugin/delete', label: $localize`🗑️ deleted`, group: $localize`Filters 🕵️️` },
-    ],
     form: [{
       key: 'pinned',
       type: 'urls',

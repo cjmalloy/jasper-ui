@@ -11,7 +11,7 @@ import { Ref } from '../../model/ref';
 import { Action, sortOrder } from '../../model/tag';
 import { Template } from '../../model/template';
 import { User } from '../../model/user';
-import { configDeleteNotice, deleteNotice, tagDeleteNotice } from '../../mods/delete';
+import { deleteNotice, tagDeleteNotice } from '../../mods/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -229,7 +229,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
     } else {
       // TODO: how to delete already deleted
       return this.batch$<Plugin | Template>(tag => tag.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
-        ? this.tagService.update(configDeleteNotice(tag))
+        ? this.tagService.update(tagDeleteNotice(tag))
         : this.tagService.delete(tag.tag + tag.origin))
     }
   }

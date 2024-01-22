@@ -162,6 +162,8 @@ export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {
       result.modifiedBefore = f.substring('modified/before/'.length);
     } else if (f.startsWith('modified/after/')) {
       result.modifiedAfter = f.substring('modified/after/'.length);
+    } else if (f == 'plugin/delete') {
+      result.deleted = true;
     }
   }
   return result;

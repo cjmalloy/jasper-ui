@@ -24,12 +24,14 @@ export class TemplateService {
   }
 
   create(template: Template): Observable<void> {
+    if (template.tag.startsWith('/')) template.tag = template.tag.substring(1);
     return this.http.post<void>(this.base, writeTemplate(template)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
   get(tag = ''): Observable<Template> {
+    if (tag.startsWith('/')) tag = tag.substring(1);
     return this.http.get(this.base, {
       params: { tag },
     }).pipe(
@@ -39,6 +41,7 @@ export class TemplateService {
   }
 
   exists(tag: string): Observable<boolean> {
+    if (tag.startsWith('/')) tag = tag.substring(1);
     return this.http.head(this.base, {
       params: { tag },
     }).pipe(
@@ -64,6 +67,7 @@ export class TemplateService {
   }
 
   delete(tag: string): Observable<any> {
+    if (tag.startsWith('/')) tag = tag.substring(1);
     return this.http.delete<void>(this.base, {
       params: { tag },
     }).pipe(
