@@ -30,7 +30,11 @@ export class AutofocusDirective {
     if (this.enabled === false) return;
     this.elementRef.nativeElement.focus();
     if ('setSelectionRange' in this.elementRef.nativeElement) {
-      this.elementRef.nativeElement.setSelectionRange(0, this.elementRef.nativeElement.value?.length || 0)
+      try {
+        this.elementRef.nativeElement.setSelectionRange(0, this.elementRef.nativeElement.value?.length || 0);
+      } catch (e) {
+        console.log('no selection range??');
+      }
     }
   }
 
