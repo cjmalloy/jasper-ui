@@ -81,11 +81,6 @@ export class TagsFormComponent implements OnInit {
     }
   }
 
-  removeTag(index: number) {
-    if (!this.tags) throw 'Not ready yet!';
-    this.tags.removeAt(index);
-  }
-
   includesTag(tag: string) {
     return includesTag(tag, this.tags?.value || []);
   }
@@ -95,13 +90,21 @@ export class TagsFormComponent implements OnInit {
     return some(this.admin.editingViewer, t => includesTag(t.tag, this.tags!.value));
   }
 
-  removeTagOrSuffix(tag: string) {
+  removeTag(...values: string[]) {
+    if (!this.tags) throw 'Not ready yet!';
+    const tags = this.tags.value || [];
+    for (let i = tags.length - 1; i >= 0; i--) {
+      if (values.includes(tags[i])) this.tags.removeAt(i);
+    }
+  }
+
+  removeTagAndChildren(tag: string) {
     if (!this.tags) throw 'Not ready yet!';
     let removed = false;
     const tags = this.tags.value || [];
     for (let i = tags.length - 1; i >= 0; i--) {
       if (tag === tags[i] || tags[i].startsWith(tag + '/')) {
-        this.removeTag(i);
+        this.tags.removeAt(i);
         removed = true;
       }
     }

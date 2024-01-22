@@ -79,6 +79,19 @@ export class BookmarkService {
     });
   }
 
+  get to() {
+    return this.store.submit.to;
+  }
+
+  set to(tos: string[]) {
+    if (tos.join(' ') === this.store.submit.to.join(' ')) return;
+    this.router.navigate([], {
+      queryParams: { to: tos.length ? tos : null, pageNumber: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
   get pageSize() {
     return this.store.view.pageSize;
   }

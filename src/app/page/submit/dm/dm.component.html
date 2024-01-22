@@ -10,6 +10,8 @@
              type="email"
              autocorrect="off"
              autocapitalize="none"
+             (keydown)="$event.key === 'Enter' && (bookmarks.to = $any($event.target).value.split(' ')) || true"
+             (blur)="bookmarks.to = $any($event.target).value.split(' ')"
              [appAutofocus]="!to.value">
 
       <div><!-- Errors --></div>
@@ -40,7 +42,7 @@
       <span><!-- Viewer --></span>
       <div #fill>
         <app-viewer [text]="dmForm.value.comment"
-                    [tags]="tags"
+                    [tags]="dmForm.value.tags"
                     (comment)="comment.setValue($event)"></app-viewer>
       </div>
     } @else {
@@ -62,6 +64,8 @@
                     [autoFocus]="true"></app-editor>
       </div>
     }
+
+    <app-tags #tags [group]="dmForm"></app-tags>
 
     <ng-container *ngFor="let e of serverError">
       <span><!-- Unexpected Error --></span>

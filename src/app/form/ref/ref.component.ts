@@ -152,7 +152,7 @@ export class RefFormComponent implements OnInit {
     this.bookmarks.toggleTag(tag);
     if (tag) {
       if (this.tags.includesTag(tag)) {
-        this.tags.removeTagOrSuffix(tag);
+        this.tags.removeTagAndChildren(tag);
       } else {
         this.tags.addTag(tag);
       }
