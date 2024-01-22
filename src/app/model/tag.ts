@@ -321,6 +321,7 @@ export function active(ref: Ref, o: TagAction | ResponseAction | EventAction | I
 // https://github.com/handlebars-lang/handlebars.js/issues/1593
 // @ts-ignore
 window.global = {};
+window.Handlebars = Handlebars as any;
 
 Handlebars.registerHelper('prefix', (p: string, r: string) => {
   return prefix(p, r);
@@ -336,37 +337,6 @@ Handlebars.registerHelper('response', (ref: Ref, value: string) => {
 
 Handlebars.registerHelper('includes', (array: string[], value: string) => {
   return array?.includes(value);
-});
-
-Handlebars.registerHelper('count', (ref: Ref, tag: string) => {
-  return ref?.metadata?.plugins?.[tag] || 0;
-});
-
-Handlebars.registerHelper('percent', (ref: Ref, value: string, prefix: string) => {
-  if (!ref?.metadata?.plugins) return 0;
-  let total = 0;
-  for (const k in ref.metadata.plugins) {
-    if (k.startsWith(prefix)) {
-      total += ref.metadata.plugins[k] || 0;
-    }
-  }
-  if (!total) return 0;
-  return Math.floor(100 * (ref.metadata.plugins[prefix + value] || 0) / total);
-});
-
-Handlebars.registerHelper('maxCount', (ref: Ref, prefix: string) => {
-  let maxVal = -1;
-  let max = 'nothing found';
-  for (const k in ref?.metadata?.plugins || []) {
-    if (k.startsWith(prefix)) {
-      const n = ref!.metadata!.plugins![k] || 0;
-      if (n > maxVal) {
-        maxVal = n;
-        max = k.substring(prefix.length);
-      }
-    }
-  }
-  return max;
 });
 
 export function hydrate(config: any, field: string, model: any): string {

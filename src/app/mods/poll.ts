@@ -51,6 +51,41 @@ export const pollPlugin: Plugin = {
         content: ' ☑️ ';
       }
     `,
+    // language=HTML
+    snippet: `
+      <script>
+        Handlebars.registerHelper('count', (ref, tag) => {
+          return ref?.metadata?.plugins?.[tag] || 0;
+        });
+
+        Handlebars.registerHelper('percent', (ref, value, prefix) => {
+          if (!ref?.metadata?.plugins) return 0;
+          let total = 0;
+          for (const k in ref.metadata.plugins) {
+            if (k.startsWith(prefix)) {
+              total += ref.metadata.plugins[k] || 0;
+            }
+          }
+          if (!total) return 0;
+          return Math.floor(100 * (ref.metadata.plugins[prefix + value] || 0) / total);
+        });
+
+        Handlebars.registerHelper('maxCount', (ref, prefix) => {
+          let maxVal = -1;
+          let max = 'nothing found';
+          for (const k in ref?.metadata?.plugins || []) {
+            if (k.startsWith(prefix)) {
+              const n = ref.metadata.plugins[k] || 0;
+              if (n > maxVal) {
+                maxVal = n;
+                max = k.substring(prefix.length);
+              }
+            }
+          }
+          return max;
+        });
+      </script>
+    `,
     // language=Handlebars
     ui: `
       <div class="bubble poll-results">
