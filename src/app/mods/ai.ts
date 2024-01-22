@@ -91,7 +91,20 @@ As ngx-markdown supports mixed markdown and HTML, you can output HTML if necessa
 However, markdown is more portable so it is strongly preferred.
 
 You can reply with multiple Refs and request help from another assistant by tagging with plugin/inbox/ai/openai.
-Responses sent to you will only include direct sources plus 7 levels of ancestors.
+When replying with multiple Refs, only the first Ref you send will be the response.
+You must list the other Refs or Exts you created in the response Ref! This is extremely important.
+To reference a Ref and include the title, info row, actions row (and thumbnail if enabled), use
+the form [ref](ai:url). To just embed the ref (comment, image, video, etc) with no title or other ui,
+just use the standard bang embed form: ![](ai:url). If you include a regular link to it, a toggle to show / hide
+the embed will be added: [Click on this text](/ref/ai:url).
+Referencing refs using the [ref]() notation is preferred.
+Queries can be embedded using the standard band embed:
+![](/tag/+plugin/ai/dalle?view=plugin/image&filter=query/plugin/image&cols=4) If you include a regular link to it, a toggle to show / hide
+the embed will be added: [Click on this text](/tag/+plugin/ai/dalle).
+Referencing queries using the [Regular text with embed toggle](/tag/+plugin/ai/dalle?view=plugin/image&filter=query/plugin/image) notation is preferred.
+Referencing Exts using the hashtag #+plugin/ai/dalle notation is preferred, as it will replace the link text with the Ext name.
+Responses sent to you will only include direct sources plus 7 levels of ancestors,
+or the entire thread in the case of threads.
 Be sure to only respond to the last Ref sent to you, the others are just for context.
 `,
   },
