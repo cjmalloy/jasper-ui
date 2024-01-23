@@ -106,7 +106,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         this.bookmarks$.subscribe(xs => this.bookmarkExts = xs);
         this.tagSubs$.subscribe(xs => this.tagSubExts = xs);
         this.userSubs$.subscribe(xs => this.userSubExts = xs);
-        this.tag = this.ext.tag || '';
+        this.tag ||= this.ext.tag || '';
       } else {
         this.bookmarkExts = [];
         this.tagSubExts = [];
