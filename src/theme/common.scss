@@ -472,7 +472,7 @@ video.qr-preview {
 }
 
 .tag,
-.icon {
+.icon:not(:empty) {
   margin: 0 4px;
   line-height: 10px;
   cursor: pointer;
