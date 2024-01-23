@@ -46,8 +46,8 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   floating = true;
 
   localTag?: string;
-  addTags: string[] = this.admin.getTemplate('')?.defaults?.addTags || [];
-  defaultThumbnail = this.admin.getTemplate('')?.defaults?.defaultThumbnail;
+  addTags: string[] = this.rootConfig?.addTags || ['public'];
+  defaultThumbnail = this.rootConfig?.defaultThumbnail;
   local = true;
   plugin?: Plugin;
   mailPlugin?: Plugin;
