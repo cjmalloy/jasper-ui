@@ -110,7 +110,7 @@ or the entire thread in the case of threads.
 Be sure to only respond to the last Ref sent to you, the others are just for context.
 `,
     // language=Handlebars
-    infoUi: `{{#if model}}<sup title="{{ model }}: {{ total_tokens }} ({{ prompt_tokens }} + {{ completion_tokens }})">𝛥</sup>{{/if}}`,
+    infoUi: `{{#if model}}<sup style="user-select:none;cursor:zoom-in" title="{{ model }}: {{ total_tokens }} ({{ prompt_tokens }} + {{ completion_tokens }})">𝛥</sup>{{/if}}`,
   },
   schema: {},
   generateMetadata: true,
