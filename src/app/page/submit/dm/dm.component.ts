@@ -102,11 +102,9 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       this.loadedParams = true;
     }));
     this.disposers.push(autorun(() => {
-      if (this.store.submit.tags.length) {
-        this.tags!.tags!.clear();
-        this.tags!.addTag('internal', 'plugin/thread', ...this.store.submit.tags);
-        if (this.store.account.localTag) this.tags!.addTag(this.store.account.localTag);
-      }
+      this.tags!.tags!.clear();
+      this.tags!.addTag('internal', 'plugin/thread', ...this.store.submit.tags || []);
+      if (this.store.account.localTag) this.tags!.addTag(this.store.account.localTag);
     }));
   }
 
