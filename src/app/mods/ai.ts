@@ -107,6 +107,8 @@ Responses sent to you will only include direct sources plus 7 levels of ancestor
 or the entire thread in the case of threads.
 Be sure to only respond to the last Ref sent to you, the others are just for context.
 `,
+    // language=Handlebars
+    infoUi: `{{#if model}}<sup title="{{ model }}: {{ total_tokens }} ({{ prompt_tokens }} + {{ completion_tokens }})">𝛥</sup>{{/if}}`,
   },
   schema: {},
   generateMetadata: true,
