@@ -4,7 +4,7 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angul
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, forkJoin, ignoreElements, Observable, of, throwError } from 'rxjs';
+import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { tagDeleteNotice } from '../../mods/delete';
@@ -171,15 +171,17 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
   delete() {
     // TODO: Better dialogs
     if (window.confirm($localize`Are you sure you want to delete this user?`)) {
-      (this.admin.getPlugin('plugin/delete')
-        ? this.users.update(tagDeleteNotice(this.store.view.selectedUser!)).pipe(ignoreElements())
-        : this.users.delete(this.store.view.localTag + this.store.account.origin)).pipe(
-        catchError((res: HttpErrorResponse) => {
-          this.serverError = printError(res);
-          return throwError(() => res);
+      const deleteNotice = !this.store.view.selectedUser!.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+        ? this.users.create(tagDeleteNotice(this.store.view.selectedUser!))
+        : of(null);
+      this.users.delete(this.store.view.localTag + this.store.account.origin).pipe(
+        switchMap(() => deleteNotice),
+        catchError((err: HttpErrorResponse) => {
+          this.serverError = printError(err);
+          return throwError(() => err);
         }),
       ).subscribe(() => {
-        this.router.navigate(['/tag', this.tag.value + this.store.account.origin]);
+        this.router.navigate(['/tag', this.store.view.localTag + this.store.account.origin]);
       });
     }
   }

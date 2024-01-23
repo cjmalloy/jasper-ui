@@ -222,15 +222,17 @@ export class BulkComponent implements OnChanges, OnDestroy {
         : this.refs.delete(ref.url, ref.origin)
       );
     } else if (this.type === 'ext' || this.type === 'user') {
-      // TODO: how to delete already deleted
-      return this.batch$<Ext | User>(tag => tag.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
-        ? this.tagService.update(tagDeleteNotice(tag))
-        : this.tagService.delete(tag.tag + tag.origin))
+      return this.batch$<Ext | User>(tag => this.tagService.delete(tag.tag + tag.origin).pipe(
+        switchMap(() => !tag.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+          ? this.tagService.create(tagDeleteNotice(tag))
+          : of(null)),
+      ));
     } else {
-      // TODO: how to delete already deleted
-      return this.batch$<Plugin | Template>(tag => tag.origin === this.store.account.origin && this.admin.getPlugin('plugin/delete')
-        ? this.tagService.update(tagDeleteNotice(tag))
-        : this.tagService.delete(tag.tag + tag.origin))
+      return this.batch$<Plugin | Template>(tag => this.tagService.delete(tag.tag + tag.origin).pipe(
+        switchMap(() => !tag.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+          ? this.tagService.create(tagDeleteNotice(tag))
+          : of(null)),
+      ));
     }
   }
 

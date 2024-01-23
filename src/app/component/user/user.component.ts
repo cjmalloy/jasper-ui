@@ -1,10 +1,19 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChild, ViewChildren } from '@angular/core';
+import {
+  Component,
+  HostBinding,
+  Input,
+  OnChanges,
+  QueryList,
+  SimpleChanges,
+  ViewChild,
+  ViewChildren
+} from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { Ext } from '../../model/ext';
@@ -256,11 +265,14 @@ export class UserComponent implements OnChanges {
     this.serverError = [];
     const os = [];
     if (this.user) {
-      os.push((this.admin.getPlugin('plugin/delete')
-        ? this.users.update(tagDeleteNotice(this.user)).pipe(map(() => {}))
-        : this.users.delete(this.qualifiedTag)).pipe(
+      const deleteNotice = !this.user.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+        ? this.users.create(tagDeleteNotice(this.user))
+        : of(null);
+      os.push(this.users.delete(this.qualifiedTag).pipe(
+        tap(() => this.deleted = true),
+        switchMap(() => deleteNotice),
         catchError((err: HttpErrorResponse) => {
-          this.serverError.push(...printError(err));
+          this.serverError = printError(err);
           return throwError(() => err);
         }),
       ));
