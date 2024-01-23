@@ -16,21 +16,21 @@
     <a class="badge"
        *ngIf="dependents"
        (click)="bookmarks.toggleSources(ref.url)"
-       i18n-title title="Dependents">⤴️</a>
+       i18n-title title="{{ dependents }} Dependents">⤴️</a>
     <a class="badge"
        *ngIf="dependencies"
        (click)="bookmarks.toggleResponses(ref.url)"
-       i18n-title title="Dependencies">⤵️</a>
+       i18n-title title="{{ dependencies }} Dependencies">⤵️</a>
     <a class="badge"
-       *ngIf="thread"
+       *ngIf="threads"
        (focus)="store.view.setLastSelected(ref)"
        (pointerdown)="store.view.setLastSelected(ref)"
        [routerLink]="['/ref', thread, 'thread']"
-       i18n-title title="Thread">🧵️</a>
+       i18n-title title="Thread ({{ threads }} replies)">🧵️</a>
     <a class="badge"
        *ngIf="comments"
        [routerLink]="['/ref', ref.url, 'comments']"
-       i18n-title title="Comments">💬️</a>
+       i18n-title title="{{ comments }} Comments">💬️</a>
   </div>
   <div class="row">
     <ng-container *ngIf="thumbnail">

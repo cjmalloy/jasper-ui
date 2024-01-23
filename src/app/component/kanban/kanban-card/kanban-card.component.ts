@@ -198,14 +198,26 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   @memo
   get thread() {
     if (!this.admin.getPlugin('plugin/thread')) return '';
-    if (!hasTag('plugin/thread', this.ref) && !this.ref.metadata?.plugins?.['plugin/thread']) return '';
+    if (!hasTag('plugin/thread', this.ref) && !this.threads) return '';
     return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
+  }
+
+  @memo
+  get threads() {
+    if (!this.admin.getPlugin('plugin/thread')) return 0;
+    return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
+  }
+
+  @memo
+  get comment() {
+    if (!this.admin.getPlugin('plugin/comment')) return 0;
+    return hasTag('plugin/comment', this.ref) || this.comments;
   }
 
   @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return hasTag('plugin/comment', this.ref) || this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
   @memo
