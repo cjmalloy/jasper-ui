@@ -48,7 +48,9 @@
         </div>
       }
 
-      <app-tags #tags [group]="textForm"></app-tags>
+      <app-tags #tags
+                [group]="textForm"
+                (syncTags)="syncTags($event)"></app-tags>
 
       <span><!-- Advanced --></span>
       <a class="fake-link no-select" (click)="advanced = true" i18n>show advanced</a>

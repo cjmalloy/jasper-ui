@@ -1,6 +1,9 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, OnInit, Output } from '@angular/core';
 import { UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormlyFormOptions } from '@ngx-formly/core';
+import { FormlyValueChangeEvent } from '@ngx-formly/core/lib/models';
 import { some } from 'lodash-es';
+import { Subject } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { TAG_REGEX } from '../../util/format';
 import { includesTag } from '../../util/tag';
@@ -16,8 +19,10 @@ export class TagsFormComponent implements OnInit {
 
   @Input()
   group?: UntypedFormGroup;
-  @Input('fieldName')
+  @Input()
   fieldName = 'tags';
+  @Output()
+  syncTags = new EventEmitter<string[]>();
 
   model: string[] = [];
   field = {
@@ -35,9 +40,15 @@ export class TagsFormComponent implements OnInit {
     },
   };
 
+  options: FormlyFormOptions = {
+    fieldChanges: new Subject<FormlyValueChangeEvent>(),
+  };
+
   constructor(
     private admin: AdminService,
-  ) { }
+  ) {
+    this.options.fieldChanges?.subscribe(() => this.syncTags.emit(this.tags!.value))
+  }
 
   ngOnInit(): void {
   }

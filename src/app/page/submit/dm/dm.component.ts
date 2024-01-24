@@ -152,6 +152,10 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     this._plugins = value;
   }
 
+  syncTags(value: string[]) {
+    this.bookmarks.toggleTag(...without(this.store.submit.tags, ...value));
+  }
+
   setTo(value: string) {
     this.to.setValue(value);
     this.changedTo(value);

@@ -51,17 +51,18 @@ export class BookmarkService {
     });
   }
 
-  toggleTag(tag: string) {
+  toggleTag(...ts: string[]) {
+    if (!ts.length) return;
     const tags = this.tags;
-    if (tag) {
-      if (tags.includes(tag)) {
+    for (const t of ts) {
+      if (tags.includes(t)) {
         for (let i = tags.length - 1; i >= 0; i--) {
-          if (tag === tags[i] || tags[i].startsWith(tag + '/')) {
+          if (t === tags[i] || tags[i].startsWith(t + '/')) {
             tags.splice(i, 1);
           }
         }
       } else {
-        tags.push(tag);
+        tags.push(t);
       }
     }
     this.tags = tags;
