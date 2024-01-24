@@ -44,11 +44,9 @@
 
     @if (editingViewer) {
       <span><!-- Viewer --></span>
-      <div #fill>
-        <app-viewer [text]="dmForm.value.comment"
-                    [tags]="dmForm.value.tags"
-                    (comment)="comment.setValue($event)"></app-viewer>
-      </div>
+      <app-viewer [text]="dmForm.value.comment"
+                  [tags]="dmForm.value.tags"
+                  (comment)="comment.setValue($event)"></app-viewer>
     } @else {
       <span i18n>Mesage:</span>
       <div #fill>

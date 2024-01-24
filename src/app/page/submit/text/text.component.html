@@ -28,11 +28,9 @@
 
       @if (tags.editingViewer) {
         <span><!-- Viewer --></span>
-        <div #fill>
-          <app-viewer [text]="textForm.value.comment"
-                      [tags]="$any(textForm.value).tags"
-                      (comment)="comment.setValue($event)"></app-viewer>
-        </div>
+        <app-viewer [text]="textForm.value.comment"
+                    [tags]="$any(textForm.value).tags"
+                    (comment)="comment.setValue($event)"></app-viewer>
       } @else {
         @if (store.submit.wiki) {
           <label for="comment" class="editor-label" i18n>Entry:</label>
