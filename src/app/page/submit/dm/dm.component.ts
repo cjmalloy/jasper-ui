@@ -169,7 +169,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
         const mailboxes = ['dm', 'locked', ...value.split(/\s+/).flatMap((t: string) => this.getMailboxes(t))];
         const added = without(mailboxes, ...this.addedMailboxes);
         const removed = without(this.addedMailboxes, ...mailboxes);
-        const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added, 'notes']);
+        const newTags = uniq([...without(this.tags!.tags!.value, ...removed, 'notes'), ...added]);
         this.dmForm.setControl('tags', this.fb.array(newTags));
         this.addedMailboxes = mailboxes;
       }
