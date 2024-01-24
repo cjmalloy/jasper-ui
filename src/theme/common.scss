@@ -178,6 +178,7 @@ select {
   &.big {
     outline: none !important;
     cursor: pointer;
+    min-width: 72px;
     min-height: 29px;
     line-height: 29px;
     font-size: 16px;
