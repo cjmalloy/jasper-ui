@@ -40,7 +40,7 @@ export class SelectPluginComponent {
   }
 
   get plugins() {
-    return this.add ? this.addPlugins : this.text ? this.textPlugins : this.submitPlugins;
+    return [...(this.add ? this.addPlugins : []), ...(this.text ? this.textPlugins : []), ...this.submitPlugins];
   }
 
 }
