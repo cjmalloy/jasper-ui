@@ -141,6 +141,10 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     this._plugins = value;
   }
 
+  syncTags(value: string[]) {
+    this.bookmarks.toggleTag(...without(this.store.submit.tags, ...value));
+  }
+
   addTag(...values: string[]) {
     this.tags.addTag(...values);
     this.submitted = false;

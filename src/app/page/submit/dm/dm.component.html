@@ -60,7 +60,9 @@
       </div>
     }
 
-    <app-tags #tags [group]="dmForm"></app-tags>
+    <app-tags #tags
+              [group]="dmForm"
+              (syncTags)="syncTags($event)"></app-tags>
 
     <ng-container *ngFor="let e of serverError">
       <span><!-- Unexpected Error --></span>
