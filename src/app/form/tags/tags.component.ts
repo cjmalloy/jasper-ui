@@ -1,6 +1,9 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
+import { Component, EventEmitter, HostBinding, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { FormBuilder, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormlyFormOptions } from '@ngx-formly/core';
+import { FormlyValueChangeEvent } from '@ngx-formly/core/lib/models';
 import { some } from 'lodash-es';
+import { Subject } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { TAG_REGEX } from '../../util/format';
 import { includesTag } from '../../util/tag';
@@ -10,14 +13,16 @@ import { includesTag } from '../../util/tag';
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss']
 })
-export class TagsFormComponent implements OnInit {
+export class TagsFormComponent implements OnInit, OnDestroy {
   static validators = [Validators.pattern(TAG_REGEX)];
   @HostBinding('class') css = 'form-group';
 
   @Input()
   group?: UntypedFormGroup;
-  @Input('fieldName')
+  @Input()
   fieldName = 'tags';
+  @Output()
+  syncTags = new EventEmitter<string[]>();
 
   model: string[] = [];
   field = {
@@ -35,11 +40,22 @@ export class TagsFormComponent implements OnInit {
     },
   };
 
+  options: FormlyFormOptions = {
+    fieldChanges: new Subject<FormlyValueChangeEvent>(),
+  };
+
   constructor(
     private admin: AdminService,
-  ) { }
+    private fb: FormBuilder,
+  ) {
+    this.options.fieldChanges?.subscribe(() => this.syncTags.emit(this.tags!.value))
+  }
 
   ngOnInit(): void {
+  }
+
+  ngOnDestroy() {
+    this.options.fieldChanges?.complete();
   }
 
   @Input()
@@ -69,6 +85,12 @@ export class TagsFormComponent implements OnInit {
 
   get tags() {
     return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
+  }
+
+  setTags(values: string[]) {
+    if (!this.tags) throw 'Not ready yet!';
+    this.group!.setControl(this.fieldName, this.fb.array(values));
+    this.model = [...values];
   }
 
   addTag(...values: string[]) {

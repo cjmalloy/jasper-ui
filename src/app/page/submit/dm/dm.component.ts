@@ -93,6 +93,14 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       if (this.store.submit.sources) {
         this.sources.setValue(this.store.submit.sources)
       }
+      const tags = ['internal', 'plugin/thread', ...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+      const added = without(tags, ...this.oldSubmit);
+      const removed = without(this.oldSubmit, ...tags);
+      if (added.length || removed.length) {
+        const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
+        this.tags!.setTags(newTags);
+        this.oldSubmit = tags;
+      }
       if (!this.to.value || hasPrefix(this.to.value, 'user')) {
         this.defaultTo = $localize`DM from ${this.store.account.tag}`;
       } else if (this.to.value === this.config.support) {
@@ -101,17 +109,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
         this.defaultTo = $localize`Message to Moderators of ${this.to.value}`;
       }
       this.loadedParams = true;
-    }));
-    this.disposers.push(autorun(() => {
-      const tags = ['internal', 'plugin/thread', ...this.store.submit.tags];
-      const added = without(tags, ...this.oldSubmit);
-      const removed = without(this.oldSubmit, ...tags);
-      this.tags!.removeTag(...removed);
-      this.tags!.addTag(...added);
-      const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
-      this.dmForm.setControl('tags', this.fb.array(newTags));
-      if (this.store.account.localTag) this.tags!.addTag(this.store.account.localTag);
-      this.oldSubmit = tags;
     }));
   }
 
@@ -148,8 +145,12 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     const added = without(value, ...this._plugins);
     const removed = without(this._plugins, ...value);
     const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
-    this.dmForm.setControl('tags', this.fb.array(newTags));
+    this.tags!.setTags(newTags);
     this._plugins = value;
+  }
+
+  syncTags(value: string[]) {
+    this.bookmarks.toggleTag(...without(this.store.submit.tags, ...value));
   }
 
   setTo(value: string) {
@@ -168,8 +169,8 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
         const mailboxes = ['dm', 'locked', ...value.split(/\s+/).flatMap((t: string) => this.getMailboxes(t))];
         const added = without(mailboxes, ...this.addedMailboxes);
         const removed = without(this.addedMailboxes, ...mailboxes);
-        const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added, 'notes']);
-        this.dmForm.setControl('tags', this.fb.array(newTags));
+        const newTags = uniq([...without(this.tags!.tags!.value, ...removed, 'notes'), ...added]);
+        this.tags!.setTags(newTags);
         this.addedMailboxes = mailboxes;
       }
     });

@@ -45,6 +45,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   tags!: TagsFormComponent;
 
   private _plugins: string[] = [];
+  private oldSubmit: string[] = [];
 
   constructor(
     private theme: ThemeService,
@@ -80,10 +81,13 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         }
         this.url.setValue(url);
         this.url.disable();
-        if (this.store.submit.tags.length) {
-          this.tags.tags!.clear();
-          this.addTag(...this.store.submit.tags);
-          if (this.store.account.localTag) this.addTag(this.store.account.localTag);
+        const tags = ['internal', 'plugin/thread', ...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+        const added = without(tags, ...this.oldSubmit);
+        const removed = without(this.oldSubmit, ...tags);
+        if (added.length || removed.length) {
+          const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
+          this.tags!.setTags(newTags);
+          this.oldSubmit = tags;
         }
         if (this.store.submit.thumbnail) {
           this.addTag('plugin/thumbnail');
@@ -139,6 +143,10 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
     this.textForm.setControl('tags', this.fb.array(newTags));
     this._plugins = value;
+  }
+
+  syncTags(value: string[]) {
+    this.bookmarks.toggleTag(...without(this.store.submit.tags, ...value));
   }
 
   addTag(...values: string[]) {
