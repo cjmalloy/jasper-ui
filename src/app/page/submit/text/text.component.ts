@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, HostBinding, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, uniq } from 'lodash-es';
+import { defer, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
@@ -35,7 +35,6 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   submitted = false;
   textForm: UntypedFormGroup;
-  plugins: string[] = [];
   advanced = false;
   serverError: string[] = [];
 
@@ -44,6 +43,8 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
+
+  private _plugins: string[] = [];
 
   constructor(
     private theme: ThemeService,
@@ -126,6 +127,18 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   get sources() {
     return this.textForm.get('sources') as UntypedFormArray;
+  }
+
+  get plugins(): string[] {
+    return this._plugins;
+  }
+
+  set plugins(value: string[]) {
+    const added = without(value, ...this._plugins);
+    const removed = without(this._plugins, ...value);
+    const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
+    this.textForm.setControl('tags', this.fb.array(newTags));
+    this._plugins = value;
   }
 
   addTag(...values: string[]) {

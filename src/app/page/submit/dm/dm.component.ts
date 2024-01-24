@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, HostBinding, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, some, without } from 'lodash-es';
+import { defer, some, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
@@ -47,6 +47,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   tags?: TagsFormComponent;
 
   private addedMailboxes: string[] = [];
+  private oldSubmit: string[] = [];
   private _plugins: string[] = [];
 
   constructor(
@@ -102,9 +103,15 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       this.loadedParams = true;
     }));
     this.disposers.push(autorun(() => {
-      this.tags!.tags!.clear();
-      this.tags!.addTag('internal', 'plugin/thread', ...this.store.submit.tags || []);
+      const tags = ['internal', 'plugin/thread', ...this.store.submit.tags];
+      const added = without(tags, ...this.oldSubmit);
+      const removed = without(this.oldSubmit, ...tags);
+      this.tags!.removeTag(...removed);
+      this.tags!.addTag(...added);
+      const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
+      this.dmForm.setControl('tags', this.fb.array(newTags));
       if (this.store.account.localTag) this.tags!.addTag(this.store.account.localTag);
+      this.oldSubmit = tags;
     }));
   }
 
@@ -138,8 +145,10 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   set plugins(value: string[]) {
-    this.tags?.removeTag(...without(this._plugins, ...value));
-    this.tags?.addTag(...without(value, ...this.addedMailboxes));
+    const added = without(value, ...this._plugins);
+    const removed = without(this._plugins, ...value);
+    const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
+    this.dmForm.setControl('tags', this.fb.array(newTags));
     this._plugins = value;
   }
 
@@ -159,9 +168,9 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
         const mailboxes = ['dm', 'locked', ...value.split(/\s+/).flatMap((t: string) => this.getMailboxes(t))];
         const added = without(mailboxes, ...this.addedMailboxes);
         const removed = without(this.addedMailboxes, ...mailboxes);
-        this.tags?.removeTag('notes', ...removed);
-        this.tags?.addTag(...added);
-        this.addedMailboxes.push(...added);
+        const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added, 'notes']);
+        this.dmForm.setControl('tags', this.fb.array(newTags));
+        this.addedMailboxes = mailboxes;
       }
     });
   }
