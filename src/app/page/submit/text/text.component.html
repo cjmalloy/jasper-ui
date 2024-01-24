@@ -16,7 +16,11 @@
         </div>
       </div>
 
-      <span><!-- Plugins --></span>
+      <app-select-plugin #pluginSelect
+                         class="shrink"
+                         [text]="true"
+                         i18n-title title="Add Plugin"
+                         (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
       <app-form-plugins id="plugins"
                         (togglePlugin)="bookmarks.toggleTag($event)"
                         [tags]="textForm.value.tags"
@@ -33,14 +37,7 @@
         @if (store.submit.wiki) {
           <label for="comment" class="editor-label" i18n>Entry:</label>
         } @else {
-          <div class="editor-label">
-            <label for="comment" i18n>Comment:</label>
-            <app-select-plugin #pluginSelect
-                               class="shrink"
-                               [text]="true"
-                               i18n-title title="Add Plugin"
-                               (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-          </div>
+          <label for="comment" class="editor-label" i18n>Comment:</label>
         }
         <div #fill>
           <app-editor id="comment"

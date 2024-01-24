@@ -32,7 +32,11 @@
     <label for="title" i18n>Title:</label>
     <input id="title" type="text" [formControl]="title">
 
-    <span><!-- Plugins --></span>
+    <app-select-plugin #pluginSelect
+                       class="shrink"
+                       [text]="true"
+                       i18n-title title="Add Plugin"
+                       (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
     <app-form-plugins id="plugins"
                       (togglePlugin)="bookmarks.toggleTag($event)"
                       [tags]="dmForm.value.tags"
@@ -46,14 +50,7 @@
                     (comment)="comment.setValue($event)"></app-viewer>
       </div>
     } @else {
-      <span>
-        <span i18n>Mesage:</span>
-        <app-select-plugin #pluginSelect
-                           class="shrink"
-                           [text]="true"
-                           i18n-title title="Add Plugin"
-                           (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-      </span>
+      <span i18n>Mesage:</span>
       <div #fill>
         <app-editor class="bubble"
                     [control]="comment"
