@@ -12,7 +12,7 @@
              autocapitalize="none"
              (keydown)="$event.key === 'Enter' && (bookmarks.to = $any($event.target).value.split(' ')) || true"
              (blur)="bookmarks.to = $any($event.target).value.split(' ')"
-             [appAutofocus]="!to.value">
+             [appAutofocus]="!store.submit.to.length">
 
       <div><!-- Errors --></div>
       <div>
@@ -56,7 +56,7 @@
                     [fillWidth]="fill"
                     (syncEditor)="syncEditor()"
                     (syncTags)="plugins = $event"
-                    [autoFocus]="true"></app-editor>
+                    [autoFocus]="!!store.submit.to.length"></app-editor>
       </div>
     }
 
