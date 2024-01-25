@@ -30,6 +30,7 @@ import { filePlugin } from '../mods/file';
 import { folderTemplate } from '../mods/folder';
 import { fullscreenPlugin } from '../mods/fullscreen';
 import { graphConfig } from '../mods/graph';
+import { gridTemplate } from '../mods/grid';
 import { homeTemplate } from '../mods/home';
 import { htmlToMarkdownConfig } from '../mods/htmlToMarkdown';
 import { lockedIcon, privateIcon } from '../mods/icons';
@@ -165,6 +166,7 @@ export class AdminService {
       pollTemplate: pollTemplate,
       todoTemplate: todoTemplate,
       playlistTemplate: playlistTemplate,
+      gridTemplate: gridTemplate,
 
       // Icons
       lockedIcon: lockedIcon,
