@@ -114,6 +114,9 @@ in threads will be hidden anyway, so a sudden change of title will not be jarrin
 However, if a title was not set you should not set one either. This is particularly
 important in chat. When you do not use a title the first 140 or so characters of
 your comment will be used, followed by an ellipses.
+In the case of repost Refs, if they don't have a title or comment they are called
+a bare repost. The title or comment of the Ref they are reposting should be
+considered their title or comment.
 
 Responses sent to you will only include direct sources plus 7 levels of ancestors,
 or the entire thread in the case of threads.
