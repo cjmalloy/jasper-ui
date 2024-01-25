@@ -175,6 +175,7 @@ $tablet-width: 767px;
   .thread > .ref-list > .list-container > .ref,
   .md .ref.plugin-thread:not(.ref-list-item),
   .thread .ref.plugin-thread:not(.ref-list-item),
+  .parent-ref.thread,
   .full-page.ref.thread {
     margin: 4px 6px 4px 4px;
     padding: 0;
