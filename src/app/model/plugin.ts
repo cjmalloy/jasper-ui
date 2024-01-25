@@ -33,9 +33,10 @@ export interface Plugin extends Config {
      */
     internal?: boolean,
     /**
-     * Add plugin to text dropdown.
+     * Add a DM tab to the submit page to create a DM to this tag, with
+     * submitDm as the title of the message.
      */
-    submitDm?: boolean,
+    submitDm?: string,
     /**
      * Add plugin to text dropdown.
      */

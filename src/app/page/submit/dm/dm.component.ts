@@ -78,12 +78,9 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   ngAfterViewInit(): void {
     this.disposers.push(autorun(() => {
-      if (this.store.submit.dmPlugin === '+plugin/ai/openai') {
-        this.setTo('plugin/inbox/ai/openai');
-        this.title.setValue($localize`Chat with AI`);
-      } else if (this.store.submit.dmPlugin === '+plugin/ai/dalle') {
-        this.setTo('plugin/inbox/ai/dalle');
-        this.title.setValue($localize`Draw something...`);
+      if (this.store.submit.dmPlugin) {
+        this.setTo(this.store.submit.dmPlugin);
+        this.title.setValue(this.admin.getPlugin(this.store.submit.dmPlugin)?.config?.submitDm || $localize`Chat with ` + this.store.submit.dmPlugin);
       } if (this.store.submit.to.length) {
         this.setTo(this.store.submit.to.join(' '));
       } else {
