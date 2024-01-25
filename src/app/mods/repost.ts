@@ -12,5 +12,8 @@ export const repostPlugin: Plugin = {
     description: $localize`Re-submit a URL which has already been submitted by another user.
       The first source of this Ref is the URL to be reposted.`,
     icons: [{ label: $localize`↪️` }],
+    filters: [
+      { query: 'plugin/repost', label: $localize`↪️ Repost`, group: $localize`Plugins 🧰️` },
+    ],
   },
 };
