@@ -7,7 +7,8 @@
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
-          "style": "scss"
+          "style": "scss",
+          "standalone": false
         },
         "@schematics/angular:application": {
           "strict": true
@@ -45,7 +46,9 @@
             ],
             "styles": [
               "src/styles.scss",
-              "node_modules/katex/dist/katex.min.css"
+              "node_modules/katex/dist/katex.min.css",
+              "node_modules/ag-grid-community/styles/ag-grid.css",
+              "node_modules/ag-grid-community/styles/ag-theme-quartz.css"
             ],
             "scripts": [
               "node_modules/marked/marked.min.js",
@@ -97,8 +100,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "4mb",
-                  "maximumError": "8mb"
+                  "maximumWarning": "9mb",
+                  "maximumError": "10mb"
                 },
                 {
                   "type": "anyComponentStyle",

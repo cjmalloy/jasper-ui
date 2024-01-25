@@ -1,0 +1,17 @@
+<ag-grid-angular [class.ag-theme-quartz]="!store.darkTheme"
+                 [class.ag-theme-quartz-dark]="store.darkTheme"
+                 [style.height.vh]="90"
+                 [rowData]="page?.content"
+                 [columnDefs]="ext?.config?.columnDefs || defaultCols">
+</ag-grid-angular>
+@if (page) {
+  @if (emptyMessage && page.empty) {
+    <p class="no-results">{{ emptyMessage }}</p>
+  } @else {
+    <app-page-controls *ngIf="pageControls"
+                       [page]="page"
+                       [defaultCols]="cols"></app-page-controls>
+  }
+} @else {
+  <app-loading></app-loading>
+}

@@ -1,6 +1,12 @@
 @if (isTemplate('graph')) {
   <app-force-directed [tag]="tag"
                       [content]="page?.content || []"></app-force-directed>
+} @else if (isTemplate('grid')) {
+  <app-grid [tag]="tag"
+            [ext]="ext!"
+            [page]="page"
+            [pageControls]="pageControls"
+            [cols]="cols"></app-grid>
 } @else if (isTemplate('kanban')) {
   <app-kanban [query]="tag"
               [ext]="ext!"

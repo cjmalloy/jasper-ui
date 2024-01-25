@@ -7,6 +7,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { FormlyModule } from '@ngx-formly/core';
+import { AgGridAngular } from 'ag-grid-angular';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
@@ -152,6 +153,7 @@ import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
 import { OriginMapService } from './service/origin-map.service';
 import { ThemeService } from './service/theme.service';
+import { GridComponent } from './component/grid/grid.component';
 
 const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ThemeService) => () =>
   config.load$.pipe(
@@ -309,6 +311,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     InlineSelectComponent,
     InlineButtonComponent,
     TabsComponent,
+    GridComponent,
   ],
   imports: [
     BrowserModule,
@@ -318,6 +321,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     FormsModule,
     ReactiveFormsModule,
     MobxAngularModule,
+    AgGridAngular,
     MarkdownModule.forRoot(),
     MonacoEditorModule.forRoot(),
     DragDropModule,
