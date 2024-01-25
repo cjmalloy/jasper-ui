@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { defer } from 'lodash-es';
-import { catchError, ignoreElements, map, switchMap, throwError } from 'rxjs';
+import { catchError, map, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
@@ -11,7 +11,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { Store } from '../../../store/store';
-import { authors, clickableLink, formatAuthor, trimCommentForTitle } from '../../../util/format';
+import { authors, clickableLink, formatAuthor, getTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, tagOrigin } from '../../../util/tag';
@@ -88,14 +88,10 @@ export class ChatEntryComponent implements OnChanges {
   @memo
   get title() {
     const title = (this.ref?.title || '').trim();
-    const comment = (this.ref?.comment || '').trim();
     if (title) return title;
     if (this.focused) return '';
-    if (!comment) {
-      if (this.bareRepost) return $localize`Repost`;
-      return this.url;
-    }
-    return trimCommentForTitle(comment);
+    if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
+    return getTitle(this.ref);
   }
 
   get allowActions(): boolean {

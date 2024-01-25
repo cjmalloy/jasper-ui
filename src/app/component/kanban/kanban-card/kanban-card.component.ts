@@ -29,7 +29,7 @@ import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
-import { hasComment, trimCommentForTitle } from '../../../util/format';
+import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, includesTag } from '../../../util/tag';
@@ -257,12 +257,8 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   @memo
   get title() {
-    if (this.bareRepost) return this.repostRef?.title || $localize`Repost`;
-    const title = (this.ref.title || '').trim();
-    const comment = (this.ref.comment || '').trim();
-    if (title) return title;
-    if (!comment) return this.url;
-    return trimCommentForTitle(comment);
+    if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
+    return getTitle(this.ref);
   }
 
   @HostListener('contextmenu', ['$event'])

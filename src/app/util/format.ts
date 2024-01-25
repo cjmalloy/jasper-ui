@@ -1,10 +1,10 @@
-import { filter, sortBy, uniq } from 'lodash-es';
 import * as he from 'he';
+import { filter, sortBy, uniq } from 'lodash-es';
 import { Ref } from '../model/ref';
+import { Config, ModType } from '../model/tag';
 import { reverseOrigin } from '../mods/mailbox';
 import { config } from '../service/config.service';
 import { hasPrefix, hasTag } from './tag';
-import { Config, ModType } from '../model/tag';
 
 export const URI_REGEX = /^[^\s:\/?#]+:(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
 export const TAG_REGEX = /^[_+]?[a-z0-9]+([./][a-z0-9]+)*$/;
@@ -121,7 +121,16 @@ export function modId(c?: Config) {
   return c?.config?.mod || c?.name || c?.tag || '';
 }
 
-export function trimCommentForTitle(comment: string): string {
+export function getTitle(ref: Ref | undefined): string {
+  if (!ref) return '';
+  const title = (ref.title || '').trim();
+  const comment = (ref.comment || '').trim();
+  if (title) return title;
+  if (!comment) return ref.url;
+  return trimCommentForTitle(comment);
+}
+
+function trimCommentForTitle(comment: string): string {
   if (!comment) return '';
   comment = he.decode(comment.replace( /<[^>]+>/g, ''));
   if (comment.includes('\n')) {
@@ -133,7 +142,7 @@ export function trimCommentForTitle(comment: string): string {
   return trimTextForTitle(comment);
 }
 
-export function trimTextForTitle(comment: string) {
+function trimTextForTitle(comment: string) {
   if (!comment) return '';
   if (comment.length <= 140) return comment;
   return comment.substring(0, 140) + '...';

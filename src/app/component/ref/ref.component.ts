@@ -51,10 +51,10 @@ import {
   authors,
   clickableLink,
   formatAuthor,
+  getTitle,
   hasComment,
   interestingTags,
   templates,
-  trimCommentForTitle,
   urlSummary,
   userAuthors
 } from '../../util/format';
@@ -135,7 +135,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @HostBinding('class.mobile-unlock')
   mobileUnlock = false;
   actionsExpanded = false;
-  title = '';
   replyTags: string[] = [];
   writeAccess = false;
   taggingAccess = false;
@@ -220,15 +219,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.infoUis = this.admin.getPluginInfoUis(this.ref.tags);
     this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
 
-    this.title = this.getTitle();
     this.expandPlugins = this.admin.getEmbeds(this.ref);
     if (this.repost) {
       if (this.ref && this.fetchRepost && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
         this.refs.get(this.url, this.ref.origin)
         .subscribe(ref => {
           this.repostRef = ref;
+          MemoCache.clear(this);
           if (this.bareRepost) {
-            this.title = this.getTitle();
             this.expandPlugins = this.admin.getEmbeds(ref);
           }
         });
@@ -611,6 +609,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
+  get title() {
+    if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
+    return getTitle(this.ref);
+  }
+
+  @memo
   get defaultView() {
     if (this.thread) return 'thread';
     if (this.comment) return 'comments';
@@ -968,15 +972,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.store.submit.removeRef(this.ref);
     this.deleted = true;
     return of(null);
-  }
-
-  getTitle() {
-    if (this.bareRepost) return this.repostRef?.title || $localize`Repost`;
-    const title = (this.ref.title || '').trim();
-    const comment = (this.ref.comment || '').trim();
-    if (title) return title;
-    if (!comment) return this.url;
-    return trimCommentForTitle(comment);
   }
 
   showAdvanced(event: MouseEvent) {
