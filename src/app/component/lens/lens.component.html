@@ -1,9 +1,8 @@
-<app-force-directed *ngIf="isTemplate('graph') else kanban"
-                    [tag]="tag"
-                    [content]="page?.content || []"></app-force-directed>
-<ng-template #kanban>
-  <app-kanban *ngIf="isTemplate('kanban') else blog"
-              [query]="tag"
+@if (isTemplate('graph')) {
+  <app-force-directed [tag]="tag"
+                      [content]="page?.content || []"></app-force-directed>
+} @else if (isTemplate('kanban')) {
+  <app-kanban [query]="tag"
               [ext]="ext!"
               [fullPage]="fullPage"
               [pageControls]="pageControls"
@@ -11,25 +10,18 @@
               [sort]="sort"
               [filter]="filter"
               [search]="search"></app-kanban>
-</ng-template>
-<ng-template #blog>
-  <app-blog *ngIf="isTemplate('blog') else chat"
-            [ext]="ext!"
+} @else if (isTemplate('blog')) {
+  <app-blog [ext]="ext!"
             [page]="page"
             [pageControls]="pageControls"
             [cols]="cols"></app-blog>
-</ng-template>
-<ng-template #chat>
-  <app-chat *ngIf="isTemplate('chat') else folder"
-            [query]="tag"></app-chat>
-</ng-template>
-<ng-template #folder>
-  <app-folder *ngIf="isTemplate('folder') else noTmpl"
-              [tag]="tag"
+} @else if (isTemplate('blog')) {
+  <app-chat [query]="tag"></app-chat>
+} @else if (isTemplate('blog')) {
+  <app-folder [tag]="tag"
               [page]="page"
               [ext]="ext!"></app-folder>
-</ng-template>
-<ng-template #noTmpl>
+} @else {
   <app-ref-list [class]="cssClass(ext?.tag)"
                 [ext]="ext"
                 [page]="page"
@@ -38,4 +30,4 @@
                 [cols]="cols"
                 [showAlarm]="showAlarm"
                 [showVotes]="showVotes"></app-ref-list>
-</ng-template>
+}

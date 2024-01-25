@@ -161,7 +161,7 @@ export class AdminService {
       imageTemplate: imageTemplate,
       lensTemplate: lensTemplate,
       chessTemplate: chessTemplate,
-      bacgammonTemplate: backgammonTemplate,
+      backgammonTemplate: backgammonTemplate,
       pollTemplate: pollTemplate,
       todoTemplate: todoTemplate,
       playlistTemplate: playlistTemplate,

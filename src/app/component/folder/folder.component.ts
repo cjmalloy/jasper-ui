@@ -64,7 +64,7 @@ export class FolderComponent implements OnChanges {
             pageNumber: this._page.totalPages - 1
           },
           queryParamsHandling: "merge",
-        })
+        });
       }
     }
   }

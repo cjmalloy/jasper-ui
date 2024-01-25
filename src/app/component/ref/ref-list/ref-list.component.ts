@@ -91,10 +91,6 @@ export class RefListComponent implements OnInit, OnDestroy {
     return this.ext?.config?.defaultCols;
   }
 
-  get page(): Page<Ref> | undefined {
-    return this._page;
-  }
-
   get expanded(): boolean {
     if (this._expanded === undefined) return this._ext?.config?.defaultExpanded;
     return this._expanded;
@@ -103,6 +99,10 @@ export class RefListComponent implements OnInit, OnDestroy {
   @Input()
   set expanded(value: boolean) {
     this._expanded = value;
+  }
+
+  get page(): Page<Ref> | undefined {
+    return this._page;
   }
 
   @Input()
