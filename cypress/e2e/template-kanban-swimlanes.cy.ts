@@ -1,5 +1,5 @@
 import { addToBoard, dragCol } from './template-kanban';
-import { clearMods, openSidebar } from './setup';
+import { clearMods, closeSidebar, openSidebar } from './setup';
 
 export function loadBoard() {
   cy.intercept({pathname: '/api/v1/ref/page'}).as('page');
@@ -53,6 +53,7 @@ describe('Kanban Template with Swim Lanes', {
     cy.get('h2').should('have.text', 'Kanban Swim Lane Test');
   });
   it('add to board', () => {
+    closeSidebar();
     loadBoard();
     cy.wait(1000);
     addToBoard(7, 'first step');

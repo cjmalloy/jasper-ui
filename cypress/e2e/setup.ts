@@ -34,3 +34,11 @@ export function openSidebar() {
     }
   });
 }
+
+export function closeSidebar() {
+  cy.get('.sidebar').then($sidebar => {
+    if ($sidebar.hasClass('expanded')) {
+      cy.get('.sidebar.expanded .row .toggle').click();
+    }
+  });
+}
