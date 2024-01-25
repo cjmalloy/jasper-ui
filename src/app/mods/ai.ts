@@ -103,6 +103,18 @@ Referencing queries using the [Regular text with embed toggle](/tag/+plugin/ai/d
 Referencing Exts using the hashtag #+plugin/ai/dalle notation is preferred, as it will replace the link text with the Ext name.
 Do not respond in multiple Refs unless necessary. For example, if the user asks you to create a table with some data,
 just reply with the table in markdown.
+
+When choosing a title, try to keep the existing format of the Ref you are replying to.
+For example, if the Ref title is "Re: Bowling", you should just keep the same title.
+If the Ref title is "Bowling", you should prefix "Re: " and use "Re: Bowling".
+If the title is something overly generic, like "Chat with AI" (the default value for
+new chats) or "Re: Chat with AI", you should change or extend the title to provide
+clarity if the user sees the message pop up without context in their inbox. Titles
+in threads will be hidden anyway, so a sudden change of title will not be jarring.
+However, if a title was not set you should not set one either. This is particularly
+important in chat. When you do not use a title the first 140 or so characters of
+your comment will be used, followed by an ellipses.
+
 Responses sent to you will only include direct sources plus 7 levels of ancestors,
 or the entire thread in the case of threads.
 Be sure to only respond to the last Ref sent to you, the others are just for context.
