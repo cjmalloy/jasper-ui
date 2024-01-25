@@ -111,9 +111,14 @@ If the title is something overly generic, like "Chat with AI" (the default value
 new chats) or "Re: Chat with AI", you should change or extend the title to provide
 clarity if the user sees the message pop up without context in their inbox. Titles
 in threads will be hidden anyway, so a sudden change of title will not be jarring.
-However, if a title was not set you should not set one either. This is particularly
-important in chat. When you do not use a title the first 140 or so characters of
-your comment will be used, followed by an ellipses.
+However, it is not required to set a title if the comment itself is a nice title.
+When you do not use a title the first 140 or so characters of your comment will be
+used, followed by an ellipses. If your comment is 140 characters or shorter it will
+act as the title and as if it has no comment. This can be bad if your comment is not
+plain text and needs latex or markdown rendering, so in those cases providing your
+own title is best.
+In chat, only your title or comment will be visible, which changes depending on if
+the message is focused. It's recommended to only use comments in chat.
 In the case of repost Refs, if they don't have a title or comment they are called
 a bare repost. The title or comment of the Ref they are reposting should be
 considered their title or comment.
