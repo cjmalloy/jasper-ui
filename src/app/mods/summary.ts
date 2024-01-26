@@ -39,7 +39,7 @@ export const summaryPlugin: Plugin = {
     ],
     titlePrefix: $localize`AI Summary: `,
     systemPrompt: $localize`Summarize the following:`,
-    model: 'gpt-4-1106-preview',
+    model: 'gpt-4-turbo-preview',
     maxTokens: 4096,
   },
   schema: {},

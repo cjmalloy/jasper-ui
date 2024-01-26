@@ -46,7 +46,7 @@ export const aiPlugin: Plugin = {
     reply: ['plugin/inbox/ai/openai'],
     description: $localize`AI signature tag. Plugin configures OpenAi to respond to 'plugin/inbox/ai/openai' prompts
     and sign this response with this tag. Plugin data contains token usage stats.`,
-    model: 'gpt-4-1106-preview',
+    model: 'gpt-4-turbo-preview',
     fallback: ['gpt-4'],
     maxTokens: 4096,
     maxContext: 7,
