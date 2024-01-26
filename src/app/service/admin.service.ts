@@ -15,6 +15,7 @@ import { audioPlugin } from '../mods/audio';
 import { backgammonPlugin, backgammonTemplate } from '../mods/backgammon';
 import { banlistConfig } from '../mods/banlist';
 import { blogTemplate } from '../mods/blog';
+import { cachePlugin } from '../mods/cache';
 import { chatTemplate } from '../mods/chat';
 import { chessPlugin, chessTemplate } from '../mods/chess';
 import { commentPlugin } from '../mods/comment';
@@ -44,9 +45,22 @@ import { pdfPlugin } from '../mods/pdf';
 import { personPlugin } from '../mods/person';
 import { pipPlugin } from '../mods/pip';
 import { playlistPlugin, playlistTemplate } from '../mods/playlist';
-import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin, pollTemplate } from '../mods/poll';
+import {
+  pollOptionAPlugin,
+  pollOptionBPlugin,
+  pollOptionCPlugin,
+  pollOptionDPlugin,
+  pollPlugin,
+  pollTemplate
+} from '../mods/poll';
 import { qrPlugin } from '../mods/qr';
-import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin, queueTemplate } from '../mods/queue';
+import {
+  invoiceDisputedPlugin,
+  invoicePaidPlugin,
+  invoicePlugin,
+  invoiceRejectionPlugin,
+  queueTemplate
+} from '../mods/queue';
 import { repostPlugin } from '../mods/repost';
 import { rootTemplate } from '../mods/root';
 import { scrapePlugin } from '../mods/scrape';
@@ -128,6 +142,7 @@ export class AdminService {
       video: videoPlugin,
       voteUp: voteUpPlugin,
       voteDown: voteDownPlugin,
+      cache: cachePlugin,
 
       imagePlugin: imagePlugin,
       lensPlugin: lensPlugin,
@@ -569,12 +584,21 @@ export class AdminService {
       'plugin',
       ...tags,
       ...this.getPluginsForUrl(ref.url).map(p => p.tag),
+      ...this.getPluginsForCache(ref),
       ...(ref.alternateUrls || []).flatMap(url => this.getPluginsForUrl(url).map(p => p.tag)),
     ], this.embeddable) as string[];
   }
 
   getPluginsForUrl(url: string) {
     return uniq([...this.getPluginsForHost(url), ...this.getPluginsForExtension(url)]);
+  }
+
+  getPluginsForCache(ref: Ref): string[] {
+    const mimeType = ref.plugins?.['_plugin/cache']?.mimeType as string | undefined;
+    if (!mimeType) return [];
+    if (mimeType.startsWith('image/')) return ['plugin/image'];
+    if (mimeType.startsWith('video/')) return ['plugin/video'];
+    return [];
   }
 
   getPluginsForHost(url: string) {

@@ -7,6 +7,7 @@ import { mapRef, Ref } from '../../model/ref';
 import { catchAll } from '../../mods/scrape';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
+import { hasTag } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 import { RefService } from './ref.service';
@@ -29,7 +30,11 @@ export class ScrapeService {
   ) {
     autorun(() => {
       if (this.store.eventBus.event === 'scrape') {
-        this.store.eventBus.runAndReload(this.feed(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
+        if (hasTag('+plugin/feed', this.store.eventBus.ref)) {
+          this.store.eventBus.runAndReload(this.feed(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
+        } else if (hasTag('_plugin/cache', this.store.eventBus.ref)) {
+          this.store.eventBus.runAndReload(this.refresh(this.store.eventBus.ref!.url));
+        }
       }
       if (this.store.eventBus.event === '+plugin/scrape:defaults') {
         this.defaults().subscribe();
@@ -104,6 +109,16 @@ export class ScrapeService {
     };
     this.scraping.push(url);
     if (this.scraping.length === 1) s();
+  }
+
+  refresh(url: string): Observable<void> {
+    return this.http.post(`${this.base}/refresh`, null, {
+      params: params({ url }),
+      responseType: 'text'
+    }).pipe(
+      map(() => {}),
+      catchError(err => this.login.handleHttpError(err)),
+    );
   }
 
   cache(file: File): Observable<string> {
