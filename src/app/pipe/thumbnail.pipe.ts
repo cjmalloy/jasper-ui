@@ -21,33 +21,46 @@ export class ThumbnailPipe implements PipeTransform {
   transform(refs: (Ref | undefined)[]): Observable<string | null> {
     for (const ref of refs) {
       if (!ref) continue;
-      if (ref.plugins?.['plugin/thumbnail']?.url) return of(this.cssUrl(ref.plugins?.['plugin/thumbnail']?.url));
-      if (ref.plugins?.['plugin/image']?.url) return of(this.cssUrl(ref.plugins?.['plugin/image']?.url));
-      if (ref.plugins?.['plugin/video']?.url) return of(this.cssUrl(ref.plugins?.['plugin/video']?.url));
+      for (const plugin of ['plugin/thumbnail', 'plugin/image', 'plugin/video']) {
+        if (refUrl(ref, plugin)) return of(cssUrl(this.fetchUrl(refUrl(ref, plugin), plugin)));
+      }
       if (hasTag('plugin/embed', ref)) {
         return this.store.get(ref.plugins?.['plugin/embed']?.url || ref.url).pipe(
           map(oembed => {
             if (oembed?.thumbnail_url) {
-              return this.cssUrl(oembed.thumbnail_url);
+              return cssUrl(this.fetchUrl(oembed.thumbnail_url, 'plugin/thumbnail'));
             }
             return '';
           }),
         );
       }
+      const embedPlugins = this.admin.getEmbeds(ref);
+      for (const plugin of ['plugin/image', 'plugin/video']) {
+        if (embedPlugins.includes(plugin)) return of(cssUrl(this.fetchUrl(ref.url, plugin)));
+      }
     }
     for (const ref of refs) {
       if (!ref) continue;
-      return of(this.cssUrl(ref.url));
+      return of(cssUrl(ref.url));
     }
     return of('');
   }
 
-  cssUrl(url: string | null) {
+  fetchUrl(url: string, plugin: string) {
     if (!url) return '';
-    if (this.admin.getPlugin('plugin/thumbnail')?.config?.cache) {
-      url = this.scraper.getFetch(url);
+    if (this.admin.getPlugin(plugin)?.config?.cache) {
+      return this.scraper.getFetch(url);
     }
-    return `url("${url}")`;
+    return url;
   }
 
+}
+
+function refUrl(ref: Ref, plugin: string) {
+  return ref.plugins?.[plugin]?.url;
+}
+
+function cssUrl(url: string | null) {
+  if (!url) return '';
+  return `url("${url}")`;
 }
