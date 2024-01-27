@@ -1762,6 +1762,10 @@ button.backup, button.upload, input.upload {
     border: 1px solid var(--info);
     border-collapse: collapse;
   }
+
+  .embed > * {
+    margin: 0 auto;
+  }
 }
 
 ngx-monaco-editor {
