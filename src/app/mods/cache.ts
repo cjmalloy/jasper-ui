@@ -1,6 +1,5 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
-import { Template } from '../model/template';
 
 export const cachePlugin: Plugin = {
   tag: '_plugin/cache',
@@ -39,6 +38,12 @@ export const cachePlugin: Plugin = {
       type: 'string',
       props: {
         label: $localize`Mime Type:`,
+      }
+    }, {
+      key: 'contentLength',
+      type: 'number',
+      props: {
+        label: $localize`Content Length:`,
       }
     }, {
       key: 'ban',
