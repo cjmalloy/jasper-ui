@@ -100,7 +100,7 @@ export function reverseOrigin(tag: string): string {
 
 export function getMailbox(tag: string, local = ''): string {
   if (hasPrefix(tag, 'plugin/inbox') || hasPrefix(tag, 'plugin/outbox')) return setPublic(tag);
-  if (hasPrefix(tag, 'plugin')) return tag;
+  if (hasPrefix(tag, 'plugin')) tag = removePrefix(tag);
   const origin = tagOrigin(tag);
   if (!origin || origin === local) {
     return setPublic(prefix('plugin/inbox', localTag(tag)));
