@@ -29,9 +29,19 @@ import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
-import { Plugin } from '../../model/plugin';
+import { getPluginScope, Plugin } from '../../model/plugin';
 import { equalsRef, Ref, writeRef } from '../../model/ref';
-import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
+import {
+  Action,
+  active,
+  hydrate,
+  Icon,
+  ResponseAction,
+  sortOrder,
+  TagAction,
+  Visibility,
+  visible
+} from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { ActionService } from '../../service/action.service';
@@ -721,6 +731,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   get fullscreen() {
     if (this.plugins) return includesTag('plugin/fullscreen', this.plugins);
     return hasTag('plugin/fullscreen', this.ref);
+  }
+
+  @memo
+  uiMarkdown(tag: string) {
+    const plugin = this.admin.getPlugin(tag)!;
+    return hydrate(plugin.config, 'infoUi', getPluginScope(plugin, this.ref));
   }
 
   formatAuthor(user: string) {

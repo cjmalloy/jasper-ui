@@ -184,10 +184,10 @@
   </div>
 
   @if (ui && ext) {
-    <div class="hide ui"
-         [appTemplateUi]="ui"
-         [appMdPost]
-         [ext]="ext"></div>
+    <app-md class="hide ui"
+            [disableSanitizer]="true"
+            [origin]="ext?.origin || ''"
+            [text]="uiMarkdown"></app-md>
   }
 
   <div *ngIf="root" class="hide template-root">

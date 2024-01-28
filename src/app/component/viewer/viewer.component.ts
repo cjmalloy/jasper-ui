@@ -15,7 +15,9 @@ import { defer, some, without } from 'lodash-es';
 import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
+import { getPluginScope } from '../../model/plugin';
 import { findExtension, Ref, RefSort } from '../../model/ref';
+import { hydrate } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
@@ -312,5 +314,11 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!url) return url;
     if (!this.admin.getPlugin('plugin/pdf')?.config?.cache) return url;
     return this.scraper.getFetch(url);
+  }
+
+  @memo
+  uiMarkdown(tag: string) {
+    const plugin = this.admin.getPlugin(tag)!;
+    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref));
   }
 }

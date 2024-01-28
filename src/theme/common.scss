@@ -1678,7 +1678,7 @@ button.backup, button.upload, input.upload {
 }
 
 .inline-ui {
-  &, & > *:not(dialog) {
+  &, & > .md, & > .md > *:not(dialog) {
     display: inline !important;
     white-space: nowrap;
     & > br {

@@ -84,7 +84,7 @@
        [style.width]="embedWidth"
        [style.height]="embedHeight">
 <ng-container *ngFor="let ui of uis">
-  <div [appPluginUi]="ui"
-       [appMdPost]
-       [ref]="ref!"></div>
+  <app-md [disableSanitizer]="true"
+          [origin]="origin || ref?.origin || ''"
+          [text]="uiMarkdown(ui.tag)"></app-md>
 </ng-container>

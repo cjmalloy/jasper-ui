@@ -16,6 +16,8 @@ export class MdComponent implements OnInit {
   origin? = '';
   @Input()
   plugins?: string[];
+  @Input()
+  disableSanitizer = false;
 
   postProcessMarkdown: Subject<void> = new Subject();
 

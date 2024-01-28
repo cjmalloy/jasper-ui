@@ -83,12 +83,9 @@ import { ImageDimDirective } from './directive/image-dim.directive';
 import { InputDoneDirective } from './directive/input-done.directive';
 import { LimitWidthDirective } from './directive/limit-width.directive';
 import { MdPostDirective } from './directive/md-post.directive';
-import { PluginInfoUiDirective } from './directive/plugin-info-ui.directive';
-import { PluginUiDirective } from './directive/plugin-ui.directive';
 import { ResizeHandleDirective } from './directive/resize-handle.directive';
 import { ResizeDirective } from './directive/resize.directive';
 import { RouterActivateDirective } from './directive/router-activate.directive';
-import { TemplateUiDirective } from './directive/template-ui.directive';
 import { TitleDirective } from './directive/title.directive';
 import { CodeComponent } from './form/code/code.component';
 import { EditorComponent } from './form/editor/editor.component';
@@ -261,8 +258,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     JsonComponent,
     ChatComponent,
     ChatEntryComponent,
-    PluginUiDirective,
-    TemplateUiDirective,
     GenFormComponent,
     SortComponent,
     FilterComponent,
@@ -283,7 +278,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     ResizeHandleDirective,
     PluginListComponent,
     TemplateListComponent,
-    PluginInfoUiDirective,
     CommentThreadComponent,
     InboxDmsPage,
     UploadPage,

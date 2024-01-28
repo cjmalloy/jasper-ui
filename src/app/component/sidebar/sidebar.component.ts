@@ -6,7 +6,8 @@ import { catchError, filter, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
-import { Template } from '../../model/template';
+import { hydrate } from '../../model/tag';
+import { getTemplateScope, Template } from '../../model/template';
 import { getMailbox } from '../../mods/mailbox';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
@@ -18,6 +19,7 @@ import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
+import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, localTag, prefix, tagOrigin, topAnds } from '../../util/tag';
 
 @Component({
@@ -102,6 +104,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.home || changes.tag || changes.ext) {
+      MemoCache.clear(this);
       if (this.ext) {
         this.bookmarks$.subscribe(xs => this.bookmarkExts = xs);
         this.tagSubs$.subscribe(xs => this.tagSubExts = xs);
@@ -158,19 +161,23 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     this._expanded = value;
   }
 
+  @memo
   get root() {
     return !!this.admin.getTemplate('');
   }
 
+  @memo
   get rootConfig() {
     if (!this.root) return undefined;
     return (this.ext?.config || this.tagTemplate?.defaults || this.admin.getTemplate('')!.defaults) as RootConfig;
   }
 
+  @memo
   get modmail() {
     return this.rootConfig?.modmail;
   }
 
+  @memo
   get dms() {
     return uniq([
       ...this.plugin?.config?.reply ? [ this.plugin.tag ] : [],
@@ -178,35 +185,43 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     ]);
   }
 
+  @memo
   get user() {
     return !!this.admin.getTemplate('user') && hasPrefix(this.tag, 'user') && !this.store.view.userTemplate;
   }
 
+  @memo
   get userConfig() {
     if (!this.user && !this.home) return null;
     return this.store.account.ext?.config as UserConfig;
   }
 
+  @memo
   get bookmarks$() {
     return this.exts.getCachedExts(this.userConfig?.bookmarks || []).pipe(this.admin.extFallbacks);
   }
 
+  @memo
   get userSubs() {
     return this.userConfig?.subscriptions?.filter((s: string) => hasPrefix(s, 'user'));
   }
 
+  @memo
   get userSubs$() {
     return this.exts.getCachedExts(this.userSubs || []).pipe(this.admin.extFallbacks);
   }
 
+  @memo
   get tagSubs() {
     return this.userConfig?.subscriptions?.filter((s: string) => !hasPrefix(s, 'user'));
   }
 
+  @memo
   get tagSubs$() {
     return this.exts.getCachedExts(this.tagSubs || []).pipe(this.admin.extFallbacks);
   }
 
+  @memo
   get messages() {
     if (this.home) return false;
     if (!this.admin.getPlugin('plugin/inbox')) return false;
@@ -215,8 +230,15 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     return this.user || this.modmail || this.dms;
   }
 
+  @memo
   get homeWriteAccess() {
     return this.home && this.admin.getTemplate('home') && this.auth.tagWriteAccess('home');
+  }
+
+  @memo
+  get uiMarkdown() {
+    if (!this.ext) return '';
+    return this.ui.map(t => hydrate(t.config, 'ui', getTemplateScope(this.store.account.roles, t, this.ext!))).join();
   }
 
   subscribe() {
