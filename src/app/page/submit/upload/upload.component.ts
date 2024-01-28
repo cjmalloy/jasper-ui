@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { defer, delay, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import * as moment from 'moment';
-import { catchError, concat, lastValueFrom, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
 import { Ext, mapTag } from '../../../model/ext';
@@ -154,13 +154,14 @@ export class UploadPage implements OnDestroy {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
-      this.scraper.cache(file).subscribe(url => runInAction(() => this.store.submit.addRefs({
-        upload: true,
-        url,
-        title: file.name,
-        tags: uniq([tag, ...extraTags.filter(t => !!t)]),
-        published: moment(),
-      })));
+      this.scraper.cache(file).pipe(
+        switchMap(url => this.refs.get(url, this.store.account.origin)),
+        map(ref => {
+          ref.title = file.name;
+          ref.tags = uniq([...ref.tags || [], tag, ...extraTags.filter(t => !!t)]);
+          return ref;
+        }),
+      ).subscribe(ref => runInAction(() => this.store.submit.addRefs({ ...ref, upload: true })));
     }
   }
 
