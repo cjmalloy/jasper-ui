@@ -1,6 +1,7 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
+import { Mod } from '../model/tag';
 
 export const voteUpPlugin: Plugin = {
   tag: 'plugin/vote/up',
@@ -68,7 +69,6 @@ export const voteUpPlugin: Plugin = {
   userUrl: true,
 };
 
-
 export const voteDownPlugin: Plugin = {
   tag: 'plugin/vote/down',
   name: '⬇️ Vote Down',
@@ -92,3 +92,10 @@ export function score(ref: Ref) {
   }
   return score;
 }
+
+export const voteMod: Mod = {
+  plugins: {
+    voteUpPlugin,
+    voteDownPlugin,
+  },
+};

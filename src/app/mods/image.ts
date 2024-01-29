@@ -1,6 +1,7 @@
 import { $localize } from '@angular/localize/init';
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const imagePlugin: Plugin = {
@@ -151,4 +152,13 @@ export const imageTemplate: Template = {
     disableResize: true,
     defaultCols: 0, // Leave to CSS screen size detection, but show cols dropdown
   }
+};
+
+export const imageMod: Mod = {
+  plugins: {
+    imagePlugin,
+  },
+  templates: {
+    imageTemplate,
+  },
 };

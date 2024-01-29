@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const debugTemplate: Template = {
@@ -392,4 +393,14 @@ export const breakpointPlugin: Plugin = {
   },
   generateMetadata: true,
   userUrl: true,
+};
+
+export const debugMod: Mod = {
+  plugins: {
+    debugPlugin,
+    breakpointPlugin,
+  },
+  templates: {
+    debugTemplate,
+  },
 };

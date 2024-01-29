@@ -2,6 +2,7 @@ import { filter, maxBy, uniq } from 'lodash-es';
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 import { userAuthors } from '../util/format';
 import { hasPrefix, localTag, prefix, removePrefix, setPublic, tagOrigin } from '../util/tag';
@@ -144,3 +145,13 @@ export function mailboxes(ref: Ref, myUserTag: string, lookup?: Map<string, Map<
 export function newest(refs: Ref[]) {
   return maxBy(refs, r => r.modified!.valueOf());
 }
+
+export const mailboxMod: Mod = {
+  plugins: {
+    inboxPlugin,
+    outboxPlugin,
+  },
+  templates: {
+    dmTemplate,
+  },
+};

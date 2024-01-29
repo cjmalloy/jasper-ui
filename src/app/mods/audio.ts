@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const audioPlugin: Plugin = {
   tag: 'plugin/audio',
@@ -30,5 +31,11 @@ export const audioPlugin: Plugin = {
     optionalProperties: {
       url: { type: 'string' },
     },
+  },
+};
+
+export const audioMod: Mod = {
+  plugins: {
+    audioPlugin,
   },
 };

@@ -9,18 +9,18 @@ import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Config, Tag } from '../model/tag';
 import { Template } from '../model/template';
-import { aiPlugin, aiQueryPlugin } from '../mods/ai';
-import { archivePlugin } from '../mods/archive';
-import { audioPlugin } from '../mods/audio';
-import { backgammonPlugin, backgammonTemplate } from '../mods/backgammon';
+import { aiMod } from '../mods/ai';
+import { archiveMod } from '../mods/archive';
+import { audioMod } from '../mods/audio';
+import { backgammonMod } from '../mods/backgammon';
 import { banlistConfig } from '../mods/banlist';
 import { blogTemplate } from '../mods/blog';
 import { cachePlugin } from '../mods/cache';
 import { chatTemplate } from '../mods/chat';
-import { chessPlugin, chessTemplate } from '../mods/chess';
+import { chessMod } from '../mods/chess';
 import { commentPlugin } from '../mods/comment';
-import { dallePlugin, dalleQueryPlugin } from '../mods/dalle';
-import { breakpointPlugin, debugPlugin, debugTemplate } from '../mods/debug';
+import { dalleMod } from '../mods/dalle';
+import { debugMod } from '../mods/debug';
 import { deletePlugin } from '../mods/delete';
 import { htmlPlugin, latexPlugin } from '../mods/editor';
 import { emailPlugin } from '../mods/email';
@@ -34,53 +34,40 @@ import { graphConfig } from '../mods/graph';
 import { homeTemplate } from '../mods/home';
 import { htmlToMarkdownConfig } from '../mods/htmlToMarkdown';
 import { lockedIcon, privateIcon } from '../mods/icons';
-import { imagePlugin, imageTemplate } from '../mods/image';
+import { imageMod } from '../mods/image';
 import { kanbanTemplate } from '../mods/kanban';
-import { lensPlugin, lensTemplate } from '../mods/lens';
-import { dmTemplate, inboxPlugin, outboxPlugin } from '../mods/mailbox';
+import { lensMod } from '../mods/lens';
+import { mailboxMod } from '../mods/mailbox';
 import { modlistConfig } from '../mods/modlist';
 import { oEmbedPlugin } from '../mods/oembed';
-import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } from '../mods/origin';
+import { remoteOriginMod } from '../mods/origin';
 import { pdfPlugin } from '../mods/pdf';
 import { personPlugin } from '../mods/person';
 import { pipPlugin } from '../mods/pip';
 import { playlistPlugin, playlistTemplate } from '../mods/playlist';
-import {
-  pollOptionAPlugin,
-  pollOptionBPlugin,
-  pollOptionCPlugin,
-  pollOptionDPlugin,
-  pollPlugin,
-  pollTemplate
-} from '../mods/poll';
+import { pollMod } from '../mods/poll';
 import { qrPlugin } from '../mods/qr';
-import {
-  invoiceDisputedPlugin,
-  invoicePaidPlugin,
-  invoicePlugin,
-  invoiceRejectionPlugin,
-  queueTemplate
-} from '../mods/queue';
+import { queueMod } from '../mods/queue';
 import { repostPlugin } from '../mods/repost';
 import { rootTemplate } from '../mods/root';
 import { scrapePlugin } from '../mods/scrape';
 import { seamlessPlugin } from '../mods/seamless';
 import { snippetConfig } from '../mods/snippet';
-import { summaryPlugin, summaryQueryPlugin } from '../mods/summary';
+import { summaryMod } from '../mods/summary';
 import { tablePlugin } from '../mods/table';
 import { thanksConfig } from '../mods/thanks';
-import { terminalTheme } from '../mods/theme';
+import { themesMod } from '../mods/theme';
 import { threadPlugin } from '../mods/thread';
 import { thumbnailPlugin } from '../mods/thumbnail';
-import { todoPlugin, todoTemplate } from '../mods/todo';
+import { todoMod } from '../mods/todo';
 import { userTemplate } from '../mods/user';
-import { videoPlugin } from '../mods/video';
-import { voteDownPlugin, voteUpPlugin } from '../mods/vote';
+import { videoMod } from '../mods/video';
+import { voteMod } from '../mods/vote';
 import { DEFAULT_WIKI_PREFIX, wikiConfig } from '../mods/wiki';
 import { Store } from '../store/store';
 import { getExtension, getHost } from '../util/hosts';
 import { memo, MemoCache } from '../util/memo';
-import { addAllHierarchicalTags, addHierarchicalTags, hasPrefix, includesTag, tagIntersection } from '../util/tag';
+import { addHierarchicalTags, hasPrefix, includesTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { OEmbedService } from './api/oembed.service';
 import { PluginService } from './api/plugin.service';
@@ -105,14 +92,11 @@ export class AdminService {
     plugins: <Record<string, Plugin>> {
       oembed: oEmbedPlugin,
       scrape: scrapePlugin,
-      origin: originPlugin,
-      originPull: originPullPlugin,
-      originPush: originPushPlugin,
-      originTunnel: originTunnelPlugin,
+      cache: cachePlugin,
+      ...remoteOriginMod.plugins,
       feed: feedPlugin,
       delete: deletePlugin,
-      inbox: inboxPlugin,
-      outbox: outboxPlugin,
+      ...mailboxMod.plugins,
       comment: commentPlugin,
       thread: threadPlugin,
       email: emailPlugin,
@@ -120,65 +104,52 @@ export class AdminService {
       seamless: seamlessPlugin,
       thumbnail: thumbnailPlugin,
       table: tablePlugin,
-      aiQuery: aiQueryPlugin,
-      ai: aiPlugin,
-      dalleQuery: dalleQueryPlugin,
-      dalle: dallePlugin,
-      summaryQuery: summaryQueryPlugin,
-      summary: summaryPlugin,
+      ...aiMod.plugins,
+      ...dalleMod.plugins,
+      ...summaryMod.plugins,
       pdf: pdfPlugin,
-      archive: archivePlugin,
+      ...archiveMod.plugins,
       latex: latexPlugin,
       html: htmlPlugin,
       person: personPlugin,
       repost: repostPlugin,
-      invoice: invoicePlugin,
-      invoiceRejected: invoiceRejectionPlugin,
-      invoiceDisputed: invoiceDisputedPlugin,
-      invoicePaid: invoicePaidPlugin,
+      ...queueMod.plugins,
       qr: qrPlugin,
       embed: embedPlugin,
-      audio: audioPlugin,
-      video: videoPlugin,
-      voteUp: voteUpPlugin,
-      voteDown: voteDownPlugin,
-      cache: cachePlugin,
+      ...audioMod.plugins,
+      ...videoMod.plugins,
+      ...voteMod.plugins,
 
-      imagePlugin: imagePlugin,
-      lensPlugin: lensPlugin,
+      ...imageMod.plugins,
+      ...lensMod.plugins,
       pipPlugin: pipPlugin,
-      chessPlugin: chessPlugin,
-      backgammonPlugin: backgammonPlugin,
-      pollPlugin: pollPlugin,
-      pollPluginA: pollOptionAPlugin,
-      pollPluginB: pollOptionBPlugin,
-      pollPluginC: pollOptionCPlugin,
-      pollPluginD: pollOptionDPlugin,
-      todoPlugin: todoPlugin,
+      ...chessMod.plugins,
+      ...backgammonMod.plugins,
+      ...pollMod.plugins,
+      ...todoMod.plugins,
       playlistPlugin: playlistPlugin,
       filePlugin: filePlugin,
 
-      debugPlugin: debugPlugin,
-      breakpoint: breakpointPlugin,
+      ...debugMod.plugins,
     },
     templates: <Record<string, Template>> {
-      debugTemplate: debugTemplate,
+      ...debugMod.templates,
       root: rootTemplate,
       user: userTemplate,
       folder: folderTemplate,
       home: homeTemplate,
-      queue: queueTemplate,
+      ...queueMod.templates,
       kanban: kanbanTemplate,
       blog: blogTemplate,
       chat: chatTemplate,
-      dm: dmTemplate,
+      ...mailboxMod.templates,
 
-      imageTemplate: imageTemplate,
-      lensTemplate: lensTemplate,
-      chessTemplate: chessTemplate,
-      backgammonTemplate: backgammonTemplate,
-      pollTemplate: pollTemplate,
-      todoTemplate: todoTemplate,
+      ...imageMod.templates,
+      ...lensMod.templates,
+      ...chessMod.templates,
+      ...backgammonMod.templates,
+      ...pollMod.templates,
+      ...todoMod.templates,
       playlistTemplate: playlistTemplate,
 
       // Icons
@@ -186,7 +157,7 @@ export class AdminService {
       privateIcon: privateIcon,
 
       // Themes
-      terminalTheme: terminalTheme,
+      ...themesMod.templates,
 
       // Configs
       experiments: experimentsConfig,

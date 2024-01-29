@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const terminalTheme: Template = {
@@ -96,5 +97,11 @@ export const terminalTheme: Template = {
           }
         `,
     },
+  },
+};
+
+export const themesMod: Mod = {
+  templates: {
+    terminalTheme,
   },
 };

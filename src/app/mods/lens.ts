@@ -1,6 +1,7 @@
 import { $localize } from '@angular/localize/init';
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const lensPlugin: Plugin = {
@@ -99,4 +100,13 @@ export const lensTemplate: Template = {
     hideEdit: true,
     defaultCols: 2,
   }
+};
+
+export const lensMod: Mod = {
+  plugins: {
+    lensPlugin,
+  },
+  templates: {
+    lensTemplate,
+  },
 };

@@ -1,6 +1,7 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
+import { Mod } from '../model/tag';
 import { getHost, getScheme } from '../util/hosts';
 
 export const archivePlugin: Plugin = {
@@ -59,3 +60,9 @@ export function archiveUrl(plugin: Plugin, ref?: Ref, repost?: Ref) {
     || findArchive(plugin, ref)
     || findArchive(plugin, repost);
 }
+
+export const archiveMod: Mod = {
+  plugins: {
+    archivePlugin,
+  },
+};

@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const queueTemplate: Template = {
@@ -145,4 +146,16 @@ export const invoicePaidPlugin: Plugin = {
   },
   generateMetadata: true,
   userUrl: true,
+};
+
+export const queueMod: Mod = {
+  plugins: {
+    invoicePlugin,
+    invoiceRejectionPlugin,
+    invoiceDisputedPlugin,
+    invoicePaidPlugin,
+  },
+  templates: {
+    queueTemplate,
+  },
 };

@@ -7,7 +7,9 @@ import * as moment from 'moment';
 import { v4 as uuid } from 'uuid';
 import { hasTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
+import { Plugin } from './plugin';
 import { Ref } from './ref';
+import { Template } from './template';
 import { Role } from './user';
 
 export interface HasOrigin {
@@ -25,6 +27,11 @@ export interface Tag extends Cursor {
   type?: 'ext' | 'user' | 'plugin' | 'template';
   tag: string;
   name?: string;
+}
+
+export interface Mod {
+  plugins?: Record<string, Plugin>;
+  templates?: Record<string, Template>;
 }
 
 export type ModType = 'config' | 'icon' | 'feature' | 'lens' | 'plugin' | 'editor' | 'semantic' | 'theme' | 'tool';

@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from "../model/plugin";
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const backgammonPlugin: Plugin = {
@@ -107,4 +108,13 @@ export const backgammonTemplate: Template = {
     defaultSort: 'modified,DESC',
     defaultCols: 0, // Leave to CSS screen size detection, but show cols dropdown
   }
+};
+
+export const backgammonMod: Mod = {
+  plugins: {
+    backgammonPlugin,
+  },
+  templates: {
+    backgammonTemplate,
+  },
 };

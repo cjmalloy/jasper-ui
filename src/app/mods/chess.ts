@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from "../model/plugin";
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const chessPlugin: Plugin = {
@@ -120,4 +121,13 @@ export const chessTemplate: Template = {
     defaultSort: 'modified,DESC',
     defaultCols: 0, // Leave to CSS screen size detection, but show cols dropdown
   }
+};
+
+export const chessMod: Mod = {
+  plugins: {
+    chessPlugin,
+  },
+  templates: {
+    chessTemplate,
+  },
 };

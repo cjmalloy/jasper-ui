@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const aiQueryPlugin: Plugin = {
   tag: 'plugin/inbox/ai/openai',
@@ -132,4 +133,11 @@ Be sure to only respond to the last Ref sent to you, the others are just for con
   },
   schema: {},
   generateMetadata: true,
+};
+
+export const aiMod: Mod = {
+  plugins: {
+    aiPlugin,
+    aiQueryPlugin,
+  },
 };

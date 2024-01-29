@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const todoPlugin: Plugin = {
@@ -87,4 +88,13 @@ export const todoTemplate: Template = {
     defaultSort: 'modified,DESC',
     defaultCols: 0, // Leave to CSS screen size detection, but show cols dropdown
   }
+};
+
+export const todoMod: Mod = {
+  plugins: {
+    todoPlugin,
+  },
+  templates: {
+    todoTemplate,
+  },
 };

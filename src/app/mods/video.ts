@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const videoPlugin: Plugin = {
   tag: 'plugin/video',
@@ -30,5 +31,11 @@ export const videoPlugin: Plugin = {
     optionalProperties: {
       url: { type: 'string' },
     },
+  },
+};
+
+export const videoMod: Mod = {
+  plugins: {
+    videoPlugin,
   },
 };

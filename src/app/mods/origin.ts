@@ -1,6 +1,7 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
+import { Mod } from '../model/tag';
 
 export const originPlugin: Plugin = {
   tag: '+plugin/origin',
@@ -285,3 +286,12 @@ export function isPushing(remote: Ref, origin = '') {
   const plugin = remote.plugins?.['+plugin/origin'];
   return (plugin?.local || '') === origin;
 }
+
+export const remoteOriginMod: Mod = {
+  plugins: {
+    originPlugin,
+    originPushPlugin,
+    originPullPlugin,
+    originTunnelPlugin,
+  },
+};

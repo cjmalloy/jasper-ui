@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
-import { Template } from '../model/template';
+import { Mod } from '../model/tag';
 
 export const dalleQueryPlugin: Plugin = {
   tag: 'plugin/inbox/ai/dalle',
@@ -146,4 +146,11 @@ export const dallePlugin: Plugin = {
   },
   schema: {},
   generateMetadata: true,
+};
+
+export const dalleMod: Mod = {
+  plugins: {
+    dalleQueryPlugin,
+    dallePlugin,
+  },
 };

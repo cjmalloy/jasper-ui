@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const summaryQueryPlugin: Plugin = {
   tag: 'plugin/summary',
@@ -44,4 +45,11 @@ export const summaryPlugin: Plugin = {
   },
   schema: {},
   generateMetadata: true,
+};
+
+export const summaryMod: Mod = {
+  plugins: {
+    summaryQueryPlugin,
+    summaryPlugin,
+  },
 };
