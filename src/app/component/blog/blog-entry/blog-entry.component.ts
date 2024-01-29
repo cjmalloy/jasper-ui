@@ -21,7 +21,17 @@ import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { Ext } from '../../../model/ext';
 import { Ref, writeRef } from '../../../model/ref';
-import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../../model/tag';
+import {
+  Action,
+  active,
+  Icon,
+  ResponseAction,
+  sortOrder,
+  TagAction,
+  uniqueConfigs,
+  Visibility,
+  visible
+} from '../../../model/tag';
 import { findArchive } from '../../../mods/archive';
 import { deleteNotice } from '../../../mods/delete';
 import { ActionService } from '../../../service/action.service';
@@ -113,8 +123,8 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     this.actionComponents?.forEach(c => c.reset());
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
-    this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
-    this.actions = sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins));
+    this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
+    this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
   }
 
   ngOnChanges(changes: SimpleChanges) {

@@ -8,7 +8,7 @@ import { tap } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
-import { Action, sortOrder } from '../../model/tag';
+import { Action, sortOrder, uniqueConfigs } from '../../model/tag';
 import { Template } from '../../model/template';
 import { User } from '../../model/user';
 import { deleteNotice, tagDeleteNotice } from '../../mods/delete';
@@ -77,7 +77,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
-      this.actions = sortOrder(this.admin.getActions(commonTags).filter(a => !('tag' in a) || this.auth.canAddTag(a.tag)));
+      this.actions = uniqueConfigs(sortOrder(this.admin.getActions(commonTags).filter(a => !('tag' in a) || this.auth.canAddTag(a.tag))));
     }));
   }
 

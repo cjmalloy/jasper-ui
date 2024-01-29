@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Ref } from '../../../model/ref';
-import { Action, Icon, sortOrder } from '../../../model/tag';
+import { Action, Icon, sortOrder, uniqueConfigs } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
@@ -52,8 +52,8 @@ export class FileComponent implements OnChanges {
       this.viewSource = false;
       this.writeAccess = this.auth.writeAccess(this.ref);
       this.taggingAccess = this.auth.taggingAccess(this.ref);
-      this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
-      this.actions = sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins));
+      this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
+      this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
       this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
       this.expandPlugins = this.admin.getEmbeds(this.ref);
     }

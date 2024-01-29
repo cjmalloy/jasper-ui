@@ -16,7 +16,17 @@ import { delay, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../model/ref';
-import { Action, active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
+import {
+  Action,
+  active,
+  Icon,
+  ResponseAction,
+  sortOrder,
+  TagAction,
+  uniqueConfigs,
+  Visibility,
+  visible
+} from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { getMailbox, mailboxes } from '../../mods/mailbox';
 import { score } from '../../mods/vote';
@@ -136,8 +146,8 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.collapsed = !this.store.local.isRefToggled('comment:' + this.ref.url, true);
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
-    this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
-    this.actions = sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins));
+    this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
+    this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
   }
 
   ngOnChanges(changes: SimpleChanges) {

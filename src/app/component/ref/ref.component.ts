@@ -39,6 +39,7 @@ import {
   ResponseAction,
   sortOrder,
   TagAction,
+  uniqueConfigs,
   Visibility,
   visible
 } from '../../model/tag';
@@ -221,9 +222,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.replyTags = this.getReplyTags();
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
-    this.icons = sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url)));
+    this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
     this.alarm = capturesAny(this.store.account.alarms, this.ref.tags);
-    this.actions = this.ref.created ? sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)) : [];
+    this.actions = this.ref.created ? uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins))) : [];
     // TODO: detect width and move actions that don't fit into advanced actions
     this.advancedActions = this.ref.created ? sortOrder(this.admin.getAdvancedActions(this.ref.tags, this.ref.plugins)) : [];
     this.infoUis = this.admin.getPluginInfoUis(this.ref.tags);
