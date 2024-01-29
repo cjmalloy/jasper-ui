@@ -5,19 +5,19 @@ import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
   selector: 'formly-field-input',
   template: `
     <div class="form-array">
-      <input *ngIf="type !== 'number'; else numberTmp"
-             class="grow"
-             [type]="type"
-             [formControl]="formControl"
-             [formlyAttributes]="field"
-             [class.is-invalid]="showError">
-      <ng-template #numberTmp>
+      @if (type !== 'number') {
+        <input class="grow"
+               [type]="type"
+               [formControl]="formControl"
+               [formlyAttributes]="field"
+               [class.is-invalid]="showError">
+      } @else {
         <input type="number"
                class="grow"
                [formControl]="formControl"
                [formlyAttributes]="field"
                [class.is-invalid]="showError">
-      </ng-template>
+      }
       <app-qr-scanner *ngIf="field.type === 'qr'" (data)="$event && field.formControl!.setValue($event)"></app-qr-scanner>
       <app-audio-upload *ngIf="field.type === 'audio'" (data)="$event && field.formControl!.setValue($event)"></app-audio-upload>
       <app-video-upload *ngIf="field.type === 'video'" (data)="$event && field.formControl!.setValue($event)"></app-video-upload>
