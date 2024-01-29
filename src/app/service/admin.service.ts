@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import { findKey, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
+import { findKey, identity, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -80,7 +80,7 @@ import { DEFAULT_WIKI_PREFIX, wikiConfig } from '../mods/wiki';
 import { Store } from '../store/store';
 import { getExtension, getHost } from '../util/hosts';
 import { memo, MemoCache } from '../util/memo';
-import { hasPrefix, includesTag, tagIntersection } from '../util/tag';
+import { addAllHierarchicalTags, addHierarchicalTags, hasPrefix, includesTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { OEmbedService } from './api/oembed.service';
 import { PluginService } from './api/plugin.service';
@@ -520,10 +520,10 @@ export class AdminService {
   }
 
   get forms() {
-    return uniq([
+    return this.addPluginParents(uniq([
       ...this.pluginConfigProperty('form'),
       ...this.pluginConfigProperty('advancedForm')
-    ]);
+    ]));
   }
 
   get embeddable(): string[] {
@@ -576,6 +576,13 @@ export class AdminService {
   get filters() {
     return this.configProperty('filters')
       .flatMap(p => p.config?.filters!);
+  }
+
+  addPluginParents(cs: Plugin[]) {
+    return cs.flatMap(c =>
+      addHierarchicalTags(c.tag)
+        .map(tag => this.getPlugin(tag))
+        .filter(identity) as Plugin[]);
   }
 
   getEmbeds(ref: Ref) {
