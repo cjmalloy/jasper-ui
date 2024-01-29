@@ -39,69 +39,69 @@ $tablet-width: 767px;
 @media not print {
 /* Tablet and Smaller Screens */
 @media (max-width: $tablet-width) {
-.sidebar {
-  position: static !important;
-  float: none !important;
-  backdrop-filter: blur(1px) !important;
-  border: none !important;
-  margin-left: 0;
+  .sidebar {
+    position: static !important;
+    float: none !important;
+    backdrop-filter: blur(1px) !important;
+    border: none !important;
+    margin-left: 0;
 
-  details {
-    max-height: 42px;
-  }
-
-  input[type=search] {
-    width: 100%;
-  }
-
-  & > * {
-    max-height: 1000px;
-    overflow: hidden;
-    transition: opacity .4s .1s,
-    font-size .5s,
-    margin .5s,
-    padding .5s,
-    border .5s,
-    max-height .5s;
-  }
-
-  &:not(.expanded) {
-    .hide {
-      transition: opacity .5s,
-      font-size .4s .1s,
-      margin .4s .1s,
-      padding .4s .1s,
-      border .4s .1s,
-      max-height .4s .1s;
-      font-size: 0 !important;
-      margin: 0 !important;
-      max-height: 0 !important;
-      opacity: 0 !important;
-      padding: 0 !important;
-      border: 0 !important;
+    details {
+      max-height: 42px;
     }
-    .button-bar {
-      flex-direction: row;
+
+    input[type=search] {
+      width: 100%;
     }
-    .submit-button {
-      display: flex;
-      flex-grow: 1;
-      margin: 0;
-      margin-right: 4px;
-      align-items: center;
-      &:last-child {
-        margin-right: 1px;
+
+    & > * {
+      max-height: 1000px;
+      overflow: hidden;
+      transition: opacity .4s .1s,
+      font-size .5s,
+      margin .5s,
+      padding .5s,
+      border .5s,
+      max-height .5s;
+    }
+
+    &:not(.expanded) {
+      .hide {
+        transition: opacity .5s,
+        font-size .4s .1s,
+        margin .4s .1s,
+        padding .4s .1s,
+        border .4s .1s,
+        max-height .4s .1s;
+        font-size: 0 !important;
+        margin: 0 !important;
+        max-height: 0 !important;
+        opacity: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
       }
-      span {
-        width: 100%;
-        text-align: center;
+      .button-bar {
+        flex-direction: row;
       }
-      label {
-        display: none;
+      .submit-button {
+        display: flex;
+        flex-grow: 1;
+        margin: 0;
+        margin-right: 4px;
+        align-items: center;
+        &:last-child {
+          margin-right: 1px;
+        }
+        span {
+          width: 100%;
+          text-align: center;
+        }
+        label {
+          display: none;
+        }
       }
     }
   }
-}
 }
 
 /* Special width for settings tabs */
