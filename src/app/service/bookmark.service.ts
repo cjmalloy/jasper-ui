@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { filter, without } from 'lodash-es';
 import { Store } from '../store/store';
-import { UrlFilter } from '../util/query';
+import { toggle, UrlFilter } from '../util/query';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +19,7 @@ export class BookmarkService {
     if (filters.includes(f)) {
       this.filters = without(filters, f);
     } else {
-      this.filters = [...filters, f];
+      this.filters = [...without(filters, toggle(f)), f];
     }
   }
 
