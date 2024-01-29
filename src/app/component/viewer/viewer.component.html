@@ -84,7 +84,8 @@
        [style.width]="embedWidth"
        [style.height]="embedHeight">
 <ng-container *ngFor="let ui of uis">
-  <app-md [disableSanitizer]="true"
+  <app-md [class]="uiCss(ui.tag)"
+          [disableSanitizer]="true"
           [origin]="origin || ref?.origin || ''"
           [text]="uiMarkdown(ui.tag)"></app-md>
 </ng-container>

@@ -321,4 +321,9 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     const plugin = this.admin.getPlugin(tag)!;
     return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref));
   }
+
+  @memo
+  uiCss(tag: string) {
+    return 'ui ' + tag.replace(/\//g, '-');
+  }
 }

@@ -27,17 +27,22 @@ export const pollPlugin: Plugin = {
     filters: [
       { query: 'plugin/poll', label: $localize`🗳️ poll`, group: $localize`Plugins 🧰️` },
     ],
+    // language=CSS
     css: `
-      .poll-results {
+      .plugin-poll.ui > .md {
         display: inline-block !important;
         padding: 10px;
+        background-color: var(--bg-accent);
+        backdrop-filter: blur(1px);
+        border-radius: 8px;
+        box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
       }
-      .poll-results > div {
+      .plugin-poll.ui > .md > div {
         display: inline-block;
         position: relative;
         min-width: min(100vw, 300px);
       }
-      .poll-results > div > div {
+      .plugin-poll.ui > .md > div > div {
         box-sizing: border-box;
         min-width: 20px;
         margin: 2px;
@@ -47,7 +52,7 @@ export const pollPlugin: Plugin = {
         border-radius: 6px;
         background-color: rgba(128, 128, 128, 0.5);
       }
-      .poll-results .voted:after {
+      .plugin-poll.ui > .md .voted:after {
         content: ' ☑️ ';
       }
     `,
@@ -88,15 +93,12 @@ export const pollPlugin: Plugin = {
     `,
     // language=Handlebars
     ui: `
-      <div class="bubble poll-results">
-        <div>
-          {{#if a}}<div {{#if (response ref 'plugin/poll.a')}} class="voted" {{/if}} style="width: {{percent ref 'a' 'plugin/poll.'}}%">A: {{a}} {{percent ref 'a' 'plugin/poll.'}}%</div>{{/if}}
-          {{#if b}}<div {{#if (response ref 'plugin/poll.b')}} class="voted" {{/if}} style="width: {{percent ref 'b' 'plugin/poll.'}}%">B: {{b}} {{percent ref 'b' 'plugin/poll.'}}%</div>{{/if}}
-          {{#if c}}<div {{#if (response ref 'plugin/poll.c')}} class="voted" {{/if}} style="width: {{percent ref 'c' 'plugin/poll.'}}%">C: {{c}} {{percent ref 'c' 'plugin/poll.'}}%</div>{{/if}}
-          {{#if d}}<div {{#if (response ref 'plugin/poll.d')}} class="voted" {{/if}} style="width: {{percent ref 'd' 'plugin/poll.'}}%">D: {{d}} {{percent ref 'd' 'plugin/poll.'}}%</div>{{/if}}
-        </div>
-      </div>
-    `,
+    <div>
+      {{#if a}}<div {{#if (response ref 'plugin/poll.a')}} class="voted" {{/if}} style="width: {{percent ref 'a' 'plugin/poll.'}}%">A: {{a}} {{percent ref 'a' 'plugin/poll.'}}%</div>{{/if}}
+      {{#if b}}<div {{#if (response ref 'plugin/poll.b')}} class="voted" {{/if}} style="width: {{percent ref 'b' 'plugin/poll.'}}%">B: {{b}} {{percent ref 'b' 'plugin/poll.'}}%</div>{{/if}}
+      {{#if c}}<div {{#if (response ref 'plugin/poll.c')}} class="voted" {{/if}} style="width: {{percent ref 'c' 'plugin/poll.'}}%">C: {{c}} {{percent ref 'c' 'plugin/poll.'}}%</div>{{/if}}
+      {{#if d}}<div {{#if (response ref 'plugin/poll.d')}} class="voted" {{/if}} style="width: {{percent ref 'd' 'plugin/poll.'}}%">D: {{d}} {{percent ref 'd' 'plugin/poll.'}}%</div>{{/if}}
+    </div>`,
     form: [{
       key: 'a',
       type: 'input',
