@@ -1916,6 +1916,10 @@ ngx-monaco-editor {
   }
 }
 
+.form .todo-list > input {
+  display: block !important;
+}
+
 .nested-form .todo-list {
   padding-bottom: 4px !important;
   & > input {
