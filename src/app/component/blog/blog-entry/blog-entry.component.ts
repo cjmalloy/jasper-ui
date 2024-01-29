@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, intersection, without } from 'lodash-es';
+import { defer, intersection, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, map, switchMap, throwError } from 'rxjs';
@@ -40,7 +40,7 @@ import { authors, clickableLink, formatAuthor, interestingTags } from '../../../
 import { getScheme } from '../../../util/hosts';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, isOwnerTag, tagOrigin } from '../../../util/tag';
+import { hasTag, isOwnerTag, localTag, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
 
 @Component({
@@ -203,7 +203,11 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
 
   @memo
   get authors() {
-    return authors(this.ref);
+    const lookup = this.store.origins.originMap.get(this.ref.origin || '');
+    return uniq([
+      ...this.ref.tags?.filter(t => t.startsWith('+plugin/') && this.admin.getPlugin(t)?.config?.signature) || [],
+      ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) || '')),
+    ]);
   }
 
   @memo

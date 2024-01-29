@@ -532,10 +532,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get authors() {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
-    return authors(this.ref).map(a => {
-      if (!tagOrigin(a)) return a;
-      return localTag(a) + (lookup?.get(tagOrigin(a)) || '');
-    });
+    return uniq([
+      ...this.ref.tags?.filter(t => t.startsWith('+plugin/') && this.admin.getPlugin(t)?.config?.signature) || [],
+      ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) || '')),
+    ]);
   }
 
   @memo

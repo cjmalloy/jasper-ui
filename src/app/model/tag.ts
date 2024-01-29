@@ -1,6 +1,7 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
+import { isEqual, omitBy, uniqWith } from 'lodash-es';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
 import { v4 as uuid } from 'uuid';
@@ -186,6 +187,11 @@ export function sortOrder<T extends Visibility>(vs: T[]) {
     if (Math.sign(a.order) !== Math.sign(b.order)) return b.order - a.order;
     return a.order - b.order;
   });
+}
+
+export function uniqueConfigs<T extends Visibility>(vs: T[]) {
+  const hiddenField = (v: string, k: string) => k.startsWith('_')
+  return uniqWith(vs, (a, b) => isEqual(omitBy(a as any, hiddenField), omitBy(b as any, hiddenField)));
 }
 
 export interface Icon extends Visibility {

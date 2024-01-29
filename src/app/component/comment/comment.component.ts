@@ -32,7 +32,7 @@ import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
 import { getScheme } from '../../util/hosts';
 import { memo, MemoCache } from '../../util/memo';
-import { hasTag, hasUserUrlResponse, removeTag, tagOrigin, top } from '../../util/tag';
+import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin, top } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 
 @Component({
@@ -193,7 +193,11 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @memo
   get authors() {
-    return authors(this.ref);
+    const lookup = this.store.origins.originMap.get(this.ref.origin || '');
+    return uniq([
+      ...this.ref.tags?.filter(t => t.startsWith('+plugin/') && this.admin.getPlugin(t)?.config?.signature) || [],
+      ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) || '')),
+    ]);
   }
 
   @memo
