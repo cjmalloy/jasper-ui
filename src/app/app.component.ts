@@ -56,17 +56,25 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
-  @HostListener('window:blur')
-  @HostListener('document:keyup', ['$event'])
   @HostListener('document:keydown', ['$event'])
-  onCtrl(event?: KeyboardEvent) {
-    if (this.store.ctrl !== event?.ctrlKey) {
-      runInAction(() => this.store.ctrl = !!event?.ctrlKey);
-      if (event?.ctrlKey) {
+  onCtrl(event: KeyboardEvent) {
+    let ctrl = event.key === 'Control' && !event.altKey && !event.metaKey && !event.shiftKey;
+    if (this.store.ctrl !== ctrl) {
+      runInAction(() => this.store.ctrl = ctrl);
+      if (ctrl) {
         document.body.classList.add('ctrl');
       } else {
         document.body.classList.remove('ctrl');
       }
+    }
+  }
+
+  @HostListener('window:blur')
+  @HostListener('document:keyup')
+  removeCtrl() {
+    if (this.store.ctrl) {
+      runInAction(() => this.store.ctrl = false);
+      document.body.classList.remove('ctrl');
     }
   }
 
