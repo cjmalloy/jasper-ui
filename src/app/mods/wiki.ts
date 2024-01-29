@@ -47,7 +47,6 @@ export function wikiUriFormat(uri: string, prefix?: string) {
     .split(':').map(s => s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase()).join(':');
 }
 
-
 export function isWiki(uri: string, prefix?: string) {
   prefix ||= DEFAULT_WIKI_PREFIX!;
   return uri.startsWith(prefix);

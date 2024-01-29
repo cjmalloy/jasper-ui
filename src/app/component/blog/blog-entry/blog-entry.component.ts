@@ -294,12 +294,12 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     return this.visible(i) && this.active(i);
   }
 
-  clickIcon(i: Icon) {
+  clickIcon(i: Icon, ctrl: boolean) {
     if (i.response) {
       this.bookmarks.toggleFilter(i.response);
     }
     if (i.tag) {
-      this.bookmarks.toggleTag(i.tag);
+      this.bookmarks.toggleFilter((ctrl ? `query/!(${i.tag})` : `query/${i.tag}`));
     }
   }
 

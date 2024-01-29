@@ -32,16 +32,16 @@
     <a *ngIf="showColumnBacklog"
        class="column-title tag"
        (click)="bookmarks.toggleQuery($event.ctrlKey ? '!(' + colBacklog + ')' : colBacklog)"
-       title="No matching column tag">{{ kanbanConfig.columnBacklogTitle || 'Backlog' }}</a>
+       title="No matching column tag"><span class="filter-toggle">{{ kanbanConfig.columnBacklogTitle || 'Backlog' }}</span></a>
     <a *ngFor="let col of columns trackBy: trackByIdx"
        class="column-title tag"
        (click)="bookmarks.toggleQuery($event.ctrlKey ? '!(' + col + ')' : col)"
-       [title]="col">{{ (exts.getCachedExt(col, ext.origin || '') | async)?.name || col }}</a>
+       [title]="col"><span class="filter-toggle">{{ (exts.getCachedExt(col, ext.origin || '') | async)?.name || col }}</span></a>
     <ng-container *ngIf="swimLanes else noSwimLanes">
       <ng-container *ngFor="let sl of swimLanes trackBy: trackByIdx">
         <a class="swim-lane-title tag"
            (click)="bookmarks.toggleQuery($event.ctrlKey ? '!(' + sl + ')' : sl)"
-           [title]="sl">{{ (exts.getCachedExt(sl, ext.origin || '') | async)?.name || sl }}</a>
+           [title]="sl"><span class="filter-toggle">{{ (exts.getCachedExt(sl, ext.origin || '') | async)?.name || sl }}</span></a>
         <app-kanban-column *ngIf="showColumnBacklog"
                            cdkDropList
                            cdkScrollable
@@ -74,7 +74,7 @@
       <ng-container *ngIf="showSwimLaneBacklog">
         <a class="swim-lane-title tag"
            (click)="bookmarks.toggleQuery($event.ctrlKey ? '!(' + slBacklog + ')' : slBacklog)"
-           title="No matching swim lane">{{ kanbanConfig.swimLaneBacklogTitle || 'Backlog' }}</a>
+           title="No matching swim lane"><span class="filter-toggle">{{ kanbanConfig.swimLaneBacklogTitle || 'Backlog' }}</span></a>
         <app-kanban-column *ngIf="showColumnBacklog"
                            cdkDropList
                            cdkScrollable

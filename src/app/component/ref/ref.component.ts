@@ -798,7 +798,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.bookmarks.toggleFilter(i.response);
     }
     if (i.tag) {
-      this.bookmarks.toggleTag(ctrl ? '!(' + i.tag + ')' : i.tag);
+      this.bookmarks.toggleFilter((ctrl ? `query/!(${i.tag})` : `query/${i.tag}`));
     }
     if (i.scheme) {
       this.bookmarks.toggleFilter(`scheme/${i.scheme}`);

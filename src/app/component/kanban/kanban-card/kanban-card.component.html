@@ -7,7 +7,7 @@
        (click)="copy()"
        i18n-title title="Copy remote ref">📥️</a>
     <ng-container *ngIf="badgeExts$ | async as badgeExts">
-      <a class="badge"
+      <a class="badge filter-toggle"
          *ngFor="let e of badgeExts"
          [class.filtering]="bookmarks.filters.includes($any('query/' + e.tag))"
          (click)="bookmarks.toggleQuery($event.ctrlKey ? '!(' + e.tag + ')' : e.tag)"

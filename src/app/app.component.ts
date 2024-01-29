@@ -1,13 +1,11 @@
-import { AfterViewInit, Component, HostBinding, isDevMode } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, HostListener, isDevMode } from '@angular/core';
 import { Router } from '@angular/router';
-import { autorun } from 'mobx';
-import { archivePlugin, archiveUrl, findArchive } from './mods/archive';
+import { autorun, runInAction } from 'mobx';
+import { archivePlugin, archiveUrl } from './mods/archive';
 import { pdfPlugin, pdfUrl } from './mods/pdf';
 import { AdminService } from './service/admin.service';
-import { OriginService } from './service/api/origin.service';
 import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
-import { OriginStore } from './store/origin';
 import { Store } from './store/store';
 
 @Component({
@@ -31,7 +29,6 @@ export class AppComponent implements AfterViewInit {
     public store: Store,
     private admin: AdminService,
     private scraper: ScrapeService,
-    private origins: OriginService,
     private router: Router,
   ) {
     if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
@@ -58,6 +55,20 @@ export class AppComponent implements AfterViewInit {
       });
     }
   }
+
+  @HostListener('document:keyup', ['$event'])
+  @HostListener('document:keydown', ['$event'])
+  onCtrl(event: KeyboardEvent) {
+    if (this.store.ctrl !== event.ctrlKey) {
+      runInAction(() => this.store.ctrl = event.ctrlKey);
+      if (event.ctrlKey) {
+        document.body.classList.add('ctrl');
+      } else {
+        document.body.classList.remove('ctrl');
+      }
+    }
+  }
+
 
   dragOver(event: DragEvent) {
     event.preventDefault();

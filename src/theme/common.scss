@@ -485,6 +485,30 @@ video.qr-preview {
   }
 }
 
+.ctrl .filter-toggle {
+  display: inline-block;
+  filter: sepia(50%) brightness(100%) !important;
+  animation-duration: 1s;
+  animation-delay: -0.5s;
+  animation-name: unfilter;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  animation-direction: alternate;
+}
+@keyframes unfilter {
+  from {
+    transform: translateY(-2px) rotate(20deg);
+  }
+
+  50% {
+    transform: translateY(3px) rotate(0);
+  }
+
+  to {
+    transform: translateY(-2px) rotate(-20deg);
+  }
+}
+
 .deleted {
   text-decoration: line-through;
   opacity: 0.5;

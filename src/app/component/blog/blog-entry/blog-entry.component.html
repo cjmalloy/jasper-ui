@@ -40,7 +40,8 @@
           <ng-container *ngFor="let icon of icons">
             <span *ngIf="showIcon(icon)"
                   class="icon"
-                  (click)="clickIcon(icon)"
+                  [class.filter-toggle]="icon.tag"
+                  (click)="clickIcon(icon, $event.ctrlKey)"
                   [appTitle]="icon"
                   [ref]="ref">{{ icon.label }}</span>
           </ng-container>

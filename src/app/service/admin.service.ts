@@ -643,7 +643,7 @@ export class AdminService {
         return includesTag(p.tag, match);
       }).map(addParent(p))
         .map(i => {
-          if (!i.response) i.tag ||= p.tag;
+          if (!i.response && !i.scheme) i.tag ||= p.tag;
           if (i.tag === p.tag)  i.title ||= p.name;
           i.title ||= i.tag;
           return i;

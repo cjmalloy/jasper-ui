@@ -112,6 +112,7 @@
           @for (icon of icons; track icon) {
             <span *ngIf="showIcon(icon)"
                   class="icon"
+                  [class.filter-toggle]="icon.tag"
                   (click)="clickIcon(icon, $event.ctrlKey)"
                   [appTitle]="icon"
                   [ref]="ref">{{ icon.label }}</span>

@@ -24,6 +24,7 @@ export class Store {
   settings = new SettingsStore(this.route);
   graph = new GraphStore(this.route);
   theme = 'init-theme';
+  ctrl = false;
 
   constructor(
     private route: RouterStore,
