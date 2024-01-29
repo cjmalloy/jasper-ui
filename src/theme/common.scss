@@ -487,7 +487,6 @@ video.qr-preview {
 
 .ctrl .filter-toggle {
   display: inline-block;
-  filter: sepia(50%) brightness(100%) !important;
   animation-duration: 1s;
   animation-delay: -0.5s;
   animation-name: unfilter;
