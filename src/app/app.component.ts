@@ -56,19 +56,19 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
+  @HostListener('window:blur')
   @HostListener('document:keyup', ['$event'])
   @HostListener('document:keydown', ['$event'])
-  onCtrl(event: KeyboardEvent) {
-    if (this.store.ctrl !== event.ctrlKey) {
-      runInAction(() => this.store.ctrl = event.ctrlKey);
-      if (event.ctrlKey) {
+  onCtrl(event?: KeyboardEvent) {
+    if (this.store.ctrl !== event?.ctrlKey) {
+      runInAction(() => this.store.ctrl = !!event?.ctrlKey);
+      if (event?.ctrlKey) {
         document.body.classList.add('ctrl');
       } else {
         document.body.classList.remove('ctrl');
       }
     }
   }
-
 
   dragOver(event: DragEvent) {
     event.preventDefault();
