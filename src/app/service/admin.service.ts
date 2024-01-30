@@ -550,10 +550,10 @@ export class AdminService {
   }
 
   addPluginParents(cs: Plugin[]) {
-    return cs.flatMap(c =>
+    return uniq(cs.flatMap(c =>
       addHierarchicalTags(c.tag)
         .map(tag => this.getPlugin(tag))
-        .filter(identity) as Plugin[]);
+        .filter(identity) as Plugin[]));
   }
 
   getEmbeds(ref: Ref) {
