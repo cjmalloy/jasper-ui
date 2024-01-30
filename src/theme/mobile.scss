@@ -410,6 +410,12 @@ $tablet-width: 767px;
     margin: 0 !important;
   }
 
+  .md {
+    blockquote {
+      margin-right: auto;
+    }
+  }
+
   .kanban-header {
     .kanban-options > div {
         position: relative !important;
