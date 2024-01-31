@@ -20,7 +20,7 @@
     </ng-template>
     <a class="fake-link"
        (click)="download()" i18n>download</a>
-    <app-inline-button #action *ngIf="store.account.sysMod && config.scim && !profile" [action]="activate$" i18n>sync</app-inline-button>
+    <app-inline-button #action *ngIf="store.account.root && store.account.mod && config.scim && !profile" [action]="activate$" i18n>sync</app-inline-button>
     <ng-container *ngIf="profile && writeAccess">
       <app-inline-password #action [action]="setPassword$" i18n>password</app-inline-password>
     </ng-container>
@@ -39,8 +39,8 @@
       <app-inline-button #action *ngIf="profile && !profile.active" [action]="activate$" i18n>activate</app-inline-button>
       <app-inline-button #action *ngIf="profile?.active" [action]="deactivate$" i18n>deactivate</app-inline-button>
     </ng-container>
-    <app-confirm-action #action *ngIf="store.account.sysMod || writeAccess" [action]="delete$" i18n>delete</app-confirm-action>
-    <a *ngIf="user && !genKey && (store.account.sysMod || writeAccess)"
+    <app-confirm-action #action *ngIf="(!profile || store.account.root) && store.account.mod || writeAccess" [action]="delete$" i18n>delete</app-confirm-action>
+    <a *ngIf="user && !genKey && (store.account.mod || writeAccess)"
        class="fake-link"
        (click)="genKey = true" i18n>keygen</a>
     <span *ngIf="genKey" class="delete-confirm" i18n>

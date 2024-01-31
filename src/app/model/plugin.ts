@@ -82,9 +82,10 @@ export interface Plugin extends Config {
      */
     hasDefaults?: boolean;
     /**
-     * Has clear cache method available. Should respond to the event `${tag}:clear-cache`.
+     * Label for clear cache button. Set this if clear cache method available.
+     * Should respond to the event `${tag}:clear-cache`.
      */
-    hasClearCache?: boolean;
+    hasClearCache?: string;
   };
   /**
    * Generate separate Ref response metadata for this plugin.

@@ -42,6 +42,9 @@ export class ScrapeService {
       if (store.eventBus.event === '+plugin/scrape:clear-cache') {
         this.clearConfigCache().subscribe();
       }
+      if (store.eventBus.event === '_plugin/cache:clear-cache') {
+        this.clearDeleted().subscribe();
+      }
     });
   }
 
@@ -140,6 +143,12 @@ export class ScrapeService {
   defaults(): Observable<any> {
     return this.refs.update(catchAll, true).pipe(
       switchMap(() => this.clearConfigCache())
+    );
+  }
+
+  clearDeleted() {
+    return this.http.post(`${this.base}/clear-deleted`, null).pipe(
+      catchError(err => this.login.handleHttpError(err)),
     );
   }
 

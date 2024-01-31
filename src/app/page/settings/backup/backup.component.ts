@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { BackupService } from '../../../service/api/backup.service';
@@ -24,20 +23,20 @@ export class SettingsBackupPage implements OnInit {
   submitted = false;
   originForm: UntypedFormGroup;
 
+  origin = this.store.account.origin;
   list?: string[];
   uploading = false;
   serverError: string[] = [];
 
   constructor(
     private theme: ThemeService,
-    private route: ActivatedRoute,
     public store: Store,
     private backups: BackupService,
     private origins: OriginService,
     private fb: UntypedFormBuilder,
   ) {
     theme.setTitle($localize`Settings: Backup & Restore`);
-    backups.list()
+    backups.list(this.origin)
       .subscribe(list => this.list = list.sort().reverse());
     this.originForm = fb.group({
       origin: ['', [Validators.pattern(ORIGIN_NOT_BLANK_REGEX)]],
@@ -50,7 +49,7 @@ export class SettingsBackupPage implements OnInit {
 
   backup() {
     this.serverError = [];
-    this.backups.create().pipe(
+    this.backups.create(this.origin).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
@@ -65,7 +64,7 @@ export class SettingsBackupPage implements OnInit {
     if (!files || !files.length) return;
     this.uploading = true;
     const file = files[0]!;
-    this.backups.upload(file).pipe(
+    this.backups.upload(this.origin, file).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         this.uploading = false;
@@ -79,7 +78,7 @@ export class SettingsBackupPage implements OnInit {
 
   backfill() {
     this.serverError = [];
-    this.backups.backfill().pipe(
+    this.backups.backfill(this.origin).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);

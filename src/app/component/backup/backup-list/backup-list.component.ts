@@ -9,6 +9,8 @@ export class BackupListComponent implements OnInit {
 
   @Input()
   list?: string[];
+  @Input()
+  origin = '';
 
   constructor() { }
 

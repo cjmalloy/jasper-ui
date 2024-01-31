@@ -18,12 +18,6 @@ export class AccountStore {
   defaultConfig: UserConfig = {};
 
   /**
-   * Is Sysadmin.
-   * Only used in multi-tenant to own all origins.
-   * Equivalent to Admin in single tenant.
-   */
-  sa = false;
-  /**
    * Is admin.
    * Owns everything.
    * Limited to origin in multi-tenant.
@@ -82,18 +76,12 @@ export class AccountStore {
     this.defaultConfig = {};
   }
 
-  get sysAdmin() {
-    if (config().multiTenant) return this.sa;
-    return this.admin;
-  }
-
-  get sysMod() {
-    if (config().multiTenant) return this.sa;
-    return this.mod;
-  }
-
   get signedIn() {
     return !!this.tag;
+  }
+
+  get root() {
+    return !this.origin;
   }
 
   get localTag() {
@@ -119,7 +107,6 @@ export class AccountStore {
     return {
       debug: this.debug,
       tag: this.tag,
-      sysadmin: this.sa,
       admin: this.admin,
       mod: this.mod,
       editor: this.editor,
@@ -261,7 +248,6 @@ export class AccountStore {
       // Not logged in, only local origin is set
       this.tag = '';
     }
-    this.sa = roles.sysadmin;
     this.admin = roles.admin;
     this.mod = roles.mod;
     this.editor = roles.editor;

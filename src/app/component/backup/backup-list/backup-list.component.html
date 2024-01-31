@@ -1,7 +1,8 @@
 <div class="list-container">
   <ng-container *ngFor="let id of list; let i = index">
     <div class="list-number">{{ i + 1 }}</div>
-    <app-backup [id]="id"></app-backup>
+    <app-backup [id]="id"
+                [origin]="origin"></app-backup>
   </ng-container>
 </div>
 <app-loading *ngIf="!list"></app-loading>
