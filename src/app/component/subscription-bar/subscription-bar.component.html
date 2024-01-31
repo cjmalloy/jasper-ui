@@ -6,9 +6,7 @@
     <ng-container *ngIf="admin.getTemplate('user') && store.account.signedIn">
       &bullet; <a routerLink="/home" [queryParams]="{ forYou : true }" routerLinkActive="current-page" i18n>for you</a>
     </ng-container>
-    <ng-container *ngIf="config.multiTenant">
-      &bullet; <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a>
-    </ng-container>
+    &bullet; <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a>
     &bullet; <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
     <ng-container *ngIf="bookmarkExts.length; else bookNoExts">
       <ng-container *ngFor="let b of bookmarkExts; let i = index">

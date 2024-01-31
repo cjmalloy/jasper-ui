@@ -21,7 +21,6 @@ export class ConfigService {
   login = '';
   signup = '';
   scim = false;
-  multiTenant = false;
   websockets = true;
   support = '+support';
   allowedSchemes = ['http:', 'https:', 'ftp:', 'tel:', 'mailto:', 'magnet:'];
