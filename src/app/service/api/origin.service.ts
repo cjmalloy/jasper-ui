@@ -50,8 +50,8 @@ export class OriginService {
   }
 
   delete(origin: string, olderThan: moment.Moment): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${origin}`, {
-      params: params({ olderThan }),
+    return this.http.delete<void>(`${this.base}`, {
+      params: params({ origin, olderThan }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );

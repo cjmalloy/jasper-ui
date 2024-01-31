@@ -8,7 +8,7 @@ import { OriginService } from '../../../service/api/origin.service';
 import { ThemeService } from '../../../service/theme.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
-import { ORIGIN_NOT_BLANK_REGEX } from '../../../util/format';
+import { ORIGIN_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -18,7 +18,7 @@ import { printError } from '../../../util/http';
 })
 export class SettingsBackupPage implements OnInit {
   @HostBinding('class') css = 'backup';
-  originPattern = ORIGIN_NOT_BLANK_REGEX.source;
+  originPattern = ORIGIN_REGEX.source;
 
   submitted = false;
   originForm: UntypedFormGroup;
@@ -39,7 +39,7 @@ export class SettingsBackupPage implements OnInit {
     backups.list(this.origin)
       .subscribe(list => this.list = list.sort().reverse());
     this.originForm = fb.group({
-      origin: ['', [Validators.pattern(ORIGIN_NOT_BLANK_REGEX)]],
+      origin: ['', [Validators.pattern(ORIGIN_REGEX)]],
       olderThan: [moment().format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS)],
     });
   }
