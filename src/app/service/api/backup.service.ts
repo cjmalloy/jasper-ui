@@ -26,16 +26,19 @@ export class BackupService {
     return this.config.api + '/api/v1/backup';
   }
 
-  create(options: BackupOptions = all): Observable<string> {
+  create(origin: string, options: BackupOptions = all): Observable<string> {
     return this.http.post(`${this.base}`, options, {
+      params: params({ origin }),
       responseType: 'text'
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  list(): Observable<string[]> {
-    return this.http.get(`${this.base}`).pipe(
+  list(origin: string): Observable<string[]> {
+    return this.http.get(`${this.base}`, {
+      params: params({ origin }),
+    }).pipe(
       map(res => res as string[]),
       catchError(err => this.login.handleHttpError(err)),
     );
@@ -56,28 +59,34 @@ export class BackupService {
     return this._backupKey$;
   }
 
-  restore(id: string, options: BackupOptions = all) {
+  restore(origin: string, id: string, options: BackupOptions = all) {
     return this.http.post(`${this.base}/restore/${id}`, options, {
+      params: params({ origin }),
       responseType: 'text'
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  backfill(): Observable<void> {
-    return this.http.post<void>(`${this.base}/backfill`, null).pipe(
+  backfill(origin: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/backfill`, null, {
+      params: params({ origin }),
+    }).pipe(
         catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`).pipe(
+  delete(origin: string, id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${id}`, {
+      params: params({ origin }),
+    }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  upload(file: File): Observable<string> {
+  upload(origin: string, file: File): Observable<string> {
     return this.http.post(`${this.base}/upload/${file.name}`, file, {
+      params: params({ origin }),
       responseType: 'text'
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),

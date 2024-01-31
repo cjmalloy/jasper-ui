@@ -314,14 +314,22 @@ export class UploadPage implements OnDestroy {
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
     ref.plugins = pick(ref.plugins, ref.tags || []);
     return (this.store.submit.overwrite
-      ? this.refs.update({ ...ref, origin: this.store.account.origin }, true)
-      : this.refs.create({ ...ref, origin: this.store.account.origin })).pipe(
+      ? this.refs.update({ ...ref, origin: this.store.account.origin }, true).pipe(
+          catchError((err: HttpErrorResponse) => {
+            if (err.status === 404) {
+              return this.refs.create({ ...ref, origin: this.store.account.origin });
+            }
+            return throwError(() => err);
+          }),
+        )
+      : this.refs.create({ ...ref, origin: this.store.account.origin })
+    ).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409 && this.store.submit.overwrite) {
           return this.refs.get(ref.url, this.store.account.origin).pipe(
             switchMap(existing => {
               return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
-            })
+            }),
           );
         }
         return throwError(() => err);

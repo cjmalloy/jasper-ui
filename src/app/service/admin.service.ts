@@ -54,6 +54,7 @@ import { scrapePlugin } from '../mods/scrape';
 import { seamlessPlugin } from '../mods/seamless';
 import { snippetConfig } from '../mods/snippet';
 import { summaryMod } from '../mods/summary';
+import { systemMod } from '../mods/system';
 import { tablePlugin } from '../mods/table';
 import { thanksConfig } from '../mods/thanks';
 import { themesMod } from '../mods/theme';
@@ -93,6 +94,7 @@ export class AdminService {
       oembed: oEmbedPlugin,
       scrape: scrapePlugin,
       cache: cachePlugin,
+      ...systemMod.plugins,
       ...remoteOriginMod.plugins,
       feed: feedPlugin,
       delete: deletePlugin,

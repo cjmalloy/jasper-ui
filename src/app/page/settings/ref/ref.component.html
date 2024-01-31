@@ -8,7 +8,7 @@
     <span><!-- Buttons --></span>
     <span class="buttons form-array right">
       <button type="button" *ngIf="plugin.config?.hasDefaults && writeAccess" (click)="loadDefaults()" i18n>🔁️ load defaults</button>
-      <button type="button" *ngIf="plugin.config?.hasDefaults && writeAccess" (click)="clearCache()" i18n>🆑️ clear cache</button>
+      <button type="button" *ngIf="plugin.config?.hasClearCache && writeAccess" (click)="clearCache()">{{ plugin.config!.hasClearCache }}</button>
     </span>
   </div>
   <ng-container *ngIf="query.error?.status !== 403 else accessDenied">

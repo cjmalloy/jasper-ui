@@ -96,7 +96,6 @@ export class AuthzService {
 
   hasRole(role: Role) {
     switch(role) {
-      case 'ROLE_SYSADMIN': return this.store.account.sa;
       case 'ROLE_ADMIN': return this.store.account.admin;
       case 'ROLE_MOD': return this.store.account.mod;
       case 'ROLE_EDITOR': return this.store.account.editor;

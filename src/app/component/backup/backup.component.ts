@@ -15,6 +15,8 @@ export class BackupComponent implements OnInit {
 
   @Input()
   id!: string;
+  @Input()
+  origin = '';
 
   restoring = false;
   deleting = false;
@@ -53,7 +55,7 @@ export class BackupComponent implements OnInit {
   }
 
   restore() {
-    this.backups.restore(this.id).pipe(
+    this.backups.restore(this.origin, this.id).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -65,7 +67,7 @@ export class BackupComponent implements OnInit {
   }
 
   delete() {
-    this.backups.delete(this.id).pipe(
+    this.backups.delete(this.origin, this.id).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

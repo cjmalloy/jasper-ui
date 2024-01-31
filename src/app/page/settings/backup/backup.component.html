@@ -15,7 +15,7 @@
 </form>
 
 <div class="buttons">
-  <button *ngIf="store.account.sysAdmin"
+  <button *ngIf="store.account.admin"
           type="button"
           (click)="backup()"
           i18n-title
@@ -47,4 +47,5 @@
   <div class="error">{{ e }}</div>
 </ng-container>
 
-<app-backup-list [list]="list"></app-backup-list>
+<app-backup-list [list]="list"
+                 [origin]="origin"></app-backup-list>
