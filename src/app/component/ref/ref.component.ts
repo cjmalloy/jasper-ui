@@ -21,7 +21,6 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
 import { defer, delay, pick, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
@@ -160,7 +159,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     public config: ConfigService,
     public admin: AdminService,
     public store: Store,
-    private router: Router,
     private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
