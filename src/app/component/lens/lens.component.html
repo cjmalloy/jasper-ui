@@ -15,9 +15,9 @@
             [page]="page"
             [pageControls]="pageControls"
             [cols]="cols"></app-blog>
-} @else if (isTemplate('blog')) {
+} @else if (isTemplate('chat')) {
   <app-chat [query]="tag"></app-chat>
-} @else if (isTemplate('blog')) {
+} @else if (isTemplate('folder')) {
   <app-folder [tag]="tag"
               [page]="page"
               [ext]="ext!"></app-folder>
