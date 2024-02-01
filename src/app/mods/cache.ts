@@ -61,6 +61,12 @@ export const cachePlugin: Plugin = {
         label: $localize`Proxy Only:`,
         title: $localize`Do not store file, but allow fetching as a proxy.`,
       }
+    }, {
+      key: 'thumbnail',
+      type: 'boolean',
+      props: {
+        label: $localize`Thumbnail:`,
+      }
     }],
   },
   schema: {
@@ -70,6 +76,7 @@ export const cachePlugin: Plugin = {
       contentLength: { type: 'uint32' },
       ban: { type: 'boolean' },
       noStore: { type: 'boolean' },
+      thumbnail: { type: 'boolean' },
     }
   }
 };

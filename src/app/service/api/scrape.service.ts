@@ -133,10 +133,11 @@ export class ScrapeService {
     );
   }
 
-  getFetch(url?: string) {
+  getFetch(url?: string, thumbnail = false) {
     if (!url) return '';
     if (url.startsWith('data:')) return url;
     if (this.config.preAuthScrape && this.store.account.user) this.scrape(url);
+    if (thumbnail) return `${this.base}/fetch?thumbnail=true&url=${encodeURIComponent(url)}`;
     return `${this.base}/fetch?url=${encodeURIComponent(url)}`;
   }
 

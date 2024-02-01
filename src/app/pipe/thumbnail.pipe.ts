@@ -49,7 +49,7 @@ export class ThumbnailPipe implements PipeTransform {
   fetchUrl(url: string, plugin: string) {
     if (!url) return '';
     if (this.admin.getPlugin(plugin)?.config?.cache) {
-      return this.scraper.getFetch(url);
+      return this.scraper.getFetch(url, true);
     }
     return url;
   }
