@@ -28,6 +28,9 @@ export const thumbnailPlugin: Plugin = {
     So if they were on the same Ref, the plugin/chat would take priority and that
     would be the thumbnail.
     `,
+    filters: [
+      { query: 'plugin/thumbnail', label: $localize`⭕️ thumbnail`, group: $localize`Plugins 🧰️` },
+    ],
     extensions: [...videoPlugin.config!.extensions!, ...imagePlugin.config!.extensions!],
     advancedForm: [{
       key: 'showUrl',
