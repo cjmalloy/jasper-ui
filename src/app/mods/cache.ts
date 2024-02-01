@@ -10,7 +10,7 @@ export const cachePlugin: Plugin = {
     settings: $localize`cache`,
     submit: $localize`🗜️ cache`,
     internal: true,
-    icons: [{ label: $localize`🗜️`, order: 3 }],    filters: [
+    icons: [{ label: $localize`🗜️`, order: -10 }],    filters: [
       { query: '_plugin/cache', label: $localize`🗜️ cache`, group: $localize`Plugins 🧰️` },
     ],
     description: $localize`Cache remote resources locally.
