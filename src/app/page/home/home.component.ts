@@ -18,7 +18,6 @@ import { getArgs } from '../../util/query';
 export class HomePage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
-  floatingSidebar = true;
   homeExt?: Ext;
   activeExts: Ext[] = [];
 
@@ -67,9 +66,6 @@ export class HomePage implements OnInit, OnDestroy {
         );
         defer(() => this.query.setArgs(args));
       }
-    }));
-    this.disposers.push(autorun(() => {
-      this.floatingSidebar = !this.store.view.hasTemplate || this.store.view.isTemplate('map') || this.store.view.isTemplate('graph');
     }));
     this.disposers.push(autorun(() => {
       if (this.homeExt) {

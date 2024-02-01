@@ -1,6 +1,7 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Component, HostBinding, HostListener, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { uniq, without } from 'lodash-es';
+import { runInAction } from 'mobx';
 import { catchError, of, Subject } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { Ref, RefSort } from '../../model/ref';
@@ -55,7 +56,7 @@ export class KanbanComponent implements OnChanges, OnDestroy {
 
   constructor(
     public bookmarks: BookmarkService,
-    private store: Store,
+    public store: Store,
     public exts: ExtService,
     private tags: TaggingService,
   ) { }
@@ -63,6 +64,7 @@ export class KanbanComponent implements OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ext) {
       this.preloadExts();
+      this.onResize();
     }
   }
 
@@ -72,6 +74,16 @@ export class KanbanComponent implements OnChanges, OnDestroy {
 
   trackByIdx(index: number, value: string) {
     return index;
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    const margin = 20;
+    const minColSize = 320;
+    const sidebarSize = 354;
+    runInAction(() => {
+      this.store.view.floatingSidebar = innerWidth - sidebarSize < margin + minColSize * (this.columns.length + (this.showColumnBacklog ? 1 : 0))
+    });
   }
 
   get disableSwimLanes(): boolean {

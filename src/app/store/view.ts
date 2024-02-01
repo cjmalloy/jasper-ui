@@ -1,4 +1,4 @@
-import { uniq, without } from 'lodash-es';
+import { uniq } from 'lodash-es';
 import { action, autorun, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
@@ -28,6 +28,8 @@ export type Type = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
 
 export class ViewStore {
 
+  floatingSidebar = true;
+  sidebarExpanded = true;
   defaultPageSize = 24;
   defaultKanbanLoadSize = 8;
   defaultBlogPageSize = 5;

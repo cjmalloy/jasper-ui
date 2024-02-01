@@ -146,6 +146,12 @@ export const rootTemplate: Template = {
           { value: 6, label: $localize`6 Columns` },
         ],
       },
+    }, {
+      key: 'noFloatingSidebar',
+      type: 'boolean',
+      props: {
+        label: $localize`No Floating Sidebar:`,
+      },
     }],
   },
   defaults: <RootConfig> {
@@ -184,6 +190,7 @@ export const rootTemplate: Template = {
       hideEdit: { type: 'boolean'},
       disableResize: { type: 'boolean'},
       defaultCols: { type: 'int8'},
+      noFloatingSidebar: { type: 'boolean'},
     },
   },
 };
@@ -205,5 +212,6 @@ export interface RootConfig {
   hideEdit?: boolean;
   disableResize?: boolean;
   defaultCols?: number;
+  noFloatingSidebar?: boolean;
 }
 

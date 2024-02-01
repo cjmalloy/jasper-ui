@@ -8,7 +8,6 @@ import { ThemeService } from '../../service/theme.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
-import { isPlugin } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
@@ -23,7 +22,6 @@ export class TagPage implements OnInit, OnDestroy {
     return this.store.view.isTemplate('kanban');
   }
 
-  floatingSidebar = true;
   loading = true;
 
   constructor(
@@ -35,9 +33,6 @@ export class TagPage implements OnInit, OnDestroy {
     private exts: ExtService,
   ) {
     this.disposers.push(autorun(() => this.theme.setTitle(this.store.view.name)));
-    this.disposers.push(autorun(() => {
-      this.floatingSidebar = this.store.view.list || !this.store.view.hasTemplate || this.store.view.isTemplate('map') || this.store.view.isTemplate('graph');
-    }));
     runInAction(() => {
       this.store.view.clear(
         !!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay'
