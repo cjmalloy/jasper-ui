@@ -34,7 +34,7 @@
        queryParamsHandling="merge" i18n>{{ x.config?.view || x.name || x.tag }}</a>
   </app-tabs>
   <app-sidebar *ngIf="!loading"
-               [floating]="floatingSidebar"
+               [floating]="store.view.floatingSidebar"
                [ext]="store.view.viewExt"
                [tag]="store.view.tag"
                [activeExts]="store.view.activeExts"></app-sidebar>

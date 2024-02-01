@@ -6,7 +6,13 @@
   --cols: 1;
   grid-template-columns: repeat(var(--cols), minmax(300px, 1fr));
   &.swimlanes {
-    grid-template-columns: auto repeat(var(--cols), minmax(300px, 1fr));
+    grid-template-columns: 30px repeat(var(--cols), minmax(300px, 1fr));
+  }
+  &.compact {
+    grid-template-columns: repeat(var(--cols), 300px);
+    &.swimlanes {
+      grid-template-columns: 30px repeat(var(--cols), 300px);
+    }
   }
 
   &.full-page {

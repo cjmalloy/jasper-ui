@@ -1,7 +1,7 @@
 import { Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { uniq } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
+import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, filter, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
@@ -36,8 +36,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   tag = '';
   @Input()
-  ext?: Ext;
-  @Input()
   activeExts: Ext[] = [];
   @Input()
   showToggle = true;
@@ -64,6 +62,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @HostBinding('class.expanded')
   private _expanded = false;
+  private _ext?: Ext;
 
   constructor(
     public router: Router,
@@ -77,9 +76,9 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     private templates: TemplateService,
   ) {
     if (localStorage.getItem('sidebar-expanded') !== null) {
-      this._expanded = localStorage.getItem('sidebar-expanded') !== 'false';
+      this.expanded = localStorage.getItem('sidebar-expanded') !== 'false';
     } else {
-      this._expanded = !!window.matchMedia('(min-width: 1024px)').matches;
+      this.expanded = !!window.matchMedia('(min-width: 1024px)').matches;
     }
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
@@ -92,6 +91,9 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
+      this.expanded = this.store.view.sidebarExpanded;
+    }));
+    this.disposers.push(autorun(() => {
       if (!this.store.view.template) {
         this.template = undefined;
       } else if (this.template?.tag !== this.store.view.template) {
@@ -99,7 +101,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
           catchError(() => of(undefined))
         ).subscribe(t => this.template = t);
       }
-    }))
+    }));
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -151,6 +153,16 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     this.disposers.length = 0;
   }
 
+  get ext(): Ext | undefined {
+    return this._ext;
+  }
+
+  @Input()
+  set ext(value: Ext | undefined) {
+    this._ext = value;
+    runInAction(() => this.store.view.floatingSidebar = value?.config?.defaultCols === undefined);
+  }
+
   get expanded(): boolean {
     return this._expanded;
   }
@@ -159,6 +171,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   set expanded(value: boolean) {
     localStorage.setItem('sidebar-expanded', ''+value);
     this._expanded = value;
+    runInAction(() => this.store.view.sidebarExpanded = value);
   }
 
   @memo
