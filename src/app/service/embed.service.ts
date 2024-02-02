@@ -474,6 +474,12 @@ export class EmbedService {
     });
     const links = el.querySelectorAll<HTMLAnchorElement>('a');
     links.forEach(t => {
+      if (t.firstElementChild?.localName === 'app-viewer') {
+        // TODO: allow image links?
+        t.parentNode?.insertBefore(t.firstElementChild, t);
+        t.remove();
+        return;
+      }
       const c = embed.createLink(t.href, t.innerText, t.title, t.className);
       t.parentNode?.insertBefore(c.location.nativeElement, t);
       t.remove();
