@@ -472,8 +472,14 @@ export class EmbedService {
         }
       });
     });
-    const links = el.querySelectorAll<HTMLAnchorElement>('a');
+    const links = el.querySelectorAll<HTMLAnchorElement>('a[href]');
     links.forEach(t => {
+      if (t.querySelectorAll('app-viewer').length) {
+        // TODO: allow image links?
+        while (t.firstChild) t.parentNode?.insertBefore(t.firstChild, t);
+        t.remove();
+        return;
+      }
       const c = embed.createLink(t.href, t.innerText, t.title, t.className);
       t.parentNode?.insertBefore(c.location.nativeElement, t);
       t.remove();
