@@ -1,8 +1,10 @@
-import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
+import { map } from 'rxjs';
 import { AdminService } from "../../service/admin.service";
 import { ExtService } from "../../service/api/ext.service";
-import { getPath, getQuery } from '../../util/hosts';
+import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
+import { getPath, getQuery } from '../../util/hosts';
 
 @Component({
   selector: 'app-nav',
@@ -25,15 +27,26 @@ export class NavComponent implements OnInit {
   constructor(
     private config: ConfigService,
     private admin: AdminService,
+    private refs: RefService,
     private exts: ExtService,
   ) { }
 
   ngOnInit() {
-    this.nav = this.getNav();
-    if (this.nav[0] === '/tag') {
-      this.exts.getCachedExt(this.nav[1] as string)
-        .pipe(this.admin.extFallback)
-        .subscribe(x => this.text = x.name || this.text);
+    if (this.localUrl) {
+      this.nav = this.getNav();
+      if (this.nav[0] === '/tag') {
+        this.exts.getCachedExt(this.nav[1] as string)
+          .pipe(this.admin.extFallback)
+          .subscribe(x => this.text = x.name || this.text);
+      }
+    } else {
+      this.refs.page({ url: this.url, size: 1 }).pipe(
+        map(page => page.empty ? null : page.content[0])
+      ).subscribe(ref => {
+        if (ref) {
+          this.nav = ['/ref', this.url];
+        }
+      });
     }
   }
 
@@ -58,4 +71,12 @@ export class NavComponent implements OnInit {
   get query() {
     return new URLSearchParams(getQuery(this.url));
   }
+
+  get localUrl() {
+    if (this.url.startsWith(this.config.base)) return true
+    if (this.url.startsWith(getPath(this.config.base)!)) return true;
+    if (this.url.startsWith('/')) return true;
+    return false;
+  }
+
 }

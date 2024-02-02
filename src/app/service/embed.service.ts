@@ -474,7 +474,6 @@ export class EmbedService {
     });
     const links = el.querySelectorAll<HTMLAnchorElement>('a');
     links.forEach(t => {
-      if (!this.editor.localUrl(t.href)) return;
       const c = embed.createLink(t.href, t.innerText, t.title, t.className);
       t.parentNode?.insertBefore(c.location.nativeElement, t);
       t.remove();
