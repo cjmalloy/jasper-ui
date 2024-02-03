@@ -5,6 +5,8 @@ body.dark-theme {
   --bg-hover: rgba(255, 255, 255, 0.2);
   --bg-active: rgba(255, 255, 255, 0.4);
   --text: #c9c9c9;
+  --visited: #c66acb;
+  --link: #5769c2;
   --active: #dc5c5c;
   --info: #969696;
   --tag: #af5800;
@@ -85,11 +87,11 @@ body.dark-theme {
   }
 
   :link, .link-style {
-    color: #5769c2;
+    color: var(--link);
   }
 
   :not(.actions) :visited {
-    color: #c66acb;
+    color: var(--visited);
   }
 
   a:active {
