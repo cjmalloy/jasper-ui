@@ -19,6 +19,11 @@ export function getScheme(url: string) {
 }
 
 export function getPath(url: string): string | null {
+  if (url.startsWith('/')) {
+    if (url.includes('#')) url = url.substring(0, url.indexOf('#'));
+    if (url.includes('?')) url = url.substring(0, url.indexOf('?'));
+    return url;
+  }
   const parsed = getUrl(url);
   if (!parsed) return null;
   return parsed.pathname;

@@ -272,7 +272,7 @@ export class EmbedService {
       const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
       userTags.forEach(t => {
         if (tagOrigin(t.innerText)) return;
-        t.href += origin;
+        t.href = t.getAttribute('href') + origin;
       });
     }
     const images = el.querySelectorAll<HTMLImageElement>('img');
@@ -480,7 +480,7 @@ export class EmbedService {
         t.remove();
         return;
       }
-      const c = embed.createLink(t.href, t.innerText, t.title, t.className);
+      const c = embed.createLink(t.getAttribute('href') || '', t.innerText, t.title, t.className);
       t.parentNode?.insertBefore(c.location.nativeElement, t);
       t.remove();
     });
