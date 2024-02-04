@@ -1,8 +1,10 @@
 import { $localize } from '@angular/localize/init';
+import { filter } from 'lodash-es';
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Tag } from '../model/tag';
+import { hasTag, publicTag } from '../util/tag';
 
 export const deletePlugin: Plugin = {
   tag: 'plugin/delete',
@@ -19,10 +21,26 @@ export const deletePlugin: Plugin = {
 };
 
 export function deleteNotice(ref: Ref): Ref {
+  if (hasTag('locked', ref)) {
+    ref.tags!.push('plugin/delete', 'internal');
+    return ref;
+  }
+  const tags = ['plugin/delete', 'internal'];
+  tags.push(...filter(ref.tags, t => {
+    if (ref.plugins?.[t]) return false;
+    if (!publicTag(t)) return true;
+    if (t === 'locked') return true;
+    if (t === 'public') return true;
+    return false;
+  }));
+  if (hasTag('locked', ref)) {
+    ref.tags = tags;
+    return ref;
+  }
   return {
     url: ref.url,
     origin: ref.origin,
-    tags: ['plugin/delete', 'internal'],
+    tags,
     created: ref.created,
     published: ref.published,
     modifiedString: ref.modifiedString,
