@@ -68,7 +68,7 @@
     "@types/jasmine": "~5.1.4",
     "@types/lodash-es": "^4.17.12",
     "@types/qrcode": "^1.5.5",
-    "@types/uuid": "^9.0.7",
+    "@types/uuid": "^9.0.8",
     "cypress": "^13.6.3",
     "cypress-mochawesome-reporter": "^3.8.0",
     "cypress-real-events": "^1.11.0",
