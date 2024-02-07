@@ -1,10 +1,24 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
-import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostBinding,
+  Input,
+  OnDestroy,
+  Output,
+  TemplateRef,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
+import { Editor } from '@toast-ui/editor';
 import Europa from 'europa';
-import { Plugin, PluginApi } from 'europa-core';
-import { debounce, defer, throttle, uniq, without } from 'lodash-es';
+import { debounce, throttle, uniq, without } from 'lodash-es';
+import { autorun, IReactionDisposer } from 'mobx';
+import { Subject, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -16,8 +30,10 @@ import { Store } from '../../store/store';
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
-export class EditorComponent {
+export class EditorComponent implements AfterViewInit, OnDestroy {
   @HostBinding('class') css = 'editor';
+  private disposers: IReactionDisposer[] = [];
+  private destroy$ = new Subject<void>();
 
   id = uuid();
 
@@ -31,9 +47,6 @@ export class EditorComponent {
   preview = true;
   @HostBinding('style.padding.px')
   padding = 8;
-
-  @ViewChild('editor')
-  editor?: ElementRef<HTMLTextAreaElement>;
 
   @ViewChild('help')
   helpTemplate!: TemplateRef<any>;
@@ -60,11 +73,13 @@ export class EditorComponent {
 
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
+  editorInstance?: Editor;
 
   private _text? = '';
   private _editing = false;
 
   private europa?: Europa;
+  private _editor?: ElementRef<HTMLTextAreaElement>;
 
   constructor(
     public admin: AdminService,
@@ -76,6 +91,83 @@ export class EditorComponent {
     private vc: ViewContainerRef,
   ) {
     this.preview = store.local.showPreview;
+  }
+
+  ngAfterViewInit() {
+    this.disposers.push(autorun(() => {
+      if (this.editorInstance) {
+        if (this.store.darkTheme) {
+          this.editor?.nativeElement.firstElementChild?.classList.add('toastui-editor-dark');
+        } else {
+          this.editor?.nativeElement.firstElementChild?.classList.remove('toastui-editor-dark');
+        }
+      }
+    }))
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
+    this.editorInstance?.off('change');
+    this.editorInstance?.off('blur');
+  }
+
+  get editor(): ElementRef<HTMLTextAreaElement> | undefined {
+    return this._editor;
+  }
+
+  @ViewChild('editor')
+  set editor(value: ElementRef<HTMLTextAreaElement>) {
+    this._editor = value;
+    if (!this.editorInstance && this.admin.getTemplate('md.wysiwyg')) {
+      const editor = new Editor({
+        el: this._editor!.nativeElement,
+        height: '200px',
+        initialEditType: 'wysiwyg',
+        initialValue: this.currentText,
+        previewStyle: 'vertical',
+        theme: this.store.darkTheme ? 'dark' : 'light',
+      });
+      for (const plugin of this.editorPlugins) {
+        editor.insertToolbarItem({ groupIndex: 5, itemIndex: 0 }, {
+          name: plugin.tag,
+          tooltip: plugin.name || plugin.tag,
+          command: plugin.tag,
+          text: plugin.config!.editor,
+          className: 'toastui-editor-toolbar-icons',
+          style: { backgroundImage: 'none' }
+        });
+        editor.addCommand('wysiwyg', plugin.tag, () => (this.toggleTag(plugin.tag), true));
+        editor.addCommand('markdown', plugin.tag, () => (this.toggleTag(plugin.tag), true));
+      }
+      if (this.admin.getTemplate('html.markdown')) {
+        editor.insertToolbarItem({ groupIndex: 5, itemIndex: 0 }, {
+          name: 'html.markdown',
+          tooltip: $localize`Convert HTML to Markdown`,
+          command: 'html.markdown',
+          text: $localize`⬇️`,
+          className: 'toastui-editor-toolbar-icons',
+          style: { backgroundImage: 'none' }
+        });
+        editor.addCommand('wysiwyg', 'html.markdown', () => (this.htmlToMarkdown(), true));
+        editor.addCommand('markdown', 'html.markdown', () => (this.htmlToMarkdown(), true));
+      }
+      editor.on('change', () => this.setText(editor.getMarkdown()));
+      editor.on('blur', () => {
+        const md = editor.getMarkdown();
+        this.control.setValue(md);
+        this.syncText(md);
+      });
+      this.editorInstance = editor;
+      this.control.valueChanges.pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(comment => {
+        if (this.editorInstance!.getMarkdown() === comment) return;
+        this.editorInstance!.setMarkdown(comment);
+      });
+    }
   }
 
   get fullTags() {
@@ -178,7 +270,7 @@ export class EditorComponent {
       this.overlayRef.attach(new DomPortal(this.el));
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
       this.overlayRef.keydownEvents().subscribe(event => event.key === "Escape" && this.toggleFullscreen(false));
-      this.editor?.nativeElement.focus();
+      this._editor?.nativeElement.focus();
     } else {
       this.stacked = true;
       this.preview = this.store.local.showPreview;
@@ -211,8 +303,9 @@ export class EditorComponent {
       baseUri: this.url,
       inline: true,
     });
-    const md = this.europa.convert(this.editor!.nativeElement.value);
+    const md = this.europa.convert(this.control.value);
     this.control.setValue(md);
+    this.editorInstance?.setMarkdown(md);
     this.syncText(md);
   }
 }
