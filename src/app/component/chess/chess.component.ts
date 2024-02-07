@@ -97,6 +97,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     this.resizeObserver?.observe(this.el.nativeElement);
     this.onResize();
   }
