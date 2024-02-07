@@ -28,6 +28,7 @@ export function deleteNotice(ref: Ref): Ref {
   const tags = ['plugin/delete', 'internal'];
   tags.push(...filter(ref.tags, t => {
     if (ref.plugins?.[t]) return false;
+    if (t.startsWith('+plugin/')) return false;
     if (!publicTag(t)) return true;
     if (t === 'locked') return true;
     if (t === 'public') return true;
