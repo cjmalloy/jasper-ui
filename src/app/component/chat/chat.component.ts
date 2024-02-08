@@ -13,6 +13,7 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
 import { getArgs } from '../../util/query';
+import { braces, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-chat',
@@ -28,7 +29,7 @@ export class ChatComponent implements OnDestroy {
   viewport!: CdkVirtualScrollViewport;
 
   _query!: string;
-  cursor?: string;
+  cursors = new Map<string, string | undefined>();
   loadingPrev = false;
   plugins = this.store.account.defaultEditors(['plugin/latex']);
   lastPoll = moment();
@@ -57,7 +58,6 @@ export class ChatComponent implements OnDestroy {
 
   @Input()
   set query(value: string) {
-    // TODO: Query each origin separately since cursors will not be in sync
     this._query = value;
     this.clear();
   }
@@ -78,35 +78,46 @@ export class ChatComponent implements OnDestroy {
 
   clear() {
     this.messages = undefined;
-    this.cursor = undefined;
+    this.cursors.clear();
     this.loadPrev(true);
     if (this.config.websockets) {
       this.watch?.unsubscribe();
       this.watch = this.stomp.watchTag(this.query).pipe(
         takeUntil(this.destroy$),
-      ).subscribe(() =>  this.refresh());
+      ).subscribe(tag =>  this.refresh(tagOrigin(tag)));
     }
   }
 
-  refresh = debounce(() => this.loadMore(), 400);
+  refresh = debounce((origin?: string) => this._refresh(origin), 400);
 
-  loadMore() {
+  _refresh(origin?: string) {
+    if (origin === undefined) {
+      for (const origin of this.cursors.keys()) {
+        this.loadMore(origin);
+      }
+    } else {
+      this.loadMore(origin);
+    }
+  }
+
+  loadMore(origin: string) {
     this.clearPoll();
-    if (!this.cursor) {
+    if (!this.cursors.has(origin!)) {
       this.loadPrev(true);
       return;
     }
     this.lastPoll = moment();
+    const query = braces(this.query) + ':' + (origin || '@');
     this.refs.page({
       ...getArgs(
-        this.query,
+        query,
         'modified,ASC',
         this.store.view.filter,
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
       ),
-      modifiedAfter: this.cursor,
+      modifiedAfter: this.cursors.get(origin!)
     }).pipe(catchError(err => {
       this.setPoll(true);
       return throwError(() => err);
@@ -115,7 +126,7 @@ export class ChatComponent implements OnDestroy {
       if (page.empty) return;
       if (!this.messages) this.messages = [];
       this.messages = [...this.messages, ...page.content];
-      this.cursor = page.content[page.content.length - 1]?.modifiedString;
+      this.cursors.set(origin, page.content[page.content.length - 1]?.modifiedString);
       pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
       defer(() => this.viewport.checkViewportSize());
       if (!this.scrollLock) this.scrollDown();
@@ -133,7 +144,7 @@ export class ChatComponent implements OnDestroy {
         this.store.view.filter,
         this.store.view.search,
         this.store.view.pageNumber,
-        Math.max(this.store.view.pageSize, !this.cursor ? this.initialSize : 0),
+        Math.max(this.store.view.pageSize, !this.cursors.size ? this.initialSize : 0),
       ),
       modifiedBefore: this.messages?.[0]?.modifiedString,
     }).pipe(catchError(err => {
@@ -146,7 +157,11 @@ export class ChatComponent implements OnDestroy {
       if (page.empty) return;
       this.scrollLock = undefined;
       if (!this.messages) this.messages = [];
-      this.cursor ??= page.content[0]?.modifiedString;
+      for (const ref of page.content) {
+        if (!this.cursors.has(ref.origin!)) {
+          this.cursors.set(ref.origin!, ref.modifiedString);
+        }
+      }
       this.messages = [...page.content.reverse(), ...this.messages];
       pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
       defer(() => this.viewport.checkViewportSize());
@@ -175,9 +190,7 @@ export class ChatComponent implements OnDestroy {
   }
 
   fetch() {
-    if (this.watch) {
-      this.refresh();
-    } else {
+    if (!this.watch) {
       this.setPoll(false);
     }
   }
@@ -197,7 +210,7 @@ export class ChatComponent implements OnDestroy {
     } else {
       this.retries = 0;
     }
-    this.timeoutId = window.setTimeout(() => this.loadMore(),
+    this.timeoutId = window.setTimeout(() => this.refresh(),
       // 1 second to ~4 minutes in 10 steps
       Math.max(1000, 250 * Math.pow(2, Math.min(10, this.retries))));
   }

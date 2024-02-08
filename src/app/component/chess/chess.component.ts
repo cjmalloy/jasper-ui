@@ -65,7 +65,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   private cursor?: string;
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private fen = '';
-  private watches: Subscription[] = [];
+  private watch?: Subscription;
   /**
    * Flag to prevent animations for own moves.
    */
@@ -104,9 +104,9 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   init() {
-    if (!this.watches.length && this.ref && this.config.websockets) {
+    if (!this.watch && this.ref && this.config.websockets) {
       this.refs.page({ url: this.ref.url, obsolete: true, size: 500, sort: ['modified,DESC']}).subscribe(page => {
-        this.stomp.watchRef(this.ref!.url, uniq(page.content.map(r => r.origin))).forEach(w => this.watches.push(w.pipe(
+        this.watch = this.stomp.watchRef(this.ref!.url).pipe(
           takeUntil(this.destroy$),
         ).subscribe(u => {
           if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
@@ -149,7 +149,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
             if (this.bounce.length > 2) this.bounce = this.bounce.substring(this.bounce.length - 2, this.bounce.length);
             delay(() => this.bounce = '', 3400);
           });
-        })));
+        });
       });
     }
     if (this.local) {
@@ -176,8 +176,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     if (changes.ref || changes.text) {
       const newRef = changes.ref?.firstChange || changes.ref?.previousValue?.url !== changes.ref?.currentValue?.url;
       if (!this.ref || newRef) {
-        this.watches.forEach(w => w.unsubscribe());
-        this.watches = [];
+        this.watch?.unsubscribe();
         if (this.ref || this.text != null) this.init();
       }
     }
