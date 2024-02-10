@@ -1,57 +1,67 @@
-<div #tw class="text-wrapper">
-  <div class="toolbar">
-    <button type="button"
-            (click)="toggleFullscreen()"
-            i18n-title title="Fullscreen editor"
-            i18n>⛶</button>
-    <button type="button"
-            (click)="toggleHelp()"
-            i18n-title title="Help"
-            i18n>❓️</button>
-    <button type="button"
-            *ngIf="fullscreen || currentText"
-            (click)="toggleStacked()"
-            i18n-title title="Stacked or side by side layout toggle">
-      <span *ngIf="!fullscreen" i18n>📝️</span>
-      <span *ngIf="fullscreen" i18n>/</span>
-    </button>
-    <button type="button"
-            *ngIf="showScrape"
-            (click)="scrape.emit()"
-            i18n-title title="Scrape Webpage" i18n>🪝</button>
-    <button type="button"
-            *ngIf="admin.getTemplate('htmlToMarkdown')"
-            (click)="htmlToMarkdown()"
-            i18n-title title="Convert HTML to Markdown" i18n>⬇️</button>
-    <div *ngFor="let plugin of editorPlugins; let i = index" class="editor-plugin">
-      <input type="checkbox"
-             [style.display]="'none'"
-             [id]="id + i"
-             [checked]="tags?.includes(plugin.tag)"
-             (click)="toggleTag(plugin.tag)">
-      <label [for]="id + i"
-             [class.on]="tags?.includes(plugin.tag)"
-             [title]="plugin.name || plugin.tag">{{ plugin.config?.editor }}
-      </label>
+
+@if (admin.getTemplate('md.wysiwyg')) {
+  <div #editor
+       appResizeHandle
+       [style.width.px]="500"
+       [appFillWidth]="fillWidth"
+       [padding]="padding"
+       [appAutofocus]="autoFocus"></div>
+} @else {
+  <div #tw class="text-wrapper">
+    <div class="toolbar">
+      <button type="button"
+              (click)="toggleFullscreen()"
+              i18n-title title="Fullscreen editor"
+              i18n>⛶</button>
+      <button type="button"
+              (click)="toggleHelp()"
+              i18n-title title="Help"
+              i18n>❓️</button>
+      <button type="button"
+              *ngIf="fullscreen || currentText"
+              (click)="toggleStacked()"
+              i18n-title title="Stacked or side by side layout toggle">
+        <span *ngIf="!fullscreen" i18n>📝️</span>
+        <span *ngIf="fullscreen" i18n>/</span>
+      </button>
+      <button type="button"
+              *ngIf="showScrape"
+              (click)="scrape.emit()"
+              i18n-title title="Scrape Webpage" i18n>🪝</button>
+      <button type="button"
+              *ngIf="admin.getTemplate('html.markdown')"
+              (click)="htmlToMarkdown()"
+              i18n-title title="Convert HTML to Markdown" i18n>⬇️</button>
+      <div *ngFor="let plugin of editorPlugins; let i = index" class="editor-plugin">
+        <input type="checkbox"
+               [style.display]="'none'"
+               [id]="id + i"
+               [checked]="tags?.includes(plugin.tag)"
+               (click)="toggleTag(plugin.tag)">
+        <label [for]="id + i"
+               [class.on]="tags?.includes(plugin.tag)"
+               [title]="plugin.name || plugin.tag">{{ plugin.config?.editor }}
+        </label>
+      </div>
+    </div>
+    <textarea #editor
+              [formControl]="control"
+              (focusin)="editing = true"
+              (input)="setText($any($event).target.value)"
+              (blur)="syncText($any($event).target.value)"
+              [appFillWidth]="fillWidth"
+              [padding]="padding"
+              [appAutofocus]="autoFocus"></textarea>
+    <div class="floating-toggles">
     </div>
   </div>
-  <textarea #editor
-            [formControl]="control"
-            (focusin)="editing = true"
-            (input)="setText($any($event).target.value)"
-            (blur)="syncText($any($event).target.value)"
-            [appFillWidth]="fillWidth"
-            [padding]="padding"
-            [appAutofocus]="autoFocus"></textarea>
-  <div class="floating-toggles">
-  </div>
-</div>
-<app-md *ngIf="preview && (fullscreen || currentText)"
-        class="expand"
-        [origin]="store.account.origin"
-        [text]="currentText"
-        [plugins]="tags"
-        [appLimitWidth]="$any(tw.firstElementChild)"></app-md>
+  <app-md *ngIf="preview && (fullscreen || currentText)"
+          class="expand"
+          [origin]="store.account.origin"
+          [text]="currentText"
+          [plugins]="tags"
+          [appLimitWidth]="$any(tw.firstElementChild)"></app-md>
+}
 
 <ng-template #help>
   <div class="editor-help-popup" (click)="toggleHelp()">

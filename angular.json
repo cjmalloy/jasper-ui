@@ -45,7 +45,9 @@
             ],
             "styles": [
               "src/styles.scss",
-              "node_modules/katex/dist/katex.min.css"
+              "node_modules/katex/dist/katex.min.css",
+              "node_modules/@toast-ui/editor/dist/toastui-editor.css",
+              "node_modules/@toast-ui/editor/dist/theme/toastui-editor-dark.css"
             ],
             "scripts": [
               "node_modules/marked/marked.min.js",

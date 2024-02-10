@@ -38,6 +38,7 @@ import { imageMod } from '../mods/image';
 import { kanbanTemplate } from '../mods/kanban';
 import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
+import { mdWysiwygConfig } from '../mods/mdWysiwyg';
 import { modlistConfig } from '../mods/modlist';
 import { oEmbedPlugin } from '../mods/oembed';
 import { remoteOriginMod } from '../mods/origin';
@@ -169,6 +170,7 @@ export class AdminService {
       banlist: banlistConfig,
       snippets: snippetConfig,
       htmlToMarkdown: htmlToMarkdownConfig,
+      mdWysiwyg: mdWysiwygConfig,
       thanks: thanksConfig,
     },
   };
