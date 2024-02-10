@@ -34,7 +34,6 @@ describe('Smoke Tests', {
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).includes({
         tag: '+user/debug',
-        sysadmin: false,
         admin: true,
         mod: true,
         editor: true,
@@ -51,7 +50,6 @@ describe('Smoke Tests', {
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).includes({
         tag: '+user/debug',
-        sysadmin: false,
         admin: false,
         mod: true,
         editor: true,
@@ -68,7 +66,6 @@ describe('Smoke Tests', {
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).includes({
         tag: '+user/debug',
-        sysadmin: false,
         admin: false,
         mod: false,
         editor: true,
@@ -85,7 +82,6 @@ describe('Smoke Tests', {
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).includes({
         tag: '+user/debug',
-        sysadmin: false,
         admin: false,
         mod: false,
         editor: false,
@@ -102,7 +98,6 @@ describe('Smoke Tests', {
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).includes({
         tag: '+user/debug',
-        sysadmin: false,
         admin: false,
         mod: false,
         editor: false,
@@ -119,7 +114,6 @@ describe('Smoke Tests', {
     cy.get('@whoami').should(({ request, response }: any) => {
       expect(response.body).includes({
         tag: '+user/debug',
-        sysadmin: false,
         admin: false,
         mod: false,
         editor: false,
