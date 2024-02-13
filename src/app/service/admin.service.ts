@@ -50,6 +50,7 @@ import { qrPlugin } from '../mods/qr';
 import { queueMod } from '../mods/queue';
 import { repostPlugin } from '../mods/repost';
 import { rootTemplate } from '../mods/root';
+import { backupSchedulerPlugin, schedulerMod } from '../mods/scheduler';
 import { scrapePlugin } from '../mods/scrape';
 import { seamlessPlugin } from '../mods/seamless';
 import { snippetConfig } from '../mods/snippet';
@@ -94,6 +95,7 @@ export class AdminService {
       oembed: oEmbedPlugin,
       scrape: scrapePlugin,
       cache: cachePlugin,
+      ...schedulerMod.plugins,
       ...systemMod.plugins,
       ...remoteOriginMod.plugins,
       feed: feedPlugin,
