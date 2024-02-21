@@ -170,6 +170,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       return;
     }
     this._oembed = oembed!;
+    MemoCache.clear(this);
     const i = this.iframe.nativeElement;
     if (oembed) {
       if (oembed.url && oembed.type === 'photo') {
