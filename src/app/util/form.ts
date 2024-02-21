@@ -1,10 +1,10 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 
 export function intervalValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
-    const interval = moment.duration(control.value);
-    return interval.isValid() && interval.valueOf() ? null : { interval: { value: control.value } };
+    const interval = Duration.fromISO(control.value);
+    return interval.isValid && interval.valueOf() ? null : { interval: { value: control.value } };
   };
 }
 export function scrollToFirstInvalid() {

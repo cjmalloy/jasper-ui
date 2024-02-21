@@ -3,8 +3,8 @@ import { AfterViewInit, Component, ElementRef, HostBinding, OnDestroy, ViewChild
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, some, uniq, without } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
@@ -37,7 +37,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   serverError: string[] = [];
 
   defaultTo?: string;
-  defaultNotes = $localize`Notes: ${moment().format('dddd, MMMM Do YYYY, h:mm:ss a')}`;
+  defaultNotes = $localize`Notes: ${DateTime.now().toFormat('dddd, MMMM Do YYYY, h:mm:ss a')}`;
   loadedParams = false;
 
   @ViewChild('fill')
@@ -193,7 +193,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       return;
     }
     const url = 'comment:' + uuid();
-    const published = this.dmForm.value.published ? moment(this.dmForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
+    const published = this.dmForm.value.published ? DateTime.fromFormat(this.dmForm.value.published, 'YYYY-MM-DDTHH:mm:ss') : DateTime.now();
     this.refs.create({
       url,
       origin: this.store.account.origin,

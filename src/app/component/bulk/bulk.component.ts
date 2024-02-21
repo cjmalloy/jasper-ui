@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { intersection, map, merge, pick, uniq } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
@@ -249,7 +250,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
             scraped.title = ref.title;
           }
           scraped.origin = ref.origin;
-          if (scraped.published?.isAfter(moment().subtract(5, 'minutes'))) {
+          if (scraped.published && scraped.published > DateTime.now().minus({ minutes: 5 })) {
             scraped.published = ref.published;
           }
           scraped.modifiedString = ref.modifiedString;

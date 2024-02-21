@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { delay, uniq } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import * as moment from 'moment';
 import { catchError, forkJoin, map, Observable, of, shareReplay, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
@@ -224,15 +224,15 @@ export class AccountService {
     this.userExt$.pipe(
       switchMap(() => this.refs.count({
         query: this.store.account.notificationsQuery,
-        modifiedAfter: this.store.account.config.lastNotified || moment().subtract(1, 'year'),
+        modifiedAfter: this.store.account.config.lastNotified || DateTime.now().minus({ year: 1 }),
       })),
     ).subscribe(count => runInAction(() => this.store.account.notifications = count));
   }
 
-  clearNotifications(readDate: moment.Moment) {
+  clearNotifications(readDate: DateTime) {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    const lastNotified = readDate.add(1, 'millisecond').toISOString();
+    const lastNotified = readDate.plus({ millisecond: 1 }).toISO();
     this.updateConfig('lastNotified', lastNotified).subscribe(() => {
       this.clearCache();
       this.checkNotifications();
@@ -251,7 +251,7 @@ export class AccountService {
             ...this.store.account.config,
             [name]: value,
           },
-          modified: moment(cursor),
+          modified: DateTime.fromISO(cursor),
           modifiedString: cursor,
         };
       })));
@@ -277,7 +277,7 @@ export class AccountService {
               value
             ],
           },
-          modified: moment(cursor),
+          modified: DateTime.fromISO(cursor),
           modifiedString: cursor,
         };
       })));
@@ -294,7 +294,7 @@ export class AccountService {
             ...this.store.account.config,
             [name]: (this.store.account.config[name] as any[] || []).splice(index, 1),
           },
-          modified: moment(cursor),
+          modified: DateTime.fromISO(cursor),
           modifiedString: cursor,
         };
       })));

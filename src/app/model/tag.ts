@@ -2,8 +2,8 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
 import { isEqual, omitBy, uniqWith } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
-import * as moment from 'moment';
 import { v4 as uuid } from 'uuid';
 import { hasTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
@@ -18,7 +18,7 @@ export interface HasOrigin {
 export interface Cursor extends HasOrigin {
   upload?: boolean;
   exists?: boolean;
-  modified?: moment.Moment;
+  modified?: DateTime;
   // Saved to pass modified check since moment looses precision
   modifiedString?: string;
 }
@@ -338,7 +338,7 @@ Handlebars.registerHelper('prefix', (p: string, r: string) => {
 
 Handlebars.registerHelper('uuid', () => uuid());
 
-Handlebars.registerHelper('fromNow', value => moment(value).fromNow());
+Handlebars.registerHelper('fromNow', value => DateTime.fromISO(value).toRelative());
 
 Handlebars.registerHelper('response', (ref: Ref, value: string) => {
   return ref.metadata?.userUrls?.includes(value);

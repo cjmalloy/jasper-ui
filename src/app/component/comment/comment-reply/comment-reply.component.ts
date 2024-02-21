@@ -2,10 +2,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq } from 'lodash-es';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { catchError, Subject, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { EditorComponent } from '../../../form/editor/editor.component';
 import { Ref } from '../../../model/ref';
 import { commentPlugin } from '../../../mods/comment';
 import { getMailbox } from '../../../mods/mailbox';
@@ -19,7 +20,6 @@ import { getMailboxes, getTags } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasTag, removeTag } from '../../../util/tag';
-import { EditorComponent } from '../../../form/editor/editor.component';
 
 @Component({
   selector: 'app-comment-reply',
@@ -113,12 +113,12 @@ export class CommentReplyComponent implements AfterViewInit {
         ...getTags(value),
         ...getMailboxes(value, this.store.account.origin),
       ])),
-      published: moment(),
+      published: DateTime.now(),
     };
     this.refs.create(ref).pipe(
       tap(cursor => {
         ref.modifiedString = cursor;
-        ref.modified = moment(cursor);
+        ref.modified = DateTime.fromISO(cursor);
         if (this.admin.getPlugin('plugin/vote/up')) {
           this.ts.createResponse('plugin/vote/up', url).subscribe();
         }
@@ -132,7 +132,7 @@ export class CommentReplyComponent implements AfterViewInit {
       this.serverError = [];
       this.newComments$?.next({
         ...ref,
-        created: moment(),
+        created: DateTime.now(),
         metadata: {
           plugins: {
             'plugin/vote/up': 1

@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash-es';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { Tag } from './tag';
 
 export interface Ext extends Tag {
@@ -11,7 +11,7 @@ export function mapTag(obj: any): Ext {
   obj.type = 'ext';
   obj.origin ||= '';
   obj.modifiedString = obj.modified;
-  obj.modified &&= moment(obj.modified);
+  obj.modified &&= DateTime.fromISO(obj.modified);
   return obj;
 }
 

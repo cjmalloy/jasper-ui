@@ -1,5 +1,5 @@
+import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
-import * as moment from 'moment';
 import { Ref } from './ref';
 import { Config } from './tag';
 
@@ -101,7 +101,7 @@ export function mapPlugin(obj: any): Plugin {
   obj.type = 'plugin';
   obj.origin ||= '';
   obj.modifiedString = obj.modified;
-  obj.modified &&= moment(obj.modified);
+  obj.modified &&= DateTime.fromISO(obj.modified);
   return obj;
 }
 
