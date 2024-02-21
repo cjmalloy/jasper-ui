@@ -40,7 +40,9 @@
         }
       </button>
       <div class="stack">
-        <div class="info" [class.expanded]="!actionsExpanded">
+        <div class="info"
+             [class.expanded]="!actionsExpanded"
+             [class.not-expanded]="actionsExpanded === true">
           @if (!ref.created) {
             <span i18n>not found</span>
           } @else {
@@ -154,7 +156,9 @@
                       (contextmenu)="unlockViewer($event)"
                       (copied)="copied.emit($event)"></app-viewer>
         }
-        <div class="actions" [class.expanded]="actionsExpanded">
+        <div class="actions"
+             [class.expanded]="actionsExpanded"
+             [class.not-expanded]="actionsExpanded === false">
           @if (store.account.user && !ref.created && !ref.upload) {
             <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
           }
