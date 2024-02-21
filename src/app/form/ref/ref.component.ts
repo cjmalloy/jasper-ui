@@ -101,7 +101,19 @@ export class RefFormComponent implements OnInit {
   get scrape$() {
     if (this.scraped) return of(this.scraped);
     return this.scrape.webScrape(this.url.value).pipe(
-      tap(ref => this.scraped = ref),
+      tap(ref => {
+        this.scraped = ref;
+        if (this.scraped.modified) {
+          this.ref!.modifiedString = this.scraped.modifiedString;
+          this.ref!.modified = this.scraped.modified;
+          if (this.scraped.tags?.includes('_plugin/cache')) {
+            this.ref!.tags!.push('_plugin/cache')
+            this.ref!.plugins ||= {}
+            this.ref!.plugins['_plugin/cache'] = this.scraped.plugins!['_plugin/cache'];
+          }
+          this.setRef(this.ref!);
+        }
+      }),
     );
   }
 

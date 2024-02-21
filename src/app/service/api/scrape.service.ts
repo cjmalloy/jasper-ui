@@ -67,7 +67,7 @@ export class ScrapeService {
     }).pipe(
       map(ref => {
         if (!ref) {
-          throw "Web scrape failed";
+          throw 'Web scrape failed';
         }
         return ref;
       }),
