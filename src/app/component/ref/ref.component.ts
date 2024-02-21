@@ -144,7 +144,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   deleted = false;
   @HostBinding('class.mobile-unlock')
   mobileUnlock = false;
-  actionsExpanded = false;
+  actionsExpanded?: boolean;
   replyTags: string[] = [];
   writeAccess = false;
   taggingAccess = false;
@@ -214,7 +214,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.deleted = false;
     this.editing = false;
     this.viewSource = false;
-    this.actionsExpanded = false;
+    this.actionsExpanded = undefined;
     this.actionComponents?.forEach(c => c.reset());
     if (this.ref?.upload) this.editForm.get('url')!.enable();
     this.replyTags = this.getReplyTags();

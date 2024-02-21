@@ -361,7 +361,6 @@ $tablet-width: 767px;
     height: 28px;
     padding-top: 0;
     padding-bottom: 0;
-    transition: height .5s;
     overflow-y: hidden;
     overflow-x: auto;
     white-space: nowrap;
@@ -388,8 +387,12 @@ $tablet-width: 767px;
       mask-image: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.1) 2px, white 8px, white calc(100% - 18px), rgba(255, 255, 255, 0.1) calc(100% - 6px), rgba(255, 255, 255, 0));
 
       &.expanded {
+        transition: height .5s;
         height: 28px;
         padding-bottom: 10px;
+      }
+      &.not-expanded {
+        transition: height .5s;
       }
     }
   }
