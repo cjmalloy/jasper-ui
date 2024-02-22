@@ -46,7 +46,7 @@ export class RefThreadComponent {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        'plugin/thread',
+        'plugin/thread:!plugin/delete',
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,
