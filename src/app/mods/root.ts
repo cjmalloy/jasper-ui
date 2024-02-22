@@ -45,7 +45,7 @@ export const rootTemplate: Template = {
     `,
     icons: [
       { tag: 'plugin/delete', label: $localize`🗑️`, global: true },
-      { tag: 'plugin/alt', label: $localize`ℹ️`, global: true },
+      { tag: 'plugin/alt', label: $localize`ℹ️`, global: true, order: -3 },
     ],
     form: [{
       key: 'pinned',

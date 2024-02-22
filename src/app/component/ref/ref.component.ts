@@ -351,6 +351,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get commentNoTitle() {
+    if (this.altText) return false;
     return this.bareRef?.title && this.bareRef?.comment || hasComment(this.bareRef?.comment || '');
   }
 
@@ -655,6 +656,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   get redundantLink() {
     if (!this.clickableLink) return true;
     return this.expandPlugins.length;
+  }
+
+  @memo
+  get altText() {
+    if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) {
+      return this.bareRef?.comment;
+    }
+    return undefined;
   }
 
   @memo
