@@ -146,10 +146,20 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   @HostBinding('class')
+  @memo
   get pluginClasses() {
     return this.css + ' ' + templates(this.tags, 'plugin')
       .map(t => t.replace(/\//g, '-'))
       .join(' ');
+  }
+
+  @HostBinding('attr.title')
+  @memo
+  get title() {
+    if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) {
+      return this.text || this.ref?.comment;
+    }
+    return undefined;
   }
 
   @ViewChild('video')
@@ -224,6 +234,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   @memo
   get hideComment() {
+    if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) return true;
     if (this.admin.getPlugin('plugin/table') && this.currentTags.includes('plugin/table')) return false;
     return this.editingViewer || (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract);
   }
