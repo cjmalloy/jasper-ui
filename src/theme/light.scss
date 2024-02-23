@@ -24,6 +24,7 @@ body.light-theme {
   --card: #f3ebc7;
   --placeholder: #efebdf;
   --deleting: #ffa9a9;
+  --quote: #af5800;
 
   color-scheme: light;
   color: var(--text);
@@ -36,7 +37,6 @@ body.light-theme {
     background-image: url("~/assets/bg-light.png");
     background-blend-mode: darken;
   }
-
 
   .link-style {
     color: blue;
