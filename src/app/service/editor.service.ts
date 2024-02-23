@@ -150,7 +150,8 @@ export class EditorService {
   private reNumberSources(markdown: string, sources: string[]) {
     if (!sources) return markdown;
     let i = 0;
-    for (const s of sources) {
+    for (let s of sources) {
+      s = s.replace(')', '\\)');
       i++;
       markdown = markdown.replace(new RegExp(`\\[\\d+]\\(${s}\\)`, 'g'), `[${i}](${s})`);
       markdown = markdown.replace(new RegExp(`\\[\\[\\d+]]\\(${s}\\)`, 'g'), `[[${i}]](${s})`);
@@ -164,7 +165,7 @@ export class EditorService {
     if (!alts) return markdown;
     let i = 0;
     for (const s of alts) {
-      const es = s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+      const es = s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&').replace(')', '\\)');
       i++;
       markdown = markdown.replace(new RegExp(`\\[alt\\d+]\\(${es}\\)`, 'g'), `[alt${i}](${s})`);
       markdown = markdown.replace(new RegExp(`\\[\\[alt\\d+]]\\(${es}\\)`, 'g'), `[[alt${i}]](${s})`);
