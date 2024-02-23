@@ -184,7 +184,17 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   download() {
-    downloadPage(this.type, this.queryStore.page!, this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name);
+    downloadPage(this.type, this.items, this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name);
+  }
+
+  get items() {
+    let result = this.queryStore.page!;
+    if (this.type === 'ref' && this.store.view.ref) {
+      result = {...result};
+      result.content = [...result.content] as any;
+      result.content.unshift(this.store.view.ref as any);
+    }
+    return result;
   }
 
   thumbnail$ = (url: string) => {
