@@ -1,5 +1,6 @@
 <ng-container *ngIf="page else loading">
-  <div [class.grid-layout]="colStyle"
+  <div class="blog-container"
+       [class.grid-layout]="colStyle"
        [style.grid-template-columns]="colStyle">
     <app-blog-entry *ngFor="let ref of pinned trackBy: trackByUrlOrigin"
                     class="pinned"

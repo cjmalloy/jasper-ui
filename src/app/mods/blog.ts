@@ -29,6 +29,9 @@ export const blogTemplate: Template = {
       },
     }]
   },
+  defaults: {
+    noFloatingSidebar: true,
+  },
   schema: {
     optionalProperties: {
       filterTags: { type: 'boolean' },
