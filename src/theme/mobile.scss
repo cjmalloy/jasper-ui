@@ -209,6 +209,11 @@ $tablet-width: 767px;
         line-height: 28px;
         padding: 0 8px;
       }
+      & > .link  {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
   }
 
