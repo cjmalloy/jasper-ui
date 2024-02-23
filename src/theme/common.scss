@@ -1336,6 +1336,7 @@ formly-field-radio, formly-field-multicheckbox {
 .thread > .ref-list > .list-container > .ref,
 .parent-ref.thread,
 .full-page.ref.thread {
+  & > .row > .stack > .comment-title,
   & > .row > .stack > .link-below > .toggle {
     display: none;
   }

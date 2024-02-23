@@ -24,10 +24,14 @@
   <div class="stack">
     <div class="link"
          [class.remote]="!local"
+         [class.comment-title]="!ref.title"
          [class.redundant]="redundantLink"
          [attr.title]="altText">
-      <a *ngIf="clickableLink" [href]="link | safe" target="_blank">{{ title }}</a>
-      <a *ngIf="!clickableLink" [routerLink]="defaultView ? ['/ref', url, defaultView] : ['/ref', url]" [queryParams]="{ origin: obsoleteOrigin }">{{ title }}</a><wbr>
+      @if (clickableLink) {
+        <a [href]="link | safe" target="_blank">{{ title }}</a>
+      } @else {
+        <a [routerLink]="defaultView ? ['/ref', url, defaultView] : ['/ref', url]" [queryParams]="{ origin: obsoleteOrigin }">{{ title }}</a><wbr>
+      }
       <span class="host">({{ host }})</span>
     </div>
     <div class="link-below">
