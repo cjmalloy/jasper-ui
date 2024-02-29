@@ -1,5 +1,4 @@
-<app-loading *ngIf="!page else loaded"></app-loading>
-<ng-template #loaded>
+@if (page) {
   <app-kanban-card *ngFor="let ref of page!.content trackBy: trackByUrlOrigin"
                    cdkDrag
                    [hideSwimLanes]="hideSwimLanes"
@@ -9,10 +8,13 @@
                    [ref]="ref"
                    [ext]="ext"
                    (copied)="copy($event)"></app-kanban-card>
-  <app-kanban-card *ngFor="let text of adding"
-                   [ref]="{ url: '', title: text }"
-                   [ext]="ext"></app-kanban-card>
-</ng-template>
+  @for (text of adding; track text) {
+    <app-kanban-card [ref]="{ url: '', title: text }"
+                     [ext]="ext"></app-kanban-card>
+  }
+} @else {
+  <app-loading></app-loading>
+}
 <div class="spacer"></div>
 <a *ngIf="hasMore"
    class="fake-link no-select load-more"

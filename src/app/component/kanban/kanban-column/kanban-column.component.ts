@@ -87,6 +87,11 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     return value.origin + '@' + value.url;
   }
 
+  @HostBinding('class.empty')
+  get empty() {
+    return !this.page?.content.length;
+  }
+
   get more() {
     if (!this.page) return 0;
     return this.page.totalElements - this.page.numberOfElements;

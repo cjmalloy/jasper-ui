@@ -103,9 +103,11 @@ $tablet-width: 767px;
     }
   }
 
-  .kanban-column {
-    border-bottom: 0.5px solid var(--border-accent);
-    box-shadow: inset 0 -16px 8px -16px rgba(128, 128, 128, 0.6);
+  .todo-list, .kanban-column {
+    padding-bottom: 4px !important;
+    input {
+      display: block !important;
+    }
   }
 }
 
