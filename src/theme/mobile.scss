@@ -107,6 +107,16 @@ $tablet-width: 767px;
     border-bottom: 0.5px solid var(--border-accent);
     box-shadow: inset 0 -16px 8px -16px rgba(128, 128, 128, 0.6);
   }
+
+  .todo-list, .kanban {
+    padding-bottom: 4px !important;
+    .add-input {
+      display: block !important;
+    }
+    .spacer {
+      display: none !important;
+    }
+  }
 }
 
 /* Special width for settings tabs */
