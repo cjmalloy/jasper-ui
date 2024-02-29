@@ -1,13 +1,14 @@
 @if (page) {
-  <app-kanban-card *ngFor="let ref of page!.content trackBy: trackByUrlOrigin"
-                   cdkDrag
-                   [hideSwimLanes]="hideSwimLanes"
-                   [cdkDragData]="ref"
-                   [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
-                   [pressToUnlock]="pressToUnlock"
-                   [ref]="ref"
-                   [ext]="ext"
-                   (copied)="copy($event)"></app-kanban-card>
+  @for (ref of page.content; track ref.origin + '@' + ref.url) {
+    <app-kanban-card cdkDrag
+                     [hideSwimLanes]="hideSwimLanes"
+                     [cdkDragData]="ref"
+                     [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
+                     [pressToUnlock]="pressToUnlock"
+                     [ref]="ref"
+                     [ext]="ext"
+                     (copied)="copy($event)"></app-kanban-card>
+  }
   @for (text of adding; track text) {
     <app-kanban-card [ref]="{ url: '', title: text }"
                      [ext]="ext"></app-kanban-card>
@@ -16,9 +17,10 @@
   <app-loading></app-loading>
 }
 <div class="spacer"></div>
-<a *ngIf="hasMore"
-   class="fake-link no-select load-more"
-   (click)="loadMore()" i18n>load more <span *ngIf="more" class="more">({{ more }})</span></a>
+@if (hasMore) {
+  <a class="fake-link no-select load-more"
+     (click)="loadMore()" i18n>load more @if (more) {<span class="more">({{ more }})</span>}</a>
+}
 <input type="text"
        enterkeyhint="send"
        i18n-placeholder
