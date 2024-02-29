@@ -5,6 +5,11 @@
   width: 280px;
   padding: 4px 10px 50px;
 
+  &.empty {
+    border-radius: 32px;
+    box-shadow: inset 0 0 60px rgba(128, 128, 128, 0.1);
+  }
+
   input {
     margin: 8px;
     width: calc(100% - 24px);
@@ -16,6 +21,7 @@
   }
 
   &:hover, &:focus-within {
+    border-radius: 0;
     padding-bottom: 4px;
   }
 
