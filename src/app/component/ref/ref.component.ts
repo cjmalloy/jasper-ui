@@ -340,6 +340,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
+  get localhost() {
+    return this.ref.url.startsWith(this.config.base);
+  }
+
+  @memo
   get repost() {
     return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
   }

@@ -1,7 +1,7 @@
 <div class="row">
   <div class="stack">
     <h2 class="link blog-title" [class.remote]="!local">
-      <a *ngIf="clickableLink" [href]="ref.url | safe" target="_blank">{{ title }}</a>
+      <a *ngIf="clickableLink" [href]="ref.url | safe" target="{{ !localhost ? '_blank' : '' }}">{{ title }}</a>
       <span *ngIf="!clickableLink">{{ title }}</span>
     </h2>
     <div class="link-below">
