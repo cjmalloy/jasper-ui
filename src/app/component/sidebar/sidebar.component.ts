@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -74,6 +74,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     private account: AccountService,
     private exts: ExtService,
     private templates: TemplateService,
+    private el: ElementRef,
   ) {
     if (localStorage.getItem('sidebar-expanded') !== null) {
       this.expanded = localStorage.getItem('sidebar-expanded') !== 'false';
@@ -251,7 +252,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @memo
   get uiMarkdown() {
     if (!this.ext) return '';
-    return this.ui.map(t => hydrate(t.config, 'ui', getTemplateScope(this.store.account.roles, t, this.ext!))).join();
+    return this.ui.map(t => hydrate(t.config, 'ui', getTemplateScope(this.store.account.roles, t, this.ext!, this.el.nativeElement))).join();
   }
 
   subscribe() {

@@ -1,7 +1,8 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
+import * as d3 from 'd3';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
-import { isEqual, omitBy, uniqWith } from 'lodash-es';
+import { defer, isEqual, omitBy, uniqWith } from 'lodash-es';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
 import { v4 as uuid } from 'uuid';
@@ -338,6 +339,19 @@ Handlebars.registerHelper('prefix', (p: string, r: string) => {
 
 Handlebars.registerHelper('uuid', () => uuid());
 
+Handlebars.registerHelper('d3', () => d3);
+
+Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
+  // @ts-ignore
+  if (el.defered) {
+    fn();
+  } else {
+    // @ts-ignore
+    el.deferred = true;
+    defer(fn);
+  }
+});
+
 Handlebars.registerHelper('fromNow', value => moment(value).fromNow());
 
 Handlebars.registerHelper('response', (ref: Ref, value: string) => {
@@ -355,7 +369,7 @@ export function hydrate(config: any, field: string, model: any): string {
   return config._cache[field](model);
 }
 
-export function emitModels(action: EmitAction, ref: Ref, user: string) {
+export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
   const hydrated = hydrate(action, 'emit', {
     action: toJS(action),
     ref: toJS(ref),

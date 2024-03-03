@@ -58,8 +58,10 @@ export interface TemplateScope {
   template: Template;
 }
 
-export function getTemplateScope(account: Roles, template: Template, ext: Ext): TemplateScope {
+export function getTemplateScope(account: Roles, template: Template, ext: Ext, el?: Element, actions?: any): TemplateScope {
   return {
+    el,
+    ...actions || {},
     account: toJS(account),
     ext: toJS(ext),
     template: toJS(template),

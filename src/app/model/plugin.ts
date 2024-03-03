@@ -127,8 +127,10 @@ export interface PluginScope {
   plugin: Plugin;
 }
 
-export function getPluginScope(plugin?: Config, ref: Ref = { url: '' }): PluginScope {
+export function getPluginScope(plugin?: Config, ref: Ref = { url: '' }, el?: Element, actions?: any): PluginScope {
   return {
+    el,
+    actions,
     ref: toJS(ref),
     plugin: toJS(plugin),
     ...toJS(plugin && ref.plugins?.[plugin.tag || ''] || {}),
