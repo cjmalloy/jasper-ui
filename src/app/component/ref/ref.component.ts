@@ -274,7 +274,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @HostBinding('class')
   get pluginClasses() {
     return this.css + ' ' + templates(this.ref.tags, 'plugin')
-      .map(t => t.replace(/\//g, '-'))
+      .map(t => t.replace(/\//g, '_').replace(/\./g, '-'))
       .join(' ');
   }
 

@@ -16,7 +16,7 @@ export const personPlugin: Plugin = {
       { query: 'plugin/person', label: $localize`📇️‍ people`, group: $localize`Plugins 🧰️` },
     ],
     css: `
-      .plugin-person .thumbnail {
+      .plugin_person .thumbnail {
         border-radius: 32px;
         height: 64px;
         background-size: cover;

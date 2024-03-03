@@ -62,7 +62,7 @@ export const imageTemplate: Template = {
     description: $localize`Activates built-in Image viewer mode for viewing Refs.`,
     // language=CSS
     css: `
-      app-ref-list.plugin-image {
+      app-ref-list.plugin_image {
         .list-container {
           grid-auto-flow: row dense;
           padding: 4px;
@@ -127,7 +127,7 @@ export const imageTemplate: Template = {
           }
         }
       }
-      body.dark-theme app-ref-list.plugin-image {
+      body.dark-theme app-ref-list.plugin_image {
         .list-container .ref > .row {
           backdrop-filter: grayscale(1) contrast(0.4) brightness(0.4) blur(8px);
           border: 0.5px solid rgba(255, 255, 255, 0.2);
@@ -136,7 +136,7 @@ export const imageTemplate: Template = {
           backdrop-filter: grayscale(1) brightness(0.9) blur(0.5px);
         }
       }
-      body.light-theme app-ref-list.plugin-image {
+      body.light-theme app-ref-list.plugin_image {
         .list-container .ref > .row {
           backdrop-filter: grayscale(1) contrast(0.3) brightness(1.5) blur(8px);
         }

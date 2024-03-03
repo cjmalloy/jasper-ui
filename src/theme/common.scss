@@ -1259,8 +1259,8 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .thread > .ref-list > .list-container > .ref,
-.thread .ref.plugin-thread:not(.ref-list-item),
-.md .ref.plugin-thread:not(.ref-list-item),
+.thread .ref.plugin_thread:not(.ref-list-item),
+.md .ref.plugin_thread:not(.ref-list-item),
 .parent-ref.thread,
 .full-page.ref.thread {
   & > .embed > .expand,
@@ -1297,8 +1297,8 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .thread > .ref-list > .list-container > .ref,
-.thread .ref.plugin-thread:not(.ref-list-item),
-.md .ref.plugin-thread:not(.ref-list-item),
+.thread .ref.plugin_thread:not(.ref-list-item),
+.md .ref.plugin_thread:not(.ref-list-item),
 .parent-ref.thread,
 .full-page.ref.thread {
   max-width: 60em;
@@ -1850,7 +1850,7 @@ ngx-monaco-editor {
   border-radius: 4px;
   background-color: var(--card);
 
-  .plugin-thread .toggle {
+  .plugin_thread .toggle {
     background-color: var(--toggle-accent);
   }
   &.unlocked {

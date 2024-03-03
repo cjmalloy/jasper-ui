@@ -32,7 +32,7 @@ describe('Origin Push Plugin', {
     cy.get('#url').type(replOtherApiProxy);
     cy.contains('Next').click();
     cy.wait(400);
-    cy.get('.floating-ribbons .plugin-origin-push').click();
+    cy.get('.floating-ribbons .plugin_origin_push').click();
     cy.get('#remote').type('@other');
     cy.get('#title').type('Testing Remote @other');
     cy.get('button').contains('Submit').click();

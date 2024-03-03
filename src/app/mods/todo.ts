@@ -49,7 +49,7 @@ export const todoTemplate: Template = {
     view: $localize`📑️`,
     // language=CSS
     css: `
-      app-ref-list.plugin-todo {
+      app-ref-list.plugin_todo {
         .list-container {
           grid-auto-flow: row dense;
           padding: 4px;

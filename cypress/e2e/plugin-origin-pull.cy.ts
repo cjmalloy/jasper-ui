@@ -31,7 +31,7 @@ describe('Origin Pull Plugin', {
     cy.get('#url').type(replApiProxy);
     cy.contains('Next').click();
     cy.wait(400);
-    cy.get('.floating-ribbons .plugin-origin-pull').click();
+    cy.get('.floating-ribbons .plugin_origin_pull').click();
     cy.get('#local').type('@other');
     cy.get('#title').type('Testing Remote @other');
     cy.get('button').contains('Submit').click();

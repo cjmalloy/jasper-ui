@@ -30,7 +30,7 @@ export const pollPlugin: Plugin = {
     ],
     // language=CSS
     css: `
-      .plugin-poll.ui > .md {
+      .plugin_poll.ui > .md {
         display: inline-block !important;
         padding: 10px;
         background-color: var(--bg-accent);
@@ -38,12 +38,12 @@ export const pollPlugin: Plugin = {
         border-radius: 8px;
         box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
       }
-      .plugin-poll.ui > .md > div {
+      .plugin_poll.ui > .md > div {
         display: inline-block;
         position: relative;
         min-width: min(100vw, 300px);
       }
-      .plugin-poll.ui > .md > div > div {
+      .plugin_poll.ui > .md > div > div {
         box-sizing: border-box;
         min-width: 20px;
         margin: 2px;
@@ -53,7 +53,7 @@ export const pollPlugin: Plugin = {
         border-radius: 6px;
         background-color: rgba(128, 128, 128, 0.5);
       }
-      .plugin-poll.ui > .md .voted:after {
+      .plugin_poll.ui > .md .voted:after {
         content: ' ☑️ ';
       }
     `,
@@ -198,7 +198,7 @@ export const pollTemplate: Template = {
     view: $localize`🗳️`,
     // language=CSS
     css: `
-      app-ref-list.plugin-poll {
+      app-ref-list.plugin_poll {
         .list-container {
           grid-auto-flow: row dense;
           padding: 4px;

@@ -70,7 +70,8 @@ export class LensComponent implements OnChanges {
 
   cssClass(tag?: string) {
     if (!tag) return '';
-    return tag.replace(/\//g, '-')
+    return tag.replace(/\//g, '_')
+      .replace(/\./g, '-')
       .replace(/[^\w-]/g, '');
   }
 }

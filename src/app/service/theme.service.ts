@@ -48,7 +48,7 @@ export class ThemeService {
   }
 
   setCustomCss(id: string, ...cs: (string | undefined)[]) {
-    id = id.replace(/\W/g, '-') + '-css';
+    id = id.replace(/\W/g, '_').replace(/\./g, '-') + '-css';
     const old = this.document.getElementById(id)
     if (old) old.remove();
     if (!cs || !cs.length || !cs[0]) return;
@@ -62,7 +62,7 @@ export class ThemeService {
   }
 
   addSnippet(id: string, ...snippets: (string | undefined)[]) {
-    id = id.replace(/\W/g, '-') + '-snippet';
+    id = id.replace(/\W/g, '_').replace(/\./g, '-') + '-snippet';
     const old = this.document.getElementById(id)
     if (old) old.remove();
     if (!snippets || !snippets.length || !snippets[0]) return;

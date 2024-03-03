@@ -80,7 +80,7 @@ export const chessTemplate: Template = {
     view: $localize`♟️`,
     // language=CSS
     css: `
-      app-ref-list.plugin-chess {
+      app-ref-list.plugin_chess {
         .list-container {
           grid-auto-flow: row dense;
           padding: 4px;

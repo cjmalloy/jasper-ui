@@ -66,7 +66,7 @@ export const backgammonTemplate: Template = {
     view: $localize`🎲️`,
     // language=CSS
     css: `
-      app-ref-list.plugin-backgammon {
+      app-ref-list.plugin_backgammon {
         .list-container {
           grid-auto-flow: row dense;
           padding: 4px;

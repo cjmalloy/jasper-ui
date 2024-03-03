@@ -12,6 +12,7 @@ export const thanksConfig: Template = {
     actions: [{
       global: true,
       label: $localize`thanks`,
+      // language=Handlebars
       emit: `[{
         "url": "comment:{{ uuid }}",
         "origin": "{{ ref.origin }}",

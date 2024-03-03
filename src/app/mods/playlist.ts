@@ -26,7 +26,7 @@ export const playlistTemplate: Template = {
     view: $localize`♟️`,
     // language=CSS
     css: `
-      app-ref-list.plugin-playlist {
+      app-ref-list.plugin_playlist {
         .list-container {
           grid-auto-flow: row dense;
           padding: 4px;

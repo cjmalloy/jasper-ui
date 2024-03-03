@@ -54,7 +54,7 @@ export const lensTemplate: Template = {
     description: $localize`Activates built-in Lens viewer mode for viewing Refs.`,
     // language=CSS
     css: `
-      app-ref-list.plugin-lens {
+      app-ref-list.plugin_lens {
         .list-container {
           grid-auto-flow: row dense;
           padding: 4px;

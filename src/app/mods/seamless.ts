@@ -18,7 +18,7 @@ export const seamlessPlugin: Plugin = {
     icons: [{ label: $localize`🪡` }],
     // language=CSS
     css: `
-      .plugin-seamless > .expand {
+      .plugin_seamless > .expand {
         border: none !important;
       }
     `,

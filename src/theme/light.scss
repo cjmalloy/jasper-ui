@@ -124,8 +124,8 @@ body.light-theme {
   }
 
   .thread > .ref-list > .list-container > .ref,
-  .md .ref.plugin-thread:not(.ref-list-item),
-  .thread .ref.plugin-thread:not(.ref-list-item),
+  .md .ref.plugin_thread:not(.ref-list-item),
+  .thread .ref.plugin_thread:not(.ref-list-item),
   .thread.ref {
     --thread-sent: rgba(32, 32, 255, 0.1);
     --thread-recieved: rgba(243, 235, 199, 0.3);

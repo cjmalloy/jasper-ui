@@ -149,7 +149,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get pluginClasses() {
     return this.css + ' ' + templates(this.tags, 'plugin')
-      .map(t => t.replace(/\//g, '-'))
+      .map(t => t.replace(/\//g, '_').replace(/\./g, '-'))
       .join(' ');
   }
 
@@ -336,6 +336,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   @memo
   uiCss(tag: string) {
-    return 'ui ' + tag.replace(/\//g, '-');
+    return 'ui ' + tag.replace(/\//g, '_').replace(/\./g, '-');
   }
 }
