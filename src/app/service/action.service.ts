@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { without } from 'lodash-es';
+import { debounce, without } from 'lodash-es';
 import { concat, last } from 'rxjs';
 import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
@@ -22,25 +22,24 @@ export class ActionService {
   ) { }
 
   wrap(ref?: Ref) {
-    const self = this;
     return {
-      comment(comment: string) {
+      comment: debounce((comment: string) => {
         if (!ref) throw 'Error: No ref to save';
-        self.comment(comment, ref);
+        this.comment(comment, ref);
+      }, 500),
+      event: (event: string) => {
+        this.event(event, ref);
       },
-      event(event: string) {
-        self.event(event, ref);
+      emit: (a: EmitAction) => {
+        this.emit(a, ref);
       },
-      emit(a: EmitAction) {
-        self.emit(a, ref);
-      },
-      tag(tag: string) {
+      tag: (tag: string) => {
         if (!ref) throw 'Error: No ref to tag';
-        self.tag(tag, ref);
+        this.tag(tag, ref);
       },
-      respond(response: string, clear?: string[]) {
+      respond: (response: string, clear?: string[]) => {
         if (!ref) throw 'Error: No ref to respond to';
-        self.respond(response, clear || [], ref);
+        this.respond(response, clear || [], ref);
       }
     }
   }

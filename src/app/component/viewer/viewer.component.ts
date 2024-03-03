@@ -11,13 +11,13 @@ import {
   ViewChild
 } from '@angular/core';
 import Hls from 'hls.js';
-import { defer, some, without } from 'lodash-es';
+import { debounce, defer, some, without } from 'lodash-es';
 import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope } from '../../model/plugin';
 import { findExtension, Ref, RefSort } from '../../model/ref';
-import { hydrate } from '../../model/tag';
+import { EmitAction, hydrate } from '../../model/tag';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -331,9 +331,37 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
+  get uiActions() {
+    const actions = this.actions.wrap(this.ref);
+    return {
+      comment: debounce((comment: string) => {
+        if (this.ref) {
+          this.ref.comment = comment;
+        } else {
+          this.text = comment;
+        }
+        if (this.ref?.modified) actions.comment(comment);
+        this.comment.emit(comment);
+      }, 500),
+      event: (event: string) => {
+        actions.event(event);
+      },
+      emit: (a: EmitAction) => {
+        actions.emit(a);
+      },
+      tag: (tag: string) => {
+        if (this.ref?.modified) actions.tag(tag);
+      },
+      respond: (response: string, clear?: string[]) => {
+        if (this.ref?.modified) actions.respond(response, clear);
+      }
+    }
+  }
+
+  @memo
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref, this.el.nativeElement, this.actions.wrap(this.ref)));
+    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref || { url: '', comment: this.text, tags: this.tags }, this.el.nativeElement, this.uiActions));
   }
 
   @memo
