@@ -119,13 +119,14 @@ export const ninjaTrianglePlugin: Plugin = {
                 i, j,
                 cx, cy,
                 red,
+                text: red ? bestNinjaPath(comment, i, j) : '',
                 extraRow,
               });
             }
           }
 
           svg.selectAll('g')
-            .data(ds, d => d.n + ':' + d.i + ':' + d.j + ':' + d.extraRow + ':' + d.red)
+            .data(ds, d => d.n + ':' + d.i + ':' + d.j + ':' + d.extraRow + ':' + d.red + ':' + d.text)
             .join(enter => {
               const g = enter.append('g');
               g.append('circle')
@@ -138,7 +139,7 @@ export const ninjaTrianglePlugin: Plugin = {
               g.append('text')
                 .attr('row', d => d.i)
                 .attr('col', d => d.j)
-                .text(d => d.red ? bestNinjaPath(comment, d.i, d.j) : '')
+                .text(d => d.text)
                 .attr('stroke', 'none')
                 .attr('fill', '#CCC')
                 .attr('text-anchor', 'middle')
