@@ -34,7 +34,7 @@ export class RefPage implements OnInit, OnDestroy {
     private router: Router,
     private stomp: StompService,
   ) {
-    store.view.clear();
+    store.view.clearRef();
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
       if (store.view.ref && this.config.websockets) {

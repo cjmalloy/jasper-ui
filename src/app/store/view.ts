@@ -93,6 +93,15 @@ export class ViewStore {
     this.defaultSearchSort = defaultSearchSort;
   }
 
+  clearRef(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {
+    this.ref = undefined;
+    this.top = undefined;
+    this.versions = 0;
+    this.selectedUser = undefined;
+    this.defaultSort = defaultSort;
+    this.defaultSearchSort = defaultSearchSort;
+  }
+
   get ext() {
     return this.exts[0];
   }

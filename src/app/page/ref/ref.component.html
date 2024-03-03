@@ -64,7 +64,9 @@
       }
     }
   </app-tabs>
-  <app-sidebar></app-sidebar>
+  <app-sidebar [ext]="store.view.viewExt"
+               [tag]="store.view.tag"
+               [activeExts]="store.view.activeExts"></app-sidebar>
   <ng-container *ngIf="store.view.ref else loading">
     @if (store.view.top && store.view.ref.url !== store.view.top.url && store.view.current !== 'ref/sources') {
       <app-ref class="print-hide"
