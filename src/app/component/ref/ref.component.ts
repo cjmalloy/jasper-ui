@@ -500,16 +500,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (this.file) {
       return this.link;
     }
-    if (this.audio) {
-      return this.currentRef?.plugins?.['plugin/audio']?.url;
-    }
-    if (this.video) {
-      return this.currentRef?.plugins?.['plugin/video']?.url;
-    }
-    if (this.image) {
-      return this.currentRef?.plugins?.['plugin/image']?.url;
-    }
-    return false;
+    return this.audio || this.video || this.image;
   }
 
   @memo
