@@ -39,6 +39,7 @@ import { kanbanTemplate } from '../mods/kanban';
 import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
 import { modlistConfig } from '../mods/modlist';
+import { ninjaTriangleMod } from '../mods/ninga-triangle';
 import { oEmbedPlugin } from '../mods/oembed';
 import { remoteOriginMod } from '../mods/origin';
 import { pdfPlugin } from '../mods/pdf';
@@ -129,6 +130,7 @@ export class AdminService {
       ...backgammonMod.plugins,
       ...pollMod.plugins,
       ...todoMod.plugins,
+      ...ninjaTriangleMod.plugins,
       playlistPlugin: playlistPlugin,
       filePlugin: filePlugin,
 
@@ -152,6 +154,7 @@ export class AdminService {
       ...backgammonMod.templates,
       ...pollMod.templates,
       ...todoMod.templates,
+      ...ninjaTriangleMod.templates,
       playlistTemplate: playlistTemplate,
 
       // Icons
