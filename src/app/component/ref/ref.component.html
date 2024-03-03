@@ -28,7 +28,7 @@
          [class.redundant]="redundantLink"
          [attr.title]="altText">
       @if (clickableLink) {
-        <a [href]="link | safe" target="_blank">{{ title }}</a>
+        <a [href]="link | safe" target="{{ !localhost ? '_blank' : '' }}">{{ title }}</a>
       } @else {
         <a [routerLink]="defaultView ? ['/ref', url, defaultView] : ['/ref', url]" [queryParams]="{ origin: obsoleteOrigin }">{{ title }}</a><wbr>
       }

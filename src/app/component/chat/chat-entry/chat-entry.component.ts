@@ -10,6 +10,7 @@ import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
+import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 import { authors, clickableLink, formatAuthor, getTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
@@ -46,6 +47,7 @@ export class ChatEntryComponent implements OnChanges {
   private _allowActions = false;
 
   constructor(
+    private config: ConfigService,
     public admin: AdminService,
     public store: Store,
     private auth: AuthzService,
@@ -111,6 +113,11 @@ export class ChatEntryComponent implements OnChanges {
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
+  }
+
+  @memo
+  get localhost() {
+    return this.ref.url.startsWith(this.config.base);
   }
 
   @memo

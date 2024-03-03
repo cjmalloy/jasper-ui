@@ -42,6 +42,7 @@ import { ScrapeService } from '../../../service/api/scrape.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
+import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { downloadRef } from '../../../util/download';
@@ -85,6 +86,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   serverError: string[] = [];
 
   constructor(
+    private config: ConfigService,
     public admin: AdminService,
     public store: Store,
     private router: Router,
@@ -175,6 +177,11 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   @memo
   get local() {
     return this.ref.origin === this.store.account.origin;
+  }
+
+  @memo
+  get localhost() {
+    return this.ref.url.startsWith(this.config.base);
   }
 
   @memo
