@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { without } from 'lodash-es';
+import { debounce, without } from 'lodash-es';
 import { concat, last } from 'rxjs';
 import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
@@ -24,10 +24,10 @@ export class ActionService {
   wrap(ref?: Ref) {
     const self = this;
     return {
-      comment(comment: string) {
+      comment: debounce((comment: string) => {
         if (!ref) throw 'Error: No ref to save';
         self.comment(comment, ref);
-      },
+      }, 500),
       event(event: string) {
         self.event(event, ref);
       },
