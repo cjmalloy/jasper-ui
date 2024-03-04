@@ -126,19 +126,15 @@ export const ninjaTrianglePlugin: Plugin = {
           }
 
           svg.selectAll('g')
-            .data(ds, d => d.n + ':' + d.i + ':' + d.j + ':' + d.extraRow + ':' + d.red + ':' + d.text)
+            .data(ds, d => d.n + ':' + d.i + ':' + d.j + ':' + d.red + ':' + d.text)
             .join(enter => {
               const g = enter.append('g');
               g.append('circle')
-                .attr('row', d => d.i)
-                .attr('col', d => d.j)
                 .attr('r', radius)
                 .attr('stroke', '#111')
                 .attr('stroke-width', 2)
                 .attr('fill', d => d.red ? '#A33' : d.extraRow ? 'transparent' : '#CCC');
               g.append('text')
-                .attr('row', d => d.i)
-                .attr('col', d => d.j)
                 .text(d => d.text)
                 .attr('stroke', 'none')
                 .attr('fill', '#CCC')
@@ -190,16 +186,6 @@ export const ninjaTriangleTemplate: Template = {
           grid-auto-flow: row dense;
           padding: 4px;
           gap: 8px;
-          grid-template-columns:  1fr;
-          @media (min-width: 1000px) {
-            grid-template-columns:  1fr 1fr;
-          }
-          @media (min-width: 1500px) {
-            grid-template-columns: 1fr 1fr 1fr;
-          }
-          @media (min-width: 2000px) {
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-          }
           .list-number {
             display: none;
           }
@@ -222,7 +208,7 @@ export const ninjaTriangleTemplate: Template = {
     defaultExpanded: true,
     expandInline: false,
     submitText: true,
-    defaultSort: 'modified,DESC',
+    defaultSort: 'title',
     defaultCols: 1
   }
 };
