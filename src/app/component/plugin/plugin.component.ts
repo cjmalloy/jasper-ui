@@ -9,8 +9,9 @@ import { Plugin, writePlugin } from '../../model/plugin';
 import { tagDeleteNotice } from "../../mods/delete";
 import { AdminService } from '../../service/admin.service';
 import { PluginService } from '../../service/api/plugin.service';
+import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
-import { downloadTag } from '../../util/download';
+import { downloadPluginExport, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
@@ -39,6 +40,7 @@ export class PluginComponent implements OnInit {
   schemaErrors: string[] = [];
 
   constructor(
+    private mod: ModService,
     public admin: AdminService,
     public store: Store,
     private plugins: PluginService,
@@ -149,5 +151,9 @@ export class PluginComponent implements OnInit {
 
   download() {
     downloadTag(writePlugin(this.plugin));
+  }
+
+  export() {
+    downloadPluginExport(this.plugin, this.mod.exportHtml(this.plugin));
   }
 }
