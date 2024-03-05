@@ -4,6 +4,7 @@ import { Title } from '@angular/platform-browser';
 import flatten from 'css-flatten';
 import { autorun, runInAction } from 'mobx';
 import { of } from 'rxjs';
+import { Plugin } from '../model/plugin';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
 import { ConfigService } from './config.service';
@@ -90,6 +91,41 @@ export class ModService {
 
   setTitle(title: string) {
     this.titleService.setTitle(`${this.config.title} ± ${title}`);
+  }
+
+  exportHtml(plugin: Plugin): string {
+    return `<html>
+<head>
+  <meta charset="utf-8">
+  <title>${plugin.name}</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+  ${plugin.config?.snippet || ''}
+  ${plugin.config?.css || ''}
+  <script id="ui" type="text/x-handlebars-template">
+    ${plugin.config?.ui || ''}
+  </script>
+  <script>
+    window.onload = function() {
+      Handlebars.registerHelper('d3', () => d3);
+      Handlebars.registerHelper('defer', (el, fn) => {
+        if (el.defered) {
+          fn();
+        } else {
+          el.deferred = true;
+          setTimeout(fn, 1);
+        }
+      });
+      var model = {
+        el: document.body
+      };
+      document.body.innerHTML = Handlebars.compile(document.getElementById("ui").innerHTML)(model);
+    }
+  </script>
+</head>
+<body></body>
+</html>
+`;
   }
 
   private getTheme(id: string, sources: Record<string, string>[]) {
