@@ -15,7 +15,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { QUALIFIED_TAG_REGEX } from '../../../util/format';
@@ -52,7 +52,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   constructor(
     private config: ConfigService,
-    private theme: ThemeService,
+    private mod: ModService,
     public admin: AdminService,
     private router: Router,
     public store: Store,
@@ -61,7 +61,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     private editor: EditorService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle($localize`Submit: Direct Message`);
+    mod.setTitle($localize`Submit: Direct Message`);
     this.dmForm = fb.group({
       to: ['', [Validators.pattern(QUALIFIED_TAG_REGEX)]],
       title: [''],

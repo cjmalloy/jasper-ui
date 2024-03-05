@@ -12,7 +12,7 @@ import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { EditorService } from '../../../service/editor.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { templates, URI_REGEX } from '../../../util/format';
@@ -36,7 +36,7 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
   plugins: string[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public admin: AdminService,
     private router: Router,
     private route: ActivatedRoute,
@@ -46,7 +46,7 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
     private exts: ExtService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle($localize`Submit: Invoice`);
+    mod.setTitle($localize`Submit: Invoice`);
     this.invoiceForm = fb.group({
       url: ['', [Validators.required, Validators.pattern(URI_REGEX)]],
       title: ['', [Validators.required]],

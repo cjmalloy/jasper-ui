@@ -20,7 +20,7 @@ import { isWiki, wikiUriFormat } from '../../mods/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
-import { ThemeService } from '../../service/theme.service';
+import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
 import { fixUrl } from '../../util/http';
@@ -49,14 +49,14 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   constructor(
     public admin: AdminService,
-    private theme: ThemeService,
+    private mod: ModService,
     private router: Router,
     public store: Store,
     private auth: AuthzService,
     private refs: RefService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle($localize`Submit: Link`);
+    mod.setTitle($localize`Submit: Link`);
     this.submitForm = fb.group({
       url: ['', [Validators.required], [this.validator]],
       scrape: [true],

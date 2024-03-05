@@ -5,7 +5,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { mapTemplate, Template } from '../../../model/template';
 import { TemplateService } from '../../../service/api/template.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { TemplateStore } from '../../../store/template';
 import { printError } from '../../../util/http';
@@ -24,12 +24,12 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public store: Store,
     public query: TemplateStore,
     private templates: TemplateService,
   ) {
-    theme.setTitle($localize`Settings: Templates`);
+    mod.setTitle($localize`Settings: Templates`);
     store.view.clear('tag', 'tag');
     query.clear();
   }

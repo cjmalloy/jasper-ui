@@ -4,7 +4,7 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
-import { ThemeService } from '../../service/theme.service';
+import { ModService } from '../../service/mod.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
@@ -29,10 +29,10 @@ export class TagPage implements OnInit, OnDestroy {
     public account: AccountService,
     public store: Store,
     public query: QueryStore,
-    private theme: ThemeService,
+    private mod: ModService,
     private exts: ExtService,
   ) {
-    this.disposers.push(autorun(() => this.theme.setTitle(this.store.view.name)));
+    this.disposers.push(autorun(() => this.mod.setTitle(this.store.view.name)));
     runInAction(() => {
       this.store.view.clear(
         !!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay'

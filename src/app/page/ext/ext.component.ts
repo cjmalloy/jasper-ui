@@ -11,7 +11,7 @@ import { Ext } from '../../model/ext';
 import { tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
-import { ThemeService } from '../../service/theme.service';
+import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { TAG_SUFFIX_REGEX } from '../../util/format';
@@ -43,14 +43,14 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   templates = this.admin.tmplSubmit;
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     private admin: AdminService,
     public router: Router,
     public store: Store,
     private exts: ExtService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle($localize`Edit Tag`);
+    mod.setTitle($localize`Edit Tag`);
     this.extForm = fb.group({
       tag: ['', [Validators.pattern(TAG_SUFFIX_REGEX)]],
     });

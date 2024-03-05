@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { AdminService } from '../../../service/admin.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
@@ -17,7 +17,7 @@ export class RefResponsesComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public admin: AdminService,
     public store: Store,
     public query: QueryStore,
@@ -40,7 +40,7 @@ export class RefResponsesComponent implements OnInit, OnDestroy {
       defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
-      this.theme.setTitle($localize`Responses: ` + (this.store.view.ref?.title || this.store.view.url));
+      this.mod.setTitle($localize`Responses: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
   }
 

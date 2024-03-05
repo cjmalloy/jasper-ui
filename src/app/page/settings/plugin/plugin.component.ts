@@ -5,7 +5,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { mapPlugin, Plugin } from '../../../model/plugin';
 import { PluginService } from '../../../service/api/plugin.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { PluginStore } from '../../../store/plugin';
 import { Store } from '../../../store/store';
 import { printError } from '../../../util/http';
@@ -24,12 +24,12 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public store: Store,
     public query: PluginStore,
     private plugins: PluginService,
   ) {
-    theme.setTitle($localize`Settings: Plugins`);
+    mod.setTitle($localize`Settings: Plugins`);
     store.view.clear('tag', 'tag');
     query.clear();
   }

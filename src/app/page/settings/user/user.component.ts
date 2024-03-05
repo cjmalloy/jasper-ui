@@ -3,7 +3,7 @@ import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { UserService } from '../../../service/api/user.service';
 import { ConfigService } from '../../../service/config.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { ProfileStore } from '../../../store/profile';
 import { Store } from '../../../store/store';
 import { UserStore } from '../../../store/user';
@@ -19,14 +19,14 @@ export class SettingsUserPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public config: ConfigService,
     public store: Store,
     public users: UserService,
     public scim: ProfileStore,
     public query: UserStore,
   ) {
-    theme.setTitle($localize`Settings: User Profiles`);
+    mod.setTitle($localize`Settings: User Profiles`);
     store.view.clear('tag', 'tag');
     scim.clear();
     query.clear();

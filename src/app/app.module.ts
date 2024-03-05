@@ -147,10 +147,10 @@ import { AdminService } from './service/admin.service';
 import { AuthnService } from './service/authn.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
+import { ModService } from './service/mod.service';
 import { OriginMapService } from './service/origin-map.service';
-import { ThemeService } from './service/theme.service';
 
-const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ThemeService) => () =>
+const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ModService) => () =>
   config.load$.pipe(
     tap(() => console.log('-{1}- Loading Jasper')),
     switchMap(() => debug.init$),
@@ -339,7 +339,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     {
       provide: APP_INITIALIZER,
       useFactory: loadFactory,
-      deps: [ConfigService, DebugService, AuthnService, AdminService, AccountService, OriginMapService, ThemeService],
+      deps: [ConfigService, DebugService, AuthnService, AdminService, AccountService, OriginMapService, ModService],
       multi: true,
     },
   ],

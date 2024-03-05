@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { BackupService } from '../../../service/api/backup.service';
 import { OriginService } from '../../../service/api/origin.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { ORIGIN_REGEX } from '../../../util/format';
@@ -29,13 +29,13 @@ export class SettingsBackupPage implements OnInit {
   serverError: string[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public store: Store,
     private backups: BackupService,
     private origins: OriginService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle($localize`Settings: Backup & Restore`);
+    mod.setTitle($localize`Settings: Backup & Restore`);
     backups.list(this.origin)
       .subscribe(list => this.list = list.sort().reverse());
     this.originForm = fb.group({

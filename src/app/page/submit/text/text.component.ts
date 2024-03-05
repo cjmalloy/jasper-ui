@@ -18,7 +18,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { EditorService } from '../../../service/editor.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
@@ -48,7 +48,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   private oldSubmit: string[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public admin: AdminService,
     private router: Router,
     public store: Store,
@@ -58,7 +58,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle($localize`Submit: Text Post`);
+    mod.setTitle($localize`Submit: Text Post`);
     this.textForm = refForm(fb);
     runInAction(() => store.submit.wikiPrefix = admin.getWikiPrefix());
   }
@@ -75,7 +75,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         let url = this.store.submit.url || 'comment:' + uuid();
         if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
           url = wikiUriFormat(url, this.admin.getWikiPrefix());
-          this.theme.setTitle($localize`Submit: Wiki`);
+          this.mod.setTitle($localize`Submit: Wiki`);
           this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
           this.title.disable();
         }

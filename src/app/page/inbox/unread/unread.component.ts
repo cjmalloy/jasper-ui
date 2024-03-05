@@ -1,13 +1,13 @@
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { RefPageArgs } from '../../../model/ref';
 import { newest } from '../../../mods/mailbox';
 import { AccountService } from '../../../service/account.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-unread',
@@ -21,13 +21,13 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
   private lastNotified?: moment.Moment;
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public store: Store,
     public query: QueryStore,
     private account: AccountService,
     private router: Router,
   ) {
-    theme.setTitle($localize`Inbox: Unread`);
+    mod.setTitle($localize`Inbox: Unread`);
     store.view.clear('modified');
     query.clear();
   }

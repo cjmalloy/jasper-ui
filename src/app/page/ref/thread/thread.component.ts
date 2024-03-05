@@ -2,14 +2,13 @@ import { Component, HostBinding } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject, Subscription, switchMap, takeUntil } from 'rxjs';
-import { tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { StompService } from '../../../service/api/stomp.service';
 import { ConfigService } from '../../../service/config.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
@@ -32,7 +31,7 @@ export class RefThreadComponent {
 
   constructor(
     public config: ConfigService,
-    private theme: ThemeService,
+    private mod: ModService,
     public admin: AdminService,
     public store: Store,
     public query: QueryStore,
@@ -57,7 +56,7 @@ export class RefThreadComponent {
       defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
-      this.theme.setTitle($localize`Thread: ` + (this.store.view.ref?.title || this.store.view.url));
+      this.mod.setTitle($localize`Thread: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
     this.disposers.push(autorun(() => {
       if (this.store.view.top && this.config.websockets) {

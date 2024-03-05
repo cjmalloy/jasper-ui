@@ -5,7 +5,7 @@ import { Ext } from '../../model/ext';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
-import { ThemeService } from '../../service/theme.service';
+import { ModService } from '../../service/mod.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs } from '../../util/query';
@@ -22,14 +22,14 @@ export class HomePage implements OnInit, OnDestroy {
   activeExts: Ext[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public admin: AdminService,
     public account: AccountService,
     public store: Store,
     public query: QueryStore,
     private exts: ExtService,
   ) {
-    theme.setTitle($localize`Home`);
+    mod.setTitle($localize`Home`);
     store.view.clear(!!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay' : 'published');
     query.clear();
     if (admin.getTemplate('home')) {

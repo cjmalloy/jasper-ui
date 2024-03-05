@@ -16,7 +16,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
@@ -40,7 +40,7 @@ export class UploadPage implements OnDestroy {
   constructor(
     public store: Store,
     public bookmarks: BookmarkService,
-    private theme: ThemeService,
+    private mod: ModService,
     private admin: AdminService,
     private refs: RefService,
     private exts: ExtService,
@@ -49,7 +49,7 @@ export class UploadPage implements OnDestroy {
     private router: Router,
     private fb: FormBuilder,
   ) {
-    theme.setTitle($localize`Submit: Upload`);
+    mod.setTitle($localize`Submit: Upload`);
     this.disposers.push(autorun(() => {
       this.readUploads(this.store.submit.files);
       defer(() => this.store.submit.clearFiles());

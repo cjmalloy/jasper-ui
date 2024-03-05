@@ -1,13 +1,13 @@
 import { Location } from '@angular/common';
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { autorun, IReactionDisposer } from 'mobx';
+import { map } from 'rxjs';
+import { Ext } from '../../model/ext';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ConfigService } from '../../service/config.service';
-import { ThemeService } from '../../service/theme.service';
+import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
-import { map } from 'rxjs';
-import { Ext } from '../../model/ext';
-import { autorun, IReactionDisposer } from 'mobx';
 
 @Component({
   selector: 'app-subscription-bar',
@@ -26,7 +26,7 @@ export class SubscriptionBarComponent implements OnInit, OnDestroy {
   constructor(
     public config: ConfigService,
     public store: Store,
-    public themes: ThemeService,
+    public themes: ModService,
     public admin: AdminService,
     private exts: ExtService,
     public location: Location,

@@ -11,7 +11,7 @@ import { ConfigService } from './config.service';
 @Injectable({
   providedIn: 'root',
 })
-export class ThemeService {
+export class ModService {
 
   nesting = CSS.supports('selector(& > *)');
 

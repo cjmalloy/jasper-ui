@@ -4,7 +4,7 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
@@ -21,7 +21,7 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
   page: Page<Ref> = Page.of([]);
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public admin: AdminService,
     public store: Store,
     public query: QueryStore,
@@ -56,7 +56,7 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
       }
     }));
     this.disposers.push(autorun(() => {
-      this.theme.setTitle($localize`Sources: ` + (this.store.view.ref?.title || this.store.view.url));
+      this.mod.setTitle($localize`Sources: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
   }
 

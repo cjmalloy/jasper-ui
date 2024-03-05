@@ -2,7 +2,7 @@ import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { AdminService } from '../../../service/admin.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
@@ -18,12 +18,12 @@ export class InboxSentPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public admin: AdminService,
     public store: Store,
     public query: QueryStore,
   ) {
-    theme.setTitle($localize`Inbox: Sent`);
+    mod.setTitle($localize`Inbox: Sent`);
     store.view.clear();
     query.clear();
   }

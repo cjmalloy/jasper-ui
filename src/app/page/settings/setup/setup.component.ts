@@ -11,7 +11,7 @@ import { tagDeleteNotice } from '../../../mods/delete';
 import { AdminService } from '../../../service/admin.service';
 import { PluginService } from '../../../service/api/plugin.service';
 import { TemplateService } from '../../../service/api/template.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { configGroups, modId } from '../../../util/format';
@@ -34,13 +34,13 @@ export class SettingsSetupPage implements OnInit {
 
   constructor(
     public admin: AdminService,
-    private theme: ThemeService,
+    private mod: ModService,
     public store: Store,
     private plugins: PluginService,
     private templates: TemplateService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle($localize`Settings: Setup`);
+    mod.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
       mods: fb.group(mapValues({...this.admin.def.plugins, ...this.admin.def.templates }, p => fb.control(false))),
     });

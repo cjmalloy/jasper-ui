@@ -12,7 +12,7 @@ import { AdminService } from '../../service/admin.service';
 import { ProfileService } from '../../service/api/profile.service';
 import { UserService } from '../../service/api/user.service';
 import { ConfigService } from '../../service/config.service';
-import { ThemeService } from '../../service/theme.service';
+import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
@@ -35,7 +35,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
   serverError: string[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     private admin: AdminService,
     public config: ConfigService,
     public router: Router,
@@ -44,7 +44,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
     private users: UserService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle($localize`Create Profile`);
+    mod.setTitle($localize`Create Profile`);
     this.profileForm = fb.group({
       active: [true],
       password: [''],

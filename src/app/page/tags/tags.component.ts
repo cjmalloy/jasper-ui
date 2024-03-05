@@ -3,7 +3,7 @@ import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
-import { ThemeService } from '../../service/theme.service';
+import { ModService } from '../../service/mod.service';
 import { ExtStore } from '../../store/ext';
 import { Store } from '../../store/store';
 import { getTagFilter, getTagQueryFilter } from '../../util/query';
@@ -23,13 +23,13 @@ export class TagsPage implements OnInit, OnDestroy {
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     private admin: AdminService,
     public store: Store,
     public query: ExtStore,
     private auth: AuthzService,
   ) {
-    theme.setTitle($localize`Tags`);
+    mod.setTitle($localize`Tags`);
     store.view.clear('modified,DESC', 'name,ASC');
     query.clear();
   }

@@ -6,7 +6,7 @@ import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
@@ -25,7 +25,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   summaryItems = 5;
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public admin: AdminService,
     public refs: RefService,
     public store: Store,
@@ -38,7 +38,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => this.theme.setTitle((this.store.view.ref?.title || this.store.view.url))));
+    this.disposers.push(autorun(() => this.mod.setTitle((this.store.view.ref?.title || this.store.view.url))));
     this.disposers.push(autorun(() => {
       const top = this.store.view.ref!;
       const sort = this.store.view.sort;

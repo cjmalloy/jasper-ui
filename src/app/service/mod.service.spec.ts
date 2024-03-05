@@ -2,10 +2,10 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { ThemeService } from './theme.service';
+import { ModService } from './mod.service';
 
-describe('ThemeService', () => {
-  let service: ThemeService;
+describe('ModService', () => {
+  let service: ModService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -14,7 +14,7 @@ describe('ThemeService', () => {
         RouterTestingModule,
       ],
     });
-    service = TestBed.inject(ThemeService);
+    service = TestBed.inject(ModService);
   });
 
   it('should be created', () => {

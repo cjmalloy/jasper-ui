@@ -17,7 +17,7 @@ import { ScrapeService } from '../../../service/api/scrape.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { EditorService } from '../../../service/editor.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { OembedStore } from '../../../store/oembed';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
@@ -46,7 +46,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   private rssUrl?: string;
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     private admin: AdminService,
     private auth: AuthzService,
     private router: Router,
@@ -172,7 +172,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   setTitle(title: string) {
     this.title = title;
-    this.theme.setTitle(title);
+    this.mod.setTitle(title);
   }
 
   addTag(...values: string[]) {
