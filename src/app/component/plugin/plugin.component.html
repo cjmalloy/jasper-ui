@@ -23,6 +23,10 @@
     </ng-template>
     <a class="fake-link"
        (click)="download()" i18n>download</a>
+    @if (plugin.config?.export) {
+      <a class="fake-link"
+         (click)="export()" i18n>export</a>
+    }
     <a *ngIf="!deleting && store.account.admin"
        class="fake-link"
        (click)="deleting = true" i18n>delete</a>
