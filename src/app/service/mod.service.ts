@@ -2,8 +2,10 @@ import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import flatten from 'css-flatten';
+import { marked } from 'marked';
 import { autorun, runInAction } from 'mobx';
 import { of } from 'rxjs';
+import { Plugin } from '../model/plugin';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
 import { ConfigService } from './config.service';
@@ -90,6 +92,65 @@ export class ModService {
 
   setTitle(title: string) {
     this.titleService.setTitle(`${this.config.title} ± ${title}`);
+  }
+
+  exportHtml(plugin: Plugin): string {
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${plugin.name || plugin.tag}</title>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      html, body {
+        color-scheme: dark;
+        background-color: #222;
+        color: #c9c9c9;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  ${plugin.config?.snippet || ''}
+  ${plugin.config?.css || ''}
+  <script id="ui" type="text/x-handlebars-template">
+    ${plugin.config?.ui || ''}
+  </script>
+  <script>
+    window.onload = function() {
+      Handlebars.registerHelper('d3', () => d3);
+      Handlebars.registerHelper('defer', (el, fn) => {
+        if (el.defered) {
+          fn();
+        } else {
+          el.deferred = true;
+          setTimeout(fn, 1);
+        }
+      });
+      var model = {
+        el: document.body
+      };
+      document.getElementById("content").innerHTML = Handlebars.compile(document.getElementById("ui").innerHTML)(model);
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left:  '$', right:  '$', display: false},
+        ],
+        throwOnError: false
+      });
+    }
+  </script>
+</head>
+<body>
+  <h1>${plugin.name || plugin.tag}</h1>
+  <p>${marked(plugin.config?.aiInstructions || '')}</p>
+  <div id="content"></div>
+</body>
+</html>
+`;
   }
 
   private getTheme(id: string, sources: Record<string, string>[]) {

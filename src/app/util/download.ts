@@ -2,7 +2,7 @@ import * as FileSaver from 'file-saver';
 import * as JSZip from 'jszip';
 import { Ext, writeExt } from '../model/ext';
 import { Page } from '../model/page';
-import { writePlugin } from '../model/plugin';
+import { Plugin, writePlugin } from '../model/plugin';
 import { Ref, writeRef } from '../model/ref';
 import { Tag } from '../model/tag';
 import { writeTemplate } from '../model/template';
@@ -43,6 +43,14 @@ export async function downloadSet(ref: Ref[], ext: Ext[], title: string) {
   const zip = new JSZip();
   zip.file('ref.json', file(ref.map(writeRef)));
   zip.file('ext.json', file(ext.map(writeExt)));
+  return zip.generateAsync({ type: 'blob' })
+    .then(content => FileSaver.saveAs(content, title + '.zip'));
+}
+
+export function downloadPluginExport(plugin: Plugin, html: string) {
+  const title = plugin.name || plugin.tag.replace('/', '_');
+  const zip = new JSZip();
+  zip.file(title + '.html', html);
   return zip.generateAsync({ type: 'blob' })
     .then(content => FileSaver.saveAs(content, title + '.zip'));
 }

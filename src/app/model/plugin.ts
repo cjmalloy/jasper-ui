@@ -58,6 +58,10 @@ export interface Plugin extends Config {
      */
     editingViewer?: boolean;
     /**
+     * This plugin can be exported to a self-contained html file.
+     */
+    export?: boolean,
+    /**
      * Show plugin as signature for existing tag.
      */
     signature?: string,
