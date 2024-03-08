@@ -70,6 +70,11 @@ export class TodoComponent implements OnChanges {
     this.zone.run(() => this.pressToUnlock = true);
   }
 
+  @HostBinding('class.empty')
+  get empty() {
+    return !this.lines.length;
+  }
+
   get local() {
     return this.ref?.origin === this.store.account.origin;
   }
