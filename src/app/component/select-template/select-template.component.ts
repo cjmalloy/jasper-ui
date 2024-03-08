@@ -8,7 +8,6 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
 import { access } from '../../util/tag';
 

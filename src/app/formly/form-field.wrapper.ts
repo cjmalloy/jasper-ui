@@ -1,6 +1,6 @@
+import { CDK_DRAG_PARENT, CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { Component, HostBinding, Inject, Optional, ViewChild } from '@angular/core';
 import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
-import { CDK_DRAG_PARENT, CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'formly-wrapper-form-field',

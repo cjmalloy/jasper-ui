@@ -13,7 +13,7 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { Chess, Move, Square } from 'chess.js';
-import { defer, delay, flatten, uniq } from 'lodash-es';
+import { defer, delay, flatten } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, Subject, Subscription, takeUntil, throwError } from 'rxjs';

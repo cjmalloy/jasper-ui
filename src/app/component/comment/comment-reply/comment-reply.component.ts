@@ -6,6 +6,7 @@ import * as moment from 'moment';
 import { catchError, Subject, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { EditorComponent } from '../../../form/editor/editor.component';
 import { Ref } from '../../../model/ref';
 import { commentPlugin } from '../../../mods/comment';
 import { getMailbox } from '../../../mods/mailbox';
@@ -19,7 +20,6 @@ import { getMailboxes, getTags } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasTag, removeTag } from '../../../util/tag';
-import { EditorComponent } from '../../../form/editor/editor.component';
 
 @Component({
   selector: 'app-comment-reply',

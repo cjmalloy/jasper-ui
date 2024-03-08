@@ -1,8 +1,8 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
-import { Store } from '../../store/store';
 import { ConfigService } from '../../service/config.service';
+import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-json',

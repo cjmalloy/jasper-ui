@@ -1,19 +1,19 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 import { cloneDeep, defer } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { extForm, ExtFormComponent } from '../../../form/ext/ext.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
-import { Router } from '@angular/router';
-import { HasChanges } from '../../../guard/pending-changes.guard';
 
 @Component({
   selector: 'app-settings-me-page',

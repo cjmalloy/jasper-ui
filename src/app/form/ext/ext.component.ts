@@ -2,15 +2,15 @@ import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output
 import { FormControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { defer, uniq } from 'lodash-es';
+import { allRefSorts } from '../../component/sort/sort.component';
 import { Ext } from '../../model/ext';
 import { getMailbox } from '../../mods/mailbox';
 import { AdminService } from '../../service/admin.service';
 import { TAG_REGEX } from '../../util/format';
+import { defaultDesc } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 import { linksForm } from '../links/links.component';
 import { themesForm } from '../themes/themes.component';
-import { defaultDesc } from '../../util/query';
-import { allRefSorts } from '../../component/sort/sort.component';
 
 @Component({
   selector: 'app-ext-form',

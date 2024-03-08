@@ -1,5 +1,5 @@
-import { difference, uniq } from 'lodash-es';
 import * as he from 'he';
+import { difference, uniq } from 'lodash-es';
 import { marked } from 'marked';
 import { getMailbox } from '../mods/mailbox';
 import { wikiUriFormat } from '../mods/wiki';

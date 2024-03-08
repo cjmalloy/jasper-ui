@@ -1,4 +1,14 @@
-import { AfterViewInit, Component, HostBinding, HostListener, Input, NgZone, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  HostBinding,
+  HostListener,
+  Input,
+  NgZone,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges
+} from '@angular/core';
 import { intersection, uniq } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';

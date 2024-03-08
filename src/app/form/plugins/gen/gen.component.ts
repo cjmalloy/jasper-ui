@@ -2,7 +2,6 @@ import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angu
 import { UntypedFormGroup } from '@angular/forms';
 import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { Plugin } from '../../../model/plugin';
-import { defer } from 'lodash-es';
 
 @Component({
   selector: 'app-form-gen',

@@ -1,10 +1,19 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
-import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostBinding,
+  Input,
+  Output,
+  TemplateRef,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
 import Europa from 'europa';
-import { Plugin, PluginApi } from 'europa-core';
-import { debounce, defer, throttle, uniq, without } from 'lodash-es';
+import { debounce, throttle, uniq, without } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';

@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
 import { catchError, map, Observable } from 'rxjs';
 import { Oembed } from '../../model/oembed';
-import { EventBus } from '../../store/bus';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';

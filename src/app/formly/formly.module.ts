@@ -1,3 +1,4 @@
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { NgModule } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
@@ -30,7 +31,6 @@ import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldSelect } from './select.type';
 import { FormlyFieldTextArea } from './textarea.type';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
-import { DragDropModule } from '@angular/cdk/drag-drop';
 
 @NgModule({
   declarations: [

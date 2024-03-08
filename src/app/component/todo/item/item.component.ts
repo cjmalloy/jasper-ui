@@ -1,5 +1,14 @@
-import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, NgZone, OnInit, Output } from '@angular/core';
-import { defer } from 'lodash-es';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostBinding,
+  HostListener,
+  Input,
+  NgZone,
+  OnInit,
+  Output
+} from '@angular/core';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 

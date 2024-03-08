@@ -1,4 +1,13 @@
-import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostBinding,
+  Input,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { filter } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';

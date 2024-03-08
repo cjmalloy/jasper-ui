@@ -1,7 +1,7 @@
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, HostBinding, HostListener } from '@angular/core';
 import { FieldArrayType } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'formly-list-section',

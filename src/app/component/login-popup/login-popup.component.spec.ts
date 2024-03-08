@@ -1,9 +1,9 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
 
 import { LoginPopupComponent } from './login-popup.component';
-import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
 
 describe('LoginPopupComponent', () => {
   let component: LoginPopupComponent;

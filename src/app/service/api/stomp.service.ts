@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { RxStomp } from '@stomp/rx-stomp';
 import { map, Observable } from 'rxjs';
-import { mapRef, Ref, RefUpdates } from '../../model/ref';
+import { mapRef, RefUpdates } from '../../model/ref';
 import { Store } from '../../store/store';
 import { AuthnService } from '../authn.service';
 import { ConfigService } from '../config.service';
