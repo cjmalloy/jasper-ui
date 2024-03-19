@@ -34,17 +34,4 @@ export class FormlyWrapperFormField extends FieldWrapper<FormlyFieldConfig> {
   get title() {
     return this.props.title || '';
   }
-
-  @ViewChild(CdkDragHandle) handle?: CdkDragHandle;
-
-  constructor(@Optional() @Inject(CDK_DRAG_PARENT) public cdk: CdkDrag) {
-    super();
-  }
-
-  ngAfterViewInit() {
-    if (this.cdk && this.props.label) {
-        // @ts-ignore
-      this.cdk._handles.reset([...this.cdk._handles._results, this.handle]);
-    }
-  }
 }
