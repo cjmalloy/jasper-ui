@@ -1,7 +1,8 @@
+import { debounce } from 'lodash-es';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
 import { Ref } from './ref';
-import { Config } from './tag';
+import { Config, EmitAction } from './tag';
 
 export interface Plugin extends Config {
   type?: 'plugin';
@@ -101,6 +102,14 @@ export interface Plugin extends Config {
   userUrl?: boolean;
 }
 
+export interface PluginApi {
+  comment: (comment: string) => void;
+  event: (event: string) => void;
+  emit: (a: EmitAction) => void;
+  tag: (tag: string) => void;
+  respond: (response: string, clear?: string[]) => void;
+}
+
 export function mapPlugin(obj: any): Plugin {
   obj.type = 'plugin';
   obj.origin ||= '';
@@ -131,7 +140,7 @@ export interface PluginScope {
   plugin: Plugin;
 }
 
-export function getPluginScope(plugin?: Config, ref: Ref = { url: '' }, el?: Element, actions?: any): PluginScope {
+export function getPluginScope(plugin?: Config, ref: Ref = { url: '' }, el?: Element, actions?: PluginApi): PluginScope {
   return {
     el,
     actions,

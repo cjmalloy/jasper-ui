@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { debounce, without } from 'lodash-es';
-import { concat, last } from 'rxjs';
+import { runInAction } from 'mobx';
+import * as moment from 'moment';
+import { catchError, concat, last, Observable, Subscription, switchMap, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { PluginApi } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
@@ -21,11 +25,13 @@ export class ActionService {
     private store: Store,
   ) { }
 
-  wrap(ref?: Ref) {
+  wrap(ref?: Ref): PluginApi {
+    let o: Subscription | undefined = undefined;
     return {
       comment: debounce((comment: string) => {
         if (!ref) throw 'Error: No ref to save';
-        this.comment(comment, ref);
+        o?.unsubscribe();
+        o = this.comment(comment, ref).subscribe();
       }, 500),
       event: (event: string) => {
         this.event(event, ref);
@@ -74,11 +80,29 @@ export class ActionService {
   }
 
   comment(comment: string, ref: Ref) {
-    this.store.eventBus.runAndReload(this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
+    return this.store.eventBus.runAndRefresh$(this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
       op: 'add',
       path: '/comment',
       value: comment,
-    }]), ref);
+    }]).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          return this.refs.get(ref.url, ref.origin).pipe(
+            switchMap(ref => this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
+              op: 'add',
+              path: '/comment',
+              value: comment,
+            }])),
+          );
+        }
+        return throwError(() => err);
+      }),
+      tap(cursor => runInAction(() => {
+        ref.comment = comment;
+        ref.modifiedString = cursor;
+        ref.modified = moment(cursor);
+      })),
+    ), ref);
   }
 
   tag(tag: string, ref: Ref) {

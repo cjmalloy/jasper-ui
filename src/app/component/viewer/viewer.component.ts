@@ -11,11 +11,12 @@ import {
   ViewChild
 } from '@angular/core';
 import Hls from 'hls.js';
-import { debounce, defer, some, without } from 'lodash-es';
+import { defer, some, without } from 'lodash-es';
+import { runInAction } from 'mobx';
 import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
-import { getPluginScope } from '../../model/plugin';
+import { getPluginScope, PluginApi } from '../../model/plugin';
 import { findExtension, Ref, RefSort } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
 import { ActionService } from '../../service/action.service';
@@ -331,18 +332,18 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
-  get uiActions() {
+  get uiActions(): PluginApi {
     const actions = this.actions.wrap(this.ref);
     return {
-      comment: debounce((comment: string) => {
+      comment: (comment: string) => {
         if (this.ref) {
-          this.ref.comment = comment;
+          runInAction(() => this.ref!.comment = comment);
         } else {
           this.text = comment;
         }
         if (this.ref?.modified) actions.comment(comment);
         this.comment.emit(comment);
-      }, 500),
+      },
       event: (event: string) => {
         actions.event(event);
       },
@@ -355,7 +356,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       respond: (response: string, clear?: string[]) => {
         if (this.ref?.modified) actions.respond(response, clear);
       }
-    }
+    };
   }
 
   @memo
