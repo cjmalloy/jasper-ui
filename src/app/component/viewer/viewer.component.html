@@ -59,17 +59,20 @@
             [ref]="ref"
             [text]="text"
             [tags]="tags"
+            [updates$]="updates$"
             (comment)="comment.emit($event)"
             (copied)="copied.emit($event)"></app-todo>
   <app-backgammon *ngIf="backgammon"
                   [ref]="ref"
                   [text]="text"
+                  [updates$]="updates$"
                   (comment)="comment.emit($event)"
                   (copied)="copied.emit($event)"></app-backgammon>
   <app-chess *ngIf="chess"
              [white]="chessWhite"
              [ref]="ref"
              [text]="text"
+             [updates$]="updates$"
              (comment)="comment.emit($event)"
              (copied)="copied.emit($event)"></app-chess>
 }

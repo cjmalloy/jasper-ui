@@ -11,8 +11,8 @@ import {
   SimpleChanges
 } from '@angular/core';
 import * as moment from 'moment';
-import { catchError, throwError } from 'rxjs';
-import { Ref } from '../../model/ref';
+import { catchError, Observable, Subscription, throwError } from 'rxjs';
+import { Ref, RefUpdates } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
@@ -34,6 +34,8 @@ export class TodoComponent implements OnChanges {
   origin = '';
   @Input()
   tags?: string[];
+  @Input()
+  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -43,6 +45,9 @@ export class TodoComponent implements OnChanges {
   addText = ``;
   pressToUnlock = false;
   serverErrors: string[] = [];
+
+  private watch?: Subscription;
+  private cursor?: string;
 
   constructor(
     public config: ConfigService,
@@ -57,6 +62,19 @@ export class TodoComponent implements OnChanges {
 
   init() {
     this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
+    if (this.local) {
+      this.cursor ||= this.ref?.modifiedString;
+    }
+    if (!this.watch && this.updates$) {
+      this.watch = this.updates$.subscribe(u => {
+        this.ref!.comment = u.comment;
+        if (u.origin === this.store.account.origin) {
+          this.ref!.modified = u.modified;
+          this.ref!.modifiedString = this.cursor = u.modifiedString;
+          this.init();
+        }
+      });
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -109,13 +127,13 @@ export class TodoComponent implements OnChanges {
         return throwError(() => err);
       })
     ).subscribe(cursor => {
-      this.ref!.comment = comment;
-      this.ref!.modified = moment(cursor);
-      this.ref!.modifiedString = cursor;
-      if (!this.local) {
+      if (!this.cursor) {
         this.ref!.origin = this.store.account.origin;
         this.copied.emit(this.store.account.origin);
       }
+      this.ref!.comment = comment;
+      this.ref!.modified = moment(cursor);
+      this.ref!.modifiedString = this.cursor = cursor;
       this.store.eventBus.refresh(this.ref);
     });
   }

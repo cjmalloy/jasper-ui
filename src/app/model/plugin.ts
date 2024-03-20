@@ -1,7 +1,7 @@
-import { debounce } from 'lodash-es';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
-import { Ref } from './ref';
+import { Observable } from 'rxjs';
+import { Ref, RefUpdates } from './ref';
 import { Config, EmitAction } from './tag';
 
 export interface Plugin extends Config {
@@ -140,10 +140,11 @@ export interface PluginScope {
   plugin: Plugin;
 }
 
-export function getPluginScope(plugin?: Config, ref: Ref = { url: '' }, el?: Element, actions?: PluginApi): PluginScope {
+export function getPluginScope(plugin?: Config, ref: Ref = { url: '' }, el?: Element, actions?: PluginApi, updates$?: Observable<RefUpdates>): PluginScope {
   return {
     el,
     actions,
+    updates$,
     ref: toJS(ref),
     plugin: toJS(plugin),
     ...toJS(plugin && ref.plugins?.[plugin.tag || ''] || {}),

@@ -79,8 +79,15 @@ least $k$ red circles.
         }
         return traverse(0, 0, 0)
       }
-      Handlebars.registerHelper('ninjaTriangle', (comment, actions, el, d3) => {
+      Handlebars.registerHelper('ninjaTriangle', (comment, actions, el, updates$, d3) => {
+        let watch = null;
         function renderSvg() {
+          if (!watch && updates$) {
+            watch = updates$.subscribe(u => {
+              comment = u.comment;
+              renderSvg();
+            });
+          }
           function removeRow(text, n) {
             const t = read(text)
             for (let i = 0; i < n; i++) t.pop();
@@ -167,7 +174,7 @@ least $k$ red circles.
     `,
     // language=Handlebars
     ui: `
-      <svg class="japanese-triangle">{{defer el (ninjaTriangle ref.comment actions el (d3))}}</svg>
+      <svg class="japanese-triangle">{{defer el (ninjaTriangle ref.comment actions el updates$ (d3))}}</svg>
     `,
   },
 };

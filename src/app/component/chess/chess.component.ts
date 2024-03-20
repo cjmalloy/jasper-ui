@@ -16,10 +16,9 @@ import { Chess, Move, Square } from 'chess.js';
 import { defer, delay, flatten } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, Subject, Subscription, takeUntil, throwError } from 'rxjs';
-import { Ref } from '../../model/ref';
+import { catchError, Observable, Subscription, throwError } from 'rxjs';
+import { Ref, RefUpdates } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
-import { StompService } from '../../service/api/stomp.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
@@ -37,7 +36,6 @@ type Piece = { type: PieceType, color: PieceColor, square: Square, };
 })
 export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   @HostBinding('class') css = 'chess-board';
-  private destroy$ = new Subject<void>();
   private disposers: IReactionDisposer[] = [];
 
   @Input()
@@ -46,6 +44,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   text? = '';
   @Input()
   white = true; // TODO: Save in local storage
+  @Input()
+  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -81,7 +81,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     private auth: AuthzService,
     private refs: RefService,
     private store: Store,
-    private stomp: StompService,
     private el: ElementRef<HTMLDivElement>,
   ) {
     this.disposers.push(autorun(() => {
@@ -97,58 +96,52 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
     this.resizeObserver?.observe(this.el.nativeElement);
     this.onResize();
   }
 
   init() {
-    if (!this.watch && this.ref && this.config.websockets) {
-      this.refs.page({ url: this.ref.url, obsolete: true, size: 500, sort: ['modified,DESC']}).subscribe(page => {
-        this.watch = this.stomp.watchRef(this.ref!.url).pipe(
-          takeUntil(this.destroy$),
-        ).subscribe(u => {
-          if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
-          else this.ref!.modifiedString = u.modifiedString;
-          const prev = (this.patchingComment || this.ref?.comment || '')
-            .trim()
-            .split(/\s+/g)
-            .map(m => m.trim() as Square)
-            .filter(m => !!m);
-          const current = (u.comment || '')
-            .trim()
-            .split(/\s+/g)
-            .map(m => m.trim() as Square)
-            .filter(m => !!m);
-          const minLen = Math.min(prev.length, current.length);
-          for (let i = 0; i < minLen; i++) {
-            if (prev[i] !== current[i] || i === minLen - 1) {
-              prev.splice(0, i + 1);
-              current.splice(0, i + 1);
-              break;
-            }
+    if (!this.watch && this.updates$) {
+      this.watch = this.updates$.subscribe(u => {
+        if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
+        else this.ref!.modifiedString = u.modifiedString;
+        const prev = (this.patchingComment || this.ref?.comment || '')
+          .trim()
+          .split(/\s+/g)
+          .map(m => m.trim() as Square)
+          .filter(m => !!m);
+        const current = (u.comment || '')
+          .trim()
+          .split(/\s+/g)
+          .map(m => m.trim() as Square)
+          .filter(m => !!m);
+        const minLen = Math.min(prev.length, current.length);
+        for (let i = 0; i < minLen; i++) {
+          if (prev[i] !== current[i] || i === minLen - 1) {
+            prev.splice(0, i + 1);
+            current.splice(0, i + 1);
+            break;
           }
-          if (prev.length) {
-            window.alert($localize`Game history was rewritten!`);
-            this.ref = u;
-            this.store.eventBus.refresh(u);
-          }
-          if (prev.length || !current.length) return;
-          for (const m of current) this.chess.move(m);
-          this.check();
-          this.ref!.title = u.title;
-          this.ref!.comment = u.comment;
-          this.store.eventBus.refresh(this.ref);
-          // TODO: queue all moves and animate one by one
-          const move = current.shift()!;
-          const lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
-          requestAnimationFrame(() => {
-            if (lastMove != this.incoming) return;
-            this.bounce = this.incoming;
-            if (this.bounce.length > 2) this.bounce = this.bounce.substring(this.bounce.length - 2, this.bounce.length);
-            delay(() => this.bounce = '', 3400);
-          });
+        }
+        if (prev.length) {
+          window.alert($localize`Game history was rewritten!`);
+          this.ref = u;
+          this.store.eventBus.refresh(u);
+        }
+        if (prev.length || !current.length) return;
+        for (const m of current) this.chess.move(m);
+        this.check();
+        this.ref!.title = u.title;
+        this.ref!.comment = u.comment;
+        this.store.eventBus.refresh(this.ref);
+        // TODO: queue all moves and animate one by one
+        const move = current.shift()!;
+        const lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
+        requestAnimationFrame(() => {
+          if (lastMove != this.incoming) return;
+          this.bounce = this.incoming;
+          if (this.bounce.length > 2) this.bounce = this.bounce.substring(this.bounce.length - 2, this.bounce.length);
+          delay(() => this.bounce = '', 3400);
         });
       });
     }
@@ -183,8 +176,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.resizeObserver?.disconnect();

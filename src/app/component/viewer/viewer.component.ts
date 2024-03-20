@@ -13,6 +13,7 @@ import {
 import Hls from 'hls.js';
 import { defer, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
+import { of, Subject, takeUntil } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
@@ -23,6 +24,7 @@ import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
+import { StompService } from '../../service/api/stomp.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
@@ -41,6 +43,7 @@ import { hasTag, includesTag } from '../../util/tag';
 export class ViewerComponent implements OnChanges, AfterViewInit {
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
+  private destroy$ = new Subject<void>();
 
   @ViewChild('iframe')
   iframe!: ElementRef;
@@ -92,6 +95,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     private actions: ActionService,
     private embeds: EmbedService,
     private editor: EditorService,
+    private stomp: StompService,
     private refs: RefService,
     private store: Store,
     public el: ElementRef,
@@ -138,6 +142,11 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (changes.ref || changes.tags || changes.text) {
       this.init();
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async ngAfterViewInit() {
@@ -332,6 +341,12 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
+  get updates$() {
+    if (!this.ref || !this.config.websockets) return of();
+    return this.stomp.watchRef(this.ref!.url).pipe(takeUntil(this.destroy$));
+  }
+
+  @memo
   get uiActions(): PluginApi {
     const actions = this.actions.wrap(this.ref);
     return {
@@ -362,7 +377,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref || { url: '', comment: this.text, tags: this.tags }, this.el.nativeElement, this.uiActions));
+    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref || { url: '', comment: this.text, tags: this.tags }, this.el.nativeElement, this.uiActions, this.updates$));
   }
 
   @memo

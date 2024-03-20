@@ -16,12 +16,10 @@ import {
 import { defer, delay, filter, range, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, Subject, Subscription, takeUntil, throwError } from 'rxjs';
-import { Ref } from '../../model/ref';
+import { catchError, Observable, Subject, Subscription, takeUntil, throwError } from 'rxjs';
+import { Ref, RefUpdates } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
-import { StompService } from '../../service/api/stomp.service';
 import { AuthzService } from '../../service/authz.service';
-import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 export type Piece = 'r' | 'b';
@@ -45,7 +43,6 @@ const MAX_PLAYERS = 2;
 })
 export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @HostBinding('class') css = 'backgammon-board';
-  private destroy$ = new Subject<void>();
   private disposers: IReactionDisposer[] = [];
 
   @Input()
@@ -55,6 +52,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   ref?: Ref;
   @Input()
   text? = '';
+  @Input()
+  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -109,11 +108,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   private incomingRolling?: Piece;
 
   constructor(
-    public config: ConfigService,
     private store: Store,
     private auth: AuthzService,
     private refs: RefService,
-    private stomp: StompService,
     private el: ElementRef<HTMLDivElement>,
   ) {
     this.disposers.push(autorun(() => {
@@ -132,72 +129,68 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   init() {
     this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf?.redName || $localize`Red`) + '"');
     this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
-    if (!this.watch && this.ref && this.config.websockets) {
-      this.refs.page({ url: this.ref.url, obsolete: true, size: MAX_PLAYERS, sort: ['modified,DESC']}).subscribe(page => {
-        this.watch = this.stomp.watchRef(this.ref!.url).pipe(
-          takeUntil(this.destroy$),
-        ).subscribe(u => {
-          if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
-          else this.ref!.modifiedString = u.modifiedString;
-          const prev = [...this.board];
-          const current = (u.comment || '')
-            .trim()
-            .split('\n')
-            .map(m => m.trim())
-            .filter(m => !!m);
-          const minLen = Math.min(prev.length, current.length);
-          for (let i = 0; i < minLen; i++) {
-            if (prev[i] !== current[i]) {
-              prev.splice(0, i);
-              current.splice(0, i);
-              break;
-            }
-            if (i === minLen - 1) {
-              prev.splice(0, minLen);
-              current.splice(0, minLen);
-            }
+    if (!this.watch && this.updates$) {
+      this.watch = this.updates$.subscribe(u => {
+        if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
+        else this.ref!.modifiedString = u.modifiedString;
+        const prev = [...this.board];
+        const current = (u.comment || '')
+          .trim()
+          .split('\n')
+          .map(m => m.trim())
+          .filter(m => !!m);
+        const minLen = Math.min(prev.length, current.length);
+        for (let i = 0; i < minLen; i++) {
+          if (prev[i] !== current[i]) {
+            prev.splice(0, i);
+            current.splice(0, i);
+            break;
           }
-          const multiple = current[0]?.replace(/\(\d\)/, '');
-          if (prev.length === 1 && current.length && prev[0].replace(/\(\d\)/, '') === multiple) {
-            prev.length = 0;
-            current[0] = multiple;
+          if (i === minLen - 1) {
+            prev.splice(0, minLen);
+            current.splice(0, minLen);
           }
-          if (prev.length) {
-            window.alert($localize`Game history was rewritten!`);
-            this.ref = u;
-            this.store.eventBus.refresh(u);
-          }
-          if (prev.length || !current.length) return;
-          this.ref!.comment = u.comment;
-          this.store.eventBus.refresh(this.ref);
-          this.load(current);
-          const roll = current.find(m => m.includes('-'));
-          if (roll) {
-            const lastRoll = this.incomingRolling = roll.split(' ')[0] as Piece;
-            requestAnimationFrame(() => {
-              if (lastRoll != this.incomingRolling) return;
-              this.rolling = this.incomingRolling;
-              delay(() => this.rolling = undefined, 3400);
-            });
-          }
-          if (current.find(m => m.includes('/'))) {
-            const lastMove = this.incoming = current.filter(m => m.includes('/')).map(m => parseInt(m.split(/\D+/g).filter(m => !!m).pop()!) - 1);
-            this.incomingRedBar = current.filter(m => m.includes('*') && m.startsWith('b')).length;
-            this.incomingBlackBar = current.filter(m => m.includes('*') && m.startsWith('r')).length;
-            requestAnimationFrame(() => {
-              if (lastMove != this.incoming) return;
-              this.setBounce(this.incoming);
-              this.redBarBounce ||= this.incomingRedBar;
-              this.blackBarBounce ||= this.incomingBlackBar;
-              clearTimeout(this.bounce);
-              this.bounce = delay(() => {
-                this.clearBounce();
-                delete this.bounce;
-                this.incomingRedBar = this.incomingBlackBar = 0;
-              }, 3400);
-            });
-          }
-        });
+        }
+        const multiple = current[0]?.replace(/\(\d\)/, '');
+        if (prev.length === 1 && current.length && prev[0].replace(/\(\d\)/, '') === multiple) {
+          prev.length = 0;
+          current[0] = multiple;
+        }
+        if (prev.length) {
+          window.alert($localize`Game history was rewritten!`);
+          this.ref = u;
+          this.store.eventBus.refresh(u);
+        }
+        if (prev.length || !current.length) return;
+        this.ref!.comment = u.comment;
+        this.store.eventBus.refresh(this.ref);
+        this.load(current);
+        const roll = current.find(m => m.includes('-'));
+        if (roll) {
+          const lastRoll = this.incomingRolling = roll.split(' ')[0] as Piece;
+          requestAnimationFrame(() => {
+            if (lastRoll != this.incomingRolling) return;
+            this.rolling = this.incomingRolling;
+            delay(() => this.rolling = undefined, 3400);
+          });
+        }
+        if (current.find(m => m.includes('/'))) {
+          const lastMove = this.incoming = current.filter(m => m.includes('/')).map(m => parseInt(m.split(/\D+/g).filter(m => !!m).pop()!) - 1);
+          this.incomingRedBar = current.filter(m => m.includes('*') && m.startsWith('b')).length;
+          this.incomingBlackBar = current.filter(m => m.includes('*') && m.startsWith('r')).length;
+          requestAnimationFrame(() => {
+            if (lastMove != this.incoming) return;
+            this.setBounce(this.incoming);
+            this.redBarBounce ||= this.incomingRedBar;
+            this.blackBarBounce ||= this.incomingBlackBar;
+            clearTimeout(this.bounce);
+            this.bounce = delay(() => {
+              this.clearBounce();
+              delete this.bounce;
+              this.incomingRedBar = this.incomingBlackBar = 0;
+            }, 3400);
+          });
+        }
       });
     }
     if (this.local) {
@@ -235,8 +228,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.resizeObserver?.disconnect();
