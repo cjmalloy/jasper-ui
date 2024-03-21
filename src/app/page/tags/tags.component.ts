@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { AdminService } from '../../service/admin.service';
+import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { ModService } from '../../service/mod.service';
 import { ExtStore } from '../../store/ext';
@@ -28,6 +29,7 @@ export class TagsPage implements OnInit, OnDestroy {
     public store: Store,
     public query: ExtStore,
     private auth: AuthzService,
+    private exts: ExtService,
   ) {
     mod.setTitle($localize`Tags`);
     store.view.clear('modified,DESC', 'name,ASC');
@@ -36,7 +38,9 @@ export class TagsPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.template || this.defaultTitle;
+      this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.ext?.name || this.store.view.template || this.defaultTitle;
+      this.exts.getCachedExt(this.store.view.template)
+        .subscribe(ext => this.title = ext.name || this.title);
       const query
         = this.store.view.home
         ? [...getPrefixes('home'), ...this.store.account.subs, ...this.store.account.bookmarks].filter(t => this.auth.tagReadAccess(t)).join('|')
