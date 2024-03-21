@@ -21,6 +21,8 @@ export class NavComponent implements OnInit {
   text = '';
   @Input()
   css = 'css';
+  @Input()
+  external = false;
 
   nav?: (string|number)[];
 
@@ -39,7 +41,7 @@ export class NavComponent implements OnInit {
           .pipe(this.admin.extFallback)
           .subscribe(x => this.text = x.name || this.text);
       }
-    } else {
+    } else if (!this.external) {
       this.refs.page({ url: this.url, size: 1 }).pipe(
         map(page => page.empty ? null : page.content[0])
       ).subscribe(ref => {

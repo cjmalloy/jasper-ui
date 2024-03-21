@@ -29,8 +29,11 @@
       (pointerenter)="allowActions = true"
       (pointerleave)="allowActions = false">
   <div [class.has-title]="clickableLink || title && !focused">
-    <a *ngIf="clickableLink && (title && !focused || !media)" [href]="url | safe" target="{{ !localhost ? '_blank' : '' }}">{{ title }}</a>
-    <span *ngIf="!clickableLink && (title && !focused || !expand)">{{ title }}</span>
+    @if (clickableLink && (title && !focused || !media)) {
+      <app-nav [url]="ref.url" [text]="title" [external]="true"></app-nav>
+    } @else {
+      <span>{{ title }}</span>
+    }
     <app-md *ngIf="focused && bareRef?.comment"
             [origin]="ref.origin!"
             [text]="bareRef!.comment!"

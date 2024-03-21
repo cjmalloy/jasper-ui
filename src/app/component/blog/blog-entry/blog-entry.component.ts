@@ -147,10 +147,10 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   }
 
   @memo
-  get title() {
+  get title(): string {
     const title = (this.ref.title || '').trim();
     const comment = (this.ref.comment || '').trim();
-    if (title) return this.ref.title;
+    if (title) return title;
     if (!comment) return this.ref.url;
     if (comment.length <= 140) return comment;
     return comment.substring(0, 140);
