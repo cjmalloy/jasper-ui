@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, intersection, uniq, without } from 'lodash-es';
+import { defer, intersection, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, map, switchMap, throwError } from 'rxjs';
@@ -334,7 +334,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
       scrollToFirstInvalid();
       return;
     }
-    const tags = [...without(this.editForm.value.tags, ...this.admin.editorTags), ...this.editorPlugins];
+    const tags = uniq([...this.editForm.value.tags, ...this.editorPlugins]);
     const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.update({
       ...this.ref,

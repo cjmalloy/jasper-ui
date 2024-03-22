@@ -868,7 +868,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq([...without(this.editForm.value.tags, ...this.admin.editorTags), ...this.editorPlugins]);
+    const tags = uniq([...this.editForm.value.tags, ...this.editorPlugins]);
     const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     let ref = {
       ...this.editForm.value,

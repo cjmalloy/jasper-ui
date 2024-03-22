@@ -33,7 +33,6 @@ import { fullscreenPlugin } from '../mods/fullscreen';
 import { graphConfig } from '../mods/graph';
 import { homeTemplate } from '../mods/home';
 import { htmlToMarkdownConfig } from '../mods/htmlToMarkdown';
-import { lockedIcon, privateIcon } from '../mods/icons';
 import { imageMod } from '../mods/image';
 import { kanbanTemplate } from '../mods/kanban';
 import { lensMod } from '../mods/lens';
@@ -50,7 +49,7 @@ import { pollMod } from '../mods/poll';
 import { qrPlugin } from '../mods/qr';
 import { queueMod } from '../mods/queue';
 import { repostPlugin } from '../mods/repost';
-import { rootTemplate } from '../mods/root';
+import { rootMod } from '../mods/root';
 import { scrapePlugin } from '../mods/scrape';
 import { seamlessPlugin } from '../mods/seamless';
 import { snippetConfig } from '../mods/snippet';
@@ -138,7 +137,7 @@ export class AdminService {
     },
     templates: <Record<string, Template>> {
       ...debugMod.templates,
-      root: rootTemplate,
+      ...rootMod.templates,
       user: userTemplate,
       folder: folderTemplate,
       home: homeTemplate,
@@ -156,10 +155,6 @@ export class AdminService {
       ...todoMod.templates,
       ...ninjaTriangleMod.templates,
       playlistTemplate: playlistTemplate,
-
-      // Icons
-      lockedIcon: lockedIcon,
-      privateIcon: privateIcon,
 
       // Themes
       ...themesMod.templates,
@@ -479,12 +474,8 @@ export class AdminService {
     return this.templateConfigProperty('view');
   }
 
-  get editors() {
-    return this.pluginConfigProperty('editor');
-  }
-
-  get editorTags() {
-    return this.editors.map(p => p.tag);
+  get editorButtons() {
+    return this.configProperty('editorButtons');
   }
 
   get uis() {
@@ -634,6 +625,20 @@ export class AdminService {
       .filter(i => !i.role || this.auth.hasRole(i.role));
   }
 
+  getEditorButtons(tags?: string[], scheme?: string) {
+    const match = ['plugin', ...(tags || [])];
+    return this.editorButtons
+      .flatMap(config => config.config!.editorButtons!.filter(b => {
+        if (b.global) return true;
+        if (b.scheme && b.scheme === scheme) return true;
+        return includesTag(config.tag, match);
+      }).map(addParent(config))
+        .map(b => {
+          if (b.ribbon || !b.event) b.toggle ||= config.tag;
+          return b;
+        }));
+  }
+
   getTemplateView(tag: string) {
     return this.tmplView
       .filter(t => hasPrefix(tag, t.tag));
@@ -652,11 +657,6 @@ export class AdminService {
 
   getPlugins(tags: string[]) {
     return Object.values(this.status.plugins).filter(p => tags.includes(p?.tag || '')) as Plugin[];
-  }
-
-  getEditors(tags?: string[]) {
-    const match = tags || [];
-    return this.editors.filter(p => match.includes(p.tag));
   }
 
   getPluginUi(tags?: string[]) {

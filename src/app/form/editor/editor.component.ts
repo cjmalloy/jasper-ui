@@ -15,6 +15,7 @@ import { UntypedFormControl } from '@angular/forms';
 import Europa from 'europa';
 import { debounce, throttle, uniq, without } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
+import { EditorButton, sortOrder } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
@@ -53,8 +54,6 @@ export class EditorComponent {
   control!: UntypedFormControl;
   @Input()
   autoFocus = false;
-  @Input()
-  showScrape = false;
   @Input()
   url = '';
   @Input()
@@ -107,25 +106,36 @@ export class EditorComponent {
   }
 
   get editors() {
-    return this.editorPlugins.map(p => p.tag);
+    return this.editorButtons.map(p => p?.toggle as string).filter(p => !!p);
   }
 
-  get editorPlugins() {
-    return this.admin.editors.filter(e => this.auth.canAddTag(e.tag));
+  get editorButtons() {
+    return sortOrder(this.admin.getEditorButtons(this.tags, this.scheme)).reverse();
+  }
+
+  get scheme() {
+    if (!this.url) return '';
+    if (!this.url.includes(':')) return '';
+    return this.url.substring(0, this.url.indexOf(':') + 1);
   }
 
   get currentText() {
     return this._text || this.control?.value || '';
   }
 
-  toggleTag(tag: string) {
+  toggleTag(button: EditorButton) {
+    if (button.event) this.fireEvent(button.event);
+    const tag = button.toggle!;
     if (this.tags?.includes(tag)) {
       this.syncTags.next(this.tags = without(this.tags!, tag));
-    } else {
+      if (button.remember && this.admin.getTemplate('user')) {
+        this.accounts.removeConfigArray$('editors', tag).subscribe();
+      }
+    } else if (tag !== 'locked' || window.confirm($localize`Locking is permanent once saved. Are you sure you want to lock?`)) {
       this.syncTags.next(this.tags = [...this.tags || [], tag]);
-    }
-    if (this.admin.getTemplate('user')) {
-      this.accounts.updateConfig('editors', this.tags).subscribe();
+      if (button.remember && this.admin.getTemplate('user')) {
+        this.accounts.addConfigArray$('editors', tag).subscribe();
+      }
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
   }
@@ -214,14 +224,27 @@ export class EditorComponent {
     }
   }
 
-  htmlToMarkdown() {
-    this.europa ||= new Europa({
-      absolute: !!this.url,
-      baseUri: this.url,
-      inline: true,
-    });
-    const md = this.europa.convert(this.editor!.nativeElement.value);
-    this.control.setValue(md);
-    this.syncText(md);
+  visible(button: EditorButton) {
+    if (button.scheme && button.scheme !== this.scheme) return false;
+    if (button.toggle && !this.auth.canAddTag(button.toggle)) return false;
+    if (button.global) return true;
+    return this.tags?.includes(button._parent!.tag);
+  }
+
+  fireEvent(event: string) {
+    if (event === 'html-to-markdown') {
+      this.europa ||= new Europa({
+        absolute: !!this.url,
+        baseUri: this.url,
+        inline: true,
+      });
+      const md = this.europa.convert(this.editor!.nativeElement.value);
+      this.control.setValue(md);
+      this.syncText(md);
+    } else if (event === 'scrape') {
+      this.scrape.emit();
+    } {
+      this.store.eventBus.fire(event);
+    }
   }
 }

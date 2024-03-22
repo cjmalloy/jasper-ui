@@ -30,8 +30,10 @@ export class ExtFormComponent implements OnInit {
 
   @ViewChild('fill')
   fill?: ElementRef;
-  @ViewChild(FormlyForm)
-  formlyForm?: FormlyForm;
+  @ViewChild('mainFormlyForm')
+  mainFormlyForm?: FormlyForm;
+  @ViewChild('advancedFormlyForm')
+  advancedFormlyForm?: FormlyForm;
 
   form?: FormlyFieldConfig[];
   advancedForm?: FormlyFieldConfig[];
@@ -124,10 +126,16 @@ export class ExtFormComponent implements OnInit {
     defer(() => {
       this.group!.patchValue(ext);
       this.options.formState.config = ext.config;
-      this.formlyForm!.model = ext.config;
+      this.mainFormlyForm!.model = ext.config;
       // TODO: Why aren't changed being detected?
       // @ts-ignore
-      this.formlyForm.builder.build(this.formlyForm.field);
+      this.mainFormlyForm.builder.build(this.mainFormlyForm.field);
+      if (this.advancedFormlyForm) {
+        this.advancedFormlyForm!.model = ext.config;
+        // TODO: Why aren't changed being detected?
+        // @ts-ignore
+        this.advancedFormlyForm.builder.build(this.advancedFormlyForm.field);
+      }
     });
   }
 }

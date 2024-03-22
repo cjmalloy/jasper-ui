@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { difference, uniq, without } from 'lodash-es';
+import { difference, uniq } from 'lodash-es';
 import { catchError, Subject, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { AccountService } from '../../../service/account.service';
@@ -53,7 +53,7 @@ export class CommentEditComponent implements AfterViewInit {
 
   get patchTags() {
     return getIfNew([
-      ...without(this.ref.tags, ...this.admin.editorTags),
+      ...this.ref.tags || [],
       ...getTags(this.comment.value),
       ...getMailboxes(this.comment.value, this.store.account.origin),
       ...this.plugins],

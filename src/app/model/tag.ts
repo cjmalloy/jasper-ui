@@ -96,6 +96,10 @@ export interface Config extends Tag {
      */
     snippet?: string,
     /**
+     * Optional buttons to add to the editor.
+     */
+    editorButtons?: EditorButton[],
+    /**
      * Optional formly config for editing a form defined by the schema.
      */
     form?: FormlyFieldConfig[],
@@ -166,7 +170,7 @@ export interface Visibility {
    */
   visible?: 'author' | 'recipient' | 'participant';
   /**
-   * Add this to every Ref, not just Refs with this plugin.
+   * Add this to every Ref, not just Refs with this tag.
    */
   global?: boolean;
   /**
@@ -190,7 +194,7 @@ export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) 
   return false;
 }
 
-export function sortOrder<T extends Visibility>(vs: T[]) {
+export function sortOrder<T extends { order?: number }>(vs: T[]) {
   return vs.sort((a, b) => {
     if (!a.order || !b.order) return (b.order || 0) - (a.order || 0);
     if (Math.sign(a.order) !== Math.sign(b.order)) return b.order - a.order;
@@ -255,6 +259,61 @@ export interface FilterConfig {
   response?: `plugin/${string}` | `!plugin/${string}`;
   label?: string;
   group?: string;
+}
+
+export interface EditorButton {
+  /**
+   * Label for editor button.
+   */
+  label?: string;
+  /**
+   * Optional tooltip.
+   */
+  title?: string;
+  /**
+   * Label for editor button when toggled.
+   */
+  labelOn?: string;
+  /**
+   * Label for editor button when un-toggled.
+   */
+  labelOff?: string;
+  /**
+   * Tag to toggle on/off.
+   */
+  toggle?: string;
+  /**
+   * Show toggle as ribbon.
+   */
+  ribbon?: boolean;
+  /**
+   * Save toggle choice as default.
+   */
+  remember?: boolean;
+  /**
+   * Event to emit when clicked.
+   */
+  event?: string;
+  /**
+   * Only show button if URL is of scheme.
+   */
+  scheme?: `${string}:`;
+  /**
+   * Show button on all Refs, not just refs with this tag.
+   */
+  global?: boolean;
+  /**
+   * Optional number to influence order relative to other items.
+   * Unset or 0 has no impact on ordering.
+   * Lower positive numbers will be towards the left or start, higher positive
+   * numbers will be towards the right or end.
+   * Negative numbers will reverse alignment. i.e. 1 will be first and -1 will
+   * be last.
+   */
+  order?: number;
+
+  //cache
+  _parent?: Config;
 }
 
 export type Action = TagAction | ResponseAction | EmitAction | EventAction;

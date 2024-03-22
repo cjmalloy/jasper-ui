@@ -19,28 +19,32 @@
         }
       </button>
     }
-    @if (showScrape) {
-      <button type="button"
-              (click)="scrape.emit()"
-              i18n-title title="Scrape Webpage" i18n>🪝</button>
+    @for (button of editorButtons; track button; let i = $index) {
+      @if (!button.ribbon && visible(button)) {
+        @if (!button.event) {
+          <button type="button"
+                  (click)="toggleTag(button)"
+                  [title]="button.title" i18n>{{(tags?.includes(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</button>
+        } @else {
+          <button type="button"
+                  (click)="fireEvent(button.event)"
+                  [title]="button.title" i18n>{{ button.label }}</button>
+        }
+      }
     }
-    @if (admin.getTemplate('htmlToMarkdown')) {
-      <button type="button"
-              (click)="htmlToMarkdown()"
-              i18n-title title="Convert HTML to Markdown" i18n>⬇️</button>
-    }
-    @for (plugin of editorPlugins; track plugin; let i = $index) {
-      <div class="editor-plugin">
-        <input type="checkbox"
-               [style.display]="'none'"
-               [id]="id + i"
-               [checked]="tags?.includes(plugin.tag)"
-               (click)="toggleTag(plugin.tag)">
-        <label [for]="id + i"
-               [class.on]="tags?.includes(plugin.tag)"
-               [title]="plugin.name || plugin.tag">{{ plugin.config?.editor }}
-        </label>
-      </div>
+    @for (button of editorButtons; track button; let i = $index) {
+      @if (button.ribbon && visible(button)) {
+        <div class="editor-toggle">
+          <input type="checkbox"
+                 [style.display]="'none'"
+                 [id]="'ribbon-' + id + i"
+                 [checked]="tags?.includes(button.toggle!)"
+                 (click)="toggleTag(button)">
+          <label [for]="'ribbon-' + id + i"
+                 [class.on]="tags?.includes(button.toggle!)"
+                 [title]="button.title">{{(tags?.includes(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</label>
+        </div>
+      }
     }
   </div>
   <textarea #editor
