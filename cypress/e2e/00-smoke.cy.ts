@@ -14,7 +14,7 @@ describe('Smoke Tests', {
     cy.visit('/?debug=ADMIN');
     openSidebar();
     cy.contains('Submit').click();
-    cy.get('#url').type('https://www.jasper-kms.info/');
+    cy.get('#url').type('https://jasperkm.info/');
     cy.contains('Next').click();
     cy.wait(1000); // First part of 'Title' getting truncated
     cy.get('#title').type('Title');
@@ -24,7 +24,7 @@ describe('Smoke Tests', {
   it('deletes a ref', () => {
     cy.get('.full-page.ref .actions *').contains('delete').click();
     cy.get('.full-page.ref .actions *').contains('yes').click();
-    cy.visit(`/ref/e/${encodeURIComponent('https://www.jasper-kms.info/')}?debug=USER`);
+    cy.visit(`/ref/e/${encodeURIComponent('https://jasperkm.info/')}?debug=USER`);
     cy.contains('Not Found');
   });
   it('loads the ADMIN user', () => {
