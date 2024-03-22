@@ -1,6 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { RouterModule } from '@angular/router';
 
 import { InboxAlarmsPage } from './alarms.component';
 
@@ -13,7 +13,7 @@ describe('InboxAlarmsPage', () => {
       declarations: [ InboxAlarmsPage ],
       imports: [
         HttpClientTestingModule,
-        RouterTestingModule,
+        RouterModule.forRoot([]),
       ]
     });
     fixture = TestBed.createComponent(InboxAlarmsPage);

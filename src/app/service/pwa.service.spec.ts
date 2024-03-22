@@ -1,6 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { RouterModule } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 
 import { PwaService } from './pwa.service';
@@ -12,7 +12,7 @@ describe('PwaService', () => {
     TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,
-        RouterTestingModule,
+        RouterModule.forRoot([]),
       ],
       providers: [{
         provide: SwUpdate,

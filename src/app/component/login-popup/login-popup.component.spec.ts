@@ -1,6 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { RouterModule } from '@angular/router';
 import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
 
 import { LoginPopupComponent } from './login-popup.component';
@@ -13,7 +13,7 @@ describe('LoginPopupComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ LoginPopupComponent ],
       imports: [
-        RouterTestingModule,
+        RouterModule.forRoot([]),
         HttpClientTestingModule,
       ],
       providers: [

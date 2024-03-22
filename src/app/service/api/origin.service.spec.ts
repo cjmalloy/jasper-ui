@@ -1,6 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { RouterModule } from '@angular/router';
 
 import { OriginService } from './origin.service';
 
@@ -11,7 +11,7 @@ describe('OriginService', () => {
     TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,
-        RouterTestingModule,
+        RouterModule.forRoot([]),
       ],
     });
     service = TestBed.inject(OriginService);

@@ -1,7 +1,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
+import { RouterModule } from '@angular/router';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 
 import { SubmitTextPage } from './text.component';
@@ -16,7 +16,7 @@ describe('SubmitTextPage', () => {
       imports: [
         HttpClientTestingModule,
         ReactiveFormsModule,
-        RouterTestingModule,
+        RouterModule.forRoot([]),
       ],
     })
     .compileComponents();

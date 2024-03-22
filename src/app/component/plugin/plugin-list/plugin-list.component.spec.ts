@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { RouterModule } from '@angular/router';
 
 import { PluginListComponent } from './plugin-list.component';
 
@@ -11,7 +11,7 @@ describe('PluginListComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ PluginListComponent ],
       imports: [
-        RouterTestingModule,
+        RouterModule.forRoot([]),
       ],
     })
     .compileComponents();

@@ -1,6 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { RouterModule } from '@angular/router';
 import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
 
 import { BackgammonComponent } from './backgammon.component';
@@ -13,7 +13,7 @@ describe('BackgammonComponent', () => {
     TestBed.configureTestingModule({
       declarations: [BackgammonComponent], imports: [
         HttpClientTestingModule,
-        RouterTestingModule,
+        RouterModule.forRoot([]),
       ],
       providers: [
         { provide: OAuthService, useValue: {} },

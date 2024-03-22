@@ -1,7 +1,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
+import { RouterModule } from '@angular/router';
 
 import { SettingsPasswordPage } from './password.component';
 
@@ -14,7 +14,7 @@ describe('SettingsPasswordPage', () => {
       declarations: [ SettingsPasswordPage ],
       imports: [
         HttpClientTestingModule,
-        RouterTestingModule,
+        RouterModule.forRoot([]),
         ReactiveFormsModule,
       ],
     })
