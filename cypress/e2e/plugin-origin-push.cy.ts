@@ -54,7 +54,7 @@ describe('Origin Push Plugin', {
     cy.get('.tabs').contains('origin').click();
     openSidebar();
     cy.get('input[type=search]').type(replOtherApiProxy + '{enter}');
-    cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
+    cy.get('.link:not(.remote)').contains('@other').parent().parent().parent().as('other');
     cy.intercept({pathname: '/api/v1/origin/push'}).as('push');
     cy.get('@other').find('.actions').contains('push').click();
     cy.wait('@push');
@@ -62,7 +62,7 @@ describe('Origin Push Plugin', {
   });
   it('check ref was scraped', () => {
     cy.visit(replUrl + '/tag/@other?debug=ADMIN');
-    cy.get('.ref-list .link.remote').contains('Push Test').parent().parent().as('ref');
+    cy.get('.ref-list .link.remote').contains('Push Test').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('bob@other');
   });
   it('@main: delete remote @other', () => {
@@ -71,7 +71,7 @@ describe('Origin Push Plugin', {
     cy.get('.tabs').contains('origin').click();
     openSidebar();
     cy.get('input[type=search]').type(replOtherApiProxy + '{enter}');
-    cy.get('.link:not(.remote)').contains('@other').parent().parent().as('other');
+    cy.get('.link:not(.remote)').contains('@other').parent().parent().parent().as('other');
     cy.get('@other').find('.actions').contains('delete').click();
     cy.get('@other').find('.actions').contains('yes').click();
   });
