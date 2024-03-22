@@ -264,10 +264,10 @@ select {
       margin-right: 0;
     }
     label {
-      border: 1px dashed var(--border);
+      border: 1px dashed var(--border) !important;
     }
     label.on {
-      border: 0.5px solid var(--border);
+      border: 0.5px solid var(--border) !important;
     }
   }
 
