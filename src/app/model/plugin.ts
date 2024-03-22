@@ -51,10 +51,6 @@ export interface Plugin extends Config {
      */
     settings?: string,
     /**
-     * Add a ribbon to the editor to enable this plugin.
-     */
-    editor?: string,
-    /**
      * Disable the editor and use the viewer to edit.
      */
     editingViewer?: boolean;

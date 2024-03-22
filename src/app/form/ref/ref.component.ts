@@ -144,20 +144,23 @@ export class RefFormComponent implements OnInit {
   }
 
   scrapeComment() {
-    // TODO: oEmbed
-    this.scrape$.subscribe(ref => {
-      if (!hasMedia(ref) || hasMedia(this.group.value)) {
-        this.setComment(ref.comment || '');
-      }
-      this.tags.addTag(...(ref.tags || []));
-      this.plugins.tags = this.group.value.tags;
-      defer(() => {
-        this.plugins.setValue({
-          ...(this.group.value.plugins || {}),
-          ...(ref.plugins || {}),
+    if (this.oembed) {
+      // TODO: oEmbed
+    } else {
+      this.scrape$.subscribe(ref => {
+        if (!hasMedia(ref) || hasMedia(this.group.value)) {
+          this.setComment(ref.comment || '');
+        }
+        this.tags.addTag(...(ref.tags || []));
+        this.plugins.tags = this.group.value.tags;
+        defer(() => {
+          this.plugins.setValue({
+            ...(this.group.value.plugins || {}),
+            ...(ref.plugins || {}),
+          });
         });
       });
-    });
+    }
   }
 
   togglePlugin(tag: string) {

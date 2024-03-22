@@ -85,7 +85,6 @@
                   [tags]="getTags()"
                   [fillWidth]="fill"
                   [url]="web && url.value"
-                  [showScrape]="!!admin.getPlugin('+plugin/scrape') && web && !oembed"
                   (scrape)="scrapeComment()"
                   (syncEditor)="syncEditor()"
                   (syncTags)="editorTags.next($event)"></app-editor>

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { delay, uniq } from 'lodash-es';
+import { delay, isArray, uniq, without } from 'lodash-es';
 import { runInAction } from 'mobx';
 import * as moment from 'moment';
 import { catchError, forkJoin, map, Observable, of, shareReplay, throwError } from 'rxjs';
@@ -161,7 +161,7 @@ export class AccountService {
   addSub(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.addConfigArray('subscriptions', tag).pipe(
+    this.addConfigArray$('subscriptions', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.subscriptions$),
     ).subscribe();
@@ -171,8 +171,7 @@ export class AccountService {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.subscriptions$.pipe(
-      map(subs => subs.indexOf(tag)),
-      switchMap(index => this.removeConfigArray('subscriptions', index)),
+      switchMap(() => this.removeConfigArray$('subscriptions', tag)),
       tap(() => this.clearCache()),
       switchMap(() => this.subscriptions$),
     ).subscribe();
@@ -181,7 +180,7 @@ export class AccountService {
   addBookmark(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.addConfigArray('bookmarks', tag).pipe(
+    this.addConfigArray$('bookmarks', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.bookmarks$),
     ).subscribe();
@@ -191,8 +190,7 @@ export class AccountService {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.bookmarks$.pipe(
-      map(subs => subs.indexOf(tag)),
-      switchMap(index => this.removeConfigArray('bookmarks', index)),
+      switchMap(() => this.removeConfigArray$('bookmarks', tag)),
       tap(() => this.clearCache()),
       switchMap(() => this.bookmarks$),
     ).subscribe();
@@ -201,7 +199,7 @@ export class AccountService {
   addAlarm(tag: string) {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.addConfigArray('alarms', tag).pipe(
+    this.addConfigArray$('alarms', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.alarms$),
     ).subscribe();
@@ -211,8 +209,7 @@ export class AccountService {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.alarms$.pipe(
-      map(subs => subs.indexOf(tag)),
-      switchMap(index => this.removeConfigArray('alarms', index)),
+      switchMap(() => this.removeConfigArray$('alarms', tag)),
       tap(() => this.clearCache()),
       switchMap(() => this.alarms$),
     ).subscribe();
@@ -233,13 +230,13 @@ export class AccountService {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     const lastNotified = readDate.add(1, 'millisecond').toISOString();
-    this.updateConfig('lastNotified', lastNotified).subscribe(() => {
+    this.updateConfig$('lastNotified', lastNotified).subscribe(() => {
       this.clearCache();
       this.checkNotifications();
     });
   }
 
-  updateConfig(name: string, value: any) {
+  updateConfig$(name: keyof UserConfig, value: any) {
     return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
         op: 'add',
         path: '/config/' + name,
@@ -257,15 +254,17 @@ export class AccountService {
       })));
   }
 
-  addConfigArray(name: keyof UserConfig, value: any) {
+  addConfigArray$(name: keyof UserConfig, value: any) {
+    let path = name;
     if (!this.store.account.config[name]) {
       value = [value];
     } else {
-      name += '/-';
+      if ((this.store.account.config[name] as any[]).includes(value)) return of();
+      path += '/-';
     }
     return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
         op: 'add',
-        path: '/config/' + name,
+        path: '/config/' + path,
         value: value,
       }]).pipe(tap(cursor => runInAction(() => {
         this.store.account.ext = <Ext> {
@@ -283,7 +282,10 @@ export class AccountService {
       })));
   }
 
-  removeConfigArray(name: keyof UserConfig, index: number) {
+  removeConfigArray$(name: keyof UserConfig, value: any) {
+    if (!isArray(this.store.account.config[name])) return of();
+    const index = (this.store.account.config[name] as any[]).indexOf(value);
+    if (index === -1) return of();
     return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
       op: 'remove',
       path: '/config/' + name + '/' + index,
@@ -292,7 +294,7 @@ export class AccountService {
           ...this.store.account.ext,
           config: {
             ...this.store.account.config,
-            [name]: (this.store.account.config[name] as any[] || []).splice(index, 1),
+            [name]: without(this.store.account.config[name] as any[], value)
           },
           modified: moment(cursor),
           modifiedString: cursor,

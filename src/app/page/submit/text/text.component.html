@@ -30,7 +30,7 @@
                          (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
       <app-form-plugins id="plugins"
                         (togglePlugin)="bookmarks.toggleTag($event)"
-                        [tags]="textForm.value.tags"
+                        [tags]="$any(textForm.value).tags"
                         [group]="textForm"></app-form-plugins>
 
       @if (tags.editingViewer) {
@@ -49,6 +49,7 @@
                       class="bubble"
                       [control]="comment"
                       (syncEditor)="syncEditor()"
+                      [tags]="$any(textForm.value).tags"
                       (syncTags)="plugins = $event"
                       [fillWidth]="fill"
                       [autoFocus]="store.submit.wiki"></app-editor>

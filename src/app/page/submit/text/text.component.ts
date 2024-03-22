@@ -141,7 +141,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     const added = without(value, ...this._plugins);
     const removed = without(this._plugins, ...value);
     const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
-    this.textForm.setControl('tags', this.fb.array(newTags));
+    this.tags!.setTags(newTags);
     this._plugins = value;
   }
 
