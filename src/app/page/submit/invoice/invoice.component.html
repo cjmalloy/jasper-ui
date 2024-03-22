@@ -6,7 +6,8 @@
          type="email"
          autocorrect="off"
          autocapitalize="none"
-         [value]="queue || ''" (change)="queue = $any($event.target).value">
+         [value]="queue || ''"
+         (change)="queue = $any($event.target).value">
 
   <label for="qr" i18n>QR Code:</label>
   <div class="form-array">
@@ -15,21 +16,29 @@
   </div>
   <span><!-- QR Code Errors --></span>
   <div>
-    <div class="error" *ngIf="url.touched && url.errors?.['required']" i18n>
-      QR Code must not be blank.
-    </div>
-    <div class="error" *ngIf="url.touched && url.errors?.['pattern']" i18n>
-      QR Code must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
-    </div>
+    @if (url.touched) {
+      @if (url.errors?.['required']) {
+        <div class="error" i18n>
+          QR Code must not be blank.
+        </div>
+      }
+      @if (url.errors?.['pattern']) {
+        <div class="error" i18n>
+          QR Code must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
+        </div>
+      }
+    }
   </div>
 
   <label for="title" i18n>Title:</label>
   <input id="title" type="text" [formControl]="title">
   <span><!-- Title Errors --></span>
   <div>
-    <div class="error" *ngIf="title.touched && title.errors?.['required']" i18n>
-      Title must not be blank.
-    </div>
+    @if (title.touched && title.errors?.['required']) {
+      <div class="error" i18n>
+        Title must not be blank.
+      </div>
+    }
   </div>
 
   <span><!-- Message --></span>
@@ -41,10 +50,10 @@
                 (syncTags)="plugins = $event"></app-editor>
   </div>
 
-  <ng-container *ngFor="let e of serverError">
+  @for (e of serverError; track e) {
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
-  </ng-container>
+  }
 
   <span><!-- Buttons --></span>
   <span class="buttons form-array right">

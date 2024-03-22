@@ -1,17 +1,23 @@
-<div *ngIf="icons.length">
-    <span *ngFor="let icon of icons"
-          class="icon"
-          [appTitle]="icon"
-          [ref]="group.value">{{ icon.label || icon.thumbnail }}</span>
-</div>
-<ng-container *ngFor="let plugin of forms">
-  <app-form-gen #gen
-                *ngIf="!plugin.config?.submitChild"
-                [plugins]="plugins"
-                [plugin]="plugin"
-                (togglePlugin)="togglePlugin.next($event)"
-                [children]="admin.getPluginSubForms(plugin.tag)"></app-form-gen>
-</ng-container>
-<div class="empty-plugins" *ngIf="empty">
-  no plugins
-</div>
+@if (icons.length) {
+  <div>
+    @for(icon of icons; track icon) {
+      <span class="icon"
+            [appTitle]="icon"
+            [ref]="group.value">{{ icon.label || icon.thumbnail }}</span>
+    }
+  </div>
+}
+@for (plugin of forms; track plugin) {
+  @if (!plugin.config?.submitChild) {
+    <app-form-gen #gen
+                  [plugins]="plugins"
+                  [plugin]="plugin"
+                  (togglePlugin)="togglePlugin.next($event)"
+                  [children]="admin.getPluginSubForms(plugin.tag)"></app-form-gen>
+  }
+}
+@if (empty) {
+  <div class="empty-plugins">
+    no plugins
+  </div>
+}

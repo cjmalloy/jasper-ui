@@ -1,12 +1,14 @@
 <div class="list-container">
-  <ng-container *ngFor="let id of list; let i = index">
+  @for (id of list; track id; let i = $index) {
     <div class="list-number">{{ i + 1 }}</div>
     <app-backup [id]="id"
                 [origin]="origin"></app-backup>
-  </ng-container>
+  }
 </div>
-<app-loading *ngIf="!list"></app-loading>
-
-<p class="no-results" *ngIf="list && list.length === 0">
-  No results found
-</p>
+@if (!list) {
+  <app-loading></app-loading>
+} @else if (list.length === 0) {
+  <p class="no-results">
+    No results found
+  </p>
+}

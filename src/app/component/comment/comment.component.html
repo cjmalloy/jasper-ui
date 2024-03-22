@@ -144,7 +144,7 @@
     </a>
   </ng-container>
 
-  <ng-container *ngFor="let e of serverError">
+  @for (e of serverError; track e) {
     <div class="error">{{ e }}</div>
-  </ng-container>
+  }
 </ng-container>

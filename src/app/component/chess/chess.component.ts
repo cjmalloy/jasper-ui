@@ -181,11 +181,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.resizeObserver?.disconnect();
   }
 
-  trackByPiece(index: number, value: Piece | null) {
-    if (!value) return index;
-    return `${value.color}-${value.type}`;
-  }
-
   reset(board?: string) {
     if (this.board === board) return;
     this.board = board;

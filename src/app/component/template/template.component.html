@@ -43,10 +43,10 @@
                      [defaultsErrors]="defaultsErrors"
                      [schemaErrors]="schemaErrors"></app-template-form>
 
-  <ng-container *ngFor="let e of serverError">
+  @for (e of serverError; track e) {
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
-  </ng-container>
+  }
 
   <span><!-- Buttons --></span>
   <span class="buttons form-array right">
@@ -60,7 +60,7 @@
 </form>
 
 <ng-template #showErrors>
-  <ng-container *ngFor="let e of serverError">
+  @for (e of serverError; track e) {
     <div class="error">{{ e }}</div>
-  </ng-container>
+  }
 </ng-template>

@@ -15,37 +15,42 @@
 </form>
 
 <div class="buttons">
-  <button *ngIf="store.account.admin"
-          type="button"
-          (click)="backup()"
-          i18n-title
-          title="Create Backup"
-          class="backup" i18n>+ backup</button>
+  @if (store.account.admin) {
+    <button type="button"
+            (click)="backup()"
+            i18n-title
+            title="Create Backup"
+            class="backup" i18n>+ backup</button>
+  }
 
-  <button *ngIf="store.account.mod"
-          type="button"
-          (click)="backfill()"
-          i18n-title
-          title="Backfill Metadata"
-          class="backfill" i18n>♻️ backfill</button>
+  @if (store.account.mod) {
+    <button type="button"
+            (click)="backfill()"
+            i18n-title
+            title="Backfill Metadata"
+            class="backfill" i18n>♻️ backfill</button>
+  }
 
-  <button *ngIf="!uploading"
-          type="button"
-          (click)="uploadFile.click()"
-          i18n-title
-          title="Upload Backup"
-          class="upload" i18n>+ upload</button>
-  <app-loading *ngIf="uploading"></app-loading>
+  @if (!uploading) {
+    <button
+      type="button"
+      (click)="uploadFile.click()"
+      i18n-title
+      title="Upload Backup"
+      class="upload" i18n>+ upload</button>
+  } @else {
+    <app-loading></app-loading>
+  }
   <input #uploadFile
          type="file"
          class="upload"
          (change)="upload(uploadFile?.files!)">
 </div>
 
-<ng-container *ngFor="let e of serverError">
+@for (e of serverError; track e) {
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
-</ng-container>
+}
 
 <app-backup-list [list]="list"
                  [origin]="origin"></app-backup-list>

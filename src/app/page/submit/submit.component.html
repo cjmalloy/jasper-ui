@@ -3,7 +3,9 @@
     <a class="logo" routerLink="/"></a>
     <h5 class="fake-link" routerLink="." i18n>
       Submit
-      <span *ngIf="selectedPlugin">{{ selectedPlugin.name || selectedPlugin.config?.submit || selectedPlugin.tag }}</span>
+      @if (selectedPlugin) {
+        <span>{{ selectedPlugin.name || selectedPlugin.config?.submit || selectedPlugin.tag }}</span>
+      }
     </h5>
     <a routerLink="/submit"
        [class.current-tab]="store.submit.web && !store.submit.genId"
@@ -21,20 +23,21 @@
        [class.current-tab]="store.submit.upload"
        i18n-title title="💾️ Upload"
        queryParamsHandling="merge" i18n>upload</a>
-    <ng-container *ngIf="!admin.isWikiExternal()">
+    @if (!admin.isWikiExternal()) {
       <a routerLink="/submit"
          [class.current-tab]="store.submit.wiki"
          [queryParams]="{ url: wikify, tag: store.submit.withoutGenId }"
          [replaceUrl]="true"
          i18n-title title="📔️ Wiki Page"
          queryParamsHandling="merge" i18n>wiki</a>
-    </ng-container>
-    <a routerLink="/submit/dm"
-       *ngIf="admin.getTemplate('dm')"
-       [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.dmPlugin"
-       [queryParams]="{ to: null, tag: null }"
-       i18n-title title="📨️ Direct Message"
-       queryParamsHandling="merge" i18n>dm</a>
+    }
+    @if (admin.getTemplate('dm')) {
+      <a routerLink="/submit/dm"
+         [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.dmPlugin"
+         [queryParams]="{ to: null, tag: null }"
+         i18n-title title="📨️ Direct Message"
+         queryParamsHandling="merge" i18n>dm</a>
+    }
     @for (p of store.submit.submitGenId; track p) {
       @if (p.config?.submitDm) {
         <a routerLink="/submit/dm"
@@ -62,73 +65,87 @@
   </app-tabs>
   <router-outlet></router-outlet>
 
-  <div class="full-page-form" *ngIf="!store.submit.subpage">
-    <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
+  @if (!store.submit.subpage) {
+    <div class="full-page-form">
+      <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
+        @if (!store.submit.wiki && selectedPlugin) {
+          <span i18n>Type:</span>
+          <div>
+            <span>{{ selectedPlugin.name || selectedPlugin.config?.submit || selectedPlugin.tag }}</span>
+            @if (selectedPlugin.config?.description) {
+              <p class="description">
+                {{ selectedPlugin.config!.description }}
+              </p>
+            }
+          </div>
+        }
+        @if (store.submit.wiki) {
+          <span i18n>Type:</span>
+          <div>
+            <span i18n>Wiki</span>
+            <p class="description" i18n>
+              Create a text post that can be linked to via double bracket [[Wiki]] style.
+            </p>
+          </div>
+        }
 
-      <ng-container *ngIf="!store.submit.wiki && selectedPlugin">
-        <span i18n>Type:</span>
-        <div>
-          <span>{{ selectedPlugin.name || selectedPlugin.config?.submit || selectedPlugin.tag }}</span>
-          <p *ngIf="selectedPlugin.config?.description" class="description">
-            {{ selectedPlugin.config!.description }}
-          </p>
+        @if (store.submit.wiki) {
+          <label for="url" class="big">Title:</label>
+        } @else {
+          <label for="url" class="big"></label>
+        }
+        <div class="form-array">
+          @if (store.submit.web) {
+            <app-select-plugin [(plugin)]="plugin"></app-select-plugin>
+          }
+          <input id="url"
+                 [placeholder]="placeholder"
+                 class="big"
+                 type="text"
+                 size="1"
+                 autocomplete="off"
+                 formControlName="url"
+                 appAutofocus>
+          @if (admin.getPlugin('plugin/qr') && !store.submit.wiki) {
+            <app-qr-scanner (data)="scanQr($event)"></app-qr-scanner>
+          }
         </div>
-      </ng-container>
 
-      <ng-container *ngIf="store.submit.wiki">
-        <span i18n>Type:</span>
-        <div>
-          <span i18n>Wiki</span>
-          <p class="description" i18n>
-            Create a text post that can be linked to via double bracket [[Wiki]] style.
-          </p>
+        @for (e of serverErrors; track e) {
+          <span><!-- Unexpected Error --></span>
+          <div class="error">{{ e }}</div>
+        }
+
+        <span><!-- Tags --></span>
+        <div class="form-array right">
+          @for (tag of store.submit.tags | plugins; track tag) {
+            <span>{{ tag }}</span>
+          }
         </div>
-      </ng-container>
 
-      <label for="url" class="big" *ngIf="!store.submit.wiki"></label>
-      <label for="url" class="big" *ngIf="store.submit.wiki">Title:</label>
-      <div class="form-array">
-        <app-select-plugin *ngIf="store.submit.web" [(plugin)]="plugin"></app-select-plugin>
-        <input id="url"
-               [placeholder]="placeholder"
-               class="big"
-               type="text"
-               size="1"
-               autocomplete="off"
-               formControlName="url"
-               appAutofocus>
-        <app-qr-scanner *ngIf="admin.getPlugin('plugin/qr') && !store.submit.wiki" (data)="scanQr($event)"></app-qr-scanner>
-      </div>
+        <br>
+        <div class="validations">
+          @for (v of validations; track v) {
+            @if (v.passed) {
+              <div>✅️ &nbsp;{{ v.name }}</div>
+            } @else {
+              <div>❌️ &nbsp;{{ v.name }}</div>
+            }
+          }
+        </div>
 
-      <ng-container *ngFor="let e of serverErrors">
-        <span><!-- Unexpected Error --></span>
-        <div class="error">{{ e }}</div>
-      </ng-container>
+        <span><!-- Buttons --></span>
+        <span class="buttons form-array right">
+          <button type="submit" [disabled]="!submitForm.valid"
+                  i18n-title title="Submit link"
+                  i18n>Next</button>
+        </span>
+      </form>
 
-      <span><!-- Tags --></span>
-      <div class="form-array right">
-        <span *ngFor="let tag of store.submit.tags | plugins">{{ tag }}</span>
-      </div>
-
-      <br>
-      <div class="validations">
-        <ng-container *ngFor="let v of validations">
-          <div *ngIf="v.passed">✅️ &nbsp;{{ v.name }}</div>
-          <div *ngIf="!v.passed">❌️ &nbsp;{{ v.name }}</div>
-        </ng-container>
-      </div>
-
-      <span><!-- Buttons --></span>
-      <span class="buttons form-array right">
-        <button type="submit" [disabled]="!submitForm.valid"
-                i18n-title title="Submit link"
-                i18n>Next</button>
-      </span>
-    </form>
-
-    <ng-container *ngIf="existingRef">
-      <br>
-      <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
-    </ng-container>
-  </div>
+      @if (existingRef) {
+        <br>
+        <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
+      }
+    </div>
+  }
 </ng-container>

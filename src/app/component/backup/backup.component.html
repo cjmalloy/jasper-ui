@@ -1,10 +1,15 @@
 <div class="link">
-  <a [href]="downloadLinkAuth" *ngIf="!inProgress">{{ id }}</a>
-  <span *ngIf="inProgress">{{ id.substring(1) }}</span>
+  @if (!inProgress) {
+    <a [href]="downloadLinkAuth">{{ id }}</a>
+  } @else {
+    <span>{{ id.substring(1) }}</span>
+  }
 </div>
 <div class="stack">
   <div class="info">
-    <span *ngIf="inProgress" i18n>in progress...</span>
+    @if (inProgress) {
+      <span i18n>in progress...</span>
+    }
   </div>
   <div class="actions">
     <a [routerLink]="['/ref', downloadLink]" i18n>ref</a>
@@ -25,6 +30,6 @@
   </div>
 </div>
 
-<ng-container *ngFor="let e of serverError">
+@for (e of serverError; track e) {
   <div class="error">{{ e }}</div>
-</ng-container>
+}

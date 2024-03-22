@@ -332,9 +332,9 @@
 </form>
 
 <ng-template #showErrors>
-  <ng-container *ngFor="let e of serverError">
+  @for (e of serverError; track e) {
     <div class="error">{{ e }}</div>
-  </ng-container>
+  }
   <div *ngIf="publishChanged"
        class="warning" i18n>
     * Published date was changed to be after source published date.

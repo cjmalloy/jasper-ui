@@ -1,43 +1,59 @@
 <ng-container *mobxAutorun>
-  <ng-container *ngIf="store.view.ref; else loading">
-    <app-comment-reply *ngIf="admin.getPlugin('plugin/comment')"
-                       [to]="store.view.ref"
-                       quote=""
-                       [tags]="replyTags"
-                       [newComments$]="newRefs$"></app-comment-reply>
-    <div class="summary-box" *ngIf="comments">
-      <h5 routerLink="./comments" i18n>Comments:</h5>
-      <app-thread-summary query="plugin/comment:!plugin/delete"
-                          [commentView]="true"
-                          [source]="store.view.ref"
-                          [newRefs$]="newRefs$"
-                          [depth]="1"
-                          [pageSize]="summaryItems"></app-thread-summary>
-      <a *ngIf="moreComments" routerLink="./comments" queryParamsHandling="merge" class="load-more" i18n>more comments</a>
-    </div>
-    <div class="summary-box thread" *ngIf="threads">
-      <h5 routerLink="./thread" i18n>Threads:</h5>
-      <app-thread-summary query="plugin/thread:!plugin/comment:!plugin/delete"
-                          [source]="store.view.ref"
-                          [newRefs$]="newRefs$"
-                          [depth]="1"
-                          [pageSize]="summaryItems"></app-thread-summary>
-      <a *ngIf="threads > summaryItems"
-         routerLink="./thread"
-         queryParamsHandling="merge"
-         class="load-more no-select" i18n>load more</a>
-    </div>
-    <div class="summary-box" *ngIf="responses">
-      <h5 routerLink="./responses" i18n>Responses:</h5>
-      <app-ref-list [page]="query.page"
-                    [pageControls]="false"></app-ref-list>
-      <a *ngIf="responses > summaryItems"
-         routerLink="./responses"
-         queryParamsHandling="merge"
-         class="load-more no-select" i18n>more responses</a>
-    </div>
-  </ng-container>
-  <ng-template #loading>
+  @if (store.view.ref) {
+    @if (admin.getPlugin('plugin/comment')) {
+      <app-comment-reply [to]="store.view.ref"
+                         quote=""
+                         [tags]="replyTags"
+                         [newComments$]="newRefs$"></app-comment-reply>
+    }
+    @if (comments) {
+      <div class="summary-box">
+        <h5 routerLink="./comments" i18n>Comments:</h5>
+        <app-thread-summary query="plugin/comment:!plugin/delete"
+                            [commentView]="true"
+                            [source]="store.view.ref"
+                            [newRefs$]="newRefs$"
+                            [depth]="1"
+                            [pageSize]="summaryItems"></app-thread-summary>
+        @if (moreComments) {
+          <a routerLink="./comments" queryParamsHandling="merge" class="load-more" i18n>
+            more comments
+          </a>
+        }
+      </div>
+    }
+    @if (threads) {
+      <div class="summary-box thread">
+        <h5 routerLink="./thread" i18n>Threads:</h5>
+        <app-thread-summary query="plugin/thread:!plugin/comment:!plugin/delete"
+                            [source]="store.view.ref"
+                            [newRefs$]="newRefs$"
+                            [depth]="1"
+                            [pageSize]="summaryItems"></app-thread-summary>
+        @if (threads > summaryItems) {
+          <a routerLink="./thread"
+             queryParamsHandling="merge"
+             class="load-more no-select" i18n>
+            load more
+          </a>
+        }
+      </div>
+    }
+    @if (responses) {
+      <div class="summary-box">
+        <h5 routerLink="./responses" i18n>Responses:</h5>
+        <app-ref-list [page]="query.page"
+                      [pageControls]="false"></app-ref-list>
+        @if (responses > summaryItems) {
+          <a routerLink="./responses"
+             queryParamsHandling="merge"
+             class="load-more no-select" i18n>
+            more responses
+          </a>
+        }
+      </div>
+    }
+  } @else {
     <app-loading></app-loading>
-  </ng-template>
+  }
 </ng-container>

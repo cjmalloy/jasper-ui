@@ -5,9 +5,11 @@
     <span><!-- Description --></span>
     <p i18n>
       Upload Refs, Exts, images, audio, video, spreadsheets, bookmarks (XML or HTML), and PDFs.
-      <span *ngIf="store.account.admin">
-        Visit the <a routerLink="/settings/setup">setup</a> settings page to manage mods.
-      </span>
+      @if (store.account.admin) {
+        <span>
+          Visit the <a routerLink="/settings/setup">setup</a> settings page to manage mods.
+        </span>
+      }
     </p>
 
     <span><!-- Tags --></span>
@@ -30,18 +32,20 @@
                multiple/>
       </div>
 
-      <div *ngIf="webCache" class="padded form-array">
-        <span i18n>or </span>
-        <button type="button" (click)="fileUpload.click()" i18n-title title="Cache Files" i18n>+ cache</button>
-        <span i18n>any kind of file</span>
-        <input #fileUpload type="file"
-               accept="*"
-               (change)="cache($any(fileUpload.files))"
-               multiple/>
-      </div>
+      @if (webCache) {
+        <div class="padded form-array">
+          <span i18n>or </span>
+          <button type="button" (click)="fileUpload.click()" i18n-title title="Cache Files" i18n>+ cache</button>
+          <span i18n>any kind of file</span>
+          <input #fileUpload type="file"
+                 accept="*"
+                 (change)="cache($any(fileUpload.files))"
+                 multiple/>
+        </div>
+      }
     </div>
 
-    <ng-container *ngIf="!store.submit.empty">
+    @if (!store.submit.empty) {
       <span></span>
       <div>
         <hr>
@@ -73,47 +77,48 @@
 
       <span></span>
       <div>
-        <app-loading *ngIf="processing"></app-loading>
+        @if (processing) {
+          <app-loading></app-loading>
+        }
       </div>
-    </ng-container>
+    }
 
-    <ng-container *ngIf="store.submit.huge">
+    @if (store.submit.huge) {
       <span></span>
       <span class="warning">
         * Preview disabled for huge archives
         <button type="button" (click)="store.submit.overrideHuge()" i18n>show anyway</button>
       </span>
-      <ng-container *ngIf="store.submit.exts.length && !store.submit.huge">
+      @if (store.submit.exts.length && !store.submit.huge) {
         <span>Exts: </span>
         <span>{{ store.submit.exts.length }}</span>
-      </ng-container>
-      <ng-container *ngIf="store.submit.refs.length">
+      }
+      @if (store.submit.refs.length) {
         <span>Refs: </span>
         <span>{{ store.submit.refs.length }}</span>
-      </ng-container>
-    </ng-container>
-
-    <ng-container *ngIf="store.submit.exts.length && !store.submit.huge">
-      <span class="upload-label">Exts: </span>
-      <span></span>
-      <ng-container *ngFor="let ext of store.submit.exts; let i = index">
-        <div class="list-number">{{ i + 1 }}</div>
-        <app-ext [ext]="ext"></app-ext>
-      </ng-container>
-    </ng-container>
-
-    <ng-container *ngIf="store.submit.refs.length && !store.submit.huge">
-      <span class="upload-label">Refs: </span>
-      <span></span>
-      <ng-container *ngFor="let ref of store.submit.refs; let i = index">
-        <div class="list-number">{{ i + 1 }}</div>
-        <app-ref [ref]="ref" [showToggle]="true" [scrollToLatest]="true"></app-ref>
-      </ng-container>
-    </ng-container>
+      }
+    } @else {
+      @if (store.submit.exts.length) {
+        <span class="upload-label">Exts: </span>
+        <span></span>
+        @for (ext of store.submit.exts; track ext; let i = $index) {
+          <div class="list-number">{{ i + 1 }}</div>
+          <app-ext [ext]="ext"></app-ext>
+        }
+      }
+      @if (store.submit.refs.length) {
+        <span class="upload-label">Refs: </span>
+        <span></span>
+        @for (ref of store.submit.refs; track ref; let i = $index) {
+          <div class="list-number">{{ i + 1 }}</div>
+          <app-ref [ref]="ref" [showToggle]="true" [scrollToLatest]="true"></app-ref>
+        }
+      }
+    }
   </div>
 
-  <ng-container *ngFor="let e of serverErrors">
+  @for (e of serverErrors; track e) {
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
-  </ng-container>
+  }
 </ng-container>

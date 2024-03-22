@@ -3,10 +3,10 @@
         [appLimitWidth]="form?.fill?.nativeElement" [limitSibling]="true">
     <app-ext-form #form [group]="editForm"></app-ext-form>
 
-    <ng-container *ngFor="let e of serverError">
+    @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>
       <div class="error">{{ e }}</div>
-    </ng-container>
+    }
 
     <span><!-- Buttons --></span>
     <span class="buttons form-array right">

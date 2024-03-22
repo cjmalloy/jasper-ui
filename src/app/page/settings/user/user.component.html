@@ -1,7 +1,6 @@
-<ng-container *ngIf="query.error?.status !== 403 else accessDenied">
+@if (query.error?.status !== 403) {
   <app-user-list [page]="query.page"
                  [scim]="scim.page"></app-user-list>
-</ng-container>
-<ng-template #accessDenied>
+} @else {
   <div class="error-403" i18n>Access Denied</div>
-</ng-template>
+}

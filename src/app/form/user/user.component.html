@@ -10,19 +10,27 @@
            formControlName="tag"
            (keydown)="tag.errors || $event.key === 'Enter' && tagChanges.next(tagInput.value) || true"
            (blur)="tag.errors || tagChanges.next(tagInput.value)">
-    <button type="button" *ngIf="showClear" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
+    @if (showClear) {
+      <button type="button" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
+    }
   </div>
   <span><!-- Tag Errors --></span>
   <div>
-    <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']" i18n>
-      User tags must start with the "+user/" or "_user/" prefix.
-      Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-      tags start with an underscore.<br>
-      (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")
-    </div>
-    <div class="error" *ngIf="tag.touched && tag.errors?.['required']" i18n>
-      Tag must not be blank.
-    </div>
+    @if (tag.touched) {
+      @if (tag.errors?.['pattern']) {
+        <div class="error" i18n>
+          User tags must start with the "+user/" or "_user/" prefix.
+          Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+          tags start with an underscore.<br>
+          (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")
+        </div>
+      }
+      @if (tag.errors?.['required']) {
+        <div class="error" i18n>
+          Tag must not be blank.
+        </div>
+      }
+    }
   </div>
 
   <label for="name" i18n>Name:</label>

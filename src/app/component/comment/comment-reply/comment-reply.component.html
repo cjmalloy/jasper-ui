@@ -3,8 +3,8 @@
               (syncTags)="plugins = $event"
               [autoFocus]="autofocus"></app-editor>
 </form>
-<ng-container *ngFor="let e of serverError">
-  <div class="error" [title]="e">{{ e }}</div>
-</ng-container>
+@for (e of serverError; track e) {
+  <div class="error">{{ e }}</div>
+}
 <button type="button" (click)="reply()" i18n>reply</button>
 <button type="button" *ngIf="showCancel" (click)="cancel()" i18n>cancel</button>

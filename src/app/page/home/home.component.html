@@ -12,11 +12,12 @@
          [queryParams]="{view: 'list'}"
          queryParamsHandling="merge" i18n>list</a>
     } @else if (store.view.activeExts.length) {
-      <a *ngFor="let x of store.view.activeExts; let i = index"
-         routerLink="./"
-         [class.current-tab]="store.view.viewTag === x.tag"
-         [queryParams]="{view: i === 0 ? null : x.tag}"
-         queryParamsHandling="merge" i18n>{{ x.name || x.tag }}</a>
+      @for (x of store.view.activeExts; track x; let i = $index) {
+        <a routerLink="./"
+           [class.current-tab]="store.view.viewTag === x.tag"
+           [queryParams]="{view: i === 0 ? null : x.tag}"
+           queryParamsHandling="merge" i18n>{{ x.name || x.tag }}</a>
+      }
       <a routerLink="./"
          [class.current-tab]="store.view.list"
          [queryParams]="{view: 'list'}"
@@ -27,17 +28,18 @@
          [queryParams]="{view: null}"
          queryParamsHandling="merge" i18n>list</a>
     }
-    <a *ngFor="let x of store.view.globalTemplates"
-       routerLink="./"
-       [class.current-tab]="store.view.view === x.tag"
-       [queryParams]="{view: x.tag}"
-       queryParamsHandling="merge" i18n>{{ x.config?.view || x.name || x.tag }}</a>
+    @for (x of store.view.globalTemplates; track x) {
+      <a routerLink="./"
+         [class.current-tab]="store.view.view === x.tag"
+         [queryParams]="{view: x.tag}"
+         queryParamsHandling="merge" i18n>{{ x.config?.view || x.name || x.tag }}</a>
+    }
   </app-tabs>
   <app-sidebar [home]="true"
                [floating]="store.view.floatingSidebar"
                [ext]="homeExt"
                [activeExts]="activeExts"></app-sidebar>
-  <ng-container *ngIf="query.error?.status !== 403 else accessDenied">
+  @if (query.error?.status !== 403) {
     <app-lens [page]="query.page"
               [showVotes]="store.view.isVoteSorted"
               [tag]="store.view.tag || 'home'"
@@ -48,8 +50,7 @@
               [sort]="store.view.sort"
               [filter]="store.view.filter"
               [search]="store.view.search"></app-lens>
-  </ng-container>
-  <ng-template #accessDenied>
+  } @else {
     <div class="error-403" i18n>Access Denied</div>
-  </ng-template>
+  }
 </ng-container>

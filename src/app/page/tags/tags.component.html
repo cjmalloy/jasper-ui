@@ -2,14 +2,28 @@
   <app-tabs>
     <a class="logo" routerLink="/"></a>
     <h5 class="fake-link" routerLink=".">{{ title }}</h5>
-    <a routerLink="/tags" [queryParams]="{ noTemplate: null, home: true }" [class.current-tab]="store.view.allTags && store.view.home" queryParamsHandling="merge" i18n>home</a>
-    <a routerLink="/tags" [queryParams]="{ noTemplate: null, home: null }" [class.current-tab]="store.view.allTags && !store.view.noTemplate && !store.view.home" queryParamsHandling="merge" i18n>all</a>
-    <a routerLink="/tags" [queryParams]="{ noTemplate: true, home: null }" [class.current-tab]="store.view.noTemplate || (store.view.template && !store.view.userTemplate && !templateExists)" queryParamsHandling="merge" i18n-title title="🏷️ Tags" i18n>🏷️</a>
-    <a *ngFor="let tmpl of templates"
-       [routerLink]="['/tags', tmpl.tag]"
+    <a routerLink="/tags"
+       [queryParams]="{ noTemplate: null, home: true }"
+       [class.current-tab]="store.view.allTags && store.view.home"
+       queryParamsHandling="merge"
+       i18n>home</a>
+    <a routerLink="/tags"
        [queryParams]="{ noTemplate: null, home: null }"
-       [class.current-tab]="templateIs(tmpl.tag)"
-       queryParamsHandling="merge" [title]="tmpl.name">{{ tmpl.config!.view }}</a>
+       [class.current-tab]="store.view.allTags && !store.view.noTemplate && !store.view.home"
+       queryParamsHandling="merge"
+       i18n>all</a>
+    <a routerLink="/tags"
+       [queryParams]="{ noTemplate: true, home: null }"
+       [class.current-tab]="store.view.noTemplate || (store.view.template && !store.view.userTemplate && !templateExists)"
+       queryParamsHandling="merge"
+       i18n-title title="🏷️ Tags"
+       i18n>🏷️</a>
+    @for (tmpl of templates; track tmpl) {
+      <a [routerLink]="['/tags', tmpl.tag]"
+         [queryParams]="{ noTemplate: null, home: null }"
+         [class.current-tab]="templateIs(tmpl.tag)"
+         queryParamsHandling="merge" [title]="tmpl.name">{{ tmpl.config!.view }}</a>
+    }
     <a routerLink="/tags/user"
        [queryParams]="{ noTemplate: null, home: null }"
        routerLinkActive="current-tab"
@@ -17,10 +31,9 @@
        i18n-title title="🧑️ User" i18n>🧑️</a>
   </app-tabs>
   <app-sidebar [tag]="store.view.template"></app-sidebar>
-  <ng-container *ngIf="query.error?.status !== 403 else accessDenied">
+  @if (query.error?.status !== 403) {
     <app-ext-list [page]="query.page"></app-ext-list>
-  </ng-container>
-  <ng-template #accessDenied>
+  } @else {
     <div class="error-403" i18n>Access Denied</div>
-  </ng-template>
+  }
 </ng-container>

@@ -10,13 +10,12 @@
                   [expanded]="true"
                   [expandInline]="true"></app-ref-list>
   }
-  <ng-container *ngIf="store.view.ref; else loading">
+  @if (store.view.ref) {
     <app-comment-reply [to]="query.page?.content?.[(query.page?.content?.length || 0) - 1] || store.view.ref"
                        quote=""
                        [tags]="replyTags"
                        [newComments$]="newRefs$"></app-comment-reply>
-  </ng-container>
-  <ng-template #loading>
+  } @else {
     <app-loading></app-loading>
-  </ng-template>
+  }
 </ng-container>

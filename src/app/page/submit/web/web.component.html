@@ -5,10 +5,10 @@
     <app-ref-form [group]="webForm"
                   (editorTags)="plugins = $event"></app-ref-form>
 
-    <ng-container *ngFor="let e of serverError">
+    @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>
       <div class="error">{{ e }}</div>
-    </ng-container>
+    }
 
     <span><!-- Buttons --></span>
     <span class="buttons form-array right">

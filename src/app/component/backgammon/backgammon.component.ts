@@ -301,14 +301,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.resizing = delay(() => this.resizing = 0, 1000);
   }
 
-  trackByColor(index: number, value: string) {
-    return value;
-  }
-
-  trackByIdx(index: number, value: Spot) {
-    return value.index;
-  }
-
   onDragStarted(index: number) {
     this.dragSource = index;
     if (index < 0) {

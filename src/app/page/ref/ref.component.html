@@ -67,7 +67,7 @@
   <app-sidebar [ext]="store.view.viewExt"
                [tag]="store.view.tag"
                [activeExts]="store.view.activeExts"></app-sidebar>
-  <ng-container *ngIf="store.view.ref else loading">
+  @if (store.view.ref) {
     @if (store.view.top && store.view.ref.url !== store.view.top.url && store.view.current !== 'ref/sources') {
       <app-ref class="print-hide"
                [class.thread]="store.view.current === 'ref/thread'"
@@ -91,36 +91,40 @@
              [expandInline]="!config.mobile || !!threads"
              [expanded]="expandedOnLoad"
              (copied)="reload()"></app-ref>
-    <div *ngIf="newResponses"
-         class="warning print-hide" i18n>
-      {{ newResponses }} new response(s)
-    </div>
-    <div *ngIf="refWarning"
-         class="warning print-hide" i18n>
-      * Published date was changed to be after source published date.
-    </div>
-    <ng-container *ngIf="!store.view.ref?.created">
+    @if (newResponses) {
+      <div class="warning print-hide" i18n>
+        {{ newResponses }} new response(s)
+      </div>
+    }
+    @if (refWarning) {
+      <div class="warning print-hide" i18n>
+        * Published date was changed to be after source published date.
+      </div>
+    }
+    @if (!store.view.ref?.created) {
       <div class="stack">
         <div class="error-404" i18n>Not Found</div>
-        <ng-container *ngIf="store.account.signedIn">
-          <div *ngIf="!store.view.isTextPost && !isWiki(store.view.url)" class="error-404 submit-button" routerLink="/submit" [queryParams]="{ url: store.view.url }" i18n>
-            🔗 Submit Link
-          </div>
-          <div *ngIf="store.view.isTextPost" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }" i18n>
-            📝 Submit Text Post
-          </div>
-          <div *ngIf="isWiki(store.view.url)" class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }" i18n>
-            📔 &nbsp; Submit Wiki
-          </div>
-        </ng-container>
+        @if (store.account.signedIn) {
+          @if (isWiki(store.view.url)) {
+            <div class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }" i18n>
+              📔 &nbsp; Submit Wiki
+            </div>
+          } @else if (store.view.isTextPost) {
+            <div class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url }" i18n>
+              📝 Submit Text Post
+            </div>
+          } @else {
+            <div class="error-404 submit-button" routerLink="/submit" [queryParams]="{ url: store.view.url }" i18n>
+              🔗 Submit Link
+            </div>
+          }
+        }
       </div>
-    </ng-container>
-  </ng-container>
-  <ng-template #loading>
+    } @else {
+      <hr>
+      <router-outlet></router-outlet>
+    }
+  } @else {
     <app-loading></app-loading>
-  </ng-template>
-  <ng-container *ngIf="store.view.ref?.created">
-    <hr>
-    <router-outlet></router-outlet>
-  </ng-container>
+  }
 </ng-container>

@@ -8,32 +8,40 @@
             (click)="toggleHelp()"
             i18n-title title="Help"
             i18n>❓️</button>
-    <button type="button"
-            *ngIf="fullscreen || currentText"
-            (click)="toggleStacked()"
-            i18n-title title="Stacked or side by side layout toggle">
-      <span *ngIf="!fullscreen" i18n>📝️</span>
-      <span *ngIf="fullscreen" i18n>/</span>
-    </button>
-    <button type="button"
-            *ngIf="showScrape"
-            (click)="scrape.emit()"
-            i18n-title title="Scrape Webpage" i18n>🪝</button>
-    <button type="button"
-            *ngIf="admin.getTemplate('htmlToMarkdown')"
-            (click)="htmlToMarkdown()"
-            i18n-title title="Convert HTML to Markdown" i18n>⬇️</button>
-    <div *ngFor="let plugin of editorPlugins; let i = index" class="editor-plugin">
-      <input type="checkbox"
-             [style.display]="'none'"
-             [id]="id + i"
-             [checked]="tags?.includes(plugin.tag)"
-             (click)="toggleTag(plugin.tag)">
-      <label [for]="id + i"
-             [class.on]="tags?.includes(plugin.tag)"
-             [title]="plugin.name || plugin.tag">{{ plugin.config?.editor }}
-      </label>
-    </div>
+    @if (fullscreen || currentText) {
+      <button type="button"
+              (click)="toggleStacked()"
+              i18n-title title="Stacked or side by side layout toggle">
+        @if (!fullscreen) {
+          <span i18n>📝️</span>
+        } @else {
+          <span i18n>/</span>
+        }
+      </button>
+    }
+    @if (showScrape) {
+      <button type="button"
+              (click)="scrape.emit()"
+              i18n-title title="Scrape Webpage" i18n>🪝</button>
+    }
+    @if (admin.getTemplate('htmlToMarkdown')) {
+      <button type="button"
+              (click)="htmlToMarkdown()"
+              i18n-title title="Convert HTML to Markdown" i18n>⬇️</button>
+    }
+    @for (plugin of editorPlugins; track plugin; let i = $index) {
+      <div class="editor-plugin">
+        <input type="checkbox"
+               [style.display]="'none'"
+               [id]="id + i"
+               [checked]="tags?.includes(plugin.tag)"
+               (click)="toggleTag(plugin.tag)">
+        <label [for]="id + i"
+               [class.on]="tags?.includes(plugin.tag)"
+               [title]="plugin.name || plugin.tag">{{ plugin.config?.editor }}
+        </label>
+      </div>
+    }
   </div>
   <textarea #editor
             [formControl]="control"
@@ -46,12 +54,13 @@
   <div class="floating-toggles">
   </div>
 </div>
-<app-md *ngIf="preview && (fullscreen || currentText)"
-        class="expand"
-        [origin]="store.account.origin"
-        [text]="currentText"
-        [plugins]="tags"
-        [appLimitWidth]="$any(tw.firstElementChild)"></app-md>
+@if (preview && (fullscreen || currentText)) {
+  <app-md class="expand"
+          [origin]="store.account.origin"
+          [text]="currentText"
+          [plugins]="tags"
+          [appLimitWidth]="$any(tw.firstElementChild)"></app-md>
+}
 
 <ng-template #help>
   <div class="editor-help-popup" (click)="toggleHelp()">

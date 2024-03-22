@@ -17,26 +17,34 @@
   <label for="title" i18n>Title:</label>
   <div class="form-array">
     <input id="title" type="text" [formControl]="title">
-    <button *ngIf="web" type="button" (click)="scrapeTitle()" i18n-title title="Scrape Title" i18n>🪝</button>
+    @if (web) {
+      <button type="button" (click)="scrapeTitle()" i18n-title title="Scrape Title" i18n>🪝</button>
+    }
   </div>
   <span><!-- Title Errors --></span>
   <div>
-    <div class="error" *ngIf="title.touched && title.errors?.['required']" i18n>
-      Title must not be blank.
-    </div>
+    @if (title.touched && title.errors?.['required']) {
+      <div class="error" i18n>
+        Title must not be blank.
+      </div>
+    }
   </div>
 
   <label for="published" i18n>Published:</label>
   <div class="form-array">
     <input id="published" type="datetime-local" step="1" [formControl]="published">
-    <button *ngIf="web" type="button" (click)="scrapePublished()" i18n-title title="Scrape Published" i18n>🪝</button>
+    @if (web) {
+      <button type="button" (click)="scrapePublished()" i18n-title title="Scrape Published" i18n>🪝</button>
+    }
     <button type="button" (click)="sources.addLink('')" i18n>📜️</button>
   </div>
   <span><!-- Published Errors --></span>
   <div>
-    <div class="error" *ngIf="published.touched && published.errors?.['required']" i18n>
-      Published date is required.
-    </div>
+    @if (published.touched && published.errors?.['required']) {
+      <div class="error" i18n>
+        Published date is required.
+      </div>
+    }
   </div>
   <app-links #sources
              id="sources"

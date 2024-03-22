@@ -2,9 +2,9 @@
             [tags]="ref.tags"
             (syncTags)="plugins = $event"
             [autoFocus]="true"></app-editor>
-<ng-container *ngFor="let e of serverError">
+@for (e of serverError; track e) {
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
-</ng-container>
+}
 <button type="button" (click)="save()" i18n>save</button>
 <button type="button" (click)="cancel()" i18n>cancel</button>

@@ -6,9 +6,11 @@
   <input id="title" type="text" [formControl]="name">
   <span><!-- Title Errors --></span>
   <div>
-    <div class="error" *ngIf="name.touched && name.errors?.['required']" i18n>
-      Name must not be blank.
-    </div>
+    @if (name.touched && name.errors?.['required']) {
+      <div class="error" i18n>
+        Name must not be blank.
+      </div>
+    }
   </div>
 
   <label for="generateMetadata" i18n>Generate metadata:</label>
@@ -20,33 +22,38 @@
   <app-json id="config"
             fieldName="config"
             [group]="group"></app-json>
-  <ng-container *ngIf="configErrors?.length">
+  @if (configErrors?.length) {
     <span><!-- Errors --></span>
-    <div *ngFor="let e of configErrors">
-      <span class="error">{{ e }}</span>
-    </div>
-  </ng-container>
+    @for (e of configErrors; track e) {
+      <div>
+        <span class="error">{{ e }}</span>
+      </div>
+    }
+  }
 
   <label for="defaults" i18n>Defaults:</label>
   <app-json id="defaults"
             fieldName="defaults"
             [group]="group"></app-json>
-  <ng-container *ngIf="defaultsErrors?.length">
+  @if (defaultsErrors?.length) {
     <span><!-- Errors --></span>
-    <div *ngFor="let e of defaultsErrors">
-      <span class="error">{{ e }}</span>
-    </div>
-  </ng-container>
+    @for (e of defaultsErrors; track e) {
+      <div>
+        <span class="error">{{ e }}</span>
+      </div>
+    }
+  }
 
   <label for="schema" i18n>Schema:</label>
   <app-json id="schema"
             fieldName="schema"
             [group]="group"></app-json>
-  <ng-container *ngIf="schemaErrors?.length">
+  @if (schemaErrors?.length) {
     <span><!-- Errors --></span>
-    <div *ngFor="let e of schemaErrors">
-      <span class="error">{{ e }}</span>
-    </div>
-  </ng-container>
-
+    @for (e of schemaErrors; track e) {
+      <div>
+        <span class="error">{{ e }}</span>
+      </div>
+    }
+  }
 </ng-container>

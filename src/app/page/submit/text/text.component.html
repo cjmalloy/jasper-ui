@@ -1,19 +1,26 @@
 <ng-container *mobxAutorun>
-  <form class="form" [formGroup]="textForm" (ngSubmit)="submit()"
-        [appLimitWidth]="fill?.nativeElement || (advancedForm && advancedForm.fill | async)" [limitSibling]="true">
-
-    <ng-container *ngIf="!advanced">
-      <label for="title" *ngIf="!store.submit.wiki" i18n>Title:</label>
-      <label for="title" *ngIf="store.submit.wiki" i18n>Wiki:</label>
+  <form class="form"
+        [formGroup]="textForm"
+        (ngSubmit)="submit()"
+        [appLimitWidth]="fill?.nativeElement || (advancedForm && advancedForm.fill | async)"
+        [limitSibling]="true">
+    @if (!advanced) {
+      @if (store.submit.wiki) {
+        <label for="title" i18n>Wiki:</label>
+      } @else {
+        <label for="title" i18n>Title:</label>
+      }
       <input id="title"
              type="text"
              [formControl]="title"
              [appAutofocus]="!store.submit.wiki">
       <span><!-- Title Errors --></span>
       <div>
-        <div class="error" *ngIf="title.touched && title.errors?.['required']" i18n>
-          Title must not be blank.
-        </div>
+        @if (title.touched && title.errors?.['required']) {
+          <div class="error" i18n>
+            Title must not be blank.
+          </div>
+        }
       </div>
 
       <app-select-plugin #pluginSelect
@@ -54,18 +61,16 @@
 
       <span><!-- Advanced --></span>
       <a class="fake-link no-select" (click)="advanced = true" i18n>show advanced</a>
-    </ng-container>
-
-    <ng-container *ngIf="advanced">
+    } @else {
       <app-ref-form #advancedForm
                     [group]="textForm"
                     (editorTags)="plugins = $event"></app-ref-form>
-    </ng-container>
+    }
 
-    <ng-container *ngFor="let e of serverError">
+    @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>
       <div class="error">{{ e }}</div>
-    </ng-container>
+    }
 
     <span><!-- Buttons --></span>
     <span class="buttons form-array right">

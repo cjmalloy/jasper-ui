@@ -1,4 +1,4 @@
-<ng-container *ngIf="store.account.admin">
+@if (store.account.admin) {
   <button type="button"
           (click)="uploadFile.click()"
           i18n-title
@@ -10,14 +10,13 @@
          class="upload"
          (change)="upload(uploadFile.files!)">
 
-  <ng-container *ngFor="let e of serverError">
+  @for (e of serverError; track e) {
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
-  </ng-container>
-</ng-container>
-<ng-container *ngIf="query.error?.status !== 403 else accessDenied">
+  }
+}
+@if (query.error?.status !== 403) {
   <app-template-list [page]="query.page"></app-template-list>
-</ng-container>
-<ng-template #accessDenied>
+} @else {
   <div class="error-403" i18n>Access Denied</div>
-</ng-template>
+}

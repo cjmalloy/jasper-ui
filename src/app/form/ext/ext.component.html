@@ -4,53 +4,60 @@
   <label for="tag" i18n>Tag:</label>
   <div class="form-array">
     <input id="tag" type="text" formControlName="tag">
-    <button type="button" *ngIf="showClear" (click)="clear.next()" i18n-title title="New Ext" i18n>🆑️</button>
+    @if (showClear) {
+      <button type="button" (click)="clear.next()" i18n-title title="New Ext" i18n>🆑️</button>
+    }
   </div>
 
   <label for="name" i18n>Name:</label>
   <input id="name" type="text" formControlName="name">
 
   <ng-container [formGroup]="config">
-
-    <ng-container *ngIf="userTheme">
+    @if (userTheme) {
       <label for="userTheme" i18n>User Theme:</label>
       <div i18n-title title="This theme will be used on every page. Tag page themes will be ignored.">
         <select id="userTheme" formControlName="userTheme">
           <option [ngValue]="undefined" i18n>default</option>
-          <option *ngFor="let t of userThemeValues" [ngValue]="t">{{ t }}</option>
+          @for (t of userThemeValues; track t) {
+            <option [ngValue]="t">{{ t }}</option>
+          }
         </select>
       </div>
-    </ng-container>
-
-    <ng-container *ngIf="defaultSort && !user">
+    }
+    @if (defaultSort && !user) {
       <label for="defaultSort" i18n>Default Sort:</label>
       <span class="form-array">
         <select id="defaultSort" (input)="setSortCol($any($event.target).value)">
           <option></option>
-          <option *ngFor="let opt of allSorts"
-                  [selected]="sortCol === opt.value"
-                  [value]="opt.value">{{ opt.label || opt.value }}</option>
+          @for (opt of allSorts; track opt) {
+            <option [selected]="sortCol === opt.value"
+                    [value]="opt.value">{{ opt.label || opt.value }}</option>
+          }
         </select>
-        <button type="button" *ngIf="sortDir === 'DESC'" (click)="setSortDir('ASC')">🔽️</button>
-        <button type="button" *ngIf="sortDir === 'ASC'" (click)="setSortDir('DESC')">🔼️</button>
+        @switch (sortDir) {
+          @case ("DESC") {
+            <button type="button" (click)="setSortDir('ASC')">🔽️</button>
+          }
+          @case ("ASC") {
+            <button type="button" (click)="setSortDir('DESC')">🔼️</button>
+          }
+        }
       </span>
-    </ng-container>
-
-    <formly-form *ngIf="form"
-                 class="nested-form"
-                 [form]="config"
-                 [fields]="form"
-                 [options]="options"></formly-form>
-
-    <ng-container *ngIf="modmail && inbox && !user">
+    }
+    @if (form) {
+      <formly-form class="nested-form"
+                   [form]="config"
+                   [fields]="form"
+                   [options]="options"></formly-form>
+    }
+    @if (modmail && inbox && !user) {
       <label for="modmail" i18n>Enable Modmail:</label>
       <div>
         <input id="modmail" type="checkbox" [formControl]="modmail">
         <a class="tag" [routerLink]="['/tag', inbox]">{{ inbox }}</a>
       </div>
-    </ng-container>
-
-    <ng-container *ngIf="sidebar">
+    }
+    @if (sidebar) {
       <label for="sidebar" class="editor-label" i18n>Sidebar:</label>
       <div #fill>
         <app-editor id="sidebar"
@@ -58,51 +65,55 @@
                     [fillWidth]="fill"
                     [control]="sidebar"></app-editor>
       </div>
-    </ng-container>
-
-    <ng-container *ngIf="themes">
+    }
+    @if (themes) {
       <label for="theme" i18n>Tag Page Theme:</label>
       <div>
         <select id="theme" formControlName="theme">
           <option [ngValue]="undefined" i18n>default</option>
-          <option *ngFor="let t of themeValues" [ngValue]="t">{{ t }}</option>
+          @for (t of themeValues; track t) {
+            <option [ngValue]="t">{{ t }}</option>
+          }
         </select>
-
-        <details *ngIf="themes" class="advanced mini">
+        <details class="advanced mini">
           <summary i18n-title title="Custom Themes"><span><span class="summary-open" i18n>Custom Themes</span></span></summary>
           <app-themes id="themes"
                       [group]="config"
                       fieldName="themes"></app-themes>
         </details>
       </div>
-    </ng-container>
+    }
   </ng-container>
 
-  <ng-container *ngIf="advancedForm?.length">
+  @if (advancedForm?.length) {
     <details class="advanced">
       <summary><span i18n>Advanced</span></summary>
-
       <div class="form">
-        <ng-container *ngIf="defaultSort && user">
+        @if (defaultSort && user) {
           <label for="defaultSortAdvanced" i18n>Default Sort:</label>
           <span class="form-array">
             <select id="defaultSortAdvanced" (input)="setSortCol($any($event.target).value)">
               <option></option>
-              <option *ngFor="let opt of allSorts"
-                      [selected]="sortCol === opt.value"
-                      [value]="opt.value">{{ opt.label || opt.value }}</option>
+              @for (opt of allSorts; track opt) {
+                <option [selected]="sortCol === opt.value"
+                        [value]="opt.value">{{ opt.label || opt.value }}</option>
+              }
             </select>
-            <button type="button" *ngIf="sortDir === 'DESC'" (click)="setSortDir('ASC')">🔽️</button>
-            <button type="button" *ngIf="sortDir === 'ASC'" (click)="setSortDir('DESC')">🔼️</button>
+            @switch (sortDir) {
+              @case ("DESC") {
+                <button type="button" (click)="setSortDir('ASC')">🔽️</button>
+              }
+              @case ("ASC") {
+                <button type="button" (click)="setSortDir('DESC')">🔼️</button>
+              }
+            }
           </span>
-        </ng-container>
-
+        }
         <formly-form class="nested-form"
                      [form]="config"
                      [fields]="advancedForm!"
                      [options]="options"></formly-form>
       </div>
     </details>
-  </ng-container>
-
+  }
 </ng-container>
