@@ -194,6 +194,12 @@ export class ViewStore {
     return s?.routeConfig?.path === 'settings';
   }
 
+  get settingsTag() {
+    if (!this.settings) return '';
+    const s = this.route.routeSnapshot?.firstChild?.firstChild;
+    return s?.params['tag'];
+  }
+
   get current(): View | undefined {
     const s = this.route.routeSnapshot?.firstChild;
     switch (s?.url[0].path) {
