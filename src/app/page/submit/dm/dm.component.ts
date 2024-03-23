@@ -158,11 +158,11 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   changedTo(value: string) {
     const notes = !value || value === this.store.account.tag;
     if (notes && !this.tags?.includesTag('notes')) {
-      const newTags = uniq([...without(this.tags!.tags!.value, ...['dm', 'locked', ...this.addedMailboxes]), 'notes']);
+      const newTags = uniq([...without(this.tags!.tags!.value, ...['dm', ...this.addedMailboxes]), 'notes']);
       this.tags!.setTags(newTags);
       this.addedMailboxes = [];
     } else if (!notes) {
-      const mailboxes = ['dm', 'locked', ...value.split(/\s+/).flatMap((t: string) => this.getMailboxes(t))];
+      const mailboxes = ['dm', ...value.split(/\s+/).flatMap((t: string) => this.getMailboxes(t))];
       const added = without(mailboxes, ...this.addedMailboxes);
       const removed = without(this.addedMailboxes, ...mailboxes);
       const newTags = uniq([...without(this.tags!.tags!.value, ...removed, 'notes'), ...added]);
