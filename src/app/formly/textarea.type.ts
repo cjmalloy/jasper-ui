@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { FieldType, FieldTypeConfig, FormlyFieldProps } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyConfig, FormlyFieldProps } from '@ngx-formly/core';
+import { getErrorMessage } from './errors';
 
 interface TextAreaProps extends FormlyFieldProps {
   cols?: number;
@@ -9,7 +10,9 @@ interface TextAreaProps extends FormlyFieldProps {
 @Component({
   selector: 'formly-field-textarea',
   template: `
-    <textarea [formControl]="formControl"
+    <textarea #input
+              (blur)="validate(input)"
+              [formControl]="formControl"
               [cols]="props.cols"
               [rows]="props.rows"
               [class.is-invalid]="showError"
@@ -24,4 +27,17 @@ export class FormlyFieldTextArea extends FieldType<FieldTypeConfig<TextAreaProps
       rows: 1,
     },
   };
+
+  constructor(
+    private config: FormlyConfig,
+  ) {
+    super();
+  }
+
+  validate(input: HTMLTextAreaElement) {
+    if (this.showError) {
+      input.setCustomValidity(getErrorMessage(this.field, this.config));
+      input.reportValidity();
+    }
+  }
 }

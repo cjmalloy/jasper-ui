@@ -1,21 +1,38 @@
 import { ChangeDetectionStrategy, Component, Directive, ElementRef, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import * as moment from 'moment';
+import { getErrorMessage } from './errors';
 
 @Component({
   selector: 'formly-field-input',
   template: `
-    <input duration
+    <input #input
+           duration
            class="grow"
            type="text"
+           (blur)="validate(input)"
            [formControl]="formControl"
            [formlyAttributes]="field"
            [class.is-invalid]="showError">
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {}
+export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
+
+  constructor(
+    private config: FormlyConfig,
+  ) {
+    super();
+  }
+
+  validate(input: HTMLInputElement) {
+    if (this.showError) {
+      input.setCustomValidity(getErrorMessage(this.field, this.config));
+      input.reportValidity();
+    }
+  }
+}
 
 @Directive({
   selector: '[duration]',

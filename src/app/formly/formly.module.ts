@@ -20,7 +20,6 @@ import {
 import { AudioUploadComponent } from './audio-upload/audio-upload.component';
 import { FormlyFieldCheckbox } from './checkbox.type';
 import { DurationInputAccessor, FormlyFieldDuration } from './duration.type';
-import { FormlyError } from './errors';
 import { FormlyWrapperFormField } from './form-field.wrapper';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
 import { FormlyFieldInput } from './input.type';
@@ -35,7 +34,6 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
 @NgModule({
   declarations: [
     FormlyWrapperFormField,
-    FormlyError,
     FormlyFieldInput,
     FormlyFieldTextArea,
     FormlyFieldCheckbox,
@@ -114,7 +112,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || URI_REGEX.test(c.value),
-              message: 'Error message contains HTML, so there is a special override in errors.ts',
+              message: $localize`Must be a valid URI (see RFC 3986).`,
             }
           },
         },
@@ -204,7 +202,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         defaultOptions: {
           props: {
             label: $localize`Duration:`,
-            hint: 'Hint message contains HTML, so there is a special override in form-field.wrapper.ts',
+            hint: $localize`Use time spans (HH:MM:SS) or ISO 8601 Durations`,
           },
           validators: {
             interval: {
@@ -251,7 +249,13 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || TAG_REGEX.test(c.value),
-              message: 'Error message contains HTML, so there is a special override in errors.ts',
+              message: $localize`
+                Tags must be lower case letters, numbers, periods and forward slashes.
+                Must not start with a forward slash or period.
+                Must not or contain two forward slashes or periods in a row.
+                Protected tags start with a plus sign.
+                Private tags start with an underscore.
+                (i.e. "science", "my/tag", or "_my/private/tag")`,
             }
           },
         },
@@ -266,8 +270,11 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || ORIGIN_REGEX.test(c.value),
-              message: $localize`Origins must be lower case letters, numbers, periods, and start with @.
-                Must not start with a period or contain two periods in a row.`,
+              message: $localize`
+                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+                The default origin is blank.
+                Must not start with a period or contain two periods in a row.
+                (i.e. "@origin", "@my.origin", or "").`,
             }
           },
         },
@@ -282,7 +289,14 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || PLUGIN_REGEX.test(c.value),
-              message: 'Error message contains HTML, so there is a special override in errors.ts',
+              message: $localize`
+                Plugin tags must start with the "plugin/", "+plugin/" or "_plugin/" prefix.
+                Tags must be lower case letters, numbers, periods and forward slashes.
+                Must not start with a forward slash or period.
+                Must not or contain two forward slashes or periods in a row.
+                Protected tags start with a plus sign.
+                Private tags start with an underscore.
+                (i.e. "plugin/thumbnail", "plugin/image" "+plugin/feed", or "_plugin/admin")`,
             }
           },
         },
@@ -308,7 +322,15 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || QUALIFIED_TAG_REGEX.test(c.value),
-              message: 'Error message contains HTML, so there is a special override in errors.ts',
+              message: $localize`
+                Tags must be lower case letters, numbers, periods and forward slashes.
+                Must not start with a forward slash or period.
+                Must not or contain two forward slashes or periods in a row.
+                Tags may be qualified with an origin.
+                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+                Protected tags start with a plus sign.
+                Private tags start with an underscore.
+                (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")`,
             }
           },
         },
@@ -330,7 +352,11 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || USER_REGEX.test(c.value),
-              message: 'Error message contains HTML, so there is a special override in errors.ts',
+              message: $localize`
+                User tags must start with the "+user/" or "_user/" prefix.
+                Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+                tags start with an underscore.
+                (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")`,
             }
           },
         },
@@ -359,7 +385,13 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || QUALIFIED_USER_REGEX.test(c.value),
-              message: 'Error message contains HTML, so there is a special override in errors.ts',
+              message: $localize`
+                User tags must start with the "+user/" or "_user/" prefix.
+                Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+                tags start with an underscore.
+                Tags may be qualified with an origin.
+                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+                (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")`,
             }
           },
         },
@@ -381,7 +413,18 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || SELECTOR_REGEX.test(c.value),
-              message: 'Error message contains HTML, so there is a special override in errors.ts',
+              message: $localize`
+                Tags must be lower case letters, numbers, periods and forward slashes.
+                Must not start with a forward slash or period.
+                Must not or contain two forward slashes or periods in a row.
+                Use the local wildcard (*) to match all tags with a local origin.
+                Tags may be qualified with an origin, or a wildcard origin (@*).
+                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+                Use an origin without a tag to match all tags at that origin.
+                The wildcard origin (@*) by itself will match everything.
+                Protected tags start with a plus sign.
+                Private tags start with an underscore.
+                (i.e. "*", "science", "science@origin" "my/tag@", or "_my/private/tag")`,
             }
           },
         },
@@ -406,7 +449,19 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || QUERY_REGEX.test(c.value),
-              message: 'Error message contains HTML, so there is a special override in errors.ts',
+              message: $localize`
+                Queries support AND (:), OR (|), NOT (!) and grouping qualified tags (parentheses).
+                Tags must be lower case letters, numbers, periods and forward slashes.
+                Must not start with a forward slash or period.
+                Must not or contain two forward slashes or periods in a row.
+                Use the local wildcard (*) to match all tags with a local origin.
+                Tags may be qualified with an origin, or a wildcard origin (@*).
+                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+                Use an origin without a tag to match all tags at that origin.
+                The wildcard origin (@*) by itself will match everything.
+                Protected tags start with a plus sign.
+                Private tags start with an underscore.
+                (i.e. "science:news", "science@origin science@other" "your/tag my/tag", "!cool", or "news:_my/private/tag")`,
             }
           },
         },

@@ -469,10 +469,6 @@ video.qr-preview {
   padding: 0 !important;
 }
 
-.hide-errors .error {
-  display: none;
-}
-
 .tag,
 .icon:not(:empty) {
   margin: 0 4px;
@@ -1472,6 +1468,7 @@ formly-field-radio, formly-field-multicheckbox {
   float: right;
   display: flex;
   font-size: 75%;
+  color: var(--warning);
 
   label {
     margin-right: 10px;

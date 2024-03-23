@@ -20,13 +20,11 @@ import { defer } from 'lodash-es';
              cdkDragRootElement="formly-wrapper-form-field label">
           <div *ngIf="groupArray" cdkDragHandle class="drag-handle"></div>
           <formly-field class="grow"
-                        [class.hide-errors]="!groupArray"
                         [field]="field"
                         (focusout)="maybeRemove($event, i)"
                         (keydown)="keydown($event, i)"></formly-field>
           <button type="button" (click)="remove(i)" i18n>&ndash;</button>
         </div>
-        <formly-error *ngIf="showError" [field]="field"></formly-error>
       </ng-container>
     </div>
   `,

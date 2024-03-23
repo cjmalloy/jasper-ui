@@ -1,19 +1,24 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
+import { getErrorMessage } from './errors';
 
 @Component({
   selector: 'formly-field-input',
   template: `
     <div class="form-array">
       @if (type !== 'number') {
-        <input class="grow"
+        <input #input
+               class="grow"
+               (blur)="validate(input)"
                [type]="type"
                [formControl]="formControl"
                [formlyAttributes]="field"
                [class.is-invalid]="showError">
       } @else {
-        <input type="number"
+        <input #input
+               type="number"
                class="grow"
+               (blur)="validate(input)"
                [formControl]="formControl"
                [formlyAttributes]="field"
                [class.is-invalid]="showError">
@@ -27,6 +32,13 @@ import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
+
+  constructor(
+    private config: FormlyConfig,
+  ) {
+    super();
+  }
+
   /**
    * Overrides the <input> type. Not related to the formly field type.
    *
@@ -34,5 +46,12 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
    */
   get type() {
     return this.props.type || 'text';
+  }
+
+  validate(input: HTMLInputElement) {
+    if (this.showError) {
+      input.setCustomValidity(getErrorMessage(this.field, this.config));
+      input.reportValidity();
+    }
   }
 }
