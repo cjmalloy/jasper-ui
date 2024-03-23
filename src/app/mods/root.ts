@@ -220,7 +220,6 @@ export interface RootConfig {
   noFloatingSidebar?: boolean;
 }
 
-
 export const lockedTemplate: Template = {
   tag: 'locked',
   name: $localize`🔒️ Locked`,

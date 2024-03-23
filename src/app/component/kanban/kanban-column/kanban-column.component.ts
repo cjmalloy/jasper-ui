@@ -182,7 +182,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
     // TODO: support local urls
     const ref: Ref = isUrl ? {
-      url: fixUrl(text, this.admin.getTemplate('banlist') || this.admin.def.templates.banlist),
+      url: fixUrl(text, this.admin.getTemplate('banlist') || this.admin.def.templates.banlistConfig),
       origin: this.store.account.origin,
       tags: [...tagsWithAuthor],
     } : {
