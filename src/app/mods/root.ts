@@ -269,8 +269,8 @@ export const privateTemplate: Template = {
 
 export const rootMod: Mod = {
   templates: {
-    root: rootTemplate,
-    locked: lockedTemplate,
-    private: privateTemplate,
+    rootTemplate,
+    lockedTemplate,
+    privateTemplate,
   }
 }

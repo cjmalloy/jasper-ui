@@ -91,60 +91,60 @@ export class AdminService {
 
   def = {
     plugins: <Record<string, Plugin>> {
-      oembed: oEmbedPlugin,
-      scrape: scrapePlugin,
-      cache: cachePlugin,
+      oEmbedPlugin,
+      scrapePlugin,
+      cachePlugin,
       ...systemMod.plugins,
       ...remoteOriginMod.plugins,
-      feed: feedPlugin,
-      delete: deletePlugin,
+      feedPlugin,
+      deletePlugin,
       ...mailboxMod.plugins,
-      comment: commentPlugin,
-      thread: threadPlugin,
-      email: emailPlugin,
-      fullscreen: fullscreenPlugin,
-      seamless: seamlessPlugin,
-      thumbnail: thumbnailPlugin,
-      table: tablePlugin,
+      commentPlugin,
+      threadPlugin,
+      emailPlugin,
+      fullscreenPlugin,
+      seamlessPlugin,
+      thumbnailPlugin,
+      tablePlugin,
       ...aiMod.plugins,
       ...dalleMod.plugins,
       ...summaryMod.plugins,
-      pdf: pdfPlugin,
+      pdfPlugin,
       ...archiveMod.plugins,
-      latex: latexPlugin,
-      html: htmlPlugin,
-      person: personPlugin,
-      repost: repostPlugin,
+      latexPlugin,
+      htmlPlugin,
+      personPlugin,
+      repostPlugin,
       ...queueMod.plugins,
-      qr: qrPlugin,
-      embed: embedPlugin,
+      qrPlugin,
+      embedPlugin,
       ...audioMod.plugins,
       ...videoMod.plugins,
       ...voteMod.plugins,
 
       ...imageMod.plugins,
       ...lensMod.plugins,
-      pipPlugin: pipPlugin,
+      pipPlugin,
       ...chessMod.plugins,
       ...backgammonMod.plugins,
       ...pollMod.plugins,
       ...todoMod.plugins,
       ...ninjaTriangleMod.plugins,
-      playlistPlugin: playlistPlugin,
-      filePlugin: filePlugin,
+      playlistPlugin,
+      filePlugin,
 
       ...debugMod.plugins,
     },
     templates: <Record<string, Template>> {
       ...debugMod.templates,
       ...rootMod.templates,
-      user: userTemplate,
-      folder: folderTemplate,
-      home: homeTemplate,
+      userTemplate,
+      folderTemplate,
+      homeTemplate,
       ...queueMod.templates,
-      kanban: kanbanTemplate,
-      blog: blogTemplate,
-      chat: chatTemplate,
+      kanbanTemplate,
+      blogTemplate,
+      chatTemplate,
       ...mailboxMod.templates,
 
       ...imageMod.templates,
@@ -154,20 +154,20 @@ export class AdminService {
       ...pollMod.templates,
       ...todoMod.templates,
       ...ninjaTriangleMod.templates,
-      playlistTemplate: playlistTemplate,
+      playlistTemplate,
 
       // Themes
       ...themesMod.templates,
 
       // Configs
-      experiments: experimentsConfig,
-      wiki: wikiConfig,
-      graph: graphConfig,
-      modlist: modlistConfig,
-      banlist: banlistConfig,
-      snippets: snippetConfig,
-      htmlToMarkdown: htmlToMarkdownConfig,
-      thanks: thanksConfig,
+      experimentsConfig,
+      wikiConfig,
+      graphConfig,
+      modlistConfig,
+      banlistConfig,
+      snippetConfig,
+      htmlToMarkdownConfig,
+      thanksConfig,
     },
   };
 
@@ -498,13 +498,13 @@ export class AdminService {
       this._cache.set('embeddable', Object.values(this.status.plugins).filter(p => {
         if (!p) return false;
         if (p?.config?.ui) return true;
-        if (p === this.status.plugins.qr) return true;
-        if (p === this.status.plugins.embed) return true;
-        if (p === this.status.plugins.audio) return true;
-        if (p === this.status.plugins.video) return true;
+        if (p === this.status.plugins.qrPlugin) return true;
+        if (p === this.status.plugins.embedPlugin) return true;
+        if (p === this.status.plugins.audioPlugin) return true;
+        if (p === this.status.plugins.videoPlugin) return true;
         if (p === this.status.plugins.imagePlugin) return true;
-        if (p === this.status.plugins.pdf) return true;
-        if (p === this.status.plugins.repost) return true;
+        if (p === this.status.plugins.pdfPlugin) return true;
+        if (p === this.status.plugins.repostPlugin) return true;
         if (p === this.status.plugins.lensPlugin) return true;
         if (p === this.status.plugins.backgammonPlugin) return true;
         if (p === this.status.plugins.chessPlugin) return true;
