@@ -1,6 +1,7 @@
-<span *ngIf="!acting"
-      class="fake-link"
-      (click)="act()">
+@if (!acting) {
+  <span class="fake-link" (click)="act()">
   <ng-content></ng-content>
 </span>
-<app-loading *ngIf="acting" [inline]="true"></app-loading>
+} @else {
+  <app-loading [inline]="true"></app-loading>
+}
