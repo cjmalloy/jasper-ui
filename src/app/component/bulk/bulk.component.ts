@@ -3,7 +3,7 @@ import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } fr
 import { intersection, map, merge, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
+import { catchError, concat, last, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -267,7 +267,17 @@ export class BulkComponent implements OnChanges, OnDestroy {
           scraped.alternateUrls = uniq([...ref.alternateUrls || [], ...scraped.alternateUrls || []]);
           scraped.tags = uniq([...ref.tags || [], ...scraped.tags || []]);
           scraped.plugins = merge(ref.plugins, scraped.plugins);
-          return this.refs.update(scraped);
+          return this.refs.update(scraped).pipe(
+            catchError(err => {
+              if (err.status === 409) {
+                // If scraped for the first time the server may have modified the Ref to add a cache
+                return this.refs.get(scraped.url, scraped.origin).pipe(
+                  switchMap(existing => this.refs.update({ ...scraped, modifiedString: existing.modifiedString })),
+                );
+              }
+              return throwError(() => err);
+            }),
+          );
         }));
       }
     });
