@@ -66,7 +66,7 @@
   </div>
   <app-form-plugins id="plugins"
                     (togglePlugin)="togglePlugin($event)"
-                    [tags]="group.value.tags"
+                    [tags]="$any(group.value).tags"
                     [group]="group"></app-form-plugins>
 
   @if (tags.editingViewer) {
@@ -82,12 +82,12 @@
       <app-editor id="comment"
                   class="bubble"
                   [control]="comment"
-                  [tags]="getTags()"
+                  [tags]="$any(group.value).tags"
                   [fillWidth]="fill"
                   [url]="web && url.value"
                   (scrape)="scrapeComment()"
                   (syncEditor)="syncEditor()"
-                  (syncTags)="editorTags.next($event)"></app-editor>
+                  (syncTags)="editorTags = $event"></app-editor>
     </div>
   }
 

@@ -130,7 +130,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   overwrite = true;
   force = false;
   expandPlugins: string[] = [];
-  editorPlugins: string[] = [];
   icons: Icon[] = [];
   alarm?: string;
   actions: Action[] = [];
@@ -868,19 +867,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq([...this.editForm.value.tags, ...this.editorPlugins]);
     const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     let ref = {
       ...this.editForm.value,
-      tags,
       published,
-      plugins: writePlugins(tags, this.editForm.value.plugins),
+      plugins: writePlugins(this.editForm.value.tags, this.editForm.value.plugins),
     };
     if (this.ref.upload || !this.invalid || !this.overwrite) {
       ref = {
         ...this.ref,
         ...ref,
-        plugins: writePlugins(tags, {
+        plugins: writePlugins(this.editForm.value.tags, {
           ...this.ref.plugins,
           ...ref.plugins,
         }),

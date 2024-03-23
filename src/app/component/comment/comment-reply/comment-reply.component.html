@@ -1,6 +1,6 @@
 <form>
   <app-editor [control]="comment"
-              (syncTags)="plugins = $event"
+              (syncTags)="editorTags = $event"
               [autoFocus]="autofocus"></app-editor>
 </form>
 @for (e of serverError; track e) {

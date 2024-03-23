@@ -37,7 +37,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   submitted = false;
   title = '';
   webForm: UntypedFormGroup;
-  plugins: string[] = [];
   serverError: string[] = [];
 
   @ViewChild(RefFormComponent)
@@ -214,15 +213,13 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq([...this.webForm.value.tags, ...this.plugins]);
     const published = this.webForm.value.published ? moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
     this.refs.create({
       ...this.webForm.value,
       url: this.url, // Need to pull separately since control is locked
       origin: this.store.account.origin,
-      tags,
       published,
-      plugins: writePlugins(tags, this.webForm.value.plugins),
+      plugins: writePlugins(this.webForm.value.tags, this.webForm.value.plugins),
     }).pipe(
       tap(() => {
         if (this.admin.getPlugin('plugin/vote/up')) {

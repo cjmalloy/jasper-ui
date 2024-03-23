@@ -48,7 +48,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   private addedMailboxes: string[] = [];
   private oldSubmit: string[] = [];
-  private _plugins: string[] = [];
+  private _editorTags: string[] = [];
 
   constructor(
     private config: ConfigService,
@@ -134,16 +134,16 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     return !this.to.value || this.to.value === this.store.account.tag;
   }
 
-  get plugins(): string[] {
-    return this._plugins;
+  get editorTags(): string[] {
+    return this._editorTags;
   }
 
-  set plugins(value: string[]) {
-    const added = without(value, ...this._plugins);
-    const removed = without(this._plugins, ...value);
+  set editorTags(value: string[]) {
+    const added = without(value, ...this._editorTags);
+    const removed = without(this._editorTags, ...value);
     const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
     this.tags!.setTags(newTags);
-    this._plugins = value;
+    this._editorTags = value;
   }
 
   syncTags(value: string[]) {

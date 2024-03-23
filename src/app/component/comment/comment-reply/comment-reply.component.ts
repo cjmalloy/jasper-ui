@@ -44,7 +44,7 @@ export class CommentReplyComponent implements AfterViewInit {
   editor?: EditorComponent;
 
   commentForm: UntypedFormGroup;
-  plugins: string[] = [];
+  editorTags: string[] = [];
   serverError: string[] = [];
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
   _quote?: string;
@@ -109,7 +109,7 @@ export class CommentReplyComponent implements AfterViewInit {
         ...this.publicTag,
         ...(this.store.account.localTag ? [this.store.account.localTag] : []),
         ...this.tags!,
-        ...this.plugins,
+        ...this.editorTags,
         ...getTags(value),
         ...getMailboxes(value, this.store.account.origin),
       ])),

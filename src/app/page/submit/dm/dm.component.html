@@ -61,7 +61,7 @@
                     [fillWidth]="fill"
                     (syncEditor)="syncEditor()"
                     [tags]="$any(dmForm.value).tags"
-                    (syncTags)="plugins = $event"
+                    (syncTags)="editorTags = $event"
                     [autoFocus]="!!store.submit.to.length"></app-editor>
       </div>
     }

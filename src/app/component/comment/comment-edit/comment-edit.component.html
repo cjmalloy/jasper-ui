@@ -1,6 +1,6 @@
 <app-editor [control]="comment"
             [tags]="ref.tags"
-            (syncTags)="plugins = $event"
+            (syncTags)="editorTags = $event"
             [autoFocus]="true"></app-editor>
 @for (e of serverError; track e) {
   <span><!-- Unexpected Error --></span>

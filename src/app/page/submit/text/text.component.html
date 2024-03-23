@@ -50,7 +50,7 @@
                       [control]="comment"
                       (syncEditor)="syncEditor()"
                       [tags]="$any(textForm.value).tags"
-                      (syncTags)="plugins = $event"
+                      (syncTags)="editorTags = $event"
                       [fillWidth]="fill"
                       [autoFocus]="store.submit.wiki"></app-editor>
         </div>
@@ -64,8 +64,7 @@
       <a class="fake-link no-select" (click)="advanced = true" i18n>show advanced</a>
     } @else {
       <app-ref-form #advancedForm
-                    [group]="textForm"
-                    (editorTags)="plugins = $event"></app-ref-form>
+                    [group]="textForm"></app-ref-form>
     }
 
     @for (e of serverError; track e) {

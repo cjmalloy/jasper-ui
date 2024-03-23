@@ -44,7 +44,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
 
-  private _plugins: string[] = [];
+  private _editorTags: string[] = [];
   private oldSubmit: string[] = [];
 
   constructor(
@@ -133,16 +133,16 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     return this.textForm.get('sources') as UntypedFormArray;
   }
 
-  get plugins(): string[] {
-    return this._plugins;
+  get editorTags(): string[] {
+    return this._editorTags;
   }
 
-  set plugins(value: string[]) {
-    const added = without(value, ...this._plugins);
-    const removed = without(this._plugins, ...value);
+  set editorTags(value: string[]) {
+    const added = without(value, ...this._editorTags);
+    const removed = without(this._editorTags, ...value);
     const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
     this.tags!.setTags(newTags);
-    this._plugins = value;
+    this._editorTags = value;
   }
 
   syncTags(value: string[]) {
@@ -172,7 +172,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq([...(this.textForm.value.tags || []), ...this.plugins]);
+    const tags = uniq([...(this.textForm.value.tags || []), ...this.editorTags]);
     const published = this.textForm.value.published ? moment(this.textForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
     const ref = {
       ...this.textForm.value,

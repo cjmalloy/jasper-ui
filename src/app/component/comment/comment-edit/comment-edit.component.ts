@@ -28,7 +28,7 @@ export class CommentEditComponent implements AfterViewInit {
   commentEdited$!: Subject<Ref>;
 
   commentForm: UntypedFormGroup;
-  plugins: string[] = [];
+  editorTags: string[] = [];
 
   constructor(
     private admin: AdminService,
@@ -56,7 +56,7 @@ export class CommentEditComponent implements AfterViewInit {
       ...this.ref.tags || [],
       ...getTags(this.comment.value),
       ...getMailboxes(this.comment.value, this.store.account.origin),
-      ...this.plugins],
+      ...this.editorTags],
       this.ref.tags);
   }
 

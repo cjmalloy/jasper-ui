@@ -76,7 +76,6 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   submitted = false;
   icons: Icon[] = [];
   actions: Action[] = [];
-  editorPlugins: string[] = [];
   editing = false;
   viewSource = false;
   @HostBinding('class.deleted')
@@ -334,14 +333,12 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq([...this.editForm.value.tags, ...this.editorPlugins]);
     const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
     this.refs.update({
       ...this.ref,
       ...this.editForm.value,
-      tags,
       published,
-      plugins: writePlugins(tags, {
+      plugins: writePlugins(this.editForm.value.tags, {
         ...this.ref.plugins,
         ...this.editForm.value.plugins
       }),

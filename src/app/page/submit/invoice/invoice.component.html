@@ -47,7 +47,8 @@
                 [control]="comment"
                 [fillWidth]="fill"
                 (syncEditor)="syncEditor()"
-                (syncTags)="plugins = $event"></app-editor>
+                [tags]="$any(invoiceForm.value).tags"
+                (syncTags)="editorTags = $event"></app-editor>
   </div>
 
   @for (e of serverError; track e) {

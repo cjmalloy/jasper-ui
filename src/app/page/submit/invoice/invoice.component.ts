@@ -33,7 +33,7 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
 
   refUrl?: string;
   queue?: string;
-  plugins: string[] = [];
+  editorTags: string[] = [];
 
   constructor(
     private mod: ModService,
@@ -113,7 +113,7 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
       prefix('plugin/invoice', queueExt.tag),
       'plugin/qr',
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...this.plugins,
+      ...this.editorTags,
     ];
     for (const approver of queueExt.config.approvers) {
       result.push(prefix('plugin/inbox', approver));

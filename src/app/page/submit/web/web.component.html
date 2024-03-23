@@ -2,8 +2,7 @@
   <form class="form" [formGroup]="webForm" (ngSubmit)="submit()"
         [appLimitWidth]="refForm?.fill | async" [limitSibling]="true">
 
-    <app-ref-form [group]="webForm"
-                  (editorTags)="plugins = $event"></app-ref-form>
+    <app-ref-form [group]="webForm"></app-ref-form>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>

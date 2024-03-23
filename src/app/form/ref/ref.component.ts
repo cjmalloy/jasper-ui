@@ -1,6 +1,6 @@
 import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { defer } from 'lodash-es';
+import { defer, uniq, without } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -29,8 +29,6 @@ export class RefFormComponent implements OnInit {
   group!: UntypedFormGroup;
 
   @Output()
-  editorTags = new EventEmitter<string[]>();
-  @Output()
   fill = new EventEmitter<HTMLDivElement>();
 
   @ViewChild(TagsFormComponent)
@@ -46,6 +44,8 @@ export class RefFormComponent implements OnInit {
   scraped?: Ref;
   ref?: Ref;
 
+  private _editorTags: string[] = [];
+
   constructor(
     private fb: UntypedFormBuilder,
     public admin: AdminService,
@@ -56,10 +56,6 @@ export class RefFormComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-  }
-
-  getTags() {
-    return this.group.get('tags')?.value;
   }
 
   @ViewChild('fill')
@@ -86,6 +82,18 @@ export class RefFormComponent implements OnInit {
 
   get published() {
     return this.group.get('published') as UntypedFormControl;
+  }
+
+  get editorTags(): string[] {
+    return this._editorTags;
+  }
+
+  set editorTags(value: string[]) {
+    const added = without(value, ...this._editorTags);
+    const removed = without(this._editorTags, ...value);
+    const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
+    this.tags!.setTags(newTags);
+    this._editorTags = value;
   }
 
   setComment(value: string) {
