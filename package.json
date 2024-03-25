@@ -80,7 +80,7 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "karma-junit-reporter": "^2.0.1",
     "raw-loader": "^4.0.2",
-    "typescript": "~5.2.2"
+    "typescript": "~5.4.3"
   },
   "overrides": {
     "ngx-monaco-editor": {
