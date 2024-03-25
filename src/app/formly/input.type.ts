@@ -7,18 +7,16 @@ import { getErrorMessage } from './errors';
   template: `
     <div class="form-array">
       @if (type !== 'number') {
-        <input #input
-               class="grow"
-               (blur)="validate(input)"
+        <input class="grow"
+               (blur)="validate($any($event.target))"
                [type]="type"
                [formControl]="formControl"
                [formlyAttributes]="field"
                [class.is-invalid]="showError">
       } @else {
-        <input #input
-               type="number"
+        <input type="number"
                class="grow"
-               (blur)="validate(input)"
+               (blur)="validate($any($event.target))"
                [formControl]="formControl"
                [formlyAttributes]="field"
                [class.is-invalid]="showError">

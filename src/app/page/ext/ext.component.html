@@ -16,20 +16,8 @@
                type="email"
                autocorrect="off"
                autocapitalize="none"
-               formControlName="tag">
-      </div>
-      <span><!-- Tag Errors --></span>
-      <div>
-        @if (tag.touched && tag.errors?.['pattern']) {
-          <div class="error" i18n>
-            Tags must be lower case letters, numbers, periods and forward slashes.
-            Must not start with a forward slash or period.
-            Must not or contain two forward slashes or periods in a row.
-            Protected tags start with a plus sign.
-            Private tags start with an underscore.<br>
-            (i.e. "science", "my/tag", or "_my/private/tag")
-          </div>
-        }
+               formControlName="tag"
+               (blur)="validate($any($event.target))">
       </div>
 
       @for (e of serverError; track e) {

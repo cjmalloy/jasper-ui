@@ -11,27 +11,18 @@
 
   <label for="qr" i18n>QR Code:</label>
   <div class="form-array">
-    <input id="qr" type="text" [formControl]="url" (blur)="checkUrl()">
+    <input id="qr"
+           type="text"
+           [formControl]="url"
+           (blur)="validate($any($event.target))">
     <app-qr-scanner (data)="$event && url.setValue($event)"></app-qr-scanner>
-  </div>
-  <span><!-- QR Code Errors --></span>
-  <div>
-    @if (url.touched) {
-      @if (url.errors?.['required']) {
-        <div class="error" i18n>
-          QR Code must not be blank.
-        </div>
-      }
-      @if (url.errors?.['pattern']) {
-        <div class="error" i18n>
-          QR Code must be a valid URI according to <a target="_blank" href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
-        </div>
-      }
-    }
   </div>
 
   <label for="title" i18n>Title:</label>
-  <input id="title" type="text" [formControl]="title">
+  <input id="title"
+         type="text"
+         [formControl]="title"
+         (blur)="validate($any($event.target))">
   <span><!-- Title Errors --></span>
   <div>
     @if (title.touched && title.errors?.['required']) {

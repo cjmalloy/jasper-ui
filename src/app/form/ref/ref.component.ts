@@ -96,6 +96,15 @@ export class RefFormComponent implements OnInit {
     this._editorTags = value;
   }
 
+  validate(input: HTMLInputElement) {
+    if (this.title.touched) {
+      if (this.title.errors?.['required']) {
+        input.setCustomValidity($localize`Title must not be blank.`);
+        input.reportValidity();
+      }
+    }
+  }
+
   setComment(value: string) {
     this.comment.setValue(value);
     // Ignore tags and sources from new comment

@@ -3,15 +3,10 @@
   <input id="tag" type="text" formControlName="tag" [attr.disabled]="true">
 
   <label for="title" i18n>Name:</label>
-  <input id="title" type="text" [formControl]="name">
-  <span><!-- Title Errors --></span>
-  <div>
-    @if (name.touched && name.errors?.['required']) {
-      <div class="error" i18n>
-        Name must not be blank.
-      </div>
-    }
-  </div>
+  <input id="title"
+         type="text"
+         [formControl]="name"
+         (blur)="validate($any($event.target))">
 
   <label for="config" i18n>Config:</label>
   <app-json id="config"

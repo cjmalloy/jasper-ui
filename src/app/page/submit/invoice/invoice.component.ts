@@ -106,6 +106,19 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
     return this.invoiceForm.get('comment') as UntypedFormControl;
   }
 
+  validate(input: HTMLInputElement) {
+    this.checkUrl();
+    if (this.url.touched) {
+      if (this.url.errors?.['pattern']) {
+        input.setCustomValidity($localize`QR Code must be a valid URI according to RFC 3986.`);
+        input.reportValidity();
+      } else if (this.url.errors?.['required']) {
+        input.setCustomValidity($localize`QR Code must not be blank.`);
+        input.reportValidity();
+      }
+    }
+  }
+
   getTags(queueExt: Ext) {
     const result = [
       'locked',

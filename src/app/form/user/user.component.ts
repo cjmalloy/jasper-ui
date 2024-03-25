@@ -45,6 +45,26 @@ export class UserFormComponent implements OnInit {
     return this.group.get('tag') as UntypedFormControl;
   }
 
+  validate(input: HTMLInputElement) {
+    if (this.tag.touched) {
+      if (this.tag.errors?.['required']) {
+        input.setCustomValidity($localize`Tag must not be blank.`);
+        input.reportValidity();
+      }
+      if (this.tag.errors?.['pattern']) {
+        input.setCustomValidity($localize`
+          User tags must start with the "+user/" or "_user/" prefix.
+          Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+          tags start with an underscore.
+          (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")`);
+        input.reportValidity();
+      }
+    }
+    if (!this.tag.errors) {
+      this.tagChanges.next(input.value)
+    }
+  }
+
   setUser(user: User) {
     const ns = (user.readAccess || []).filter(isMailbox);
     this.notifications.model = ns;

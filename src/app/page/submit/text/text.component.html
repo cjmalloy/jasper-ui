@@ -13,15 +13,8 @@
       <input id="title"
              type="text"
              [formControl]="title"
-             [appAutofocus]="!store.submit.wiki">
-      <span><!-- Title Errors --></span>
-      <div>
-        @if (title.touched && title.errors?.['required']) {
-          <div class="error" i18n>
-            Title must not be blank.
-          </div>
-        }
-      </div>
+             [appAutofocus]="!store.submit.wiki"
+             (blur)="validate($any($event.target))">
 
       <app-select-plugin #pluginSelect
                          class="shrink"

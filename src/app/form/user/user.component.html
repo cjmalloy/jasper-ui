@@ -8,28 +8,10 @@
            autocorrect="off"
            autocapitalize="none"
            formControlName="tag"
-           (keydown)="tag.errors || $event.key === 'Enter' && tagChanges.next(tagInput.value) || true"
-           (blur)="tag.errors || tagChanges.next(tagInput.value)">
+           (keydown)="$event.key === 'Enter' && validate(tagInput) || true"
+           (blur)="validate(tagInput)">
     @if (showClear) {
       <button type="button" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
-    }
-  </div>
-  <span><!-- Tag Errors --></span>
-  <div>
-    @if (tag.touched) {
-      @if (tag.errors?.['pattern']) {
-        <div class="error" i18n>
-          User tags must start with the "+user/" or "_user/" prefix.
-          Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-          tags start with an underscore.<br>
-          (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")
-        </div>
-      }
-      @if (tag.errors?.['required']) {
-        <div class="error" i18n>
-          Tag must not be blank.
-        </div>
-      }
     }
   </div>
 

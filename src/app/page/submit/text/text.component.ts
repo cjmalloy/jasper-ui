@@ -145,6 +145,15 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     this._editorTags = value;
   }
 
+  validate(input: HTMLInputElement) {
+    if (this.title.touched) {
+      if (this.title.errors?.['required']) {
+        input.setCustomValidity($localize`Title must not be blank.`);
+        input.reportValidity();
+      }
+    }
+  }
+
   syncTags(value: string[]) {
     this.bookmarks.toggleTag(...without(this.store.submit.tags, ...value));
   }

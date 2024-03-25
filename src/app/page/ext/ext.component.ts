@@ -111,6 +111,21 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     return prefix(this.template, tag);
   }
 
+  validate(input: HTMLInputElement) {
+    if (this.tag.touched) {
+      if (this.tag.errors?.['pattern']) {
+        input.setCustomValidity($localize`
+          Tags must be lower case letters, numbers, periods and forward slashes.
+          Must not start with a forward slash or period.
+          Must not or contain two forward slashes or periods in a row.
+          Protected tags start with a plus sign.
+          Private tags start with an underscore.
+          (i.e. "science", "my/tag", or "_my/private/tag")`);
+        input.reportValidity();
+      }
+    }
+  }
+
   create() {
     this.serverError = [];
     this.submitted = true;

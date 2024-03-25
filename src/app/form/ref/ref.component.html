@@ -16,23 +16,22 @@
 
   <label for="title" i18n>Title:</label>
   <div class="form-array">
-    <input id="title" type="text" [formControl]="title">
+    <input id="title"
+           type="text"
+           [formControl]="title"
+           (blur)="validate($any($event.target))">
     @if (web) {
       <button type="button" (click)="scrapeTitle()" i18n-title title="Scrape Title" i18n>🪝</button>
-    }
-  </div>
-  <span><!-- Title Errors --></span>
-  <div>
-    @if (title.touched && title.errors?.['required']) {
-      <div class="error" i18n>
-        Title must not be blank.
-      </div>
     }
   </div>
 
   <label for="published" i18n>Published:</label>
   <div class="form-array">
-    <input id="published" type="datetime-local" step="1" [formControl]="published">
+    <input id="published"
+           type="datetime-local"
+           step="1"
+           [formControl]="published"
+           (blur)="validate($any($event.target))">
     @if (web) {
       <button type="button" (click)="scrapePublished()" i18n-title title="Scrape Published" i18n>🪝</button>
     }

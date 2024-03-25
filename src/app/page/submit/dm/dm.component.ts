@@ -8,6 +8,7 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
+import { getErrorMessage } from '../../../formly/errors';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
@@ -144,6 +145,20 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
     this.tags!.setTags(newTags);
     this._editorTags = value;
+  }
+
+  validate(input: HTMLInputElement) {
+    if (this.to.touched) {
+      if (this.to.errors?.['pattern']) {
+        input.setCustomValidity($localize`
+          User tags must start with the "+user/" or "_user/" prefix.
+          Notification tags must start with the "plugin/inbox" or "plugin/outbox" prefix.
+          Tags must be lower case letters, numbers, periods and forward slashes.
+          Must not or contain two forward slashes or periods in a row.
+          (i.e. "+user/bob", "plugin/outbox/dictionary/science", or "_user/charlie@jasperkm.info")`);
+        input.reportValidity();
+      }
+    }
   }
 
   syncTags(value: string[]) {

@@ -7,11 +7,10 @@ import { getErrorMessage } from './errors';
 @Component({
   selector: 'formly-field-input',
   template: `
-    <input #input
-           duration
+    <input duration
            class="grow"
            type="text"
-           (blur)="validate(input)"
+           (blur)="validate($any($event.target))"
            [formControl]="formControl"
            [formlyAttributes]="field"
            [class.is-invalid]="showError">
