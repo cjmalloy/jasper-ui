@@ -14,7 +14,6 @@ export const oEmbedPlugin: Plugin = {
     icons: [{ label: $localize`📡️`, order: 3 }],
     description: $localize`Register an oEmbed API.`,
     hasDefaults: true,
-    hasClearCache: $localize`🆑️ clear cache`,
     form: [{
       key: 'provider_name',
       type: 'string',

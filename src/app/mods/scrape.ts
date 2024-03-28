@@ -20,7 +20,6 @@ export const scrapePlugin: Plugin = {
     ],
     description: $localize`Configure CSS classes for scraping websites.`,
     hasDefaults: true,
-    hasClearCache: $localize`🆑️ clear cache`,
     form: [{
       key: 'schemes',
       type: 'urls',

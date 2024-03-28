@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
-import { catchError, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { mapRef, Ref } from '../../model/ref';
 import { catchAll } from '../../mods/scrape';
@@ -38,9 +38,6 @@ export class ScrapeService {
       }
       if (this.store.eventBus.event === '+plugin/scrape:defaults') {
         this.defaults().subscribe();
-      }
-      if (store.eventBus.event === '+plugin/scrape:clear-cache') {
-        this.clearConfigCache().subscribe();
       }
       if (store.eventBus.event === '_plugin/cache:clear-cache') {
         this.clearDeleted().subscribe();
@@ -142,19 +139,11 @@ export class ScrapeService {
   }
 
   defaults(): Observable<any> {
-    return this.refs.update(catchAll, true).pipe(
-      switchMap(() => this.clearConfigCache())
-    );
+    return this.refs.update(catchAll, true);
   }
 
   clearDeleted() {
     return this.http.post(`${this.base}/clear-deleted`, null).pipe(
-      catchError(err => this.login.handleHttpError(err)),
-    );
-  }
-
-  clearConfigCache() {
-    return this.http.post(`${this.base}/clear-config-cache`, null).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
