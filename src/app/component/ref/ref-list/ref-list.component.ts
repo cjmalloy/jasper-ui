@@ -7,6 +7,7 @@ import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
 import { RefService } from '../../../service/api/ref.service';
+import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-ref-list',
@@ -48,6 +49,7 @@ export class RefListComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
+    private store: Store,
     private refs: RefService,
   ) { }
 
@@ -146,7 +148,7 @@ export class RefListComponent implements OnInit, OnDestroy {
 
   addNewRef(ref: Ref) {
     if (this.page?.content.find(r => r.url === ref.url)) {
-      // TODO: Update Ref
+      this.store.eventBus.refresh(ref);
       return;
     }
     const index = this.newRefs.findIndex(r => r.url === ref.url);

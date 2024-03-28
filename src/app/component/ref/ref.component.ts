@@ -175,6 +175,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.editForm = refForm(fb);
     this.disposers.push(autorun(() => {
       if (this.store.eventBus.event === 'refresh') {
+        if (this.editing || this.viewSource) {
+          // TODO: show somewhere
+          console.warn('Ignoring Ref edit.');
+          return;
+        }
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
           this.ref = this.store.eventBus.ref!;
           this.init();
@@ -890,6 +895,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     } else {
       this.refreshTap = () => this.publishChanged = !published.isSame(this.ref.published);
       this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
+        tap(() => this.editing = false),
         catchError((res: HttpErrorResponse) => {
           if (res.status === 400) {
             if (this.invalid) {
