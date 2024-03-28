@@ -31,6 +31,15 @@ export class PluginFormComponent implements OnInit {
     return this.group.get('name') as UntypedFormControl;
   }
 
+  validate(input: HTMLInputElement) {
+    if (this.name.touched) {
+      if (this.name.errors?.['required']) {
+        input.setCustomValidity($localize`Name must not be blank.`);
+        input.reportValidity();
+      }
+    }
+  }
+
 }
 
 export function pluginForm(fb: UntypedFormBuilder) {
