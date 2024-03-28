@@ -64,11 +64,7 @@ export class RefThreadComponent {
         this.watch = this.stomp.watchResponse(this.store.view.top.url).pipe(
           takeUntil(this.destroy$),
           switchMap(url => this.refs.page({ url, size: 1 })) // TODO: fix race conditions
-        ).subscribe(page => {
-          if (this.query.page?.last) {
-            this.newRefs$.next(page.content[0]);
-          }
-        });
+        ).subscribe(page => this.newRefs$.next(page.content[0]));
       }
     }));
     this.newRefs$.subscribe(c => {
