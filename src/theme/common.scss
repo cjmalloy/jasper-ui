@@ -1711,6 +1711,7 @@ button.backup, button.upload, input.upload {
 
 .md, .md blockquote {
   max-width: 60em;
+  text-align: justify;
   overflow-wrap: break-word;
   word-wrap: break-word;
 
@@ -1720,10 +1721,6 @@ button.backup, button.upload, input.upload {
 
   & > :last-child {
     margin-bottom: 0;
-  }
-
-  p {
-    text-align: justify;
   }
 
   blockquote {
