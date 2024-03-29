@@ -13,7 +13,7 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { Chess, Move, Square } from 'chess.js';
-import { defer, delay, flatten } from 'lodash-es';
+import { defer, delay, flatten, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, Observable, Subscription, throwError } from 'rxjs';
@@ -58,7 +58,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   chess = new Chess();
   pieces: (Piece | null)[] = flatten(this.chess.board());
   writeAccess = false;
-  bounce = '';
+  bounce: string[] = [];
   @HostBinding('class.flip')
   flip = false;
 
@@ -136,12 +136,12 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         this.store.eventBus.refresh(this.ref);
         // TODO: queue all moves and animate one by one
         const move = current.shift()!;
-        const lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
+        let lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
         requestAnimationFrame(() => {
           if (lastMove != this.incoming) return;
-          this.bounce = this.incoming;
-          if (this.bounce.length > 2) this.bounce = this.bounce.substring(this.bounce.length - 2, this.bounce.length);
-          delay(() => this.bounce = '', 3400);
+          if (lastMove.length > 2) lastMove = lastMove.substring(lastMove.length - 2, lastMove.length) as Square;
+          this.bounce.push(lastMove);
+          delay(() => this.bounce = without(this.bounce, lastMove), 3400);
         });
       });
     }
