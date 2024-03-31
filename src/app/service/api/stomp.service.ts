@@ -39,6 +39,12 @@ export class StompService extends RxStomp {
     return 'ws://' + this.config.api + '/websocket'
   }
 
+  watchOrigin(origin: string): Observable<string> {
+    return this.watch('/topic/cursor/' + (origin || 'default'), this.headers).pipe(
+      map(m => m.body),
+    );
+  }
+
   watchRef(url: string): Observable<RefUpdates> {
     return this.watch('/topic/ref/' + (this.store.account.origin || 'default') + '/' + encodeURIComponent(url), this.headers).pipe(
       map(m => mapRef(JSON.parse(m.body))),
