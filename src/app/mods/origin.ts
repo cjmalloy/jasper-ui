@@ -270,7 +270,7 @@ export const originTunnelPlugin: Plugin = {
     optionalProperties: {
       remoteUser: { type: 'string' },
       sshHost: { type: 'string' },
-      sshPort: { type: 'uint8' },
+      sshPort: { type: 'uint32' },
     },
   },
 };
