@@ -1,7 +1,7 @@
 <ng-container *mobxAutorun>
   <div class="tabs">
     <a class="logo" routerLink="/"></a>
-    <h5 class="fake-link" routerLink="." i18n>User</h5>
+    <h5 class="fake-link" routerLink="." i18n>User Permissions</h5>
     <app-settings></app-settings>
   </div>
 
@@ -11,7 +11,8 @@
     <app-user-form #form
                    [group]="user"
                    (tagChanges)="setTag($event)"
-                   [showClear]="true"
+                   [showClear]="!!store.view.selectedUser"
+                   [showPubKey]="!!store.view.selectedUser"
                    (clear)="clear()"></app-user-form>
 
     @if (config.scim) {
@@ -48,8 +49,8 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons form-array right">
-      <button type="submit" [disabled]="submitted && !profileForm.valid" i18n>{{ user ? 'Save' : 'Create' }}</button>
-      @if (user) {
+      <button type="submit" [disabled]="submitted && !profileForm.valid" i18n>{{ store.view.selectedUser ? 'Save' : 'Create' }}</button>
+      @if (!!store.view.selectedUser) {
         <button type="button" (click)="delete()" i18n>Delete</button>
       }
     </span>

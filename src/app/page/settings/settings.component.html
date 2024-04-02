@@ -15,7 +15,7 @@
          queryParamsHandling="merge"
          [title]="plugin.name || plugin.tag">{{ plugin.config?.settings || plugin.tag }}</a>
     }
-    <a routerLink="./user" routerLinkActive="current-tab" i18n-title title="User permissions" i18n>user</a>
+    <a routerLink="./user" routerLinkActive="current-tab" i18n-title title="User permissions" i18n>permissions</a>
     <a routerLink="./plugin" routerLinkActive="current-tab" i18n-title title="Ref Plugins" i18n>plugin</a>
     <a routerLink="./template" routerLinkActive="current-tab" i18n-title title="Ext Templates" i18n>template</a>
     @if (store.account.mod) {

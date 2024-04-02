@@ -25,6 +25,7 @@ describe('UserFormComponent', () => {
       name: new UntypedFormControl(),
       role: new UntypedFormControl(),
       pubKey: new UntypedFormControl(),
+      authorizedKeys: new UntypedFormControl(),
     });
     fixture.detectChanges();
   });
