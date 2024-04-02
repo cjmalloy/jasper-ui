@@ -9,6 +9,7 @@ export interface User extends Tag {
   tagReadAccess?: string[];
   tagWriteAccess?: string[];
   pubKey?: string;
+  authorizedKeys?: string;
 }
 
 export type Role = 'ROLE_ADMIN' | 'ROLE_MOD' | 'ROLE_EDITOR' | 'ROLE_USER' | 'ROLE_VIEWER' | 'ROLE_ANONYMOUS' | 'ROLE_BANNED';

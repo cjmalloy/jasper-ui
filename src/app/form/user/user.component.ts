@@ -93,5 +93,6 @@ export function userForm(fb: UntypedFormBuilder, locked = false) {
     tagReadAccess: fb.array([]),
     tagWriteAccess: fb.array([]),
     pubKey: [''],
+    authorizedKeys: [''],
   });
 }
