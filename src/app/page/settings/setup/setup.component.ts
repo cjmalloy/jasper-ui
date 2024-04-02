@@ -63,6 +63,7 @@ export class SettingsSetupPage implements OnInit {
     const installs: string[] = [];
     for (const plugin in this.admin.status.plugins) {
       const def = this.admin.def.plugins[plugin];
+      if (!def) continue;
       const status = this.admin.status.plugins[plugin] || this.admin.status.disabledPlugins[plugin];
       if (!!status === !!this.adminForm.value.mods[plugin]) continue;
       if (this.adminForm.value.mods[plugin]) {
@@ -73,6 +74,7 @@ export class SettingsSetupPage implements OnInit {
     }
     for (const template in this.admin.status.templates) {
       const def = this.admin.def.templates[template];
+      if (!def) continue;
       const status = this.admin.status.templates[template] || this.admin.status.disabledTemplates[template];
       if (!!status === !!this.adminForm.value.mods[template]) continue;
       if (this.adminForm.value.mods[template]) {
