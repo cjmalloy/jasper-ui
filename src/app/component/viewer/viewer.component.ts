@@ -217,7 +217,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       }
     } else {
       this.embedReady = true;
-      i.src = this.embed.url || this.ref?.url;
+      i.src = this.embed?.url || this.ref?.url;
       i.style.width = this.embedWidth;
       i.style.height = this.embedHeight;
     }
@@ -225,8 +225,8 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
 
   @memo
-  get oembed() {
-    return this._oembed!;
+  get oembed(): Oembed | undefined {
+    return this._oembed;
   }
 
   @memo
