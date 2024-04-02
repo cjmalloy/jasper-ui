@@ -26,11 +26,6 @@ config="
   \"maxOrigins\": ${JASPER_MAX_ORIGINS-0},
   \"fetchBatch\": ${JASPER_FETCH_BATCH-0},
   \"token\": \"${JASPER_TOKEN}\",
-  \"codeFlow\": ${JASPER_CODE_FLOW-false},
-  \"implicitFlow\": ${JASPER_IMPLICIT_FLOW-false},
-  \"issuer\": \"$JASPER_ISSUER\",
-  \"clientId\": \"$JASPER_CLIENT_ID\",
-  \"scope\": \"$JASPER_SCOPE\",
   \"preAuthScrape\": ${PRE_AUTH_SCRAPE-true}
 }
 "

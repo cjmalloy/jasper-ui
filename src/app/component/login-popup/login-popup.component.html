@@ -1,6 +1,10 @@
 <ng-container *mobxAutorun>
-  <ng-container *ngIf="store.account.authError">
-    <div class="fake-link no-select" (click)="doLogin()" i18n>Click here to login.</div>
+  @if (store.account.authError) {
+    @if (config.login) {
+      <div class="fake-link no-select" (click)="doLogin()" i18n>Click here to login.</div>
+    } @else {
+      Please log in and try again.
+    }
     <button type="button" (click)="clear()" i18n>clear</button>
-  </ng-container>
+  }
 </ng-container>

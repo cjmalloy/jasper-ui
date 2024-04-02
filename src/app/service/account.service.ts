@@ -13,7 +13,7 @@ import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { UserService } from './api/user.service';
-import { AuthnService } from './authn.service';
+import { ConfigService } from './config.service';
 
 export const CACHE_MS = 15 * 1000;
 
@@ -27,7 +27,7 @@ export class AccountService {
 
   constructor(
     private store: Store,
-    private authn: AuthnService,
+    private config: ConfigService,
     private admin: AdminService,
     private users: UserService,
     private exts: ExtService,
@@ -39,7 +39,7 @@ export class AccountService {
       catchError(err => {
         if ([0, 200, 401, 403].includes(err.status)) {
           // Requires auth to access at all
-          this.authn.logIn();
+          this.config.logIn();
         }
         return throwError(() => err);
       }),

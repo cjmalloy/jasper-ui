@@ -1,6 +1,6 @@
 import { Injectable, isDevMode } from '@angular/core';
 import { from, of } from 'rxjs';
-import { AuthnService } from './authn.service';
+import { ConfigService } from './config.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +9,7 @@ export class DebugService {
   loading?: Promise<string>;
 
   constructor(
-    private auth: AuthnService,
+    private config: ConfigService,
   ) { }
 
   get init$() {
@@ -17,10 +17,10 @@ export class DebugService {
       const debugRole = location.search.match(/debug=([^&]+)/)![1];
       const debugTag = location.search.match(/tag=([^&]+)/)?.[1] || '';
       if (debugRole.toLowerCase() === 'false') return of(null);
-      return from(this.getDebugToken(debugTag, 'ROLE_' + debugRole.toUpperCase()).then(jwt => this.auth.token = jwt));
+      return from(this.getDebugToken(debugTag, 'ROLE_' + debugRole.toUpperCase()).then(jwt => this.config.token = jwt));
     }
     if (isDevMode() && !location.search.includes('anon=')) {
-      return from(this.getDebugToken('+user/chris', 'ROLE_ADMIN').then(jwt => this.auth.token = jwt));
+      return from(this.getDebugToken('+user/chris', 'ROLE_ADMIN').then(jwt => this.config.token = jwt));
     }
     return of(null)
   }

@@ -7,11 +7,10 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { FormlyModule } from '@ngx-formly/core';
-import { OAuthModule } from 'angular-oauth2-oidc';
 import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { retry, switchMap, timer } from 'rxjs';
+import { of, retry, switchMap, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -102,6 +101,7 @@ import { ThemesFormComponent } from './form/themes/themes.component';
 import { UserFormComponent } from './form/user/user.component';
 import { JasperFormlyModule } from './formly/formly.module';
 import { HammerConfig } from './hammer.config';
+import { AuthInterceptor } from './http/auth.interceptor';
 import { CsrfInterceptor } from './http/csrf.interceptor';
 import { ExtPage } from './page/ext/ext.component';
 import { HomePage } from './page/home/home.component';
@@ -144,18 +144,17 @@ import { SafePipe } from './pipe/safe.pipe';
 import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
-import { AuthnService } from './service/authn.service';
 import { ConfigService } from './service/config.service';
 import { DebugService } from './service/debug.service';
 import { ModService } from './service/mod.service';
 import { OriginMapService } from './service/origin-map.service';
 
-const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ModService) => () =>
+const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ModService) => () =>
   config.load$.pipe(
     tap(() => console.log('-{1}- Loading Jasper')),
     switchMap(() => debug.init$),
     tap(() => console.log('-{2}- Authenticating')),
-    switchMap(() => authn.init$),
+    switchMap(() => of(null)),
     tap(() => console.log('-{3}- Authorizing')),
     switchMap(() => account.whoAmI$.pipe(
       retry({
@@ -319,11 +318,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     ScrollingModule,
     FormlyModule,
     JasperFormlyModule,
-    OAuthModule.forRoot({
-      resourceServer: {
-        sendAccessToken: false,
-      }
-    }),
     ServiceWorkerModule.register('ngsw-worker.js', {
       scope: '.',
       enabled: !isDevMode(),
@@ -333,13 +327,14 @@ const loadFactory = (config: ConfigService, debug: DebugService, authn: AuthnSer
     })
   ],
   providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
     { provide: HAMMER_GESTURE_CONFIG, useClass: HammerConfig },
     {
       provide: APP_INITIALIZER,
       useFactory: loadFactory,
-      deps: [ConfigService, DebugService, AuthnService, AdminService, AccountService, OriginMapService, ModService],
+      deps: [ConfigService, DebugService, AdminService, AccountService, OriginMapService, ModService],
       multi: true,
     },
   ],

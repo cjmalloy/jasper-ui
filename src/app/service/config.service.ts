@@ -32,13 +32,8 @@ export class ConfigService {
   maxOrigins = 1000;
   fetchBatch = 50;
 
-  // Enables client side auth
+  // Debug token
   token = '';
-  codeFlow = false;
-  implicitFlow = false;
-  issuer = '';
-  clientId = '';
-  scope = 'openid email';
 
   /**
    * Workaround for non-cookie based auth to scrape images before fetching.
@@ -75,5 +70,12 @@ export class ConfigService {
 
   get mobile() {
     return window.innerWidth <= this.mobileWidth;
+  }
+
+  logIn() {
+    if (this.login) {
+      // @ts-ignore
+      window.location = this.loginLink;
+    }
   }
 }

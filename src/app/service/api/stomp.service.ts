@@ -3,7 +3,6 @@ import { RxStomp } from '@stomp/rx-stomp';
 import { map, Observable } from 'rxjs';
 import { mapRef, RefUpdates } from '../../model/ref';
 import { Store } from '../../store/store';
-import { AuthnService } from '../authn.service';
 import { ConfigService } from '../config.service';
 
 @Injectable({
@@ -14,7 +13,6 @@ export class StompService extends RxStomp {
   constructor(
     private config: ConfigService,
     private store: Store,
-    private auth: AuthnService,
   ) {
     super();
     this.configure({
@@ -28,7 +26,7 @@ export class StompService extends RxStomp {
 
   get headers() {
     return {
-      jwt: this.auth.token,
+      jwt: this.config.token,
     };
   }
 
