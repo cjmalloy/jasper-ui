@@ -56,9 +56,16 @@
             [group]="group"></app-tags>
 
   <label for="pubKey" i18n>SSH Public Key:</label>
-  <div #fill>
+  <div>
     <textarea id="pubKey"
-              formControlName="pubKey"
+              [disabled]="true"
+              formControlName="pubKey"></textarea>
+  </div>
+
+  <label for="authorizedKeys" i18n>Authorized Keys:</label>
+  <div #fill>
+    <textarea id="authorizedKeys"
+              formControlName="authorizedKeys"
               [appFillWidth]="fill"></textarea>
   </div>
 
