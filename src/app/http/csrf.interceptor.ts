@@ -1,6 +1,6 @@
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable, isDevMode } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, retry } from 'rxjs';
 import { ConfigService } from '../service/config.service';
 
 @Injectable()
@@ -25,6 +25,6 @@ export class CsrfInterceptor implements HttpInterceptor {
       headers: request.headers.set('X-XSRF-TOKEN', this.getCsrfToken()),
       withCredentials: this.withCredentials,
     });
-    return next.handle(modifiedReq);
+    return next.handle(modifiedReq).pipe(retry(1));
   }
 }
