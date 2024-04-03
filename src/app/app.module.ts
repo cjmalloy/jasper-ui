@@ -320,7 +320,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     JasperFormlyModule,
     ServiceWorkerModule.register('ngsw-worker.js', {
       scope: '.',
-      enabled: !isDevMode(),
+      enabled: !isDevMode() && location.hostname != 'localhost',
       // Register the ServiceWorker as soon as the application is stable
       // or after 30 seconds (whichever comes first).
       registrationStrategy: 'registerWhenStable:30000'
