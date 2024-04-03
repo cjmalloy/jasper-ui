@@ -6,7 +6,7 @@ import { ConfigService } from '../service/config.service';
 @Injectable()
 export class CsrfInterceptor implements HttpInterceptor {
 
-  withCredentials = isDevMode() || this.config.electron;
+  withCredentials = isDevMode() || this.config.electron || location.hostname === 'localhost';
 
   constructor(
     private config: ConfigService,
