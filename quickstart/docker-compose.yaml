@@ -1,19 +1,26 @@
 # Requires docker compose
 # Run `docker compose up` to start all services
-# The web client will be on http://localhost:8082
+# The web client will be on http://localhost:8092
 services:
   web:
     image: ghcr.io/cjmalloy/jasper:v1.2
     ports:
-      - 8081:8081
+      - 8091:80
     environment:
-      SPRING_PROFILES_ACTIVE: prod,default-user,storage,feed-burst,pull-burst,push-burst
+      SERVER_PORT: 80
+      SPRING_PROFILES_ACTIVE: prod,storage
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
+      JASPER_CORS_ALLOWED_ORIGINS: 'http://localhost:8092'
+      JASPER_CORS_ALLOWED_METHODS: '*'
+      JASPER_CORS_ALLOWED_HEADERS: '*'
+      JASPER_CORS_EXPOSED_HEADERS: 'Authorization,Link,X-Total-Count'
+      JASPER_CORS_ALLOW_CREDENTIALS: true
+      JASPER_CORS_MAX_AGE: 1800
+      JASPER_DEFAULT_ROLE: ROLE_ADMIN
       # Edit to set your username (i.e. +user/bob)
-      JASPER_SECURITY_CLIENTS_DEFAULT_DEFAULT_USER: +user
-      JASPER_SECURITY_CLIENTS_DEFAULT_DEFAULT_ROLE: ROLE_ADMIN
+      JASPER_OVERRIDE_SECURITY_DEFAULT_USER: +user
     depends_on:
       - db
   db:
@@ -25,7 +32,8 @@ services:
   client:
     image: ghcr.io/cjmalloy/jasper-ui:v1.2
     ports:
-      - 8082:80
+      - 8092:80
     environment:
-      JASPER_API: //localhost:8081
-      CSP_DEFAULT_SRC: http://localhost:8081 ws://localhost:8081
+      JASPER_API: http://localhost:8091
+      CSP_DEFAULT_SRC: http://localhost:8091 ws://localhost:8091
+      CSP_CONNECT_SRC: http://localhost:8091 ws://localhost:8091
