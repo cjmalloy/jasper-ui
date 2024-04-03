@@ -3,7 +3,7 @@
     @if (config.login) {
       <div class="fake-link no-select" (click)="doLogin()" i18n>Click here to login.</div>
     } @else {
-      Please log in and try again.
+      <div>Please log in and try again.</div>
     }
     <button type="button" (click)="clear()" i18n>clear</button>
   }
