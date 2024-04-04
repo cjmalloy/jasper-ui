@@ -1635,6 +1635,7 @@ formly-field-radio, formly-field-multicheckbox {
 
 .audio-expand {
   width: calc(100% - 40px);
+  max-width: 60em;
   margin: 10px 0;
 }
 
