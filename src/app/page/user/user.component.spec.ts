@@ -2,7 +2,6 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
 
 import { UserPage } from './user.component';
 
@@ -17,10 +16,6 @@ describe('CreateUserPage', () => {
         HttpClientTestingModule,
         RouterModule.forRoot([]),
         ReactiveFormsModule,
-      ],
-      providers: [
-        { provide: OAuthService, useValue: {} },
-        { provide: OAuthStorage, useValue: {} },
       ],
     })
     .compileComponents();
