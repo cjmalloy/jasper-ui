@@ -143,12 +143,15 @@ export function implicitLocal(tag: string, local: string) {
 }
 
 /**
- * Join multiple tags together, ignoring visibility modifiers '+' and '_' and
- * origin markers '@' for all but the first tag.
+ * Join multiple tags together.
+ * Ignores visibility modifiers '+' and '_' for all but the first tag in `rest` that has one.
+ * Will leave existing visibility tag on `prefix` if none are in `rest`.
+ * Uses the origin from the last tag in `rest`.
  */
 export function prefix(prefix: string, ...rest: string[]) {
-  if (access(rest[0])) {
-    prefix = access(rest[0]) + setPublic(prefix);
+  let restAccess = access(rest.find(tag => access(tag)));
+  if (restAccess) {
+    prefix = restAccess + setPublic(prefix);
   }
   const origin = tagOrigin(rest[rest.length - 1]);
   return prefix + ('/' + rest.map(r => r.startsWith('@') ? r.substring(1) : localTag(setPublic(r))).join('/'))
@@ -254,6 +257,11 @@ export function publicTag(tag: string) {
 export function setPublic(tag: string) {
  if (publicTag(tag)) return tag;
  return tag.substring(1);
+}
+
+export function unprotect(tag: string) {
+ if (protectedTag(tag)) return tag.substring(1);
+ return tag;
 }
 
 export function privateTag(tag: string) {

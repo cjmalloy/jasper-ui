@@ -1,6 +1,6 @@
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable, isDevMode } from '@angular/core';
-import { catchError, filter, Observable, retry, retryWhen, switchMap, throwError } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
 import { ConfigService } from '../service/config.service';
 
 @Injectable()

@@ -144,7 +144,7 @@ export class AccountStore {
 
   get mailbox() {
     if (!this.signedIn) return undefined;
-    return getMailbox(this.tag);
+    return getMailbox(this.tag, this.origin);
   }
 
   get modmail() {

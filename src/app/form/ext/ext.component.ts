@@ -6,6 +6,7 @@ import { allRefSorts } from '../../component/sort/sort.component';
 import { Ext } from '../../model/ext';
 import { getMailbox } from '../../mods/mailbox';
 import { AdminService } from '../../service/admin.service';
+import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
 import { defaultDesc } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
@@ -46,6 +47,7 @@ export class ExtFormComponent implements OnInit {
 
   constructor(
     private admin: AdminService,
+    private store: Store,
   ) { }
 
   ngOnInit(): void {
@@ -62,7 +64,7 @@ export class ExtFormComponent implements OnInit {
 
   get inbox() {
     if (!this.admin.getPlugin('plugin/inbox')) return null;
-    return getMailbox(this.group.get('tag')!.value);
+    return getMailbox(this.group.get('tag')!.value, this.store.account.origin);
   }
 
   get modmail() {
