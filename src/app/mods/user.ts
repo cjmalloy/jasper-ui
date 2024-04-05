@@ -45,7 +45,12 @@ export const userTemplate: Template = {
       props: {
         label: $localize`Subscriptions:`,
         addText: $localize`+ Add another subscription`,
-      }
+      },
+      fieldArray: {
+        props: {
+          label: $localize`🏡`,
+        }
+      },
     }, {
       key: 'bookmarks',
       type: 'queries',
@@ -59,7 +64,12 @@ export const userTemplate: Template = {
       props: {
         label: $localize`Alarms:`,
         addText: $localize`+ Add another alarm`,
-      }
+      },
+      fieldArray: {
+        props: {
+          label: $localize`🔔`,
+        }
+      },
     }],
     advancedForm: [{
       key: 'queryStyle',
@@ -79,7 +89,12 @@ export const userTemplate: Template = {
       props: {
         label: $localize`Editors:`,
         addText: $localize`+ Add another editor`,
-      }
+      },
+      fieldArray: {
+        props: {
+          label: $localize`📝`,
+        }
+      },
     }, {
       key: 'pinned',
       type: 'urls',
