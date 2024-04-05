@@ -256,6 +256,11 @@ export function setPublic(tag: string) {
  return tag.substring(1);
 }
 
+export function unprotect(tag: string) {
+ if (protectedTag(tag)) return tag.substring(1);
+ return tag;
+}
+
 export function privateTag(tag: string) {
   return tag.startsWith('_');
 }
