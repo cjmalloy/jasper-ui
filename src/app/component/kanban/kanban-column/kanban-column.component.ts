@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { intersection, uniq } from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, Observable, Subject, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, Observable, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../../model/ext';
@@ -61,6 +61,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   addText = '';
   pressToUnlock = false;
   adding: string[] = [];
+
+  private currentRequest?: Subscription;
 
   constructor(
     public config: ConfigService,
@@ -123,14 +125,18 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   clear() {
-    this.refs.page(getArgs(
+    delete this.page;
+    this.currentRequest?.unsubscribe();
+    this.currentRequest = this.refs.page(getArgs(
       this.query,
       this.sort,
       this.filter,
       this.search,
       0,
       this.size,
-    )).subscribe(page => {
+    )).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(page => {
       this.page = page;
     });
   }
