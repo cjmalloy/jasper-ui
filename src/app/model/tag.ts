@@ -96,6 +96,10 @@ export interface Config extends Tag {
      */
     snippet?: string,
     /**
+     * Optional html to be added to <body> on load.
+     */
+    banner?: string,
+    /**
      * Optional buttons to add to the editor.
      */
     editorButtons?: EditorButton[],

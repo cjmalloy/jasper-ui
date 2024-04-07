@@ -30,6 +30,7 @@ import { feedPlugin } from '../mods/feed';
 import { filePlugin } from '../mods/file';
 import { folderTemplate } from '../mods/folder';
 import { fullscreenPlugin } from '../mods/fullscreen';
+import { gdprConfig } from '../mods/gdpr';
 import { graphConfig } from '../mods/graph';
 import { homeTemplate } from '../mods/home';
 import { htmlToMarkdownConfig } from '../mods/htmlToMarkdown';
@@ -168,6 +169,7 @@ export class AdminService {
       snippetConfig,
       htmlToMarkdownConfig,
       thanksConfig,
+      gdprConfig,
     },
   };
 

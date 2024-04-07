@@ -30,6 +30,7 @@ export class ModService {
     autorun(() => this.setCustomCss('custom-css', ...(this.store.account.config.userTheme ? this.getUserCss() : this.getExtCss())));
     this.admin.configProperty('css').forEach(p => this.setCustomCss(p.type + '-' + p.tag, p.config!.css));
     this.admin.configProperty('snippet').forEach(p => this.addSnippet(p.type + '-' + p.tag, p.config!.snippet));
+    this.admin.configProperty('banner').forEach(p => this.addBanner(p.type + '-' + p.tag, p.config!.banner));
     const ql = matchMedia && matchMedia('(prefers-color-scheme: dark)');
     ql.addEventListener && ql.addEventListener('change', e => {
       if (!localStorage.getItem('theme')) this.setTheme();
@@ -54,13 +55,12 @@ export class ModService {
     const old = this.document.getElementById(id)
     if (old) old.remove();
     if (!cs || !cs.length || !cs[0]) return;
-    const head = this.document.getElementsByTagName('head')[0];
     const style = this.document.createElement('style');
     style.id = id;
     for (const css of cs) {
       style.innerHTML += (this.nesting ? css : flatten(css || '')) + '\n\n';
     }
-    head.appendChild(style);
+    document.head.appendChild(style);
   }
 
   addSnippet(id: string, ...snippets: (string | undefined)[]) {
@@ -68,13 +68,25 @@ export class ModService {
     const old = this.document.getElementById(id)
     if (old) old.remove();
     if (!snippets || !snippets.length || !snippets[0]) return;
-    const head = this.document.getElementsByTagName('head')[0];
     const nodes = this.document.createRange().createContextualFragment(snippets.join('\n\n'));
     for (let i = 0; i < nodes.children.length; i++) {
       const n = nodes.children[i];
       n.id = id + '-' + i;
     }
-    head.appendChild(nodes);
+    document.head.appendChild(nodes);
+  }
+
+  addBanner(id: string, ...banners: (string | undefined)[]) {
+    id = id.replace(/\W/g, '_').replace(/\./g, '-') + '-banner';
+    const old = this.document.getElementById(id)
+    if (old) old.remove();
+    if (!banners || !banners.length || !banners[0]) return;
+    const nodes = this.document.createRange().createContextualFragment(banners.join('\n\n'));
+    for (let i = 0; i < nodes.children.length; i++) {
+      const n = nodes.children[i];
+      n.id = id + '-' + i;
+    }
+    document.body.appendChild(nodes);
   }
 
   setTheme(theme?: string | null) {
