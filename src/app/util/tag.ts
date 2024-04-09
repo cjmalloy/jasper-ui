@@ -347,10 +347,13 @@ export function parentTag(tag: string): string | undefined {
   return tag.substring(0, tag.lastIndexOf('/'));
 }
 
-export function removeTag(tag: string | undefined, tags: string[]): string[] {
-  while (tag) {
-    tags = without(tags, tag);
-    tag = parentTag(tag);
+export function removeTag(tag: string | string[] | undefined, tags: string[]): string[] {
+  const ts = isArray(tag) ? tag : [tag];
+  for (let t of ts) {
+    while (t) {
+      tags = without(tags, t);
+      t = parentTag(t);
+    }
   }
   return tags;
 }
