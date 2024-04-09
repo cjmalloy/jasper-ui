@@ -1,5 +1,5 @@
 <details class="advanced">
-  <summary><span i18n>Bulk tools</span> <app-loading *ngIf="batchRunning"></app-loading></summary>
+  <summary><span i18n>Bulk tools</span> <app-loading *ngIf="batchRunning" [batch]="true"></app-loading></summary>
   <span *ngIf="empty" i18n>no results</span>
   <ng-container *ngIf="!empty">
     <span class="fake-link" (click)="download()" i18n>download</span>

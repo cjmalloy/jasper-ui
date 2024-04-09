@@ -11,4 +11,8 @@ export class LoadingComponent {
   @HostBinding('class.inline')
   inline = false;
 
+  @Input()
+  @HostBinding('class.batch')
+  batch = false;
+
 }

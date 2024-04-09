@@ -16,6 +16,11 @@
     padding: 0;
     top: -2px;
   }
+  &.batch {
+    opacity: 1;
+    animation: rotate 2s linear;
+    animation-iteration-count: infinite;
+  }
 }
 
 @keyframes fadein {
@@ -27,5 +32,14 @@
   }
   to {
     opacity: 0;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
