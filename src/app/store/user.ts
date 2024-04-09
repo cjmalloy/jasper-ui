@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { autorun, makeAutoObservable, observable, runInAction } from 'mobx';
+import { isEqual, omit } from 'lodash-es';
+import { makeAutoObservable, observable, runInAction } from 'mobx';
 import { catchError, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { TagPageArgs } from '../model/tag';
@@ -23,13 +24,6 @@ export class UserStore {
       args: observable.struct,
     });
     this.clear(); // Initial observables may not be null for MobX
-    autorun(() => {
-      runInAction(() => {
-        this.page = undefined;
-        this.error = undefined;
-      });
-      this.refresh();
-    });
   }
 
   clear() {
@@ -39,7 +33,9 @@ export class UserStore {
   }
 
   setArgs(args: TagPageArgs) {
+    if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
     this.args = args;
+    this.refresh();
   }
 
   refresh() {

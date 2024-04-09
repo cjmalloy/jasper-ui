@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { action, autorun, makeAutoObservable, observable, runInAction } from 'mobx';
+import { isEqual, omit } from 'lodash-es';
+import { action, makeAutoObservable, observable, runInAction } from 'mobx';
 import { catchError, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs } from '../model/ref';
@@ -24,13 +25,6 @@ export class QueryStore {
       clear: action,
     });
     this.clear(); // Initial observables may not be null for MobX
-    autorun(() => {
-      runInAction(() => {
-        this.page = undefined;
-        this.error = undefined;
-      });
-      this.refresh();
-    });
   }
 
   clear() {
@@ -40,7 +34,9 @@ export class QueryStore {
   }
 
   setArgs(args: RefPageArgs) {
+    if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
     this.args = args;
+    this.refresh();
   }
 
   refresh() {
