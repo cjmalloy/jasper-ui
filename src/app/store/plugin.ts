@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { autorun, makeAutoObservable, observable, runInAction } from 'mobx';
-import { catchError, throwError } from 'rxjs';
+import { isEqual, omit } from 'lodash-es';
+import { makeAutoObservable, observable, runInAction } from 'mobx';
+import { catchError, Subscription, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { Plugin } from '../model/plugin';
 import { TagPageArgs } from '../model/tag';
@@ -16,6 +17,8 @@ export class PluginStore {
   page?: Page<Plugin> = {} as any;
   error?: HttpErrorResponse = {} as any;
 
+  private running?: Subscription;
+
   constructor(
     private plugins: PluginService,
   ) {
@@ -24,15 +27,6 @@ export class PluginStore {
       page: observable.ref,
     });
     this.clear(); // Initial observables may not be null for MobX
-    autorun(() => {
-      runInAction(() => {
-        this.page = undefined;
-        this.error = undefined;
-      });
-      if (this.args) {
-        this.refresh();
-      }
-    });
   }
 
   clear() {
@@ -42,17 +36,20 @@ export class PluginStore {
   }
 
   setArgs(args: TagPageArgs) {
+    if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
     this.args = args;
+    this.refresh();
   }
 
   refresh() {
-    this.plugins.page(this.args || {}).pipe(
+    if (!this.args) return;
+    this.running?.unsubscribe();
+    this.running = this.plugins.page(this.args || {}).pipe(
       catchError((err: HttpErrorResponse) => {
         runInAction(() => this.error = err);
         return throwError(() => err);
       }),
     ).subscribe(p => runInAction(() => this.page = p));
-
   }
 
 }

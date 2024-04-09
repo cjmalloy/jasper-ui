@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { autorun, makeAutoObservable, observable, runInAction } from 'mobx';
-import { catchError, throwError } from 'rxjs';
+import { isEqual, omit } from 'lodash-es';
+import { makeAutoObservable, observable, runInAction } from 'mobx';
+import { catchError, Subscription, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { TagPageArgs } from '../model/tag';
 import { User } from '../model/user';
@@ -16,6 +17,8 @@ export class UserStore {
   page?: Page<User> = {} as any;
   error?: HttpErrorResponse = {} as any;
 
+  private running?: Subscription;
+
   constructor(
     private users: UserService,
   ) {
@@ -23,13 +26,6 @@ export class UserStore {
       args: observable.struct,
     });
     this.clear(); // Initial observables may not be null for MobX
-    autorun(() => {
-      runInAction(() => {
-        this.page = undefined;
-        this.error = undefined;
-      });
-      this.refresh();
-    });
   }
 
   clear() {
@@ -39,18 +35,20 @@ export class UserStore {
   }
 
   setArgs(args: TagPageArgs) {
+    if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
     this.args = args;
+    this.refresh();
   }
 
   refresh() {
-    if (this.args) {
-      this.users.page(this.args).pipe(
-        catchError((err: HttpErrorResponse) => {
-          runInAction(() => this.error = err);
-          return throwError(() => err);
-        }),
-      ).subscribe(p => runInAction(() => this.page = p));;
-    }
+    if (!this.args) return;
+    this.running?.unsubscribe();
+    this.running = this.users.page(this.args).pipe(
+      catchError((err: HttpErrorResponse) => {
+        runInAction(() => this.error = err);
+        return throwError(() => err);
+      }),
+    ).subscribe(p => runInAction(() => this.page = p));;
   }
 
 }

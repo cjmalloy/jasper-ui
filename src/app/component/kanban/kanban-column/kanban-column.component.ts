@@ -9,7 +9,7 @@ import {
   OnDestroy,
   SimpleChanges
 } from '@angular/core';
-import { intersection, uniq } from 'lodash-es';
+import { isEqual, uniq } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, Observable, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -85,18 +85,18 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (intersection(Object.keys(changes), ['query', 'sort', 'filter', 'search']).length) {
+    if (changes.query
+      || changes.sort && !isEqual(changes.sort.previousValue, changes.sort.currentValue)
+      || changes.filter && !isEqual(changes.filter.previousValue, changes.filter.currentValue)) {
       this.clear()
+    } else if (changes.search) {
+      this.clear(false)
     }
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  trackByUrlOrigin(index: number, value: Ref) {
-    return value.origin + '@' + value.url;
   }
 
   @HostBinding('class.empty')
@@ -124,8 +124,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     if (this.pressToUnlock) event.preventDefault();
   }
 
-  clear() {
-    delete this.page;
+  clear(removeCurrent = true) {
+    if (removeCurrent) delete this.page;
     this.currentRequest?.unsubscribe();
     this.currentRequest = this.refs.page(getArgs(
       this.query,
