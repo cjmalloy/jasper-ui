@@ -28,6 +28,8 @@ export class CsrfInterceptor implements HttpInterceptor {
     return next.handle(modifiedReq).pipe(
       catchError(err => {
         if (!err.status || err.status === 403) {
+          // Sometimes the first request has an invalid CSRF token and fails
+          // Retry one more time
           const retryReq = request.clone({
             headers: request.headers.set('X-XSRF-TOKEN', this.getCsrfToken()),
             withCredentials: this.withCredentials,
