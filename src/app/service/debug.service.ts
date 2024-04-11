@@ -38,6 +38,7 @@ export class DebugService {
     };
     const payload = {
       aud: '',
+      verified_email: true,
       sub: '+user'.length === tag.length ? tag : tag.substring('+user/'.length),
       auth: roles.join(','),
     };
