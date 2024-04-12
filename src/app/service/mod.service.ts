@@ -16,6 +16,7 @@ import { ConfigService } from './config.service';
 export class ModService {
 
   nesting = CSS.supports('selector(& > *)');
+  private systemTheme = this.initialTheme;
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -32,13 +33,15 @@ export class ModService {
     this.admin.configProperty('snippet').forEach(p => this.addSnippet(p.type + '-' + p.tag, p.config!.snippet));
     this.admin.configProperty('banner').forEach(p => this.addBanner(p.type + '-' + p.tag, p.config!.banner));
     const ql = matchMedia && matchMedia('(prefers-color-scheme: dark)');
-    ql.addEventListener && ql.addEventListener('change', e => {
-      if (!localStorage.getItem('theme')) this.setTheme();
-    });
+    if (ql.addEventListener) {
+      ql.addEventListener('change', e => {
+        if (!localStorage.getItem('theme')) this.setTheme(this.systemTheme = e.matches ? 'dark-theme' : 'light-theme');
+      });
+    }
     return of(null);
   }
 
-  get systemTheme(): string {
+  get initialTheme(): string {
     return matchMedia && matchMedia('(prefers-color-scheme: dark)') ? 'dark-theme' : 'light-theme';
   }
 
@@ -48,6 +51,19 @@ export class ModService {
     } else {
       this.setTheme('light-theme');
     }
+  }
+
+  setTheme(theme: string | null) {
+    if (!theme || theme === this.systemTheme) {
+      localStorage.removeItem('theme');
+      theme ||= this.systemTheme;
+    } else {
+      localStorage.setItem('theme', theme);
+    }
+    if (this.store.theme === theme) return;
+    document.body.classList.add(theme);
+    document.body.classList.remove(this.store.theme);
+    runInAction(() => this.store.theme = theme!);
   }
 
   setCustomCss(id: string, ...cs: (string | undefined)[]) {
@@ -87,19 +103,6 @@ export class ModService {
       n.id = id + '-' + i;
     }
     document.body.appendChild(nodes);
-  }
-
-  setTheme(theme?: string | null) {
-    theme ??= this.systemTheme;
-    if (this.store.theme === theme) return;
-    if (theme !== this.systemTheme) {
-      localStorage.setItem('theme', theme);
-    } else {
-      localStorage.removeItem('theme');
-    }
-    document.body.classList.add(theme);
-    document.body.classList.remove(this.store.theme);
-    runInAction(() => this.store.theme = theme!);
   }
 
   setTitle(title: string) {
