@@ -63,7 +63,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     });
     runInAction(() => {
       store.submit.wikiPrefix = admin.getWikiPrefix();
-      store.submit.submitGenId = this.admin.submitGenId.filter(p => this.auth.canAddTag(p.tag));
+      store.submit.submitGenId = this.admin.submitGenId.filter(p => p.config?.submitDm || this.auth.canAddTag(p.tag));
       store.submit.submitDm = this.admin.submitDm;
     });
   }
