@@ -1,13 +1,20 @@
 import { Directive, ElementRef, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { autorun, IReactionDisposer } from 'mobx';
+import { Ref } from '../model/ref';
 import { ConfigService } from '../service/config.service';
 import { Dim, height, ImageDimService, width } from '../service/image-dim.service';
+import { Store } from '../store/store';
 
 @Directive({
   selector: '[appImageDim]'
 })
 export class ImageDimDirective implements OnInit, OnDestroy {
+  private disposers: IReactionDisposer[] = [];
+
   @Input()
   grid = false;
+  @Input()
+  ref?: Ref;
   @Input('defaultWidth')
   defaultWidth?: number;
   @Input('defaultHeight')
@@ -18,13 +25,24 @@ export class ImageDimDirective implements OnInit, OnDestroy {
 
   private dim: Dim = { width: 0, height: 0};
   private resizeObserver?: ResizeObserver;
+  private loadingUrl = '';
 
   constructor(
     private config: ConfigService,
+    private store: Store,
     private elRef: ElementRef,
     private ids: ImageDimService,
   ) {
     this.el.style.backgroundImage = `url("./assets/image-loading.png")`;
+    this.disposers.push(autorun(() => {
+      if (this.store.eventBus.event === 'refresh') {
+        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
+          if (this.loading && this.loadingUrl) {
+            this.url = this.loadingUrl;
+          }
+        }
+      }
+    }));
   }
 
   ngOnInit() {
@@ -42,6 +60,8 @@ export class ImageDimDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
     this.resizeObserver?.disconnect();
   }
 
@@ -63,6 +83,7 @@ export class ImageDimDirective implements OnInit, OnDestroy {
   @Input('appImageDim')
   set url(value: string) {
     this.loading = true;
+    this.loadingUrl = value;
     this.el.style.backgroundRepeat = 'no-repeat';
     this.el.style.backgroundPosition = 'center center';
     this.el.style.backgroundSize = 'unset';

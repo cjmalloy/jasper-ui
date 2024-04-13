@@ -33,6 +33,7 @@
   <div *ngIf="imageUrl"
        class="image-expand"
        [appImageDim]="imageUrl"
+       [ref]="ref"
        [defaultWidth]="ref?.plugins?.['plugin/image']?.width"
        [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
        [grid]="disableResize"

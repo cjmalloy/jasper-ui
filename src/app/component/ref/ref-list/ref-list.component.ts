@@ -147,15 +147,16 @@ export class RefListComponent implements OnInit, OnDestroy {
   }
 
   addNewRef(ref: Ref) {
-    if (this.page?.content.find(r => r.url === ref.url)) {
-      this.store.eventBus.refresh(ref);
-      return;
+    if (!this.page?.content.find(r => r.url === ref.url)) {
+      const index = this.newRefs.findIndex(r => r.url === ref.url);
+      if (index !== -1) {
+        this.newRefs[index] = ref;
+      } else {
+        this.newRefs.push(ref);
+        return;
+      }
     }
-    const index = this.newRefs.findIndex(r => r.url === ref.url);
-    if (index !== -1) {
-      this.newRefs[index] = ref;
-    } else {
-      this.newRefs.push(ref);
-    }
+    this.store.eventBus.refresh(ref);
+    this.store.eventBus.fire('');
   }
 }

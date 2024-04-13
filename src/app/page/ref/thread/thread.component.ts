@@ -69,10 +69,12 @@ export class RefThreadComponent {
     }));
     this.newRefs$.subscribe(c => {
       if (c && this.store.view.ref) {
-        this.store.view.ref.metadata ||= {};
-        this.store.view.ref.metadata.plugins ||= {} as any;
-        this.store.view.ref.metadata.plugins!['plugin/thread'] ||= 0;
-        this.store.view.ref.metadata.plugins!['plugin/thread']++;
+        runInAction(() => {
+          this.store.view.ref!.metadata ||= {};
+          this.store.view.ref!.metadata.plugins ||= {} as any;
+          this.store.view.ref!.metadata.plugins!['plugin/thread'] ||= 0;
+          this.store.view.ref!.metadata.plugins!['plugin/thread']++;
+        });
       }
     });
   }
