@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
 import Europa from 'europa';
-import { debounce, throttle, uniq, without } from 'lodash-es';
+import { debounce, defer, throttle, uniq, without } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
@@ -116,10 +116,12 @@ export class EditorComponent implements OnChanges {
   @HostBinding('class.editing')
   set editing(value: boolean) {
     if (!this._editing && value) {
-      this._editing = value;
-      this.preview = this.store.local.showPreview;
-      this.tags = this.fullTags;
-      this.syncTags.emit(this.tags);
+      defer(() => {
+        this._editing = value;
+        this.preview = this.store.local.showPreview;
+        this.tags = this.fullTags;
+        this.syncTags.emit(this.tags);
+      });
     }
   }
 

@@ -8,7 +8,6 @@ import * as moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
-import { getErrorMessage } from '../../../formly/errors';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
@@ -140,11 +139,15 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   set editorTags(value: string[]) {
-    const added = without(value, ...this._editorTags);
-    const removed = without(this._editorTags, ...value);
-    const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
-    this.tags!.setTags(newTags);
-    this._editorTags = value;
+    if (this.tags?.tags) {
+      const added = without(value, ...this._editorTags);
+      const removed = without(this._editorTags, ...value);
+      const newTags = uniq([...without(this.tags.tags.value, ...removed), ...added]);
+      this.tags.setTags(newTags);
+      this._editorTags = value;
+    } else {
+      defer(() => this.editorTags = value);
+    }
   }
 
   validate(input: HTMLInputElement) {
