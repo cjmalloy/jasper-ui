@@ -513,12 +513,12 @@ export class EmbedService {
           iframe.style.height = h + 'px';
         }
         await delay(100);
-        if ((!newHeight || h < 300) && start.isAfter(moment().subtract(3, 'seconds'))) {
+        if ((!newHeight || h < 300) && start.isAfter(moment().subtract(5, 'seconds'))) {
           // Keep checking height
           await f();
-        } else if (start.isAfter(moment().subtract(20, 'seconds'))) {
-          // Timeout checking height less than 3 seconds since the last change
-          f(); // Keep checking height until 20 seconds timeout but let promise resolve
+        } else if (start.isAfter(moment().subtract(30, 'seconds'))) {
+          // Timeout checking height less than 5 seconds since the last change
+          f(); // Keep checking height until 30 seconds timeout but let promise resolve
         }
       };
       await f();
