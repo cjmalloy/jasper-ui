@@ -17,9 +17,9 @@ import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { getMailboxes, getTags } from '../../../util/editor';
-import { getRe } from '../../../util/format';
+import { authors, getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag, removeTag } from '../../../util/tag';
+import { hasTag, removeTag, setPublic } from '../../../util/tag';
 
 @Component({
   selector: 'app-comment-reply',
@@ -94,6 +94,17 @@ export class CommentReplyComponent implements AfterViewInit {
     const value = this.comment.value;
     this.comment.setValue('');
     this.editor?.syncText('');
+    const myTags = [setPublic(this.store.account.tag), getMailbox(this.store.account.tag, this.store.account.origin)];
+    // TODO: support plugin/from
+    const replyTags = authors(this.to, ['user']).map(setPublic);
+    const tags = removeTag(myTags, uniq([
+      ...this.publicTag,
+      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+      ...this.tags!,
+      ...replyTags,
+      ...getTags(value),
+      ...getMailboxes(value, this.store.account.origin),
+    ]));
     const ref: Ref = {
       url,
       origin: this.store.account.origin,
@@ -105,14 +116,7 @@ export class CommentReplyComponent implements AfterViewInit {
         ...this.ed.getSources(value),
       ]),
       alternateUrls: this.ed.getAlts(value),
-      tags: removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
-        ...this.publicTag,
-        ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-        ...this.tags!,
-        ...this.editorTags,
-        ...getTags(value),
-        ...getMailboxes(value, this.store.account.origin),
-      ])),
+      tags,
       published: moment(),
     };
     this.refs.create(ref).pipe(
