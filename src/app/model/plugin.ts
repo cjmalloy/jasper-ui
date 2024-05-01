@@ -34,6 +34,12 @@ export interface Plugin extends Config {
      */
     internal?: boolean,
     /**
+     * Add a button to the response buttons in the editor for a new response.
+     * If there is only one option, no UI will be shown.
+     * If there are two or more options a toggle will be shown in the editor.
+     */
+    responseButton?: string,
+    /**
      * Add a DM tab to the submit page to create a DM to this tag, with
      * submitDm as the title of the message.
      */

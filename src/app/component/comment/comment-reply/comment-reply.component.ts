@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { uniq } from 'lodash-es';
+import { defer, uniq, without } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, Subject, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -32,6 +32,8 @@ export class CommentReplyComponent implements AfterViewInit {
   @Input()
   to!: Ref;
   @Input()
+  selectResponseType = false;
+  @Input()
   tags: string[] = [];
   @Input()
   newComments$?: Subject<Ref|null>;
@@ -44,10 +46,11 @@ export class CommentReplyComponent implements AfterViewInit {
   editor?: EditorComponent;
 
   commentForm: UntypedFormGroup;
-  editorTags: string[] = [];
   serverError: string[] = [];
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
   _quote?: string;
+
+  private _editorTags: string[] = [];
 
   constructor(
     public admin: AdminService,
@@ -61,6 +64,10 @@ export class CommentReplyComponent implements AfterViewInit {
     this.commentForm = fb.group({
       comment: [''],
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.comment.setValue(this.quote);
   }
 
   get publicTag() {
@@ -84,8 +91,19 @@ export class CommentReplyComponent implements AfterViewInit {
     this._quote = value;
   }
 
-  ngAfterViewInit(): void {
-    this.comment.setValue(this.quote);
+  get editorTags(): string[] {
+    return this._editorTags;
+  }
+
+  set editorTags(value: string[]) {
+    if (this.tags) {
+      const added = without(value, ...this._editorTags);
+      const removed = without(this._editorTags, ...value);
+      this.tags = uniq([...without(this.tags, ...removed), ...added]);
+      this._editorTags = value;
+    } else {
+      defer(() => this.editorTags = value);
+    }
   }
 
   reply() {

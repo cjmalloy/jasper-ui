@@ -1,10 +1,11 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Mod } from '../model/tag';
+import { $localize } from '@angular/localize/init';
 
 export const audioPlugin: Plugin = {
   tag: 'plugin/audio',
-  name: '📻️ Audio',
+  name: $localize`📻️ Audio`,
   config: {
     type: 'plugin',
     default: true,

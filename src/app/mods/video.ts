@@ -1,10 +1,11 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Mod } from '../model/tag';
+import { $localize } from '@angular/localize/init';
 
 export const videoPlugin: Plugin = {
   tag: 'plugin/video',
-  name: '🎞️ Video',
+  name: $localize`🎞️ Video`,
   config: {
     type: 'plugin',
     default: true,

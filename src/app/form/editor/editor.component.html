@@ -42,6 +42,17 @@
                [title]="button.title">{{(tags?.includes(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</label>
       </div>
     }
+    @if (selectResponseType && responseButtons.length > 1) {
+      <div class="toolbar-toggle toolbar-toggle-{{toggleResponse}}">
+        @for (plugin of responseButtons; track plugin) {
+          <button type="button"
+                  class="response-button"
+                  (click)="setResponse(plugin.tag)"
+                  [class.selected]="tags?.includes(plugin.tag)"
+                  [title]="plugin.name" i18n>{{ plugin.config?.responseButton }}</button>
+        }
+      </div>
+    }
   </div>
   <textarea #editor
             [formControl]="control"

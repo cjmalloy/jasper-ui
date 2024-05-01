@@ -123,7 +123,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       tags.push('plugin/thread')
     } else if (hasTag('plugin/thread', this.store.view.ref)) {
       tags.push('plugin/thread');
-    } else {
+    } else if (hasTag('plugin/comment', this.store.view.ref)){
       tags.push('plugin/comment');
     }
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));

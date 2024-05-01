@@ -1,6 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -29,7 +30,7 @@ import { memo, MemoCache } from '../../util/memo';
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
-export class EditorComponent implements OnChanges {
+export class EditorComponent implements OnChanges, AfterViewInit {
   @HostBinding('class') css = 'editor';
 
   id = uuid();
@@ -52,6 +53,8 @@ export class EditorComponent implements OnChanges {
   helpTemplate!: TemplateRef<any>;
 
   @Input()
+  selectResponseType = false;
+  @Input()
   tags?: string[];
   @Input()
   control!: UntypedFormControl;
@@ -71,6 +74,7 @@ export class EditorComponent implements OnChanges {
 
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
+  toggleResponse = 0;
 
   private _text? = '';
   private _editing = false;
@@ -91,6 +95,12 @@ export class EditorComponent implements OnChanges {
 
   init() {
     MemoCache.clear(this);
+    for (const p of this.responseButtons) {
+      if (this.tags?.includes(p.tag)) this.toggleResponse = this.responseButtons.indexOf(p);
+    }
+  }
+
+  ngAfterViewInit(): void {
     if (this.editing) {
       this.syncTags.emit(this.tags);
     }
@@ -105,6 +115,9 @@ export class EditorComponent implements OnChanges {
   @memo
   get fullTags() {
     const tags = this.store.account.defaultEditors(this.editors);
+    if (this.responseButtons.length && !this.responseButtons.filter(p => this.tags?.includes(p.tag)).length) {
+      tags.push(this.responseButtons[0].tag);
+    }
     if (!this.tags?.length) return tags;
     return uniq([...tags, ...this.editors.filter(t => this.tags!.includes(t))]);
   }
@@ -133,6 +146,11 @@ export class EditorComponent implements OnChanges {
   @memo
   get editorButtons() {
     return sortOrder(this.admin.getEditorButtons(this.tags, this.scheme)).reverse();
+  }
+
+  @memo
+  get responseButtons() {
+    return this.admin.responseButton;
   }
 
   @memo
@@ -169,6 +187,14 @@ export class EditorComponent implements OnChanges {
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.addConfigArray$('editors', tag).subscribe();
       }
+    }
+    if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
+  }
+
+  setResponse(tag: string) {
+    if (!this.tags?.includes(tag)) {
+      this.toggleResponse = this.responseButtons.map(p => p.tag).indexOf(tag);
+      this.syncTags.next(this.tags = [...without(this.tags!, ...this.responseButtons.map(p => p.tag)), tag]);
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
   }

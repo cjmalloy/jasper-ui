@@ -4,6 +4,7 @@
       <app-comment-reply [to]="store.view.ref"
                          quote=""
                          [tags]="replyTags"
+                         [selectResponseType]="true"
                          [newComments$]="newRefs$"></app-comment-reply>
     }
     @if (comments) {

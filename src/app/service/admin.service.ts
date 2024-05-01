@@ -480,6 +480,10 @@ export class AdminService {
     return this.configProperty('editorButtons');
   }
 
+  get responseButton() {
+    return this.pluginConfigProperty('responseButton');
+  }
+
   get uis() {
     return this.pluginConfigProperty('ui');
   }
