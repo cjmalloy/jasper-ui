@@ -5,6 +5,7 @@ export const graphConfig: Template = {
   tag: 'graph',
   name: $localize`🎇️ Graph`,
   config: {
+    mod: $localize`🎇️ Graph`,
     type: 'lens',
     experimental: true,
     global: true,

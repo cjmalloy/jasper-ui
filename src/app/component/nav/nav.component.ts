@@ -20,7 +20,7 @@ export class NavComponent implements OnInit {
   @Input()
   text = '';
   @Input()
-  css = 'css';
+  css = '';
   @Input()
   external = false;
 

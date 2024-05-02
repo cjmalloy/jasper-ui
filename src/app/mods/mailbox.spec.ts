@@ -26,18 +26,18 @@ describe('MailboxPlugin', () => {
     expect(notifications(ref('_user/bob'))).toEqual([]);
   });
   it('getMailbox', () => {
-    expect(getMailbox('user/bob')).toEqual('plugin/inbox/user/bob');
-    expect(getMailbox('+user/bob')).toEqual('plugin/inbox/user/bob');
-    expect(getMailbox('_user/bob')).toEqual('plugin/inbox/user/bob');
-    expect(getMailbox('user/bob@test')).toEqual('plugin/outbox/test/user/bob');
-    expect(getMailbox('+user/bob@test')).toEqual('plugin/outbox/test/user/bob');
-    expect(getMailbox('_user/bob@test')).toEqual('plugin/outbox/test/user/bob');
+    expect(getMailbox('user/bob', '')).toEqual('plugin/inbox/user/bob');
+    expect(getMailbox('+user/bob', '')).toEqual('plugin/inbox/user/bob');
+    expect(getMailbox('_user/bob', '')).toEqual('plugin/inbox/user/bob');
+    expect(getMailbox('user/bob@test', '')).toEqual('plugin/outbox/test/user/bob');
+    expect(getMailbox('+user/bob@test', '')).toEqual('plugin/outbox/test/user/bob');
+    expect(getMailbox('_user/bob@test', '')).toEqual('plugin/outbox/test/user/bob');
   });
   it('getLocalMailbox', () => {
-    expect(getMailbox('plugin/inbox/user/bob')).toEqual('plugin/inbox/user/bob');
-    expect(getMailbox('plugin/outbox/test/user/bob')).toEqual('plugin/outbox/test/user/bob');
-    expect(getMailbox('user/bob')).toEqual('plugin/inbox/user/bob');
-    expect(getMailbox('user/bob@test')).toEqual('plugin/outbox/test/user/bob');
+    expect(getMailbox('plugin/inbox/user/bob', '')).toEqual('plugin/inbox/user/bob');
+    expect(getMailbox('plugin/outbox/test/user/bob', '')).toEqual('plugin/outbox/test/user/bob');
+    expect(getMailbox('user/bob', '')).toEqual('plugin/inbox/user/bob');
+    expect(getMailbox('user/bob@test', '')).toEqual('plugin/outbox/test/user/bob');
     expect(getMailbox('user/bob@test', '@test')).toEqual('plugin/inbox/user/bob');
   });
   const refAt = (origin: string, ...tags: string[]): Ref => ({ url: 'spec:test', origin, tags });

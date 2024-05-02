@@ -5,6 +5,7 @@ export const commentPlugin: Plugin = {
   tag: 'plugin/comment',
   name: $localize`💬️ Comment`,
   config: {
+    mod: $localize`💬️ Comment`,
     type: 'plugin',
     default: true,
     genId: true,

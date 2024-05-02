@@ -53,7 +53,11 @@ describe('Wiki Plugin', {
     cy.get('.tabs').contains('template').click();
     cy.get('.template-list .actions').contains('edit').click();
     cy.wait(1000); // Warm up monaco editor
-    cy.get('#config').click().focused().type('{ctrl}a{backspace}');
+    if (Cypress.platform == 'darwin') {
+      cy.get('#config').click().focused().type('{cmd}a{backspace}');
+    } else {
+      cy.get('#config').click().focused().type('{ctrl}a{backspace}');
+    }
     cy.get('#config').type(JSON.stringify({ prefix: 'https://externalwiki/', external: true }), { parseSpecialCharSequences: false });
     cy.get('button').contains('save').click();
   });
