@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { Subject } from 'rxjs';
+import { merge, Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
@@ -20,7 +20,9 @@ import { hasTag, removeTag, top } from '../../../util/tag';
 })
 export class RefSummaryComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
-  newRefs$ = new Subject<Ref | null>();
+  newResp$ = new Subject<Ref | null>();
+  newComment$ = new Subject<Ref | null>();
+  newThread$ = new Subject<Ref | null>();
 
   summaryItems = 5;
 
@@ -58,7 +60,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
     }));
-    this.newRefs$.subscribe(c => runInAction(() => {
+    merge(this.newResp$, this.newComment$, this.newThread$).subscribe(c => runInAction(() => {
       if (c && this.store.view.ref) {
         this.store.view.ref.metadata ||= {};
         this.store.view.ref.metadata.plugins ||= {} as any;
@@ -77,7 +79,9 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    this.newRefs$.complete();
+    this.newResp$.complete();
+    this.newComment$.complete();
+    this.newThread$.complete();
   }
 
   get top() {

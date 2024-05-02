@@ -36,7 +36,11 @@ export class CommentReplyComponent implements AfterViewInit {
   @Input()
   tags: string[] = [];
   @Input()
-  newComments$?: Subject<Ref|null>;
+  newResp$?: Subject<Ref|null>;
+  @Input()
+  newComment$?: Subject<Ref|null>;
+  @Input()
+  newThread$?: Subject<Ref|null>;
   @Input()
   showCancel = false;
   @Input()
@@ -148,7 +152,7 @@ export class CommentReplyComponent implements AfterViewInit {
       }),
     ).subscribe(() => {
       this.serverError = [];
-      this.newComments$?.next({
+      const update = {
         ...ref,
         created: moment(),
         metadata: {
@@ -156,12 +160,21 @@ export class CommentReplyComponent implements AfterViewInit {
             'plugin/vote/up': 1
           }
         }
-      });
+      };
+      if (hasTag('plugin/comment', ref)) {
+        this.newComment$?.next(update);
+      } else if (hasTag('plugin/thread', ref)) {
+        this.newThread$?.next(update);
+      } else if (!hasTag('internal', ref)) {
+        this.newResp$?.next(update);
+      }
     });
   }
 
   cancel() {
-    this.newComments$?.next(null);
+    this.newResp$?.next(null);
+    this.newComment$?.next(null);
+    this.newThread$?.next(null);
     this.comment.setValue('');
   }
 }

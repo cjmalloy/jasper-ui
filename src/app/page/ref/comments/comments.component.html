@@ -8,7 +8,7 @@
     <app-comment-reply [to]="store.view.ref"
                        quote=""
                        [tags]="replyTags"
-                       [newComments$]="newComments$"></app-comment-reply>
+                       [newComment$]="newComments$"></app-comment-reply>
     <app-comment-thread [source]="store.view.ref"
                         [newComments$]="newComments$"
                         [scrollToLatest]="true"

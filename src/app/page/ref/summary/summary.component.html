@@ -5,7 +5,9 @@
                          quote=""
                          [tags]="replyTags"
                          [selectResponseType]="true"
-                         [newComments$]="newRefs$"></app-comment-reply>
+                         [newResp$]="newResp$"
+                         [newComment$]="newComment$"
+                         [newThread$]="newThread$"></app-comment-reply>
     }
     @if (comments) {
       <div class="summary-box">
@@ -13,7 +15,7 @@
         <app-thread-summary query="plugin/comment:!plugin/delete"
                             [commentView]="true"
                             [source]="store.view.ref"
-                            [newRefs$]="newRefs$"
+                            [newRefs$]="newComment$"
                             [depth]="1"
                             [pageSize]="summaryItems"></app-thread-summary>
         @if (moreComments) {
@@ -28,7 +30,7 @@
         <h5 routerLink="./thread" i18n>Threads:</h5>
         <app-thread-summary query="plugin/thread:!plugin/comment:!plugin/delete"
                             [source]="store.view.ref"
-                            [newRefs$]="newRefs$"
+                            [newRefs$]="newThread$"
                             [depth]="1"
                             [pageSize]="summaryItems"></app-thread-summary>
         @if (threads > summaryItems) {
