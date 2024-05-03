@@ -16,7 +16,6 @@ import { ConfigService } from './config.service';
 export class ModService {
 
   nesting = CSS.supports('selector(& > *)');
-  private systemTheme = this.initialTheme;
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -27,7 +26,7 @@ export class ModService {
   ) { }
 
   get init$() {
-    this.setTheme(localStorage.getItem('theme'));
+    this.setTheme(localStorage.getItem('theme') || this.systemTheme);
     autorun(() => this.setCustomCss('custom-css', ...(this.store.account.config.userTheme ? this.getUserCss() : this.getExtCss())));
     this.admin.configProperty('css').forEach(p => this.setCustomCss(p.type + '-' + p.tag, p.config!.css));
     this.admin.configProperty('snippet').forEach(p => this.addSnippet(p.type + '-' + p.tag, p.config!.snippet));
@@ -35,14 +34,14 @@ export class ModService {
     const ql = matchMedia && matchMedia('(prefers-color-scheme: dark)');
     if (ql.addEventListener) {
       ql.addEventListener('change', e => {
-        if (!localStorage.getItem('theme')) this.setTheme(this.systemTheme = e.matches ? 'dark-theme' : 'light-theme');
+        if (!localStorage.getItem('theme')) this.setTheme(e.matches ? 'dark-theme' : 'light-theme', false);
       });
     }
     return of(null);
   }
 
-  get initialTheme(): string {
-    return matchMedia && matchMedia('(prefers-color-scheme: dark)') ? 'dark-theme' : 'light-theme';
+  get systemTheme(): string {
+    return matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-theme' : 'light-theme';
   }
 
   toggle() {
@@ -53,12 +52,13 @@ export class ModService {
     }
   }
 
-  setTheme(theme: string | null) {
-    if (!theme || theme === this.systemTheme) {
-      localStorage.removeItem('theme');
-      theme ||= this.systemTheme;
-    } else {
-      localStorage.setItem('theme', theme);
+  setTheme(theme: string, save = true) {
+    if (save) {
+      if (theme !== this.systemTheme) {
+        localStorage.setItem('theme', theme);
+      } else {
+        localStorage.removeItem('theme');
+      }
     }
     if (this.store.theme === theme) return;
     document.body.classList.add(theme);
