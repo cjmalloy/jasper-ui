@@ -34,7 +34,7 @@ export class ModService {
     const ql = matchMedia && matchMedia('(prefers-color-scheme: dark)');
     if (ql.addEventListener) {
       ql.addEventListener('change', e => {
-        if (!localStorage.getItem('theme')) this.setTheme(e.matches ? 'dark-theme' : 'light-theme', false);
+        if (!localStorage.getItem('theme')) this.setTheme(e.matches ? 'dark-theme' : 'light-theme');
       });
     }
     return of(null);
@@ -44,17 +44,17 @@ export class ModService {
     return matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark-theme' : 'light-theme';
   }
 
-  toggle() {
+  toggle(pin: boolean) {
     if (this.store.theme === 'light-theme') {
-      this.setTheme('dark-theme');
+      this.setTheme('dark-theme', pin || 'if-not-system');
     } else {
-      this.setTheme('light-theme');
+      this.setTheme('light-theme', pin || 'if-not-system');
     }
   }
 
-  setTheme(theme: string, save = true) {
+  setTheme(theme: string, save: boolean | 'if-not-system' = false) {
     if (save) {
-      if (theme !== this.systemTheme) {
+      if (save === true || theme !== this.systemTheme) {
         localStorage.setItem('theme', theme);
       } else {
         localStorage.removeItem('theme');

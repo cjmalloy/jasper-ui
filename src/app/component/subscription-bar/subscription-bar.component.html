@@ -31,7 +31,7 @@
   </div>
   <span *ngIf="!store.submit.empty" class="drafts" routerLink="/submit/upload" i18n-title title="Unsaved Drafts" i18n>🗂️</span>
   <div class="light-toggle"
-     (click)="themes.toggle()">
+     (click)="themes.toggle(store.hotkey)">
     <div class="moon" [class.lights-on]="!store.darkTheme" [class.lights-off]="store.darkTheme" i18n>🌙️</div>
     <div class="light" [class.lights-on]="!store.darkTheme" [class.lights-off]="store.darkTheme" i18n>💡️</div>
   </div>
