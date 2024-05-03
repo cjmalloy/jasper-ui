@@ -8,6 +8,7 @@ import { OriginService } from './service/api/origin.service';
 import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
+import { memo } from './util/memo';
 
 @Component({
   selector: 'app-root',
@@ -58,25 +59,32 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
+  @memo
+  get macos() {
+    return /Macintosh/i.test(navigator.userAgent);
+  }
+
   @HostListener('document:keydown', ['$event'])
-  onCtrl(event: KeyboardEvent) {
-    let ctrl = event.key === 'Control' && !event.altKey && !event.metaKey && !event.shiftKey;
-    if (this.store.ctrl !== ctrl) {
-      runInAction(() => this.store.ctrl = ctrl);
-      if (ctrl) {
-        document.body.classList.add('ctrl');
+  onHotkey(event: KeyboardEvent) {
+    let hotkey = this.macos
+      ? (event.key === 'Meta' && !event.altKey && !event.ctrlKey && !event.shiftKey)
+      : (event.key === 'Control' && !event.altKey && !event.metaKey && !event.shiftKey);
+    if (this.store.hotkey !== hotkey) {
+      runInAction(() => this.store.hotkey = hotkey);
+      if (hotkey) {
+        document.body.classList.add('hotkey');
       } else {
-        document.body.classList.remove('ctrl');
+        document.body.classList.remove('hotkey');
       }
     }
   }
 
   @HostListener('window:blur')
   @HostListener('document:keyup')
-  removeCtrl() {
-    if (this.store.ctrl) {
-      runInAction(() => this.store.ctrl = false);
-      document.body.classList.remove('ctrl');
+  removeHotkey() {
+    if (this.store.hotkey) {
+      runInAction(() => this.store.hotkey = false);
+      document.body.classList.remove('hotkey');
     }
   }
 
