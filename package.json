@@ -58,7 +58,7 @@
     "@angular/cli": "^17.3.7",
     "@angular/compiler-cli": "^17.3.9",
     "@cypress/schematic": "^2.5.0",
-    "@ngx-formly/schematics": "^6.3.1",
+    "@ngx-formly/schematics": "^6.3.2",
     "@types/chess.js": "^0.13.7",
     "@types/d3": "^7.4.3",
     "@types/file-saver": "^2.0.7",
