@@ -1,5 +1,5 @@
 import { toJS } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Observable } from 'rxjs';
 import { Ref, RefUpdates } from './ref';
 import { Config, EmitAction } from './tag';

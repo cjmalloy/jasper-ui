@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { catchError, Observable } from 'rxjs';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';

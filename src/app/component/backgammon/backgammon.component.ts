@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { defer, delay, filter, range, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { catchError, Observable, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';

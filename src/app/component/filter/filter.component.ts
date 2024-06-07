@@ -11,7 +11,7 @@ import {
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Ext } from '../../model/ext';
 import { Filter } from '../../model/ref';
 import { FilterConfig } from '../../model/tag';

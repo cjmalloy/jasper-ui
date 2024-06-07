@@ -1,7 +1,7 @@
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { Component, HostBinding, Input, OnDestroy, ViewChild } from '@angular/core';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
-import * as moment from 'moment';
+import moment from 'moment';
 import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';

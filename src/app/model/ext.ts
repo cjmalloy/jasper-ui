@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash-es';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Tag } from './tag';
 
 export interface Ext extends Tag {

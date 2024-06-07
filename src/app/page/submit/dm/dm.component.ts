@@ -4,7 +4,7 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGr
 import { Router } from '@angular/router';
 import { defer, some, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { TagsFormComponent } from '../../../form/tags/tags.component';

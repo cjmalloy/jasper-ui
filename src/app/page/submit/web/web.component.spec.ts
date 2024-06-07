@@ -1,4 +1,4 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -7,6 +7,7 @@ import { RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 
 import { SubmitWebPage } from './web.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SubmitWebPage', () => {
   let component: SubmitWebPage;
@@ -14,18 +15,16 @@ describe('SubmitWebPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [
+    declarations: [
         SubmitWebPage,
         RefFormComponent,
         TagsFormComponent,
         LinksFormComponent,
-      ],
-      imports: [
-        HttpClientTestingModule,
-        ReactiveFormsModule,
-        RouterModule.forRoot([]),
-      ],
-    })
+    ],
+    imports: [ReactiveFormsModule,
+        RouterModule.forRoot([])],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
   });
 

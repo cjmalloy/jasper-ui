@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
 import { marked } from 'marked';
-import * as moment from 'moment';
+import moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
 import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { Ext } from '../model/ext';

@@ -1,8 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { InboxAlarmsPage } from './alarms.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('InboxAlarmsPage', () => {
   let component: InboxAlarmsPage;
@@ -10,12 +11,10 @@ describe('InboxAlarmsPage', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ InboxAlarmsPage ],
-      imports: [
-        HttpClientTestingModule,
-        RouterModule.forRoot([]),
-      ]
-    });
+    declarations: [InboxAlarmsPage],
+    imports: [RouterModule.forRoot([])],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+});
     fixture = TestBed.createComponent(InboxAlarmsPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Directive, ElementRef, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
-import * as moment from 'moment';
+import moment from 'moment';
 import { getErrorMessage } from './errors';
 
 @Component({

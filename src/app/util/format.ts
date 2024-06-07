@@ -1,4 +1,4 @@
-import * as he from 'he';
+import he from 'he';
 import { filter, sortBy, uniq } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { Config, ModType } from '../model/tag';

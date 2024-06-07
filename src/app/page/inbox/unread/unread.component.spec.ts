@@ -1,4 +1,4 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
@@ -9,6 +9,7 @@ import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
 
 import { InboxUnreadPage } from './unread.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('InboxUnreadPage', () => {
   let component: InboxUnreadPage;
@@ -16,27 +17,26 @@ describe('InboxUnreadPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ InboxUnreadPage ],
-      imports: [
-        HttpClientTestingModule,
-        RouterModule.forRoot([]),
-      ],
-      providers: [
+    declarations: [InboxUnreadPage],
+    imports: [RouterModule.forRoot([])],
+    providers: [
         { provide: RefService, useValue: { page: () => new BehaviorSubject<Page<Ref>>({
-              content: [],
-              empty: false,
-              first: false,
-              last: false,
-              number: 0,
-              size: 0,
-              numberOfElements: 0,
-              totalElements: 0,
-              totalPages: 0
-            }) }
-          },
-        { provide: AccountService, useValue: { userExt$: new BehaviorSubject<Ext>({tag: 'user/test'}) } },
-      ]
-    })
+                    content: [],
+                    empty: false,
+                    first: false,
+                    last: false,
+                    number: 0,
+                    size: 0,
+                    numberOfElements: 0,
+                    totalElements: 0,
+                    totalPages: 0
+                }) }
+        },
+        { provide: AccountService, useValue: { userExt$: new BehaviorSubject<Ext>({ tag: 'user/test' }) } },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+    ]
+})
     .compileComponents();
   });
 

@@ -46,7 +46,7 @@ html, body {
     min-height: 72px;
     line-height: 72px;
     background-repeat: repeat-x !important;
-    background-image: url("~/assets/debug.png") !important;
+    background-image: url("../assets/debug.png") !important;
     border-top: 2px solid var(--border);
     border-bottom: 2px solid var(--border);
   }
@@ -1266,7 +1266,7 @@ formly-field-radio, formly-field-multicheckbox {
   overflow: hidden;
 
   &.default-thumbnail {
-    background-image: url("~/assets/default-thumbnail.png");
+    background-image: url("../assets/default-thumbnail.png");
   }
 }
 

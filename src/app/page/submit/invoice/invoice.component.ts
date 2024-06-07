@@ -3,7 +3,7 @@ import { Component, HostBinding, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { flatten, uniq } from 'lodash-es';
-import * as moment from 'moment';
+import moment from 'moment';
 import { catchError, map, mergeMap, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { HasChanges } from '../../../guard/pending-changes.guard';

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, isDevMode } from '@angular/core';
-import * as moment from 'moment';
+import moment from 'moment';
 import { tap } from 'rxjs/operators';
 import { memo } from '../util/memo';
 

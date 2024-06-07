@@ -10,7 +10,7 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { isEqual, uniq } from 'lodash-es';
-import * as moment from 'moment';
+import moment from 'moment';
 import { catchError, Observable, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';

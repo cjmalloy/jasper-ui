@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { intersection, map, merge, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { catchError, concat, last, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext } from '../../model/ext';

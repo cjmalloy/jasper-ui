@@ -1,8 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { SettingsMePage } from './me.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SettingsMePage', () => {
   let component: SettingsMePage;
@@ -10,12 +11,10 @@ describe('SettingsMePage', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ SettingsMePage ],
-      imports: [
-        HttpClientTestingModule,
-        RouterModule.forRoot([]),
-      ],
-    });
+    declarations: [SettingsMePage],
+    imports: [RouterModule.forRoot([])],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+});
     fixture = TestBed.createComponent(SettingsMePage);
     component = fixture.componentInstance;
     fixture.detectChanges();

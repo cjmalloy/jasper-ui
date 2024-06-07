@@ -1,4 +1,4 @@
-import * as he from 'he';
+import he from 'he';
 import { difference, uniq } from 'lodash-es';
 import { marked } from 'marked';
 import { getMailbox } from '../mods/mailbox';
