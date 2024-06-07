@@ -115,7 +115,7 @@ export class EditorComponent implements OnChanges, AfterViewInit {
   @memo
   get fullTags() {
     const tags = this.store.account.defaultEditors(this.editors);
-    if (this.responseButtons.length && !this.responseButtons.filter(p => this.tags?.includes(p.tag)).length) {
+    if (this.selectResponseType && this.responseButtons.length && !this.responseButtons.filter(p => this.tags?.includes(p.tag)).length) {
       tags.push(this.responseButtons[0].tag);
     }
     if (!this.tags?.length) return tags;
