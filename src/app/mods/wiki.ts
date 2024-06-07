@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import { Template } from '../model/template';
 
 export const DEFAULT_WIKI_PREFIX = 'wiki:';

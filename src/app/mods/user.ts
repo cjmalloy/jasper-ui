@@ -1,5 +1,5 @@
 import { $localize } from '@angular/localize/init';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Template } from '../model/template';
 import { RootConfig } from './root';
 

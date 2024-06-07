@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import * as moment from 'moment';
+import moment from 'moment';
 import { catchError, throwError } from 'rxjs';
 import { BackupService } from '../../../service/api/backup.service';
 import { OriginService } from '../../../service/api/origin.service';

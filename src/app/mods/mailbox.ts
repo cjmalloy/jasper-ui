@@ -1,5 +1,5 @@
 import { filter, maxBy, uniq } from 'lodash-es';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Mod } from '../model/tag';

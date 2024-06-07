@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { delay, isArray, uniq, without } from 'lodash-es';
 import { runInAction } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { catchError, forkJoin, map, Observable, of, shareReplay, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';

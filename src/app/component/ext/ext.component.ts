@@ -13,7 +13,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { isObject } from 'lodash-es';
 import { toJS } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';

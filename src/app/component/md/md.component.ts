@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Subject } from 'rxjs';
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 

@@ -1,5 +1,5 @@
 import { toJS } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Ext } from './ext';
 import { Config } from './tag';
 import { Roles } from './user';

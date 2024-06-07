@@ -16,7 +16,7 @@ import * as d3 from 'd3';
 import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import { filter } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ref, RefNode } from '../../../model/ref';

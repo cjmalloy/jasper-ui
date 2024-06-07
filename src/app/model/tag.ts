@@ -1,10 +1,10 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as d3 from 'd3';
-import * as Handlebars from 'handlebars/dist/cjs/handlebars';
+import Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
 import { defer, isEqual, omitBy, uniqWith } from 'lodash-es';
 import { toJS } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { MomentInput } from 'moment/moment';
 import { v4 as uuid } from 'uuid';
 import { hasTag, prefix } from '../util/tag';

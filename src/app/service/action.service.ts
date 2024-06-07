@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { debounce, without } from 'lodash-es';
 import { runInAction } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { catchError, concat, last, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';

@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 

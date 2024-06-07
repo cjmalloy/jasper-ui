@@ -1,5 +1,5 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import * as moment from 'moment';
+import moment from 'moment';
 
 export function intervalValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {

@@ -14,7 +14,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, intersection, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { catchError, map, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../../form/plugins/plugins.component';

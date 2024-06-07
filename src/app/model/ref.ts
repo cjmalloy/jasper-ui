@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash-es';
-import * as moment from 'moment';
+import moment from 'moment';
 import { hasPrefix, publicTag } from '../util/tag';
 import { Cursor } from './tag';
 
