@@ -1,9 +1,10 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 import { UserComponent } from './user.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('UserComponent', () => {
   let component: UserComponent;
@@ -11,13 +12,11 @@ describe('UserComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ UserComponent ],
-      imports: [
-        HttpClientTestingModule,
-        RouterModule.forRoot([]),
-        ReactiveFormsModule,
-      ],
-    })
+    declarations: [UserComponent],
+    imports: [RouterModule.forRoot([]),
+        ReactiveFormsModule],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
   });
 

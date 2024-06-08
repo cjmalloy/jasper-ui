@@ -1,8 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { TodoComponent } from './todo.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('TodoComponent', () => {
   let component: TodoComponent;
@@ -10,12 +11,10 @@ describe('TodoComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [TodoComponent],
-      imports: [
-        RouterModule.forRoot([]),
-        HttpClientTestingModule,
-      ]
-    });
+    declarations: [TodoComponent],
+    imports: [RouterModule.forRoot([])],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+});
     fixture = TestBed.createComponent(TodoComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

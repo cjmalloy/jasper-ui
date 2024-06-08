@@ -1,8 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { InboxPage } from './inbox.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('InboxPage', () => {
   let component: InboxPage;
@@ -10,12 +11,10 @@ describe('InboxPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ InboxPage ],
-      imports: [
-        HttpClientTestingModule,
-        RouterModule.forRoot([]),
-      ],
-    })
+    declarations: [InboxPage],
+    imports: [RouterModule.forRoot([])],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
   });
 

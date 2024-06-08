@@ -1,8 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { BulkComponent } from './bulk.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('BulkComponent', () => {
   let component: BulkComponent;
@@ -10,12 +11,10 @@ describe('BulkComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ BulkComponent ],
-      imports: [
-        HttpClientTestingModule,
-        RouterModule.forRoot([]),
-      ]
-    })
+    declarations: [BulkComponent],
+    imports: [RouterModule.forRoot([])],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(BulkComponent);

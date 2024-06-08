@@ -1,9 +1,10 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 import { ExtComponent } from './ext.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('ExtComponent', () => {
   let component: ExtComponent;
@@ -11,13 +12,11 @@ describe('ExtComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ExtComponent ],
-      imports: [
-        HttpClientTestingModule,
-        RouterModule.forRoot([]),
-        ReactiveFormsModule,
-      ],
-    })
+    declarations: [ExtComponent],
+    imports: [RouterModule.forRoot([]),
+        ReactiveFormsModule],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(ExtComponent);

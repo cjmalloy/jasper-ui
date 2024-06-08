@@ -1,8 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { RefCommentsComponent } from './comments.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('RefCommentsComponent', () => {
   let component: RefCommentsComponent;
@@ -10,12 +11,10 @@ describe('RefCommentsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ RefCommentsComponent ],
-      imports: [
-        HttpClientTestingModule,
-        RouterModule.forRoot([]),
-      ],
-    })
+    declarations: [RefCommentsComponent],
+    imports: [RouterModule.forRoot([])],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
   });
 

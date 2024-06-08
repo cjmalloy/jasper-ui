@@ -1,8 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { SettingsBackupPage } from './backup.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SettingsBackupPage', () => {
   let component: SettingsBackupPage;
@@ -10,12 +11,10 @@ describe('SettingsBackupPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SettingsBackupPage ],
-      imports: [
-        HttpClientTestingModule,
-        RouterModule.forRoot([]),
-      ],
-    })
+    declarations: [SettingsBackupPage],
+    imports: [RouterModule.forRoot([])],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
   });
 

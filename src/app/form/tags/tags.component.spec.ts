@@ -1,9 +1,10 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 import { TagsFormComponent } from './tags.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('TagsFormComponent', () => {
   let component: TagsFormComponent;
@@ -11,13 +12,11 @@ describe('TagsFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TagsFormComponent ],
-      imports: [
-        ReactiveFormsModule,
-        HttpClientTestingModule,
-        RouterModule.forRoot([]),
-      ],
-    })
+    declarations: [TagsFormComponent],
+    imports: [ReactiveFormsModule,
+        RouterModule.forRoot([])],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
   });
 

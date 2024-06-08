@@ -1,9 +1,10 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 import { ExtPage } from './ext.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CreateExtPage', () => {
   let component: ExtPage;
@@ -11,13 +12,11 @@ describe('CreateExtPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ExtPage ],
-      imports: [
-        HttpClientTestingModule,
-        ReactiveFormsModule,
-        RouterModule.forRoot([]),
-      ],
-    })
+    declarations: [ExtPage],
+    imports: [ReactiveFormsModule,
+        RouterModule.forRoot([])],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
   });
 

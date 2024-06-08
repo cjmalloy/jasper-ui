@@ -1,4 +1,4 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
 
 import { SettingsSetupPage } from './setup.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SettingsSetupPage', () => {
   let component: SettingsSetupPage;
@@ -13,21 +14,21 @@ describe('SettingsSetupPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SettingsSetupPage ],
-      imports: [
-        HttpClientTestingModule,
-        RouterModule.forRoot([]),
-        ReactiveFormsModule,
-      ],
-      providers: [
+    declarations: [SettingsSetupPage],
+    imports: [RouterModule.forRoot([]),
+        ReactiveFormsModule],
+    providers: [
         { provide: AdminService, useValue: {
-            init$: of(null),
-            getPlugin() {},
-            getTemplate() {},
-            def: {plugins: {}, templates: {}},
-            status: {plugins: {}, templates: {}}}}
-      ],
-    })
+                init$: of(null),
+                getPlugin() { },
+                getTemplate() { },
+                def: { plugins: {}, templates: {} },
+                status: { plugins: {}, templates: {} }
+            } },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+})
     .compileComponents();
   });
 

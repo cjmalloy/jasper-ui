@@ -1,9 +1,10 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 import { AdminService } from '../../../service/admin.service';
 
 import { CommentReplyComponent } from './comment-reply.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CommentReplyComponent', () => {
   let component: CommentReplyComponent;
@@ -11,15 +12,14 @@ describe('CommentReplyComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CommentReplyComponent ],
-      imports: [
-        HttpClientTestingModule,
-        RouterModule.forRoot([]),
-      ],
-      providers: [
+    declarations: [CommentReplyComponent],
+    imports: [RouterModule.forRoot([])],
+    providers: [
         { provide: AdminService, useValue: { getPlugin: () => null } },
-      ]
-    })
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+    ]
+})
     .compileComponents();
   });
 
