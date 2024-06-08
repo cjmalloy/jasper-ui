@@ -1,9 +1,10 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit } from '@angular/core';
 import { map } from 'rxjs';
-import { AdminService } from "../../service/admin.service";
-import { ExtService } from "../../service/api/ext.service";
+import { AdminService } from '../../service/admin.service';
+import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
+import { VisibilityService } from '../../service/visibility.service';
 import { getPath, getQuery } from '../../util/hosts';
 
 @Component({
@@ -31,6 +32,8 @@ export class NavComponent implements OnInit {
     private admin: AdminService,
     private refs: RefService,
     private exts: ExtService,
+    private vis: VisibilityService,
+    private el: ElementRef,
   ) { }
 
   ngOnInit() {
@@ -42,12 +45,14 @@ export class NavComponent implements OnInit {
           .subscribe(x => this.text = x.name || this.text);
       }
     } else if (!this.external) {
-      this.refs.page({ url: this.url, size: 1 }).pipe(
-        map(page => page.empty ? null : page.content[0])
-      ).subscribe(ref => {
-        if (ref) {
-          this.nav = ['/ref', this.url];
-        }
+      this.vis.notifyVisible(this.el, () => {
+        this.refs.page({ url: this.url, size: 1 }).pipe(
+          map(page => page.empty ? null : page.content[0])
+        ).subscribe(ref => {
+          if (ref) {
+            this.nav = ['/ref', this.url];
+          }
+        });
       });
     }
   }
