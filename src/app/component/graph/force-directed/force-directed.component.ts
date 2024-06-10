@@ -376,12 +376,15 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     return this.figure.nativeElement.offsetHeight;
   }
 
+  get viewBox() {
+    return [-this.figWidth / 2, -this.figHeight / 2, this.figWidth, this.figHeight]
+  }
+
   init() {
-    const viewBox = [-this.figWidth / 2, -this.figHeight / 2, this.figWidth, this.figHeight];
     this.svg = d3.select('figure#force-directed-graph').append('svg')
       .attr('width', this.figWidth)
       .attr('height', this.figHeight)
-      .attr('viewBox', viewBox)
+      .attr('viewBox', this.viewBox)
       .attr('style', 'max-width: 100%; height: auto; height: intrinsic;')
       .call(dragSelection() as any);
 
@@ -458,10 +461,10 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
       return d3.drag()
         .on('start', event => {
           rect = {
-            x1: event.x + viewBox[0],
-            y1: event.y + viewBox[1],
-            x2: event.x + viewBox[0],
-            y2: event.y + viewBox[1],
+            x1: event.x - self.figWidth / 2,
+            y1: event.y - self.figHeight / 2,
+            x2: event.x - self.figWidth / 2,
+            y2: event.y - self.figHeight / 2,
           };
           self.dragRect!
             .style('display', 'inline')
@@ -472,8 +475,8 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
             .attr('height', Math.abs(rect.y1 - rect.y2));
         })
         .on('drag', event => {
-          rect.x2 = event.x + viewBox[0];
-          rect.y2 = event.y + viewBox[1];
+          rect.x2 = event.x - self.figWidth / 2;
+          rect.y2 = event.y - self.figHeight / 2;
           self.dragRect!
             .attr('x', Math.min(rect.x1, rect.x2))
             .attr('y', Math.min(rect.y1, rect.y2))
@@ -494,7 +497,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     this.svg
       .attr('width', this.figWidth)
       .attr('height', this.figHeight)
-      .attr('viewBox', [-this.figWidth / 2, -this.figHeight / 2, this.figWidth, this.figHeight])
+      .attr('viewBox', this.viewBox)
 
     this.link
       .selectAll('line')
