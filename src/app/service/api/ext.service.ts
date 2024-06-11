@@ -33,19 +33,19 @@ export class ExtService {
   }
 
   get init$() {
-    return this.loadExts$(this.store.local.extPrefetch).pipe(
+    return this.loadExts$().pipe(
       tap(() => this.store.local.loadExt([...this._cache.keys()])),
       catchError(() => of(null)),
     );
   }
 
-  private loadExts$(tags: string[], page = 0): Observable<null> {
+  private loadExts$(page = 0): Observable<null> {
     const alreadyLoaded = page * this.config.fetchBatch;
     if (alreadyLoaded >= this.config.maxExts) {
       console.error(`Too many exts to prefetch, only loaded ${alreadyLoaded}. Increase maxExts to load more.`)
       return of(null);
     }
-    const prefetch = tags.slice(page * this.config.fetchBatch, (page + 1) * this.config.fetchBatch);
+    const prefetch = this.store.local.extPrefetch.slice(page * this.config.fetchBatch, (page + 1) * this.config.fetchBatch);
     const setOrigin = (t: string) => {
       const [tag, origin] = t.split(':');
       if (tag.includes('@')) return tag;
@@ -78,7 +78,7 @@ export class ExtService {
           }
         }
       }),
-      switchMap(batch => (page + 1) * this.config.fetchBatch >= this.store.local.extPrefetch.length ? of(null) : this.loadExts$(tags, page + 1)),
+      switchMap(batch => (page + 1) * this.config.fetchBatch >= this.store.local.extPrefetch.length ? of(null) : this.loadExts$(page + 1)),
     );
   }
 
