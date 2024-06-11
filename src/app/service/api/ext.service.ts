@@ -134,7 +134,6 @@ export class ExtService {
           }),
           shareReplay(1),
         ));
-        console.log('getCachedExt: adding', key);
         delay(() => this._cache.delete(key), EXT_CACHE_MS);
       }
       this.store.local.loadExt([...this._cache.keys()]);
