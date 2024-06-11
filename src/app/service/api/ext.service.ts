@@ -54,7 +54,7 @@ export class ExtService {
       }
       return tag + this.store.account.origin;
     };
-    return this.page({ query: prefetch.map(setOrigin).filter(q => !!q).join('|'), size: 1000 }).pipe(
+    return this.page({ query: prefetch.map(setOrigin).join('|'), size: 1000 }).pipe(
       tap(batch => {
         for (const key of prefetch) {
           const [tag, defaultOrigin] = key.split(':');

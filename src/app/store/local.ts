@@ -1,6 +1,6 @@
 
 export class LocalStore {
-  private _extPrefetch?: string;
+  private _extPrefetch?: string[];
 
   isRefToggled(url: string, defaultValue = false) {
     const value = localStorage.getItem(`toggled:${url}`);
@@ -45,11 +45,15 @@ export class LocalStore {
    * Keys are of the format: `query:@default.origin`.
    */
   loadExt(keys: string[]) {
-    this._extPrefetch ||= localStorage.getItem(`loaded:ext`) || '';
+    this._extPrefetch ||= this.extPrefetch;
     localStorage.setItem(`loaded:ext`, keys.join(','));
   }
 
   get extPrefetch() {
-    return (this._extPrefetch || localStorage.getItem(`loaded:ext`))?.split(',') || [];
+    return this._extPrefetch
+      || localStorage.getItem(`loaded:ext`)
+        ?.split(',')
+        ?.filter(k => !!k && !k.startsWith(':') && !k.startsWith('@'))
+      || [];
   }
 }
