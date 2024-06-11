@@ -44,7 +44,7 @@
             <span *ngIf="showIcon(icon)"
                   class="icon"
                   [class.filter-toggle]="icon.tag"
-                  (click)="clickIcon(icon, $event.ctrlKey)"
+                  (click)="clickIcon(icon, store.hotkey)"
                   [appTitle]="icon"
                   [ref]="ref">{{ icon.label }}</span>
           </ng-container>
