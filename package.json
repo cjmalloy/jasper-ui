@@ -95,6 +95,9 @@
     "dagre-d3": {
       "d3": "$d3"
     },
+    "@stomp/rx-stomp": {
+      "uuid": "$uuid"
+    },
     "cypress-real-events": {
       "cypress": "$cypress"
     }
