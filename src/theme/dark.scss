@@ -84,7 +84,7 @@ body.dark-theme {
   }
 
   app-root > .container {
-    background: radial-gradient(transparent 0, rgba(0, 0, 0, 0.3));
+    background: radial-gradient(circle at center, transparent 0, rgba(0, 0, 0, 0.3));
   }
 
   :link, .link-style {
