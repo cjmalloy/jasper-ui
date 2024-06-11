@@ -54,7 +54,7 @@ export class ExtService {
       }
       return tag + this.store.account.origin;
     };
-    return this.page({ query: prefetch.map(setOrigin).join('|'), size: 1000 }).pipe(
+    return this.page({ query: prefetch.map(setOrigin).filter(q => !!q).join('|'), size: 1000 }).pipe(
       tap(batch => {
         for (const key of prefetch) {
           const [tag, defaultOrigin] = key.split(':');
@@ -112,7 +112,7 @@ export class ExtService {
   getCachedExt(tag: string, origin?: string) {
     const key = tag + ':' + (origin || '');
     if (!this._cache.has(key)) {
-      if (isQuery(tag)) {
+      if (!tag || tag.startsWith('@') || isQuery(tag)) {
         this._cache.set(key, of({ name: tag, tag: tag, origin: origin } as Ext));
       } else {
         this._cache.set(key, this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
