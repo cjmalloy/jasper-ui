@@ -64,8 +64,8 @@ export class KanbanComponent implements OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ext) {
       this.preloadExts();
-      this.onResize();
     }
+    this.onResize();
   }
 
   ngOnDestroy() {
