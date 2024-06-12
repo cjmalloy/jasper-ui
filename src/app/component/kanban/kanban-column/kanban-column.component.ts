@@ -85,9 +85,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.query
-      || changes.sort && !isEqual(changes.sort.previousValue, changes.sort.currentValue)
-      || changes.filter && !isEqual(changes.filter.previousValue, changes.filter.currentValue)) {
+    if (changes.query || changes.sort || changes.filter) {
       this.clear()
     } else if (changes.search) {
       this.clear(false)
