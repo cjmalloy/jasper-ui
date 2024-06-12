@@ -63,6 +63,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   adding: string[] = [];
 
   private currentRequest?: Subscription;
+  private _sort: RefSort[] = [];
+  private _filter: UrlFilter[] = [];
 
   constructor(
     public config: ConfigService,
@@ -86,8 +88,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.query
-      || changes.sort && !isEqual(changes.sort.previousValue, changes.sort.currentValue)
-      || changes.filter && !isEqual(changes.filter.previousValue, changes.filter.currentValue)) {
+      // TODO: why is sort.previousValue overwritten?
+      || changes.sort && !isEqual(changes.sort.currentValue, this._sort)
+      || changes.filter && !isEqual(changes.filter.currentValue, this._filter)) {
       this.clear()
     } else if (changes.search) {
       this.clear(false)
@@ -125,6 +128,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   clear(removeCurrent = true) {
+    this._sort = [...this.sort];
+    this._filter = [...this.filter];
     if (removeCurrent) delete this.page;
     this.currentRequest?.unsubscribe();
     this.currentRequest = this.refs.page(getArgs(
