@@ -120,9 +120,9 @@ export class RefPage implements OnInit, OnDestroy {
         this.store.view.versions = page.totalElements;
       })),
       map(page => top(page.content[0])),
-      switchMap(top => !top ? of(null) : this.refs.page({ url: top, size: 1})),
-      tap(page => runInAction(() => {
-        this.store.view.top = page?.content[0];
+      switchMap(top => !top ? of(null) : this.refs.getCurrent(top)),
+      tap(ref => runInAction(() => {
+        this.store.view.top = ref!;
       })),
     ).subscribe();
   }

@@ -63,8 +63,8 @@ export class RefThreadComponent {
         this.watch?.unsubscribe();
         this.watch = this.stomp.watchResponse(this.store.view.top.url).pipe(
           takeUntil(this.destroy$),
-          switchMap(url => this.refs.page({ url, size: 1 })) // TODO: fix race conditions
-        ).subscribe(page => this.newRefs$.next(page.content[0]));
+          switchMap(url => this.refs.getCurrent(url)) // TODO: fix race conditions
+        ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));
     this.newRefs$.subscribe(c => {
