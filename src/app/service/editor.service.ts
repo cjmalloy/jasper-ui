@@ -1,12 +1,7 @@
 import { Injectable } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import Europa from 'europa';
 import { Plugin, PluginApi } from 'europa-core';
-import { difference, uniq } from 'lodash-es';
-import { LinksFormComponent } from '../form/links/links.component';
-import { TagsFormComponent } from '../form/tags/tags.component';
-import { Store } from '../store/store';
-import { getLinks, getMailboxes, getTags } from '../util/editor';
 import { getPath } from '../util/hosts';
 import { ConfigService } from './config.service';
 
@@ -17,7 +12,6 @@ export class EditorService {
 
   constructor(
     private config: ConfigService,
-    private store: Store,
   ) {
     const superscriptProvider = (api: PluginApi): Plugin => ({
       converters: {
@@ -32,6 +26,7 @@ export class EditorService {
     });
     Europa.registerPlugin(superscriptProvider);
   }
+
   getUrlType(url: string) {
     if (url.startsWith(this.config.base)) {
       url = url.substring(this.config.base.length);
@@ -92,95 +87,15 @@ export class EditorService {
     return decodeURIComponent(query);
   }
 
-  /**
-   * Extract sources, alternate urls and tags from the comment field and add
-   * them to the Ref form.
-   * Fix the numbering of sources and alts linked with the form [1](url)
-   * or [alt1](url).
-   */
   syncEditor(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
-    let comment = group.value.comment;
-    // Store last synced comment in the form so that we can track what was already synced.
-    // This will allow the user to remove a source, alt or tag without it being re-added
-    // @ts-ignore
-    previousComment ||= group.previousComment || '';
-    // @ts-ignore
-    group.previousComment = comment;
-    // Make URLs to this site relative so that they work on multiple sites
-    comment = comment.replace('](' + this.config.base, '](/');
-    comment = comment.replace(']: ' + this.config.base, ']: /');
-    this.syncUrls(fb, group, previousComment);
-    this.syncTags(fb, group, previousComment);
-    comment = this.reNumberSources(comment, group.value.sources);
-    comment = this.reNumberAlts(comment, group.value.alternateUrls);
-    group.get('comment')?.setValue(comment);
-  }
-
-  private syncUrls(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
-    const existing = [
-      ...getLinks(previousComment).map(url => this.getRefUrl(url)),
-      ...(group.value.sources || []),
-      ...(group.value.alternateUrls || []),
-    ];
-    const newAlts = uniq(difference(this.getAlts(group.value.comment), existing));
-    for (const a of newAlts) {
-      (group.get('alternateUrls') as UntypedFormArray).push(fb.control(a, LinksFormComponent.validators));
-    }
-    existing.push(...newAlts);
-    const newSources = uniq(difference(this.getSources(group.value.comment), existing));
-    for (const s of newSources) {
-      (group.get('sources') as UntypedFormArray).push(fb.control(s, LinksFormComponent.validators));
-    }
-  }
-
-  private syncTags(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
-    const existingTags = [
-      ...getTags(previousComment),
-      ...getMailboxes(previousComment, this.store.account.origin),
-      ...(group.value.tags || []),
-    ];
-    const newTags = uniq(difference([
-      ...getTags(group.value.comment),
-      ...getMailboxes(group.value.comment, this.store.account.origin)], existingTags));
-    for (const t of newTags) {
-      (group.get('tags') as UntypedFormArray).push(fb.control(t, TagsFormComponent.validators));
-    }
-  }
-
-  private reNumberSources(markdown: string, sources: string[]) {
-    if (!sources) return markdown;
-    let i = 0;
-    for (let s of sources) {
-      s = s.replace(')', '\\)');
-      i++;
-      markdown = markdown.replace(new RegExp(`\\[\\d+]\\(${s}\\)`, 'g'), `[${i}](${s})`);
-      markdown = markdown.replace(new RegExp(`\\[\\[\\d+]]\\(${s}\\)`, 'g'), `[[${i}]](${s})`);
-      markdown = markdown.replace(new RegExp(`(^|[^[])\\[${i}]([^[(]|$)`, 'g'), `$1[${i}](${s})$2`);
-      markdown = markdown.replace(new RegExp(`\\[\\[${i}]]([^(]|$)`, 'g'), `[[${i}]](${s})$1`);
-    }
-    return markdown;
-  }
-
-  private reNumberAlts(markdown: string, alts: string[]) {
-    if (!alts) return markdown;
-    let i = 0;
-    for (const s of alts) {
-      const es = s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&').replace(')', '\\)');
-      i++;
-      markdown = markdown.replace(new RegExp(`\\[alt\\d+]\\(${es}\\)`, 'g'), `[alt${i}](${s})`);
-      markdown = markdown.replace(new RegExp(`\\[\\[alt\\d+]]\\(${es}\\)`, 'g'), `[[alt${i}]](${s})`);
-      markdown = markdown.replace(new RegExp(`(^|[^[])\\[alt${i}]([^[(]|$)`, 'g'), `$1[alt${i}](${s})$2`);
-      markdown = markdown.replace(new RegExp(`\\[\\[alt${i}]]([^(]|$)`, 'g'), `[[alt${i}]](${s})$1`);
-    }
-    return markdown;
   }
 
   getSources(markdown: string) {
-    return difference(getLinks(markdown), this.getAlts(markdown)).map(url => this.getRefUrl(url));
+    return [];
   }
 
   getAlts(markdown: string) {
-    return getLinks(markdown, /^\[?alt\d*]?$/).map(url => this.getRefUrl(url));
+    return [];
   }
 
 }
