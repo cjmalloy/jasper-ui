@@ -28,13 +28,13 @@ Markdown editor with support for rendering both markdown and HTML.
 * Use `^` to create superscripts. Use in combination with source references for standard reference style such
   as `^[1]` or `^[[1]]`.
 * Any links to a ref or tag will render a toggle button to expand inline (any link that starts
-  with `/ref/` or `/tag/`).
+  with `/ref/` or `/tag/`, with or without the server host and base path).
 * Links of the form `[ref](www.example.com)` will add a ref entry inline.
 * Links of the form `[query](tag|query)` will add results of a tag query inline.
 * Links of the form `[toggle](www.example.com)` will add a toggle button that will expand to show the contents
   of the Ref if it exists, or attempt to show the content directly if it is an image, audio, video, and embeddable
   sites (currently YouTube, Twitter, and BitChute).
-* Links of the form `[embed](www.example.com)` will embed the contents of the Ref if it exists, or attempt to embed
+* Links of the form `![](www.example.com)` will embed the contents of the Ref if it exists, or attempt to embed
   the url directly if it is an image, audio, video, or embeddable sites (currently YouTube, Twitter, and BitChute).
 ### Tag Query Page
 * Perform any tag query while performing a full text search and multi-column sort
@@ -56,12 +56,6 @@ Markdown editor with support for rendering both markdown and HTML.
    2. Subscriptions: List of tags to show on your home page
    3. Themes: (optional) Override the theme for the entire site. Will cause custom tag themes
    to be ignored.
-3. Queue: (matches `queue/`) Work Queue for assigning or tracking work and paying workers. Requires
-the invoice plugin to pay workers. Adds data:
-   1. Approvers: list of user tags to send invoices to
-   2. Bounty: (optional) payment for responses to items in the queue.
-   3. Max Age: (optional) max age Refs in the queue to be considered active. Refs in the queue
-   older than this will have an expired icon when viewed from the queue tag page.
 ### Plugins
 1. **Inbox:** Enables notifications when installed. You receive a notification when someone posts a
 response to yours. Activates the envelope icon button in the settings area of the client.
@@ -87,51 +81,50 @@ not generate metadata. Emoji support for sidebar content is always enabled if th
 installed.
 6. **Graph:** Enable the knowledge graph tab in the client UI when this is installed. Adds data
 to refs to override how they are graphed.
-7. **Invoice:** Enables invoice support in the client when installed. When invoices are created they
-will be tagged `plugin/invoice`. When the inbox plugin is installed there is a tab on the inbox
-page to show invoices addressed to you. Requires the QR plugin to send QR invoices. If the Work
-Queue template is installed, any invoices can include a Work Queue to address the invoice to all
-work queue approvers. Does not add data to a Ref. Generates count metadata in any sourced Refs.
-8. **Invoice/Rejected:** Used by the invoice plugin to mark responses to an invoice. Does not add
-data to a Ref. Generates count metadata in any sourced Refs.
-9. **Invoice/Disputed:** Used by the invoice plugin to mark responses to an invoice. Does not add
-data to a Ref. Generates count metadata in any sourced Refs.
-10. **Invoice/Paid:** Used by the invoice plugin to mark responses to an invoice. Does not add data
-to a Ref. Generates count metadata in any sourced Refs.
-11. **QR:** Enables the QR embed when installed. When the `plugin/qr` is applied to a Ref, the Ref has
+7. **QR:** Enables the QR embed when installed. When the `plugin/qr` is applied to a Ref, the Ref has
 a URL to be converted into a QR code. The QR code is shown when the embed toggle is pressed. Adds
 optional URL field to the Ref to use for the QR code, if this is unspecified the URL of the Ref
 will be used. Does not generate metadata.
-12. **Embed:** Enables the iframe embed when installed. When the plugin/embed is applied to a Ref,
+8. **Embed:** Enables the iframe embed when installed. When the plugin/embed is applied to a Ref,
 the Ref has a URL that can be used in an iframe. The iframe is shown when the embed toggle is
 pressed. Adds optional URL field to the Ref to use for the iframe, if this is unspecified the
 URL of the Ref will be used. Does not generate metadata. Currently implemented for:
-    1. YouTube
-    2. Twitter
-    3. BitChute
-13. **Audio:** Enables the audio embed when installed. When the `plugin/audio` is applied to a Ref,
+   1. YouTube
+   2. X/Twitter
+   3. BitChute
+9. **Audio:** Enables the audio embed when installed. When the `plugin/audio` is applied to a Ref,
 the Ref has a URL that points to an audio file. The audio player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the audio file, if this is unspecified
 the URL of the Ref will be used. Does not generate metadata. This plugin will be suggested when
 you submit a link ending in an audio file extension.
-14. **Video:** Enables the video embed when installed. When the `plugin/video` is applied to a Ref,
+10. **Video:** Enables the video embed when installed. When the `plugin/video` is applied to a Ref,
 the Ref has a URL that points to a video file. The video player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the video file, if this is unspecified
 the URL of the Ref will be used. Does not generate metadata. This plugin will be suggested when
 you submit a link ending in a video file extension.
-15. **Image:** Enables the image embed when installed. When the `plugin/image` is applied to a Ref,
+11. **Image:** Enables the image embed when installed. When the `plugin/image` is applied to a Ref,
 the Ref has a URL that points to an image file. The image is shown when the embed toggle is
 pressed. Adds optional URL field to the Ref to use for the image file, if this is unspecified
 the URL of the Ref will be used. Does not generate metadata. This plugin will be suggested when
 you submit a link ending in an image file extension.
-16. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
+12. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
 `wiki://Page_name`. You can link to a Wiki page using the double `[[bracket syntax]]` in all
 markdown fields. Does not add data to the Ref. Does not generate metadata.
+13. **Poll:** Enables polls in the embeds when installed. When a Ref is tagged `plugin/poll` data is
+added to specify the options and their description text. Voting is done by adding a Ref response
+tagged with `plugin/poll/response/tag` and the response field, with tag being the response to the
+poll. The `poll/response` plugin will generate metadata, but the poll plugin will not.
 
 ## Coming Soon
 ### Templates
 1. **Delta:** (matches `delta/`) Apply a server side script to transform this Ref into a new Ref.
 Adds data to the tag Ext to contain the code or service reference and config.
+2. Queue: (matches `queue/`) Work Queue for assigning or tracking work and paying workers. Requires
+the invoice plugin to pay workers. Adds data:
+   1. Approvers: list of user tags to send invoices to
+   2. Bounty: (optional) payment for responses to items in the queue.
+   3. Max Age: (optional) max age Refs in the queue to be considered active. Refs in the queue
+   older than this will have an expired icon when viewed from the queue tag page.
 ### Plugins
 1. **Table:** Enabled the table embed when installed. When the `plugin/table` is applied to a Ref,
 the Ref contains tabular data. The tabular data is shown when the embed toggle is pressed. Adds
@@ -151,19 +144,20 @@ extension. Does not add data to a Ref. Does not generate metadata.
 4. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
 Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
 tracking for that ref. Does not generate metadata.
-5. **Poll:** Enables polls in the embeds when installed. When a Ref is tagged `plugin/poll` data is
-added to specify the options and their description text. Voting is done by adding a Ref response
-tagged with `plugin/poll/response/tag` and the response field, with tag being the response to the
-poll. The `poll/response` plugin will generate metadata, but the poll plugin will not.
-6. **Geo:** Enables a map in the embeds that displays GeoJson when installed. When a Ref is tagged
+5. **Geo:** Enables a map in the embeds that displays GeoJson when installed. When a Ref is tagged
 `plugin/geo`, the Ref includes some GeoJson. The map is shown when the embed toggle is pressed.
 Adds an optional field to the Ref to use for the GeoJson, if this is unspecified the URL of the
 Ref will be used to point to a GeoJson file. Does not generate metadata.
-7. **GeoPackage:** Enables a map in the embeds that displays GeoPackage when installed. When a
+6. **GeoPackage:** Enables a map in the embeds that displays GeoPackage when installed. When a
 Ref is tagged `plugin/geopackage`, the Ref includes some GeoPackage. The map is shown when the
 embed toggle is pressed. Adds an optional field to the Ref to use for the GeoPackage, if this
 is unspecified the URL of the Ref will be used to point to a GeoPackage file. Does not generate
 metadata.
+7. **Invoice:** Enables invoice support in the client when installed. When invoices are created they
+will be tagged `plugin/invoice`. When the inbox plugin is installed there is a tab on the inbox
+page to show invoices addressed to you. Requires the QR plugin to send QR invoices. If the Work
+Queue template is installed, any invoices can include a Work Queue to address the invoice to all
+work queue approvers. Does not add data to a Ref. Generates count metadata in any sourced Refs.
 
 ## Deployment
 Jasper-UI is available in the following distributions:
@@ -188,7 +182,7 @@ file will be generated from environment variables:
 | `maxTemplates`   | `JASPER_MAX_TEMPLATES`   | Maximum number of templates to load before giving up and writing an error to the console.                                         | `1000`                                                                                                  |
 | `maxOrigins`     | `JASPER_MAX_ORIGINS`     | Maximum number of origins to load before giving up and writing an error to the console.                                           | `1000`                                                                                                  |
 | `fetchBatch`     | `JASPER_FETCH_BATCH`     | Batch size for fetching plugins, templates, and origins.                                                                          | `50`                                                                                                    |
-| `token`          | `JASPER_TOKEN`           | Set client bearer token.                                                                                                          | `openid email`                                                                                          |
+| `token`          | `JASPER_TOKEN`           | Set client bearer token.                                                                                                          |                                                                                                         |
 |                  | `BASE_HREF`              | Set the base href for the SPA.                                                                                                    | `/j/`                                                                                                   |
 |                  | `CSP_DEFAULT_SRC`        | Additional URLS to add to the default content security policy.                                                                    | `https://accounts.google.com https://www.googleapis.com`                                                |
 
