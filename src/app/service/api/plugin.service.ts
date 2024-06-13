@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { mapPlugin, Plugin, writePlugin } from '../../model/plugin';
 import { TagPageArgs } from '../../model/tag';
@@ -35,16 +35,6 @@ export class PluginService {
     }).pipe(
       map(mapPlugin),
       catchError(err => this.login.handleHttpError(err)),
-    );
-  }
-
-  exists(tag: string): Observable<boolean> {
-    return this.http.head(this.base, {
-      params: params({ tag }),
-    }).pipe(
-      map(() => true),
-      catchError(err => this.login.handleHttpError(err)),
-      catchError(() => of(false)),
     );
   }
 

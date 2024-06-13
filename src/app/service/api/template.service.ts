@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { TagPageArgs } from '../../model/tag';
 import { mapTemplate, Template, writeTemplate } from '../../model/template';
@@ -37,17 +37,6 @@ export class TemplateService {
     }).pipe(
       map(mapTemplate),
       catchError(err => this.login.handleHttpError(err)),
-    );
-  }
-
-  exists(tag: string): Observable<boolean> {
-    if (tag.startsWith('/')) tag = tag.substring(1);
-    return this.http.head(this.base, {
-      params: { tag },
-    }).pipe(
-      map(() => true),
-      catchError(err => this.login.handleHttpError(err)),
-      catchError(() => of(false)),
     );
   }
 
