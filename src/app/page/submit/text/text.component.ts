@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, throwError } from 'rxjs';
+import { catchError, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LinksFormComponent } from '../../../form/links/links.component';
@@ -44,6 +44,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
 
+  submitting?: Subscription;
   private _editorTags: string[] = [];
   private oldSubmit: string[] = [];
 
@@ -196,17 +197,19 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         'plugin/thumbnail': { url: this.store.submit.thumbnail },
       };
     }
-    this.refs.create(ref).pipe(
+    this.submitting = this.refs.create(ref).pipe(
       tap(() => {
         if (this.admin.getPlugin('plugin/vote/up')) {
           this.ts.createResponse('plugin/vote/up', this.url.value).subscribe();
         }
       }),
       catchError((res: HttpErrorResponse) => {
+        delete this.submitting;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
+      delete this.submitting;
       this.textForm.markAsPristine();
       if (hasTag('plugin/thread', ref)) {
         this.router.navigate(['/ref', this.url.value, 'thread'], { queryParams: { published }});

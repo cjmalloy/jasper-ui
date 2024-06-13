@@ -6,5 +6,9 @@
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
 }
-<button type="button" (click)="save()" i18n>save</button>
-<button type="button" (click)="cancel()" i18n>cancel</button>
+<button type="button" [disabled]="editing" (click)="save()" i18n>save</button>
+@if (editing) {
+  <app-loading [inline]="true"></app-loading>
+} @else {
+  <button type="button" (click)="cancel()" i18n>cancel</button>
+}

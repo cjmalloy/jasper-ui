@@ -49,6 +49,9 @@
 
   <span><!-- Buttons --></span>
   <span class="buttons form-array right">
-    <button type="submit" [disabled]="submitted && !invoiceForm.valid" i18n>Send</button>
+      @if (submitting) {
+        <app-loading [inline]="true"></app-loading>
+      }
+    <button type="submit" [disabled]="submitting || submitted && !invoiceForm.valid" i18n>Send</button>
   </span>
 </form>

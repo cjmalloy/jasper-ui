@@ -8,5 +8,10 @@
 @for (e of serverError; track e) {
   <div class="error">{{ e }}</div>
 }
-<button type="button" (click)="reply()" i18n>reply</button>
-<button type="button" *ngIf="showCancel" (click)="cancel()" i18n>cancel</button>
+
+<button type="button" [disabled]="replying" (click)="reply()" i18n>reply</button>
+@if (replying) {
+  <app-loading [inline]="true"></app-loading>
+} @else if (showCancel) {
+  <button type="button" (click)="cancel()" i18n>cancel</button>
+}

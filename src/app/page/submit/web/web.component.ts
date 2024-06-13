@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, throwError } from 'rxjs';
+import { catchError, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../../form/plugins/plugins.component';
@@ -42,6 +42,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   @ViewChild(RefFormComponent)
   refForm?: RefFormComponent;
 
+  submitting?: Subscription;
   private rssUrl?: string;
 
   constructor(
@@ -214,7 +215,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       return;
     }
     const published = this.webForm.value.published ? moment(this.webForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
-    this.refs.create({
+    this.submitting = this.refs.create({
       ...this.webForm.value,
       url: this.url, // Need to pull separately since control is locked
       origin: this.store.account.origin,
@@ -227,10 +228,12 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         }
       }),
       catchError((res: HttpErrorResponse) => {
+        delete this.submitting;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
+      delete this.submitting;
       this.webForm.markAsPristine();
       this.router.navigate(['/ref', this.url], { queryParams: { published }});
     });

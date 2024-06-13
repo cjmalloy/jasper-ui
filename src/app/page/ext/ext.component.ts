@@ -4,7 +4,7 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } 
 import { Router } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, of, switchMap, throwError } from 'rxjs';
+import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -41,6 +41,10 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   serverError: string[] = [];
 
   templates = this.admin.tmplSubmit;
+
+  creating?: Subscription;
+  editing?: Subscription;
+  deleting?: Subscription;
 
   constructor(
     private mod: ModService,
@@ -136,7 +140,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     }
     const prefixed = this.prefix(this.tag.value);
     const tag = prefixed + this.store.account.origin;
-    this.exts.create({
+    this.creating = this.exts.create({
       tag: prefixed,
       origin: this.store.account.origin,
     }).pipe(
@@ -149,10 +153,12 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       }),
       switchMap(() => this.exts.get(tag)),
       catchError((res: HttpErrorResponse) => {
+        delete this.creating;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(ext => {
+      delete this.creating;
       this.serverError = [];
       this.setExt(tag, ext);
       this.router.navigate(['/ext', ext.tag]);
@@ -183,8 +189,9 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
         },
       }
     }
-    this.exts.update(ext, this.force).pipe(
+    this.editing = this.exts.update(ext, this.force).pipe(
       catchError((res: HttpErrorResponse) => {
+        delete this.editing;
         if (res.status === 400) {
           if (this.invalid) {
             this.force = true;
@@ -196,6 +203,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
         return throwError(() => res);
       }),
     ).subscribe(() => {
+      delete this.editing;
       this.editForm.markAsPristine();
       if (ext.tag === 'home' && this.admin.getTemplate('home')) {
         this.router.navigate(['/home']);
@@ -212,13 +220,15 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       const deleteNotice = !ext.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
         ? this.exts.create(tagDeleteNotice(ext))
         : of(null);
-      this.exts.delete(ext.tag + ext.origin).pipe(
+      this.deleting = this.exts.delete(ext.tag + ext.origin).pipe(
         switchMap(() => deleteNotice),
         catchError((err: HttpErrorResponse) => {
+          delete this.deleting;
           this.serverError = printError(err);
           return throwError(() => err);
         }),
       ).subscribe(() => {
+        delete this.deleting;
         this.router.navigate(['/tag', ext.tag]);
       });
     }

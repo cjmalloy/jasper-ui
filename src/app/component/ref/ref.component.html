@@ -321,8 +321,11 @@
       <input id="force" type="checkbox" [(ngModel)]="force" [ngModelOptions]="{standalone: true}">
       <label for="force" i18n>Force</label>
     </div>
-    <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
-    <button type="button" (click)="editing = false" i18n>cancel</button>
+    @if (submitting) {
+      <app-loading [inline]="true"></app-loading>
+    }
+    <button type="submit" [disabled]="submitting || submitted && !editForm.valid" i18n>save</button>
+    <button type="button" [disabled]="submitting" (click)="editing = false" i18n>cancel</button>
   </span>
 </form>
 

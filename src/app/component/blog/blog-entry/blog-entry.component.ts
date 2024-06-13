@@ -15,7 +15,7 @@ import { Router } from '@angular/router';
 import { defer, intersection, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, map, switchMap, throwError } from 'rxjs';
+import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
@@ -83,6 +83,8 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
+
+  submitting?: Subscription;
 
   constructor(
     private config: ConfigService,
@@ -334,7 +336,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
       return;
     }
     const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
-    this.refs.update({
+    this.submitting = this.refs.update({
       ...this.ref,
       ...this.editForm.value,
       published,
@@ -345,10 +347,12 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     }).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin)),
       catchError((err: HttpErrorResponse) => {
+        delete this.submitting;
         this.serverError = printError(err);
         return throwError(() => err);
       }),
     ).subscribe(ref => {
+      delete this.submitting;
       this.serverError = [];
       this.editing = false;
       this.ref = ref;

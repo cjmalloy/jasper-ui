@@ -4,7 +4,7 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { flatten, uniq } from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, map, mergeMap, switchMap, throwError } from 'rxjs';
+import { catchError, map, mergeMap, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
@@ -34,6 +34,8 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
   refUrl?: string;
   queue?: string;
   editorTags: string[] = [];
+
+  submitting?: Subscription;
 
   constructor(
     private mod: ModService,
@@ -148,7 +150,7 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
       return;
     }
     const published = this.invoiceForm.value.published ? moment(this.invoiceForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
-    this.exts.getCachedExt(this.queue!).pipe(
+    this.submitting = this.exts.getCachedExt(this.queue!).pipe(
       switchMap(queueExt => this.refs.create({
         ...this.invoiceForm.value,
         origin: this.store.account.origin,
@@ -157,10 +159,12 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
         sources: flatten([this.refUrl]),
       })),
       catchError((res: HttpErrorResponse) => {
+        delete this.submitting;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
+      delete this.submitting;
       this.invoiceForm.markAsPristine();
       this.router.navigate(['/ref', this.invoiceForm.value.url], { queryParams: { published }});
     });

@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { defer, some, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, throwError } from 'rxjs';
+import { catchError, Subscription, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -46,6 +46,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   @ViewChild(TagsFormComponent)
   tags?: TagsFormComponent;
 
+  submitting?: Subscription;
   private addedMailboxes: string[] = [];
   private oldSubmit: string[] = [];
   private _editorTags: string[] = [];
@@ -212,7 +213,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     }
     const url = 'comment:' + uuid();
     const published = this.dmForm.value.published ? moment(this.dmForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
-    this.refs.create({
+    this.submitting = this.refs.create({
       url,
       origin: this.store.account.origin,
       title: this.dmForm.value.title,
@@ -222,10 +223,12 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       tags: this.dmForm.value.tags,
     }).pipe(
       catchError((res: HttpErrorResponse) => {
+        delete this.submitting;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
+      delete this.submitting;
       this.dmForm.markAsPristine();
       this.router.navigate(['/ref', url, 'thread'], { queryParams: { published }});
     });

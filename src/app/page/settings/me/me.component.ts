@@ -4,7 +4,7 @@ import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { cloneDeep, defer } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { extForm, ExtFormComponent } from '../../../form/ext/ext.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -29,6 +29,8 @@ export class SettingsMePage implements HasChanges {
   submitted = false;
   editForm!: UntypedFormGroup;
   serverError: string[] = [];
+
+  editing?: Subscription;
 
   constructor(
     public store: Store,
@@ -66,7 +68,7 @@ export class SettingsMePage implements HasChanges {
       return;
     }
     const ext = this.store.account.ext!;
-    this.exts.update({
+    this.editing = this.exts.update({
       ...ext,
       ...this.editForm.value,
       tag: ext.tag, // Need to fetch because control is disabled
@@ -78,10 +80,12 @@ export class SettingsMePage implements HasChanges {
       tap(() => runInAction(() => this.accounts.clearCache())),
       switchMap(() => this.accounts.initExt$),
       catchError((res: HttpErrorResponse) => {
+        delete this.editing;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
+      delete this.editing;
       this.editForm.markAsPristine();
       this.router.navigate(['/tag', this.store.account.tag]);
     });

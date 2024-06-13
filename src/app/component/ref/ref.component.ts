@@ -151,6 +151,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   publishChanged = false;
   overlayRef?: OverlayRef;
 
+  submitting?: Subscription;
   private overlayEvents?: Subscription;
   private refreshTap?: () => void;
 
@@ -894,9 +895,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.store.submit.setRef(this.ref);
     } else {
       this.refreshTap = () => this.publishChanged = !published.isSame(this.ref.published);
-      this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
-        tap(() => this.editing = false),
+      this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
+        tap(() => {
+          delete this.submitting;
+          this.editing = false;
+        }),
         catchError((res: HttpErrorResponse) => {
+          delete this.submitting;
           if (res.status === 400) {
             if (this.invalid) {
               this.force = true;

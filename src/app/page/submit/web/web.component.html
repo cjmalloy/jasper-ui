@@ -11,8 +11,11 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons form-array right">
-    <button type="submit" [disabled]="submitted && !webForm.valid" i18n>Submit</button>
-  </span>
+      @if (submitting) {
+        <app-loading [inline]="true"></app-loading>
+      }
+      <button type="submit" [disabled]="submitting || submitted && !webForm.valid" i18n>Submit</button>
+    </span>
 
   </form>
 </ng-container>

@@ -62,7 +62,10 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons form-array right">
-    <button type="submit" [disabled]="submitted && !dmForm.valid" i18n>Send</button>
-  </span>
+      @if (submitting) {
+        <app-loading [inline]="true"></app-loading>
+      }
+      <button type="submit" [disabled]="submitting || submitted && !dmForm.valid" i18n>Send</button>
+    </span>
   </form>
 </ng-container>

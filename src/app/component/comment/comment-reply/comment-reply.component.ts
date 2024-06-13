@@ -3,7 +3,7 @@ import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angula
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer, uniq, without } from 'lodash-es';
 import * as moment from 'moment';
-import { catchError, Subject, throwError } from 'rxjs';
+import { catchError, Subject, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { EditorComponent } from '../../../form/editor/editor.component';
@@ -49,6 +49,7 @@ export class CommentReplyComponent implements AfterViewInit {
   @ViewChild(EditorComponent)
   editor?: EditorComponent;
 
+  replying?: Subscription;
   commentForm: UntypedFormGroup;
   serverError: string[] = [];
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
@@ -114,8 +115,6 @@ export class CommentReplyComponent implements AfterViewInit {
     if (!this.comment.value) return;
     const url = 'comment:' + uuid();
     const value = this.comment.value;
-    this.comment.setValue('');
-    this.editor?.syncText('');
     const ref: Ref = {
       url,
       origin: this.store.account.origin,
@@ -137,7 +136,8 @@ export class CommentReplyComponent implements AfterViewInit {
       ])),
       published: moment(),
     };
-    this.refs.create(ref).pipe(
+    this.comment.disable();
+    this.replying = this.refs.create(ref).pipe(
       tap(cursor => {
         ref.modifiedString = cursor;
         ref.modified = moment(cursor);
@@ -146,12 +146,16 @@ export class CommentReplyComponent implements AfterViewInit {
         }
       }),
       catchError((err: HttpErrorResponse) => {
+        delete this.replying;
         this.serverError = printError(err);
-        this.comment.setValue(value);
+        this.comment.enable();
         return throwError(() => err);
       }),
     ).subscribe(() => {
+      delete this.replying;
       this.serverError = [];
+      this.comment.setValue('');
+      this.editor?.syncText('');
       const update = {
         ...ref,
         created: moment(),
@@ -172,6 +176,7 @@ export class CommentReplyComponent implements AfterViewInit {
   }
 
   cancel() {
+    this.replying?.unsubscribe();
     this.newResp$?.next(null);
     this.newComment$?.next(null);
     this.newThread$?.next(null);

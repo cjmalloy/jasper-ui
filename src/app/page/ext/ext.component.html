@@ -27,7 +27,10 @@
 
       <span><!-- Buttons --></span>
       <span class="buttons form-array right">
-        <button type="submit" [disabled]="submitted && !extForm.valid" i18n>Extend</button>
+        @if (creating) {
+          <app-loading [inline]="true"></app-loading>
+        }
+        <button type="submit" [disabled]="creating || submitted && !extForm.valid" i18n>Extend</button>
       </span>
     </form>
   } @else if (editForm) {
@@ -61,8 +64,11 @@
             </div>
           }
         }
-        <button type="submit" [disabled]="submitted && !editForm.valid" i18n>Save</button>
-        <button type="button" (click)="delete()" i18n>Delete</button>
+        @if (editing || deleting) {
+          <app-loading [inline]="true"></app-loading>
+        }
+        <button type="submit" [disabled]="editing || deleting || submitted && !editForm.valid" i18n>Save</button>
+          <button type="button" [disabled]="editing || deleting" (click)="delete()" i18n>Delete</button>
       </span>
     </form>
   }

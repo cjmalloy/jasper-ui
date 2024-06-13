@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { difference, uniq } from 'lodash-es';
-import { catchError, Subject, switchMap, throwError } from 'rxjs';
+import { catchError, Subject, Subscription, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
@@ -27,6 +27,7 @@ export class CommentEditComponent implements AfterViewInit {
   @Input()
   commentEdited$!: Subject<Ref>;
 
+  editing?: Subscription;
   commentForm: UntypedFormGroup;
   editorTags: string[] = [];
 
@@ -99,19 +100,22 @@ export class CommentEditComponent implements AfterViewInit {
         value: alt,
       });
     }
-    this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(
+    this.editing = this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
       catchError((res: HttpErrorResponse) => {
+        delete this.editing;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(res => {
+      delete this.editing;
       this.ref = res;
       this.commentEdited$.next(res);
     });
   }
 
   cancel() {
+    this.editing?.unsubscribe();
     this.commentEdited$.next(this.ref);
   }
 }

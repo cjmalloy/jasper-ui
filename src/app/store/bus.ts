@@ -62,7 +62,7 @@ export class EventBus {
   }
 
   runAndReload(o: Observable<any>, ref?: Ref) {
-    this.runAndReload$(o, ref).subscribe();
+    return this.runAndReload$(o, ref).subscribe();
   }
 
   runAndReload$(o: Observable<any>, ref?: Ref) {

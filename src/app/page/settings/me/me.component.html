@@ -10,7 +10,10 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons form-array right">
-        <button type="submit" [disabled]="submitted && !editForm.valid" i18n>Save</button>
-      </span>
+      @if (editing) {
+        <app-loading [inline]="true"></app-loading>
+      }
+      <button type="submit" [disabled]="editing || submitted && !editForm.valid" i18n>Save</button>
+    </span>
   </form>
 </ng-container>
