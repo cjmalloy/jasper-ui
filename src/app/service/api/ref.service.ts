@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { mapRef, Ref, RefFilter, RefPageArgs, writeRef } from '../../model/ref';
 import { Store } from '../../store/store';
@@ -58,13 +58,9 @@ export class RefService {
     );
   }
 
-  exists(url: string, origin = ''): Observable<boolean> {
-    return this.http.head(this.base, {
-      params: params({ url, origin }),
-    }).pipe(
-      map(() => true),
-      catchError(err => this.login.handleHttpError(err)),
-      catchError(err => of(false)),
+  exists(url: string): Observable<boolean> {
+    return this.count({ url }).pipe(
+      map(n => !!n),
     );
   }
 

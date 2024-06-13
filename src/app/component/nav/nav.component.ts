@@ -1,5 +1,4 @@
 import { Component, ElementRef, Input, OnInit } from '@angular/core';
-import { map } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
@@ -46,10 +45,8 @@ export class NavComponent implements OnInit {
       }
     } else if (!this.external) {
       this.vis.notifyVisible(this.el, () => {
-        this.refs.page({ url: this.url, size: 1 }).pipe(
-          map(page => page.empty ? null : page.content[0])
-        ).subscribe(ref => {
-          if (ref) {
+        this.refs.exists(this.url).subscribe(exists => {
+          if (exists) {
             this.nav = ['/ref', this.url];
           }
         });
