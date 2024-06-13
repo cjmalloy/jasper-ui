@@ -283,6 +283,7 @@ select {
         transition: left 300ms ease-in-out;
         border: 1px dashed var(--border);
         border-radius: 6px;
+        pointer-events: none;
       }
       button {
         border: none;
