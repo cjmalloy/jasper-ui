@@ -206,9 +206,9 @@ export class KanbanComponent implements OnChanges, OnDestroy {
 
   preloadExts() {
     this.exts.getCachedExts([
-      ...this.kanbanConfig.columns ||[],
-      ...this.kanbanConfig.swimLanes ||[],
-      ...this.kanbanConfig.badges ||[],
+      ...this.kanbanConfig.columns || [],
+      ...this.kanbanConfig.swimLanes || [],
+      ...this.kanbanConfig.badges || [],
     ]).subscribe();
   }
 
@@ -251,6 +251,9 @@ export class KanbanComponent implements OnChanges, OnDestroy {
       ref,
       index: event.currentIndex,
     });
+    if (this.store.view.lastSelected?.url === ref.url) {
+      this.store.view.clearLastSelected();
+    }
 
     const tags = [...remove.map(t => `-${t}`), ...add];
     if (!tags.length) return;
