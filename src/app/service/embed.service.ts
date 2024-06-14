@@ -38,6 +38,31 @@ export class EmbedService {
       breaks: false,
       pedantic: false,
     };
+    // @ts-ignore
+    const parseMarked = markdownService.parseMarked;
+    // @ts-ignore
+    markdownService.parseMarked = (html: string, markedOptions: any, inline = false) => {
+      const parsed = parseMarked.call(markdownService, html, markedOptions, inline);
+      const parser = new DOMParser();
+      const htmlDoc = parser.parseFromString(parsed, 'text/html');
+      const media = htmlDoc.querySelectorAll<HTMLImageElement|HTMLSourceElement>('img, source');
+      media.forEach(t => {
+        if (t.src) {
+          t.src = 'unsafe:' + t.src;
+        }
+        if (t.srcset) {
+          t.srcset = t.srcset.split(', ').map(src => 'unsafe:' + src).join(', ');
+        }
+      });
+      return htmlDoc.body.innerHTML;
+    };
+    const renderHtml = markdownService.renderer.html;
+    markdownService.renderer.html = (html: string, block) => {
+      let src = renderHtml.call(markdownService.renderer, html, block);
+      if (!src) return src;
+      return src
+        .replace(/<img/g, '<img loading="lazy"');
+    }
     const renderImage = markdownService.renderer.image;
     markdownService.renderer.image = (href: string, title: string | null, text: string) => {
       let html = renderImage.call(markdownService.renderer, href, title, text);
@@ -279,7 +304,8 @@ export class EmbedService {
     images.forEach(t => {
       if (t.src || t.srcset) {
         const srcsets = t.srcset ? t.srcset.split(', ') : [t.src];
-        const url = t.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : t.src;
+        let url = t.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : t.src;
+        if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
         const config = {} as any;
         if (t.style.width) config.width = t.style.width;
         if (t.style.height) config.height = t.style.height;
