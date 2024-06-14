@@ -300,6 +300,23 @@ export class EmbedService {
         t.href = t.getAttribute('href') + origin;
       });
     }
+    const pictures = el.querySelectorAll<HTMLPictureElement>('picture');
+    pictures.forEach(t => {
+      const source = t.querySelectorAll('source')[0];
+      if (source.src || source.srcset) {
+        const srcsets = source.srcset ? source.srcset.split(', ') : [source.src];
+        let url = source.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : source.src;
+        if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
+        const config = {} as any;
+        if (t.style.width) config.width = t.style.width;
+        if (t.style.height) config.height = t.style.height;
+        const c = embed.createEmbed({ url, plugins: { 'plugin/image': config } }, ['plugin/image']);
+        c.location.nativeElement.title = t.title;
+        c.location.nativeElement.alt = t.querySelectorAll('img')[0]?.alt;
+        t.parentNode?.insertBefore(c.location.nativeElement, t);
+      }
+      t.remove();
+    });
     const images = el.querySelectorAll<HTMLImageElement>('img');
     images.forEach(t => {
       if (t.src || t.srcset) {
@@ -312,6 +329,33 @@ export class EmbedService {
         const c = embed.createEmbed({ url, plugins: { 'plugin/image': config } }, ['plugin/image']);
         c.location.nativeElement.title = t.title;
         c.location.nativeElement.alt = t.alt;
+        t.parentNode?.insertBefore(c.location.nativeElement, t);
+      }
+      t.remove();
+    });
+    const audio = el.querySelectorAll<HTMLAudioElement>('audio');
+    audio.forEach(t => {
+      const source = t.querySelectorAll('source')[0];
+      if (source) {
+        let url = source.src;
+        if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
+        const c = embed.createEmbed({ url }, ['plugin/audio']);
+        c.location.nativeElement.title = t.title;
+        t.parentNode?.insertBefore(c.location.nativeElement, t);
+      }
+      t.remove();
+    });
+    const videos = el.querySelectorAll<HTMLVideoElement>('video');
+    videos.forEach(t => {
+      const source = t.querySelectorAll('source')[0];
+      if (source) {
+        let url = source.src;
+        if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
+        const config = {} as any;
+        if (t.style.width) config.width = t.style.width;
+        if (t.style.height) config.height = t.style.height;
+        const c = embed.createEmbed({ url, plugins: { 'plugin/video': config } }, ['plugin/video']);
+        c.location.nativeElement.title = t.title;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
       }
       t.remove();
