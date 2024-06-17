@@ -55,7 +55,7 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^18.0.3",
-    "@angular/cli": "^18.0.3",
+    "@angular/cli": "^18.0.4",
     "@angular/compiler-cli": "^18.0.2",
     "@cypress/schematic": "^2.5.2",
     "@ngx-formly/schematics": "^6.3.4",
