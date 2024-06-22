@@ -154,6 +154,7 @@ export class CommentReplyComponent implements AfterViewInit {
     ).subscribe(() => {
       delete this.replying;
       this.serverError = [];
+      this.comment.enable();
       this.comment.setValue('');
       this.editor?.syncText('');
       const update = {
