@@ -558,7 +558,8 @@ export class AdminService {
         .filter(identity) as Plugin[]));
   }
 
-  getEmbeds(ref: Ref) {
+  getEmbeds(ref?: Ref | null) {
+    if (!ref) return [];
     const tags = ref.tags || [];
     return tagIntersection([
       'plugin',

@@ -1634,6 +1634,10 @@ formly-field-radio, formly-field-multicheckbox {
   margin: 2px;
   padding: 8px;
   max-width: min(100vw - 16px, 60em);
+
+  .embed-expand {
+    margin: auto;
+  }
 }
 
 .ref, .form, .editor {

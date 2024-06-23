@@ -9,6 +9,8 @@ import { Oembed } from '../model/oembed';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { wikiUriFormat } from '../mods/wiki';
+import { OembedStore } from '../store/oembed';
+import { Store } from '../store/store';
 import { delay } from '../util/async';
 import { Embed } from '../util/embed';
 import { parseParams } from '../util/http';
@@ -32,6 +34,8 @@ export class EmbedService {
     private refs: RefService,
     private exts: ExtService,
     private markdownService: MarkdownService,
+    private oembeds: OembedStore,
+    private store: Store,
   ) {
     markdownService.options = {
       gfm: true,
@@ -393,30 +397,36 @@ export class EmbedService {
         this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
           catchError(() => of(null)),
         ).subscribe(ref => {
-          if (ref) {
-            const expandPlugins = this.admin.getEmbeds(ref);
-            if (ref.comment || expandPlugins.length) {
-              const c = embed.createEmbed(ref, expandPlugins);
-              if (title) c.location.nativeElement.title = title;
-              t.parentNode?.insertBefore(c.location.nativeElement, t);
-            }
+          const expandPlugins = this.admin.getEmbeds(ref);
+          if (ref?.comment || expandPlugins.length) {
+            const c = embed.createEmbed(ref!, expandPlugins);
+            if (title) c.location.nativeElement.title = title;
+            t.parentNode?.insertBefore(c.location.nativeElement, t);
+            t.remove();
           } else {
             const embeds = this.admin.getPluginsForUrl(url);
             if (embeds.length) {
               const c = embed.createEmbed(url, embeds.map(p => p.tag));
               if (title) c.location.nativeElement.title = title;
               t.parentNode?.insertBefore(c.location.nativeElement, t);
+              t.remove();
             } else if (url.startsWith('/ref/')) {
               el = document.createElement('div');
               el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
               t.parentNode?.insertBefore(el, t);
+              t.remove();
             } else {
-              const c = embed.createEmbed({ url }, ['plugin/image']);
-              c.location.nativeElement.title = t.title;
-              t.parentNode?.insertBefore(c.location.nativeElement, t);
+              this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined)
+                .pipe(catchError(() => of(null)))
+                .subscribe(oembed => {
+                  const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
+                  const c = embed.createEmbed(url, expandPlugins);
+                  c.location.nativeElement.title = t.title;
+                  t.parentNode?.insertBefore(c.location.nativeElement, t);
+                  t.remove();
+                });
             }
           }
-          t.remove();
         });
       }
     });
