@@ -52,9 +52,16 @@ export class OriginMapService {
     );
   }
 
+  private get api() {
+    if (this.config.api.startsWith('//')) {
+      return location.protocol + this.config.api;
+    }
+    return this.config.api;
+  }
+
   private get selfApis(): Map<string, string> {
     return new Map([
-      [this.store.account.origin, this.config.api],
+      [this.store.account.origin, this.api],
       ...this.origins
       .filter(remote => isPushing(remote, this.store.account.origin))
       .map(remote => [remote.plugins?.['+plugin/origin']?.remote || '', remote.url] as [string, string]),
