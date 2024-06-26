@@ -546,7 +546,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
+    return this.exts.getCachedExts(this.userAuthors, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
   @memo
@@ -749,9 +749,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   formatAuthor(user: string) {
-    if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
-      user = user.replace(this.store.account.origin, '');
-    }
     return formatAuthor(user);
   }
 

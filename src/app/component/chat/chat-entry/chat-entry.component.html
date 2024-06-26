@@ -8,7 +8,7 @@
               <ng-container *ngFor="let user of authorExts">
                 <a class="user tag"
                    [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+                   [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag) }}</a>
               </ng-container>
             </ng-container>
             <ng-template #authorNoExts>
