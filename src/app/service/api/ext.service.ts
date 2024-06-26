@@ -141,6 +141,13 @@ export class ExtService {
     return this._cache.get(key)!;
   }
 
+  clearCache(tag: string, origin = '') {
+    if (origin) {
+      this._cache.delete(tag + origin + ':');
+    }
+    this._cache.delete(tag + ':');
+  }
+
   page(args?: TagPageArgs): Observable<Page<Ext>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
@@ -164,7 +171,7 @@ export class ExtService {
     return this.http.put<string>(this.base, writeExt(ext), {
       params: !force ? undefined : { force: true },
     }).pipe(
-      tap(() => this._cache.delete(ext.tag)),
+      tap(() => this.clearCache(ext.tag, ext.origin)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -174,7 +181,7 @@ export class ExtService {
       headers: { 'Content-Type': 'application/json-patch+json' },
       params: params({ tag, cursor }),
     }).pipe(
-      tap(() => this._cache.delete(tag)),
+      tap(() => this.clearCache(localTag(tag), tagOrigin(tag))),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -184,7 +191,7 @@ export class ExtService {
       headers: { 'Content-Type': 'application/merge-patch+json' },
       params: params({ tag, cursor }),
     }).pipe(
-      tap(() => this._cache.delete(tag)),
+      tap(() => this.clearCache(localTag(tag), tagOrigin(tag))),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -193,7 +200,7 @@ export class ExtService {
     return this.http.delete<void>(this.base, {
       params: params({ tag }),
     }).pipe(
-      tap(() => this._cache.delete(tag)),
+      tap(() => this.clearCache(localTag(tag), tagOrigin(tag))),
       catchError(err => this.login.handleHttpError(err)),
     );
   }

@@ -49,8 +49,8 @@ export class TagPage implements OnInit, OnDestroy {
         this.exts.getCachedExts(this.store.view.queryTags)
           .pipe(this.admin.extFallbacks)
           .subscribe(exts => {
-            this.loading = false;
             runInAction(() => this.store.view.exts = exts);
+            this.loading = false;
         });
       }
     }));
