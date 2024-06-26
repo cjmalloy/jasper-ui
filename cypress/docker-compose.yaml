@@ -19,6 +19,7 @@ services:
       CYPRESS_replOtherApi: http://localhost:8085
       CYPRESS_replOtherApiProxy: http://repl-other-web
       CYPRESS_reporter: cypress-mochawesome-reporter
+      CYPRESS_video: true
 #      ELECTRON_ENABLE_LOGGING: 1
     working_dir: /e2e
     volumes:
