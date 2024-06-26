@@ -75,8 +75,8 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
             defer(() => this.userForm.setUser({
               tag: this.store.view.localTag,
               origin: this.store.view.origin,
-              readAccess: this.admin.readAccess.map(t => prefix(t, setPublic(this.store.view.localTag))),
-              writeAccess: this.admin.writeAccess.map(t => prefix(t, setPublic(this.store.view.localTag))),
+              readAccess: this.admin.readAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
+              writeAccess: this.admin.writeAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
             }));
           }
         }));

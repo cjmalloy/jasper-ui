@@ -4,7 +4,7 @@ import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
 import { defaultSubs, UserConfig } from '../mods/user';
-import { hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
+import { hasPrefix, localTag, prefix, setPublic, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
 export class AccountStore {
@@ -153,14 +153,14 @@ export class AccountStore {
 
   get outboxes() {
     return Array.from(this.origins.reverseLookup)
-      .map(([remote, localAlias]) => prefix('plugin/outbox', localAlias, this.localTag) + remote);
+      .map(([remote, localAlias]) => setPublic(prefix('plugin/outbox', localAlias, this.localTag)) + remote);
   }
 
   get inboxQuery() {
     if (!this.signedIn) return undefined;
     let tags = [this.mailbox];
     if (this.origin) {
-      tags.push(prefix('plugin/outbox', this.origin, this.localTag));
+      tags.push(setPublic(prefix('plugin/outbox', this.origin, this.localTag)));
     }
     if (this.modmail?.length) {
       tags.push(...this.modmail);

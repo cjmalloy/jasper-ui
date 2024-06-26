@@ -20,7 +20,7 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
-import { hasPrefix, localTag, prefix, tagOrigin, topAnds } from '../../util/tag';
+import { hasPrefix, localTag, tagOrigin, topAnds } from '../../util/tag';
 
 @Component({
   selector: 'app-sidebar',
@@ -31,7 +31,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @HostBinding('class') css = 'sidebar';
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
-  prefix = prefix;
 
   @Input()
   tag = '';
