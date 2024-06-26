@@ -123,9 +123,7 @@ export class CommentReplyComponent implements AfterViewInit {
       sources: uniq([
         this.to.url,
         ...[this.to.sources?.[1] || this.to.sources?.[0] || this.to.url],
-        ...this.ed.getSources(value),
       ]),
-      alternateUrls: this.ed.getAlts(value),
       tags: removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
         ...this.publicTag,
         ...(this.store.account.localTag ? [this.store.account.localTag] : []),

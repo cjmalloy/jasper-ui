@@ -1,7 +1,11 @@
 import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import Europa from 'europa';
 import { Plugin, PluginApi } from 'europa-core';
+import { difference, uniq } from 'lodash-es';
+import { TagsFormComponent } from '../form/tags/tags.component';
+import { Store } from '../store/store';
+import { getMailboxes } from '../util/editor';
 import { getPath } from '../util/hosts';
 import { ConfigService } from './config.service';
 
@@ -12,6 +16,7 @@ export class EditorService {
 
   constructor(
     private config: ConfigService,
+    private store: Store,
   ) {
     const superscriptProvider = (api: PluginApi): Plugin => ({
       converters: {
@@ -87,15 +92,31 @@ export class EditorService {
     return decodeURIComponent(query);
   }
 
+  /**
+   * Add mailboxes for tagged users.
+   */
   syncEditor(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
+    let comment = group.value.comment;
+    // Store last synced comment in the form so that we can track what was already synced.
+    // This will allow the user to remove a source, alt or tag without it being re-added
+    // @ts-ignore
+    previousComment ||= group.previousComment || '';
+    // @ts-ignore
+    group.previousComment = comment;
+    this.syncMailboxes(fb, group, previousComment);
+    group.get('comment')?.setValue(comment);
   }
 
-  getSources(markdown: string) {
-    return [];
-  }
-
-  getAlts(markdown: string) {
-    return [];
+  private syncMailboxes(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
+    const existingTags = [
+      ...getMailboxes(previousComment, this.store.account.origin),
+      ...(group.value.tags || []),
+    ];
+    const mailboxes = uniq(difference([
+      ...getMailboxes(group.value.comment, this.store.account.origin)], existingTags));
+    for (const t of mailboxes) {
+      (group.get('tags') as UntypedFormArray).push(fb.control(t, TagsFormComponent.validators));
+    }
   }
 
 }
