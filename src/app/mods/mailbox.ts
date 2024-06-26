@@ -65,11 +65,11 @@ export function notifications(ref: Ref): string[] {
 }
 
 export function addressedTo(ref: Ref): string[] {
-  return notifications(ref).map(getUser).filter(u => u) as string[];
+  return notifications(ref).map(mailbox => getUser(mailbox, ref.origin || '')).filter(u => u) as string[];
 }
 
-export function getUser(mailbox: string): string | undefined {
-  const tag = getMailboxTag(mailbox);
+export function getUser(mailbox: string, localOrigin: string): string | undefined {
+  const tag = getMailboxTag(mailbox, localOrigin);
   if (!tag) return tag;
   if (mailbox.startsWith('_')) return '_' + tag;
   if (tag == 'user') return '+user';
@@ -77,9 +77,9 @@ export function getUser(mailbox: string): string | undefined {
   return tag;
 }
 
-export function getMailboxTag(mailbox: string): string | undefined {
-  if (mailbox.startsWith('_plugin/inbox/')) return mailbox.substring('_plugin/inbox/'.length);
-  if (mailbox.startsWith('plugin/inbox/')) return mailbox.substring('plugin/inbox/'.length);
+export function getMailboxTag(mailbox: string, localOrigin: string): string | undefined {
+  if (mailbox.startsWith('_plugin/inbox/')) return mailbox.substring('_plugin/inbox/'.length) + localOrigin;
+  if (mailbox.startsWith('plugin/inbox/')) return mailbox.substring('plugin/inbox/'.length) + localOrigin;
   if (mailbox.startsWith('_plugin/outbox/')) return reverseOrigin(mailbox.substring('_plugin/outbox/'.length));
   if (mailbox.startsWith('plugin/outbox/')) return reverseOrigin(mailbox.substring('plugin/outbox/'.length));
   if (mailbox.startsWith('_plugin/from/')) return reverseOrigin(mailbox.substring('_plugin/from/'.length));

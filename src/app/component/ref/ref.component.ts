@@ -535,7 +535,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     return uniq([
       ...this.ref.tags?.filter(t => t.startsWith('+plugin/') && this.admin.getPlugin(t)?.config?.signature) || [],
-      ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) || '')),
+      ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
     ]);
   }
 
@@ -552,11 +552,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get recipients() {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
-    const recipients = addressedTo(this.ref).map(a => {
+    return without(addressedTo(this.ref), ...this.authors).map(a => {
       if (!tagOrigin(a)) return a;
-      return localTag(a) + (lookup?.get(tagOrigin(a)) || '');
+      return localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a));
     });
-    return without(recipients, ...this.authors);
   }
 
   @memo

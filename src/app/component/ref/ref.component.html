@@ -104,7 +104,7 @@
               @for (user of recipientExts; track user) {
                 <a class="user tag"
                    [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag) }}</a>
+                   [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
               }
             </ng-container>
             <ng-template #recipientNoExts>

@@ -63,7 +63,7 @@ describe('Origin Push Plugin', {
   it('check ref was scraped', () => {
     cy.visit(replUrl + '/tag/@other?debug=ADMIN');
     cy.get('.ref-list .link.remote').contains('Push Test').parent().parent().parent().as('ref');
-    cy.get('@ref').find('.user.tag').contains('bob@other');
+    cy.get('@ref').find('.user.tag').contains('bob');
   });
   it('@main: delete remote @other', () => {
     cy.visit('/?debug=ADMIN');

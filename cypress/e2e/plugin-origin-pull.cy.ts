@@ -62,7 +62,7 @@ describe('Origin Pull Plugin', {
   it('check ref was pulled', () => {
     cy.visit('/tag/@other?debug=USER');
     cy.get('.ref-list .link.remote').contains('Pull Test').parent().parent().parent().as('ref');
-    cy.get('@ref').find('.user.tag').contains('bob@other');
+    cy.get('@ref').find('.user.tag').contains('bob');
   });
   it('@main: delete remote @other', () => {
     cy.visit('/?debug=ADMIN');
