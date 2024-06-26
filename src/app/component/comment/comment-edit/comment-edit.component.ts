@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { difference, uniq } from 'lodash-es';
 import { catchError, Subject, Subscription, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { AccountService } from '../../../service/account.service';
@@ -8,7 +9,7 @@ import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
-import { getIfNew, getMailboxes } from '../../../util/editor';
+import { getIfNew, getMailboxes, getTags } from '../../../util/editor';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -54,9 +55,22 @@ export class CommentEditComponent implements AfterViewInit {
   get patchTags() {
     return getIfNew([
       ...this.ref.tags || [],
+      ...getTags(this.comment.value),
       ...getMailboxes(this.comment.value, this.store.account.origin),
       ...this.editorTags],
       this.ref.tags);
+  }
+
+  get patchSources() {
+    return getIfNew(
+      uniq(difference(this.editor.getSources(this.comment.value), this.ref.sources || [])),
+      this.ref.sources);
+  }
+
+  get patchAlts() {
+    return getIfNew(
+      uniq(difference(this.editor.getAlts(this.comment.value), this.ref.alternateUrls || [])),
+      this.ref.alternateUrls);
   }
 
   save() {
@@ -70,6 +84,20 @@ export class CommentEditComponent implements AfterViewInit {
         op: 'add',
         path: '/tags/-',
         value: t,
+      });
+    }
+    for (const s of this.patchSources) {
+      patches.push({
+        op: 'add',
+        path: '/sources/-',
+        value: s,
+      });
+    }
+    for (const alt of this.patchAlts) {
+      patches.push({
+        op: 'add',
+        path: '/alternateUrls/-',
+        value: alt,
       });
     }
     this.editing = this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(
