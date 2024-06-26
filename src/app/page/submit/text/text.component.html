@@ -57,7 +57,8 @@
       <a class="fake-link no-select" (click)="advanced = true" i18n>show advanced</a>
     } @else {
       <app-ref-form #advancedForm
-                    [group]="textForm"></app-ref-form>
+                    [group]="textForm"
+                    (toggleTag)="bookmarks.toggleTag($event)"></app-ref-form>
     }
 
     @for (e of serverError; track e) {

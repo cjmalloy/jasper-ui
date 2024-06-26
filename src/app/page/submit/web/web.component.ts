@@ -16,6 +16,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
+import { BookmarkService } from '../../../service/bookmark.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { OembedStore } from '../../../store/oembed';
@@ -56,6 +57,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     private ts: TaggingService,
     private oembeds: OembedStore,
     private scrape: ScrapeService,
+    public bookmarks: BookmarkService,
     private fb: UntypedFormBuilder,
   ) {
     this.setTitle($localize`Submit: Web Link`);
