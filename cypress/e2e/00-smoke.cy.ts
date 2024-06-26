@@ -9,6 +9,7 @@ describe('Smoke Tests', {
   });
   it('clear mods', () => {
     clearMods();
+    clearMods(Cypress.env('CYPRESS_replUrl') || 'http://localhost:8082');
   });
   it('creates a ref', () => {
     cy.visit('/?debug=ADMIN');

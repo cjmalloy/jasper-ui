@@ -12,7 +12,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.visit('/?debug=ADMIN');
     cy.contains('Home', { timeout: 1000 * 60 });
   });
-  it('clear mods', () => {
+  it('@main: clear mods', () => {
     clearMods();
   });
   it('@main: turn on inbox, outbox and remote origins', () => {
