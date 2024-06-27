@@ -219,7 +219,8 @@ export function latest<T extends Cursor>(cs: T[]) {
 
 export interface Icon extends Visibility {
   /**
-   * Label to show in info row. Will also use as default thumbnail.
+   * Label to show in info row.
+   * Will also use as default thumbnail if order is not negative.
    */
   label?: string;
   /**
