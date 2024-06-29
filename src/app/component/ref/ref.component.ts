@@ -65,8 +65,7 @@ import {
   hasComment,
   interestingTags,
   templates,
-  urlSummary,
-  userAuthors
+  urlSummary
 } from '../../util/format';
 import { getScheme } from '../../util/hosts';
 import { printError } from '../../util/http';
@@ -540,13 +539,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
-  get userAuthors() {
-    return userAuthors(this.ref);
-  }
-
-  @memo
   get authorExts$() {
-    return this.exts.getCachedExts(this.userAuthors, this.ref.origin || '').pipe(this.admin.authorFallback);
+    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
   @memo

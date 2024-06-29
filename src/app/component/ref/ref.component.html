@@ -68,7 +68,7 @@
               <span i18n-title  title="last edited {{ ref.modified!.fromNow() }}">*</span>
             }
           }
-          <ng-container *ngIf="userAuthors.length" i18n>
+          <ng-container *ngIf="authors.length" i18n>
             by
             <ng-container *ngIf="authorExts$ | async as authorExts; else authorNoExts">
               <ng-container *ngFor="let user of authorExts">
@@ -78,7 +78,7 @@
               </ng-container>
             </ng-container>
             <ng-template #authorNoExts>
-              @for (t of userAuthors; track t) {
+              @for (t of authors; track t) {
                 <a class="user tag"
                    [title]="formatAuthor(t)"
                    [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
