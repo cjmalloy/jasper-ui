@@ -11,7 +11,7 @@
                   [expandInline]="true"></app-ref-list>
   }
   @if (store.view.ref) {
-    <app-comment-reply [to]="query.page?.content?.[(query.page?.content?.length || 0) - 1] || store.view.ref"
+    <app-comment-reply [to]="to"
                        quote=""
                        [tags]="replyTags"
                        [newComment$]="newRefs$"></app-comment-reply>

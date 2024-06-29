@@ -86,8 +86,19 @@ export class RefThreadComponent {
     this.disposers.length = 0;
   }
 
+  get to() {
+    return this.query.page?.content?.[(this.query.page?.content?.length || 0) - 1] || this.store.view.ref!;
+  }
+
   get mailboxes() {
-    return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
+    return mailboxes(this.to, this.store.account.tag, this.store.origins.originMap);
+  }
+
+  get replyExts() {
+    return (this.to.tags || [])
+      .map(tag => this.admin.getPlugin(tag))
+      .flatMap(p => p?.config?.reply)
+      .filter(t => !!t) as string[];
   }
 
   get replyTags(): string[] {
@@ -96,6 +107,7 @@ export class RefThreadComponent {
       'plugin/thread',
       ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
+      ...this.replyExts,
     ];
     if (hasTag('public', this.store.view.ref)) tags.unshift('public');
     if (hasTag('plugin/email', this.store.view.ref)) tags.push('plugin/email');

@@ -115,11 +115,19 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
   }
 
+  get replyExts() {
+    return (this.store.view.ref?.tags || [])
+      .map(tag => this.admin.getPlugin(tag))
+      .flatMap(p => p?.config?.reply)
+      .filter(t => !!t) as string[];
+  }
+
   get replyTags(): string[] {
     const tags = [
       'internal',
       ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
+      ...this.replyExts,
     ];
     if (hasTag('public', this.store.view.ref)) tags.unshift('public');
     if (hasTag('plugin/email', this.store.view.ref)) {
