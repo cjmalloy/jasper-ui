@@ -294,8 +294,9 @@ export class AdminService {
     return map((xs: Ext[]) => xs.map(x => {
       if (x.modifiedString) return x;
       x = {...x};
-      const tmpl = this.getTemplate('plugin/inbox/' + x.tag);
-      let plugin = this.getPlugin('plugin/inbox/' + x.tag);
+      const inbox = (hasPrefix(x.tag, 'plugin') ? '' : 'plugin/inbox/') + x.tag;
+      const tmpl = this.getTemplate(inbox);
+      let plugin = this.getPlugin(inbox);
       if (plugin?.config?.signature) {
         plugin = this.getPlugin(plugin.config.signature) || plugin;
         x.tag = plugin?.tag || x.tag;
