@@ -191,8 +191,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   getMailboxes(tag: string): string[] {
-    tag = getMailbox(tag, this.store.account.origin);
-    return this.admin.getPlugin(tag)?.config?.reply || [ tag ];
+    return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin) ];
   }
 
   get editingViewer() {
