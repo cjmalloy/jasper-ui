@@ -1,5 +1,5 @@
 import { Component, EventEmitter, HostBinding, Output } from '@angular/core';
-import { catchError, of } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 import { ScrapeService } from '../../service/api/scrape.service';
 
 @Component({
@@ -23,6 +23,7 @@ export class ImageUploadComponent {
     const reader = new FileReader();
     reader.onload = () => {
       this.scraper.cache(file).pipe(
+        map(ref => ref.url),
         catchError(err => of(reader.result as string))
       ).subscribe(url => this.data.next(url));
     }
