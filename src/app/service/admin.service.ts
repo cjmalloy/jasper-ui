@@ -53,6 +53,7 @@ import { repostPlugin } from '../mods/repost';
 import { rootMod } from '../mods/root';
 import { scrapePlugin } from '../mods/scrape';
 import { seamlessPlugin } from '../mods/seamless';
+import { secretMod } from '../mods/secret';
 import { snippetConfig } from '../mods/snippet';
 import { summaryMod } from '../mods/summary';
 import { systemMod } from '../mods/system';
@@ -96,6 +97,7 @@ export class AdminService {
       scrapePlugin,
       cachePlugin,
       ...systemMod.plugins,
+      ...secretMod.plugins,
       ...remoteOriginMod.plugins,
       feedPlugin,
       deletePlugin,
