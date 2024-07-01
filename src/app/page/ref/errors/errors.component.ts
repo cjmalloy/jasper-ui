@@ -1,7 +1,7 @@
 import { Component, HostBinding } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { filter, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -11,6 +11,7 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { hasTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-errors',
@@ -61,7 +62,8 @@ export class RefErrorsComponent {
         this.watch?.unsubscribe();
         this.watch = this.stomp.watchResponse(this.store.view.top.url).pipe(
           takeUntil(this.destroy$),
-          switchMap(url => this.refs.getCurrent(url)) // TODO: fix race conditions
+          switchMap(url => this.refs.getCurrent(url)),
+          filter(ref => hasTag('+plugin/log', ref)),
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));

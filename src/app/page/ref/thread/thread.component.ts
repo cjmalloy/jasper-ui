@@ -1,7 +1,7 @@
 import { Component, HostBinding } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { filter, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
@@ -63,7 +63,8 @@ export class RefThreadComponent {
         this.watch?.unsubscribe();
         this.watch = this.stomp.watchResponse(this.store.view.top.url).pipe(
           takeUntil(this.destroy$),
-          switchMap(url => this.refs.getCurrent(url)) // TODO: fix race conditions
+          switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
+          filter(ref => hasTag('plugin/thread', ref)),
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));

@@ -39,6 +39,7 @@ export class RefPage implements OnInit, OnDestroy {
       MemoCache.clear(this);
       if (store.view.ref && this.config.websockets) {
         this.watch?.unsubscribe();
+        // TODO: reuse this subscription instead of subscribing twice in child views
         this.watch = this.stomp.watchResponse(store.view.ref.url).pipe(
           takeUntil(this.destroy$),
         ).subscribe(url => {
