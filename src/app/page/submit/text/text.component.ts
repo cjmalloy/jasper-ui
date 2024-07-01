@@ -9,6 +9,7 @@ import { catchError, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LinksFormComponent } from '../../../form/links/links.component';
+import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -191,6 +192,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       origin: this.store.account.origin,
       published,
       tags,
+      plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),
     };
     if (!this.advanced && this.store.submit.thumbnail && hasTag('plugin/thumbnail', ref)) {
       ref.plugins = {

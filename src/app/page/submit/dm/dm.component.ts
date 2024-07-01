@@ -7,6 +7,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { writePlugins } from '../../../form/plugins/plugins.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { getMailbox } from '../../../mods/mailbox';
@@ -220,6 +221,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       sources: this.dmForm.value.sources,
       published,
       tags: this.dmForm.value.tags,
+      plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
