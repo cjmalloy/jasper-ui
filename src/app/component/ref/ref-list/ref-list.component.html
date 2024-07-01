@@ -1,7 +1,7 @@
 <div class="list-container"
      [class.hide-numbers]="colStyle"
      [style.grid-template-columns]="colStyle">
-  <ng-container *ngFor="let ref of pinned trackBy: trackByUrlOrigin">
+  @for (ref of pinned; track ref.origin + '@' + ref.url) {
     <div class="list-number">&bullet;</div>
     <app-ref class="pinned ref-list-item"
              [ref]="ref"
@@ -12,8 +12,22 @@
              [showToggle]="showToggle"
              [expanded]="expanded"
              [expandInline]="expandInline"></app-ref>
-  </ng-container>
-  <ng-container *ngFor="let ref of page?.content trackBy: trackByUrlOrigin; let i = index">
+  }
+  @if (insertNewAtTop) {
+    @for (ref of newRefs; track ref.origin + '@' + ref.url) {
+      <div class="list-number">&bullet;</div>
+      <app-ref class="ref-list-item"
+               [ref]="ref"
+               [scrollToLatest]="true"
+               [plugins]="plugins"
+               [hideEdit]="ext?.config?.hideEdit"
+               [disableResize]="ext?.config?.disableResize"
+               [showToggle]="showToggle"
+               [expanded]="expanded"
+               [expandInline]="expandInline"></app-ref>
+    }
+  }
+  @for (ref of page?.content; track ref.origin + '@' + ref.url; let i = $index) {
     <div class="list-number">{{ getNumber(i) }}</div>
     <app-ref class="ref-list-item"
              [ref]="ref"
@@ -25,19 +39,21 @@
              [showToggle]="showToggle"
              [expanded]="expanded"
              [expandInline]="expandInline"></app-ref>
-  </ng-container>
-  <ng-container *ngFor="let ref of newRefs trackBy: trackByUrlOrigin; let i = index">
-    <div class="list-number">{{ getNumber(i + (page?.content?.length || 0)) }}</div>
-    <app-ref class="ref-list-item"
-             [ref]="ref"
-             [scrollToLatest]="true"
-             [plugins]="plugins"
-             [hideEdit]="ext?.config?.hideEdit"
-             [disableResize]="ext?.config?.disableResize"
-             [showToggle]="showToggle"
-             [expanded]="expanded"
-             [expandInline]="expandInline"></app-ref>
-  </ng-container>
+  }
+  @if (!insertNewAtTop) {
+    @for (ref of newRefs; track ref.origin + '@' + ref.url; let i = $index) {
+      <div class="list-number">{{ getNumber(i + (page?.content?.length || 0)) }}</div>
+      <app-ref class="ref-list-item"
+               [ref]="ref"
+               [scrollToLatest]="true"
+               [plugins]="plugins"
+               [hideEdit]="ext?.config?.hideEdit"
+               [disableResize]="ext?.config?.disableResize"
+               [showToggle]="showToggle"
+               [expanded]="expanded"
+               [expandInline]="expandInline"></app-ref>
+    }
+  }
 </div>
 @if (page) {
   @if (emptyMessage && page.empty) {
