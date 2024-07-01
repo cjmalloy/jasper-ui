@@ -323,7 +323,7 @@ docker compose file. See [Jasper App](https://github.com/cjmalloy/jasper-app) fo
 electron wrapper.
 
 ## Knowledge Management
-Jasper is an open source knowledge management (KM) system. A KM is similar to a Content Management
+Jasper is an open source knowledge management (KM) system. A KM system is similar to a Content Management
 System (CMS), but it does not store any content. Instead, a KM stores links to content. This means
 that adding a KM to your internal tools is quick and easy. It will create an overlay database,
 which is a small and fast index of all your content sources. Extend functionality with custom plugins,
@@ -444,10 +444,10 @@ custom data that can be stored in a ref, Templates may be created which allow cu
 stored in Ext entities and similarly validated according to their schema.
 
 See [Jasper-UI](https://github.com/cjmalloy/jasper-ui) for examples of Plugins and Templates, such as:
-* \`plugin/thumbanail\`: [This plugin](https://github.com/cjmalloy/jasper-ui/blob/master/src/app/plugin/thumbnail.ts)
+* \`plugin/thumbanail\`: [This plugin](https://github.com/cjmalloy/jasper-ui/blob/master/src/app/mods/thumbnail.ts)
 allows a Ref to include a URL to a thumbnail image.
 * \`user\` Template:
-[This template](https://github.com/cjmalloy/jasper-ui/blob/master/src/app/template/user.ts)
+[This template](https://github.com/cjmalloy/jasper-ui/blob/master/src/app/mods/user.ts)
 allows a user tag to customize their experience, such as subscribing to a list of tags to show
 on their home page.
 
@@ -727,17 +727,21 @@ The tag permissions are stored in the User entities:
 Some public tags have special significance:
  * \`public\`: everyone can read
  * \`internal\`: don't show in UI normally, count separately in metadata
- * \`locked\`: No edits allowed (tagging is allowed)
+ * \`locked\`: No edits allowed (tagging is allowed, but not removing plugin data)
 
 ### Multi-tenant
 Users only have read-access to their own origin and sub-origins.
 For example, if a tenant has origin \`@test\`, they can also read \`@test.other\`. As usual, writing to
 origins other than your own is never allowed.
 
+## Backup / Restore
+Jasper has a built-in backup system for mod use. Non mods should instead replicate to a separate jasper instance.
+In order to use the backup system, the \`storage\` profile must be active.
+
 ## Validation
 When ingesting entities, Jasper performs the following validation:
  * Fields must not exceed their maximum length
- * URLS are valid according to the regex \`(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\\\?([^#]*))?(#(.*))\`
+ * URLS are valid according to the regex \`(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))\`
  * Tags are valid according to their respective prefix and the general tag regex \`[_+]?[a-z0-9]+([./][a-z0-9]+)*\`
  * If a Ref has plugins present, any plugin data must conform to the plugin's schema
  * If an Ext matches a template prefix, any config must conform to all matching templates merged schemas
@@ -751,9 +755,117 @@ Jasper generates the following metadata in Refs:
  * List of plugin responses: If a plugin has enabled metadata generation, this will include a list of responses with that plugin.
  * Obsolete: flag set if another origin contains the newest version of this Ref
 
+## Server Scripting
+
+When the \`scripts\` profile is active, any Refs with a \`plugin/delta\` tag will run the attached script when modified.
+Only admin users may install scripts and they run with very few guardrails. A regular user may invoke the script
+by tagging a Ref. The tagged ref will be serialized as UTF-8 JSON and passed to stdin. Environment variables will
+include the API endpoint as \`JASPER_API\`. Return a non-zero error code to fail the script and attach an error log.
+The script should by writing UTF-8 JSON to stdout of the form:
+
+\`\`\`json
+{
+  "ref": [],
+  "ext": [],
+  "user": [],
+  "plugin": [],
+  "template": []
+}
+\`\`\`
+
+These entities will either be created or updated, as necessary. You can use this to mark the input Ref as completed
+by either:
+1. Removing the \`plugin/delta\` tag
+2. Adding the \`+plugin/delta\` signature tag
+3. Adding a \`+plugin/delta\` Plugin response
+
+Adding the \`+plugin/error\` tag will prevent any further processing. Remove the \`+plugin/error\` tag to retry.
+You can also attach any error logs for the user to see by replying to the delta with the \`+plugin/log\` tag. Logs should
+be tagged \`internal\` to prevent clutter, and should match the visibility of the parent delta (\`public\` or not) with the
+same owner so the user can clear the logs as desired.
+
+Right now only JavaScript scripts are supported. Here are examples that reply in all uppercase:
+
+### Remove the \`plugin/delta\` tag:
+\`\`\`javascript
+const whatPlugin = {
+  tag: 'plugin/delta/what',
+  config: {
+    timeoutMs: 30_000,
+    javascript: \`
+      const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
+      const louderRef = {
+        url: 'yousaid:' + ref.url,
+        sources: [ref.url],
+        comment: ref.comment.toUpperCase(),
+        tags: ['+plugin/delta/what']
+      };
+      ref.tags = ref.tags.filter(t => t !== 'plugin/delta/what' && !t.startsWith('plugin/delta/what/'));
+      console.log(JSON.stringify({
+        ref: [ref, louderRef],
+      }));
+    \`,
+  },
+};
+const whatPluginSignature = {
+  tag: '+plugin/delta/what',
+  generateMetadata: true,
+};
+\`\`\`
+
+### Add the \`+plugin/delta\` tag:
+\`\`\`javascript
+const whatPlugin = {
+  tag: 'plugin/delta/what',
+  config: {
+    timeoutMs: 30_000,
+    javascript: \`
+      const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
+      const louderRef = {
+        url: 'yousaid:' + ref.url,
+        sources: [ref.url],
+        comment: ref.comment.toUpperCase(),
+      };
+      ref.tags.push('+plugin/delta/what');
+      console.log(JSON.stringify({
+        ref: [ref, louderRef],
+      }));
+    \`,
+  },
+};
+\`\`\`
+
+### Add the \`+plugin/delta\` Plugin response:
+This is the recommended approach as it does need to modify existing Refs and
+is less likely for a bug to cause an infinite loop.
+\`\`\`javascript
+const whatPlugin = {
+  tag: 'plugin/delta/what',
+  config: {
+    timeoutMs: 30_000,
+    javascript: \`
+      const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
+      const louderRef = {
+        url: 'yousaid:' + ref.url,
+        sources: [ref.url],
+        comment: ref.comment.toUpperCase(),
+        tags: ['+plugin/delta/what']
+      };
+      console.log(JSON.stringify({
+        ref: [louderRef],
+      }));
+    \`,
+  },
+};
+const whatPluginSignature = {
+  tag: '+plugin/delta/what',
+  generateMetadata: true,
+};
+\`\`\`
+
 ## RSS / Atom Scraping
-The \`+plugin/feed\` can be used to scrape RSS / Atom feeds when the \`feed-burst\` or \`feed-schedule\` profiles
-are active. Although plugin fields are determined dynamically, the following fields are checked by the
+The \`+plugin/feed\` can be used to scrape RSS / Atom feeds.
+Although plugin fields are determined dynamically, the following fields are checked by the
 scraper:
 \`\`\`json
 {
@@ -796,8 +908,8 @@ The \`+plugin/origin\` tag marks a Ref as a Remote Origin and associates it with
 **Remote:** Remote origin to query, or blank for the default.
 
 ## Replicating Remote Origin
-The \`+plugin/origin/pull\` tag can be used to replicate remote origins when the \`pull-burst\` or \`pull-schedule\`
-profiles are active. Since this plugin extends \`+plugin/origin\`, we already have the \`local\` and \`remote\`
+The \`+plugin/origin/pull\` tag can be used to replicate remote origins. Since this plugin
+extends \`+plugin/origin\`, we already have the \`local\` and \`remote\`
 fields set.
 \`\`\`json
 {
@@ -833,8 +945,8 @@ a time. If you want to combine multiple origins into one, create multiple \`+plu
 **Remove Tags:** Tags to remove from any Refs replicated from this origin.
 
 ## Pushing to a Remote Origin
-The \`+plugin/origin/push\` tag can be used to replicate remote origins when the \`push-burst\` or \`push-schedule\`
-profiles are active. Since this plugin extends \`+plugin/origin\`, we already have the \`local\` and \`remote\`
+The \`+plugin/origin/push\` tag can be used to replicate remote origins. Since this plugin
+extends \`+plugin/origin\`, we already have the \`local\` and \`remote\`
 fields set.
 \`\`\`json
 {
