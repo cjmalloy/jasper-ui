@@ -38,6 +38,8 @@ export class RefListComponent implements OnInit, OnDestroy {
   hideNewZeroVoteScores = true;
   @Input()
   newRefs$?: Observable<Ref | null>;
+  @Input()
+  insertNewAtTop = false;
 
   pinned: Ref[] = [];
   newRefs: Ref[] = [];
@@ -52,10 +54,6 @@ export class RefListComponent implements OnInit, OnDestroy {
     private store: Store,
     private refs: RefService,
   ) { }
-
-  trackByUrlOrigin(index: number, value: Ref) {
-    return value.origin + '@' + value.url;
-  }
 
   get ext() {
     return this._ext;
@@ -151,6 +149,9 @@ export class RefListComponent implements OnInit, OnDestroy {
       const index = this.newRefs.findIndex(r => r.url === ref.url);
       if (index !== -1) {
         this.newRefs[index] = ref;
+      } else if (this.insertNewAtTop) {
+        this.newRefs.unshift(ref);
+        return;
       } else {
         this.newRefs.push(ref);
         return;

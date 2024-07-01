@@ -33,6 +33,19 @@ const logPlugin: Plugin = {
       { query: '+plugin/log', label: $localize`🪵 logs`, group: $localize`Plugins 🧰️` },
     ],
     description: $localize`Logs associated with a Ref.`,
+    // language=CSS
+    css: `
+    .plugin_log .embed {
+      white-space: pre;
+      display: block;
+      unicode-bidi: embed;
+      font-family: monospace;
+      .expand {
+        max-width: min(100vw - 16px, 120em);
+        overflow-x: scroll;
+      }
+    }
+    `
   },
   generateMetadata: true,
 };
