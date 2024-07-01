@@ -17,7 +17,7 @@ export const imagePlugin: Plugin = {
     submit: $localize`🖼️ image`,
     icons: [{ label: $localize`🖼️`, order: 2 }],
     filters: [
-      { query: 'plugin/image', label: $localize`🖼️ image`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/image', label: $localize`🖼️ image`, group: $localize`Media 🎬️` },
     ],
     extensions: ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'],
     description: $localize`Display the image inline.`,

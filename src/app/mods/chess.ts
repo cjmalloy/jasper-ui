@@ -19,7 +19,7 @@ export const chessPlugin: Plugin = {
     Chess games are only stored in the comment field. They are Portable Game Notation (PGN) or the first line Forsyth-Edwards Notation (FEN) followed by optional newline delimited PGN-like list of Standard Algebraic Notation (SAN) moves.
     It is also customary to note the last move in the title suffix, such as ' | Rg3'.`,
     filters: [
-      { query: 'plugin/chess', label: $localize`♟️ chess`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/chess', label: $localize`♟️ chess`, group: $localize`Games 🕹️` },
     ],
     actions: [
       { event: 'flip', label: $localize`flip` },

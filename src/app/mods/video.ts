@@ -15,7 +15,7 @@ export const videoPlugin: Plugin = {
     submit: $localize`🎞️ video`,
     icons: [{ label: $localize`🎞️`, order: 2 }],
     filters: [
-      { query: 'plugin/video', label: $localize`🎞️ video`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/video', label: $localize`🎞️ video`, group: $localize`Media 🎬️` },
     ],
     extensions: ['.3gp', '.mpg', '.mpeg', '.mp4', '.m4v', '.m4p', '.webm', '.ogv', '.m3u8', '.mov'],
     description: $localize`Play in an inline video player.`,

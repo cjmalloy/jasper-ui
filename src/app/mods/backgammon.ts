@@ -15,7 +15,7 @@ export const backgammonPlugin: Plugin = {
     icons: [{ label: $localize`🎲️`, order: 3 }],
     description: $localize`Activates built-in Backgammon game`,
     filters: [
-      { query: 'plugin/backgammon', label: $localize`🎲️ backgammon`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/backgammon', label: $localize`🎲️ backgammon`, group: $localize`Games 🕹️` },
     ],
     actions: [
       { event: 'flip', label: $localize`flip` },
