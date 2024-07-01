@@ -15,6 +15,7 @@ import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
 import { RefAltsComponent } from './page/ref/alts/alts.component';
 import { RefCommentsComponent } from './page/ref/comments/comments.component';
+import { RefErrorsComponent } from './page/ref/errors/errors.component';
 import { RefPage } from './page/ref/ref.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
@@ -156,6 +157,7 @@ const routes: Routes = [
       { path: 'comments', component: RefCommentsComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'thread', component: RefThreadComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'responses', component: RefResponsesComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'errors', component: RefErrorsComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'sources', component: RefSourcesComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'alts', component: RefAltsComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'versions', component: RefVersionsComponent, canDeactivate: [pendingChangesGuard, clearLastSelected] },

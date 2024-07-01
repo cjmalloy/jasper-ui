@@ -2,16 +2,16 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
-import { RefThreadComponent } from './thread.component';
+import { RefErrorsComponent } from './errors.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
-describe('RefThreadComponent', () => {
-  let component: RefThreadComponent;
-  let fixture: ComponentFixture<RefThreadComponent>;
+describe('RefErrorsComponent', () => {
+  let component: RefErrorsComponent;
+  let fixture: ComponentFixture<RefErrorsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [RefThreadComponent],
+      declarations: [RefErrorsComponent],
       imports: [RouterModule.forRoot([])],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
@@ -19,7 +19,7 @@ describe('RefThreadComponent', () => {
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(RefThreadComponent);
+    fixture = TestBed.createComponent(RefErrorsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

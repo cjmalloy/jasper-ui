@@ -21,7 +21,7 @@ export type View =
   'home' | 'all' | 'local' |
   'tag' | 'tags' | 'query' |
   'inbox/all' | 'inbox/sent' | 'inbox/alarms' | 'inbox/dms' | 'inbox/modlist' |
-  'ref/summary' | 'ref/comments' | 'ref/thread' | 'ref/responses' | 'ref/sources' | 'ref/alts' | 'ref/versions' |
+  'ref/summary' | 'ref/comments' | 'ref/thread' | 'ref/responses' | 'ref/errors' | 'ref/sources' | 'ref/alts' | 'ref/versions' |
   'ext' | 'user' | 'plugin' | 'template';
 
 export type Type = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
@@ -217,6 +217,7 @@ export class ViewStore {
           case 'comments': return 'ref/comments';
           case 'thread': return 'ref/thread';
           case 'responses': return 'ref/responses';
+          case 'errors': return 'ref/errors';
           case 'sources': return 'ref/sources';
           case 'versions': return 'ref/versions';
           case 'alts': return 'ref/alts';

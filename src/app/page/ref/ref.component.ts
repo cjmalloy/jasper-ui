@@ -97,6 +97,12 @@ export class RefPage implements OnInit, OnDestroy {
   }
 
   @memo
+  get logs() {
+    if (!this.admin.getPlugin('+plugin/log')) return 0;
+    return this.store.view.ref?.metadata?.plugins?.['+plugin/log'];
+  }
+
+  @memo
   get responses() {
     return this.store.view.ref?.metadata?.responses || 0;
   }

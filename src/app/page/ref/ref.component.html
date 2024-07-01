@@ -18,6 +18,9 @@
       @case ('ref/responses') {
         <h5 class="print-inline" i18n>Responses</h5>
       }
+      @case ('ref/errors') {
+        <h5 class="print-inline" i18n>Errors</h5>
+      }
       @case ('ref/sources') {
         <h5 class="print-inline" i18n>Sources</h5>
       }
@@ -46,6 +49,11 @@
         <a routerLink="responses" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
            i18n-title title="Responses"
            i18n>responses</a>
+      }
+      @if (store.view.current === 'ref/errors' || logs) {
+        <a routerLink="errors" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Errors"
+           i18n>errors</a>
       }
       @if (store.view.current === 'ref/sources' || sources) {
         <a routerLink="sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"

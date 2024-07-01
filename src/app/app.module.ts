@@ -115,6 +115,7 @@ import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
 import { RefAltsComponent } from './page/ref/alts/alts.component';
 import { RefCommentsComponent } from './page/ref/comments/comments.component';
+import { RefErrorsComponent } from './page/ref/errors/errors.component';
 import { RefPage } from './page/ref/ref.component';
 import { RefResponsesComponent } from './page/ref/responses/responses.component';
 import { RefSourcesComponent } from './page/ref/sources/sources.component';
@@ -188,8 +189,12 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     RefPage,
     RefSummaryComponent,
     RefCommentsComponent,
+    RefThreadComponent,
+    RefErrorsComponent,
     RefResponsesComponent,
     RefSourcesComponent,
+    RefAltsComponent,
+    RefVersionsComponent,
     CommentComponent,
     SettingsComponent,
     InboxPage,
@@ -240,8 +245,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     BackupComponent,
     BackupListComponent,
     UserFormComponent,
-    RefAltsComponent,
-    RefVersionsComponent,
     KanbanComponent,
     KanbanColumnComponent,
     KanbanCardComponent,
@@ -267,7 +270,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     DebugComponent,
     FillWidthDirective,
     LimitWidthDirective,
-    RefThreadComponent,
     SelectTemplateComponent,
     FolderComponent,
     SubfolderComponent,

@@ -25,6 +25,7 @@ import { deletePlugin } from '../mods/delete';
 import { htmlPlugin, latexPlugin } from '../mods/editor';
 import { emailPlugin } from '../mods/email';
 import { embedPlugin } from '../mods/embed';
+import { errorMod } from '../mods/error';
 import { experimentsConfig } from '../mods/experiments';
 import { feedPlugin } from '../mods/feed';
 import { filePlugin } from '../mods/file';
@@ -98,6 +99,7 @@ export class AdminService {
       cachePlugin,
       ...systemMod.plugins,
       ...secretMod.plugins,
+      ...errorMod.plugins,
       ...remoteOriginMod.plugins,
       feedPlugin,
       deletePlugin,

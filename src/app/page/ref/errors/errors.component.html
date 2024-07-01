@@ -1,0 +1,10 @@
+<ng-container *mobxAutorun>
+  @if (query.page) {
+    <app-ref-list [page]="query.page"
+                  [newRefs$]="newRefs$"
+                  i18n-emptyMessage emptyMessage="No logs found"
+                  [showToggle]="false"
+                  [expanded]="true"
+                  [expandInline]="true"></app-ref-list>
+  }
+</ng-container>
