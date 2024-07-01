@@ -37,11 +37,17 @@ export const aiQueryPlugin: Plugin = {
         ? ['+plugin/delta/ai']
         : ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
       const systemConfig = (await axios.get(process.env.JASPER_API + '/api/v1/plugin', {
-        headers: { 'User-Role': 'ROLE_ADMIN' },
+        headers: {
+          'Local-Origin': origin,
+          'User-Role': 'ROLE_ADMIN',
+        },
         params: { tag: '+plugin/delta/ai' + origin },
       })).data.config;
       const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
-        headers: { 'User-Role': 'ROLE_ADMIN' },
+        headers: {
+          'Local-Origin': origin,
+          'User-Role': 'ROLE_ADMIN',
+        },
         params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
       })).data.content[0].comment;
       const context = new Map();
@@ -102,7 +108,10 @@ export const aiQueryPlugin: Plugin = {
       await loadTags(ref.tags);
       for (const p of context.values()) await loadTags(p?.tags);
       const getAll = async type => (await axios.get(process.env.JASPER_API + '/api/v1/' + type + '/page', {
-        headers: { 'User-Role': 'ROLE_ADMIN' },
+        headers: {
+          'Local-Origin': origin,
+          'User-Role': 'ROLE_ADMIN',
+        },
         params: { query: origin || '*' },
       })).data.content;
       const aiInstructions = [...await getAll('plugin'), ...await getAll('template')]
