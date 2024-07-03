@@ -19,8 +19,7 @@ export interface Ref extends Cursor {
 /**
  * Sent in response to websocket subscription.
  *
- * Only includes non-private tags and plugins, and does not
- * include metadata.
+ * Only includes non-private tags, metadata, and plugins.
  */
 export interface RefUpdates extends Cursor {
   url: string;
@@ -30,6 +29,7 @@ export interface RefUpdates extends Cursor {
   sources?: string[];
   alternateUrls?: string[];
   plugins?: Record<string, any>;
+  metadata?: MetadataUpdates;
   published?: moment.Moment;
   created?: moment.Moment;
 }
@@ -44,6 +44,19 @@ export interface Metadata {
   internalResponses?: number;
   plugins?: Record<string, number>;
   userUrls?: string[];
+  obsolete?: boolean;
+}
+
+/**
+ * Sent in response to websocket subscription.
+ *
+ * Only includes non-private tags, metadata, and plugins.
+ */
+export interface MetadataUpdates {
+  modified?: string;
+  responses?: number;
+  internalResponses?: number;
+  plugins?: Record<string, number>;
   obsolete?: boolean;
 }
 

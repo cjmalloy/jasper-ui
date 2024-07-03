@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { pickBy, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { map, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -11,7 +12,7 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { View } from '../../store/view';
 import { memo, MemoCache } from '../../util/memo';
-import { hasTag, top } from '../../util/tag';
+import { hasTag, privateTag, top } from '../../util/tag';
 
 @Component({
   selector: 'app-ref-page',
@@ -23,8 +24,8 @@ export class RefPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   newResponses = 0;
-  private watch?: Subscription;
-  private currentView?: View;
+  private watchSelf?: Subscription;
+  private watchResponses?: Subscription;
 
   constructor(
     public config: ConfigService,
@@ -35,22 +36,6 @@ export class RefPage implements OnInit, OnDestroy {
     private stomp: StompService,
   ) {
     store.view.clearRef();
-    this.disposers.push(autorun(() => {
-      MemoCache.clear(this);
-      if (store.view.ref && this.config.websockets) {
-        this.watch?.unsubscribe();
-        // TODO: reuse this subscription instead of subscribing twice in child views
-        this.watch = this.stomp.watchResponse(store.view.ref.url).pipe(
-          takeUntil(this.destroy$),
-        ).subscribe(url => {
-          this.newResponses++;
-        });
-      }
-    }));
-    this.disposers.push(autorun(() => {
-      MemoCache.clear(this);
-      this.currentView = this.store.view.current;
-    }));
   }
 
   ngOnInit(): void {
@@ -119,19 +104,55 @@ export class RefPage implements OnInit, OnDestroy {
   }
 
   reload(url?: string) {
+    MemoCache.clear(this);
     url ||= this.store.view.ref?.url;
     if (!url) return;
-    this.refs.page({ url, obsolete: true, size: 1 }).pipe(
-      tap(page => runInAction(() => {
-        this.store.view.setRef(page.content[0] || { url });
-        this.store.view.versions = page.totalElements;
-      })),
-      map(page => top(page.content[0])),
-      switchMap(top => !top ? of(null) : this.refs.getCurrent(top)),
-      tap(ref => runInAction(() => {
-        this.store.view.top = ref!;
-      })),
+    this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions = count);
+    this.refs.getCurrent(url).pipe(
+      tap(ref => runInAction(() => this.store.view.setRef(ref || { url }))),
+      map(ref => top(ref)),
+      switchMap(top => !top ? of(null)
+        : top === url ? of(this.store.view.ref)
+        : this.refs.getCurrent(top)),
+      tap(ref => runInAction(() => this.store.view.top = ref!)),
     ).subscribe();
+    if (this.config.websockets) {
+      this.watchSelf?.unsubscribe();
+      this.watchSelf = this.stomp.watchRef(url).pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(ud => {
+        runInAction(() => {
+          MemoCache.clear(this);
+          // Merge updates with existing Ref because updates do not contain any private tags
+          const tags = uniq([...this.store.view.ref!.tags || [], ...ud.tags || []])
+            .filter(t => privateTag(t) || ud.tags?.includes(t));
+          this.store.view.ref = {
+            ...ud,
+            tags,
+            metadata: {
+              ...ud.metadata,
+              plugins: {
+                ...pickBy(this.store.view.ref?.metadata?.plugins, (v, k) => tags.includes(k)),
+                ...ud.metadata?.plugins || {},
+              }
+            },
+            plugins: {
+              ...pickBy(this.store.view.ref!.plugins, (v, k) => tags.includes(k)),
+              ...ud.plugins || {},
+            },
+            // Don't allow editing an update Ref, as we cannot tell when a private
+            // tag was deleted
+            // TODO: mark Ref as modified remotely to warn user before editing
+            modified: this.store.view.ref?.modified,
+            modifiedString: this.store.view.ref?.modifiedString,
+          }
+        });
+      });
+      this.watchResponses?.unsubscribe();
+      this.watchResponses = this.stomp.watchResponse(url).pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(url => this.newResponses++);
+    }
   }
 
   @memo
