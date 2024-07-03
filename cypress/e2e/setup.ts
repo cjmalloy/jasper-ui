@@ -18,6 +18,7 @@ export function clearMods(base = '') {
   cy.get('.list-container').then(l => {
     if (!l.find('.template').length) return;
     cy.get('.template').each(ts => {
+      if (l.find('.host').text().startsWith('_config/')) return;
       cy.wrap(ts).find('a').contains('delete').click();
       cy.wrap(ts).find('a').contains('yes').click();
       cy.wait('@clearTemplate');
