@@ -226,16 +226,16 @@ export const aiQueryPlugin: Plugin = {
         for (const rewrite of bundle.ref) {
           for (let i = 0; i < rewrite.sources?.length; i++) {
             if (rewrite.sources[i] === oldUrl) rewrite.sources[i] = newUrl;
-            if (rewrite.comment) {
-              rewrite.comment
-                .replaceAll('](' + oldUrl + ')', '](' + newUrl + ')')
-                .replaceAll('](/ref/' + oldUrl + ')', '](/ref/' + newUrl + ')')
-                .replaceAll('url=' + oldUrl, 'url=' + newUrl)
-                .replaceAll('sources/' + oldUrl, 'sources/' + newUrl)
-                .replaceAll('responses/' + oldUrl, 'responses/' + newUrl)
-                .replaceAll('sources%2F' + oldUrl, 'sources%2F' + newUrl)
-                .replaceAll('responses%2F' + oldUrl, 'responses%2F' + newUrl);
-            }
+          }
+          if (rewrite.comment) {
+            rewrite.comment = rewrite.comment
+              .replaceAll('](' + oldUrl + ')', '](' + newUrl + ')')
+              .replaceAll('](/ref/' + oldUrl + ')', '](/ref/' + newUrl + ')')
+              .replaceAll('url=' + oldUrl, 'url=' + newUrl)
+              .replaceAll('sources/' + oldUrl, 'sources/' + newUrl)
+              .replaceAll('responses/' + oldUrl, 'responses/' + newUrl)
+              .replaceAll('sources%2F' + oldUrl, 'sources%2F' + newUrl)
+              .replaceAll('responses%2F' + oldUrl, 'responses%2F' + newUrl);
           }
         }
       }
