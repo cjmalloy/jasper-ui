@@ -671,6 +671,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
+  get errors() {
+    if (!this.admin.getPlugin('+plugin/log')) return 0;
+    return this.ref.metadata?.plugins?.['+plugin/log'] || 0;
+  }
+
+  @memo
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return this.ref.metadata?.plugins?.['plugin/thread'] || 0;

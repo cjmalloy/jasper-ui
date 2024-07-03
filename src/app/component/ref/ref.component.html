@@ -188,6 +188,9 @@
             } @else if (store.account.user && dm) {
               <a routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
             }
+            @if (errors) {
+              <a [routerLink]="['/ref', ref.url, 'errors']" [queryParams]="{ origin: obsoleteOrigin }" i18n>{errors, plural, =1 {1&thinsp;error} other {{{ errors }}&thinsp;errors}}</a>
+            }
             @if (comments) {
               <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
             } @else if (threads) {
