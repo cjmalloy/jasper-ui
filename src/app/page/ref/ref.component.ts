@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { defer, pickBy, uniq } from 'lodash-es';
+import { pickBy, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { map, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { isWiki } from '../../mods/wiki';
@@ -11,7 +11,6 @@ import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { View } from '../../store/view';
 import { memo, MemoCache } from '../../util/memo';
 import { hasTag, privateTag, top } from '../../util/tag';
 
@@ -110,9 +109,10 @@ export class RefPage implements OnInit, OnDestroy {
     if (!url) return;
     this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions = count);
     this.refs.getCurrent(url).pipe(
+      catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       tap(ref => runInAction(() => this.store.view.setRef(ref || { url }))),
       map(ref => top(ref)),
-      switchMap(top => !top ? of(null)
+      switchMap(top => !top ? of(undefined)
         : top === url ? of(this.store.view.ref)
         : this.refs.getCurrent(top)),
       tap(ref => runInAction(() => this.store.view.top = ref!)),
