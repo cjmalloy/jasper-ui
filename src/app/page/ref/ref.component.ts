@@ -1,9 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { pickBy, uniq } from 'lodash-es';
+import { defer, pickBy, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { map, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Ref } from '../../model/ref';
 import { isWiki } from '../../mods/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -121,32 +122,32 @@ export class RefPage implements OnInit, OnDestroy {
       this.watchSelf = this.stomp.watchRef(url).pipe(
         takeUntil(this.destroy$),
       ).subscribe(ud => {
-        runInAction(() => {
-          MemoCache.clear(this);
-          // Merge updates with existing Ref because updates do not contain any private tags
-          const tags = uniq([...this.store.view.ref!.tags || [], ...ud.tags || []])
-            .filter(t => privateTag(t) || ud.tags?.includes(t));
-          this.store.view.ref = {
-            ...ud,
-            tags,
-            metadata: {
-              ...ud.metadata,
-              plugins: {
-                ...pickBy(this.store.view.ref?.metadata?.plugins, (v, k) => tags.includes(k)),
-                ...ud.metadata?.plugins || {},
-              }
-            },
+        MemoCache.clear(this);
+        // Merge updates with existing Ref because updates do not contain any private tags
+        const tags = uniq([...this.store.view.ref!.tags || [], ...ud.tags || []])
+          .filter(t => privateTag(t) || ud.tags?.includes(t));
+        const merged: Ref = {
+          ...ud,
+          tags,
+          metadata: {
+            ...ud.metadata,
             plugins: {
-              ...pickBy(this.store.view.ref!.plugins, (v, k) => tags.includes(k)),
-              ...ud.plugins || {},
-            },
-            // Don't allow editing an update Ref, as we cannot tell when a private
-            // tag was deleted
-            // TODO: mark Ref as modified remotely to warn user before editing
-            modified: this.store.view.ref?.modified,
-            modifiedString: this.store.view.ref?.modifiedString,
-          }
-        });
+              ...pickBy(this.store.view.ref?.metadata?.plugins, (v, k) => tags.includes(k)),
+              ...ud.metadata?.plugins || {},
+            }
+          },
+          plugins: {
+            ...pickBy(this.store.view.ref!.plugins, (v, k) => tags.includes(k)),
+            ...ud.plugins || {},
+          },
+          // Don't allow editing an update Ref, as we cannot tell when a private
+          // tag was deleted
+          // TODO: mark Ref as modified remotely to warn user before editing
+          modified: this.store.view.ref?.modified,
+          modifiedString: this.store.view.ref?.modifiedString,
+        };
+        this.store.eventBus.refresh(merged);
+        this.store.eventBus.reset();
       });
       this.watchResponses?.unsubscribe();
       this.watchResponses = this.stomp.watchResponse(url).pipe(

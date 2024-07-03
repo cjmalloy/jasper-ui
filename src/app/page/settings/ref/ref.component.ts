@@ -56,11 +56,11 @@ export class SettingsRefPage implements OnInit, OnDestroy {
 
   loadDefaults() {
     this.store.eventBus.fire(this.store.settings.tag + ':defaults');
-    this.store.eventBus.fire('');
+    this.store.eventBus.reset();
   }
 
   clearCache() {
     this.store.eventBus.fire(this.store.settings.tag + ':clear-cache');
-    this.store.eventBus.fire('');
+    this.store.eventBus.reset();
   }
 }

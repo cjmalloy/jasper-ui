@@ -61,6 +61,15 @@ export class EventBus {
     this.repost = undefined;
   }
 
+  /**
+   * Clear event bus state for sending duplicate events.
+   */
+  reset() {
+    this.event = '';
+    this.ref = undefined;
+    this.repost = undefined;
+  }
+
   runAndReload(o: Observable<any>, ref?: Ref) {
     return this.runAndReload$(o, ref).subscribe();
   }
