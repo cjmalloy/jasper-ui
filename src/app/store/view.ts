@@ -57,14 +57,6 @@ export class ViewStore {
       extTemplates: observable.shallow,
     });
     this.clear(); // Initial observables may not be null for MobX
-
-    autorun(() => {
-      if (this.eventBus.event === 'refresh') {
-        if (this.ref?.url && this.eventBus.isRef(this.ref)) {
-          this.setRef(this.eventBus.ref);
-        }
-      }
-    });
   }
 
   setRef(ref?: Ref) {

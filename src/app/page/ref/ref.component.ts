@@ -110,7 +110,7 @@ export class RefPage implements OnInit, OnDestroy {
     this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions = count);
     this.refs.getCurrent(url).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-      tap(ref => runInAction(() => this.store.view.setRef(ref || { url }))),
+      tap(ref => this.store.view.setRef(ref || { url })),
       map(ref => top(ref)),
       switchMap(top => !top ? of(undefined)
         : top === url ? of(this.store.view.ref)
