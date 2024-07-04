@@ -10,15 +10,19 @@
          (click)="voteDown()"></div>
   </div>
   @if (admin.getPlugin('plugin/thumbnail')) {
-    @if (thumbnailUrl) {
+    @if (thumbnailEmoji || thumbnailColor) {
       <div class="thumbnail"
            [style.background-image]="[repostRef, ref] | thumbnail | async"
-           [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
-    } @else {
-      <div class="thumbnail"
-           [class.default-thumbnail]="!thumbnailColor && !thumbnailEmoji"
            [style.background-color]="thumbnailColor"
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
+    } @else if (thumbnail) {
+      <div class="thumbnail"
+           [style.background-image]="[repostRef, ref] | thumbnail: true | async"
+           [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
+    } @else if (thumbnailEmojiDefaults) {
+      <div class="thumbnail">{{ thumbnailEmojiDefaults }}</div>
+    } @else {
+      <div class="thumbnail" [class.default-thumbnail]="true"></div>
     }
   }
   <div class="stack">
