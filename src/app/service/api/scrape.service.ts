@@ -122,9 +122,7 @@ export class ScrapeService {
   }
 
   cache(file: File): Observable<Ref> {
-    return this.http.post(`${this.base}/cache`, file, {
-      responseType: 'text'
-    }).pipe(
+    return this.http.post(`${this.base}/cache`, file).pipe(
       map(mapRef),
       tap(ref => this.cacheList.add(ref.url)),
       catchError(err => this.login.handleHttpError(err)),
