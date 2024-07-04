@@ -446,21 +446,18 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
-  get thumbnailUrl() {
-    return this.thumbnail && !this.thumbnailColor;
-  }
-
-  @memo
   get thumbnailColor() {
     return this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color || '';
   }
 
   @memo
   get thumbnailEmoji() {
-    if (this.thumbnailUrl) {
-      return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
-    }
-    return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || this.thumbnailEmojiDefaults || '';
+    return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
+  }
+
+  @memo
+  get thumbnailEmojiOrDefault() {
+    return this.thumbnailEmoji || this.thumbnailEmojiDefaults || '';
   }
 
   @memo

@@ -18,7 +18,7 @@ export class ThumbnailPipe implements PipeTransform {
     private scraper: ScrapeService,
   ) { }
 
-  transform(refs: (Ref | undefined)[]): Observable<string | null> {
+  transform(refs: (Ref | undefined)[]): Observable<string> {
     for (const ref of refs) {
       if (!ref) continue;
       for (const plugin of ['plugin/thumbnail', 'plugin/image', 'plugin/video']) {
@@ -38,10 +38,6 @@ export class ThumbnailPipe implements PipeTransform {
       for (const plugin of ['plugin/image', 'plugin/video']) {
         if (embedPlugins.includes(plugin)) return of(cssUrl(this.fetchUrl(ref.url, plugin)));
       }
-    }
-    for (const ref of refs) {
-      if (!ref) continue;
-      return of(cssUrl(ref.url));
     }
     return of('');
   }

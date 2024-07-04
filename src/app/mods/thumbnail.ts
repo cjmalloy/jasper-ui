@@ -33,30 +33,17 @@ export const thumbnailPlugin: Plugin = {
     ],
     extensions: [...videoPlugin.config!.extensions!, ...imagePlugin.config!.extensions!],
     advancedForm: [{
-      key: 'showUrl',
-      type: 'radio',
-      defaultValue: true,
-      props: {
-        label: $localize`Show:`,
-        options: [
-          { value: true, label: 'Image' },
-          { value: false, label: 'Color' },
-        ],
-      },
-    }, {
       key: 'url',
       type: 'image',
       props: {
         label: $localize`URL:`,
       },
-      expressions: { hide: '!model.showUrl' },
     }, {
       key: 'color',
       type: 'color',
       props: {
         label: $localize`Color:`,
       },
-      expressions: { hide: 'model.showUrl' },
     }, {
       key: 'emoji',
       type: 'string',
@@ -73,7 +60,6 @@ export const thumbnailPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      showUrl: { type: 'boolean' },
       url: { type: 'string' },
       color: { type: 'string' },
       emoji: { type: 'string' },

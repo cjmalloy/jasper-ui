@@ -163,11 +163,6 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
-  get thumbnailUrl() {
-    return this.thumbnail && !this.thumbnailColor;
-  }
-
-  @memo
   get thumbnailColor() {
     return this.thumbnail &&
       (this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color);
