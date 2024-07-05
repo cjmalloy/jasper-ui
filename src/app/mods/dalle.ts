@@ -263,6 +263,7 @@ export const dalleQueryPlugin: Plugin = {
     size: '1024x1024',
     quality: 'hd',
     style: 'vivid',
+    useUrl: true,
     // TODO: multiple images
   },
   schema: {
