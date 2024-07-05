@@ -183,9 +183,9 @@ export const dalleQueryPlugin: Plugin = {
           headers: {
             'User-Role': 'ROLE_ADMIN',
             'User-Tag': '+plugin/delta/dalle',
-            'Content-Type': 'image/jpeg',
+            'Content-Type': 'image/png',
           },
-          params: { mime: 'image/jpeg' },
+          params: { mime: 'image/png' },
         })).data;
         delete image.metadata;
       }
