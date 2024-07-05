@@ -167,7 +167,7 @@ export const dalleQueryPlugin: Plugin = {
       }
       let image;
       if (config?.useUrl) {
-        await axios.get(process.env.JASPER_API + '/api/v1/scrape', {
+        await axios.get(process.env.JASPER_CACHE_API + '/api/v1/scrape', {
           headers: {
             'Local-Origin': origin,
             'User-Role': 'ROLE_ADMIN',
@@ -179,7 +179,7 @@ export const dalleQueryPlugin: Plugin = {
           plugins: { 'plugin/image': { url: gen.data[0].url } }
         }
       } else {
-        image = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(gen.data[0].b64_json, 'base64'), {
+        image = (await axios.post(process.env.JASPER_CACHE_API + '/pub/api/v1/repl/cache', Buffer.from(gen.data[0].b64_json, 'base64'), {
           headers: {
             'User-Role': 'ROLE_ADMIN',
             'User-Tag': '+plugin/delta/dalle',
