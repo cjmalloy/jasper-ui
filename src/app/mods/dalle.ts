@@ -132,7 +132,7 @@ export const dalleQueryPlugin: Plugin = {
       const config = ref.plugins?.['plugin/delta/dalle'];
       const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
-          'Local-Origin': origin,
+          'Local-Origin': origin || 'default',
           'User-Role': 'ROLE_ADMIN',
         },
         params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
@@ -169,7 +169,7 @@ export const dalleQueryPlugin: Plugin = {
       if (config?.useUrl) {
         await axios.get(process.env.JASPER_CACHE_API + '/api/v1/scrape', {
           headers: {
-            'Local-Origin': origin,
+            'Local-Origin': origin || 'default',
             'User-Role': 'ROLE_ADMIN',
           },
           params: { url: gen.data[0].url },

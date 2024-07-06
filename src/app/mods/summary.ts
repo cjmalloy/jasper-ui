@@ -31,7 +31,7 @@ export const summaryQueryPlugin: Plugin = {
       const config = ref.plugins['plugin/delta/summary'];
       const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
-          'Local-Origin': origin,
+          'Local-Origin': origin || 'default',
           'User-Role': 'ROLE_ADMIN',
         },
         params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },

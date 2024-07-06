@@ -38,14 +38,14 @@ export const aiQueryPlugin: Plugin = {
         : ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
       const systemConfig = (await axios.get(process.env.JASPER_API + '/api/v1/plugin', {
         headers: {
-          'Local-Origin': origin,
+          'Local-Origin': origin || 'default',
           'User-Role': 'ROLE_ADMIN',
         },
         params: { tag: '+plugin/delta/ai' + origin },
       })).data.config;
       const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
-          'Local-Origin': origin,
+          'Local-Origin': origin || 'default',
           'User-Role': 'ROLE_ADMIN',
         },
         params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
@@ -53,7 +53,7 @@ export const aiQueryPlugin: Plugin = {
       const context = new Map();
       const getSources = async (url, rel = 'sources') => (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
-          'Local-Origin': origin,
+          'Local-Origin': origin || 'default',
           'User-Tag': authors[0] || '',
           'User-Role': followup ? 'ROLE_ADMIN' : '',
         },
@@ -88,7 +88,7 @@ export const aiQueryPlugin: Plugin = {
           return (await axios.get(process.env.JASPER_API + '/api/v1/ext', {
             headers: {
               // TODO: handle follow-up permissions
-              'Local-Origin': origin,
+              'Local-Origin': origin || 'default',
               'User-Tag': authors[0] || '',
             },
             params: { tag: tag + origin },
@@ -109,7 +109,7 @@ export const aiQueryPlugin: Plugin = {
       for (const p of context.values()) await loadTags(p?.tags);
       const getAll = async type => (await axios.get(process.env.JASPER_API + '/api/v1/' + type + '/page', {
         headers: {
-          'Local-Origin': origin,
+          'Local-Origin': origin || 'default',
           'User-Role': 'ROLE_ADMIN',
         },
         params: { query: origin || '*' },
