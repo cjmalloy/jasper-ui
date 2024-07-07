@@ -44,7 +44,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   refForm?: RefFormComponent;
 
   submitting?: Subscription;
-  private rssUrl?: string;
 
   constructor(
     private mod: ModService,
@@ -95,30 +94,27 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           this.url = 'internal:' + uuid();
           this.addTag('plugin/repost');
           this.addSource(url);
-        } else {
+        } else if (this.feed) {
           if (url.startsWith('https://www.youtube.com/channel/') || url.startsWith('https://youtube.com/channel/')
             || url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
-            if (!this.feed && this.auth.canAddTag('+plugin/feed')) {
-              this.addTag('+plugin/feed', 'plugin/repost', 'youtube');
-              this.addSource(url);
-              if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
-                const username = url.substring(url.indexOf('@'));
-                this.webForm.get('title')!.setValue(username);
-                const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
-                defer(() => this.addFeedTags(tag));
-              }
+            this.addTag('+plugin/feed', 'plugin/repost', 'youtube');
+            this.addSource(url);
+            if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
+              const username = url.substring(url.indexOf('@'));
+              this.webForm.get('title')!.setValue(username);
+              const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
+              defer(() => this.addFeedTags(tag));
             }
-          }
-
-          if (this.feed) {
             this.scrape.rss(url).subscribe(value => {
-              if (value) {
-                this.url = this.rssUrl = value;
-              }
+              if (value) this.url = value;
             });
           }
+        } else {
           this.oembeds.get(url).subscribe(oembed => {
-            if (!oembed) return;
+            if (!oembed) {
+              defer(() => this.refForm!.scrapeTitle());
+              return;
+            }
             if (oembed?.thumbnail_url) {
               defer(() => this.addPlugin('plugin/thumbnail', { url: oembed.thumbnail_url }));
             }
@@ -133,7 +129,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
               this.webForm.get('comment')!.setValue(comment);
             }
           });
-          this.url = this.rssUrl || url;
+          this.url = url;
         }
         if (this.store.submit.source) {
           this.store.submit.sources.map(s => this.addSource(s));
@@ -164,7 +160,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     defer(() => {
       this.webForm.get('url')?.setValue(value);
       this.webForm.get('url')?.disable();
-      this.refForm!.scrapeTitle();
     });
   }
 
