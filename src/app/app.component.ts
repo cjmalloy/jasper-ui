@@ -5,7 +5,7 @@ import { archivePlugin, archiveUrl } from './mods/archive';
 import { pdfPlugin, pdfUrl } from './mods/pdf';
 import { AdminService } from './service/admin.service';
 import { OriginService } from './service/api/origin.service';
-import { ScrapeService } from './service/api/scrape.service';
+import { ProxyService } from './service/api/proxy.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { memo } from './util/memo';
@@ -30,7 +30,7 @@ export class AppComponent implements AfterViewInit {
     public config: ConfigService,
     public store: Store,
     private admin: AdminService,
-    private scraper: ScrapeService,
+    private proxy: ProxyService,
     private origins: OriginService,
     private router: Router,
   ) {
@@ -43,7 +43,7 @@ export class AppComponent implements AfterViewInit {
         if (this.store.eventBus.event === 'pdf') {
           let url = pdfUrl(this.pdfPlugin, this.store.eventBus.ref, this.store.eventBus.repost);
           if (!url) return;
-          if (this.pdfPlugin!.config?.cache) url = this.scraper.getFetch(url);
+          if (this.pdfPlugin!.config?.proxy) url = this.proxy.getFetch(url);
           open(url, '_blank');
         }
       });

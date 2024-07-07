@@ -16,6 +16,7 @@ import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { PluginService } from '../../service/api/plugin.service';
+import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { TaggingService } from '../../service/api/tagging.service';
@@ -72,6 +73,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
     private templates: TemplateService,
     private acts: ActionService,
     private ts: TaggingService,
+    private proxy: ProxyService,
     private scraper: ScrapeService,
   ) {
     this.disposers.push(autorun(() => {
@@ -251,7 +253,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
       if (hasTag('+plugin/feed', ref)) {
         return this.scraper.feed(ref.url, ref.origin);
       } else if (this.store.view.settingsTag === '_plugin/cache' && hasTag('_plugin/cache', ref)) {
-        return this.scraper.refresh(ref.url);
+        return this.proxy.refresh(ref.url);
       } else {
         return this.scraper.webScrape(ref.url).pipe(switchMap(scraped => {
           if (ref.title && scraped.title?.includes(ref.title)) {

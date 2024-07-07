@@ -26,7 +26,7 @@ config="
   \"maxOrigins\": ${JASPER_MAX_ORIGINS-0},
   \"fetchBatch\": ${JASPER_FETCH_BATCH-0},
   \"token\": \"${JASPER_TOKEN}\",
-  \"preAuthScrape\": ${PRE_AUTH_SCRAPE-true}
+  \"prefetch\": ${JASPER_PREFETCH-false}
 }
 "
 echo "$config"

@@ -47,8 +47,8 @@ import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
+import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
-import { ScrapeService } from '../../service/api/scrape.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
@@ -164,7 +164,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     private exts: ExtService,
     public acts: ActionService,
     private bookmarks: BookmarkService,
-    private scraper: ScrapeService,
+    private proxy: ProxyService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
     private overlay: Overlay,
@@ -495,8 +495,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get mediaAttachment() {
-    if (this.file || this.audio || this.video || this.image) {
-      return this.scraper.getFetch(this.url);
+    if (this.file) {
+      return this.proxy.getFetch(this.url);
+    }
+    if (this.audio && this.admin.getPlugin('plugin/audio')?.config?.proxy) {
+      return this.proxy.getFetch(this.url);
+    }
+    if (this.video && this.admin.getPlugin('plugin/video')?.config?.proxy) {
+      return this.proxy.getFetch(this.url);
+    }
+    if (this.image && this.admin.getPlugin('plugin/image')?.config?.proxy) {
+      return this.proxy.getFetch(this.url);
     }
     return false;
   }
@@ -606,7 +615,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get link() {
-    if (this.file) return this.scraper.getFetch(this.url);
+    if (this.file) return this.proxy.getFetch(this.url);
     return this.url;
   }
 

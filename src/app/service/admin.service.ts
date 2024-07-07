@@ -15,7 +15,7 @@ import { audioMod } from '../mods/audio';
 import { backgammonMod } from '../mods/backgammon';
 import { banlistConfig } from '../mods/banlist';
 import { blogTemplate } from '../mods/blog';
-import { cachePlugin } from '../mods/cache';
+import { cacheMod } from '../mods/cache';
 import { chatTemplate } from '../mods/chat';
 import { chessMod } from '../mods/chess';
 import { commentPlugin } from '../mods/comment';
@@ -52,7 +52,7 @@ import { qrPlugin } from '../mods/qr';
 import { queueMod } from '../mods/queue';
 import { repostPlugin } from '../mods/repost';
 import { rootMod } from '../mods/root';
-import { scrapePlugin } from '../mods/scrape';
+import { scrapeMod } from '../mods/scrape';
 import { seamlessPlugin } from '../mods/seamless';
 import { secretMod } from '../mods/secret';
 import { snippetConfig } from '../mods/snippet';
@@ -95,8 +95,8 @@ export class AdminService {
   def = {
     plugins: <Record<string, Plugin>> {
       oEmbedPlugin,
-      scrapePlugin,
-      cachePlugin,
+      ...scrapeMod.plugins,
+      ...cacheMod.plugins,
       ...systemMod.plugins,
       ...secretMod.plugins,
       ...errorMod.plugins,
