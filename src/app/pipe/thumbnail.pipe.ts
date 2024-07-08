@@ -2,7 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { Ref } from '../model/ref';
 import { AdminService } from '../service/admin.service';
-import { ScrapeService } from '../service/api/scrape.service';
+import { ProxyService } from '../service/api/proxy.service';
 import { OembedStore } from '../store/oembed';
 import { hasTag } from '../util/tag';
 
@@ -15,7 +15,7 @@ export class ThumbnailPipe implements PipeTransform {
   constructor(
     private admin: AdminService,
     private store: OembedStore,
-    private scraper: ScrapeService,
+    private proxy: ProxyService,
   ) { }
 
   transform(refs: (Ref | undefined)[], force = false): Observable<string> {
@@ -50,8 +50,8 @@ export class ThumbnailPipe implements PipeTransform {
 
   fetchUrl(url: string, plugin: string) {
     if (!url) return '';
-    if (this.admin.getPlugin(plugin)?.config?.cache) {
-      return this.scraper.getFetch(url, true);
+    if (this.admin.getPlugin(plugin)?.config?.proxy) {
+      return this.proxy.getFetch(url, true);
     }
     return url;
   }

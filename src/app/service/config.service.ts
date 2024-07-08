@@ -39,7 +39,7 @@ export class ConfigService {
   /**
    * Workaround for non-cookie based auth to scrape images before fetching.
    */
-  preAuthScrape = isDevMode();
+  prefetch = isDevMode();
 
   mobileWidth = 740;
 

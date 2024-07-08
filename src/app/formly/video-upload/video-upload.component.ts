@@ -1,6 +1,6 @@
 import { Component, EventEmitter, HostBinding, Output } from '@angular/core';
 import { catchError, map, of } from 'rxjs';
-import { ScrapeService } from '../../service/api/scrape.service';
+import { ProxyService } from '../../service/api/proxy.service';
 
 @Component({
   selector: 'app-video-upload',
@@ -14,7 +14,7 @@ export class VideoUploadComponent {
   data = new EventEmitter<string>();
 
   constructor(
-    private scraper: ScrapeService,
+    private proxy: ProxyService,
   ) { }
 
   readVideo(files?: FileList) {
@@ -22,7 +22,7 @@ export class VideoUploadComponent {
     const file = files[0]!;
     const reader = new FileReader();
     reader.onload = () => {
-      this.scraper.cache(file).pipe(
+      this.proxy.save(file).pipe(
         map(ref => ref.url),
         catchError(err => of(reader.result as string))
       ).subscribe(url => this.data.next(url));

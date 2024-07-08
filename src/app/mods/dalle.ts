@@ -167,7 +167,7 @@ export const dalleQueryPlugin: Plugin = {
       }
       let image;
       if (config?.useUrl) {
-        await axios.get(process.env.JASPER_CACHE_API + '/api/v1/scrape', {
+        await axios.get(process.env.JASPER_CACHE_API + '/api/v1/proxy/prefetch', {
           headers: {
             'Local-Origin': origin || 'default',
             'User-Role': 'ROLE_ADMIN',

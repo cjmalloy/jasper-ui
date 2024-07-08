@@ -1,6 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnDestroy } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, delay, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
@@ -12,8 +11,8 @@ import { Ext, mapTag } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
+import { ProxyService } from '../../../service/api/proxy.service';
 import { RefService } from '../../../service/api/ref.service';
-import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ModService } from '../../../service/mod.service';
@@ -44,10 +43,9 @@ export class UploadPage implements OnDestroy {
     private admin: AdminService,
     private refs: RefService,
     private exts: ExtService,
-    private scraper: ScrapeService,
+    private proxy: ProxyService,
     private auth: AuthzService,
     private router: Router,
-    private fb: FormBuilder,
   ) {
     mod.setTitle($localize`Submit: Upload`);
     this.disposers.push(autorun(() => {
@@ -154,7 +152,7 @@ export class UploadPage implements OnDestroy {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
-      this.scraper.cache(file).pipe(
+      this.proxy.save(file).pipe(
         map(ref => {
           ref.title = file.name;
           ref.tags = uniq([...ref.tags || [], tag, ...extraTags.filter(t => !!t)]);
@@ -164,11 +162,11 @@ export class UploadPage implements OnDestroy {
     }
   }
 
-  cache(files: File[]) {
+  save(files: File[]) {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
-      this.scraper.cache(file).subscribe(ref => runInAction(() => this.store.submit.addRefs({
+      this.proxy.save(file).subscribe(ref => runInAction(() => this.store.submit.addRefs({
         ...ref,
         upload: true,
         title: file.name,

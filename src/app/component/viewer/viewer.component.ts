@@ -22,8 +22,8 @@ import { findExtension, Ref, RefSort } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
+import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
-import { ScrapeService } from '../../service/api/scrape.service';
 import { StompService } from '../../service/api/stomp.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
@@ -89,7 +89,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   constructor(
     public admin: AdminService,
-    public scraper: ScrapeService,
+    private proxy: ProxyService,
     private config: ConfigService,
     private oembeds: OembedStore,
     private actions: ActionService,
@@ -296,24 +296,24 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   get audioUrl() {
     if (!this.currentTags.includes('plugin/audio')) return '';
     const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
-    if (!this.admin.getPlugin('plugin/audio')?.config?.cache) return url;
-    return this.scraper.getFetch(url);
+    if (!this.admin.getPlugin('plugin/audio')?.config?.proxy) return url;
+    return this.proxy.getFetch(url);
   }
 
   @memo
   get videoUrl() {
     if (!this.currentTags.includes('plugin/video')) return '';
     const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
-    if (!this.admin.getPlugin('plugin/video')?.config?.cache) return url;
-    return this.scraper.getFetch(url);
+    if (!this.admin.getPlugin('plugin/video')?.config?.proxy) return url;
+    return this.proxy.getFetch(url);
   }
 
   @memo
   get imageUrl() {
     if (!this.image && !this.currentTags.includes('plugin/image')) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
-    if (!this.admin.getPlugin('plugin/image')?.config?.cache) return url;
-    return this.scraper.getFetch(url);
+    if (!this.admin.getPlugin('plugin/image')?.config?.proxy) return url;
+    return this.proxy.getFetch(url);
   }
 
   @memo
@@ -336,8 +336,8 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   get pdfUrl() {
     const url = this.pdf;
     if (!url) return url;
-    if (!this.admin.getPlugin('plugin/pdf')?.config?.cache) return url;
-    return this.scraper.getFetch(url);
+    if (!this.admin.getPlugin('plugin/pdf')?.config?.proxy) return url;
+    return this.proxy.getFetch(url);
   }
 
   @memo
