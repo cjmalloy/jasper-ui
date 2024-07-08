@@ -1,12 +1,12 @@
-FROM node:20.15.0 as builder
-WORKDIR app
+FROM node:20.15.0 AS builder
+WORKDIR /app
 RUN npm i -g @angular/cli
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . ./
 RUN npm run build
 
-FROM node:20.15.0 as test
+FROM node:20.15.0 AS test
 RUN apt-get update && apt-get install -y \
 	apt-transport-https \
 	ca-certificates \
@@ -28,15 +28,15 @@ RUN apt-get update && apt-get install -y \
 	--no-install-recommends \
 	&& apt-get purge --auto-remove -y curl gnupg \
 	&& rm -rf /var/lib/apt/lists/*
-WORKDIR app
+WORKDIR /app
 RUN npm i -g @angular/cli
-COPY --from=builder app ./
+COPY --from=builder /app ./
 CMD ng test --karma-config karma-ci.conf.js
 
-FROM nginx:1.27-alpine3.19-slim as deploy
+FROM nginx:1.27-alpine3.19-slim AS deploy
 RUN apk add jq moreutils
 WORKDIR /usr/share/nginx/html/
-COPY --from=builder app/dist/jasper-ui ./
+COPY --from=builder /app/dist/jasper-ui ./
 ARG BASE_HREF="/"
 ENV BASE_HREF=$BASE_HREF
 RUN date -R -u > /build-timestamp
