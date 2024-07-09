@@ -307,18 +307,19 @@ export class UploadPage implements OnDestroy {
 
   uploadRef$(ref: Ref) {
     ref = toJS(ref);
+    ref.origin = this.store.account.origin;
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
     ref.plugins = pick(ref.plugins, ref.tags || []);
     return (this.store.submit.overwrite
-      ? this.refs.update({ ...ref, origin: this.store.account.origin }, true).pipe(
+      ? this.refs.update(ref, true).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status === 404) {
-              return this.refs.create({ ...ref, origin: this.store.account.origin });
+              return this.refs.create(ref);
             }
             return throwError(() => err);
           }),
         )
-      : this.refs.create({ ...ref, origin: this.store.account.origin })
+      : this.refs.create(ref)
     ).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409 && this.store.submit.overwrite) {
@@ -338,9 +339,11 @@ export class UploadPage implements OnDestroy {
   }
 
   uploadExt$(ext: Ext) {
+    ext = toJS(ext);
+    ext.origin = this.store.account.origin;
     return (this.store.submit.overwrite
-      ? this.exts.update({ ...ext, origin: this.store.account.origin }, true)
-      : this.exts.create({ ...ext, origin: this.store.account.origin })).pipe(
+      ? this.exts.update(ext, true)
+      : this.exts.create(ext)).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409 && this.store.submit.overwrite) {
           return this.exts.get(ext.tag + this.store.account.origin).pipe(
