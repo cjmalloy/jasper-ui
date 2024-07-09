@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
-import { catchError, map, Observable } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { mapRef, Ref } from '../../model/ref';
 import { catchAll } from '../../mods/scrape';
 import { Store } from '../../store/store';
@@ -72,6 +72,11 @@ export class ScrapeService {
   }
 
   defaults(): Observable<any> {
-    return this.refs.update(catchAll, true);
+    return this.refs.update(catchAll, true).pipe(
+      catchError(err => {
+        if (err.status === 404) return this.refs.create(catchAll, true);
+        return throwError(() => err);
+      })
+    );
   }
 }
