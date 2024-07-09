@@ -11,7 +11,7 @@ import { ScrapeService } from '../../service/api/scrape.service';
 import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
 import { getScheme } from '../../util/hosts';
-import { hasMedia } from '../../util/tag';
+import { hasMedia, hasTag } from '../../util/tag';
 import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
@@ -118,15 +118,16 @@ export class RefFormComponent implements OnInit {
   get scrape$() {
     if (this.scraped) return of(this.scraped);
     return this.scrape.webScrape(this.url.value).pipe(
-      tap(ref => {
-        this.scraped = ref;
-        if (this.scraped.modified && this.ref!.modified) {
-          this.ref!.modifiedString = this.scraped.modifiedString;
-          this.ref!.modified = this.scraped.modified;
-          if (this.scraped.tags?.includes('_plugin/cache')) {
-            if (!this.ref!.tags!.includes('_plugin/cache')) this.ref!.tags!.push('_plugin/cache')
+      tap(s => {
+        this.scraped = s;
+        if (s.modified && this.ref!.modified) {
+          this.ref!.modifiedString = s.modifiedString;
+          this.ref!.modified = s.modified;
+          if (hasTag('_plugin/cache', s)) {
+            this.ref!.tags ||= [];
+            this.ref!.tags.push('_plugin/cache');
             this.ref!.plugins ||= {}
-            this.ref!.plugins['_plugin/cache'] = this.scraped.plugins!['_plugin/cache'];
+            this.ref!.plugins['_plugin/cache'] = s.plugins?.['_plugin/cache'];
           }
           this.setRef(this.ref!);
         }
@@ -141,16 +142,16 @@ export class RefFormComponent implements OnInit {
         url: this.url.value,
         title: undefined,
       })),
-      switchMap(ref => this.oembeds.get(ref.url).pipe(
+      switchMap(s => this.oembeds.get(s.url).pipe(
         map(oembed => {
           this.oembed = oembed!;
-          if (oembed) ref.title ||= oembed.title;
-          return ref;
+          if (oembed) s.title ||= oembed.title;
+          return s;
         }),
-        catchError(err => of(ref)),
+        catchError(err => of(s)),
       )),
-    ).subscribe((ref: Ref) => {
-      this.group.patchValue({ title: ref.title });
+    ).subscribe((s: Ref) => {
+      this.group.patchValue({ title: s.title });
     });
   }
 
@@ -164,16 +165,17 @@ export class RefFormComponent implements OnInit {
     if (this.oembed) {
       // TODO: oEmbed
     } else {
-      this.scrape$.subscribe(ref => {
-        if (!hasMedia(ref) || hasMedia(this.group.value)) {
-          this.setComment(ref.comment || '');
+      this.scrape$.subscribe(s => {
+        if (!hasMedia(s) || hasMedia(this.group.value)) {
+          this.setComment(s.comment || '');
         }
-        this.tags.addTag(...(ref.tags || []));
-        this.plugins.tags = this.group.value.tags;
+        for (const t of s.tags || []) {
+          if (!this.tags.includesTag(t)) this.togglePlugin(t);
+        }
         defer(() => {
           this.plugins.setValue({
-            ...(this.group.value.plugins || {}),
-            ...(ref.plugins || {}),
+            ...this.group.value.plugins || {},
+            ...s.plugins || {},
           });
         });
       });
