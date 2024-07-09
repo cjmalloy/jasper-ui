@@ -15,7 +15,7 @@ export class PluginsPipe implements PipeTransform {
     return tags.map( t => {
       const i = this.admin.getIcons([t])
         .find(i => i.tag === t);
-      if (!i) return $localize`🏷️` + t;
+      if (!i) return $localize`🏷️` + ' ' + t;
       return i.label;
     });
   }
