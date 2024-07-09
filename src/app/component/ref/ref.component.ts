@@ -235,12 +235,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.expandPlugins = this.admin.getEmbeds(this.ref);
     if (this.repost) {
       if (this.ref && this.fetchRepost && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-        this.refs.get(this.url, this.ref.origin)
-        .subscribe(ref => {
+        this.refs.get(this.url, this.ref.origin).subscribe(ref => {
           this.repostRef = ref;
           MemoCache.clear(this);
           if (this.bareRepost) {
             this.expandPlugins = this.admin.getEmbeds(ref);
+          } else {
+            this.expandPlugins.push('plugin/repost');
           }
         });
       }

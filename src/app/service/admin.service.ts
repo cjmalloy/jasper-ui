@@ -515,7 +515,6 @@ export class AdminService {
         if (p === this.status.plugins.videoPlugin) return true;
         if (p === this.status.plugins.imagePlugin) return true;
         if (p === this.status.plugins.pdfPlugin) return true;
-        if (p === this.status.plugins.repostPlugin) return true;
         if (p === this.status.plugins.lensPlugin) return true;
         if (p === this.status.plugins.backgammonPlugin) return true;
         if (p === this.status.plugins.chessPlugin) return true;
