@@ -20,7 +20,7 @@ export const cachePlugin: Plugin = {
     If you delete a Ref it's cached file will not be removed from storage right away.
     If you restore a Ref before the cache is cleared you also recover the cached file.
     Clicking "empty recycle bin" will immediately free up storage space.`,
-    hasClearCache: $localize`🗑️ empty recycle bin`,
+    hasClearCache: $localize`🗑️ purge deleted from storage`,
     actions: [{ event: 'scrape', label: $localize`scrape` }],
     // language=HTML
     snippet: `
