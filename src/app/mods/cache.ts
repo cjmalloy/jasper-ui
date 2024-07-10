@@ -21,6 +21,12 @@ export const cachePlugin: Plugin = {
     If you restore a Ref before the cache is cleared you also recover the cached file.
     Clicking "empty recycle bin" will immediately free up storage space.`,
     hasClearCache: $localize`🗑️ purge deleted from storage`,
+    clearCacheConfirm: $localize`Warning!
+This is very slow and expensive if you have a large cache.
+
+Files which have only had their Ref deleted can still be recovered, but after this they will be permanently deleted.
+
+Are you sure you want to purge deleted files from storage?`,
     actions: [{ event: 'scrape', label: $localize`scrape` }],
     // language=HTML
     snippet: `

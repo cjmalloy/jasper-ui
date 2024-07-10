@@ -22,6 +22,9 @@ export const scrapePlugin: Plugin = {
     ],
     description: $localize`Configure CSS classes for scraping websites.`,
     hasDefaults: true,
+    defaultsConfirm: $localize`Warning!
+ This will load in the default scrape config to be used when a site-specific config cannot be found.
+ If you have customized the default scrape config your changes will be overwritten.`,
     form: [{
       key: 'schemes',
       type: 'urls',

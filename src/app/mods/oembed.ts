@@ -14,6 +14,9 @@ export const oEmbedPlugin: Plugin = {
     icons: [{ label: $localize`📡️`, order: 3 }],
     description: $localize`Register an oEmbed API.`,
     hasDefaults: true,
+    defaultsConfirm: $localize`Warning!
+ This will load in the default set of oEmbed settings, overwriting any changes you have made.
+ Any additional oEmbed settings you have added will not be deleted.`,
     form: [{
       key: 'provider_name',
       type: 'string',

@@ -89,10 +89,18 @@ export interface Plugin extends Config {
      */
     hasDefaults?: boolean;
     /**
+     * Require user to confirm resetting defaults with this message.
+     */
+    defaultsConfirm?: string;
+    /**
      * Label for clear cache button. Set this if clear cache method available.
      * Should respond to the event `${tag}:clear-cache`.
      */
     hasClearCache?: string;
+    /**
+     * Require user to confirm clearing the cache with this message.
+     */
+    clearCacheConfirm?: string;
   };
   /**
    * Generate separate Ref response metadata for this plugin.

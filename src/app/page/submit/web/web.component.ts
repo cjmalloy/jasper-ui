@@ -15,7 +15,6 @@ import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
 import { TaggingService } from '../../../service/api/tagging.service';
-import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
@@ -48,7 +47,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   constructor(
     private mod: ModService,
     private admin: AdminService,
-    private auth: AuthzService,
     private router: Router,
     private store: Store,
     private editor: EditorService,

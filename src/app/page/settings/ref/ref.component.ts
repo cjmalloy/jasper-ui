@@ -55,12 +55,16 @@ export class SettingsRefPage implements OnInit, OnDestroy {
   }
 
   loadDefaults() {
-    this.store.eventBus.fire(this.store.settings.tag + ':defaults');
-    this.store.eventBus.reset();
+    if (!this.plugin?.config?.defaultsConfirm || window.confirm(this.plugin?.config?.defaultsConfirm)) {
+      this.store.eventBus.fire(this.store.settings.tag + ':defaults');
+      this.store.eventBus.reset();
+    }
   }
 
   clearCache() {
-    this.store.eventBus.fire(this.store.settings.tag + ':clear-cache');
-    this.store.eventBus.reset();
+    if (!this.plugin?.config?.clearCacheConfirm || window.confirm(this.plugin?.config?.clearCacheConfirm)) {
+      this.store.eventBus.fire(this.store.settings.tag + ':clear-cache');
+      this.store.eventBus.reset();
+    }
   }
 }
