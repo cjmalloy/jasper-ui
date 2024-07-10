@@ -367,7 +367,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get feed() {
-    return !!this.admin.getPlugin('+plugin/feed') && hasTag('+plugin/feed', this.ref);
+    return !!this.admin.getPlugin('plugin/feed') && hasTag('plugin/feed', this.ref);
   }
 
   @memo
@@ -408,7 +408,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get addTags() {
     if (this.feed) {
-      return interestingTags(this.ref.plugins?.['+plugin/feed']?.addTags);
+      return interestingTags(this.ref.plugins?.['plugin/feed']?.addTags);
     }
     if (this.originPull) {
       return interestingTags(this.ref.plugins?.['+plugin/origin']?.addTags);

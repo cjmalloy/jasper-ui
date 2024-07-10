@@ -769,7 +769,8 @@ Jasper generates the following metadata in Refs:
 When the \`scripts\` profile is active, any Refs with a \`plugin/delta\` tag will run the attached script when modified.
 Only admin users may install scripts and they run with very few guardrails. A regular user may invoke the script
 by tagging a Ref. The tagged ref will be serialized as UTF-8 JSON and passed to stdin. Environment variables will
-include the API endpoint as \`JASPER_API\`. Return a non-zero error code to fail the script and attach an error log.
+include the API endpoint as \`JASPER_API\` and a storage-enabled API endpoint as \`JASPER_CACHE_API\` if not supported by
+the first API. Return a non-zero error code to fail the script and attach an error log.
 The script should by writing UTF-8 JSON to stdout of the form:
 
 \`\`\`json
@@ -871,137 +872,6 @@ const whatPluginSignature = {
   generateMetadata: true,
 };
 \`\`\`
-
-## RSS / Atom Scraping
-The \`+plugin/feed\` can be used to scrape RSS / Atom feeds.
-Although plugin fields are determined dynamically, the following fields are checked by the
-scraper:
-\`\`\`json
-{
-  "properties": {
-    "scrapeInterval": { "type": "string" }
-  },
-  "optionalProperties": {
-    "addTags": { "elements": { "type": "string" } },
-    "lastScrape": { "type": "string" },
-    "scrapeDescription": { "type": "boolean" },
-    "removeDescriptionIndent": { "type": "boolean" }
-  }
-}
-\`\`\`
-
-**Add Tags:** Tags to apply to any Refs created by this feed.
-**Modified:** Last modified date of this Feed.
-**Last Scrape:** The time this feed was last scraped.
-**Scrape Interval:** The time interval to scrape this feed. Use ISO 8601 duration format.
-**Scrape Description:** Boolean to enable / disable attempting to find a description field in the
-feed to use for the Ref comment field.
-**Remove Description Indent:** Remove any indents from the description. This is needed when the
-description is HTML, as indents will trigger a block quote in markdown.
-
-The \`+plugin/feed\` will be set as a source for all scraped Refs. If the published date of the new entry is prior to the published date of the
-\`+plugin/feed\` it will be skipped.
-
-## Remote Origin
-The \`+plugin/origin\` tag marks a Ref as a Remote Origin and associates it with a local alias. These may be either pulled from or pushed to.
-\`\`\`json
-{
-  "optionalProperties": {
-    "local": { "type": "string" },
-    "remote": { "type": "string" }
-  }
-}
-\`\`\`
-
-**Local:** Local alias for the remote origin.
-**Remote:** Remote origin to query, or blank for the default.
-
-## Replicating Remote Origin
-The \`+plugin/origin/pull\` tag can be used to replicate remote origins. Since this plugin
-extends \`+plugin/origin\`, we already have the \`local\` and \`remote\`
-fields set.
-\`\`\`json
-{
-  "properties": {
-    "pullInterval": { "type": "string" }
-  },
-  "optionalProperties": {
-    "query": { "type": "string" },
-    "proxy": { "type": "string" },
-    "lastPull": { "type": "string" },
-    "batchSize": { "type": "int32" },
-    "generateMetadata": { "type": "boolean" },
-    "validatePlugins": { "type": "boolean" },
-    "validateTemplates": { "type": "boolean" },
-    "validationOrigin": { "type": "string" },
-    "addTags": { "elements": { "type": "string" } },
-    "removeTags": { "elements": { "type": "string" } }
-  }
-}
-\`\`\`
-
-**Query:** Restrict results using a query. Can not use qualified tags as replication only works on a single origin at
-a time. If you want to combine multiple origins into one, create multiple \`+plugin/origin\` Refs.
-**Proxy:** Alternate URL to replicate from.
-**Last Pull:** The time this origin was last replicated.
-**Pull Interval:** The time interval to replicate this origin. Use ISO 8601 duration format.
-**Batch Size:** The max number of entities of each type to pull each interval.
-**Generate Metadata:** Flag to enable, disable metadata generation.
-**Validate Plugins:** Flag to enable, disable plugin validation.
-**Validate Templates:** Flag to enable, disable template validation.
-**Validation Origin:** Origin to get plugin and templates for validation.
-**Add Tags:** Tags to apply to any Refs replicated from this origin.
-**Remove Tags:** Tags to remove from any Refs replicated from this origin.
-
-## Pushing to a Remote Origin
-The \`+plugin/origin/push\` tag can be used to replicate remote origins. Since this plugin
-extends \`+plugin/origin\`, we already have the \`local\` and \`remote\`
-fields set.
-\`\`\`json
-{
-  "properties": {
-    "pushInterval": { "type": "string" }
-  },
-  "optionalProperties": {
-    "query": { "type": "string" },
-    "proxy": { "type": "string" },
-    "lastPush": { "type": "string" },
-    "batchSize": { "type": "int32" },
-    "writeOnly": { "type": "boolean" },
-    "lastModifiedRefWritten": { "elements": { "type": "string" } },
-    "lastModifiedExtWritten": { "elements": { "type": "string" } },
-    "lastModifiedUserWritten": { "elements": { "type": "string" } },
-    "lastModifiedPluginWritten": { "elements": { "type": "string" } },
-    "lastModifiedTemplateWritten": { "elements": { "type": "string" } }
-  }
-}
-\`\`\`
-
-**Query:** Restrict push using a query. Can not use qualified tags as replication only works on a single origin at
-a time. If you want to combine multiple origins into one, create multiple \`+plugin/origin\` Refs.
-**Proxy:** Alternate URL to push to.
-**Last Push:** The time this origin was last pushed to.
-**Pull Interval:** The time interval to replicate this origin. Use ISO 8601 duration format.
-**Batch Size:** The max number of entities of each type to pull each interval.
-**Write Only:** Do not query remote for last modified cursor, just use saved cursor.
-**Last Modified Ref Written:** Modified date of last Ref pushed.
-**Last Modified Ext Written:** Modified date of last Ext pushed.
-**Last Modified User Written:** Modified date of last User pushed.
-**Last Modified Plugin Written:** Modified date of last Plugin pushed.
-**Last Modified Template Written:** Modified date of last Template pushed.
-
-## Random Number Generator
-
-The \`plugin/rng\` tag can be used to generate random numbers. Random numbers are generated whenever editing, creating or
-pushing a Ref replaces an existing Ref of a different origin. When a new random number is generated it is represented in
-hex
-in the tag \`+plugin/rng/6d7eb8ebb38a47d29c6a6cbc9156a1a3\`, for example. When replicated, random numbers will not be
-overwritten so that spectators may verify the results. Editing of a Ref that is already the latest
-version across all origins will preserve the existing random number or lack thereof. This ensures random numbers can't
-be farmed, as you cannot generate a new number without cooperation from another origin.
-
-When delegating rng to a trusted server, users push their updates to that server and replicate the results.
-When playing on mutually replicating servers, each server is trusted to generate their own rng.
 
 End of GitHub Readme.
 

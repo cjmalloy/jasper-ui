@@ -296,7 +296,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
                 Must not or contain two forward slashes or periods in a row.
                 Protected tags start with a plus sign.
                 Private tags start with an underscore.
-                (i.e. "plugin/thumbnail", "plugin/image" "+plugin/feed", or "_plugin/admin")`,
+                (i.e. "plugin/thumbnail", "plugin/image" "+plugin/cron", or "_plugin/admin")`,
             }
           },
         },

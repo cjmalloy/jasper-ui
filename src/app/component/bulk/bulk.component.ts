@@ -250,7 +250,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
 
   scrape$ = () => {
     return this.batch$<Ref>(ref => {
-      if (hasTag('+plugin/feed', ref)) {
+      if (hasTag('plugin/feed', ref)) {
         return this.scraper.feed(ref.url, ref.origin);
       } else if (this.store.view.settingsTag === '_plugin/cache' && hasTag('_plugin/cache', ref)) {
         return this.proxy.refresh(ref.url);

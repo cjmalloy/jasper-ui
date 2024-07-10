@@ -57,8 +57,9 @@ export function getStrictPrefix(a: string, b: string) {
   return getLargestPrefix(parentTag(a), parentTag(b));
 }
 
-export function hasTag(tag: string | undefined, ref: Ref | undefined) {
+export function hasTag(tag: string | undefined, ref: Ref | undefined): boolean {
   if (!tag) return false;
+  if (tag.startsWith('-')) return !hasTag(tag.substring(1), ref);
   if (!ref?.tags) return false;
   const not = tag.startsWith('!');
   if (not) tag = tag.substring(1);
