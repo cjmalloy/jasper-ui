@@ -87,6 +87,10 @@ export class AccountStore {
     return localTag(this.tag);
   }
 
+  get tagWithOrigin() {
+    return localTag(this.tag) + (this.origin || '@');
+  }
+
   get userTag() {
      if (hasPrefix(localTag(this.tag), 'user')) return this.localTag;
      return '';
@@ -160,7 +164,7 @@ export class AccountStore {
     if (!this.signedIn) return undefined;
     let tags = [this.mailbox];
     if (this.origin) {
-      tags.push(setPublic(prefix('plugin/outbox', this.origin, this.localTag)));
+      tags.push(setPublic(prefix('plugin/outbox', this.origin, this.tagWithOrigin)));
     }
     if (this.modmail?.length) {
       tags.push(...this.modmail);
