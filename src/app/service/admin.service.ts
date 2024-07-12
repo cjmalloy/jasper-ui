@@ -773,11 +773,11 @@ export class AdminService {
   }
 
   isWikiExternal() {
-    return !!this.status.templates.wikiConfig?.config?.external;
+    return !!this.getTemplate('wiki')?.config?.external;
   }
 
   getWikiPrefix() {
-    return this.status.templates.wikiConfig?.config?.prefix || DEFAULT_WIKI_PREFIX;
+    return this.getTemplate('wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
   }
 
   needsUpdate(def: Plugin | Template, status: Plugin | Template) {

@@ -12,6 +12,7 @@ import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
+import { templates } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -20,7 +21,7 @@ import { printError } from '../../util/http';
   styleUrls: ['./template.component.scss']
 })
 export class TemplateComponent implements OnInit {
-  @HostBinding('class') css = 'template list-item';
+  css = 'template list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
@@ -55,6 +56,14 @@ export class TemplateComponent implements OnInit {
       defaults: this.template.defaults ? JSON.stringify(this.template.defaults, null, 2) : undefined,
       schema: this.template.schema ? JSON.stringify(this.template.schema, null, 2) : undefined,
     });
+  }
+
+  @HostBinding('class')
+  get pluginClass() {
+    return this.css + ' ' + this.template.tag
+      .replace(/[+_]/g, '')
+      .replace(/\//g, '_')
+      .replace(/\./g, '-');
   }
 
   get qualifiedTag() {

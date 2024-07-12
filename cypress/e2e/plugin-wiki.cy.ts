@@ -51,7 +51,7 @@ describe('Wiki Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('template').click();
-    cy.get('.template-list .actions').contains('edit').click();
+    cy.get('.template.wiki .actions').contains('edit').click();
     cy.wait(1000); // Warm up monaco editor
     if (Cypress.platform == 'darwin') {
       cy.get('#config').click().focused().type('{cmd}a{backspace}');

@@ -21,7 +21,7 @@ import { printError } from '../../util/http';
   styleUrls: ['./plugin.component.scss']
 })
 export class PluginComponent implements OnInit {
-  @HostBinding('class') css = 'plugin list-item';
+  css = 'plugin list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
@@ -57,6 +57,14 @@ export class PluginComponent implements OnInit {
       defaults: this.plugin.defaults ? JSON.stringify(this.plugin.defaults, null, 2) : undefined,
       schema: this.plugin.schema ? JSON.stringify(this.plugin.schema, null, 2) : undefined,
     });
+  }
+
+  @HostBinding('class')
+  get pluginClass() {
+    return this.css + ' ' + this.plugin.tag
+      .replace(/[+_]/g, '')
+      .replace(/\//g, '_')
+      .replace(/\./g, '-');
   }
 
   get qualifiedTag() {
