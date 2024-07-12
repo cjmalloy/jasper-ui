@@ -136,7 +136,7 @@ export class RefFormComponent implements OnInit {
   }
 
   scrapeTitle() {
-    if (this.tags.includesTag('+plugin/feed')) return;
+    if (this.tags.includesTag('plugin/feed')) return;
     this.scrape$.pipe(
       catchError(err => of({
         url: this.url.value,

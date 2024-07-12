@@ -71,6 +71,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
         this.addTag(...this.store.submit.tags);
+        defer(() => this.addFeedTags(...this.store.submit.tags));
         if (this.store.submit.thumbnail) {
           this.addPlugin('plugin/thumbnail', { url: this.store.submit.thumbnail });
         }
@@ -95,7 +96,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         } else if (this.feed) {
           if (url.startsWith('https://www.youtube.com/channel/') || url.startsWith('https://youtube.com/channel/')
             || url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
-            this.addTag('+plugin/feed', 'plugin/repost', 'youtube');
+            this.addTag('plugin/feed', 'plugin/repost', 'youtube');
             this.addSource(url);
             if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
               const username = url.substring(url.indexOf('@'));
@@ -142,7 +143,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get feed() {
-    return !!this.webForm.value.tags.includes('+plugin/feed');
+    return !!this.webForm.value.tags.includes('plugin/feed');
   }
 
   get origin() {
@@ -236,10 +237,11 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   private addFeedTags(...tags: string[]) {
     if (!this.feed) return;
+    tags = tags.filter(t => t !== 'plugin/feed');
     const ref = this.webForm.value || {};
     ref.plugins ||= {};
-    ref.plugins['+plugin/feed'] ||= {};
-    ref.plugins['+plugin/feed'].addTags = uniq([...ref.plugins['+plugin/feed'].addTags || [], ...tags]);
+    ref.plugins['plugin/feed'] ||= {};
+    ref.plugins['plugin/feed'].addTags = uniq([...ref.plugins['plugin/feed'].addTags || [], ...tags]);
     this.refForm!.plugins.setValue(ref.plugins);
   }
 }

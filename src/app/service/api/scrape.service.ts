@@ -25,7 +25,7 @@ export class ScrapeService {
   ) {
     autorun(() => {
       if (this.store.eventBus.event === 'scrape') {
-        if (hasTag('+plugin/feed', this.store.eventBus.ref)) {
+        if (hasTag('plugin/feed', this.store.eventBus.ref)) {
           this.store.eventBus.runAndReload(this.feed(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
         }
       }

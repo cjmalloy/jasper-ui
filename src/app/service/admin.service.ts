@@ -19,6 +19,7 @@ import { cacheMod } from '../mods/cache';
 import { chatTemplate } from '../mods/chat';
 import { chessMod } from '../mods/chess';
 import { commentPlugin } from '../mods/comment';
+import { cronPlugin } from '../mods/cron';
 import { dalleMod } from '../mods/dalle';
 import { debugMod } from '../mods/debug';
 import { deletePlugin } from '../mods/delete';
@@ -101,6 +102,7 @@ export class AdminService {
       ...secretMod.plugins,
       ...errorMod.plugins,
       ...remoteOriginMod.plugins,
+      cronPlugin,
       feedPlugin,
       deletePlugin,
       ...mailboxMod.plugins,
