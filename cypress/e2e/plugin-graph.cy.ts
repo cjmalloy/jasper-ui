@@ -14,12 +14,12 @@ describe('Graph Plugin', {
     cy.visit('/settings/setup?debug=ADMIN');
 
     cy.wait(100);
-    cy.get('#mod-experiments').check().should('be.checked');
+    cy.get('#mod-experiments').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.reload();
 
     cy.wait(100);
-    cy.get('#mod-graph').check().should('be.checked');
+    cy.get('#mod-graph').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
   });

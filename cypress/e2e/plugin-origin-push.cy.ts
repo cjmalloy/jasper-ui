@@ -19,7 +19,7 @@ describe('Origin Push Plugin', {
     cy.get('.tabs').contains('setup').click();
 
     cy.wait(100);
-    cy.get('#mod-remoteorigin').check().should('be.checked');
+    cy.get('#mod-remoteorigin').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
   });
