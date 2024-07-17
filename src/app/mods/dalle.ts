@@ -184,6 +184,7 @@ export const dalleQueryPlugin: Plugin = {
       } else {
         const cache = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(gen.data[0].b64_json, 'base64'), {
           headers: {
+            'Local-Origin': origin || 'default',
             'User-Role': 'ROLE_ADMIN',
             'User-Tag': '+plugin/delta/dalle',
             'Content-Type': 'image/png',
