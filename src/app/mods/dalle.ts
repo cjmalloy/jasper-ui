@@ -165,24 +165,24 @@ export const dalleQueryPlugin: Plugin = {
           sources.push(ref.sources[1]);
         }
       }
-      let image;
+      const image = {
+        sources,
+        tags,
+        comment: gen.data[0].revised_prompt,
+      };
       if (config?.useUrl) {
-        await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/ref', [{
-          url: gen.data[0].url,
-          tags: ['_plugin/delta/cache', 'internal'],
-        }], {
-          headers: {
-            'Local-Origin': origin || 'default',
-            'User-Role': 'ROLE_ADMIN',
-          },
-          params: { origin },
-        });
-        image = {
-          url: 'dalle:' + uuid.v4(),
-          plugins: { 'plugin/image': { url: gen.data[0].url } }
-        }
+        console.log(JSON.stringify({
+          ref: [{
+            url: gen.data[0].url,
+            tags: ['_plugin/delta/cache', 'internal'],
+          }, {
+            url: 'dalle:' + uuid.v4(),
+            plugins: { 'plugin/image': { url: gen.data[0].url } },
+            ...image,
+          }],
+        }));
       } else {
-        image = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(gen.data[0].b64_json, 'base64'), {
+        const cache = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(gen.data[0].b64_json, 'base64'), {
           headers: {
             'User-Role': 'ROLE_ADMIN',
             'User-Tag': '+plugin/delta/dalle',
@@ -190,14 +190,14 @@ export const dalleQueryPlugin: Plugin = {
           },
           params: { mime: 'image/png' },
         })).data;
-        delete image.metadata;
+        delete cache.metadata;
+        console.log(JSON.stringify({
+          ref: [{
+            ...cache,
+            ...image,
+          }],
+        }));
       }
-      image.sources = sources;
-      image.tags = tags;
-      image.comment = gen.data[0].revised_prompt;
-      console.log(JSON.stringify({
-        ref: [image],
-      }));
     `,
     advancedForm: [{
       key: 'provider',
@@ -266,7 +266,6 @@ export const dalleQueryPlugin: Plugin = {
     size: '1024x1024',
     quality: 'hd',
     style: 'vivid',
-    useUrl: true,
     // TODO: multiple images
   },
   schema: {
