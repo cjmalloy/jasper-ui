@@ -38,7 +38,7 @@ export class NavComponent implements OnInit {
   ngOnInit() {
     if (this.localUrl) {
       this.nav = this.getNav();
-      if (this.nav[0] === '/tag' && (!this.external || !this.hasText)) {
+      if (this.nav[0] === '/tag' && !this.external && !this.hasText) {
         this.exts.getCachedExt(this.nav[1] as string)
           .pipe(this.admin.extFallback)
           .subscribe(x => this.text = x.name || this.text);
