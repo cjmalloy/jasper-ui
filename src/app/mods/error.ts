@@ -17,7 +17,10 @@ const errorPlugin: Plugin = {
     actions: [
       { tag: '+plugin/error', labelOn: $localize`retry` },
     ],
-    description: $localize`Marks a Ref as errored.`,
+    description: $localize`
+    View which Refs have failed running a script and will not be retried.
+    See the attached logs for the specifics of the error.
+    Click 'retry' to clear the error and try again.`,
   },
 };
 
