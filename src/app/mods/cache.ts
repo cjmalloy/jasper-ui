@@ -27,7 +27,10 @@ This is very slow and expensive if you have a large cache.
 Files which have only had their Ref deleted can still be recovered, but after this they will be permanently deleted.
 
 Are you sure you want to purge deleted files from storage?`,
-    actions: [{ event: 'scrape', label: $localize`scrape` }],
+    advancedActions: [
+      { scheme: 'http:', event: 'scrape', label: $localize`scrape`, global: true },
+      { scheme: 'https:', event: 'scrape', label: $localize`scrape`, global: true },
+    ],
     // language=HTML
     snippet: `
       <script>
@@ -39,7 +42,7 @@ Are you sure you want to purge deleted files from storage?`,
     `,
     // language=Handlebars
     infoUi: `{{#if contentLength}}<span title="{{mimeType}}">{{readableBytes contentLength}}</span>{{/if}}`,
-    form: [{
+    advancedForm: [{
       key: 'id',
       type: 'string',
       props: {
