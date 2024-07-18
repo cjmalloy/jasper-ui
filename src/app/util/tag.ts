@@ -80,8 +80,8 @@ export function hasUserUrlResponse(tag?: string, ref?: Ref)  {
   return !!find(ref.metadata.userUrls, t => expandedTagsInclude(t, tag));
 }
 
-export function tagIntersection(expand: string[], targets: string[]) {
-  if (!expand) return [];
+export function tagIntersection(expand: string[] | undefined, targets: string[] | undefined) {
+  if (!expand || !targets) return [];
   return filter(targets, target => includesTag(target, expand));
 }
 

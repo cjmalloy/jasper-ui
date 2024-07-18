@@ -28,7 +28,6 @@ export const aiQueryPlugin: Plugin = {
     script: `
       const uuid = require('uuid');
       const axios = require('axios');
-      const OpenAi = require('openai');
       const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
       const origin = ref.origin || ''
       const config = ref.plugins?.['plugin/delta/ai'];
@@ -135,9 +134,14 @@ export const aiQueryPlugin: Plugin = {
       ];
       if (mods.length) messages.push({ role: 'system', content: msg('Mods', aiInstructions) });
       if (exts.length) messages.push({ role: 'system', content: msg('Exts', JSON.stringify(exts)) });
+      const mergeRoles = config?.provider === 'anthropic';
       for (const c of [...context.values()].sort((a, b) => (a.published > b.published) - (a.published < b.published))) {
         const role = c.tags?.includes('+plugin/delta/ai') ? 'assistant' : 'user';
-        messages.push({ role, content: JSON.stringify(c) });
+        if (mergeRoles && messages[messages.length - 1].role === role) {
+          messages[messages.length - 1].content += JSON.stringify(c);
+        } else {
+          messages.push({ role, content: JSON.stringify(c) });
+        }
       }
       if (ref.tags?.includes('+plugin/delta/ai')) {
         messages.push({ role: 'system', content: msg('Spawning Agent Prompt', systemConfig.followupPrompt) });
@@ -147,17 +151,51 @@ export const aiQueryPlugin: Plugin = {
           content: msg('Explanation of signature tag', systemConfig.responsePrompt + JSON.stringify(authors))
         });
       }
-      messages.push({ role: 'user', content: JSON.stringify(sample) });
-      const openai = new OpenAi({ apiKey });
-      const completion = await openai.chat.completions.create({
-        model: config?.model || 'gpt-4o',
-        max_tokens: config?.maxTokens || 4096,
-        response_format: { "type": "json_object" },
-        messages,
-      });
+      if (mergeRoles && messages[messages.length - 2].role === 'user') {
+        messages[messages.length - 2].content += JSON.stringify(sample);
+      } else {
+        messages.push({ role: 'user', content: JSON.stringify(sample) });
+      }
+      let completion;
+      let usage;
+      if (!config?.provider || config.provider === 'openai') {
+        const OpenAi = require('openai');
+        const openai = new OpenAi({ apiKey });
+        const res = await openai.chat.completions.create({
+          model: config?.model || 'gpt-4o',
+          max_tokens: config?.maxTokens || 4096,
+          response_format: { "type": "json_object" },
+          messages,
+        });
+        completion = res.choices[0]?.message?.content;
+        usage = res.usage;
+      } else if (config?.provider === 'anthropic') {
+        const Anthropic = require('@anthropic-ai/sdk');
+        const anthropic = new Anthropic({ apiKey });
+        const system = messages.filter(m => m.role === 'system').map(m => m.content).join("\\n\\n");
+        messages.push({ role: 'assistant', content: '{"ref":['});
+        const res = await anthropic.messages.create({
+          model: config?.model || 'claude-3-5-sonnet-20240620',
+          max_tokens: config?.maxTokens || 4096,
+          system,
+          messages: messages.filter(m => m.role !== 'system'),
+        });
+        completion = '{"ref":[' + res.content[0]?.text;
+        usage = res.usage;
+      }
+      function fixJsonLinefeeds(json) {
+        return json.replace(/"(?:\\\\.|[^"])*"|[^"]+/g, (match) => {
+          if (match.startsWith('"')) {
+            // This is a string, replace linefeeds
+            return match.replace(/\\n/g, '\\\\n');
+          }
+          // This is not a string, return as-is
+          return match;
+        });
+      }
       let bundle;
       try {
-        bundle = JSON.parse(completion.choices[0]?.message?.content);
+        bundle = JSON.parse(fixJsonLinefeeds(completion));
         if (!bundle.ref) {
           // Model returned a bare Ref?
           bundle = {
@@ -165,20 +203,16 @@ export const aiQueryPlugin: Plugin = {
           };
         }
       } catch (e) {
-        bundle = {
-          ref: [{
-            sources: [ref.url],
-            comment: completion.choices[0]?.message?.content,
-            tags: ['plugin/debug'],
-          }],
-        };
+        console.error("Error parsing completion:", e);
+        console.error(completion);
+        process.exit(1);
       }
       const response = bundle.ref[0];
       delete response.published;
       delete response.created;
       delete response.modified;
       response.plugins ||= {};
-      response.plugins['+plugin/delta/ai'] = { ...config, usage: completion.usage };
+      response.plugins['+plugin/delta/ai'] = { ...config, usage };
       response.tags ||= [];
       response.tags.push('+plugin/delta/ai');
       if (ref.tags.includes('public')) response.tags.push('public');
@@ -248,6 +282,7 @@ export const aiQueryPlugin: Plugin = {
         label: $localize`Provider:`,
         options: [
           { value: 'openai', label: $localize`OpenAI` },
+          { value: 'anthropic', label: $localize`Anthropic` },
         ],
       },
     }, {
@@ -279,7 +314,7 @@ export const aiQueryPlugin: Plugin = {
   defaults: {
     provider: 'openai',
     apiKeyTag: '+plugin/secret/openai',
-    model: 'gpt-4o',
+    model: 'gpt-4o-mini',
     maxTokens: 4096,
     maxContext: 7,
     maxSources: 2000,
@@ -299,7 +334,7 @@ export const aiQueryPlugin: Plugin = {
 
 export const aiPlugin: Plugin = {
   tag: '+plugin/delta/ai',
-  name: $localize`👻️ ChatGPT`,
+  name: $localize`👻️ AI`,
   config: {
     mod: $localize`👻️ AI Chat`,
     type: 'tool',
@@ -1129,7 +1164,7 @@ or the entire thread in the case of threads.
 Be sure to only respond to the last Ref sent to you, the others are just for context.
 `,
     // language=Handlebars
-    infoUi: `{{#if model}}<span style="user-select:none;cursor:zoom-in" title="{{provider}} {{model}}: {{usage.total_tokens}} ({{usage.prompt_tokens}} + {{usage.completion_tokens}})">ℹ️</span>{{/if}}`,
+    infoUi: `{{#if model}}<span style="user-select:none;cursor:zoom-in" title="{{provider}} {{model}}: {{usage.total_tokens}} ({{usage.prompt_tokens}} + {{usage.completion_tokens}})">ℹ️ ({{model}})</span>{{/if}}`,
   },
   schema: {},
   generateMetadata: true,

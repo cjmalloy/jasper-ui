@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { defer, uniq, without } from 'lodash-es';
+import { defer, merge, pickBy, uniq, without } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, Subject, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -13,13 +13,11 @@ import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
-import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
-import { ThreadStore } from '../../../store/thread';
 import { getMailboxes, getTags } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag, removeTag } from '../../../util/tag';
+import { hasTag, removeTag, tagIntersection } from '../../../util/tag';
 
 @Component({
   selector: 'app-comment-reply',
@@ -60,8 +58,6 @@ export class CommentReplyComponent implements AfterViewInit {
   constructor(
     public admin: AdminService,
     public store: Store,
-    private thread: ThreadStore,
-    private ed: EditorService,
     private refs: RefService,
     private ts: TaggingService,
     private fb: FormBuilder,
@@ -111,6 +107,17 @@ export class CommentReplyComponent implements AfterViewInit {
     }
   }
 
+  get inheritedPlugins() {
+    const plugins = this.admin.getPlugins(this.to.tags)
+      .filter(p => p.tag === p.config?.signature && tagIntersection(this.tags, p.config?.reply).length)
+      .map(p => p.tag);
+    const parentPlugins = pickBy(this.to.plugins, (data, tag) => plugins.includes(tag));
+    return merge({}, ...Object.keys(parentPlugins)
+      .flatMap(tag => (this.admin.getPlugin(tag)?.config?.reply || [])
+        .filter(r => this.tags.includes(r))
+        .map(r => ({ [r]: this.admin.stripInvalid(r, parentPlugins[tag]) }))));
+  }
+
   reply() {
     if (!this.comment.value) return;
     const url = 'comment:' + uuid();
@@ -132,6 +139,7 @@ export class CommentReplyComponent implements AfterViewInit {
         ...getTags(value),
         ...getMailboxes(value, this.store.account.origin),
       ])),
+      plugins: this.inheritedPlugins,
       published: moment(),
     };
     this.comment.disable();
