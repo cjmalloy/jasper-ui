@@ -15,7 +15,7 @@ export const feedPlugin: Plugin = {
     ],
     description: $localize`Import entries from an RSS / Atom feed. The feed will be scraped on an interval you specify.`,
     actions: [
-      { event: 'scrape', label: $localize`scrape` },
+      { event: 'scrape', label: $localize`pull` },
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable` },
     ],
     form: [{
