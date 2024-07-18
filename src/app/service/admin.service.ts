@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
+import { Schema, validate } from 'jtd';
 import { findKey, identity, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
@@ -668,7 +669,8 @@ export class AdminService {
     return Object.values(this.status.plugins).find(p => p?.tag === tag);
   }
 
-  getPlugins(tags: string[]) {
+  getPlugins(tags: string[] | undefined) {
+    if (!tags) return [];
     return Object.values(this.status.plugins).filter(p => tags.includes(p?.tag || '')) as Plugin[];
   }
 
@@ -772,6 +774,27 @@ export class AdminService {
       return this.getDefaults(parent!);
     }
     return undefined;
+  }
+
+  stripInvalid(tag: string, data: any): any {
+    const plugin = this.getPlugin(tag);
+    const schema = plugin?.schema;
+    const defaults = plugin?.defaults || {};
+    if (this.isValid(schema, data)) return data;
+    // Sanity test, if defaults don't validate just bail
+    if (!this.isValid(schema, defaults)) return undefined;
+    const result = { ...defaults };
+    for (const [key, value] of Object.entries(data)) {
+      if (this.isValid(schema, { ...result, [key]: value })) {
+        result[key] = value;
+      }
+    }
+    return result;
+  }
+
+  isValid(schema: Schema | undefined, data: any) {
+    if (!schema) return false;
+    return !validate(schema, data,{ maxErrors: 1, maxDepth: 0 }).length;
   }
 
   isWikiExternal() {
