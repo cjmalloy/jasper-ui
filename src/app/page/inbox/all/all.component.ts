@@ -31,7 +31,7 @@ export class InboxAllPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        this.store.account.inboxQuery,
+        '!dm:(' + this.store.account.inboxQuery + ')',
         this.store.view.sort,
         this.store.view.filter.includes('query/plugin/delete') ? this.store.view.filter : ['query/!plugin/delete', ...this.store.view.filter],
         this.store.view.search,
