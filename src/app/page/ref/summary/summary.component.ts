@@ -130,7 +130,10 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       ...this.replyExts,
     ];
     if (hasTag('public', this.store.view.ref)) tags.unshift('public');
-    if (hasTag('plugin/email', this.store.view.ref)) {
+    if (hasTag('dm', this.store.view.ref)) {
+      tags.push('dm');
+      tags.push('plugin/thread')
+    } else if (hasTag('plugin/email', this.store.view.ref)) {
       tags.push('plugin/email');
       tags.push('plugin/thread')
     } else if (hasTag('plugin/thread', this.store.view.ref)) {
