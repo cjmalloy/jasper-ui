@@ -10,6 +10,8 @@ export const cronPlugin: Plugin = {
     icons: [{ label: $localize`⏱️`, order: -3 }],
     filters: [{ query: '+plugin/cron', label: $localize`⏱️ Scheduled`, group: $localize`Plugins 🧰️` }],
     description: $localize`Schedule scripts to be run on the server at specific intervals.`,
+    // language=Handlebars
+    infoUi: `every {{formatInterval interval}}`,
     form: [{
       key: 'interval',
       type: 'duration',

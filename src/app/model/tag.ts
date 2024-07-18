@@ -425,6 +425,8 @@ Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
 
 Handlebars.registerHelper('fromNow', (value: MomentInput) => moment(value).fromNow());
 
+Handlebars.registerHelper('formatInterval', (value: string) => moment.duration(value).humanize());
+
 Handlebars.registerHelper('response', (ref: Ref, value: string) => {
   return ref.metadata?.userUrls?.includes(value);
 });
