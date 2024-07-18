@@ -6,7 +6,7 @@ import { difference, uniq } from 'lodash-es';
 import { TagsFormComponent } from '../form/tags/tags.component';
 import { Store } from '../store/store';
 import { getMailboxes } from '../util/editor';
-import { getPath } from '../util/hosts';
+import { getPath } from '../util/http';
 import { ConfigService } from './config.service';
 
 @Injectable({

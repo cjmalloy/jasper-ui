@@ -4,7 +4,7 @@ import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
 import { VisibilityService } from '../../service/visibility.service';
-import { getPath, getQuery } from '../../util/hosts';
+import { getPath, getSearchParams, parseParams } from '../../util/http';
 
 @Component({
   selector: 'app-nav',
@@ -73,7 +73,7 @@ export class NavComponent implements OnInit {
   }
 
   get query() {
-    return new URLSearchParams(getQuery(this.url));
+    return parseParams(this.url);
   }
 
   get localUrl() {

@@ -15,8 +15,7 @@ import { toJS } from 'mobx';
 import { Plugin } from '../../model/plugin';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
-import { getScheme } from '../../util/hosts';
-import { emptyObject, writeObj } from '../../util/http';
+import { emptyObject, getScheme, writeObj } from '../../util/http';
 import { addAllHierarchicalTags, includesTag } from '../../util/tag';
 import { GenFormComponent } from './gen/gen.component';
 

@@ -10,7 +10,7 @@ import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
-import { getScheme } from '../../util/hosts';
+import { getScheme } from '../../util/http';
 import { hasMedia, hasTag } from '../../util/tag';
 import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component';

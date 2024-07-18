@@ -67,8 +67,7 @@ import {
   templates,
   urlSummary
 } from '../../util/format';
-import { getScheme } from '../../util/hosts';
-import { printError } from '../../util/http';
+import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import {
   capturesAny,

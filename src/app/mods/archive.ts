@@ -2,7 +2,7 @@ import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Mod } from '../model/tag';
-import { getHost, getScheme } from '../util/hosts';
+import { getHost, getScheme } from '../util/http';
 
 export const archivePlugin: Plugin = {
   tag: 'plugin/archive',

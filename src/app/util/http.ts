@@ -127,19 +127,60 @@ export function isTracking(url: string, banlist: typeof banlistConfig) {
   return false;
 }
 
+export function getSearchParams(url: string) {
+  try {
+    return new URL(url).searchParams;
+  } catch {
+    try {
+      return new URL('http://example.com/' + url).searchParams;
+    } catch {
+      return new URLSearchParams();
+    }
+  }
+}
+
 export function parseParams(url: string): any {
   const params: any = {};
-  let p: URLSearchParams;
-  try {
-    p = new URL(url).searchParams;
-  } catch {}
-  try {
-    p = new URL('http://example.com/' + url).searchParams;
-  } catch {
-    return params;
-  }
+  const p = getSearchParams(url);
   for (const key of p.keys()) {
     params[key] = p.getAll(key).length > 1 ? p.getAll(key) : p.get(key)
   }
   return params;
+}
+
+export function getUrl(url: string): URL | null {
+  try {
+    return new URL(url);
+  } catch (e) {}
+  return null;
+}
+
+export function getHost(url: string): string | null {
+  const parsed = getUrl(url);
+  if (!parsed) return null;
+  return parsed.host;
+}
+
+export function getScheme(url: string) {
+  const parsed = getUrl(url);
+  if (!parsed) return undefined;
+  return parsed.protocol;
+}
+
+export function getPath(url: string): string | null {
+  if (url.startsWith('/')) {
+    if (url.includes('#')) url = url.substring(0, url.indexOf('#'));
+    if (url.includes('?')) url = url.substring(0, url.indexOf('?'));
+    return url;
+  }
+  const parsed = getUrl(url);
+  if (!parsed) return null;
+  return parsed.pathname;
+}
+
+export function getExtension(url: string): string | null {
+  const parsed = getUrl(url);
+  if (!parsed) return null;
+  if (!parsed.pathname.includes('.')) return parsed.pathname;
+  return parsed.pathname.substring(parsed.pathname.lastIndexOf('.'));
 }

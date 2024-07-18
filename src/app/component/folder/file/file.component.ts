@@ -6,7 +6,7 @@ import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
 import { Store } from '../../../store/store';
 import { templates } from '../../../util/format';
-import { getScheme } from '../../../util/hosts';
+import { getScheme } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag } from '../../../util/tag';
 

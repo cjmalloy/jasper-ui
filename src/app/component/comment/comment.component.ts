@@ -40,7 +40,7 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
-import { getScheme } from '../../util/hosts';
+import { getScheme } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin, top } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';

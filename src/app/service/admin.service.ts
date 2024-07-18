@@ -71,7 +71,7 @@ import { videoMod } from '../mods/video';
 import { voteMod } from '../mods/vote';
 import { DEFAULT_WIKI_PREFIX, wikiConfig } from '../mods/wiki';
 import { Store } from '../store/store';
-import { getExtension, getHost } from '../util/hosts';
+import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
 import { addHierarchicalTags, hasPrefix, includesTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
