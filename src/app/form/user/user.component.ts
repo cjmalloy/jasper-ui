@@ -16,6 +16,8 @@ export class UserFormComponent implements OnInit {
   @Input()
   group!: UntypedFormGroup;
   @Input()
+  showPubKey = true;
+  @Input()
   fillWidth?: HTMLElement;
   @Output()
   tagChanges = new EventEmitter<string>();
@@ -39,10 +41,15 @@ export class UserFormComponent implements OnInit {
   tagWriteAccess!: TagsFormComponent;
 
   ngOnInit(): void {
+    this.pubKey.disable();
   }
 
   get tag() {
     return this.group.get('tag') as UntypedFormControl;
+  }
+
+  get pubKey() {
+    return this.group.get('pubKey') as UntypedFormControl;
   }
 
   validate(input: HTMLInputElement) {
@@ -92,6 +99,7 @@ export function userForm(fb: UntypedFormBuilder, locked = false) {
     writeAccess: fb.array([]),
     tagReadAccess: fb.array([]),
     tagWriteAccess: fb.array([]),
-    pubKey: [''],
+    pubKey: ['', { disabled: true }],
+    authorizedKeys: [''],
   });
 }
