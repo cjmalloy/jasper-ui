@@ -73,7 +73,7 @@
     "cypress-mochawesome-reporter": "^3.8.2",
     "cypress-real-events": "^1.13.0",
     "jasmine-core": "~5.2.0",
-    "karma": "~6.4.3",
+    "karma": "~6.4.4",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
