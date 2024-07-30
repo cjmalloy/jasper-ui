@@ -13,6 +13,10 @@ updates:
   directory: /
   schedule:
     interval: weekly
+  groups:
+    angular:
+      patterns:
+        - "@angular/*"
 - package-ecosystem: github-actions
   directory: /
   schedule:
