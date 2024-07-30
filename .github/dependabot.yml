@@ -17,6 +17,11 @@ updates:
     angular:
       patterns:
         - "@angular/*"
+        - "@angular-devkit/*"
+        - "rxjs"
+        - "zone.js"
+        - "typescript"
+        - "tslib"
 - package-ecosystem: github-actions
   directory: /
   schedule:
