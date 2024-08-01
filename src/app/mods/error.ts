@@ -45,7 +45,7 @@ const logPlugin: Plugin = {
       font-family: monospace;
       .expand {
         max-width: min(100vw - 16px, 120em);
-        overflow-x: scroll;
+        overflow-x: auto;
       }
     }
     `
