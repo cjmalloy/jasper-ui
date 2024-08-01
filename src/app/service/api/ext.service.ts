@@ -8,6 +8,7 @@ import { mapPage, Page } from '../../model/page';
 import { latest, TagPageArgs, TagQueryArgs } from '../../model/tag';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
+import { OpPatch } from '../../util/json-patch';
 import { defaultOrigin, isQuery, localTag, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -176,7 +177,7 @@ export class ExtService {
     );
   }
 
-  patch(tag: string, cursor: string, patch: any[]): Observable<string> {
+  patch(tag: string, cursor: string, patch: OpPatch[]): Observable<string> {
     return this.http.patch<string>(this.base, patch, {
       headers: { 'Content-Type': 'application/json-patch+json' },
       params: params({ tag, cursor }),

@@ -6,6 +6,7 @@ import { mapPage, Page } from '../../model/page';
 import { mapRef, Ref, RefFilter, RefPageArgs, writeRef } from '../../model/ref';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
+import { OpPatch } from '../../util/json-patch';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -91,7 +92,7 @@ export class RefService {
     );
   }
 
-  patch(url: string, origin: string, cursor: string, patch: any[]): Observable<string> {
+  patch(url: string, origin: string, cursor: string, patch: OpPatch[]): Observable<string> {
     return this.http.patch<string>(this.base, patch, {
       headers: { 'Content-Type': 'application/json-patch+json' },
       params: params({ url, origin, cursor }),

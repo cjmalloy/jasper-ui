@@ -5,6 +5,7 @@ import { mapPage, Page } from '../../model/page';
 import { mapPlugin, Plugin, writePlugin } from '../../model/plugin';
 import { TagPageArgs } from '../../model/tag';
 import { params } from '../../util/http';
+import { OpPatch } from '../../util/json-patch';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -49,6 +50,24 @@ export class PluginService {
 
   update(plugin: Plugin): Observable<void> {
     return this.http.put<void>(this.base, writePlugin(plugin)).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  patch(tag: string, cursor: string, patch: OpPatch[]): Observable<string> {
+    return this.http.patch<string>(this.base, patch, {
+      headers: { 'Content-Type': 'application/json-patch+json' },
+      params: params({ tag, cursor }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  merge(tag: string, cursor: string, patch: Partial<Plugin>): Observable<string> {
+    return this.http.patch<string>(this.base, patch, {
+      headers: { 'Content-Type': 'application/merge-patch+json' },
+      params: params({ tag, cursor }),
+    }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
