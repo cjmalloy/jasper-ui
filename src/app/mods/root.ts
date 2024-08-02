@@ -167,6 +167,7 @@ export const rootTemplate: Template = {
     optionalProperties: {
       pinned: { elements: { type: 'string' } },
       sidebar: { type: 'string' },
+      popover: { type: 'string' },
       modmail: { type: 'boolean' },
       dms: { type: 'string' },
       queryFilters: { elements: {
@@ -203,6 +204,7 @@ export const rootTemplate: Template = {
 export interface RootConfig {
   pinned?: string[];
   sidebar?: string;
+  popover?: string;
   modmail?: boolean;
   dms?: string;
   queryFilters?: { query: string, label?: string}[];

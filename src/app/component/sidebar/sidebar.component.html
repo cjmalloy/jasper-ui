@@ -201,7 +201,7 @@
       My Bookmarks:
       <br>
       <ng-container *ngFor="let book of bookmarkExts; let i = index">
-        <a class="tag" [routerLink]="['/tag', userConfig!.bookmarks![i]]">{{ book.name || userConfig!.bookmarks![i] }}</a>
+        <a class="tag" [routerLink]="['/tag', userConfig!.bookmarks![i]]" [appTitle]="book">{{ book.name || userConfig!.bookmarks![i] }}</a>
         <br>
       </ng-container>
     </div>
@@ -209,7 +209,7 @@
       Following:
       <br>
       <ng-container *ngFor="let sub of userSubExts; let i = index">
-        <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]">{{ sub.name || (sub.tag + sub.origin) }}</a>
+        <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]" [appTitle]="sub">{{ sub.name || (sub.tag + sub.origin) }}</a>
         <br>
       </ng-container>
     </div>
@@ -217,7 +217,7 @@
       Subscribed to:
       <br>
       <ng-container *ngFor="let sub of tagSubExts; let i = index">
-        <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]">{{ sub.name || (sub.tag + sub.origin) }}</a>
+        <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]" [appTitle]="sub">{{ sub.name || (sub.tag + sub.origin) }}</a>
         <br>
       </ng-container>
     </div>

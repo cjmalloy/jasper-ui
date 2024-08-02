@@ -13,6 +13,13 @@
   <input id="name" type="text" formControlName="name">
 
   <ng-container [formGroup]="config">
+    @if (popover) {
+      <label for="popover" class="editor-label" i18n>Popover:</label>
+      <div>
+        <app-editor id="popover"
+                    [control]="popover"></app-editor>
+      </div>
+    }
     @if (userTheme) {
       <label for="userTheme" i18n>User Theme:</label>
       <div i18n-title title="This theme will be used on every page. Tag page themes will be ignored.">

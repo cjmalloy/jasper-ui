@@ -10,7 +10,7 @@
     &bullet; <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
     <ng-container *ngIf="bookmarkExts.length; else bookNoExts">
       <ng-container *ngFor="let b of bookmarkExts; let i = index">
-        &bullet; <a [routerLink]="['/tag', store.account.bookmarks[i]]" routerLinkActive="current-page">{{ b.name || store.account.bookmarks[i] }}</a>
+        &bullet; <a [routerLink]="['/tag', store.account.bookmarks[i]]" [appTitle]="b" routerLinkActive="current-page">{{ b.name || store.account.bookmarks[i] }}</a>
       </ng-container>
     </ng-container>
     <ng-template #bookNoExts>
@@ -20,7 +20,7 @@
     </ng-template>
     <ng-container *ngIf="subExts.length; else subNoExts">
       <ng-container *ngFor="let sub of subExts; let i = index">
-        &bullet; <a [routerLink]="['/tag', store.account.subs[i]]" routerLinkActive="current-page">{{ sub.name || store.account.subs[i] }}</a>
+        &bullet; <a [routerLink]="['/tag', store.account.subs[i]]" [appTitle]="sub" routerLinkActive="current-page">{{ sub.name || store.account.subs[i] }}</a>
       </ng-container>
     </ng-container>
     <ng-template #subNoExts>

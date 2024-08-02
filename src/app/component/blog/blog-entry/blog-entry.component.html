@@ -16,7 +16,8 @@
               <ng-container *ngFor="let user of authorExts">
                 <a class="user tag"
                    [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag) }}</a>
+                   [routerLink]="['/tag', user.tag + user.origin]"
+                   [appTitle]="user">{{ user.name || formatAuthor(user.tag) }}</a>
               </ng-container>
             </ng-container>
             <ng-template #authorNoExts>
@@ -31,7 +32,7 @@
             tagged
             <ng-container *ngIf="tagExts$ | async as tagExts; else tagNoExts">
               <ng-container *ngFor="let e of tagExts">
-                <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+                <a class="tag" [routerLink]="['/tag', e.tag]" [appTitle]="e">{{ e.name || e.tag }}</a>
               </ng-container>
             </ng-container>
             <ng-template #tagNoExts>

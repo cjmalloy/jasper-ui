@@ -1,5 +1,5 @@
 @if (plugins && plugin) {
-  <label>{{ plugin.config?.submitChild || plugin.name || plugin.tag }}</label>
+  <label [title]="plugin.config?.description">{{ plugin.config?.submitChild || plugin.name || plugin.tag }}</label>
   @if (group) {
     @if (children.length) {
       <div class="ribbon-margin" [style.margin-bottom.px]="childrenOn * 20"></div>

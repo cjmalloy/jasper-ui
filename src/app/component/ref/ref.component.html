@@ -78,7 +78,8 @@
               <ng-container *ngFor="let user of authorExts">
                 <a class="user tag"
                    [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag) }}</a>
+                   [routerLink]="['/tag', user.tag + user.origin]"
+                   [appTitle]="user">{{ user.name || formatAuthor(user.tag) }}</a>
               </ng-container>
             </ng-container>
             <ng-template #authorNoExts>
@@ -93,7 +94,7 @@
             tagged
             <ng-container *ngIf="tagExts$ | async as tagExts; else tagNoExts">
               @for (e of tagExts; track e) {
-                <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+                <a class="tag" [routerLink]="['/tag', e.tag]" [appTitle]="e">{{ e.name || e.tag }}</a>
               }
             </ng-container>
             <ng-template #tagNoExts>
@@ -108,7 +109,8 @@
               @for (user of recipientExts; track user) {
                 <a class="user tag"
                    [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+                   [routerLink]="['/tag', user.tag + user.origin]"
+                   [appTitle]="user">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
               }
             </ng-container>
             <ng-template #recipientNoExts>
@@ -143,7 +145,7 @@
             tagging refs
             <ng-container *ngIf="addTagExts$ | async as addTagExts; else addTagNoExts">
               <ng-container *ngFor="let e of addTagExts">
-                <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+                <a class="tag" [routerLink]="['/tag', e.tag]" [appTitle]="e">{{ e.name || e.tag }}</a>
               </ng-container>
             </ng-container>
             <ng-template #addTagNoExts>

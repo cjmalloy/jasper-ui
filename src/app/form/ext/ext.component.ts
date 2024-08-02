@@ -98,6 +98,10 @@ export class ExtFormComponent implements OnInit {
     return this.config.get('sidebar') as UntypedFormControl;
   }
 
+  get popover() {
+    return this.config.get('popover') as UntypedFormControl;
+  }
+
   get themes() {
     return this.config.get('themes') as UntypedFormGroup;
   }
@@ -149,6 +153,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
       ...configControls,
       defaultSort: [''],
       sidebar: [''],
+      popover: [''],
       modmail: [false],
       pinned: linksForm(fb, ext?.config?.pinned || []),
       themes: themesForm(fb, ext?.config?.themes || []),
