@@ -37,13 +37,13 @@
   </app-tabs>
   <app-sidebar [home]="true"
                [floating]="store.view.floatingSidebar"
-               [ext]="homeExt"
-               [activeExts]="activeExts"></app-sidebar>
+               [ext]="store.view.ext"
+               [activeExts]="store.view.activeExts"></app-sidebar>
   @if (query.error?.status !== 403) {
     <app-lens [page]="query.page"
               [showVotes]="store.view.isVoteSorted"
               [tag]="store.view.tag || 'home'"
-              [ext]="store.view.viewExt || homeExt"
+              [ext]="store.view.viewExt"
               [fullPage]="true"
               [size]="store.view.pageSize"
               [cols]="store.view.cols"

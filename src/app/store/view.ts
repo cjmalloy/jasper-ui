@@ -33,7 +33,7 @@ export class ViewStore {
   defaultPageSize = 24;
   defaultKanbanLoadSize = 8;
   defaultBlogPageSize = 5;
-  defaultSort: RefSort | TagSort = 'published';
+  defaultSort?: RefSort | TagSort = 'published';
   defaultSearchSort: RefSort | TagSort = 'rank';
   ref?: Ref = {} as any;
   top?: Ref = {} as any;
@@ -74,7 +74,7 @@ export class ViewStore {
     this.lastSelected = undefined;
   }
 
-  clear(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {
+  clear(defaultSort: RefSort | TagSort | undefined = undefined, defaultSearchSort: RefSort | TagSort = 'rank') {
     this.ref = undefined;
     this.top = undefined;
     this.versions = 0;
@@ -85,7 +85,7 @@ export class ViewStore {
     this.defaultSearchSort = defaultSearchSort;
   }
 
-  clearRef(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {
+  clearRef(defaultSort: RefSort | TagSort | undefined = undefined, defaultSearchSort: RefSort | TagSort = 'rank') {
     this.ref = undefined;
     this.top = undefined;
     this.versions = 0;
@@ -343,16 +343,25 @@ export class ViewStore {
     return parseInt(this.route.routeSnapshot?.queryParams['cols'] || this.viewExt?.config?.defaultCols || 0);
   }
 
+  get viewExtSort() {
+    if (!['tag', 'home'].includes(this.current!)) return undefined;
+    return this.viewExt?.config?.defaultSort;
+  }
+
   get sort() {
     const sort = this.route.routeSnapshot?.queryParams['sort'];
-    if (!sort) return [this.search ? this.defaultSearchSort : (this.viewExt?.config?.defaultSort || this.defaultSort)];
+    if (!sort) {
+      if (this.search && this.defaultSearchSort) return [this.defaultSearchSort];
+      return [this.viewExtSort || this.defaultSort];
+    }
     if (!Array.isArray(sort)) return [sort]
     return sort;
   }
 
   get isSorted() {
     if (this.sort.length > 1) return true;
-    return this.sort[0] !== (this.search ? this.defaultSearchSort : (this.viewExt?.config?.defaultSort || this.defaultSort));
+    if (this.search && this.defaultSearchSort) return this.sort[0] !== this.defaultSearchSort;
+    return this.sort[0] !== (this.viewExtSort || this.defaultSort);
   }
 
   get isVoteSorted() {
