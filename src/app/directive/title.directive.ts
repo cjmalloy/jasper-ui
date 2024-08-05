@@ -33,7 +33,7 @@ export class TitleDirective implements OnChanges {
     } else if ('type' in this.node && this.node.type === 'ext') {
       const ctx = getTemplateScope(this.store.account, null!, this.node);
       this.el.nativeElement.title
-        = this.node.config.popover
+        = this.node.config?.popover
         ? hydrate(this.node.config, 'popover', ctx)
         : '';
     } else if ('_parent' in this.node && this.node._parent) {
