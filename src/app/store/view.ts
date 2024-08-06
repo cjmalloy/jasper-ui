@@ -8,7 +8,7 @@ import { Template } from '../model/template';
 import { User } from '../model/user';
 import { RootConfig } from '../mods/root';
 import { UrlFilter } from '../util/query';
-import { hasPrefix, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
+import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
 import { AccountStore } from "./account";
 import { EventBus } from './bus';
 
@@ -423,6 +423,10 @@ export class ViewStore {
 
   get showRemotes() {
     return this.route.routeSnapshot?.queryParams['showRemotes'] === 'true';
+  }
+
+  get repost() {
+    return hasTag('plugin/repost', this.ref);
   }
 
   updateNotify() {

@@ -76,7 +76,7 @@
                [tag]="store.view.tag"
                [activeExts]="store.view.activeExts"></app-sidebar>
   @if (store.view.ref) {
-    @if (store.view.top && store.view.ref.url !== store.view.top.url && store.view.current !== 'ref/sources') {
+    @if (store.view.top && store.view.ref.url !== store.view.top.url && store.view.current !== 'ref/sources' && !store.view.repost) {
       <app-ref class="print-hide"
                [class.thread]="store.view.current === 'ref/thread'"
                [class.parent-ref]="true"
