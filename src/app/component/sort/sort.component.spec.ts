@@ -11,14 +11,17 @@ describe('SortComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SortComponent],
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
+      declarations: [SortComponent],
+      imports: [RouterModule.forRoot([])],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(SortComponent);
     component = fixture.componentInstance;
+    component.sorts = ['modified'];
     fixture.detectChanges();
   });
 
