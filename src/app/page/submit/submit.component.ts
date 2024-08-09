@@ -24,7 +24,7 @@ import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
 import { fixUrl } from '../../util/http';
-import { prefix } from '../../util/tag';
+import { hasPrefix, prefix } from '../../util/tag';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
@@ -72,7 +72,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       this.plugin = '';
       for (const t of this.store.submit.tags) {
-        if (prefix('plugin', t)) {
+        if (hasPrefix(t, 'plugin')) {
           this.plugin = t;
           break;
         }
