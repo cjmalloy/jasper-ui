@@ -36,11 +36,6 @@ export class ConfigService {
   // Debug token
   token = '';
 
-  /**
-   * Workaround for non-cookie based auth to scrape images before fetching.
-   */
-  prefetch = isDevMode();
-
   mobileWidth = 740;
 
   constructor(

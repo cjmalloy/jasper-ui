@@ -142,6 +142,7 @@ import { TagsPage } from './page/tags/tags.component';
 import { UserPage } from './page/user/user.component';
 import { CssUrlPipe } from './pipe/css-url.pipe';
 import { PluginsPipe } from './pipe/plugins.pipe';
+import { ProxyPipe } from './pipe/proxy.pipe';
 import { SafePipe } from './pipe/safe.pipe';
 import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
@@ -229,6 +230,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     ViewerComponent,
     SafePipe,
     ThumbnailPipe,
+    ProxyPipe,
     CssUrlPipe,
     ResizeDirective,
     LoginPage,

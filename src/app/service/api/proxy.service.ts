@@ -6,7 +6,7 @@ import { mapRef, Ref } from '../../model/ref';
 import { Resource } from '../../model/resource';
 import { catchAll } from '../../mods/scrape';
 import { Store } from '../../store/store';
-import { params } from '../../util/http';
+import { getSearchParams, params } from '../../util/http';
 import { hasTag } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -42,24 +42,6 @@ export class ProxyService {
 
   private get base() {
     return this.config.api + '/api/v1/proxy';
-  }
-
-  prefetch(url: string) {
-    if (url.startsWith('data:')) return;
-    if (this.cacheList.has(url)) return;
-    this.cacheList.add(url);
-    const s = () => {
-      this.http.get(`${this.base}/prefetch`, {
-        params: params({ url: this.scraping[0] }),
-      }).pipe(
-        catchError(() => of(null)),
-      ).subscribe(() => {
-        this.scraping.shift();
-        if (this.scraping.length) s();
-      });
-    };
-    this.scraping.push(url);
-    if (this.scraping.length === 1) s();
   }
 
   refresh(url: string): Observable<void> {
@@ -98,7 +80,6 @@ export class ProxyService {
   getFetch(url?: string, thumbnail = false) {
     if (!url) return '';
     if (url.startsWith('data:')) return url;
-    if (this.config.prefetch && this.store.account.user) this.prefetch(url);
     if (thumbnail) return `${this.base}?thumbnail=true&url=${encodeURIComponent(url)}`;
     return `${this.base}?url=${encodeURIComponent(url)}`;
   }

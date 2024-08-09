@@ -1,6 +1,6 @@
 <div class="folder-icon"
      *ngIf="thumbnail else defaultThumbnail"
-     [style.background-image]="[ref] | thumbnail | async | cssUrl"
+     [style.background-image]="[ref] | thumbnail | async | proxy | async | cssUrl"
      [appRouterActivate]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }"></div>
 <ng-template #defaultThumbnail>
   <div class="folder-icon default-file"
