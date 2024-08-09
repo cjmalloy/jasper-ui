@@ -33,7 +33,7 @@ export class ViewStore {
   defaultPageSize = 24;
   defaultKanbanLoadSize = 8;
   defaultBlogPageSize = 5;
-  defaultSort?: RefSort | TagSort = 'published';
+  defaultSort: RefSort | TagSort = 'published';
   defaultSearchSort: RefSort | TagSort = 'rank';
   ref?: Ref = {} as any;
   top?: Ref = {} as any;
@@ -74,7 +74,7 @@ export class ViewStore {
     this.lastSelected = undefined;
   }
 
-  clear(defaultSort: RefSort | TagSort | undefined = undefined, defaultSearchSort: RefSort | TagSort = 'rank') {
+  clear(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {
     this.ref = undefined;
     this.top = undefined;
     this.versions = 0;
@@ -85,7 +85,7 @@ export class ViewStore {
     this.defaultSearchSort = defaultSearchSort;
   }
 
-  clearRef(defaultSort: RefSort | TagSort | undefined = undefined, defaultSearchSort: RefSort | TagSort = 'rank') {
+  clearRef(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {
     this.ref = undefined;
     this.top = undefined;
     this.versions = 0;
