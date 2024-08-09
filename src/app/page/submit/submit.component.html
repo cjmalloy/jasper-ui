@@ -96,7 +96,8 @@
         }
         <div class="form-array">
           @if (store.submit.web) {
-            <app-select-plugin [(plugin)]="plugin"></app-select-plugin>
+            <app-select-plugin [(plugin)]="plugin"
+                               [settings]="!!admin.getPluginSettings(store.submit.tags).length"></app-select-plugin>
           }
           <input id="url"
                  [placeholder]="placeholder"

@@ -468,6 +468,10 @@ export class AdminService {
     return this.pluginConfigProperty('settings');
   }
 
+  get submitSettings() {
+    return this.pluginConfigProperty('submit', 'settings', '!genId');
+  }
+
   get extensions() {
     return this.pluginConfigProperty('extensions');
   }
@@ -707,6 +711,11 @@ export class AdminService {
     return reduce(this.getTemplates(tag).map(t => t.defaults || {}), (prev, curr) => {
       return {...prev, ...curr};
     }, {});
+  }
+
+  getPluginSettings(tags?: string[]) {
+    const match = ['plugin', ...(tags || [])];
+    return this.settings.filter(p => match.includes(p.tag));
   }
 
   @memo
