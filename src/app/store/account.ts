@@ -19,25 +19,26 @@ export class AccountStore {
   /**
    * Is admin.
    * Owns everything.
-   * Limited to origin in multi-tenant.
+   * Limited to origin and sub origins.
    */
   admin = false;
   /**
    * Is mod.
    * Owns everything except plugins and templates.
-   * Limited to origin in multi-tenant.
+   * Limited to origin and sub origins.
    */
   mod = false;
   /**
    * Is editor.
    * Allowed to toggle any public tag (except public and locked) to any Ref in view.
-   * Limited to origin in multi-tenant.
+   * Limited to origin and sub origins.
    */
   editor = false;
   /**
    * Is user.
    * Allowed to post Refs.
    * May be given access to other tags.
+   * Limited to origin and sub origins.
    */
   user = false;
   /**
@@ -45,11 +46,13 @@ export class AccountStore {
    * Allowed to edit user ext.
    * May be given read access to other tags.
    * May not be given write access to other tags.
+   * Limited to origin and sub origins.
    */
   viewer = false;
   /**
    * Is banned.
    * No access, ban message shown instead.
+   * Limited to origin and sub origins.
    */
   banned = false;
   /**
