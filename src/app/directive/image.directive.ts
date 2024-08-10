@@ -90,7 +90,7 @@ export class ImageDirective implements OnInit, OnDestroy {
     this.imgs.getImage(value)
       .then((dim: Dim) => {
         this.loading = false;
-        this.el.style.backgroundImage = `url('${value}')`;
+        this.el.style.backgroundImage = `url('${dim.url || value}')`;
         this.el.style.backgroundSize = this.config.mobile ? 'cover' : 'contain';
         this.dim = dim;
         this.onResize();
