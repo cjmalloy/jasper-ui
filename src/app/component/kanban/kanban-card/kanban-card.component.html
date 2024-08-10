@@ -35,7 +35,7 @@
   <div class="row">
     @if (thumbnail) {
       <div class="thumbnail"
-           [style.background-image]="[repostRef, ref] | thumbnail | async"
+           [style.background-image]="[repostRef, ref] | thumbnail | async | cssUrl"
            [style.background-color]="thumbnailColor"
            [style.border-radius]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     }

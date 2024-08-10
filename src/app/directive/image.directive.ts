@@ -2,13 +2,13 @@ import { Directive, ElementRef, HostBinding, Input, OnDestroy, OnInit } from '@a
 import { autorun, IReactionDisposer } from 'mobx';
 import { Ref } from '../model/ref';
 import { ConfigService } from '../service/config.service';
-import { Dim, height, ImageDimService, width } from '../service/image-dim.service';
+import { Dim, height, ImageService, width } from '../service/image.service';
 import { Store } from '../store/store';
 
 @Directive({
-  selector: '[appImageDim]'
+  selector: '[appImage]'
 })
-export class ImageDimDirective implements OnInit, OnDestroy {
+export class ImageDirective implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
@@ -31,7 +31,7 @@ export class ImageDimDirective implements OnInit, OnDestroy {
     private config: ConfigService,
     private store: Store,
     private elRef: ElementRef,
-    private ids: ImageDimService,
+    private imgs: ImageService,
   ) {
     this.el.style.backgroundImage = `url("./assets/image-loading.png")`;
     this.disposers.push(autorun(() => {
@@ -80,19 +80,19 @@ export class ImageDimDirective implements OnInit, OnDestroy {
     return this.defaultHeight + 'px'
   }
 
-  @Input('appImageDim')
+  @Input('appImage')
   set url(value: string) {
     this.loading = true;
     this.loadingUrl = value;
     this.el.style.backgroundRepeat = 'no-repeat';
     this.el.style.backgroundPosition = 'center center';
     this.el.style.backgroundSize = 'unset';
-    this.ids.getImageDim(value)
-      .then((d: Dim) => {
+    this.imgs.getImage(value)
+      .then((dim: Dim) => {
         this.loading = false;
         this.el.style.backgroundImage = `url('${value}')`;
         this.el.style.backgroundSize = this.config.mobile ? 'cover' : 'contain';
-        this.dim = d;
+        this.dim = dim;
         this.onResize();
       });
   }

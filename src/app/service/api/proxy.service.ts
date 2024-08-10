@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
 import { catchError, map, Observable, of } from 'rxjs';
 import { mapRef, Ref } from '../../model/ref';
+import { Resource } from '../../model/resource';
 import { catchAll } from '../../mods/scrape';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
@@ -71,12 +72,18 @@ export class ProxyService {
     );
   }
 
-  fetch(url: string): Observable<string> {
+  fetch(url: string, thumbnail?: boolean): Observable<Resource> {
     this.cacheList.add(url);
     return this.http.get(`${this.base}`, {
-      params: params({ url }),
-      responseType: 'text'
+      params: params({ url, thumbnail }),
+      observe: 'response',
+      responseType: 'arraybuffer',
     }).pipe(
+      map(req => ({
+        url: this.getFetch(url, thumbnail),
+        mimeType: req.headers.get('Content-Type'),
+        data: req.body
+      })),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -94,6 +101,10 @@ export class ProxyService {
     if (this.config.prefetch && this.store.account.user) this.prefetch(url);
     if (thumbnail) return `${this.base}?thumbnail=true&url=${encodeURIComponent(url)}`;
     return `${this.base}?url=${encodeURIComponent(url)}`;
+  }
+
+  isProxied(url?: string) {
+    return url && url.startsWith(this.base);
   }
 
   defaults(): Observable<any> {

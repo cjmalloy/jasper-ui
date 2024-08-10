@@ -1,8 +1,8 @@
-import { ImageDimDirective } from './image-dim.directive';
+import { ImageDirective } from './image.directive';
 
-describe('ImageDimDirective', () => {
+describe('ImageDirective', () => {
   it('should create an instance', () => {
-    const directive = new ImageDimDirective(
+    const directive = new ImageDirective(
       {} as any,
       {} as any,
       { nativeElement: { style: {}}} as any,

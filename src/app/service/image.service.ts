@@ -1,4 +1,8 @@
 import { Injectable } from '@angular/core';
+import { firstValueFrom, map } from 'rxjs';
+import { Resource } from '../model/resource';
+import { getSearchParams } from '../util/http';
+import { ProxyService } from './api/proxy.service';
 
 export interface Dim {
   width: number;
@@ -16,20 +20,15 @@ export function width(height: number, ar: Dim) {
 @Injectable({
   providedIn: 'root'
 })
-export class ImageDimService {
+export class ImageService {
 
   private cache = new Map<string, Dim>();
 
-  constructor() { }
-
-  async getImageDim(url: string): Promise<Dim> {
-    if (!this.cache.has(url)) {
-      return this.load(url);
-    }
-    return this.cache.get(url)!;
+  async getImage(url: string): Promise<Dim> {
+    return this.cache.get(url) || this.loadUrl(url);
   }
 
-  private async load(url: string): Promise<Dim> {
+  private async loadUrl(url: string): Promise<Dim> {
     return new Promise((resolve, reject) => {
       const image = new Image();
       image.src = url;
@@ -42,6 +41,6 @@ export class ImageDimService {
         resolve(dim);
       }
       image.onerror = (event) => reject(event);
-    })
+    });
   }
 }

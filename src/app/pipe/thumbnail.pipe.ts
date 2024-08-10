@@ -22,13 +22,13 @@ export class ThumbnailPipe implements PipeTransform {
     for (const ref of refs) {
       if (!ref) continue;
       for (const plugin of ['plugin/thumbnail', 'plugin/image', 'plugin/video']) {
-        if (refUrl(ref, plugin)) return of(cssUrl(this.fetchUrl(refUrl(ref, plugin), plugin)));
+        if (refUrl(ref, plugin)) return of(this.fetchUrl(refUrl(ref, plugin), plugin));
       }
       if (hasTag('plugin/embed', ref)) {
         return this.store.get(ref.plugins?.['plugin/embed']?.url || ref.url).pipe(
           map(oembed => {
             if (oembed?.thumbnail_url) {
-              return cssUrl(this.fetchUrl(oembed.thumbnail_url, 'plugin/thumbnail'));
+              return this.fetchUrl(oembed.thumbnail_url, 'plugin/thumbnail');
             }
             return '';
           }),
@@ -36,13 +36,13 @@ export class ThumbnailPipe implements PipeTransform {
       }
       const embedPlugins = this.admin.getEmbeds(ref);
       for (const plugin of ['plugin/image', 'plugin/video']) {
-        if (embedPlugins.includes(plugin)) return of(cssUrl(this.fetchUrl(ref.url, plugin)));
+        if (embedPlugins.includes(plugin)) return of(this.fetchUrl(ref.url, plugin));
       }
     }
     if (force) {
       for (const ref of refs) {
         if (!ref) continue;
-        return of(cssUrl(this.fetchUrl(ref.url, 'plugin/image')));
+        return of(this.fetchUrl(ref.url, 'plugin/image'));
       }
     }
     return of('');
@@ -60,9 +60,4 @@ export class ThumbnailPipe implements PipeTransform {
 
 function refUrl(ref: Ref, plugin: string) {
   return ref.plugins?.[plugin]?.url;
-}
-
-function cssUrl(url: string | null) {
-  if (!url) return '';
-  return `url("${url}")`;
 }

@@ -78,7 +78,7 @@ import { ViewerComponent } from './component/viewer/viewer.component';
 import { ActionLabelDirective } from './directive/action-label.directive';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { FillWidthDirective } from './directive/fill-width.directive';
-import { ImageDimDirective } from './directive/image-dim.directive';
+import { ImageDirective } from './directive/image.directive';
 import { InputDoneDirective } from './directive/input-done.directive';
 import { LimitWidthDirective } from './directive/limit-width.directive';
 import { MdPostDirective } from './directive/md-post.directive';
@@ -140,6 +140,7 @@ import { SubmitWebPage } from './page/submit/web/web.component';
 import { TagPage } from './page/tag/tag.component';
 import { TagsPage } from './page/tags/tags.component';
 import { UserPage } from './page/user/user.component';
+import { CssUrlPipe } from './pipe/css-url.pipe';
 import { PluginsPipe } from './pipe/plugins.pipe';
 import { SafePipe } from './pipe/safe.pipe';
 import { ThumbnailPipe } from './pipe/thumbnail.pipe';
@@ -228,6 +229,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     ViewerComponent,
     SafePipe,
     ThumbnailPipe,
+    CssUrlPipe,
     ResizeDirective,
     LoginPage,
     LoginPopupComponent,
@@ -276,7 +278,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     FileComponent,
     RouterActivateDirective,
     SelectPluginComponent,
-    ImageDimDirective,
+    ImageDirective,
     ResizeHandleDirective,
     PluginListComponent,
     TemplateListComponent,
