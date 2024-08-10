@@ -27,7 +27,7 @@ export class RefAltsComponent implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     query.clear();
-    runInAction(() => store.view.defaultSort = 'modified');
+    runInAction(() => store.view.defaultSort = ['modified']);
   }
 
   ngOnInit(): void {

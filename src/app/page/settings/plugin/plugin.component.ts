@@ -30,7 +30,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
     private plugins: PluginService,
   ) {
     mod.setTitle($localize`Settings: Plugins`);
-    store.view.clear('tag', 'tag');
+    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
     query.clear();
   }
 

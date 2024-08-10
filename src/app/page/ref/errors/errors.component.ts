@@ -38,7 +38,7 @@ export class RefErrorsComponent {
     private refs: RefService,
   ) {
     query.clear();
-    runInAction(() => store.view.defaultSort = 'published');
+    runInAction(() => store.view.defaultSort = ['published']);
   }
 
   ngOnInit(): void {

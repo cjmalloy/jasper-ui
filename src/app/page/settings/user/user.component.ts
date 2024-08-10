@@ -27,7 +27,7 @@ export class SettingsUserPage implements OnInit, OnDestroy {
     public query: UserStore,
   ) {
     mod.setTitle($localize`Settings: User Profiles`);
-    store.view.clear('tag', 'tag');
+    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
     scim.clear();
     query.clear();
   }

@@ -26,7 +26,7 @@ export class HomePage implements OnInit, OnDestroy {
     private exts: ExtService,
   ) {
     mod.setTitle($localize`Home`);
-    store.view.clear(!!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay' : 'published');
+    store.view.clear([!!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay' : 'published']);
     query.clear();
     if (admin.getTemplate('home')) {
       exts.getCachedExt('home').subscribe(x => this.store.view.exts = [x]);

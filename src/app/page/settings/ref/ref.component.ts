@@ -28,7 +28,7 @@ export class SettingsRefPage implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     mod.setTitle($localize`Settings: `);
-    store.view.clear('modified');
+    store.view.clear(['modified']);
     query.clear();
   }
 

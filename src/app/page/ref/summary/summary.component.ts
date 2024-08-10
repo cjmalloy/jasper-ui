@@ -36,7 +36,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   ) {
     query.clear();
     thread.clear();
-    runInAction(() => store.view.defaultSort = 'modified,DESC');
+    runInAction(() => store.view.defaultSort = ['modified,DESC']);
   }
 
   ngOnInit(): void {

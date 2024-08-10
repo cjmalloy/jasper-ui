@@ -34,10 +34,13 @@ export class TagPage implements OnInit, OnDestroy {
   ) {
     this.disposers.push(autorun(() => this.mod.setTitle(this.store.view.name)));
     runInAction(() => {
-      this.store.view.clear(
-        !!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay'
-          : this.store.view.tag.includes('*') ? 'published'
-          : 'created');
+      this.store.view.clear([
+        !!this.admin.getPlugin('plugin/vote/up')
+        ? 'voteScoreDecay'
+        : this.store.view.tag.includes('*')
+        ? 'published'
+        : 'created'
+      ]);
       this.store.view.extTemplates = this.admin.tmplView;
     });
     this.disposers.push(autorun(() => {

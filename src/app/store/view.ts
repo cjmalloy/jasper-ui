@@ -1,4 +1,4 @@
-import { uniq } from 'lodash-es';
+import { isEqual, uniq } from 'lodash-es';
 import { action, autorun, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
@@ -33,8 +33,8 @@ export class ViewStore {
   defaultPageSize = 24;
   defaultKanbanLoadSize = 8;
   defaultBlogPageSize = 5;
-  defaultSort: RefSort | TagSort = 'published';
-  defaultSearchSort: RefSort | TagSort = 'rank';
+  defaultSort: RefSort[] | TagSort[] = ['published'];
+  defaultSearchSort: RefSort[] | TagSort[] = ['rank'];
   ref?: Ref = {} as any;
   top?: Ref = {} as any;
   lastSelected?: Ref = {} as any;
@@ -74,7 +74,7 @@ export class ViewStore {
     this.lastSelected = undefined;
   }
 
-  clear(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {
+  clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
     this.ref = undefined;
     this.top = undefined;
     this.versions = 0;
@@ -85,7 +85,7 @@ export class ViewStore {
     this.defaultSearchSort = defaultSearchSort;
   }
 
-  clearRef(defaultSort: RefSort | TagSort = 'published', defaultSearchSort: RefSort | TagSort = 'rank') {
+  clearRef(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
     this.ref = undefined;
     this.top = undefined;
     this.versions = 0;
@@ -345,14 +345,15 @@ export class ViewStore {
 
   get viewExtSort() {
     if (!['tag', 'home'].includes(this.current!)) return undefined;
-    return this.viewExt?.config?.defaultSort;
+    // TODO: Multiple ext default sorts
+    return this.viewExt?.config?.defaultSort && [this.viewExt?.config?.defaultSort];
   }
 
   get sort() {
     const sort = this.route.routeSnapshot?.queryParams['sort'];
     if (!sort) {
       if (this.search && this.defaultSearchSort) return [this.defaultSearchSort];
-      return [this.viewExtSort || this.defaultSort];
+      return this.viewExtSort || this.defaultSort;
     }
     if (!Array.isArray(sort)) return [sort]
     return sort;
@@ -360,8 +361,8 @@ export class ViewStore {
 
   get isSorted() {
     if (this.sort.length > 1) return true;
-    if (this.search && this.defaultSearchSort) return this.sort[0] !== this.defaultSearchSort;
-    return this.sort[0] !== (this.viewExtSort || this.defaultSort);
+    if (this.search && this.defaultSearchSort) return !isEqual(this.sort, this.defaultSearchSort);
+    return !isEqual(this.sort, this.defaultSort);
   }
 
   get isVoteSorted() {

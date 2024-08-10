@@ -39,7 +39,7 @@ export class RefThreadComponent {
     private refs: RefService,
   ) {
     query.clear();
-    runInAction(() => store.view.defaultSort = 'published,ASC');
+    runInAction(() => store.view.defaultSort = ['published,ASC']);
   }
 
   ngOnInit(): void {

@@ -30,7 +30,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
     private templates: TemplateService,
   ) {
     mod.setTitle($localize`Settings: Templates`);
-    store.view.clear('tag', 'tag');
+    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
     query.clear();
   }
 

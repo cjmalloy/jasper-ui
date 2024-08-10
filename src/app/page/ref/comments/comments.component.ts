@@ -26,7 +26,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
     private admin: AdminService,
   ) {
     thread.clear();
-    runInAction(() => store.view.defaultSort = 'published');
+    runInAction(() => store.view.defaultSort = ['published']);
   }
 
   ngOnInit(): void {

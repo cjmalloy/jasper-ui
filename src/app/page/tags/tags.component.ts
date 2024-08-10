@@ -32,7 +32,7 @@ export class TagsPage implements OnInit, OnDestroy {
     private exts: ExtService,
   ) {
     mod.setTitle($localize`Tags`);
-    store.view.clear('modified,DESC', 'name,ASC');
+    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
     query.clear();
   }
 

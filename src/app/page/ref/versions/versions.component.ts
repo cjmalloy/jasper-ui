@@ -23,7 +23,7 @@ export class RefVersionsComponent implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     query.clear();
-    runInAction(() => store.view.defaultSort = 'published');
+    runInAction(() => store.view.defaultSort = ['published']);
   }
 
   ngOnInit(): void {

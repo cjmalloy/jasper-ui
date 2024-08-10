@@ -24,7 +24,7 @@ export class InboxAlarmsPage implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     mod.setTitle($localize`Inbox: Alarms`);
-    store.view.clear('modified');
+    store.view.clear(['modified']);
     query.clear();
   }
 

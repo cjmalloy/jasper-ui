@@ -24,7 +24,7 @@ export class InboxAllPage implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     mod.setTitle($localize`Inbox: All`);
-    store.view.clear('modified');
+    store.view.clear(['modified']);
     query.clear();
   }
 
