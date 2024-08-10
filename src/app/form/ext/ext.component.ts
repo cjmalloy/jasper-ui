@@ -83,7 +83,7 @@ export class ExtFormComponent implements OnInit {
 
   get sortDir() {
     if (!this.defaultSort.value.includes(',')) return defaultDesc.includes(this.defaultSort.value) ? 'DESC' : 'ASC';
-    return this.defaultSort.value.split(',')[1];
+    return this.defaultSort.value.split(',')[1].toUpperCase();
   }
 
   setSortCol(value: string) {

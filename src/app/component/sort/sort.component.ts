@@ -138,6 +138,6 @@ export class SortComponent implements OnChanges, OnDestroy {
 
   sortDir(sort: string) {
     if (!sort.includes(',')) return defaultDesc.includes(sort) ? 'DESC' : 'ASC';
-    return sort.split(',')[1];
+    return sort.split(',')[1].toUpperCase();
   }
 }
