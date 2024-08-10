@@ -25,7 +25,7 @@ export class ConfigService {
   support = '+support';
   allowedSchemes = ['http:', 'https:', 'ftp:', 'tel:', 'mailto:', 'magnet:'];
   modSeals = ['seal', '+seal', 'seal', '_moderated'];
-  editorSeals = ['qc'];
+  editorSeals = ['plugin/qc'];
 
   maxPlugins = 1000;
   maxTemplates = 1000;
@@ -52,7 +52,7 @@ export class ConfigService {
 
   @memo
   get base() {
-    return document.getElementsByTagName('base')[0].href
+    return document.getElementsByTagName('base')[0].href;
   }
 
   get loginLink() {

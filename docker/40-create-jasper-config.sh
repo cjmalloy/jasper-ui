@@ -21,6 +21,8 @@ config="
   \"websockets\": ${JASPER_WEBSOCKETS-true},
   \"support\": \"${JASPER_SUPPORT-"+support"}\",
   \"allowedSchemes\": ${JASPER_ALLOWED_SCHEMES-[\"http:\", \"https:\", \"ftp:\", \"tel:\", \"mailto:\", \"magnet:\"]},
+  \"modSeals\": ${JASPER_MOD_SEALS-[\"seal\", \"+seal\", \"seal\", \"_moderated\"]},
+  \"editorSeals\": ${JASPER_EDITOR_SEALS-[\"plugin/qc\"]},
   \"maxPlugins\": ${JASPER_MAX_PLUGINS-0},
   \"maxTemplates\": ${JASPER_MAX_TEMPLATES-0},
   \"maxOrigins\": ${JASPER_MAX_ORIGINS-0},
