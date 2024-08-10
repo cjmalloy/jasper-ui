@@ -359,6 +359,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
+  get currentRef() {
+    return this.repost ? this.repostRef : this.ref;
+  }
+
+  @memo
+  get bareRef() {
+    return this.bareRepost ? this.repostRef : this.ref;
+  }
+
+  @memo
   get commentNoTitle() {
     if (this.altText) return false;
     return this.bareRef?.title && this.bareRef?.comment || hasComment(this.bareRef?.comment || '');
@@ -630,16 +640,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (this.thread) return 'thread';
     if (this.comment) return 'comments';
     return undefined;
-  }
-
-  @memo
-  get currentRef() {
-    return this.repost ? this.repostRef : this.ref;
-  }
-
-  @memo
-  get bareRef() {
-    return this.bareRepost ? this.repostRef : this.ref;
   }
 
   @memo

@@ -71,6 +71,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   @Input()
   ref!: Ref;
 
+  repostRef?: Ref;
   editForm: UntypedFormGroup;
   submitted = false;
   icons: Icon[] = [];
@@ -127,6 +128,14 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
     this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
+    if (this.repost) {
+      if (this.ref && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
+        this.refs.get(this.url, this.ref.origin).subscribe(ref => {
+          this.repostRef = ref;
+          MemoCache.clear(this);
+        });
+      }
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -144,6 +153,31 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
+  }
+
+  @memo
+  get repost() {
+    return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
+  }
+
+  @memo
+  get bareRepost() {
+    return this.repost && !this.ref.title && !this.ref.comment;
+  }
+
+  @memo
+  get currentRef() {
+    return this.repost ? this.repostRef : this.ref;
+  }
+
+  @memo
+  get bareRef() {
+    return this.bareRepost ? this.repostRef : this.ref;
+  }
+
+  @memo
+  get url() {
+    return this.repost ? this.ref.sources![0] : this.ref.url;
   }
 
   @memo
@@ -206,6 +240,12 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     const plugin = this.admin.getPlugin('plugin/archive');
     if (!plugin) return null;
     return this.ref.plugins?.['plugin/archive']?.url || findArchive(plugin, this.ref);
+  }
+
+  @memo
+  get file() {
+    return this.admin.getPlugin('plugin/file') &&
+      hasTag('plugin/file', this.currentRef);
   }
 
   @memo
