@@ -145,6 +145,28 @@ export const imageTemplate: Template = {
         }
       }
     `,
+    advancedForm: [{
+      key: 'defaultExpanded',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Default Expanded:`,
+      },
+    }, {
+      key: 'hideEdit',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Hide Edit:`,
+      },
+    }, {
+      key: 'disableResize',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Disable Resize:`,
+      },
+    }],
   },
   defaults: {
     defaultExpanded: true,

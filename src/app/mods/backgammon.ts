@@ -1,3 +1,4 @@
+import { $localize } from '@angular/localize/init';
 import * as moment from 'moment';
 import { Plugin } from "../model/plugin";
 import { Mod } from '../model/tag';
@@ -102,6 +103,14 @@ export const backgammonTemplate: Template = {
         }
       }
     `,
+    advancedForm: [{
+      key: 'defaultExpanded',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Default Expanded:`,
+      },
+    }],
   },
   defaults: {
     defaultExpanded: true,

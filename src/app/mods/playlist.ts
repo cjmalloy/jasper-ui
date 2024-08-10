@@ -1,3 +1,4 @@
+import { $localize } from '@angular/localize/init';
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Template } from '../model/template';
@@ -58,6 +59,14 @@ export const playlistTemplate: Template = {
         }
       }
     `,
+    advancedForm: [{
+      key: 'defaultExpanded',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Default Expanded:`,
+      },
+    }],
   },
   defaults: {
     defaultExpanded: true,
