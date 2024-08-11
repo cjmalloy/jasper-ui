@@ -164,7 +164,7 @@
         @if (expanded && expandInline && !editing && !viewSource) {
           <app-viewer class="viewer-inline"
                       [ref]="bareRef"
-                      [tags]="plugins || expandPlugins"
+                      [tags]="plugins"
                       [disableResize]="disableResize"
                       (contextmenu)="unlockViewer($event)"
                       (copied)="copied.emit($event)"></app-viewer>
@@ -306,7 +306,7 @@
 <app-viewer *ngIf="expanded && !expandInline && !editing && !viewSource"
             class="viewer-below"
             [ref]="bareRef"
-            [tags]="plugins || expandPlugins"
+            [tags]="plugins"
             [disableResize]="disableResize"
             (contextmenu)="unlockViewer($event)"
             (copied)="copied.emit($event)"></app-viewer>
