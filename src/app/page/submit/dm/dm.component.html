@@ -42,12 +42,11 @@
       <div #fill>
         <app-editor class="bubble"
                     [control]="comment"
-                    (focusin)="setDefaultTitle()"
                     [fillWidth]="fill"
                     (syncEditor)="syncEditor()"
                     [tags]="$any(dmForm.value).tags"
                     (syncTags)="editorTags = $event"
-                    [autoFocus]="!!store.submit.to.length"></app-editor>
+                    [autoFocus]="true"></app-editor>
       </div>
     }
 

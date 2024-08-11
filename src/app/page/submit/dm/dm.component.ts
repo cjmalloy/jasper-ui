@@ -10,6 +10,7 @@ import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
+import { Plugin } from '../../../model/plugin';
 import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -37,8 +38,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   dmForm: UntypedFormGroup;
   serverError: string[] = [];
 
-  defaultTo?: string;
-  defaultNotes = $localize`Notes: ${moment().format('dddd, MMMM Do YYYY, h:mm:ss a')}`;
   loadedParams = false;
 
   @ViewChild('fill')
@@ -82,7 +81,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     this.disposers.push(autorun(() => {
       if (this.store.submit.dmPlugin) {
         this.setTo(this.store.submit.dmPlugin);
-        this.title.setValue(this.admin.getPlugin(this.store.submit.dmPlugin)?.config?.submitDm || $localize`Chat with ` + this.store.submit.dmPlugin);
       } if (this.store.submit.to.length) {
         this.setTo(this.store.submit.to.join(' '));
       } else {
@@ -92,20 +90,13 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       if (this.store.submit.sources) {
         this.sources.setValue(this.store.submit.sources)
       }
-      const tags = ['internal', 'plugin/thread', ...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+      const tags = ['plugin/thread', ...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
       const added = without(tags, ...this.oldSubmit);
       const removed = without(this.oldSubmit, ...tags);
       if (added.length || removed.length) {
         const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
         this.tags!.setTags(newTags);
         this.oldSubmit = tags;
-      }
-      if (!this.to.value || hasPrefix(this.to.value, 'user')) {
-        this.defaultTo = $localize`DM from ${this.store.account.tag}`;
-      } else if (this.to.value === this.config.support) {
-        this.defaultTo = $localize`Support Request`;
-      } else {
-        this.defaultTo = $localize`Message to Moderators of ${this.to.value}`;
       }
       this.loadedParams = true;
     }));
@@ -162,8 +153,10 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
           Must not or contain two forward slashes or periods in a row.
           (i.e. "+user/bob", "plugin/outbox/dictionary/science", or "_user/charlie@jasperkm.info")`);
         input.reportValidity();
+        return;
       }
     }
+    this.setTo(input.value);
   }
 
   syncTags(value: string[]) {
@@ -178,11 +171,11 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   changedTo(value: string) {
     const notes = !value || value === this.store.account.tag;
     if (notes && !this.tags?.includesTag('notes')) {
-      const newTags = uniq([...without(this.tags!.tags!.value, ...['dm', ...this.addedMailboxes]), 'notes']);
+      const newTags = uniq([...without(this.tags!.tags!.value, ...['dm', 'internal', ...this.addedMailboxes]), 'notes']);
       this.tags!.setTags(newTags);
       this.addedMailboxes = [];
     } else if (!notes) {
-      const mailboxes = ['dm', ...value.split(/\s+/).flatMap((t: string) => this.getMailboxes(t))];
+      const mailboxes = ['dm', 'internal', ...value.split(/\s+/).flatMap((t: string) => this.getMailboxes(t))];
       const added = without(mailboxes, ...this.addedMailboxes);
       const removed = without(this.addedMailboxes, ...mailboxes);
       const newTags = uniq([...without(this.tags!.tags!.value, ...removed, 'notes'), ...added]);
@@ -196,7 +189,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get editingViewer() {
-    return some(this.admin.editingViewer, t => this.tags?.includesTag(t.tag));
+    return some(this.admin.editingViewer, (t: Plugin) => this.tags?.includesTag(t.tag));
   }
 
   syncEditor() {
@@ -232,17 +225,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       delete this.submitting;
       this.dmForm.markAsPristine();
       this.router.navigate(['/ref', url, 'thread'], { queryParams: { published }});
-    });
-  }
-
-  setDefaultTitle() {
-    defer(() => {
-      if (!this.loadedParams) {
-        this.setDefaultTitle();
-        return;
-      }
-      if (this.title.value && ![this.defaultTo, this.defaultNotes].includes(this.title.value)) return;
-      this.title.setValue(this.notes ? this.defaultNotes : this.defaultTo);
     });
   }
 }

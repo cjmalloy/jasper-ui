@@ -40,10 +40,9 @@ export interface Plugin extends Config {
      */
     responseButton?: string,
     /**
-     * Add a DM tab to the submit page to create a DM to this tag, with
-     * submitDm as the title of the message.
+     * Add a DM tab to the submit page to create a DM to this tag.
      */
-    submitDm?: string,
+    submitDm?: boolean,
     /**
      * Add plugin to text dropdown.
      */
