@@ -217,7 +217,7 @@ export class AdminService {
   get firstRun$(): Observable<any> {
     if (!this.store.account.admin || this.store.account.ext) return of(null);
     if (Object.values(this.status.plugins).filter(p => !!p).length > 0) return of(null);
-    if (Object.values(this.status.templates).filter(t => !!t).length > 0) return of(null);
+    if (Object.values(this.status.templates).filter(t => !!t && !t.tag.startsWith('_config/')).length > 0) return of(null);
 
     const installs = this.defaultPlugins.map(p => this.plugins.create({
       ...p,
