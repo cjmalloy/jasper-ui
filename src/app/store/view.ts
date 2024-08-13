@@ -352,8 +352,8 @@ export class ViewStore {
   get sort() {
     const sort = this.route.routeSnapshot?.queryParams['sort'];
     if (!sort) {
-      if (this.search && this.defaultSearchSort) return [this.defaultSearchSort];
-      return this.viewExtSort || this.defaultSort;
+      if (this.search && this.defaultSearchSort) return this.defaultSearchSort;
+      return this.viewExtSort || this.defaultSort || [];
     }
     if (!Array.isArray(sort)) return [sort]
     return sort;
@@ -366,7 +366,7 @@ export class ViewStore {
   }
 
   get isVoteSorted() {
-    return this.sort[0].startsWith('vote');
+    return this.sort[0]?.startsWith('vote');
   }
 
   get filter(): UrlFilter[] {
