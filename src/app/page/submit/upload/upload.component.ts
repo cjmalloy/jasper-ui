@@ -144,7 +144,7 @@ export class UploadPage implements OnDestroy {
           this.store.submit.addExts(...(models.ext || []));
           this.store.submit.addRefs(...(models.ref || []));
         })
-        .catch(() => null);
+        .catch(e => window.alert(e));
     }
   }
 
