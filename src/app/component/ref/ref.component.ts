@@ -364,6 +364,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
+  get currentTags() {
+    return uniq([...(this.repost ? this.repostRef?.tags : this.ref.tags) || [], ...this.expandPlugins]);
+  }
+
+  @memo
   get bareRef() {
     return this.bareRepost ? this.repostRef : this.ref;
   }
