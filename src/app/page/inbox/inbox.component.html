@@ -25,7 +25,7 @@
          i18n-title title="Direct Messages"
          i18n>dms</a>
     }
-    @if (admin.getPlugin('plugin/modlist')) {
+    @if (admin.getTemplate('_moderated')) {
       <a routerLink="./modlist" routerLinkActive="current-tab"
          i18n-title title="Moderation List"
          i18n>modlist</a>

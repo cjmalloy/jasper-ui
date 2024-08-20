@@ -700,10 +700,8 @@ export class AdminService {
   getTemplate(tag: string) {
     if (this.status.templates[tag]) return this.status.templates[tag];
     return Object.values(this.status.templates).find(t => {
-      tag = tag.replace('+', '');
-      if (t?.tag === tag) return true;
-      tag = tag.replace('_', '');
-      return t?.tag === tag;
+      if (t?.tag === tag.replace('+', '')) return true;
+      return t?.tag === tag.replace('_', '');
     });
   }
 
