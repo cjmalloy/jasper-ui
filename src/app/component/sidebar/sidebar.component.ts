@@ -199,6 +199,11 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   @memo
+  get canAddTag() {
+    return !this.plugin?.tag || this.auth.canAddTag(this.plugin.tag);
+  }
+
+  @memo
   get user() {
     return !!this.admin.getTemplate('user') && hasPrefix(this.tag, 'user') && !this.store.view.userTemplate;
   }
