@@ -26,7 +26,7 @@ export class InboxModlistPage implements OnInit, OnDestroy {
     private router: Router,
   ) {
     if (!this.store.view.filter.length) {
-      this.router.navigate([], { queryParams: { filter: ['query/public', 'query/!(internal)'] }, replaceUrl: true });
+      this.router.navigate([], { queryParams: { filter: ['query/!_moderated', 'query/public', 'query/!(internal)'] }, replaceUrl: true });
     }
     mod.setTitle($localize`Inbox: Modlist`);
     store.view.clear(['modified']);
@@ -36,7 +36,7 @@ export class InboxModlistPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        '!_moderated:' + (this.store.account.origin || '*'),
+        this.store.account.origin || '*',
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,
