@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { Plugin } from '../../../model/plugin';
@@ -68,3 +68,8 @@ export class SettingsRefPage implements OnInit, OnDestroy {
     }
   }
 }
+
+export const getSettings = () => {
+  const auth = inject(AuthzService);
+  return inject(AdminService).settings.find(p => auth.tagReadAccess(p.tag))?.tag || '';
+};

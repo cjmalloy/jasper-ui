@@ -44,15 +44,6 @@ export class SettingsMePage implements HasChanges {
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);
     defer(() => this.form!.setValue(ext));
-    if (!admin.getTemplate('user') || !store.account.localTag) {
-      let defaultPath = ['/settings/plugin'];
-      if (store.account.admin) {
-        defaultPath = ['/settings/setup'];
-      } else if (store.settings.plugins.length) {
-        defaultPath = ['/settings/ref/', store.settings.plugins[0].tag];
-      }
-      router.navigate(defaultPath, { replaceUrl: true });
-    }
   }
 
   saveChanges() {

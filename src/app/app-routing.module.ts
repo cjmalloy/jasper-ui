@@ -1,6 +1,8 @@
 import { Location } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { DefaultUrlSerializer, RouterModule, Routes, UrlSerializer, UrlTree } from '@angular/router';
+import { conditionGuard } from './guard/condition.guard';
+import { hasRoleGuard } from './guard/has-role.guard';
 import { installedModGuard } from './guard/installed-mod.guard';
 import { clearLastSelected } from './guard/last-selected.guard';
 import { pendingChangesGuard } from './guard/pending-changes.guard';
@@ -27,7 +29,7 @@ import { SettingsBackupPage } from './page/settings/backup/backup.component';
 import { SettingsMePage } from './page/settings/me/me.component';
 import { SettingsPasswordPage } from './page/settings/password/password.component';
 import { SettingsPluginPage } from './page/settings/plugin/plugin.component';
-import { SettingsRefPage } from './page/settings/ref/ref.component';
+import { getSettings, SettingsRefPage } from './page/settings/ref/ref.component';
 import { SettingsPage } from './page/settings/settings.component';
 import { SettingsSetupPage } from './page/settings/setup/setup.component';
 import { SettingsTemplatePage } from './page/settings/template/template.component';
@@ -168,7 +170,7 @@ const routes: Routes = [
     component: InboxPage,
     children: [
       { path: '', redirectTo: 'dms', pathMatch: 'full' },
-      { path: 'dms', component: InboxDmsPage, canActivate: [installedModGuard('dm', '../all')], canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'dms', component: InboxDmsPage, canActivate: [installedModGuard('dm', ['../all'])], canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'all', component: InboxAllPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'unread', component: InboxUnreadPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'sent', component: InboxSentPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
@@ -190,13 +192,13 @@ const routes: Routes = [
     component: SettingsPage,
     children: [
       { path: '', redirectTo: 'me', pathMatch: 'full' },
-      { path: 'me', component: SettingsMePage, canDeactivate: [pendingChangesGuard] },
+      { path: 'me', component: SettingsMePage, canActivate: [installedModGuard('user', ['../setup'])], canDeactivate: [pendingChangesGuard] },
+      { path: 'setup', component: SettingsSetupPage, canActivate: [hasRoleGuard('admin', ['../ref', getSettings])], canDeactivate: [pendingChangesGuard] },
+      { path: 'ref/:tag', component: SettingsRefPage, canActivate: [conditionGuard(getSettings, ['../../user'])], canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'user', component: SettingsUserPage, canDeactivate: [pendingChangesGuard] },
-      { path: 'ref/:tag', component: SettingsRefPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'plugin', component: SettingsPluginPage, canDeactivate: [pendingChangesGuard] },
       { path: 'template', component: SettingsTemplatePage, canDeactivate: [pendingChangesGuard] },
       { path: 'password', component: SettingsPasswordPage },
-      { path: 'setup', component: SettingsSetupPage, canDeactivate: [pendingChangesGuard] },
       { path: 'backup', component: SettingsBackupPage },
     ],
   },
@@ -206,7 +208,7 @@ const routes: Routes = [
   imports: [RouterModule.forRoot(routes, {
     paramsInheritanceStrategy: 'always',
     onSameUrlNavigation: 'reload',
-    enableTracing: false,
+    enableTracing: true,
   })],
   exports: [RouterModule],
   providers: [{ provide: UrlSerializer, useClass: CustomUrlSerializer }]
