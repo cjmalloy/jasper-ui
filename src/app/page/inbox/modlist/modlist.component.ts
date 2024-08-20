@@ -1,4 +1,5 @@
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { AdminService } from '../../../service/admin.service';
@@ -22,7 +23,11 @@ export class InboxModlistPage implements OnInit, OnDestroy {
     public admin: AdminService,
     public store: Store,
     public query: QueryStore,
+    private router: Router,
   ) {
+    if (!this.store.view.filter.length) {
+      this.router.navigate([], { queryParams: { filter: ['query/public', 'query/!(internal)'] }, replaceUrl: true });
+    }
     mod.setTitle($localize`Inbox: Modlist`);
     store.view.clear(['modified']);
     query.clear();
@@ -31,7 +36,7 @@ export class InboxModlistPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        '!_moderated',
+        '!_moderated:' + (this.store.account.origin || '*'),
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,
