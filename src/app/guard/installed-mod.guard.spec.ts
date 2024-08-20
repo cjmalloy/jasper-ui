@@ -5,7 +5,7 @@ import { installedModGuard } from './installed-mod.guard';
 
 describe('installedModGuard', () => {
   const executeGuard: CanActivateFn = (...guardParameters) =>
-      TestBed.runInInjectionContext(() => installedModGuard('mod', '../other')(...guardParameters));
+      TestBed.runInInjectionContext(() => installedModGuard('mod', ['../other'])(...guardParameters));
 
   beforeEach(() => {
     TestBed.configureTestingModule({});

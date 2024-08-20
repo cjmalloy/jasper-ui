@@ -4,8 +4,8 @@ import { CanActivateFn } from '@angular/router';
 import { hasRoleGuard } from './has-role.guard';
 
 describe('hasRoleGuard', () => {
-  const executeGuard: CanActivateFn = (...guardParameters) => 
-      TestBed.runInInjectionContext(() => hasRoleGuard(...guardParameters));
+  const executeGuard: CanActivateFn = (...guardParameters) =>
+      TestBed.runInInjectionContext(() => hasRoleGuard('admin', ['../other'])(...guardParameters));
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
