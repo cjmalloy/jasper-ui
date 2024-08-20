@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { DefaultUrlSerializer, RouterModule, Routes, UrlSerializer, UrlTree } from '@angular/router';
+import { installedModGuard } from './guard/installed-mod.guard';
 import { clearLastSelected } from './guard/last-selected.guard';
 import { pendingChangesGuard } from './guard/pending-changes.guard';
 import { ExtPage } from './page/ext/ext.component';
@@ -166,12 +167,12 @@ const routes: Routes = [
     path: 'inbox',
     component: InboxPage,
     children: [
-      { path: '', redirectTo: 'all', pathMatch: 'full' },
+      { path: '', redirectTo: 'dms', pathMatch: 'full' },
+      { path: 'dms', component: InboxDmsPage, canActivate: [installedModGuard('dm', '../all')], canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'all', component: InboxAllPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'unread', component: InboxUnreadPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'sent', component: InboxSentPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'alarms', component: InboxAlarmsPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
-      { path: 'dms', component: InboxDmsPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'modlist', component: InboxModlistPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
     ],
   },
