@@ -154,12 +154,26 @@
               </ng-container>
             </ng-template>
           </ng-container>
-          <ng-container *ngIf="local && fromOrigin" i18n>
-            from <a class="origin tag" [routerLink]="['/tag', fromOrigin]">{{ fromOrigin }}</a>
-          </ng-container>
-          <ng-container *ngIf="local && addOrigin" i18n>
-            to <a class="origin tag" [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
-          </ng-container>
+          @if (local) {
+            @if (originPull) {
+              @if (remoteOrigin) {
+                from {{ remoteOrigin }}
+              }
+              @if (localOrigin) {
+                to
+                <a class="origin tag" [routerLink]="['/tag', localOrigin]">{{ localOrigin }}</a>
+              }
+            }
+            @if (originPush) {
+              @if (localOrigin) {
+                from
+                <a class="origin tag" [routerLink]="['/tag', localOrigin]">{{ localOrigin }}</a>
+              }
+              @if (remoteOrigin) {
+                to {{ remoteOrigin }}
+              }
+            }
+          }
         </div>
         @if (expanded && expandInline && !editing && !viewSource) {
           <app-viewer class="viewer-inline"

@@ -436,19 +436,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
-  get fromOrigin() {
-    if (this.originPush) {
-      return this.ref.plugins?.['+plugin/origin']?.local;
+  get localOrigin() {
+    if (this.originPull || this.originPush) {
+      return this.ref.plugins?.['+plugin/origin']?.local && subOrigin(this.ref.origin, this.ref.plugins?.['+plugin/origin']?.local);
     }
     return undefined;
   }
 
   @memo
-  get addOrigin() {
-    if (this.originPull) {
-      return subOrigin(this.ref.origin, this.ref.plugins?.['+plugin/origin']?.local);
-    }
-    if (this.originPush) {
+  get remoteOrigin() {
+    if (this.originPull || this.originPush) {
       return this.ref.plugins?.['+plugin/origin']?.remote;
     }
     return undefined;
