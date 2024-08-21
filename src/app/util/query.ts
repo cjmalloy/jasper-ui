@@ -47,7 +47,7 @@ export function getArgs(
   }
   filters = uniq(filters);
   let queryFilter = getFiltersQuery(filters);
-  const query = queryFilter && tagOrSimpleQuery ? `(${tagOrSimpleQuery}):${queryFilter}` : tagOrSimpleQuery || queryFilter;
+  const query = queryFilter && tagOrSimpleQuery ? `${braces(tagOrSimpleQuery)}:${queryFilter}` : tagOrSimpleQuery || queryFilter;
   if (sort?.length) {
     sort = Array.isArray(sort) ? [...sort] : [sort];
     for (let i = 0; i < sort.length; i++) {
@@ -100,7 +100,7 @@ export function negate(query: string): string {
 }
 
 export function getFiltersQuery(filters: UrlFilter[] | UrlFilter){
-  return getFilters(filters).join(':');
+  return getFilters(filters).map(braces).join(':');
 }
 
 export function parseArgs(params: any): RefPageArgs {
