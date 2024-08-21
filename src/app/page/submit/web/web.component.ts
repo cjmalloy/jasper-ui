@@ -105,7 +105,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
               defer(() => this.addFeedTags(tag));
             }
             this.scrape.rss(url).subscribe(value => {
-              if (value) this.url = value;
+              this.url = value ? value : url;
             });
           }
         } else {
