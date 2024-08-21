@@ -117,7 +117,7 @@ export class RefFormComponent implements OnInit {
 
   get scrape$() {
     if (this.scraped) return of(this.scraped);
-    return this.scrape.webScrape(this.url.value).pipe(
+    return this.scrape.webScrape(this.tags.includesTag('plugin/repost') ? this.sources.links?.value?.[0] : this.url.value).pipe(
       tap(s => {
         this.scraped = s;
         if (s.modified && this.ref!.modified) {
@@ -136,7 +136,6 @@ export class RefFormComponent implements OnInit {
   }
 
   scrapeTitle() {
-    if (this.tags.includesTag('plugin/feed')) return;
     this.scrape$.pipe(
       catchError(err => of({
         url: this.url.value,
