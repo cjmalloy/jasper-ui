@@ -24,6 +24,7 @@ import { cronPlugin } from '../mods/cron';
 import { dalleMod } from '../mods/dalle';
 import { debugMod } from '../mods/debug';
 import { deletePlugin } from '../mods/delete';
+import { deltaPlugin } from '../mods/delta';
 import { htmlPlugin, latexPlugin } from '../mods/editor';
 import { emailPlugin } from '../mods/email';
 import { embedPlugin } from '../mods/embed';
@@ -104,6 +105,7 @@ export class AdminService {
       ...errorMod.plugins,
       ...remoteOriginMod.plugins,
       cronPlugin,
+      deltaPlugin,
       feedPlugin,
       deletePlugin,
       ...mailboxMod.plugins,
