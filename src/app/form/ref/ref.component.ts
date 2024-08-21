@@ -120,7 +120,7 @@ export class RefFormComponent implements OnInit {
     return this.scrape.webScrape(this.tags.includesTag('plugin/repost') ? this.sources.links?.value?.[0] : this.url.value).pipe(
       tap(s => {
         this.scraped = s;
-        if (s.modified && this.ref!.modified) {
+        if (s.modified && this.ref?.modified) {
           this.ref!.modifiedString = s.modifiedString;
           this.ref!.modified = s.modified;
           if (hasTag('_plugin/cache', s)) {
@@ -160,14 +160,24 @@ export class RefFormComponent implements OnInit {
     });
   }
 
-  scrapeComment() {
+  scrapeAll() {
     if (this.oembed) {
       // TODO: oEmbed
     } else {
       this.scrape$.subscribe(s => {
         if (!hasMedia(s) || hasMedia(this.group.value)) {
-          this.setComment(s.comment || '');
+          this.scrapeComment();
         }
+        this.scrapePlugins();
+      });
+    }
+  }
+
+  scrapePlugins() {
+    if (this.oembed) {
+      // TODO: oEmbed
+    } else {
+      this.scrape$.subscribe(s => {
         for (const t of s.tags || []) {
           if (!this.tags.includesTag(t)) this.togglePlugin(t);
         }
@@ -178,6 +188,14 @@ export class RefFormComponent implements OnInit {
           });
         });
       });
+    }
+  }
+
+  scrapeComment() {
+    if (this.oembed) {
+      // TODO: oEmbed
+    } else {
+      this.scrape$.subscribe(s => this.setComment(s.comment || ''));
     }
   }
 

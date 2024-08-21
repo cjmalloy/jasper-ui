@@ -84,7 +84,7 @@
                   [tags]="$any(group.value).tags"
                   [fillWidth]="fill"
                   [url]="web && url.value"
-                  (scrape)="scrapeComment()"
+                  (scrape)="scrapeAll()"
                   (syncEditor)="syncEditor()"
                   (syncTags)="editorTags = $event"></app-editor>
     </div>

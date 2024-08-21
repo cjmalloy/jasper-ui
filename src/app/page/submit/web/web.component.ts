@@ -23,6 +23,7 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { interestingTags } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { hasTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-web-page',
@@ -67,81 +68,76 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   ngAfterViewInit(): void {
-    defer(() => {
-      if (this.store.account.localTag) this.addTag(this.store.account.localTag);
-      this.disposers.push(autorun(() => {
-        this.addTag(...this.store.submit.tags);
-        if (this.store.submit.thumbnail) {
-          this.addPlugin('plugin/thumbnail', { url: this.store.submit.thumbnail });
-        }
-        if (this.admin.getPlugin('plugin/thumbnail') && (
-            this.store.submit.tags.includes('plugin/video') ||
-            this.store.submit.tags.includes('plugin/image'))) {
-          this.addTag('plugin/thumbnail')
-        }
-        if (this.origin) {
-          this.addTag('internal');
-          this.setTitle($localize`Replicate Remote Origin`);
-        } else if (this.feed) {
-          this.addTag('internal');
-          this.setTitle($localize`Submit: Feed`);
-        }
-        let url = this.store.submit.url.trim();
-        if (this.store.submit.repost) {
-          this.url = 'internal:' + uuid();
-          this.addTag('plugin/repost');
-          this.addSource(url);
-        } else if (this.feed) {
-          this.addFeedTags(...this.store.submit.tags);
-          if (url.startsWith('https://www.youtube.com/channel/') || url.startsWith('https://youtube.com/channel/')
-            || url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
+    if (this.store.account.localTag) this.addTag(this.store.account.localTag);
+    this.disposers.push(autorun(() => {
+      this.addTag(...this.store.submit.tags);
+      if (this.store.submit.thumbnail) {
+        this.addPlugin('plugin/thumbnail', { url: this.store.submit.thumbnail });
+      }
+      if (this.admin.getPlugin('plugin/thumbnail') && (
+          this.store.submit.tags.includes('plugin/video') ||
+          this.store.submit.tags.includes('plugin/image'))) {
+        this.addTag('plugin/thumbnail')
+      }
+      if (this.origin) {
+        this.addTag('internal');
+        this.setTitle($localize`Replicate Remote Origin`);
+      } else if (this.feed) {
+        this.addTag('internal');
+        this.setTitle($localize`Submit: Feed`);
+      }
+      let url = this.store.submit.url.trim();
+      if (this.store.submit.repost) {
+        this.url = 'internal:' + uuid();
+        this.addTag('plugin/repost');
+        this.addSource(url);
+      } else if (this.feed) {
+        if (this.store.submit.tags.includes('public')) this.addFeedTags('public');
+        this.addFeedTags(...interestingTags(this.store.submit.tags));
+        this.scrape.rss(url).subscribe(value => {
+          if (value) {
+            this.url = value;
+            this.addTag('plugin/repost');
+            this.addSource(url);
+            this.refForm!.scrapePlugins();
             if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
               const username = url.substring(url.indexOf('@'));
               this.webForm.get('title')!.setValue(username);
               const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
-              defer(() => this.addFeedTags(tag));
-              this.addTag('plugin/repost');
-              this.addSource(url);
+              this.addFeedTags(tag);
+            } else {
+              this.refForm!.scrapeTitle();
             }
           } else {
-            this.scrape.rss(url).subscribe(value => {
-              if (value) {
-                this.url = value;
-                this.addTag('plugin/repost');
-                this.addSource(url);
-              } else {
-                this.url = url;
-              }
-              defer(() => this.refForm!.scrapeTitle());
-            });
+            this.url = url;
           }
-        } else {
-          this.oembeds.get(url).subscribe(oembed => {
-            if (!oembed) {
-              defer(() => this.refForm!.scrapeTitle());
-              return;
-            }
-            if (oembed?.thumbnail_url) {
-              defer(() => this.addPlugin('plugin/thumbnail', { url: oembed.thumbnail_url }));
-            }
-            if (oembed.url && oembed.type === 'photo') {
-              defer(() => this.addPlugin('plugin/image', { url: oembed.url }));
-            } else {
-              this.addTag('plugin/embed');
-            }
-            if (oembed?.provider_name === 'Twitter') {
-              let comment = oembed.html!.replace(/(<([^>]+)>)/gi, "").trim().replace(/\s+/gi, ' ');
-              if (comment.length > 140) comment = comment.substring(0, 139) + '…';
-              this.webForm.get('comment')!.setValue(comment);
-            }
-          });
-          this.url = url;
-        }
-        if (this.store.submit.source) {
-          this.store.submit.sources.map(s => this.addSource(s));
-        }
-      }));
-    });
+        });
+      } else {
+        this.oembeds.get(url).subscribe(oembed => {
+          if (!oembed) {
+            this.refForm!.scrapeTitle();
+            return;
+          }
+          if (oembed?.thumbnail_url) {
+            this.addPlugin('plugin/thumbnail', { url: oembed.thumbnail_url });
+          }
+          if (oembed.url && oembed.type === 'photo') {
+            this.addPlugin('plugin/image', { url: oembed.url });
+          } else {
+            this.addTag('plugin/embed');
+          }
+          if (oembed?.provider_name === 'Twitter') {
+            let comment = oembed.html!.replace(/(<([^>]+)>)/gi, "").trim().replace(/\s+/gi, ' ');
+            if (comment.length > 140) comment = comment.substring(0, 139) + '…';
+            this.webForm.get('comment')!.setValue(comment);
+          }
+        });
+        this.url = url;
+      }
+      if (this.store.submit.source) {
+        this.store.submit.sources.map(s => this.addSource(s));
+      }
+    }));
   }
 
   ngOnDestroy() {
