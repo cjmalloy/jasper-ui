@@ -208,7 +208,7 @@ const routes: Routes = [
   imports: [RouterModule.forRoot(routes, {
     paramsInheritanceStrategy: 'always',
     onSameUrlNavigation: 'reload',
-    enableTracing: true,
+    enableTracing: false,
   })],
   exports: [RouterModule],
   providers: [{ provide: UrlSerializer, useClass: CustomUrlSerializer }]
