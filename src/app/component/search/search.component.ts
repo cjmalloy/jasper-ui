@@ -51,15 +51,16 @@ export class SearchComponent implements OnInit, OnDestroy {
       case 'inbox/alarms': return $localize`alarms`;
       case 'inbox/dms': return $localize`direct messages`;
       case 'inbox/modlist': return $localize`unmoderated`;
+      case 'inbox/ref': return this.admin.getPlugin(this.store.view.childTag)?.name || this.store.view.childTag;
       case 'ref/thread': return $localize`thread`;
       case 'ref/comments': return $localize`comments`;
       case 'ref/responses': return $localize`responses`;
       case 'ref/sources': return $localize`sources`;
       case 'ref/versions': return $localize`versions`;
-      case 'ext': return $localize`tag extensions`;
-      case 'user': return $localize`users`;
-      case 'plugin': return $localize`plugins`;
-      case 'template': return $localize`templates`;
+      case 'settings/user': return $localize`permissions`;
+      case 'settings/plugin': return $localize`plugins`;
+      case 'settings/template': return $localize`templates`;
+      case 'settings/ref': return this.admin.getPlugin(this.store.view.childTag)?.name || this.store.view.childTag;
     }
     return view || '';
   }

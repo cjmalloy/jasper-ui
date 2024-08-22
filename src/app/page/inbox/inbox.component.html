@@ -30,9 +30,16 @@
          i18n-title title="Moderation List"
          i18n>modlist</a>
     }
+    @for (plugin of store.view.inboxTabs; track plugin.tag) {
+      <a [routerLink]="['./ref', plugin.tag]"
+         [replaceUrl]="true"
+         routerLinkActive="current-tab"
+         queryParamsHandling="merge"
+         [title]="plugin.name || plugin.tag">{{ plugin.config?.inbox || plugin.tag }}</a>
+    }
   </app-tabs>
   @if (store.view.type) {
-    <app-sidebar></app-sidebar>
+    <app-sidebar [tag]="store.view.childTag"></app-sidebar>
   }
   <router-outlet></router-outlet>
 </ng-container>

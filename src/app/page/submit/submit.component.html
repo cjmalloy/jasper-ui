@@ -4,7 +4,7 @@
     <h5 class="fake-link" routerLink="." i18n>
       Submit
       @if (selectedPlugin) {
-        <span>{{ selectedPlugin.name || selectedPlugin.config?.submit || selectedPlugin.tag }}</span>
+        <span>{{ selectedPlugin.name || selectedPlugin.tag }}</span>
       }
     </h5>
     <a routerLink="/submit"
@@ -71,7 +71,7 @@
         @if (!store.submit.wiki && selectedPlugin) {
           <span i18n>Type:</span>
           <div>
-            <span>{{ selectedPlugin.name || selectedPlugin.config?.submit || selectedPlugin.tag }}</span>
+            <span>{{ selectedPlugin.name || selectedPlugin.tag }}</span>
             @if (selectedPlugin.config?.description) {
               <p class="description">
                 {{ selectedPlugin.config!.description }}

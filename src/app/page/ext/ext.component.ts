@@ -94,6 +94,15 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
           return;
         }
       }
+      if (tag) {
+        const template = this.admin.getTemplate(tag);
+        if (template) {
+          this.templates.unshift(template);
+          this.template = tag;
+          this.tag.setValue('')
+          return;
+        }
+      }
       this.template = '';
       this.tag.setValue(tag);
     }

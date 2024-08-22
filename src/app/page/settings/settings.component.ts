@@ -22,9 +22,9 @@ export class SettingsPage implements OnInit {
   }
 
   ngOnInit(): void {
-    if (!this.store.settings.plugins.length) {
+    if (!this.store.view.settingsTabs.length) {
       runInAction(() => {
-        this.store.settings.plugins = this.admin.settings.filter(p => this.auth.tagReadAccess(p.tag));
+        this.store.view.settingsTabs = this.admin.settings.filter(p => this.auth.tagReadAccess(p.tag));
       });
     }
   }

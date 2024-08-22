@@ -290,7 +290,7 @@ export const dallePlugin: Plugin = {
     type: 'tool',
     default: false,
     genId: true,
-    submit: '👨️‍🎨️💭️',
+    submit: true,
     submitDm: true,
     signature: '+plugin/delta/dalle',
     reply: ['plugin/delta/dalle'],

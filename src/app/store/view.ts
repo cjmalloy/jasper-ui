@@ -2,6 +2,7 @@ import { isEqual, uniq } from 'lodash-es';
 import { action, autorun, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
+import { Plugin } from '../model/plugin';
 import { Ref, RefSort } from '../model/ref';
 import { TagSort } from '../model/tag';
 import { Template } from '../model/template';
@@ -20,9 +21,9 @@ import { EventBus } from './bus';
 export type View =
   'home' | 'all' | 'local' |
   'tag' | 'tags' | 'query' |
-  'inbox/all' | 'inbox/sent' | 'inbox/alarms' | 'inbox/dms' | 'inbox/modlist' |
+  'inbox/all' | 'inbox/sent' | 'inbox/alarms' | 'inbox/dms' | 'inbox/modlist' | 'inbox/ref' |
   'ref/summary' | 'ref/comments' | 'ref/thread' | 'ref/responses' | 'ref/errors' | 'ref/sources' | 'ref/alts' | 'ref/versions' |
-  'ext' | 'user' | 'plugin' | 'template';
+  'settings/user' | 'settings/plugin' | 'settings/template' | 'settings/ref';
 
 export type Type = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
 
@@ -43,6 +44,8 @@ export class ViewStore {
   extTemplates: Template[] = [];
   selectedUser?: User = {} as any;
   updates = false;
+  inboxTabs: Plugin[] = [];
+  settingsTabs: Plugin[] = [];
 
   constructor(
     public route: RouterStore,
@@ -55,6 +58,8 @@ export class ViewStore {
       setLastSelected: action,
       exts: observable.shallow,
       extTemplates: observable.shallow,
+      inboxTabs: observable.shallow,
+      settingsTabs: observable.shallow,
     });
     this.clear(); // Initial observables may not be null for MobX
   }
@@ -198,7 +203,6 @@ export class ViewStore {
       case 'home': return 'home';
       case 'tags': return 'tags';
       case 'tag':
-        if (this.tag === '') return 'tags';
         if (this.tag === '@*') return 'all';
         if (this.tag === '*') return 'local';
         if (isQuery(this.tag)) return 'query';
@@ -217,11 +221,10 @@ export class ViewStore {
         return undefined;
       case 'settings':
         switch (s.firstChild?.routeConfig?.path) {
-          case 'ext': return 'ext';
-          case 'user': return 'user';
-          case 'plugin': return 'plugin';
-          case 'template': return 'template';
-          case 'ref/:tag': return 'tag';
+          case 'user': return 'settings/user';
+          case 'plugin': return 'settings/plugin';
+          case 'template': return 'settings/template';
+          case 'ref/:tag': return 'settings/ref';
         }
         return undefined;
       case 'inbox':
@@ -231,6 +234,7 @@ export class ViewStore {
           case 'alarms': return 'inbox/alarms';
           case 'dms': return 'inbox/dms';
           case 'modlist': return 'inbox/modlist';
+          case 'ref/:tag': return 'inbox/ref';
         }
         return undefined;
     }
@@ -243,6 +247,7 @@ export class ViewStore {
     if (this.current === 'tags') return 'ext';
     if (this.current.startsWith('ref/') ||
       this.current.startsWith('inbox/') ||
+      this.current.startsWith('settings/') ||
       this.current ==='home' ||
       this.current ==='all' ||
       this.current ==='local' ||
@@ -275,6 +280,10 @@ export class ViewStore {
 
   get tag(): string {
     return this.route.routeSnapshot?.firstChild?.params['tag'] || '';
+  }
+
+  get childTag(): string {
+    return this.route.routeSnapshot?.firstChild?.firstChild?.params['tag'] || '';
   }
 
   /**

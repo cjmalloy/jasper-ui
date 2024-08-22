@@ -41,7 +41,7 @@
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
           &nbsp;
           &nbsp;
-          {{ plugin!.config!.submit }}</label>
+          {{ plugin!.name }}</label>
         </div>
       } @else {
         <div class="submit-button" routerLink="/submit" tabindex="0"
@@ -49,7 +49,7 @@
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
           &nbsp;
           &nbsp;
-          {{ plugin?.config?.submit || '' }}</label>
+          {{ plugin?.config?.submit && plugin?.name || '' }}</label>
         </div>
       }
     }
@@ -71,7 +71,7 @@
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message
           &nbsp;
           &nbsp;
-          {{ mailPlugin.config?.submit || '' }}</label>
+          {{ mailPlugin.config?.submit && mailPlugin.name || '' }}</label>
         </div>
       } @else if (modmail || user) {
         <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
@@ -80,14 +80,14 @@
         </div>
       }
     }
-    @if (store.account.mod && store.view.current === 'user' || (writeAccess && store.view.userTemplate && store.account.tag !== store.view.template)) {
+    @if (store.account.mod && store.view.current === 'settings/user') {
       <div class="submit-button" routerLink="/user" tabindex="0">
-        <span i18n-title title="Create User" i18n>🧑️</span> <label i18n>Create User</label>
+        <span i18n-title title="Create User" i18n>🧑️</span> <label i18n>Create Permissions</label>
       </div>
     }
-    @if (writeAccess && user && store.view.current === 'user') {
+    @if (writeAccess && user && store.view.current === 'tag') {
       <div class="submit-button" [routerLink]="['/user', tag]" tabindex="0">
-        <span i18n-title title="Edit User" i18n>🧑️</span> <label i18n>Edit User</label>
+        <span i18n-title title="Edit User" i18n>🧑️</span> <label i18n>Edit Permissions</label>
       </div>
     }
     @if (writeAccess && store.view.type === 'ext') {

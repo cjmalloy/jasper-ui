@@ -22,7 +22,7 @@ export interface Plugin extends Config {
     /**
      * Add plugin to submit dropdown.
      */
-    submit?: string,
+    submit?: boolean,
     /**
      * Autogenerate URL when submitting.
      */
@@ -51,6 +51,10 @@ export interface Plugin extends Config {
      * Nest this plugin within its parent.
      */
     submitChild?: string,
+    /**
+     * Add tab on the inbox page for this plugin using this label.
+     */
+    inbox?: string,
     /**
      * Add tab on the settings page for this plugin using this label.
      */

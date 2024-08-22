@@ -26,7 +26,7 @@
     }
     <a routerLink="/tags/user"
        [queryParams]="{ noTemplate: null, home: null }"
-       routerLinkActive="current-tab"
+       [class.current-tab]="templateIs('user')"
        queryParamsHandling="merge"
        i18n-title title="🧑️ User" i18n>🧑️</a>
   </app-tabs>

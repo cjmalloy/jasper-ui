@@ -340,7 +340,7 @@ export const aiPlugin: Plugin = {
     type: 'tool',
     default: false,
     genId: true,
-    submit: '👻️💭️',
+    submit: true,
     submitDm: true,
     signature: '+plugin/delta/ai',
     reply: ['plugin/delta/ai'],

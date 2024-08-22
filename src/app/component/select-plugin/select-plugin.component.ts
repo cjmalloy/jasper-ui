@@ -58,13 +58,13 @@ export class SelectPluginComponent implements OnChanges {
   @Input()
   set plugin(value: string) {
     if (!this.select) {
-      defer(() => this.plugin = value);
+      if (value) defer(() => this.plugin = value);
     } else {
       if (!this.plugins.find(p => p?.tag === value)) {
         const plugin = this.admin.getPlugin(value);
         if (plugin) {
           this.plugins.unshift(plugin);
-          defer(() => this.select!.nativeElement.selectedIndex = this.plugins.map(p => p.tag).indexOf(value) + 1);
+          this.select!.nativeElement.selectedIndex = 1;
           return;
         }
       }

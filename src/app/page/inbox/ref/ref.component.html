@@ -1,0 +1,7 @@
+<ng-container *mobxAutorun>
+  @if (query.error?.status !== 403) {
+    <app-ref-list [page]="query.page"></app-ref-list>
+  } @else {
+    <div class="error-403" i18n>Access Denied</div>
+  }
+</ng-container>

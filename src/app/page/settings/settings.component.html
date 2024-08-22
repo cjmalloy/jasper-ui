@@ -8,7 +8,7 @@
     @if (store.account.admin) {
       <a routerLink="./setup" routerLinkActive="current-tab" i18n-title title="Setup" i18n>setup</a>
     }
-    @for (plugin of store.settings.plugins; track plugin) {
+    @for (plugin of store.view.settingsTabs; track plugin.tag) {
       <a [routerLink]="['./ref', plugin.tag]"
          [replaceUrl]="true"
          routerLinkActive="current-tab"
@@ -26,7 +26,7 @@
     }
   </app-tabs>
   @if (store.view.type) {
-    <app-sidebar [tag]="store.settings.tag"></app-sidebar>
+    <app-sidebar [tag]="store.view.childTag"></app-sidebar>
   }
   <router-outlet></router-outlet>
 </ng-container>

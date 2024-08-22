@@ -446,6 +446,10 @@ export class AdminService {
     return this.pluginConfigProperty('reply');
   }
 
+  get inbox() {
+    return this.pluginConfigProperty('inbox');
+  }
+
   get submit() {
     return this.pluginConfigProperty('submit', '!genId', '!settings');
   }

@@ -13,6 +13,7 @@ import { InboxAllPage } from './page/inbox/all/all.component';
 import { InboxDmsPage } from './page/inbox/dms/dms.component';
 import { InboxPage } from './page/inbox/inbox.component';
 import { InboxModlistPage } from './page/inbox/modlist/modlist.component';
+import { InboxRefPage } from './page/inbox/ref/ref.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
 import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
@@ -176,6 +177,7 @@ const routes: Routes = [
       { path: 'sent', component: InboxSentPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'alarms', component: InboxAlarmsPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'modlist', component: InboxModlistPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'ref/:tag', component: InboxRefPage, canActivate: [conditionGuard(getSettings, ['../../user'])], canDeactivate: [pendingChangesGuard, clearLastSelected] },
     ],
   },
   { path: 'submit', component: SubmitPage,
