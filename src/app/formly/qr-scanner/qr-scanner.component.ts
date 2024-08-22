@@ -32,6 +32,7 @@ export class QrScannerComponent implements OnDestroy {
   overlayRef?: OverlayRef;
   hasFlash = false;
   cameras?: Camera[];
+  checkedCamera = false;
 
   constructor(
     private viewContainerRef: ViewContainerRef,
@@ -88,7 +89,8 @@ export class QrScannerComponent implements OnDestroy {
 
   get hasCamera() {
     if (localStorage.getItem('hasCamera') === 'true') return true;
-    hasCamera().then(value => this.hasCamera = value);
+    if (!this.checkedCamera) hasCamera().then(value => this.hasCamera = value);
+    this.checkedCamera = true;
     return false;
   }
 
