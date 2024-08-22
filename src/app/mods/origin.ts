@@ -72,6 +72,13 @@ export const originPullPlugin: Plugin = {
       { event: 'pull', label: $localize`pull`, title: $localize`Pull a batch of updates from the remote.`, confirm: $localize`Are you sure you want to pull?` },
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable` },
     ],
+    form: [{
+      key: 'cache',
+      type: 'boolean',
+      props: {
+        label: $localize`Pull cache`,
+      }
+    }],
     advancedForm: [{
       key: 'query',
       type: 'query'
@@ -124,12 +131,14 @@ export const originPullPlugin: Plugin = {
     }],
   },
   defaults: {
+    cache: true,
     generateMetadata: true,
     validatePlugins: true,
     validateTemplates: true,
   },
   schema: {
     optionalProperties: {
+      cache: { type: 'boolean' },
       query: { type: 'string' },
       batchSize: { type: 'int32' },
       generateMetadata: { type: 'boolean' },
@@ -166,6 +175,12 @@ export const originPushPlugin: Plugin = {
       props: {
         label: $localize`Push on change`,
       }
+    }, {
+      key: 'cache',
+      type: 'boolean',
+      props: {
+        label: $localize`Push cache`,
+      }
     }],
     advancedForm: [{
       key: 'query',
@@ -185,9 +200,13 @@ export const originPushPlugin: Plugin = {
       }
     }],
   },
+  defaults: {
+    cache: true,
+  },
   schema: {
     optionalProperties: {
       pushOnChange: { type: 'boolean' },
+      cache: { type: 'boolean' },
       query: { type: 'string' },
       batchSize: { type: 'int32' },
       checkRemoteCursor: { type: 'boolean' },
