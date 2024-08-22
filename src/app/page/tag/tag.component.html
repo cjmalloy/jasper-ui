@@ -28,7 +28,7 @@
          [queryParams]="{view: null}"
          queryParamsHandling="merge" i18n>list</a>
     }
-    @for (x of store.view.globalExts; track x) {
+    @for (x of store.view.globalExts; track x.tag) {
       <a routerLink="./"
          [class.current-tab]="store.view.view === x.tag"
          [queryParams]="{view: x.tag}"

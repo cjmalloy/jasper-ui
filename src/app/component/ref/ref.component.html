@@ -93,7 +93,7 @@
           <ng-container *ngIf="tags.length" i18n>
             tagged
             <ng-container *ngIf="tagExts$ | async as tagExts; else tagNoExts">
-              @for (e of tagExts; track e) {
+              @for (e of tagExts; track e.tag) {
                 <a class="tag" [routerLink]="['/tag', e.tag]" [appTitle]="e">{{ e.name || e.tag }}</a>
               }
             </ng-container>
