@@ -29,7 +29,7 @@ export class HomePage implements OnInit, OnDestroy {
     store.view.clear([!!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay' : 'published']);
     query.clear();
     if (admin.getTemplate('home')) {
-      exts.getCachedExt('home').subscribe(x => this.store.view.exts = [x]);
+      exts.getCachedExt('home').subscribe(x => runInAction(() => this.store.view.exts = [x]));
     }
   }
 
