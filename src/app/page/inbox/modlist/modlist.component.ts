@@ -26,7 +26,7 @@ export class InboxModlistPage implements OnInit, OnDestroy {
     private router: Router,
   ) {
     if (!this.store.view.filter.length) {
-      this.router.navigate([], { queryParams: { filter: ['query/!_moderated', 'query/public', 'query/!(internal)'] }, replaceUrl: true });
+      this.router.navigate([], { queryParams: { filter: ['query/!_moderated', 'query/public', 'query/!(_plugin:!+user)'] }, replaceUrl: true });
     }
     mod.setTitle($localize`Inbox: Modlist`);
     store.view.clear(['modified']);
