@@ -21,20 +21,28 @@
          type="datetime-local"
          step="60"
          [ngModel]="toDate(filter)"
-         (ngModelChange)="setModified(i, filter.startsWith('modified/before/'), toIso($event))">
+         (input)="!$any($event.target).isFocused() && $any($event.target).focus()"
+         (keydown)="$event.key === 'Enter' && setModified(i, filter.startsWith('modified/before/'), toIso($any($event.target).value)) || true"
+         (blur)="setModified(i, filter.startsWith('modified/before/'), toIso($any($event.target).value))">
   <input *ngIf="filter.startsWith('response/')"
          type="datetime-local"
          step="60"
          [ngModel]="toDate(filter)"
-         (ngModelChange)="setResponse(i, filter.startsWith('response/before/'), toIso($event))">
+         (input)="!$any($event.target).isFocused() && $any($event.target).focus()"
+         (keydown)="$event.key === 'Enter' && setModified(i, filter.startsWith('response/before/'), toIso($any($event.target).value)) || true"
+         (blur)="setResponse(i, filter.startsWith('response/before/'), toIso($any($event.target).value))">
   <input *ngIf="filter.startsWith('published/')"
          type="datetime-local"
          step="60"
          [ngModel]="toDate(filter)"
-         (ngModelChange)="setPublished(i, filter.startsWith('published/before/'), toIso($event))">
+         (input)="!$any($event.target).isFocused() && $any($event.target).focus()"
+         (keydown)="$event.key === 'Enter' && setModified(i, filter.startsWith('published/before/'), toIso($any($event.target).value)) || true"
+         (blur)="setPublished(i, filter.startsWith('published/before/'), toIso($any($event.target).value))">
   <input *ngIf="filter.startsWith('created/')"
          type="datetime-local"
          step="60"
          [ngModel]="toDate(filter)"
-         (ngModelChange)="setCreated(i, filter.startsWith('created/before/'), toIso($event))">
+         (input)="!$any($event.target).isFocused() && $any($event.target).focus()"
+         (keydown)="$event.key === 'Enter' && setModified(i, filter.startsWith('created/before/'), toIso($any($event.target).value)) || true"
+         (blur)="setCreated(i, filter.startsWith('created/before/'), toIso($any($event.target).value))">
 </ng-container>
