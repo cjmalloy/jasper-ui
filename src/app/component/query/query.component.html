@@ -9,10 +9,13 @@
          (keydown)="$event.key === 'Enter' && search(editor.value) || true">
   <button type="button" *ngIf="query && editing" (click)="search(editor.value)">🔎️</button>
 </ng-container>
-<div *ngIf="!editing && query" class="breadcrumbs">
+<div #div *ngIf="!editing && query" class="breadcrumbs" (click)="$event.target === div && edit(false)">
   <span *ngFor="let breadcrumb of breadcrumbs" class="crumb">
-    <a *ngIf="breadcrumb.tag" class="tag" [routerLink]="['/tag', breadcrumb.tag]" queryParamsHandling="merge">{{ breadcrumb.text }}</a>
-    <span *ngIf="!breadcrumb.tag" class="op">{{ breadcrumb.text }}</span>
+    <a *ngIf="breadcrumb.tag"
+       class="tag"
+       [routerLink]="['/tag', breadcrumb.tag]"
+       queryParamsHandling="merge"><span (click)="click($event, breadcrumb)">{{ breadcrumb.text }}</span></a>
+    <span *ngIf="!breadcrumb.tag" class="op" (click)="edit(breadcrumb)">{{ breadcrumb.text }}</span>
   </span>
 </div>
-<button type="button" *ngIf="query && !editing" (click)="editing = true">✏️</button>
+<button type="button" *ngIf="query && !editing" (click)="edit(true)">✏️</button>

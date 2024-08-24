@@ -1,11 +1,12 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
 import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '../../util/tag';
 
-export type Crumb = { text: string, tag?: string };
+export type Crumb = { text: string, tag?: string, pos: number, len: number };
 
 @Component({
   selector: 'app-query',
@@ -15,15 +16,16 @@ export type Crumb = { text: string, tag?: string };
 export class QueryComponent implements OnInit {
 
   editing = false;
+  select: boolean | Crumb = false;
+  breadcrumbs: Crumb[] = [];
 
   private _query = '';
-  breadcrumbs: Crumb[] = [];
 
   constructor(
     private router: Router,
     private exts: ExtService,
     private admin: AdminService,
-    private store: Store,
+    public store: Store,
   ) { }
 
   ngOnInit(): void {
@@ -35,13 +37,41 @@ export class QueryComponent implements OnInit {
 
   @Input()
   set query(value: string) {
+    if (this._query === value) return;
+    this.editing = false;
     this._query = value;
     this.breadcrumbs = this.queryCrumbs(this._query);
   }
 
   @ViewChild("editor")
-  set editor(ref: ElementRef) {
-    if (this._query) ref?.nativeElement.focus();
+  set editor(ref: ElementRef<HTMLInputElement>) {
+    const el = ref?.nativeElement;
+    if (!el) return;
+    if (!this._query) return;
+    el.focus();
+    if (!this.select) return;
+    defer(() => {
+      if (this.select === true) {
+        el.select();
+      } else if (this.select) {
+        el.setAttribute('type', 'text'); // Email does not support selections
+        el.setSelectionRange(this.select.pos, this.select.pos + this.select.len);
+        el.setAttribute('type', 'email');
+      }
+    });
+  }
+
+  click(event: MouseEvent, breadcrumb: Crumb): boolean {
+    if (!this.store.hotkey) return true;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    this.edit(breadcrumb);
+    return false;
+  }
+
+  edit(select: boolean | Crumb) {
+    this.editing = true;
+    this.select = select;
   }
 
   search(query: string) {
@@ -57,9 +87,13 @@ export class QueryComponent implements OnInit {
 
   private queryCrumbs(query: string): Crumb[] {
     if (!query) return [];
+    let read = 0;
     const result: Crumb[] = fixClientQuery(query).split(/([:|()])/g).filter(t => !!t).map(part => {
-      if (/[:|()]+/.test(part)) return { text: part };
-      return { text: '', tag: part };
+      const pos = read;
+      const len = part.length;
+      read += len;
+      if (/[:|()]+/.test(part)) return { text: part, pos, len };
+      return { text: '', tag: part, pos, len };
     });
     for (let i = 0; i < result.length - 2; i++) {
       const a = result[i];
@@ -92,14 +126,20 @@ export class QueryComponent implements OnInit {
       }
     }
     return result.flatMap(c => {
-      if (!c.tag) return [{ text: this.store.account.querySymbol(...c.text.split('') as any)}];
-      if (c.tag) return this.tagCrumbs(c.tag);
+      if (!c.tag) c.text = this.store.account.querySymbol(...c.text.split('') as any);
+      if (c.tag) return this.tagCrumbs(c.tag, c.pos, c.len);
       return c;
     });
   }
 
-  private tagCrumbs(tag: string) {
-    const crumbs: Crumb[] = localTag(tag).split(/([/{},])/g).filter(t => !!t).map(text => ({ text }));
+  private tagCrumbs(tag: string, pos: number, len: number) {
+    let read = pos;
+    const crumbs: Crumb[] = localTag(tag).split(/([/{},])/g).filter(t => !!t).map(text => {
+      const pos = read;
+      const len = text.length;
+      read += len;
+      return ({text, pos, len});
+    });
     let prefix = '';
     for (let i = 0; i < crumbs.length; i++) {
       const previous = i > 1 ? crumbs[i-2].tag + '/' : '';
@@ -117,14 +157,14 @@ export class QueryComponent implements OnInit {
       for (const t of crumbs) {
         if (t.tag) t.tag += origin;
       }
-      crumbs.push({text: ' ' });
-      crumbs.push({text: origin, tag: origin });
+      crumbs.push({text: ' ', pos, len: 0 });
+      crumbs.push({text: origin, tag: origin, pos: pos + len - origin.length, len: origin.length });
     }
     if (tag.startsWith('!')) {
       for (const t of crumbs) {
         if (t.text.startsWith('!')) t.text = t.text.substring(1);
       }
-      const notOp = { text: this.store.account.querySymbol('!') };
+      const notOp = { text: this.store.account.querySymbol('!'), pos, len: 0 };
       if (notOp.text.startsWith(' ')) {
         crumbs.unshift(notOp);
       } else {

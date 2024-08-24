@@ -1,9 +1,11 @@
 :host {
   display: flex;
+  padding: 2px;
   & > :first-child {
     text-align: center;
     flex-grow: 1;
     flex-shrink: 1;
+    margin-right: 4px;
   }
 }
 
