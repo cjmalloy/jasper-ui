@@ -247,13 +247,15 @@ export class ViewStore {
     if (this.current === 'tags') return 'ext';
     if (this.current.startsWith('ref/') ||
       this.current.startsWith('inbox/') ||
-      this.current.startsWith('settings/') ||
       this.current ==='home' ||
       this.current ==='all' ||
       this.current ==='local' ||
       this.current ==='tag' ||
       this.current ==='query' ) {
       return 'ref';
+    }
+    if (this.current.startsWith('settings/')) {
+      return this.current.substring('settings/'.length) as Type;
     }
     return this.current as Type;
   }
