@@ -8,11 +8,11 @@ updates:
 - package-ecosystem: docker
   directory: /
   schedule:
-    interval: weekly
+    interval: daily
 - package-ecosystem: npm
   directory: /
   schedule:
-    interval: weekly
+    interval: daily
   groups:
     angular:
       patterns:
@@ -25,4 +25,4 @@ updates:
 - package-ecosystem: github-actions
   directory: /
   schedule:
-    interval: weekly
+    interval: daily
