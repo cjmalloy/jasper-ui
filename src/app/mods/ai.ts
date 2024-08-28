@@ -239,6 +239,8 @@ export const aiQueryPlugin: Plugin = {
           sources.push(ref.sources[0]);
         } else if (ref.sources?.length > 1) {
           sources.push(ref.sources[1]);
+        } else {
+          sources.push(ref.url);
         }
       }
       response.sources = [...sources, ...(response.sources || [])].filter(uniq);

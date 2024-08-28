@@ -127,10 +127,10 @@ export class CommentReplyComponent implements AfterViewInit {
       origin: this.store.account.origin,
       title: (hasTag('plugin/email', this.to) || hasTag('plugin/thread', this.to)) ? getRe(this.to.title) : '',
       comment: value,
-      sources: uniq([
+      sources: [
         this.to.url,
         ...[this.to.sources?.[1] || this.to.sources?.[0] || this.to.url],
-      ]),
+      ],
       tags: removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
         ...this.publicTag,
         ...(this.store.account.localTag ? [this.store.account.localTag] : []),
