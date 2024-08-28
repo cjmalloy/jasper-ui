@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
-import { catchError, map, Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { mapRef, Ref, RefFilter, RefPageArgs, writeRef } from '../../model/ref';
 import { Store } from '../../store/store';
@@ -66,6 +66,7 @@ export class RefService {
   }
 
   page(args?: RefPageArgs): Observable<Page<Ref>> {
+    if (args?.query === '!@*') return of(Page.of<Ref>([]));
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(

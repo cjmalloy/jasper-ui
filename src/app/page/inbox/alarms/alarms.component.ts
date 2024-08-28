@@ -31,7 +31,7 @@ export class InboxAlarmsPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        this.store.account.alarms.join('|'),
+        this.store.account.alarms.length ? this.store.account.alarms.join('|') : '!@*',
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,

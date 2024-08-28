@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, HostBinding, inject, OnInit } from '@angular/core';
 import { runInAction } from 'mobx';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
@@ -27,3 +27,7 @@ export class InboxPage implements OnInit {
   }
 
 }
+
+export const getInbox = () => {
+  return inject(AdminService).inbox[0]?.tag || '';
+};

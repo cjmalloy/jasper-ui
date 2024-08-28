@@ -11,7 +11,7 @@ import { HomePage } from './page/home/home.component';
 import { InboxAlarmsPage } from './page/inbox/alarms/alarms.component';
 import { InboxAllPage } from './page/inbox/all/all.component';
 import { InboxDmsPage } from './page/inbox/dms/dms.component';
-import { InboxPage } from './page/inbox/inbox.component';
+import { getInbox, InboxPage } from './page/inbox/inbox.component';
 import { InboxModlistPage } from './page/inbox/modlist/modlist.component';
 import { InboxRefPage } from './page/inbox/ref/ref.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
@@ -171,13 +171,13 @@ const routes: Routes = [
     component: InboxPage,
     children: [
       { path: '', redirectTo: 'dms', pathMatch: 'full' },
-      { path: 'dms', component: InboxDmsPage, canActivate: [installedModGuard('dm', ['../all'])], canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'dms', component: InboxDmsPage, canActivate: [installedModGuard('dm', ['../modlist'])], canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'all', component: InboxAllPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'unread', component: InboxUnreadPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'sent', component: InboxSentPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'alarms', component: InboxAlarmsPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
-      { path: 'modlist', component: InboxModlistPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
-      { path: 'ref/:tag', component: InboxRefPage, canActivate: [conditionGuard(getSettings, ['../../user'])], canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'modlist', component: InboxModlistPage, canActivate: [installedModGuard('_moderated', ['../ref', getInbox])], canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'ref/:tag', component: InboxRefPage, canActivate: [conditionGuard(getInbox, ['../../alarms'])], canDeactivate: [pendingChangesGuard, clearLastSelected] },
     ],
   },
   { path: 'submit', component: SubmitPage,
