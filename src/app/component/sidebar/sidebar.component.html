@@ -41,7 +41,7 @@
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
           &nbsp;
           &nbsp;
-          {{ plugin!.name }}</label>
+          {{ plugin!.config!.submit }}</label>
         </div>
       } @else {
         <div class="submit-button" routerLink="/submit" tabindex="0"
@@ -49,7 +49,7 @@
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
           &nbsp;
           &nbsp;
-          {{ plugin?.config?.submit && plugin?.name || '' }}</label>
+          {{ plugin?.config?.submit || '' }}</label>
         </div>
       }
     }
@@ -71,7 +71,7 @@
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message
           &nbsp;
           &nbsp;
-          {{ mailPlugin.config?.submit && mailPlugin.name || '' }}</label>
+          {{ mailPlugin.config?.submit || '' }}</label>
         </div>
       } @else if (modmail || user) {
         <div class="submit-button" routerLink="/submit/dm"  tabindex="0"

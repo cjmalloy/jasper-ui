@@ -639,7 +639,7 @@ export class EmbedService {
     }
     const ext = exts.find(x => x.modifiedString && x.tag === view);
     if (ext) return ext;
-    const t = this.admin.tmplView.find(t => t.tag === view);
+    const t = this.admin.view.find(t => t.tag === view);
     if (t) {
       return { tag: t.tag, origin: t.origin, name: t.config?.view || t.name, config: t.defaults };
     }

@@ -21,10 +21,6 @@ export interface Template extends Config {
      */
     global?: boolean;
     /**
-     * Add to tags page and Ext prefix dropdown.
-     */
-    submit?: boolean,
-    /**
      * Submit text instead of links by default.
      */
     submitText?: boolean,

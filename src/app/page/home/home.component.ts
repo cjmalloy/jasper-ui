@@ -34,7 +34,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    runInAction(() => this.store.view.extTemplates = this.admin.tmplView);
+    runInAction(() => this.store.view.extTemplates = this.admin.view);
     this.disposers.push(autorun(() => {
       if (this.store.view.forYou) {
         this.account.forYouQuery$.subscribe(q => {

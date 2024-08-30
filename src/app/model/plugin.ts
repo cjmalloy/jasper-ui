@@ -22,7 +22,7 @@ export interface Plugin extends Config {
     /**
      * Add plugin to submit dropdown.
      */
-    submit?: boolean,
+    submit?: string,
     /**
      * Autogenerate URL when submitting.
      */

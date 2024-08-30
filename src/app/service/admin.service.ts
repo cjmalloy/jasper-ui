@@ -490,7 +490,7 @@ export class AdminService {
     return this.templateConfigProperty('submit');
   }
 
-  get tmplView() {
+  get view() {
     return this.templateConfigProperty('view');
   }
 
@@ -664,7 +664,7 @@ export class AdminService {
   }
 
   getTemplateView(tag: string) {
-    return this.tmplView
+    return this.view
       .filter(t => hasPrefix(tag, t.tag));
   }
 
