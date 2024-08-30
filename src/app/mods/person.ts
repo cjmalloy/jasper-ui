@@ -11,7 +11,7 @@ export const personPlugin: Plugin = {
     description: $localize`Adds filtering and stylizing to support people semantics.`,
     published: $localize`born`,
     icons: [{ label: $localize`📇️`, order: 2 }],
-    submit: true,
+    submit: $localize`📇️ person`,
     filters: [
       { query: 'plugin/person', label: $localize`📇️‍ people`, group: $localize`Plugins 🧰️` },
     ],

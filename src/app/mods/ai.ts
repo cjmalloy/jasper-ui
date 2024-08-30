@@ -342,7 +342,7 @@ export const aiPlugin: Plugin = {
     type: 'tool',
     default: false,
     genId: true,
-    submit: true,
+    submit: $localize`👻️💭️`,
     submitDm: true,
     signature: '+plugin/delta/ai',
     reply: ['plugin/delta/ai'],

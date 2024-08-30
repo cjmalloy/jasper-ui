@@ -41,7 +41,7 @@ export class TagPage implements OnInit, OnDestroy {
         ? 'published'
         : 'created'
       ]);
-      this.store.view.extTemplates = this.admin.tmplView;
+      this.store.view.extTemplates = this.admin.view;
     });
     this.disposers.push(autorun(() => {
       if (!this.store.view.queryTags.length) {

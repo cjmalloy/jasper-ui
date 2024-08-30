@@ -292,7 +292,7 @@ export const dallePlugin: Plugin = {
     type: 'tool',
     default: false,
     genId: true,
-    submit: true,
+    submit: $localize`👨️‍🎨️💭️`,
     submitDm: true,
     signature: '+plugin/delta/dalle',
     reply: ['plugin/delta/dalle'],
