@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { debounce, without } from 'lodash-es';
+import { debounce, isArray, without } from 'lodash-es';
 import { runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, concat, last, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
 import { Ref } from '../model/ref';
@@ -31,7 +31,7 @@ export class ActionService {
       comment: debounce((comment: string) => {
         if (!ref) throw 'Error: No ref to save';
         o?.unsubscribe();
-        o = this.comment(comment, ref).subscribe();
+        o = this.$comment(comment, ref).subscribe();
       }, 500),
       event: (event: string) => {
         this.event(event, ref);
@@ -50,37 +50,55 @@ export class ActionService {
     }
   }
 
-  apply(a: Action, ref: Ref, repost?: Ref) {
-    if ('tag' in a) {
-      return this.tag(a.tag, ref);
+  apply(actions: Action | Action[], ref: Ref, repost?: Ref) {
+    if (!isArray(actions)) actions = [actions];
+    const updates: Observable<any>[] = [];
+    for (const a of actions) {
+      if ('tag' in a) {
+        updates.push(this.$tag(a.tag, ref));
+      }
+      if ('response' in a) {
+        updates.push(this.$respond(a.response, a.clear || [], ref));
+      }
+      if ('event' in a) {
+        updates.push(this.$event(a.event, ref, repost));
+      }
+      if ('emit' in a) {
+        updates.push(this.$emit(a, ref));
+      }
     }
-    if ('response' in a) {
-      return this.respond(a.response, a.clear || [], ref);
-    }
-    if ('event' in a) {
-      return this.event(a.event, ref, repost);
-    }
-    if ('emit' in a) {
-      return this.emit(a, ref);
-    }
-    throw 'Invalid action';
+    if (!updates.length) throw 'Invalid action';
+    this.store.eventBus.runAndReload(concat(...updates).pipe(last()), ref);
   }
 
   event(event: string, ref?: Ref, repost?: Ref) {
     this.store.eventBus.fire(event, ref, repost);
   }
 
+  $event(event: string, ref?: Ref, repost?: Ref) {
+    this.store.eventBus.fire(event, ref, repost);
+    return of(null);
+  }
+
   emit(a: EmitAction, ref?: Ref) {
+    this.$emit(a, ref).subscribe();
+  }
+
+  $emit(a: EmitAction, ref?: Ref) {
     const models = emitModels(a, ref, this.store.account.localTag);
     const uploads = [
-      ...models.ref.map(ref=>  this.refs.create(ref)),
+      ...models.ref.map(ref => this.refs.create(ref)),
       ...models.ext.map(ext => this.exts.create(ext)),
     ];
-    concat(...uploads).pipe(last()).subscribe();
+    return concat(...uploads).pipe(last());
   }
 
   comment(comment: string, ref: Ref) {
-    return this.store.eventBus.runAndRefresh$(this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
+    this.store.eventBus.runAndRefresh(this.$comment(comment, ref), ref);
+  }
+
+  $comment(comment: string, ref: Ref) {
+    return this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
       op: 'add',
       path: '/comment',
       value: comment,
@@ -102,20 +120,28 @@ export class ActionService {
         ref.modifiedString = cursor;
         ref.modified = moment(cursor);
       })),
-    ), ref);
+    );
   }
 
   tag(tag: string, ref: Ref) {
+    this.store.eventBus.runAndReload(this.$tag(tag, ref), ref);
+  }
+
+  $tag(tag: string, ref: Ref) {
     const patch = (hasTag(tag, ref) ? '-' : '') + tag;
-    this.store.eventBus.runAndReload(this.tags.create(patch, ref.url, ref.origin), ref);
+    return this.tags.create(patch, ref.url, ref.origin);
   }
 
   respond(response: string, clear: string[], ref: Ref) {
+    this.store.eventBus.runAndRefresh(this.$respond(response, clear, ref), ref);
+  }
+
+  $respond(response: string, clear: string[], ref: Ref) {
     if (ref.metadata?.userUrls?.includes(response)) {
       ref.metadata ||= {};
       ref.metadata.userUrls ||= [];
       ref.metadata.userUrls = without(ref.metadata.userUrls, response);
-      this.store.eventBus.runAndRefresh(this.tags.deleteResponse(response, ref.url), ref);
+      return this.tags.deleteResponse(response, ref.url);
     } else {
       const tags = [
         ...clear.map(t => '-' + t),
@@ -125,7 +151,7 @@ export class ActionService {
       ref.metadata.userUrls ||= [];
       ref.metadata.userUrls.push(response);
       ref.metadata.userUrls = without(ref.metadata.userUrls, ...clear);
-      this.store.eventBus.runAndRefresh(this.tags.respond(tags, ref.url), ref);
+      return this.tags.respond(tags, ref.url);
     }
   }
 }

@@ -42,7 +42,7 @@ import { imageMod } from '../mods/image';
 import { kanbanTemplate } from '../mods/kanban';
 import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
-import { modlistConfig } from '../mods/modlist';
+import { modlistConfig, modlistMod } from '../mods/modlist';
 import { ninjaTriangleMod } from '../mods/ninga-triangle';
 import { oEmbedPlugin } from '../mods/oembed';
 import { remoteOriginMod } from '../mods/origin';
@@ -109,6 +109,7 @@ export class AdminService {
       feedPlugin,
       deletePlugin,
       ...mailboxMod.plugins,
+      ...modlistMod.plugins,
       commentPlugin,
       threadPlugin,
       emailPlugin,
@@ -173,7 +174,7 @@ export class AdminService {
       experimentsConfig,
       wikiConfig,
       graphConfig,
-      modlistConfig,
+      ...modlistMod.templates,
       banlistConfig,
       snippetConfig,
       htmlToMarkdownConfig,
@@ -641,7 +642,7 @@ export class AdminService {
         return includesTag(p.tag, match);
       }).map(addParent(p))
         .map(i => {
-          if (!i.response && !i.scheme) i.tag ||= p.tag;
+          if (!i.response && !i.anyResponse && !i.noResponse && !i.scheme) i.tag ||= p.tag;
           if (i.tag === p.tag)  i.title ||= p.name;
           i.title ||= i.tag;
           return i;

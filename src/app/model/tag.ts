@@ -7,7 +7,7 @@ import { toJS } from 'mobx';
 import * as moment from 'moment';
 import { MomentInput } from 'moment/moment';
 import { v4 as uuid } from 'uuid';
-import { hasTag, prefix } from '../util/tag';
+import { hasAnyResponse, hasResponse, hasTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
 import { Plugin } from './plugin';
 import { Ref } from './ref';
@@ -232,9 +232,17 @@ export interface Icon extends Visibility {
    */
   tag?: string;
   /**
-   * If set, makes this icon conditional on a tag response.
+   * If set, makes this icon conditional on a plugin response from any user.
    */
-  response?: `plugin/${string}`;
+  anyResponse?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}`;
+  /**
+   * If set, makes this icon conditional on no plugin response from any user.
+   */
+  noResponse?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}`;
+  /**
+   * If set, makes this icon conditional on the current user's plugin response.
+   */
+  response?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}`;
   /**
    * If set, makes this icon conditional on a ref scheme.
    */
@@ -267,7 +275,7 @@ export interface FilterConfig {
    * generating metadata to work.
    * If set, query  and scheme must not be set.
    */
-  response?: `plugin/${string}` | `!plugin/${string}`;
+  response?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
   label?: string;
   group?: string;
 }
@@ -348,11 +356,11 @@ export interface ResponseAction extends Visibility {
   /**
    * Add a tag response to the Ref.
    */
-  response: `plugin/${string}`;
+  response: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
   /**
    * Clear other tag responses when adding tag response.
    */
-  clear?: `plugin/${string}`[];
+  clear?: (`plugin/${string}` | `+plugin/${string}` | `_plugin/${string}`)[];
   /**
    * Handlebars template label to show when this action has been applied.
    * The response plugin must have metadata generation turned on.
@@ -392,11 +400,11 @@ export interface EmitAction extends Visibility {
 }
 
 export function active(ref: Ref, o: TagAction | ResponseAction | EventAction | Icon) {
-  if ('scheme' in o) return true;
-  if (!('tag' in o || 'response' in o)) return true;
-  if (('tag' in o) && hasTag(o.tag, ref)) return true;
-  if (('response' in o) && o.response && ref.metadata?.userUrls?.includes(o.response)) return true;
-  return false;
+  if (('tag' in o) && !hasTag(o.tag, ref)) return false;
+  if (('response' in o) && !hasResponse(o.response, ref)) return false;
+  if (('anyResponse' in o) && !hasAnyResponse(o.anyResponse, ref)) return false;
+  if (('noResponse' in o) && hasAnyResponse(o.noResponse, ref)) return false;
+  return true;
 }
 
 // https://github.com/handlebars-lang/handlebars.js/issues/1593
@@ -404,9 +412,7 @@ export function active(ref: Ref, o: TagAction | ResponseAction | EventAction | I
 window.global = {};
 window.Handlebars = Handlebars as any;
 
-Handlebars.registerHelper('prefix', (p: string, r: string) => {
-  return prefix(p, r);
-});
+Handlebars.registerHelper('prefix', (p: string, r: string) => prefix(p, r));
 
 Handlebars.registerHelper('uuid', () => uuid());
 

@@ -66,6 +66,16 @@ export function hasTag(tag: string | undefined, ref: Ref | undefined): boolean {
   return !!find(ref.tags, t => expandedTagsInclude(t, tag)) !== not;
 }
 
+export function hasAnyResponse(plugin: string | undefined, ref: Ref | undefined): boolean {
+  if (!plugin) return false;
+  return !!ref?.metadata?.plugins?.[plugin];
+}
+
+export function hasResponse(plugin: string | undefined, ref: Ref | undefined): boolean {
+  if (!plugin) return false;
+  return !!ref?.metadata?.userUrls?.includes(plugin);
+}
+
 export function hasMedia(ref: Ref | undefined)  {
   if (!ref?.tags) return false;
   return hasTag('plugin/image', ref) ||

@@ -1,5 +1,5 @@
 import { Directive, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { isString } from 'lodash-es';
+import { isArray, isString } from 'lodash-es';
 import { Ext } from '../model/ext';
 import { getPluginScope } from '../model/plugin';
 import { Ref } from '../model/ref';
@@ -13,7 +13,7 @@ import { Store } from '../store/store';
 export class TitleDirective implements OnChanges {
 
   @Input('appTitle')
-  node?: Visibility | Ext | string;
+  node?: Visibility | Visibility[] | Ext | string;
   @Input()
   ref?: Ref;
 
@@ -28,23 +28,30 @@ export class TitleDirective implements OnChanges {
 
   render(): void {
     if (!this.node) return;
-    if (isString(this.node)) {
-      this.el.nativeElement.title = this.node;
-    } else if ('type' in this.node && this.node.type === 'ext') {
-      const ctx = getTemplateScope(this.store.account, null!, this.node);
-      this.el.nativeElement.title
-        = this.node.config?.popover
-        ? hydrate(this.node.config, 'popover', ctx)
-        : '';
-    } else if ('_parent' in this.node && this.node._parent) {
-      const ctx = getPluginScope(this.node._parent, this.ref)
-      this.el.nativeElement.title
-        = this.node._parent.config?.description
-        ? hydrate(this.node._parent.config, 'description', ctx)
-        : this.node.title
-        ? hydrate(this.node, 'title', ctx)
-        : '';
+    const title: string[] = [];
+    for (const n of isArray(this.node) ? this.node : [this.node]) {
+      if (isString(n)) {
+        title.push(n);
+      } else if ('type' in n && n.type === 'ext') {
+        const ctx = getTemplateScope(this.store.account, null!, n);
+        title.push(
+          n.config?.popover
+          ? hydrate(n.config, 'popover', ctx)
+          : ''
+        );
+      } else if ('title' in n) {
+        const ctx = getPluginScope(n._parent, this.ref)
+        title.push(hydrate(n, 'title', ctx));
+      } else if ('_parent' in n && n._parent) {
+        const ctx = getPluginScope(n._parent, this.ref)
+        title.push(
+          n._parent.config?.description
+          ? hydrate(n._parent.config, 'description', ctx)
+          : ''
+        );
+      }
     }
+    this.el.nativeElement.title = title.join($localize` / `);
   }
 
 }

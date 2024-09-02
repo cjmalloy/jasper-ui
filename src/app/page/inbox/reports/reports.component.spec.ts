@@ -1,24 +1,25 @@
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
+import { InboxDmsPage } from '../dms/dms.component';
 
-import { InboxModlistPage } from './modlist.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { InboxReportsPage } from './reports.component';
 
-describe('InboxModlistPage', () => {
-  let component: InboxModlistPage;
-  let fixture: ComponentFixture<InboxModlistPage>;
+describe('InboxReportsPage', () => {
+  let component: InboxReportsPage;
+  let fixture: ComponentFixture<InboxReportsPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [InboxModlistPage],
+      declarations: [InboxReportsPage],
       imports: [RouterModule.forRoot([])],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(InboxModlistPage);
+    fixture = TestBed.createComponent(InboxReportsPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

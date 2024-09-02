@@ -111,6 +111,7 @@ import { InboxDmsPage } from './page/inbox/dms/dms.component';
 import { InboxPage } from './page/inbox/inbox.component';
 import { InboxModlistPage } from './page/inbox/modlist/modlist.component';
 import { InboxRefPage } from './page/inbox/ref/ref.component';
+import { InboxReportsPage } from './page/inbox/reports/reports.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
 import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
@@ -288,6 +289,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     InboxDmsPage,
     UploadPage,
     InboxModlistPage,
+    InboxReportsPage,
     ChessComponent,
     TagsPage,
     PluginsPipe,

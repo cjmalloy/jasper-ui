@@ -9,11 +9,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  selector: 'app-inbox-modlist',
-  templateUrl: './modlist.component.html',
-  styleUrls: ['./modlist.component.scss']
+  selector: 'app-inbox-reports',
+  templateUrl: './reports.component.html',
+  styleUrl: './reports.component.scss'
 })
-export class InboxModlistPage implements OnInit, OnDestroy {
+export class InboxReportsPage  implements OnInit, OnDestroy {
   @HostBinding('class') css = 'modlist';
 
   private disposers: IReactionDisposer[] = [];
@@ -25,18 +25,18 @@ export class InboxModlistPage implements OnInit, OnDestroy {
     public query: QueryStore,
     private router: Router,
   ) {
-    mod.setTitle($localize`Inbox: Modlist`);
+    mod.setTitle($localize`Inbox: Reports`);
     store.view.clear(['modified']);
     query.clear();
   }
 
   ngOnInit(): void {
     if (!this.store.view.filter.length) {
-      this.router.navigate([], { queryParams: { filter: ['query/!_moderated', 'query/public', 'query/!(_plugin:!+user)'] }, replaceUrl: true });
+      this.router.navigate([], { queryParams: { filter: ['plugin/report', '!+plugin/approve'] }, replaceUrl: true });
     }
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        this.store.account.origin || '*',
+        '@*',
         this.store.view.sort,
         this.store.view.filter,
         this.store.view.search,

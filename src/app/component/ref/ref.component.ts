@@ -21,7 +21,7 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { defer, delay, pick, uniq, without } from 'lodash-es';
+import { defer, delay, groupBy, pick, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
 import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -131,7 +131,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   icons: Icon[] = [];
   alarm?: string;
   actions: Action[] = [];
+  groupedActions: { [key: string]: Action[] } = {};
   advancedActions: Action[] = [];
+  groupedAdvancedActions: { [key: string]: Action[] } = {};
   infoUis: Plugin[] = [];
   submittedLabel = $localize`submitted`;
   publishedLabel = $localize`published`;
@@ -161,7 +163,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     private editor: EditorService,
     private refs: RefService,
     private exts: ExtService,
-    public acts: ActionService,
+    private acts: ActionService,
     private bookmarks: BookmarkService,
     private proxy: ProxyService,
     private ts: TaggingService,
@@ -226,8 +228,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
     this.alarm = capturesAny(this.store.account.alarms, this.ref.tags);
     this.actions = this.ref.created ? uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins))) : [];
+    this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
     // TODO: detect width and move actions that don't fit into advanced actions
     this.advancedActions = this.ref.created ? sortOrder(this.admin.getAdvancedActions(this.ref.tags, this.ref.plugins)) : [];
+    this.groupedAdvancedActions = groupBy(this.advancedActions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
     this.infoUis = this.admin.getPluginInfoUis(this.ref.tags);
     this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
 
@@ -808,8 +812,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   clickIcon(i: Icon, ctrl: boolean) {
-    if (i.response) {
-      this.bookmarks.toggleFilter(i.response);
+    if (i.anyResponse) {
+      this.bookmarks.toggleFilter(i.anyResponse);
     }
     if (i.tag) {
       this.bookmarks.toggleFilter((ctrl ? `query/!(${i.tag})` : `query/${i.tag}`));
@@ -836,6 +840,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       if (!a.label) return false;
     }
     return true;
+  }
+
+  apply(actions: Action[]) {
+    this.acts.apply(actions, this.ref, this.repostRef)
   }
 
   voteUp() {

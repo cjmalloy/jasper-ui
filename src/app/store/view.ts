@@ -21,7 +21,7 @@ import { EventBus } from './bus';
 export type View =
   'home' | 'all' | 'local' |
   'tag' | 'tags' | 'query' |
-  'inbox/all' | 'inbox/sent' | 'inbox/alarms' | 'inbox/dms' | 'inbox/modlist' | 'inbox/ref' |
+  'inbox/all' | 'inbox/sent' | 'inbox/alarms' | 'inbox/dms' | 'inbox/modlist' | 'inbox/reports' | 'inbox/ref' |
   'ref/summary' | 'ref/comments' | 'ref/thread' | 'ref/responses' | 'ref/errors' | 'ref/sources' | 'ref/alts' | 'ref/versions' |
   'settings/user' | 'settings/plugin' | 'settings/template' | 'settings/ref';
 
@@ -234,6 +234,7 @@ export class ViewStore {
           case 'alarms': return 'inbox/alarms';
           case 'dms': return 'inbox/dms';
           case 'modlist': return 'inbox/modlist';
+          case 'reports': return 'inbox/reports';
           case 'ref/:tag': return 'inbox/ref';
         }
         return undefined;

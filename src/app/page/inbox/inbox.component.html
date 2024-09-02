@@ -30,6 +30,11 @@
          i18n-title title="Moderation List"
          i18n>modlist</a>
     }
+    @if (admin.getPlugin('plugin/report')) {
+      <a routerLink="./reports" routerLinkActive="current-tab"
+         i18n-title title="Reports"
+         i18n>reports</a>
+    }
     @for (plugin of store.view.inboxTabs; track plugin.tag) {
       <a [routerLink]="['./ref', plugin.tag]"
          [replaceUrl]="true"
