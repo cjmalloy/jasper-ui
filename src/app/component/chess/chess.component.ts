@@ -69,7 +69,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   /**
    * Flag to prevent animations for own moves.
    */
-  private patchingComment = '';
+  private prevComment = '';
   /**
    * Queued animation.
    */
@@ -101,11 +101,12 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   init() {
+    this.prevComment = this.ref?.comment || '';
     if (!this.watch && this.updates$) {
       this.watch = this.updates$.subscribe(u => {
         if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
         else this.ref!.modifiedString = u.modifiedString;
-        const prev = (this.patchingComment || this.ref?.comment || '')
+        const prev = this.prevComment
           .trim()
           .split(/\s+/g)
           .map(m => m.trim() as Square)
@@ -125,15 +126,11 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         }
         if (prev.length) {
           window.alert($localize`Game history was rewritten!`);
-          this.ref = u;
-          this.store.eventBus.refresh(u);
         }
+        this.prevComment = u.comment || '';
         if (prev.length || !current.length) return;
         for (const m of current) this.chess.move(m);
         this.check();
-        this.ref!.title = u.title;
-        this.ref!.comment = u.comment;
-        this.store.eventBus.refresh(this.ref);
         // TODO: queue all moves and animate one by one
         const move = current.shift()!;
         let lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
@@ -319,7 +316,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   save(move?: Move) {
-    const comment = this.patchingComment = (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
+    const comment = this.prevComment = (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
     this.comment.emit(comment)
     if (!this.ref) return;
     const title = move && this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + move.san : '';
@@ -336,12 +333,11 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       title,
       comment,
     })).subscribe(cursor => {
-      if (this.patchingComment !== comment) return;
+      if (this.prevComment !== comment) return;
       this.ref!.title = title;
       this.ref!.comment = comment;
       this.ref!.modified = moment(cursor);
       this.ref!.modifiedString = cursor;
-      this.patchingComment = '';
       if (!this.local) {
         this.ref!.origin = this.store.account.origin;
         this.copied.emit(this.store.account.origin)
