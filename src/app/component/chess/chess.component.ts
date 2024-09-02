@@ -204,7 +204,11 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         this.chess.loadPgn('');
       }
     } catch (e) {
-      this.chess.loadPgn(board || '');
+      try {
+        this.chess.loadPgn(board || '');
+      } catch (e) {
+        console.error(e);
+      }
     }
     this.pieces = flatten(this.chess.board());
     this.turn = this.chess.turn();
