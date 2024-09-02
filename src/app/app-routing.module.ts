@@ -14,6 +14,7 @@ import { InboxDmsPage } from './page/inbox/dms/dms.component';
 import { getInbox, InboxPage } from './page/inbox/inbox.component';
 import { InboxModlistPage } from './page/inbox/modlist/modlist.component';
 import { InboxRefPage } from './page/inbox/ref/ref.component';
+import { InboxReportsPage } from './page/inbox/reports/reports.component';
 import { InboxSentPage } from './page/inbox/sent/sent.component';
 import { InboxUnreadPage } from './page/inbox/unread/unread.component';
 import { LoginPage } from './page/login/login.component';
@@ -176,7 +177,8 @@ const routes: Routes = [
       { path: 'unread', component: InboxUnreadPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'sent', component: InboxSentPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'alarms', component: InboxAlarmsPage, canDeactivate: [pendingChangesGuard, clearLastSelected] },
-      { path: 'modlist', component: InboxModlistPage, canActivate: [installedModGuard('_moderated', ['../ref', getInbox])], canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'modlist', component: InboxModlistPage, canActivate: [installedModGuard('_moderated', ['../reports'])], canDeactivate: [pendingChangesGuard, clearLastSelected] },
+      { path: 'reports', component: InboxReportsPage, canActivate: [installedModGuard('plugin/report', ['../ref', getInbox])], canDeactivate: [pendingChangesGuard, clearLastSelected] },
       { path: 'ref/:tag', component: InboxRefPage, canActivate: [conditionGuard(getInbox, ['../../alarms'])], canDeactivate: [pendingChangesGuard, clearLastSelected] },
     ],
   },

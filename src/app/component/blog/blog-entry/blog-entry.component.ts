@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, intersection, uniq } from 'lodash-es';
+import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
@@ -76,6 +76,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   submitted = false;
   icons: Icon[] = [];
   actions: Action[] = [];
+  groupedActions: { [key: string]: Action[] } = {};
   editing = false;
   viewSource = false;
   @HostBinding('class.deleted')
@@ -95,7 +96,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     private editor: EditorService,
     private refs: RefService,
     private exts: ExtService,
-    public acts: ActionService,
+    private acts: ActionService,
     private bookmarks: BookmarkService,
     private scraper: ScrapeService,
     private ts: TaggingService,
@@ -128,6 +129,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
     this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
+    this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
     if (this.repost) {
       if (this.ref && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
         this.refs.get(this.url, this.ref.origin).subscribe(ref => {
@@ -243,12 +245,6 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   }
 
   @memo
-  get file() {
-    return this.admin.getPlugin('plugin/file') &&
-      hasTag('plugin/file', this.currentRef);
-  }
-
-  @memo
   get isAuthor() {
     return isOwnerTag(this.store.account.tag, this.ref);
   }
@@ -342,8 +338,8 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   }
 
   clickIcon(i: Icon, ctrl: boolean) {
-    if (i.response) {
-      this.bookmarks.toggleFilter(i.response);
+    if (i.anyResponse) {
+      this.bookmarks.toggleFilter(i.anyResponse);
     }
     if (i.tag) {
       this.bookmarks.toggleFilter((ctrl ? `query/!(${i.tag})` : `query/${i.tag}`));
@@ -352,6 +348,9 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
 
   showAction(a: Action) {
     if (!this.visible(a)) return false;
+    if ('scheme' in a) {
+      if (a.scheme !== getScheme(this.repostRef?.url || this.ref.url)) return false;
+    }
     if ('tag' in a) {
       if (a.tag === 'locked' && !this.writeAccess) return false;
       if (a.tag && !this.taggingAccess) return false;
@@ -364,6 +363,10 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
       if (!a.label) return false;
     }
     return true;
+  }
+
+  apply(actions: Action[]) {
+    this.acts.apply(actions, this.ref, this.repostRef)
   }
 
   save() {

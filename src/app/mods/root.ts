@@ -208,7 +208,7 @@ export interface RootConfig {
   modmail?: boolean;
   dms?: string;
   queryFilters?: { query: string, label?: string}[];
-  responseFilters?: { response: `plugin/${string}` | `!plugin/${string}`, label?: string }[];
+  responseFilters?: { response: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`, label?: string }[];
   themes?: Record<string, string>;
   theme?: string;
   defaultSort?: string;

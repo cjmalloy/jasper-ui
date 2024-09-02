@@ -16,8 +16,8 @@
       <ng-container *ngIf="admin.getPlugin('plugin/invoice')">
         <a routerLink="/submit/invoice" [queryParams]="{url: urls}" i18n>invoice</a>
       </ng-container>
-      <ng-container *ngFor="let a of actions">
-        <a class="fake-link" (click)="doAction(a)">{{ label(a) }}</a>
+      <ng-container *ngFor="let a of groupedActions | keyvalue">
+        <a class="fake-link" (click)="doAction(a.value)">{{ a.key }}</a>
       </ng-container>
     </ng-container>
   </ng-container>

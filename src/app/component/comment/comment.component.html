@@ -107,13 +107,12 @@
           <a [routerLink]="['/submit/invoice']"
              [queryParams]="{ url: ref.url }" i18n>invoice</a>
         </ng-container>
-        <ng-container *ngFor="let a of actions">
-          <a *ngIf="showAction(a)"
-             class="fake-link"
-             (click)="acts.apply(a, ref)"
-             [appTitle]="a"
-             [appActionLabel]="a"
-             [field]="label(a)"
+        <ng-container *ngFor="let a of groupedActions | keyvalue">
+          <a class="fake-link"
+             (click)="apply(a.value)"
+             [appTitle]="a.value"
+             [appActionLabel]="a.value[0]"
+             [field]="label(a.value[0])"
              [ref]="ref"></a>
         </ng-container>
       </div>

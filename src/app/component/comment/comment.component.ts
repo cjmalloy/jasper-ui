@@ -12,7 +12,7 @@ import {
   ViewChildren
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { delay, uniq, without } from 'lodash-es';
+import { delay, groupBy, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../model/ref';
@@ -75,6 +75,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   newComments$ = new Subject<Ref | null>();
   icons: Icon[] = [];
   actions: Action[] = [];
+  groupedActions: { [key: string]: Action[] } = {};
   collapsed = false;
   replying = false;
   editing = false;
@@ -90,7 +91,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     private auth: AuthzService,
     private refs: RefService,
     private exts: ExtService,
-    public acts: ActionService,
+    private acts: ActionService,
     private ts: TaggingService,
     private bookmarks: BookmarkService,
     private el: ElementRef<HTMLDivElement>,
@@ -148,6 +149,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
     this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
+    this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -322,8 +324,8 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   clickIcon(i: Icon, ctrl: boolean) {
-    if (i.response) {
-      this.bookmarks.toggleFilter(i.response);
+    if (i.anyResponse) {
+      this.bookmarks.toggleFilter(i.anyResponse);
     }
     if (i.tag) {
       this.bookmarks.toggleFilter((ctrl ? `query/!(${i.tag})` : `query/${i.tag}`));
@@ -332,6 +334,9 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   showAction(a: Action) {
     if (!this.visible(a)) return false;
+    if ('scheme' in a) {
+      if (a.scheme !== getScheme(this.ref.url)) return false;
+    }
     if ('tag' in a) {
       if (a.tag === 'locked' && !this.writeAccess) return false;
       if (a.tag && !this.taggingAccess) return false;
@@ -344,6 +349,10 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
       if (!a.label) return false;
     }
     return true;
+  }
+
+  apply(actions: Action[]) {
+    this.acts.apply(actions, this.ref)
   }
 
   voteUp() {

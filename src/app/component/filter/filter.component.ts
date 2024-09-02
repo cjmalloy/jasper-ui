@@ -237,10 +237,10 @@ export class FilterComponent implements OnChanges, OnDestroy {
       } else if (!this.allFilters.find(g => g.filters.find(i => i.filter === f))) {
         // Current filter is missing
         if (f.startsWith('query/')) setToggles.push(f);
+        if (f.startsWith('!') || hasPrefix(f, 'plugin')) setToggles.push(f);
         if (f.startsWith('scheme/')) this.loadFilter({ group: $localize`Schemes 🏳️️`, scheme: f.substring('scheme/'.length)});
         if (f.startsWith('sources/')) this.loadFilter({ group: $localize`Filters 🕵️️`, label: $localize`Sources ⤴️`, sources: f.substring('sources/'.length) });
         if (f.startsWith('responses/')) this.loadFilter({ group: $localize`Filters 🕵️️`, label: $localize`Responses ⤵️`, responses: f.substring('responses/'.length) });
-        if (f.startsWith('plugin/')) this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
       }
     }
     // Search all filters for the toggled (negated) version and sync it
@@ -252,13 +252,15 @@ export class FilterComponent implements OnChanges, OnDestroy {
           const target = g.filters.find(i => i.filter === toggle(f));
           if (target) {
             target.filter = f;
-            if (f.startsWith('query/!(')) {
+            if (f.startsWith('!') || f.startsWith('query/!(')) {
               target.label = this.store.account.querySymbol('!') + target.label;
             } else {
               target.label = target.label.substring(this.store.account.querySymbol('!').length);
             }
           }
         });
+      } else if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
+        this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
       } else {
         // TODO: On page load Kanaban Exts are not loaded in time to find proper negate query filter
         this.loadFilter({ group: $localize`Queries 🔎️️`, query: f.substring('query/'.length)});
@@ -318,6 +320,11 @@ export class FilterComponent implements OnChanges, OnDestroy {
   setFilter(index: number, value: Filter) {
     this.filters[index] = value;
     this.setFilters();
+  }
+
+  negatable(filter: string) {
+    if (!filter) return false;
+    return filter.startsWith('query/') || filter.startsWith('!') || hasPrefix(filter, 'plugin');
   }
 
   toggleQuery(index: number) {

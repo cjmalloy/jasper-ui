@@ -19,16 +19,23 @@ export type UrlFilter = Filter |
   `query/${string}` |
   `scheme/${string}` |
   `plugin/${string}` |
-  `!plugin/${string}`;
+  `+plugin/${string}` |
+  `_plugin/${string}` |
+  `!plugin/${string}` |
+  `!+plugin/${string}` |
+  `!_plugin/${string}`;
 
 export function toggle(filter: UrlFilter): UrlFilter {
-  if (!filter.startsWith('query/')) return filter;
-  const query = filter.substring('query/'.length);
-  if (query.startsWith('!(')) {
-    return 'query/' + query.substring(2, query.length - 1) as UrlFilter;
-  } else {
-    return 'query/!(' + query + ')' as UrlFilter;
+  if (filter.startsWith('query/')) {
+    const query = filter.substring('query/'.length);
+    if (query.startsWith('!(')) {
+      return 'query/' + query.substring(2, query.length - 1) as UrlFilter;
+    } else {
+      return 'query/!(' + query + ')' as UrlFilter;
+    }
   }
+  if (filter.startsWith('!')) return filter.substring(1) as any;
+  return '!' + filter as any;
 }
 
 export function getArgs(

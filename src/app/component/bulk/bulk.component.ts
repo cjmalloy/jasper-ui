@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { intersection, map, merge, pick, uniq } from 'lodash-es';
+import { groupBy, intersection, map, merge, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
 import { catchError, concat, last, Observable, of, switchMap, throwError } from 'rxjs';
@@ -53,6 +53,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
   activeExts: Ext[] = [];
 
   actions: Action[] = [];
+  groupedActions: { [key: string]: Action[] } = {};
   batchRunning = false;
   toggled = false;
   serverError: string[] = [];
@@ -80,6 +81,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
       MemoCache.clear(this);
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
       this.actions = uniqueConfigs(sortOrder(this.admin.getActions(commonTags).filter(a => !('tag' in a) || this.auth.canAddTag(a.tag))));
+      this.groupedActions = groupBy(this.actions, a => this.label(a));
     }));
   }
 
@@ -215,7 +217,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
     return this.batch$<Ref>(ref => this.ts.create(tag, ref.url, ref.origin!));
   }
 
-  doAction(a: Action) {
+  doAction(a: Action[]) {
     this.batch(ref => this.acts.apply(a, ref));
   }
 

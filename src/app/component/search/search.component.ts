@@ -51,6 +51,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       case 'inbox/alarms': return $localize`alarms`;
       case 'inbox/dms': return $localize`direct messages`;
       case 'inbox/modlist': return $localize`unmoderated`;
+      case 'inbox/reports': return $localize`flagged`;
       case 'inbox/ref': return this.admin.getPlugin(this.store.view.childTag)?.name || this.store.view.childTag;
       case 'ref/thread': return $localize`thread`;
       case 'ref/comments': return $localize`comments`;
