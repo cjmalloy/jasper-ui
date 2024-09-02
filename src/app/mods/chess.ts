@@ -104,6 +104,7 @@ export const chessAiPlugin: Plugin = {
       })).data.content[0].comment;
       const prompt =
         'You are playing a game of chess against an opponent.\\n' +
+        'You are the ' + color + ' player.\\n\\n' +
         'Read the following board in Portable Game Notation (PGN) and reply with the next move.\\n' +
         'If the game has ended or is not valid simply reply pass.\\n' +
         'Do not include any lists, formatting, additional text. Only reply with either a valid PGN move or the word pass in all lowercase.\\n\\n'
