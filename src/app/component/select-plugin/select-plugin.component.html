@@ -3,6 +3,6 @@
           class="big"
           (input)="pluginChange.next(select.value)">
     <option value="" i18n>🧰️</option>
-    <option *ngFor="let p of plugins" [value]="p.tag">{{ p.config?.submit }}</option>
+    <option *ngFor="let p of plugins" [value]="p.tag">{{ p.name || p.tag }}</option>
   </select>
 </ng-container>
