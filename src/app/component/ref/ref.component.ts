@@ -730,6 +730,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get publishedIsSubmitted() {
+    if (this.admin.getPublished(this.ref.tags).length) return false;
     return !this.ref.published || Math.abs(this.ref.published.diff(this.ref.created, 'seconds')) <= 5;
   }
 

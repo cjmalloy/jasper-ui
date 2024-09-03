@@ -15,11 +15,12 @@ export const personPlugin: Plugin = {
     filters: [
       { query: 'plugin/person', label: $localize`📇️‍ people`, group: $localize`Plugins 🧰️` },
     ],
+    // language=CSS
     css: `
       .plugin_person .thumbnail {
-        border-radius: 32px;
-        height: 64px;
-        background-size: cover;
+        border-radius: 24px !important;
+        height: 48px !important;
+        background-size: cover !important;
       }
     `,
   },
