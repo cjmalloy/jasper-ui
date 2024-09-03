@@ -91,48 +91,75 @@ export const chessAiPlugin: Plugin = {
     script: `
       const axios = require('axios');
       const OpenAi = require('openai');
+      const { Chess } = require('chess.js');
       const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
       const origin = ref.origin || ''
+      const chess = new Chess();
+      chess.loadPgn(ref.comment || '');
+      if (chess.isGameOver()) process.exit(0);
       const config = ref.plugins['plugin/delta/chess'];
-      const moves = (ref.comment || '').split('\\n').filter(m => !!m.trim());
       const color = config?.aiColor.toLowerCase();
+      const moves = (ref.comment || '').split('\\n').filter(m => !!m.trim());
       if ((color === 'black') !== !!(moves.length % 2)) process.exit(0);
-      const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
-        headers: {
-          'Local-Origin': origin || 'default',
-          'User-Role': 'ROLE_ADMIN',
-        },
-        params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
-      })).data.content[0].comment;
-      const prompt =
-        'You are playing a game of chess against an opponent.\\n' +
-        'You are the ' + color + ' player.\\n\\n' +
-        'Read the following board in Portable Game Notation (PGN) and reply with the next move.\\n' +
-        'If the game has ended or is not valid simply reply pass.\\n' +
-        'Do not include any lists, formatting, additional text. Only reply with either a valid PGN move or the word pass in all lowercase.\\n\\n'
-        + ref.comment;
-      const openai = new OpenAi({ apiKey });
-      const completion = await openai.chat.completions.create({
-        model: config?.model || 'gpt-4o',
-        max_tokens: config?.maxTokens || 4096,
-        messages: [
+      const validMoves = chess.moves();
+      let move = '';
+      if (validMoves.length === 1) {
+        move = validMoves[0];
+      } else {
+        const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+          headers: {
+            'Local-Origin': origin || 'default',
+            'User-Role': 'ROLE_ADMIN',
+          },
+          params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
+        })).data.content[0].comment;
+        const prompt =
+          'You are playing a game of chess against an opponent.\\n' +
+          'You are the ' + color + ' player.\\n\\n' +
+          'Read the following board in Portable Game Notation (PGN) and reply with the next move.\\n' +
+          'You will also be shown the ascii version of the board to make sure your move is valid.\\n' +
+          'If the game has ended or is not valid simply reply pass.\\n' +
+          'Do not include any lists, formatting, additional text. Only reply with either a valid PGN move or the word pass in all lowercase.\\n\\n'
+          + ref.comment;
+        const openai = new OpenAi({ apiKey });
+        const messages = [
           { role: 'system', content: prompt },
           { role: 'user', content: ref.comment || 'New game' },
-        ],
-      });
-      const move = completion.choices[0]?.message?.content;
-      const title = (ref.title.includes(' | ') ? ref.title.substring(0, ref.title.indexOf(' | ')) : ref.title) + ' | ' + move;
-      delete ref.metadata;
-      if (move !== 'pass') {
-        const newBoard = {
-          ...ref,
-          title,
-          comment: (ref.comment ? ref.comment + '\\n' : '') + move,
-        };
-        console.log(JSON.stringify({
-          ref: [newBoard],
-        }));
+          { role: 'user', content: chess.ascii() },
+        ];
+        let retry = 0;
+        while (true) {
+          const completion = await openai.chat.completions.create({
+            model: config?.model || 'gpt-4o',
+            max_tokens: config?.maxTokens || 4096,
+            messages: messages,
+          });
+          move = completion.choices[0]?.message?.content;
+          if (move === 'pass') process.exit(0);
+          try {
+            chess.move(move);
+            break;
+          } catch (e) {
+            retry++;
+            if (retry >= 10) {
+              console.error(e.message);
+              process.exit(1);
+            }
+            messages.push({ role: 'assistant', content: move });
+            messages.push({ role: 'system', content: e.message });
+          }
+        }
       }
+      delete ref.metadata;
+      const title = (ref.title.includes(' | ') ? ref.title.substring(0, ref.title.indexOf(' | ')) : ref.title) + ' | ' + move;
+      const newBoard = {
+        ...ref,
+        title,
+        comment: (ref.comment ? ref.comment + '\\n' : '') + move,
+      };
+      console.log(JSON.stringify({
+        ref: [newBoard],
+      }));
     `,
     form: [{
       key: 'aiColor',
@@ -146,13 +173,38 @@ export const chessAiPlugin: Plugin = {
         ],
       }
     }],
+    advancedForm: [{
+      key: 'apiKeyTag',
+      type: 'tag',
+      props: {
+        label: $localize`🔑️ API Key Tag:`,
+      },
+    }, {
+      key: 'model',
+      type: 'string',
+      props: {
+        label: $localize`Model:`,
+      },
+    }, {
+      key: 'maxTokens',
+      type: 'number',
+      props: {
+        label: $localize`Max Tokens:`,
+      },
+    }],
   },
   defaults: {
     aiColor: 'Black',
+    apiKeyTag: '+plugin/secret/openai',
+    model: 'gpt-4o',
+    maxTokens: 4096,
   },
   schema: {
     properties: {
       aiColor: { type: 'string' },
+      apiKeyTag: { type: 'string' },
+      model: { type: 'string' },
+      maxTokens: { type: 'uint32' },
     },
   },
 };
