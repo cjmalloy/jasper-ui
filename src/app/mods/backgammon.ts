@@ -20,7 +20,8 @@ export const backgammonPlugin: Plugin = {
       { query: 'plugin/backgammon', label: $localize`🎲️ backgammon`, group: $localize`Games 🕹️` },
     ],
     actions: [
-      { event: 'flip', label: $localize`flip` },
+      { event: 'flip', label: $localize`flip`, title: $localize`Spin the board 180 degrees.` },
+      { event: 'reload', label: $localize`reload`, title: $localize`Reload the game.`  },
     ],
     // language=CSS
     css: `

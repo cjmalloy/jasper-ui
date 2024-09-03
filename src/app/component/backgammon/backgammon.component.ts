@@ -660,7 +660,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   getDice(p: Piece) {
     let result = filter([...this.redDice, ...this.blackDice], d => !!d);
     if (result.length !== 2) {
-      // You can use dice show if you win the initial roll
+      // You can use dice shown if you win the initial roll
       result = [...p === 'r' ? this.redDice : this.blackDice];
     }
     if (result[0] === result[1]) {

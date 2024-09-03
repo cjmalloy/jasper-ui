@@ -24,7 +24,8 @@ export const chessPlugin: Plugin = {
       { query: 'plugin/chess', label: $localize`♟️ chess`, group: $localize`Games 🕹️` },
     ],
     actions: [
-      { event: 'flip', label: $localize`flip` },
+      { event: 'flip', label: $localize`flip`, title: $localize`Spin the board 180 degrees.` },
+      { event: 'reload', label: $localize`reload`, title: $localize`Reload the game.`  },
     ],
     advancedActions: [
       { tag: 'plugin/delta/chess', labelOff: $localize`play ai`, labelOn: $localize`cancel ai`, title: $localize`Play against an AI opponent.` },
