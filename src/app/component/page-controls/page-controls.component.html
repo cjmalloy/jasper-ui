@@ -1,20 +1,22 @@
 <div class="controls">
-  <ng-container *ngIf="page">
+  @if (page) {
     <label i18n-title title="pages: {{ page.totalPages }}, results: {{ page.totalElements }}" i18n>more results: </label>
-    <ng-container *ngIf="hasQuery">
+    @if (hasQuery) {
       <a class="first-page"
          routerLink="./"
          [class.disabled]="page.first"
          [queryParams]="{ pageNumber: store.view.defaultPageNumber ? 0 : null }"
          queryParamsHandling="merge" i18n>first</a>
       |
-      <a class="prev-page"
-         routerLink="./"
-         routerLinkActive="disabled"
-         [queryParams]="{ pageNumber: prev }"
-         queryParamsHandling="merge" i18n>prev</a>
-      |
-    </ng-container>
+      @if (showPrev) {
+        <a class="prev-page"
+           routerLink="./"
+           routerLinkActive="disabled"
+           [queryParams]="{ pageNumber: prev }"
+           queryParamsHandling="merge" i18n>prev</a>
+        |
+      }
+    }
     <a class="next-page"
        routerLink="./"
        [class.disabled]="page.last"
@@ -28,7 +30,7 @@
        [class.disabled]="page.last"
        [queryParams]="{ pageNumber: last }"
        queryParamsHandling="merge" i18n>last</a>
-  </ng-container>
+  }
 
   <label for="pageSize" i18n> size: </label>
   <select id="pageSize" [(ngModel)]="pageSize">

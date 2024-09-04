@@ -62,7 +62,8 @@
     <app-page-controls *ngIf="pageControls"
                        [showPageLast]="showPageLast"
                        [page]="page"
-                       [defaultCols]="cols"></app-page-controls>
+                       [defaultCols]="cols"
+                       [showPrev]="showPrev"></app-page-controls>
   }
 } @else {
   <app-loading></app-loading>

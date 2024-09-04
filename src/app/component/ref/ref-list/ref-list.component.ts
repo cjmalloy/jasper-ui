@@ -40,6 +40,8 @@ export class RefListComponent implements OnInit, OnDestroy {
   newRefs$?: Observable<Ref | null>;
   @Input()
   insertNewAtTop = false;
+  @Input()
+  showPrev = true;
 
   pinned: Ref[] = [];
   newRefs: Ref[] = [];
