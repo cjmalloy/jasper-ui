@@ -546,8 +546,8 @@ export const asyncScrapePlugin: Plugin = {
       { tag: '_plugin/delta/scrape', labelOn: $localize`cancel`, title: $localize`Cancel updating this Ref.` },
     ],
     advancedActions: [
-      { tag: '_plugin/delta/scrape/ref', scheme: 'http:', labelOff: $localize`scrape`, title: $localize`Update this Ref with the scraped resource`, confirm: $localize`Are you sure you want to update this Ref?`, global: true },
-      { tag: '_plugin/delta/scrape/ref', scheme: 'https:', labelOff: $localize`scrape`, title: $localize`Update this Ref with the scraped resource`, confirm: $localize`Are you sure you want to update this Ref?`, global: true },
+      { tag: '_plugin/delta/scrape/ref', scheme: 'http:', labelOff: $localize`scrape`, title: $localize`Update this Ref with the scraped resource`, confirm: $localize`Are you sure you want to scrape?`, global: true },
+      { tag: '_plugin/delta/scrape/ref', scheme: 'https:', labelOff: $localize`scrape`, title: $localize`Update this Ref with the scraped resource`, confirm: $localize`Are you sure you want to scrape?`, global: true },
     ],
   },
 };

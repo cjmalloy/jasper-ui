@@ -100,8 +100,8 @@ export const asyncCachePlugin: Plugin = {
       { tag: '_plugin/delta/cache', labelOn: $localize`cancel`, title: $localize`Cancel saving this Ref resource to the cache.` },
     ],
     advancedActions: [
-      { tag: '_plugin/delta/cache', scheme: 'http:', labelOff: $localize`cache`, title: $localize`Save the Ref resource in the cache`, confirm: $localize`Are you sure you want to scrape this Ref?`, global: true },
-      { tag: '_plugin/delta/cache', scheme: 'https:', labelOff: $localize`cache`, title: $localize`Save the Ref resource in the cache`, confirm: $localize`Are you sure you want to scrape this Ref?`, global: true },
+      { tag: '_plugin/delta/cache', scheme: 'http:', labelOff: $localize`cache`, title: $localize`Save the Ref resource in the cache`, confirm: $localize`Are you sure you want to cache?`, global: true },
+      { tag: '_plugin/delta/cache', scheme: 'https:', labelOff: $localize`cache`, title: $localize`Save the Ref resource in the cache`, confirm: $localize`Are you sure you want to cache?`, global: true },
     ],
   },
 };
