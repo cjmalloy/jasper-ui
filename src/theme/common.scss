@@ -1567,7 +1567,7 @@ formly-field-radio, formly-field-multicheckbox {
   font-weight: bold;
   white-space: nowrap;
 
-  :link, :visited, a:active, .fake-link {
+  :link, :visited, a:active, .fake-link, .loading-dots {
     color: var(--info) !important;
   }
 

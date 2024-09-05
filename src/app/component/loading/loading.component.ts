@@ -6,6 +6,7 @@ import { Component, HostBinding, Input } from '@angular/core';
   styleUrls: ['./loading.component.scss'],
 })
 export class LoadingComponent {
+  @HostBinding('class') css = 'loading-dots';
 
   @Input()
   @HostBinding('class.inline')
