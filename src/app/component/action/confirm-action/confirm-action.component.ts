@@ -11,6 +11,8 @@ export class ConfirmActionComponent extends ActionComponent {
   @HostBinding('class') css = 'action';
 
   @Input()
+  message = $localize`are you sure?`;
+  @Input()
   action: () => Observable<any|never> = () => of(null);
 
   confirming = false;

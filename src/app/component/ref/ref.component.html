@@ -262,33 +262,11 @@
             <a routerLink="/submit/invoice"
                [queryParams]="{url: ref.url}" i18n>invoice</a>
           }
-          @for (a of groupedActions | keyvalue; track a.key) {
-            <a class="fake-link"
-               (click)="apply(a.value)"
-               [appTitle]="a.value"
-               [appActionLabel]="a.value[0]"
-               [field]="label(a.value[0])"
-               [ref]="ref"></a>
-          }
-          <span class="fake-link show-more"
-                (click)="showAdvanced($event)">…</span>
-          <ng-template #actionsMenu>
-            <div class="context-menu advanced-actions" (click)="$event.stopPropagation()">
-              <a class="fake-link"
-                 (click)="download()" i18n>download</a>
-              <a *ngIf="mediaAttachment"
-                 class="fake-link"
-                 (click)="downloadMedia()" i18n>media</a>
-              @for (a of groupedAdvancedActions | keyvalue; track a.key) {
-                <a class="fake-link"
-                   (click)="closeAdvanced() || apply(a.value)"
-                   [appTitle]="a.value"
-                   [appActionLabel]="a.value[0]"
-                   [field]="label(a.value[0])"
-                   [ref]="ref"></a>
-              }
-            </div>
-          </ng-template>
+          <app-action-list [ref]="ref"
+                           [repostRef]="repostRef"
+                           [mediaAttachment]="mediaAttachment"
+                           [groupedActions]="groupedActions"
+                           [groupedAdvancedActions]="groupedAdvancedActions"></app-action-list>
         </div>
       </div>
       <div class="toggle actions-toggle"

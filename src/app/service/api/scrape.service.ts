@@ -24,7 +24,7 @@ export class ScrapeService {
     private login: LoginService,
   ) {
     autorun(() => {
-      if (this.store.eventBus.event === 'scrape') {
+      if (this.store.eventBus.event === 'pull') {
         if (hasTag('plugin/feed', this.store.eventBus.ref)) {
           this.store.eventBus.runAndReload(this.feed(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
         }

@@ -11,7 +11,6 @@ import {
   ViewChildren
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
@@ -34,11 +33,9 @@ import {
 } from '../../../model/tag';
 import { findArchive } from '../../../mods/archive';
 import { deleteNotice } from '../../../mods/delete';
-import { ActionService } from '../../../service/action.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
-import { ScrapeService } from '../../../service/api/scrape.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
@@ -91,14 +88,11 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     private config: ConfigService,
     public admin: AdminService,
     public store: Store,
-    private router: Router,
     private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
     private exts: ExtService,
-    private acts: ActionService,
     private bookmarks: BookmarkService,
-    private scraper: ScrapeService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
@@ -363,10 +357,6 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
       if (!a.label) return false;
     }
     return true;
-  }
-
-  apply(actions: Action[]) {
-    this.acts.apply(actions, this.ref, this.repostRef)
   }
 
   save() {

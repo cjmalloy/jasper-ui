@@ -15,6 +15,7 @@ import { tap } from 'rxjs/operators';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { ActionListComponent } from './component/action/action-list/action-list.component';
 import { ConfirmActionComponent } from './component/action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from './component/action/inline-button/inline-button.component';
 import { InlinePasswordComponent } from './component/action/inline-password/inline-password.component';
@@ -75,7 +76,6 @@ import { TodoComponent } from './component/todo/todo.component';
 import { UserListComponent } from './component/user/user-list/user-list.component';
 import { UserComponent } from './component/user/user.component';
 import { ViewerComponent } from './component/viewer/viewer.component';
-import { ActionLabelDirective } from './directive/action-label.directive';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { FillWidthDirective } from './directive/fill-width.directive';
 import { ImageDirective } from './directive/image.directive';
@@ -293,7 +293,6 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     ChessComponent,
     TagsPage,
     PluginsPipe,
-    ActionLabelDirective,
     TitleDirective,
     InboxAlarmsPage,
     InputDoneDirective,
@@ -305,6 +304,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     PlaylistComponent,
     BackgammonComponent,
     ConfirmActionComponent,
+    ActionListComponent,
     InlineTagComponent,
     InlineUrlComponent,
     InlinePasswordComponent,

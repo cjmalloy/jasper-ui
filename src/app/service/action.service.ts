@@ -50,7 +50,7 @@ export class ActionService {
     }
   }
 
-  apply(actions: Action | Action[], ref: Ref, repost?: Ref) {
+  apply$(actions: Action | Action[], ref: Ref, repost?: Ref) {
     if (!isArray(actions)) actions = [actions];
     const updates: Observable<any>[] = [];
     for (const a of actions) {
@@ -68,7 +68,7 @@ export class ActionService {
       }
     }
     if (!updates.length) throw 'Invalid action';
-    this.store.eventBus.runAndReload(concat(...updates).pipe(last()), ref);
+    return this.store.eventBus.runAndReload$(concat(...updates).pipe(last()), ref);
   }
 
   event(event: string, ref?: Ref, repost?: Ref) {

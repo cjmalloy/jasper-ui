@@ -69,7 +69,7 @@ export const originPullPlugin: Plugin = {
       { tag: '-+plugin/cron',  label: $localize`🚫️`, order: -1 },
     ],
     actions: [
-      { event: 'pull', label: $localize`pull` },
+      { event: 'pull', label: $localize`pull`, title: $localize`Pull a batch of updates from the remote.`, confirm: $localize`Are you sure you want to pull?` },
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable` },
     ],
     advancedForm: [{
@@ -166,7 +166,7 @@ export const originPushPlugin: Plugin = {
       behind the local cursor. If writeOnly is set, this check is skipped and
       the lastModifiedWritten config is used instead.`,
     icons: [{ label: $localize`📤️` }],
-    actions: [{ event: 'push', label: $localize`push` }],
+    actions: [{ event: 'push', label: $localize`push`, title: $localize`Push a batch of updates to the remote.`, confirm: $localize`Are you sure you want to push?` }],
     // language=Handlebars
     infoUi: `{{#if pushOnChange}} pushing on change {{/if}}`,
     form: [{

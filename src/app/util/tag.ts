@@ -110,8 +110,8 @@ export function isOwner(user: User, ref: Ref) {
   return hasTag(user.tag, ref);
 }
 
-export function isOwnerTag(tag: string, ref: Ref) {
-  if (ref.origin !== tagOrigin(tag)) return false;
+export function isOwnerTag(tag: string, ref?: Ref) {
+  if (ref?.origin !== tagOrigin(tag)) return false;
   return hasTag(localTag(tag), ref);
 }
 

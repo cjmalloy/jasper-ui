@@ -335,7 +335,12 @@ export interface EditorButton {
   _parent?: Config;
 }
 
-export type Action = TagAction | ResponseAction | EmitAction | EventAction;
+export type Action = (TagAction | ResponseAction | EmitAction | EventAction) & {
+  /**
+   * Display confirm message.
+   */
+  confirm?: string;
+};
 
 export interface TagAction extends Visibility {
   /**

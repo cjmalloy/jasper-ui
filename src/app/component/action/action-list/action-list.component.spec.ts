@@ -1,17 +1,16 @@
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
+import { ActionListComponent } from './action-list.component';
 
-import { BlogComponent } from './blog.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+describe('ActionListComponent', () => {
+  let component: ActionListComponent;
+  let fixture: ComponentFixture<ActionListComponent>;
 
-describe('BlogComponent', () => {
-  let component: BlogComponent;
-  let fixture: ComponentFixture<BlogComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [BlogComponent],
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      declarations: [ActionListComponent],
       imports: [
         RouterModule.forRoot([]),
       ],
@@ -19,9 +18,8 @@ describe('BlogComponent', () => {
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
       ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(BlogComponent);
+    });
+    fixture = TestBed.createComponent(ActionListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
