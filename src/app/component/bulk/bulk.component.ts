@@ -75,7 +75,9 @@ export class BulkComponent implements OnChanges, OnDestroy {
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
-      this.actions = uniqueConfigs(sortOrder(this.admin.getActions(commonTags).filter(a => !('tag' in a) || this.auth.canAddTag(a.tag))));
+      this.actions = uniqueConfigs([
+        ...sortOrder(this.admin.getActions(commonTags).filter(a => !('tag' in a) || this.auth.canAddTag(a.tag))),
+        ...sortOrder(this.admin.getAdvancedActions(commonTags))]);
       this.groupedActions = groupBy(this.actions, a => this.label(a));
     }));
   }
