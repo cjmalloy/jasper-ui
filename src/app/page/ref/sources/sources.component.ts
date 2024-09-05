@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { defer } from 'lodash-es';
+import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
@@ -32,7 +32,7 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.page = Page.of(this.store.view.ref?.sources?.map(url => ({ url })) || []);
+      this.page = Page.of(uniq(this.store.view.ref?.sources).map(url => ({ url })) || []);
     }));
     this.disposers.push(autorun(() => {
       const args = getArgs(
