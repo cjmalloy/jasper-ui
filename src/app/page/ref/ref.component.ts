@@ -70,35 +70,29 @@ export class RefPage implements OnInit, OnDestroy {
         || this.store.view.ref?.plugins?.['plugin/fullscreen']?.onload));
   }
 
-  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
-  @memo
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return hasTag('plugin/thread', this.store.view.ref) || this.store.view.ref?.metadata?.plugins?.['plugin/thread'];
   }
 
-  @memo
   get logs() {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
     return this.store.view.ref?.metadata?.plugins?.['+plugin/log'];
   }
 
-  @memo
   get responses() {
     return this.store.view.ref?.metadata?.responses || 0;
   }
 
-  @memo
   get sources() {
     return this.store.view.ref?.sources?.length || 0;
   }
 
-  @memo
   get alts() {
     return this.store.view.ref?.alternateUrls?.length || 0;
   }
