@@ -12,8 +12,11 @@ export class InlineButtonComponent extends ActionComponent {
 
   @Input()
   action: () => Observable<any|never> = () => of(null);
+  @Input()
+  minDelayMs = 1000;
 
   acting = false;
+  minTimeout = false;
 
   override reset() {
     this.acting = false;
@@ -25,6 +28,8 @@ export class InlineButtonComponent extends ActionComponent {
 
   act() {
     this.acting = true;
+    this.minTimeout = true;
+    setTimeout(() => this.minTimeout = false, this.minDelayMs);
     this.action().pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);

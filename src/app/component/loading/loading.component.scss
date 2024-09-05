@@ -16,6 +16,8 @@
     padding: 0;
     margin: 6px;
     top: -2px;
+    animation: fadein 2s ease-in-out;
+    animation-iteration-count: infinite;
   }
   &.batch {
     opacity: 1;

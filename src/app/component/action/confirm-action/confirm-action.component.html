@@ -1,4 +1,4 @@
-@if (!confirming && !acting) {
+@if (!confirming && !acting && !minTimeout) {
   <span class="fake-link" (click)="confirming = true">
     <ng-content></ng-content>
   </span>

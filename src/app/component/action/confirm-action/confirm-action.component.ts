@@ -14,9 +14,12 @@ export class ConfirmActionComponent extends ActionComponent {
   message = $localize`are you sure?`;
   @Input()
   action: () => Observable<any|never> = () => of(null);
+  @Input()
+  minDelayMs = 1000;
 
   confirming = false;
   acting = false;
+  minTimeout = false;
 
   override reset() {
     this.confirming = false;
@@ -30,6 +33,8 @@ export class ConfirmActionComponent extends ActionComponent {
   confirm() {
     this.confirming = false;
     this.acting = true;
+    this.minTimeout = true;
+    setTimeout(() => this.minTimeout = false, this.minDelayMs);
     this.action().pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);
