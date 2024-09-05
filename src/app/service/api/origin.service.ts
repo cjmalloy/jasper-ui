@@ -5,6 +5,7 @@ import * as moment from 'moment';
 import { catchError, Observable } from 'rxjs';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
+import { hasTag } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -20,10 +21,10 @@ export class OriginService {
     private login: LoginService,
   ) {
     autorun(() => {
-      if (this.store.eventBus.event === 'push') {
+      if (this.store.eventBus.event === 'push' && hasTag('+plugin/origin/push', this.store.eventBus.ref)) {
         this.store.eventBus.runAndReload(this.push(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
       }
-      if (this.store.eventBus.event === 'pull') {
+      if (this.store.eventBus.event === 'pull' && hasTag('+plugin/origin/pull', this.store.eventBus.ref)) {
         this.store.eventBus.runAndReload(this.pull(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
       }
     });

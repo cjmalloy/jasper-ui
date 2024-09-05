@@ -57,7 +57,7 @@ export const reportPlugin: Plugin = {
       { response: '+plugin/approve', labelOff: $localize`approve`, title: $localize`Silence report.`, global: true, order: -1 }
     ],
     advancedActions: [
-      { response: 'plugin/report', labelOff: $localize`flag`, title: $localize`Report a problem with this post.`, global: true, order: 1 },
+      { response: 'plugin/report', labelOff: $localize`flag`, title: $localize`Report a problem with this post.`, confirm: $localize`Are you sure you want to report this post?`, global: true, order: 1 },
     ],
     filters: [
       { response: 'plugin/report', label: $localize`🙅️ reports`, group: $localize`Mod Tools` },

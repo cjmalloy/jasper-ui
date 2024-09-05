@@ -93,8 +93,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   css = 'ref list-item';
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild('actionsMenu')
-  actionsMenu!: TemplateRef<any>;
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
 
@@ -149,10 +147,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   taggingAccess = false;
   serverError: string[] = [];
   publishChanged = false;
-  overlayRef?: OverlayRef;
 
   submitting?: Subscription;
-  private overlayEvents?: Subscription;
   private refreshTap?: () => void;
 
   constructor(
@@ -163,15 +159,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     private editor: EditorService,
     private refs: RefService,
     private exts: ExtService,
-    private acts: ActionService,
     private bookmarks: BookmarkService,
     private proxy: ProxyService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
-    private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef,
     private el: ElementRef<HTMLDivElement>,
-    private zone: NgZone,
   ) {
     this.editForm = refForm(fb);
     this.disposers.push(autorun(() => {
@@ -523,7 +515,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (this.image && this.admin.getPlugin('plugin/image')?.config?.proxy) {
       return this.proxy.getFetch(this.url);
     }
-    return false;
+    return '';
   }
 
   @memo
@@ -765,15 +757,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     return formatAuthor(user);
   }
 
-  download() {
-    downloadRef(writeRef(this.ref));
-  }
-
-  downloadMedia() {
-    if (!this.mediaAttachment) return;
-    window.open(this.mediaAttachment, "_blank");
-  }
-
   tag$ = (tag: string) => {
     if (this.ref.upload) {
       runInAction(() => {
@@ -841,10 +824,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       if (!a.label) return false;
     }
     return true;
-  }
-
-  apply(actions: Action[]) {
-    this.acts.apply(actions, this.ref, this.repostRef)
   }
 
   voteUp() {
@@ -1015,43 +994,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.store.submit.removeRef(this.ref);
     this.deleted = true;
     return of(null);
-  }
-
-  showAdvanced(event: MouseEvent) {
-    this.closeAdvanced();
-    defer(() => {
-      const positionStrategy = this.overlay.position()
-        .flexibleConnectedTo({x: event.x, y: event.y})
-        .withPositions([{
-          originX: 'center',
-          originY: 'center',
-          overlayX: 'start',
-          overlayY: 'top',
-        }]);
-      this.overlayRef = this.overlay.create({
-        positionStrategy,
-        scrollStrategy: this.overlay.scrollStrategies.close(),
-      });
-      this.overlayRef.attach(new TemplatePortal(this.actionsMenu, this.viewContainerRef));
-      this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((event: MouseEvent) => {
-        switch (event.type) {
-          case 'click':
-          case 'pointerdown':
-          case 'touchstart':
-          case 'mousedown':
-          case 'contextmenu':
-            this.zone.run(() => this.closeAdvanced());
-        }
-      });
-    });
-  }
-
-  closeAdvanced() {
-    this.overlayRef?.dispose();
-    this.overlayEvents?.unsubscribe();
-    this.overlayRef = undefined;
-    this.overlayEvents = undefined;
-    return false;
   }
 
   delayLastSelected() {

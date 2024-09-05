@@ -3,7 +3,7 @@
     <ng-content></ng-content>
   </span>
 } @else if (confirming) {
-  <span *ngIf="confirming" i18n> are you sure?&nbsp;
+  <span *ngIf="confirming" > {{ message }}&nbsp;
     <a class="fake-link" (click)="confirm()">yes</a>&nbsp;/&nbsp;
     <a class="fake-link" (click)="confirming = false">no</a>&nbsp;
   </span>

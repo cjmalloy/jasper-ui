@@ -1,9 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { groupBy, intersection, map, merge, pick, uniq } from 'lodash-es';
+import { groupBy, intersection, map, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import * as moment from 'moment';
-import { catchError, concat, last, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -16,9 +15,7 @@ import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { PluginService } from '../../service/api/plugin.service';
-import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
-import { ScrapeService } from '../../service/api/scrape.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
 import { UserService } from '../../service/api/user.service';
@@ -74,8 +71,6 @@ export class BulkComponent implements OnChanges, OnDestroy {
     private templates: TemplateService,
     private acts: ActionService,
     private ts: TaggingService,
-    private proxy: ProxyService,
-    private scraper: ScrapeService,
   ) {
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
@@ -217,8 +212,8 @@ export class BulkComponent implements OnChanges, OnDestroy {
     return this.batch$<Ref>(ref => this.ts.create(tag, ref.url, ref.origin!));
   }
 
-  doAction(a: Action[]) {
-    this.batch(ref => this.acts.apply(a, ref));
+  doAction$ = (a: Action[]) => () => {
+    return this.batch$<Ref>(ref => this.acts.apply$(a, ref));
   }
 
   label(a: Action) {
@@ -248,43 +243,6 @@ export class BulkComponent implements OnChanges, OnDestroy {
           : of(null)),
       ));
     }
-  }
-
-  scrape$ = () => {
-    return this.batch$<Ref>(ref => {
-      if (hasTag('plugin/feed', ref)) {
-        return this.scraper.feed(ref.url, ref.origin);
-      } else if (this.store.view.settingsTag === '_plugin/cache' && hasTag('_plugin/cache', ref)) {
-        return this.proxy.refresh(ref.url);
-      } else {
-        return this.scraper.webScrape(ref.url).pipe(switchMap(scraped => {
-          if (ref.title && scraped.title?.includes(ref.title)) {
-            // Avoid cluttering title
-            scraped.title = ref.title;
-          }
-          scraped.origin = ref.origin;
-          if (scraped.published?.isAfter(moment().subtract(5, 'minutes'))) {
-            scraped.published = ref.published;
-          }
-          scraped.modifiedString = ref.modifiedString;
-          scraped.sources = uniq([...ref.sources || [], ...scraped.sources || []]);
-          scraped.alternateUrls = uniq([...ref.alternateUrls || [], ...scraped.alternateUrls || []]);
-          scraped.tags = uniq([...ref.tags || [], ...scraped.tags || []]);
-          scraped.plugins = merge(ref.plugins, scraped.plugins);
-          return this.refs.update(scraped).pipe(
-            catchError(err => {
-              if (err.status === 409) {
-                // If scraped for the first time the server may have modified the Ref to add a cache
-                return this.refs.get(scraped.url, scraped.origin).pipe(
-                  switchMap(existing => this.refs.update({ ...scraped, modifiedString: existing.modifiedString })),
-                );
-              }
-              return throwError(() => err);
-            }),
-          );
-        }));
-      }
-    });
   }
 
   copy$ = () => {

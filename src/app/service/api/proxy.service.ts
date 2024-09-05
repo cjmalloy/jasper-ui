@@ -29,11 +29,6 @@ export class ProxyService {
     private login: LoginService,
   ) {
     autorun(() => {
-      if (this.store.eventBus.event === 'scrape') {
-        if (hasTag('_plugin/cache', this.store.eventBus.ref)) {
-          this.store.eventBus.runAndReload(this.refresh(this.store.eventBus.ref!.url));
-        }
-      }
       if (store.eventBus.event === '_plugin/cache:clear-cache') {
         this.clearDeleted().subscribe();
       }
@@ -61,17 +56,6 @@ export class ProxyService {
     this.scraping.push(url);
     if (this.scraping.length === 1) s();
   }
-
-  refresh(url: string): Observable<void> {
-    return this.http.get(`${this.base}/refresh`, {
-      params: params({ url }),
-      responseType: 'text'
-    }).pipe(
-      map(() => {}),
-      catchError(err => this.login.handleHttpError(err)),
-    );
-  }
-
   fetch(url: string, thumbnail?: boolean): Observable<Resource> {
     this.cacheList.add(url);
     return this.http.get(`${this.base}`, {

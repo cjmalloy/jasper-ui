@@ -70,20 +70,13 @@
             <a class="fake-link"
                (click)="viewSource = !viewSource" i18n>source</a>
           </ng-template>
-          <a class="fake-link"
-             (click)="download()" i18n>download</a>
           <ng-container *ngIf="canInvoice">
             <a [routerLink]="['/submit/invoice']"
                [queryParams]="{url: ref.url}" i18n>invoice</a>
           </ng-container>
-          <ng-container *ngFor="let a of groupedActions | keyvalue">
-            <a class="fake-link"
-               (click)="apply(a.value)"
-               [appTitle]="a.value"
-               [appActionLabel]="a.value[0]"
-               [field]="label(a.value[0])"
-               [ref]="ref"></a>
-          </ng-container>
+          <app-action-list [ref]="ref"
+                           [repostRef]="repostRef"
+                           [groupedActions]="groupedActions"></app-action-list>
         </div>
       </div>
     </div>

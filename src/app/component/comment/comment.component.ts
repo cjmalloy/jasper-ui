@@ -87,11 +87,9 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     public admin: AdminService,
     public store: Store,
     public thread: ThreadStore,
-    private router: Router,
     private auth: AuthzService,
     private refs: RefService,
     private exts: ExtService,
-    private acts: ActionService,
     private ts: TaggingService,
     private bookmarks: BookmarkService,
     private el: ElementRef<HTMLDivElement>,
@@ -349,10 +347,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
       if (!a.label) return false;
     }
     return true;
-  }
-
-  apply(actions: Action[]) {
-    this.acts.apply(actions, this.ref)
   }
 
   voteUp() {
