@@ -19,7 +19,7 @@ updates:
         - "@angular/*"
         - "@angular-devkit/*"
         - "rxjs"
-        - "zone.js"
+#        - "zone.js"
         - "typescript"
         - "tslib"
 - package-ecosystem: github-actions
