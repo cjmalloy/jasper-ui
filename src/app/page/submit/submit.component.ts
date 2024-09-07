@@ -157,19 +157,26 @@ export class SubmitPage implements OnInit, OnDestroy {
     return false;
   }
 
+  get repost() {
+    return !this.submitForm.valid && this.existingRef;
+  }
+
   submit() {
     let tags = this.store.submit.tags;
+    if (this.repost) {
+      tags.push('plugin/repost')
+    }
     if (this.url.value.trim().toLowerCase().startsWith('<iframe')) {
       tags.push('plugin/embed');
     }
-    if (this.store.submit.web && this.plugin && !tags.includes(this.plugin)) {
-      tags = uniq([this.plugin, ...tags]);
+    if (this.store.submit.web && this.plugin) {
+      tags.push(this.plugin);
     }
     const url = this.fixed(this.url.value);
     this.router.navigate(['./submit', this.editor(this.linkType(url))], {
       queryParams: {
         url,
-        tag: tags,
+        tag: uniq(tags),
       },
       queryParamsHandling: 'merge',
     });
