@@ -1,19 +1,40 @@
-<div class="desktop">
-  <app-subfolder *ngIf="parent"
-                 cdkDrag
-                 cdkDragBoundary=".desktop"
-                 [tag]="parent"
-                 [name]="'..'"></app-subfolder>
-  <app-subfolder *ngFor="let f of subfolders"
-                 cdkDrag
-                 cdkDragBoundary=".desktop"
-                 [tag]="tag + '/' + f"
-                 [name]="f"></app-subfolder>
-  <app-file *ngFor="let ref of page?.content"
-            cdkDrag
-            cdkDragBoundary=".desktop"
-            [style.display]="flatten || !inSubfolder(ref) ? 'block' : 'none'"
-            [ref]="ref"></app-file>
+<div #desktop class="desktop">
+  @if (parent) {
+    <app-subfolder cdkDrag
+                   cdkDragBoundary=".desktop"
+                   [dragging]="dragging"
+                   [style.transform]="subfolders[ext!.tag]"
+                   [style.position]="subfolders[ext!.tag] ? 'absolute' : 'relative'"
+                   (cdkDragStarted)="startMoving($any($event.event.target))"
+                   (cdkDragMoved)="moveFolder(ext!.tag, $any($event.event.target))"
+                   (cdkDragEnded)="dragging = false"
+                   [tag]="parent"
+                   [name]="'..'"></app-subfolder>
+  }
+  @for (f of folderExts; track f.tag) {
+    <app-subfolder cdkDrag
+                   cdkDragBoundary=".desktop"
+                   [dragging]="dragging"
+                   [style.transform]="subfolders[f.tag]"
+                   [style.position]="subfolders[ext!.tag] ? 'absolute' : 'relative'"
+                   (cdkDragStarted)="startMoving($any($event.event.target))"
+                   (cdkDragMoved)="moveFolder(f.tag, $any($event.event.target))"
+                   (cdkDragEnded)="dragging = false"
+                   [tag]="f.tag"
+                   [name]="f.name || f.tag"></app-subfolder>
+  }
+  @for (ref of page?.content; track ref.origin + '@' + ref.url) {
+    <app-file cdkDrag
+              cdkDragBoundary=".desktop"
+              [dragging]="dragging"
+              [style.transform]="files[ref.url]"
+              [style.position]="files[ref.url] ? 'absolute' : 'relative'"
+              (cdkDragStarted)="startMoving($any($event.event.target))"
+              (cdkDragMoved)="moveFile(ref.url, $any($event.event.target))"
+              (cdkDragEnded)="dragging = false"
+              [style.display]="flatten || !inSubfolder(ref) ? 'block' : 'none'"
+              [ref]="ref"></app-file>
+  }
 </div>
 <!--<app-page-controls *ngIf="!page?.empty"-->
 <!--                   [page]="page!"></app-page-controls>-->

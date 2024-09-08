@@ -464,6 +464,7 @@ export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
 
 export type TagQueryArgs = {
   query?: string,
+  level?: number,
   deleted?: boolean,
   search?: string,
   modifiedBefore?: string,

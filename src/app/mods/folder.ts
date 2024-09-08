@@ -16,11 +16,30 @@ export const folderTemplate: Template = {
       { query: 'folder', label: $localize`📂️ folder`, group: $localize`Templates 🎨️` },
     ],
   },
+  defaults: {
+    files: {},
+    subfolders: {},
+  },
   schema: {
+    definitions: {
+      Pos: {
+        optionalProperties: {
+          x: { type: 'uint32' },
+          y: { type: 'uint32' }
+        }
+      }
+    },
     optionalProperties: {
       flatten: { type: 'boolean' },
-      subfolders: { elements: { type: 'string' } },
-      defaultFilters: { elements: { type: 'string' } },
+    },
+    properties: {
+      files: { values: { ref: 'Pos' }},
+      subfolders: { values: { ref: 'Pos' }},
     },
   },
 };
+
+export interface Pos {
+  x: number;
+  y: number;
+}
