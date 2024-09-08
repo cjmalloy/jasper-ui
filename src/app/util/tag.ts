@@ -72,7 +72,10 @@ export function hasTag(tag: string | undefined, ref: Ref | undefined): boolean {
 
 export function hasAnyResponse(plugin: string | undefined, ref: Ref | undefined): boolean {
   if (!plugin) return false;
-  return !!ref?.metadata?.plugins?.[plugin];
+  for (const p of Object.keys(ref?.metadata?.plugins || {})) {
+    if (hasPrefix(p, plugin)) return true;
+  }
+  return false;
 }
 
 export function hasResponse(plugin: string | undefined, ref: Ref | undefined): boolean {
