@@ -17,6 +17,8 @@ export class SubfolderComponent implements OnInit {
   tag?: string;
   @Input()
   name?: string;
+  @Input()
+  dragging = false;
 
   submitted = false;
   icons: Icon[] = [];

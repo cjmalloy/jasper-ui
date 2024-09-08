@@ -1,18 +1,17 @@
-<div class="folder-icon"
-     *ngIf="thumbnail else defaultThumbnail"
-     [style.background-image]="[ref] | thumbnail | async | cssUrl"
-     [appRouterActivate]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }"></div>
-<ng-template #defaultThumbnail>
-  <div class="folder-icon default-file"
-       [appRouterActivate]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }">
-<!--    <ng-container *ngFor="let icon of icons">-->
-<!--      <span>{{ icon.label }}</span>-->
-<!--    </ng-container>-->
-<!--    <ng-container *ngIf="!icons || !icons.length">-->
-      <span>📄️</span>
-<!--    </ng-container>-->
-  </div>
-</ng-template>
+@if (iconEmoji || iconColor) {
+  <div class="file-icon thumbnail"
+       [style.background-image]="[ref] | thumbnail | async | cssUrl"
+       [style.background-color]="iconColor"
+       [style.border-radius.px]="iconRadius">{{ iconEmoji }}</div>
+} @else if (thumbnail) {
+  <div class="file-icon thumbnail"
+       [style.background-image]="[ref] | thumbnail: true | async | cssUrl"
+       [style.border-radius.px]="iconRadius">{{ iconEmoji }}</div>
+} @else if (iconEmojiDefaults) {
+  <div class="file-icon thumbnail">{{ iconEmojiDefaults }}</div>
+} @else {
+  <div class="file-icon thumbnail" [class.default-thumbnail]="true"></div>
+}
 <div class="row">
   <div class="toggle"
        *ngIf="showToggle && (ref.comment || expandPlugins.length)"
@@ -20,7 +19,9 @@
     <span class="toggle-plus" *ngIf="!editing && !viewSource && !expanded">＋</span>
     <span class="toggle-x" *ngIf="editing || viewSource || expanded">✕</span>
   </div>
-  <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }">{{ (ref.title || '').trim() || ref.url }}</a>
+  <a [routerLink]="['/ref', ref.url]"
+     [queryParams]="{ origin: nonLocalOrigin }"
+     [style.pointer-events]="dragging ? 'none' : undefined">{{ (ref.title || '').trim() || ref.url }}</a>
 </div>
 
 <app-viewer *ngIf="expanded" [ref]="ref"></app-viewer>

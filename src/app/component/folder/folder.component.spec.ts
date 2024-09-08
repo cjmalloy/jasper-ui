@@ -11,14 +11,16 @@ describe('FolderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [FolderComponent],
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
+      declarations: [FolderComponent],
+      imports: [RouterModule.forRoot([])],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(FolderComponent);
     component = fixture.componentInstance;
+    component.ext = { tag: 'folder'};
     fixture.detectChanges();
   });
 

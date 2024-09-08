@@ -14,6 +14,10 @@ export function decompose(tag: string): [string, string] {
   return [tag.substring(0, index), tag.substring(index)];
 }
 
+export function level(tag: string) {
+  return (tag.match(/\//g)?.length || 0) + 1;
+}
+
 export function captures(selector: string, target: string): boolean {
   const [sTag, sOrigin] = decompose(selector);
   const [tTag, tOrigin] = decompose(target);
