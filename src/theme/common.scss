@@ -13,6 +13,7 @@ body {
   --toggle-accent: #777;
   --toggle-active: #888;
   --tag-accent: #f3ebc7;
+  --form-bg: #3b3b3b;
   --border: black;
   --border-accent: rgba(0, 0, 0, 0.4);
   --border-light: rgba(0, 0, 0, 0.2);
@@ -31,6 +32,27 @@ html, body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  font-size: 16px;
+}
+
+input[type="color"],
+input[type="date"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="email"],
+input[type="month"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="text"],
+input[type="time"],
+input[type="url"],
+input[type="week"],
+select,
+select:focus,
+textarea {
+  font-size: 14px;
 }
 
 .debug {
@@ -171,10 +193,16 @@ input.big {
   height: 23px;
 }
 
+button {
+  color: var(--text);
+}
+
 select {
   height: auto;
   min-height: 22px;
   margin: 0 auto;
+  color: var(--text);
+  text-align: center;
 
   &.big {
     outline: none !important;
@@ -183,7 +211,7 @@ select {
     min-height: 29px;
     line-height: 29px;
     font-size: 16px;
-    padding: 0 6px;
+    padding: 3px 6px;
   }
 }
 
@@ -706,9 +734,10 @@ video.qr-preview {
   .mobile-tab-select {
       margin: 0 4px;
       select {
+        font-size: 16px;
         height: 27px;
         line-height: 27px;
-        width: 39px;
+        width: 44px;
         text-align: center;
         position: relative;
         bottom: -1px;
@@ -759,6 +788,7 @@ video.qr-preview {
     user-select: none;
 
     font-size: 80%;
+    line-height: 15px;
     padding: 4px;
     font-weight: bold;
     background-color: var(--unselected-tab);

@@ -34,6 +34,7 @@ export class TagsFormComponent implements OnInit, OnDestroy {
       addText: $localize`+ Add another tag`,
     },
     fieldArray: {
+      focus: false,
       props: {
         label: $localize`🏷️`,
       }
@@ -97,7 +98,9 @@ export class TagsFormComponent implements OnInit, OnDestroy {
     if (!this.tags) throw 'Not ready yet!';
     if (!values.length) return;
     this.model = this.tags.value;
+    this.field.fieldArray.focus = true;
     for (const value of values) {
+      if (value) this.field.fieldArray.focus = false;
       if (value && value !== 'placeholder' && this.model.includes(value)) return;
       this.model.push(value);
     }

@@ -44,10 +44,14 @@
 </body>
 <script>
   if (navigator.vendor && navigator.vendor.indexOf('Apple') > -1 &&
-    navigator.userAgent &&
-    navigator.userAgent.indexOf('CriOS') < 0 &&
-    navigator.userAgent.indexOf('FxiOS') < 0) {
+      navigator.platform && navigator.platform.startsWith('Mac')) {
     document.body.classList.add('macos');
+  }
+  if (navigator.platform && (
+      navigator.platform === 'iPhone' ||
+      navigator.platform === 'iPad' ||
+      navigator.platform === 'iPod')) {
+    document.body.classList.add('ios');
   }
   if (navigator.userAgent && /android/i.test(navigator.userAgent)) {
     document.body.classList.add('android');
