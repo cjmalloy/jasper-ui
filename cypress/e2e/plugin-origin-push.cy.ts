@@ -57,6 +57,7 @@ describe('Origin Push Plugin', {
     cy.get('.link:not(.remote)').contains('@other').parent().parent().parent().as('other');
     cy.intercept({pathname: '/api/v1/origin/push'}).as('push');
     cy.get('@other').find('.actions').contains('push').click();
+    cy.get('@other').find('.actions').contains('yes').click();
     cy.wait('@push');
     cy.wait(100);
   });

@@ -56,6 +56,7 @@ describe('Origin Pull Plugin', {
     cy.get('.link:not(.remote)').contains('@other').parent().parent().parent().as('other');
     cy.intercept({pathname: '/api/v1/origin/pull'}).as('pull');
     cy.get('@other').find('.actions').contains('pull').click();
+    cy.get('@other').find('.actions').contains('yes').click();
     cy.wait('@pull');
     cy.wait(100);
   });
