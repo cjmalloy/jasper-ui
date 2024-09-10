@@ -22,6 +22,9 @@ updates:
 #        - "zone.js"
         - "typescript"
         - "tslib"
+    formly:
+      patterns:
+        - "@ngx-formly/*"
 - package-ecosystem: github-actions
   directory: /
   schedule:
