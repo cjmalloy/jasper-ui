@@ -42,9 +42,10 @@ export class ListTypeComponent extends FieldArrayType {
     return this.field.fieldArray.fieldGroup;
   }
 
-  override add(index?: number) {
+  override add(index?: number, initialModel?: any) {
+    // @ts-ignore
+    this.field.fieldArray.focus = index === undefined && !initialModel;
     super.add(...arguments);
-    this.focus(index);
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -124,8 +125,8 @@ export class ListTypeComponent extends FieldArrayType {
     if (this.field.fieldGroup?.length === 0) return;
     if (index === undefined || index >= this.field.fieldGroup!.length) index = this.field.fieldGroup!.length - 1;
     if (index < 0) index = 0;
-    const selector = '#' + this.field.fieldGroup![index].id;
     defer(() => {
+      const selector = '#' + this.field.fieldGroup![index].id;
       const el = document.querySelector(selector) as HTMLInputElement;
       el.focus();
       if (select) {
