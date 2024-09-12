@@ -1,8 +1,4 @@
 body.macos, body.ios {
-  .tabs select {
-    background-color: revert !important;
-    width: 58px;
-  }
   // See `mobile.scss`
   $mobile-width: 740px;
   @media (max-width: $mobile-width) {
