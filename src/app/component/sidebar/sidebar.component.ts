@@ -19,6 +19,7 @@ import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
+import { View } from '../../store/view';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, localTag, tagOrigin, topAnds } from '../../util/tag';
 
@@ -62,6 +63,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @HostBinding('class.expanded')
   private _expanded = false;
   private _ext?: Ext;
+  private lastView = this.store.view.current;
 
   constructor(
     public router: Router,
@@ -80,10 +82,12 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       this.expanded = !!window.matchMedia('(min-width: 1024px)').matches;
     }
+
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => {
-      if (this.config.mobile || this.store.view.current === 'ref/summary' && !window.matchMedia('(min-width: 1024px)').matches) {
+      if (this.config.mobile && this.lastView != this.store.view.current || this.store.view.current === 'ref/summary' && !window.matchMedia('(min-width: 1024px)').matches) {
+        this.lastView = this.store.view.current;
         this.expanded = false;
       }
     });
