@@ -270,11 +270,6 @@ $tablet-width: 767px;
     width: 100%;
   }
 
-  .editor textarea {
-    margin-left: -3px;
-    width: calc(100% - 3px);
-  }
-
   .full-page-form .editor textarea {
     margin-left: 0;
   }
@@ -353,14 +348,14 @@ $tablet-width: 767px;
   }
 
   .comment-reply, .comment-edit {
-    width: min(100%, 100vw - 8px);
+    width: min(100%, 100vw - 16px);
   }
 
   .embed:not(.comment-body) {
     position: relative;
     left: 0;
     margin: 0;
-    width: min(100%, 100vw - 8px);
+    width: min(100%, 100vw - 16px);
   }
 
   .audio-expand {
@@ -472,7 +467,7 @@ $tablet-width: 767px;
     margin-left: 2px;
   }
   .form, .full-page-upload .list-container {
-    max-width: 100vw;
+    max-width: calc(100vw - 8px);
     display: flex !important;
     flex-direction: column;
 

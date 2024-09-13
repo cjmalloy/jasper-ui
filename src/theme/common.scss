@@ -194,7 +194,21 @@ input.big {
   height: 23px;
 }
 
-button {
+.form-array button {
+  min-height: 24px;
+}
+
+input,
+textarea {
+  box-sizing: border-box;
+  padding-block: 2px;
+  padding-inline: 8px;
+}
+
+button,
+input,
+textarea,
+select {
   color: var(--text);
 }
 
@@ -202,7 +216,6 @@ select {
   height: auto;
   min-height: 22px;
   margin: 0 auto;
-  color: var(--text);
   text-align: center;
 
   &.big {
