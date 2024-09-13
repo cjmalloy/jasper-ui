@@ -1,5 +1,6 @@
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { debounce } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
@@ -16,6 +17,8 @@ export class SearchComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   searchValue = '';
+
+  private searchEvent = false;
 
   constructor(
     public router: Router,
@@ -35,7 +38,26 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.disposers.length = 0;
   }
 
+  change(target: HTMLInputElement) {
+    this.searchValue = target.value;
+    if (this.searchEvent) return;
+    if (!this.store.account.config.liveSearch) return;
+    this.debounceSearch();
+  }
+
+  debounceSearch = debounce(() => this.doSearch(), 400);
+
   search() {
+    this.searchEvent = true;
+    this.doSearch();
+  }
+
+  submit() {
+    if (this.searchEvent) return;
+    this.doSearch();
+  }
+
+  doSearch() {
     this.router.navigate([], { queryParams: { search: this.searchValue }, queryParamsHandling: 'merge' });
   }
 
