@@ -1,4 +1,13 @@
 body.macos, body.ios {
+  input, textarea {
+    background-color: var(--form-bg);
+  }
+  .toggle {
+    line-height: 22px;
+  }
+  .actions-toggle {
+    line-height: 25px;
+  }
   // See `mobile.scss`
   $mobile-width: 740px;
   @media (max-width: $mobile-width) {
@@ -19,17 +28,38 @@ body.macos {
       padding: 2px 20px 15px 22px;
     }
   }
-  input[type=email], input[type=url], input[type=text], input[type=number], input[type=search], textarea {
-    appearance: none;
-    border-radius: 2px;
-    padding: 1px 2px;
-    border: 1px solid var(--border-accent);
-    background-color: var(--form-bg);
+  app-query {
+    input {
+      height: 19px;
+    }
   }
   select.big {
     font-size: 21px;
   }
   button {
     min-height: 22.5px;
+  }
+  .search {
+    input[type=search] {
+      margin-top: 0;
+    }
+  }
+  .search.centered {
+    position: relative;
+    top: 50%;
+    input[type=search] {
+      transform: translateY(-50%);
+    }
+  }
+}
+
+body.ios {
+  .form-array button {
+    min-height: 30px;
+  }
+  .toggle {
+    .toggle-x {
+      top: -1px;
+    }
   }
 }

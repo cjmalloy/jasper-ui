@@ -1,10 +1,7 @@
 body.android {
   .toggle {
-    .toggle-plus {
-      top: 1.5px;
-    }
     .toggle-x {
-      top: 0;
+      top: -1px;
     }
   }
   .tabs select {

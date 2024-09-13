@@ -12,6 +12,7 @@ body {
   --toggle: #525252;
   --toggle-accent: #777;
   --toggle-active: #888;
+  --toggle-border: transparent;
   --tag-accent: #f3ebc7;
   --form-bg: #3b3b3b;
   --border: black;
@@ -1456,7 +1457,7 @@ formly-field-radio, formly-field-multicheckbox {
   text-align: center;
   line-height: 24px;
   cursor: pointer;
-  border: none;
+  border: 1px solid var(--toggle-border);
   font-size: 18px;
   padding: 0;
   transition: transform 100ms;
@@ -1468,13 +1469,9 @@ formly-field-radio, formly-field-multicheckbox {
       transform: scale(0.99) rotate(2deg) translateY(0.5px);
     }
   }
-  .toggle-plus {
-    position: relative;
-    top: 1px;
-  }
+  .toggle-plus,
   .toggle-x {
     position: relative;
-    top: 1px;
   }
 
   &.actions-toggle {
