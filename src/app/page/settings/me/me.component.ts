@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -38,7 +39,7 @@ export class SettingsMePage implements HasChanges {
     private accounts: AccountService,
     private admin: AdminService,
     private fb: FormBuilder,
-    private router: Router,
+    private location: Location,
   ) {
     const ext = cloneDeep(store.account.ext!);
     this.editForm = extForm(fb, ext, this.admin, true);
@@ -78,7 +79,7 @@ export class SettingsMePage implements HasChanges {
     ).subscribe(() => {
       delete this.editing;
       this.editForm.markAsPristine();
-      this.router.navigate(['/tag', this.store.account.tag]);
+      this.location.back();
     });
   }
 
