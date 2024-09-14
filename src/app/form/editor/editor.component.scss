@@ -1,4 +1,12 @@
 :host.fullscreen {
+  &, .text-wrapper, .toolbar {
+    pointer-events: none;
+  }
+  .toolbar, textarea, .floating-toggles {
+    & > * {
+      pointer-events: all;
+    }
+  }
   textarea, app-md {
     resize: none;
     overflow: auto;
