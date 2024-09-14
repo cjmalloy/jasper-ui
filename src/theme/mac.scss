@@ -1,13 +1,4 @@
-body.macos, body.ios {
-  input, textarea {
-    background-color: var(--form-bg);
-  }
-  .toggle {
-    line-height: 22px;
-  }
-  .actions-toggle {
-    line-height: 25px;
-  }
+body.darwin, body.ios {
   // See `mobile.scss`
   $mobile-width: 740px;
   @media (max-width: $mobile-width) {
@@ -18,8 +9,19 @@ body.macos, body.ios {
     }
   }
 }
+body.safari {
+  input, textarea {
+    background-color: var(--form-bg);
+  }
+  .toggle {
+    line-height: 22px;
+  }
+  .actions-toggle {
+    line-height: 25px;
+  }
+}
 
-body.macos {
+body.darwin.safari {
   .subscription-bar {
     .back-button {
       padding-top: 2px;
@@ -28,16 +30,58 @@ body.macos {
       padding: 2px 20px 15px 22px;
     }
   }
-  app-query {
-    input {
-      height: 19px;
+  input:not([type=checkbox]):not([type=radio]) {
+    height: 28px;
+  }
+  .actions, .advanced-actions {
+    input, button {
+      position: relative;
+      top: 1px;
+      height: 16px !important;
+      font-size: 100%;
+    }
+  }
+  .form-array, .buttons {
+    button {
+      min-height: 28px !important;
+      min-width: 32px !important;
+    }
+  }
+  .sidebar .controls select {
+    min-height: 22px;
+    position: relative;
+    top: 2px;
+  }
+  .form,
+  formly-list-section .form-array > formly-field > formly-group {
+    select {
+      font-size: 21px;
+    }
+    button {
+      min-height: 28px !important;
+      padding: 1px 6px;
+    }
+    .shrink select {
+      margin-top: 4px;
+    }
+    .nested-form,
+    formly-field,
+    formly-group,
+    formly-wrapper-form-field,
+    formly-field-textarea,
+    formly-field-input,
+    formly-field-select,
+    formly-list-section {
+      & > label {
+        line-height: 28px;
+      }
+    }
+    & > label {
+      line-height: 28px;
     }
   }
   select.big {
     font-size: 21px;
-  }
-  button {
-    min-height: 22.5px;
   }
   .search {
     input[type=search] {
@@ -54,8 +98,19 @@ body.macos {
 }
 
 body.ios {
-  .form-array button {
+  button[type=submit] {
+    color: revert;
+  }
+  button {
+    min-width: 30px !important;
     min-height: 30px !important;
+    padding: 1px 6px;
+  }
+  select {
+    height: 30px !important;
+  }
+  .shrink select {
+    margin-top: 4px;
   }
   .toggle {
     .toggle-x {
@@ -63,21 +118,26 @@ body.ios {
     }
   }
   .form,
-   formly-list-section .form-array > formly-field > formly-group {
-     .nested-form,
-     formly-field,
-     formly-group,
-     formly-wrapper-form-field,
-     formly-field-textarea,
-     formly-field-input,
-     formly-field-select,
-     formly-list-section {
-       & > label {
-         line-height: 30px;
-       }
-     }
-     & > label {
+  formly-list-section .form-array > formly-field > formly-group {
+    .nested-form,
+    formly-field,
+    formly-group,
+    formly-wrapper-form-field,
+    formly-field-textarea,
+    formly-field-input,
+    formly-field-select,
+    formly-list-section {
+      & > label {
        line-height: 30px;
-     }
-   }
+      }
+    }
+    & > label {
+      line-height: 30px;
+    }
+  }
+  body.fullscreen {
+    & > * {
+      display: block;
+    }
+  }
 }

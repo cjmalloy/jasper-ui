@@ -1,4 +1,5 @@
 :host.fullscreen {
+  border: none !important;
   &, .text-wrapper, .toolbar {
     pointer-events: none;
   }

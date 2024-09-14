@@ -6,6 +6,7 @@ import {
   ElementRef,
   EventEmitter,
   HostBinding,
+  HostListener,
   Input,
   OnChanges,
   OnDestroy,
@@ -48,7 +49,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @HostBinding('class.help')
   help = false;
   @HostBinding('class.preview')
-  preview = false;
+  preview = this.store.local.showPreview;
 
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
@@ -58,6 +59,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @Input()
   selectResponseType = false;
+  @Input()
+  fullscreenDefault?: boolean;
   @Input()
   tags?: string[];
   @Input()
@@ -79,6 +82,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
   toggleResponse = 0;
+  initialFullscreen = false;
 
   private _text? = '';
   private _editing = false;
@@ -96,7 +100,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     private el: ElementRef,
     private vc: ViewContainerRef,
   ) {
-    this.preview = store.local.showPreview;
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
@@ -132,6 +135,14 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     document.body.style.height = '';
+    document.body.classList.remove('fullscreen');
+  }
+
+  @HostListener('window:scroll')
+  preventScroll() {
+    if (this.overlayRef) {
+      window.scrollTo(0, 0);
+    }
   }
 
   @HostBinding('style.padding.px')
@@ -163,7 +174,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (!this._editing && value) {
       defer(() => {
         this._editing = value;
-        this.preview = this.store.local.showPreview;
         this.tags = this.fullTags;
         this.syncTags.emit(this.tags);
       });
@@ -257,7 +267,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }, 400);
 
   togglePreview() {
-    this.store.local.showPreview = this.preview = !this.preview;
+    if (this.fullscreen) {
+      this.store.local.showFullscreenPreview = this.preview = !this.preview;
+    } else {
+      this.store.local.showPreview = this.preview = !this.preview;
+    }
     this.editor?.nativeElement.focus();
   }
 
@@ -277,12 +291,14 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   toggleFullscreen(override?: boolean) {
     if (override === this.fullscreen) return;
+    this.initialFullscreen = true;
     this.fullscreen = override !== undefined ? override : !this.fullscreen;
     if (this.fullscreen) {
       this._text = this.currentText;
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
       if (this.store.viewportHeight) document.body.style.height = this.store.viewportHeight + 'px';
+      document.body.classList.add('fullscreen');
       this.overlayRef = this.overlay.create({
         height: this.store.viewportHeight ? this.store.viewportHeight + 'px' : '100vh',
         width: '100vw',
@@ -295,9 +311,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       });
       this.overlayRef.attach(new DomPortal(this.el));
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
-      this.overlayRef.keydownEvents().subscribe(event => event.key === "Escape" && this.toggleFullscreen(false));
+      this.overlayRef.keydownEvents().subscribe(event => event.key === 'Escape' && this.toggleFullscreen(false));
       this.editor?.nativeElement.focus();
-      defer(() => this.editor?.nativeElement.scrollIntoView(true));
+      this.editor?.nativeElement.scrollIntoView({ block: 'end' });
     } else {
       this.stacked = true;
       this.preview = this.store.local.showPreview;
@@ -305,8 +321,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.overlayRef?.dispose();
       delete this.overlayRef;
       document.body.style.height = '';
+      document.body.classList.remove('fullscreen');
+      this.editor?.nativeElement.focus();
+      this.editor?.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
     }
-    this.editor?.nativeElement.focus();
   }
 
   toggleHelp(override?: boolean) {

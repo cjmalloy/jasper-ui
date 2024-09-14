@@ -13,7 +13,8 @@
               (click)="toggleStacked()"
               i18n-title title="Stacked or side by side layout toggle"
               i18n>/</button>
-    } @else if (currentText) {
+    }
+    @if (fullscreen || currentText) {
       <button type="button"
               (click)="togglePreview()"
               i18n-title title="Show preview"
@@ -56,6 +57,8 @@
   </div>
   <textarea #editor
             [formControl]="control"
+            (touchstart)="fullscreenDefault = fullscreenDefault === undefined ? true : undefined"
+            (tap)="fullscreenDefault && !initialFullscreen && toggleFullscreen(true) || true"
             (focusin)="editing = true"
             (input)="setText($any($event).target.value)"
             (blur)="syncText($any($event).target.value)"

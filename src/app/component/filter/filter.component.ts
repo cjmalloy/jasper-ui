@@ -61,7 +61,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
   allFilters: FilterGroup[] = [];
   filters: UrlFilter[] = [];
 
-  emoji = emoji('🪄️') || '🔍️';
+  emoji = emoji($localize`🪄️`) || $localize`🔍️`;
 
   constructor(
     public router: Router,

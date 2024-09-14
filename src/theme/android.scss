@@ -7,4 +7,9 @@ body.android {
   .tabs select {
     bottom: -0.75px;
   }
+  body.fullscreen {
+    & > * {
+      display: block;
+    }
+  }
 }

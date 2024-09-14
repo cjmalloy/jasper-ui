@@ -99,11 +99,13 @@ export class ImageDirective implements OnInit, OnDestroy {
 
   private onResize() {
     if (this.defaultWidth && this.defaultHeight) {
+      this.el.style.width = this.defaultWidth + 'px';
+      this.el.style.height = this.defaultHeight + 'px';
       this.el.style.backgroundSize = '100% 100%';
       return;
     }
     const parentWidth = this.el.parentElement.offsetWidth;
-    if (!this.grid && this.config.mobile && (!this.defaultWidth || this.defaultWidth >= window.innerWidth)) {
+    if (this.config.mobile && !this.grid && (!this.defaultWidth || this.defaultWidth >= window.innerWidth)) {
       this.el.style.width = (parentWidth - 12) + 'px';
       this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
     } else if (this.grid || this.dim.width > parentWidth && (!this.defaultWidth || this.defaultWidth >= parentWidth)) {

@@ -13,7 +13,6 @@
       <input id="title"
              type="text"
              [formControl]="title"
-             [appAutofocus]="!store.submit.wiki"
              (blur)="validate($any($event.target))">
 
       <app-select-plugin #pluginSelect
@@ -45,7 +44,7 @@
                       [tags]="$any(textForm.value).tags"
                       (syncTags)="editorTags = $event"
                       [fillWidth]="fill"
-                      [autoFocus]="store.submit.wiki"></app-editor>
+                      [autoFocus]="true"></app-editor>
         </div>
       }
 
@@ -67,7 +66,7 @@
     }
 
     <span><!-- Buttons --></span>
-    <span class="buttons form-array right">
+    <span class="buttons right">
       @if (submitting) {
         <app-loading [inline]="true"></app-loading>
       }

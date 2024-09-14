@@ -26,7 +26,7 @@
       }
 
       <span><!-- Buttons --></span>
-      <span class="buttons form-array right">
+      <span class="buttons right">
         @if (creating) {
           <app-loading [inline]="true"></app-loading>
         }
@@ -50,7 +50,7 @@
       }
 
       <span><!-- Buttons --></span>
-      <span class="buttons form-array right">
+      <span class="buttons right">
         @if (invalid) {
           @if (!force) {
             <div class="overwrite warning" i18n-title title="Will drop all unknown configs.">

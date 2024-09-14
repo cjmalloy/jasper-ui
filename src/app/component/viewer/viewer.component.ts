@@ -281,7 +281,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return this.thread ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
     }
-    return '80vw';
+    return this.config.huge ? '67vw' : '80vw';
   }
 
   get embedHeight() {

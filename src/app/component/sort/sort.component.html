@@ -5,11 +5,11 @@
   <option class="unselected">🔼️ sort</option>
   <option *ngFor="let opt of allSorts" [value]="opt.value">{{ opt.label || opt.value }}</option>
 </select>
-<span class="form-array" *ngFor="let f of sorts; let i=index">
+<span class="controls" *ngFor="let f of sorts; let i=index">
   <select id="filter-{{ i }}" [ngModel]="sortCol(sorts[i])" (ngModelChange)="setSortCol(i, $event)">
     <option *ngFor="let opt of allSorts" [value]="opt.value">{{ opt.label || opt.value }}</option>
   </select>
-  <button type="button" *ngIf="sortDir(sorts[i]) === 'DESC'"(click)="setSortDir(i, 'ASC')">🔽️</button>
-  <button type="button" *ngIf="sortDir(sorts[i]) === 'ASC'" (click)="setSortDir(i, 'DESC')">🔼️</button>
+  <button type="button" *ngIf="sortDir(sorts[i]) === 'DESC'"(click)="setSortDir(i, 'ASC')" i18n>🔽️</button>
+  <button type="button" *ngIf="sortDir(sorts[i]) === 'ASC'" (click)="setSortDir(i, 'DESC')" i18n>🔼️</button>
   <button type="button" *ngIf="sorts.length > 1" (click)="removeSort(i)" i18n>&ndash;</button>
 </span>

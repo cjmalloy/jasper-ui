@@ -37,6 +37,15 @@ html, body {
   overscroll-behavior: none;
 }
 
+body.fullscreen {
+  & > * {
+    display: none;
+  }
+  & > .cdk-overlay-container {
+    display: block;
+  }
+}
+
 input[type="color"],
 input[type="date"],
 input[type="datetime"],
@@ -191,15 +200,39 @@ label.big {
   padding-top: 5px
 }
 
-input.big {
-  height: 23px;
+button {
+  padding: 1px 6px;
+  min-width: 24px !important;
+  min-height: 22px !important;
 }
 
-.form-array button {
-  min-height: 24px !important;
+.form-array, .buttons {
+  & > button {
+    min-width: 32px !important;
+    min-height: 24px !important;
+  }
 }
 
-input,
+.form-array, .controls {
+  & > button {
+    min-height: 22px;
+    padding: 0 2px;
+  }
+}
+
+input:not([type=checkbox]):not([type=radio]) {
+  height: 24px;
+  &.big {
+    height: 29px;
+  }
+  &[disabled] {
+    border: 2px solid var(--bg);
+    text-decoration: underline;
+    font-weight: bold;
+  }
+}
+
+input:not([type=checkbox]):not([type=radio]),
 textarea {
   box-sizing: border-box;
   padding-block: 2px;
@@ -214,10 +247,8 @@ select {
 }
 
 select {
-  height: auto;
-  min-height: 22px;
+  height: 24px;
   margin: 0 auto;
-  text-align: center;
 
   &.big {
     outline: none !important;
@@ -300,11 +331,16 @@ select {
   .toolbar {
     display: none;
     flex-direction: row-reverse;
-    & > * {
-      margin: 4px 4px 8px;
-    }
     & > :first-child {
       margin-right: 0;
+    }
+    & > * {
+      height: 28px;
+      min-width: 32px !important;
+      margin: 4px 4px 8px;
+    }
+    & > button {
+      min-width: 28px;
     }
     label {
       border: 1px dashed var(--border) !important;
@@ -754,7 +790,7 @@ video.qr-preview {
         appearance: none;
         border-radius: 0;
         font-size: 16px;
-        height: 27px;
+        height: 27px !important;
         line-height: 27px;
         width: 44px;
         padding: 0 10px;
@@ -829,7 +865,7 @@ video.qr-preview {
   float: right;
   overflow: hidden;
   transition: width .5s;
-  width: 354px;
+  width: 372px;
   margin-bottom: 100px;
   margin-left: 4px;
   border-bottom-left-radius: 4px;
@@ -872,16 +908,17 @@ video.qr-preview {
 
   input[type=search] {
     margin-top: 3px;
-    height: 24px;
-    width: 308px;
+    height: 26px;
+    width: 324px;
+  }
+
+  .controls select {
+    height: 22px;
   }
 
   app-query {
-    input {
-      height: 21px;
-    }
-    button {
-      height: 27px;
+    input, button {
+      height: 27px !important;
     }
   }
 
@@ -1083,7 +1120,9 @@ formly-list-section .form-array > formly-field > formly-group {
   grid-template-columns: min-content auto;
   grid-auto-rows: min-content;
   padding: 10px;
-
+  .shrink select {
+    margin-top: 2px;
+  }
   .nested-form,
   formly-field,
   formly-group,
@@ -1097,34 +1136,28 @@ formly-list-section .form-array > formly-field > formly-group {
     & > * {
       margin: 4px;
     }
-
     & > div:empty,
     & > span:empty {
       height: 0;
       margin: 0;
     }
-
     & > label {
       text-align: right;
       line-height: 24px;
     }
   }
-
   & > * {
     margin: 4px;
   }
-
   & > div:empty,
   & > span:empty {
     height: 0;
     margin: 0;
   }
-
   & > label {
     text-align: right;
     line-height: 24px;
   }
-
   label {
     user-select: none;
     white-space: nowrap;
@@ -1133,33 +1166,27 @@ formly-list-section .form-array > formly-field > formly-group {
 
 .form-group > * {
   margin: 4px 0;
-
   &:first-child {
     margin-top: 0;
   }
-
   &:last-child {
     margin-bottom: 0;
   }
 }
 
-.form-array {
+.form-array, .buttons, .controls {
   display: flex;
   flex: 1;
-
   &.right {
     justify-content: right;
   }
-
   & > :not(:last-child) {
     margin-right: 4px;
   }
-
   input {
     flex: 1;
     flex-basis: 100%;
   }
-
   select {
     margin-left: 0;
     margin-right: 0;
@@ -1621,16 +1648,17 @@ formly-field-radio, formly-field-multicheckbox {
 
   input {
     margin: 0;
-    font-size: 80%;
-    height: 10px;
+    font-size: 85%;
+    height: 16px !important;
     &:invalid {
       color: var(--error);
     }
   }
 
   select {
-    margin-top: -2px;
-    min-height: 19px;
+    margin-top: -4px;
+    min-height: 20px;
+    height: 20px;
   }
 
   button {
@@ -1639,6 +1667,8 @@ formly-field-radio, formly-field-multicheckbox {
     margin: 0 6px;
     padding: 0 4px;
     height: 14px;
+    min-width: 0 !important;
+    min-height: 0 !important;
     line-height: 10px;
   }
 }
@@ -1813,7 +1843,7 @@ button.backup, button.upload, input.upload {
   }
 }
 
-.md, .md blockquote {
+.md p, .md blockquote {
   max-width: 60em;
   text-align: justify;
   overflow-wrap: break-word;
