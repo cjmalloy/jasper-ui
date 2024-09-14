@@ -8,6 +8,7 @@ import {
   HostBinding,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   TemplateRef,
@@ -15,8 +16,11 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
+import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, throttle, uniq, without } from 'lodash-es';
+import { autorun, IReactionDisposer } from 'mobx';
+import { filter } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
@@ -30,8 +34,10 @@ import { memo, MemoCache } from '../../util/memo';
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
-export class EditorComponent implements OnChanges, AfterViewInit {
+export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @HostBinding('class') css = 'editor';
+
+  private disposers: IReactionDisposer[] = [];
 
   id = uuid();
 
@@ -43,8 +49,6 @@ export class EditorComponent implements OnChanges, AfterViewInit {
   help = false;
   @HostBinding('class.preview')
   preview = false;
-  @HostBinding('style.padding.px')
-  padding = 8;
 
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
@@ -78,6 +82,7 @@ export class EditorComponent implements OnChanges, AfterViewInit {
 
   private _text? = '';
   private _editing = false;
+  private _padding = 8;
 
   private europa?: Europa;
 
@@ -87,10 +92,14 @@ export class EditorComponent implements OnChanges, AfterViewInit {
     private auth: AuthzService,
     public store: Store,
     private overlay: Overlay,
+    private router: Router,
     private el: ElementRef,
     private vc: ViewContainerRef,
   ) {
     this.preview = store.local.showPreview;
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => this.toggleFullscreen(false));
   }
 
   init() {
@@ -104,12 +113,35 @@ export class EditorComponent implements OnChanges, AfterViewInit {
     if (this.editing) {
       this.syncTags.emit(this.tags);
     }
+    this.disposers.push(autorun(() => {
+      const height = this.store.viewportHeight;
+      if (this.overlayRef) {
+        this.overlayRef.updateSize({ height });
+        document.body.style.height = height + 'px';
+      }
+    }))
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.tags || changes.url) {
       this.init();
     }
+  }
+
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
+    document.body.style.height = '';
+  }
+
+  @HostBinding('style.padding.px')
+  get padding(): number {
+    if (this.fullscreen) return 0;
+    return this._padding + 8;
+  }
+
+  set padding(value: number) {
+    this._padding = value;
   }
 
   @memo
@@ -246,10 +278,14 @@ export class EditorComponent implements OnChanges, AfterViewInit {
       this._text = this.currentText;
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
+      if (this.store.viewportHeight) document.body.style.height = this.store.viewportHeight + 'px';
       this.overlayRef = this.overlay.create({
-        height: '100vh',
+        height: this.store.viewportHeight ? this.store.viewportHeight + 'px' : '100vh',
         width: '100vw',
-        positionStrategy: this.overlay.position().global().centerHorizontally().centerVertically(),
+        positionStrategy: this.overlay.position()
+          .global()
+          .centerHorizontally()
+          .top('0'),
         hasBackdrop: true,
         scrollStrategy: this.overlay.scrollStrategies.block(),
       });
@@ -262,6 +298,8 @@ export class EditorComponent implements OnChanges, AfterViewInit {
       this.preview = this.store.local.showPreview;
       this.overlayRef?.detach();
       this.overlayRef?.dispose();
+      delete this.overlayRef;
+      document.body.style.height = '';
     }
   }
 

@@ -24,6 +24,7 @@ export class Store {
   theme = 'init-theme';
   hotkey = false;
   offline = false;
+  viewportHeight = 0;
 
   constructor(
     private route: RouterStore,

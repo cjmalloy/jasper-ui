@@ -21,7 +21,14 @@ export class LocalStore {
   }
 
   get editorStacked() {
-    return localStorage.getItem('editorStacked') !== 'false';
+    const result = localStorage.getItem('editorStacked');
+    if (result === null) return this.defaultEditorStacked;
+    return result !== 'false';
+  }
+
+  get defaultEditorStacked() {
+    // Show preview on side for tablets and below for desktop
+    return window.screen.width > 948;
   }
 
   set showFullscreenPreview(value: boolean) {
@@ -29,7 +36,14 @@ export class LocalStore {
   }
 
   get showFullscreenPreview() {
-    return localStorage.getItem('showFullscreenPreview') !== 'false';
+    const result = localStorage.getItem('showFullscreenPreview');
+    if (result === null) return this.defaultShowFullscreenPreview;
+    return result !== 'false';
+  }
+
+  get defaultShowFullscreenPreview() {
+    // Default to fullscreen editor for mobile
+    return window.screen.width > 740;
   }
 
   set showPreview(value: boolean) {
