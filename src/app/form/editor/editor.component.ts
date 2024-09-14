@@ -221,6 +221,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       }
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
+    this.editor?.nativeElement.focus();
   }
 
   setResponse(tag: string) {
@@ -229,6 +230,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.syncTags.next(this.tags = [...without(this.tags!, ...this.responseButtons.map(p => p.tag)), tag]);
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
+    this.editor?.nativeElement.focus();
   }
 
   setText = throttle((value: string) => {
@@ -256,6 +258,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   togglePreview() {
     this.store.local.showPreview = this.preview = !this.preview;
+    this.editor?.nativeElement.focus();
   }
 
   toggleStacked() {
@@ -269,6 +272,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     } else {
       this.store.local.editorStacked = this.stacked = true;
     }
+    this.editor?.nativeElement.focus();
   }
 
   toggleFullscreen(override?: boolean) {
@@ -293,6 +297,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
       this.overlayRef.keydownEvents().subscribe(event => event.key === "Escape" && this.toggleFullscreen(false));
       this.editor?.nativeElement.focus();
+      defer(() => this.editor?.nativeElement.scrollIntoView(true));
     } else {
       this.stacked = true;
       this.preview = this.store.local.showPreview;
@@ -301,6 +306,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       delete this.overlayRef;
       document.body.style.height = '';
     }
+    this.editor?.nativeElement.focus();
   }
 
   toggleHelp(override?: boolean) {
@@ -343,5 +349,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     } {
       this.store.eventBus.fire(event);
     }
+    this.editor?.nativeElement.focus();
   }
 }
