@@ -37,7 +37,7 @@ export class LocalStore {
   }
 
   get showPreview() {
-    return localStorage.getItem('showPreview') !== 'false';
+    return localStorage.getItem('showPreview') === 'true';
   }
 
   /**

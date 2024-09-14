@@ -42,7 +42,7 @@ export class EditorComponent implements OnChanges, AfterViewInit {
   @HostBinding('class.help')
   help = false;
   @HostBinding('class.preview')
-  preview = true;
+  preview = false;
   @HostBinding('style.padding.px')
   padding = 8;
 
@@ -222,20 +222,20 @@ export class EditorComponent implements OnChanges, AfterViewInit {
     this.syncEditor.next(this._text);
   }, 400);
 
+  togglePreview() {
+    this.store.local.showPreview = this.preview = !this.preview;
+  }
+
   toggleStacked() {
-    if (this.fullscreen) {
-      if (this.stacked) {
-        if (this.preview) {
-          this.store.local.showFullscreenPreview = this.preview = false;
-        } else {
-          this.store.local.showFullscreenPreview = this.preview = true;
-          this.store.local.editorStacked = this.stacked = false;
-        }
+    if (this.stacked) {
+      if (this.preview) {
+        this.store.local.showFullscreenPreview = this.preview = false;
       } else {
-        this.store.local.editorStacked = this.stacked = true;
+        this.store.local.showFullscreenPreview = this.preview = true;
+        this.store.local.editorStacked = this.stacked = false;
       }
     } else {
-      this.store.local.showPreview = this.preview = !this.preview;
+      this.store.local.editorStacked = this.stacked = true;
     }
   }
 
