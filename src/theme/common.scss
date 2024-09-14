@@ -34,6 +34,7 @@ html, body {
   padding: 0;
   overflow-x: hidden;
   font-size: 16px;
+  overscroll-behavior: none;
 }
 
 input[type="color"],
