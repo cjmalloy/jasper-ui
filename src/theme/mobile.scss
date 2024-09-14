@@ -192,6 +192,10 @@ $tablet-width: 767px;
     border: 1px solid transparent !important;
   }
 
+  .toolbar {
+    overflow-x: scroll;
+  }
+
   .ref, .comment-edit, .comment-reply {
     .editor, .summary-box {
       margin: 0 !important;
@@ -405,12 +409,12 @@ $tablet-width: 767px;
     .info, .actions {
       height: 0;
       margin-left: -8px;
-      padding: 0 8px 3px;
+      padding: 0 8px;
       mask-image: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.1) 2px, white 8px, white calc(100% - 18px), rgba(255, 255, 255, 0.1) calc(100% - 6px), rgba(255, 255, 255, 0));
 
       &.expanded {
         transition: height .5s;
-        height: 28px;
+        height: 32px;
         padding-bottom: 10px;
       }
       &.not-expanded {

@@ -55,11 +55,29 @@ body.macos {
 
 body.ios {
   .form-array button {
-    min-height: 30px;
+    min-height: 30px !important;
   }
   .toggle {
     .toggle-x {
       top: -1px;
     }
   }
+  .form,
+   formly-list-section .form-array > formly-field > formly-group {
+     .nested-form,
+     formly-field,
+     formly-group,
+     formly-wrapper-form-field,
+     formly-field-textarea,
+     formly-field-input,
+     formly-field-select,
+     formly-list-section {
+       & > label {
+         line-height: 30px;
+       }
+     }
+     & > label {
+       line-height: 30px;
+     }
+   }
 }

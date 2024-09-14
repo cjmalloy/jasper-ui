@@ -195,7 +195,7 @@ input.big {
 }
 
 .form-array button {
-  min-height: 24px;
+  min-height: 24px !important;
 }
 
 input,
@@ -315,6 +315,8 @@ select {
       position: relative;
       background-color: var(--toggle);
       border-radius: 6px;
+      height: 28px;
+      white-space: nowrap;
       &::before {
         content: ' ';
         position: absolute;
@@ -333,7 +335,7 @@ select {
         user-select: none;
         cursor: pointer;
         margin: 0;
-        padding: 5px 6px;
+        padding: 5px 0;
       }
     }
   }
@@ -1103,6 +1105,7 @@ formly-list-section .form-array > formly-field > formly-group {
 
     & > label {
       text-align: right;
+      line-height: 24px;
     }
   }
 
@@ -1118,6 +1121,7 @@ formly-list-section .form-array > formly-field > formly-group {
 
   & > label {
     text-align: right;
+    line-height: 24px;
   }
 
   label {
