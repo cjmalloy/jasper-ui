@@ -99,6 +99,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           props: {
             type: 'color',
             label: $localize`Color: `,
+            clear: true,
           },
         },
       }, {
