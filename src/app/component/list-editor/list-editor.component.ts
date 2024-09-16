@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
 
 @Component({
   standalone: false,
@@ -6,7 +6,7 @@ import { Component, EventEmitter, HostBinding, Input, OnInit, Output } from '@an
   templateUrl: './list-editor.component.html',
   styleUrls: ['./list-editor.component.scss']
 })
-export class ListEditorComponent implements OnInit {
+export class ListEditorComponent{
   @HostBinding('class') css = 'listbox form-group';
 
   @Input()
@@ -26,11 +26,6 @@ export class ListEditorComponent implements OnInit {
   selectedIndex = -1;
 
   error = '';
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
 
   add() {
     this.error = '';

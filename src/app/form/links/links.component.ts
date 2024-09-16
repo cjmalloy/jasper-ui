@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { map } from 'lodash-es';
 import { URI_REGEX } from '../../util/format';
@@ -9,7 +9,7 @@ import { URI_REGEX } from '../../util/format';
   templateUrl: './links.component.html',
   styleUrls: ['./links.component.scss']
 })
-export class LinksFormComponent implements OnInit {
+export class LinksFormComponent {
   static validators = [Validators.pattern(URI_REGEX)];
   @HostBinding('class') css = 'form-group';
 
@@ -34,13 +34,6 @@ export class LinksFormComponent implements OnInit {
       }
     },
   };
-
-  constructor(
-    private fb: UntypedFormBuilder,
-  ) {}
-
-  ngOnInit(): void {
-  }
 
   @Input()
   set emoji(value: string) {

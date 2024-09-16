@@ -1,6 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { UserListComponent } from '../../../component/user/user-list/user-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { UserService } from '../../../service/api/user.service';
 import { ConfigService } from '../../../service/config.service';
 import { ModService } from '../../../service/mod.service';
@@ -15,9 +17,12 @@ import { getTagFilter } from '../../../util/query';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
 })
-export class SettingsUserPage implements OnInit, OnDestroy {
+export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
+
+  @ViewChild(UserListComponent)
+  list?: UserListComponent;
 
   constructor(
     private mod: ModService,
@@ -31,6 +36,10 @@ export class SettingsUserPage implements OnInit, OnDestroy {
     store.view.clear(['levels', 'tag'], ['levels', 'tag']);
     scim.clear();
     query.clear();
+  }
+
+  saveChanges() {
+    return !!this.list?.saveChanges();
   }
 
   ngOnInit(): void {

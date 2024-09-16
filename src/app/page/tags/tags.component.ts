@@ -1,6 +1,9 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
+import { RefComponent } from '../../component/ref/ref.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
@@ -16,13 +19,16 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss']
 })
-export class TagsPage implements OnInit, OnDestroy {
+export class TagsPage implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
 
   title = '';
   defaultTitle = $localize`Tags`;
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
+
+  @ViewChild(ExtListComponent)
+  list?: ExtListComponent;
 
   constructor(
     private mod: ModService,
@@ -35,6 +41,10 @@ export class TagsPage implements OnInit, OnDestroy {
     mod.setTitle($localize`Tags`);
     store.view.clear(['levels', 'tag'], ['levels', 'tag']);
     query.clear();
+  }
+
+  saveChanges() {
+    return !!this.list?.saveChanges();
   }
 
   ngOnInit(): void {

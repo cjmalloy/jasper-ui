@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { Page } from '../../model/page';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
@@ -9,7 +9,7 @@ import { Store } from '../../store/store';
   templateUrl: './page-controls.component.html',
   styleUrls: ['./page-controls.component.scss'],
 })
-export class PageControlsComponent implements OnInit {
+export class PageControlsComponent {
   @HostBinding('class') css = 'page-controls';
 
   @Input()
@@ -73,9 +73,6 @@ export class PageControlsComponent implements OnInit {
 
   set cols(value: number) {
     this.bookmarks.cols = value;
-  }
-
-  ngOnInit(): void {
   }
 
   scrollUp() {

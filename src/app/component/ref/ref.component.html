@@ -296,13 +296,14 @@
   </div>
 </div>
 
-<app-comment-reply *ngIf="replying"
-                   [autofocus]="true"
-                   [to]="ref"
-                   [showCancel]="true"
-                   [selectResponseType]="!thread && !comment && !dm"
-                   [tags]="replyTags"
-                   (save)="onReply($event)"></app-comment-reply>
+@if (replying) {
+  <app-comment-reply [autofocus]="true"
+                     [to]="ref"
+                     [showCancel]="true"
+                     [selectResponseType]="!thread && !comment && !dm"
+                     [tags]="replyTags"
+                     (save)="onReply($event)"></app-comment-reply>
+}
 @if (editing) {
   <app-viewer *ngIf="expanded && !expandInline && !editing && !viewSource"
               class="viewer-below"

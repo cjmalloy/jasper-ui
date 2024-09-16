@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   standalone: false,
@@ -6,16 +6,11 @@ import { Component, Input, OnInit } from '@angular/core';
   templateUrl: './backup-list.component.html',
   styleUrls: ['./backup-list.component.scss']
 })
-export class BackupListComponent implements OnInit {
+export class BackupListComponent {
 
   @Input()
   list?: string[];
   @Input()
   origin = '';
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
 
 }

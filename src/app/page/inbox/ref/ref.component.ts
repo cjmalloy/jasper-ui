@@ -1,6 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
@@ -14,8 +16,11 @@ import { getArgs } from '../../../util/query';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
 })
-export class InboxRefPage implements OnInit, OnDestroy {
+export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
+
+  @ViewChild(RefListComponent)
+  list?: RefListComponent;
 
   plugin?: Plugin;
   writeAccess = false;
@@ -29,6 +34,10 @@ export class InboxRefPage implements OnInit, OnDestroy {
     mod.setTitle($localize`Inbox: `);
     store.view.clear(['modified']);
     query.clear();
+  }
+
+  saveChanges() {
+    return !!this.list?.saveChanges();
   }
 
   ngOnInit(): void {

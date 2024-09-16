@@ -30,8 +30,6 @@ export class GenFormComponent implements OnInit {
     },
   };
 
-  constructor() { }
-
   get group() {
     return this.plugins.get(this.plugin.tag) as UntypedFormGroup | undefined;
   }

@@ -1,4 +1,5 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref, RefSort } from '../../model/ref';
@@ -15,7 +16,7 @@ import { hasPrefix } from '../../util/tag';
   templateUrl: './lens.component.html',
   styleUrls: ['./lens.component.scss']
 })
-export class LensComponent implements OnChanges {
+export class LensComponent implements OnChanges, HasChanges {
 
   @Input()
   ext?: Ext;
@@ -44,12 +45,18 @@ export class LensComponent implements OnChanges {
 
   plugins?: string[];
 
+  @ViewChildren('lens')
+  list?: QueryList<HasChanges>;
+
   constructor(
-    private config: ConfigService,
     public admin: AdminService,
     public account: AccountService,
     public query: QueryStore,
   ) { }
+
+  saveChanges() {
+    return !this.list?.find(t => !t.saveChanges());
+  }
 
   init() {
     if (hasPrefix(this.ext?.tag, 'plugin')) {

@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
@@ -10,7 +10,7 @@ import { Store } from '../../store/store';
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent {
   @HostBinding('class') css = 'settings';
 
   constructor(
@@ -22,9 +22,6 @@ export class SettingsComponent implements OnInit {
     if (admin.getTemplate('user') && admin.getPlugin('plugin/inbox') && store.account.signedIn) {
       account.checkNotifications();
     }
-  }
-
-  ngOnInit(): void {
   }
 
   get fullUserTagAndRole() {

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { BackupService } from '../../service/api/backup.service';
@@ -12,7 +12,7 @@ import { printError } from '../../util/http';
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss']
 })
-export class BackupComponent implements OnInit {
+export class BackupComponent {
 
   @Input()
   id!: string;
@@ -34,9 +34,6 @@ export class BackupComponent implements OnInit {
   ) {
     backups.getDownloadKey()
       .subscribe(key => this.backupKey = key);
-  }
-
-  ngOnInit(): void {
   }
 
   get inProgress() {

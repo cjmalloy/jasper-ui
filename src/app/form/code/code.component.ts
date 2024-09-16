@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
 import { Store } from '../../store/store';
@@ -9,7 +9,7 @@ import { Store } from '../../store/store';
   templateUrl: './code.component.html',
   styleUrls: ['./code.component.scss']
 })
-export class CodeComponent implements OnInit, OnDestroy {
+export class CodeComponent implements OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
@@ -39,9 +39,6 @@ export class CodeComponent implements OnInit, OnDestroy {
       ...this.options,
       language: value,
     }
-  }
-
-  ngOnInit(): void {
   }
 
   ngOnDestroy() {

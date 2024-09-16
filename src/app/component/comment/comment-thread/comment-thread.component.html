@@ -1,10 +1,12 @@
 <ng-container *mobxAutorun>
-  <app-comment *ngFor="let comment of newComments"
+  <app-comment #comment
+               *ngFor="let comment of newComments"
                [ref]="comment"
                [depth]="depth"
                [context]="context"></app-comment>
   <ng-container *ngIf="depth > 0">
-    <app-comment *ngFor="let comment of comments"
+    <app-comment #comment
+                 *ngFor="let comment of comments"
                  [ref]="comment"
                  [scrollToLatest]="scrollToLatest"
                  [depth]="depth"

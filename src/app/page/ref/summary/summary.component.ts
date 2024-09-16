@@ -1,7 +1,12 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject } from 'rxjs';
+import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
+import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
+
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
@@ -20,13 +25,20 @@ import { hasTag, removeTag, top } from '../../../util/tag';
   templateUrl: './summary.component.html',
   styleUrls: ['./summary.component.scss']
 })
-export class RefSummaryComponent implements OnInit, OnDestroy {
+export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   newResp$ = new Subject<Ref | undefined>();
   newComment$ = new Subject<Ref | undefined>();
   newThread$ = new Subject<Ref | undefined>();
 
   summaryItems = 5;
+
+  @ViewChild(CommentReplyComponent)
+  reply?: CommentReplyComponent;
+  @ViewChildren(CommentThreadComponent)
+  threadComponents?: QueryList<CommentThreadComponent>;
+  @ViewChild(RefListComponent)
+  list?: RefListComponent;
 
   constructor(
     private mod: ModService,
@@ -39,6 +51,12 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     query.clear();
     thread.clear();
     runInAction(() => store.view.defaultSort = ['modified,DESC']);
+  }
+
+  saveChanges() {
+    return !!this.reply?.saveChanges()
+      && !!this.list?.saveChanges()
+      && !this.threadComponents?.find(t => !t.saveChanges());
   }
 
   ngOnInit(): void {

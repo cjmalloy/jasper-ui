@@ -16,6 +16,7 @@ import { DateTime } from 'luxon';
 import { catchError, forkJoin, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { getRole, Profile } from '../../model/profile';
 import { Role, User } from '../../model/user';
@@ -40,7 +41,7 @@ import { ActionComponent } from '../action/action.component';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
 })
-export class UserComponent implements OnChanges {
+export class UserComponent implements OnChanges, HasChanges {
   @HostBinding('class') css = 'profile list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
@@ -67,7 +68,6 @@ export class UserComponent implements OnChanges {
     public admin: AdminService,
     public config: ConfigService,
     public store: Store,
-    private router: Router,
     private auth: AuthzService,
     private profiles: ProfileService,
     private users: UserService,
@@ -75,6 +75,10 @@ export class UserComponent implements OnChanges {
     private fb: FormBuilder,
   ) {
     this.editForm = userForm(fb, true);
+  }
+
+  saveChanges() {
+    return !this.editing || !this.editForm.dirty;
   }
 
   init() {

@@ -1,5 +1,6 @@
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { runInAction } from 'mobx';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
@@ -19,8 +20,7 @@ export class SettingsPage implements OnInit {
     public config: ConfigService,
     private auth: AuthzService,
     public store: Store,
-  ) {
-  }
+  ) { }
 
   ngOnInit(): void {
     if (!this.store.view.settingsTabs.length) {

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { forOwn, mapValues, uniq } from 'lodash-es';
 import { catchError, concat, last, throwError } from 'rxjs';
@@ -17,7 +17,7 @@ import { printError } from '../../../util/http';
   templateUrl: './setup.component.html',
   styleUrls: ['./setup.component.scss'],
 })
-export class SettingsSetupPage implements OnInit {
+export class SettingsSetupPage {
 
   experiments = !!this.admin.getTemplate('experiments');
   selectAllToggle = false;
@@ -41,9 +41,6 @@ export class SettingsSetupPage implements OnInit {
       mods: fb.group(mapValues({...this.admin.def.plugins, ...this.admin.def.templates }, () => fb.control(false))),
     });
     this.clear();
-  }
-
-  ngOnInit(): void {
   }
 
   install() {

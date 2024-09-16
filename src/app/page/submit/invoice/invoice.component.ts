@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { flatten, uniq, without } from 'lodash-es';
@@ -26,7 +26,7 @@ import { prefix } from '../../../util/tag';
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss']
 })
-export class SubmitInvoicePage implements OnInit, HasChanges {
+export class SubmitInvoicePage implements HasChanges {
   @HostBinding('class') css = 'full-page-form';
 
   submitted = false;
@@ -68,9 +68,6 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
   saveChanges() {
     // TODO: Just save in drafts
     return !this.invoiceForm?.dirty;
-  }
-
-  ngOnInit(): void {
   }
 
   checkUrl() {

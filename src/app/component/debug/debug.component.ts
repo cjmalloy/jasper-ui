@@ -44,9 +44,6 @@ export class DebugComponent {
     private router: Router,
   ) { }
 
-  ngOnInit(): void {
-  }
-
   get empty() {
     return !this.query.page?.content?.length;
   }

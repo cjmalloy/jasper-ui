@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { runInAction } from 'mobx';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
@@ -9,16 +9,13 @@ import { Store } from '../../store/store';
   templateUrl: './login-popup.component.html',
   styleUrls: ['./login-popup.component.scss']
 })
-export class LoginPopupComponent implements OnInit {
+export class LoginPopupComponent {
   @HostBinding('class') css = 'login-popup';
 
   constructor(
     public store: Store,
     public config: ConfigService,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   clear() {
     runInAction(() => this.store.account.authError = false);

@@ -1,12 +1,14 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { RootConfig } from '../../mods/root';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
+import { BlogEntryComponent } from './blog-entry/blog-entry.component';
 
 @Component({
   standalone: false,
@@ -14,7 +16,7 @@ import { Store } from '../../store/store';
   templateUrl: './blog.component.html',
   styleUrls: ['./blog.component.scss']
 })
-export class BlogComponent implements OnInit {
+export class BlogComponent implements HasChanges {
   @HostBinding('class') css = 'blog ext';
 
   @Input()
@@ -26,6 +28,9 @@ export class BlogComponent implements OnInit {
   colStyle = '';
   error: any;
 
+  @ViewChildren(BlogEntryComponent)
+  list?: QueryList<BlogEntryComponent>;
+
   private _page?: Page<Ref>;
   private _ext?: Ext;
   private _cols? = 0;
@@ -36,8 +41,8 @@ export class BlogComponent implements OnInit {
     private refs: RefService,
   ) { }
 
-  trackByUrlOrigin(index: number, value: Ref) {
-    return value.origin + '@' + value.url;
+  saveChanges() {
+    return !this.list?.find(r => !r.saveChanges());
   }
 
   get page(): Page<Ref> | undefined {
@@ -94,9 +99,6 @@ export class BlogComponent implements OnInit {
         })
       }
     }
-  }
-
-  ngOnInit(): void {
   }
 
 }

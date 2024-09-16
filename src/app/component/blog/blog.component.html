@@ -1,21 +1,19 @@
-<ng-container *ngIf="page else loading">
+@if (page) {
   <div class="blog-container"
        [class.grid-layout]="colStyle"
        [style.grid-template-columns]="colStyle">
-    <app-blog-entry *ngFor="let ref of pinned trackBy: trackByUrlOrigin"
-                    class="pinned"
-                    [ref]="ref"></app-blog-entry>
-    <app-blog-entry *ngFor="let ref of page?.content trackBy: trackByUrlOrigin"
-                    [ref]="ref"
-                    [blog]="ext"></app-blog-entry>
+    @for (ref of pinned; track ref.origin + '@' + ref.url) {
+      <app-blog-entry class="pinned" [ref]="ref"></app-blog-entry>
+    }
+    @for (ref of page?.content; track ref.origin + '@' + ref.url) {
+      <app-blog-entry [ref]="ref" [blog]="ext"></app-blog-entry>
+    } @empty {
+      <p class="no-results">{{ emptyMessage }}</p>
+    }
   </div>
-  <p class="no-results" *ngIf="!page.content.length">
-    {{ emptyMessage }}
-  </p>
-  <app-page-controls *ngIf="pageControls && page.content.length"
-                     [defaultCols]="cols"
-                     [page]="page"></app-page-controls>
-</ng-container>
-<ng-template #loading>
+  @if (pageControls && page.content.length) {
+    <app-page-controls [defaultCols]="cols" [page]="page"></app-page-controls>
+  }
+} @else {
   <app-loading></app-loading>
-</ng-template>
+}

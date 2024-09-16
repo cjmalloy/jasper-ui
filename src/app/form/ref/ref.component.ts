@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer, uniq, without } from 'lodash-es';
 import { catchError, map, of, switchMap } from 'rxjs';
@@ -21,7 +21,7 @@ import { TagsFormComponent } from '../tags/tags.component';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss']
 })
-export class RefFormComponent implements OnInit {
+export class RefFormComponent {
   @HostBinding('class') css = 'nested-form';
 
   @Input()
@@ -51,9 +51,6 @@ export class RefFormComponent implements OnInit {
     private scrape: ScrapeService,
     private oembeds: OembedStore,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   get web() {
     const scheme = getScheme(this.url.value);

@@ -1,7 +1,10 @@
-import { Component, HostBinding } from '@angular/core';
+import { Component, HostBinding, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
@@ -21,11 +24,16 @@ import { hasTag, removeTag } from '../../../util/tag';
   templateUrl: './thread.component.html',
   styleUrls: ['./thread.component.scss']
 })
-export class RefThreadComponent {
+export class RefThreadComponent implements HasChanges {
   @HostBinding('class') css = 'thread';
 
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
+
+  @ViewChild(CommentReplyComponent)
+  reply?: CommentReplyComponent;
+  @ViewChild(RefListComponent)
+  list?: RefListComponent;
 
   newRefs$ = new Subject<Ref | undefined>();
 
@@ -44,6 +52,10 @@ export class RefThreadComponent {
   ) {
     query.clear();
     runInAction(() => store.view.defaultSort = ['published,ASC']);
+  }
+
+  saveChanges() {
+    return !!this.reply?.saveChanges() && !!this.list?.saveChanges();
   }
 
   ngOnInit(): void {

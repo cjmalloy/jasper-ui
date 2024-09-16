@@ -1,6 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { LensComponent } from '../../component/lens/lens.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -15,8 +17,11 @@ import { getArgs } from '../../util/query';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
-export class HomePage implements OnInit, OnDestroy {
+export class HomePage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
+
+  @ViewChild(LensComponent)
+  lens?: LensComponent;
 
   constructor(
     private mod: ModService,
@@ -32,6 +37,10 @@ export class HomePage implements OnInit, OnDestroy {
     if (admin.getTemplate('home')) {
       exts.getCachedExt('home').subscribe(x => runInAction(() => this.store.view.exts = [x]));
     }
+  }
+
+  saveChanges() {
+    return !!this.lens?.saveChanges();
   }
 
   ngOnInit(): void {

@@ -1,6 +1,8 @@
-import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
@@ -13,10 +15,13 @@ import { getArgs } from '../../../util/query';
   templateUrl: './all.component.html',
   styleUrls: ['./all.component.scss'],
 })
-export class InboxAllPage implements OnInit, OnDestroy {
+export class InboxAllPage implements OnInit, OnDestroy, HasChanges {
   @HostBinding('class') css = 'inbox-all';
 
   private disposers: IReactionDisposer[] = [];
+
+  @ViewChild(RefListComponent)
+  list?: RefListComponent;
 
   constructor(
     private mod: ModService,
@@ -27,6 +32,10 @@ export class InboxAllPage implements OnInit, OnDestroy {
     mod.setTitle($localize`Inbox: All`);
     store.view.clear(['modified']);
     query.clear();
+  }
+
+  saveChanges() {
+    return !!this.list?.saveChanges();
   }
 
   ngOnInit(): void {

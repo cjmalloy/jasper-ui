@@ -1,6 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
@@ -15,9 +17,12 @@ import { getArgs } from '../../../util/query';
   templateUrl: './sources.component.html',
   styleUrls: ['./sources.component.scss'],
 })
-export class RefSourcesComponent implements OnInit, OnDestroy {
+export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
+
+  @ViewChild(RefListComponent)
+  list?: RefListComponent;
 
   page: Page<Ref> = Page.of([]);
 
@@ -29,6 +34,10 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
   ) {
     query.clear();
     runInAction(() => store.view.defaultSort = ['published']);
+  }
+
+  saveChanges() {
+    return !!this.list?.saveChanges();
   }
 
   ngOnInit(): void {

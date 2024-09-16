@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -26,7 +26,7 @@ import { themesForm } from '../themes/themes.component';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss']
 })
-export class ExtFormComponent implements OnInit {
+export class ExtFormComponent {
   @HostBinding('class') css = 'nested-form';
   allSorts = allRefSorts;
   allFilters = this.admin.filters.map(convertFilter);
@@ -58,9 +58,6 @@ export class ExtFormComponent implements OnInit {
     public admin: AdminService,
     public store: Store,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   get user() {
     if (!this.admin.getTemplate('user')) return false;
