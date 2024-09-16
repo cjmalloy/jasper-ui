@@ -87,9 +87,15 @@ export class MemoCache {
     return this.cacheMap.get(instance);
   }
 
-  public static clear(instance: Object) {
+  public static clear(instance: Object, propertyKey?: string, arg?: string) {
     if (this.cacheMap.has(instance)) {
-      this.cacheMap.set(instance, {});
+      if (arg) {
+        delete this.cacheMap.get(instance)[Symbol.for(`__cache__${propertyKey}_${arg}`)];
+      } else if (propertyKey) {
+        delete this.cacheMap.get(instance)[Symbol.for(`__cache__${propertyKey}`)];
+      } else {
+        this.cacheMap.set(instance, {});
+      }
     }
   }
 }

@@ -1,35 +1,31 @@
-import { Overlay, OverlayRef } from '@angular/cdk/overlay';
-import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
   HostBinding,
   HostListener,
   Input,
-  NgZone,
   OnChanges,
   OnDestroy,
   Output,
   QueryList,
   SimpleChanges,
-  TemplateRef,
   ViewChild,
-  ViewChildren,
-  ViewContainerRef
+  ViewChildren
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { defer, delay, groupBy, pick, uniq, without } from 'lodash-es';
+import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import * as moment from 'moment';
-import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { getPluginScope, Plugin } from '../../model/plugin';
-import { equalsRef, Ref, writeRef } from '../../model/ref';
+import { equalsRef, Ref } from '../../model/ref';
 import {
   Action,
   active,
@@ -44,7 +40,6 @@ import {
 } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
-import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -55,7 +50,6 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
-import { downloadRef } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import {
   authors,
@@ -92,9 +86,12 @@ import { ViewerComponent } from '../viewer/viewer.component';
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   css = 'ref list-item';
   private disposers: IReactionDisposer[] = [];
+  private destroy$ = new Subject<void>();
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
+  @ViewChild(RefFormComponent)
+  refForm?: RefFormComponent;
 
   @Input()
   ref!: Ref;
@@ -135,8 +132,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   infoUis: Plugin[] = [];
   submittedLabel = $localize`submitted`;
   publishedLabel = $localize`published`;
-  editing = false;
-  viewSource = false;
   @HostBinding('class.deleted')
   deleted = false;
   @HostBinding('class.mobile-unlock')
@@ -150,6 +145,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   submitting?: Subscription;
   private refreshTap?: () => void;
+  private _editing = false;
+  private _viewSource = false;
 
   constructor(
     public config: ConfigService,
@@ -164,8 +161,26 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
+    private cd: ChangeDetectorRef,
   ) {
     this.editForm = refForm(fb);
+    this.editForm.valueChanges.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(throttle(value => {
+      if (!this.editing) return;
+      if (!value?.title && !value?.comment && !value?.tags?.length) return;
+      if (this.editing) {
+        MemoCache.clear(this, 'title');
+        MemoCache.clear(this, 'thumbnail');
+        MemoCache.clear(this, 'thumbnailRefs');
+        MemoCache.clear(this, 'thumbnailRadius');
+        MemoCache.clear(this, 'thumbnailColor');
+        MemoCache.clear(this, 'thumbnailEmoji');
+        MemoCache.clear(this, 'thumbnailEmojiDefaults');
+        this.initFields(value);
+        defer(() => cd.detectChanges());
+      }
+    }, 400, { leading: true, trailing: true }));
     this.disposers.push(autorun(() => {
       if (this.store.eventBus.event === 'refresh') {
         if (this.editing || this.viewSource) {
@@ -217,15 +232,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.replyTags = this.getReplyTags();
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
-    this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
-    this.alarm = capturesAny(this.store.account.alarms, this.ref.tags);
-    this.actions = this.ref.created ? uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins))) : [];
-    this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
-    // TODO: detect width and move actions that don't fit into advanced actions
-    this.advancedActions = this.ref.created ? sortOrder(this.admin.getAdvancedActions(this.ref.tags, this.ref.plugins)) : [];
-    this.groupedAdvancedActions = groupBy(this.advancedActions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
-    this.infoUis = this.admin.getPluginInfoUis(this.ref.tags);
-    this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
+    this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
     if (this.repost) {
@@ -243,6 +250,18 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     }
   }
 
+  initFields(ref: Ref) {
+    this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))));
+    this.alarm = capturesAny(this.store.account.alarms, ref.tags);
+    this.actions = ref.created ? uniqueConfigs(sortOrder(this.admin.getActions(ref.tags, ref.plugins))) : [];
+    this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
+    // TODO: detect width and move actions that don't fit into advanced actions
+    this.advancedActions = ref.created ? sortOrder(this.admin.getAdvancedActions(ref.tags, ref.plugins)) : [];
+    this.groupedAdvancedActions = groupBy(this.advancedActions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
+    this.infoUis = this.admin.getPluginInfoUis(ref.tags);
+    this.publishedLabel = this.admin.getPublished(ref.tags).join($localize`/`) || $localize`published`;
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref) {
       this.init();
@@ -258,6 +277,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     if (this.scrollToLatest && this.lastSelected) {
@@ -298,15 +319,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     return undefined;
   }
 
-  @ViewChild(RefFormComponent)
-  set refForm(value: RefFormComponent) {
-    if (!value) return;
-    defer(() => {
-      value.setRef(this.ref);
-      this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
-    });
-  }
-
   @HostListener('fullscreenchange')
   onFullscreenChange() {
     if (!this.fullscreen) return;
@@ -331,6 +343,45 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
         console.warn('Could not make fullscreen.');
         this.expanded = false;
       });
+    }
+  }
+
+  get viewSource(): boolean {
+    return this._viewSource;
+  }
+
+  set viewSource(value: boolean) {
+    this._viewSource = value;
+    if (value) {
+      this.syncEditor();
+    }
+  }
+
+  get editing(): boolean {
+    return this._editing;
+  }
+
+  set editing(value: boolean) {
+    if (this._editing === value) return;
+    this._editing = value;
+    if (value) {
+      this.syncEditor();
+    } else {
+      defer(() => {
+        MemoCache.clear(this);
+        this.init();
+        this.cd.detectChanges();
+      });
+    }
+  }
+
+  syncEditor() {
+    if (!this.editing && !this.viewSource) return;
+    if (this.refForm) {
+      this.refForm.setRef(cloneDeep(this.ref));
+      if (this.editing) this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
+    } else {
+      defer(() => this.syncEditor());
     }
   }
 
@@ -449,19 +500,27 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get thumbnail() {
-    return this.admin.getPlugin('plugin/thumbnail') &&
-      (hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef));
+    if (!this.admin.getPlugin('plugin/thumbnail')) return false;
+    if (this.editing) return hasTag('plugin/thumbnail', this.editForm.value);
+    return hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
+  }
+
+  @memo
+  get thumbnailRefs() {
+    return this.editing ? [this.editForm.value] : [this.repostRef, this.ref];
   }
 
   @memo
   get thumbnailColor() {
     if (!this.thumbnail) return '';
+    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.color || '';
     return this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color || '';
   }
 
   @memo
   get thumbnailEmoji() {
     if (!this.thumbnail) return '';
+    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.emoji || '';
     return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
   }
 
@@ -474,6 +533,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get thumbnailRadius() {
+    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.radius || 0;
     return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
   }
 
@@ -629,6 +689,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get title() {
+    if (this.editing) return getTitle(this.editForm.value);
     if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
     return getTitle(this.ref);
   }
