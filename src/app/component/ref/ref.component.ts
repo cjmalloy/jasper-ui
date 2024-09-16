@@ -24,6 +24,7 @@ import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throw
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { getPluginScope, Plugin } from '../../model/plugin';
 import { equalsRef, Ref } from '../../model/ref';
 import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
@@ -72,7 +73,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
 })
-export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
+export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
   css = 'ref list-item';
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
@@ -201,6 +202,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
         this.expanded = false;
       }
     }));
+  }
+
+  saveChanges() {
+    return !this.editing || !this.editForm.dirty;
   }
 
   init() {

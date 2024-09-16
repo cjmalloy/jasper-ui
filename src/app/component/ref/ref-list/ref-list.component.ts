@@ -1,20 +1,22 @@
-import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import * as moment from 'moment';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
+import { RefComponent } from '../ref.component';
 
 @Component({
   selector: 'app-ref-list',
   templateUrl: './ref-list.component.html',
   styleUrls: ['./ref-list.component.scss'],
 })
-export class RefListComponent implements OnInit, OnDestroy {
+export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   @HostBinding('class') css = 'ref-list';
   private destroy$ = new Subject<void>();
 
@@ -43,6 +45,9 @@ export class RefListComponent implements OnInit, OnDestroy {
   @Input()
   showPrev = true;
 
+  @ViewChildren(RefComponent)
+  refComponents?: QueryList<RefComponent>;
+
   pinned: Ref[] = [];
   newRefs: Ref[] = [];
 
@@ -56,6 +61,10 @@ export class RefListComponent implements OnInit, OnDestroy {
     private store: Store,
     private refs: RefService,
   ) { }
+
+  saveChanges() {
+    return !!this.refComponents?.filter(r => r.saveChanges()).length;
+  }
 
   get ext() {
     return this._ext;

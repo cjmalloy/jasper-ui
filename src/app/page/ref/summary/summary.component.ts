@@ -1,7 +1,11 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { merge, Subject } from 'rxjs';
+import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
+import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
@@ -18,13 +22,20 @@ import { hasTag, removeTag, top } from '../../../util/tag';
   templateUrl: './summary.component.html',
   styleUrls: ['./summary.component.scss']
 })
-export class RefSummaryComponent implements OnInit, OnDestroy {
+export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   newResp$ = new Subject<Ref | null>();
   newComment$ = new Subject<Ref | null>();
   newThread$ = new Subject<Ref | null>();
 
   summaryItems = 5;
+
+  @ViewChild(CommentReplyComponent)
+  reply?: CommentReplyComponent;
+  @ViewChildren(CommentThreadComponent)
+  threadComponents?: QueryList<CommentThreadComponent>;
+  @ViewChild(RefListComponent)
+  list?: RefListComponent;
 
   constructor(
     private mod: ModService,
@@ -37,6 +48,13 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     query.clear();
     thread.clear();
     runInAction(() => store.view.defaultSort = ['modified,DESC']);
+  }
+
+  saveChanges() {
+    const replyDirty = !!this.reply?.saveChanges();
+    const listDirty = !!this.list?.saveChanges();
+    const threadsDirty = !!this.threadComponents?.filter(t => t.saveChanges()).length;
+    return replyDirty || listDirty || threadsDirty;
   }
 
   ngOnInit(): void {
