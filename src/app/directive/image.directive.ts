@@ -69,6 +69,12 @@ export class ImageDirective implements OnInit, OnDestroy {
     return this.elRef.nativeElement;
   }
 
+  get parentWidth() {
+    let parent = this.el.parentElement;
+    while (parent && !parent.offsetWidth) parent = parent.parentElement;
+    return parent?.offsetWidth || 0;
+  }
+
   get defaultWidthPx() {
     if (!this.defaultWidth) return undefined;
     if (this.config.mobile && this.defaultWidth > window.innerWidth) return 'calc(100vw - 32px)'
@@ -104,7 +110,7 @@ export class ImageDirective implements OnInit, OnDestroy {
       this.el.style.backgroundSize = '100% 100%';
       return;
     }
-    const parentWidth = this.el.parentElement.offsetWidth;
+    const parentWidth = this.parentWidth;
     if (this.config.mobile && !this.grid && (!this.defaultWidth || this.defaultWidth >= window.innerWidth)) {
       this.el.style.width = (parentWidth - 12) + 'px';
       this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
