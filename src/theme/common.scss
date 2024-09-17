@@ -912,8 +912,10 @@ video.qr-preview {
     width: 368px;
   }
 
-  .controls select {
-    height: 22px;
+  .controls {
+    select, button {
+      height: 22px;
+    }
   }
 
   app-query {
@@ -1496,8 +1498,9 @@ formly-field-radio, formly-field-multicheckbox {
   clear: both;
   margin: 4px 8px 4px 2px;
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: unset !important;
   border-radius: 2px;
   text-align: center;
   line-height: 24px;
@@ -2082,6 +2085,7 @@ ngx-monaco-editor {
 
   .md p {
     text-align: left;
+    margin: 1px;
   }
 
   &.no-write {

@@ -98,6 +98,9 @@ body.darwin.safari {
 }
 
 body.ios {
+  input:not([type=checkbox]):not([type=radio]) {
+    height: 28px;
+  }
   button[type=submit] {
     color: revert;
   }
@@ -108,6 +111,11 @@ body.ios {
   }
   .controls button {
     min-width: unset !important;
+  }
+  .toolbar, .form-array {
+    button {
+      min-width: 56px !important;
+    }
   }
   select {
     height: 30px !important;
