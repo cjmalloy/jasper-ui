@@ -848,7 +848,7 @@ video.qr-preview {
 
   &:not(.expanded) {
     width: 40px;
-    .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs {
+    .tag-header, .ui, .md, .sidebar-link, .ext-text {
       display: none;
     }
   }

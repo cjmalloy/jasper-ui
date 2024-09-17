@@ -11,14 +11,16 @@
       </div>
     </div>
   </div>
-  @if (expanded) {
-    @if (store.view.type && (!home || store.view.search || store.view.filter.length || !query.page?.empty)) {
-      <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
+  @if (store.view.type && (!home || store.view.search || store.view.filter.length || !query.page?.empty)) {
+    <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
+    @if (expanded) {
       <div class="row">
         <app-filter [type]="store.view.type!" [activeExts]="activeExts"></app-filter>
         <app-sort [type]="store.view.type!"></app-sort>
       </div>
     }
+  }
+  @if (expanded) {
     <app-debug></app-debug>
     <app-bulk *ngIf="store.view.type"
               [type]="store.view.type!"
