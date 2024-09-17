@@ -1,3 +1,5 @@
+// Mini: Smallest possible size
+$mini-width: 380px;
 // Mobile: Change tabs and forms
 $mobile-width: 740px;
 // Mobile: Change tabs and forms
@@ -415,7 +417,7 @@ $tablet-width: 948px;
       &.expanded {
         transition: height .5s;
         height: 32px;
-        padding-bottom: 10px;
+        padding-top: 2px;
       }
       &.not-expanded {
         transition: height .5s;
@@ -477,6 +479,20 @@ $tablet-width: 948px;
 
     label {
       text-align: left !important;
+    }
+  }
+}
+
+/* Smallest possible */
+@media (max-width: $mini-width) {
+  .mini-col {
+    flex-direction: column;
+    &.reverse {
+      flex-direction: column-reverse;
+    }
+    & > * {
+      width: 100% !important;
+      margin: 4px 0;
     }
   }
 }

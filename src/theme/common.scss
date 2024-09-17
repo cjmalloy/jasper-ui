@@ -202,7 +202,7 @@ label.big {
 
 button {
   padding: 1px 6px;
-  min-width: 24px !important;
+  min-width: 28px !important;
   min-height: 22px !important;
 }
 
@@ -865,7 +865,7 @@ video.qr-preview {
   float: right;
   overflow: hidden;
   transition: width .5s;
-  width: 372px;
+  width: 416px;
   margin-bottom: 100px;
   margin-left: 4px;
   border-bottom-left-radius: 4px;
@@ -909,7 +909,7 @@ video.qr-preview {
   input[type=search] {
     margin-top: 3px;
     height: 26px;
-    width: 324px;
+    width: 368px;
   }
 
   .controls select {

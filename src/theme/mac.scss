@@ -106,6 +106,9 @@ body.ios {
     min-height: 30px !important;
     padding: 1px 6px;
   }
+  .controls button {
+    min-width: unset !important;
+  }
   select {
     height: 30px !important;
   }
