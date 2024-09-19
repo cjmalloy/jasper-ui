@@ -19,7 +19,7 @@ export const dmTemplate: Template = {
     description: $localize`Adds dms tab to inbox. Adds buttons to create private direct messages with users.`,
     aiInstructions: `# dm
     The dm tag indicates the Ref represents a private direct message.`,
-    icons: [{ thumbnail: $localize`📨️` }],
+    icons: [{ thumbnail: $localize`📨️`, order: 1 }],
     filters: [
       { query: 'dm', label: $localize`✉️ dm`, group: $localize`Templates 🎨️` },
     ],

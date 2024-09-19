@@ -526,9 +526,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get thumbnailEmojiDefaults() {
-    const iconLabel = this.icons.filter(i => i.label && (i.order || 0) >= 0 && this.showIcon(i))[0];
-    const iconThumbnail = this.icons.filter(i => i.thumbnail && this.showIcon(i))[0];
-    return iconLabel?.label || iconThumbnail?.thumbnail;
+    const icon = this.icons.filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
+    return icon?.label || icon?.thumbnail;
   }
 
   @memo

@@ -199,15 +199,11 @@ export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) 
 }
 
 export function sortOrder<T extends { order?: number }>(vs: T[]) {
-  return vs.sort((a, b) => {
-    if (!a.order || !b.order) return (b.order || 0) - (a.order || 0);
-    if (Math.sign(a.order) !== Math.sign(b.order)) return b.order - a.order;
-    return a.order - b.order;
-  });
+  return vs.sort((a, b) => (b.order || 0) - (a.order || 0));
 }
 
 export function uniqueConfigs<T extends Visibility>(vs: T[]) {
-  const hiddenField = (v: string, k: string) => k.startsWith('_')
+  const hiddenField = (v: string, k: string) => k.startsWith('_');
   return uniqWith(vs, (a, b) => isEqual(omitBy(a as any, hiddenField), omitBy(b as any, hiddenField)));
 }
 
