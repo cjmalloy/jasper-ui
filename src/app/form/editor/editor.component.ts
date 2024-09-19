@@ -89,6 +89,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private _padding = 8;
 
   private europa?: Europa;
+  private selectionStart = 0;
+  private selectionEnd = 0;
 
   constructor(
     public admin: AdminService,
@@ -122,7 +124,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         this.overlayRef.updateSize({ height });
         document.body.style.height = height + 'px';
       }
-    }))
+    }));
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -143,6 +145,15 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (this.overlayRef) {
       window.scrollTo(0, 0);
     }
+  }
+
+  onSelect() {
+    defer(() => {
+      console.log('selection s', this.selectionStart, this.editor?.nativeElement.selectionStart);
+      console.log('selection e', this.selectionEnd, this.editor?.nativeElement.selectionEnd);
+      this.selectionStart = this.editor?.nativeElement.selectionStart || 0;
+      this.selectionEnd = this.editor?.nativeElement.selectionEnd || 0;
+    });
   }
 
   @HostBinding('style.padding.px')
@@ -173,7 +184,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   set editing(value: boolean) {
     if (!this._editing && value) {
       defer(() => {
-        this._editing = value;
+        this._editing = true;
+        if (this.fullscreenDefault && !this.initialFullscreen) {
+          this.toggleFullscreen(true);
+        }
         this.tags = this.fullTags;
         this.syncTags.emit(this.tags);
       });
@@ -290,6 +304,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   toggleFullscreen(override?: boolean) {
+    if (!this.editor) return;
     if (override === this.fullscreen) return;
     this.initialFullscreen = true;
     this.fullscreen = override !== undefined ? override : !this.fullscreen;
@@ -312,8 +327,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.overlayRef.attach(new DomPortal(this.el));
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
       this.overlayRef.keydownEvents().subscribe(event => event.key === 'Escape' && this.toggleFullscreen(false));
-      this.editor?.nativeElement.focus();
-      this.editor?.nativeElement.scrollIntoView({ block: 'end' });
+      this.editor.nativeElement.focus();
+      this.editor.nativeElement.scrollIntoView({ block: 'end' });
     } else {
       this.stacked = true;
       this.preview = this.store.local.showPreview;
@@ -322,8 +337,13 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       delete this.overlayRef;
       document.body.style.height = '';
       document.body.classList.remove('fullscreen');
-      this.editor?.nativeElement.focus();
-      this.editor?.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
+      this.editor.nativeElement.focus();
+      this.editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
+    }
+    if (override === undefined) {
+      console.log('update s', this.selectionStart, this.editor?.nativeElement.selectionStart);
+      console.log('update e', this.selectionEnd, this.editor?.nativeElement.selectionEnd);
+      this.editor?.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
     }
   }
 

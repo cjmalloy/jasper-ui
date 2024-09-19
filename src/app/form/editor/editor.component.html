@@ -58,8 +58,10 @@
   <textarea #editor
             [formControl]="control"
             (touchstart)="fullscreenDefault = fullscreenDefault === undefined ? true : undefined"
-            (tap)="fullscreenDefault && !initialFullscreen && toggleFullscreen(true) || true"
             (focusin)="editing = true"
+            (pointerup)="onSelect()"
+            (select)="onSelect()"
+            (selectionchange)="onSelect()"
             (input)="setText($any($event).target.value)"
             (blur)="syncText($any($event).target.value)"
             [appFillWidth]="fillWidth"
