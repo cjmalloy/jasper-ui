@@ -67,7 +67,7 @@ export class ActionService {
         updates.push(this.$emit(a, ref));
       }
     }
-    if (!updates.length) throw 'Invalid action';
+    if (!updates.length) return of(null);
     return this.store.eventBus.runAndReload$(concat(...updates).pipe(last()), ref);
   }
 

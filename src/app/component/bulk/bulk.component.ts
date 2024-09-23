@@ -7,7 +7,7 @@ import { tap } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
-import { Action, sortOrder, uniqueConfigs } from '../../model/tag';
+import { Action, active, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { Template } from '../../model/template';
 import { User } from '../../model/user';
 import { deleteNotice, tagDeleteNotice } from '../../mods/delete';
@@ -28,9 +28,9 @@ import { TemplateStore } from '../../store/template';
 import { UserStore } from '../../store/user';
 import { Type } from '../../store/view';
 import { downloadPage } from '../../util/download';
-import { printError } from '../../util/http';
+import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { hasTag } from '../../util/tag';
+import { hasTag, isOwnerTag } from '../../util/tag';
 
 @Component({
   selector: 'app-bulk',
@@ -214,8 +214,29 @@ export class BulkComponent implements OnChanges, OnDestroy {
     return this.batch$<Ref>(ref => this.ts.create(tag, ref.url, ref.origin!));
   }
 
-  doAction$ = (a: Action[]) => () => {
-    return this.batch$<Ref>(ref => this.acts.apply$(a, ref));
+  doAction$ = (as: Action[]) => () => {
+    return this.batch$<Ref>(ref => this.acts.apply$(as.filter(a => this.showAction(ref, a)), ref));
+  }
+
+  showAction(ref: Ref, a: Action) {
+    if (!visible(a, isOwnerTag(this.store.account.tag, ref), hasTag(this.store.account.mailbox, ref))) return false;
+    const writeAccess = this.auth.writeAccess(ref);
+    const taggingAccess = this.auth.taggingAccess(ref);
+    if ('scheme' in a) {
+      if (a.scheme !== getScheme(ref.url)) return false;
+    }
+    if ('tag' in a) {
+      if (a.tag === 'locked' && !writeAccess) return false;
+      if (a.tag && !taggingAccess) return false;
+      if (a.tag && !this.auth.canAddTag(a.tag)) return false;
+    }
+    if ('tag' in a || 'response' in a) {
+      if (active(ref, a) && !a.labelOn) return false;
+      if (!active(ref, a) && !a.labelOff) return false;
+    } else {
+      if (!a.label) return false;
+    }
+    return true;
   }
 
   label(a: Action) {

@@ -836,10 +836,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     }
   }
 
-  visible(v: Visibility) {
-    return visible(v, this.isAuthor, this.isRecipient);
-  }
-
   label(a: Action) {
     if ('tag' in a || 'response' in a) {
       return active(this.ref, a) ? 'labelOn' : 'labelOff';
@@ -847,12 +843,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     return 'label';
   }
 
-  active(a: TagAction | ResponseAction | Icon) {
-    return active(this.ref, a);
-  }
-
   showIcon(i: Icon) {
-    return this.visible(i) && this.active(i);
+    return visible(i, this.isAuthor, this.isRecipient) && active(this.ref, i);
   }
 
   clickIcon(i: Icon, ctrl: boolean) {
@@ -868,7 +860,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   showAction(a: Action) {
-    if (!this.visible(a)) return false;
+    if (!visible(a, this.isAuthor, this.isRecipient)) return false;
     if ('scheme' in a) {
       if (a.scheme !== getScheme(this.repostRef?.url || this.ref.url)) return false;
     }
@@ -878,8 +870,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       if (a.tag && !this.auth.canAddTag(a.tag)) return false;
     }
     if ('tag' in a || 'response' in a) {
-      if (this.active(a) && !a.labelOn) return false;
-      if (!this.active(a) && !a.labelOff) return false;
+      if (active(this.ref, a) && !a.labelOn) return false;
+      if (!active(this.ref, a) && !a.labelOff) return false;
     } else {
       if (!a.label) return false;
     }
