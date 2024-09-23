@@ -1,5 +1,5 @@
 import { Directive, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { isArray, isString } from 'lodash-es';
+import { isArray, isString, uniq } from 'lodash-es';
 import { Ext } from '../model/ext';
 import { getPluginScope } from '../model/plugin';
 import { Ref } from '../model/ref';
@@ -51,7 +51,7 @@ export class TitleDirective implements OnChanges {
         );
       }
     }
-    this.el.nativeElement.title = title.join($localize` / `);
+    this.el.nativeElement.title = uniq(title).join($localize` / `);
   }
 
 }
