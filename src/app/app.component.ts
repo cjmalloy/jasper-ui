@@ -88,6 +88,21 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
+  @HostListener('window:offline')
+  offline() {
+    if (!this.store.offline) {
+      runInAction(() => this.store.offline = true);
+    }
+  }
+
+
+  @HostListener('window:online')
+  online() {
+    if (this.store.offline) {
+      runInAction(() => this.store.offline = false);
+    }
+  }
+
   dragOver(event: DragEvent) {
     event.preventDefault();
   }

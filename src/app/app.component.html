@@ -1,8 +1,14 @@
 <div class="container"
+     *mobxAutorun
      [class.debug]="debug"
+     [class.offline]="store.offline"
      (dragover)="dragOver($event)"
      (drop)="drop($event)">
-  <app-login-popup></app-login-popup>
+  @if (store.offline) {
+    <div class="offline-banner">📴️ Offline</div>
+  } @else {
+    <app-login-popup></app-login-popup>
+  }
   <app-subscription-bar></app-subscription-bar>
   <router-outlet></router-outlet>
   @if (store.account.banned) {

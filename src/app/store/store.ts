@@ -23,6 +23,7 @@ export class Store {
   graph = new GraphStore(this.route);
   theme = 'init-theme';
   hotkey = false;
+  offline = false;
 
   constructor(
     private route: RouterStore,
