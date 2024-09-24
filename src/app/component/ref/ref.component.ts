@@ -26,18 +26,7 @@ import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { getPluginScope, Plugin } from '../../model/plugin';
 import { equalsRef, Ref } from '../../model/ref';
-import {
-  Action,
-  active,
-  hydrate,
-  Icon,
-  ResponseAction,
-  sortOrder,
-  TagAction,
-  uniqueConfigs,
-  Visibility,
-  visible
-} from '../../model/tag';
+import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { AdminService } from '../../service/admin.service';
@@ -168,18 +157,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(throttle(value => {
       if (!this.editing) return;
-      if (!value?.title && !value?.comment && !value?.tags?.length) return;
-      if (this.editing) {
-        MemoCache.clear(this, 'title');
-        MemoCache.clear(this, 'thumbnail');
-        MemoCache.clear(this, 'thumbnailRefs');
-        MemoCache.clear(this, 'thumbnailRadius');
-        MemoCache.clear(this, 'thumbnailColor');
-        MemoCache.clear(this, 'thumbnailEmoji');
-        MemoCache.clear(this, 'thumbnailEmojiDefaults');
-        this.initFields(value);
-        defer(() => cd.detectChanges());
-      }
+      if (!value?.title && !value?.comment || !value?.tags?.length) return;
+      MemoCache.clear(this, 'title');
+      MemoCache.clear(this, 'thumbnail');
+      MemoCache.clear(this, 'thumbnailRefs');
+      MemoCache.clear(this, 'thumbnailRadius');
+      MemoCache.clear(this, 'thumbnailColor');
+      MemoCache.clear(this, 'thumbnailEmoji');
+      MemoCache.clear(this, 'thumbnailEmojiDefaults');
+      this.initFields(value);
+      cd.detectChanges();
     }, 400, { leading: true, trailing: true }));
     this.disposers.push(autorun(() => {
       if (this.store.eventBus.event === 'refresh') {
