@@ -19,7 +19,7 @@ import {
 import { UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
-import { debounce, defer, throttle, uniq, without } from 'lodash-es';
+import { debounce, defer, delay, throttle, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { filter } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -83,6 +83,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   helpRef?: OverlayRef;
   toggleResponse = 0;
   initialFullscreen = false;
+  focused?: boolean = false;
 
   private _text? = '';
   private _editing = false;
@@ -91,6 +92,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private europa?: Europa;
   private selectionStart = 0;
   private selectionEnd = 0;
+  private blurTimeout = 0;
 
   constructor(
     public admin: AdminService,
@@ -149,8 +151,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   onSelect() {
     defer(() => {
-      console.log('selection s', this.selectionStart, this.editor?.nativeElement.selectionStart);
-      console.log('selection e', this.selectionEnd, this.editor?.nativeElement.selectionEnd);
       this.selectionStart = this.editor?.nativeElement.selectionStart || 0;
       this.selectionEnd = this.editor?.nativeElement.selectionEnd || 0;
     });
@@ -257,6 +257,25 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.editor?.nativeElement.focus();
   }
 
+  focusText() {
+    this.focused = true;
+    if (this.blurTimeout) {
+      clearTimeout(this.blurTimeout);
+      this.blurTimeout = 0;
+    }
+  }
+
+  blurText(value: string) {
+    if (this.focused) {
+      this.focused = undefined;
+      this.blurTimeout = delay(() => {
+        if (this.focused === undefined) this.focused = false;
+        this.blurTimeout = 0;
+      }, 400);
+    }
+    this.setText(value);
+  }
+
   setText = throttle((value: string) => {
     if (this._text === value) return;
     this._text = value;
@@ -308,6 +327,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (override === this.fullscreen) return;
     this.initialFullscreen = true;
     this.fullscreen = override !== undefined ? override : !this.fullscreen;
+    this.focused ||= this.focused === undefined || this.fullscreen;
     if (this.fullscreen) {
       this._text = this.currentText;
       this.stacked = this.store.local.editorStacked;
@@ -337,14 +357,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       delete this.overlayRef;
       document.body.style.height = '';
       document.body.classList.remove('fullscreen');
-      this.editor.nativeElement.focus();
-      this.editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
+      if (this.focused) {
+        this.editor.nativeElement.focus();
+        this.editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
+      }
     }
-    if (override === undefined) {
-      console.log('update s', this.selectionStart, this.editor?.nativeElement.selectionStart);
-      console.log('update e', this.selectionEnd, this.editor?.nativeElement.selectionEnd);
-      this.editor?.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
-    }
+    if (this.focused && override === undefined) this.editor?.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
   }
 
   toggleHelp(override?: boolean) {

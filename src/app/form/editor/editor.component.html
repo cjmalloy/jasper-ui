@@ -63,7 +63,8 @@
             (select)="onSelect()"
             (selectionchange)="onSelect()"
             (input)="setText($any($event).target.value)"
-            (blur)="syncText($any($event).target.value)"
+            (blur)="blurText($any($event).target.value)"
+            (focus)="focusText()"
             [appFillWidth]="fillWidth"
             [padding]="padding"
             [appAutofocus]="autoFocus"></textarea>
