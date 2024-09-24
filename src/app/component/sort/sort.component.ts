@@ -8,9 +8,9 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { Router } from '@angular/router';
-import { filter } from 'lodash-es';
+import { NavigationEnd, Router } from '@angular/router';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
+import { filter } from 'rxjs';
 import { RefSort } from '../../model/ref';
 import { TagSort } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
@@ -51,6 +51,7 @@ export class SortComponent implements OnChanges, OnDestroy {
     { value: 'modified', label: $localize`🕓️ modified` },
   ];
   sorts: string[] = [];
+  replace = false;
 
   constructor(
     public router: Router,
@@ -62,6 +63,9 @@ export class SortComponent implements OnChanges, OnDestroy {
       this.sorts = toJS(this.store.view.sort);
       if (!Array.isArray(this.sorts)) this.sorts = [this.sorts];
     }));
+    router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+    ).subscribe(() => this.replace = false);
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -99,6 +103,7 @@ export class SortComponent implements OnChanges, OnDestroy {
   }
 
   addSort(value: string) {
+    this.replace = false;
     if (!this.sorts) this.sorts = [];
     this.sorts.push('');
     this.create!.nativeElement.selectedIndex = 0;
@@ -118,17 +123,19 @@ export class SortComponent implements OnChanges, OnDestroy {
   }
 
   removeSort(index: number) {
+    this.replace = false;
     this.sorts.splice(index, 1);
     this.setSort();
   }
 
   setSort() {
-    const sort = filter(this.sorts, f => !!f && !f.startsWith(','));
+    const sort = this.sorts.filter(f => !!f && !f.startsWith(','));
     this.router.navigate([], {
       queryParams: { sort: sort.length ? sort : null, pageNumber: null },
       queryParamsHandling: 'merge',
-      replaceUrl: true,
+      replaceUrl: this.replace,
     });
+    this.replace ||= !!sort.length;
   }
 
   sortCol(sort: string) {

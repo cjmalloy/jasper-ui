@@ -1,7 +1,8 @@
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { debounce } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
+import { filter } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { View } from '../../store/view';
@@ -17,6 +18,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   searchValue = '';
+  replace = false;
 
   private searchEvent = false;
 
@@ -28,6 +30,9 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       this.searchValue = toJS(this.store.view.search);
     }));
+    router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+    ).subscribe(() => this.replace = false);
   }
 
   ngOnInit(): void {
@@ -58,7 +63,8 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   doSearch() {
-    this.router.navigate([], { queryParams: { search: this.searchValue }, queryParamsHandling: 'merge' });
+    this.router.navigate([], { queryParams: { search: this.searchValue }, queryParamsHandling: 'merge', replaceUrl: this.replace });
+    this.replace ||= !!this.searchValue;
   }
 
   viewName(view?: View) {
