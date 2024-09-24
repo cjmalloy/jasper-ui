@@ -5,7 +5,7 @@
   <meta name="referrer" content="no-referrer">
   <title>JasperUi</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="prefetch" href="/assets/jasper-dark.png">
   <link rel="prefetch" href="/assets/jasper-light.png">
@@ -60,6 +60,9 @@
   }
   if (navigator.userAgent && /android/i.test(navigator.userAgent)) {
     document.body.classList.add('android');
+  }
+  if (visualViewport) {
+    document.body.style.height = visualViewport.height + 'px';
   }
 </script>
 </html>

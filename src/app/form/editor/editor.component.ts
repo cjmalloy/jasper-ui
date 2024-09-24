@@ -332,10 +332,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this._text = this.currentText;
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
-      if (this.store.viewportHeight) document.body.style.height = this.store.viewportHeight + 'px';
+      if (visualViewport?.height) document.body.style.height = visualViewport.height + 'px';
       document.body.classList.add('fullscreen');
       this.overlayRef = this.overlay.create({
-        height: this.store.viewportHeight ? this.store.viewportHeight + 'px' : '100vh',
+        height: visualViewport?.height ? visualViewport.height + 'px' : '100vh',
         width: '100vw',
         positionStrategy: this.overlay.position()
           .global()
