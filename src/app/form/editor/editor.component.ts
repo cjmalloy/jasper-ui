@@ -121,7 +121,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.syncTags.emit(this.tags);
     }
     this.disposers.push(autorun(() => {
-      const height = this.store.viewportHeight;
+      const height = this.store.viewportHeight - 4;
       if (this.overlayRef) {
         this.overlayRef.updateSize({ height });
         document.body.style.height = height + 'px';
@@ -332,10 +332,14 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this._text = this.currentText;
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
-      if (visualViewport?.height) document.body.style.height = visualViewport.height + 'px';
+      let height = 'calc(100vh - 4px)';
+      if (visualViewport?.height) {
+        height = (visualViewport.height - 4) + 'px';
+        document.body.style.height = height;
+      }
       document.body.classList.add('fullscreen');
       this.overlayRef = this.overlay.create({
-        height: visualViewport?.height ? visualViewport.height + 'px' : '100vh',
+        height,
         width: '100vw',
         positionStrategy: this.overlay.position()
           .global()
