@@ -2,14 +2,21 @@
   --dim: 60px;
   --piece-size: 45px;
 
-  width: calc(8 * var(--dim));
-  height: calc(8 * var(--dim));
   aspect-ratio: 1 / 1;
   max-height: calc(100vh - 20px);
   display: grid !important;
   grid-template-columns: repeat(8, 1fr) !important;
   user-select: none;
   z-index: 1;
+
+  @supports not (aspect-ratio: 1 / 1) {
+    width: calc(8 * var(--dim));
+    height: calc(8 * var(--dim));
+    .tile {
+      width: var(--dim);
+      height: var(--dim);
+    }
+  }
 
   &.flip {
     transition: 1s ease-in-out transform;
@@ -21,8 +28,6 @@
   }
 
   .tile {
-    width: var(--dim);
-    height: var(--dim);
     aspect-ratio: 1 / 1;
     &.from {
       box-shadow: inset 3px 3px 16px rgba(255, 255, 255, 0.9),
