@@ -1,11 +1,11 @@
 @if (iconEmoji || iconColor) {
   <div class="file-icon thumbnail"
-       [style.background-image]="[ref] | thumbnail | async | cssUrl"
+       [style.background-image]="[repostRef, ref] | thumbnail | async | cssUrl"
        [style.background-color]="iconColor"
        [style.border-radius.px]="iconRadius">{{ iconEmoji }}</div>
 } @else if (thumbnail) {
   <div class="file-icon thumbnail"
-       [style.background-image]="[ref] | thumbnail: true | async | cssUrl"
+       [style.background-image]="[repostRef, ref] | thumbnail: true | async | cssUrl"
        [style.border-radius.px]="iconRadius">{{ iconEmoji }}</div>
 } @else if (iconEmojiDefaults) {
   <div class="file-icon thumbnail">{{ iconEmojiDefaults }}</div>
@@ -21,7 +21,7 @@
   </div>
   <a [routerLink]="['/ref', ref.url]"
      [queryParams]="{ origin: nonLocalOrigin }"
-     [style.pointer-events]="dragging ? 'none' : undefined">{{ (ref.title || '').trim() || ref.url }}</a>
+     [style.pointer-events]="dragging ? 'none' : undefined">{{ title }}</a>
 </div>
 
 <app-viewer *ngIf="expanded" [ref]="ref"></app-viewer>

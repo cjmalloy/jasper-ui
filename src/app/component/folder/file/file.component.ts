@@ -12,10 +12,10 @@ import {
   visible
 } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
-import { ScrapeService } from '../../../service/api/scrape.service';
+import { RefService } from '../../../service/api/ref.service';
 import { AuthzService } from '../../../service/authz.service';
 import { Store } from '../../../store/store';
-import { templates } from '../../../util/format';
+import { getTitle, templates } from '../../../util/format';
 import { getScheme } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, isOwnerTag } from '../../../util/tag';
@@ -39,7 +39,10 @@ export class FileComponent implements OnChanges {
   showToggle = false;
   @Input()
   dragging = false;
+  @Input()
+  fetchRepost = true;
 
+  repostRef?: Ref;
   expandPlugins: string[] = [];
   icons: Icon[] = [];
   actions: Action[] = [];
@@ -52,7 +55,7 @@ export class FileComponent implements OnChanges {
 
   constructor(
     public admin: AdminService,
-    private scraper: ScrapeService,
+    private refs: RefService,
     public store: Store,
     private auth: AuthzService,
   ) { }
@@ -67,7 +70,21 @@ export class FileComponent implements OnChanges {
       this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
       this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
       this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
+
       this.expandPlugins = this.admin.getEmbeds(this.ref);
+      if (this.repost) {
+        if (this.ref && this.fetchRepost && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
+          this.refs.get(this.url, this.ref.origin).subscribe(ref => {
+            this.repostRef = ref;
+            MemoCache.clear(this);
+            if (this.bareRepost) {
+              this.expandPlugins = this.admin.getEmbeds(ref);
+            } else {
+              this.expandPlugins.push('plugin/repost');
+            }
+          });
+        }
+      }
     }
   }
 
@@ -91,30 +108,52 @@ export class FileComponent implements OnChanges {
   }
 
   @memo
+  get repost() {
+    return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
+  }
+
+  @memo
+  get bareRepost() {
+    return this.repost && !this.ref.title && !this.ref.comment;
+  }
+
+  @memo
+  get url() {
+    return this.repost ? this.ref.sources![0] : this.ref.url;
+  }
+
+  @memo
+  get title() {
+    if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
+    return getTitle(this.ref);
+  }
+  @memo
   get thumbnail() {
-    return this.admin.getPlugin('plugin/thumbnail') && hasTag('plugin/thumbnail', this.ref);
+    if (!this.admin.getPlugin('plugin/thumbnail')) return false;
+    return hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
   }
 
   @memo
   get iconColor() {
-    return this.ref?.plugins?.['plugin/thumbnail']?.color || '';
+    if (!this.thumbnail) return '';
+    return this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color || '';
   }
 
   @memo
   get iconEmoji() {
-    return this.ref?.plugins?.['plugin/thumbnail']?.emoji || '';
+    if (!this.thumbnail) return '';
+    return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
   }
 
   @memo
   get iconEmojiDefaults() {
-    const iconLabel = this.icons.filter(i => i.label && (i.order || 0) >= 0 && this.showIcon(i))[0];
-    const iconThumbnail = this.icons.filter(i => i.thumbnail && this.showIcon(i))[0];
-    return iconLabel?.label || iconThumbnail?.thumbnail;
+    const icon = this.icons.filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
+    return icon?.label || icon?.thumbnail;
   }
 
   @memo
   get iconRadius() {
-    return this.ref?.plugins?.['plugin/thumbnail']?.radius || 0;
+    return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
   }
 
   @memo
