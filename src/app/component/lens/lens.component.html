@@ -19,6 +19,7 @@
   <app-chat [query]="tag"></app-chat>
 } @else if (isTemplate('folder')) {
   <app-folder [page]="page"
+              [tag]="tag"
               [ext]="ext!"></app-folder>
 } @else {
   <app-ref-list [class]="cssClass(ext?.tag)"

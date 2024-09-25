@@ -20,6 +20,8 @@ export class FolderComponent implements OnChanges {
   @HostBinding('class') css = 'folder ext';
 
   @Input()
+  tag = ''
+  @Input()
   ext?: Ext;
   @Input()
   pinned?: Ref[] | null;
@@ -59,7 +61,7 @@ export class FolderComponent implements OnChanges {
         this.subfolders[e[0] !== '..' ? this.ext!.tag + '/' + e[0] : '..'] = this.transform(e[1]);
       }
       this.exts.page({
-        query: this.ext.tag,
+        query: this.tag,
         level: level(this.ext.tag) + 1,
         size: 100
       }).subscribe(page => {
