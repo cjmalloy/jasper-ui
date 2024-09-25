@@ -95,7 +95,6 @@ export class FilterComponent implements OnChanges, OnDestroy {
             { filter: 'uncited', label: $localize`🚫️💌️ uncited` },
             { filter: 'unsourced', label: $localize`🚫️📜️ unsourced` },
             { filter: 'obsolete', label: $localize`⏮️ obsolete` },
-            { filter: 'query/internal', label: $localize`⚙️ internal` },
             { filter: 'query/_plugin:!+user', label: $localize`📟️ system` },
           ],
         }, {
