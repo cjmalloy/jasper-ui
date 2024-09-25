@@ -31,8 +31,7 @@ import { embedPlugin } from '../mods/embed';
 import { errorMod } from '../mods/error';
 import { experimentsConfig } from '../mods/experiments';
 import { feedPlugin } from '../mods/feed';
-import { filePlugin } from '../mods/file';
-import { folderTemplate } from '../mods/folder';
+import { folderMod } from '../mods/folder';
 import { fullscreenPlugin } from '../mods/fullscreen';
 import { gdprConfig } from '../mods/gdpr';
 import { graphConfig } from '../mods/graph';
@@ -142,7 +141,7 @@ export class AdminService {
       ...todoMod.plugins,
       ...ninjaTriangleMod.plugins,
       playlistPlugin,
-      filePlugin,
+      ...folderMod.plugins,
 
       ...debugMod.plugins,
     },
@@ -150,7 +149,7 @@ export class AdminService {
       ...debugMod.templates,
       ...rootMod.templates,
       userTemplate,
-      folderTemplate,
+      ...folderMod.templates,
       homeTemplate,
       ...queueMod.templates,
       kanbanTemplate,
