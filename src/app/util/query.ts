@@ -1,10 +1,12 @@
 import { isArray, uniq, without } from 'lodash-es';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
-import { TagQueryArgs } from '../model/tag';
+import { FilterConfig, TagQueryArgs } from '../model/tag';
 import { braces, fixClientQuery, hasPrefix } from './tag';
 
 export const defaultDesc = ['created', 'published', 'modified', 'metadataModified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
 
+export type FilterItem = { filter: UrlFilter, label: string, time?: boolean };
+export type FilterGroup = { filters: FilterItem[], label: string };
 export type UrlFilter = Filter |
   `modified/before/${string}` |
   `modified/after/${string}` |
@@ -25,6 +27,11 @@ export type UrlFilter = Filter |
   `!+plugin/${string}` |
   `!_plugin/${string}`;
 
+export function negatable(filter: string) {
+  if (!filter) return false;
+  return filter.startsWith('query/') || filter.startsWith('!') || hasPrefix(filter, 'plugin');
+}
+
 export function toggle(filter: UrlFilter): UrlFilter {
   if (filter.startsWith('query/')) {
     const query = filter.substring('query/'.length);
@@ -36,6 +43,21 @@ export function toggle(filter: UrlFilter): UrlFilter {
   }
   if (filter.startsWith('!')) return filter.substring(1) as any;
   return '!' + filter as any;
+}
+
+export function convertFilter(filter: FilterConfig): FilterItem {
+  if (filter.sources) {
+    return { filter: `sources/${filter.sources}`, label: filter.label || filter.sources };
+  } else if (filter.responses) {
+    return { filter: `responses/${filter.responses}`, label: filter.label || filter.responses };
+  } else if (filter.scheme) {
+    return { filter: `scheme/${filter.scheme}`, label: filter.label || filter.scheme };
+  } else if (filter.query) {
+    return { filter: `query/${filter.query}`, label: filter.label || filter.query };
+  } else if (filter.response) {
+    return { filter: filter.response, label: filter.label || filter.response };
+  }
+  throw 'Can\'t convert filter';
 }
 
 export function getArgs(

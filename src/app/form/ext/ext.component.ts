@@ -1,5 +1,12 @@
 import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { FormControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  FormArray,
+  FormControl,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { defer, uniq } from 'lodash-es';
 import { allRefSorts } from '../../component/sort/sort.component';
@@ -8,7 +15,7 @@ import { getMailbox } from '../../mods/mailbox';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
-import { defaultDesc } from '../../util/query';
+import { convertFilter, defaultDesc, negatable, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 import { linksForm } from '../links/links.component';
 import { themesForm } from '../themes/themes.component';
@@ -21,6 +28,7 @@ import { themesForm } from '../themes/themes.component';
 export class ExtFormComponent implements OnInit {
   @HostBinding('class') css = 'nested-form';
   allSorts = allRefSorts;
+  allFilters = this.admin.filters.map(convertFilter);
 
   @Input()
   group!: UntypedFormGroup;
@@ -46,8 +54,8 @@ export class ExtFormComponent implements OnInit {
   };
 
   constructor(
-    private admin: AdminService,
-    private store: Store,
+    public admin: AdminService,
+    public store: Store,
   ) { }
 
   ngOnInit(): void {
@@ -72,26 +80,48 @@ export class ExtFormComponent implements OnInit {
   }
 
   get defaultSort() {
-    return this.config.get('defaultSort') as FormControl<string>;
+    return this.config.get('defaultSort') as FormArray<FormControl<string>>;
+  }
+
+  get defaultFilter() {
+    return this.config.get('defaultFilter') as FormArray<FormControl<string>>;
   }
 
   get sortCol() {
-    if (!this.defaultSort.value) return undefined;
-    if (!this.defaultSort.value.includes(',')) return this.defaultSort.value;
-    return this.defaultSort.value.split(',')[0];
+    if (!this.defaultSort.value?.[0]) return undefined;
+    if (!this.defaultSort.value[0].includes(',')) return this.defaultSort.value[0];
+    return this.defaultSort.value[0].split(',')[0];
   }
 
   get sortDir() {
-    if (!this.defaultSort.value.includes(',')) return defaultDesc.includes(this.defaultSort.value) ? 'DESC' : 'ASC';
-    return this.defaultSort.value.split(',')[1].toUpperCase();
+    if (!this.defaultSort.value?.[0]) return undefined;
+    if (!this.defaultSort.value[0].includes(',')) return defaultDesc.includes(this.defaultSort.value[0]) ? 'DESC' : 'ASC';
+    return this.defaultSort.value[0].split(',')[1].toUpperCase();
+  }
+
+  get filter(): UrlFilter | undefined {
+    return this.defaultFilter.value[0] as UrlFilter;
   }
 
   setSortCol(value: string) {
-    this.defaultSort.setValue(value + ',' + this.sortDir);
+    this.defaultSort.setValue([value + ',' + this.sortDir]);
   }
 
   setSortDir(value: string) {
-    this.defaultSort.setValue(this.sortCol + ',' + value);
+    this.defaultSort.setValue([this.sortCol + ',' + value]);
+  }
+
+  setFilter(value: string | null) {
+    if (value) {
+      this.defaultFilter.setValue([value]);
+    } else {
+      this.defaultFilter.setValue([]);
+    }
+  }
+
+  toggleFilter() {
+    if (!this.filter) return;
+    this.defaultFilter.setValue([toggle(this.filter)]);
   }
 
   get sidebar() {
@@ -120,6 +150,10 @@ export class ExtFormComponent implements OnInit {
 
   get pinned() {
     return this.config.get('pinned') as UntypedFormControl;
+  }
+
+  negatable(filter: string) {
+    return negatable(filter);
   }
 
   setValue(ext: Ext) {
@@ -151,7 +185,8 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
   if (admin.getTemplate('')) {
     configControls = {
       ...configControls,
-      defaultSort: [''],
+      defaultSort: [[]],
+      defaultFilter: [[]],
       sidebar: [''],
       popover: [''],
       modmail: [false],

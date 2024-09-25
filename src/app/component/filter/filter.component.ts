@@ -25,11 +25,8 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
 import { emoji } from '../../util/emoji';
-import { toggle, UrlFilter } from '../../util/query';
+import { convertFilter, FilterGroup, FilterItem, negatable, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
-
-type FilterItem = { filter: UrlFilter, label: string, time?: boolean };
-type FilterGroup = { filters: FilterItem[], label: string };
 
 @Component({
   selector: 'app-filter',
@@ -273,11 +270,11 @@ export class FilterComponent implements OnChanges, OnDestroy {
     if ((filter.query || filter.response) && !this.auth.queryReadAccess(filter.query || filter.response)) return;
     let group = find(this.allFilters, f => f.label === (filter.group || ''));
     if (group) {
-      group.filters.push(this.convertFilter(filter));
+      group.filters.push(convertFilter(filter));
     } else {
       this.allFilters.push({
         label: filter.group || '',
-        filters: [this.convertFilter(filter)],
+        filters: [convertFilter(filter)],
       });
     }
   }
@@ -291,21 +288,6 @@ export class FilterComponent implements OnChanges, OnDestroy {
         this.allFilters.push(fg);
       }
     }
-  }
-
-  convertFilter(filter: FilterConfig): FilterItem {
-    if (filter.sources) {
-      return { filter: `sources/${filter.sources}`, label: filter.label || filter.sources };
-    } else if (filter.responses) {
-      return { filter: `responses/${filter.responses}`, label: filter.label || filter.responses };
-    } else if (filter.scheme) {
-      return { filter: `scheme/${filter.scheme}`, label: filter.label || filter.scheme };
-    } else if (filter.query) {
-      return { filter: `query/${filter.query}`, label: filter.label || filter.query };
-    } else if (filter.response) {
-      return { filter: filter.response, label: filter.label || filter.response };
-    }
-    throw 'Can\'t convert filter';
   }
 
   addFilter(value: Filter) {
@@ -323,8 +305,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
   }
 
   negatable(filter: string) {
-    if (!filter) return false;
-    return filter.startsWith('query/') || filter.startsWith('!') || hasPrefix(filter, 'plugin');
+    return negatable(filter);
   }
 
   toggleQuery(index: number) {

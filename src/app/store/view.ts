@@ -1,5 +1,5 @@
 import { isEqual, uniq } from 'lodash-es';
-import { action, autorun, makeAutoObservable, observable } from 'mobx';
+import { action, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -357,8 +357,12 @@ export class ViewStore {
 
   get viewExtSort() {
     if (!['tag', 'home'].includes(this.current!)) return undefined;
-    // TODO: Multiple ext default sorts
-    return this.viewExt?.config?.defaultSort && [this.viewExt?.config?.defaultSort];
+    return this.viewExt?.config?.defaultSort;
+  }
+
+  get viewExtFilter() {
+    if (!['tag', 'home'].includes(this.current!)) return undefined;
+    return this.viewExt?.config?.defaultFilter;
   }
 
   get sort() {

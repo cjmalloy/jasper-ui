@@ -224,7 +224,7 @@ export const ninjaTriangleTemplate: Template = {
   defaults: <RootConfig> {
     defaultExpanded: true,
     submitText: true,
-    defaultSort: 'title',
+    defaultSort: ['title'],
     defaultCols: 1
   }
 };

@@ -160,7 +160,7 @@ export const rootTemplate: Template = {
     }],
   },
   defaults: <RootConfig> {
-    defaultSort: 'published',
+    defaultSort: ['published'],
     addTags: ['public'],
   },
   schema: {
@@ -188,7 +188,8 @@ export const rootTemplate: Template = {
       }},
       themes: { values: { type: 'string' } },
       theme: { type: 'string' },
-      defaultSort: { type: 'string' },
+      defaultSort: { elements: { type: 'string' } },
+      defaultFilter: { elements: { type: 'string' } },
       submitText: { type: 'boolean'},
       addTags: { elements: { type: 'string' } },
       defaultThumbnail: { type: 'string' },
@@ -211,7 +212,8 @@ export interface RootConfig {
   responseFilters?: { response: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`, label?: string }[];
   themes?: Record<string, string>;
   theme?: string;
-  defaultSort?: string;
+  defaultSort?: string[];
+  defaultFilter?: string[];
   submitText?: boolean;
   addTags?: string[];
   defaultThumbnail?: boolean;

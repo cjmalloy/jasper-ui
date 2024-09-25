@@ -70,7 +70,7 @@ export const playlistTemplate: Template = {
   },
   defaults: {
     defaultExpanded: true,
-    defaultSort: 'modified,DESC',
+    defaultSort: ['modified,DESC'],
     defaultCols: 0, // Leave to CSS screen size detection, but show cols dropdown
   }
 };

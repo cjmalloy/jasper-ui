@@ -4,6 +4,7 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
+import { BookmarkService } from '../../service/bookmark.service';
 import { ModService } from '../../service/mod.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
@@ -31,6 +32,7 @@ export class TagPage implements OnInit, OnDestroy {
     public query: QueryStore,
     private mod: ModService,
     private exts: ExtService,
+    private bookmarks: BookmarkService,
   ) {
     this.disposers.push(autorun(() => this.mod.setTitle(this.store.view.name)));
     runInAction(() => {
@@ -62,10 +64,14 @@ export class TagPage implements OnInit, OnDestroy {
   ngOnInit() {
     this.disposers.push(autorun(() => {
       const hideInternal = !this.admin.getPlugins(this.store.view.queryTags).find(t => t.config?.internal);
+      const filters = this.store.view.filter.length ? this.store.view.filter : this.store.view.viewExtFilter;
+      if (!this.store.view.filter.length && this.store.view.viewExtFilter?.length) {
+        this.bookmarks.filters = this.store.view.viewExtFilter;
+      }
       const args = getArgs(
         this.store.view.tag,
         this.store.view.sort,
-        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete'] : ['query/!plugin/delete'], ...this.store.view.filter]) as UrlFilter[],
+        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete'] : ['query/!plugin/delete'], ...filters || []]) as UrlFilter[],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,

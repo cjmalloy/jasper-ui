@@ -106,7 +106,7 @@ export const kanbanTemplate: Template = {
     }]
   },
   defaults: <KanbanConfig> {
-    defaultSort: 'metadataModified,desc',
+    defaultSort: ['metadataModified,desc'],
     submitText: true,
     badges: ['p1', 'p2', 'p3', 'p4', 'p5']
   },

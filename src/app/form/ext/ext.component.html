@@ -43,11 +43,27 @@
         </select>
         @switch (sortDir) {
           @case ("DESC") {
-            <button type="button" (click)="setSortDir('ASC')">🔽️</button>
+            <button type="button" (click)="setSortDir('ASC')" i18n>🔽️</button>
           }
           @case ("ASC") {
-            <button type="button" (click)="setSortDir('DESC')">🔼️</button>
+            <button type="button" (click)="setSortDir('DESC')" i18n>🔼️</button>
           }
+        }
+      </span>
+    }
+    @if (defaultFilter && !user) {
+      <label for="defaultFilter" i18n>Default Filter:</label>
+      <span class="controls">
+        <select id="defaultFilter" (input)="setFilter($any($event.target).value)">
+          <option></option>
+          @for (opt of allFilters; track opt) {
+            <option [selected]="filter === opt.filter"
+                    [value]="opt.filter">{{ opt.label || opt.filter }}</option>
+          }
+        </select>
+        @if (filter) {
+          <button type="button" *ngIf="negatable(filter)" (click)="toggleFilter()">{{ store.account.querySymbol('!') }}</button>
+          <button type="button" (click)="setFilter(null)" i18n>&ndash;</button>
         }
       </span>
     }
