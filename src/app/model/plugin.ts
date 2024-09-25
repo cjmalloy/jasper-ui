@@ -29,8 +29,7 @@ export interface Plugin extends Config {
     genId?: boolean,
     /**
      * This plugin should be used in combination with the internal tag so it
-     * does not show up on the home page or search. Also removes !internal
-     * filter when filtering on this plugin.
+     * does not show up on the home page or search.
      */
     internal?: boolean,
     /**
