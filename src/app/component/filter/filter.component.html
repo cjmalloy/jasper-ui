@@ -8,7 +8,7 @@
   </optgroup>
 </select>
 <ng-container *ngFor="let filter of filters; let i=index">
-  <div class="form-array" [title]="filter">
+  <div class="controls" [title]="filter">
     <select id="filter-{{ i }}" [ngModel]="filter" (ngModelChange)="setFilter(i, $event)">
       <optgroup *ngFor="let g of allFilters" [label]="g.label">
         <option *ngFor="let f of g.filters" [value]="f.filter">{{ f.label || f.filter }}</option>

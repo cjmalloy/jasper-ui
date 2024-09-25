@@ -86,7 +86,8 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => {
-      if (this.config.mobile && this.lastView != this.store.view.current || this.store.view.current === 'ref/summary' && !window.matchMedia('(min-width: 1024px)').matches) {
+      if (this.config.tablet && this.lastView != this.store.view.current ||
+          !this.config.huge  && this.store.view.current === 'ref/summary') {
         this.lastView = this.store.view.current;
         this.expanded = false;
       }

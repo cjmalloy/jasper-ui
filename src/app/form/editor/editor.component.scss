@@ -1,38 +1,54 @@
 :host.fullscreen {
+  border: none !important;
+  &, .text-wrapper, .toolbar {
+    pointer-events: none;
+  }
+  .toolbar, textarea, .floating-toggles {
+    & > * {
+      pointer-events: all;
+    }
+  }
+  .text-wrapper {
+    height: 100% !important;
+  }
+  textarea {
+    width: 100%;
+    height: calc(100% - 42px);
+  }
   textarea, app-md {
     resize: none;
     overflow: auto;
     min-width: unset !important;
     max-width: unset !important;
+    margin: 1px;
   }
   &.stacked {
-    textarea, app-md {
-      width: calc(100vw - 32px) !important;
-      height: calc(50vh - 32px) !important;
+    .text-wrapper, app-md {
+      width: calc(100vw - 4px) !important;
+      height: calc(50% - 1px) !important;
     }
   }
 
   &:not(.stacked) {
-    textarea, app-md {
-      width: calc(50vw - 18px) !important;
-      height: calc(100vh - 64px) !important;
+    .text-wrapper, app-md {
+      width: calc(50vw - 3px) !important;
     }
     app-md {
-      height: calc(100vh - 24px) !important;
+      height: calc(100% - 2px) !important;
     }
   }
 
   &:not(.preview) {
-    textarea {
-      width: calc(100vw - 32px) !important;
-      height: calc(100vh - 64px) !important;
+    .text-wrapper {
+      width: calc(100vw - 4px) !important;
+      height: 100% !important;
     }
   }
 }
 
 .editor-help-popup {
   width: 100vw;
-  height: 100vh;
+  height: 100%;
 }
 
 .response-button {

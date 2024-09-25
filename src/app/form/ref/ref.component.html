@@ -70,11 +70,9 @@
 
   @if (tags.editingViewer) {
     <span><!-- Viewer --></span>
-    <div #fill>
-      <app-viewer [text]="ref?.comment"
-                  [tags]="$any(group.value).tags"
-                  (comment)="comment.setValue($event)"></app-viewer>
-    </div>
+    <app-viewer [text]="ref?.comment"
+                [tags]="$any(group.value).tags"
+                (comment)="comment.setValue($event)"></app-viewer>
   } @else {
     <label for="comment" class="editor-label" i18n>Abstract:</label>
     <div #fill class="fill-editor">

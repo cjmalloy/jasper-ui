@@ -33,7 +33,7 @@
     }
     @if (defaultSort && !user) {
       <label for="defaultSort" i18n>Default Sort:</label>
-      <span class="form-array">
+      <span class="controls">
         <select id="defaultSort" (input)="setSortCol($any($event.target).value)">
           <option></option>
           @for (opt of allSorts; track opt) {
@@ -99,7 +99,7 @@
       <div class="form">
         @if (defaultSort && user) {
           <label for="defaultSortAdvanced" i18n>Default Sort:</label>
-          <span class="form-array">
+          <span class="controls">
             <select id="defaultSortAdvanced" (input)="setSortCol($any($event.target).value)">
               <option></option>
               @for (opt of allSorts; track opt) {

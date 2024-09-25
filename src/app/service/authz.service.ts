@@ -55,10 +55,10 @@ export class AuthzService {
   }
 
   canAddTag(tag?: string): boolean {
-    if (!this.store.account.signedIn) return false;
     if (!tag) return false;
     tag = localTag(tag);
     if (publicTag(tag)) return true;
+    if (!this.store.account.signedIn) return false;
     if (this.store.account.mod) return true;
     if (this.store.account.localTag === tag) return true;
     if (includesTag(tag, this.config.modSeals)) return false;

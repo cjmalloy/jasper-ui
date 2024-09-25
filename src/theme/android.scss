@@ -1,13 +1,15 @@
 body.android {
   .toggle {
-    .toggle-plus {
-      top: 1.5px;
-    }
     .toggle-x {
-      top: 0;
+      top: -1px;
     }
   }
   .tabs select {
     bottom: -0.75px;
+  }
+  body.fullscreen {
+    & > * {
+      display: block;
+    }
   }
 }

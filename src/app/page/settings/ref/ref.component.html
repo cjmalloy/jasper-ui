@@ -7,7 +7,7 @@
       <p>{{ plugin.config?.description || '' }}</p>
 
       <span><!-- Buttons --></span>
-      <span class="buttons form-array right">
+      <span class="buttons right">
         @if (writeAccess) {
           @if (plugin.config?.hasDefaults) {
             <button type="button" (click)="loadDefaults()" i18n>🔁️ load defaults</button>

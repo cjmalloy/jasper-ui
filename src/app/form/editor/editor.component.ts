@@ -6,8 +6,10 @@ import {
   ElementRef,
   EventEmitter,
   HostBinding,
+  HostListener,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   TemplateRef,
@@ -15,8 +17,11 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
+import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
-import { debounce, defer, throttle, uniq, without } from 'lodash-es';
+import { debounce, defer, delay, throttle, uniq, without } from 'lodash-es';
+import { autorun, IReactionDisposer } from 'mobx';
+import { filter } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
@@ -30,8 +35,10 @@ import { memo, MemoCache } from '../../util/memo';
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
-export class EditorComponent implements OnChanges, AfterViewInit {
+export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @HostBinding('class') css = 'editor';
+
+  private disposers: IReactionDisposer[] = [];
 
   id = uuid();
 
@@ -42,9 +49,7 @@ export class EditorComponent implements OnChanges, AfterViewInit {
   @HostBinding('class.help')
   help = false;
   @HostBinding('class.preview')
-  preview = true;
-  @HostBinding('style.padding.px')
-  padding = 8;
+  preview = this.store.local.showPreview;
 
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
@@ -54,6 +59,8 @@ export class EditorComponent implements OnChanges, AfterViewInit {
 
   @Input()
   selectResponseType = false;
+  @Input()
+  fullscreenDefault?: boolean;
   @Input()
   tags?: string[];
   @Input()
@@ -75,11 +82,17 @@ export class EditorComponent implements OnChanges, AfterViewInit {
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
   toggleResponse = 0;
+  initialFullscreen = false;
+  focused?: boolean = false;
 
   private _text? = '';
   private _editing = false;
+  private _padding = 8;
 
   private europa?: Europa;
+  private selectionStart = 0;
+  private selectionEnd = 0;
+  private blurTimeout = 0;
 
   constructor(
     public admin: AdminService,
@@ -87,10 +100,13 @@ export class EditorComponent implements OnChanges, AfterViewInit {
     private auth: AuthzService,
     public store: Store,
     private overlay: Overlay,
+    private router: Router,
     private el: ElementRef,
     private vc: ViewContainerRef,
   ) {
-    this.preview = store.local.showPreview;
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => this.toggleFullscreen(false));
   }
 
   init() {
@@ -104,12 +120,50 @@ export class EditorComponent implements OnChanges, AfterViewInit {
     if (this.editing) {
       this.syncTags.emit(this.tags);
     }
+    this.disposers.push(autorun(() => {
+      const height = this.store.viewportHeight - 4;
+      if (this.overlayRef) {
+        this.overlayRef.updateSize({ height });
+        document.body.style.height = height + 'px';
+      }
+    }));
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.tags || changes.url) {
       this.init();
     }
+  }
+
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
+    document.body.style.height = '';
+    document.body.classList.remove('fullscreen');
+  }
+
+  @HostListener('window:scroll')
+  preventScroll() {
+    if (this.overlayRef) {
+      window.scrollTo(0, 0);
+    }
+  }
+
+  onSelect() {
+    defer(() => {
+      this.selectionStart = this.editor?.nativeElement.selectionStart || 0;
+      this.selectionEnd = this.editor?.nativeElement.selectionEnd || 0;
+    });
+  }
+
+  @HostBinding('style.padding.px')
+  get padding(): number {
+    if (this.fullscreen) return 0;
+    return this._padding + 8;
+  }
+
+  set padding(value: number) {
+    this._padding = value;
   }
 
   @memo
@@ -130,8 +184,10 @@ export class EditorComponent implements OnChanges, AfterViewInit {
   set editing(value: boolean) {
     if (!this._editing && value) {
       defer(() => {
-        this._editing = value;
-        this.preview = this.store.local.showPreview;
+        this._editing = true;
+        if (this.fullscreenDefault && !this.initialFullscreen) {
+          this.toggleFullscreen(true);
+        }
         this.tags = this.fullTags;
         this.syncTags.emit(this.tags);
       });
@@ -189,6 +245,7 @@ export class EditorComponent implements OnChanges, AfterViewInit {
       }
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
+    this.editor?.nativeElement.focus();
   }
 
   setResponse(tag: string) {
@@ -197,6 +254,26 @@ export class EditorComponent implements OnChanges, AfterViewInit {
       this.syncTags.next(this.tags = [...without(this.tags!, ...this.responseButtons.map(p => p.tag)), tag]);
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
+    this.editor?.nativeElement.focus();
+  }
+
+  focusText() {
+    this.focused = true;
+    if (this.blurTimeout) {
+      clearTimeout(this.blurTimeout);
+      this.blurTimeout = 0;
+    }
+  }
+
+  blurText(value: string) {
+    if (this.focused) {
+      this.focused = undefined;
+      this.blurTimeout = delay(() => {
+        if (this.focused === undefined) this.focused = false;
+        this.blurTimeout = 0;
+      }, 400);
+    }
+    this.setText(value);
   }
 
   setText = throttle((value: string) => {
@@ -222,47 +299,74 @@ export class EditorComponent implements OnChanges, AfterViewInit {
     this.syncEditor.next(this._text);
   }, 400);
 
-  toggleStacked() {
+  togglePreview() {
     if (this.fullscreen) {
-      if (this.stacked) {
-        if (this.preview) {
-          this.store.local.showFullscreenPreview = this.preview = false;
-        } else {
-          this.store.local.showFullscreenPreview = this.preview = true;
-          this.store.local.editorStacked = this.stacked = false;
-        }
-      } else {
-        this.store.local.editorStacked = this.stacked = true;
-      }
+      this.store.local.showFullscreenPreview = this.preview = !this.preview;
     } else {
       this.store.local.showPreview = this.preview = !this.preview;
     }
+    this.editor?.nativeElement.focus();
+  }
+
+  toggleStacked() {
+    if (this.stacked) {
+      if (this.preview) {
+        this.store.local.showFullscreenPreview = this.preview = false;
+      } else {
+        this.store.local.showFullscreenPreview = this.preview = true;
+        this.store.local.editorStacked = this.stacked = false;
+      }
+    } else {
+      this.store.local.editorStacked = this.stacked = true;
+    }
+    this.editor?.nativeElement.focus();
   }
 
   toggleFullscreen(override?: boolean) {
+    if (!this.editor) return;
     if (override === this.fullscreen) return;
+    this.initialFullscreen = true;
     this.fullscreen = override !== undefined ? override : !this.fullscreen;
+    this.focused ||= this.focused === undefined || this.fullscreen;
     if (this.fullscreen) {
       this._text = this.currentText;
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
+      let height = 'calc(100vh - 4px)';
+      if (visualViewport?.height) {
+        height = (visualViewport.height - 4) + 'px';
+        document.body.style.height = height;
+      }
+      document.body.classList.add('fullscreen');
       this.overlayRef = this.overlay.create({
-        height: '100vh',
+        height,
         width: '100vw',
-        positionStrategy: this.overlay.position().global().centerHorizontally().centerVertically(),
+        positionStrategy: this.overlay.position()
+          .global()
+          .centerHorizontally()
+          .top('0'),
         hasBackdrop: true,
         scrollStrategy: this.overlay.scrollStrategies.block(),
       });
       this.overlayRef.attach(new DomPortal(this.el));
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
-      this.overlayRef.keydownEvents().subscribe(event => event.key === "Escape" && this.toggleFullscreen(false));
-      this.editor?.nativeElement.focus();
+      this.overlayRef.keydownEvents().subscribe(event => event.key === 'Escape' && this.toggleFullscreen(false));
+      this.editor.nativeElement.focus();
+      this.editor.nativeElement.scrollIntoView({ block: 'end' });
     } else {
       this.stacked = true;
       this.preview = this.store.local.showPreview;
       this.overlayRef?.detach();
       this.overlayRef?.dispose();
+      delete this.overlayRef;
+      document.body.style.height = '';
+      document.body.classList.remove('fullscreen');
+      if (this.focused) {
+        this.editor.nativeElement.focus();
+        this.editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
+      }
     }
+    if (this.focused && override === undefined) this.editor?.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
   }
 
   toggleHelp(override?: boolean) {
@@ -305,5 +409,6 @@ export class EditorComponent implements OnChanges, AfterViewInit {
     } {
       this.store.eventBus.fire(event);
     }
+    this.editor?.nativeElement.focus();
   }
 }

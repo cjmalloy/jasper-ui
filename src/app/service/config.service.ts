@@ -42,6 +42,8 @@ export class ConfigService {
   prefetch = isDevMode();
 
   mobileWidth = 740;
+  tabletWidth = 948;
+  hugeWidth = 1500;
 
   constructor(
     private http: HttpClient,
@@ -71,6 +73,15 @@ export class ConfigService {
 
   get mobile() {
     return window.innerWidth <= this.mobileWidth;
+  }
+
+  get tablet() {
+    return window.innerWidth <= this.tabletWidth;
+  }
+
+
+  get huge() {
+    return window.innerWidth >= this.hugeWidth;
   }
 
   logIn() {

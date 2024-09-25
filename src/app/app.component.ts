@@ -34,6 +34,7 @@ export class AppComponent implements AfterViewInit {
     private origins: OriginService,
     private router: Router,
   ) {
+    document.body.style.height = '';
     if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
   }
 
@@ -57,6 +58,11 @@ export class AppComponent implements AfterViewInit {
         }
       });
     }
+
+    visualViewport?.addEventListener('resize', event => {
+      const vv = event?.target as VisualViewport;
+      runInAction(() => this.store.viewportHeight = vv.height);
+    });
   }
 
   @memo

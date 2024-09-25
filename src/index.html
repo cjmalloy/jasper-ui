@@ -5,7 +5,7 @@
   <meta name="referrer" content="no-referrer">
   <title>JasperUi</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="prefetch" href="/assets/jasper-dark.png">
   <link rel="prefetch" href="/assets/jasper-light.png">
@@ -43,18 +43,26 @@
   <noscript>Please enable JavaScript to continue using this application.</noscript>
 </body>
 <script>
-  if (navigator.vendor && navigator.vendor.indexOf('Apple') > -1 &&
-      navigator.platform && navigator.platform.startsWith('Mac')) {
-    document.body.classList.add('macos');
-  }
-  if (navigator.platform && (
-      navigator.platform === 'iPhone' ||
-      navigator.platform === 'iPad' ||
-      navigator.platform === 'iPod')) {
-    document.body.classList.add('ios');
+  const iPad = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  const iOs = navigator.platform && (
+    navigator.platform === 'iPhone' ||
+    navigator.platform === 'iPad' ||
+    navigator.platform === 'iPod');
+  if (iPad || iOs) {
+    document.body.classList.add('ios', 'safari'); // All browsers on iOS run Safari
+  } else {
+    if (navigator.platform && navigator.platform.startsWith('Mac')) {
+      document.body.classList.add('darwin');
+      if (navigator.vendor && navigator.vendor.indexOf('Apple') > -1) {
+        document.body.classList.add('safari');
+      }
+    }
   }
   if (navigator.userAgent && /android/i.test(navigator.userAgent)) {
     document.body.classList.add('android');
+  }
+  if (visualViewport) {
+    document.body.style.height = visualViewport.height + 'px';
   }
 </script>
 </html>

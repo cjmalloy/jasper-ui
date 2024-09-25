@@ -48,7 +48,7 @@
     }
 
     <span><!-- Buttons --></span>
-    <span class="buttons form-array right">
+    <span class="buttons right">
       <button type="submit" [disabled]="submitted && !profileForm.valid" i18n>{{ store.view.selectedUser ? 'Save' : 'Create' }}</button>
       @if (!!store.view.selectedUser) {
         <button type="button" (click)="delete()" i18n>Delete</button>

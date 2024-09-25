@@ -4,7 +4,7 @@
          *ngIf="showToggle"
          (click)="expanded = !expanded">☰</div>
     <div class="wide" *ngIf="store.view.type && (!home || store.view.search || store.view.filter.length || !query.page?.empty)">
-      <app-search></app-search>
+      <app-search [class.centered]="!expanded || !store.view.settings && !store.view.tags"></app-search>
       <div class="show-remotes" *ngIf="expanded && (store.view.settings || store.view.tags)">
         <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
         <label for="show-remotes" i18n>show remotes</label>
@@ -14,7 +14,7 @@
   @if (expanded) {
     @if (store.view.type && (!home || store.view.search || store.view.filter.length || !query.page?.empty)) {
       <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
-      <div class="row">
+      <div class="row mini-col reverse">
         <app-filter [type]="store.view.type!" [activeExts]="activeExts"></app-filter>
         <app-sort [type]="store.view.type!"></app-sort>
       </div>

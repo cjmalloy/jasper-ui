@@ -9,8 +9,7 @@
              type="email"
              autocorrect="off"
              autocapitalize="none"
-             (blur)="validate($any($event.target))"
-             [appAutofocus]="!store.submit.to.length">
+             (blur)="validate($any($event.target))">
       @if (to.touched && !to.value) {
         <div><!-- Warning --></div>
         <div>
@@ -60,7 +59,7 @@
     }
 
     <span><!-- Buttons --></span>
-    <span class="buttons form-array right">
+    <span class="buttons right">
       @if (submitting) {
         <app-loading [inline]="true"></app-loading>
       }

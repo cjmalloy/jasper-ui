@@ -1,4 +1,4 @@
-<div #tw class="text-wrapper">
+<div class="text-wrapper">
   <div class="toolbar">
     <button type="button"
             (click)="toggleFullscreen()"
@@ -8,16 +8,17 @@
             (click)="toggleHelp()"
             i18n-title title="Help"
             i18n>❓️</button>
-    @if (fullscreen || currentText) {
+    @if (fullscreen) {
       <button type="button"
               (click)="toggleStacked()"
-              i18n-title title="Stacked or side by side layout toggle">
-        @if (!fullscreen) {
-          <span i18n>📝️</span>
-        } @else {
-          <span i18n>/</span>
-        }
-      </button>
+              i18n-title title="Stacked or side by side layout toggle"
+              i18n>/</button>
+    }
+    @if (fullscreen || currentText) {
+      <button type="button"
+              (click)="togglePreview()"
+              i18n-title title="Show preview"
+              i18n>📝️</button>
     }
     @for (button of editorPushButtons; track button; let i = $index) {
       @if (!button.event) {
@@ -56,9 +57,14 @@
   </div>
   <textarea #editor
             [formControl]="control"
+            (touchstart)="fullscreenDefault = fullscreenDefault === undefined ? true : undefined"
             (focusin)="editing = true"
+            (pointerup)="onSelect()"
+            (select)="onSelect()"
+            (selectionchange)="onSelect()"
             (input)="setText($any($event).target.value)"
-            (blur)="syncText($any($event).target.value)"
+            (blur)="blurText($any($event).target.value)"
+            (focus)="focusText()"
             [appFillWidth]="fillWidth"
             [padding]="padding"
             [appAutofocus]="autoFocus"></textarea>
@@ -70,7 +76,7 @@
           [origin]="store.account.origin"
           [text]="currentText"
           [plugins]="tags"
-          [appLimitWidth]="$any(tw.firstElementChild)"></app-md>
+          [appLimitWidth]="editor"></app-md>
 }
 
 <ng-template #help>

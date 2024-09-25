@@ -7,14 +7,14 @@
          [class.disabled]="page.first"
          [queryParams]="{ pageNumber: store.view.defaultPageNumber ? 0 : null }"
          queryParamsHandling="merge" i18n>first</a>
-      |
+      <span> | </span>
       @if (showPrev) {
         <a class="prev-page"
            routerLink="./"
            routerLinkActive="disabled"
            [queryParams]="{ pageNumber: prev }"
            queryParamsHandling="merge" i18n>prev</a>
-        |
+        <span> | </span>
       }
     }
     <a class="next-page"
@@ -23,7 +23,7 @@
        [queryParams]="{ pageNumber: next }"
        (click)="scrollUp()"
        queryParamsHandling="merge" i18n>next</a>
-    |
+    <span> | </span>
     <a class="last-page"
        *ngIf="showPageLast"
        routerLink="./"

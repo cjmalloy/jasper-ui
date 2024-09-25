@@ -29,9 +29,6 @@ export class RefFormComponent implements OnInit {
   @Output()
   toggleTag = new EventEmitter<string>();
 
-  @Output()
-  fill = new EventEmitter<HTMLDivElement>();
-
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
   @ViewChild('sources')
@@ -40,6 +37,8 @@ export class RefFormComponent implements OnInit {
   alts!: LinksFormComponent;
   @ViewChild(PluginsFormComponent)
   plugins!: PluginsFormComponent;
+  @ViewChild('fill')
+  fill?: ElementRef;
 
   oembed?: Oembed;
   scraped?: Ref;
@@ -56,11 +55,6 @@ export class RefFormComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-  }
-
-  @ViewChild('fill')
-  set setFill(value: ElementRef) {
-    this.fill.next(value?.nativeElement);
   }
 
   get web() {

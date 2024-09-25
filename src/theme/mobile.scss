@@ -1,9 +1,11 @@
+// Mini: Smallest possible size
+$mini-width: 380px;
 // Mobile: Change tabs and forms
 $mobile-width: 740px;
 // Mobile: Change tabs and forms
-$settings-tabs-width: 948px;
+$settings-tabs-width: 1024px;
 // Tablet: Move sidebar above
-$tablet-width: 767px;
+$tablet-width: 948px;
 
 // TODO: CSS Vars
 
@@ -192,6 +194,10 @@ $tablet-width: 767px;
     border: 1px solid transparent !important;
   }
 
+  .toolbar {
+    overflow-x: scroll;
+  }
+
   .ref, .comment-edit, .comment-reply {
     .editor, .summary-box {
       margin: 0 !important;
@@ -268,11 +274,6 @@ $tablet-width: 767px;
     margin: 0;
     resize: vertical;
     width: 100%;
-  }
-
-  .editor textarea {
-    margin-left: -3px;
-    width: calc(100% - 3px);
   }
 
   .full-page-form .editor textarea {
@@ -353,14 +354,14 @@ $tablet-width: 767px;
   }
 
   .comment-reply, .comment-edit {
-    width: min(100%, 100vw - 8px);
+    width: min(100%, 100vw - 16px);
   }
 
   .embed:not(.comment-body) {
     position: relative;
     left: 0;
     margin: 0;
-    width: min(100%, 100vw - 8px);
+    width: min(100%, 100vw - 16px);
   }
 
   .audio-expand {
@@ -410,13 +411,13 @@ $tablet-width: 767px;
     .info, .actions {
       height: 0;
       margin-left: -8px;
-      padding: 0 8px 3px;
+      padding: 0 8px;
       mask-image: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.1) 2px, white 8px, white calc(100% - 18px), rgba(255, 255, 255, 0.1) calc(100% - 6px), rgba(255, 255, 255, 0));
 
       &.expanded {
         transition: height .5s;
-        height: 28px;
-        padding-bottom: 10px;
+        height: 32px;
+        padding-top: 2px;
       }
       &.not-expanded {
         transition: height .5s;
@@ -472,12 +473,26 @@ $tablet-width: 767px;
     margin-left: 2px;
   }
   .form, .full-page-upload .list-container {
-    max-width: 100vw;
+    max-width: calc(100vw - 8px);
     display: flex !important;
     flex-direction: column;
 
     label {
       text-align: left !important;
+    }
+  }
+}
+
+/* Smallest possible */
+@media (max-width: $mini-width) {
+  .mini-col {
+    flex-direction: column;
+    &.reverse {
+      flex-direction: column-reverse;
+    }
+    & > * {
+      width: 100% !important;
+      margin: 4px 0;
     }
   }
 }

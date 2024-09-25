@@ -48,6 +48,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   submitting?: Subscription;
   private _editorTags: string[] = [];
   private oldSubmit: string[] = [];
+  private _advancedForm?: RefFormComponent;
 
   constructor(
     private mod: ModService,
@@ -107,7 +108,8 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   @ViewChild('advancedForm')
-  set advancedForm(value: RefFormComponent) {
+  set advancedForm(value: RefFormComponent | undefined) {
+    this._advancedForm = value;
     if (value) {
       const ref = this.textForm.value;
       if (this.store.submit.thumbnail) {
@@ -117,6 +119,10 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       }
       value.setRef(ref);
     }
+  }
+
+  get advancedForm() {
+    return this._advancedForm;
   }
 
   get url() {
