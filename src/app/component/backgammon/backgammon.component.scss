@@ -13,6 +13,7 @@
   --black-name: '⚫️ Black';
   filter: drop-shadow(0 0 1px var(--glow));
 
+  position: relative;
   max-height: calc(100vh - 20px);
   max-width: calc(100vw - 20px);
   width: calc(28 * var(--dim));
@@ -212,8 +213,9 @@
     flex-direction: column-reverse;
     align-self: flex-end;
     border: var(--dim) solid transparent;
-    height: 0;
-    width: 0;
+    width: calc(2 * var(--dim));
+    height: calc(13 * var(--dim));
+    box-sizing: border-box;
 
     &.move {
       &.top {
