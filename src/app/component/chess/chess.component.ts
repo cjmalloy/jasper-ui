@@ -239,7 +239,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         case 'r': return $localize`♖`;
         case 'b': return $localize`♗`;
         case 'n': return $localize`♘`;
-        case 'p': return $localize`️️️️️️♙`;
+        case 'p': return $localize`♙`;
       }
     } else if (p?.color === 'b') {
       switch (p.type) {
