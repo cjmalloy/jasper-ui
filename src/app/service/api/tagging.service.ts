@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, Observable } from 'rxjs';
+import { Ref } from '../../model/ref';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -48,8 +49,16 @@ export class TaggingService {
     );
   }
 
-  createResponse(tag: string, url: string): Observable<void> {
-    if (tag.startsWith('-')) return this.deleteResponse(tag.substring(1), url);
+  getResponse(tag?: string, url?: string): Observable<Ref> {
+    return this.http.get<Ref>(`${this.base}/response`, {
+      params: params({ tag, url }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  createResponse(tag?: string, url?: string): Observable<void> {
+    if (tag?.startsWith('-')) return this.deleteResponse(tag.substring(1), url);
     return this.http.post<void>(`${this.base}/response`, null, {
       params: params({ tag, url }),
     }).pipe(
@@ -57,7 +66,7 @@ export class TaggingService {
     );
   }
 
-  deleteResponse(tag: string, url: string): Observable<void> {
+  deleteResponse(tag?: string, url?: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/response`, {
       params: params({ tag, url }),
     }).pipe(
@@ -65,7 +74,7 @@ export class TaggingService {
     );
   }
 
-  respond(tags: string[], url: string): Observable<void> {
+  respond(tags: string[], url?: string): Observable<void> {
     return this.http.patch<void>(`${this.base}/response`, null, {
       params: params({ tags, url }),
     }).pipe(
