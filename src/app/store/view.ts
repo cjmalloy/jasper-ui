@@ -104,7 +104,7 @@ export class ViewStore {
   }
 
   get extTemplate() {
-    return this.exts.length === 1 && this.extTemplates.find(t => this.exts.find(x => hasPrefix(x.tag, t.tag)));
+    return this.extTemplates.find(t => this.exts.find(x => hasPrefix(x.tag, t.tag)));
   }
 
   get config(): RootConfig | undefined {
@@ -135,7 +135,7 @@ export class ViewStore {
         .flatMap(t => {
           const exts = this.exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag));
           if (exts.length) return exts;
-          return [{ tag: t.tag, origin: t.origin, name: t.config?.view || t.name, config: t.defaults }];
+          return [{ tag: t.tag, origin: t.origin, name: t.name, config: t.defaults }];
         })
         .filter(x => !!x));
   }
@@ -330,9 +330,8 @@ export class ViewStore {
 
   get queryTags() {
     return uniq([
-        ...topAnds(this.tag),
         ...topAnds(this.tag).map(queryPrefix),
-        ...this.queryFilters,
+        ...this.queryFilters.map(queryPrefix),
     ].filter(t => t && !isQuery(t)));
   }
 
@@ -348,7 +347,7 @@ export class ViewStore {
     if (this.tag === '@*') return $localize`All`;
     if (this.tag === '*') return $localize`Local`;
     if (isQuery(this.tag)) return $localize`Query`;
-    return this.exts[0]?.name || this.activeTemplates[0]?.name || this.viewExt?.name || this.viewExt?.tag || this.tag;
+    return this.exts[0]?.name || this.viewExt?.name || (this.viewExt?.tag || this.tag).substring(this.tag.lastIndexOf('/') + 1);
   }
 
   get cols() {

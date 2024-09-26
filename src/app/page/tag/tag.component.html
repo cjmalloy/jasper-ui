@@ -2,21 +2,18 @@
   <app-tabs>
     <a class="logo" routerLink="/"></a>
     <h5 class="fake-link" routerLink="." [queryParams]="{}">{{ store.view.name }}</h5>
-    @if (store.view.extTemplate) {
+    @if (store.view.activeTemplates.length) {
       <a routerLink="./"
          [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
-         queryParamsHandling="merge" i18n>{{ store.view.extTemplate.config?.view || store.view.extTemplate.tag }}</a>
-      <a routerLink="./"
-         [class.current-tab]="store.view.list"
-         [queryParams]="{view: 'list'}"
-         queryParamsHandling="merge" i18n>list</a>
-    } @else if (store.view.activeExts.length) {
-      @for (x of store.view.activeExts; track x; let i = $index) {
-        <a routerLink="./"
-           [class.current-tab]="store.view.viewTag === x.tag"
-           [queryParams]="{view: i === 0 ? null : x.tag}"
-           queryParamsHandling="merge" i18n>{{ x.name || x.tag }}</a>
+         queryParamsHandling="merge" i18n>{{ store.view.activeTemplates[0].config?.view || store.view.activeTemplates[0].name || store.view.activeTemplates[0].tag }}</a>
+      @for (x of store.view.activeTemplates; track x; let i = $index) {
+        @if (x.tag !== store.view.activeTemplates[0].tag) {
+          <a routerLink="./"
+             [class.current-tab]="store.view.viewTag === x.tag"
+             [queryParams]="{view: i === 0 ? null : x.tag}"
+             queryParamsHandling="merge" i18n>{{ x.config?.view || x.name || x.tag }}</a>
+        }
       }
       <a routerLink="./"
          [class.current-tab]="store.view.list"
