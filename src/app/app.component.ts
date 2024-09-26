@@ -59,7 +59,7 @@ export class AppComponent implements AfterViewInit {
       });
     }
 
-    visualViewport?.addEventListener('resize', event => {
+    window.visualViewport?.addEventListener('resize', event => {
       const vv = event?.target as VisualViewport;
       runInAction(() => this.store.viewportHeight = vv.height);
     });

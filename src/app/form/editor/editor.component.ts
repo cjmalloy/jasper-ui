@@ -333,8 +333,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
       let height = 'calc(100vh - 4px)';
-      if (visualViewport?.height) {
-        height = (visualViewport.height - 4) + 'px';
+      if (window.visualViewport?.height) {
+        height = (window.visualViewport.height - 4) + 'px';
         document.body.style.height = height;
       }
       document.body.classList.add('fullscreen');

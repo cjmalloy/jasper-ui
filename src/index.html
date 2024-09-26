@@ -61,7 +61,7 @@
   if (navigator.userAgent && /android/i.test(navigator.userAgent)) {
     document.body.classList.add('android');
   }
-  if (visualViewport) {
+  if (window.visualViewport) {
     document.body.style.height = visualViewport.height + 'px';
   }
 </script>
