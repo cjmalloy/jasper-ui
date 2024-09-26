@@ -16,7 +16,7 @@
            [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
       </ng-container>
     </ng-template>
-    <span *ngIf="admin.getPlugin('plugin/vote/up')" class="vote-score" i18n>{{ score }} points&nbsp;</span>
+    <span *ngIf="store.view.isVoteSorted && admin.getPlugin('plugin/vote/up')" class="vote-score" i18n>{{ score }} points&nbsp;</span>
     <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
     <span *ngIf="ref.modified && !ref.modified.isSame(ref.created)" [title]="ref.modified.fromNow()">*</span>
     <ng-container *ngFor="let icon of icons">
@@ -34,7 +34,7 @@
     deleted comment
   </div>
   <div class="row">
-    <div *ngIf="!collapsed && !deleted && store.account.user && admin.getPlugin('plugin/vote/up')"
+    <div *ngIf="store.view.isVoteSorted && !collapsed && !deleted && store.account.user && admin.getPlugin('plugin/vote/up')"
          class="voting">
       <div class="vote-up"
            [class.on]="upvote"
