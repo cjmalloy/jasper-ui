@@ -19,7 +19,12 @@ export class ThumbnailPipe implements PipeTransform {
   ) { }
 
   transform(refs: (Ref | undefined)[], force = false): Observable<string> {
-    refs = refs.filter(ref => !ref?.url.startsWith('data:') && !ref?.url.startsWith('comment:') && !ref?.url.startsWith('internal:'));
+    refs = refs.filter(ref => ref?.url
+        && !ref?.url.startsWith('data:')
+        && !ref?.url.startsWith('comment:')
+      // TODO: stop requesting internal: after cache migrates to cache: scheme
+     // && !ref?.url.startsWith('internal:')
+    );
     for (const ref of refs) {
       if (!ref) continue;
       for (const plugin of ['plugin/thumbnail', 'plugin/image', 'plugin/video']) {
