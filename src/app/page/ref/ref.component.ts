@@ -63,11 +63,13 @@ export class RefPage implements OnInit, OnDestroy {
 
   @memo
   get expandedOnLoad() {
-    return this.store.view.current === 'ref/thread'
-      || this.store.local.isRefToggled(this.store.view.url,
-        !!this.store.view.ref?.comment && (this.store.view.current === 'ref/summary' || this.store.view.current === 'ref/comments')
-        || this.store.view.ref && (!hasTag('plugin/fullscreen', this.store.view.ref)
-        || this.store.view.ref?.plugins?.['plugin/fullscreen']?.onload));
+    return this.store.view.current === 'ref/thread' ||
+      this.store.local.isRefToggled(this.store.view.url, this.store.view.current === 'ref/summary' || this.fullscreen?.onload);
+  }
+
+  get fullscreen() {
+    if (!this.admin.getPlugin('plugin/fullscreen')) return undefined;
+    return this.store.view.ref?.plugins?.['plugin/fullscreen'];
   }
 
   get comments() {
