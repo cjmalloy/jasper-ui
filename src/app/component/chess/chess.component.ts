@@ -333,6 +333,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       title,
       comment,
     })).subscribe(cursor => {
+      this.writeAccess = true;
       if (this.prevComment !== comment) return;
       this.ref!.title = title;
       this.ref!.comment = comment;
@@ -347,7 +348,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   clickSquare(index: number) {
-    if (!this.writeAccess) return;
     const square = this.getCoord(index);
     const p = this.chess.get(square);
     if (this.from === square) {

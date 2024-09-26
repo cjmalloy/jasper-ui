@@ -14,7 +14,7 @@
            cdkDragBoundary=".chess-board"
            (cdkDragStarted)="setPieceSize()"
            [cdkDragData]="rp"
-           [cdkDragDisabled]="config.mobile || !writeAccess || turn !== rp.color">{{ drawPiece(rp) }}</div>
+           [cdkDragDisabled]="config.mobile || turn !== rp.color">{{ drawPiece(rp) }}</div>
     }
   </div>
 }

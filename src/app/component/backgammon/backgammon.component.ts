@@ -16,7 +16,7 @@ import {
 import { defer, delay, filter, range, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, Observable, Subject, Subscription, takeUntil, throwError } from 'rxjs';
+import { catchError, Observable, Subscription, throwError } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
@@ -549,6 +549,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       origin: this.store.account.origin,
       comment,
     })).subscribe(cursor => {
+      this.writeAccess = true;
       if (this.patchingComment !== comment) return;
       this.ref!.comment = comment;
       this.ref!.modified = moment(cursor);
@@ -704,7 +705,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   roll(p: Piece) {
-    if (!this.writeAccess) throw $localize`Access Denied`;
     const ds = p === 'r' ? this.redDice : this.blackDice;
     if (this.winner) throw $localize`Game Over`;
     if ((!this.first || this.turn !== p) && this.moves.length) throw $localize`Must move`;
