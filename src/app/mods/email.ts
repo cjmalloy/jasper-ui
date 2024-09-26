@@ -14,7 +14,7 @@ export const emailPlugin: Plugin = {
       { label: $localize`📧️` },
     ],
     filters: [
-      { query: 'plugin/email', label: $localize`📧️ email`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/email', label: $localize`📧️ email`, title: $localize`Emails`, group: $localize`Plugins 🧰️` },
     ],
   },
 };

@@ -13,7 +13,7 @@ const systemPlugin: Plugin = {
     internal: true,
     icons: [{ label: $localize`📟️`, order: 3 }],
     filters: [
-      { query: '_plugin/system', label: $localize`📟️ system`, group: $localize`Plugins 🧰️` },
+      { query: '_plugin/system', label: $localize`📟️ system`, title: $localize`System Configs`, group: $localize`Plugins 🧰️` },
     ],
     description: $localize`View system information and statistics.`,
     actions: [{ event: 'scrape', label: $localize`scrape` }],

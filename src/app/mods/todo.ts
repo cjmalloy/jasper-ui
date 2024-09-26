@@ -35,7 +35,7 @@ export const todoPlugin: Plugin = {
     and embed it in another Ref using the embed link, such as: ![](ai:my-todo-list)`,
     icons: [{ label: $localize`📑️`, order: 2 }],
     filters: [
-      { query: 'plugin/todo', label: $localize`📑️ todo`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/todo', label: $localize`📑️ todo`, title: $localize`TODO Lists`, group: $localize`Plugins 🧰️` },
     ],
   },
 };

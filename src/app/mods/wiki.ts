@@ -14,7 +14,7 @@ export const wikiConfig: Template = {
     description: $localize`Activates built-in Wiki support and allows users to create Wikis.`,
     icons: [{ label: $localize`📔️`, scheme: DEFAULT_WIKI_PREFIX, title: $localize`Wiki`, order: 3 }],
     filters: [
-      { scheme: 'wiki:', label: $localize`📔️ wiki`, group: $localize`Plugins 🧰️` },
+      { scheme: 'wiki:', label: $localize`📔️ wiki`, title: $localize`Wiki Pages`, group: $localize`Plugins 🧰️` },
     ],
     /**
      * Set prefix for wiki links.

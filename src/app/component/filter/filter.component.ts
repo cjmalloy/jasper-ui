@@ -94,8 +94,8 @@ export class FilterComponent implements OnChanges, OnDestroy {
             { filter: 'untagged', label: $localize`🚫️🏷️ untagged` },
             { filter: 'uncited', label: $localize`🚫️💌️ uncited` },
             { filter: 'unsourced', label: $localize`🚫️📜️ unsourced` },
-            { filter: 'obsolete', label: $localize`⏮️ obsolete` },
-            { filter: 'query/_plugin:!+user', label: $localize`📟️ system` },
+            { filter: 'obsolete', label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
+            { filter: 'query/_plugin:!+user', label: $localize`📟️ system`, title: $localize`System configs` },
           ],
         }, {
           label: $localize`Time ⏱️`,
@@ -289,7 +289,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
     }
   }
 
-  addFilter(value: Filter) {
+  addFilter(value: UrlFilter) {
     if (value) {
       if (!this.filters) this.filters = [];
       this.filters.push(value);
@@ -298,9 +298,18 @@ export class FilterComponent implements OnChanges, OnDestroy {
     }
   }
 
-  setFilter(index: number, value: Filter) {
+  setFilter(index: number, value: UrlFilter) {
     this.filters[index] = value;
     this.setFilters();
+  }
+
+  title(value: UrlFilter) {
+    for (const g of this.allFilters) {
+      for (const f of g.filters) {
+        if (f.filter === value) return f.title || '';
+      }
+    }
+    return '';
   }
 
   negatable(filter: string) {

@@ -20,7 +20,7 @@ export const deletePlugin: Plugin = {
     `,
     icons: [{ thumbnail: $localize`🗑️`, order: -1 }],
     filters: [
-      { query: 'plugin/delete', label: $localize`🗑️ deleted`, group: $localize`Filters 🕵️️` },
+      { query: 'plugin/delete', label: $localize`🗑️ deleted`, title: $localize`Recycle Bin`, group: $localize`Filters 🕵️️` },
     ],
   },
 };

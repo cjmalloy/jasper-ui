@@ -12,7 +12,7 @@ export const embedPlugin: Plugin = {
     submit: $localize`🔭️ embed`,
     icons: [{ label: $localize`🔭️` }],
     filters: [
-      { query: 'plugin/embed', label: $localize`🔭️ embed`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/embed', label: $localize`🔭️ embed`, title: $localize`Has embedded iframe`, group: $localize`Plugins 🧰️` },
     ],
     description: $localize`Embed the webpage in an inline frame.`,
     advancedForm: [{

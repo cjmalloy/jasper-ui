@@ -21,7 +21,7 @@ export const dmTemplate: Template = {
     The dm tag indicates the Ref represents a private direct message.`,
     icons: [{ thumbnail: $localize`📨️`, order: 1 }],
     filters: [
-      { query: 'dm', label: $localize`✉️ dm`, group: $localize`Templates 🎨️` },
+      { query: 'dm', label: $localize`✉️ dm`, title: $localize`DMs`, group: $localize`Templates 🎨️` },
     ],
   },
 };
@@ -49,7 +49,7 @@ export const outboxPlugin: Plugin = {
     description: $localize`The outbox plugin allow sending notifications to another user on a remote server.`,
     icons: [{ label: $localize`📬️`, title: $localize`Notifications in outbox`, order: -2 }],
     filters: [
-      { query: 'plugin/outbox', label: $localize`📬️ outbox`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/outbox', label: $localize`📬️ outbox`, title: $localize`Messages from another server`, group: $localize`Plugins 🧰️` },
     ],
   },
 };

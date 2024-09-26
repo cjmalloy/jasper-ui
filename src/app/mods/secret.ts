@@ -16,7 +16,7 @@ const secretPlugin: Plugin = {
     // TODO: submit as private
     icons: [{ label: $localize`🔑️`, order: 3 }],
     filters: [
-      { query: '+plugin/secret', label: $localize`🔑️ secret`, group: $localize`Plugins 🧰️` },
+      { query: '+plugin/secret', label: $localize`🔑️ secret`, title: $localize`Secrets with opaque tags`, group: $localize`Plugins 🧰️` },
     ],
     description: $localize`Store secrets with opaque protected tags.`,
   },

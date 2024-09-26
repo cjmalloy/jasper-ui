@@ -16,7 +16,7 @@ export const deltaPlugin: Plugin = {
       { label: $localize`⏳️`, noResponse: '+plugin/delta', order: -10 },
       { tag: '_plugin/delta', label: $localize`⏳️`, noResponse: '+plugin/delta', order: -10 },
     ],
-    filters: [{ query: 'plugin/delta|_plugin/delta', label: $localize`⏳️ Working`, group: $localize`Plugins 🧰️` }],
+    filters: [{ query: 'plugin/delta|_plugin/delta', label: $localize`⏳️ Working`, title: $localize`Running a script`, group: $localize`Plugins 🧰️` }],
   },
 };
 

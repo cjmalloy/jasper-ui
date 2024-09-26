@@ -18,18 +18,18 @@ import { Store } from '../../store/store';
 import { Type } from '../../store/view';
 import { defaultDesc } from '../../util/query';
 
-export const allRefSorts: {value: RefSort, label: string}[] = [
+export const allRefSorts: {value: RefSort, label: string, title?: string }[] = [
   { value: 'created', label: $localize`✨️ new` },
   { value: 'published', label: $localize`📅️ published` },
   { value: 'modified', label: $localize`🕓️ modified` },
-  { value: 'metadataModified', label: $localize`🧵️ new response` },
+  { value: 'metadataModified', label: $localize`🧵️ new response`, title: $localize`Date of new response` },
   { value: 'title', label: $localize`🇦️ title` },
   { value: 'url', label: $localize`🔗️ url` },
   { value: 'scheme', label: $localize`🏳️️ scheme` },
   { value: 'origin', label: $localize`🏛️ origin` },
-  { value: 'tagCount', label: $localize`🏷️ tags` },
-  { value: 'responseCount', label: $localize`💌️ responses` },
-  { value: 'sourceCount', label: $localize`📜️ sources` },
+  { value: 'tagCount', label: $localize`🏷️ tags`, title: $localize`Number of tags` },
+  { value: 'responseCount', label: $localize`💌️ responses`, title: $localize`Number of responses` },
+  { value: 'sourceCount', label: $localize`📜️ sources`, title: $localize`Number of sources` },
 ];
 
 @Component({
@@ -47,7 +47,7 @@ export class SortComponent implements OnChanges, OnDestroy {
   @Input()
   type?: Type;
 
-  allSorts: {value: RefSort | TagSort, label: string}[] = [
+  allSorts: {value: RefSort | TagSort, label: string, title?: string}[] = [
     { value: 'modified', label: $localize`🕓️ modified` },
   ];
   sorts: string[] = [];
@@ -73,24 +73,24 @@ export class SortComponent implements OnChanges, OnDestroy {
       if (this.type === 'ref') {
         this.allSorts = [...allRefSorts];
         if (this.admin.getPlugin('plugin/comment')) {
-          this.allSorts.splice(7, 0, { value: 'commentCount', label: $localize`💬️ comments` });
+          this.allSorts.splice(7, 0, { value: 'commentCount', label: $localize`💬️ comments`, title: $localize`Number of comments` });
         }
         if (this.admin.getPlugin('plugin/vote/up')) {
-          this.allSorts.splice(0, 0, { value: 'voteCount', label: '❤️ top' });
+          this.allSorts.splice(0, 0, { value: 'voteCount', label: '❤️ top', title: $localize`Total activity` });
           if (this.admin.getPlugin('plugin/vote/down')) {
-            this.allSorts.splice(0, 0, { value: 'voteScore', label: '📈️ score' });
+            this.allSorts.splice(0, 0, { value: 'voteScore', label: '📈️ score', title: $localize`Total score` });
           }
-          this.allSorts.splice(0, 0, { value: 'voteScoreDecay', label: '🔥️ hot' });
+          this.allSorts.splice(0, 0, { value: 'voteScoreDecay', label: '🔥️ hot', title: $localize`Decaying score` });
         }
         if (this.store.view.search) {
-          this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance` });
+          this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` });
         }
       } else {
         this.allSorts = [
           { value: 'modified', label: $localize`🕓️ modified` },
           { value: 'name', label: $localize`🇦️ name` },
           { value: 'tag', label: $localize`🏷️ tag` },
-          { value: 'levels', label: $localize`/🏷️ level` },
+          { value: 'levels', label: $localize`/🏷️ level`, title: $localize`Number of subtags` },
           { value: 'origin', label: $localize`🏛️ origin` },
         ]
       }
@@ -136,6 +136,13 @@ export class SortComponent implements OnChanges, OnDestroy {
       replaceUrl: this.replace,
     });
     this.replace ||= !!sort.length;
+  }
+
+  title(value: string) {
+    for (const s of this.allSorts) {
+      if (s.value === value) return s.title || '';
+    }
+    return '';
   }
 
   sortCol(sort: string) {

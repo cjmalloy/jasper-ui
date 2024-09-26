@@ -20,7 +20,7 @@ export const repostPlugin: Plugin = {
     `,
     icons: [{ label: $localize`↪️` }],
     filters: [
-      { query: 'plugin/repost', label: $localize`↪️ Repost`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/repost', label: $localize`↪️ Repost`, title: $localize`Reposts`, group: $localize`Plugins 🧰️` },
     ],
   },
 };

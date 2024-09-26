@@ -236,7 +236,7 @@ export const internalTemplate: Template = {
       { thumbnail: $localize`⚙️`, order: -2 },
     ],
     filters: [
-      { query: 'internal', label: $localize`⚙️ internal`, group: $localize`Filters 🕵️️` },
+      { query: 'internal', label: $localize`⚙️ internal`, title: $localize`Show hidden comments and reactions`, group: $localize`Filters 🕵️️` },
     ],
   },
 };
@@ -254,8 +254,8 @@ export const lockedTemplate: Template = {
       { label: $localize`🔒️`, title: $localize`Locked`, order: -2 },
     ],
     filters: [
-      { query: 'locked', label: $localize`🔒️ locked`, group: $localize`Filters 🕵️️` },
-      { query: '!locked', label: $localize`🔓️ unlocked`, group: $localize`Filters 🕵️️` },
+      { query: 'locked', label: $localize`🔒️ locked`, title: $localize`Locked`, group: $localize`Filters 🕵️️` },
+      { query: '!locked', label: $localize`🔓️ unlocked`, title: $localize`Unlocked`, group: $localize`Filters 🕵️️` },
     ],
     editorButtons: [
       { labelOff: $localize`🔓️`, labelOn: $localize`🔒️`, title: $localize`Lock this post to prevent editing`, ribbon: true, order: -1, global: true },
@@ -276,8 +276,8 @@ export const privateTemplate: Template = {
       { label: $localize`👁️`, tag: '!public', title: $localize`Private`, order: -2, global: true },
     ],
     filters: [
-      { query: 'public', label: $localize`🌐️ public`, group: $localize`Filters 🕵️️` },
-      { query: '!public', label: $localize`👁️ private`, group: $localize`Filters 🕵️️` },
+      { query: 'public', label: $localize`🌐️ public`, title: $localize`Public read access`, group: $localize`Filters 🕵️️` },
+      { query: '!public', label: $localize`👁️ private`, title: $localize`Private read access`, group: $localize`Filters 🕵️️` },
     ],
     editorButtons: [
       { labelOff: $localize`👁️`, labelOn: $localize`🌐️`, title: $localize`Toggle 🌐️ Public or 👁️ Private`, remember: true, order: -1, global: true },

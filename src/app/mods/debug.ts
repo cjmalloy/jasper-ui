@@ -17,7 +17,7 @@ export const debugTemplate: Template = {
     view: $localize`🐞️`,
     icons: [{ thumbnail: $localize`🐞️` }],
     filters: [
-      { query: 'debug', label: $localize`🐞️ debug`, group: $localize`Templates 🎨️` },
+      { query: 'debug', label: $localize`🐞️ debug`, title: $localize`Debug`, group: $localize`Templates 🎨️` },
     ],
     form: [{
       key: 'input',
@@ -160,8 +160,8 @@ export const debugPlugin: Plugin = {
       { response: 'plugin/breakpoint', labelOff: $localize`break`, labelOn: $localize`clear`, global: true },
     ],
     filters: [
-      { query: 'plugin/debug', label: $localize`🐞️ debug`, group: $localize`Plugins 🧰️` },
-      { response: 'plugin/breakpoint', label: $localize`🔴️ breakpoint`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/debug', label: $localize`🐞️ debug`, title: $localize`Debug`, group: $localize`Plugins 🧰️` },
+      { response: 'plugin/breakpoint', label: $localize`🔴️ breakpoint`, title: $localize`Breakpoing`, group: $localize`Plugins 🧰️` },
     ],
     form: [{
       key: 'show',

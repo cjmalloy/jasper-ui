@@ -11,7 +11,7 @@ export const qrPlugin: Plugin = {
     description: $localize`Activates built-in qr code support and allows users to create qr codes.`,
     icons: [{ label: $localize`🔲` }],
     filters: [
-      { query: 'plugin/qr', label: $localize`🔲 qr`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/qr', label: $localize`🔲 qr`, title: $localize`Has QR code`, group: $localize`Plugins 🧰️` },
     ],
     advancedForm: [{
       key: 'url',

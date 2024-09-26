@@ -30,7 +30,7 @@ export const kanbanTemplate: Template = {
     shows up or not depends on the kanban's columns, swim lanes and badges.`,
     icons: [{ thumbnail: $localize`📋️`, order: 1 }],
     filters: [
-      { query: 'kanban', label: $localize`📋️ kanban`, group: $localize`Templates 🎨️` },
+      { query: 'kanban', label: $localize`📋️ kanban`, title: $localize`Kanban Boards`, group: $localize`Templates 🎨️` },
     ],
     form: [{
       key: 'columns',

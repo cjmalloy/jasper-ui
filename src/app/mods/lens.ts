@@ -25,7 +25,7 @@ export const lensPlugin: Plugin = {
     Use ![](/tag/lens) or [embed](/tag/lens) embed the lens directly.`,
     icons: [{ label: $localize`🪞`, order: 1 }],
     filters: [
-      { query: 'plugin/lens', label: $localize`🪞 lens`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/lens', label: $localize`🪞 lens`, title: $localize`Lens`, group: $localize`Plugins 🧰️` },
     ],
     advancedForm: [{
       key: 'url',

@@ -273,6 +273,7 @@ export interface FilterConfig {
    */
   response?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
   label?: string;
+  title?: string;
   group?: string;
 }
 

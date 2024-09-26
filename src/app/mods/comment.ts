@@ -17,7 +17,7 @@ export const commentPlugin: Plugin = {
     The plugin/comment tag indicates the Ref represents a comment on it's source.`,
     icons: [{ thumbnail: $localize`💬️`, order: 1 }],
     filters: [
-      { query: 'plugin/comment', label: $localize`💬️ comments`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/comment', label: $localize`💬️ comments`, title: $localize`Comments`, group: $localize`Plugins 🧰️` },
     ],
     reply: ['internal', 'plugin/comment'],
   },

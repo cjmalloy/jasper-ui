@@ -13,7 +13,7 @@ export const queueTemplate: Template = {
     submit: $localize`🚧️ queue/`,
     description: $localize`Activates built-in Work Queue mode for managing workflows and invoices.`,
     filters: [
-      { query: 'queue', label: $localize`🚧️ queue`, group: $localize`Templates 🎨️` },
+      { query: 'queue', label: $localize`🚧️ queue`, title: $localize`Work Queues`, group: $localize`Templates 🎨️` },
     ],
     // language=Handlebars
     ui: `
@@ -98,10 +98,10 @@ export const invoicePlugin: Plugin = {
       { response: 'plugin/invoice.paid', clear: ['plugin/invoice.rejected'], labelOff: $localize`paid`, labelOn: $localize`unpaid`, visible: 'recipient' },
     ],
     filters: [
-      { response: '!plugin/invoice.paid', label: $localize`🧾️ unpaid`, group: $localize`Invoices` },
-      { response: 'plugin/invoice.paid', label: $localize`💸️ paid`, group: $localize`Invoices` },
-      { response: 'plugin/invoice.rejected', label: $localize`👎️ rejected`, group: $localize`Invoices` },
-      { response: 'plugin/invoice.disputed', label: $localize`⚠️ disputed`, group: $localize`Invoices` },
+      { response: '!plugin/invoice.paid', label: $localize`🧾️ unpaid`, title: $localize`Unpaid Invoices`, group: $localize`Invoices` },
+      { response: 'plugin/invoice.paid', label: $localize`💸️ paid`, title: $localize`Paid Invoices`, group: $localize`Invoices` },
+      { response: 'plugin/invoice.rejected', label: $localize`👎️ rejected`, title: $localize`Rejected Invoices`, group: $localize`Invoices` },
+      { response: 'plugin/invoice.disputed', label: $localize`⚠️ disputed`, title: $localize`Disputed Invoices`, group: $localize`Invoices` },
     ],
   },
 };

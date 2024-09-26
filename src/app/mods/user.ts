@@ -27,7 +27,7 @@ export const userTemplate: Template = {
     If you receive such a message, simply respond 'ACK', so that we can silently hide your response.
     `,
     filters: [
-      { query: '+user|_user', label: $localize`🧑️ user`, group: $localize`Templates 🎨️` },
+      { query: '+user|_user', label: $localize`🧑️ user`, title: $localize`User Settings`, group: $localize`Templates 🎨️` },
     ],
     overrideForm: true,
     form: [{

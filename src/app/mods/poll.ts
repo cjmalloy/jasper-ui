@@ -27,7 +27,7 @@ export const pollPlugin: Plugin = {
       { condition: 'd', response: 'plugin/poll.d', clear: ['plugin/poll.a', 'plugin/poll.b', 'plugin/poll.c', 'plugin/poll.d'], labelOff: $localize`d`, labelOn: $localize`(d)`, title: `{{d}}: {{count ref 'plugin/poll.d'}} votes ({{percent ref 'd' 'plugin/poll.'}}%)` },
     ],
     filters: [
-      { query: 'plugin/poll', label: $localize`🗳️ poll`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/poll', label: $localize`🗳️ poll`, title: $localize`Polls`, group: $localize`Plugins 🧰️` },
     ],
     // language=CSS
     css: `

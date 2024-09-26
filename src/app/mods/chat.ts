@@ -24,7 +24,7 @@ export const chatTemplate: Template = {
     show past the first line when focused. Respond in multiple messages if necessary.`,
     icons: [{ thumbnail: $localize`🗨️`, order: 1 }],
     filters: [
-      { query: 'chat', label: $localize`🗨️ chat`, group: $localize`Templates 🎨️` },
+      { query: 'chat', label: $localize`🗨️ chat`, title: $localize`Chats`, group: $localize`Templates 🎨️` },
     ],
     form: [{
       key: 'authorTags',

@@ -13,7 +13,7 @@ export const personPlugin: Plugin = {
     icons: [{ label: $localize`📇️`, order: 2 }],
     submit: $localize`📇️ person`,
     filters: [
-      { query: 'plugin/person', label: $localize`📇️‍ people`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/person', label: $localize`📇️‍ people`, title: $localize`Contacts`, group: $localize`Plugins 🧰️` },
     ],
     // language=CSS
     css: `

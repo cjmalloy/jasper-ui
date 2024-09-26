@@ -15,7 +15,7 @@ export const tablePlugin: Plugin = {
     If the plugin/table tag is in the tag list, the Ref comment should be CSV instead of Markdown.`,
     icons: [{ label: $localize`📏️`, order: 2 }],
     filters: [
-      { query: 'plugin/table', label: $localize`📏️ table`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/table', label: $localize`📏️ table`, title: $localize`Spreadsheets`, group: $localize`Plugins 🧰️` },
     ],
   },
 };

@@ -4,14 +4,14 @@
         i18n-title title="Filter">
   <option class="unselected" i18n>{{ emoji }} filter</option>
   <optgroup *ngFor="let g of allFilters" [label]="g.label">
-    <option *ngFor="let f of g.filters" [value]="f.filter">{{ f.label || f.filter }}</option>
+    <option *ngFor="let f of g.filters" [value]="f.filter" [title]="f.title || ''">{{ f.label || f.filter }}</option>
   </optgroup>
 </select>
 <ng-container *ngFor="let filter of filters; let i=index">
   <div class="controls" [title]="filter">
-    <select id="filter-{{ i }}" [ngModel]="filter" (ngModelChange)="setFilter(i, $event)">
+    <select id="filter-{{ i }}" [ngModel]="filter" (ngModelChange)="setFilter(i, $event)" [title]="title(filter)">
       <optgroup *ngFor="let g of allFilters" [label]="g.label">
-        <option *ngFor="let f of g.filters" [value]="f.filter">{{ f.label || f.filter }}</option>
+        <option *ngFor="let f of g.filters" [value]="f.filter" [title]="f.title || ''">{{ f.label || f.filter }}</option>
       </optgroup>
     </select>
     <button type="button" *ngIf="negatable(filter)" (click)="toggleQuery(i)">{{ store.account.querySymbol('!') }}</button>

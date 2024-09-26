@@ -13,7 +13,7 @@ export const blogTemplate: Template = {
     description: $localize`Activates built-in Blog mode for viewing Refs.`,
     icons: [{ thumbnail: $localize`📰️`, order: 1 }],
     filters: [
-      { query: 'blog', label: $localize`📰️ blog`, group: $localize`Templates 🎨️` },
+      { query: 'blog', label: $localize`📰️ blog`, title: $localize`Blog posts`, group: $localize`Templates 🎨️` },
     ],
     form: [{
       key: 'filterTags',

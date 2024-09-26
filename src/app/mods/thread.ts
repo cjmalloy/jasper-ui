@@ -14,7 +14,7 @@ export const threadPlugin: Plugin = {
     description: $localize`Attempt to merge similar Refs tagged plugin/thread into threads.`,
     icons: [{ thumbnail: $localize`🧵️`, order: -1 }],
     filters: [
-      { query: 'plugin/thread', label: $localize`🧵️ threads`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/thread', label: $localize`🧵️ threads`, title: $localize`Discussion Threads or DMs`, group: $localize`Plugins 🧰️` },
     ],
     reply: ['internal', 'plugin/thread'],
   },

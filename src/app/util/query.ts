@@ -5,7 +5,7 @@ import { braces, fixClientQuery, hasPrefix } from './tag';
 
 export const defaultDesc = ['created', 'published', 'modified', 'metadataModified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
 
-export type FilterItem = { filter: UrlFilter, label: string, time?: boolean };
+export type FilterItem = { filter: UrlFilter, label: string, title?: string, time?: boolean };
 export type FilterGroup = { filters: FilterItem[], label: string };
 export type UrlFilter = Filter |
   `modified/before/${string}` |
@@ -47,15 +47,15 @@ export function toggle(filter: UrlFilter): UrlFilter {
 
 export function convertFilter(filter: FilterConfig): FilterItem {
   if (filter.sources) {
-    return { filter: `sources/${filter.sources}`, label: filter.label || filter.sources };
+    return { filter: `sources/${filter.sources}`, label: filter.label || filter.sources, title: filter.title };
   } else if (filter.responses) {
-    return { filter: `responses/${filter.responses}`, label: filter.label || filter.responses };
+    return { filter: `responses/${filter.responses}`, label: filter.label || filter.responses, title: filter.title };
   } else if (filter.scheme) {
-    return { filter: `scheme/${filter.scheme}`, label: filter.label || filter.scheme };
+    return { filter: `scheme/${filter.scheme}`, label: filter.label || filter.scheme, title: filter.title };
   } else if (filter.query) {
-    return { filter: `query/${filter.query}`, label: filter.label || filter.query };
+    return { filter: `query/${filter.query}`, label: filter.label || filter.query, title: filter.title };
   } else if (filter.response) {
-    return { filter: filter.response, label: filter.label || filter.response };
+    return { filter: filter.response, label: filter.label || filter.response, title: filter.title };
   }
   throw 'Can\'t convert filter';
 }

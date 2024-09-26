@@ -29,7 +29,7 @@ export const thumbnailPlugin: Plugin = {
     would be the thumbnail.
     `,
     filters: [
-      { query: 'plugin/thumbnail', label: $localize`⭕️ thumbnail`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/thumbnail', label: $localize`⭕️ thumbnail`, title: $localize`Has Thumbnail`, group: $localize`Plugins 🧰️` },
     ],
     extensions: [...videoPlugin.config!.extensions!, ...imagePlugin.config!.extensions!],
     advancedForm: [{

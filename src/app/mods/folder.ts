@@ -13,7 +13,7 @@ export const folderTemplate: Template = {
     writeAccess: ['+folder'],
     description: $localize`Activates built-in Folder mode for viewing Refs.`,
     filters: [
-      { query: 'folder', label: $localize`📂️ folder`, group: $localize`Templates 🎨️` },
+      { query: 'folder', label: $localize`📂️ folder`, title: $localize`Folders`, group: $localize`Templates 🎨️` },
     ],
   },
   defaults: {

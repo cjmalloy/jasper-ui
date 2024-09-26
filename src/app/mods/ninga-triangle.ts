@@ -38,7 +38,7 @@ least $k$ red circles.
     `,
     icons: [{ label: $localize`🔺️`, order: 2 }],
     filters: [
-      { query: 'plugin/ninja.triangle', label: $localize`🥷🔺️ Ninja Triangle`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/ninja.triangle', label: $localize`🥷🔺️ Ninja Triangle`, title: $localize`Ninja Triangles`, group: $localize`Plugins 🧰️` },
     ],
     // language=HTML
     snippet: `
