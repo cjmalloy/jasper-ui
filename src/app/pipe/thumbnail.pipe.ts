@@ -19,7 +19,6 @@ export class ThumbnailPipe implements PipeTransform {
   ) { }
 
   transform(refs: (Ref | undefined)[], force = false): Observable<string> {
-    refs = refs.filter(ref => !ref?.url.startsWith('data:') && !ref?.url.startsWith('comment:') && !ref?.url.startsWith('internal:'));
     for (const ref of refs) {
       if (!ref) continue;
       for (const plugin of ['plugin/thumbnail', 'plugin/image', 'plugin/video']) {
@@ -35,6 +34,7 @@ export class ThumbnailPipe implements PipeTransform {
           }),
         );
       }
+      if (!this.validUrl(ref.url)) continue;
       const embedPlugins = this.admin.getEmbeds(ref);
       for (const plugin of ['plugin/image', 'plugin/video']) {
         if (embedPlugins.includes(plugin)) return of(this.fetchUrl(ref.url, plugin));
@@ -42,8 +42,8 @@ export class ThumbnailPipe implements PipeTransform {
     }
     if (force) {
       for (const ref of refs) {
-        if (!ref) continue;
-        return of(this.fetchUrl(ref.url, 'plugin/image'));
+        if (!this.validUrl(ref?.url)) continue;
+        return of(this.fetchUrl(ref!.url, 'plugin/image'));
       }
     }
     return of('');
@@ -57,6 +57,13 @@ export class ThumbnailPipe implements PipeTransform {
     return url;
   }
 
+  private validUrl(url?: string) {
+    return url
+      && !url.startsWith('data:')
+      && !url.startsWith('comment:')
+    // TODO: stop requesting internal: after cache migrates to cache: scheme
+    // && !url.startsWith('internal:');
+  }
 }
 
 function refUrl(ref: Ref, plugin: string) {
