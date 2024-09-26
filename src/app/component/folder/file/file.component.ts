@@ -153,7 +153,7 @@ export class FileComponent implements OnChanges {
 
   @memo
   get iconRadius() {
-    return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
+    return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || undefined;
   }
 
   @memo
