@@ -1,7 +1,6 @@
 import * as moment from 'moment';
 import { Plugin } from '../model/plugin';
 import { Mod } from '../model/tag';
-import { chessPlugin, chessTemplate } from './chess';
 
 export const cachePlugin: Plugin = {
   tag: '_plugin/cache',
@@ -13,7 +12,7 @@ export const cachePlugin: Plugin = {
     settings: $localize`cache`,
     submit: $localize`🗜️ cache`,
     internal: true,
-    icons: [{ label: $localize`🗜️`, order: -10 }],
+    icons: [{ label: $localize`🗜️`, thumbnail: $localize`🗜️`, order: -10 }],
     filters: [
       { query: '_plugin/cache', label: $localize`🗜️ cache`, title: $localize`Has cache entry`, group: $localize`Plugins 🧰️` },
     ],
