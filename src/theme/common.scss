@@ -34,7 +34,9 @@ html, body {
   padding: 0;
   overflow-x: hidden;
   font-size: 16px;
-  overscroll-behavior: none;
+  &.fullscreen {
+    overscroll-behavior: none;
+  }
 }
 
 body.fullscreen {
