@@ -3,16 +3,28 @@
         (input)="addFilter($any(create.value))"
         i18n-title title="Filter">
   <option class="unselected" i18n>{{ emoji }} filter</option>
-  <optgroup *ngFor="let g of allFilters" [label]="g.label">
-    <option *ngFor="let f of g.filters" [value]="f.filter" [title]="f.title || ''">{{ f.label || f.filter }}</option>
-  </optgroup>
+  @for (g of allFilters; track g.label) {
+    @if (g.filters.length) {
+      <optgroup [label]="g.label">
+        @for (f of g.filters; track f.filter) {
+          <option [value]="f.filter" [title]="f.title || ''">{{ f.label || f.filter }}</option>
+        }
+      </optgroup>
+    }
+  }
 </select>
 <ng-container *ngFor="let filter of filters; let i=index">
   <div class="controls" [title]="filter">
     <select id="filter-{{ i }}" [ngModel]="filter" (ngModelChange)="setFilter(i, $event)" [title]="title(filter)">
-      <optgroup *ngFor="let g of allFilters" [label]="g.label">
-        <option *ngFor="let f of g.filters" [value]="f.filter" [title]="f.title || ''">{{ f.label || f.filter }}</option>
-      </optgroup>
+      @for (g of allFilters; track g.label) {
+        @if (g.filters.length) {
+          <optgroup [label]="g.label">
+            @for (f of g.filters; track f.filter) {
+              <option [value]="f.filter" [title]="f.title || ''">{{ f.label || f.filter }}</option>
+            }
+          </optgroup>
+        }
+      }
     </select>
     <button type="button" *ngIf="negatable(filter)" (click)="toggleQuery(i)">{{ store.account.querySymbol('!') }}</button>
     <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>

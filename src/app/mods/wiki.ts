@@ -1,3 +1,4 @@
+import { $localize } from '@angular/localize/init';
 import * as moment from 'moment';
 import { Template } from '../model/template';
 
@@ -14,7 +15,7 @@ export const wikiConfig: Template = {
     description: $localize`Activates built-in Wiki support and allows users to create Wikis.`,
     icons: [{ label: $localize`📔️`, scheme: DEFAULT_WIKI_PREFIX, title: $localize`Wiki`, order: 3 }],
     filters: [
-      { scheme: 'wiki:', label: $localize`📔️ wiki`, title: $localize`Wiki Pages`, group: $localize`Plugins 🧰️` },
+      { scheme: 'wiki:', label: $localize`wiki:`, title: $localize`Wiki Pages`, group: $localize`Schemes 🏳️️` },
     ],
     /**
      * Set prefix for wiki links.

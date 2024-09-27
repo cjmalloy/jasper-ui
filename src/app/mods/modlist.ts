@@ -19,7 +19,7 @@ export const modlistConfig: Template = {
       { tag: '_moderated', labelOff: $localize`approve`, title: $localize`Mark this post as moderated.`, global: true, order: -1 },
     ],
     filters: [
-      { query: '!_moderated', label: $localize`🛡️ modlist`, title: $localize`New unmoderated posts`, group: $localize`Mod Tools` },
+      { query: '!_moderated', label: $localize`🛡️ modlist`, title: $localize`New unmoderated posts`, group: $localize`Mod Tools 🛡️` },
     ],
   },
 };
@@ -36,7 +36,7 @@ export const nsfwConfig: Template = {
       { tag: 'nsfw', labelOff: $localize`nsfw`, labelOn: $localize`sfw`, title: $localize`Mark posts as NSFW.`, global: true },
     ],
     filters: [
-      { query: 'nsfw', label: $localize`🔞️ nsfw`, title: $localize`Not safe for work`, group: $localize`Mod Tools` },
+      { query: 'nsfw', label: $localize`🔞️ nsfw`, title: $localize`Not safe for work`, group: $localize`Mod Tools 🛡️` },
     ],
   },
 };
@@ -60,7 +60,7 @@ export const reportPlugin: Plugin = {
       { response: 'plugin/report', labelOff: $localize`flag`, title: $localize`Report a problem with this post.`, confirm: $localize`Are you sure you want to report this post?`, global: true, order: 1 },
     ],
     filters: [
-      { response: 'plugin/report', label: $localize`🙅️ reports`, title: $localize`Reported to Mods`, group: $localize`Mod Tools` },
+      { response: 'plugin/report', label: $localize`🙅️ reports`, title: $localize`Reported to Mods`, group: $localize`Mod Tools 🛡️` },
     ],
   },
   userUrl: true,
@@ -79,7 +79,7 @@ export const approvePlugin: Plugin = {
       { label: $localize`🚩️`, anyResponse: 'plugin/report', noResponse: '+plugin/approve', title: $localize`Flagged`, global: true, order: -1 },
     ],
     filters: [
-      { response: '+plugin/approve', label: $localize`🙆️ approved`, title: $localize`Approved by Mod`, group: $localize`Mod Tools` },
+      { response: '+plugin/approve', label: $localize`🙆️ approved`, title: $localize`Approved by Mod`, group: $localize`Mod Tools 🛡️` },
     ],
   },
   generateMetadata: true,

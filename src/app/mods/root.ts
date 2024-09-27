@@ -49,6 +49,14 @@ export const rootTemplate: Template = {
       { tag: 'plugin/delete', label: $localize`🗑️`, global: true },
       { tag: 'plugin/alt', label: $localize`ℹ️`, global: true, order: -3 },
     ],
+    filters: [
+      { scheme: 'http:', label: $localize`http:`, group: $localize`Schemes 🏳️️`},
+      { scheme: 'https:', label: $localize`https:`, group: $localize`Schemes 🏳️️`},
+      { scheme: 'ftp:', label: $localize`ftp:`, group: $localize`Schemes 🏳️️`},
+      { scheme: 'email:', label: $localize`email:`, group: $localize`Schemes 🏳️️`},
+      { scheme: 'tel:', label: $localize`tel:`, group: $localize`Schemes 🏳️️`},
+      { scheme: 'magnet:', label: $localize`magnet:`, group: $localize`Schemes 🏳️️`},
+    ],
     form: [{
       key: 'pinned',
       type: 'urls',
@@ -237,6 +245,7 @@ export const internalTemplate: Template = {
     ],
     filters: [
       { query: 'internal', label: $localize`⚙️ internal`, title: $localize`Show hidden comments and reactions`, group: $localize`Filters 🕵️️` },
+      { scheme: 'internal:', label: $localize`internal:`, group: $localize`Schemes 🏳️️`},
     ],
   },
 };

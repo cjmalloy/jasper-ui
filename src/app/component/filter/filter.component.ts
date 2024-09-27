@@ -8,12 +8,12 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
+import { $localize } from '@angular/localize/init';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import * as moment from 'moment';
 import { Ext } from '../../model/ext';
-import { Filter } from '../../model/ref';
 import { FilterConfig } from '../../model/tag';
 import { KanbanConfig } from '../../mods/kanban';
 import { RootConfig } from '../../mods/root';
@@ -87,19 +87,15 @@ export class FilterComponent implements OnChanges, OnDestroy {
             });
           }
         }
-        for (const f of this.admin.filters) this.loadFilter(f);
         this.pushFilter({
-          label: $localize`Filters 🕵️️`,
-          filters : [
-            { filter: 'untagged', label: $localize`🚫️🏷️ untagged` },
-            { filter: 'uncited', label: $localize`🚫️💌️ uncited` },
-            { filter: 'unsourced', label: $localize`🚫️📜️ unsourced` },
-            { filter: 'obsolete', label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
-            { filter: 'query/_plugin:!+user', label: $localize`📟️ system`, title: $localize`System configs` },
-          ],
+          label: $localize`Queries 🔎️️`, filters: []
+        }, {
+          label: $localize`Media 🎬️`, filters: []
+        }, {
+          label: $localize`Games 🕹️`, filters: []
         }, {
           label: $localize`Time ⏱️`,
-          filters : [
+          filters: [
             this.modifiedBeforeFilter,
             this.modifiedAfterFilter,
             this.responseBeforeFilter,
@@ -109,6 +105,10 @@ export class FilterComponent implements OnChanges, OnDestroy {
             this.createdBeforeFilter,
             this.createdAfterFilter,
           ],
+        }, {
+          label: $localize`Delta Δ`, filters: []
+        }, {
+          label: $localize`Mod Tools 🛡️`, filters: []
         });
         for (const e of this.kanbanExts) {
           const group = $localize`Kanban 📋️`;
@@ -155,6 +155,23 @@ export class FilterComponent implements OnChanges, OnDestroy {
             });
           }
         }
+        this.pushFilter({
+          label: $localize`Filters 🕵️️`,
+          filters: [
+            { filter: 'untagged', label: $localize`🚫️🏷️ untagged` },
+            { filter: 'uncited', label: $localize`🚫️💌️ uncited` },
+            { filter: 'unsourced', label: $localize`🚫️📜️ unsourced` },
+            { filter: 'obsolete', label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
+            { filter: 'query/_plugin:!+user', label: $localize`📟️ system`, title: $localize`System configs` },
+          ],
+        }, {
+          label: $localize`Plugins 🧰️`, filters: []
+        }, {
+          label: $localize`Schemes 🏳️️`, filters: []
+        }, {
+          label: $localize`Templates 🎨️`, filters: []
+        });
+        for (const f of this.admin.filters) this.loadFilter(f);
       } else {
         this.allFilters = [];
         this.pushFilter({
