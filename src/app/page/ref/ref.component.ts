@@ -148,7 +148,10 @@ export class RefPage implements OnInit, OnDestroy {
       this.watchResponses?.unsubscribe();
       this.watchResponses = this.stomp.watchResponse(url).pipe(
         takeUntil(this.destroy$),
-      ).subscribe(url => this.newResponses++);
+      ).subscribe(url => {
+        if (url.startsWith('tag:')) return;
+        this.newResponses++
+      });
     }
   }
 
