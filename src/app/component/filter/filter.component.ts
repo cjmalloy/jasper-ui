@@ -88,11 +88,11 @@ export class FilterComponent implements OnChanges, OnDestroy {
           }
         }
         this.pushFilter({
-          label: $localize`Queries 🔎️️`, filters: []
+          label: $localize`Queries 🔎️️`, filters: [],
         }, {
-          label: $localize`Media 🎬️`, filters: []
+          label: $localize`Media 🎬️`, filters: [],
         }, {
-          label: $localize`Games 🕹️`, filters: []
+          label: $localize`Games 🕹️`, filters: [],
         }, {
           label: $localize`Time ⏱️`,
           filters: [
@@ -106,9 +106,11 @@ export class FilterComponent implements OnChanges, OnDestroy {
             this.createdAfterFilter,
           ],
         }, {
-          label: $localize`Delta Δ`, filters: []
+          label: $localize`Filters 🕵️️`, filters: [],
         }, {
-          label: $localize`Mod Tools 🛡️`, filters: []
+          label: $localize`Delta Δ`, filters: [],
+        }, {
+          label: $localize`Mod Tools 🛡️`, filters: [],
         });
         for (const e of this.kanbanExts) {
           const group = $localize`Kanban 📋️`;
@@ -156,22 +158,23 @@ export class FilterComponent implements OnChanges, OnDestroy {
           }
         }
         this.pushFilter({
+          label: $localize`Plugins 🧰️`, filters: [],
+        }, {
+          label: $localize`Schemes 🏳️️`, filters: [],
+        }, {
+          label: $localize`Templates 🎨️`, filters: [],
+        });
+        for (const f of this.admin.filters) this.loadFilter(f);
+        this.pushFilter({
           label: $localize`Filters 🕵️️`,
           filters: [
+            { filter: 'obsolete', label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
+            { filter: 'query/_plugin:!+user', label: $localize`📟️ system`, title: $localize`System configs` },
             { filter: 'untagged', label: $localize`🚫️🏷️ untagged` },
             { filter: 'uncited', label: $localize`🚫️💌️ uncited` },
             { filter: 'unsourced', label: $localize`🚫️📜️ unsourced` },
-            { filter: 'obsolete', label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
-            { filter: 'query/_plugin:!+user', label: $localize`📟️ system`, title: $localize`System configs` },
           ],
-        }, {
-          label: $localize`Plugins 🧰️`, filters: []
-        }, {
-          label: $localize`Schemes 🏳️️`, filters: []
-        }, {
-          label: $localize`Templates 🎨️`, filters: []
         });
-        for (const f of this.admin.filters) this.loadFilter(f);
       } else {
         this.allFilters = [];
         this.pushFilter({
