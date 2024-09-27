@@ -1,5 +1,5 @@
 
-import * as moment from 'moment/moment';
+import * as moment from 'moment';
 import { Template } from '../model/template';
 
 export const gdprConfig: Template = {

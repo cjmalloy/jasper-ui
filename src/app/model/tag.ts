@@ -5,7 +5,6 @@ import { Schema } from 'jtd';
 import { defer, isEqual, omitBy, uniqWith } from 'lodash-es';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
-import { MomentInput } from 'moment/moment';
 import { v4 as uuid } from 'uuid';
 import { hasAnyResponse, hasResponse, hasTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
@@ -431,7 +430,7 @@ Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
   }
 });
 
-Handlebars.registerHelper('fromNow', (value: MomentInput) => moment(value).fromNow());
+Handlebars.registerHelper('fromNow', (value: moment.MomentInput) => moment(value).fromNow());
 
 Handlebars.registerHelper('formatInterval', (value: string) => moment.duration(value).humanize());
 
