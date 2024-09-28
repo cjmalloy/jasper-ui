@@ -213,7 +213,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.deleted = false;
     this.editing = false;
     this.viewSource = false;
-    this.actionsExpanded = undefined;
     this.actionComponents?.forEach(c => c.reset());
     if (this.ref?.upload) this.editForm.get('url')!.enable();
     this.replyTags = this.getReplyTags();
