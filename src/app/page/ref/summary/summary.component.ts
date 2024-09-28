@@ -98,6 +98,10 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     return r?.metadata?.plugins?.['plugin/thread'] || 0;
   }
 
+  get responseSet() {
+    return this.admin.responseButton.find(p => this.replyTags.includes(p.tag));
+  }
+
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.getComments(this.store.view.ref);

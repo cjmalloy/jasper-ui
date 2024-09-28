@@ -4,7 +4,7 @@
       <app-comment-reply [to]="store.view.ref"
                          quote=""
                          [tags]="replyTags"
-                         [selectResponseType]="true"
+                         [selectResponseType]="!responseSet"
                          [newResp$]="newResp$"
                          [newComment$]="newComment$"
                          [newThread$]="newThread$"></app-comment-reply>

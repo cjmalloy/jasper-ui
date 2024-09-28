@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer, merge, pickBy, uniq, without } from 'lodash-es';
 import * as moment from 'moment';
@@ -43,6 +43,8 @@ export class CommentReplyComponent implements AfterViewInit {
   showCancel = false;
   @Input()
   autofocus = false;
+  @Output()
+  save = new EventEmitter<Ref|undefined>();
 
   @ViewChild(EditorComponent)
   editor?: EditorComponent;
@@ -179,6 +181,7 @@ export class CommentReplyComponent implements AfterViewInit {
       } else if (!hasTag('internal', ref)) {
         this.newResp$?.next(update);
       }
+      this.save.emit(ref);
     });
   }
 
@@ -188,5 +191,6 @@ export class CommentReplyComponent implements AfterViewInit {
     this.newComment$?.next(null);
     this.newThread$?.next(null);
     this.comment.setValue('');
+    this.save.emit(undefined);
   }
 }

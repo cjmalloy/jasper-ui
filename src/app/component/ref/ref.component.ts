@@ -127,6 +127,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   mobileUnlock = false;
   actionsExpanded?: boolean;
   replyTags: string[] = [];
+  replying = false;
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
@@ -1032,5 +1033,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   delayLastSelected() {
     delay(() => this.store.view.setLastSelected(this.ref), 200);
+  }
+
+  onReply(ref?: Ref) {
+    this.replying = false;
+    if (!ref) return;
+    return this.store.eventBus.reload(this.ref);
   }
 }
