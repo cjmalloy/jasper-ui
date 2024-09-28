@@ -315,6 +315,22 @@ select {
     display: block;
   }
 
+  &.fullscreen.preview:not(.stacked) {
+    textarea, .md {
+      padding-bottom: 100%;
+    }
+  }
+  &.fullscreen:not(.preview) {
+    textarea, .md {
+      padding-bottom: 50%;
+    }
+  }
+  &.fullscreen.stacked.preview {
+    textarea, .md {
+      padding-bottom: 23%;
+    }
+  }
+
   .editor-container {
     display: contents;
   }
