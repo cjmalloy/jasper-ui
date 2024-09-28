@@ -73,10 +73,12 @@ export class ActionService {
 
   event(event: string, ref?: Ref, repost?: Ref) {
     this.store.eventBus.fire(event, ref, repost);
+    this.store.eventBus.fire('');
   }
 
   $event(event: string, ref?: Ref, repost?: Ref) {
     this.store.eventBus.fire(event, ref, repost);
+    this.store.eventBus.fire('');
     return of(null);
   }
 
