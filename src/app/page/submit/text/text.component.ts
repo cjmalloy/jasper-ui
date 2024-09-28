@@ -46,7 +46,6 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   tags!: TagsFormComponent;
 
   submitting?: Subscription;
-  private _editorTags: string[] = [];
   private oldSubmit: string[] = [];
   private _advancedForm?: RefFormComponent;
 
@@ -141,16 +140,11 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     return this.textForm.get('sources') as UntypedFormArray;
   }
 
-  get editorTags(): string[] {
-    return this._editorTags;
-  }
-
   set editorTags(value: string[]) {
-    const added = without(value, ...this._editorTags);
-    const removed = without(this._editorTags, ...value);
-    const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
+    const addTags = value.filter(t => !t.startsWith('-'));
+    const removeTags = value.filter(t => t.startsWith('-')).map(t => t.substring(1));
+    const newTags = uniq([...without(this.tags!.tags!.value, ...removeTags), ...addTags]);
     this.tags!.setTags(newTags);
-    this._editorTags = value;
   }
 
   validate(input: HTMLInputElement) {

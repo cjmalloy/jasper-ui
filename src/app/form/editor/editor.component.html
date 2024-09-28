@@ -24,7 +24,7 @@
       @if (!button.event) {
         <button type="button"
                 (click)="toggleTag(button)"
-                [title]="button.title" i18n>{{(tags?.includes(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</button>
+                [title]="button.title" i18n>{{(buttonOn(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</button>
       } @else {
         <button type="button"
                 (click)="fireEvent(button.event)"
@@ -36,11 +36,11 @@
         <input type="checkbox"
                [style.display]="'none'"
                [id]="'ribbon-' + id + i"
-               [checked]="tags?.includes(button.toggle!)"
+               [checked]="buttonOn(button.toggle!)"
                (click)="toggleTag(button)">
         <label [for]="'ribbon-' + id + i"
-               [class.on]="tags?.includes(button.toggle!)"
-               [title]="button.title">{{(tags?.includes(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</label>
+               [class.on]="buttonOn(button.toggle!)"
+               [title]="button.title">{{(buttonOn(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</label>
       </div>
     }
     @if (selectResponseType && responseButtons.length > 1) {
@@ -49,7 +49,7 @@
           <button type="button"
                   class="response-button"
                   (click)="setResponse(plugin.tag)"
-                  [class.selected]="tags?.includes(plugin.tag)"
+                  [class.selected]="toggleResponse === plugin.tag"
                   [title]="plugin.name" i18n>{{ plugin.config?.responseButton }}</button>
         }
       </div>
@@ -75,7 +75,7 @@
   <app-md class="expand"
           [origin]="store.account.origin"
           [text]="currentText"
-          [plugins]="tags"
+          [plugins]="fullTags"
           [appLimitWidth]="editor"></app-md>
 }
 

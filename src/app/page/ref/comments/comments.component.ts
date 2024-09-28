@@ -8,6 +8,7 @@ import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
+import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, removeTag, top } from '../../../util/tag';
 
 @Component({
@@ -32,6 +33,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => this.mod.setTitle($localize`Comments: ` + (this.store.view.ref?.title || this.store.view.url))));
     this.disposers.push(autorun(() => {
+      MemoCache.clear(this);
       const top = this.store.view.ref!;
       const sort = this.store.view.sort;
       const filter = this.store.view.filter;
@@ -55,18 +57,22 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
     this.newComments$.complete();
   }
 
+  @memo
   get top() {
     return top(this.store.view.ref);
   }
 
+  @memo
   get depth() {
     return this.store.view.depth || 7;
   }
 
+  @memo
   get mailboxes() {
     return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
   }
 
+  @memo
   get replyExts() {
     return (this.store.view.ref!.tags || [])
       .map(tag => this.admin.getPlugin(tag))
@@ -74,6 +80,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
       .filter(t => !!t) as string[];
   }
 
+  @memo
   get replyTags(): string[] {
     const tags = [
       'internal',
