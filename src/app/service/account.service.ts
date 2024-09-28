@@ -224,6 +224,7 @@ export class AccountService {
         modifiedAfter: this.store.account.config.lastNotified || moment().subtract(1, 'year'),
       })),
     ).subscribe(count => runInAction(() => this.store.account.notifications = count));
+    this.checkAlarms();
   }
 
   clearNotifications(readDate: moment.Moment) {
@@ -234,6 +235,18 @@ export class AccountService {
       this.clearCache();
       this.checkNotifications();
     });
+  }
+
+  checkAlarms() {
+    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.admin.getTemplate('user')) throw 'User template not installed';
+    if (!this.store.account.alarms.length) return;
+    this.userExt$.pipe(
+      switchMap(() => this.refs.count({
+        query: this.store.account.alarmsQuery,
+        modifiedAfter: this.store.account.config.lastNotified || moment().subtract(1, 'year'),
+      })),
+    ).subscribe(count => runInAction(() => this.store.account.alarmCount = count));
   }
 
   updateConfig$(name: keyof UserConfig, value: any) {

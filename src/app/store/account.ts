@@ -4,7 +4,7 @@ import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
 import { defaultSubs, UserConfig } from '../mods/user';
-import { hasPrefix, localTag, prefix, setPublic, tagOrigin } from '../util/tag';
+import { braces, hasPrefix, localTag, prefix, setPublic, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
 export class AccountStore {
@@ -59,6 +59,10 @@ export class AccountStore {
    * Unread inbox and alarms total count.
    */
   notifications = 0;
+  /**
+   * Unread alarms count.
+   */
+  alarmCount = 0;
   /**
    * Flag indicating the interceptor detected an unauthorized request.
    */
@@ -164,7 +168,7 @@ export class AccountStore {
   }
 
   get inboxQuery() {
-    if (!this.signedIn) return undefined;
+    if (!this.signedIn) return '';
     let tags = [this.mailbox];
     if (this.origin) {
       tags.push(setPublic(prefix('plugin/outbox', this.origin, this.tagWithOrigin)));
@@ -180,8 +184,14 @@ export class AccountStore {
 
   get notificationsQuery() {
     if (!this.signedIn) return undefined;
-    const alarms = this.config.alarms?.length ? '|' + this.config.alarms.join('|') : '';
-    return `!${this.tag}:!plugin/delete:(` + this.inboxQuery + ')' + alarms;
+    const alarms = this.alarmsQuery ? '|' + this.alarmsQuery : '';
+    return `!${this.tag}:!plugin/delete:` + braces(this.inboxQuery) + alarms;
+  }
+
+  get alarmsQuery() {
+    if (!this.signedIn) return undefined;
+    if (!this.config.alarms?.length) return '';
+    return this.config.alarms.join('|');
   }
 
   get subscriptionQuery() {
