@@ -83,6 +83,10 @@ export interface Config extends Tag {
      */
     aiInstructions?: string,
     /**
+     * Add tags when replying to this tag.
+     */
+    reply?: string[],
+    /**
      * Optional handlebars template to use as a UI.
      */
     ui?: string,

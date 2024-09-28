@@ -110,9 +110,6 @@ export class RefThreadComponent {
       ...this.mailboxes,
       ...this.replyExts,
     ];
-    if (hasTag('public', this.store.view.ref)) tags.unshift('public');
-    if (hasTag('dm', this.store.view.ref)) tags.unshift('dm');
-    if (hasTag('plugin/email', this.store.view.ref)) tags.push('plugin/email');
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 

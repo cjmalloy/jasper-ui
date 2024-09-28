@@ -82,7 +82,6 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
       ...this.mailboxes,
       ...this.replyExts,
     ];
-    if (hasTag('public', this.store.view.ref)) tags.unshift('public');
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 }

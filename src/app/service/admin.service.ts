@@ -444,7 +444,7 @@ export class AdminService {
   }
 
   get reply() {
-    return this.pluginConfigProperty('reply');
+    return this.configProperty('reply');
   }
 
   get inbox() {

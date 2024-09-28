@@ -639,10 +639,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       ...this.admin.reply.filter(p => (this.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
-    if (hasTag('public', this.ref)) tags.unshift('public');
-    if (hasTag('plugin/email', this.ref)) tags.push('internal', 'plugin/email');
-    if (hasTag('plugin/comment', this.ref)) tags.push('internal', 'plugin/comment');
-    if (hasTag('plugin/thread', this.ref)) tags.push('internal', 'plugin/thread');
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 

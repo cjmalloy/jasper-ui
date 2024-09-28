@@ -16,10 +16,6 @@ export interface Plugin extends Config {
      */
     infoUi?: string,
     /**
-     * Add tags when replying to this plugin.
-     */
-    reply?: string[],
-    /**
      * Add plugin to submit dropdown.
      */
     submit?: string,

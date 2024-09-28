@@ -235,7 +235,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
       ...this.mailboxes,
       ...this.replyExts,
     ];
-    if (hasTag('public', this.ref)) tags.unshift('public');
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
