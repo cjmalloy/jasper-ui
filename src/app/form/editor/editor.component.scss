@@ -15,6 +15,23 @@
     width: 100%;
     height: calc(100% - 42px);
   }
+  --viewport-height: 100%;
+  &.fullscreen {
+    textarea {
+      padding-bottom: calc(var(--viewport-height) - 64px);
+    }
+    .expand {
+      padding-bottom: calc(var(--viewport-height) - 32px);
+    }
+    &.stacked.preview {
+      textarea {
+        padding-bottom: calc((var(--viewport-height) / 2) - 64px);
+      }
+      .expand {
+        padding-bottom: calc((var(--viewport-height) / 2) - 32px);
+      }
+    }
+  }
   textarea, app-md {
     resize: none;
     overflow: auto;
