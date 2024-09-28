@@ -125,6 +125,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       if (this.overlayRef) {
         this.overlayRef.updateSize({ height });
         document.body.style.height = height + 'px';
+        this.el.nativeElement.style.setProperty('--viewport-height', height + 'px');
       }
     }));
   }
@@ -140,6 +141,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.disposers.length = 0;
     document.body.style.height = '';
     document.body.classList.remove('fullscreen');
+    this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
   }
 
   @HostListener('window:scroll')
@@ -336,6 +338,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       if (window.visualViewport?.height) {
         height = (window.visualViewport.height - 4) + 'px';
         document.body.style.height = height;
+        this.el.nativeElement.style.setProperty('--viewport-height', height);
       }
       document.body.classList.add('fullscreen');
       this.overlayRef = this.overlay.create({
@@ -360,6 +363,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.overlayRef?.dispose();
       delete this.overlayRef;
       document.body.style.height = '';
+      this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
       document.body.classList.remove('fullscreen');
       if (this.focused) {
         this.editor.nativeElement.focus();
