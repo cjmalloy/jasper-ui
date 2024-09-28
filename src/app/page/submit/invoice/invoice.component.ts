@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { flatten, uniq } from 'lodash-es';
+import { flatten, uniq, without } from 'lodash-es';
 import * as moment from 'moment';
 import { catchError, map, mergeMap, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -122,14 +122,16 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
   }
 
   getTags(queueExt: Ext) {
-    const result = [
+    const addTags = this.editorTags.filter(t => !t.startsWith('-'));
+    const removeTags = this.editorTags.filter(t => t.startsWith('-')).map(t => t.substring(1));
+    const result = without([
       'locked',
       'internal',
       prefix('plugin/invoice', queueExt.tag),
       'plugin/qr',
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...this.editorTags,
-    ];
+      ...addTags,
+    ], ...removeTags);
     for (const approver of queueExt.config.approvers) {
       result.push(prefix('plugin/inbox', approver));
     }

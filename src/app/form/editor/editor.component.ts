@@ -81,7 +81,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
-  toggleResponse = 0;
+  toggleResponse = '';
+  addEditorTags: string[] = [];
+  removeEditorTags: string[] = [];
   initialFullscreen = false;
   focused?: boolean = false;
 
@@ -111,8 +113,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   init() {
     MemoCache.clear(this);
+    this.addEditorTags = this.store.account.defaultEditors(this.editors);
     for (const p of this.responseButtons) {
-      if (this.tags?.includes(p.tag)) this.toggleResponse = this.responseButtons.indexOf(p);
+      if (this.tags?.includes(p.tag)) this.toggleResponse = p.tag;
     }
   }
 
@@ -168,14 +171,23 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this._padding = value;
   }
 
-  @memo
-  get fullTags() {
-    const tags = this.store.account.defaultEditors(this.editors);
-    if (this.selectResponseType && this.responseButtons.length && !this.responseButtons.filter(p => this.tags?.includes(p.tag)).length) {
-      tags.push(this.responseButtons[0].tag);
+  get addTags() {
+    const tags = [];
+    if (this.toggleResponse) {
+      tags.push(this.toggleResponse);
     }
-    if (!this.tags?.length) return tags;
-    return uniq([...tags, ...this.editors.filter(t => this.tags!.includes(t))]);
+    tags.push(...this.addEditorTags);
+    tags.push(...this.removeEditorTags.map(t => '-' + t));
+    return uniq(tags);
+  }
+
+  get fullTags() {
+    return without(uniq([
+        ...this.tags || [],
+        ...this.addEditorTags,
+        ...this.toggleResponse ? [this.toggleResponse] : []
+      ]),
+      ...this.removeEditorTags);
   }
 
   get editing(): boolean {
@@ -190,8 +202,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         if (this.fullscreenDefault && !this.initialFullscreen) {
           this.toggleFullscreen(true);
         }
-        this.tags = this.fullTags;
-        this.syncTags.emit(this.tags);
+        this.syncTags.emit(this.addTags);
       });
     }
   }
@@ -235,13 +246,18 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   toggleTag(button: EditorButton) {
     if (button.event) this.fireEvent(button.event);
     const tag = button.toggle!;
-    if (this.tags?.includes(tag)) {
-      this.syncTags.next(this.tags = without(this.tags!, tag));
+    MemoCache.clear(this);
+    if (this.buttonOn(tag)) {
+      if (this.addEditorTags.includes(tag)) this.addEditorTags.splice(this.addEditorTags.indexOf(tag), 1);
+      this.removeEditorTags.push(tag);
+      this.syncTags.next(this.addTags);
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.removeConfigArray$('editors', tag).subscribe();
       }
     } else if (tag !== 'locked' || window.confirm($localize`Locking is permanent once saved. Are you sure you want to lock?`)) {
-      this.syncTags.next(this.tags = [...this.tags || [], tag]);
+      if (this.removeEditorTags.includes(tag)) this.removeEditorTags.splice(this.removeEditorTags.indexOf(tag), 1);
+      this.addEditorTags.push(tag);
+      this.syncTags.next(this.addTags);
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.addConfigArray$('editors', tag).subscribe();
       }
@@ -250,9 +266,13 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.editor?.nativeElement.focus();
   }
 
+  buttonOn(tag: string) {
+    return (this.tags?.includes(tag) || this.addEditorTags.includes(tag)) && !this.removeEditorTags.includes(tag);
+  }
+
   setResponse(tag: string) {
     if (!this.tags?.includes(tag)) {
-      this.toggleResponse = this.responseButtons.map(p => p.tag).indexOf(tag);
+      this.toggleResponse = tag;
       this.syncTags.next(this.tags = [...without(this.tags!, ...this.responseButtons.map(p => p.tag)), tag]);
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
