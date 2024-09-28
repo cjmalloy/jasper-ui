@@ -8,7 +8,7 @@ import { tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { Config, Tag } from '../model/tag';
+import { Config, EditorButton, Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { aiMod } from '../mods/ai';
 import { archiveMod } from '../mods/archive';
@@ -650,7 +650,7 @@ export class AdminService {
       .filter(i => !i.role || this.auth.hasRole(i.role));
   }
 
-  getEditorButtons(tags?: string[], scheme?: string) {
+  getEditorButtons(tags?: string[], scheme?: string): EditorButton[] {
     const match = ['plugin', ...(tags || [])];
     return this.editorButtons
       .flatMap(config => config.config!.editorButtons!.filter(b => {

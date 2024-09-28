@@ -11,6 +11,7 @@ import { ConfigService } from '../../../service/config.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
 import { hasTag, removeTag } from '../../../util/tag';
 
@@ -59,6 +60,7 @@ export class RefThreadComponent {
       this.mod.setTitle($localize`Thread: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
     this.disposers.push(autorun(() => {
+      MemoCache.clear(this);
       if (this.store.view.top && this.config.websockets) {
         this.watch?.unsubscribe();
         this.watch = this.stomp.watchResponse(this.store.view.top.url).pipe(
@@ -87,14 +89,17 @@ export class RefThreadComponent {
     this.disposers.length = 0;
   }
 
+  @memo
   get to() {
     return this.query.page?.content?.[(this.query.page?.content?.length || 0) - 1] || this.store.view.ref!;
   }
 
+  @memo
   get mailboxes() {
     return mailboxes(this.to, this.store.account.tag, this.store.origins.originMap);
   }
 
+  @memo
   get replyExts() {
     return (this.to.tags || [])
       .map(tag => this.admin.getPlugin(tag))
@@ -102,6 +107,7 @@ export class RefThreadComponent {
       .filter(t => !!t) as string[];
   }
 
+  @memo
   get replyTags(): string[] {
     const tags = [
       'internal',

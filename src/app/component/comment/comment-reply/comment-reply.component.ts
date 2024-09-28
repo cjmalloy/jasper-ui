@@ -17,6 +17,7 @@ import { Store } from '../../../store/store';
 import { getMailboxes, getTags } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { memo } from '../../../util/memo';
 import { hasTag, removeTag, tagIntersection } from '../../../util/tag';
 
 @Component({
@@ -47,15 +48,15 @@ export class CommentReplyComponent implements AfterViewInit {
   save = new EventEmitter<Ref|undefined>();
 
   @ViewChild(EditorComponent)
-  editor?: EditorComponent;
+  editor?: EditorComponent
+
+  editorTags: string[] = [];
 
   replying?: Subscription;
   commentForm: UntypedFormGroup;
   serverError: string[] = [];
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
   _quote?: string;
-
-  private _editorTags: string[] = [];
 
   constructor(
     public admin: AdminService,
@@ -94,21 +95,6 @@ export class CommentReplyComponent implements AfterViewInit {
     this._quote = value;
   }
 
-  get editorTags(): string[] {
-    return this._editorTags;
-  }
-
-  set editorTags(value: string[]) {
-    if (this.tags) {
-      const added = without(value, ...this._editorTags);
-      const removed = without(this._editorTags, ...value);
-      this.tags = uniq([...without(this.tags, ...removed), ...added]);
-      this._editorTags = value;
-    } else {
-      defer(() => this.editorTags = value);
-    }
-  }
-
   get inheritedPlugins() {
     const plugins = this.admin.getPlugins(this.to.tags)
       .filter(p => p.tag === p.config?.signature && tagIntersection(this.tags, p.config?.reply).length)
@@ -124,6 +110,8 @@ export class CommentReplyComponent implements AfterViewInit {
     if (!this.comment.value) return;
     const url = 'comment:' + uuid();
     const value = this.comment.value;
+    const addTags = this.editorTags.filter(t => !t.startsWith('-'));
+    const removeTags = this.editorTags.filter(t => t.startsWith('-')).map(t => t.substring(1));
     const ref: Ref = {
       url,
       origin: this.store.account.origin,
@@ -133,14 +121,14 @@ export class CommentReplyComponent implements AfterViewInit {
         this.to.url,
         ...[this.to.sources?.[1] || this.to.sources?.[0] || this.to.url],
       ],
-      tags: removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
+      tags: removeTag(getMailbox(this.store.account.tag, this.store.account.origin), without(uniq([
         ...this.publicTag,
         ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-        ...this.tags!,
-        ...this.editorTags,
+        ...without(this.tags, ...this.admin.getEditorButtons(this.tags, 'comment:').map(b => b.toggle) as string[]),
+        ...addTags,
         ...getTags(value),
         ...getMailboxes(value, this.store.account.origin),
-      ])),
+      ]), ...removeTags)),
       plugins: this.inheritedPlugins,
       published: moment(),
     };

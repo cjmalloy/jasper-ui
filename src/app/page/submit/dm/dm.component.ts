@@ -22,7 +22,6 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { QUALIFIED_TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasPrefix } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-dm',
@@ -49,7 +48,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   submitting?: Subscription;
   private addedMailboxes: string[] = [];
   private oldSubmit: string[] = [];
-  private _editorTags: string[] = [];
 
   constructor(
     private config: ConfigService,
@@ -127,17 +125,12 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     return !this.to.value || this.to.value === this.store.account.tag;
   }
 
-  get editorTags(): string[] {
-    return this._editorTags;
-  }
-
   set editorTags(value: string[]) {
     if (this.tags?.tags) {
-      const added = without(value, ...this._editorTags);
-      const removed = without(this._editorTags, ...value);
-      const newTags = uniq([...without(this.tags.tags.value, ...removed), ...added]);
-      this.tags.setTags(newTags);
-      this._editorTags = value;
+      const addTags = value.filter(t => !t.startsWith('-'));
+      const removeTags = value.filter(t => t.startsWith('-')).map(t => t.substring(1));
+      const newTags = uniq([...without(this.tags!.tags!.value, ...removeTags), ...addTags]);
+      this.tags!.setTags(newTags);
     } else {
       defer(() => this.editorTags = value);
     }
