@@ -13,7 +13,7 @@ import {
 import Hls from 'hls.js';
 import { defer, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { of, Subject, takeUntil } from 'rxjs';
+import { catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
@@ -109,9 +109,10 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     this.chess = !!this.admin.getPlugin('plugin/chess') && this.currentTags.includes('plugin/chess');
     this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
     this.uis = this.admin.getPluginUi(this.currentTags);
-    if (this.ref && hasTag('plugin/repost', this.ref)) {
-      this.refs.getCurrent(this.ref.sources![0])
-      .subscribe(ref => this.repost = ref);
+    if (this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref)) {
+      this.refs.getCurrent(this.ref.sources[0]).pipe(
+        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+      ).subscribe(ref => this.repost = ref);
     }
     const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || this.ref?.url;
     if (queryUrl && hasTag('plugin/lens', this.ref)) {
