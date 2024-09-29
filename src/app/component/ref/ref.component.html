@@ -291,6 +291,15 @@
     </div>
   </div>
 </div>
+
+<app-comment-reply *ngIf="replying"
+                   [autofocus]="true"
+                   [to]="ref"
+                   [showCancel]="true"
+                   [selectResponseType]="!thread && !comment"
+                   [tags]="replyTags"
+                   (save)="onReply($event)"></app-comment-reply>
+
 <app-viewer *ngIf="expanded && !expandInline && !editing && !viewSource"
             class="viewer-below"
             [ref]="bareRef"
@@ -339,11 +348,3 @@
     * Published date was changed to be after source published date.
   </div>
 </ng-template>
-
-<app-comment-reply *ngIf="replying"
-                   [autofocus]="true"
-                   [to]="ref"
-                   [showCancel]="true"
-                   [selectResponseType]="!thread && !comment"
-                   [tags]="replyTags"
-                   (save)="onReply($event)"></app-comment-reply>
