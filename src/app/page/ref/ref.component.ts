@@ -110,7 +110,9 @@ export class RefPage implements OnInit, OnDestroy {
       map(ref => top(ref)),
       switchMap(top => !top ? of(undefined)
         : top === url ? of(this.store.view.ref)
-        : this.refs.getCurrent(top)),
+        : this.refs.getCurrent(top).pipe(
+            catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+          )),
       tap(ref => runInAction(() => this.store.view.top = ref!)),
     ).subscribe();
     if (this.config.websockets) {

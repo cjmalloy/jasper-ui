@@ -62,20 +62,6 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
     }));
-    merge(this.newResp$, this.newComment$, this.newThread$).subscribe(c => runInAction(() => {
-      if (c && this.store.view.ref) {
-        this.store.view.ref.metadata ||= {};
-        this.store.view.ref.metadata.plugins ||= {} as any;
-        if (hasTag('plugin/comment', c)) {
-          this.store.view.ref.metadata.plugins!['plugin/comment'] ||= 0;
-          this.store.view.ref.metadata.plugins!['plugin/comment']++;
-        }
-        if (hasTag('plugin/thread', c)) {
-          this.store.view.ref.metadata.plugins!['plugin/thread'] ||= 0;
-          this.store.view.ref.metadata.plugins!['plugin/thread']++;
-        }
-      }
-    }));
   }
 
   ngOnDestroy() {
@@ -107,7 +93,6 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     return this.getThreads(this.store.view.ref);
   }
 
-  @memo
   get responses() {
     return this.query.page?.numberOfElements;
   }
@@ -136,7 +121,6 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
-  @memo
   get moreComments() {
     const topComments = this.thread.cache.get(this.top);
     if (!topComments) return false;
@@ -151,5 +135,22 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   private getThreads(r?: Ref) {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return r?.metadata?.plugins?.['plugin/thread'] || 0;
+  }
+
+  onReply(ref?: Ref) {
+    runInAction(() => {
+      if (ref && this.store.view.ref) {
+        this.store.view.ref.metadata ||= {};
+        this.store.view.ref.metadata.plugins ||= {} as any;
+        if (hasTag('plugin/comment', ref)) {
+          this.store.view.ref.metadata.plugins!['plugin/comment'] ||= 0;
+          this.store.view.ref.metadata.plugins!['plugin/comment']++;
+        }
+        if (hasTag('plugin/thread', ref)) {
+          this.store.view.ref.metadata.plugins!['plugin/thread'] ||= 0;
+          this.store.view.ref.metadata.plugins!['plugin/thread']++;
+        }
+      }
+    });
   }
 }
