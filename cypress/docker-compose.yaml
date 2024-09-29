@@ -29,6 +29,7 @@ services:
     ports:
       - 8080:80
     environment:
+      NGINX_ENTRYPOINT_QUIET_LOGS: 1
       JASPER_API: http://localhost:8081
       CSP_DEFAULT_SRC: http://localhost:8081 ws://localhost:8081
       CSP_CONNECT_SRC: http://localhost:8081 ws://localhost:8081
@@ -41,6 +42,7 @@ services:
     ports:
       - 8081:80
     environment:
+      SPRING_LOGGING_LEVEL_ROOT: WARN
       SPRING_PROFILES_ACTIVE: prod,jwt
       SPRING_DATASOURCE_URL: jdbc:postgresql://db/jasper
       SPRING_DATASOURCE_USERNAME: jasper
@@ -69,6 +71,7 @@ services:
     ports:
       - 8082:80
     environment:
+      NGINX_ENTRYPOINT_QUIET_LOGS: 1
       JASPER_API: http://localhost:8083
       CSP_DEFAULT_SRC: http://localhost:8083 ws://localhost:8083
       CSP_CONNECT_SRC: http://localhost:8083 ws://localhost:8083
@@ -82,6 +85,7 @@ services:
     ports:
       - 8083:80
     environment:
+      SPRING_LOGGING_LEVEL_ROOT: WARN
       SPRING_PROFILES_ACTIVE: prod,jwt
       SPRING_DATASOURCE_URL: jdbc:postgresql://repl-db/jasper
       SPRING_DATASOURCE_USERNAME: jasper
@@ -111,6 +115,7 @@ services:
     ports:
       - 8085:80
     environment:
+      SPRING_LOGGING_LEVEL_ROOT: WARN
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:postgresql://repl-db/jasper
       SPRING_DATASOURCE_USERNAME: jasper
