@@ -10,6 +10,7 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
+import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top } from '../../../util/tag';
 
@@ -42,6 +43,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => this.mod.setTitle((this.store.view.ref?.title || this.store.view.url))));
     this.disposers.push(autorun(() => {
+      MemoCache.clear(this);
       const top = this.store.view.ref!;
       const sort = this.store.view.sort;
       const filter = this.store.view.filter;
@@ -84,37 +86,38 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     this.newThread$.complete();
   }
 
+  @memo
   get top() {
     return top(this.store.view.ref);
   }
 
-  getComments(r?: Ref) {
-    if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return r?.metadata?.plugins?.['plugin/comment'] || 0;
+  @memo
+  get responseSet() {
+    return this.admin.responseButton.find(p => this.replyTags.includes(p.tag));
   }
 
-  getThreads(r?: Ref) {
-    if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return r?.metadata?.plugins?.['plugin/thread'] || 0;
-  }
-
+  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.getComments(this.store.view.ref);
   }
 
+  @memo
   get threads() {
     return this.getThreads(this.store.view.ref);
   }
 
+  @memo
   get responses() {
     return this.query.page?.numberOfElements;
   }
 
+  @memo
   get mailboxes() {
     return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
   }
 
+  @memo
   get replyExts() {
     return (this.store.view.ref?.tags || [])
       .map(tag => this.admin.getPlugin(tag))
@@ -122,6 +125,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       .filter(t => !!t) as string[];
   }
 
+  @memo
   get replyTags(): string[] {
     const tags = [
       'internal',
@@ -132,9 +136,20 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
+  @memo
   get moreComments() {
     const topComments = this.thread.cache.get(this.top);
     if (!topComments) return false;
     return topComments.length > this.summaryItems;
+  }
+
+  private getComments(r?: Ref) {
+    if (!this.admin.getPlugin('plugin/comment')) return 0;
+    return r?.metadata?.plugins?.['plugin/comment'] || 0;
+  }
+
+  private getThreads(r?: Ref) {
+    if (!this.admin.getPlugin('plugin/thread')) return 0;
+    return r?.metadata?.plugins?.['plugin/thread'] || 0;
   }
 }

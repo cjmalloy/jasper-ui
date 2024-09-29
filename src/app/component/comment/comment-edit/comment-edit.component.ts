@@ -1,12 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { uniq, without } from 'lodash-es';
 import { catchError, Subject, Subscription, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
-import { AccountService } from '../../../service/account.service';
-import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
-import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { getIfNew, getMailboxes } from '../../../util/editor';
 import { printError } from '../../../util/http';
@@ -31,10 +29,7 @@ export class CommentEditComponent implements AfterViewInit {
   editorTags: string[] = [];
 
   constructor(
-    private admin: AdminService,
     private store: Store,
-    private account: AccountService,
-    private editor: EditorService,
     private refs: RefService,
     private fb: FormBuilder,
   ) {
@@ -52,10 +47,12 @@ export class CommentEditComponent implements AfterViewInit {
   }
 
   get patchTags() {
-    return getIfNew([
+    const addTags = this.editorTags.filter(t => !t.startsWith('-'));
+    const removeTags = this.editorTags.filter(t => t.startsWith('-')).map(t => t.substring(1));
+    return getIfNew(without(uniq([
       ...this.ref.tags || [],
       ...getMailboxes(this.comment.value, this.store.account.origin),
-      ...this.editorTags],
+      ...addTags]), ...removeTags),
       this.ref.tags);
   }
 
