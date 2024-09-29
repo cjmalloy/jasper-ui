@@ -18,7 +18,7 @@ import { removeTag, top } from '../../../util/tag';
 })
 export class RefCommentsComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
-  newComments$ = new Subject<Ref | null>();
+  newComments$ = new Subject<Ref | undefined>();
 
   constructor(
     private mod: ModService,

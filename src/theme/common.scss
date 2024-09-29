@@ -101,6 +101,12 @@ textarea {
   border: 1px solid var(--border);
 }
 
+.hide {
+  position: absolute;
+  opacity: 0;
+  clip: rect(0, 0, 1px, 1px);
+}
+
 .tag {
   color: var(--tag) !important;
 }

@@ -35,12 +35,6 @@ export class CommentReplyComponent implements AfterViewInit {
   @Input()
   tags: string[] = [];
   @Input()
-  newResp$?: Subject<Ref|null>;
-  @Input()
-  newComment$?: Subject<Ref|null>;
-  @Input()
-  newThread$?: Subject<Ref|null>;
-  @Input()
   showCancel = false;
   @Input()
   autofocus = false;
@@ -164,22 +158,12 @@ export class CommentReplyComponent implements AfterViewInit {
           }
         }
       };
-      if (hasTag('plugin/comment', ref)) {
-        this.newComment$?.next(update);
-      } else if (hasTag('plugin/thread', ref)) {
-        this.newThread$?.next(update);
-      } else if (!hasTag('internal', ref)) {
-        this.newResp$?.next(update);
-      }
-      this.save.emit(ref);
+      this.save.emit(update);
     });
   }
 
   cancel() {
     this.replying?.unsubscribe();
-    this.newResp$?.next(null);
-    this.newComment$?.next(null);
-    this.newThread$?.next(null);
     this.comment.setValue('');
     this.save.emit(undefined);
   }

@@ -26,7 +26,7 @@ export class RefThreadComponent {
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  newRefs$ = new Subject<Ref | null>();
+  newRefs$ = new Subject<Ref | undefined>();
 
   private watch?: Subscription;
 
@@ -67,7 +67,7 @@ export class RefThreadComponent {
           takeUntil(this.destroy$),
           switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
           filter(ref => hasTag('plugin/thread', ref)),
-          catchError(err => of(null)),
+          catchError(err => of(undefined)),
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));

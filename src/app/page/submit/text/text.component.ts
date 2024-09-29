@@ -141,6 +141,10 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   set editorTags(value: string[]) {
+    if (!this.tags) {
+      defer(() => this.editorTags = value);
+      return;
+    }
     const addTags = value.filter(t => !t.startsWith('-'));
     const removeTags = value.filter(t => t.startsWith('-')).map(t => t.substring(1));
     const newTags = uniq([...without(this.tags!.tags!.value, ...removeTags), ...addTags]);

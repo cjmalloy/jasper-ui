@@ -38,7 +38,7 @@ export class RefListComponent implements OnInit, OnDestroy {
   @Input()
   hideNewZeroVoteScores = true;
   @Input()
-  newRefs$?: Observable<Ref | null>;
+  newRefs$?: Observable<Ref | undefined>;
   @Input()
   insertNewAtTop = false;
   @Input()
@@ -156,10 +156,10 @@ export class RefListComponent implements OnInit, OnDestroy {
       if (index !== -1) {
         this.newRefs[index] = ref;
       } else if (this.insertNewAtTop) {
-        this.newRefs.unshift(ref);
+        this.newRefs = [ref, ...this.newRefs];
         return;
       } else {
-        this.newRefs.push(ref);
+        this.newRefs = [...this.newRefs, ref];
         return;
       }
     }

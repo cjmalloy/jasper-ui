@@ -24,7 +24,7 @@ export class RefErrorsComponent {
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  newRefs$ = new Subject<Ref | null>();
+  newRefs$ = new Subject<Ref | undefined>();
 
   private watch?: Subscription;
 
@@ -64,7 +64,7 @@ export class RefErrorsComponent {
           takeUntil(this.destroy$),
           switchMap(url => this.refs.getCurrent(url)),
           filter(ref => hasTag('+plugin/log', ref)),
-          catchError(err => of(null)),
+          catchError(err => of(undefined)),
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));

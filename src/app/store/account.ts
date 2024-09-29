@@ -273,7 +273,7 @@ export class AccountStore {
   }
 
   defaultEditors(plugins: string[]) {
-    if (!this.config?.editors) return plugins;
+    if (!this.config?.editors) return [];
     return intersection(this.config.editors, plugins);
   }
 }

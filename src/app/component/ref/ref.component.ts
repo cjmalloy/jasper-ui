@@ -127,7 +127,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @HostBinding('class.mobile-unlock')
   mobileUnlock = false;
   actionsExpanded?: boolean;
-  replyTags: string[] = [];
   replying = false;
   writeAccess = false;
   taggingAccess = false;
@@ -218,7 +217,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.viewSource = false;
     this.actionComponents?.forEach(c => c.reset());
     if (this.ref?.upload) this.editForm.get('url')!.enable();
-    this.replyTags = this.getReplyTags();
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.initFields(this.ref);
@@ -640,11 +638,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
-  getReplyTags(): string[] {
+  get replyTags(): string[] {
     const tags = [
       ...this.admin.reply.filter(p => (this.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
+    if (this.comments) tags.push('plugin/comment', 'internal');
+    if (this.threads) tags.push('plugin/thread', 'internal');
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
@@ -1046,6 +1046,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   onReply(ref?: Ref) {
     this.replying = false;
     if (!ref) return;
-    return this.store.eventBus.reload(this.ref);
+    this.store.eventBus.reload(this.ref);
   }
 }

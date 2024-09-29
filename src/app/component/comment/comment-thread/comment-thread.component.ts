@@ -26,7 +26,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   context = 0;
   @Input()
-  newComments$!: Observable<Ref | null>;
+  newComments$!: Observable<Ref | undefined>;
 
   comments?: Ref[];
   newComments: Ref[] = [];

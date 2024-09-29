@@ -56,8 +56,10 @@
   }
 </div>
 @if (page) {
-  @if (emptyMessage && page.empty) {
-    <p class="no-results">{{ emptyMessage }}</p>
+  @if (page.empty) {
+    @if (!newRefs.length && emptyMessage) {
+      <p class="no-results">{{ emptyMessage }}</p>
+    }
   } @else {
     <app-page-controls *ngIf="pageControls"
                        [showPageLast]="showPageLast"

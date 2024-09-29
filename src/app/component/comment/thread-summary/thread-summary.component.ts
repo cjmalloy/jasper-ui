@@ -29,7 +29,7 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   showLoadMore = true;
   @Input()
-  newRefs$!: Observable<Ref | null>;
+  newRefs$!: Observable<Ref | undefined>;
 
   newRefs: Ref[] = [];
   list: Ref[] = [];
@@ -42,8 +42,9 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit(): void {
     this.newRefs$.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(comment =>
-      comment && this.newRefs.unshift(comment));
+    ).subscribe(comment => {
+      if (comment) this.newRefs = [comment, ...this.newRefs];
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
