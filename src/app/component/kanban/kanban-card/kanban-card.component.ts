@@ -18,7 +18,7 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { defer, delay, difference, intersection, uniq, without } from 'lodash-es';
-import { catchError, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
 import { equalsRef, Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
@@ -91,8 +91,12 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     this.chess = !!this.admin.getPlugin('plugin/chess') && !!this.ref.tags?.includes('plugin/chess');
     this.chessWhite = !!this.ref.tags?.includes(this.store.account.localTag);
     if (this.repost && this.ref && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-      this.refs.getCurrent(this.url)
-        .subscribe(ref => this.repostRef = ref);
+      this.refs.getCurrent(this.url).pipe(
+        catchError((res: HttpErrorResponse) => {
+          if (res.status === 404) return of(null);
+          return throwError(() => res);
+        }),
+      ).subscribe(ref => this.repostRef = ref!);
     }
   }
 
@@ -135,7 +139,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   @memo
   get repost() {
-    return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
+    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
   }
 
   @memo

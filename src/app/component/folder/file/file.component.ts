@@ -1,4 +1,6 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { catchError, of, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import {
   Action,
@@ -74,8 +76,14 @@ export class FileComponent implements OnChanges {
       this.expandPlugins = this.admin.getEmbeds(this.ref);
       if (this.repost) {
         if (this.ref && this.fetchRepost && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-          this.refs.get(this.url, this.ref.origin).subscribe(ref => {
-            this.repostRef = ref;
+          this.refs.getCurrent(this.url).pipe(
+            catchError((res: HttpErrorResponse) => {
+              if (res.status === 404) return of(null);
+              return throwError(() => res);
+            }),
+          ).subscribe(ref => {
+            this.repostRef = ref!;
+            if (!ref) return;
             MemoCache.clear(this);
             if (this.bareRepost) {
               this.expandPlugins = this.admin.getEmbeds(ref);
@@ -109,7 +117,7 @@ export class FileComponent implements OnChanges {
 
   @memo
   get repost() {
-    return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
+    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
   }
 
   @memo

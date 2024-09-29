@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { defer } from 'lodash-es';
-import { catchError, map, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
@@ -62,18 +62,23 @@ export class ChatEntryComponent implements OnChanges {
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     if (this.ref && this.bareRepost && !this.repostRef) {
-      this.refs.getCurrent(this.url)
-        .subscribe(ref => {
-          this.repostRef = ref;
+      this.refs.getCurrent(this.url).pipe(
+        catchError((res: HttpErrorResponse) => {
+          if (res.status === 404) return of(null);
+          return throwError(() => res);
+        }),
+      ).subscribe(ref => {
+        this.repostRef = ref!;
+          if (!ref) return;
           this.noComment = {
             ...ref,
-            comment: ''
+            comment: '',
           };
         });
     } else {
       this.noComment = {
         ...this.ref,
-        comment: ''
+        comment: '',
       };
     }
   }
@@ -152,7 +157,7 @@ export class ChatEntryComponent implements OnChanges {
 
   @memo
   get repost() {
-    return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
+    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
   }
 
   @memo
