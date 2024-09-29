@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { merge, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
@@ -113,7 +113,6 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   @memo
   get replyTags(): string[] {
     const tags = [
-      'internal',
       ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
       ...this.replyExts,

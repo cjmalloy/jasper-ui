@@ -9,7 +9,7 @@ import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, removeTag, top } from '../../../util/tag';
+import { removeTag, top } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-comments',

@@ -24,7 +24,7 @@ import { active, sortOrder } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { GraphService } from '../../../service/api/graph.service';
 import { Store } from '../../../store/store';
-import { isTextPost } from '../../../util/format';
+import { getTitle, isTextPost } from '../../../util/format';
 import { findNode, GraphNode, isGraphable, isInternal, responses, sources } from '../../../util/graph';
 import { getScheme } from '../../../util/http';
 import { Point, Rect } from '../../../util/math';
@@ -350,10 +350,6 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     this.close();
   }
 
-  title(ref: GraphNode) {
-    return (ref.title || '').trim() || ref.url;
-  }
-
   icon(ref: GraphNode) {
     return sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))).filter(i => active(ref, i)).shift()?.label || '';
   }
@@ -542,7 +538,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
             .attr('stroke-width', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeWidth : this.nodeStrokeOpacity)
             .attr('fill', ref => this.color(ref))
             .select('title')
-              .text(ref => this.title(ref));
+              .text(ref => getTitle(ref));
           update.select('text')
             .text(ref => this.icon(ref));
           return update;

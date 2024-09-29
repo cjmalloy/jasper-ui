@@ -36,12 +36,13 @@ describe('Ref Actions', {
   });
   it('creates reply', () => {
     cy.get('.actions *').contains('reply').click();
-    cy.get('#title').type('Reply');
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('.full-page.ref .comment-reply textarea').type('Reply');
+    cy.get('.full-page.ref button').contains('reply').click();
+    cy.get('.ref-list-item.ref .actions *').contains('permalink').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Reply');
   });
   it('shows parent', () => {
-    cy.get('.actions *').contains('parent').click();
+    cy.get('.full-page.ref .actions *').contains('parent').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
     cy.title().should('includes', 'Title');
   });

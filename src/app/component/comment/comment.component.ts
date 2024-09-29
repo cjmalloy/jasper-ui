@@ -11,7 +11,6 @@ import {
   SimpleChanges,
   ViewChildren
 } from '@angular/core';
-import { Router } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
@@ -30,7 +29,6 @@ import {
 import { deleteNotice } from '../../mods/delete';
 import { getMailbox, mailboxes } from '../../mods/mailbox';
 import { score } from '../../mods/vote';
-import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
@@ -230,7 +228,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   @memo
   get replyTags(): string[] {
     const tags = [
-      'internal',
       ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
       ...this.replyExts,

@@ -203,10 +203,8 @@
             @if (parentThreadTop) {
               <a [routerLink]="['/ref', parentThreadTop, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
             }
-            @if (store.account.user && !dm) {
-              <a routerLink="/submit/text" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags}" i18n>reply</a>
-            } @else if (store.account.user && dm) {
-              <a routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
+            @if (store.account.user) {
+              <a class="fake-link" (click)="replying = !replying" i18n>reply</a>
             }
             @if (errors) {
               <a [routerLink]="['/ref', ref.url, 'errors']" [queryParams]="{ origin: obsoleteOrigin }" i18n>{errors, plural, =1 {1&thinsp;error} other {{{ errors }}&thinsp;errors}}</a>
@@ -341,3 +339,11 @@
     * Published date was changed to be after source published date.
   </div>
 </ng-template>
+
+<app-comment-reply *ngIf="replying"
+                   [autofocus]="true"
+                   [to]="ref"
+                   [showCancel]="true"
+                   [selectResponseType]="!thread && !comment"
+                   [tags]="replyTags"
+                   (save)="onReply($event)"></app-comment-reply>

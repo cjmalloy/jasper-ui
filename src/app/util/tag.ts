@@ -1,4 +1,4 @@
-import { filter, find, flatMap, without } from 'lodash-es';
+import { filter, find, flatMap, isArray, without } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
@@ -61,13 +61,14 @@ export function getStrictPrefix(a: string, b: string) {
   return getLargestPrefix(parentTag(a), parentTag(b));
 }
 
-export function hasTag(tag: string | undefined, ref: Ref | undefined): boolean {
+export function hasTag(tag: string | undefined, ref: Ref | string[] | undefined): boolean {
   if (!tag) return false;
   if (tag.startsWith('-')) return !hasTag(tag.substring(1), ref);
-  if (!ref?.tags) return false;
+  const tags = isArray(ref) ? ref : ref?.tags;
+  if (!tags) return false;
   const not = tag.startsWith('!');
   if (not) tag = tag.substring(1);
-  return !!find(ref.tags, t => expandedTagsInclude(t, tag)) !== not;
+  return !!find(tags, t => expandedTagsInclude(t, tag)) !== not;
 }
 
 export function hasAnyResponse(plugin: string | undefined, ref: Ref | undefined): boolean {

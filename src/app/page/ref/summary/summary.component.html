@@ -45,7 +45,8 @@
       <div class="summary-box">
         <h5 routerLink="./responses" i18n>Responses:</h5>
         <app-ref-list [page]="query.page"
-                      [pageControls]="false"></app-ref-list>
+                      [pageControls]="false"
+                      [newRefs$]="newResp$"></app-ref-list>
         @if (responses > summaryItems) {
           <a routerLink="./responses"
              queryParamsHandling="merge"

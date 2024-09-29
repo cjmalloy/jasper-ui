@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, HostBinding, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer, merge, pickBy, uniq, without } from 'lodash-es';
 import * as moment from 'moment';
@@ -44,6 +44,8 @@ export class CommentReplyComponent implements AfterViewInit {
   showCancel = false;
   @Input()
   autofocus = false;
+  @Output()
+  save = new EventEmitter<Ref|undefined>();
 
   @ViewChild(EditorComponent)
   editor?: EditorComponent
@@ -110,23 +112,25 @@ export class CommentReplyComponent implements AfterViewInit {
     const value = this.comment.value;
     const addTags = this.editorTags.filter(t => !t.startsWith('-'));
     const removeTags = this.editorTags.filter(t => t.startsWith('-')).map(t => t.substring(1));
+    const tags = removeTag(getMailbox(this.store.account.tag, this.store.account.origin), without(uniq([
+      ...this.publicTag,
+      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+      ...without(this.tags, ...this.admin.getEditorButtons(this.tags, 'comment:').map(b => b.toggle) as string[]),
+      ...addTags,
+      ...getTags(value),
+      ...getMailboxes(value, this.store.account.origin),
+    ]), ...removeTags));
+    const sources = [this.to.url];
+    if (hasTag('plugin/comment', tags) || hasTag('plugin/thread', tags)) {
+      sources.push(this.to.sources?.[1] || this.to.sources?.[0] || this.to.url)
+    }
     const ref: Ref = {
       url,
       origin: this.store.account.origin,
       title: (hasTag('plugin/email', this.to) || hasTag('plugin/thread', this.to)) ? getRe(this.to.title) : '',
       comment: value,
-      sources: [
-        this.to.url,
-        ...[this.to.sources?.[1] || this.to.sources?.[0] || this.to.url],
-      ],
-      tags: removeTag(getMailbox(this.store.account.tag, this.store.account.origin), without(uniq([
-        ...this.publicTag,
-        ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-        ...without(this.tags, ...this.admin.getEditorButtons(this.tags, 'comment:').map(b => b.toggle) as string[]),
-        ...addTags,
-        ...getTags(value),
-        ...getMailboxes(value, this.store.account.origin),
-      ]), ...removeTags)),
+      sources,
+      tags,
       plugins: this.inheritedPlugins,
       published: moment(),
     };
@@ -167,6 +171,7 @@ export class CommentReplyComponent implements AfterViewInit {
       } else if (!hasTag('internal', ref)) {
         this.newResp$?.next(update);
       }
+      this.save.emit(ref);
     });
   }
 
@@ -176,5 +181,6 @@ export class CommentReplyComponent implements AfterViewInit {
     this.newComment$?.next(null);
     this.newThread$?.next(null);
     this.comment.setValue('');
+    this.save.emit(undefined);
   }
 }
