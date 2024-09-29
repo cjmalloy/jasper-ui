@@ -442,7 +442,7 @@ export class ViewStore {
   }
 
   get repost() {
-    return hasTag('plugin/repost', this.ref);
+    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
   }
 
   updateNotify() {

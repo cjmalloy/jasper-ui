@@ -1,7 +1,7 @@
 import { Component, HostBinding } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { filter, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
@@ -67,6 +67,7 @@ export class RefThreadComponent {
           takeUntil(this.destroy$),
           switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
           filter(ref => hasTag('plugin/thread', ref)),
+          catchError(err => of(null)),
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));

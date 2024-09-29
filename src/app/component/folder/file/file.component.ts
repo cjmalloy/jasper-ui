@@ -1,4 +1,5 @@
 import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { catchError, of, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import {
   Action,
@@ -74,8 +75,11 @@ export class FileComponent implements OnChanges {
       this.expandPlugins = this.admin.getEmbeds(this.ref);
       if (this.repost) {
         if (this.ref && this.fetchRepost && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-          this.refs.get(this.url, this.ref.origin).subscribe(ref => {
+          this.refs.getCurrent(this.url).pipe(
+            catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+          ).subscribe(ref => {
             this.repostRef = ref;
+            if (!ref) return;
             MemoCache.clear(this);
             if (this.bareRepost) {
               this.expandPlugins = this.admin.getEmbeds(ref);
@@ -109,7 +113,7 @@ export class FileComponent implements OnChanges {
 
   @memo
   get repost() {
-    return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
+    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
   }
 
   @memo
