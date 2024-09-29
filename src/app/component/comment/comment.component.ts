@@ -70,7 +70,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   commentEdited$ = new Subject<Ref>();
   newComments = 0;
-  newComments$ = new Subject<Ref | null>();
+  newComments$ = new Subject<Ref | undefined>();
   icons: Icon[] = [];
   actions: Action[] = [];
   groupedActions: { [key: string]: Action[] } = {};

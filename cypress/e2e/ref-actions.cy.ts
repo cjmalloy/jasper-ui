@@ -38,6 +38,7 @@ describe('Ref Actions', {
     cy.get('.actions *').contains('reply').click();
     cy.get('.full-page.ref .comment-reply textarea').type('Reply');
     cy.get('.full-page.ref button').contains('reply').click();
+    cy.get('.full-page.ref .actions *').contains('1 citation').click();
     cy.get('.ref-list-item.ref .actions *').contains('permalink').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Reply');
   });

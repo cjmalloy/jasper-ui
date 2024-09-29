@@ -81,7 +81,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
-  toggleResponse = '';
+  toggleIndex = 0;
+  toggleResponse: string[] = [];
   addEditorTags: string[] = [];
   removeEditorTags: string[] = [];
   initialFullscreen = false;
@@ -114,15 +115,22 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   init() {
     MemoCache.clear(this);
     this.addEditorTags = this.store.account.defaultEditors(this.editors);
-    for (const p of this.responseButtons) {
-      if (this.tags?.includes(p.tag)) this.toggleResponse = p.tag;
+    if (this.selectResponseType && this.responseButtons.length) {
+      this.toggleResponse = this.responseButtons[0].config?.reply || [this.responseButtons[0].tag];
+      this.toggleIndex = 0;
+      for (const p of this.responseButtons) {
+        if (this.tags?.includes(p.tag)) {
+          this.toggleResponse = p.config?.reply || [p.tag];
+          this.toggleIndex = this.responseButtons.indexOf(p);
+        }
+      }
+    }
+    if (this.editing) {
+      this.syncTags.next(this.addTags);
     }
   }
 
   ngAfterViewInit(): void {
-    if (this.editing) {
-      this.syncTags.emit(this.tags);
-    }
     this.disposers.push(autorun(() => {
       const height = this.store.viewportHeight - 4;
       if (this.overlayRef) {
@@ -172,22 +180,18 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   get addTags() {
-    const tags = [];
-    if (this.toggleResponse) {
-      tags.push(this.toggleResponse);
-    }
-    tags.push(...this.addEditorTags);
-    tags.push(...this.removeEditorTags.map(t => '-' + t));
-    return uniq(tags);
+    return without(uniq([
+      ...this.toggleResponse,
+      ...this.addEditorTags,
+    ]), ...this.removeEditorTags.map(t => '-' + t));
   }
 
   get fullTags() {
     return without(uniq([
-        ...this.tags || [],
-        ...this.addEditorTags,
-        ...this.toggleResponse ? [this.toggleResponse] : []
-      ]),
-      ...this.removeEditorTags);
+      ...this.tags || [],
+      ...this.toggleResponse,
+      ...this.addEditorTags,
+    ]), ...this.removeEditorTags);
   }
 
   get editing(): boolean {
@@ -197,12 +201,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @HostBinding('class.editing')
   set editing(value: boolean) {
     if (!this._editing && value) {
+      this.syncTags.emit(this.addTags);
       defer(() => {
         this._editing = true;
         if (this.fullscreenDefault && !this.initialFullscreen) {
           this.toggleFullscreen(true);
         }
-        this.syncTags.emit(this.addTags);
       });
     }
   }
@@ -272,8 +276,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   setResponse(tag: string) {
     if (!this.tags?.includes(tag)) {
-      this.toggleResponse = tag;
-      this.syncTags.next(this.tags = [...without(this.tags!, ...this.responseButtons.map(p => p.tag)), tag]);
+      this.toggleIndex = this.responseButtons.map(p => p.tag).indexOf(tag);
+      const button = this.responseButtons[this.toggleIndex];
+      this.toggleResponse = button?.config?.reply || [button.tag];
+      this.syncTags.next(this.addTags);
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
     this.editor?.nativeElement.focus();

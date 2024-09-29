@@ -118,7 +118,7 @@
                      [to]="ref"
                      [showCancel]="true"
                      [tags]="replyTags"
-                     [newComment$]="newComments$"></app-comment-reply>
+                     (save)="newComments$.next($event)"></app-comment-reply>
   <div class="comment-children"
        [class.hidden-without-removing]="collapsed">
     <app-comment-thread [source]="ref"

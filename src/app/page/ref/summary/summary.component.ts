@@ -21,9 +21,9 @@ import { hasTag, removeTag, top } from '../../../util/tag';
 })
 export class RefSummaryComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
-  newResp$ = new Subject<Ref | null>();
-  newComment$ = new Subject<Ref | null>();
-  newThread$ = new Subject<Ref | null>();
+  newResp$ = new Subject<Ref | undefined>();
+  newComment$ = new Subject<Ref | undefined>();
+  newThread$ = new Subject<Ref | undefined>();
 
   summaryItems = 5;
 
@@ -79,7 +79,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
 
   @memo
   get responseSet() {
-    return this.admin.responseButton.find(p => this.replyTags.includes(p.tag));
+    return this.comments || this.threads || this.admin.responseButton.find(p => this.replyTags.includes(p.tag));
   }
 
   @memo
@@ -93,8 +93,9 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     return this.getThreads(this.store.view.ref);
   }
 
+  @memo
   get responses() {
-    return this.query.page?.numberOfElements;
+    return this.getResponses(this.store.view.ref);
   }
 
   @memo
@@ -117,6 +118,8 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       ...this.mailboxes,
       ...this.replyExts,
     ];
+    if (this.comments) tags.push('plugin/comment', 'internal');
+    if (this.threads) tags.push('plugin/thread', 'internal');
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
@@ -136,9 +139,14 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     return r?.metadata?.plugins?.['plugin/thread'] || 0;
   }
 
+  private getResponses(r?: Ref) {
+    return r?.metadata?.responses || 0;
+  }
+
   onReply(ref?: Ref) {
     runInAction(() => {
       if (ref && this.store.view.ref) {
+        MemoCache.clear(this);
         this.store.view.ref.metadata ||= {};
         this.store.view.ref.metadata.plugins ||= {} as any;
         if (hasTag('plugin/comment', ref)) {
@@ -149,7 +157,23 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
           this.store.view.ref.metadata.plugins!['plugin/thread'] ||= 0;
           this.store.view.ref.metadata.plugins!['plugin/thread']++;
         }
+        if (hasTag('internal', ref)) {
+          this.store.view.ref.metadata.internalResponses ||= 0;
+          this.store.view.ref.metadata.internalResponses++;
+        } else {
+          this.store.view.ref.metadata.responses ||= 0;
+          this.store.view.ref.metadata.responses++;
+        }
       }
     });
+    this.store.eventBus.reload(ref);
+    if (hasTag('plugin/comment', ref)) {
+      this.newComment$?.next(ref);
+    } else if (hasTag('plugin/thread', ref)) {
+      this.newThread$?.next(ref);
+    } else if (!hasTag('internal', ref)) {
+      this.newResp$?.next(ref);
+    }
+
   }
 }

@@ -14,7 +14,7 @@
     <app-comment-reply [to]="to"
                        quote=""
                        [tags]="replyTags"
-                       [newComment$]="newRefs$"></app-comment-reply>
+                       (save)="newRefs$.next($event)"></app-comment-reply>
   } @else {
     <app-loading></app-loading>
   }

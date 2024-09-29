@@ -44,12 +44,12 @@
       </div>
     }
     @if (selectResponseType && responseButtons.length > 1) {
-      <div class="toolbar-toggle toolbar-toggle-{{toggleResponse}}">
-        @for (plugin of responseButtons; track plugin) {
+      <div class="toolbar-toggle toolbar-toggle-{{toggleIndex}}">
+        @for (plugin of responseButtons; track plugin; let i=$index) {
           <button type="button"
                   class="response-button"
                   (click)="setResponse(plugin.tag)"
-                  [class.selected]="toggleResponse === plugin.tag"
+                  [class.selected]="toggleIndex === i"
                   [title]="plugin.name" i18n>{{ plugin.config?.responseButton }}</button>
         }
       </div>
