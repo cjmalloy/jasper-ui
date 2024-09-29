@@ -14,7 +14,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import * as moment from 'moment';
-import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
@@ -126,7 +126,9 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
     if (this.repost) {
       if (this.ref && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-        this.refs.get(this.url, this.ref.origin).subscribe(ref => {
+        this.refs.getCurrent(this.url).pipe(
+          catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        ).subscribe(ref => {
           this.repostRef = ref;
           MemoCache.clear(this);
         });
@@ -153,7 +155,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
 
   @memo
   get repost() {
-    return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
+    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
   }
 
   @memo

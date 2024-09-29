@@ -1,14 +1,13 @@
 <ng-container *mobxAutorun>
   @if (store.view.ref) {
-    @if (admin.getPlugin('plugin/comment')) {
-      <app-comment-reply [to]="store.view.ref"
-                         quote=""
-                         [tags]="replyTags"
-                         [selectResponseType]="true"
-                         [newResp$]="newResp$"
-                         [newComment$]="newComment$"
-                         [newThread$]="newThread$"></app-comment-reply>
-    }
+    <app-comment-reply [to]="store.view.ref"
+                       quote=""
+                       [tags]="replyTags"
+                       [selectResponseType]="!responseSet"
+                       (save)="onReply($event)"
+                       [newResp$]="newResp$"
+                       [newComment$]="newComment$"
+                       [newThread$]="newThread$"></app-comment-reply>
     @if (comments) {
       <div class="summary-box">
         <h5 routerLink="./comments" i18n>Comments:</h5>

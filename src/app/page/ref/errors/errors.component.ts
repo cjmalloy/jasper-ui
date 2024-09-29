@@ -1,7 +1,7 @@
 import { Component, HostBinding } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { filter, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -64,6 +64,7 @@ export class RefErrorsComponent {
           takeUntil(this.destroy$),
           switchMap(url => this.refs.getCurrent(url)),
           filter(ref => hasTag('+plugin/log', ref)),
+          catchError(err => of(null)),
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));
