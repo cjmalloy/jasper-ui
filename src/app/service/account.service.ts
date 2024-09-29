@@ -227,7 +227,23 @@ export class AccountService {
     this.checkAlarms();
   }
 
-  clearNotifications(readDate: moment.Moment) {
+  clearNotificationsIfNone(readDate?: moment.Moment) {
+    if (!readDate || readDate.isBefore(this.store.account.config.lastNotified)) return;
+    if (!this.store.account.signedIn) return;
+    if (!this.admin.getTemplate('user')) return;
+    this.userExt$.pipe(
+      switchMap(() => this.refs.count({
+        query: this.store.account.notificationsQuery,
+        modifiedAfter: this.store.account.config.lastNotified || moment().subtract(1, 'year'),
+        modifiedBefore: readDate,
+      })),
+    ).subscribe(count => {
+      if (count === 0) this.clearNotifications(readDate);
+    });
+  }
+
+  clearNotifications(readDate?: moment.Moment) {
+    if (!readDate || readDate.isBefore(this.store.account.config.lastNotified)) return;
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     const lastNotified = readDate.add(1, 'millisecond').toISOString();
@@ -249,6 +265,7 @@ export class AccountService {
     ).subscribe(count => runInAction(() => this.store.account.alarmCount = count));
   }
 
+  // TODO: move to ext, plugin, template service as  a mixin
   updateConfig$(name: keyof UserConfig, value: any) {
     return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
         op: 'add',
