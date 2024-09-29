@@ -29,6 +29,7 @@ import { equalsRef, Ref } from '../../model/ref';
 import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
+import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -140,6 +141,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   constructor(
     public config: ConfigService,
+    public accounts: AccountService,
     public admin: AdminService,
     public store: Store,
     private auth: AuthzService,
@@ -815,7 +817,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.init();
       return of(null);
     } else {
-      return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref.url, this.ref.origin!), this.ref);
+      return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref.url, this.ref.origin!).pipe(
+        tap(cursor => this.accounts.clearNotificationsIfNone(moment(cursor))),
+      ), this.ref);
     }
   }
 
@@ -924,7 +928,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     } else {
       this.refreshTap = () => this.publishChanged = !published.isSame(this.ref.published);
       this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
-        tap(() => {
+        tap(cursor => {
+          this.accounts.clearNotificationsIfNone(moment(cursor));
           delete this.submitting;
           this.editing = false;
         }),

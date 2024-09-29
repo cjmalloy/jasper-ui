@@ -6,6 +6,7 @@ import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
+import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 
@@ -52,6 +53,7 @@ export class RefListComponent implements OnInit, OnDestroy {
   private _cols = 0;
 
   constructor(
+    private accounts: AccountService,
     private router: Router,
     private store: Store,
     private refs: RefService,
@@ -147,6 +149,8 @@ export class RefListComponent implements OnInit, OnDestroy {
   }
 
   addNewRef(ref: Ref) {
+    // TODO: verify read before clearing?
+    this.accounts.clearNotificationsIfNone(ref.modified);
     if (!this.page?.content.find(r => r.url === ref.url)) {
       const index = this.newRefs.findIndex(r => r.url === ref.url);
       if (index !== -1) {
