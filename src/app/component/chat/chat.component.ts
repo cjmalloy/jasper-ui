@@ -5,6 +5,7 @@ import * as moment from 'moment';
 import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
+import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
@@ -49,6 +50,7 @@ export class ChatComponent implements OnDestroy {
 
   constructor(
     private config: ConfigService,
+    private accounts: AccountService,
     public admin: AdminService,
     private store: Store,
     private refs: RefService,
@@ -126,7 +128,10 @@ export class ChatComponent implements OnDestroy {
       if (page.empty) return;
       if (!this.messages) this.messages = [];
       this.messages = [...this.messages, ...page.content];
-      this.cursors.set(origin, page.content[page.content.length - 1]?.modifiedString);
+      const last = page.content[page.content.length - 1];
+      this.cursors.set(origin, last?.modifiedString);
+      // TODO: verify read before clearing?
+      this.accounts.clearNotificationsIfNone(last.modified);
       pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
       defer(() => this.viewport.checkViewportSize());
       if (!this.scrollLock) this.scrollDown();
