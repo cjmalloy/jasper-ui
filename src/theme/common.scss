@@ -317,6 +317,17 @@ select {
   flex-direction: row-reverse;
   position: relative;
 
+  &.add-button {
+    &>* {
+      margin: 4px;
+    }
+    padding: 0 !important;
+    border: none !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+
   &.stacked {
     display: block;
   }

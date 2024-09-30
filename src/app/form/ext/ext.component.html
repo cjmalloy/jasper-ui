@@ -17,6 +17,9 @@
       <label for="popover" class="editor-label" i18n>Popover:</label>
       <div>
         <app-editor id="popover"
+                    [addButton]="true"
+                    i18n-addCommentTitle addCommentTitle="Add popover"
+                    i18n-addCommentLabel addCommentLabel="+ Add popover"
                     [control]="popover"></app-editor>
       </div>
     }
@@ -86,6 +89,9 @@
       <div #fill>
         <app-editor id="sidebar"
                     class="bubble"
+                    [addButton]="true"
+                    i18n-addCommentTitle addCommentTitle="Add sidebar"
+                    i18n-addCommentLabel addCommentLabel="+ Add sidebar"
                     [fillWidth]="fill"
                     [control]="sidebar"></app-editor>
       </div>
