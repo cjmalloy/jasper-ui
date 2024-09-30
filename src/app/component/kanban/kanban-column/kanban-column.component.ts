@@ -17,6 +17,7 @@ import { v4 as uuid } from 'uuid';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref, RefSort } from '../../../model/ref';
+import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
@@ -68,6 +69,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   constructor(
     public config: ConfigService,
+    private accounts: AccountService,
     private admin: AdminService,
     private store: Store,
     private oembeds: OembedStore,
@@ -254,6 +256,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         }
         return throwError(err);
       }),
+      tap(cursor => this.accounts.clearNotificationsIfNone(moment(cursor))),
     ).subscribe(cursor => {
       this.mutated = true;
       this.adding.splice(this.adding.indexOf(text), 1);
