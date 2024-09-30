@@ -1,7 +1,7 @@
 # Jasper-UI
 Reference client for Jasper KM.
 
-[![Build & Test](https://github.com/cjmalloy/jasper-ui/actions/workflows/docker-image.yml/badge.svg)](https://github.com/cjmalloy/jasper-ui/actions/workflows/docker-image.yml)
+[![Build & Test](https://github.com/cjmalloy/jasper-ui/actions/workflows/test.yml/badge.svg)](https://github.com/cjmalloy/jasper-ui/actions/workflows/test.yml)
 [![Cypress](https://github.com/cjmalloy/jasper-ui/actions/workflows/cypress.yml/badge.svg)](https://github.com/cjmalloy/jasper-ui/actions/workflows/cypress.yml)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/jasper)](https://artifacthub.io/packages/helm/jasper/jasper-ui)
 
