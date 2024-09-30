@@ -228,7 +228,7 @@ export class AccountService {
   }
 
   clearNotificationsIfNone(readDate?: moment.Moment) {
-    if (!readDate || readDate.isBefore(this.store.account.config.lastNotified)) return;
+    if (!readDate || this.store.account.config.lastNotified && readDate.isBefore(this.store.account.config.lastNotified)) return;
     if (!this.store.account.signedIn) return;
     if (!this.admin.getTemplate('user')) return;
     this.userExt$.pipe(
@@ -243,7 +243,7 @@ export class AccountService {
   }
 
   clearNotifications(readDate?: moment.Moment) {
-    if (!readDate || readDate.isBefore(this.store.account.config.lastNotified)) return;
+    if (!readDate || this.store.account.config.lastNotified && readDate.isBefore(this.store.account.config.lastNotified)) return;
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     const lastNotified = readDate.add(1, 'millisecond').toISOString();
