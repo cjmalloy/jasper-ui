@@ -68,7 +68,13 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input()
   autoFocus = false;
   @Input()
+  addButton = false;
+  @Input()
   url = '';
+  @Input()
+  addCommentTitle = $localize`Add comment`;
+  @Input()
+  addCommentLabel = $localize`+ Add comment`;
   @Input()
   fillWidth?: HTMLElement;
 
@@ -167,6 +173,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.selectionStart = this.editor?.nativeElement.selectionStart || 0;
       this.selectionEnd = this.editor?.nativeElement.selectionEnd || 0;
     });
+  }
+
+  @HostBinding('class.add-button')
+  get addButtonClass() {
+    return this.addButton && !this.editing && !this.currentText;
   }
 
   @HostBinding('style.padding.px')
@@ -440,5 +451,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.store.eventBus.fire(event);
     }
     this.editor?.nativeElement.focus();
+  }
+
+  addComment() {
+    this.editing = true;
+    defer(() => this.editor?.nativeElement?.focus());
   }
 }
