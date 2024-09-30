@@ -5,7 +5,7 @@
                        [tags]="replyTags"
                        [selectResponseType]="!responseSet"
                        (save)="onReply($event)"></app-comment-reply>
-    <div class="summary-box" [class.hide]="!comments">
+    <div class="summary-box" [class.hidden-without-removing]="!comments">
       <h5 routerLink="./comments" i18n>Comments:</h5>
       <app-thread-summary query="plugin/comment:!plugin/delete"
                           [commentView]="true"
@@ -19,7 +19,7 @@
         </a>
       }
     </div>
-    <div class="summary-box thread" [class.hide]="!threads">
+    <div class="summary-box thread" [class.hidden-without-removing]="!threads">
       <h5 routerLink="./thread" i18n>Threads:</h5>
       <app-thread-summary query="plugin/thread:!plugin/comment:!plugin/delete"
                           [source]="store.view.ref"
@@ -34,7 +34,7 @@
         </a>
       }
     </div>
-    <div class="summary-box" [class.hide]="!responses">
+    <div class="summary-box" [class.hidden-without-removing]="!responses">
       <h5 routerLink="./responses" i18n>Responses:</h5>
       <app-ref-list [page]="query.page"
                     [pageControls]="false"
