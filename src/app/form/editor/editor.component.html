@@ -1,89 +1,96 @@
-<div class="text-wrapper">
-  <div class="toolbar">
-    <button type="button"
-            (click)="toggleFullscreen()"
-            i18n-title title="Fullscreen editor"
-            i18n>⛶</button>
-    <button type="button"
-            (click)="toggleHelp()"
-            i18n-title title="Help"
-            i18n>❓️</button>
-    @if (fullscreen) {
+@if (addButton && !editing && !currentText) {
+  <button type="button"
+          (click)="addComment()"
+          i18n-title title="Add comment"
+          i18n>+ Add Comment</button>
+} @else {
+  <div class="text-wrapper">
+    <div class="toolbar">
       <button type="button"
-              (click)="toggleStacked()"
-              i18n-title title="Stacked or side by side layout toggle"
-              i18n>/</button>
-    }
-    @if (fullscreen || currentText) {
+              (click)="toggleFullscreen()"
+              i18n-title title="Fullscreen editor"
+              i18n>⛶</button>
       <button type="button"
-              (click)="togglePreview()"
-              i18n-title title="Show preview"
-              i18n>📝️</button>
-    }
-    @for (button of editorPushButtons; track button; let i = $index) {
-      @if (!button.event) {
+              (click)="toggleHelp()"
+              i18n-title title="Help"
+              i18n>❓️</button>
+      @if (fullscreen) {
         <button type="button"
-                (click)="toggleTag(button)"
-                [title]="button.title" i18n>{{(buttonOn(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</button>
-      } @else {
-        <button type="button"
-                (click)="fireEvent(button.event)"
-                [title]="button.title" i18n>{{ button.label }}</button>
+                (click)="toggleStacked()"
+                i18n-title title="Stacked or side by side layout toggle"
+                i18n>/</button>
       }
-    }
-    @for (button of editorRibbons; track button; let i = $index) {
-      <div class="editor-toggle">
-        <input type="checkbox"
-               [style.display]="'none'"
-               [id]="'ribbon-' + id + i"
-               [checked]="buttonOn(button.toggle!)"
-               (click)="toggleTag(button)">
-        <label [for]="'ribbon-' + id + i"
-               [class.on]="buttonOn(button.toggle!)"
-               [title]="button.title">{{(buttonOn(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</label>
-      </div>
-    }
-    @if (selectResponseType && responseButtons.length > 1) {
-      <div class="toolbar-toggle toolbar-toggle-{{toggleIndex}}">
-        @for (plugin of responseButtons; track plugin; let i=$index) {
+      @if (fullscreen || currentText) {
+        <button type="button"
+                (click)="togglePreview()"
+                i18n-title title="Show preview"
+                i18n>📝️</button>
+      }
+      @for (button of editorPushButtons; track button; let i = $index) {
+        @if (!button.event) {
           <button type="button"
-                  class="response-button"
-                  (click)="setResponse(plugin.tag)"
-                  [class.selected]="toggleIndex === i"
-                  [title]="plugin.name" i18n>{{ plugin.config?.responseButton }}</button>
+                  (click)="toggleTag(button)"
+                  [title]="button.title" i18n>{{(buttonOn(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</button>
+        } @else {
+          <button type="button"
+                  (click)="fireEvent(button.event)"
+                  [title]="button.title" i18n>{{ button.label }}</button>
         }
-      </div>
-    }
+      }
+      @for (button of editorRibbons; track button; let i = $index) {
+        <div class="editor-toggle">
+          <input type="checkbox"
+                 [style.display]="'none'"
+                 [id]="'ribbon-' + id + i"
+                 [checked]="buttonOn(button.toggle!)"
+                 (click)="toggleTag(button)">
+          <label [for]="'ribbon-' + id + i"
+                 [class.on]="buttonOn(button.toggle!)"
+                 [title]="button.title">{{(buttonOn(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</label>
+        </div>
+      }
+      @if (selectResponseType && responseButtons.length > 1) {
+        <div class="toolbar-toggle toolbar-toggle-{{toggleIndex}}">
+          @for (plugin of responseButtons; track plugin; let i=$index) {
+            <button type="button"
+                    class="response-button"
+                    (click)="setResponse(plugin.tag)"
+                    [class.selected]="toggleIndex === i"
+                    [title]="plugin.name" i18n>{{ plugin.config?.responseButton }}</button>
+          }
+        </div>
+      }
+    </div>
+    <textarea #editor
+              [formControl]="control"
+              (touchstart)="fullscreenDefault = fullscreenDefault === undefined ? true : undefined"
+              (focusin)="editing = true"
+              (pointerup)="onSelect()"
+              (select)="onSelect()"
+              (selectionchange)="onSelect()"
+              (input)="setText($any($event).target.value)"
+              (blur)="blurText($any($event).target.value)"
+              (focus)="focusText()"
+              [appFillWidth]="fillWidth"
+              [padding]="padding"
+              [appAutofocus]="autoFocus"></textarea>
+    <div class="floating-toggles">
+    </div>
   </div>
-  <textarea #editor
-            [formControl]="control"
-            (touchstart)="fullscreenDefault = fullscreenDefault === undefined ? true : undefined"
-            (focusin)="editing = true"
-            (pointerup)="onSelect()"
-            (select)="onSelect()"
-            (selectionchange)="onSelect()"
-            (input)="setText($any($event).target.value)"
-            (blur)="blurText($any($event).target.value)"
-            (focus)="focusText()"
-            [appFillWidth]="fillWidth"
-            [padding]="padding"
-            [appAutofocus]="autoFocus"></textarea>
-  <div class="floating-toggles">
-  </div>
-</div>
-@if (preview && (fullscreen || currentText)) {
-  <app-md class="expand"
-          [origin]="store.account.origin"
-          [text]="currentText"
-          [plugins]="fullTags"
-          [appLimitWidth]="editor"></app-md>
-}
+  @if (preview && (fullscreen || currentText)) {
+    <app-md class="expand"
+            [origin]="store.account.origin"
+            [text]="currentText"
+            [plugins]="fullTags"
+            [appLimitWidth]="editor"></app-md>
+  }
 
-<ng-template #help>
-  <div class="editor-help-popup" (click)="toggleHelp()">
-    <a target="_blank" href="https://jfcere.github.io/ngx-markdown/cheat-sheet">Markdown</a>
-  </div>
-  <div class="editor-help-popup" (click)="toggleHelp()">
-    <a target="_blank" href="https://katex.org/docs/supported.html">LaTeX plugin</a>
-  </div>
-</ng-template>
+  <ng-template #help>
+    <div class="editor-help-popup" (click)="toggleHelp()">
+      <a target="_blank" href="https://jfcere.github.io/ngx-markdown/cheat-sheet">Markdown</a>
+    </div>
+    <div class="editor-help-popup" (click)="toggleHelp()">
+      <a target="_blank" href="https://katex.org/docs/supported.html">LaTeX plugin</a>
+    </div>
+  </ng-template>
+}
