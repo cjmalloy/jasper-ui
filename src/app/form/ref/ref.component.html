@@ -74,10 +74,13 @@
                 [tags]="$any(group.value).tags"
                 (comment)="comment.setValue($event)"></app-viewer>
   } @else {
-    <label for="comment" class="editor-label" i18n>Abstract:</label>
+    <label for="comment" class="editor-label" i18n>Abstract:</label><!-- TODO: Let plugins change comment label -->
     <div #fill class="fill-editor">
       <app-editor id="comment"
                   class="bubble"
+                  [addButton]="true"
+                  i18n-addCommentTitle addCommentTitle="Add abstract"
+                  i18n-addCommentLabel addCommentLabel="+ Add abstract"
                   [control]="comment"
                   [tags]="$any(group.value).tags"
                   [fillWidth]="fill"
