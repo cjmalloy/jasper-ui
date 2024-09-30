@@ -33,9 +33,12 @@
   </div>
 
   <span><!-- Message --></span>
-  <div #fill>
+  <div #fill class="fill-editor">
     <app-editor class="bubble"
                 [control]="comment"
+                [addButton]="true"
+                i18n-addCommentTitle addCommentTitle="Add message"
+                i18n-addCommentLabel addCommentLabel="+ Add message"
                 [fillWidth]="fill"
                 (syncEditor)="syncEditor()"
                 [tags]="$any(invoiceForm.value).tags"

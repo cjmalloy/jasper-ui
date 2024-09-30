@@ -31,6 +31,12 @@ $tablet-width: 948px;
     }
   }
 
+  .editor {
+    &.add-button {
+      min-width: calc(min(100vw, 538px));
+    }
+  }
+
   .mobile-block, .mobile-inline {
     display: none !important;
   }
@@ -198,10 +204,18 @@ $tablet-width: 948px;
     overflow-x: scroll;
   }
 
-  .ref, .comment-edit, .comment-reply {
+  .ref, .comment-edit, .comment-reply, .full-page-form {
     .editor, .summary-box {
       margin: 0 !important;
       padding: 0 !important;
+    }
+  }
+
+  .editor {
+    &.add-button {
+      &>* {
+        margin: 4px;
+      }
     }
   }
 
