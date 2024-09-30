@@ -57,6 +57,8 @@ app-loading {
     padding: 0 2px;
     border-radius: 4px;
     line-height: 21px;
+    min-width: 21px;
+    text-align: center;
     display: block;
     border: 1px solid transparent;
     &.filtering {
