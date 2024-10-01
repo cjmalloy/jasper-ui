@@ -1257,6 +1257,7 @@ formly-list-section .form-array:not(:nth-child(2)) > formly-field > formly-group
 }
 
 .list-drag.cdk-drag-preview {
+  overflow: visible;
   cursor: grabbing !important;
   & > formly-field > formly-group,
   formly-field-input,
