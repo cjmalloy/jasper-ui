@@ -5,6 +5,7 @@ import { Schema } from 'jtd';
 import { defer, isEqual, omitBy, uniqWith } from 'lodash-es';
 import { toJS } from 'mobx';
 import * as moment from 'moment';
+import { Moment } from 'moment';
 import { v4 as uuid } from 'uuid';
 import { hasAnyResponse, hasResponse, hasTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
@@ -19,7 +20,7 @@ export interface HasOrigin {
 export interface Cursor extends HasOrigin {
   upload?: boolean;
   exists?: boolean;
-  modified?: moment.Moment;
+  modified?: Moment;
   // Saved to pass modified check since moment looses precision
   modifiedString?: string;
 }
@@ -102,6 +103,10 @@ export interface Config extends Tag {
      * Optional html to be added to <body> on load.
      */
     banner?: string,
+    /**
+     * Optional html to be added to <body> on load.
+     */
+    consent?: { [key: string]: string },
     /**
      * Optional buttons to add to the editor.
      */
