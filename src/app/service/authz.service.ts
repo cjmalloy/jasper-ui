@@ -46,6 +46,13 @@ export class AuthzService {
     return !!capturesAny(this.store.account.access.writeAccess, qualifyTags(ref.tags, ref.origin));
   }
 
+  deleteAccess(ref: Ref): boolean {
+    if (!this.store.account.signedIn) return false;
+    if (this.store.account.mod) return true;
+    if (ref.origin !== this.store.account.origin) return false;
+    return this.taggingAccess(ref);
+  }
+
   queryReadAccess(query?: string): boolean {
     if (!query) return false;
     for (const part of query.split(/[-|:!()\s]+/)) {

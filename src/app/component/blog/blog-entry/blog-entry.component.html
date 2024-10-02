@@ -61,7 +61,11 @@
           <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
           <a *ngIf="sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin: nonLocalOrigin }" i18n>parent</a>
           <a *ngIf="sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{{ sources }}&thinsp;sources</a>
-          <app-confirm-action #action *ngIf="store.account.mod || writeAccess" [action]="delete$" i18n>delete</app-confirm-action>
+          @if (store.account.mod || taggingAccess) {
+            <app-confirm-action #action
+                                [class.force-delete]="deleteAccess"
+                                [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
+          }
           <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
           <a *ngIf="writeAccess else source"
              class="fake-link"

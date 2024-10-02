@@ -35,26 +35,40 @@
     } @else {
       <span>{{ title }}</span>
     }
-    <app-md *ngIf="focused && bareRef?.comment"
-            [origin]="ref.origin!"
-            [text]="bareRef!.comment!"
-            [plugins]="bareRef!.tags!"></app-md>
+    @if (focused && bareRef?.comment) {
+      <app-md [origin]="ref.origin!"
+              [text]="bareRef!.comment!"
+              [plugins]="bareRef!.tags!"></app-md>
+    }
     <app-viewer [ref]="noComment"></app-viewer>
   </div>
-  <div class="actions"
-       *ngIf="ref.created"
-       [style.pointer-events]="allowActions ? 'auto' : 'none'">
-    <a *ngIf="comments"
-       [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
-    <a *ngIf="!comments"
-       [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }" i18n>permalink</a>
-        <app-confirm-action #action *ngIf="store.account.mod || writeAccess" [action]="delete$" i18n>delete</app-confirm-action>
-        <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
-    <a *ngIf="!ref.origin && store.account.mod && !approved && !locked"
-       class="fake-link"
-       (click)="approve()" i18n>approve</a>
-    <span class="approved icon" *ngIf="store.account.mod && approved" i18n-title title="Moderated" i18n>✔️</span>
-  </div>
+  @if (ref.created) {
+    <div class="actions" [style.pointer-events]="allowActions ? 'auto' : 'none'">
+      @if (comments) {
+        <a  [routerLink]="['/ref', ref.url, 'comments']"
+            [queryParams]="{ origin: nonLocalOrigin }"
+            i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
+      } @else {
+        <a [routerLink]="['/ref', ref.url]"
+           [queryParams]="{ origin: nonLocalOrigin }"
+           i18n>permalink</a>
+      }
+      @if (store.account.mod || taggingAccess) {
+        <app-confirm-action #action
+                            [class.force-delete]="deleteAccess"
+                            [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
+      }
+      @if (taggingAccess) {
+        <app-inline-tag #action [action]="tag$" i18n>tag</app-inline-tag>
+      }
+      @if (!ref.origin && store.account.mod && !approved && !locked) {
+        <a class="fake-link" (click)="approve()" i18n>approve</a>
+      }
+      @if (store.account.mod && approved) {
+        <span class="approved icon" i18n-title title="Moderated" i18n>✔️</span>
+      }
+    </div>
+  }
 </span>
 @for (e of serverError; track e) {
   <span><!-- Unexpected Error --></span>

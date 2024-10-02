@@ -1693,6 +1693,10 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
+.hotkey .action.force-delete .fake-link {
+  color: var(--active) !important;
+}
+
 .ref.parent-ref {
   margin-left: 20px;
   .thumbnail {

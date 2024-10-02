@@ -11,7 +11,7 @@
       <app-inline-url [action]="thumbnail$" [value]="defaultThumbnail" i18n>thumbnail</app-inline-url>
       <app-confirm-action [action]="copy$" i18n>copy</app-confirm-action>
     }
-    <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
+    <app-confirm-action class="force-delete" [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
     @if (type === 'ref') {
       @if (admin.getPlugin('plugin/invoice')) {
         <a routerLink="/submit/invoice" [queryParams]="{url: urls}" i18n>invoice</a>

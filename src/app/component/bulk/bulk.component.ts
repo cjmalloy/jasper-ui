@@ -268,6 +268,14 @@ export class BulkComponent implements OnChanges, OnDestroy {
     }
   }
 
+  forceDelete$ = () => {
+    if (this.type === 'ref') {
+      return this.batch$<Ref>(ref => this.refs.delete(ref.url, ref.origin));
+    } else {
+      return this.delete$();
+    }
+  }
+
   copy$ = () => {
     return this.batch$<Ref>(ref => {
       if (ref.origin === this.store.account.origin) return of(null);

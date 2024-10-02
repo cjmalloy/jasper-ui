@@ -80,6 +80,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   deleted = false;
   writeAccess = false;
   taggingAccess = false;
+  deleteAccess = false;
   serverError: string[] = [];
 
   submitting?: Subscription;
@@ -121,6 +122,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
     this.actionComponents?.forEach(c => c.reset());
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
+    this.deleteAccess = this.auth.deleteAccess(this.ref);
     this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
     this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
     this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
@@ -392,6 +394,17 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
       this.ref = ref;
       this.init();
     });
+  }
+
+  forceDelete$ = () => {
+    this.serverError = [];
+    return this.refs.delete(this.ref.url, this.ref.origin).pipe(
+      tap(() => this.deleted = true),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    );
   }
 
   delete$ = () => {
