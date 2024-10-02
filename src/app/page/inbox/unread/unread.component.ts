@@ -1,6 +1,7 @@
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
 import { RefPageArgs } from '../../../model/ref';
 import { newest } from '../../../mods/mailbox';
@@ -18,7 +19,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
   @HostBinding('class') css = 'unread';
 
   private disposers: IReactionDisposer[] = [];
-  private lastNotified?: moment.Moment;
+  private lastNotified?: DateTime;
 
   constructor(
     private mod: ModService,

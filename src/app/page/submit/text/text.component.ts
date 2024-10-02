@@ -3,8 +3,8 @@ import { AfterViewInit, Component, ElementRef, HostBinding, OnDestroy, ViewChild
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import * as moment from 'moment';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -188,7 +188,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       return;
     }
     const tags = uniq([...(this.textForm.value.tags || []), ...this.editorTags || []]);
-    const published = this.textForm.value.published ? moment(this.textForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : moment();
+    const published = this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : DateTime.now();
     const ref = {
       ...this.textForm.value,
       url: this.url.value, // Need to pull separately since control is locked

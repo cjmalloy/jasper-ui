@@ -58,18 +58,18 @@
             <span i18n>not found</span>
           } @else {
             @if (publishedIsSubmitted) {
-              <span [title]="ref.created.toISOString()">
+              <span [title]="ref.created.toISO()">
                 {{ config.mobile ? '' : submittedLabel }}
-                {{ ref.created.fromNow() }}
+                {{ ref.created.toRelative() }}
               </span>
             } @else {
-              <span [title]="ref.published!.toISOString()" i18n>
+              <span [title]="ref.published!.toISO()" i18n>
                 {{ config.mobile ? '' : publishedLabel }}
-                {{ ref.published!.fromNow() }}
+                {{ ref.published!.toRelative() }}
               </span>
             }
             @if (!modifiedIsSubmitted) {
-              <span i18n-title  title="last edited {{ ref.modified!.fromNow() }}">*</span>
+              <span i18n-title  title="last edited {{ ref.modified!.toRelative() }}">*</span>
             }
           }
           <ng-container *ngIf="authors.length" i18n>

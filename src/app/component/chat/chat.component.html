@@ -15,7 +15,7 @@
 <div class="input-box">
   <button type="button"
           class="refresh"
-          [title]="'last polled ' + lastPoll.fromNow()"
+          [title]="'last polled ' + lastPoll.toRelative()"
           (click)="refresh()" i18n>🔄</button>
   <input type="text"
          i18n-placeholder

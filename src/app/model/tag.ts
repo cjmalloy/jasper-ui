@@ -3,9 +3,8 @@ import * as d3 from 'd3';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
 import { defer, isEqual, omitBy, uniqWith } from 'lodash-es';
+import { DateTime, Duration } from 'luxon';
 import { toJS } from 'mobx';
-import * as moment from 'moment';
-import { Moment } from 'moment';
 import { v4 as uuid } from 'uuid';
 import { hasAnyResponse, hasResponse, hasTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
@@ -20,8 +19,9 @@ export interface HasOrigin {
 export interface Cursor extends HasOrigin {
   upload?: boolean;
   exists?: boolean;
-  modified?: Moment;
+  modified?: DateTime;
   // Saved to pass modified check since moment looses precision
+  // TODO: Does luxon loose precision?
   modifiedString?: string;
 }
 
@@ -439,9 +439,9 @@ Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
   }
 });
 
-Handlebars.registerHelper('fromNow', (value: moment.MomentInput) => moment(value).fromNow());
+Handlebars.registerHelper('fromNow', (value: string) => DateTime.fromISO(value).toRelative());
 
-Handlebars.registerHelper('formatInterval', (value: string) => moment.duration(value).humanize());
+Handlebars.registerHelper('formatInterval', (value: string) => Duration.fromISO(value).toHuman());
 
 Handlebars.registerHelper('response', (ref: Ref, value: string) => {
   return ref.metadata?.userUrls?.includes(value);

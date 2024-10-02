@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
@@ -142,7 +142,7 @@ export class RefListComponent implements OnInit, OnDestroy {
       const votes = score(this.page!.content[i]);
       if (votes < 100 &&
         this.hideNewZeroVoteScores &&
-        moment().diff(this.page!.content[i].created!, 'minutes') < 5) {
+        DateTime.now().diff(this.page!.content[i].created!, 'minutes').minutes < 5) {
         return '•';
       }
       return votes;

@@ -12,8 +12,8 @@ import {
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import * as moment from 'moment';
 import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../../form/plugins/plugins.component';
@@ -371,7 +371,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
       scrollToFirstInvalid();
       return;
     }
-    const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
+    const published = DateTime.fromISO(this.editForm.value.published);
     this.submitting = this.refs.update({
       ...this.ref,
       ...this.editForm.value,

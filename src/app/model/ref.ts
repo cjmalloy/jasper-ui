@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash-es';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { hasPrefix, publicTag } from '../util/tag';
 import { Cursor } from './tag';
 
@@ -12,8 +12,8 @@ export interface Ref extends Cursor {
   alternateUrls?: string[];
   plugins?: Record<string, any>;
   metadata?: Metadata;
-  published?: moment.Moment;
-  created?: moment.Moment;
+  published?: DateTime;
+  created?: DateTime;
 }
 
 /**
@@ -30,8 +30,8 @@ export interface RefUpdates extends Cursor {
   alternateUrls?: string[];
   plugins?: Record<string, any>;
   metadata?: MetadataUpdates;
-  published?: moment.Moment;
-  created?: moment.Moment;
+  published?: DateTime;
+  created?: DateTime;
 }
 
 export interface RefNode extends Ref {
@@ -80,14 +80,14 @@ export type RefFilter = FilterObj & {
   responses?: string;
   sources?: string;
   search?: string;
-  modifiedAfter?: string | moment.Moment;
-  modifiedBefore?: string | moment.Moment;
-  publishedAfter?: string | moment.Moment;
-  publishedBefore?: string | moment.Moment;
-  createdAfter?: string | moment.Moment;
-  createdBefore?: string | moment.Moment;
-  responseAfter?: string | moment.Moment;
-  responseBefore?: string | moment.Moment;
+  modifiedAfter?: string | DateTime;
+  modifiedBefore?: string | DateTime;
+  publishedAfter?: string | DateTime;
+  publishedBefore?: string | DateTime;
+  createdAfter?: string | DateTime;
+  createdBefore?: string | DateTime;
+  responseAfter?: string | DateTime;
+  responseBefore?: string | DateTime;
 };
 
 export type RefPageArgs = RefFilter & {
@@ -117,10 +117,10 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
 
 export function mapRef(obj: any): Ref {
   obj.origin ||= '';
-  obj.published &&= moment(obj.published);
-  obj.created &&= moment(obj.created);
+  obj.published &&= DateTime.fromISO(obj.published);
+  obj.created &&= DateTime.fromISO(obj.created);
   obj.modifiedString = obj.modified;
-  obj.modified &&= moment(obj.modified);
+  obj.modified &&= DateTime.fromISO(obj.modified);
   return obj;
 }
 
@@ -131,7 +131,8 @@ export function mapRefOrNull(obj: any): Ref | null {
 
 export function writeRef(ref: Ref): Ref {
   const result = { ...ref } as any;
-  result.published = moment(result.published);
+  if (DateTime.isDateTime(ref.created)) result.created = ref.created.toUTC().toISO();
+  if (DateTime.isDateTime(ref.published)) result.published = ref.published.toUTC().toISO();
   result.modified = result.modifiedString as any;
   delete result.upload;
   delete result.exists;
@@ -180,7 +181,8 @@ export function equalsRef(a?: Ref, b?: Ref) {
   return a.url === b.url &&
     a.title === b.title &&
     a.comment === b.comment &&
-    a.published?.isSame(b.published) &&
+    !!a.published === !!b.published &&
+    b.published && a.published?.hasSame(b.published, 'millisecond') &&
     isEqual(a.alternateUrls, b.alternateUrls) &&
     isEqual(a.sources, b.sources) &&
     isEqual(a.tags?.filter(compareTag), b.tags?.filter(compareTag)) &&

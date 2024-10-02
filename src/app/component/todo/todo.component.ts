@@ -10,7 +10,7 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { catchError, Observable, Subscription, throwError } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
@@ -132,7 +132,7 @@ export class TodoComponent implements OnChanges {
         this.copied.emit(this.store.account.origin);
       }
       this.ref!.comment = comment;
-      this.ref!.modified = moment(cursor);
+      this.ref!.modified = DateTime.fromISO(cursor);
       this.ref!.modifiedString = this.cursor = cursor;
       this.store.eventBus.refresh(this.ref);
     });

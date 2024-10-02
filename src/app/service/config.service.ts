@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, isDevMode } from '@angular/core';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { tap } from 'rxjs/operators';
 import { memo } from '../util/memo';
 
@@ -13,7 +13,7 @@ export function config(): ConfigService {
   providedIn: 'root',
 })
 export class ConfigService {
-  version = moment().toISOString();
+  version = DateTime.now().toISO();
   title = 'Jasper';
   api = '//localhost:8081';
   electron = /electron/i.test(navigator.userAgent);

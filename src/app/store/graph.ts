@@ -42,15 +42,15 @@ export class GraphStore {
   }
 
   get minPublished() {
-    return min(this.graphable.map(r => r.published).filter(p => !!p));
+    return min(this.graphable.map(r => r.published).filter(p => !!p))!;
   }
 
   get maxPublished() {
-    return max(this.graphable.map(r => r.published).filter(p => !!p));
+    return max(this.graphable.map(r => r.published).filter(p => !!p))!;
   }
 
   get publishedDiff() {
-    return this.maxPublished?.diff(this.minPublished) || 0;
+    return this.maxPublished?.diff(this.minPublished).milliseconds || 0;
   }
 
   set(refs: RefNode[]) {

@@ -1,8 +1,8 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, HostBinding, HostListener, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { uniq, without } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import * as moment from 'moment';
 import { catchError, of, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext } from '../../model/ext';
@@ -262,7 +262,7 @@ export class KanbanComponent implements OnChanges, OnDestroy {
     const tags = [...remove.map(t => `-${t}`), ...add];
     if (!tags.length) return;
     this.tags.patch(tags, ref.url, ref.origin).pipe(
-      tap(cursor => this.accounts.clearNotificationsIfNone(moment(cursor))),
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
       catchError(() => {
         // Revert
         ref.tags = oldTags;

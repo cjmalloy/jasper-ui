@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { catchError, throwError } from 'rxjs';
 import { BackupService } from '../../../service/api/backup.service';
 import { OriginService } from '../../../service/api/origin.service';
@@ -40,7 +40,7 @@ export class SettingsBackupPage implements OnInit {
       .subscribe(list => this.list = list.sort().reverse());
     this.originForm = fb.group({
       origin: ['', [Validators.pattern(ORIGIN_REGEX)]],
-      olderThan: [moment().format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS)],
+      olderThan: [DateTime.now().toISO()],
     });
   }
 
@@ -95,7 +95,7 @@ export class SettingsBackupPage implements OnInit {
       return;
     }
     const origin = this.originForm.value.origin;
-    const olderThan = moment(this.originForm.value.olderThan, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
+    const olderThan = DateTime.fromISO(this.originForm.value.olderThan);
     this.origins.delete(origin, olderThan).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);

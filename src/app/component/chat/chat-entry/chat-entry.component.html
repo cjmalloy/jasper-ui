@@ -19,7 +19,7 @@
                    [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
               </ng-container>
             </ng-template>
-  <span class="timestamp" [title]="ref.modified?.toISOString()">{{ ref.modified?.fromNow() }}</span>
+  <span class="timestamp" [title]="ref.modified?.toISO()">{{ ref.modified?.toRelative() }}</span>
   &nbsp;|&nbsp;
 </span>
 <span class="message"

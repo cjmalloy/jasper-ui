@@ -5,7 +5,7 @@
 </div>
 <div class="stack">
   <div class="info">
-    <span [title]="plugin.modified?.toISOString()" i18n>modified {{ plugin.modified?.fromNow() }}</span>
+    <span [title]="plugin.modified?.toISO()" i18n>modified {{ plugin.modified?.toRelative() }}</span>
     <ng-container *ngIf="!local" i18n>
       on <a [routerLink]="['/tag', plugin.origin]">{{ plugin.origin }}</a>
     </ng-container>

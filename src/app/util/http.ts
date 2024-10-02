@@ -1,9 +1,8 @@
 import { HttpErrorResponse, HttpParameterCodec, HttpParams } from '@angular/common/http';
 import { isArray, isObject } from 'lodash-es';
-import { isMoment } from 'moment';
+import { DateTime } from 'luxon';
 import { Problem } from '../model/problem';
 import { banlistConfig } from '../mods/banlist';
-
 
 export class HttpUrlEncodingCodec implements HttpParameterCodec {
   encodeKey(k: string): string { return encodeURIComponent(k); }
@@ -24,7 +23,7 @@ export function writeObj(obj?: Record<string, any>): Record<string, any> | undef
   for (const k in obj) {
     // @ts-ignore
     let v = obj[k];
-    if (isMoment(v)) v = v.toISOString();
+    if (DateTime.isDateTime(v)) v = v.toUTC().toISO();
     if ((v || v === false) && !emptyObject(v)) {
       result[k] = v;
     }

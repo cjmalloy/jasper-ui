@@ -12,7 +12,7 @@ import {
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
@@ -173,7 +173,7 @@ export class UserComponent implements OnChanges {
       return this.users.update(this.user).pipe(
         tap(cursor => {
           this.user!.modifiedString = cursor;
-          this.user!.modified = moment(cursor);
+          this.user!.modified = DateTime.fromISO(cursor);
           this.init();
         }),
         catchError((res: HttpErrorResponse) => {
@@ -236,7 +236,7 @@ export class UserComponent implements OnChanges {
     ).subscribe(cursor => {
       this.user = updates;
       this.user.modifiedString = cursor;
-      this.user.modified = moment(cursor);
+      this.user.modified = DateTime.fromISO(cursor);
       this.serverError = [];
       this.editing = false;
       this.init();
