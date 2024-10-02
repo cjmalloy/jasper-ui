@@ -79,6 +79,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   editing = false;
   writeAccess = false;
   taggingAccess = false;
+  deleteAccess = false;
   serverError: string[] = [];
 
   constructor(
@@ -143,6 +144,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.collapsed = !this.store.local.isRefToggled('comment:' + this.ref.url, true);
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
+    this.deleteAccess = this.auth.deleteAccess(this.ref);
     this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
     this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
     this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
@@ -375,6 +377,13 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
       this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
       this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/vote/up', 'plugin/vote/down'], this.ref.url), this.ref);
     }
+  }
+
+  forceDelete$ = () => {
+    const deleted = deleteNotice(this.ref);
+    deleted.sources = this.ref.sources;
+    deleted.tags = ['plugin/comment', 'plugin/delete', 'internal'];
+    return this.store.eventBus.runAndReload$(this.refs.delete(this.ref.url, this.ref.origin), deleted);
   }
 
   delete$ = () => {

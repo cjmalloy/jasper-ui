@@ -86,39 +86,63 @@
                 [ref]="ref">{{ icon.label }}</span>
         </ng-container>
       </div>
-      <app-viewer *ngIf="!editing"
-                  class="comment-body"
-                  [expand]="false"
-                  [ref]="ref"></app-viewer>
-      <app-comment-edit *ngIf="editing"
-                        [ref]="ref"
-                        [commentEdited$]="commentEdited$"></app-comment-edit>
+      @if (editing) {
+        <app-comment-edit [ref]="ref"
+                          [commentEdited$]="commentEdited$"></app-comment-edit>
+      } @else {
+        <app-viewer class="comment-body"
+                    [expand]="false"
+                    [ref]="ref"></app-viewer>
+      }
       <div class="actions">
-        <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>permalink</a>
-        <a class="fake-link" (click)="replying = !replying" i18n>reply</a>
-        <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
-        <a *ngIf="sources > 2" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{{ sources }}&thinsp;sources</a>
+        <a [routerLink]="['/ref', ref.url, 'comments']"
+           [queryParams]="{ origin: nonLocalOrigin }"
+           i18n>permalink</a>
         <a class="fake-link"
-           *ngIf="writeAccess"
-           (click)="editing = !editing" i18n>edit</a>
-        <app-confirm-action #action *ngIf="store.account.mod || writeAccess" [action]="delete$" i18n>delete</app-confirm-action>
-        <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
-        <ng-container *ngIf="canInvoice">
+           (click)="replying = !replying"
+           i18n>reply</a>
+        @if(responses) {
+          <a [routerLink]="['/ref', ref.url, 'responses']"
+             [queryParams]="{ origin: nonLocalOrigin }"
+             i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
+        }
+        @if (sources > 2) {
+          <a [routerLink]="['/ref', ref.url, 'sources']"
+             [queryParams]="{ origin: nonLocalOrigin }"
+             i18n>{{ sources }}&thinsp;sources</a>
+        }
+        @if (writeAccess) {
+          <a class="fake-link"
+             (click)="editing = !editing" i18n>edit</a>
+        }
+        @if (store.account.mod || taggingAccess) {
+          <app-confirm-action #action
+                              [class.force-delete]="deleteAccess"
+                              [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
+        }
+        @if (taggingAccess) {
+          <app-inline-tag #action
+                          [action]="tag$"
+                          i18n>tag</app-inline-tag>
+        }
+        @if (canInvoice) {
           <a [routerLink]="['/submit/invoice']"
-             [queryParams]="{ url: ref.url }" i18n>invoice</a>
-        </ng-container>
+             [queryParams]="{ url: ref.url }"
+             i18n>invoice</a>
+        }
         <app-action-list [ref]="ref"
                          [showDownload]="false"
                          [groupedActions]="groupedActions"></app-action-list>
       </div>
     </div>
   </div>
-  <app-comment-reply *ngIf="replying"
-                     [autofocus]="true"
-                     [to]="ref"
-                     [showCancel]="true"
-                     [tags]="replyTags"
-                     (save)="newComments$.next($event)"></app-comment-reply>
+  @if (replying) {
+    <app-comment-reply [autofocus]="true"
+                       [to]="ref"
+                       [showCancel]="true"
+                       [tags]="replyTags"
+                       (save)="newComments$.next($event)"></app-comment-reply>
+  }
   <div class="comment-children"
        [class.hidden-without-removing]="collapsed">
     <app-comment-thread [source]="ref"
@@ -127,7 +151,7 @@
                         [context]="context + 1"
                         [newComments$]="newComments$"></app-comment-thread>
   </div>
-  <ng-container *ngIf="(depth === 1 && comments) || moreComments">
+  @if ((depth === 1 && comments) || moreComments) {
     <span class="fake-link load-more no-select"
           *ngIf="!collapsed && context < maxContext"
           (click)="loadMore()" i18n>
@@ -138,7 +162,7 @@
        [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>
       continue this thread
     </a>
-  </ng-container>
+  }
 
   @for (e of serverError; track e) {
     <div class="error">{{ e }}</div>

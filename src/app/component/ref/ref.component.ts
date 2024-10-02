@@ -130,6 +130,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   replying = false;
   writeAccess = false;
   taggingAccess = false;
+  deleteAccess = false;
   serverError: string[] = [];
   publishChanged = false;
 
@@ -219,6 +220,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (this.ref?.upload) this.editForm.get('url')!.enable();
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
+    this.deleteAccess = this.auth.deleteAccess(this.ref);
     this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
@@ -1016,6 +1018,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
         )), ref);
   }
 
+  forceDelete$ = () => {
+    this.serverError = [];
+    return this.refs.delete(this.ref.url, this.ref.origin).pipe(
+      tap(() => this.deleted = true),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    );
+  }
+
   delete$ = () => {
     this.serverError = [];
     return (this.local && hasTag('locked', this.ref)
@@ -1024,7 +1037,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
         ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
         : this.refs.delete(this.ref.url, this.ref.origin)
     ).pipe(
-      tap(() => this.deleted = true),
+      tap((cursor: any) => {
+        if (cursor)
+        this.deleted = true;
+      }),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

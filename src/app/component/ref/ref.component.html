@@ -238,7 +238,11 @@
                 <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
               }
             }
-            <app-confirm-action #action *ngIf="store.account.mod || taggingAccess" [action]="delete$" i18n>delete</app-confirm-action>
+            @if (store.account.mod || taggingAccess) {
+              <app-confirm-action #action
+                                  [class.force-delete]="deleteAccess"
+                                  [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
+            }
           }
           @if (ref.upload) {
             @if (ref.exists) {

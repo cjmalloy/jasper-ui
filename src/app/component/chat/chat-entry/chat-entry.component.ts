@@ -42,6 +42,7 @@ export class ChatEntryComponent implements OnChanges {
   deleted = false;
   writeAccess = false;
   taggingAccess = false;
+  deleteAccess = false;
   serverError: string[] = [];
 
   private _allowActions = false;
@@ -61,6 +62,7 @@ export class ChatEntryComponent implements OnChanges {
     this.actionComponents?.forEach(c => c.reset());
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
+    this.deleteAccess = this.auth.deleteAccess(this.ref);
     if (this.ref && this.bareRepost && !this.repostRef) {
       this.refs.getCurrent(this.url).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
@@ -240,6 +242,17 @@ export class ChatEntryComponent implements OnChanges {
       this.ref = ref;
       this.init();
     });
+  }
+
+  forceDelete$ = () => {
+    this.serverError = [];
+    return this.refs.delete(this.ref.url, this.ref.origin).pipe(
+      tap(() => this.deleted = true),
+      catchError((err: HttpErrorResponse) => {
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    );
   }
 
   delete$ = () => {
