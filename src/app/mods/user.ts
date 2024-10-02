@@ -174,6 +174,7 @@ export const userTemplate: Template = {
       alarms: { elements: { type: 'string' } },
       editors: { elements: { type: 'string' } },
       userTheme: { type: "string" },
+      consent: { values: { type: 'boolean' }},
       kanbanLoadSize: { type: "uint8" },
     }
   },
@@ -189,5 +190,8 @@ export interface UserConfig extends RootConfig {
   alarms?: string[];
   editors?: string[];
   userTheme?: string;
+  consent?: { [key: string]: boolean };
+
+  // TODO: move to ref `tag:/user/chris?url=tag:/kanban with plugin/settings/kanban
   kanbanLoadSize?: number;
 }

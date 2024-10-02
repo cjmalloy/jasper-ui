@@ -275,6 +275,17 @@ export class AccountService {
     ).subscribe(count => runInAction(() => this.store.account.alarmCount = count));
   }
 
+  checkConsent(consent?: [key: string, disclosure: string][]) {
+    if (!consent) return;
+    const result = this.store.account.ext?.config?.consent || {};
+    for (const [key, disclosure] of consent) {
+      if (!result[key] && confirm(disclosure)) {
+        result[key] = true;
+      }
+    }
+    this.updateConfig$('consent', result).subscribe();
+  }
+
   // TODO: move to ext, plugin, template service as  a mixin
   updateConfig$(name: keyof UserConfig, value: any) {
     return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
