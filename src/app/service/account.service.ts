@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { delay, isArray, uniq, without } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { Moment } from 'moment';
 import * as moment from 'moment';
+import { Moment } from 'moment';
 import { catchError, forkJoin, map, Observable, of, shareReplay, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
@@ -239,7 +239,11 @@ export class AccountService {
         modifiedBefore: readDate,
       })),
     ).subscribe(count => {
-      if (count === 0) this.clearNotifications(readDate);
+      if (count === 0) {
+        this.clearNotifications(readDate);
+      } else {
+        runInAction(() => this.store.account.ignoreNotifications.push(readDate.valueOf()));
+      }
     });
   }
 
@@ -251,6 +255,7 @@ export class AccountService {
     }
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
+    runInAction(() => this.store.account.ignoreNotifications = this.store.account.ignoreNotifications.filter(n => n > readDate.valueOf()));
     const lastNotified = readDate.add(1, 'millisecond').toISOString();
     this.updateConfig$('lastNotified', lastNotified).subscribe(() => {
       this.clearCache();

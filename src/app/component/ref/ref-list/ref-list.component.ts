@@ -20,6 +20,8 @@ export class RefListComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   @Input()
+  hide?: number[];
+  @Input()
   plugins?: string[];
   @Input()
   showPageLast = true;

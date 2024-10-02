@@ -15,6 +15,7 @@ export class AccountStore {
   access?: User = {} as User;
   ext?: Ext = {} as Ext;
   defaultConfig: UserConfig = {};
+  ignoreNotifications: number[] = [];
 
   /**
    * Is admin.

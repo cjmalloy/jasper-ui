@@ -28,17 +28,19 @@
     }
   }
   @for (ref of page?.content; track ref.origin + '@' + ref.url; let i = $index) {
-    <div class="list-number">{{ getNumber(i) }}</div>
-    <app-ref class="ref-list-item"
-             [ref]="ref"
-             [scrollToLatest]="true"
-             [plugins]="plugins"
-             [hideEdit]="ext?.config?.hideEdit"
-             [disableResize]="ext?.config?.disableResize"
-             [showAlarm]="showAlarm"
-             [showToggle]="showToggle"
-             [expanded]="expanded"
-             [expandInline]="expandInline"></app-ref>
+    @if (!hide?.includes($any(ref.modified?.valueOf()) || 0)) {
+      <div class="list-number">{{ getNumber(i) }}</div>
+      <app-ref class="ref-list-item"
+               [ref]="ref"
+               [scrollToLatest]="true"
+               [plugins]="plugins"
+               [hideEdit]="ext?.config?.hideEdit"
+               [disableResize]="ext?.config?.disableResize"
+               [showAlarm]="showAlarm"
+               [showToggle]="showToggle"
+               [expanded]="expanded"
+               [expandInline]="expandInline"></app-ref>
+    }
   }
   @if (!insertNewAtTop) {
     @for (ref of newRefs; track ref.origin + '@' + ref.url; let i = $index) {
