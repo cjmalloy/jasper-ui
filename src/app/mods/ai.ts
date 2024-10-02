@@ -19,9 +19,26 @@ export const aiQueryPlugin: Plugin = {
     filters: [
       { query: 'plugin/delta/ai', label: $localize`👻️💭️ ai query`, title: $localize`AI prompt`, group: $localize`Notifications ✉️` },
     ],
-    advancedActions: [
-      { tag: 'plugin/delta/ai', labelOff: $localize`ask ai`, global: true }
-    ],
+    advancedActions: [{
+      // language=Handlebars
+      emit: `[{
+        "url": "ai:{{ uuid }}",
+        "origin": "{{ ref.origin }}",
+        "comment": "thinking...",
+        "sources": ["{{ ref.url }}"],
+        "tags": [
+          "{{ user }}",
+          {{#if (hasTag ref 'public') }}"public",{{/if}}
+          {{#if (hasTag ref 'dm') }}"dm",{{/if}}
+          {{#if (hasTag ref 'internal') }}"internal",{{/if}}
+          {{#if (hasTag ref 'plugin/comment') }}"plugin/comment",{{/if}}
+          {{#if (hasTag ref 'plugin/thread') }}"plugin/thread",{{/if}}
+          "plugin/delta/ai"
+        ]
+      }]`,
+      label: $localize`ask ai`,
+      global: true
+    }],
     timeoutMs: 60_000,
     language: 'javascript',
     // language=JavaScript
@@ -31,10 +48,7 @@ export const aiQueryPlugin: Plugin = {
       const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
       const origin = ref.origin || ''
       const config = ref.plugins?.['plugin/delta/ai'];
-      const followup = ref.tags.includes('+plugin/delta/ai');
-      const authors = followup
-        ? ['+plugin/delta/ai']
-        : ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
+      const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
       const systemConfig = (await axios.get(process.env.JASPER_API + '/api/v1/plugin', {
         headers: {
           'Local-Origin': origin || 'default',
@@ -49,12 +63,17 @@ export const aiQueryPlugin: Plugin = {
         },
         params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
       })).data.content[0]?.comment;
-      const context = new Map();
+      const getRef = async url => (await axios.get(process.env.JASPER_API + '/api/v1/ref', {
+        headers: {
+          'Local-Origin': origin || 'default',
+          'User-Tag': authors[0] || '',
+        },
+        params: { url },
+      })).data;
       const getSources = async (url, rel = 'sources') => (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
           'Local-Origin': origin || 'default',
           'User-Tag': authors[0] || '',
-          'User-Role': followup ? 'ROLE_ADMIN' : '',
         },
         params: {
           [rel]: url,
@@ -62,7 +81,9 @@ export const aiQueryPlugin: Plugin = {
           size: config.maxSources,
         },
       })).data.content;
-      let parents = await getSources(ref.url);
+      const parent = await getRef(ref.sources[0]);
+      let parents = await getSources(ref.sources[0]);
+      const context = new Map();
       parents.forEach(p => context.set(p.url, p));
       for (let i = 0; i < config.maxContext; i++) {
         if (!parents.length) break;
@@ -73,8 +94,8 @@ export const aiQueryPlugin: Plugin = {
         }
         parents.forEach(p => context.set(p.url, p));
       }
-      if (ref.sources?.length && context.size < config.maxSources && ref.tags.includes('plugin/thread')) {
-        const source =  ref.sources[ref.sources.length === 1 ? 0 : 1];
+      if (parent.sources?.length && context.size < config.maxSources && parent.tags.includes('plugin/thread')) {
+        const source =  parent.sources[parent.sources.length === 1 ? 0 : 1];
         const thread = (await getSources(source, 'responses')).filter(t => !context.has(t.url));
         if (context.size + thread.length > config.maxSources) {
           thread.length = config.maxSources - context.size;
@@ -86,7 +107,6 @@ export const aiQueryPlugin: Plugin = {
         try {
           return (await axios.get(process.env.JASPER_API + '/api/v1/ext', {
             headers: {
-              // TODO: handle follow-up permissions
               'Local-Origin': origin || 'default',
               'User-Tag': authors[0] || '',
             },
@@ -104,12 +124,12 @@ export const aiQueryPlugin: Plugin = {
           if (ext) exts.set(t, ext);
         }
       }
-      await loadTags(ref.tags);
+      await loadTags(parent.tags);
       for (const p of context.values()) await loadTags(p?.tags);
       const getAll = async type => (await axios.get(process.env.JASPER_API + '/api/v1/' + type + '/page', {
         headers: {
           'Local-Origin': origin || 'default',
-          'User-Role': 'ROLE_ADMIN',
+          'User-Role': 'ROLE_ADMIN', // Get hidden instructions
         },
         params: { query: origin || '*' },
       })).data.content;
@@ -117,10 +137,9 @@ export const aiQueryPlugin: Plugin = {
         .filter(t => t.config?.aiInstructions)
         .map(t => t.config?.aiInstructions)
         .join('\\n\\n');
-      const mods = [];
       const sample = { ...ref };
-      const pluginString = JSON.stringify(ref.plugins);
-      if (pluginString > 2000 || pluginString.includes(';base64,')) delete sample.plugins;
+      const pluginString = JSON.stringify(parent.plugins);
+      if (pluginString && (pluginString > 2000 || pluginString.includes(';base64,'))) delete sample.plugins;
       let msgCount = 0;
       const msg = (title, comment) => JSON.stringify({
         url: 'system:instructions' + (msgCount++),
@@ -132,10 +151,10 @@ export const aiQueryPlugin: Plugin = {
         { role: 'system', content: msg('System Prompt', systemConfig.systemPrompt) },
         { role: 'system', content: msg('Application Prompt', config.systemPrompt || systemConfig.appPrompt) },
       ];
-      if (mods.length) messages.push({ role: 'system', content: msg('Mods', aiInstructions) });
+      if (aiInstructions) messages.push({ role: 'system', content: msg('Mods', aiInstructions) });
       if (exts.length) messages.push({ role: 'system', content: msg('Exts', JSON.stringify(exts)) });
       const mergeRoles = config?.provider === 'anthropic';
-      for (const c of [...context.values()].sort((a, b) => (a.published > b.published) - (a.published < b.published))) {
+      for (const c of context.sort((a, b) => (a.published > b.published) - (a.published < b.published))) {
         const role = c.tags?.includes('+plugin/delta/ai') ? 'assistant' : 'user';
         if (mergeRoles && messages[messages.length - 1].role === role) {
           messages[messages.length - 1].content += JSON.stringify(c);
@@ -143,7 +162,8 @@ export const aiQueryPlugin: Plugin = {
           messages.push({ role, content: JSON.stringify(c) });
         }
       }
-      if (ref.tags?.includes('+plugin/delta/ai')) {
+      if (false) {
+        // TODO: followups broken
         messages.push({ role: 'system', content: msg('Spawning Agent Prompt', systemConfig.followupPrompt) });
       } else {
         messages.push({
@@ -208,6 +228,7 @@ export const aiQueryPlugin: Plugin = {
         process.exit(1);
       }
       const response = bundle.ref[0];
+      response.url = ref.url;
       delete response.published;
       delete response.created;
       delete response.modified;
@@ -215,32 +236,32 @@ export const aiQueryPlugin: Plugin = {
       response.plugins['+plugin/delta/ai'] = { ...config, usage };
       response.tags ||= [];
       response.tags.push('+plugin/delta/ai');
-      if (ref.tags.includes('public')) response.tags.push('public');
-      if (ref.tags.includes('internal')) response.tags.push('internal');
-      if (ref.tags.includes('dm')) response.tags.push('dm', 'internal', 'plugin/thread');
-      if (ref.tags.includes('plugin/comment')) response.tags.push('plugin/comment', 'internal');
-      if (ref.tags.includes('plugin/thread')) response.tags.push('plugin/thread', 'internal');
-      const chatTags = ref.tags.filter(t => t === 'chat' || t.startsWith('chat/'));
+      if (parent.tags.includes('public')) response.tags.push('public');
+      if (parent.tags.includes('internal')) response.tags.push('internal');
+      if (parent.tags.includes('dm')) response.tags.push('dm', 'internal', 'plugin/thread');
+      if (parent.tags.includes('plugin/comment')) response.tags.push('plugin/comment', 'internal');
+      if (parent.tags.includes('plugin/thread')) response.tags.push('plugin/thread', 'internal');
+      const chatTags = parent.tags.filter(t => t === 'chat' || t.startsWith('chat/'));
       if (chatTags.length) {
         response.tags.push(chatTags);
       } else {
-        const mailboxes = ref.tags.filter(tag => tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox'));
+        const mailboxes = parent.tags.filter(tag => tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox'));
         response.tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)));
       }
       const uniq = (v, i, a) => a.indexOf(v) === i;
       response.tags = response.tags.filter(uniq).filter(t => t.startsWith);
-      if (followup && response.tags.includes('plugin/delta/ai')) {
-        // Only allow one cycle of follow-ups
+      if (response.tags.includes('plugin/delta/ai')) {
+        // TODO: followups broken
         response.tags.splice(response.tags.indexOf('plugin/delta/ai'), 1);
       }
-      const sources = [ref.url];
+      const sources = [parent.url];
       if (response.tags.includes('plugin/thread') || response.tags.includes('plugin/comment')) {
-        if (ref.sources?.length === 1) {
-          sources.push(ref.sources[0]);
-        } else if (ref.sources?.length > 1) {
-          sources.push(ref.sources[1]);
+        if (parent.sources?.length === 1) {
+          sources.push(parent.sources[0]);
+        } else if (parent.sources?.length > 1) {
+          sources.push(parent.sources[1]);
         } else {
-          sources.push(ref.url);
+          sources.push(parent.url);
         }
       }
       response.sources = [...sources, ...(response.sources || [])].filter(uniq);
