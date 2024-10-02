@@ -16,7 +16,7 @@ export class SettingsComponent implements OnInit {
     public admin: AdminService,
     public config: ConfigService,
     public store: Store,
-    private account: AccountService,
+    public account: AccountService,
   ) {
     if (admin.getTemplate('user') && admin.getPlugin('plugin/inbox') && store.account.signedIn) {
       account.checkNotifications();

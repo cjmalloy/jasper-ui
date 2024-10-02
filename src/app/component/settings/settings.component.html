@@ -18,12 +18,24 @@
          [routerLink]="['/tag', store.account.tag]">{{ shortUserTag }}</a>
       @if (admin.getTemplate('dm') || admin.inbox.length || (admin.getTemplate('user') && store.account.userTag)) {
         @if (admin.getTemplate('user') && store.account.userTag && store.account.notifications) {
-          | {{ (store.account.notifications - store.account.alarmCount) || '' }} <a class="inbox notification" routerLink="/inbox/unread">✉️</a>
+          | {{ (store.account.notifications - store.account.alarmCount) || '' }}
+          @if (store.hotkey) {
+            <a class="fake-link inbox notification filter-toggle"
+               (click)="account.clearNotifications()"
+               i18n-title title="Clear Notifications">✉️</a>
+          } @else {
+            <a class="inbox notification"
+               [class.filter-toggle]="store.hotkey"
+               i18n-title title="Unread"
+               routerLink="/inbox/unread">✉️</a>
+          }
           @if (store.account.alarmCount) {
-            <span [title]="store.account.alarmCount">🔔️</span>
+            <span i18n-title title="{{ store.account.alarmCount }} Alarms">🔔️</span>
           }
         } @else {
-          | <a class="inbox" routerLink="/inbox">✉️</a>
+          | <a class="inbox"
+               i18n-title title="Inbox"
+               routerLink="/inbox">✉️</a>
         }
       }
       |
