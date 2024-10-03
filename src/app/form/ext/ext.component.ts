@@ -96,7 +96,7 @@ export class ExtFormComponent implements OnInit {
   get sortDir() {
     if (!this.defaultSort.value?.[0]) return undefined;
     if (!this.defaultSort.value[0].includes(',')) return defaultDesc.includes(this.defaultSort.value[0]) ? 'DESC' : 'ASC';
-    return this.defaultSort.value[0].split(',')[1].toUpperCase();
+    return this.defaultSort.value[0].split(',')[1].toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
   }
 
   get filter(): UrlFilter | undefined {

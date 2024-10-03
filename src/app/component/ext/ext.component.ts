@@ -10,7 +10,6 @@ import {
   ViewChildren
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
 import { isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
@@ -71,7 +70,6 @@ export class ExtComponent implements OnChanges {
     private exts: ExtService,
     public bookmarks: BookmarkService,
     private fb: UntypedFormBuilder,
-    private router: Router,
   ) { }
 
   init() {
