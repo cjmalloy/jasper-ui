@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { marked } from 'marked';
-import * as moment from 'moment';
 import { MarkdownService } from 'ngx-markdown';
 import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { Ext } from '../model/ext';
@@ -580,7 +580,7 @@ export class EmbedService {
     }
     const doc = iframe.contentWindow!.document;
     if (!oembed.height) {
-      let start = moment();
+      let start = DateTime.now();
       let oldHeight = doc.body.scrollHeight;
       let newHeight = false;
       const f = async () => {
@@ -588,15 +588,15 @@ export class EmbedService {
         const h = doc.body.scrollHeight;
         if (h !== oldHeight) {
           newHeight = true;
-          start = moment();
+          start = DateTime.now();
           oldHeight = h;
           iframe.style.height = h + 'px';
         }
         await delay(100);
-        if ((!newHeight || h < 300) && start.isAfter(moment().subtract(5, 'seconds'))) {
+        if ((!newHeight || h < 300) && start > DateTime.now().minus({ seconds: 5 })) {
           // Keep checking height
           await f();
-        } else if (start.isAfter(moment().subtract(30, 'seconds'))) {
+        } else if (start > DateTime.now().minus({ seconds: 30 })) {
           // Timeout checking height less than 5 seconds since the last change
           f(); // Keep checking height until 30 seconds timeout but let promise resolve
         }

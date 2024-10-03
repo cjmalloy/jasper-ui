@@ -17,8 +17,8 @@
       </ng-container>
     </ng-template>
     <span *ngIf="store.view.isVoteSorted && admin.getPlugin('plugin/vote/up')" class="vote-score" i18n>{{ score }} points&nbsp;</span>
-    <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
-    <span *ngIf="ref.modified && !ref.modified.isSame(ref.created)" [title]="ref.modified.fromNow()">*</span>
+    <span [title]="ref.created?.toISO()">{{ ref.created?.toRelative() }}</span>
+    <span *ngIf="ref.modified && !ref.modified.hasSame(ref.created!, 'millisecond')" [title]="ref.modified.toRelative()">*</span>
     <ng-container *ngFor="let icon of icons">
       <span *ngIf="showIcon(icon)"
             class="icon"
@@ -62,8 +62,8 @@
                [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
           </ng-container>
         </ng-template><span *ngIf="admin.getPlugin('plugin/vote/up')" class="vote-score" i18n>{{ score }} points&nbsp;</span>
-        <span [title]="ref.created?.toISOString()">{{ ref.created?.fromNow() }}</span>
-        <span *ngIf="ref.modified && !ref.modified.isSame(ref.created)" [title]="'last edited ' + ref.modified.fromNow()">*</span>
+        <span [title]="ref.created?.toISO()">{{ ref.created?.toRelative() }}</span>
+        <span *ngIf="ref.modified && !ref.modified.hasSame(ref.created!, 'millisecond')" [title]="'last edited ' + ref.modified.toRelative()">*</span>
         <ng-container *ngIf="tagged.length" i18n>
           tagged
           <ng-container *ngIf="tagExts$ | async as tagExts; else tagNoExts">

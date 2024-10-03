@@ -1,5 +1,5 @@
+import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
-import * as moment from 'moment';
 import { Ext } from './ext';
 import { Config } from './tag';
 import { Roles } from './user';
@@ -32,7 +32,7 @@ export function mapTemplate(obj: any): Template {
   obj.tag ||= '';
   obj.origin ||= '';
   obj.modifiedString = obj.modified;
-  obj.modified = obj.modified && moment(obj.modified);
+  obj.modified = obj.modified && DateTime.fromISO(obj.modified);
   return obj;
 }
 

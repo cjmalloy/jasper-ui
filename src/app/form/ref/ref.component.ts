@@ -1,7 +1,6 @@
 import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer, uniq, without } from 'lodash-es';
-import * as moment from 'moment';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Oembed } from '../../model/oembed';
@@ -143,7 +142,7 @@ export class RefFormComponent implements OnInit {
 
   scrapePublished() {
     this.scrape$.subscribe(ref => {
-      this.published.setValue(ref.published?.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS));
+      this.published.setValue(ref.published?.toFormat("YYYY-MM-DD'T'TT"));
     });
   }
 
@@ -205,7 +204,7 @@ export class RefFormComponent implements OnInit {
     this.group.setControl('plugins', pluginsForm(this.fb, this.admin, ref.tags || []));
     this.group.patchValue({
       ...ref,
-      published: ref.published ? ref.published.format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS) : undefined,
+      published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
     });
     defer(() => this.plugins.setValue(ref.plugins));
   }

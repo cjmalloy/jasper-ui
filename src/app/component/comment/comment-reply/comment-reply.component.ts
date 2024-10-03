@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer, merge, pickBy, uniq, without } from 'lodash-es';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { catchError, Subject, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -126,13 +126,13 @@ export class CommentReplyComponent implements AfterViewInit {
       sources,
       tags,
       plugins: this.inheritedPlugins,
-      published: moment(),
+      published: DateTime.now(),
     };
     this.comment.disable();
     this.replying = this.refs.create(ref).pipe(
       tap(cursor => {
         ref.modifiedString = cursor;
-        ref.modified = moment(cursor);
+        ref.modified = DateTime.fromISO(cursor);
         if (this.admin.getPlugin('plugin/vote/up')) {
           this.ts.createResponse('plugin/vote/up', url).subscribe();
         }
@@ -151,7 +151,7 @@ export class CommentReplyComponent implements AfterViewInit {
       this.editor?.syncText('');
       const update = {
         ...ref,
-        created: moment(),
+        created: DateTime.now(),
         metadata: {
           plugins: {
             'plugin/vote/up': 1

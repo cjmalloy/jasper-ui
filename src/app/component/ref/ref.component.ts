@@ -18,8 +18,8 @@ import {
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import * as moment from 'moment';
 import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
@@ -773,12 +773,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get publishedIsSubmitted() {
     if (this.admin.getPublished(this.ref.tags).length) return false;
-    return !this.ref.published || Math.abs(this.ref.published.diff(this.ref.created, 'seconds')) <= 5;
+    return !this.ref.published || Math.abs(this.ref.published.diff(this.ref.created!, 'seconds').seconds) <= 5;
   }
 
   @memo
   get modifiedIsSubmitted() {
-    return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created, 'seconds')) <= 5;
+    return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created!, 'seconds').seconds) <= 5;
   }
 
   @memo
@@ -823,7 +823,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       return of(null);
     } else {
       return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref.url, this.ref.origin!).pipe(
-        tap(cursor => this.accounts.clearNotificationsIfNone(moment(cursor))),
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
       ), this.ref);
     }
   }
@@ -910,7 +910,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       scrollToFirstInvalid();
       return;
     }
-    const published = moment(this.editForm.value.published, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
+    const published = DateTime.fromISO(this.editForm.value.published);
     let ref = {
       ...this.editForm.value,
       published,
@@ -931,10 +931,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.init();
       this.store.submit.setRef(this.ref);
     } else {
-      this.refreshTap = () => this.publishChanged = !published.isSame(this.ref.published);
+      this.refreshTap = () => this.publishChanged = !published.hasSame(this.ref.published!, 'millisecond');
       this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
         tap(cursor => {
-          this.accounts.clearNotificationsIfNone(moment(cursor));
+          this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
           delete this.submitting;
           this.editing = false;
         }),
@@ -1004,7 +1004,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
             if (err.status === 409) {
               return this.refs.get(this.ref.url, this.store.account.origin).pipe(
                 switchMap(existing => {
-                  if (existing.modified?.isSame(ref.modified) || equalsRef(existing, ref) || window.confirm('An old version already exists. Overwrite it?')) {
+                  if (existing.modified?.hasSame(ref.modified!, 'millisecond') || equalsRef(existing, ref) || window.confirm('An old version already exists. Overwrite it?')) {
                     // TODO: Show diff and merge or split
                     return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
                   } else {

@@ -10,7 +10,7 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { isEqual, uniq } from 'lodash-es';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { catchError, Observable, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -256,7 +256,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         }
         return throwError(err);
       }),
-      tap(cursor => this.accounts.clearNotificationsIfNone(moment(cursor))),
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
     ).subscribe(cursor => {
       this.mutated = true;
       this.adding.splice(this.adding.indexOf(text), 1);
@@ -264,7 +264,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         console.error('Should not happen, will probably get cleared.');
         this.page = {content: []} as any;
       }
-      ref.modified = moment(cursor);
+      ref.modified = DateTime.fromISO(cursor);
       ref.modifiedString = cursor;
       this.page!.content.push(ref)
     });

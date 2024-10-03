@@ -49,7 +49,7 @@
                   [appTitle]="icon"
                   [ref]="ref">{{ icon.label }}</span>
           </ng-container>
-          <span [title]="ref.published?.toISOString()">{{ ref.published?.fromNow() }}</span>
+          <span [title]="ref.published?.toISO()">{{ ref.published?.toRelative() }}</span>
           <ng-container *ngIf="!authors.length && ref.created && !local">
             on <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
           </ng-container>

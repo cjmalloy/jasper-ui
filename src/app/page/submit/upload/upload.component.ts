@@ -2,8 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer, delay, pick, uniq } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
-import * as moment from 'moment';
 import { catchError, concat, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
@@ -186,7 +186,7 @@ export class UploadPage implements OnDestroy {
         title: file.name,
         tags: uniq(['public', tag, ...extraTags.filter(t => !!t)]),
         plugins: { [tag]: { url: reader.result as string } },
-        published: moment(),
+        published: DateTime.now(),
       }));
       reader.readAsDataURL(file);
     }
@@ -203,7 +203,7 @@ export class UploadPage implements OnDestroy {
         title: file.name,
         tags: uniq(['public', ...extraTags.filter(t => !!t)]),
         comment: reader.result as string,
-        published: moment(),
+        published: DateTime.now(),
       }));
       reader.readAsText(file);
     }
@@ -224,7 +224,7 @@ export class UploadPage implements OnDestroy {
             url: a.href,
             title: a.innerText,
             tags: ['public', ...extraTags.filter(t => !!t)],
-            published: moment(),
+            published: DateTime.now(),
           });
         }
       });
@@ -247,7 +247,7 @@ export class UploadPage implements OnDestroy {
             upload: true,
             url: loc,
             tags: ['public', ...extraTags.filter(t => !!t)],
-            published: moment(),
+            published: DateTime.now(),
           });
         }
       });
@@ -271,7 +271,7 @@ export class UploadPage implements OnDestroy {
             title,
             tags: ['public', ...extraTags.filter(t => !!t)],
             comment,
-            published: moment(),
+            published: DateTime.now(),
           });
         }
       });

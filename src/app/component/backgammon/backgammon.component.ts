@@ -14,8 +14,8 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { defer, delay, filter, range, uniq } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import * as moment from 'moment';
 import { catchError, Observable, Subscription, throwError } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
@@ -552,7 +552,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       this.writeAccess = true;
       if (this.patchingComment !== comment) return;
       this.ref!.comment = comment;
-      this.ref!.modified = moment(cursor);
+      this.ref!.modified = DateTime.fromISO(cursor);
       this.cursor = this.ref!.modifiedString = cursor;
       this.patchingComment = '';
       if (!this.local) {

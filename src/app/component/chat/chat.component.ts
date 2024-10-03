@@ -1,7 +1,7 @@
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { Component, HostBinding, Input, OnDestroy, ViewChild } from '@angular/core';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../../model/ref';
@@ -33,7 +33,7 @@ export class ChatComponent implements OnDestroy {
   cursors = new Map<string, string | undefined>();
   loadingPrev = false;
   plugins = this.store.account.defaultEditors(['plugin/latex']);
-  lastPoll = moment();
+  lastPoll = DateTime.now();
   initialSize = 50;
   messages?: Ref[];
   addText = '';
@@ -108,7 +108,7 @@ export class ChatComponent implements OnDestroy {
       this.loadPrev(true);
       return;
     }
-    this.lastPoll = moment();
+    this.lastPoll = DateTime.now();
     const query = braces(this.query) + ':' + (origin || '@');
     this.refs.page({
       ...getArgs(
@@ -141,7 +141,7 @@ export class ChatComponent implements OnDestroy {
   loadPrev(scrollDown = false) {
     if (this.loadingPrev) return;
     this.loadingPrev = true;
-    this.lastPoll = moment();
+    this.lastPoll = DateTime.now();
     this.refs.page({
       ...getArgs(
         this.query,

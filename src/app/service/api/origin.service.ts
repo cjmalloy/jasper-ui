@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { DateTime } from 'luxon';
 import { autorun } from 'mobx';
-import * as moment from 'moment';
 import { catchError, Observable } from 'rxjs';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
@@ -50,7 +50,7 @@ export class OriginService {
     );
   }
 
-  delete(origin: string, olderThan: moment.Moment): Observable<void> {
+  delete(origin: string, olderThan: DateTime): Observable<void> {
     return this.http.delete<void>(`${this.base}`, {
       params: params({ origin, olderThan }),
     }).pipe(

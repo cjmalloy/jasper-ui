@@ -15,8 +15,8 @@ import {
 import * as d3 from 'd3';
 import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import { filter } from 'lodash-es';
+import { DateTime, Duration } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import * as moment from 'moment';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ref, RefNode } from '../../../model/ref';
@@ -567,11 +567,11 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     if (this.store.graph.timeline) {
       let minPublished = this.store.graph.minPublished;
       let maxPublished = this.store.graph.maxPublished;
-      const minDiff = moment.duration(1, 'day').asMilliseconds();
+      const minDiff = Duration.fromObject({ day: 1 }).milliseconds;
       if (this.store.graph.publishedDiff < minDiff) {
-        const half = moment((minPublished || maxPublished || moment()).valueOf() / 2 + (maxPublished || minPublished || moment()).valueOf() / 2);
-        minPublished = moment(half).subtract(minDiff / 2);
-        maxPublished = moment(half).add(minDiff / 2);
+        const half = DateTime.fromMillis((minPublished || maxPublished || DateTime.now()).valueOf() / 2 + (maxPublished || minPublished || DateTime.now()).valueOf() / 2);
+        minPublished = half.minus(minDiff / 2);
+        maxPublished = half.plus(minDiff / 2);
       }
       const height = 20;
       const padding = 40;

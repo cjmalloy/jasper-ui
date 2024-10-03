@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { Tag } from './tag';
 
 export interface User extends Tag {
@@ -29,7 +29,7 @@ export function mapUser(obj: any): User {
   obj.type = 'user';
   obj.origin ||= '';
   obj.modifiedString = obj.modified;
-  obj.modified &&= moment(obj.modified);
+  obj.modified &&= DateTime.fromISO(obj.modified);
   obj.pubKey &&= atob(obj.pubKey);
   return obj;
 }
