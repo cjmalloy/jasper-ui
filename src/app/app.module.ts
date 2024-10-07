@@ -154,7 +154,7 @@ import { DebugService } from './service/debug.service';
 import { ModService } from './service/mod.service';
 import { OriginMapService } from './service/origin-map.service';
 
-const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService, origins: OriginMapService, themes: ModService, exts: ExtService) => () =>
+const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService, origins: OriginMapService, mods: ModService, exts: ExtService) => () =>
   config.load$.pipe(
     tap(() => console.log('-{1}- Loading Jasper')),
     switchMap(() => debug.init$),
@@ -176,8 +176,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     switchMap(() => origins.init$),
     tap(() => console.log('-{7}- Prefetching Exts')),
     switchMap(() => exts.init$),
-    tap(() => console.log('-{8}- Loading themes')),
-    switchMap(() => themes.init$),
+    tap(() => console.log('-{8}- Loading mods')),
+    switchMap(() => mods.init$),
     tap(() => console.log('-{9}- Ready')),
   );
 
