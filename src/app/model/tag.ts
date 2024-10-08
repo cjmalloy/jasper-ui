@@ -443,13 +443,11 @@ Handlebars.registerHelper('fromNow', (value: string) => DateTime.fromISO(value).
 
 Handlebars.registerHelper('formatInterval', (value: string) => Duration.fromISO(value).toHuman());
 
-Handlebars.registerHelper('response', (ref: Ref, value: string) => {
-  return ref.metadata?.userUrls?.includes(value);
-});
+Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?.userUrls?.includes(value));
 
-Handlebars.registerHelper('includes', (array: string[], value: string) => {
-  return array?.includes(value);
-});
+Handlebars.registerHelper('hasTag', (ref: Ref, value: string) => hasTag(value, ref));
+
+Handlebars.registerHelper('includes', (array: string[], value: string) => array?.includes(value));
 
 export function hydrate(config: any, field: string, model: any): string {
   if (!config[field]) return '';
