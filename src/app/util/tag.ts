@@ -206,6 +206,7 @@ export function getPrefixes(tag: string) {
 export function braces(query: string) {
   if (!query) return '';
   if (!query.includes('|')) return query;
+  if (query.startsWith('(') && query.endsWith(')') && !query.substring(1, query.length-2).includes('(')) return query;
   return `(${query})`;
 }
 
