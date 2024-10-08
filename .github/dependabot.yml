@@ -25,6 +25,16 @@ updates:
     formly:
       patterns:
         - "@ngx-formly/*"
+    tests:
+      patterns:
+        - "@types/jasmine"
+        - "jasmine*"
+        - "karma*"
+        - "@ngx-formly/*"
+    cypress:
+      patterns:
+        - "@cypress/schematic"
+        - "cypress*"
 - package-ecosystem: github-actions
   directory: /
   schedule:
