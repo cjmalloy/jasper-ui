@@ -121,20 +121,12 @@ export const originPullPlugin: Plugin = {
       props: {
         label: $localize`Strip Invalid Templates:`,
       }
-    }, {
-      key: 'validationOrigin',
-      type: 'origin',
-      defaultValue: '',
-      props: {
-        label: $localize`Validation Origin:`,
-      }
     }],
   },
   defaults: {
     generateMetadata: true,
     validatePlugins: true,
     validateTemplates: true,
-    validationOrigin: '',
   },
   schema: {
     optionalProperties: {
@@ -145,7 +137,6 @@ export const originPullPlugin: Plugin = {
       stripInvalidPlugins: { type: 'boolean' },
       validateTemplates: { type: 'boolean' },
       stripInvalidTemplates: { type: 'boolean' },
-      validationOrigin: { type: 'string' },
       originFromTag: { type: 'string' },
       addTags: { elements: { type: 'string' } },
       removeTags: { elements: { type: 'string' } },
