@@ -11,7 +11,7 @@
        (cdkDropListDropped)="drop($any($event))"
        (click)="onClick(s.index)"
        (contextmenu)="moveHighest($event, s.index)">
-    @for (p of s.pieces; track p; let pi = $index) {
+    @for (p of s.pieces; track pi; let pi = $index) {
       <div class="backgammon-piece"
            [class.stacked]="pi > 4"
            [class.double-stacked]="pi > 9"
@@ -50,7 +50,7 @@
      [cdkDropListData]="-1"
      (click)="onClickBar()"
      (contextmenu)="moveBarHighest($event)">
-  @for (p of blackBar; track p; let pi = $index) {
+  @for (p of blackBar; track pi; let pi = $index) {
     <div class="backgammon-piece"
          [class.bounce]="pi >= blackBar.length - redBarBounce"
          cdkDrag
