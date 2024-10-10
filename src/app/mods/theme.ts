@@ -59,18 +59,61 @@ export const terminalTheme: Template = {
       [$localize`Terminal`]:
       // language=CSS
         `
+          /*!
+           *  Hack typeface https://github.com/source-foundry/Hack
+           *  License: https://github.com/source-foundry/Hack/blob/master/LICENSE.md
+           */
+          /* FONT PATHS
+           * -------------------------- */
+          @font-face {
+            font-family: 'Hack';
+            src: url('assets/fonts/hack-regular.woff2?sha=3114f1256') format('woff2'), url('assets/fonts/hack-regular.woff?sha=3114f1256') format('woff');
+            font-weight: 400;
+            font-style: normal;
+          }
+
+          @font-face {
+            font-family: 'Hack';
+            src: url('assets/fonts/hack-bold.woff2?sha=3114f1256') format('woff2'), url('assets/fonts/hack-bold.woff?sha=3114f1256') format('woff');
+            font-weight: 700;
+            font-style: normal;
+          }
+
+          @font-face {
+            font-family: 'Hack';
+            src: url('assets/fonts/hack-italic.woff2?sha=3114f1256') format('woff2'), url('assets/fonts/hack-italic.woff?sha=3114f1256') format('woff');
+            font-weight: 400;
+            font-style: italic;
+          }
+
+          @font-face {
+            font-family: 'Hack';
+            src: url('assets/fonts/hack-bolditalic.woff2?sha=3114f1256') format('woff2'), url('assets/fonts/hack-bolditalic.woff?sha=3114f1256') format('woff');
+            font-weight: 700;
+            font-style: italic;
+          }
+
           * {
-            font-family: monospace;
+            font-family: Hack, monospace;
+          }
+
+          .inbox {
+            font-family: Arial, Helvetica, sans-serif;
           }
 
           body.dark-theme {
             --bg: #333;
-            --tag: #364f57;
+            --tag: #5e8a9a;
             --mod: #b44125;
           }
 
           body.light-theme {
             --bg: #EEE;
+          }
+
+          .container,
+          .tabs > a.current-tab {
+            background: var(--bg) !important;
           }
 
           body.dark-theme, body.dark-theme ::backdrop, body.dark-theme .editor.fullscreen app-md {
