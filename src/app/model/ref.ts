@@ -154,16 +154,21 @@ export function writeRef(ref: Ref): Ref {
 /**
  * Find URL in alts with file extension.
  */
-export function findExtension(ending: string, ref?: Ref, repost?: Ref) {
+export function findExtension(ending: string, ref?: Ref, repost?: Ref): Ref | undefined {
   if (!ref) return undefined;
   ending = ending.toLowerCase();
-  if (ref.url.toLowerCase().endsWith(ending)) return ref.url;
+  if (ref.url.toLowerCase().endsWith(ending)) return ref;
   const urls = [
     ...(ref.alternateUrls || []),
     ...(repost?.alternateUrls || [])];
-  for (const s of urls) {
+  for (const s of ref.alternateUrls || []) {
     if (new URL(s).pathname.toLowerCase().endsWith(ending)) {
-      return s;
+      return { url: s, origin: ref.origin };
+    }
+  }
+  for (const s of repost?.alternateUrls || []) {
+    if (new URL(s).pathname.toLowerCase().endsWith(ending)) {
+      return { url: s, origin: repost!.origin };
     }
   }
   return undefined;

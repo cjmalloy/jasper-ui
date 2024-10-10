@@ -253,6 +253,11 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
+  get currentOrigin() {
+    return this.origin || this.ref?.origin || '';
+  }
+
+  @memo
   get currentText() {
     if (this.hideComment) return '';
     const value = this.text || this.ref?.comment || '';
@@ -298,7 +303,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!this.currentTags.includes('plugin/audio')) return '';
     const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
     if (!this.admin.getPlugin('plugin/audio')?.config?.proxy) return url;
-    return this.proxy.getFetch(url);
+    return this.proxy.getFetch(url, this.currentOrigin);
   }
 
   @memo
@@ -306,7 +311,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!this.currentTags.includes('plugin/video')) return '';
     const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
     if (!this.admin.getPlugin('plugin/video')?.config?.proxy) return url;
-    return this.proxy.getFetch(url);
+    return this.proxy.getFetch(url, this.currentOrigin);
   }
 
   @memo
@@ -314,7 +319,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!this.image && !this.currentTags.includes('plugin/image')) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
     if (!this.admin.getPlugin('plugin/image')?.config?.proxy) return url;
-    return this.proxy.getFetch(url);
+    return this.proxy.getFetch(url, this.currentOrigin);
   }
 
   @memo
@@ -338,7 +343,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     const url = this.pdf;
     if (!url) return url;
     if (!this.admin.getPlugin('plugin/pdf')?.config?.proxy) return url;
-    return this.proxy.getFetch(url);
+    return this.proxy.getFetch(url, this.origin);
   }
 
   @memo

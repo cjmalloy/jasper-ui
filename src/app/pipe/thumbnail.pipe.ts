@@ -22,13 +22,13 @@ export class ThumbnailPipe implements PipeTransform {
     for (const ref of refs) {
       if (!ref) continue;
       for (const plugin of ['plugin/thumbnail', 'plugin/image', 'plugin/video']) {
-        if (refUrl(ref, plugin)) return of(this.fetchUrl(refUrl(ref, plugin), plugin));
+        if (refUrl(ref, plugin)) return of(this.fetchUrl(refUrl(ref, plugin), ref.origin, plugin));
       }
       if (hasTag('plugin/embed', ref)) {
         return this.store.get(ref.plugins?.['plugin/embed']?.url || ref.url).pipe(
           map(oembed => {
             if (oembed?.thumbnail_url) {
-              return this.fetchUrl(oembed.thumbnail_url, 'plugin/thumbnail');
+              return this.fetchUrl(oembed.thumbnail_url, ref.origin, 'plugin/thumbnail');
             }
             return '';
           }),
@@ -37,22 +37,22 @@ export class ThumbnailPipe implements PipeTransform {
       if (!this.validUrl(ref.url)) continue;
       const embedPlugins = this.admin.getEmbeds(ref);
       for (const plugin of ['plugin/image', 'plugin/video']) {
-        if (embedPlugins.includes(plugin)) return of(this.fetchUrl(ref.url, plugin));
+        if (embedPlugins.includes(plugin)) return of(this.fetchUrl(ref.url, ref.origin, plugin));
       }
     }
     if (force) {
       for (const ref of refs) {
         if (!this.validUrl(ref?.url)) continue;
-        return of(this.fetchUrl(ref!.url, 'plugin/image'));
+        return of(this.fetchUrl(ref!.url, ref!.origin, 'plugin/image'));
       }
     }
     return of('');
   }
 
-  fetchUrl(url: string, plugin: string) {
+  fetchUrl(url: string, origin: string | undefined, plugin: string) {
     if (!url) return '';
     if (this.admin.getPlugin(plugin)?.config?.proxy) {
-      return this.proxy.getFetch(url, true);
+      return this.proxy.getFetch(url, origin, true);
     }
     return url;
   }
@@ -61,8 +61,7 @@ export class ThumbnailPipe implements PipeTransform {
     return url
       && !url.startsWith('data:')
       && !url.startsWith('comment:')
-    // TODO: stop requesting internal: after cache migrates to cache: scheme
-    // && !url.startsWith('internal:');
+      && !url.startsWith('internal:');
   }
 }
 
