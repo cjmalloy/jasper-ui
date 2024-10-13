@@ -1,6 +1,7 @@
 import { Component, EventEmitter, HostBinding, Output } from '@angular/core';
 import { catchError, map, of } from 'rxjs';
 import { ProxyService } from '../../service/api/proxy.service';
+import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-audio-upload',
@@ -14,6 +15,7 @@ export class AudioUploadComponent {
   data = new EventEmitter<string>();
 
   constructor(
+    private store: Store,
     private proxy: ProxyService,
   ) { }
 
@@ -22,7 +24,7 @@ export class AudioUploadComponent {
     const file = files[0]!;
     const reader = new FileReader();
     reader.onload = () => {
-      this.proxy.save(file).pipe(
+      this.proxy.save(file, this.store.account.origin).pipe(
         map(ref => ref.url),
         catchError(err => of(reader.result as string))
       ).subscribe(url => this.data.next(url));

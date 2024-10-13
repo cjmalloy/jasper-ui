@@ -152,26 +152,13 @@ export class UploadPage implements OnDestroy {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
-      this.proxy.save(file).pipe(
+      this.proxy.save(file, this.store.account.origin).pipe(
         map(ref => {
           ref.title = file.name;
           ref.tags = uniq([...ref.tags || [], tag, ...extraTags.filter(t => !!t)]);
           return ref;
         }),
       ).subscribe(ref => runInAction(() => this.store.submit.addRefs({ ...ref, upload: true })));
-    }
-  }
-
-  save(files: File[]) {
-    if (!files) return;
-    for (let i = 0; i < files?.length; i++) {
-      const file = files[i];
-      this.proxy.save(file).subscribe(ref => runInAction(() => this.store.submit.addRefs({
-        ...ref,
-        upload: true,
-        title: file.name,
-        tags: uniq([...ref.tags || [], this.store.account.localTag, ...this.store.submit.tags, 'plugin/file']),
-      })));
     }
   }
 

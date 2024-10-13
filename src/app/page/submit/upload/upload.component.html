@@ -39,7 +39,7 @@
           <span i18n>any kind of file</span>
           <input #fileUpload type="file"
                  accept="*"
-                 (change)="save($any(fileUpload.files))"
+                 (change)="readUploads($any(fileUpload.files))"
                  multiple/>
         </div>
       }
