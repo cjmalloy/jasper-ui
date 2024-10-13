@@ -555,16 +555,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get mediaAttachment() {
     if (this.file) {
-      return this.proxy.getFetch(this.url);
+      return this.proxy.getFetch(this.url, this.origin);
     }
     if (this.audio && this.admin.getPlugin('plugin/audio')?.config?.proxy) {
-      return this.proxy.getFetch(this.url);
+      return this.proxy.getFetch(this.url, this.origin);
     }
     if (this.video && this.admin.getPlugin('plugin/video')?.config?.proxy) {
-      return this.proxy.getFetch(this.url);
+      return this.proxy.getFetch(this.url, this.origin);
     }
     if (this.image && this.admin.getPlugin('plugin/image')?.config?.proxy) {
-      return this.proxy.getFetch(this.url);
+      return this.proxy.getFetch(this.url, this.origin);
     }
     return '';
   }
@@ -671,8 +671,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
+  get origin() {
+    return this.bareRef?.origin;
+  }
+
+  @memo
   get link() {
-    if (this.file) return this.proxy.getFetch(this.url);
+    if (this.file) return this.proxy.getFetch(this.url, this.origin);
     return this.url;
   }
 

@@ -79,7 +79,7 @@
 }
 <app-md *ngIf="currentText"
         [class.expand]="expand"
-        [origin]="origin || ref?.origin || ''"
+        [origin]="currentOrigin"
         [text]="currentText"
         [plugins]="currentTags"></app-md>
 <embed *ngIf="pdfUrl"
@@ -90,6 +90,6 @@
 <ng-container *ngFor="let ui of uis">
   <app-md [class]="uiCss(ui.tag)"
           [disableSanitizer]="true"
-          [origin]="origin || ref?.origin || ''"
+          [origin]="currentOrigin"
           [text]="uiMarkdown(ui.tag)"></app-md>
 </ng-container>

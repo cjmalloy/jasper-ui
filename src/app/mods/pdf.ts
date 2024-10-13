@@ -46,8 +46,8 @@ export const pdfPlugin: Plugin = {
 
 
 export function pdfUrl(plugin?: typeof pdfPlugin, ref?: Ref, repost?: Ref) {
-  return ref?.plugins?.['plugin/pdf']?.url
-    || repost?.plugins?.['plugin/pdf']?.url
+  return ref?.plugins?.['plugin/pdf']?.url && { url: ref!.plugins?.['plugin/pdf'].url, origin: ref!.origin }
+    || repost?.plugins?.['plugin/pdf']?.url && { url: repost!.plugins?.['plugin/pdf'].url, origin: repost!.origin }
     || findExtension('.pdf', ref, repost);
 }
 

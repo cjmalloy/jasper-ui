@@ -42,10 +42,10 @@ export class AppComponent implements AfterViewInit {
     if (this.pdfPlugin) {
       autorun(() => {
         if (this.store.eventBus.event === 'pdf') {
-          let url = pdfUrl(this.pdfPlugin, this.store.eventBus.ref, this.store.eventBus.repost);
-          if (!url) return;
-          if (this.pdfPlugin!.config?.proxy) url = this.proxy.getFetch(url);
-          open(url, '_blank');
+          let pdf = pdfUrl(this.pdfPlugin, this.store.eventBus.ref, this.store.eventBus.repost);
+          if (!pdf) return;
+          if (this.pdfPlugin!.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin);
+          open(pdf.url, '_blank');
         }
       });
     }
