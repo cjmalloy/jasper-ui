@@ -800,6 +800,15 @@ video.qr-preview {
     overflow: hidden;
   }
 
+  &.floating-tabs {
+    .current-tab {
+      border: 1px solid var(--border) !important;
+      margin: 4px;
+      flex-basis: 100%;
+      border-radius: 4px;
+    }
+  }
+
   .mobile-tab-select {
       margin: 0 4px;
       select {
@@ -844,6 +853,7 @@ video.qr-preview {
 
     &.current-tab {
       color: var(--active) !important;
+      display: inline-block !important;
       background-color: var(--bg);
       border-top: 1px solid var(--border);
       border-left: 1px solid var(--border);
