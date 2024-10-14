@@ -2,8 +2,6 @@
 $mini-width: 380px;
 // Mobile: Change tabs and forms
 $mobile-width: 740px;
-// Mobile: Change tabs and forms
-$settings-tabs-width: 1024px;
 // Tablet: Move sidebar above
 $tablet-width: 948px;
 
@@ -11,10 +9,6 @@ $tablet-width: 948px;
 
 /* Tablet and Bigger Screens */
 @media (min-width: $mobile-width) {
-  .mobile-tab-select {
-    display: none;
-  }
-
   .toggle {
     &.actions-toggle, &.view, &.threads, &.comments {
       display: none;
@@ -119,18 +113,6 @@ $tablet-width: 948px;
   }
 }
 
-/* Special width for settings tabs */
-@media (max-width: $settings-tabs-width) {
-  .settings .tabs {
-    & > a:not(.current-tab):not(.logo) {
-      display: none;
-    }
-    .mobile-tab-select {
-      display: block;
-    }
-  }
-}
-
 /* Phone Screens */
 @media (max-width: $mobile-width) {
   input[type="color"],
@@ -187,9 +169,6 @@ $tablet-width: 948px;
   .tabs {
     h5 {
       flex-basis: 100%;
-    }
-    & > a:not(.current-tab):not(.logo) {
-      display: none;
     }
   }
 
