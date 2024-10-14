@@ -41,6 +41,7 @@ export class ConfigService {
    */
   prefetch = isDevMode();
 
+  miniWidth = 380;
   mobileWidth = 740;
   tabletWidth = 948;
   hugeWidth = 1500;
@@ -69,6 +70,10 @@ export class ConfigService {
         }
       }),
     );
+  }
+
+  get mini() {
+    return window.innerWidth <= this.miniWidth;
   }
 
   get mobile() {
