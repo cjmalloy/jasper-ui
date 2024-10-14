@@ -790,7 +790,7 @@ video.qr-preview {
 
   &.empty > a:not(.logo),
   &.empty > app-mobile-tab-select {
-    mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
+    mask-image: gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
   }
 
   h5 {
@@ -798,6 +798,19 @@ video.qr-preview {
     min-width: 0;
     text-overflow: ellipsis;
     overflow: hidden;
+  }
+
+  &.floating-tabs {
+    &>a:not(.logo) {
+      display: none !important;
+    }
+    .current-tab {
+      display: block;
+      border: 1px solid var(--border) !important;
+      margin: 4px;
+      flex-basis: 100%;
+      border-radius: 4px;
+    }
   }
 
   .mobile-tab-select {
@@ -844,6 +857,7 @@ video.qr-preview {
 
     &.current-tab {
       color: var(--active) !important;
+      display: inline-block !important;
       background-color: var(--bg);
       border-top: 1px solid var(--border);
       border-left: 1px solid var(--border);
