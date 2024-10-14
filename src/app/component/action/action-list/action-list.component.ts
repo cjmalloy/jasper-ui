@@ -11,7 +11,7 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { debounce, defer, delay } from 'lodash-es';
+import { defer, throttle } from 'lodash-es';
 import { Subscription } from 'rxjs';
 import { Ref, writeRef } from '../../../model/ref';
 import { Action } from '../../../model/tag';
@@ -83,11 +83,10 @@ export class ActionListComponent implements AfterViewInit {
     this.measureVisible();
   }
 
-  measureVisible = debounce(() => {
+  measureVisible = throttle(() => {
     if (!this.actions) return;
-    defer(() => this.hiddenActions = this.actions - this.visible);
-    delay(() => this.hiddenActions = this.actions - this.visible, 500);
-  }, 400);
+    this.hiddenActions = this.actions - this.visible;
+  }, 400, { leading: true, trailing: true });
 
   @memo
   get actions() {
@@ -98,8 +97,8 @@ export class ActionListComponent implements AfterViewInit {
   get actionWidths() {
     const el = this.el.nativeElement;
     const result: number[] = [];
-    for (let i = 0; i < el!.children.length; i++) {
-      const e = el.parentElement!.children[i] as HTMLElement;
+    for (let i = 0; i < el.children.length; i++) {
+      const e = el.children[i] as HTMLElement;
       const s = getComputedStyle(e);
       result.push(e.offsetWidth + parseInt(s.marginLeft) + parseInt(s.marginRight));
     }
