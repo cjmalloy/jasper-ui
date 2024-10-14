@@ -16,6 +16,7 @@ import { Subscription } from 'rxjs';
 import { Ref, writeRef } from '../../../model/ref';
 import { Action } from '../../../model/tag';
 import { ActionService } from '../../../service/action.service';
+import { ConfigService } from '../../../service/config.service';
 import { downloadRef } from '../../../util/download';
 import { memo } from '../../../util/memo';
 
@@ -49,6 +50,7 @@ export class ActionListComponent implements AfterViewInit {
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
 
   constructor(
+    private config: ConfigService,
     private acts: ActionService,
     private overlay: Overlay,
     private el: ElementRef<HTMLElement>,
@@ -105,6 +107,7 @@ export class ActionListComponent implements AfterViewInit {
   }
 
   get visible() {
+    if (this.config.mobile) return this.actions;
     const el = this.el.nativeElement;
     const parentWidth = el.parentElement!.offsetWidth;
     let result = 0;
