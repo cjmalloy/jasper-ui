@@ -290,9 +290,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   @HostListener('window:resize')
   onResize() {
     const dim = Math.floor(Math.min(
-      innerWidth - 20,
+      innerWidth - 4,
       innerHeight - 20,
-      this.el.nativeElement.parentElement?.offsetWidth || 100,
+      this.el.nativeElement.parentElement?.offsetWidth || screen.width,
     ) / 28);
     const fontSize = Math.floor(1.5 * dim);
     this.el.nativeElement.style.setProperty('--dim', dim + 'px')
