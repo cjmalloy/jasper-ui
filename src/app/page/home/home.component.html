@@ -6,32 +6,39 @@
       <a routerLink="./"
          [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
+         [title]="store.view.extTemplate.name"
          queryParamsHandling="merge" i18n>{{ store.view.extTemplate.config?.view || store.view.extTemplate.tag }}</a>
       <a routerLink="./"
          [class.current-tab]="store.view.list"
          [queryParams]="{view: 'list'}"
+         i18n-title title="☰ List"
          queryParamsHandling="merge" i18n>list</a>
     } @else if (store.view.activeExts.length) {
       @for (x of store.view.activeExts; track x; let i = $index) {
         <a routerLink="./"
            [class.current-tab]="store.view.viewTag === x.tag"
            [queryParams]="{view: i === 0 ? null : x.tag}"
-           queryParamsHandling="merge" i18n>{{ x.name || x.tag }}</a>
+           queryParamsHandling="merge"
+           [title]="x.name"
+           i18n>{{ x.config?.view || x.name || x.tag }}</a>
       }
       <a routerLink="./"
          [class.current-tab]="store.view.list"
          [queryParams]="{view: 'list'}"
+         i18n-title title="☰ List"
          queryParamsHandling="merge" i18n>list</a>
     } @else {
       <a routerLink="./"
          [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
+         i18n-title title="☰ List"
          queryParamsHandling="merge" i18n>list</a>
     }
     @for (x of store.view.globalTemplates; track x) {
       <a routerLink="./"
          [class.current-tab]="store.view.view === x.tag"
          [queryParams]="{view: x.tag}"
+         [title]="x.name"
          queryParamsHandling="merge" i18n>{{ x.config?.view || x.name || x.tag }}</a>
     }
   </app-tabs>

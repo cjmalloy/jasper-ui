@@ -641,7 +641,7 @@ export class EmbedService {
     if (ext) return ext;
     const t = this.admin.view.find(t => t.tag === view);
     if (t) {
-      return { tag: t.tag, origin: t.origin, name: t.config?.view || t.name, config: t.defaults };
+      return { tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t.config?.view } };
     }
     return undefined;
   }

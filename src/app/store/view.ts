@@ -10,7 +10,7 @@ import { User } from '../model/user';
 import { RootConfig } from '../mods/root';
 import { UrlFilter } from '../util/query';
 import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
-import { AccountStore } from "./account";
+import { AccountStore } from './account';
 import { EventBus } from './bus';
 
 /**
@@ -135,7 +135,7 @@ export class ViewStore {
         .flatMap(t => {
           const exts = this.exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag));
           if (exts.length) return exts;
-          return [{ tag: t.tag, origin: t.origin, name: t.name, config: t.defaults }];
+          return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t?.config?.view} }];
         })
         .filter(x => !!x));
   }
@@ -150,7 +150,7 @@ export class ViewStore {
             // Already an active ext so ignore global
             return [];
           }
-          return [{ tag: t.tag, origin: t.origin, name: t.config?.view || t.name, config: t.defaults }];
+          return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t.config?.view } }];
         })
         .filter(x => !!x));
   }
