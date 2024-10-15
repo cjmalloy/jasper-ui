@@ -47,7 +47,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   @Input()
   @HostBinding('class.red')
-  red = true; // TODO: Save in local storage
+  red = false; // TODO: Save in local storage
   @Input()
   ref?: Ref;
   @Input()
