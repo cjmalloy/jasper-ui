@@ -76,7 +76,13 @@ export const originPullPlugin: Plugin = {
       key: 'cache',
       type: 'boolean',
       props: {
-        label: $localize`Pull cache`,
+        label: $localize`Pull Cache:`,
+      }
+    }, {
+      key: 'cacheFetch',
+      type: 'boolean',
+      props: {
+        label: $localize`Fetch and Cache:`,
       }
     }],
     advancedForm: [{
@@ -132,6 +138,7 @@ export const originPullPlugin: Plugin = {
   },
   defaults: {
     cache: true,
+    cacheFetch: true,
     generateMetadata: true,
     validatePlugins: true,
     validateTemplates: true,
@@ -139,6 +146,8 @@ export const originPullPlugin: Plugin = {
   schema: {
     optionalProperties: {
       cache: { type: 'boolean' },
+      cacheProxy: { type: 'boolean' },
+      cacheFetch: { type: 'boolean' },
       query: { type: 'string' },
       batchSize: { type: 'int32' },
       generateMetadata: { type: 'boolean' },
