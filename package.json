@@ -42,7 +42,7 @@
     "jtd": "^0.1.1",
     "lodash-es": "^4.17.21",
     "luxon": "^3.5.0",
-    "mobx": "^6.13.3",
+    "mobx": "^6.13.5",
     "mobx-angular": "^4.8.0",
     "monaco-editor": "^0.50.0",
     "ngx-markdown": "^18.1.0",
