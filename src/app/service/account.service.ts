@@ -274,16 +274,19 @@ export class AccountService {
   }
 
   checkConsent(consent?: [key: string, disclosure: string][]) {
-    if (!consent) return;
-    const result = this.store.account.ext?.config?.consent || {};
+    if (!consent?.length) return;
+    let result = null;
     for (const [key, disclosure] of consent) {
-      if (!result[key] && confirm(disclosure)) {
+      if (!result?.[key] && confirm(disclosure)) {
+        result ||= this.store.account.ext?.config?.consent || {};
         result[key] = true;
       }
     }
-    this.userExt$.pipe(
-      switchMap(() => this.updateConfig$('consent', result)),
-    ).subscribe();
+    if (result) {
+      this.userExt$.pipe(
+        switchMap(() => this.updateConfig$('consent', result)),
+      ).subscribe();
+    }
   }
 
   // TODO: move to ext, plugin, template service as  a mixin

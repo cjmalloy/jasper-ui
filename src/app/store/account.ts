@@ -160,7 +160,7 @@ export class AccountStore {
   }
 
   get modmail() {
-    return this.access?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => t + (this.origin || '@*'));
+    return this.access?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => t + (this.origin || '@'));
   }
 
   get outboxes() {
@@ -171,9 +171,6 @@ export class AccountStore {
   get inboxQuery() {
     if (!this.signedIn) return '';
     let tags = [this.mailbox];
-    if (this.origin) {
-      tags.push(setPublic(prefix('plugin/outbox', this.origin, this.tagWithOrigin)));
-    }
     if (this.modmail?.length) {
       tags.push(...this.modmail);
     }
