@@ -8,6 +8,7 @@ import { catchError, map, mergeMap, Subscription, switchMap, throwError } from '
 import { tap } from 'rxjs/operators';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
+import { getMailbox, mailboxMod } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -131,7 +132,7 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
       ...addTags,
     ], ...removeTags);
     for (const approver of queueExt.config?.approvers || []) {
-      result.push(prefix('plugin/inbox', approver));
+      result.push(getMailbox(approver, this.store.account.origin));
     }
     return uniq(result);
   }
