@@ -416,6 +416,19 @@ $tablet-width: 948px;
         transition: height .5s;
       }
     }
+    &.full-page > .row > .stack > .link-below {
+      & > .stack > * {
+        &.info, &.actions {
+          height: 32px !important;
+          transition: none !important;
+        }
+      }
+      & > .toggle {
+        &.actions-toggle, &.view, &.threads, &.comments {
+          display: none !important;
+        }
+      }
+    }
   }
 
   .show-more {
