@@ -67,6 +67,7 @@ export class UploadPage implements OnDestroy {
     const audio: File[] = [];
     const video: File[] = [];
     const images: File[] = [];
+    const pdfs: File[] = [];
     const bookmarks: File[] = [];
     const sitemap: File[] = [];
     const texts: File[] = [];
@@ -84,6 +85,9 @@ export class UploadPage implements OnDestroy {
       }
       if (file.type.startsWith('image/')) {
         images.push(file);
+      }
+      if (file.type.startsWith('application/pdf')) {
+        pdfs.push(file);
       }
       if (file.type.startsWith('text/html')) {
         bookmarks.push(file);
@@ -107,6 +111,7 @@ export class UploadPage implements OnDestroy {
     this.readScrape(audio, 'plugin/audio', this.store.account.localTag, ...this.store.submit.tags);
     this.readScrape(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
     this.readScrape(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
+    this.readScrape(pdfs, 'plugin/pdf', this.store.account.localTag, ...this.store.submit.tags);
     this.readData(texts, this.store.account.localTag, ...this.store.submit.tags);
     this.readBookmarks(bookmarks, this.store.account.localTag, ...this.store.submit.tags);
     this.readSitemap(sitemap, this.store.account.localTag, ...this.store.submit.tags);
