@@ -571,13 +571,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get canInvoice() {
-    if (!this.ref.created) return false;
     if (!this.local) return false;
     if (!this.admin.getPlugin('plugin/invoice')) return false;
     if (!this.isAuthor) return false;
-    if (!this.ref.sources || !this.ref.sources.length) return false;
-    return hasTag('plugin/comment', this.ref) ||
-      !hasTag('internal', this.ref);
+    return hasTag('queue', this.ref);
   }
 
   @memo

@@ -55,11 +55,10 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
       comment: [''],
     });
     this.ref$.pipe(
-      mergeMap(ref => this.refs.page({ sources: ref.url, query: 'queue', size: 1}))
       // TODO: support multiple valid queues
-    ).subscribe(page => {
-      if (page.content.length) {
-        this.queue = templates(page.content[0].tags, 'queue')[0];
+    ).subscribe(ref => {
+      if (ref) {
+        this.queue = templates(ref.tags, 'queue')[0];
       }
     });
   }
@@ -126,13 +125,12 @@ export class SubmitInvoicePage implements OnInit, HasChanges {
     const removeTags = this.editorTags.filter(t => t.startsWith('-')).map(t => t.substring(1));
     const result = without([
       'locked',
-      'internal',
       prefix('plugin/invoice', queueExt.tag),
       'plugin/qr',
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
       ...addTags,
     ], ...removeTags);
-    for (const approver of queueExt.config.approvers) {
+    for (const approver of queueExt.config?.approvers || []) {
       result.push(prefix('plugin/inbox', approver));
     }
     return uniq(result);

@@ -5,7 +5,7 @@ import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
-import { getArgs } from '../../../util/query';
+import { getArgs, UrlFilter } from '../../../util/query';
 
 @Component({
   selector: 'app-ref-responses',
@@ -28,10 +28,11 @@ export class RefResponsesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
+      const hideInternal = !this.admin.getPlugins(this.store.view.queryTags).length;
       const args = getArgs(
         '',
         this.store.view.sort,
-        uniq(['query/!internal', ...this.store.view.filter]),
+        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete'] : ['query/!plugin/delete'], ...this.store.view.filter || []]) as UrlFilter[],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
