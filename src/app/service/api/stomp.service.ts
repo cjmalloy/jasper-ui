@@ -31,10 +31,14 @@ export class StompService extends RxStomp {
   }
 
   get brokerURL() {
-    if (this.config.api.startsWith('//')) return 'ws://' + this.config.api.substring('//'.length) + '/websocket'
-    if (this.config.api.startsWith('https://')) return 'wss://' + this.config.api.substring('https://'.length) + '/websocket';
-    if (this.config.api.startsWith('http://')) return 'ws://' + this.config.api.substring('http://'.length) + '/websocket';
-    return 'ws://' + this.config.api + '/websocket'
+    return `${this.hostUrl}/api/stomp/websocket`
+  }
+
+  get hostUrl() {
+    if (this.config.api.startsWith('//')) return 'ws://' + this.config.api.substring('//'.length);
+    if (this.config.api.startsWith('https://')) return 'wss://' + this.config.api.substring('https://'.length);
+    if (this.config.api.startsWith('http://')) return 'ws://' + this.config.api.substring('http://'.length);
+    return 'ws://' + this.config.api;
   }
 
   watchOrigin(origin: string): Observable<string> {
