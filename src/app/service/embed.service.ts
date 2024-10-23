@@ -314,7 +314,7 @@ export class EmbedService {
         const config = {} as any;
         if (t.style.width) config.width = t.style.width;
         if (t.style.height) config.height = t.style.height;
-        const c = embed.createEmbed({ url, plugins: { 'plugin/image': config } }, ['plugin/image']);
+        const c = embed.createEmbed({ url, origin, plugins: { 'plugin/image': config } }, ['plugin/image']);
         c.location.nativeElement.title = t.title;
         c.location.nativeElement.alt = t.querySelectorAll('img')[0]?.alt;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
@@ -330,7 +330,7 @@ export class EmbedService {
         const config = {} as any;
         if (t.style.width) config.width = t.style.width;
         if (t.style.height) config.height = t.style.height;
-        const c = embed.createEmbed({ url, plugins: { 'plugin/image': config } }, ['plugin/image']);
+        const c = embed.createEmbed({ url, origin, plugins: { 'plugin/image': config } }, ['plugin/image']);
         c.location.nativeElement.title = t.title;
         c.location.nativeElement.alt = t.alt;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
@@ -343,7 +343,7 @@ export class EmbedService {
       if (source) {
         let url = source.src;
         if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
-        const c = embed.createEmbed({ url }, ['plugin/audio']);
+        const c = embed.createEmbed({ url, origin }, ['plugin/audio']);
         c.location.nativeElement.title = t.title;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
       }
@@ -358,7 +358,7 @@ export class EmbedService {
         const config = {} as any;
         if (t.style.width) config.width = t.style.width;
         if (t.style.height) config.height = t.style.height;
-        const c = embed.createEmbed({ url, plugins: { 'plugin/video': config } }, ['plugin/video']);
+        const c = embed.createEmbed({ url, origin, plugins: { 'plugin/video': config } }, ['plugin/video']);
         c.location.nativeElement.title = t.title;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
       }

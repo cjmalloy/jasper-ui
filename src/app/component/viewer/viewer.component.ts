@@ -254,7 +254,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   @memo
   get currentOrigin() {
-    return this.origin || this.ref?.origin || '';
+    return this.origin || this.ref?.origin || this.store.account.origin;
   }
 
   @memo
