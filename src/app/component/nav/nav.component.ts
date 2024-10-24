@@ -5,6 +5,7 @@ import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
 import { VisibilityService } from '../../service/visibility.service';
 import { getPath, getSearchParams, parseParams } from '../../util/http';
+import { hasPrefix } from '../../util/tag';
 
 @Component({
   selector: 'app-nav',
@@ -84,7 +85,7 @@ export class NavComponent implements OnInit {
   }
 
   get hasText() {
-    if (!this.text) return false;
+    if (!this.text || hasPrefix(this.text, 'user')) return false;
     return this.text != this.url;
   }
 

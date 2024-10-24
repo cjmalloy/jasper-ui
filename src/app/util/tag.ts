@@ -146,11 +146,11 @@ export function defaultOrigin(tag: string, origin?: string) {
 }
 
 export function subOrigin(local?: string, origin?: string) {
-  if (!local) local = "";
-  if (!origin) origin = "";
+  if (!local) local = '';
+  if (!origin) origin = '';
   if (!local) return origin;
   if (!origin) return local;
-  if (origin.startsWith("@")) origin = origin.substring(1);
+  if (origin.startsWith('@')) origin = origin.substring(1);
   return local + '.' + origin;
 }
 
@@ -193,7 +193,7 @@ export function hasPrefix(tag?: string, prefix?: string) {
 }
 
 export function removePrefix(tag: string, count = 1) {
-  return tag.split('/').slice(count).join('/');
+  return access(tag) + tag.split('/').slice(count).join('/');
 }
 
 export function getPrefixes(tag: string) {

@@ -274,10 +274,10 @@ export function isReplicating(remote: Ref, apis: Map<string, string>) {
   return apis.get(plugin?.remote || '') === remote.url;
 }
 
-export function isPushing(remote: Ref, origin = '') {
+export function isPushing(remote: Ref, subOrigin = '') {
   if (!remote.plugins?.['+plugin/origin/push']) return false;
   const plugin = remote.plugins?.['+plugin/origin'];
-  return (plugin?.local || '') === origin;
+  return (plugin?.local || '') === subOrigin;
 }
 
 export const remoteOriginMod: Mod = {
