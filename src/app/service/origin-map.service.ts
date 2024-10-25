@@ -48,7 +48,7 @@ export class OriginMapService {
     }
     return this.refs.page({ query: '+plugin/origin', page, size: this.config.fetchBatch, obsolete: true }).pipe(
       tap(batch => this.origins.push(...batch.content)),
-      switchMap(batch => batch.last ? of(null) : this.loadOrigins$(page + 1)),
+      switchMap(batch => !batch.content.length ? of(null) : this.loadOrigins$(page + 1)),
     );
   }
 

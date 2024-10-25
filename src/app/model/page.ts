@@ -1,13 +1,11 @@
 export interface Page<T> {
   content: T[];
-  empty: boolean;
-  first: boolean;
-  last: boolean;
-  number: number;
-  totalPages: number;
-  size: number;
-  numberOfElements: number;
-  totalElements: number;
+  page: {
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
 }
 
 export function mapPage<T>(contentMapper: (obj: any) => T): (obj: any) => Page<T> {
@@ -24,14 +22,12 @@ export namespace Page {
   export function of<T>(content: T[]): Page<T> {
     return {
       content,
-      empty: content.length === 0,
-      first: true,
-      last: true,
-      number: 0,
-      totalPages: 1,
-      size: content.length,
-      numberOfElements: content.length,
-      totalElements: content.length,
-    }
+      page: {
+        number: 0,
+        size: content.length,
+        totalPages: 1,
+        totalElements: content.length,
+      },
+    };
   }
 }

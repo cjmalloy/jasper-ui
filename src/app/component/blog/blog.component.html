@@ -9,10 +9,10 @@
                     [ref]="ref"
                     [blog]="ext"></app-blog-entry>
   </div>
-  <p class="no-results" *ngIf="page.empty">
+  <p class="no-results" *ngIf="!page.content.length">
     {{ emptyMessage }}
   </p>
-  <app-page-controls *ngIf="pageControls && !page.empty"
+  <app-page-controls *ngIf="pageControls && page.content.length"
                      [defaultCols]="cols"
                      [page]="page"></app-page-controls>
 </ng-container>

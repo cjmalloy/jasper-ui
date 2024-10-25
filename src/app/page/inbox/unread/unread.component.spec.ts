@@ -20,18 +20,7 @@ describe('InboxUnreadPage', () => {
     declarations: [InboxUnreadPage],
     imports: [RouterModule.forRoot([])],
     providers: [
-        { provide: RefService, useValue: { page: () => new BehaviorSubject<Page<Ref>>({
-                    content: [],
-                    empty: false,
-                    first: false,
-                    last: false,
-                    number: 0,
-                    size: 0,
-                    numberOfElements: 0,
-                    totalElements: 0,
-                    totalPages: 0
-                }) }
-        },
+        { provide: RefService, useValue: { page: () => new BehaviorSubject<Page<Ref>>(Page.of([])) } },
         { provide: AccountService, useValue: { userExt$: new BehaviorSubject<Ext>({ tag: 'user/test' }) } },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),

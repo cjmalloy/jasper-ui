@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
+import { Page } from '../../model/page';
 
 import { PageControlsComponent } from './page-controls.component';
 
@@ -20,17 +21,7 @@ describe('PageControlsComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(PageControlsComponent);
     component = fixture.componentInstance;
-    component.page = {
-      content: [],
-      empty: false,
-      first: false,
-      last: false,
-      number: 0,
-      size: 0,
-      numberOfElements: 0,
-      totalElements: 0,
-      totalPages: 0
-    };
+    component.page = Page.of([]);
     fixture.detectChanges();
   });
 

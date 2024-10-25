@@ -54,7 +54,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
       defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
-      if (this.query.page && !this.query.page!.empty) {
+      if (this.query.page && this.query.page!.content.length) {
         this.lastNotified = newest(this.query.page!.content)!.modified!;
       }
     }));
