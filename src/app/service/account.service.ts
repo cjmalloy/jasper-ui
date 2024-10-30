@@ -273,17 +273,21 @@ export class AccountService {
     ).subscribe(count => runInAction(() => this.store.account.alarmCount = count));
   }
 
-  checkConsent(consent?: [key: string, disclosure: string][]) {
-    if (!consent) return;
-    const result = this.store.account.ext?.config?.consent || {};
+  checkConsent(consent?: [string, string][]) {
+    if (!consent?.length) return;
+    let status = this.store.account.ext?.config?.consent || {};
+    let result = null;
     for (const [key, disclosure] of consent) {
-      if (!result[key] && confirm(disclosure)) {
+      if (!status?.[key] && confirm(disclosure)) {
+        result ||= { ...status };
         result[key] = true;
       }
     }
-    this.userExt$.pipe(
-      switchMap(() => this.updateConfig$('consent', result)),
-    ).subscribe();
+    if (result) {
+      this.userExt$.pipe(
+        switchMap(() => this.updateConfig$('consent', result)),
+      ).subscribe();
+    }
   }
 
   // TODO: move to ext, plugin, template service as  a mixin
