@@ -80,17 +80,17 @@ export class TabsComponent implements AfterViewInit {
 
   hideTabs() {
     const tabs = this.anchors.toArray();
-    let i = tabs.length - 2;
+    let i = this.options.length - 1;
     for (const t of tabs) {
       const el = t.nativeElement as HTMLAnchorElement;
       if (el.tagName !== 'A') continue;
       if (el.classList.contains('logo')) continue;
       if (el.classList.contains('current-tab')) {
         el.style.display = 'inline-block';
-        continue;
+      } else {
+        el.style.display = i > this.hidden ? 'inline-block' : 'none';
+        i--;
       }
-      el.style.display = i > this.hidden ? 'inline-block' : 'none';
-      i--;
     }
   }
 
@@ -102,7 +102,7 @@ export class TabsComponent implements AfterViewInit {
       const el = t.nativeElement as HTMLAnchorElement;
       if (el.tagName !== 'A') continue;
       if (el.classList.contains('logo')) continue;
-      result.push(el.offsetWidth + 10);
+      result.push(el.offsetWidth + 8);
     }
     return result;
   }
@@ -112,11 +112,14 @@ export class TabsComponent implements AfterViewInit {
     for (let i = 0; i < el.children.length; i++) {
       const e = el.children[i] as HTMLElement;
       if (!e.classList.contains('current-tab')) continue;
-      return e.offsetWidth + 10;
+      return e.offsetWidth + 8;
     }
     return 0;
   }
 
+  /**
+   * Widths of permanent children including the overflow dropdown.
+   */
   get childWidths() {
     const el = this.el.nativeElement;
     const result: number[] = [];
@@ -129,7 +132,7 @@ export class TabsComponent implements AfterViewInit {
         if (e.classList.contains('logo')) continue;
       }
       if (e.classList.contains('mobile-tab-select')) mobileSelect = true;
-      result.push(e.offsetWidth);
+      result.push(e.offsetWidth + (e.classList.contains('settings') ? 0 : 8));
     }
     if (!mobileSelect) {
       result.push(52);
@@ -137,12 +140,15 @@ export class TabsComponent implements AfterViewInit {
     return result;
   }
 
+  /**
+   * Number of visible tabs, including the current tab.
+   */
   get visible() {
     const current = this.currentTabWidth;
     if (!current) return this.options.length;
     if (this.floatingTabs) return 0;
     const el = this.el.nativeElement;
-    const width = el.offsetWidth - 16;
+    const width = el.offsetWidth;
     let result = 1;
     let childWidth = current + this.childWidths.reduce((a, b) => a + b);
     if (childWidth > width) return 0;
