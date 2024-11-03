@@ -28,6 +28,8 @@ export class RefThreadComponent {
 
   newRefs$ = new Subject<Ref | undefined>();
 
+  to = this.store.view.ref!;
+
   private watch?: Subscription;
 
   constructor(
@@ -71,8 +73,16 @@ export class RefThreadComponent {
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));
+    this.disposers.push(autorun(() => {
+      if (this.query.page) {
+        this.to = this.query.page?.content?.[(this.query.page?.content?.length || 0) - 1] || this.store.view.ref!;
+      }
+    }));
     this.newRefs$.subscribe(c => {
       if (c && this.store.view.ref) {
+        if (c.published! > this.to.published!) {
+          this.to = c;
+        }
         runInAction(() => {
           this.store.view.ref!.metadata ||= {};
           this.store.view.ref!.metadata.plugins ||= {} as any;
@@ -88,11 +98,6 @@ export class RefThreadComponent {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-  }
-
-  @memo
-  get to() {
-    return this.query.page?.content?.[(this.query.page?.content?.length || 0) - 1] || this.store.view.ref!;
   }
 
   @memo
