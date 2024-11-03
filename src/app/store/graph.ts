@@ -1,4 +1,5 @@
 import { assign, difference, max, min, pull, pullAll, remove } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Page } from '../model/page';
@@ -42,11 +43,11 @@ export class GraphStore {
   }
 
   get minPublished() {
-    return min(this.graphable.map(r => r.published).filter(p => !!p))!;
+    return min(this.graphable.map(r => r.published).filter(p => !!p)) || DateTime.now().minus({ day: 1 });
   }
 
   get maxPublished() {
-    return max(this.graphable.map(r => r.published).filter(p => !!p))!;
+    return max(this.graphable.map(r => r.published).filter(p => !!p)) || DateTime.now();
   }
 
   get publishedDiff() {
