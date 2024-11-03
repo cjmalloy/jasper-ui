@@ -74,6 +74,7 @@ export class RefThreadComponent {
     this.newRefs$.subscribe(c => {
       if (c && this.store.view.ref) {
         runInAction(() => {
+          MemoCache.clear(this);
           this.store.view.ref!.metadata ||= {};
           this.store.view.ref!.metadata.plugins ||= {} as any;
           this.store.view.ref!.metadata.plugins!['plugin/thread'] ||= 0;
