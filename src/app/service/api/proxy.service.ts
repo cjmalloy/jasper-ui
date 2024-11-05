@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { mapRef, Ref } from '../../model/ref';
 import { Resource } from '../../model/resource';
 import { catchAll } from '../../mods/scrape';
@@ -29,7 +29,7 @@ export class ProxyService {
   ) {
     autorun(() => {
       if (store.eventBus.event === '_plugin/cache:clear-cache') {
-        this.clearDeleted().subscribe();
+        this.clearDeleted(store.account.origin).subscribe();
       }
     });
   }
@@ -97,9 +97,16 @@ export class ProxyService {
     return this.refs.update(catchAll, true);
   }
 
-  clearDeleted() {
-    return this.http.delete(this.base).pipe(
+  clearDeleted(origin: string) {
+    return this.http.delete(this.base, {
+      params: { origin },
+    }).pipe(
       catchError(err => this.login.handleHttpError(err)),
+      catchError(err => {
+        // TODO: Better error message
+        window.alert(err.message);
+        return throwError(() => err);
+      }),
     );
   }
 }
