@@ -42,11 +42,11 @@ export class GraphStore {
     return Page.of(this.selected.filter(s => !s.unloaded));
   }
 
-  get minPublished() {
+  get minPublished(): DateTime {
     return min(this.graphable.map(r => r.published).filter(p => !!p)) || DateTime.now().minus({ day: 1 });
   }
 
-  get maxPublished() {
+  get maxPublished(): DateTime {
     return max(this.graphable.map(r => r.published).filter(p => !!p)) || DateTime.now();
   }
 
