@@ -18,9 +18,9 @@
        [queryParams]="{ url: null, tag: store.submit.withoutGenId }"
        i18n-title title="📝️ Text Post"
        queryParamsHandling="merge" i18n>text</a>
-    <a class="fake-link"
-       routerLink="/submit/upload"
+    <a routerLink="/submit/upload"
        [class.current-tab]="store.submit.upload"
+       [queryParams]="{ to: null, url: null }"
        i18n-title title="💾️ Upload"
        queryParamsHandling="merge" i18n>upload</a>
     @if (!admin.isWikiExternal()) {
@@ -34,7 +34,7 @@
     @if (admin.getTemplate('dm')) {
       <a routerLink="/submit/dm"
          [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.dmPlugin"
-         [queryParams]="{ to: null, tag: null }"
+         [queryParams]="{ to: null, tag: null, url: null }"
          i18n-title title="📨️ Direct Message"
          queryParamsHandling="merge" i18n>dm</a>
     }
@@ -42,7 +42,7 @@
       @if (p.config?.submitDm) {
         <a routerLink="/submit/dm"
            [class.current-tab]="store.submit.subpage === 'dm' && store.submit.to[0] === p.tag"
-           [queryParams]="{ to: p.tag, tag: null }"
+           [queryParams]="{ to: p.tag, tag: null, url: null }"
            [replaceUrl]="true"
            [title]="p.name"
            queryParamsHandling="merge">{{ p.config!.submit }}</a>
