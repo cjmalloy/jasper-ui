@@ -819,32 +819,29 @@ video.qr-preview {
         appearance: none;
         border-radius: 0;
         font-size: 16px;
-        height: 27px !important;
-        line-height: 27px;
+        height: 25px !important;
+        line-height: 25px;
         width: 44px;
         padding: 0 10px;
         text-align: center;
         position: relative;
-        bottom: -1px;
         outline: none !important;
         cursor: pointer;
         background-color: var(--unselected-tab);
-        border: 1px solid var(--border);
+        border: none;
       }
   }
 
   & > a:not(.logo) {
     display: inline-block;
     position: relative;
-    bottom: -1px;
+    bottom: 0;
 
     margin: 0 4px;
     padding: 2px 8px;
     font-weight: bold;
-    border-bottom: 1px solid transparent;
     line-height: 21px;
     background-color: var(--unselected-tab);
-    border-bottom: 1px solid var(--border);
 
     &:link:hover,
     &.fake-link:hover {
@@ -859,9 +856,8 @@ video.qr-preview {
       color: var(--active) !important;
       display: inline-block !important;
       background-color: var(--bg);
-      border-top: 1px solid var(--border);
-      border-left: 1px solid var(--border);
-      border-right: 1px solid var(--border);
+      bottom: -1px;
+      border: 1px solid var(--border);
       border-bottom: 1px solid transparent;
     }
   }

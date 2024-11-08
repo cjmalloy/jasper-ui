@@ -148,7 +148,7 @@ export class TabsComponent implements AfterViewInit {
     if (!current) return this.options.length;
     if (this.floatingTabs) return 0;
     const el = this.el.nativeElement;
-    const width = el.offsetWidth;
+    const width = el.offsetWidth - 2;
     let result = 1;
     let childWidth = current + this.childWidths.reduce((a, b) => a + b);
     if (childWidth > width) return 0;
