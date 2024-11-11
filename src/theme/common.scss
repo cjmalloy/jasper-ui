@@ -2010,6 +2010,10 @@ ngx-monaco-editor {
   }
 }
 
+.kanban-card-container .row * {
+  align-self: center;
+}
+
 .kanban-card {
   padding: 4px;
   margin-top: 2px;
