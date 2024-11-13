@@ -22,6 +22,7 @@ export function writeExt(ext: Ext): Ext {
   delete result.upload;
   delete result.exists;
   delete result.modifiedString;
+  if (result.config) delete result.config._cache;
   return result;
 }
 

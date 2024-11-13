@@ -158,9 +158,6 @@ export function findExtension(ending: string, ref?: Ref, repost?: Ref): Ref | un
   if (!ref) return undefined;
   ending = ending.toLowerCase();
   if (ref.url.toLowerCase().endsWith(ending)) return ref;
-  const urls = [
-    ...(ref.alternateUrls || []),
-    ...(repost?.alternateUrls || [])];
   for (const s of ref.alternateUrls || []) {
     if (new URL(s).pathname.toLowerCase().endsWith(ending)) {
       return { url: s, origin: ref.origin };
