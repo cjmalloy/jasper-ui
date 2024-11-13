@@ -53,7 +53,7 @@ export class RefService {
   getCurrent(url: string): Observable<Ref> {
     return this.page({ url, size: 1 }).pipe(
       map(page => {
-        if (page.empty) throw { status: 404 };
+        if (!page.content.length) throw { status: 404 };
         return page.content[0];
       }),
     );

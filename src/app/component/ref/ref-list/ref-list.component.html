@@ -58,7 +58,7 @@
   }
 </div>
 @if (page) {
-  @if (page.empty) {
+  @if (!page.content.length) {
     @if (!newRefs.length && emptyMessage) {
       <p class="no-results">{{ emptyMessage }}</p>
     }

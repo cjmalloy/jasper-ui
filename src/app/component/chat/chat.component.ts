@@ -124,8 +124,8 @@ export class ChatComponent implements OnDestroy {
       this.setPoll(true);
       return throwError(() => err);
     })).subscribe(page => {
-      this.setPoll(page.empty);
-      if (page.empty) return;
+      this.setPoll(!page.content.length);
+      if (!page.content.length) return;
       if (!this.messages) this.messages = [];
       this.messages = [...this.messages, ...page.content];
       const last = page.content[page.content.length - 1];
@@ -158,8 +158,8 @@ export class ChatComponent implements OnDestroy {
       return throwError(() => err);
     })).subscribe(page => {
       this.loadingPrev = false;
-      this.setPoll(page.empty);
-      if (page.empty) return;
+      this.setPoll(!page.content.length);
+      if (!page.content.length) return;
       this.scrollLock = undefined;
       if (!this.messages) this.messages = [];
       for (const ref of page.content) {

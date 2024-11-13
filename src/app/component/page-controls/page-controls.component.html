@@ -1,10 +1,10 @@
 <div class="controls">
   @if (page) {
-    <label i18n-title title="pages: {{ page.totalPages }}, results: {{ page.totalElements }}" i18n>more results: </label>
+    <label i18n-title title="pages: {{ page.page.totalPages }}, results: {{ page.page.totalElements }}" i18n>more results: </label>
     @if (hasQuery) {
       <a class="first-page"
          routerLink="./"
-         [class.disabled]="page.first"
+         [class.disabled]="page.page.number === 0"
          [queryParams]="{ pageNumber: store.view.defaultPageNumber ? 0 : null }"
          queryParamsHandling="merge" i18n>first</a>
       <span> | </span>
@@ -19,7 +19,7 @@
     }
     <a class="next-page"
        routerLink="./"
-       [class.disabled]="page.last"
+       [class.disabled]="page.page.number === page.page.totalPages - 1"
        [queryParams]="{ pageNumber: next }"
        (click)="scrollUp()"
        queryParamsHandling="merge" i18n>next</a>
@@ -27,7 +27,7 @@
     <a class="last-page"
        *ngIf="showPageLast"
        routerLink="./"
-       [class.disabled]="page.last"
+       [class.disabled]="page.page.number === page.page.totalPages - 1"
        [queryParams]="{ pageNumber: last }"
        queryParamsHandling="merge" i18n>last</a>
   }
@@ -48,5 +48,5 @@
   </ng-container>
 </div>
 <div *ngIf="page" class="print-view" i18n>
-  Page {{ page.number + 1 }} of {{ page.totalPages }} (size: {{ page.size }})
+  Page {{ page.page.number + 1 }} of {{ page.page.totalPages }} (size: {{ page.page.size }})
 </div>

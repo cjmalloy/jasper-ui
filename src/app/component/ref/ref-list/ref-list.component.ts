@@ -115,10 +115,10 @@ export class RefListComponent implements OnInit, OnDestroy {
   set page(value: Page<Ref> | undefined) {
     this._page = value;
     if (this._page) {
-      if (this._page.number > 0 && this._page.number >= this._page.totalPages) {
+      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.totalPages - 1
+            pageNumber: this._page.page.totalPages - 1,
           },
           queryParamsHandling: 'merge',
         });
@@ -147,7 +147,7 @@ export class RefListComponent implements OnInit, OnDestroy {
       }
       return votes;
     }
-    return i + this.page!.number * this.page!.size + 1;
+    return i + this.page!.page.number * this.page!.page.size + 1;
   }
 
   addNewRef(ref: Ref) {

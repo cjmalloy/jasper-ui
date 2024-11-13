@@ -1,15 +1,15 @@
 <div class="list-container" *ngIf="page">
   <ng-container *ngFor="let tag of page?.content; let i = index">
-    <div class="list-number">{{ i + page!.number * page!.size + 1 }}</div>
+    <div class="list-number">{{ i + page!.page.number * page!.page.size + 1 }}</div>
     <app-user *ngIf="tag.type === 'user'" [user]="$any(tag)"></app-user>
     <app-plugin *ngIf="tag.type === 'plugin'" [plugin]="$any(tag)"></app-plugin>
     <app-template *ngIf="tag.type === 'template'" [template]="$any(tag)"></app-template>
   </ng-container>
 </div>
 <app-loading *ngIf="!page"></app-loading>
-<app-page-controls *ngIf="page && !page.empty"
+<app-page-controls *ngIf="page && page.content.length"
                    [page]="page"></app-page-controls>
 
-<p class="no-results" *ngIf="page && page.empty" i18n>
+<p class="no-results" *ngIf="page && !page.content.length" i18n>
   No results found
 </p>

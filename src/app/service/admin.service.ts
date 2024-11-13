@@ -325,7 +325,7 @@ export class AdminService {
     }
     return this.plugins.page({query: this.localOriginQuery, page, size: this.config.fetchBatch}).pipe(
       tap(batch => this.pluginToStatus(batch.content)),
-      switchMap(batch => batch.last ? of(null) : this.loadPlugins$(page + 1)),
+      switchMap(batch => !batch.content.length ? of(null) : this.loadPlugins$(page + 1)),
     );
   }
 
@@ -337,7 +337,7 @@ export class AdminService {
     }
     return this.templates.page({query: this.localOriginQuery, page, size: this.config.fetchBatch}).pipe(
       tap(batch => this.templateToStatus(batch.content)),
-      switchMap(batch => batch.last ? of(null) : this.loadTemplates$(page + 1)),
+      switchMap(batch => !batch.content.length ? of(null) : this.loadTemplates$(page + 1)),
     );
   }
 

@@ -31,7 +31,7 @@ export class PageControlsComponent implements OnInit {
 
   @HostBinding('class.print-hide')
   get fullResults() {
-    return this.page?.totalPages === 1;
+    return this.page?.page.totalPages === 1;
   }
 
   @Input()
@@ -44,15 +44,15 @@ export class PageControlsComponent implements OnInit {
   }
 
   get prev() {
-    return Math.max(0, this.page!.number - 1);
+    return Math.max(0, this.page!.page.number - 1);
   }
 
   get next() {
-    return Math.max(0, Math.min(this.last, this.page!.number + 1));
+    return Math.max(0, Math.min(this.last, this.page!.page.number + 1));
   }
 
   get last() {
-    return Math.max(0, this.page!.totalPages - 1);
+    return Math.max(0, this.page!.page.totalPages - 1);
   }
 
   get pageSize() {

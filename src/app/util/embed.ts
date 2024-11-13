@@ -1,5 +1,6 @@
 import { ComponentRef } from '@angular/core';
 import { Ext } from '../model/ext';
+import { Page } from '../model/page';
 import { Ref, RefPageArgs } from '../model/ref';
 
 export interface Embed {
@@ -7,5 +8,5 @@ export interface Embed {
   createEmbed(ref: Ref, expandPlugins: string[]): ComponentRef<any>;
   createEmbed(url: string, expandPlugins: string[]): ComponentRef<any>;
   createRef(ref: Ref, showToggle?: boolean): ComponentRef<any>;
-  createLens(params: any, args: RefPageArgs, tag: string, ext?: Ext): ComponentRef<any>;
+  createLens(params: any, page: Page<Ref>, tag: string, ext?: Ext): ComponentRef<any>;
 }

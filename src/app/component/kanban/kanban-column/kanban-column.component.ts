@@ -111,12 +111,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   get more() {
     if (!this.page) return 0;
-    return this.page.totalElements - this.page.numberOfElements;
+    return this.page.page.totalElements - this.page.content.length;
   }
 
   get hasMore() {
     if (!this.page) return false;
-    return !this.page.last;
+    return this.page.page.number < this.page.page.totalPages - 1;
   }
 
   @HostListener('touchstart', ['$event'])
@@ -153,16 +153,14 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     if (event.from === this.query) {
       if (this.page.content.includes(event.ref)) {
         this.mutated ||= event.from !== event.to;
-        this.page.numberOfElements--;
-        this.page.totalElements--;
+        this.page.page.totalElements--;
         this.page.content.splice(this.page.content.indexOf(event.ref), 1);
       }
     }
     if (event.to === this.query) {
       this.mutated ||= event.from !== event.to;
-      this.page.numberOfElements++;
-      this.page.totalElements++;
-      this.page.content.splice(Math.min(event.index, this.page.numberOfElements - 1), 0, event.ref);
+      this.page.page.totalElements++;
+      this.page.content.splice(Math.min(event.index, this.page.content.length - 1), 0, event.ref);
     }
   }
 
@@ -174,7 +172,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   loadMore() {
-    const pageNumber = this.page?.number || 0;
+    const pageNumber = this.page?.page.number || 0;
     if (this.page && this.mutated) {
       for (let i = 0; i <= pageNumber; i++) {
         this.refreshPage(i);
@@ -280,10 +278,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       this.size
     )).subscribe(page => {
       const pageOffset = i * this.size;
-      this.page!.number = page.number;
-      this.page!.numberOfElements = Math.max(this.page!.numberOfElements, pageOffset + page.numberOfElements);
-      this.page!.last = page.last;
-      for (let offset = 0; offset < page.numberOfElements; offset++) {
+      this.page!.page.number = page.page.number;
+      for (let offset = 0; offset < page.content.length; offset++) {
         this.page!.content[pageOffset + offset] = page.content[offset];
       }
     });

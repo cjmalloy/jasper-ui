@@ -1,5 +1,5 @@
 <ng-container *mobxAutorun>
-  <app-tabs [class.empty]="query.page?.empty">
+  <app-tabs [class.empty]="!query.page?.content?.length">
     <a class="logo" routerLink="/"></a>
     <h5 class="fake-link" routerLink="." i18n>Home</h5>
     @if (store.view.extTemplate) {

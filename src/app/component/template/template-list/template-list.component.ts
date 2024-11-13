@@ -23,10 +23,10 @@ export class TemplateListComponent {
   set page(value: Page<Tag> | undefined) {
     this._page = value;
     if (this._page) {
-      if (this._page.number > 0 && this._page.number >= this._page.totalPages) {
+      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.totalPages - 1
+            pageNumber: this._page.page.totalPages - 1
           },
           queryParamsHandling: "merge",
         })
