@@ -12,7 +12,7 @@ export class GraphStore {
   nodes: GraphNode[] = [];
   links: GraphLink[] = [];
   loading: string[] = [];
-  timeline = false;
+  timeline = true;
   arrows = false;
   showUnloaded = true;
 
