@@ -343,7 +343,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     const url = this.pdf;
     if (!url) return url;
     if (!this.admin.getPlugin('plugin/pdf')?.config?.proxy) return url;
-    return this.proxy.getFetch(url, this.origin);
+    return this.proxy.getFetch(url, this.currentOrigin);
   }
 
   @memo
