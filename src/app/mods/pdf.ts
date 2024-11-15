@@ -1,7 +1,7 @@
 import { $localize } from '@angular/localize/init';
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
-import { findExtension, Ref } from '../model/ref';
+import { findExtensionOrCache, Ref } from '../model/ref';
 
 export const pdfPlugin: Plugin = {
   tag: 'plugin/pdf',
@@ -48,7 +48,7 @@ export const pdfPlugin: Plugin = {
 export function pdfUrl(plugin?: typeof pdfPlugin, ref?: Ref, repost?: Ref) {
   return ref?.plugins?.['plugin/pdf']?.url && { url: ref!.plugins?.['plugin/pdf'].url, origin: ref!.origin }
     || repost?.plugins?.['plugin/pdf']?.url && { url: repost!.plugins?.['plugin/pdf'].url, origin: repost!.origin }
-    || findExtension('.pdf', ref, repost);
+    || findExtensionOrCache('.pdf', ref, repost);
 }
 
 export const pdfResizePlugin: Plugin = {

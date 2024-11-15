@@ -154,17 +154,18 @@ export function writeRef(ref: Ref): Ref {
 /**
  * Find URL in alts with file extension.
  */
-export function findExtension(ending: string, ref?: Ref, repost?: Ref): Ref | undefined {
+export function findExtensionOrCache(ending: string, ref?: Ref, repost?: Ref): Ref | undefined {
   if (!ref) return undefined;
   ending = ending.toLowerCase();
-  if (ref.url.toLowerCase().endsWith(ending)) return ref;
+  if (repost?.url.startsWith('cache:') || repost?.url.toLowerCase().endsWith(ending)) return repost;
+  if (ref.url.startsWith('cache:') || ref.url.toLowerCase().endsWith(ending)) return ref;
   for (const s of ref.alternateUrls || []) {
-    if (new URL(s).pathname.toLowerCase().endsWith(ending)) {
+    if (s.startsWith('cache:') || new URL(s).pathname.toLowerCase().endsWith(ending)) {
       return { url: s, origin: ref.origin };
     }
   }
   for (const s of repost?.alternateUrls || []) {
-    if (new URL(s).pathname.toLowerCase().endsWith(ending)) {
+    if (s.startsWith('cache:') || new URL(s).pathname.toLowerCase().endsWith(ending)) {
       return { url: s, origin: repost!.origin };
     }
   }

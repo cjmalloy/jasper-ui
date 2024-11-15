@@ -18,7 +18,7 @@ import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
-import { findExtension, Ref, RefSort } from '../../model/ref';
+import { findExtensionOrCache, Ref, RefSort } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
@@ -335,7 +335,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get pdf(): string | undefined {
     if (!this.admin.getPlugin('plugin/pdf')) return undefined;
-    return this.ref?.plugins?.['plugin/pdf']?.url || findExtension('.pdf', this.ref)?.url;
+    return this.ref?.plugins?.['plugin/pdf']?.url || findExtensionOrCache('.pdf', this.ref)?.url;
   }
 
   @memo
