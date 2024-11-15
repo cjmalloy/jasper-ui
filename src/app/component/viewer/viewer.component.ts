@@ -333,9 +333,9 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
-  get pdf() {
+  get pdf(): string | undefined {
     if (!this.admin.getPlugin('plugin/pdf')) return undefined;
-    return this.ref?.plugins?.['plugin/pdf']?.url || findExtension('.pdf', this.ref);
+    return this.ref?.plugins?.['plugin/pdf']?.url || findExtension('.pdf', this.ref)?.url;
   }
 
   @memo
