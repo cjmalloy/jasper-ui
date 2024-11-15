@@ -27,19 +27,19 @@
         <button type="button" (click)="upload.click()" i18n-title title="Upload Refs and Exts" i18n>+ add</button>
         <span i18n>Refs and Exts</span>
         <input #upload type="file"
-               accept=".json,.zip,.png,.jpg,.jpeg,.gif,.svg,.webp,.3gp,.mpg,.mpeg,.mp4,.m4v,.m4p,.webm,.ogv,.m3u8,.mov,.mp3,.aac,.flac,.m4a,.ogg,.wav,.xls,.xlsx,.csv,.odx,.txt"
-               (change)="store.submit.setFiles($any(upload.files))"
+               accept=".json,.zip,.png,.jpg,.jpeg,.gif,.svg,.webp,.3gp,.mpg,.mpeg,.mp4,.m4v,.m4p,.webm,.ogv,.m3u8,.mov,.mp3,.aac,.flac,.m4a,.ogg,.wav,.xls,.xlsx,.csv,.odx,.txt,.pdf"
+               (change)="readUploads($any(upload.files))"
                multiple/>
       </div>
 
-      @if (webCache) {
+      @if (fileCache) {
         <div class="padded form-array">
           <span i18n>or </span>
           <button type="button" (click)="fileUpload.click()" i18n-title title="Cache Files" i18n>+ cache</button>
           <span i18n>any kind of file</span>
           <input #fileUpload type="file"
                  accept="*"
-                 (change)="readUploads($any(fileUpload.files))"
+                 (change)="readUploads($any(fileUpload.files), true)"
                  multiple/>
         </div>
       }
