@@ -558,13 +558,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       return this.proxy.getFetch(this.url, this.origin);
     }
     if (this.audio && this.admin.getPlugin('plugin/audio')?.config?.proxy) {
-      return this.proxy.getFetch(this.url, this.origin);
+      return this.proxy.getFetch(this.ref?.plugins?.['plugin/audio']?.url || this.url, this.origin);
     }
     if (this.video && this.admin.getPlugin('plugin/video')?.config?.proxy) {
-      return this.proxy.getFetch(this.url, this.origin);
+      return this.proxy.getFetch(this.ref?.plugins?.['plugin/video']?.url || this.url, this.origin);
     }
     if (this.image && this.admin.getPlugin('plugin/image')?.config?.proxy) {
-      return this.proxy.getFetch(this.url, this.origin);
+      return this.proxy.getFetch(this.ref?.plugins?.['plugin/image']?.url || this.url, this.origin);
     }
     return '';
   }
