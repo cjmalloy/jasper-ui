@@ -1208,8 +1208,11 @@ formly-list-section .form-array > formly-field > formly-group {
   &.right {
     justify-content: right;
   }
-  & > :not(:last-child) {
+  & > * {
     margin-right: 4px;
+    &:last-child, input[file] {
+      margin-right: 0 !important;
+    }
   }
   input {
     flex: 1;
