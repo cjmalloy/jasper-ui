@@ -4,7 +4,7 @@ import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
 import { VisibilityService } from '../../service/visibility.service';
-import { getPath, getSearchParams, parseParams } from '../../util/http';
+import { getPath, parseParams } from '../../util/http';
 
 @Component({
   selector: 'app-nav',

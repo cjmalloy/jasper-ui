@@ -12,7 +12,6 @@ import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
-import { templates } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({

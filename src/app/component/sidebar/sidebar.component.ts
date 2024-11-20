@@ -19,7 +19,6 @@ import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
-import { View } from '../../store/view';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, localTag, tagOrigin, topAnds } from '../../util/tag';
 
