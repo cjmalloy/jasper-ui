@@ -3,6 +3,7 @@ import { catchError, Observable, of } from 'rxjs';
 import { ActionComponent } from '../action.component';
 
 @Component({
+  standalone: false,
   selector: 'app-inline-password',
   templateUrl: './inline-password.component.html',
   styleUrls: ['./inline-password.component.scss']

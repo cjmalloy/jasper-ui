@@ -16,6 +16,7 @@ import { UserStore } from '../../store/user';
 import { printError } from '../../util/http';
 
 @Component({
+  standalone: false,
   selector: 'app-debug',
   templateUrl: './debug.component.html',
   styleUrls: ['./debug.component.scss']

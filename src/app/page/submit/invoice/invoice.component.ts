@@ -21,6 +21,7 @@ import { printError } from '../../../util/http';
 import { prefix } from '../../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-submit-invoice',
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss']

@@ -18,6 +18,7 @@ import { configGroups, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
+  standalone: false,
   selector: 'app-settings-setup-page',
   templateUrl: './setup.component.html',
   styleUrls: ['./setup.component.scss'],

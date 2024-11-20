@@ -3,6 +3,7 @@ import { ConfigService } from '../service/config.service';
 import { relativeX, relativeY } from '../util/math';
 
 @Directive({
+  standalone: false,
   selector: '[appResizeHandle]'
 })
 export class ResizeHandleDirective {

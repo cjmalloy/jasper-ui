@@ -10,6 +10,7 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
+  standalone: false,
   selector: 'app-ref-sources',
   templateUrl: './sources.component.html',
   styleUrls: ['./sources.component.scss'],

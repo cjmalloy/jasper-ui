@@ -44,6 +44,7 @@ import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin, top } from 
 import { ActionComponent } from '../action/action.component';
 
 @Component({
+  standalone: false,
   selector: 'app-comment',
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],

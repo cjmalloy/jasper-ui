@@ -19,6 +19,7 @@ import { Store } from '../../store/store';
 import { printError } from '../../util/http';
 
 @Component({
+  standalone: false,
   selector: 'app-todo',
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],

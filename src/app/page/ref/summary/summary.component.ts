@@ -15,6 +15,7 @@ import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top } from '../../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-ref-summary',
   templateUrl: './summary.component.html',
   styleUrls: ['./summary.component.scss']

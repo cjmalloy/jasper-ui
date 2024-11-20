@@ -11,6 +11,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 
 @Component({
+  standalone: false,
   selector: 'app-ref-list',
   templateUrl: './ref-list.component.html',
   styleUrls: ['./ref-list.component.scss'],

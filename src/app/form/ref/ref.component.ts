@@ -16,6 +16,7 @@ import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component'
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
+  standalone: false,
   selector: 'app-ref-form',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss']

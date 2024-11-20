@@ -2046,10 +2046,10 @@ ngx-monaco-editor {
 
     &.cdk-drag-preview {
       pointer-events: auto !important;
+      cursor: no-drop !important;
       * {
         pointer-events: none !important;
       }
-      cursor: no-drop !important;
     }
   }
 
@@ -2134,10 +2134,10 @@ ngx-monaco-editor {
 
     &.cdk-drag-preview {
       pointer-events: auto !important;
+      cursor: no-drop !important;
       * {
         pointer-events: none !important;
       }
-      cursor: no-drop !important;
     }
   }
 

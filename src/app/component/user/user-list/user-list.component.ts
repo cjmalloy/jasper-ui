@@ -8,6 +8,7 @@ import { User } from '../../../model/user';
 import { ProfileService } from '../../../service/api/profile.service';
 
 @Component({
+  standalone: false,
   selector: 'app-user-list',
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss']

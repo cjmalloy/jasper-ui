@@ -8,6 +8,7 @@ import { getTemplateScope } from '../model/template';
 import { Store } from '../store/store';
 
 @Directive({
+  standalone: false,
   selector: '[appTitle]'
 })
 export class TitleDirective implements OnChanges {

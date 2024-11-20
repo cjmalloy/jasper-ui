@@ -81,9 +81,15 @@
     "karma-jasmine-html-reporter": "^2.1.0",
     "karma-junit-reporter": "^2.0.1",
     "raw-loader": "^4.0.2",
-    "typescript": "~5.4.5"
+    "typescript": "~5.5.4"
   },
   "overrides": {
+    "ngx-markdown": {
+      "@angular/common": "$@angular/common",
+      "@angular/core": "$@angular/core",
+      "@angular/platform-browser": "$@angular/platform-browser",
+      "zone.js": "$zone.js"
+    },
     "ngx-monaco-editor": {
       "@angular/common": "$@angular/common",
       "@angular/core": "$@angular/core",

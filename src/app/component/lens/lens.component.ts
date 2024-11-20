@@ -10,6 +10,7 @@ import { UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-lens',
   templateUrl: './lens.component.html',
   styleUrls: ['./lens.component.scss']

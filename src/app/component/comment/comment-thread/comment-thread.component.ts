@@ -6,6 +6,7 @@ import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 
 @Component({
+  standalone: false,
   selector: 'app-comment-thread',
   templateUrl: './comment-thread.component.html',
   styleUrls: ['./comment-thread.component.scss']

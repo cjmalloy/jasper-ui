@@ -20,6 +20,7 @@ import { addAllHierarchicalTags, includesTag } from '../../util/tag';
 import { GenFormComponent } from './gen/gen.component';
 
 @Component({
+  standalone: false,
   selector: 'app-form-plugins',
   templateUrl: './plugins.component.html',
   styleUrls: ['./plugins.component.scss']

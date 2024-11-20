@@ -26,6 +26,7 @@ import { printError } from '../../../util/http';
 import { hasTag } from '../../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-submit-text',
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],

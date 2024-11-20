@@ -24,6 +24,7 @@ export interface KanbanDrag {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-kanban',
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.scss']

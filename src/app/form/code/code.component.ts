@@ -4,6 +4,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { Store } from '../../store/store';
 
 @Component({
+  standalone: false,
   selector: 'app-code',
   templateUrl: './code.component.html',
   styleUrls: ['./code.component.scss']

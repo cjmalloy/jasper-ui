@@ -6,6 +6,7 @@ import { AuthzService } from '../../service/authz.service';
 import { access } from '../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-select-template',
   templateUrl: './select-template.component.html',
   styleUrls: ['./select-template.component.scss'],

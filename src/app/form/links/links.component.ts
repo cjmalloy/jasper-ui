@@ -4,6 +4,7 @@ import { map } from 'lodash-es';
 import { URI_REGEX } from '../../util/format';
 
 @Component({
+  standalone: false,
   selector: 'app-links',
   templateUrl: './links.component.html',
   styleUrls: ['./links.component.scss']

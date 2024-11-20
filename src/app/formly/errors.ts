@@ -8,11 +8,12 @@ export function getErrorMessage(field: FormlyFieldConfig, config: FormlyConfig) 
       if (!fieldForm.errors.hasOwnProperty(error)) continue;
       let message = config.getValidatorMessage(error);
       if (isObject(fieldForm.errors[error])) {
-        if (fieldForm.errors[error].errorPath) {
+        const e = fieldForm.errors[error] as any;
+        if (e.errorPath) {
           return '';
         }
-        if (fieldForm.errors[error].message) {
-          message = fieldForm.errors[error].message;
+        if (e.message) {
+          message = e.message;
         }
       }
       if (field.validation?.messages?.[error]) {

@@ -4,6 +4,7 @@ import { FieldArrayType } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 
 @Component({
+  standalone: false,
   selector: 'formly-list-section',
   template: `
     <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>

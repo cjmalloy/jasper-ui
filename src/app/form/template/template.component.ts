@@ -2,6 +2,7 @@ import { Component, HostBinding, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 @Component({
+  standalone: false,
   selector: 'app-template-form',
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss']

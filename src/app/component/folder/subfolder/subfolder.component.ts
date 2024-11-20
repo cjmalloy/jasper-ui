@@ -5,6 +5,7 @@ import { ScrapeService } from '../../../service/api/scrape.service';
 import { Store } from '../../../store/store';
 
 @Component({
+  standalone: false,
   selector: 'app-subfolder',
   templateUrl: './subfolder.component.html',
   styleUrls: ['./subfolder.component.scss']

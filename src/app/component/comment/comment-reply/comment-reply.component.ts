@@ -20,6 +20,7 @@ import { printError } from '../../../util/http';
 import { hasTag, removeTag, tagIntersection } from '../../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-comment-reply',
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],

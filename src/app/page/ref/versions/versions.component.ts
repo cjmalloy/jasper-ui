@@ -8,6 +8,7 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
+  standalone: false,
   selector: 'app-ref-versions',
   templateUrl: './versions.component.html',
   styleUrls: ['./versions.component.scss']

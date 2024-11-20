@@ -9,6 +9,7 @@ import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '..
 export type Crumb = { text: string, tag?: string, pos: number, len: number };
 
 @Component({
+  standalone: false,
   selector: 'app-query',
   templateUrl: './query.component.html',
   styleUrls: ['./query.component.scss']

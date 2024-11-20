@@ -4,6 +4,7 @@ import { TAGS_REGEX } from '../../../util/format';
 import { ActionComponent } from '../action.component';
 
 @Component({
+  standalone: false,
   selector: 'app-inline-tag',
   templateUrl: './inline-tag.component.html',
   styleUrls: ['./inline-tag.component.scss']

@@ -9,6 +9,7 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
+  standalone: false,
   selector: 'app-inbox-modlist',
   templateUrl: './modlist.component.html',
   styleUrls: ['./modlist.component.scss']

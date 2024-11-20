@@ -3,6 +3,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
 @Directive({
+  standalone: false,
   selector: '[appAutofocus]',
 })
 export class AutofocusDirective {

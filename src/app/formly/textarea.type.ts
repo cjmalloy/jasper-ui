@@ -8,6 +8,7 @@ interface TextAreaProps extends FormlyFieldProps {
 }
 
 @Component({
+  standalone: false,
   selector: 'formly-field-textarea',
   template: `
     <textarea (blur)="validate($any($event.target))"

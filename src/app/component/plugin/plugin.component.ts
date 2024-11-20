@@ -16,6 +16,7 @@ import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 
 @Component({
+  standalone: false,
   selector: 'app-plugin',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss']

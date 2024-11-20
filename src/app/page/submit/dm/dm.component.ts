@@ -24,6 +24,7 @@ import { QUALIFIED_TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
+  standalone: false,
   selector: 'app-submit-dm',
   templateUrl: './dm.component.html',
   styleUrls: ['./dm.component.scss']

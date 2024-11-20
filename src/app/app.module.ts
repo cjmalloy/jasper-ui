@@ -349,5 +349,4 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {
-}
+export class AppModule { }

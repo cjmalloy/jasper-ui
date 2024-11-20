@@ -23,6 +23,7 @@ import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, localTag, tagOrigin, topAnds } from '../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],

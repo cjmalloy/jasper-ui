@@ -12,6 +12,7 @@ import { escapePath } from '../../util/json-patch';
 import { level } from '../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-folder',
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss']

@@ -22,6 +22,7 @@ import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, isOwnerTag } from '../../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-file',
   templateUrl: './file.component.html',
   styleUrls: ['./file.component.scss']

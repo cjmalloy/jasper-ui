@@ -6,6 +6,7 @@ import { USER_REGEX } from '../../util/format';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
+  standalone: false,
   selector: 'app-user-form',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss']

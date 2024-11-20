@@ -7,6 +7,7 @@ import { VisibilityService } from '../../service/visibility.service';
 import { getPath, parseParams } from '../../util/http';
 
 @Component({
+  standalone: false,
   selector: 'app-nav',
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.scss']

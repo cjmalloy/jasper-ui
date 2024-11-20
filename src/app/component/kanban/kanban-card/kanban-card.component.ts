@@ -35,6 +35,7 @@ import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, includesTag } from '../../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-kanban-card',
   templateUrl: './kanban-card.component.html',
   styleUrls: ['./kanban-card.component.scss']

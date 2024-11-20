@@ -33,6 +33,7 @@ import { memo, MemoCache } from '../../util/memo';
 import { hasTag, isOwnerTag } from '../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-bulk',
   templateUrl: './bulk.component.html',
   styleUrls: ['./bulk.component.scss']

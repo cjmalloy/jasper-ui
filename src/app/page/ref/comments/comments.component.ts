@@ -12,6 +12,7 @@ import { memo, MemoCache } from '../../../util/memo';
 import { removeTag, top } from '../../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-ref-comments',
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.scss'],

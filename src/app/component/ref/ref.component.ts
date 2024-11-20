@@ -69,6 +69,7 @@ import { ActionComponent } from '../action/action.component';
 import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
+  standalone: false,
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],

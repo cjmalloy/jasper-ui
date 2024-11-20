@@ -4,6 +4,7 @@ import { ProxyService } from '../../service/api/proxy.service';
 import { Store } from '../../store/store';
 
 @Component({
+  standalone: false,
   selector: 'app-image-upload',
   templateUrl: './image-upload.component.html',
   styleUrls: ['./image-upload.component.scss']

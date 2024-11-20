@@ -1,6 +1,7 @@
 import { Directive, EventEmitter, HostListener, Input, Output } from '@angular/core';
 
 @Directive({
+  standalone: false,
   selector: '[appInputDone]'
 })
 export class InputDoneDirective {

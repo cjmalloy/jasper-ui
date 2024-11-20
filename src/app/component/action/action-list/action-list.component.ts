@@ -21,6 +21,7 @@ import { downloadRef } from '../../../util/download';
 import { memo } from '../../../util/memo';
 
 @Component({
+  standalone: false,
   selector: 'app-action-list',
   templateUrl: './action-list.component.html',
   styleUrl: './action-list.component.scss'

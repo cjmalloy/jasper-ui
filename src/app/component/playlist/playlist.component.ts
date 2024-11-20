@@ -3,6 +3,7 @@ import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 
 @Component({
+  standalone: false,
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',
   styleUrls: ['./playlist.component.scss']

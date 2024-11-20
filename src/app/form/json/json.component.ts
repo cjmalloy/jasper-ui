@@ -5,6 +5,7 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
+  standalone: false,
   selector: 'app-json',
   templateUrl: './json.component.html',
   styleUrls: ['./json.component.scss']

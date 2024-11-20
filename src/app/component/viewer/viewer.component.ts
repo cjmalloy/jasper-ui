@@ -36,6 +36,7 @@ import { UrlFilter } from '../../util/query';
 import { hasTag, includesTag } from '../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss']

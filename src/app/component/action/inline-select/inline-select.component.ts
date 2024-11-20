@@ -3,6 +3,7 @@ import { catchError, Observable, of } from 'rxjs';
 import { ActionComponent } from '../action.component';
 
 @Component({
+  standalone: false,
   selector: 'app-inline-select',
   templateUrl: './inline-select.component.html',
   styleUrls: ['./inline-select.component.scss']

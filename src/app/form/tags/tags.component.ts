@@ -9,6 +9,7 @@ import { TAG_REGEX } from '../../util/format';
 import { includesTag } from '../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-tags',
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss']

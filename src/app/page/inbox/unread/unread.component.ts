@@ -11,6 +11,7 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 
 @Component({
+  standalone: false,
   selector: 'app-unread',
   templateUrl: './unread.component.html',
   styleUrls: ['./unread.component.scss'],
