@@ -28,6 +28,7 @@ export class AutofocusDirective {
 
   focus() {
     if (this.enabled === false) return;
+    this.enabled = false;
     this.elementRef.nativeElement.focus();
     if ('setSelectionRange' in this.elementRef.nativeElement) {
       try {
