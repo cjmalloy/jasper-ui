@@ -175,7 +175,7 @@ export const aiQueryPlugin: Plugin = {
         const system = messages.filter(m => m.role === 'system').map(m => m.content).join("\\n\\n");
         messages.push({ role: 'assistant', content: '{"ref":['});
         const res = await anthropic.messages.create({
-          model: config?.model || 'claude-3-5-sonnet-20240620',
+          model: config?.model || 'claude-3-5-sonnet-20241022',
           max_tokens: config?.maxTokens || 4096,
           system,
           messages: messages.filter(m => m.role !== 'system'),
