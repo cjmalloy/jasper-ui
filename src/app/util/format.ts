@@ -128,6 +128,16 @@ export function getTitle(ref: Ref | undefined): string {
   return trimCommentForTitle(comment);
 }
 
+export function getPageTitle(ref: Ref | undefined, top?: Ref): string {
+  if (!ref) return '';
+  const title = (ref.title || '').trim();
+  const comment = (ref.comment || '').trim();
+  if (title) return title;
+  if (top?.title) return $localize`Re: ` + getTitle(top);
+  if (!comment) return top?.comment ? ($localize`Re: ` + getTitle(top)) : ref.url;
+  return trimCommentForTitle(comment);
+}
+
 function trimCommentForTitle(comment: string): string {
   if (!comment) return '';
   comment = he.decode(comment.replace( /<[^>]+>/g, ''));

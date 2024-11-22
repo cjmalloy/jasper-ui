@@ -1,7 +1,5 @@
 <ng-container *mobxAutorun>
-  <h1 class="print-block">
-    {{ store.view.ref?.title || (store.view.top?.title ? 'Re: ' + store.view.top?.title : store.view.ref?.url ) || '' }}
-  </h1>
+  <h1 class="print-block">{{ store.view.pageTitle }}</h1>
   <app-tabs>
     <a class="logo" routerLink="/"></a>
     <h5></h5>

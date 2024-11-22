@@ -8,6 +8,7 @@ import { TagSort } from '../model/tag';
 import { Template } from '../model/template';
 import { User } from '../model/user';
 import { RootConfig } from '../mods/root';
+import { getPageTitle, getTitle } from '../util/format';
 import { UrlFilter } from '../util/query';
 import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
 import { AccountStore } from './account';
@@ -97,6 +98,10 @@ export class ViewStore {
     this.selectedUser = undefined;
     this.defaultSort = defaultSort;
     this.defaultSearchSort = defaultSearchSort;
+  }
+
+  get pageTitle() {
+    return getPageTitle(this.ref, this.top);
   }
 
   get ext() {
