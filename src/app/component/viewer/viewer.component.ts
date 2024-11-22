@@ -31,6 +31,7 @@ import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { hasComment, templates } from '../../util/format';
+import { getExtension } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasTag, includesTag } from '../../util/tag';
@@ -233,7 +234,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   @memo
   get hls() {
-    return this.videoUrl.endsWith('.m3u8') || this.tags?.includes('plugin/hls');
+    return getExtension(this.ref?.plugins?.['plugin/video']?.url || this.ref?.url) === '.m3u8' || this.tags?.includes('plugin/hls');
   }
 
   @memo
