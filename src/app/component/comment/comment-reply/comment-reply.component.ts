@@ -116,7 +116,13 @@ export class CommentReplyComponent implements AfterViewInit {
     ]), ...removeTags));
     const sources = [this.to.url];
     if (hasTag('plugin/comment', tags) || hasTag('plugin/thread', tags)) {
-      sources.push(this.to.sources?.[1] || this.to.sources?.[0] || this.to.url)
+      if (hasTag('plugin/comment', this.to) || hasTag('plugin/thread', this.to)) {
+        // Parent may be the top
+        sources.push(this.to.sources?.[1] || this.to.url);
+      } else {
+        // Parent is the top
+        sources.push(this.to.url);
+      }
     }
     const ref: Ref = {
       url,
