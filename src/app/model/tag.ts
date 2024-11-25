@@ -422,33 +422,37 @@ export function active(ref: Ref, o: TagAction | ResponseAction | EventAction | I
 window.global = {};
 window.Handlebars = Handlebars as any;
 
-Handlebars.registerHelper('prefix', (p: string, r: string) => prefix(p, r));
-
-Handlebars.registerHelper('uuid', () => uuid());
-
-Handlebars.registerHelper('d3', () => d3);
-
-Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
-  // @ts-ignore
-  if (el.defered) {
-    fn();
-  } else {
+Handlebars.registerHelper({
+  prefix: (p: string, r: string) => prefix(p, r),
+  uuid: () => uuid(),
+  d3: () => d3,
+  defer: () => (el: Element, fn: () => {}) => {
     // @ts-ignore
-    el.deferred = true;
-    defer(fn);
-  }
-});
-
-Handlebars.registerHelper('fromNow', (value: string) => DateTime.fromISO(value).toRelative());
-
-Handlebars.registerHelper('formatInterval', (value: string) => Duration.fromISO(value).toHuman());
-
-Handlebars.registerHelper('response', (ref: Ref, value: string) => {
-  return ref.metadata?.userUrls?.includes(value);
-});
-
-Handlebars.registerHelper('includes', (array: string[], value: string) => {
-  return array?.includes(value);
+    if (el.defered) {
+      fn();
+    } else {
+      // @ts-ignore
+      el.deferred = true;
+      defer(fn);
+    }
+  },
+  eq: (v1, v2) => v1 === v2,
+  ne: (v1, v2) => v1 !== v2,
+  lt: (v1, v2) => v1 < v2,
+  gt: (v1, v2) => v1 > v2,
+  lte: (v1, v2) => v1 <= v2,
+  gte: (v1, v2) => v1 >= v2,
+  and() {
+    return Array.prototype.slice.call(arguments, 0, arguments.length - 1).every(Boolean);
+  },
+  or() {
+    return Array.prototype.slice.call(arguments, 0, arguments.length - 1).some(Boolean);
+  },
+  fromNow: (value: string) => DateTime.fromISO(value).toRelative(),
+  formatInterval: (value: string) => Duration.fromISO(value).toHuman(),
+  response: (ref: Ref, value: string) => ref.metadata?.userUrls?.includes(value),
+  includes: (array: string[], value: string) => array?.includes(value),
+  hasTag: (tag: string | undefined, ref: Ref | string[] | undefined) => hasTag(tag, ref),
 });
 
 export function hydrate(config: any, field: string, model: any): string {
