@@ -177,7 +177,11 @@ export const originPushPlugin: Plugin = {
     icons: [{ label: $localize`📤️` }],
     actions: [{ event: 'push', label: $localize`push`, title: $localize`Push a batch of updates to the remote.`, confirm: $localize`Are you sure you want to push?` }],
     // language=Handlebars
-    infoUi: `{{#if pushOnChange}} pushing on change {{/if}}`,
+    infoUi: `
+      {{#if pushOnChange}} pushing on change {{/if}}
+      {{#if (and (hasTag '+plugin/origin/pull' ref) (hasTag '+plugin/origin/push' ref))}}
+        <span title="Pushing and Pulling is not recommended">⛔️</span>
+      {{/if}}`,
     form: [{
       key: 'pushOnChange',
       type: 'boolean',
