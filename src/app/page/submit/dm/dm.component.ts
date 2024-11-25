@@ -164,7 +164,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   changedTo(value: string) {
     const notes = !value || value === this.store.account.tag;
-    if (notes && !this.tags?.includesTag('notes')) {
+    if (notes && !this.tags?.hasTag('notes')) {
       const newTags = uniq([...without(this.tags!.tags!.value, ...['dm', 'internal', ...this.addedMailboxes]), 'notes']);
       this.tags!.setTags(newTags);
       this.addedMailboxes = [];
@@ -183,7 +183,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get editingViewer() {
-    return some(this.admin.editingViewer, (t: Plugin) => this.tags?.includesTag(t.tag));
+    return some(this.admin.editingViewer, (t: Plugin) => this.tags?.hasTag(t.tag));
   }
 
   syncEditor() {

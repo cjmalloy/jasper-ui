@@ -57,7 +57,6 @@ import {
   capturesAny,
   hasTag,
   hasUserUrlResponse,
-  includesTag,
   isOwnerTag,
   localTag,
   removeTag,
@@ -796,7 +795,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get fullscreen() {
-    if (this.plugins) return includesTag('plugin/fullscreen', this.plugins);
+    if (this.plugins) return hasTag('plugin/fullscreen', this.plugins);
     return hasTag('plugin/fullscreen', this.ref);
   }
 

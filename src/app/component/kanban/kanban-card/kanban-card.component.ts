@@ -32,7 +32,7 @@ import { Store } from '../../../store/store';
 import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, includesTag } from '../../../util/tag';
+import { hasTag } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -302,7 +302,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   }
 
   toggleBadge(tag: string, event?: MouseEvent) {
-    if (includesTag(tag, this.ref.tags)) {
+    if (hasTag(tag, this.ref.tags)) {
       this.tags.delete(tag, this.ref.url, this.ref.origin).subscribe(() => {
         this.ref.tags = without(this.ref.tags, tag);
         this.init();

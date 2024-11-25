@@ -5,7 +5,6 @@ import { Store } from '../store/store';
 import {
   capturesAny,
   hasTag,
-  includesTag,
   isOwner,
   isOwnerTag,
   localTag,
@@ -68,8 +67,8 @@ export class AuthzService {
     if (!this.store.account.signedIn) return false;
     if (this.store.account.mod) return true;
     if (this.store.account.localTag === tag) return true;
-    if (includesTag(tag, this.config.modSeals)) return false;
-    if (!this.store.account.editor && includesTag(tag, this.config.editorSeals)) return false;
+    if (hasTag(tag, this.config.modSeals)) return false;
+    if (!this.store.account.editor && hasTag(tag, this.config.editorSeals)) return false;
     if (!this.store.account.access) return false;
     if (capturesAny(this.store.account.access.tagReadAccess, [tag])) return true;
     return !!capturesAny(this.store.account.access.readAccess, [tag]);

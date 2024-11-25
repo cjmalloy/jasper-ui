@@ -100,12 +100,7 @@ export function hasUserUrlResponse(tag?: string, ref?: Ref)  {
 
 export function tagIntersection(expand: string[] | undefined, targets: string[] | undefined) {
   if (!expand || !targets) return [];
-  return filter(targets, target => includesTag(target, expand));
-}
-
-export function includesTag(target: string, tags?: string[])  {
-  if (!target) return false;
-  return !!find(tags, t => expandedTagsInclude(t, target));
+  return filter(targets, target => hasTag(target, expand));
 }
 
 export function expandedTagsInclude(tag?: string, target?: string) {

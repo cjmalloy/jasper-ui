@@ -34,7 +34,7 @@ import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
-import { hasTag, includesTag } from '../../util/tag';
+import { hasTag } from '../../util/tag';
 
 @Component({
   standalone: false,
@@ -244,7 +244,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   @memo
   get editingViewer() {
-    return some(this.admin.editingViewer, t => includesTag(t.tag, this.currentTags));
+    return some(this.admin.editingViewer, t => hasTag(t.tag, this.currentTags));
   }
 
   @memo
