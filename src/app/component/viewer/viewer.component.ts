@@ -10,6 +10,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import Hls from 'hls.js';
 import { defer, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
@@ -34,7 +35,7 @@ import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
-import { hasTag } from '../../util/tag';
+import { hasPrefix, hasTag } from '../../util/tag';
 
 @Component({
   standalone: false,
@@ -52,6 +53,8 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   @Input()
   ref?: Ref;
+  @Input()
+  commentControl?: FormControl<string>;
   @Input()
   tags?: string[];
   @Input()
@@ -90,9 +93,9 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   private height = 0;
 
   constructor(
+    public config: ConfigService,
     public admin: AdminService,
     private proxy: ProxyService,
-    private config: ConfigService,
     private oembeds: OembedStore,
     private actions: ActionService,
     private embeds: EmbedService,
@@ -105,10 +108,10 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   init() {
     MemoCache.clear(this);
-    this.playlist = !!this.admin.getPlugin('plugin/playlist') && this.currentTags.includes('plugin/playlist');
-    this.todo = !!this.admin.getPlugin('plugin/todo') && this.currentTags.includes('plugin/todo');
-    this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && this.currentTags.includes('plugin/backgammon');
-    this.chess = !!this.admin.getPlugin('plugin/chess') && this.currentTags.includes('plugin/chess');
+    this.playlist = !!this.admin.getPlugin('plugin/playlist') && hasTag('plugin/playlist', this.currentTags);
+    this.todo = !!this.admin.getPlugin('plugin/todo') && hasTag('plugin/todo', this.currentTags);
+    this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && hasTag('plugin/backgammon', this.currentTags);
+    this.chess = !!this.admin.getPlugin('plugin/chess') && hasTag('plugin/chess', this.currentTags);
     this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
     this.uis = this.admin.getPluginUi(this.currentTags);
     if (this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref)) {
@@ -130,7 +133,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
         this.lensSearch = params.search;
       });
     }
-    if (this.ref?.url && this.currentTags.includes('plugin/embed')) {
+    if (this.ref?.url && hasTag('plugin/embed', this.currentTags)) {
       this.width = this.embed?.width || (this.config.mobile ? (window.innerWidth - (this.thread ? 32 : 12)) : this.el.nativeElement.parentElement.offsetWidth - 400);
       this.height = this.embed?.height || window.innerHeight;
       if (hasTag('plugin/fullscreen', this.ref)) {
@@ -153,7 +156,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   async ngAfterViewInit() {
-    if (this.currentTags.includes('plugin/pip')) {
+    if (hasTag('plugin/pip', this.currentTags)) {
       // @ts-ignore
       const pipWindow = await documentPictureInPicture.requestWindow();
       pipWindow.document.body.append(this.el.nativeElement);
@@ -250,7 +253,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get hideComment() {
     if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) return true;
-    if (this.admin.getPlugin('plugin/table') && this.currentTags.includes('plugin/table')) return false;
+    if (this.admin.getPlugin('plugin/table') && hasTag('plugin/table', this.currentTags)) return false;
     return this.editingViewer || (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract);
   }
 
@@ -263,8 +266,18 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   get currentText() {
     if (this.hideComment) return '';
     const value = this.text || this.ref?.comment || '';
-    if (this.ref?.title || this.text || hasTag('plugin/comment', this.ref) || hasTag('plugin/thread', this.ref) || hasComment(this.ref?.comment)) return value;
+    if (!value) return '';
+    if (this.ref?.title || this.text || hasTag('plugin/comment', this.ref) || hasTag('plugin/thread', this.ref) || hasComment(this.ref?.comment)) {
+      return value;
+    }
     return '';
+  }
+
+  @memo
+  get currentCode() {
+    if (!this.code) return '';
+    const value = this.text || this.ref?.comment || '';
+    return '```' + this.codeLang + '\n' + value + '\n```';
   }
 
   @memo
@@ -275,12 +288,12 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get thread() {
     if (!this.admin.getPlugin('plugin/thread')) return false;
-    return this.currentTags.includes('plugin/thread') || this.ref?.metadata?.plugins?.['plugin/thread'];
+    return hasTag('plugin/thread', this.currentTags) || this.ref?.metadata?.plugins?.['plugin/thread'];
   }
 
   @memo
   get embed() {
-    if (!this.currentTags.includes('plugin/embed')) return undefined;
+    if (!hasTag('plugin/embed', this.currentTags)) return undefined;
     return this.ref?.plugins?.['plugin/embed'];
   }
 
@@ -302,7 +315,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   @memo
   get audioUrl() {
-    if (!this.currentTags.includes('plugin/audio')) return '';
+    if (!hasTag('plugin/audio', this.currentTags)) return '';
     const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
     if (!this.admin.getPlugin('plugin/audio')?.config?.proxy) return url;
     return this.proxy.getFetch(url, this.currentOrigin);
@@ -310,7 +323,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   @memo
   get videoUrl() {
-    if (!this.currentTags.includes('plugin/video')) return '';
+    if (!hasTag('plugin/video', this.currentTags)) return '';
     const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
     if (!this.admin.getPlugin('plugin/video')?.config?.proxy) return url;
     return this.proxy.getFetch(url, this.currentOrigin);
@@ -318,15 +331,40 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   @memo
   get imageUrl() {
-    if (!this.image && !this.currentTags.includes('plugin/image')) return '';
+    if (!this.image && !hasTag('plugin/image', this.currentTags)) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
     if (!this.admin.getPlugin('plugin/image')?.config?.proxy) return url;
     return this.proxy.getFetch(url, this.currentOrigin);
   }
 
   @memo
+  get codeOptions() {
+    return {
+      language: this.codeLang,
+      theme: this.store.darkTheme ? 'vs-dark' : 'vs',
+      automaticLayout: true,
+    };
+  }
+
+  @memo
+  get code() {
+    return this.admin.getPlugin('plugin/code') && hasTag('plugin/code', this.currentTags);
+  }
+
+  @memo
+  get codeLang() {
+    if (!this.code) return '';
+    for (const t of this.currentTags) {
+      if (hasPrefix(t, 'plugin/code')) {
+        return t.split('/')[2];
+      }
+    }
+    return '';
+  }
+
+  @memo
   get qrUrl() {
-    if (!this.currentTags.includes('plugin/qr')) return '';
+    if (!hasTag('plugin/qr', this.currentTags)) return '';
     return this.ref?.plugins?.['plugin/qr']?.url || this.ref?.url;
   }
 

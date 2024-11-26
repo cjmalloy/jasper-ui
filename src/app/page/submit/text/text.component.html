@@ -29,6 +29,7 @@
         <span><!-- Viewer --></span>
         <app-viewer [text]="textForm.value.comment"
                     [tags]="$any(textForm.value).tags"
+                    [commentControl]="comment"
                     (comment)="comment.setValue($event)"></app-viewer>
       } @else {
         @if (store.submit.wiki) {

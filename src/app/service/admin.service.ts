@@ -19,6 +19,7 @@ import { blogTemplate } from '../mods/blog';
 import { cacheMod } from '../mods/cache';
 import { chatTemplate } from '../mods/chat';
 import { chessMod } from '../mods/chess';
+import { codePlugin } from '../mods/code';
 import { commentPlugin } from '../mods/comment';
 import { cronPlugin } from '../mods/cron';
 import { dalleMod } from '../mods/dalle';
@@ -123,6 +124,7 @@ export class AdminService {
       pdfPlugin,
       ...archiveMod.plugins,
       latexPlugin,
+      codePlugin,
       htmlPlugin,
       personPlugin,
       repostPlugin,
