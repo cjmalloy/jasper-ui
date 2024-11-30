@@ -33,7 +33,7 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.page = Page.of(uniq(this.store.view.ref?.sources).map(url => ({ url })) || []);
+      this.page = Page.of(this.sources.map(url => ({ url })) || []);
     }));
     this.disposers.push(autorun(() => {
       const args = getArgs(
@@ -49,9 +49,9 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
     }));
     this.disposers.push(autorun(() => {
       if (!this.query.page) return;
-      for (let i = 0; i < (this.store.view.ref?.sources?.length || 0); i ++) {
+      for (let i = 0; i < this.sources.length; i ++) {
         if (this.page.content[i].created) continue;
-        const url = this.store.view.ref!.sources![i];
+        const url = this.sources[i];
         const existing = this.query.page.content.find(r => r.url === url);
         if (existing) this.page.content[i] = existing;
       }
@@ -64,6 +64,10 @@ export class RefSourcesComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  get sources() {
+    return uniq(this.store.view.ref?.sources).filter(s => s != this.store.view.url);
   }
 
 }

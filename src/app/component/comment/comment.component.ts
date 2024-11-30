@@ -268,7 +268,8 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @memo
   get sources() {
-    return this.ref.sources?.length || 0;
+    const sources = uniq(this.ref?.sources).filter(s => s != this.ref.url);
+    return sources.length || 0;
   }
 
   @memo
