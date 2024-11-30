@@ -742,7 +742,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get sources() {
-    return this.ref.sources?.length || 0;
+    const sources = uniq(this.ref?.sources).filter(s => s != this.ref.url);
+    return sources.length || 0;
   }
 
   @memo
@@ -751,8 +752,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
+  get parent() {
+    const sources = uniq(this.ref.sources).filter(s => s != this.ref.url);
+    if (sources.length === 1) return sources[0];
+    return false;
+  }
+
+  @memo
   get parentComment() {
     if (!hasTag('plugin/comment', this.ref)) return false;
+    if (this.ref.sources?.[0] === this.ref.url) return false;
+    if (this.ref.sources?.[1] === this.ref.url) return false;
     if (this.sources === 1 || this.sources === 2) return this.ref.sources![0];
     return false;
   }
@@ -760,6 +770,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get parentCommentTop() {
     if (!hasTag('plugin/comment', this.ref)) return false;
+    if (this.ref.sources?.[0] === this.ref.url) return false;
+    if (this.ref.sources?.[1] === this.ref.url) return false;
     if (this.sources === 2) return this.ref.sources![1];
     return false;
   }
@@ -767,6 +779,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get parentThreadTop() {
     if (!hasTag('plugin/thread', this.ref)) return false;
+    if (this.ref.sources?.[0] === this.ref.url) return false;
+    if (this.ref.sources?.[1] === this.ref.url) return false;
     if (this.sources === 2) return this.ref.sources![1];
     if (this.sources === 1) return this.ref.sources![0];
     return false;

@@ -93,7 +93,8 @@ export class RefPage implements OnInit, OnDestroy {
   }
 
   get sources() {
-    return this.store.view.ref?.sources?.length || 0;
+    const sources = (this.store.view.ref?.sources || []).filter( s => s != this.store.view.url);
+    return sources.length || 0;
   }
 
   get alts() {

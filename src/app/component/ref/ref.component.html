@@ -219,12 +219,12 @@
             }
             @if (parentComment) {
               <a [routerLink]="['/ref', parentComment, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
-            }
-            @if (!parentComment && !parentThreadTop && sources === 1) {
-              <a *ngIf="!parentComment && !parentThreadTop && sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
-            }
-            @if (!parentComment && !parentThreadTop && sources > 1) {
-              <a *ngIf="!parentComment && !parentThreadTop && sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: obsoleteOrigin }" i18n>{{ sources }}&thinsp;sources</a>
+            } @else if (!parentThreadTop) {
+              @if (parent) {
+                <a [routerLink]="['/ref', parent]" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
+              } @else if (sources) {
+                <a [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: obsoleteOrigin }" i18n>{{ sources }}&thinsp;sources</a>
+              }
             }
             <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
             <app-inline-button #action *ngIf="store.account.user && !local" [action]="copy$" i18n>copy</app-inline-button>
