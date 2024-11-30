@@ -53,7 +53,7 @@ export class TabsComponent implements AfterViewInit {
   @HostListener('window:resize')
   onResize() {
     if (!this.options.length) return;
-    this.measureVisible();
+    defer(() => this.measureVisible());
   }
 
   measureVisible() {
