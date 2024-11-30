@@ -205,7 +205,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       origin: this.store.account.origin,
       title: this.dmForm.value.title,
       comment: this.dmForm.value.comment,
-      sources: this.dmForm.value.sources,
+      sources: [url, ...uniq([url, ...this.dmForm.value.sources || []])],
       published,
       tags: this.dmForm.value.tags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),

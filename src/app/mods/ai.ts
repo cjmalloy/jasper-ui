@@ -243,7 +243,7 @@ export const aiQueryPlugin: Plugin = {
           sources.push(ref.url);
         }
       }
-      response.sources = [...sources, ...(response.sources || [])].filter(uniq);
+      response.sources = [ref.url, ...[...sources, ...(response.sources || [])].filter(uniq)];
       // TODO: Allow AI to add some protected tags
       const publicTagRegex = /^[a-z0-9]+(?:[./][a-z0-9]+)*$/;
       for (const r of bundle.ref) {
