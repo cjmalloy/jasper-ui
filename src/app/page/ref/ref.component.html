@@ -99,7 +99,7 @@
              (copied)="reload()"></app-ref>
     @if (newResponses) {
       <div class="warning print-hide" i18n>
-        {{ newResponses }} new response(s)
+        {newResponses, plural, =1 {1 new response} other {{{newResponses}} new responses}}
       </div>
     }
     @if (refWarning) {
