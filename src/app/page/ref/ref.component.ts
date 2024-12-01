@@ -1,8 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, filter, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { isWiki } from '../../mods/wiki';
@@ -27,6 +28,7 @@ export class RefPage implements OnInit, OnDestroy {
   newResponses = 0;
   private watchSelf?: Subscription;
   private watchResponses?: Subscription;
+  private seen = new Set<string>();
 
   constructor(
     public config: ConfigService,
@@ -57,7 +59,7 @@ export class RefPage implements OnInit, OnDestroy {
 
   @memo
   get refWarning() {
-    const warn = (this.store.view.ref?.sources?.length || 0) > 0 && this.store.view.published && !this.store.view.ref!.published!.hasSame(this.store.view.published, 'millisecond');
+    const warn = this.sources > 0 && this.store.view.published && +this.store.view.ref!.published! !== +DateTime.fromISO(this.store.view.published);
     if (this.store.view.published) this.router.navigate([], { queryParams: { published: null }, queryParamsHandling: 'merge', replaceUrl: true });
     return warn;
   }
@@ -103,19 +105,18 @@ export class RefPage implements OnInit, OnDestroy {
 
   reload(url?: string) {
     MemoCache.clear(this);
-    url ||= this.store.view.ref?.url;
+    url ||= this.store.view.url;
     if (!url) return;
     this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions = count);
     this.refs.getCurrent(url).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+      map(ref => ref || { url }),
       tap(ref => this.store.view.setRef(ref || { url })),
-      map(ref => top(ref)),
-      switchMap(top => !top ? of(undefined)
-        : top === url ? of(this.store.view.ref)
-        : this.refs.getCurrent(top).pipe(
-            catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-          )),
-      tap(ref => runInAction(() => this.store.view.top = ref!)),
+      switchMap(ref => !top ? of(undefined)
+        : top(ref) === url ? of(ref)
+        : this.refs.getCurrent(top(ref)).pipe(catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)))
+      ),
+      tap(top => runInAction(() => this.store.view.top = top)),
     ).subscribe();
     if (this.config.websockets) {
       this.watchSelf?.unsubscribe();
@@ -152,9 +153,12 @@ export class RefPage implements OnInit, OnDestroy {
       this.watchResponses?.unsubscribe();
       this.watchResponses = this.stomp.watchResponse(url).pipe(
         takeUntil(this.destroy$),
+        filter(url => url != this.store.view.url),
+        filter(url => !url.startsWith('tag:')),
+        filter(url => !this.seen.has(url)),
       ).subscribe(url => {
-        if (url.startsWith('tag:')) return;
-        this.newResponses++
+        this.seen.add(url);
+        this.newResponses++;
       });
     }
   }

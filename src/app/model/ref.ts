@@ -205,7 +205,7 @@ export function equalsRef(a?: Ref, b?: Ref) {
     a.title === b.title &&
     a.comment === b.comment &&
     !!a.published === !!b.published &&
-    b.published && a.published?.hasSame(b.published, 'millisecond') &&
+    b.published && a.published && +a.published === +b.published &&
     isEqual(a.alternateUrls, b.alternateUrls) &&
     isEqual(a.sources, b.sources) &&
     isEqual(a.tags?.filter(compareTag), b.tags?.filter(compareTag)) &&

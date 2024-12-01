@@ -630,7 +630,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     const sources = [this.ref.url];
     if (this.comment || this.thread || this.email) {
       if (this.ref.sources?.length) {
-        sources.push(this.ref.sources[1] || this.ref.sources[0]);
+        sources.push(this.ref.sources[1] || this.ref.sources[0] || this.ref.url);
       }
     }
     return sources;
@@ -947,7 +947,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.init();
       this.store.submit.setRef(this.ref);
     } else {
-      this.refreshTap = () => this.publishChanged = !published.hasSame(this.ref.published!, 'millisecond');
+      this.refreshTap = () => this.publishChanged = +published !== +this.ref.published!;
       this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
         tap(cursor => {
           this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
@@ -1020,7 +1020,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
             if (err.status === 409) {
               return this.refs.get(this.ref.url, this.store.account.origin).pipe(
                 switchMap(existing => {
-                  if (existing.modified?.hasSame(ref.modified!, 'millisecond') || equalsRef(existing, ref) || window.confirm('An old version already exists. Overwrite it?')) {
+                  if (+existing.modified! === +ref.modified! || equalsRef(existing, ref) || window.confirm('An old version already exists. Overwrite it?')) {
                     // TODO: Show diff and merge or split
                     return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
                   } else {

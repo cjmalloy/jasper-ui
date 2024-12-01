@@ -235,13 +235,7 @@ export const aiQueryPlugin: Plugin = {
       }
       const sources = [ref.url];
       if (response.tags.includes('plugin/thread') || response.tags.includes('plugin/comment')) {
-        if (ref.sources?.length === 1) {
-          sources.push(ref.sources[0]);
-        } else if (ref.sources?.length > 1) {
-          sources.push(ref.sources[1]);
-        } else {
-          sources.push(ref.url);
-        }
+        sources.push(ref.sources[1] || ref.sources[0] || ref.url);
       }
       response.sources = [ref.url, ...[...sources, ...(response.sources || [])].filter(uniq)];
       // TODO: Allow AI to add some protected tags
