@@ -31,7 +31,7 @@ export function authors(ref: Ref, prefixes = ['user', 'plugin/from']) {
     } else if (p === '+plugin') {
       authors.push(...templates(ref.tags || [], '+plugin').map(t => t + (ref.origin || '')));
     } else if (p === 'plugin/from') {
-      authors.push(...templates(ref.tags || [], 'plugin/from').map(t => reverseOrigin(t.substring('plugin/from/'.length))));
+      authors.push(...templates(ref.tags || [], 'plugin/from').map(t => reverseOrigin(t.substring('plugin/from/'.length), ref.origin || '')));
     }
   }
   return uniq(authors);

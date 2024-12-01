@@ -1894,6 +1894,9 @@ button.backup, button.upload, input.upload {
 
   p {
     text-align: justify;
+    & > app-nav > .tag {
+      margin: 0;
+    }
   }
 
   blockquote {

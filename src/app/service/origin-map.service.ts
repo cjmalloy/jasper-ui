@@ -5,6 +5,7 @@ import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
 import { isPushing, isReplicating } from '../mods/origin';
 import { Store } from '../store/store';
+import { subOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
@@ -59,34 +60,52 @@ export class OriginMapService {
     return this.config.api;
   }
 
-  private get selfApis(): Map<string, string> {
-    return new Map([
-      [this.store.account.origin, this.api],
-      ...this.origins
-      .filter(remote => isPushing(remote, this.store.account.origin))
-      .map(remote => [remote.plugins?.['+plugin/origin']?.remote || '', remote.url] as [string, string]),
+  /**
+   * Searches push configs to list api aliases.
+   */
+  private get selfApis(): Set<string> {
+    const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+    const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
+    return new Set([this.api,
+      ...remotesForOrigin(this.store.account.origin)
+        .filter(remote => isPushing(remote, ''))
+        .map(remote => trimUrl(remote.url)),
     ]);
   }
 
+  /**
+   * Maps local-alias -> remote-alias-to-self.
+   */
   private get reverseLookup(): Map<string, string> {
+    const config = (remote?: Ref): any => remote?.plugins?.['+plugin/origin'];
     return new Map(this.origins
-      .filter(remote => isReplicating(remote, this.selfApis))
-      .map(remote => [remote.origin || '', remote.plugins?.['+plugin/origin']?.local]));
+      .filter(remote => isReplicating(this.store.account.origin || '', remote, this.selfApis))
+      .filter(remote => config(remote)?.local)
+      .map(remote => [remote.origin || '', config(remote)?.local]));
   }
 
+  /**
+   * Maps local-alias -> remote-alias -> local-alias.
+   */
   private get originMap(): Map<string, Map<string, string>> {
     const config = (remote: Ref): any => remote.plugins?.['+plugin/origin'];
     const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
+    const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
     const findLocalAlias = (url: string) => remotesForOrigin(this.store.account.origin)
-      .filter(remote => remote.url === url)
-      .map(remote => config(remote)?.local || '')
-      .find(() => true) || '';
-    const originMapFor = (origin: string) => new Map(
-      remotesForOrigin(origin)
-        .map(remote => [config(remote)?.local || '', findLocalAlias(remote.url)]));
+      .filter(remote => trimUrl(remote.url) === url)
+      [0] || undefined;
+    const originMapFor = (remote: Ref): Map<string, string> => new Map(
+      remotesForOrigin(subOrigin(this.store.account.origin, config(remote)?.local))
+        .filter(nested => findLocalAlias(trimUrl(nested.url)) !== undefined)
+        .map(nested => [
+          config(nested)?.local || '',
+          config(findLocalAlias(trimUrl(nested.url))!)?.local || ''
+        ]));
     return new Map(
       remotesForOrigin(this.store.account.origin || '')
-        .map(remote => config(remote).local)
-        .map(origin => [origin, originMapFor(origin)]));
+        .map(remote => [
+          subOrigin(this.store.account.origin, config(remote)?.local),
+          originMapFor(remote)
+        ]));
   }
 }

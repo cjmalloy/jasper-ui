@@ -5,7 +5,17 @@ import { Ref } from '../model/ref';
 import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 import { userAuthors } from '../util/format';
-import { hasPrefix, localTag, prefix, removePrefix, setPublic, tagOrigin } from '../util/tag';
+import {
+  access,
+  hasPrefix,
+  localTag,
+  prefix,
+  removeParentOrigin,
+  removePrefix,
+  setPublic,
+  subOrigin,
+  tagOrigin
+} from '../util/tag';
 
 export const dmTemplate: Template = {
   tag: 'dm',
@@ -80,24 +90,21 @@ export function getUser(mailbox: string, localOrigin: string): string | undefine
 export function getMailboxTag(mailbox: string, localOrigin: string): string | undefined {
   if (mailbox.startsWith('_plugin/inbox/')) return mailbox.substring('_plugin/inbox/'.length) + localOrigin;
   if (mailbox.startsWith('plugin/inbox/')) return mailbox.substring('plugin/inbox/'.length) + localOrigin;
-  if (mailbox.startsWith('_plugin/outbox/')) return reverseOrigin(mailbox.substring('_plugin/outbox/'.length));
-  if (mailbox.startsWith('plugin/outbox/')) return reverseOrigin(mailbox.substring('plugin/outbox/'.length));
-  if (mailbox.startsWith('_plugin/from/')) return reverseOrigin(mailbox.substring('_plugin/from/'.length));
-  if (mailbox.startsWith('plugin/from/')) return reverseOrigin(mailbox.substring('plugin/from/'.length));
+  if (mailbox.startsWith('_plugin/outbox/')) return reverseOrigin(mailbox.substring('_plugin/outbox/'.length), localOrigin);
+  if (mailbox.startsWith('plugin/outbox/')) return reverseOrigin(mailbox.substring('plugin/outbox/'.length), localOrigin);
+  if (mailbox.startsWith('_plugin/from/')) return reverseOrigin(mailbox.substring('_plugin/from/'.length), localOrigin);
+  if (mailbox.startsWith('plugin/from/')) return reverseOrigin(mailbox.substring('plugin/from/'.length), localOrigin);
   return undefined;
 }
 
 /**
  * Convert from reverse origin syntax (origin/tag) to qualified tag syntax (tag@origin).
  */
-export function reverseOrigin(tag: string): string {
-  let prefix = '';
-  if (tag.startsWith('+') || tag.startsWith('_')) {
-    prefix = tag.substring(0, 1);
-    tag = tag.substring(1);
-  }
+export function reverseOrigin(tag: string, rootOrigin: string): string {
+  let prefix = access(tag);
+  if (prefix) tag = tag.substring(1);
   const len = tag.indexOf('/');
-  return prefix + tag.substring(len + 1) + '@' + tag.substring(0, len);
+  return prefix + tag.substring(len + 1) + '@' + subOrigin(rootOrigin, tag.substring(0, len));
 }
 
 export function getMailbox(tag: string, local: string): string {
@@ -106,7 +113,7 @@ export function getMailbox(tag: string, local: string): string {
   if (!origin || origin === local) {
     return setPublic(prefix('plugin/inbox', localTag(tag)));
   } else {
-    return setPublic(prefix(`plugin/outbox/${origin.substring(1)}`, localTag(tag)));
+    return setPublic(prefix(`plugin/outbox/${removeParentOrigin(origin, local).substring(1)}`, localTag(tag)));
   }
 }
 

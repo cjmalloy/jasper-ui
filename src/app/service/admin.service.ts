@@ -267,7 +267,7 @@ export class AdminService {
 
   private get _extFallback() {
     return (x: Ext) => {
-      if (x.modifiedString) return x;
+      if (!x.tag || x.modifiedString) return x;
       x = {...x};
       const tmpl = this.getTemplate(x.tag);
       let plugin = this.getPlugin(x.tag);
@@ -286,7 +286,7 @@ export class AdminService {
 
   get authorFallback() {
     return map((xs: Ext[]) => xs.map(x => {
-      if (x.modifiedString) return x;
+      if (!x.tag || x.modifiedString) return x;
       x = {...x};
       const tmpl = this.getTemplate(x.tag);
       let plugin = this.getPlugin(x.tag);
@@ -304,7 +304,7 @@ export class AdminService {
 
   get recipientFallback() {
     return map((xs: Ext[]) => xs.map(x => {
-      if (x.modifiedString) return x;
+      if (!x.tag || x.modifiedString) return x;
       x = {...x};
       const inbox = (hasPrefix(x.tag, 'plugin') ? '' : 'plugin/inbox/') + x.tag;
       const tmpl = this.getTemplate(inbox);

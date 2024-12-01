@@ -15,7 +15,7 @@ import { delay } from '../util/async';
 import { Embed } from '../util/embed';
 import { parseParams } from '../util/http';
 import { getFilters, getFiltersQuery, parseArgs } from '../util/query';
-import { isQuery, queryPrefix, tagOrigin, topAnds } from '../util/tag';
+import { isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -103,7 +103,7 @@ export class EmbedService {
         const match = rule.exec(src);
         if (match) {
           const text = match[0]
-          const title = 'User ' + text;
+          const title = $localize`User ` + text;
           return {
             type: 'userTag',
             href: '/tag/' + text,
@@ -297,13 +297,21 @@ export class EmbedService {
    * @param origin origin to append to user links without existing origins
    */
   postProcess(el: HTMLDivElement, embed: Embed, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
-    if (origin) {
-      const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
-      userTags.forEach(t => {
-        if (tagOrigin(t.innerText)) return;
+    const lookup = this.store.origins.originMap.get(origin || '');
+    const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
+    userTags.forEach(t => {
+      const userOrigin = tagOrigin(t.innerText);
+      if (userOrigin) {
+        if (lookup?.has(userOrigin)) {
+          const tag = localTag(t.innerText) + lookup?.get(userOrigin);
+          t.innerText = tag;
+          t.href = '/tag/' + escape(tag);
+          t.title = $localize`User ` + tag;
+        }
+      } else if (origin) {
         t.href = t.getAttribute('href') + origin;
-      });
-    }
+      }
+    });
     const pictures = el.querySelectorAll<HTMLPictureElement>('picture');
     pictures.forEach(t => {
       const source = t.querySelectorAll('source')[0];

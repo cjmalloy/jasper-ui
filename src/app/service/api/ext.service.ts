@@ -9,7 +9,7 @@ import { latest, TagPageArgs, TagQueryArgs } from '../../model/tag';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
 import { OpPatch } from '../../util/json-patch';
-import { defaultOrigin, isQuery, localTag, tagOrigin } from '../../util/tag';
+import { defaultOrigin, hasPrefix, isQuery, localTag, protectedTag, removePrefix, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -63,18 +63,18 @@ export class ExtService {
             if (tag.includes('@')) {
               this._cache.set(key, of(
                 batch.content.find(x => x.tag === localTag(tag) && x.origin === tagOrigin(tag))
-                || { tag: localTag(tag), origin: tagOrigin(tag) } as Ext));
+                || this.defaultExt(tag)));
             } else if (defaultOrigin) {
               this._cache.set(key, of(
                 batch.content.find(x => x.tag === tag && x.origin === this.store.account.origin)
                 || batch.content.find(x => x.tag === tag && x.origin === defaultOrigin)
                 || latest(batch.content).find(x => x.tag === tag)
-                || { tag: localTag(tag), origin: tagOrigin(tag) } as Ext));
+                || this.defaultExt(tag)));
             } else {
               this._cache.set(key, of(
                 batch.content.find(x => x.tag === tag && x.origin === this.store.account.origin)
                 || latest(batch.content).find(x => x.tag === tag)
-                || { tag: localTag(tag), origin: tagOrigin(tag) } as Ext));
+                || this.defaultExt(tag)));
             }
           }
         }
@@ -114,7 +114,7 @@ export class ExtService {
     const key = tag + ':' + (origin || '');
     if (!this._cache.has(key)) {
       if (!tag || tag.startsWith('@') || isQuery(tag)) {
-        this._cache.set(key, of({ name: tag, tag: tag, origin: origin } as Ext));
+        this._cache.set(key, of(this.defaultExt(tag, origin)));
       } else {
         this._cache.set(key, this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
           catchError(err => {
@@ -128,7 +128,7 @@ export class ExtService {
             );
           }),
           catchError(err => of(null)),
-          map(x => x ? x : { tag: localTag(tag), origin: tagOrigin(tag) || origin || '' } as Ext),
+          map(x => x ? x : this.defaultExt(tag, origin)),
           tap(x => {
             this._cache.set(x.tag + x.origin + ':', of(x));
             this.store.local.loadExt([...this._cache.keys()]);
@@ -140,6 +140,13 @@ export class ExtService {
       this.store.local.loadExt([...this._cache.keys()]);
     }
     return this._cache.get(key)!;
+  }
+
+  private defaultExt(tag: string, defaultOrigin = '', name = ''): Ext {
+    const origin = tagOrigin(tag) || defaultOrigin || '';
+    tag = localTag(tag);
+    name = name || hasPrefix(tag, 'user') ? removePrefix(protectedTag(tag) ? tag.substring(1) : tag) : name;
+    return { name, tag, origin };
   }
 
   clearCache(tag: string, origin = '') {
