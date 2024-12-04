@@ -236,8 +236,10 @@ export const aiQueryPlugin: Plugin = {
       const sources = [ref.url];
       if (response.tags.includes('plugin/thread') || response.tags.includes('plugin/comment')) {
         sources.push(ref.sources[1] || ref.sources[0] || ref.url);
+      } else {
+        sources.push(ref.url);
       }
-      response.sources = [ref.url, ...[...sources, ...(response.sources || [])].filter(uniq)];
+      response.sources = [...sources, ...(response.sources || []).filter(uniq).filter(s => !sources.includes(s))];
       // TODO: Allow AI to add some protected tags
       const publicTagRegex = /^[a-z0-9]+(?:[./][a-z0-9]+)*$/;
       for (const r of bundle.ref) {
