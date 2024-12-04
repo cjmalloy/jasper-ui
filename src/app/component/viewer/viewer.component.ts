@@ -267,7 +267,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (this.hideComment) return '';
     const value = this.text || this.ref?.comment || '';
     if (!value) return '';
-    if (this.ref?.title || this.text || hasTag('plugin/comment', this.ref) || hasTag('plugin/thread', this.ref) || hasComment(this.ref?.comment)) {
+    if (this.ref?.title || this.text || hasTag('plugin/comment', this.ref) || hasTag('plugin/thread', this.ref) || this.store.view.current === 'ref/thread' || hasComment(this.ref?.comment)) {
       return value;
     }
     return '';

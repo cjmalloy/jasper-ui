@@ -94,7 +94,7 @@
              [class.thread]="store.view.current === 'ref/thread'"
              [ref]="store.view.ref"
              [showToggle]="store.view.current !== 'ref/thread'"
-             [expandInline]="!config.mobile || !!threads"
+             [expandInline]="!config.mobile || store.view.current === 'ref/thread' || !!threads"
              [expanded]="expandedOnLoad"
              (copied)="reload()"></app-ref>
     @if (newResponses) {

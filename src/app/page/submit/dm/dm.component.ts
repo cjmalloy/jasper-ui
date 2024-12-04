@@ -87,7 +87,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       if (this.store.submit.sources) {
         this.sources.setValue(this.store.submit.sources)
       }
-      const tags = ['plugin/thread', ...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+      const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
       const added = without(tags, ...this.oldSubmit);
       const removed = without(this.oldSubmit, ...tags);
       if (added.length || removed.length) {
@@ -203,7 +203,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       origin: this.store.account.origin,
       title: this.dmForm.value.title,
       comment: this.dmForm.value.comment,
-      sources: [url, ...uniq([url, ...this.dmForm.value.sources || []])],
+      sources: this.dmForm.value.sources,
       published,
       tags: this.dmForm.value.tags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),

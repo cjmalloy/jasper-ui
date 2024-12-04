@@ -234,7 +234,7 @@ export const aiQueryPlugin: Plugin = {
         response.tags.splice(response.tags.indexOf('plugin/delta/ai'), 1);
       }
       const sources = [ref.url];
-      if (response.tags.includes('plugin/thread') || response.tags.includes('plugin/comment')) {
+      if (ref.sources && (ref.tags.includes('plugin/thread') || ref.tags.includes('plugin/comment'))) {
         sources.push(ref.sources[1] || ref.sources[0] || ref.url);
       } else {
         sources.push(ref.url);
