@@ -248,7 +248,7 @@ export class AccountStore {
         case '|': return $localize` | `;
         case '(': return $localize` (\u00A0`;
         case ')': return $localize`\u00A0) `;
-        case `!`: return $localize` !`;
+        case `!`: return $localize` ❗`;
         case `{`: return $localize` {\u00A0`;
         case `}`: return $localize`\u00A0} `;
         case `,`: return $localize`, `;
