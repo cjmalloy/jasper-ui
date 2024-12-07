@@ -236,6 +236,13 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
+  get mod() {
+    if (!this.admin.getPlugin('plugin/mod')) return false;
+    if (!hasTag('plugin/mod', this.currentTags))  return false;
+    return this.ref?.plugins?.['plugin/mod'];
+  }
+
+  @memo
   get hls() {
     return getExtension(this.ref?.plugins?.['plugin/video']?.url || this.ref?.url) === '.m3u8' || this.tags?.includes('plugin/hls');
   }

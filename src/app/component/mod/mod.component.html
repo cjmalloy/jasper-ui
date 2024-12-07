@@ -1,0 +1,15 @@
+@for (ref of mod?.ref || []; track ref) {
+  <app-ref [ref]="ref"></app-ref>
+}
+@for (ext of mod?.ext || []; track ext) {
+  <app-ext [ext]="ext"></app-ext>
+}
+@for (user of mod?.user || []; track user) {
+  <app-user [user]="user"></app-user>
+}
+@for (plugin of mod?.plugin || []; track plugin) {
+  <app-plugin [plugin]="plugin"></app-plugin>
+}
+@for (template of mod?.template || []; track template) {
+  <app-template [template]="template"></app-template>
+}

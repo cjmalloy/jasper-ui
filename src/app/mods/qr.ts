@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const qrPlugin: Plugin = {
   tag: 'plugin/qr',
@@ -27,4 +28,10 @@ export const qrPlugin: Plugin = {
       url: { type: 'string' },
     },
   },
+};
+
+export const qrMod: Mod = {
+  plugin: [
+    qrPlugin,
+  ]
 };

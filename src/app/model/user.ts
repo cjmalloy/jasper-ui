@@ -1,3 +1,4 @@
+import { Schema } from 'jtd';
 import { DateTime } from 'luxon';
 import { Tag } from './tag';
 
@@ -11,6 +12,18 @@ export interface User extends Tag {
   pubKey?: string;
   authorizedKeys?: string;
 }
+
+export const userSchema: Schema = {
+  optionalProperties: {
+    tag: { type: 'string' },
+    readAccess: { elements: { type: 'string' } },
+    writeAccess: { elements: { type: 'string' } },
+    tagReadAccess: { elements: { type: 'string' } },
+    tagWriteAccess: { elements: { type: 'string' } },
+    pubKey: { type: 'string' },
+    authorizedKeys: { type: 'string' },
+  }
+};
 
 export type Role = 'ROLE_ADMIN' | 'ROLE_MOD' | 'ROLE_EDITOR' | 'ROLE_USER' | 'ROLE_VIEWER' | 'ROLE_ANONYMOUS' | 'ROLE_BANNED';
 

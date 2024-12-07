@@ -52,6 +52,7 @@ import { ListEditorComponent } from './component/list-editor/list-editor.compone
 import { LoadingComponent } from './component/loading/loading.component';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { MdComponent } from './component/md/md.component';
+import { ModComponent } from './component/mod/mod.component';
 import { NavComponent } from './component/nav/nav.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
 import { PlaylistComponent } from './component/playlist/playlist.component';
@@ -254,6 +255,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     KanbanColumnComponent,
     KanbanCardComponent,
     MdComponent,
+    ModComponent,
     BlogComponent,
     BlogEntryComponent,
     ExtFormComponent,

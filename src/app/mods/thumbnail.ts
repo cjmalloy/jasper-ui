@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 import { imagePlugin } from './image';
 import { videoPlugin } from './video';
 
@@ -66,4 +67,10 @@ export const thumbnailPlugin: Plugin = {
       radius: { type: 'int32' },
     },
   },
+};
+
+export const thumbnailMod: Mod = {
+  plugin: [
+    thumbnailPlugin,
+  ]
 };

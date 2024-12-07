@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const snippetConfig: Template = {
@@ -12,4 +13,10 @@ export const snippetConfig: Template = {
     <!-- Add your analytics trackers and other site scripts here -->
     `
   },
+};
+
+export const snippetMod: Mod = {
+  template: [
+    snippetConfig,
+  ]
 };

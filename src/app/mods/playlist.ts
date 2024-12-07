@@ -1,6 +1,7 @@
 import { $localize } from '@angular/localize/init';
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const playlistPlugin: Plugin = {
@@ -73,4 +74,13 @@ export const playlistTemplate: Template = {
     defaultSort: ['modified,DESC'],
     defaultCols: 0, // Leave to CSS screen size detection, but show cols dropdown
   }
+};
+
+export const playlistMod: Mod = {
+  plugin: [
+    playlistPlugin,
+  ],
+  template: [
+    playlistTemplate
+  ],
 };

@@ -1,39 +1,42 @@
 <div class="link" [class.remote]="!local" [title]="plugin.config?.description || ''">
   <a [routerLink]="['/tag', qualifiedTag]">{{ plugin.name || plugin.tag }}</a>
-  <span *ngIf="plugin.name" class="host">({{ qualifiedTag }})</span>
-  <span *ngIf="!plugin.name && plugin.origin" class="host">({{ plugin.origin }})</span>
+  @if (plugin.name) {
+    <span class="host">({{ qualifiedTag }})</span>
+  } @else if (origin) {
+    <span class="host">({{ origin }})</span>
+  }
 </div>
 <div class="stack">
   <div class="info">
     <span [title]="plugin.modified?.toISO()" i18n>modified {{ plugin.modified?.toRelative() }}</span>
-    <ng-container *ngIf="!local" i18n>
-      on <a [routerLink]="['/tag', plugin.origin]">{{ plugin.origin }}</a>
-    </ng-container>
+    @if (!local) {
+      <span i18n>on <a [routerLink]="['/tag', plugin.origin]">{{ plugin.origin }}</a></span>
+    }
   </div>
   <div class="actions">
-    <a *ngIf="!local"
-       class="fake-link"
-       (click)="copy()" i18n>copy</a>
-    <a *ngIf="local && store.account.admin else source"
-       class="fake-link"
-       (click)="editing = !editing" i18n>edit</a>
-    <ng-template #source>
-      <a class="fake-link"
-         (click)="viewSource = !viewSource" i18n>source</a>
-    </ng-template>
-    <a class="fake-link"
-       (click)="download()" i18n>download</a>
-    @if (plugin.config?.export) {
-      <a class="fake-link"
-         (click)="export()" i18n>export</a>
+    @if (!created && store.account.admin) {
+      <a class="fake-link" (click)="copy()" i18n>install</a>
+    } @else if (!local) {
+      <a class="fake-link" (click)="copy()" i18n>copy</a>
+    } @else if (store.account.admin) {
+      <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+    } @else {
+      <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
     }
-    <a *ngIf="!deleting && store.account.admin"
-       class="fake-link"
-       (click)="deleting = true" i18n>delete</a>
-    <span *ngIf="deleting" class="delete-confirm" i18n>are you sure?
-      <a class="fake-link" (click)="delete()">yes</a> /
-      <a class="fake-link" (click)="deleting = false">no</a>
-    </span>
+    <a class="fake-link" (click)="download()" i18n>download</a>
+    @if (plugin.config?.export) {
+      <a class="fake-link" (click)="export()" i18n>export</a>
+    }
+    @if (created && store.account.admin) {
+      @if (!deleting) {
+        <a class="fake-link" (click)="deleting = true" i18n>delete</a>
+      } @else {
+        <span class="delete-confirm" i18n>are you sure?
+        <a class="fake-link" (click)="delete()">yes</a> /
+        <a class="fake-link" (click)="deleting = false">no</a>
+      </span>
+      }
+    }
   </div>
 </div>
 

@@ -8,70 +8,71 @@ import { tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { Config, EditorButton, Tag } from '../model/tag';
+import { Config, EditorButton, Mod, Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { aiMod } from '../mods/ai';
 import { archiveMod } from '../mods/archive';
 import { audioMod } from '../mods/audio';
 import { backgammonMod } from '../mods/backgammon';
-import { banlistConfig } from '../mods/banlist';
-import { blogTemplate } from '../mods/blog';
+import { banlistMod } from '../mods/banlist';
+import { blogMod } from '../mods/blog';
 import { cacheMod } from '../mods/cache';
-import { chatTemplate } from '../mods/chat';
+import { chatMod } from '../mods/chat';
 import { chessMod } from '../mods/chess';
-import { codePlugin } from '../mods/code';
-import { commentPlugin } from '../mods/comment';
-import { cronPlugin } from '../mods/cron';
+import { codeMod } from '../mods/code';
+import { commentMod } from '../mods/comment';
+import { cronMod } from '../mods/cron';
 import { dalleMod } from '../mods/dalle';
 import { debugMod } from '../mods/debug';
-import { deletePlugin } from '../mods/delete';
+import { deleteMod } from '../mods/delete';
 import { deltaMod } from '../mods/delta';
-import { htmlPlugin, latexPlugin } from '../mods/editor';
-import { emailPlugin } from '../mods/email';
-import { embedPlugin } from '../mods/embed';
+import { htmlMod, latexMod } from '../mods/editor';
+import { emailMod } from '../mods/email';
+import { embedMod } from '../mods/embed';
 import { errorMod } from '../mods/error';
-import { experimentsConfig } from '../mods/experiments';
-import { feedPlugin } from '../mods/feed';
-import { filePlugin } from '../mods/file';
-import { folderTemplate } from '../mods/folder';
-import { fullscreenPlugin } from '../mods/fullscreen';
-import { gdprConfig } from '../mods/gdpr';
-import { graphConfig } from '../mods/graph';
-import { homeTemplate } from '../mods/home';
-import { htmlToMarkdownConfig } from '../mods/htmlToMarkdown';
+import { experimentsMod } from '../mods/experiments';
+import { feedMod } from '../mods/feed';
+import { fileMod } from '../mods/file';
+import { folderMod } from '../mods/folder';
+import { fullscreenMod } from '../mods/fullscreen';
+import { gdprMod } from '../mods/gdpr';
+import { graphMod } from '../mods/graph';
+import { homeMod } from '../mods/home';
+import { htmlToMarkdownMod } from '../mods/htmlToMarkdown';
 import { imageMod } from '../mods/image';
-import { kanbanTemplate } from '../mods/kanban';
+import { kanbanMod } from '../mods/kanban';
 import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
+import { modMod } from '../mods/mod';
 import { modlistMod } from '../mods/modlist';
 import { ninjaTriangleMod } from '../mods/ninga-triangle';
-import { oEmbedPlugin } from '../mods/oembed';
+import { oembedMod } from '../mods/oembed';
 import { remoteOriginMod } from '../mods/origin';
-import { pdfPlugin } from '../mods/pdf';
-import { personPlugin } from '../mods/person';
-import { pipPlugin } from '../mods/pip';
-import { playlistPlugin, playlistTemplate } from '../mods/playlist';
+import { pdfMod } from '../mods/pdf';
+import { personMod } from '../mods/person';
+import { pipMod } from '../mods/pip';
+import { playlistMod } from '../mods/playlist';
 import { pollMod } from '../mods/poll';
-import { qrPlugin } from '../mods/qr';
+import { qrMod } from '../mods/qr';
 import { queueMod } from '../mods/queue';
-import { repostPlugin } from '../mods/repost';
+import { repostMod } from '../mods/repost';
 import { rootMod } from '../mods/root';
 import { scrapeMod } from '../mods/scrape';
-import { seamlessPlugin } from '../mods/seamless';
+import { seamlessMod } from '../mods/seamless';
 import { secretMod } from '../mods/secret';
-import { snippetConfig } from '../mods/snippet';
+import { snippetMod } from '../mods/snippet';
 import { summaryMod } from '../mods/summary';
 import { systemMod } from '../mods/system';
-import { tablePlugin } from '../mods/table';
-import { thanksConfig } from '../mods/thanks';
+import { tableMod } from '../mods/table';
+import { thanksMod } from '../mods/thanks';
 import { themesMod } from '../mods/theme';
-import { threadPlugin } from '../mods/thread';
-import { thumbnailPlugin } from '../mods/thumbnail';
+import { threadMod } from '../mods/thread';
+import { thumbnailMod } from '../mods/thumbnail';
 import { todoMod } from '../mods/todo';
-import { userTemplate } from '../mods/user';
+import { userMod } from '../mods/user';
 import { videoMod } from '../mods/video';
 import { voteMod } from '../mods/vote';
-import { DEFAULT_WIKI_PREFIX, wikiConfig } from '../mods/wiki';
+import { DEFAULT_WIKI_PREFIX, wikiMod } from '../mods/wiki';
 import { Store } from '../store/store';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
@@ -96,93 +97,84 @@ export class AdminService {
     disabledTemplates: <Record<string, Template | undefined>> {},
   };
 
+  mods: Mod[] = [
+    debugMod,
+    rootMod,
+    userMod,
+    folderMod,
+    homeMod,
+    kanbanMod,
+    blogMod,
+    chatMod,
+    mailboxMod,
+
+    // Themes
+    themesMod,
+
+    // Configs
+    experimentsMod,
+    wikiMod,
+    graphMod,
+    modlistMod,
+    banlistMod,
+    snippetMod,
+    htmlToMarkdownMod,
+    thanksMod,
+    gdprMod,
+
+    // Plugins
+    modMod,
+    oembedMod,
+    scrapeMod,
+    cacheMod,
+    systemMod,
+    secretMod,
+    errorMod,
+    remoteOriginMod,
+    cronMod,
+    deltaMod,
+    feedMod,
+    deleteMod,
+    mailboxMod,
+    modlistMod,
+    commentMod,
+    threadMod,
+    emailMod,
+    fullscreenMod,
+    seamlessMod,
+    thumbnailMod,
+    tableMod,
+    aiMod,
+    dalleMod,
+    summaryMod,
+    pdfMod,
+    archiveMod,
+    latexMod,
+    codeMod,
+    htmlMod,
+    personMod,
+    repostMod,
+    queueMod,
+    qrMod,
+    embedMod,
+    audioMod,
+    videoMod,
+    voteMod,
+    imageMod,
+    lensMod,
+    pipMod,
+    chessMod,
+    backgammonMod,
+    pollMod,
+    todoMod,
+    ninjaTriangleMod,
+    playlistMod,
+    fileMod,
+  ];
+
   def = {
-    plugins: <Record<string, Plugin>> {
-      oEmbedPlugin,
-      ...scrapeMod.plugins,
-      ...cacheMod.plugins,
-      ...systemMod.plugins,
-      ...secretMod.plugins,
-      ...errorMod.plugins,
-      ...remoteOriginMod.plugins,
-      cronPlugin,
-      ...deltaMod.plugins,
-      feedPlugin,
-      deletePlugin,
-      ...mailboxMod.plugins,
-      ...modlistMod.plugins,
-      commentPlugin,
-      threadPlugin,
-      emailPlugin,
-      fullscreenPlugin,
-      seamlessPlugin,
-      thumbnailPlugin,
-      tablePlugin,
-      ...aiMod.plugins,
-      ...dalleMod.plugins,
-      ...summaryMod.plugins,
-      pdfPlugin,
-      ...archiveMod.plugins,
-      latexPlugin,
-      codePlugin,
-      htmlPlugin,
-      personPlugin,
-      repostPlugin,
-      ...queueMod.plugins,
-      qrPlugin,
-      embedPlugin,
-      ...audioMod.plugins,
-      ...videoMod.plugins,
-      ...voteMod.plugins,
-
-      ...imageMod.plugins,
-      ...lensMod.plugins,
-      pipPlugin,
-      ...chessMod.plugins,
-      ...backgammonMod.plugins,
-      ...pollMod.plugins,
-      ...todoMod.plugins,
-      ...ninjaTriangleMod.plugins,
-      playlistPlugin,
-      filePlugin,
-
-      ...debugMod.plugins,
-    },
-    templates: <Record<string, Template>> {
-      ...debugMod.templates,
-      ...rootMod.templates,
-      userTemplate,
-      folderTemplate,
-      homeTemplate,
-      ...queueMod.templates,
-      kanbanTemplate,
-      blogTemplate,
-      chatTemplate,
-      ...mailboxMod.templates,
-
-      ...imageMod.templates,
-      ...lensMod.templates,
-      ...chessMod.templates,
-      ...backgammonMod.templates,
-      ...pollMod.templates,
-      ...todoMod.templates,
-      ...ninjaTriangleMod.templates,
-      playlistTemplate,
-
-      // Themes
-      ...themesMod.templates,
-
-      // Configs
-      experimentsConfig,
-      wikiConfig,
-      graphConfig,
-      ...modlistMod.templates,
-      banlistConfig,
-      snippetConfig,
-      htmlToMarkdownConfig,
-      thanksConfig,
-      gdprConfig,
-    },
+    plugins: <Record<string, Plugin>> Object.fromEntries(this.mods.flatMap(mod => mod.plugin || []).map(p => [p.tag, p])),
+    templates: <Record<string, Template>> Object.fromEntries(this.mods.flatMap(mod => mod.template || []).map(t => [t.tag, t])),
   };
 
   _cache = new Map<string, any>();
@@ -526,6 +518,7 @@ export class AdminService {
         if (!p) return false;
         if (p?.config?.ui) return true;
         if (p === this.status.plugins.qrPlugin) return true;
+        if (p === this.status.plugins.modPlugin) return true;
         if (p === this.status.plugins.embedPlugin) return true;
         if (p === this.status.plugins.audioPlugin) return true;
         if (p === this.status.plugins.videoPlugin) return true;

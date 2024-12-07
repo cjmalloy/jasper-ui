@@ -101,6 +101,11 @@ export class UserComponent implements OnChanges {
   }
 
   @memo
+  get created() {
+    return this.user?.modified;
+  }
+
+  @memo
   get qualifiedTag() {
     return this.profile?.tag || (this.user!.tag + this.user!.origin);
   }

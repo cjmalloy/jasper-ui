@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const cronPlugin: Plugin = {
   tag: '+plugin/cron',
@@ -26,4 +27,10 @@ export const cronPlugin: Plugin = {
       interval: { type: 'string' },
     },
   },
+};
+
+export const cronMod: Mod = {
+  plugin: [
+    cronPlugin,
+  ]
 };

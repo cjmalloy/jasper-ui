@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const gdprConfig: Template = {
@@ -246,4 +247,10 @@ export const gdprConfig: Template = {
         });
       </script>`,
   },
+};
+
+export const gdprMod: Mod = {
+  template: [
+    gdprConfig,
+  ]
 };

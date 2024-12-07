@@ -118,10 +118,10 @@ export const lensTemplate: Template = {
 };
 
 export const lensMod: Mod = {
-  plugins: {
+  plugin: [
     lensPlugin,
-  },
-  templates: {
+  ],
+   template: [
     lensTemplate,
-  },
+  ],
 };

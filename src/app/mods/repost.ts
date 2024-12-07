@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const repostPlugin: Plugin = {
   tag: 'plugin/repost',
@@ -23,4 +24,10 @@ export const repostPlugin: Plugin = {
       { query: 'plugin/repost', label: $localize`↪️ Repost`, title: $localize`Reposts`, group: $localize`Plugins 🧰️` },
     ],
   },
+};
+
+export const repostMod: Mod = {
+  plugin: [
+    repostPlugin,
+  ]
 };

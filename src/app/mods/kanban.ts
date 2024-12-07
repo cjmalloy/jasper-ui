@@ -137,7 +137,7 @@ export interface KanbanConfig extends RootConfig {
 
 
 export const kanbanMod: Mod = {
-  templates: {
+   template: [
     kanbanTemplate,
-  },
+  ],
 };

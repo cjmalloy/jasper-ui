@@ -1,3 +1,4 @@
+import { Schema } from 'jtd';
 import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
 import { Ext } from './ext';
@@ -5,7 +6,6 @@ import { Config } from './tag';
 import { Roles } from './user';
 
 export interface Template extends Config {
-  type?: 'template';
   config?: Config['config'] & {
     /**
      * Do not render forms from inherited Templates. If unset forms
@@ -25,7 +25,19 @@ export interface Template extends Config {
      */
     submitText?: boolean,
   };
+  // Client-only
+  type?: 'template';
 }
+
+export const templateSchema: Schema = {
+  optionalProperties: {
+    tag: { type: 'string' },
+    name: { type: 'string' },
+    config: {},
+    defaults: {},
+    schema: {},
+  }
+};
 
 export function mapTemplate(obj: any): Template {
   obj.type = 'template';

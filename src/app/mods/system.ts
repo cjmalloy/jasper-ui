@@ -21,7 +21,7 @@ const systemPlugin: Plugin = {
 };
 
 export const systemMod: Mod = {
-  plugins: {
-    system: systemPlugin,
-  },
+  plugin: [
+    systemPlugin,
+  ],
 }

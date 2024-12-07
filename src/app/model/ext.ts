@@ -1,3 +1,4 @@
+import { Schema } from 'jtd';
 import { isEqual } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { Tag } from './tag';
@@ -6,6 +7,14 @@ export interface Ext extends Tag {
   type?: 'ext';
   config?: any;
 }
+
+export const extSchema: Schema = {
+  optionalProperties: {
+    tag: { type: 'string' },
+    name: { type: 'string' },
+    config: {},
+  }
+};
 
 export function mapTag(obj: any): Ext {
   obj.type = 'ext';

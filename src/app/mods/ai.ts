@@ -1169,8 +1169,8 @@ Be sure to only respond to the last Ref sent to you, the others are just for con
 };
 
 export const aiMod: Mod = {
-  plugins: {
+  plugin: [
     aiPlugin,
     aiQueryPlugin,
-  },
+  ],
 };

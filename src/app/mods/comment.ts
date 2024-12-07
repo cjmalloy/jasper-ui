@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const commentPlugin: Plugin = {
   tag: 'plugin/comment',
@@ -26,4 +27,10 @@ export const commentPlugin: Plugin = {
     ],
   },
   generateMetadata: true,
+};
+
+export const commentMod: Mod = {
+  plugin: [
+    commentPlugin,
+  ]
 };

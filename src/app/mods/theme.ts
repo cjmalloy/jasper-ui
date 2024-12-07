@@ -200,8 +200,8 @@ export const nightTheme: Template = {
 };
 
 export const themesMod: Mod = {
-  templates: {
+   template: [
     terminalTheme,
     nightTheme,
-  },
+  ],
 };
