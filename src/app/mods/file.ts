@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const filePlugin: Plugin = {
   tag: 'plugin/file',
@@ -14,4 +15,10 @@ export const filePlugin: Plugin = {
       { query: 'plugin/file', label: $localize`💾️️ file`, title: $localize`Uploaded Files`, group: $localize`Plugins 🧰️` },
     ],
   },
+};
+
+export const fileMod: Mod = {
+  plugin: [
+    filePlugin,
+  ]
 };

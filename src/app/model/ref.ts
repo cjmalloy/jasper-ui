@@ -1,3 +1,4 @@
+import { Schema } from 'jtd';
 import { isEqual } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { hasPrefix, publicTag } from '../util/tag';
@@ -15,6 +16,19 @@ export interface Ref extends Cursor {
   published?: DateTime;
   created?: DateTime;
 }
+
+export const refSchema: Schema = {
+  optionalProperties: {
+    url: { type: 'string' },
+    tags: { elements: { type: 'string' } },
+    title: { type: 'string' },
+    comment: { type: 'string' },
+    sources: { elements: { type: 'string' } },
+    alternateUrls: { elements: { type: 'string' } },
+    plugins: {},
+    published: { type: 'string' },
+  }
+};
 
 /**
  * Sent in response to websocket subscription.

@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const folderTemplate: Template = {
@@ -43,3 +44,9 @@ export interface Pos {
   x: number;
   y: number;
 }
+
+export const folderMod: Mod = {
+  template: [
+    folderTemplate,
+  ]
+};

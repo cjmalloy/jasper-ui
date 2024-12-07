@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const threadPlugin: Plugin = {
   tag: 'plugin/thread',
@@ -25,4 +26,10 @@ export const threadPlugin: Plugin = {
     ],
   },
   generateMetadata: true,
+};
+
+export const threadMod: Mod = {
+  plugin: [
+    threadPlugin,
+  ]
 };

@@ -230,10 +230,10 @@ export const ninjaTriangleTemplate: Template = {
 };
 
 export const ninjaTriangleMod: Mod = {
-  plugins: {
+  plugin: [
     ninjaTrianglePlugin,
-  },
-  templates: {
+  ],
+   template: [
     ninjaTriangleTemplate,
-  },
+  ],
 };

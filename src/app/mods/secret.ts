@@ -23,7 +23,7 @@ const secretPlugin: Plugin = {
 };
 
 export const secretMod: Mod = {
-  plugins: {
-    system: secretPlugin,
-  },
+  plugin: [
+    secretPlugin,
+  ],
 }

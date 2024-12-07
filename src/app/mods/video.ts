@@ -36,7 +36,7 @@ export const videoPlugin: Plugin = {
 };
 
 export const videoMod: Mod = {
-  plugins: {
+  plugin: [
     videoPlugin,
-  },
+  ],
 };

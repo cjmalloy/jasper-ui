@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const tablePlugin: Plugin = {
   tag: 'plugin/table',
@@ -18,4 +19,10 @@ export const tablePlugin: Plugin = {
       { query: 'plugin/table', label: $localize`📏️ table`, title: $localize`Spreadsheets`, group: $localize`Plugins 🧰️` },
     ],
   },
+};
+
+export const tableMod: Mod = {
+  plugin: [
+    tablePlugin,
+  ]
 };

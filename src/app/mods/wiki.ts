@@ -1,5 +1,6 @@
 import { $localize } from '@angular/localize/init';
 import { DateTime } from 'luxon';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const DEFAULT_WIKI_PREFIX = 'wiki:';
@@ -53,3 +54,9 @@ export function isWiki(uri: string, prefix?: string) {
   prefix ||= DEFAULT_WIKI_PREFIX!;
   return uri.startsWith(prefix);
 }
+
+export const wikiMod: Mod = {
+  template: [
+    wikiConfig,
+  ]
+};

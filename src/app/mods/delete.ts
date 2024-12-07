@@ -3,7 +3,7 @@ import { filter } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { Tag } from '../model/tag';
+import { Mod, Tag } from '../model/tag';
 import { hasTag, publicTag } from '../util/tag';
 
 export const deletePlugin: Plugin = {
@@ -61,3 +61,9 @@ export function tagDeleteNotice(tag: Tag) {
     config: {},
   };
 }
+
+export const deleteMod: Mod = {
+  plugin: [
+    deletePlugin,
+  ]
+};

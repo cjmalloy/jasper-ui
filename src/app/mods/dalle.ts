@@ -302,8 +302,8 @@ export const dallePlugin: Plugin = {
 };
 
 export const dalleMod: Mod = {
-  plugins: {
+  plugin: [
     dalleQueryPlugin,
     dallePlugin,
-  },
+  ],
 };

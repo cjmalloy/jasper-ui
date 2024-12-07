@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const embedPlugin: Plugin = {
   tag: 'plugin/embed',
@@ -55,4 +56,10 @@ export const embedPlugin: Plugin = {
       height: { type: 'int32', nullable: true },
     },
   },
+};
+
+export const embedMod: Mod = {
+  plugin: [
+    embedPlugin,
+  ]
 };

@@ -66,12 +66,20 @@ export class TemplateComponent implements OnInit {
       .replace(/\./g, '-');
   }
 
+  get created() {
+    return !!this.template.modified;
+  }
+
   get qualifiedTag() {
-    return this.template.tag + this.template.origin;
+    return this.template.tag + this.origin;
+  }
+
+  get origin() {
+    return this.template.origin || '';
   }
 
   get local() {
-    return this.template.origin === this.store.account.origin;
+    return this.origin === this.store.account.origin;
   }
 
   save() {
@@ -108,7 +116,7 @@ export class TemplateComponent implements OnInit {
     }
     if (this.configErrors.length || this.defaultsErrors.length || this.schemaErrors.length) return;
     this.templates.update(template).pipe(
-      switchMap(() => this.templates.get(this.template.tag + this.template.origin)),
+      switchMap(() => this.templates.get(this.qualifiedTag)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

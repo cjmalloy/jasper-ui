@@ -1,30 +1,33 @@
 <div class="link">
   <a [routerLink]="['/tag', qualifiedTag]" [appTitle]="user">{{ user?.name || ext?.name || localTag }}</a>
-  <span *ngIf="user?.name" class="host">({{ qualifiedTag }})</span>
-  <span *ngIf="!user?.name && origin" class="host">({{ origin }})</span>
+  @if (user?.name) {
+    <span class="host">({{ qualifiedTag }})</span>
+  } @else if (origin) {
+    <span class="host">({{ origin }})</span>
+  }
 </div>
 <div class="stack">
   <div class="info">
     <span>{{ role.toLowerCase().replace('role_', '') }}</span>
   </div>
   <div class="actions">
-    <a *ngIf="!local"
-       class="fake-link"
-       (click)="copy()" i18n>copy</a>
-    <a *ngIf="local && writeAccess else source"
-       class="fake-link"
-       (click)="editing = !editing" i18n>edit</a>
-    <ng-template #source>
-      <a class="fake-link"
-         (click)="viewSource = !viewSource" i18n>source</a>
-    </ng-template>
-    <a class="fake-link"
-       (click)="download()" i18n>download</a>
-    <app-inline-button #action *ngIf="store.account.root && store.account.mod && config.scim && !profile" [action]="activate$" i18n>sync</app-inline-button>
-    <ng-container *ngIf="profile && writeAccess">
+    @if (!created && store.account.admin) {
+      <a class="fake-link" (click)="copy()" i18n>install</a>
+    } @else if (!local) {
+      <a class="fake-link" (click)="copy()" i18n>copy</a>
+    } @else if (store.account.admin) {
+      <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+    } @else {
+      <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
+    }
+    <a class="fake-link" (click)="download()" i18n>download</a>
+    @if (store.account.root && store.account.mod && config.scim && !profile) {
+      <app-inline-button #action [action]="activate$" i18n>sync</app-inline-button>
+    }
+    @if (profile && writeAccess) {
       <app-inline-password #action [action]="setPassword$" i18n>password</app-inline-password>
-    </ng-container>
-    <ng-container *ngIf="store.account.mod && writeAccess">
+    }
+    @if ((created || profile) && store.account.mod && writeAccess) {
       <app-confirm-action #action [action]="ban$" i18n>ban</app-confirm-action>
       <app-inline-select #action [action]="setRole$" [value]="role">
         <span i18n>role</span>
@@ -35,43 +38,54 @@
         <option value="ROLE_VIEWER" i18n>viewer</option>
         <option value="ROLE_BANNED" i18n>banned</option>
       </app-inline-select>
-      <app-inline-button #action *ngIf="profile && !profile.active" [action]="activate$" i18n>activate</app-inline-button>
-      <app-inline-button #action *ngIf="profile?.active" [action]="deactivate$" i18n>deactivate</app-inline-button>
-    </ng-container>
-    <app-confirm-action #action *ngIf="(!profile || store.account.root) && store.account.mod || writeAccess" [action]="delete$" i18n>delete</app-confirm-action>
-    <a *ngIf="user && !genKey && (store.account.mod || writeAccess)"
-       class="fake-link"
-       (click)="genKey = true" i18n>keygen</a>
-    <span *ngIf="genKey" class="delete-confirm" i18n>
-      <span *ngIf="user?.pubKey" class="warning">This will overwrite existing key!</span> are you sure?
-      <a class="fake-link" (click)="keygen()">yes</a> /
-      <a class="fake-link" (click)="genKey = false">no</a>
-    </span>
+      @if (profile) {
+        @if (!profile.active) {
+          <app-inline-button #action [action]="activate$" i18n>activate</app-inline-button>
+        } @else {
+          <app-inline-button #action [action]="deactivate$" i18n>deactivate</app-inline-button>
+        }
+      }
+    }
+    @if ((!profile || store.account.root) && store.account.mod || writeAccess) {
+      <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
+    }
+    @if (created && (store.account.mod || writeAccess)) {
+      @if (!genKey) {
+        <a class="fake-link" (click)="genKey = true" i18n>keygen</a>
+      } @else {
+        <span class="delete-confirm" i18n>
+          @if (user?.pubKey) {<span class="warning">This will overwrite existing key!</span>}
+          are you sure?
+          <a class="fake-link" (click)="keygen()">yes</a> /
+          <a class="fake-link" (click)="genKey = false">no</a>
+        </span>
+      }
+    }
   </div>
 </div>
 
-<form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+@if (editing) {
+  <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-  <app-user-form [group]="editForm"></app-user-form>
+    <app-user-form [group]="editForm"></app-user-form>
 
+    @for (e of serverError; track e) {
+      <span><!-- Unexpected Error --></span>
+      <div class="error">{{ e }}</div>
+    }
+
+    <span><!-- Buttons --></span>
+    <span class="buttons right">
+      <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
+      <button type="button" (click)="editing = false" i18n>cancel</button>
+    </span>
+  </form>
+} @else if (viewSource) {
+  <form class="form" [formGroup]="editForm">
+    <app-user-form [group]="editForm"></app-user-form>
+  </form>
+} @else {
   @for (e of serverError; track e) {
-    <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
   }
-
-  <span><!-- Buttons --></span>
-  <span class="buttons right">
-    <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
-    <button type="button" (click)="editing = false" i18n>cancel</button>
-  </span>
-</form>
-
-<form *ngIf="viewSource" class="form" [formGroup]="editForm">
-  <app-user-form [group]="editForm"></app-user-form>
-</form>
-
-<ng-template #showErrors>
-  @for (e of serverError; track e) {
-    <div class="error">{{ e }}</div>
-  }
-</ng-template>
+}

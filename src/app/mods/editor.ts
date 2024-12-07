@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const htmlPlugin: Plugin = {
   tag: 'plugin/html',
@@ -11,6 +12,11 @@ export const htmlPlugin: Plugin = {
     description: $localize`Activates built-in HTML editor support and allows users to format Ref comments as  HTML.`,
     editorButtons: [{ label: $localize`📐️️ HTML`, remember: true, ribbon: true, global: true }],
   },
+};
+export const htmlMod: Mod = {
+  plugin: [
+    htmlPlugin,
+  ]
 };
 
 export const latexPlugin: Plugin = {
@@ -33,4 +39,10 @@ export const latexPlugin: Plugin = {
     For example: "This equation represents an iterative evaluation of the continued fraction $\\cfrac{2}{1+\\cfrac{2}{1+\\cfrac{2}{1}}}$, which is commonly known as the golden ratio or $\\phi$."`,
     editorButtons: [{ label: $localize`💲️ LaTeX`, remember: true, ribbon: true, global: true }],
   },
+};
+
+export const latexMod: Mod = {
+  plugin: [
+    latexPlugin,
+  ]
 };

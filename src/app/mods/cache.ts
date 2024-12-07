@@ -108,8 +108,8 @@ export const asyncCachePlugin: Plugin = {
 };
 
 export const cacheMod: Mod = {
-  plugins: {
+  plugin: [
     cachePlugin,
     asyncCachePlugin,
-  },
+  ],
 };

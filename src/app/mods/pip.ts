@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const pipPlugin: Plugin = {
   tag: 'plugin/pip',
@@ -15,4 +16,10 @@ export const pipPlugin: Plugin = {
     ],
     description: $localize`Open embed picture-in-picture..`,
   }
+};
+
+export const pipMod: Mod = {
+  plugin: [
+    pipPlugin,
+  ]
 };

@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const chatTemplate: Template = {
@@ -45,4 +46,10 @@ export const chatTemplate: Template = {
       authorTags: { elements: { type: 'string' } },
     }
   }
+};
+
+export const chatMod: Mod = {
+  template: [
+    chatTemplate,
+  ]
 };

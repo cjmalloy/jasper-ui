@@ -8,21 +8,22 @@ import { toJS } from 'mobx';
 import { v4 as uuid } from 'uuid';
 import { hasAnyResponse, hasResponse, hasTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
-import { Plugin } from './plugin';
-import { Ref } from './ref';
-import { Template } from './template';
-import { Role } from './user';
+import { Ext, extSchema } from './ext';
+import { Plugin, pluginSchema } from './plugin';
+import { Ref, refSchema } from './ref';
+import { Template, templateSchema } from './template';
+import { Role, User, userSchema } from './user';
 
-export interface HasOrigin {
+
+export interface Cursor {
   origin?: string;
-}
-export interface Cursor extends HasOrigin {
-  upload?: boolean;
-  exists?: boolean;
   modified?: DateTime;
   // Saved to pass modified check since moment looses precision
   // TODO: Does luxon loose precision?
   modifiedString?: string;
+  // Client-only
+  upload?: boolean;
+  exists?: boolean;
 }
 
 export interface Tag extends Cursor {
@@ -32,14 +33,26 @@ export interface Tag extends Cursor {
 }
 
 export interface Mod {
-  plugins?: Record<string, Plugin>;
-  templates?: Record<string, Template>;
+  ref?: Ref[];
+  ext?: Ext[];
+  user?: User[];
+  plugin?: Plugin[];
+  template?: Template[];
 }
+
+export const modSchema: Schema = {
+  optionalProperties: {
+    ref: { elements: refSchema },
+    ext: { elements: extSchema },
+    user: { elements: userSchema },
+    plugin: { elements: pluginSchema },
+    template: { elements: templateSchema },
+  }
+};
 
 export type ModType = 'config' | 'icon' | 'feature' | 'lens' | 'plugin' | 'editor' | 'semantic' | 'theme' | 'tool';
 
 export interface Config extends Tag {
-  type?: 'plugin' | 'template';
   config?: {
     /**
      * Configs may only be created and edited by admin, so we allow anything.
@@ -158,6 +171,8 @@ export interface Config extends Tag {
    * JTD schema for validating config.
    */
   schema?: Schema;
+  // Client-only
+  type?: 'plugin' | 'template';
   /**
    * Cache for compiled templates.
    */

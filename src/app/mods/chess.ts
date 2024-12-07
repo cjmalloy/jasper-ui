@@ -271,11 +271,11 @@ export const chessTemplate: Template = {
 };
 
 export const chessMod: Mod = {
-  plugins: {
+  plugin: [
     chessPlugin,
     chessAiPlugin,
-  },
-  templates: {
+  ],
+   template: [
     chessTemplate,
-  },
+  ],
 };

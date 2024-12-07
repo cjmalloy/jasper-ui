@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const thanksConfig: Template = {
@@ -22,4 +23,10 @@ export const thanksConfig: Template = {
       }]`,
     }],
   },
+};
+
+export const thanksMod: Mod = {
+  template: [
+    thanksConfig,
+  ]
 };

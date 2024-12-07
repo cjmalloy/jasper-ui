@@ -36,7 +36,7 @@ export const audioPlugin: Plugin = {
 };
 
 export const audioMod: Mod = {
-  plugins: {
+  plugin: [
     audioPlugin,
-  },
+  ],
 };

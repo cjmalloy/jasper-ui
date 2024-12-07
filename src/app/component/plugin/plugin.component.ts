@@ -68,12 +68,20 @@ export class PluginComponent implements OnInit {
       .replace(/\./g, '-');
   }
 
+  get created() {
+    return !!this.plugin.modified;
+  }
+
   get qualifiedTag() {
-    return this.plugin.tag + this.plugin.origin;
+    return this.plugin.tag + this.origin;
+  }
+
+  get origin() {
+    return this.plugin.origin || '';
   }
 
   get local() {
-    return this.plugin.origin === this.store.account.origin;
+    return this.origin === this.store.account.origin;
   }
 
   save() {
@@ -110,7 +118,7 @@ export class PluginComponent implements OnInit {
     }
     if (this.configErrors.length || this.defaultsErrors.length || this.schemaErrors.length) return;
     this.plugins.update(plugin).pipe(
-      switchMap(() => this.plugins.get(this.plugin.tag + this.plugin.origin)),
+      switchMap(() => this.plugins.get(this.qualifiedTag)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

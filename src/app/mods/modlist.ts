@@ -85,12 +85,12 @@ export const approvePlugin: Plugin = {
 };
 
 export const modlistMod: Mod = {
-  plugins: {
+  plugin: [
     reportPlugin,
     approvePlugin,
-  },
-  templates: {
+  ],
+   template: [
     modlistConfig,
     nsfwConfig,
-  },
+  ],
 };

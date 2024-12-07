@@ -96,8 +96,8 @@ export function score(ref: Ref) {
 }
 
 export const voteMod: Mod = {
-  plugins: {
+  plugin: [
     voteUpPlugin,
     voteDownPlugin,
-  },
+  ],
 };

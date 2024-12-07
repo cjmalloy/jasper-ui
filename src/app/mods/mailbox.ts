@@ -154,11 +154,11 @@ export function newest(refs: Ref[]) {
 }
 
 export const mailboxMod: Mod = {
-  plugins: {
+  plugin: [
     inboxPlugin,
     outboxPlugin,
-  },
-  templates: {
+  ],
+   template: [
     dmTemplate,
-  },
+  ],
 };
