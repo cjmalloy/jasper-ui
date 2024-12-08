@@ -82,10 +82,6 @@ body.dark-theme {
     background-blend-mode: soft-light;
   }
 
-  .resize-handle:after {
-    filter: drop-shadow(0.5px 0.5px 1px var(--border));
-  }
-
   app-root > .container {
     background: radial-gradient(circle at center, transparent 0, rgba(0, 0, 0, 0.3));
   }

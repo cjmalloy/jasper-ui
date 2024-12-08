@@ -151,7 +151,8 @@ hr {
 .resize-handle {
   touch-action: none;
   position: relative;
-  &:after {
+  &:before {
+    z-index: 10;
     content: '';
     width: 20px;
     height: 20px;
@@ -159,6 +160,7 @@ hr {
     position: absolute;
     right: -2px;
     bottom: -2px;
+    filter: drop-shadow(0.5px 0.5px 1.25px white);
   }
 }
 
