@@ -84,19 +84,25 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   }
 
   @memo
+  get dm() {
+    return !!this.admin.getTemplate('dm') && hasTag('dm', this.store.view.ref);
+  }
+
+  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.getComments(this.store.view.ref);
+    return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
   @memo
   get threads() {
-    return this.getThreads(this.store.view.ref);
+    if (!this.admin.getPlugin('plugin/thread')) return 0;
+    return this.store.view.ref?.metadata?.plugins?.['plugin/thread'] || 0;
   }
 
   @memo
   get responses() {
-    return this.getResponses(this.store.view.ref);
+    return this.store.view.ref?.metadata?.responses || 0;
   }
 
   @memo
@@ -121,6 +127,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     ];
     if (this.comments) tags.push('plugin/comment', 'internal');
     if (this.threads) tags.push('plugin/thread', 'internal');
+    if (this.dm) tags.push('dm', 'plugin/thread', 'internal');
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
@@ -128,20 +135,6 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     const topComments = this.thread.cache.get(this.top);
     if (!topComments) return false;
     return topComments.length > this.summaryItems;
-  }
-
-  private getComments(r?: Ref) {
-    if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return r?.metadata?.plugins?.['plugin/comment'] || 0;
-  }
-
-  private getThreads(r?: Ref) {
-    if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return r?.metadata?.plugins?.['plugin/thread'] || 0;
-  }
-
-  private getResponses(r?: Ref) {
-    return r?.metadata?.responses || 0;
   }
 
   onReply(ref?: Ref) {

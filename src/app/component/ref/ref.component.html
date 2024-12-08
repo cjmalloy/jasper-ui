@@ -300,7 +300,7 @@
                    [autofocus]="true"
                    [to]="ref"
                    [showCancel]="true"
-                   [selectResponseType]="!thread && !comment"
+                   [selectResponseType]="!thread && !comment && !dm"
                    [tags]="replyTags"
                    (save)="onReply($event)"></app-comment-reply>
 @if (editing) {

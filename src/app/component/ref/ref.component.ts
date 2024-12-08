@@ -644,6 +644,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     ];
     if (this.comments) tags.push('plugin/comment', 'internal');
     if (this.threads) tags.push('plugin/thread', 'internal');
+    if (this.dm) tags.push('dm', 'plugin/thread', 'internal');
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
