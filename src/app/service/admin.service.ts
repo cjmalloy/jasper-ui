@@ -5,6 +5,7 @@ import { findKey, identity, isEqual, mapValues, omitBy, reduce, uniq } from 'lod
 import { autorun, runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
@@ -830,10 +831,14 @@ export class AdminService {
   installRef$(def: Ref, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.title || def.url} ref...`)),
-      switchMap(() => this.refs.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.refs.create({
+        ...def,
+        origin: this.store.account.origin,
+        url: def.url || ('comment:' + uuid()),
+      })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`Plugin ${def.title || def.url} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`Ref ${def.title || def.url} already exists...`);
           return of(null);
         }
         return throwError(() => err);
@@ -847,7 +852,7 @@ export class AdminService {
       switchMap(() => this.exts.create({ ...def, origin: this.store.account.origin })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`Plugin ${def.name || def.tag} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`Ext ${def.name || def.tag} already exists...`);
           return of(null);
         }
         return throwError(() => err);
@@ -857,11 +862,11 @@ export class AdminService {
 
   installUser$(def: User, _: progress) {
     return of(null).pipe(
-      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} ext...`)),
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} user...`)),
       switchMap(() => this.users.create({ ...def, origin: this.store.account.origin })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`Plugin ${def.name || def.tag} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`User ${def.name || def.tag} already exists...`);
           return of(null);
         }
         return throwError(() => err);
