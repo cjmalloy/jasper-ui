@@ -29,7 +29,7 @@ export class ScrapeService {
           this.store.eventBus.runAndReload(this.feed(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
         }
       }
-      if (this.store.eventBus.event === '+plugin/scrape:defaults') {
+      if (this.store.eventBus.event === '+plugin/scrape:defaults' || this.store.eventBus.event === '*:defaults') {
         this.defaults().subscribe();
       }
     });
