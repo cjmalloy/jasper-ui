@@ -11,6 +11,8 @@ export class EventBus {
   ref?: Ref = {} as any;
   repost?: Ref = {} as any;
   errors: string[] = [];
+  progressMessages: string[] = [];
+  progressPercent = 0;
 
   constructor() {
     makeAutoObservable(this, {
@@ -97,5 +99,14 @@ export class EventBus {
 
   isRef(r: Ref) {
     return this.ref?.url === r.url && this.ref.origin === r.origin;
+  }
+
+  clearProgress() {
+    this.progressMessages = [];
+  }
+
+  progress(msg: string, p = 0) {
+    this.progressMessages.push(msg);
+    this.progressPercent = p;
   }
 }

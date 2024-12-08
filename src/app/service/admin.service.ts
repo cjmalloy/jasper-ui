@@ -2,14 +2,15 @@ import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { findKey, identity, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
-import { runInAction } from 'mobx';
-import { catchError, concat, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
+import { autorun, runInAction } from 'mobx';
+import { catchError, concat, forkJoin, map, Observable, of, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Config, EditorButton, Mod, Tag } from '../model/tag';
 import { Template } from '../model/template';
+import { User } from '../model/user';
 import { aiMod } from '../mods/ai';
 import { archiveMod } from '../mods/archive';
 import { audioMod } from '../mods/audio';
@@ -24,7 +25,7 @@ import { commentMod } from '../mods/comment';
 import { cronMod } from '../mods/cron';
 import { dalleMod } from '../mods/dalle';
 import { debugMod } from '../mods/debug';
-import { deleteMod } from '../mods/delete';
+import { deleteMod, tagDeleteNotice } from '../mods/delete';
 import { deltaMod } from '../mods/delta';
 import { htmlMod, latexMod } from '../mods/editor';
 import { emailMod } from '../mods/email';
@@ -74,14 +75,16 @@ import { videoMod } from '../mods/video';
 import { voteMod } from '../mods/vote';
 import { DEFAULT_WIKI_PREFIX, wikiMod } from '../mods/wiki';
 import { Store } from '../store/store';
+import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
+import { progress } from '../util/progress';
 import { addHierarchicalTags, hasPrefix, hasTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
-import { OEmbedService } from './api/oembed.service';
 import { PluginService } from './api/plugin.service';
-import { ScrapeService } from './api/scrape.service';
+import { RefService } from './api/ref.service';
 import { TemplateService } from './api/template.service';
+import { UserService } from './api/user.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
 
@@ -182,13 +185,24 @@ export class AdminService {
   constructor(
     private config: ConfigService,
     private auth: AuthzService,
+    private refs: RefService,
+    private exts: ExtService,
+    private users: UserService,
     private plugins: PluginService,
     private templates: TemplateService,
-    private exts: ExtService,
-    private oembed: OEmbedService,
-    private ss: ScrapeService,
     private store: Store,
-  ) { }
+  ) {
+    autorun(() => {
+      const mod = this.store.eventBus.ref?.plugins?.['plugin/mod'];
+      if (this.store.eventBus.event === 'install') {
+        this.install$(mod, (msg, p) => store.eventBus.progress(msg, p))
+          .subscribe(mod => {
+            this.pluginToStatus(mod.plugin);
+            this.templateToStatus(mod.template);
+          });
+      }
+    });
+  }
 
   get init$() {
     this._cache.clear();
@@ -246,8 +260,7 @@ export class AdminService {
       tag: this.store.account.localTag,
       origin: this.store.account.origin,
     }).pipe(
-      tap(() => this.oembed.defaults()),
-      tap(() => this.ss.defaults()),
+      tap(() => this.store.eventBus.fire('*:defaults')),
       switchMap(() => concat(...installs)),
       switchMap(() => this.init$)
     );
@@ -812,6 +825,181 @@ export class AdminService {
 
   getWikiPrefix() {
     return this.getTemplate('wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
+  }
+
+  installRef$(def: Ref, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.title || def.url} ref...`)),
+      switchMap(() => this.refs.create({ ...def, origin: this.store.account.origin })),
+      catchError(err => {
+        if (err.status === 409) {
+          _('\u00A0'.repeat(4) + $localize`Plugin ${def.title || def.url} already exists...`);
+          return of(null);
+        }
+        return throwError(() => err);
+      }),
+    );
+  }
+
+  installExt$(def: Ext, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} ext...`)),
+      switchMap(() => this.exts.create({ ...def, origin: this.store.account.origin })),
+      catchError(err => {
+        if (err.status === 409) {
+          _('\u00A0'.repeat(4) + $localize`Plugin ${def.name || def.tag} already exists...`);
+          return of(null);
+        }
+        return throwError(() => err);
+      }),
+    );
+  }
+
+  installUser$(def: User, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} ext...`)),
+      switchMap(() => this.users.create({ ...def, origin: this.store.account.origin })),
+      catchError(err => {
+        if (err.status === 409) {
+          _('\u00A0'.repeat(4) + $localize`Plugin ${def.name || def.tag} already exists...`);
+          return of(null);
+        }
+        return throwError(() => err);
+      }),
+    );
+  }
+
+  installPlugin$(def: Plugin, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} plugin...`)),
+      switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin })),
+      catchError(err => {
+        if (err.status === 409) {
+          _('\u00A0'.repeat(4) + $localize`Plugin ${def.name || def.tag} already exists...`);
+          return of(null);
+        }
+        return throwError(() => err);
+      }),
+    );
+  }
+
+  deletePlugin$(p: Plugin, _: progress) {
+    const deleteNotice = this.getPlugin('plugin/delete')
+      ? this.plugins.create(tagDeleteNotice(p))
+      : of(null);
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${p.name || p.tag} plugin...`)),
+      switchMap(() => this.plugins.delete(p.tag + this.store.account.origin)),
+      switchMap(() => deleteNotice),
+    );
+  }
+
+  installTemplate$(def: Template, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} template...`)),
+      switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin })),
+      catchError(err => {
+        if (err.status === 409) {
+          _('\u00A0'.repeat(4) + $localize`Template ${def.name || def.tag} already exists...`);
+          return of(null);
+        }
+        return throwError(() => err);
+      }),
+    );
+  }
+
+  deleteTemplate$(t: Template, _: progress) {
+    const deleteNotice = this.getPlugin('plugin/delete')
+      ? this.templates.create(tagDeleteNotice(t))
+      : of(null);
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${t.name || t.tag} template...`)),
+      switchMap(() => this.templates.delete(t.tag + this.store.account.origin)),
+      switchMap(() => deleteNotice),
+    );
+  }
+
+  install$(mod: Mod, _: progress): Observable<any> {
+    return concat(...[
+      of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
+      ...(mod.ref || []).map(p => this.installRef$(p, _)),
+      ...(mod.ext || []).map(p => this.installExt$(p, _)),
+      ...(mod.user || []).map(p => this.installUser$(p, _)),
+      ...(mod.plugin || []).map(p => this.installPlugin$(p, _)),
+      ...(mod.template || []).map(t => this.installTemplate$(t, _)),
+    ]).pipe(toArray());
+  }
+
+  installMod$(mod: string, _: progress): Observable<any> {
+    return concat(...[
+      of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
+      ...Object.values(this.def.plugins)
+        .filter(p => modId(p) === mod)
+        .map(p => this.installPlugin$(p, _)),
+      ...Object.values(this.def.templates)
+        .filter(t => modId(t) === mod)
+        .map(t => this.installTemplate$(t, _)),
+    ]).pipe(toArray());
+  }
+
+  deleteMod$(mod: string, _: progress): Observable<any> {
+    return concat(...[
+      of(null).pipe(tap(() => _($localize`Deleting ${mod} mod...`))),
+      ...Object.values(this.status.plugins)
+        .filter(p => modId(p) === mod)
+        .map(p => this.deletePlugin$(p!, _)),
+      ...Object.values(this.status.templates)
+        .filter(t => modId(t) === mod)
+        .map(t => this.deleteTemplate$(t!, _)),
+    ]).pipe(toArray());
+  }
+
+  updatePlugin$(key: string, _: progress) {
+    const def = this.def.plugins[key];
+    const status = this.status.plugins[key];
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} plugin...`)),
+      switchMap(() => this.plugins.update({
+        ...def,
+        defaults: {
+          ...def.defaults || {},
+          ...status?.defaults || {},
+        },
+        origin: this.store.account.origin,
+        modifiedString: status?.modifiedString,
+      })),
+      tap(() => _('\u00A0'.repeat(4) + $localize`Updated ${def.name || def.tag} plugin.`))
+    );
+  }
+
+  updateTemplate$(key: string, _: progress) {
+    const def = this.def.templates[key];
+    const status = this.status.templates[key];
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} template...`)),
+      switchMap(() => this.templates.update({
+        ...def,
+        defaults: {
+          ...def.defaults || {},
+          ...status?.defaults || {},
+        },
+        origin: this.store.account.origin,
+        modifiedString: status?.modifiedString,
+      })),
+      tap(() => _('\u00A0'.repeat(4) + $localize`Updated ${def.name || def.tag} template.`)),
+    );
+  }
+
+  updateMod$(mod: string, _: progress): Observable<any> {
+    return concat(...[
+      of(null).pipe(tap(() => _($localize`Updating ${mod} mod...`))),
+      ...Object.values(this.def.plugins)
+        .filter(p => modId(p) === mod)
+        .map(p => this.updatePlugin$(this.keyOf(this.def.plugins, p.tag), _)),
+      ...Object.values(this.def.templates)
+        .filter(t => modId(t) === mod)
+        .map(t => this.updateTemplate$(this.keyOf(this.def.templates, t.tag), _)),
+    ]).pipe(toArray());
   }
 
   needsUpdate(def: Plugin | Template, status: Plugin | Template) {
