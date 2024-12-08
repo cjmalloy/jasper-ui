@@ -15,9 +15,9 @@
   </div>
   <div class="actions">
     @if (!created && store.account.admin) {
-      <a class="fake-link" (click)="copy()" i18n>install</a>
+      <app-confirm-action #action [action]="copy$" i18n>install</app-confirm-action>
     } @else if (!local) {
-      <a class="fake-link" (click)="copy()" i18n>copy</a>
+      <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
     } @else if (store.account.admin) {
       <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
     } @else {
@@ -25,43 +25,36 @@
     }
     <a class="fake-link" (click)="download()" i18n>download</a>
     @if (created && store.account.admin) {
-      @if (!deleting) {
-        <a class="fake-link" (click)="deleting = true" i18n>delete</a>
-      } @else {
-        <span class="delete-confirm" i18n>are you sure?
-        <a class="fake-link" (click)="delete()">yes</a> /
-        <a class="fake-link" (click)="deleting = false">no</a>
-      </span>
-      }
+      <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
     }
   </div>
 </div>
 
-<form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+@if (editing) {
+  <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-  <app-template-form [group]="editForm"
-                     [configErrors]="configErrors"
-                     [defaultsErrors]="defaultsErrors"
-                     [schemaErrors]="schemaErrors"></app-template-form>
+    <app-template-form [group]="editForm"
+                       [configErrors]="configErrors"
+                       [defaultsErrors]="defaultsErrors"
+                       [schemaErrors]="schemaErrors"></app-template-form>
 
-  @for (e of serverError; track e) {
-    <span><!-- Unexpected Error --></span>
-    <div class="error">{{ e }}</div>
-  }
+    @for (e of serverError; track e) {
+      <span><!-- Unexpected Error --></span>
+      <div class="error">{{ e }}</div>
+    }
 
-  <span><!-- Buttons --></span>
-  <span class="buttons right">
+    <span><!-- Buttons --></span>
+    <span class="buttons right">
     <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
     <button type="button" (click)="editing = false" i18n>cancel</button>
   </span>
-</form>
-
-<form *ngIf="viewSource" class="form" [formGroup]="editForm">
-  <app-template-form [group]="editForm"></app-template-form>
-</form>
-
-<ng-template #showErrors>
+  </form>
+} @else if (viewSource) {
+  <form class="form" [formGroup]="editForm">
+    <app-template-form [group]="editForm"></app-template-form>
+  </form>
+} @else {
   @for (e of serverError; track e) {
     <div class="error">{{ e }}</div>
   }
-</ng-template>
+}
