@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { defer, merge, pickBy, uniq, without } from 'lodash-es';
+import { merge, pickBy, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, Subject, Subscription, throwError } from 'rxjs';
+import { catchError, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { EditorComponent } from '../../../form/editor/editor.component';
@@ -17,10 +17,10 @@ import { Store } from '../../../store/store';
 import { getMailboxes, getTags } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { memo } from '../../../util/memo';
 import { hasTag, removeTag, tagIntersection } from '../../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-comment-reply',
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
@@ -116,7 +116,13 @@ export class CommentReplyComponent implements AfterViewInit {
     ]), ...removeTags));
     const sources = [this.to.url];
     if (hasTag('plugin/comment', tags) || hasTag('plugin/thread', tags)) {
-      sources.push(this.to.sources?.[1] || this.to.sources?.[0] || this.to.url)
+      if (hasTag('plugin/comment', this.to) || hasTag('plugin/thread', this.to)) {
+        // Parent may be the top
+        sources.push(this.to.sources?.[1] || this.to.url);
+      } else {
+        // Parent is the top
+        sources.push(this.to.url);
+      }
     }
     const ref: Ref = {
       url,

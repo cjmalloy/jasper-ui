@@ -35,6 +35,7 @@ import { localTag, tagOrigin } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 
 @Component({
+  standalone: false,
   selector: 'app-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],

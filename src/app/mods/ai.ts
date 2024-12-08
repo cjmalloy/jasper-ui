@@ -175,7 +175,7 @@ export const aiQueryPlugin: Plugin = {
         const system = messages.filter(m => m.role === 'system').map(m => m.content).join("\\n\\n");
         messages.push({ role: 'assistant', content: '{"ref":['});
         const res = await anthropic.messages.create({
-          model: config?.model || 'claude-3-5-sonnet-20240620',
+          model: config?.model || 'claude-3-5-sonnet-20241022',
           max_tokens: config?.maxTokens || 4096,
           system,
           messages: messages.filter(m => m.role !== 'system'),
@@ -234,16 +234,12 @@ export const aiQueryPlugin: Plugin = {
         response.tags.splice(response.tags.indexOf('plugin/delta/ai'), 1);
       }
       const sources = [ref.url];
-      if (response.tags.includes('plugin/thread') || response.tags.includes('plugin/comment')) {
-        if (ref.sources?.length === 1) {
-          sources.push(ref.sources[0]);
-        } else if (ref.sources?.length > 1) {
-          sources.push(ref.sources[1]);
-        } else {
-          sources.push(ref.url);
-        }
+      if (ref.sources && (ref.tags.includes('plugin/thread') || ref.tags.includes('plugin/comment'))) {
+        sources.push(ref.sources[1] || ref.sources[0] || ref.url);
+      } else {
+        sources.push(ref.url);
       }
-      response.sources = [...sources, ...(response.sources || [])].filter(uniq);
+      response.sources = [...sources, ...(response.sources || []).filter(uniq).filter(s => !sources.includes(s))];
       // TODO: Allow AI to add some protected tags
       const publicTagRegex = /^[a-z0-9]+(?:[./][a-z0-9]+)*$/;
       for (const r of bundle.ref) {

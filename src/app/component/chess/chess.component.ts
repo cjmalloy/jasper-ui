@@ -29,6 +29,7 @@ export type PieceColor = 'b' | 'w';
 type Piece = { type: PieceType, color: PieceColor, square: Square, };
 
 @Component({
+  standalone: false,
   selector: 'app-chess',
   templateUrl: './chess.component.html',
   styleUrls: ['./chess.component.scss'],

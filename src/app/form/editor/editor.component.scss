@@ -15,7 +15,9 @@
     width: 100% !important;
     height: calc(100% - 42px) !important;
   }
-  --viewport-height: 100%;
+  & {
+    --viewport-height: 100%;
+  }
   &.fullscreen {
     textarea {
       padding-bottom: calc(var(--viewport-height) - 64px);

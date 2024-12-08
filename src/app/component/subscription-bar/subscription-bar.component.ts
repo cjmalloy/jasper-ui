@@ -10,6 +10,7 @@ import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 
 @Component({
+  standalone: false,
   selector: 'app-subscription-bar',
   templateUrl: './subscription-bar.component.html',
   styleUrls: ['./subscription-bar.component.scss'],
@@ -60,7 +61,7 @@ export class SubscriptionBarComponent implements OnInit, OnDestroy {
   }
 
   private getTemplate(x: Ext): Ext {
-    if (x.modifiedString) return x;
+    if (!x.tag || x.modifiedString) return x;
     const t = this.admin.getTemplate(x.tag);
     if (t) {
       return { tag: t.tag, origin: x.origin, name: t.name, config: t.defaults };

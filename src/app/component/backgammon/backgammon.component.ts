@@ -36,6 +36,7 @@ export type Spot = {
 const MAX_PLAYERS = 2;
 
 @Component({
+  standalone: false,
   selector: 'app-backgammon',
   templateUrl: './backgammon.component.html',
   styleUrls: ['./backgammon.component.scss'],

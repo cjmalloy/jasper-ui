@@ -4,9 +4,11 @@ import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
 import { VisibilityService } from '../../service/visibility.service';
-import { getPath, getSearchParams, parseParams } from '../../util/http';
+import { getPath, parseParams } from '../../util/http';
+import { hasPrefix } from '../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-nav',
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.scss']
@@ -84,7 +86,7 @@ export class NavComponent implements OnInit {
   }
 
   get hasText() {
-    if (!this.text) return false;
+    if (!this.text || hasPrefix(this.text, 'user')) return false;
     return this.text != this.url;
   }
 

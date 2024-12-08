@@ -4,6 +4,7 @@ import { ProxyService } from '../../service/api/proxy.service';
 import { Store } from '../../store/store';
 
 @Component({
+  standalone: false,
   selector: 'app-video-upload',
   templateUrl: './video-upload.component.html',
   styleUrls: ['./video-upload.component.scss']

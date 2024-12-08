@@ -23,6 +23,7 @@ import { printError } from '../../../util/http';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
 @Component({
+  standalone: false,
   selector: 'app-upload',
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss']
@@ -34,7 +35,7 @@ export class UploadPage implements OnDestroy {
 
   serverErrors: string[] = [];
   processing = false;
-  webCache = this.admin.getPlugin('plugin/file');
+  fileCache = this.admin.getPlugin('plugin/file');
 
   constructor(
     public store: Store,
@@ -60,57 +61,67 @@ export class UploadPage implements OnDestroy {
     this.disposers.length = 0;
   }
 
-  readUploads(uploads?: File[]) {
+  readUploads(uploads?: File[], forceCache = false) {
     // TODO: process sequentially and show indicator
     if (!uploads) return;
+    // Refs and Exts
     const files: File[] = [];
+    const tables: File[] = [];
+    // File Cache
+    let cacheWarning = false;
     const audio: File[] = [];
     const video: File[] = [];
     const images: File[] = [];
+    const pdfs: File[] = [];
     const bookmarks: File[] = [];
     const sitemap: File[] = [];
     const texts: File[] = [];
-    const tables: File[] = [];
+    const cache: File[] = [];
     for (let i = 0; i < uploads.length; i++) {
       const file = uploads[i];
-      if (file.type === 'application/json' || file.type === 'application/zip') {
+      if (!forceCache && (file.type === 'application/json' || file.type === 'application/zip')) {
         files.push(file);
-      }
-      if (file.type.startsWith('audio/')) {
-        audio.push(file);
-      }
-      if (file.type.startsWith('video/')) {
-        video.push(file);
-      }
-      if (file.type.startsWith('image/')) {
-        images.push(file);
-      }
-      if (file.type.startsWith('text/html')) {
-        bookmarks.push(file);
-      }
-      if (file.type.startsWith('text/xml') || file.type.startsWith('application/xml')) {
-        sitemap.push(file);
-      }
-      if (file.type.startsWith('text/plain')) {
+      } else if (!forceCache && file.type.startsWith('text/plain')) {
         texts.push(file);
-      }
-      if ([
+      }  else if (!forceCache && [
         'text/csv',
         'application/vnd.ms-excel',
         'application/vnd.oasis.opendocument.spreadsheet',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       ].includes(file.type)) {
         tables.push(file);
+      } else if (!forceCache && file.type.startsWith('text/html')) {
+        bookmarks.push(file);
+      } else if (!forceCache && file.type.startsWith('text/xml') || file.type.startsWith('application/xml')) {
+        sitemap.push(file);
+      } else {
+        if (!this.fileCache) cacheWarning = true;
+        if (file.type.startsWith('audio/')) {
+          audio.push(file);
+        } else if (file.type.startsWith('video/')) {
+          video.push(file);
+        } else if (file.type.startsWith('image/')) {
+          images.push(file);
+        } else if (file.type.startsWith('application/pdf')) {
+          pdfs.push(file);
+        } else {
+          cache.push(file);
+        }
       }
     }
+    // Refs and Exts
     this.read(files);
-    this.readScrape(audio, 'plugin/audio', this.store.account.localTag, ...this.store.submit.tags);
-    this.readScrape(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
-    this.readScrape(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
     this.readData(texts, this.store.account.localTag, ...this.store.submit.tags);
+    this.readSheet(tables, 'plugin/table', this.store.account.localTag, ...this.store.submit.tags);
     this.readBookmarks(bookmarks, this.store.account.localTag, ...this.store.submit.tags);
     this.readSitemap(sitemap, this.store.account.localTag, ...this.store.submit.tags);
-    this.readSheet(tables, 'plugin/table', this.store.account.localTag, ...this.store.submit.tags);
+
+    if (cacheWarning) window.alert('File Cache has not been enabled by the admin (plugin/file) so file uploads will likely fail.')
+    this.readCache(audio, 'plugin/audio', this.store.account.localTag, ...this.store.submit.tags);
+    this.readCache(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
+    this.readCache(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
+    this.readCache(pdfs, 'plugin/pdf', this.store.account.localTag, ...this.store.submit.tags);
+    this.readCache(cache, 'plugin/file', this.store.account.localTag, ...this.store.submit.tags);
   }
 
   read(files?: File[], ...extraTags: string[]) {
@@ -148,7 +159,7 @@ export class UploadPage implements OnDestroy {
     }
   }
 
-  readScrape(files: File[], tag: string, ...extraTags: string[]) {
+  readCache(files: File[], tag: string, ...extraTags: string[]) {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];

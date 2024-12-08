@@ -157,6 +157,7 @@ export function writeRef(ref: Ref): Ref {
 export function findExtension(ending: string, ref?: Ref, repost?: Ref): Ref | undefined {
   if (!ref) return undefined;
   ending = ending.toLowerCase();
+  if (repost?.url.toLowerCase().endsWith(ending)) return repost;
   if (ref.url.toLowerCase().endsWith(ending)) return ref;
   for (const s of ref.alternateUrls || []) {
     if (new URL(s).pathname.toLowerCase().endsWith(ending)) {
@@ -165,6 +166,26 @@ export function findExtension(ending: string, ref?: Ref, repost?: Ref): Ref | un
   }
   for (const s of repost?.alternateUrls || []) {
     if (new URL(s).pathname.toLowerCase().endsWith(ending)) {
+      return { url: s, origin: repost!.origin };
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Find URL in alts with file extension.
+ */
+export function findCache(ref?: Ref, repost?: Ref): Ref | undefined {
+  if (!ref) return undefined;
+  if (repost?.url.startsWith('cache:')) return repost;
+  if (ref.url.startsWith('cache:')) return ref;
+  for (const s of ref.alternateUrls || []) {
+    if (s.startsWith('cache:')) {
+      return { url: s, origin: ref.origin };
+    }
+  }
+  for (const s of repost?.alternateUrls || []) {
+    if (s.startsWith('cache:')) {
       return { url: s, origin: repost!.origin };
     }
   }
@@ -184,7 +205,7 @@ export function equalsRef(a?: Ref, b?: Ref) {
     a.title === b.title &&
     a.comment === b.comment &&
     !!a.published === !!b.published &&
-    b.published && a.published?.hasSame(b.published, 'millisecond') &&
+    b.published && a.published && +a.published === +b.published &&
     isEqual(a.alternateUrls, b.alternateUrls) &&
     isEqual(a.sources, b.sources) &&
     isEqual(a.tags?.filter(compareTag), b.tags?.filter(compareTag)) &&

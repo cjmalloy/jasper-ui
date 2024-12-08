@@ -15,6 +15,7 @@ import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 
 @Component({
+  standalone: false,
   selector: 'app-select-plugin',
   templateUrl: './select-plugin.component.html',
   styleUrls: ['./select-plugin.component.scss']

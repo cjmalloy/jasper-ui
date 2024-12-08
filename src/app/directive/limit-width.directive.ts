@@ -3,6 +3,7 @@ import { throttle } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
 
 @Directive({
+  standalone: false,
   selector: '[appLimitWidth]'
 })
 export class LimitWidthDirective implements OnDestroy, AfterViewInit {

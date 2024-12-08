@@ -5,6 +5,7 @@ import { Duration } from 'luxon';
 import { getErrorMessage } from './errors';
 
 @Component({
+  standalone: false,
   selector: 'formly-field-input',
   template: `
     <input duration
@@ -34,6 +35,7 @@ export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
 }
 
 @Directive({
+  standalone: false,
   selector: '[duration]',
   providers: [
     {

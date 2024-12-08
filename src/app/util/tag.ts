@@ -100,12 +100,7 @@ export function hasUserUrlResponse(tag?: string, ref?: Ref)  {
 
 export function tagIntersection(expand: string[] | undefined, targets: string[] | undefined) {
   if (!expand || !targets) return [];
-  return filter(targets, target => includesTag(target, expand));
-}
-
-export function includesTag(target: string, tags?: string[])  {
-  if (!target) return false;
-  return !!find(tags, t => expandedTagsInclude(t, target));
+  return filter(targets, target => hasTag(target, expand));
 }
 
 export function expandedTagsInclude(tag?: string, target?: string) {
@@ -146,12 +141,18 @@ export function defaultOrigin(tag: string, origin?: string) {
 }
 
 export function subOrigin(local?: string, origin?: string) {
-  if (!local) local = "";
-  if (!origin) origin = "";
+  if (!local) local = '';
+  if (!origin) origin = '';
   if (!local) return origin;
   if (!origin) return local;
-  if (origin.startsWith("@")) origin = origin.substring(1);
+  if (origin.startsWith('@')) origin = origin.substring(1);
   return local + '.' + origin;
+}
+
+export function removeParentOrigin(local?: string, parent?: string) {
+  if (!parent || !local) return local || ''
+  if (local.startsWith(parent + '.')) return "@" + local.substring(parent.length + 1);
+  return local;
 }
 
 export function implicitLocal(tag: string, local: string) {
@@ -193,7 +194,7 @@ export function hasPrefix(tag?: string, prefix?: string) {
 }
 
 export function removePrefix(tag: string, count = 1) {
-  return tag.split('/').slice(count).join('/');
+  return access(tag) + tag.split('/').slice(count).join('/');
 }
 
 export function getPrefixes(tag: string) {

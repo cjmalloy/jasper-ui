@@ -2,6 +2,7 @@ import { Component, HostBinding, Input } from '@angular/core';
 import { toDataURL, } from 'qrcode'
 
 @Component({
+  standalone: false,
   selector: 'app-qr',
   template: '',
   styleUrls: ['./qr.component.scss']

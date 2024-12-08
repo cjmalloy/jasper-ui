@@ -62,13 +62,7 @@ export const summaryQueryPlugin: Plugin = {
       tags = tags.filter((v, i, a) => a.indexOf(v) === i);
       const sources = [ref.url];
       if (tags.includes('plugin/thread') || tags.includes('plugin/comment')) {
-        if (ref.sources?.length === 1) {
-          sources.push(ref.sources[0]);
-        } else if (ref.sources?.length > 1) {
-          sources.push(ref.sources[1]);
-        } else {
-          sources.push(ref.url);
-        }
+        sources.push(ref.sources[1] || ref.sources[0] || ref.url);
       }
       const summary = {
         url: 'comment:' + completion.id,

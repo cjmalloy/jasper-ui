@@ -17,6 +17,7 @@ import { getArgs } from '../../util/query';
 import { braces, tagOrigin } from '../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss']

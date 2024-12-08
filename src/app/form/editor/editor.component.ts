@@ -31,6 +31,7 @@ import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
 
 @Component({
+  standalone: false,
   selector: 'app-editor',
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']

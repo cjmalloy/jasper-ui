@@ -16,6 +16,7 @@ import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component'
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
+  standalone: false,
   selector: 'app-ref-form',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss']
@@ -103,7 +104,7 @@ export class RefFormComponent implements OnInit {
 
   get scrape$() {
     if (this.scraped) return of(this.scraped);
-    return this.scrape.webScrape(this.tags.includesTag('plugin/repost') ? this.sources.links?.value?.[0] : this.url.value).pipe(
+    return this.scrape.webScrape(this.tags.hasTag('plugin/repost') ? this.sources.links?.value?.[0] : this.url.value).pipe(
       tap(s => {
         this.scraped = s;
         if (s.modified && this.ref?.modified) {
@@ -165,7 +166,7 @@ export class RefFormComponent implements OnInit {
     } else {
       this.scrape$.subscribe(s => {
         for (const t of s.tags || []) {
-          if (!this.tags.includesTag(t)) this.togglePlugin(t);
+          if (!this.tags.hasTag(t)) this.togglePlugin(t);
         }
         defer(() => {
           this.plugins.setValue({
@@ -188,7 +189,7 @@ export class RefFormComponent implements OnInit {
   togglePlugin(tag: string) {
     this.toggleTag.next(tag);
     if (tag) {
-      if (this.tags.includesTag(tag)) {
+      if (this.tags.hasTag(tag)) {
         this.tags.removeTagAndChildren(tag);
       } else {
         this.tags.addTag(tag);

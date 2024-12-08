@@ -11,6 +11,7 @@ import { Store } from './store/store';
 import { memo } from './util/memo';
 
 @Component({
+  standalone: false,
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],

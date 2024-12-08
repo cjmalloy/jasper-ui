@@ -3,6 +3,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
 @Directive({
+  standalone: false,
   selector: '[appAutofocus]',
 })
 export class AutofocusDirective {
@@ -28,6 +29,7 @@ export class AutofocusDirective {
 
   focus() {
     if (this.enabled === false) return;
+    this.enabled = false;
     this.elementRef.nativeElement.focus();
     if ('setSelectionRange' in this.elementRef.nativeElement) {
       try {

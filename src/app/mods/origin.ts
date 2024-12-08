@@ -2,6 +2,7 @@ import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Mod } from '../model/tag';
+import { hasTag } from '../util/tag';
 
 export const originPlugin: Plugin = {
   tag: '+plugin/origin',
@@ -177,7 +178,11 @@ export const originPushPlugin: Plugin = {
     icons: [{ label: $localize`📤️` }],
     actions: [{ event: 'push', label: $localize`push`, title: $localize`Push a batch of updates to the remote.`, confirm: $localize`Are you sure you want to push?` }],
     // language=Handlebars
-    infoUi: `{{#if pushOnChange}} pushing on change {{/if}}`,
+    infoUi: `
+      {{#if pushOnChange}} pushing on change {{/if}}
+      {{#if (and (hasTag '+plugin/origin/pull' ref) (hasTag '+plugin/origin/push' ref))}}
+        <span title="Pushing and Pulling is not recommended">⛔️</span>
+      {{/if}}`,
     form: [{
       key: 'pushOnChange',
       type: 'boolean',
@@ -268,16 +273,16 @@ export const originTunnelPlugin: Plugin = {
   },
 };
 
-export function isReplicating(remote: Ref, apis: Map<string, string>) {
-  if (remote.plugins?.['+plugin/origin/push']) return false;
+export function isReplicating(local: string, remote: Ref, apis: Set<string>) {
+  if (!hasTag('+plugin/origin/pull', remote)) return false;
   const plugin = remote.plugins?.['+plugin/origin'];
-  return apis.get(plugin?.remote || '') === remote.url;
+  return (plugin?.remote || '') === local && (apis.has(remote.url) || apis.has(plugin.proxy));
 }
 
-export function isPushing(remote: Ref, origin = '') {
-  if (!remote.plugins?.['+plugin/origin/push']) return false;
+export function isPushing(remote: Ref, subOrigin = '') {
+  if (!hasTag('+plugin/origin/push', remote)) return false;
   const plugin = remote.plugins?.['+plugin/origin'];
-  return (plugin?.local || '') === origin;
+  return (plugin?.local || '') === subOrigin;
 }
 
 export const remoteOriginMod: Mod = {

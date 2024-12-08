@@ -3,6 +3,7 @@ import { ConfigService } from '../service/config.service';
 import { relativeX, relativeY } from '../util/math';
 
 @Directive({
+  standalone: false,
   selector: '[appResizeHandle]'
 })
 export class ResizeHandleDirective {
@@ -10,7 +11,7 @@ export class ResizeHandleDirective {
   @HostBinding('style.cursor') cursor = 'auto';
 
   @Input()
-  hitArea = 20;
+  hitArea = 24;
 
   dragging = false;
   x = 0;
@@ -73,10 +74,9 @@ export class ResizeHandleDirective {
   }
 
   private hit(event: PointerEvent) {
-    const x = relativeX(event.clientX, this.el.nativeElement);
-    const y = relativeY(event.clientY, this.el.nativeElement);
-    return x + this.hitArea > this.el.nativeElement.offsetWidth &&
-           y + this.hitArea > this.el.nativeElement.offsetHeight;
+    const x = this.el.nativeElement.offsetWidth - relativeX(event.clientX, this.el.nativeElement);
+    const y = this.el.nativeElement.offsetHeight - relativeY(event.clientY, this.el.nativeElement);
+    return x + y < this.hitArea;
   }
 
 }

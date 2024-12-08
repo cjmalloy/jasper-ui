@@ -6,6 +6,7 @@ import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 
 @Component({
+  standalone: false,
   selector: 'app-md',
   templateUrl: './md.component.html',
   styleUrls: ['./md.component.scss']

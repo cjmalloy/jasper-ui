@@ -57,7 +57,6 @@ import {
   capturesAny,
   hasTag,
   hasUserUrlResponse,
-  includesTag,
   isOwnerTag,
   localTag,
   removeTag,
@@ -69,6 +68,7 @@ import { ActionComponent } from '../action/action.component';
 import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
+  standalone: false,
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
@@ -558,13 +558,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       return this.proxy.getFetch(this.url, this.origin);
     }
     if (this.audio && this.admin.getPlugin('plugin/audio')?.config?.proxy) {
-      return this.proxy.getFetch(this.url, this.origin);
+      return this.proxy.getFetch(this.ref?.plugins?.['plugin/audio']?.url || this.url, this.origin);
     }
     if (this.video && this.admin.getPlugin('plugin/video')?.config?.proxy) {
-      return this.proxy.getFetch(this.url, this.origin);
+      return this.proxy.getFetch(this.ref?.plugins?.['plugin/video']?.url || this.url, this.origin);
     }
     if (this.image && this.admin.getPlugin('plugin/image')?.config?.proxy) {
-      return this.proxy.getFetch(this.url, this.origin);
+      return this.proxy.getFetch(this.ref?.plugins?.['plugin/image']?.url || this.url, this.origin);
     }
     return '';
   }
@@ -630,7 +630,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     const sources = [this.ref.url];
     if (this.comment || this.thread || this.email) {
       if (this.ref.sources?.length) {
-        sources.push(this.ref.sources[1] || this.ref.sources[0]);
+        sources.push(this.ref.sources[1] || this.ref.sources[0] || this.ref.url);
       }
     }
     return sources;
@@ -644,6 +644,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
     ];
     if (this.comments) tags.push('plugin/comment', 'internal');
     if (this.threads) tags.push('plugin/thread', 'internal');
+    if (this.dm) tags.push('dm', 'plugin/thread', 'internal');
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
@@ -742,7 +743,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get sources() {
-    return this.ref.sources?.length || 0;
+    const sources = uniq(this.ref?.sources).filter(s => s != this.ref.url);
+    return sources.length || 0;
   }
 
   @memo
@@ -751,8 +753,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
+  get parent() {
+    const sources = uniq(this.ref.sources).filter(s => s != this.ref.url);
+    if (sources.length === 1) return sources[0];
+    return false;
+  }
+
+  @memo
   get parentComment() {
     if (!hasTag('plugin/comment', this.ref)) return false;
+    if (this.ref.sources?.[0] === this.ref.url) return false;
+    if (this.ref.sources?.[1] === this.ref.url) return false;
     if (this.sources === 1 || this.sources === 2) return this.ref.sources![0];
     return false;
   }
@@ -760,6 +771,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get parentCommentTop() {
     if (!hasTag('plugin/comment', this.ref)) return false;
+    if (this.ref.sources?.[0] === this.ref.url) return false;
+    if (this.ref.sources?.[1] === this.ref.url) return false;
     if (this.sources === 2) return this.ref.sources![1];
     return false;
   }
@@ -767,6 +780,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get parentThreadTop() {
     if (!hasTag('plugin/thread', this.ref)) return false;
+    if (this.ref.sources?.[0] === this.ref.url) return false;
+    if (this.ref.sources?.[1] === this.ref.url) return false;
     if (this.sources === 2) return this.ref.sources![1];
     if (this.sources === 1) return this.ref.sources![0];
     return false;
@@ -795,7 +810,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get fullscreen() {
-    if (this.plugins) return includesTag('plugin/fullscreen', this.plugins);
+    if (this.plugins) return hasTag('plugin/fullscreen', this.plugins);
     return hasTag('plugin/fullscreen', this.ref);
   }
 
@@ -933,7 +948,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.init();
       this.store.submit.setRef(this.ref);
     } else {
-      this.refreshTap = () => this.publishChanged = !published.hasSame(this.ref.published!, 'millisecond');
+      this.refreshTap = () => this.publishChanged = +published !== +this.ref.published!;
       this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
         tap(cursor => {
           this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
@@ -1006,7 +1021,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
             if (err.status === 409) {
               return this.refs.get(this.ref.url, this.store.account.origin).pipe(
                 switchMap(existing => {
-                  if (existing.modified?.hasSame(ref.modified!, 'millisecond') || equalsRef(existing, ref) || window.confirm('An old version already exists. Overwrite it?')) {
+                  if (+existing.modified! === +ref.modified! || equalsRef(existing, ref) || window.confirm('An old version already exists. Overwrite it?')) {
                     // TODO: Show diff and merge or split
                     return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
                   } else {

@@ -11,6 +11,7 @@ import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
 
 @Component({
+  standalone: false,
   selector: 'app-tag-page',
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],

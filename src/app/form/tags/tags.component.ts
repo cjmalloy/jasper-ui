@@ -6,9 +6,10 @@ import { some } from 'lodash-es';
 import { Subject } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { TAG_REGEX } from '../../util/format';
-import { includesTag } from '../../util/tag';
+import { hasTag } from '../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-tags',
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss']
@@ -106,13 +107,13 @@ export class TagsFormComponent implements OnInit, OnDestroy {
     }
   }
 
-  includesTag(tag: string) {
-    return includesTag(tag, this.tags?.value || []);
+  hasTag(tag: string) {
+    return hasTag(tag, this.tags?.value || []);
   }
 
   get editingViewer() {
     if (!this.tags?.value) return false;
-    return some(this.admin.editingViewer, t => includesTag(t.tag, this.tags!.value));
+    return some(this.admin.editingViewer, t => hasTag(t.tag, this.tags!.value));
   }
 
   removeTag(...values: string[]) {

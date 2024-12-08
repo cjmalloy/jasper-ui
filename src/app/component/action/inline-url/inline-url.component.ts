@@ -4,6 +4,7 @@ import { URI_REGEX } from '../../../util/format';
 import { ActionComponent } from '../action.component';
 
 @Component({
+  standalone: false,
   selector: 'app-inline-url',
   templateUrl: './inline-url.component.html',
   styleUrls: ['./inline-url.component.scss']

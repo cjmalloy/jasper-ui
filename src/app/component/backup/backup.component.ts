@@ -7,6 +7,7 @@ import { Store } from '../../store/store';
 import { printError } from '../../util/http';
 
 @Component({
+  standalone: false,
   selector: 'app-backup',
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss']

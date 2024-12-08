@@ -151,7 +151,8 @@ hr {
 .resize-handle {
   touch-action: none;
   position: relative;
-  &:after {
+  &:before {
+    z-index: 10;
     content: '';
     width: 20px;
     height: 20px;
@@ -159,6 +160,7 @@ hr {
     position: absolute;
     right: -2px;
     bottom: -2px;
+    filter: drop-shadow(0.5px 0.5px 1.25px white);
   }
 }
 
@@ -1208,8 +1210,11 @@ formly-list-section .form-array > formly-field > formly-group {
   &.right {
     justify-content: right;
   }
-  & > :not(:last-child) {
+  & > * {
     margin-right: 4px;
+    &:last-child, input[file] {
+      margin-right: 0 !important;
+    }
   }
   input {
     flex: 1;
@@ -1217,7 +1222,6 @@ formly-list-section .form-array > formly-field > formly-group {
   }
   select {
     margin-left: 0;
-    margin-right: 0;
   }
 }
 
@@ -1892,6 +1896,9 @@ button.backup, button.upload, input.upload {
 
   p {
     text-align: justify;
+    & > app-nav > .tag {
+      margin: 0;
+    }
   }
 
   blockquote {
@@ -2043,10 +2050,10 @@ ngx-monaco-editor {
 
     &.cdk-drag-preview {
       pointer-events: auto !important;
+      cursor: no-drop !important;
       * {
         pointer-events: none !important;
       }
-      cursor: no-drop !important;
     }
   }
 
@@ -2066,7 +2073,7 @@ ngx-monaco-editor {
     cursor: grab;
   }
 
-  .card-title {
+  .card-title, .thumbnail {
     margin-bottom: 4px;
   }
 
@@ -2131,10 +2138,10 @@ ngx-monaco-editor {
 
     &.cdk-drag-preview {
       pointer-events: auto !important;
+      cursor: no-drop !important;
       * {
         pointer-events: none !important;
       }
-      cursor: no-drop !important;
     }
   }
 

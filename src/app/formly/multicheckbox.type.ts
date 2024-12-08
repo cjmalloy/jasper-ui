@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
 
 @Component({
+  standalone: false,
   selector: 'formly-field-multicheckbox',
   template: `
     <ng-container *ngFor="let option of props.options | formlySelectOptions: field | async; let i = index">

@@ -51,6 +51,7 @@ import { hasTag, isOwnerTag, localTag, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
 
 @Component({
+  standalone: false,
   selector: 'app-blog-entry',
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss']
@@ -294,7 +295,8 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
 
   @memo
   get sources() {
-    return this.ref.sources?.length || 0;
+    const sources = uniq(this.ref?.sources).filter(s => s != this.ref.url);
+    return sources.length || 0;
   }
 
   @memo

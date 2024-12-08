@@ -6,6 +6,7 @@ import { Dim, height, ImageService, width } from '../service/image.service';
 import { Store } from '../store/store';
 
 @Directive({
+  standalone: false,
   selector: '[appImage]'
 })
 export class ImageDirective implements OnInit, OnDestroy {

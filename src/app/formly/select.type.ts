@@ -8,6 +8,7 @@ interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
 }
 
 @Component({
+  standalone: false,
   selector: 'formly-field-select',
   template: `
     <select *ngIf="props.multiple; else singleSelect"

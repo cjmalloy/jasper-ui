@@ -3,6 +3,7 @@ import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
 
 @Component({
+  standalone: false,
   selector: 'formly-field-input',
   template: `
     <div class="form-array">

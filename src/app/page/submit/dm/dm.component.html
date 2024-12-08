@@ -35,6 +35,7 @@
       <span><!-- Viewer --></span>
       <app-viewer [text]="dmForm.value.comment"
                   [tags]="$any(dmForm.value).tags"
+                  [commentControl]="comment"
                   (comment)="comment.setValue($event)"></app-viewer>
     } @else {
       <span i18n>Mesage:</span>

@@ -13,6 +13,7 @@ import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 
 @Component({
+  standalone: false,
   selector: 'app-todo-item',
   templateUrl: './item.component.html',
   styleUrls: ['./item.component.scss']

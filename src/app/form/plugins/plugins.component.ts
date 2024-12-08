@@ -16,10 +16,11 @@ import { Plugin } from '../../model/plugin';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { emptyObject, getScheme, writeObj } from '../../util/http';
-import { addAllHierarchicalTags, includesTag } from '../../util/tag';
+import { addAllHierarchicalTags, hasTag } from '../../util/tag';
 import { GenFormComponent } from './gen/gen.component';
 
 @Component({
+  standalone: false,
   selector: 'app-form-plugins',
   templateUrl: './plugins.component.html',
   styleUrls: ['./plugins.component.scss']
@@ -136,7 +137,7 @@ function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
 export function writePlugins(tags: string[], plugins: any): Record<string, any> | undefined {
   const result: Record<string, any> = {};
   for (const p in plugins) {
-    if (includesTag(p, tags)) result[p] = writeObj(plugins[p]);
+    if (hasTag(p, tags)) result[p] = writeObj(plugins[p]);
   }
   if (emptyObject(result)) return undefined;
   return result;

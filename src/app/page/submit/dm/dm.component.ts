@@ -15,7 +15,6 @@ import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { BookmarkService } from '../../../service/bookmark.service';
-import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
@@ -24,6 +23,7 @@ import { QUALIFIED_TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
+  standalone: false,
   selector: 'app-submit-dm',
   templateUrl: './dm.component.html',
   styleUrls: ['./dm.component.scss']
@@ -50,7 +50,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   private oldSubmit: string[] = [];
 
   constructor(
-    private config: ConfigService,
     private mod: ModService,
     public admin: AdminService,
     private router: Router,
@@ -88,7 +87,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       if (this.store.submit.sources) {
         this.sources.setValue(this.store.submit.sources)
       }
-      const tags = ['plugin/thread', ...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+      const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
       const added = without(tags, ...this.oldSubmit);
       const removed = without(this.oldSubmit, ...tags);
       if (added.length || removed.length) {
@@ -163,7 +162,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   changedTo(value: string) {
     const notes = !value || value === this.store.account.tag;
-    if (notes && !this.tags?.includesTag('notes')) {
+    if (notes && !this.tags?.hasTag('notes')) {
       const newTags = uniq([...without(this.tags!.tags!.value, ...['dm', 'internal', ...this.addedMailboxes]), 'notes']);
       this.tags!.setTags(newTags);
       this.addedMailboxes = [];
@@ -182,7 +181,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get editingViewer() {
-    return some(this.admin.editingViewer, (t: Plugin) => this.tags?.includesTag(t.tag));
+    return some(this.admin.editingViewer, (t: Plugin) => this.tags?.hasTag(t.tag));
   }
 
   syncEditor() {

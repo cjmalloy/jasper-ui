@@ -13,6 +13,7 @@ import { ConfigService } from '../../service/config.service';
 import { memo, MemoCache } from '../../util/memo';
 
 @Component({
+  standalone: false,
   selector: 'app-tabs',
   templateUrl: './tabs.component.html',
   styleUrl: './tabs.component.scss'
@@ -52,7 +53,7 @@ export class TabsComponent implements AfterViewInit {
   @HostListener('window:resize')
   onResize() {
     if (!this.options.length) return;
-    this.measureVisible();
+    defer(() => this.measureVisible());
   }
 
   measureVisible() {

@@ -8,6 +8,7 @@ import { Store } from '../../../store/store';
 import { getArgs, UrlFilter } from '../../../util/query';
 
 @Component({
+  standalone: false,
   selector: 'app-ref-responses',
   templateUrl: './responses.component.html',
   styleUrls: ['./responses.component.scss'],

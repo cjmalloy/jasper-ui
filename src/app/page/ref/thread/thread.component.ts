@@ -16,6 +16,7 @@ import { getArgs } from '../../../util/query';
 import { hasTag, removeTag } from '../../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-ref-thread',
   templateUrl: './thread.component.html',
   styleUrls: ['./thread.component.scss']

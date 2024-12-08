@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { AdminService } from '../service/admin.service';
 
 @Pipe({
+  standalone: false,
   name: 'plugins',
   pure: true,
 })

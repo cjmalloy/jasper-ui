@@ -4,6 +4,7 @@ import { ProxyService } from '../../service/api/proxy.service';
 import { Store } from '../../store/store';
 
 @Component({
+  standalone: false,
   selector: 'app-audio-upload',
   templateUrl: './audio-upload.component.html',
   styleUrls: ['./audio-upload.component.scss']

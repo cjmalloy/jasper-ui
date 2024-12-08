@@ -25,6 +25,7 @@ import { interestingTags } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
+  standalone: false,
   selector: 'app-submit-web-page',
   templateUrl: './web.component.html',
   styleUrls: ['./web.component.scss'],

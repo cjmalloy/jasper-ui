@@ -71,17 +71,15 @@ body.dark-theme {
     }
   }
 
-  background-color: var(--bg);
-  background-image: url("~/assets/bg-dark.png");
-  background-blend-mode: soft-light;
-  figure::backdrop, .editor.fullscreen app-md {
+  & {
     background-color: var(--bg);
     background-image: url("~/assets/bg-dark.png");
     background-blend-mode: soft-light;
   }
-
-  .resize-handle:after {
-    filter: drop-shadow(0.5px 0.5px 1px var(--border));
+  figure::backdrop, .editor.fullscreen app-md {
+    background-color: var(--bg);
+    background-image: url("~/assets/bg-dark.png");
+    background-blend-mode: soft-light;
   }
 
   app-root > .container {

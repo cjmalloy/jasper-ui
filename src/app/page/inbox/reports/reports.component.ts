@@ -9,6 +9,7 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
+  standalone: false,
   selector: 'app-inbox-reports',
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss'

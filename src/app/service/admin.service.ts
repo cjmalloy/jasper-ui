@@ -19,6 +19,7 @@ import { blogTemplate } from '../mods/blog';
 import { cacheMod } from '../mods/cache';
 import { chatTemplate } from '../mods/chat';
 import { chessMod } from '../mods/chess';
+import { codePlugin } from '../mods/code';
 import { commentPlugin } from '../mods/comment';
 import { cronPlugin } from '../mods/cron';
 import { dalleMod } from '../mods/dalle';
@@ -74,7 +75,7 @@ import { DEFAULT_WIKI_PREFIX, wikiConfig } from '../mods/wiki';
 import { Store } from '../store/store';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { addHierarchicalTags, hasPrefix, includesTag, tagIntersection } from '../util/tag';
+import { addHierarchicalTags, hasPrefix, hasTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { OEmbedService } from './api/oembed.service';
 import { PluginService } from './api/plugin.service';
@@ -123,6 +124,7 @@ export class AdminService {
       pdfPlugin,
       ...archiveMod.plugins,
       latexPlugin,
+      codePlugin,
       htmlPlugin,
       personPlugin,
       repostPlugin,
@@ -265,7 +267,7 @@ export class AdminService {
 
   private get _extFallback() {
     return (x: Ext) => {
-      if (x.modifiedString) return x;
+      if (!x.tag || x.modifiedString) return x;
       x = {...x};
       const tmpl = this.getTemplate(x.tag);
       let plugin = this.getPlugin(x.tag);
@@ -284,7 +286,7 @@ export class AdminService {
 
   get authorFallback() {
     return map((xs: Ext[]) => xs.map(x => {
-      if (x.modifiedString) return x;
+      if (!x.tag || x.modifiedString) return x;
       x = {...x};
       const tmpl = this.getTemplate(x.tag);
       let plugin = this.getPlugin(x.tag);
@@ -302,7 +304,7 @@ export class AdminService {
 
   get recipientFallback() {
     return map((xs: Ext[]) => xs.map(x => {
-      if (x.modifiedString) return x;
+      if (!x.tag || x.modifiedString) return x;
       x = {...x};
       const inbox = (hasPrefix(x.tag, 'plugin') ? '' : 'plugin/inbox/') + x.tag;
       const tmpl = this.getTemplate(inbox);
@@ -616,7 +618,7 @@ export class AdminService {
       .flatMap(p => p.config!.actions!.filter(a => {
         if (a.condition && !config?.[p.tag]?.[a.condition]) return false;
         if (a.global) return true;
-        return includesTag(p.tag, match);
+        return hasTag(p.tag, match);
       }).map(addParent(p)))
       .filter(a => !a.role || this.auth.hasRole(a.role));
   }
@@ -627,7 +629,7 @@ export class AdminService {
       .flatMap(p => p.config!.advancedActions!.filter(a => {
         if (a.condition && !config?.[p.tag]?.[a.condition]) return false;
         if (a.global) return true;
-        return includesTag(p.tag, match);
+        return hasTag(p.tag, match);
       }).map(addParent(p)))
       .filter(a => !a.role || this.auth.hasRole(a.role));
   }
@@ -639,7 +641,7 @@ export class AdminService {
         if (i.condition && !config?.[p.tag]?.[i.condition]) return false;
         if (i.global) return true;
         if (i.scheme && i.scheme === scheme) return true;
-        return includesTag(p.tag, match);
+        return hasTag(p.tag, match);
       }).map(addParent(p))
         .map(i => {
           if (!i.response && !i.anyResponse && !i.noResponse && !i.scheme) i.tag ||= p.tag;
@@ -656,7 +658,7 @@ export class AdminService {
       .flatMap(config => config.config!.editorButtons!.filter(b => {
         if (b.global) return true;
         if (b.scheme && b.scheme === scheme) return true;
-        return includesTag(config.tag, match);
+        return hasTag(config.tag, match);
       }).map(addParent(config))
         .map(b => {
           if (b.ribbon || !b.event) b.toggle ||= config.tag;
@@ -671,7 +673,7 @@ export class AdminService {
 
   getPublished(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.published.filter(p => includesTag(p.tag, match))
+    return this.published.filter(p => hasTag(p.tag, match))
       .flatMap(p => p.config!.published as string);
   }
 
@@ -682,22 +684,22 @@ export class AdminService {
 
   getPlugins(tags: string[] | undefined) {
     if (!tags) return [];
-    return Object.values(this.status.plugins).filter(p => tags.includes(p?.tag || '')) as Plugin[];
+    return Object.values(this.status.plugins).filter(p => hasTag(p?.tag, tags)) as Plugin[];
   }
 
   getPluginUi(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.uis.filter(p => match.includes(p.tag));
+    return this.uis.filter(p => hasTag(p.tag, match));
   }
 
   getPluginInfoUis(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.infoUis.filter(p => match.includes(p.tag));
+    return this.infoUis.filter(p => hasTag(p.tag, match));
   }
 
   getPluginForms(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.forms.filter(p => match.includes(p.tag));
+    return this.forms.filter(p => hasTag(p.tag, match));
   }
 
   getPluginSubForms(parent: string) {
@@ -720,7 +722,7 @@ export class AdminService {
 
   getPluginSettings(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.settings.filter(p => match.includes(p.tag));
+    return this.settings.filter(p => hasTag(p.tag, match));
   }
 
   @memo

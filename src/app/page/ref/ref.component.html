@@ -1,7 +1,5 @@
 <ng-container *mobxAutorun>
-  <h1 class="print-block">
-    {{ store.view.ref?.title || (store.view.top?.title ? 'Re: ' + store.view.top?.title : store.view.ref?.url ) || '' }}
-  </h1>
+  <h1 class="print-block">{{ store.view.pageTitle }}</h1>
   <app-tabs>
     <a class="logo" routerLink="/"></a>
     <h5></h5>
@@ -96,12 +94,12 @@
              [class.thread]="store.view.current === 'ref/thread'"
              [ref]="store.view.ref"
              [showToggle]="store.view.current !== 'ref/thread'"
-             [expandInline]="!config.mobile || !!threads"
+             [expandInline]="!config.mobile || store.view.current === 'ref/thread' || !!threads"
              [expanded]="expandedOnLoad"
              (copied)="reload()"></app-ref>
     @if (newResponses) {
       <div class="warning print-hide" i18n>
-        {{ newResponses }} new response(s)
+        {newResponses, plural, =1 {1 new response} other {{{newResponses}} new responses}}
       </div>
     }
     @if (refWarning) {

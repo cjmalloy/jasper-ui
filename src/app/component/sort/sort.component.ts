@@ -33,6 +33,7 @@ export const allRefSorts: {value: RefSort, label: string, title?: string }[] = [
 ];
 
 @Component({
+  standalone: false,
   selector: 'app-sort',
   templateUrl: './sort.component.html',
   styleUrls: ['./sort.component.scss']

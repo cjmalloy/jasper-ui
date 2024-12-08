@@ -14,6 +14,7 @@ import { getArgs } from '../../../util/query';
 import { hasTag } from '../../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-ref-errors',
   templateUrl: './errors.component.html',
   styleUrl: './errors.component.scss'

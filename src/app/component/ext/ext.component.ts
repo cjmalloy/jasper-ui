@@ -34,6 +34,7 @@ import { hasPrefix, parentTag } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 
 @Component({
+  standalone: false,
   selector: 'app-ext',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss']

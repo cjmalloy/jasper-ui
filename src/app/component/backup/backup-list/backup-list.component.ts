@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 
 @Component({
+  standalone: false,
   selector: 'app-backup-list',
   templateUrl: './backup-list.component.html',
   styleUrls: ['./backup-list.component.scss']

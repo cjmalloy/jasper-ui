@@ -4,6 +4,7 @@ import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 
 @Component({
+  standalone: false,
   selector: 'app-ext-list',
   templateUrl: './ext-list.component.html',
   styleUrls: ['./ext-list.component.scss']

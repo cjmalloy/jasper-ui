@@ -5,6 +5,7 @@ import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 
 @Component({
+  standalone: false,
   selector: 'app-inbox-page',
   templateUrl: './inbox.component.html',
   styleUrls: ['./inbox.component.scss'],

@@ -24,11 +24,12 @@ import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
 import { fixUrl } from '../../util/http';
-import { hasPrefix, prefix } from '../../util/tag';
+import { hasPrefix } from '../../util/tag';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
 @Component({
+  standalone: false,
   selector: 'app-submit-page',
   templateUrl: './submit.component.html',
   styleUrls: ['./submit.component.scss'],

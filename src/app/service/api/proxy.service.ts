@@ -74,7 +74,7 @@ export class ProxyService {
 
   save(file: File, origin = ''): Observable<Ref> {
     return this.http.post(`${this.base}`, file, {
-      params: params({ origin }),
+      params: params({ mime: file.type, origin }),
     }).pipe(
       map(mapRef),
       catchError(err => this.login.handleHttpError(err)),

@@ -4,6 +4,7 @@ import { Page } from '../../../model/page';
 import { Tag } from '../../../model/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-template-list',
   templateUrl: './template-list.component.html',
   styleUrls: ['./template-list.component.scss']

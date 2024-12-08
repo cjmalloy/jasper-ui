@@ -31,7 +31,7 @@ export function authors(ref: Ref, prefixes = ['user', 'plugin/from']) {
     } else if (p === '+plugin') {
       authors.push(...templates(ref.tags || [], '+plugin').map(t => t + (ref.origin || '')));
     } else if (p === 'plugin/from') {
-      authors.push(...templates(ref.tags || [], 'plugin/from').map(t => reverseOrigin(t.substring('plugin/from/'.length))));
+      authors.push(...templates(ref.tags || [], 'plugin/from').map(t => reverseOrigin(t.substring('plugin/from/'.length), ref.origin || '')));
     }
   }
   return uniq(authors);
@@ -125,6 +125,16 @@ export function getTitle(ref: Ref | undefined): string {
   const comment = (ref.comment || '').trim();
   if (title) return title;
   if (!comment) return ref.url;
+  return trimCommentForTitle(comment);
+}
+
+export function getPageTitle(ref: Ref | undefined, top?: Ref): string {
+  if (!ref) return '';
+  const title = (ref.title || '').trim();
+  const comment = (ref.comment || '').trim();
+  if (title) return title;
+  if (top?.title) return $localize`Re: ` + getTitle(top);
+  if (!comment) return top?.comment ? ($localize`Re: ` + getTitle(top)) : ref.url;
   return trimCommentForTitle(comment);
 }
 

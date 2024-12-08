@@ -19,6 +19,7 @@ import { printError } from '../../util/http';
 import { prefix, setPublic } from '../../util/tag';
 
 @Component({
+  standalone: false,
   selector: 'app-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss']
