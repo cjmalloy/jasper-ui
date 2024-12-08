@@ -410,8 +410,8 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
   delete$ = () => {
     this.serverError = [];
     return (this.admin.getPlugin('plugin/delete')
-        ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
-        : this.refs.delete(this.ref.url, this.ref.origin)
+        ? this.refs.update(deleteNotice(this.ref))
+        : this.refs.delete(this.ref.url, this.ref.origin).pipe(map(() => ''))
     ).pipe(
       tap(() => this.deleted = true),
       catchError((err: HttpErrorResponse) => {

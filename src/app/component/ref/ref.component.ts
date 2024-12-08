@@ -1049,14 +1049,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy {
   delete$ = () => {
     this.serverError = [];
     return (this.local && hasTag('locked', this.ref)
-        ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin).pipe(map(() => {}))
+        ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin)
         : this.local && !hasTag('plugin/delete', this.ref) && this.admin.getPlugin('plugin/delete')
-        ? this.refs.update(deleteNotice(this.ref)).pipe(map(() => {}))
-        : this.refs.delete(this.ref.url, this.ref.origin)
+        ? this.refs.update(deleteNotice(this.ref))
+        : this.refs.delete(this.ref.url, this.ref.origin).pipe(map(() => ''))
     ).pipe(
-      tap((cursor: any) => {
-        if (cursor)
-        this.deleted = true;
+      tap((cursor: string) => {
+        if (cursor) {
+          return this.store.eventBus.reload(this.ref);
+        } else {
+          this.deleted = true;
+        }
       }),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
