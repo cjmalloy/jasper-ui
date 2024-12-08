@@ -1,8 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
-import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { templateForm } from '../../form/template/template.component';
 import { Template, writeTemplate } from '../../model/template';
@@ -13,6 +12,7 @@ import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
+import { ActionComponent } from '../action/action.component';
 
 @Component({
   standalone: false,
@@ -20,9 +20,12 @@ import { printError } from '../../util/http';
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss']
 })
-export class TemplateComponent implements OnInit {
+export class TemplateComponent implements OnChanges {
   css = 'template list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
+
+  @ViewChildren('action')
+  actionComponents?: QueryList<ActionComponent>;
 
   @Input()
   template!: Template;
@@ -31,7 +34,6 @@ export class TemplateComponent implements OnInit {
   submitted = false;
   editing = false;
   viewSource = false;
-  deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
   serverError: string[] = [];
@@ -44,18 +46,24 @@ export class TemplateComponent implements OnInit {
     public store: Store,
     private templates: TemplateService,
     private fb: UntypedFormBuilder,
-    private router: Router,
   ) {
     this.editForm = templateForm(fb);
   }
 
-  ngOnInit(): void {
+  init(): void {
+    this.actionComponents?.forEach(c => c.reset());
     this.editForm.patchValue({
       ...this.template,
       config: this.template.config ? JSON.stringify(this.template.config, null, 2) : undefined,
       defaults: this.template.defaults ? JSON.stringify(this.template.defaults, null, 2) : undefined,
       schema: this.template.schema ? JSON.stringify(this.template.schema, null, 2) : undefined,
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.template) {
+      this.init();
+    }
   }
 
   @HostBinding('class')
@@ -128,17 +136,11 @@ export class TemplateComponent implements OnInit {
     });
   }
 
-  copy() {
-    this.catchError(this.templates.create({
+  copy$ = () => {
+    return this.templates.create({
       ...this.template,
       origin: this.store.account.origin,
-    })).subscribe(() => {
-      this.router.navigate(['/tags', this.template.tag]);
-    });
-  }
-
-  catchError(o: Observable<any>) {
-    return o.pipe(
+    }).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -146,22 +148,21 @@ export class TemplateComponent implements OnInit {
     );
   }
 
-  delete() {
+  delete$ = () => {
     const deleteNotice = !this.template.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
       ? this.templates.create(tagDeleteNotice(this.template))
       : of(null);
     return this.templates.delete(this.qualifiedTag).pipe(
-      tap(() => this.deleted = true),
       switchMap(() => deleteNotice),
+      tap(() => {
+        this.serverError = [];
+        this.deleted = true;
+      }),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-    ).subscribe(() => {
-      this.serverError = [];
-      this.deleting = false;
-      this.deleted = true;
-    });
+    );
   }
 
   download() {

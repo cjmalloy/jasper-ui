@@ -9,7 +9,7 @@
     }
   }
 }
-@if (groupedAdvancedActions || hiddenActions || mediaAttachment) {
+@if (advanced || hiddenActions || mediaAttachment) {
   <span class="fake-link show-more"
         (click)="showAdvanced($event)">…</span>
   <ng-template #actionsMenu>
