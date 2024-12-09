@@ -54,8 +54,8 @@ const logPlugin: Plugin = {
 };
 
 export const errorMod: Mod = {
-  plugins: {
+  plugin: [
     errorPlugin,
     logPlugin,
-  },
+  ],
 }

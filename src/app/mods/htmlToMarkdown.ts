@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const htmlToMarkdownConfig: Template = {
@@ -12,4 +13,10 @@ export const htmlToMarkdownConfig: Template = {
       { label: $localize`⬇️`, title: $localize`Convert HTML to Markdown`, event: 'html-to-markdown', global: true },
     ],
   },
+};
+
+export const htmlToMarkdownMod: Mod = {
+  template: [
+    htmlToMarkdownConfig,
+  ]
 };

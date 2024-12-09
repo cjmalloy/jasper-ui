@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const emailPlugin: Plugin = {
   tag: 'plugin/email',
@@ -18,4 +19,10 @@ export const emailPlugin: Plugin = {
       { query: 'plugin/email', label: $localize`📧️ email`, title: $localize`Emails`, group: $localize`Plugins 🧰️` },
     ],
   },
+};
+
+export const emailMod: Mod = {
+  plugin: [
+    emailPlugin,
+  ]
 };

@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const blogTemplate: Template = {
@@ -38,4 +39,10 @@ export const blogTemplate: Template = {
       tags: { elements: { type: 'string' } },
     },
   },
+};
+
+export const blogMod: Mod = {
+  template: [
+    blogTemplate,
+  ]
 };

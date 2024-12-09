@@ -1,6 +1,7 @@
 import { $localize } from '@angular/localize/init';
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const codePlugin: Plugin = {
   tag: 'plugin/code',
@@ -18,4 +19,10 @@ export const codePlugin: Plugin = {
       { query: 'plugin/code', label: $localize`🗒️ code`, title: $localize`Code`, group: $localize`Plugins 🧰️` },
     ],
   },
+};
+
+export const codeMod: Mod = {
+  plugin: [
+    codePlugin,
+  ]
 };

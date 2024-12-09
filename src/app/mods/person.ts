@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const personPlugin: Plugin = {
   tag: 'plugin/person',
@@ -24,4 +25,10 @@ export const personPlugin: Plugin = {
       }
     `,
   },
+};
+
+export const personMod: Mod = {
+  plugin: [
+    personPlugin,
+  ]
 };

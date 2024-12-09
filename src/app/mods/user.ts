@@ -1,5 +1,6 @@
 import { $localize } from '@angular/localize/init';
 import { DateTime } from 'luxon';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 import { RootConfig } from './root';
 
@@ -195,3 +196,9 @@ export interface UserConfig extends RootConfig {
   // TODO: move to ref `tag:/user/chris?url=tag:/kanban with plugin/settings/kanban
   kanbanLoadSize?: number;
 }
+
+export const userMod: Mod = {
+  template: [
+    userTemplate,
+  ]
+};

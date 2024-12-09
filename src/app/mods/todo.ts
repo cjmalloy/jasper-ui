@@ -100,10 +100,10 @@ export const todoTemplate: Template = {
 };
 
 export const todoMod: Mod = {
-  plugins: {
+  plugin: [
     todoPlugin,
-  },
-  templates: {
+  ],
+   template: [
     todoTemplate,
-  },
+  ],
 };

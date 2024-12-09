@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const feedPlugin: Plugin = {
   tag: 'plugin/feed',
@@ -108,4 +109,10 @@ export const feedPlugin: Plugin = {
       scrapeEmbed: { type: 'boolean' },
     },
   },
+};
+
+export const feedMod: Mod = {
+  plugin: [
+    feedPlugin,
+  ]
 };

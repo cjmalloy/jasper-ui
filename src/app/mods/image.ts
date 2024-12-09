@@ -177,10 +177,10 @@ export const imageTemplate: Template = {
 };
 
 export const imageMod: Mod = {
-  plugins: {
+  plugin: [
     imagePlugin,
-  },
-  templates: {
+  ],
+   template: [
     imageTemplate,
-  },
+  ],
 };

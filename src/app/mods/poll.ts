@@ -248,14 +248,14 @@ export const pollTemplate: Template = {
 };
 
 export const pollMod: Mod = {
-  plugins: {
+  plugin: [
     pollPlugin,
     pollOptionAPlugin,
     pollOptionBPlugin,
     pollOptionCPlugin,
     pollOptionDPlugin,
-  },
-  templates: {
+  ],
+   template: [
     pollTemplate,
-  },
+  ],
 };

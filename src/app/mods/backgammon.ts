@@ -122,10 +122,10 @@ export const backgammonTemplate: Template = {
 };
 
 export const backgammonMod: Mod = {
-  plugins: {
+  plugin: [
     backgammonPlugin,
-  },
-  templates: {
+  ],
+   template: [
     backgammonTemplate,
-  },
+  ],
 };

@@ -62,7 +62,7 @@ export function archiveUrl(plugin: Plugin, ref?: Ref, repost?: Ref) {
 }
 
 export const archiveMod: Mod = {
-  plugins: {
+  plugin: [
     archivePlugin,
-  },
+  ],
 };

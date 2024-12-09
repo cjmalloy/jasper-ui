@@ -397,11 +397,11 @@ export const breakpointPlugin: Plugin = {
 };
 
 export const debugMod: Mod = {
-  plugins: {
+  plugin: [
     debugPlugin,
     breakpointPlugin,
-  },
-  templates: {
+  ],
+   template: [
     debugTemplate,
-  },
+  ],
 };

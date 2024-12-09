@@ -2,6 +2,7 @@ import { $localize } from '@angular/localize/init';
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { findCache, findExtension, Ref } from '../model/ref';
+import { Mod } from '../model/tag';
 import { hasTag } from '../util/tag';
 
 export const pdfPlugin: Plugin = {
@@ -61,3 +62,9 @@ export const pdfResizePlugin: Plugin = {
     description: $localize`Adds an action button to open the PDF version.`,
   }
 }
+
+export const pdfMod: Mod = {
+  plugin: [
+    pdfPlugin,
+  ]
+};

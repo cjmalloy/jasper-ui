@@ -1,6 +1,7 @@
 import { $localize } from '@angular/localize/init';
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const seamlessPlugin: Plugin = {
   tag: 'plugin/seamless',
@@ -23,4 +24,10 @@ export const seamlessPlugin: Plugin = {
       }
     `,
   },
+};
+
+export const seamlessMod: Mod = {
+  plugin: [
+    seamlessPlugin,
+  ]
 };
