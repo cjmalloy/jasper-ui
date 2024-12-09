@@ -96,7 +96,7 @@ export class DebugComponent {
         tags: ['public', 'gen'],
       }).pipe(
         tap(() => {
-          if (this.admin.def.plugins.voteUpPlugin) {
+          if (this.admin.getPlugin('plugin/vote/up')) {
             this.ts.createResponse('plugin/vote/up', url).subscribe();
           }
         }),

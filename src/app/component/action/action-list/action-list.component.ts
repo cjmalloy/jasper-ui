@@ -66,7 +66,7 @@ export class ActionListComponent implements AfterViewInit {
 
   @memo
   get advanced() {
-    return Object.keys(this.groupedAdvancedActions as any).length > 0;
+    return this.groupedAdvancedActions && Object.keys(this.groupedAdvancedActions as any).length > 0;
   }
 
   apply$ = (actions: Action[]) => () => {

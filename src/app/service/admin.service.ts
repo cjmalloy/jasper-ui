@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
-import { findKey, identity, isEqual, omitBy, reduce, uniq } from 'lodash-es';
+import { findKey, identity, isEqual, reduce, uniq } from 'lodash-es';
 import { autorun, runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
