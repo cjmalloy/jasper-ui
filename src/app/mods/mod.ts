@@ -16,7 +16,7 @@ export const modPlugin: Plugin = {
     filters: [
       { query: 'plugin/mod', label: $localize`🎁️ mod`, title: $localize`Mod`, group: $localize`Plugins 🧰️` },
     ],
-    actions: [{ event: 'install', label: $localize`install` }],
+    actions: [{ event: 'install', label: $localize`install`, title: $localize`Install this mod`, confirm: $localize`Are you sure you want to install this mod?` }],
   },
   schema: modSchema,
 };

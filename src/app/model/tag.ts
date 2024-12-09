@@ -486,6 +486,20 @@ export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
   return filterModels(JSON.parse(hydrated));
 }
 
+export function clear<T extends Config>(c: T) {
+  c = omitBy(c, i => !i) as any;
+  c.config = omitBy(c.config, i => !i);
+  delete c.config!.generated;
+  delete c.config!.mod;
+  delete c.defaults;
+  delete c.type;
+  delete c.origin;
+  delete c.modified;
+  delete c.modifiedString;
+  delete c._cache;
+  return c;
+}
+
 export type TagQueryArgs = {
   query?: string,
   level?: number,

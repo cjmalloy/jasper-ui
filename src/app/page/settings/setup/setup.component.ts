@@ -2,15 +2,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { forOwn, mapValues, uniq } from 'lodash-es';
-import { catchError, concat, last, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { Plugin } from '../../../model/plugin';
+import { catchError, concat, last, throwError } from 'rxjs';
 import { Config } from '../../../model/tag';
-import { Template } from '../../../model/template';
-import { tagDeleteNotice } from '../../../mods/delete';
 import { AdminService } from '../../../service/admin.service';
-import { PluginService } from '../../../service/api/plugin.service';
-import { TemplateService } from '../../../service/api/template.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
@@ -31,14 +25,15 @@ export class SettingsSetupPage implements OnInit {
   adminForm: UntypedFormGroup;
   serverError: string[] = [];
   installMessages: string[] = [];
-  modGroups = configGroups({...this.admin.def.plugins, ...this.admin.def.templates });
+  modGroups = configGroups({
+    ...this.admin.status.disabledPlugins, ...this.admin.status.disabledTemplates,
+    ...this.admin.status.plugins, ...this.admin.status.templates,
+    ...this.admin.def.plugins, ...this.admin.def.templates });
 
   constructor(
     public admin: AdminService,
     private mod: ModService,
     public store: Store,
-    private plugins: PluginService,
-    private templates: TemplateService,
     private fb: UntypedFormBuilder,
   ) {
     mod.setTitle($localize`Settings: Setup`);
@@ -62,9 +57,8 @@ export class SettingsSetupPage implements OnInit {
     }
     const deletes: string[] = [];
     const installs: string[] = [];
-    for (const plugin in this.admin.status.plugins) {
+    for (const plugin in this.admin.def.plugins) {
       const def = this.admin.def.plugins[plugin];
-      if (!def) continue;
       const status = this.admin.status.plugins[plugin] || this.admin.status.disabledPlugins[plugin];
       if (!!status === !!this.adminForm.value.mods[plugin]) continue;
       if (this.adminForm.value.mods[plugin]) {
@@ -73,9 +67,8 @@ export class SettingsSetupPage implements OnInit {
         deletes.push(modId(status));
       }
     }
-    for (const template in this.admin.status.templates) {
+    for (const template in this.admin.def.templates) {
       const def = this.admin.def.templates[template];
-      if (!def) continue;
       const status = this.admin.status.templates[template] || this.admin.status.disabledTemplates[template];
       if (!!status === !!this.adminForm.value.mods[template]) continue;
       if (this.adminForm.value.mods[template]) {
@@ -156,6 +149,12 @@ export class SettingsSetupPage implements OnInit {
     const mod = modId(config);
     return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p) && p.config?.needsUpdate) ||
       Object.values(this.admin.status.templates).find(t => t && mod === modId(t) && t.config?.needsUpdate);
+  }
+
+  installed(config: Config) {
+    const mod = modId(config);
+    return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p)) ||
+      Object.values(this.admin.status.templates).find(t => t && mod === modId(t));
   }
 
   disabled(config: Config) {

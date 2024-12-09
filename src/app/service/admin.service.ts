@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
-import { findKey, identity, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
+import { findKey, identity, isEqual, omitBy, reduce, uniq } from 'lodash-es';
 import { autorun, runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -9,7 +9,7 @@ import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { Config, EditorButton, Mod, Tag } from '../model/tag';
+import { clear, Config, EditorButton, Mod, Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { User } from '../model/user';
 import { aiMod } from '../mods/ai';
@@ -95,10 +95,10 @@ import { ConfigService } from './config.service';
 export class AdminService {
 
   status = {
-    plugins: <Record<string, Plugin | undefined>> {},
-    disabledPlugins: <Record<string, Plugin | undefined>> {},
-    templates: <Record<string, Template | undefined>> {},
-    disabledTemplates: <Record<string, Template | undefined>> {},
+    plugins: <Record<string, Plugin>> {},
+    disabledPlugins: <Record<string, Plugin>> {},
+    templates: <Record<string, Template>> {},
+    disabledTemplates: <Record<string, Template>> {},
   };
 
   mods: Mod[] = [
@@ -196,10 +196,10 @@ export class AdminService {
     autorun(() => {
       const mod = this.store.eventBus.ref?.plugins?.['plugin/mod'];
       if (this.store.eventBus.event === 'install') {
-        this.install$(mod, (msg, p) => store.eventBus.progress(msg, p))
+        this.install$(this.store.eventBus.ref?.title || '', mod, (msg, p) => store.eventBus.progress(msg, p))
           .subscribe(mod => {
-            this.pluginToStatus(mod.plugin);
-            this.templateToStatus(mod.template);
+            this.pluginToStatus(mod.plugin || []);
+            this.templateToStatus(mod.template || []);
           });
       }
     });
@@ -209,9 +209,9 @@ export class AdminService {
     this._cache.clear();
     MemoCache.clear(this);
     runInAction(() => this.store.view.updates = false);
-    this.status.plugins = mapValues(this.def.plugins, () => undefined);
+    this.status.plugins = {};
     this.status.disabledPlugins = {};
-    this.status.templates = mapValues(this.def.templates, () => undefined);
+    this.status.templates = {};
     this.status.disabledTemplates = {};
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
@@ -343,7 +343,7 @@ export class AdminService {
       console.error(`Too many templates to load, only loaded ${alreadyLoaded}. Increase maxTemplates to load more.`)
       return of(null);
     }
-    return this.templates.page({query: this.localOriginQuery, page, size: this.config.fetchBatch}).pipe(
+    return this.templates.page({query: this.localOriginQuery + ':!_config', page, size: this.config.fetchBatch}).pipe(
       tap(batch => this.templateToStatus(batch.content)),
       switchMap(batch => !batch.content.length ? of(null) : this.loadTemplates$(page + 1)),
     );
@@ -356,9 +356,13 @@ export class AdminService {
         this.status.disabledPlugins[key] = p;
       } else {
         this.status.plugins[key] = p;
+        this.def.plugins[key] ||= clear(p);
       }
       p.config ||= {};
       p.config.needsUpdate ||= this.needsUpdate(this.def.plugins[key], p);
+      if (p.config.needsUpdate) {
+        console.log(key + ' needs update');
+      }
     }
   }
 
@@ -369,9 +373,13 @@ export class AdminService {
         this.status.disabledTemplates[key] = t;
       } else {
         this.status.templates[key] = t;
+        this.def.templates[key] ||= t;
       }
       t.config ||= {};
       t.config.needsUpdate ||= this.needsUpdate(this.def.templates[key], t);
+      if (t.config.needsUpdate) {
+        console.log(key + ' needs update');
+      }
     }
   }
 
@@ -924,14 +932,15 @@ export class AdminService {
     );
   }
 
-  install$(mod: Mod, _: progress): Observable<any> {
+  install$(mod: string, bundle: Mod, _: progress): Observable<any> {
+    const defaultMod: <T extends Config> (t: T) => T = c =>( { ...c, config: { ...c.config || {}, mod: c.config?.mod || mod } });
     return concat(...[
       of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
-      ...(mod.ref || []).map(p => this.installRef$(p, _)),
-      ...(mod.ext || []).map(p => this.installExt$(p, _)),
-      ...(mod.user || []).map(p => this.installUser$(p, _)),
-      ...(mod.plugin || []).map(p => this.installPlugin$(p, _)),
-      ...(mod.template || []).map(t => this.installTemplate$(t, _)),
+      ...(bundle.ref || []).map(p => this.installRef$(p, _)),
+      ...(bundle.ext || []).map(p => this.installExt$(p, _)),
+      ...(bundle.user || []).map(p => this.installUser$(p, _)),
+      ...(bundle.plugin || []).map(p => this.installPlugin$(defaultMod(p), _)),
+      ...(bundle.template || []).map(t => this.installTemplate$(defaultMod(t), _)),
     ]).pipe(toArray());
   }
 
@@ -1007,27 +1016,13 @@ export class AdminService {
     ]).pipe(toArray());
   }
 
-  needsUpdate(def: Plugin | Template, status: Plugin | Template) {
+  needsUpdate(def: Config, status: Config) {
     if (!this.store.account.admin) return false;
-    if (!def) return false;
     if (def.config?.noUpdate || status.config?.noUpdate) return false;
     if (def.config?.version != status.config?.version) {
       if (def.config?.version && status.config?.version) return def.config.version > status.config.version;
     }
-    def = omitBy(def, i => !i) as any;
-    status = omitBy(status, i => !i) as any;
-    def.config = omitBy(def.config, i => !i);
-    status.config = omitBy(status.config, i => !i);
-    delete def.config!.generated;
-    delete def.defaults;
-    delete status.config!.generated;
-    delete status.defaults;
-    delete status.type;
-    delete status.origin;
-    delete status.modified;
-    delete status.modifiedString;
-    delete status._cache;
-    return !isEqual(def, status);
+    return !isEqual(clear(def), clear(status));
   }
 }
 
