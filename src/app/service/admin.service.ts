@@ -271,60 +271,6 @@ export class AdminService {
     return this.store.account.origin || '*';
   }
 
-  private get _extFallback() {
-    return (x: Ext) => {
-      if (!x.tag || x.modifiedString) return x;
-      x = {...x};
-      const tmpl = this.getTemplate(x.tag);
-      let plugin = this.getPlugin(x.tag);
-      x.name ||= plugin?.name || tmpl?.name;
-      return x;
-    };
-  }
-
-  get extFallback() {
-    return map(this._extFallback);
-  }
-
-  get extFallbacks() {
-    return map((xs: Ext[]) => xs.map(this._extFallback));
-  }
-
-  get authorFallback() {
-    return map((xs: Ext[]) => xs.map(x => {
-      if (!x.tag || x.modifiedString) return x;
-      x = {...x};
-      const tmpl = this.getTemplate(x.tag);
-      let plugin = this.getPlugin(x.tag);
-      if (plugin?.config?.signature) {
-        plugin = this.getPlugin(plugin.config.signature) || plugin;
-        x.tag = plugin?.tag || x.tag;
-        x.name ||= plugin?.name;
-      } else if (x.tag.startsWith('+plugin/')) {
-        x.tag = '';
-      }
-      x.name ||= tmpl?.name;
-      return x;
-    }));
-  }
-
-  get recipientFallback() {
-    return map((xs: Ext[]) => xs.map(x => {
-      if (!x.tag || x.modifiedString) return x;
-      x = {...x};
-      const inbox = (hasPrefix(x.tag, 'plugin') ? '' : 'plugin/inbox/') + x.tag;
-      const tmpl = this.getTemplate(inbox);
-      let plugin = this.getPlugin(inbox);
-      if (plugin?.config?.signature) {
-        plugin = this.getPlugin(plugin.config.signature) || plugin;
-        x.tag = plugin?.tag || x.tag;
-        x.name ||= plugin?.name;
-      }
-      x.name ||= tmpl?.name;
-      return x;
-    }));
-  }
-
   private loadPlugins$(page = 0): Observable<null> {
     const alreadyLoaded = page * this.config.fetchBatch;
     if (alreadyLoaded >= this.config.maxPlugins) {
@@ -385,6 +331,60 @@ export class AdminService {
 
   keyOf(dict: Record<string, Tag>, tag: string) {
     return findKey(dict, p => p.tag === tag) || tag || 'root';
+  }
+
+  private get _extFallback() {
+    return (x: Ext) => {
+      if (!x.tag || x.modifiedString) return x;
+      x = {...x};
+      const tmpl = this.getTemplate(x.tag);
+      let plugin = this.getPlugin(x.tag);
+      x.name ||= plugin?.name || tmpl?.name;
+      return x;
+    };
+  }
+
+  get extFallback() {
+    return map(this._extFallback);
+  }
+
+  get extFallbacks() {
+    return map((xs: Ext[]) => xs.map(this._extFallback));
+  }
+
+  get authorFallback() {
+    return map((xs: Ext[]) => xs.map(x => {
+      if (!x.tag || x.modifiedString) return x;
+      x = {...x};
+      const tmpl = this.getTemplate(x.tag);
+      let plugin = this.getPlugin(x.tag);
+      if (plugin?.config?.signature) {
+        plugin = this.getPlugin(plugin.config.signature) || plugin;
+        x.tag = plugin?.tag || x.tag;
+        x.name ||= plugin?.name;
+      } else if (x.tag.startsWith('+plugin/')) {
+        x.tag = '';
+      }
+      x.name ||= tmpl?.name;
+      return x;
+    }));
+  }
+
+  get recipientFallback() {
+    return map((xs: Ext[]) => xs.map(x => {
+      if (!x.tag || x.modifiedString) return x;
+      x = {...x};
+      const inbox = (hasPrefix(x.tag, 'plugin') ? '' : 'plugin/inbox/') + x.tag;
+      const tmpl = this.getTemplate(inbox);
+      let plugin = this.getPlugin(inbox);
+      if (plugin?.config?.signature) {
+        plugin = this.getPlugin(plugin.config.signature) || plugin;
+        x.tag = plugin?.tag || x.tag;
+        x.name ||= plugin?.name;
+      }
+      x.name ||= tmpl?.name;
+      return x;
+    }));
   }
 
   configProperty(...names: string[]): [Plugin | Template] {
