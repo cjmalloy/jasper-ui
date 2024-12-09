@@ -23,8 +23,6 @@ services:
     volumes:
       - ../:/e2e
   client:
-    profiles:
-      - ci
     build: ..
 #    image: ghcr.io/cjmalloy/jasper-ui:master
     ports:
