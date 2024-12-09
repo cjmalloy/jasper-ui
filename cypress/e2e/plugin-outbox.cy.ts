@@ -191,8 +191,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.wait('@pull');
     cy.wait(100);
   });
-  xit('@repl: check reply was pulled', () => {
-    // Broken only on ci
+  it('@repl: check reply was pulled', () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=ADMIN&tag=bob');
     cy.wait('@notifications');
@@ -202,8 +201,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice');
   });
-  xit('@repl: check inbox was converted to outbox', () => {
-    // Broken only on ci
+  it('@repl: check inbox was converted to outbox', () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=ADMIN&tag=charlie');
     cy.wait('@notifications');
