@@ -539,19 +539,9 @@ export class AdminService {
     if (!this._cache.has('embeddable')) {
       this._cache.set('embeddable', Object.values(this.status.plugins).filter(p => {
         if (!p) return false;
+        if (p?.config?.embeddable) return true;
+        if (p?.config?.editingViewer) return true;
         if (p?.config?.ui) return true;
-        if (p === this.status.plugins.qrPlugin) return true;
-        if (p === this.status.plugins.modPlugin) return true;
-        if (p === this.status.plugins.embedPlugin) return true;
-        if (p === this.status.plugins.audioPlugin) return true;
-        if (p === this.status.plugins.videoPlugin) return true;
-        if (p === this.status.plugins.imagePlugin) return true;
-        if (p === this.status.plugins.pdfPlugin) return true;
-        if (p === this.status.plugins.lensPlugin) return true;
-        if (p === this.status.plugins.backgammonPlugin) return true;
-        if (p === this.status.plugins.chessPlugin) return true;
-        if (p === this.status.plugins.todoPlugin) return true;
-        if (p === this.status.plugins.playlistPlugin) return true;
         return false;
       }).map(p => p!.tag));
     }

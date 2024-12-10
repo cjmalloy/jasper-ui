@@ -231,18 +231,18 @@
             @if (store.account.user && local) {
               <a routerLink="/submit/web" [queryParams]="{ url, tag: 'plugin/repost' }" i18n>repost</a>
             }
-            @if (!hideEdit) {
-              @if (writeAccess) {
-                <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
-              } @else {
-                <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
-              }
+          }
+          @if (!hideEdit) {
+            @if (ref.created && writeAccess) {
+              <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+            } @else {
+              <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
             }
-            @if (store.account.mod || taggingAccess) {
-              <app-confirm-action #action
-                                  [class.force-delete]="deleteAccess"
-                                  [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
-            }
+          }
+          @if (ref.created && !ref.upload && (store.account.mod || taggingAccess)) {
+            <app-confirm-action #action
+                                [class.force-delete]="deleteAccess"
+                                [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
           }
           @if (ref.upload) {
             @if (ref.exists) {

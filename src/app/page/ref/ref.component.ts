@@ -107,7 +107,7 @@ export class RefPage implements OnInit, OnDestroy {
     MemoCache.clear(this);
     url ||= this.store.view.url;
     if (!url) return;
-    this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions = count);
+    this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() => this.store.view.versions = count));
     this.refs.getCurrent(url).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),

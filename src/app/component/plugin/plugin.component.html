@@ -18,7 +18,8 @@
       <app-confirm-action #action [action]="copy$" i18n>install</app-confirm-action>
     } @else if (!local) {
       <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
-    } @else if (store.account.admin) {
+    }
+    @if (created && local && store.account.admin) {
       <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
     } @else {
       <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
