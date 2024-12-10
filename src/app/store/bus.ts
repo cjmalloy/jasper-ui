@@ -105,9 +105,13 @@ export class EventBus {
   }
 
   clearProgress(steps = 0) {
-    this.progressMessages = [];
-    this.progressNum = 0;
-    this.progressDen = steps;
+    if (!steps || !this.progressDen || this.progressNum >= this.progressDen) {
+      this.progressMessages = [];
+      this.progressNum = 0;
+      this.progressDen = steps;
+    } else {
+      this.progressDen += steps;
+    }
   }
 
   msg(msg: string) {
