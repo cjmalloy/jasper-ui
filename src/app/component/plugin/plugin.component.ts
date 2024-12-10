@@ -1,8 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
-import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { pluginForm } from '../../form/plugin/plugin.component';
 import { Plugin, writePlugin } from '../../model/plugin';
@@ -14,6 +13,7 @@ import { Store } from '../../store/store';
 import { downloadPluginExport, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
+import { ActionComponent } from '../action/action.component';
 
 @Component({
   standalone: false,
@@ -21,9 +21,12 @@ import { printError } from '../../util/http';
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss']
 })
-export class PluginComponent implements OnInit {
+export class PluginComponent implements OnChanges {
   css = 'plugin list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
+
+  @ViewChildren('action')
+  actionComponents?: QueryList<ActionComponent>;
 
   @Input()
   plugin!: Plugin;
@@ -32,7 +35,6 @@ export class PluginComponent implements OnInit {
   submitted = false;
   editing = false;
   viewSource = false;
-  deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
   serverError: string[] = [];
@@ -46,18 +48,24 @@ export class PluginComponent implements OnInit {
     public store: Store,
     private plugins: PluginService,
     private fb: UntypedFormBuilder,
-    private router: Router,
   ) {
     this.editForm = pluginForm(fb);
   }
 
-  ngOnInit(): void {
+  init(): void {
+    this.actionComponents?.forEach(c => c.reset());
     this.editForm.patchValue({
       ...this.plugin,
       config: this.plugin.config ? JSON.stringify(this.plugin.config, null, 2) : undefined,
       defaults: this.plugin.defaults ? JSON.stringify(this.plugin.defaults, null, 2) : undefined,
       schema: this.plugin.schema ? JSON.stringify(this.plugin.schema, null, 2) : undefined,
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.plugin) {
+      this.init();
+    }
   }
 
   @HostBinding('class')
@@ -68,12 +76,20 @@ export class PluginComponent implements OnInit {
       .replace(/\./g, '-');
   }
 
+  get created() {
+    return !!this.plugin.modified;
+  }
+
   get qualifiedTag() {
-    return this.plugin.tag + this.plugin.origin;
+    return this.plugin.tag + this.origin;
+  }
+
+  get origin() {
+    return this.plugin.origin || '';
   }
 
   get local() {
-    return this.plugin.origin === this.store.account.origin;
+    return this.origin === this.store.account.origin;
   }
 
   save() {
@@ -110,7 +126,7 @@ export class PluginComponent implements OnInit {
     }
     if (this.configErrors.length || this.defaultsErrors.length || this.schemaErrors.length) return;
     this.plugins.update(plugin).pipe(
-      switchMap(() => this.plugins.get(this.plugin.tag + this.plugin.origin)),
+      switchMap(() => this.plugins.get(this.qualifiedTag)),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -122,17 +138,11 @@ export class PluginComponent implements OnInit {
     });
   }
 
-  copy() {
-    this.catchError(this.plugins.create({
+  copy$ = () => {
+    return this.plugins.create({
       ...this.plugin,
       origin: this.store.account.origin,
-    })).subscribe(() => {
-      this.router.navigate(['/tag', this.plugin.tag]);
-    });
-  }
-
-  catchError(o: Observable<any>) {
-    return o.pipe(
+    }).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -140,25 +150,24 @@ export class PluginComponent implements OnInit {
     );
   }
 
-  delete() {
+  delete$ = () => {
     const deleteNotice = !this.plugin.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
       ? this.plugins.create(tagDeleteNotice(this.plugin))
       : of(null);
     return this.plugins.delete(this.qualifiedTag).pipe(
-      tap(() => this.deleted = true),
       switchMap(() => deleteNotice),
+      tap(() => {
+        this.serverError = [];
+        this.deleted = true;
+      }),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-    ).subscribe(() => {
-      this.serverError = [];
-      this.deleting = false;
-      this.deleted = true;
-    });
+    );
   }
 
-  download() {
+  download = () => {
     downloadTag(writePlugin(this.plugin));
   }
 

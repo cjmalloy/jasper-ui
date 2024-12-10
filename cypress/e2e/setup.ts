@@ -6,8 +6,8 @@ export function clearMods(base = '') {
   cy.get('.list-container').then(l => {
     if (!l.find('.plugin').length) return;
     cy.get('.plugin').each(ps => {
-      cy.wrap(ps).find('a').contains('delete').click();
-      cy.wrap(ps).find('a').contains('yes').click();
+      cy.wrap(ps).find('.action').contains('delete').click();
+      cy.wrap(ps).find('.action').contains('yes').click();
       cy.wait('@clearPlugin');
     });
   });
@@ -19,8 +19,8 @@ export function clearMods(base = '') {
     if (!l.find('.template').length) return;
     cy.get('.template').each(ts => {
       if (ts.find('.host').text().startsWith('(_config/')) return;
-      cy.wrap(ts).find('a').contains('delete').click();
-      cy.wrap(ts).find('a').contains('yes').click();
+      cy.wrap(ts).find('.action').contains('delete').click();
+      cy.wrap(ts).find('.action').contains('yes').click();
       cy.wait('@clearTemplate');
     });
   });

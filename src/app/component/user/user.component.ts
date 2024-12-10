@@ -13,7 +13,7 @@ import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { Ext } from '../../model/ext';
@@ -81,8 +81,8 @@ export class UserComponent implements OnChanges {
     MemoCache.clear(this);
     this.actionComponents?.forEach(c => c.reset());
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
-    if (this.user && !this.profile) {
-      this.exts.getCachedExt(this.user.tag, this.user.origin)
+    if (this.created && !this.profile) {
+      this.exts.getCachedExt(this.user!.tag, this.user!.origin)
       .subscribe(x => this.ext = x);
       this.profiles.getProfile(this.qualifiedTag)
       .subscribe(profile => this.profile = profile);
@@ -98,6 +98,11 @@ export class UserComponent implements OnChanges {
   @ViewChild(UserFormComponent)
   set refForm(value: UserFormComponent) {
     if (this.user) defer(() => value?.setUser(this.user!));
+  }
+
+  @memo
+  get created() {
+    return this.user?.modified;
   }
 
   @memo
@@ -244,17 +249,11 @@ export class UserComponent implements OnChanges {
     });
   }
 
-  copy() {
-    this.catchError(this.users.create({
+  copy$ = () => {
+    return this.users.create({
       ...this.user!,
       origin: this.store.account.origin,
-    })).subscribe(() => {
-      this.router.navigate(['/user', this.user!.tag]);
-    });
-  }
-
-  catchError(o: Observable<any>) {
-    return o.pipe(
+    }).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -291,22 +290,20 @@ export class UserComponent implements OnChanges {
     );
   }
 
-  keygen() {
+  keygen$ = () => {
     this.serverError = [];
-    if (this.user) {
-      this.users.keygen(this.qualifiedTag).pipe(
-        catchError((err: HttpErrorResponse) => {
-          this.serverError.push(...printError(err));
-          return throwError(() => err);
-        }),
-      ).pipe(
-        switchMap(() => this.users.get(this.qualifiedTag))
-      ).subscribe(user => {
+    return this.users.keygen(this.qualifiedTag).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError.push(...printError(err));
+        return throwError(() => err);
+      }),
+      switchMap(() => this.users.get(this.qualifiedTag)),
+      tap(user => {
         this.user = user;
         this.serverError = [];
         this.genKey = false;
         this.init();
-      });
-    }
+      })
+    );
   }
 }

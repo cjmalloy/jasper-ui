@@ -8,21 +8,22 @@ import { toJS } from 'mobx';
 import { v4 as uuid } from 'uuid';
 import { hasAnyResponse, hasResponse, hasTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
-import { Plugin } from './plugin';
-import { Ref } from './ref';
-import { Template } from './template';
-import { Role } from './user';
+import { Ext, extSchema } from './ext';
+import { Plugin, pluginSchema } from './plugin';
+import { Ref, refSchema } from './ref';
+import { Template, templateSchema } from './template';
+import { Role, User, userSchema } from './user';
 
-export interface HasOrigin {
+
+export interface Cursor {
   origin?: string;
-}
-export interface Cursor extends HasOrigin {
-  upload?: boolean;
-  exists?: boolean;
   modified?: DateTime;
   // Saved to pass modified check since moment looses precision
   // TODO: Does luxon loose precision?
   modifiedString?: string;
+  // Client-only
+  upload?: boolean;
+  exists?: boolean;
 }
 
 export interface Tag extends Cursor {
@@ -32,14 +33,34 @@ export interface Tag extends Cursor {
 }
 
 export interface Mod {
-  plugins?: Record<string, Plugin>;
-  templates?: Record<string, Template>;
+  ref?: Ref[];
+  ext?: Ext[];
+  user?: User[];
+  plugin?: Plugin[];
+  template?: Template[];
 }
+
+export function bundleSize(mod: Mod) {
+  return (mod.ref?.length || 0) +
+    (mod.ext?.length || 0) +
+    (mod.user?.length || 0) +
+    (mod.plugin?.length || 0) +
+    (mod.template?.length || 0);
+}
+
+export const modSchema: Schema = {
+  optionalProperties: {
+    ref: { elements: refSchema },
+    ext: { elements: extSchema },
+    user: { elements: userSchema },
+    plugin: { elements: pluginSchema },
+    template: { elements: templateSchema },
+  }
+};
 
 export type ModType = 'config' | 'icon' | 'feature' | 'lens' | 'plugin' | 'editor' | 'semantic' | 'theme' | 'tool';
 
 export interface Config extends Tag {
-  type?: 'plugin' | 'template';
   config?: {
     /**
      * Configs may only be created and edited by admin, so we allow anything.
@@ -158,6 +179,8 @@ export interface Config extends Tag {
    * JTD schema for validating config.
    */
   schema?: Schema;
+  // Client-only
+  type?: 'plugin' | 'template';
   /**
    * Cache for compiled templates.
    */
@@ -469,6 +492,20 @@ export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
     user: user,
   });
   return filterModels(JSON.parse(hydrated));
+}
+
+export function clear<T extends Config>(c: T) {
+  c = omitBy(c, i => !i) as any;
+  c.config = omitBy(c.config, i => !i);
+  delete c.config!.generated;
+  delete c.config!.mod;
+  delete c.defaults;
+  delete c.type;
+  delete c.origin;
+  delete c.modified;
+  delete c.modifiedString;
+  delete c._cache;
+  return c;
 }
 
 export type TagQueryArgs = {

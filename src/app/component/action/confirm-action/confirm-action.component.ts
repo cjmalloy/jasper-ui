@@ -14,6 +14,8 @@ export class ConfirmActionComponent extends ActionComponent {
   @Input()
   message = $localize`are you sure?`;
   @Input()
+  warning = '';
+  @Input()
   action: () => Observable<any|never> = () => of(null);
   @Input()
   minDelayMs = 1000;

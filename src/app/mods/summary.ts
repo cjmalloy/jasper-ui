@@ -144,8 +144,8 @@ export const summaryPlugin: Plugin = {
 };
 
 export const summaryMod: Mod = {
-  plugins: {
+  plugin: [
     summaryQueryPlugin,
     summaryPlugin,
-  },
+  ],
 };

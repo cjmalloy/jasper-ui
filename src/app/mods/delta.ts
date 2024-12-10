@@ -32,8 +32,8 @@ export const deltaSignaturePlugin: Plugin = {
 };
 
 export const deltaMod: Mod = {
-  plugins: {
+  plugin: [
     deltaPlugin,
     deltaSignaturePlugin,
-  },
+  ],
 };

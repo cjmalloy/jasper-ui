@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
+import { Mod } from '../model/tag';
 
 export const fullscreenPlugin: Plugin = {
   tag: 'plugin/fullscreen',
@@ -31,4 +32,10 @@ export const fullscreenPlugin: Plugin = {
       onload: { type: 'boolean' },
     },
   },
+};
+
+export const fullscreenMod: Mod = {
+  plugin: [
+    fullscreenPlugin,
+  ]
 };

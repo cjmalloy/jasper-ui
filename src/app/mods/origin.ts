@@ -286,10 +286,10 @@ export function isPushing(remote: Ref, subOrigin = '') {
 }
 
 export const remoteOriginMod: Mod = {
-  plugins: {
+  plugin: [
     originPlugin,
     originPushPlugin,
     originPullPlugin,
     originTunnelPlugin,
-  },
+  ],
 };

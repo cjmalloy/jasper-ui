@@ -151,13 +151,13 @@ export const invoicePaidPlugin: Plugin = {
 };
 
 export const queueMod: Mod = {
-  plugins: {
+  plugin: [
     invoicePlugin,
     invoiceRejectionPlugin,
     invoiceDisputedPlugin,
     invoicePaidPlugin,
-  },
-  templates: {
+  ],
+   template: [
     queueTemplate,
-  },
+  ],
 };

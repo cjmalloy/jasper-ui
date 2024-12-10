@@ -1,0 +1,42 @@
+@if (mod?.ref?.length) {
+  <h5 i18n>Refs</h5>
+  @for (ref of mod?.ref || []; track ref) {
+    <app-ref [ref]="ref"></app-ref>
+  }
+  @if (mod?.ext?.length || mod?.user?.length || mod?.plugin?.length || mod?.template?.length) {
+    <hr>
+  }
+}
+@if (mod?.ext?.length) {
+  <h5 i18n>Exts</h5>
+  @for (ext of mod?.ext || []; track ext) {
+    <app-ext [ext]="ext"></app-ext>
+  }
+  @if (mod?.user?.length || mod?.plugin?.length || mod?.template?.length) {
+    <hr>
+  }
+}
+@if (mod?.user?.length) {
+  <h5 i18n>Users</h5>
+  @for (user of mod?.user || []; track user) {
+    <app-user [user]="user"></app-user>
+  }
+  @if (mod?.plugin?.length || mod?.template?.length) {
+    <hr>
+  }
+}
+@if (mod?.plugin?.length) {
+  <h5 i18n>Plugins</h5>
+  @for (plugin of mod?.plugin || []; track plugin) {
+    <app-plugin [plugin]="plugin"></app-plugin>
+  }
+  @if (mod?.template?.length) {
+    <hr>
+  }
+}
+@if (mod?.template?.length) {
+  <h5 i18n>Templates</h5>
+  @for (template of mod?.template || []; track template) {
+    <app-template [template]="template"></app-template>
+  }
+}

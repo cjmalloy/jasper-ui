@@ -553,8 +553,8 @@ export const asyncScrapePlugin: Plugin = {
 };
 
 export const scrapeMod: Mod = {
-  plugins: {
+  plugin: [
     scrapePlugin,
     asyncScrapePlugin,
-  },
+  ],
 };

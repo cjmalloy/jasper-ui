@@ -1,3 +1,4 @@
+import { Schema } from 'jtd';
 import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
 import { Observable } from 'rxjs';
@@ -5,7 +6,6 @@ import { Ref, RefUpdates } from './ref';
 import { Config, EmitAction } from './tag';
 
 export interface Plugin extends Config {
-  type?: 'plugin';
   config?: Config['config'] & {
     /**
      * Optional flag adding this plugin to the Ref form Add Plugin dropdown.
@@ -108,7 +108,21 @@ export interface Plugin extends Config {
    * Validate that any Ref with this plugin has a valid User URL.
    */
   userUrl?: boolean;
+  // Client-only
+  type?: 'plugin';
 }
+
+export const pluginSchema: Schema = {
+  optionalProperties: {
+    tag: { type: 'string' },
+    name: { type: 'string' },
+    config: {},
+    defaults: {},
+    schema: {},
+    generateMetadata: { type: 'boolean' },
+    userUrl: { type: 'boolean' },
+  }
+};
 
 export interface PluginApi {
   comment: (comment: string) => void;

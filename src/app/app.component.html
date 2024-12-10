@@ -19,8 +19,21 @@
   <div class="spacer"></div>
   <footer>
     <hr>
-    <p class="version-{{ config.version }}" i18n>
-      Powered by Jasper <a [href]="website">{{ config.version || '' }}</a>
-    </p>
+    <div class="row">
+      <p class="version stretch" i18n>
+        Powered by Jasper <a [href]="website">{{ config.version || '' }}</a>
+      </p>
+      @if (store.eventBus.progressDen) {
+        <div class="log stretch">
+          @if (store.eventBus.progressDen > 1) {
+            <progress [value]="store.eventBus.progressNum" [max]="store.eventBus.progressDen"></progress>
+          }
+          @for (msg of store.eventBus.progressMessages; track msg) {
+            <div>{{ msg }}</div>
+          }
+          <button type="button" (click)="store.eventBus.clearProgress()">clear</button>
+        </div>
+      }
+    </div>
   </footer>
 </div>

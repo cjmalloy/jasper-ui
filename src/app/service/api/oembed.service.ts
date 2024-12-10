@@ -20,7 +20,7 @@ export class OEmbedService {
     private store: Store,
   ) {
     autorun(() => {
-      if (store.eventBus.event === '+plugin/oembed:defaults') {
+      if (store.eventBus.event === '+plugin/oembed:defaults' || this.store.eventBus.event === '*:defaults') {
         this.defaults().subscribe();
       }
     });

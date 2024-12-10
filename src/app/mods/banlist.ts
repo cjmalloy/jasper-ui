@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const banlistConfig: Template = {
@@ -33,3 +34,8 @@ export const banlistConfig: Template = {
   },
 };
 
+export const banlistMod: Mod = {
+  template: [
+    banlistConfig,
+  ]
+};

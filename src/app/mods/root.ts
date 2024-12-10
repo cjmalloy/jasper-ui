@@ -296,10 +296,10 @@ export const privateTemplate: Template = {
 };
 
 export const rootMod: Mod = {
-  templates: {
+   template: [
     rootTemplate,
     internalTemplate,
     lockedTemplate,
     privateTemplate,
-  }
+  ]
 }

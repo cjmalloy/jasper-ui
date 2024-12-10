@@ -64,6 +64,11 @@ export class ActionListComponent implements AfterViewInit {
     this.onResize();
   }
 
+  @memo
+  get advanced() {
+    return this.groupedAdvancedActions && Object.keys(this.groupedAdvancedActions as any).length > 0;
+  }
+
   apply$ = (actions: Action[]) => () => {
     this.closeAdvanced();
     return this.acts.apply$(actions, this.ref, this.repostRef);
