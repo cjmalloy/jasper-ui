@@ -38,7 +38,7 @@ export class SettingsSetupPage implements OnInit {
   ) {
     mod.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
-      mods: fb.group(mapValues({...this.admin.def.plugins, ...this.admin.def.templates }, p => fb.control(false))),
+      mods: fb.group(mapValues({...this.admin.def.plugins, ...this.admin.def.templates }, () => fb.control(false))),
     });
     this.clear();
   }
@@ -77,7 +77,7 @@ export class SettingsSetupPage implements OnInit {
         deletes.push(modId(status));
       }
     }
-    const _ = (msg: string) => this.installMessages.push(msg);
+    const _ = (msg?: string) => this.installMessages.push(msg!);
     concat(
         ...uniq(deletes).map(m => this.admin.deleteMod$(m, _)),
         ...uniq(installs).map(m => this.admin.installMod$(m, _))
@@ -108,7 +108,7 @@ export class SettingsSetupPage implements OnInit {
   }
 
   updateAll() {
-    const _ = (msg: string) => this.installMessages.push(msg);
+    const _ = (msg?: string) => this.installMessages.push(msg!);
     const updates = [];
     for (const plugin in this.admin.status.plugins) {
       const status = this.admin.status.plugins[plugin];
@@ -137,7 +137,7 @@ export class SettingsSetupPage implements OnInit {
   }
 
   updateMod(config: Config) {
-    const _ = (msg: string) => this.installMessages.push(msg);
+    const _ = (msg?: string) => this.installMessages.push(msg!);
     this.admin.updateMod$(modId(config), _).subscribe(() => this.reset());
   }
 

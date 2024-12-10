@@ -9,7 +9,7 @@ import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { clear, Config, EditorButton, Mod, Tag } from '../model/tag';
+import { bundleSize, clear, Config, EditorButton, Mod, Tag } from '../model/tag';
 import { Template } from '../model/template';
 import { User } from '../model/user';
 import { aiMod } from '../mods/ai';
@@ -75,11 +75,11 @@ import { userMod } from '../mods/user';
 import { videoMod } from '../mods/video';
 import { voteMod } from '../mods/vote';
 import { DEFAULT_WIKI_PREFIX, wikiMod } from '../mods/wiki';
+import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { progress } from '../util/progress';
 import { addHierarchicalTags, hasPrefix, hasTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
@@ -196,7 +196,8 @@ export class AdminService {
     autorun(() => {
       const mod = this.store.eventBus.ref?.plugins?.['plugin/mod'];
       if (this.store.eventBus.event === 'install') {
-        this.install$(this.store.eventBus.ref?.title || '', mod, (msg, p) => store.eventBus.progress(msg, p))
+        store.eventBus.clearProgress(bundleSize(mod));
+        this.install$(this.store.eventBus.ref?.title || '', mod, (msg, p = 0) => store.eventBus.progress(msg, p))
           .subscribe(mod => {
             this.pluginToStatus(mod.plugin || []);
             this.templateToStatus(mod.template || []);
@@ -851,6 +852,7 @@ export class AdminService {
         }
         return throwError(() => err);
       }),
+      tap(() => _('', 1)),
     );
   }
 
@@ -865,6 +867,7 @@ export class AdminService {
         }
         return throwError(() => err);
       }),
+      tap(() => _('', 1)),
     );
   }
 
@@ -879,6 +882,7 @@ export class AdminService {
         }
         return throwError(() => err);
       }),
+      tap(() => _('', 1)),
     );
   }
 
@@ -893,17 +897,16 @@ export class AdminService {
         }
         return throwError(() => err);
       }),
+      tap(() => _('', 1)),
     );
   }
 
   deletePlugin$(p: Plugin, _: progress) {
-    const deleteNotice = this.getPlugin('plugin/delete')
-      ? this.plugins.create(tagDeleteNotice(p))
-      : of(null);
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${p.name || p.tag} plugin...`)),
       switchMap(() => this.plugins.delete(p.tag + this.store.account.origin)),
-      switchMap(() => deleteNotice),
+      switchMap(() => this.getPlugin('plugin/delete') ? this.plugins.create(tagDeleteNotice(p)) : of(null)),
+      tap(() => _('', 1)),
     );
   }
 
@@ -918,17 +921,16 @@ export class AdminService {
         }
         return throwError(() => err);
       }),
+      tap(() => _('', 1)),
     );
   }
 
   deleteTemplate$(t: Template, _: progress) {
-    const deleteNotice = this.getPlugin('plugin/delete')
-      ? this.templates.create(tagDeleteNotice(t))
-      : of(null);
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${t.name || t.tag} template...`)),
       switchMap(() => this.templates.delete(t.tag + this.store.account.origin)),
-      switchMap(() => deleteNotice),
+      switchMap(() => this.getPlugin('plugin/delete') ? this.templates.create(tagDeleteNotice(t)) : of(null)),
+      tap(() => _('', 1)),
     );
   }
 
@@ -982,7 +984,7 @@ export class AdminService {
         origin: this.store.account.origin,
         modifiedString: status?.modifiedString,
       })),
-      tap(() => _('\u00A0'.repeat(4) + $localize`Updated ${def.name || def.tag} plugin.`))
+      tap(() => _('', 1)),
     );
   }
 
@@ -1000,7 +1002,7 @@ export class AdminService {
         origin: this.store.account.origin,
         modifiedString: status?.modifiedString,
       })),
-      tap(() => _('\u00A0'.repeat(4) + $localize`Updated ${def.name || def.tag} template.`)),
+      tap(() => _('', 1)),
     );
   }
 

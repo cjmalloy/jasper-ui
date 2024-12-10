@@ -5,6 +5,8 @@ import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
 import { printError } from '../util/http';
 
+export type progress = (msg?: string, p?: number) => void;
+
 export class EventBus {
 
   event = '';
@@ -12,7 +14,8 @@ export class EventBus {
   repost?: Ref = {} as any;
   errors: string[] = [];
   progressMessages: string[] = [];
-  progressPercent = 0;
+  progressNum = 0;
+  progressDen = 0;
 
   constructor() {
     makeAutoObservable(this, {
@@ -101,12 +104,22 @@ export class EventBus {
     return this.ref?.url === r.url && this.ref.origin === r.origin;
   }
 
-  clearProgress() {
+  clearProgress(steps = 0) {
     this.progressMessages = [];
+    this.progressNum = 0;
+    this.progressDen = steps;
   }
 
-  progress(msg: string, p = 0) {
-    this.progressMessages.push(msg);
-    this.progressPercent = p;
+  msg(msg: string) {
+    this.progressMessages.push(msg)
+  }
+
+  steps(steps = 1) {
+    this.progressDen += steps;
+  }
+
+  progress(msg?: string, steps = 1) {
+    if (msg) this.progressMessages.push(msg);
+    if (steps) this.progressNum += steps;
   }
 }

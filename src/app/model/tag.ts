@@ -40,6 +40,14 @@ export interface Mod {
   template?: Template[];
 }
 
+export function bundleSize(mod: Mod) {
+  return (mod.ref?.length || 0) +
+    (mod.ext?.length || 0) +
+    (mod.user?.length || 0) +
+    (mod.plugin?.length || 0) +
+    (mod.template?.length || 0);
+}
+
 export const modSchema: Schema = {
   optionalProperties: {
     ref: { elements: refSchema },
