@@ -1,8 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, viewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
+import { TemplateListComponent } from '../../../component/template/template-list/template-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { mapTemplate, Template } from '../../../model/template';
 import { TemplateService } from '../../../service/api/template.service';
 import { ModService } from '../../../service/mod.service';
@@ -18,9 +20,12 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
 })
-export class SettingsTemplatePage implements OnInit, OnDestroy {
+export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
 
   serverError: string[] = [];
+
+  @ViewChild(TemplateListComponent)
+  list?: TemplateListComponent;
 
   private disposers: IReactionDisposer[] = [];
 
@@ -33,6 +38,10 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
     mod.setTitle($localize`Settings: Templates`);
     store.view.clear(['levels', 'tag'], ['levels', 'tag']);
     query.clear();
+  }
+
+  saveChanges() {
+    return !!this.list?.saveChanges();
   }
 
   ngOnInit(): void {

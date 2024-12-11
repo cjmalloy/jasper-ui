@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, OnDestroy } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
 import { ConfigService } from '../../service/config.service';
@@ -10,7 +10,7 @@ import { Store } from '../../store/store';
   templateUrl: './json.component.html',
   styleUrls: ['./json.component.scss']
 })
-export class JsonComponent implements OnInit, OnDestroy {
+export class JsonComponent implements OnDestroy {
   @HostBinding('class') css = 'json-editor';
 
   private disposers: IReactionDisposer[] = [];
@@ -35,9 +35,6 @@ export class JsonComponent implements OnInit, OnDestroy {
         theme: store.darkTheme ? 'vs-dark' : 'vs',
       }
     }));
-  }
-
-  ngOnInit(): void {
   }
 
   ngOnDestroy() {

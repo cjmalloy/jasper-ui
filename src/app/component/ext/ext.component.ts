@@ -16,6 +16,7 @@ import { toJS } from 'mobx';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { equalsExt, Ext, writeExt } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
 import { Template } from '../../model/template';
@@ -39,7 +40,7 @@ import { ActionComponent } from '../action/action.component';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss']
 })
-export class ExtComponent implements OnChanges {
+export class ExtComponent implements OnChanges, HasChanges {
   @HostBinding('class') css = 'ext list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
@@ -72,6 +73,10 @@ export class ExtComponent implements OnChanges {
     public bookmarks: BookmarkService,
     private fb: UntypedFormBuilder,
   ) { }
+
+  saveChanges() {
+    return !this.editForm?.dirty;
+  }
 
   init() {
     MemoCache.clear(this);

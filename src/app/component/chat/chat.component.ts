@@ -4,6 +4,7 @@ import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -22,7 +23,7 @@ import { braces, tagOrigin } from '../../util/tag';
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss']
 })
-export class ChatComponent implements OnDestroy {
+export class ChatComponent implements OnDestroy, HasChanges {
   @HostBinding('class') css = 'chat ext';
   private destroy$ = new Subject<void>();
   itemSize = 18.5;
@@ -58,6 +59,11 @@ export class ChatComponent implements OnDestroy {
     private editor: EditorService,
     private stomp: StompService,
   ) { }
+
+  saveChanges() {
+    //TODO:
+    return true;
+  }
 
   @Input()
   set query(value: string) {

@@ -19,6 +19,7 @@ import { DateTime, Duration } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref, RefNode } from '../../../model/ref';
 import { active, sortOrder } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
@@ -29,6 +30,7 @@ import { findNode, GraphNode, isGraphable, isInternal, responses, sources } from
 import { getScheme } from '../../../util/http';
 import { Point, Rect } from '../../../util/math';
 import { capturesAny, hasTag } from '../../../util/tag';
+import { RefListComponent } from '../../ref/ref-list/ref-list.component';
 
 @Component({
   standalone: false,
@@ -37,7 +39,7 @@ import { capturesAny, hasTag } from '../../../util/tag';
   styleUrls: ['./force-directed.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
+export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
@@ -90,6 +92,8 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   figure!: ElementRef;
   @ViewChild('nodeMenu')
   nodeMenu!: TemplateRef<any>;
+  @ViewChild(RefListComponent)
+  list?: RefListComponent;
 
   overlayRef?: OverlayRef;
   sub?: Subscription;
@@ -115,6 +119,10 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
       this.linkStroke = store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;
       this.update();
     }));
+  }
+
+  saveChanges() {
+    return !!this.list?.saveChanges();
   }
 
   ngOnDestroy() {

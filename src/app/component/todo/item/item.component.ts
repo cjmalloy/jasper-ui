@@ -1,14 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  HostBinding,
-  HostListener,
-  Input,
-  NgZone,
-  OnInit,
-  Output
-} from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, NgZone, Output } from '@angular/core';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 
@@ -18,7 +8,7 @@ import { Store } from '../../../store/store';
   templateUrl: './item.component.html',
   styleUrls: ['./item.component.scss']
 })
-export class TodoItemComponent implements OnInit {
+export class TodoItemComponent {
   @HostBinding('class') css = 'todo-item';
 
   @HostBinding('class.unlocked')
@@ -50,9 +40,6 @@ export class TodoItemComponent implements OnInit {
 
   get local() {
     return this.origin === this.store.account.origin;
-  }
-
-  ngOnInit(): void {
   }
 
   @Input()

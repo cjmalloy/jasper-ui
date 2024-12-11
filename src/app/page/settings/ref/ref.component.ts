@@ -1,6 +1,8 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
 import { AuthzService } from '../../../service/authz.service';
@@ -15,11 +17,14 @@ import { getArgs } from '../../../util/query';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
 })
-export class SettingsRefPage implements OnInit, OnDestroy {
+export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
   plugin?: Plugin;
   writeAccess = false;
+
+  @ViewChild(RefListComponent)
+  list?: RefListComponent;
 
   constructor(
     private mod: ModService,
@@ -31,6 +36,10 @@ export class SettingsRefPage implements OnInit, OnDestroy {
     mod.setTitle($localize`Settings: `);
     store.view.clear(['modified']);
     query.clear();
+  }
+
+  saveChanges() {
+    return !!this.list?.saveChanges();
   }
 
   ngOnInit(): void {

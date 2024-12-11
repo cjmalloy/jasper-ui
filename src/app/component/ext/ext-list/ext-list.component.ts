@@ -1,7 +1,9 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
+import { ExtComponent } from '../ext.component';
 
 @Component({
   standalone: false,
@@ -9,12 +11,19 @@ import { Page } from '../../../model/page';
   templateUrl: './ext-list.component.html',
   styleUrls: ['./ext-list.component.scss']
 })
-export class ExtListComponent implements OnInit {
+export class ExtListComponent implements HasChanges {
   @HostBinding('class') css = 'ext-list';
+
+  @ViewChildren(ExtComponent)
+  list?: QueryList<ExtComponent>;
 
   private _page?: Page<Ext>;
 
   constructor(private router: Router) { }
+
+  saveChanges() {
+    return !this.list?.find(r => !r.saveChanges());
+  }
 
   get page() {
     return this._page;
@@ -33,9 +42,6 @@ export class ExtListComponent implements OnInit {
         })
       }
     }
-  }
-
-  ngOnInit(): void {
   }
 
 }

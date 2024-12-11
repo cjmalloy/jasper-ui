@@ -1,7 +1,9 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject } from 'rxjs';
+import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
@@ -17,9 +19,12 @@ import { removeTag, top } from '../../../util/tag';
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.scss'],
 })
-export class RefCommentsComponent implements OnInit, OnDestroy {
+export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   newComments$ = new Subject<Ref | undefined>();
+
+  @ViewChild(CommentReplyComponent)
+  reply?: CommentReplyComponent;
 
   constructor(
     private mod: ModService,
@@ -29,6 +34,10 @@ export class RefCommentsComponent implements OnInit, OnDestroy {
   ) {
     thread.clear();
     runInAction(() => store.view.defaultSort = ['published']);
+  }
+
+  saveChanges() {
+    return !!this.reply?.saveChanges();
   }
 
   ngOnInit(): void {

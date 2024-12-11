@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
@@ -11,7 +11,7 @@ import { Store } from '../../store/store';
   templateUrl: './md.component.html',
   styleUrls: ['./md.component.scss']
 })
-export class MdComponent implements OnInit {
+export class MdComponent {
 
   @Input()
   origin? = '';
@@ -37,9 +37,6 @@ export class MdComponent implements OnInit {
     public admin: AdminService,
     public store: Store,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   get text(): string {
     return this._text;

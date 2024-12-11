@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 @Component({
@@ -7,7 +7,7 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } 
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss']
 })
-export class TemplateFormComponent implements OnInit {
+export class TemplateFormComponent {
   @HostBinding('class') css = 'nested-form';
 
   @Input()
@@ -18,11 +18,6 @@ export class TemplateFormComponent implements OnInit {
   defaultsErrors: string[] = [];
   @Input()
   schemaErrors: string[] = [];
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
 
   get tag() {
     return this.group.get('tag') as UntypedFormControl;
@@ -45,7 +40,7 @@ export class TemplateFormComponent implements OnInit {
 
 export function templateForm(fb: UntypedFormBuilder) {
   return fb.group({
-    tag: ['', []],
+    tag: [{value: '', disabled: true}, [Validators.required]],
     name: ['', [Validators.required]],
     config: [],
     defaults: [],

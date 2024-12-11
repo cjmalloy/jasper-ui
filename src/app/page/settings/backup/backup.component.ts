@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { DateTime } from 'luxon';
 import { catchError, throwError } from 'rxjs';
@@ -17,7 +17,7 @@ import { printError } from '../../../util/http';
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss']
 })
-export class SettingsBackupPage implements OnInit {
+export class SettingsBackupPage {
   @HostBinding('class') css = 'backup';
   originPattern = ORIGIN_REGEX.source;
 
@@ -43,9 +43,6 @@ export class SettingsBackupPage implements OnInit {
       origin: ['', [Validators.pattern(ORIGIN_REGEX)]],
       olderThan: [DateTime.now().toISO()],
     });
-  }
-
-  ngOnInit(): void {
   }
 
   backup() {

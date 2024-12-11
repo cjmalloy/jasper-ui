@@ -1,7 +1,9 @@
-import { Component, HostBinding } from '@angular/core';
+import { Component, HostBinding, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -19,11 +21,14 @@ import { hasTag } from '../../../util/tag';
   templateUrl: './errors.component.html',
   styleUrl: './errors.component.scss'
 })
-export class RefErrorsComponent {
+export class RefErrorsComponent implements HasChanges {
   @HostBinding('class') css = 'errors';
 
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
+
+  @ViewChild(RefListComponent)
+  list?: RefListComponent;
 
   newRefs$ = new Subject<Ref | undefined>();
 
@@ -40,6 +45,10 @@ export class RefErrorsComponent {
   ) {
     query.clear();
     runInAction(() => store.view.defaultSort = ['published']);
+  }
+
+  saveChanges() {
+    return !!this.list?.saveChanges();
   }
 
   ngOnInit(): void {

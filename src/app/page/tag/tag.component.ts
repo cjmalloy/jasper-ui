@@ -1,6 +1,8 @@
-import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { LensComponent } from '../../component/lens/lens.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -16,15 +18,13 @@ import { getArgs, UrlFilter } from '../../util/query';
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
 })
-export class TagPage implements OnInit, OnDestroy {
+export class TagPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
-  @HostBinding('class.no-footer-padding')
-  get noFooterPadding() {
-    return this.store.view.isTemplate('kanban');
-  }
-
   loading = true;
+
+  @ViewChild(LensComponent)
+  lens?: LensComponent;
 
   constructor(
     public admin: AdminService,
@@ -62,6 +62,10 @@ export class TagPage implements OnInit, OnDestroy {
     }));
   }
 
+  saveChanges() {
+    return !!this.lens?.saveChanges();
+  }
+
   ngOnInit() {
     this.disposers.push(autorun(() => {
       const filters = this.store.view.filter.length ? this.store.view.filter : this.store.view.viewExtFilter;
@@ -84,5 +88,10 @@ export class TagPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  @HostBinding('class.no-footer-padding')
+  get noFooterPadding() {
+    return this.store.view.isTemplate('kanban');
   }
 }

@@ -1,7 +1,6 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { Action, Icon } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
-import { ScrapeService } from '../../../service/api/scrape.service';
 import { Store } from '../../../store/store';
 
 @Component({
@@ -10,7 +9,7 @@ import { Store } from '../../../store/store';
   templateUrl: './subfolder.component.html',
   styleUrls: ['./subfolder.component.scss']
 })
-export class SubfolderComponent implements OnInit {
+export class SubfolderComponent {
   @HostBinding('class') css = 'subfolder';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
@@ -27,12 +26,8 @@ export class SubfolderComponent implements OnInit {
 
   constructor(
     public admin: AdminService,
-    private scraper: ScrapeService,
     public store: Store,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   get thumbnail() {
     // TODO: Thumbnail in config

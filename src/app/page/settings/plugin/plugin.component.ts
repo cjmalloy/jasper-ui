@@ -1,8 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
+import { PluginListComponent } from '../../../component/plugin/plugin-list/plugin-list.component';
+import { PluginComponent } from '../../../component/plugin/plugin.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { mapPlugin, Plugin } from '../../../model/plugin';
 import { PluginService } from '../../../service/api/plugin.service';
 import { ModService } from '../../../service/mod.service';
@@ -18,9 +21,12 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
 })
-export class SettingsPluginPage implements OnInit, OnDestroy {
+export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
 
   serverError: string[] = [];
+
+  @ViewChild(PluginListComponent)
+  list?: PluginListComponent;
 
   private disposers: IReactionDisposer[] = [];
 
@@ -33,6 +39,10 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
     mod.setTitle($localize`Settings: Plugins`);
     store.view.clear(['levels', 'tag'], ['levels', 'tag']);
     query.clear();
+  }
+
+  saveChanges() {
+    return !!this.list?.saveChanges();
   }
 
   ngOnInit(): void {

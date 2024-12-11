@@ -18,6 +18,7 @@ import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Ref, writeRef } from '../../../model/ref';
 import {
@@ -56,7 +57,7 @@ import { ActionComponent } from '../../action/action.component';
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss']
 })
-export class BlogEntryComponent implements OnChanges, OnDestroy {
+export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   @HostBinding('class') css = 'blog-entry';
   @HostBinding('attr.tabindex') tabIndex = 0;
   private disposers: IReactionDisposer[] = [];
@@ -112,6 +113,10 @@ export class BlogEntryComponent implements OnChanges, OnDestroy {
         }
       }
     }));
+  }
+
+  saveChanges() {
+    return !this.editing || !this.editForm.dirty;
   }
 
   init() {

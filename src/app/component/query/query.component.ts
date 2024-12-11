@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
@@ -14,7 +14,7 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
   templateUrl: './query.component.html',
   styleUrls: ['./query.component.scss']
 })
-export class QueryComponent implements OnInit {
+export class QueryComponent {
 
   editing = false;
   select: boolean | Crumb = false;
@@ -28,9 +28,6 @@ export class QueryComponent implements OnInit {
     private admin: AdminService,
     public store: Store,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   get query(): string {
     return this._query;

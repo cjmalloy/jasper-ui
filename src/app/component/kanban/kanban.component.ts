@@ -5,6 +5,7 @@ import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
 import { catchError, of, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Ref, RefSort } from '../../model/ref';
 import { KanbanConfig } from '../../mods/kanban';
@@ -29,7 +30,7 @@ export interface KanbanDrag {
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.scss']
 })
-export class KanbanComponent implements OnChanges, OnDestroy {
+export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   @HostBinding('class') css = 'kanban ext';
 
   @Input()
@@ -65,6 +66,11 @@ export class KanbanComponent implements OnChanges, OnDestroy {
     public exts: ExtService,
     private tags: TaggingService,
   ) { }
+
+  saveChanges() {
+    //TODO:
+    return true;
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ext) {

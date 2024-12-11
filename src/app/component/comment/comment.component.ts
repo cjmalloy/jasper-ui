@@ -9,11 +9,13 @@ import {
   OnInit,
   QueryList,
   SimpleChanges,
+  ViewChild,
   ViewChildren
 } from '@angular/core';
 import { delay, groupBy, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import {
   Action,
@@ -42,6 +44,8 @@ import { getScheme } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin, top } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
+import { CommentReplyComponent } from './comment-reply/comment-reply.component';
+import { CommentThreadComponent } from './comment-thread/comment-thread.component';
 
 @Component({
   standalone: false,
@@ -49,7 +53,7 @@ import { ActionComponent } from '../action/action.component';
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],
 })
-export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
+export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, HasChanges {
   @HostBinding('class') css = 'comment';
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
@@ -59,6 +63,10 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
+  @ViewChild(CommentReplyComponent)
+  replyComponent?: CommentReplyComponent;
+  @ViewChild(CommentThreadComponent)
+  threadComponent?: CommentThreadComponent;
 
   @Input()
   ref!: Ref;
@@ -107,6 +115,12 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
         }
       }
     }));
+  }
+
+  saveChanges(): boolean {
+    const replyDirty = this.replyComponent?.saveChanges();
+    const threadDirty = this.threadComponent?.saveChanges();
+    return !replyDirty && !threadDirty;
   }
 
   ngOnInit(): void {

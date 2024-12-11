@@ -2,6 +2,7 @@ import { Component, ElementRef, HostBinding, Input, OnChanges, SimpleChanges } f
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
 import { toJS } from 'mobx';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
@@ -17,7 +18,7 @@ import { level } from '../../util/tag';
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss']
 })
-export class FolderComponent implements OnChanges {
+export class FolderComponent implements OnChanges, HasChanges {
   @HostBinding('class') css = 'folder ext';
 
   @Input()
@@ -49,6 +50,11 @@ export class FolderComponent implements OnChanges {
     private exts: ExtService,
     private el: ElementRef<HTMLElement>,
   ) { }
+
+  saveChanges() {
+    // TODO
+    return true;
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.tag || changes.ext) {

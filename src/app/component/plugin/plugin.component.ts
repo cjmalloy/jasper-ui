@@ -4,6 +4,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { pluginForm } from '../../form/plugin/plugin.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Plugin, writePlugin } from '../../model/plugin';
 import { tagDeleteNotice } from "../../mods/delete";
 import { AdminService } from '../../service/admin.service';
@@ -21,7 +22,7 @@ import { ActionComponent } from '../action/action.component';
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss']
 })
-export class PluginComponent implements OnChanges {
+export class PluginComponent implements OnChanges, HasChanges {
   css = 'plugin list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
@@ -50,6 +51,10 @@ export class PluginComponent implements OnChanges {
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = pluginForm(fb);
+  }
+
+  saveChanges() {
+    return !this.editing || !this.editForm.dirty;
   }
 
   init(): void {

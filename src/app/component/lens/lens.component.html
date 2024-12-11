@@ -1,8 +1,10 @@
 @if (isTemplate('graph')) {
-  <app-force-directed [tag]="tag"
+  <app-force-directed #lens
+                      [tag]="tag"
                       [content]="page?.content || []"></app-force-directed>
 } @else if (isTemplate('kanban')) {
-  <app-kanban [query]="tag"
+  <app-kanban #lens
+              [query]="tag"
               [ext]="ext!"
               [fullPage]="fullPage"
               [pageControls]="pageControls"
@@ -11,18 +13,22 @@
               [filter]="filter"
               [search]="search"></app-kanban>
 } @else if (isTemplate('blog')) {
-  <app-blog [ext]="ext!"
+  <app-blog #lens
+            [ext]="ext!"
             [page]="page"
             [pageControls]="pageControls"
             [cols]="cols"></app-blog>
 } @else if (isTemplate('chat')) {
-  <app-chat [query]="tag"></app-chat>
+  <app-chat #lens
+            [query]="tag"></app-chat>
 } @else if (isTemplate('folder')) {
-  <app-folder [page]="page"
+  <app-folder #lens
+              [page]="page"
               [tag]="tag"
               [ext]="ext!"></app-folder>
 } @else {
-  <app-ref-list [class]="cssClass(ext?.tag)"
+  <app-ref-list #lens
+                [class]="cssClass(ext?.tag)"
                 [ext]="ext"
                 [page]="page"
                 [pageControls]="pageControls"

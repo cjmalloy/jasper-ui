@@ -7,6 +7,7 @@ import { catchError, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { EditorComponent } from '../../../form/editor/editor.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { commentPlugin } from '../../../mods/comment';
 import { getMailbox } from '../../../mods/mailbox';
@@ -25,7 +26,7 @@ import { hasTag, removeTag, tagIntersection } from '../../../util/tag';
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
 })
-export class CommentReplyComponent implements AfterViewInit {
+export class CommentReplyComponent implements AfterViewInit, HasChanges {
   @HostBinding('class') css = 'comment-reply';
 
   @Input()
@@ -62,6 +63,10 @@ export class CommentReplyComponent implements AfterViewInit {
     this.commentForm = fb.group({
       comment: [''],
     });
+  }
+
+  saveChanges(): boolean {
+    return !this.commentForm.dirty;
   }
 
   ngAfterViewInit(): void {
@@ -153,7 +158,7 @@ export class CommentReplyComponent implements AfterViewInit {
       delete this.replying;
       this.serverError = [];
       this.comment.enable();
-      this.comment.setValue('');
+      this.commentForm.reset();
       this.editor?.syncText('');
       const update = {
         ...ref,
@@ -170,7 +175,7 @@ export class CommentReplyComponent implements AfterViewInit {
 
   cancel() {
     this.replying?.unsubscribe();
-    this.comment.setValue('');
+    this.commentForm.reset();
     this.save.emit(undefined);
   }
 }

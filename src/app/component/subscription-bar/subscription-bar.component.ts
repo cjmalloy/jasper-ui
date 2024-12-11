@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { map } from 'rxjs';
 import { Ext } from '../../model/ext';
@@ -15,7 +15,7 @@ import { Store } from '../../store/store';
   templateUrl: './subscription-bar.component.html',
   styleUrls: ['./subscription-bar.component.scss'],
 })
-export class SubscriptionBarComponent implements OnInit, OnDestroy {
+export class SubscriptionBarComponent implements OnDestroy {
   @HostBinding('class') css = 'subscription-bar';
   private disposers: IReactionDisposer[] = [];
 
@@ -38,9 +38,6 @@ export class SubscriptionBarComponent implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => this.exts.getCachedExts(this.store.account.subs).pipe(
       map(xs => xs.map(x => this.getTemplate(x))),
     ).subscribe(xs => this.subExts = xs)));
-  }
-
-  ngOnInit(): void {
   }
 
   ngOnDestroy() {

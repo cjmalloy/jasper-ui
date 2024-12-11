@@ -1,7 +1,9 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
 import { Tag } from '../../../model/tag';
+import { PluginComponent } from '../plugin.component';
 
 @Component({
   standalone: false,
@@ -9,12 +11,19 @@ import { Tag } from '../../../model/tag';
   templateUrl: './plugin-list.component.html',
   styleUrls: ['./plugin-list.component.scss']
 })
-export class PluginListComponent {
+export class PluginListComponent implements HasChanges {
   @HostBinding('class') css = 'plugin-list';
+
+  @ViewChildren(PluginComponent)
+  list?: QueryList<PluginComponent>;
 
   private _page?: Page<Tag>;
 
   constructor(private router: Router) { }
+
+  saveChanges() {
+    return !this.list?.find(p => !p.saveChanges());
+  }
 
   get page() {
     return this._page;
@@ -33,8 +42,5 @@ export class PluginListComponent {
         });
       }
     }
-  }
-
-  ngOnInit(): void {
   }
 }

@@ -1,11 +1,13 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
 import { Profile } from '../../../model/profile';
 import { User } from '../../../model/user';
 import { ProfileService } from '../../../service/api/profile.service';
+import { UserComponent } from '../user.component';
 
 @Component({
   standalone: false,
@@ -13,12 +15,15 @@ import { ProfileService } from '../../../service/api/profile.service';
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss']
 })
-export class UserListComponent implements OnInit {
+export class UserListComponent implements HasChanges {
   @HostBinding('class') css = 'user-list';
-
 
   @Input()
   scim?: Page<Profile>;
+
+  @ViewChildren(UserComponent)
+  list?: QueryList<UserComponent>;
+
   private _page?: Page<User>;
   private cache: Map<string, Profile | undefined> = new Map();
 
@@ -26,6 +31,10 @@ export class UserListComponent implements OnInit {
     private router: Router,
     private profiles: ProfileService,
   ) { }
+
+  saveChanges() {
+    return !this.list?.find(u => !u.saveChanges());
+  }
 
   get page() {
     return this._page;
@@ -35,9 +44,6 @@ export class UserListComponent implements OnInit {
   set page(value: Page<User> | undefined) {
     this.cache.clear();
     this._page = value;
-  }
-
-  ngOnInit(): void {
   }
 
   hasUser(tag: string) {
