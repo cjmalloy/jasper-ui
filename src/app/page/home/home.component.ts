@@ -40,7 +40,7 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !!this.lens?.saveChanges();
+    return !this.lens || this.lens.saveChanges();
   }
 
   ngOnInit(): void {

@@ -39,7 +39,7 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !!this.list?.saveChanges();
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnInit(): void {

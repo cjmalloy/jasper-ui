@@ -6,5 +6,5 @@ export interface HasChanges {
 
 export const pendingChangesGuard: CanDeactivateFn<HasChanges> = (component, currentRoute, currentState, nextState) => {
   if (!component?.saveChanges || component.saveChanges()) return true;
-   return confirm($localize`Discard draft?`);
+  return confirm($localize`Discard draft?`);
 };

@@ -121,9 +121,9 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   saveChanges() {
-    return !!this.editComponent?.saveChanges()
-      && !!this.replyComponent?.saveChanges()
-      && !!this.threadComponent?.saveChanges();
+    return (!this.editComponent || this.editComponent.saveChanges())
+      && (!this.replyComponent || this.replyComponent.saveChanges())
+      && (!this.threadComponent || this.threadComponent.saveChanges());
   }
 
   ngOnInit(): void {

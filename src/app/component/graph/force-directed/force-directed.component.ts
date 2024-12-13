@@ -122,7 +122,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   }
 
   saveChanges() {
-    return !!this.list?.saveChanges();
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnDestroy() {
