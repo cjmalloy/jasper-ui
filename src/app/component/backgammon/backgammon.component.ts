@@ -158,7 +158,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           current[0] = multiple;
         }
         if (prev.length) {
-          window.alert($localize`Game history was rewritten!`);
+          alert($localize`Game history was rewritten!`);
           this.ref = u;
           this.store.eventBus.refresh(u);
         }

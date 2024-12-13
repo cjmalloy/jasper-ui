@@ -104,7 +104,7 @@ export class ProxyService {
       catchError(err => this.login.handleHttpError(err)),
       catchError(err => {
         // TODO: Better error message
-        window.alert(err.message);
+        alert(err.message);
         return throwError(() => err);
       }),
     );

@@ -270,7 +270,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.removeConfigArray$('editors', tag).subscribe();
       }
-    } else if (tag !== 'locked' || window.confirm($localize`Locking is permanent once saved. Are you sure you want to lock?`)) {
+    } else if (tag !== 'locked' || confirm($localize`Locking is permanent once saved. Are you sure you want to lock?`)) {
       if (this.removeEditorTags.includes(tag)) this.removeEditorTags.splice(this.removeEditorTags.indexOf(tag), 1);
       this.addEditorTags.push(tag);
       this.syncTags.next(this.addTags);

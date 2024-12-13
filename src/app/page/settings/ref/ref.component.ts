@@ -65,14 +65,14 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   loadDefaults() {
-    if (!this.plugin?.config?.defaultsConfirm || window.confirm(this.plugin?.config?.defaultsConfirm)) {
+    if (!this.plugin?.config?.defaultsConfirm || confirm(this.plugin?.config?.defaultsConfirm)) {
       this.store.eventBus.fire(this.store.view.childTag + ':defaults');
       this.store.eventBus.reset();
     }
   }
 
   clearCache() {
-    if (!this.plugin?.config?.clearCacheConfirm || window.confirm(this.plugin?.config?.clearCacheConfirm)) {
+    if (!this.plugin?.config?.clearCacheConfirm || confirm(this.plugin?.config?.clearCacheConfirm)) {
       this.store.eventBus.fire(this.store.view.childTag + ':clear-cache');
       this.store.eventBus.reset();
     }

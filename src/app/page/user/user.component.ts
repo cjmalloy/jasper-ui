@@ -171,7 +171,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
 
   delete() {
     // TODO: Better dialogs
-    if (window.confirm($localize`Are you sure you want to delete this user?`)) {
+    if (confirm($localize`Are you sure you want to delete this user?`)) {
       const deleteNotice = !this.store.view.selectedUser!.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
         ? this.users.create(tagDeleteNotice(this.store.view.selectedUser!))
         : of(null);

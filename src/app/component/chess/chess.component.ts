@@ -126,7 +126,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
           }
         }
         if (prev.length) {
-          window.alert($localize`Game history was rewritten!`);
+          alert($localize`Game history was rewritten!`);
         }
         this.prevComment = u.comment || '';
         if (prev.length || !current.length) return;
@@ -297,17 +297,17 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     if (this.chess.isGameOver()) {
       defer(() => {
         if (this.chess.isCheckmate()) {
-          window.alert($localize`Checkmate!`);
+          alert($localize`Checkmate!`);
         } else if (this.chess.isStalemate()) {
-          window.alert($localize`Stalemate!`);
+          alert($localize`Stalemate!`);
         } else if (this.chess.isThreefoldRepetition()) {
-          window.alert($localize`Threefold Repetition!`);
+          alert($localize`Threefold Repetition!`);
         } else if (this.chess.isInsufficientMaterial()) {
-          window.alert($localize`Insufficient Material!`);
+          alert($localize`Insufficient Material!`);
         } else if (this.chess.isDraw()) {
-          window.alert($localize`Draw!`);
+          alert($localize`Draw!`);
         } else {
-          window.alert($localize`Game Over!`);
+          alert($localize`Game Over!`);
         }
       });
     }

@@ -226,7 +226,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   delete() {
     const ext = this.store.view.ext!;
     // TODO: Better dialogs
-    if (window.confirm($localize`Are you sure you want to delete this tag extension?`)) {
+    if (confirm($localize`Are you sure you want to delete this tag extension?`)) {
       const deleteNotice = !ext.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
         ? this.exts.create(tagDeleteNotice(ext))
         : of(null);

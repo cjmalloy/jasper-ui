@@ -297,7 +297,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       catchError(err => {
         if (err.status === 403) {
           // TODO: better error message
-          window.alert('Not allowed to use required tags. Ask admin for permission.');
+          alert('Not allowed to use required tags. Ask admin for permission.');
         }
         return throwError(err);
       }),

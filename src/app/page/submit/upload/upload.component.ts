@@ -116,7 +116,7 @@ export class UploadPage implements OnDestroy {
     this.readBookmarks(bookmarks, this.store.account.localTag, ...this.store.submit.tags);
     this.readSitemap(sitemap, this.store.account.localTag, ...this.store.submit.tags);
 
-    if (cacheWarning) window.alert('File Cache has not been enabled by the admin (plugin/file) so file uploads will likely fail.')
+    if (cacheWarning) alert('File Cache has not been enabled by the admin (plugin/file) so file uploads will likely fail.')
     this.readCache(audio, 'plugin/audio', this.store.account.localTag, ...this.store.submit.tags);
     this.readCache(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
     this.readCache(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
@@ -155,7 +155,7 @@ export class UploadPage implements OnDestroy {
           this.store.submit.addExts(...(models.ext || []));
           this.store.submit.addRefs(...(models.ref || []));
         })
-        .catch(e => window.alert(e));
+        .catch(e => alert(e));
     }
   }
 
