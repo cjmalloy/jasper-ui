@@ -1,8 +1,8 @@
 import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { uniq } from 'lodash-es';
+import { flatMap, uniq, uniqBy } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, filter, of, Subject } from 'rxjs';
+import { catchError, filter, forkJoin, map, mergeAll, mergeMap, Observable, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -21,6 +21,8 @@ import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, localTag, tagOrigin, topAnds } from '../../util/tag';
+
+type Exts = { ext: Ext, children: Ext[], more: boolean };
 
 @Component({
   standalone: false,
@@ -244,6 +246,26 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @memo
   get tagSubs$() {
     return this.exts.getCachedExts(this.tagSubs || []).pipe(this.admin.extFallbacks);
+  }
+
+  @memo
+  get queryExts$() {
+    if (!this.store.view.exts.length) return of([]);
+    return forkJoin(this.store.view.exts.map(ext => this.exts.page({
+      query: ext.tag,
+      sort: ['origin', 'levels', 'tag', 'modified,DESC'],
+      size: 5,
+    }).pipe(
+      map(page => ({
+        ext: ext,
+        children: uniqBy(page.content, c => c.tag).filter(c => c.tag !== ext.tag),
+        more: page.page.totalPages > 1,
+      })),
+      map(ext => ext.children.length ? ext : null),
+      catchError(() => of(null))
+    ))).pipe(
+      map(exts => exts.filter(ext => !!ext)),
+    ) as Observable<Exts[]>;
   }
 
   @memo
