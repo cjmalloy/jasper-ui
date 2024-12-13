@@ -67,17 +67,14 @@
                                 [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
           }
           <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
-          <a *ngIf="writeAccess else source"
-             class="fake-link"
-             (click)="editing = !editing" i18n>edit</a>
-          <ng-template #source>
-            <a class="fake-link"
-               (click)="viewSource = !viewSource" i18n>source</a>
-          </ng-template>
-          <ng-container *ngIf="canInvoice">
-            <a [routerLink]="['/submit/invoice']"
-               [queryParams]="{url: ref.url}" i18n>invoice</a>
-          </ng-container>
+          @if (writeAccess) {
+            <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+          } @else {
+            <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
+          }
+          @if (canInvoice) {
+            <a [routerLink]="['/submit/invoice']" [queryParams]="{url: ref.url}" i18n>invoice</a>
+          }
           <app-action-list [ref]="ref"
                            [repostRef]="repostRef"
                            [groupedActions]="groupedActions"></app-action-list>
@@ -86,34 +83,33 @@
     </div>
   </div>
 </div>
-<app-viewer *ngIf="!editing" class="blog-body" [ref]="ref"></app-viewer>
+@if (editing) {
+  <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-<form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+    <app-ref-form [group]="editForm"></app-ref-form>
 
-  <app-ref-form [group]="editForm"></app-ref-form>
-
-  @for (e of serverError; track e) {
-    <span><!-- Unexpected Error --></span>
-    <div class="error">{{ e }}</div>
-  }
-
-  <span><!-- Buttons --></span>
-  <span class="buttons right">
-    @if (submitting) {
-      <app-loading [inline]="true"></app-loading>
+    @for (e of serverError; track e) {
+      <span><!-- Unexpected Error --></span>
+      <div class="error">{{ e }}</div>
     }
-    <button type="submit" [disabled]="submitting || submitted && !editForm.valid" i18n>save</button>
-    <button type="button" [disabled]="submitting" (click)="editing = false" i18n>cancel</button>
-  </span>
-</form>
 
-<form *ngIf="viewSource" [formGroup]="editForm">
-  <app-ref-form [group]="editForm"></app-ref-form>
-</form>
-
-<ng-template #showErrors>
+    <span><!-- Buttons --></span>
+    <span class="buttons right">
+      @if (submitting) {
+        <app-loading [inline]="true"></app-loading>
+      }
+      <button type="submit" [disabled]="submitting || submitted && !editForm.valid" i18n>save</button>
+      <button type="button" [disabled]="submitting" (click)="editing = false" i18n>cancel</button>
+    </span>
+  </form>
+} @else if (viewSource) {
+  <form [formGroup]="editForm">
+    <app-ref-form [group]="editForm"></app-ref-form>
+  </form>
+} @else {
+  <app-viewer class="blog-body" [ref]="ref"></app-viewer>
   @for (e of serverError; track e) {
     <div class="error">{{ e }}</div>
   }
-</ng-template>
+}
 <hr>
