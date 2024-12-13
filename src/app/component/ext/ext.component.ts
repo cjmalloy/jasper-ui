@@ -49,6 +49,8 @@ export class ExtComponent implements OnChanges, HasChanges {
 
   @Input()
   ext!: Ext;
+  @Input()
+  useEditPage = false;
 
   editForm!: UntypedFormGroup;
   submitted = false;

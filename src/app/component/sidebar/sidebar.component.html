@@ -1,29 +1,36 @@
 <ng-container *mobxAutorun>
   <div class="row">
-    <div class="toggle"
-         *ngIf="showToggle"
-         (click)="expanded = !expanded">☰</div>
-    <div class="wide" *ngIf="store.view.type && (!home || store.view.search || store.view.filter.length || query.page?.content?.length)">
-      <app-search [class.centered]="!expanded || !store.view.settings && !store.view.tags"></app-search>
-      <div class="show-remotes" *ngIf="expanded && (store.view.settings || store.view.tags)">
-        <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
-        <label for="show-remotes" i18n>show remotes</label>
+    @if (showToggle) {
+      <div class="toggle" (click)="expanded = !expanded">☰</div>
+    }
+    @if (store.view.type && (!home || store.view.search || store.view.filter.length || query.page?.content?.length)) {
+      <div class="wide">
+        <app-search [class.centered]="!expanded || !store.view.settings && !store.view.tags"></app-search>
+        @if (expanded && (store.view.settings || store.view.tags)) {
+          <div class="show-remotes">
+            <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
+            <label for="show-remotes" i18n>show remotes</label>
+          </div>
+        }
       </div>
-    </div>
+    }
   </div>
   @if (expanded) {
     @if (store.view.type && (!home || store.view.search || store.view.filter.length || query.page?.content?.length)) {
-      <app-query *ngIf="store.view.tag" [query]="tag" class="breadcrumbs"></app-query>
+      @if (store.view.tag) {
+        <app-query [query]="tag" class="breadcrumbs"></app-query>
+      }
       <div class="row mini-col reverse">
         <app-filter [type]="store.view.type!" [activeExts]="activeExts"></app-filter>
         <app-sort [type]="store.view.type!"></app-sort>
       </div>
     }
     <app-debug></app-debug>
-    <app-bulk *ngIf="store.view.type"
-              [type]="store.view.type!"
-              [viewExt]="ext"
-              [activeExts]="activeExts"></app-bulk>
+    @if (store.view.type) {
+      <app-bulk [type]="store.view.type!"
+                [viewExt]="ext"
+                [activeExts]="activeExts"></app-bulk>
+    }
   }
   <span class="button-bar">
     @if (!user && canAddTag && !plugin?.config?.reply && store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
@@ -119,107 +126,134 @@
       </div>
     }
   </span>
-
-  <div class="hide tag-header" *ngIf="home">
-    @if (store.view.forYou) {
-      <h3><a [routerLink]="['/home']" [queryParams]="{ forYou: true }" i18n>For You</a></h3>
-      <p *ngIf="!store.account.userSubs.length" i18n>
-        Follow other users to see their subscriptions alongside yours here.
-      </p>
-    } @else {
-      <h3><a [routerLink]="['/home']" i18n>Home</a></h3>
-    }
-  </div>
-  <div class="hide tag-header" *ngIf="!home && store.view.tag">
-    <h3 *ngIf="store.view.current === 'tag'">{{ ext?.name || tag }}</h3>
-    <div *ngIf="store.account.signedIn && tag && admin.getTemplate('user')" class="row center">
-      @if (inBookmarks) {
-        <button type="button"
-                class="bookmark"
-                i18n-title title="Remove from top bar"
-                (click)="removeBookmark()" i18n>&ndash; bookmark</button>
-      } @else {
-        <button type="button"
-                (click)="bookmark()"
-                i18n-title title="Add to top bar"
-                class="bookmark" i18n>+ bookmark</button>
-      }
-      @if (user) {
-        @if (inSubs) {
-          <button type="button"
-                  class="subscribe"
-                  i18n-title title="Remove from home screen"
-                  (click)="unsubscribe()" i18n>&ndash; unfollow</button>
-        } @else {
-          <button type="button"
-                  (click)="subscribe()"
-                  i18n-title title="Add to home screen"
-                  class="subscribe" i18n>+ follow</button>
+  @if (home) {
+    <div class="hide tag-header">
+      @if (store.view.forYou) {
+        <h3><a [routerLink]="['/home']" [queryParams]="{ forYou: true }" i18n>For You</a></h3>
+        @if (!store.account.userSubs.length) {
+          <p i18n>Follow other users to see their subscriptions alongside yours here.</p>
         }
       } @else {
-        @if (inSubs) {
-          <button type="button"
-                  class="subscribe"
-                  i18n-title title="Remove from home screen"
-                  (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
-        } @else {
-          <button type="button"
-                  (click)="subscribe()"
-                  i18n-title title="Add to home screen"
-                  class="subscribe" i18n>+ subscribe</button>
-        }
-      }
-      @if (inAlarms) {
-        <button type="button"
-                class="alarm"
-                i18n-title title="Remove alarm"
-                (click)="removeAlarm()" i18n>🔇</button>
-      } @else {
-        <button type="button"
-                (click)="addAlarm()"
-                i18n-title title="Add alarm"
-                class="alarm" i18n>🔔</button>
+        <h3><a [routerLink]="['/home']" i18n>Home</a></h3>
       }
     </div>
-  </div>
-
+  }
+  @if (!home && store.view.tag) {
+    <div class="hide tag-header">
+      @if (store.view.current === 'tag') {
+        <h3>{{ ext?.name || tag }}</h3>
+      }
+      @if (store.account.signedIn && tag && admin.getTemplate('user')) {
+        <div class="row center">
+          @if (inBookmarks) {
+            <button type="button"
+                    class="bookmark"
+                    i18n-title title="Remove from top bar"
+                    (click)="removeBookmark()" i18n>&ndash; bookmark</button>
+          } @else {
+            <button type="button"
+                    (click)="bookmark()"
+                    i18n-title title="Add to top bar"
+                    class="bookmark" i18n>+ bookmark</button>
+          }
+          @if (user) {
+            @if (inSubs) {
+              <button type="button"
+                      class="subscribe"
+                      i18n-title title="Remove from home screen"
+                      (click)="unsubscribe()" i18n>&ndash; unfollow</button>
+            } @else {
+              <button type="button"
+                      (click)="subscribe()"
+                      i18n-title title="Add to home screen"
+                      class="subscribe" i18n>+ follow</button>
+            }
+          } @else {
+            @if (inSubs) {
+              <button type="button"
+                      class="subscribe"
+                      i18n-title title="Remove from home screen"
+                      (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
+            } @else {
+              <button type="button"
+                      (click)="subscribe()"
+                      i18n-title title="Add to home screen"
+                      class="subscribe" i18n>+ subscribe</button>
+            }
+          }
+          @if (inAlarms) {
+            <button type="button"
+                    class="alarm"
+                    i18n-title title="Remove alarm"
+                    (click)="removeAlarm()" i18n>🔇</button>
+          } @else {
+            <button type="button"
+                    (click)="addAlarm()"
+                    i18n-title title="Add alarm"
+                    class="alarm" i18n>🔔</button>
+          }
+        </div>
+      }
+    </div>
+  }
   @if (ui && ext) {
     <app-md class="hide ui"
             [disableSanitizer]="true"
             [origin]="ext.origin || ''"
             [text]="uiMarkdown"></app-md>
   }
-
-  <div *ngIf="root" class="hide template-root">
-    <app-md *ngIf="ext?.config?.sidebar"
-            [origin]="ext?.origin || ''"
-            [text]="ext!.config!.sidebar"></app-md>
-  </div>
-
-  <div *ngIf="user || home" class="hide home">
-    <div class="ext-text" *ngIf="bookmarkExts.length" i18n>
-      My Bookmarks:
-      <br>
-      <ng-container *ngFor="let book of bookmarkExts; let i = index">
-        <a class="tag" [routerLink]="['/tag', userConfig!.bookmarks![i]]" [appTitle]="book">{{ book.name || userConfig!.bookmarks![i] }}</a>
-        <br>
-      </ng-container>
+  @if (root) {
+    <div class="hide template-root">
+      @if (ext?.config?.sidebar) {
+        <app-md [origin]="ext?.origin || ''" [text]="ext!.config!.sidebar"></app-md>
+      }
     </div>
-    <div class="ext-text" *ngIf="userSubExts.length" i18n>
-      Following:
-      <br>
-      <ng-container *ngFor="let sub of userSubExts; let i = index">
-        <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]" [appTitle]="sub">{{ sub.name || (sub.tag + sub.origin) }}</a>
-        <br>
-      </ng-container>
+  }
+  @for (res of queryExts$ | async; track res) {
+    <h5>{{ res.ext.name || res.ext.tag}} Tags:</h5>
+    @for (c of res.children; track ext) {
+      <app-ext [ext]="c" [useEditPage]="true"></app-ext>
+    }
+    @if (res.more) {
+      <a [routerLink]="['/tags', res.ext.tag]"
+         queryParamsHandling="merge"
+         class="load-more no-select" i18n>
+        load more
+      </a>
+    }
+  }
+  @if (user || home) {
+    <div class="hide home">
+      @if (bookmarkExts.length) {
+        <div class="ext-text" i18n>
+          My Bookmarks:
+          <br>
+          @for (book of bookmarkExts; track book; let i = $index) {
+            <a class="tag" [routerLink]="['/tag', userConfig!.bookmarks![i]]" [appTitle]="book">{{ book.name || userConfig!.bookmarks![i] }}</a>
+            <br>
+          }
+        </div>
+      }
+      @if (userSubExts.length) {
+        <div class="ext-text" i18n>
+          Following:
+          <br>
+          @for (sub of userSubExts; track sub; let i = $index) {
+            <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]" [appTitle]="sub">{{ sub.name || (sub.tag + sub.origin) }}</a>
+            <br>
+          }
+        </div>
+      }
+      @if (tagSubExts.length) {
+        <div class="ext-text" i18n>
+          Subscribed to:
+          <br>
+          @for (sub of tagSubExts; track sub; let i = $index) {
+            <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]" [appTitle]="sub">{{ sub.name || (sub.tag + sub.origin) }}</a>
+            <br>
+          }
+        </div>
+      }
     </div>
-    <div class="ext-text" *ngIf="tagSubExts.length" i18n>
-      Subscribed to:
-      <br>
-      <ng-container *ngFor="let sub of tagSubExts; let i = index">
-        <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]" [appTitle]="sub">{{ sub.name || (sub.tag + sub.origin) }}</a>
-        <br>
-      </ng-container>
-    </div>
-  </div>
+  }
 </ng-container>

@@ -1,13 +1,17 @@
 <div class="list-container">
-  <ng-container *ngFor="let ext of page?.content; let i = index">
+  @for (ext of page?.content; track ext; let i = $index) {
     <div class="list-number">{{ i + page!.page.number * page!.page.size + 1 }}</div>
     <app-ext [ext]="ext"></app-ext>
-  </ng-container>
+  }
 </div>
-<app-loading *ngIf="!page"></app-loading>
-<app-page-controls *ngIf="page && page.content.length"
-                   [page]="page"></app-page-controls>
-
-<p class="no-results" *ngIf="page && !page.content.length" i18n>
-  No results found
-</p>
+@if (page) {
+  @if (page.content.length) {
+    <app-page-controls [page]="page"></app-page-controls>
+  } @else {
+    <p class="no-results" i18n>
+      No results found
+    </p>
+  }
+} @else {
+  <app-loading></app-loading>
+}
