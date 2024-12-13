@@ -54,8 +54,8 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !!this.reply?.saveChanges()
-      && !!this.list?.saveChanges()
+    return (!this.reply || this.reply.saveChanges())
+      && (!this.list || this.list.saveChanges())
       && !this.threadComponents?.find(t => !t.saveChanges());
   }
 

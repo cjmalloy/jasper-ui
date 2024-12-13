@@ -212,7 +212,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   saveChanges() {
     return (!this.editing || !this.editForm.dirty)
-      && (!this.replying || !!this.reply?.saveChanges());
+      && (!this.reply || this.reply.saveChanges());
   }
 
   init() {

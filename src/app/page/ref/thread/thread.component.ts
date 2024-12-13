@@ -55,7 +55,8 @@ export class RefThreadComponent implements HasChanges {
   }
 
   saveChanges() {
-    return !!this.reply?.saveChanges() && !!this.list?.saveChanges();
+    return (!this.reply || this.reply.saveChanges())
+      && (!this.list || this.list.saveChanges());
   }
 
   ngOnInit(): void {

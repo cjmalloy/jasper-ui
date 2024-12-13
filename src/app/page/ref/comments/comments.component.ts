@@ -37,7 +37,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !!this.reply?.saveChanges();
+    return !this.reply || this.reply.saveChanges();
   }
 
   ngOnInit(): void {
