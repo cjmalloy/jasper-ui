@@ -3,6 +3,7 @@ import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, Subject, Subscription, switchMap, throwError } from 'rxjs';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
@@ -15,7 +16,7 @@ import { printError } from '../../../util/http';
   templateUrl: './comment-edit.component.html',
   styleUrls: ['./comment-edit.component.scss'],
 })
-export class CommentEditComponent implements AfterViewInit {
+export class CommentEditComponent implements AfterViewInit, HasChanges {
   @HostBinding('class') css = 'comment-edit';
 
   serverError: string[] = [];
@@ -37,6 +38,10 @@ export class CommentEditComponent implements AfterViewInit {
     this.commentForm = fb.group({
       comment: [''],
     });
+  }
+
+  saveChanges() {
+    return !this.commentForm.dirty;
   }
 
   ngAfterViewInit() {

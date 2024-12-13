@@ -44,6 +44,7 @@ import { getScheme } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin, top } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
+import { CommentEditComponent } from './comment-edit/comment-edit.component';
 import { CommentReplyComponent } from './comment-reply/comment-reply.component';
 import { CommentThreadComponent } from './comment-thread/comment-thread.component';
 
@@ -65,6 +66,8 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   actionComponents?: QueryList<ActionComponent>;
   @ViewChild(CommentReplyComponent)
   replyComponent?: CommentReplyComponent;
+  @ViewChild(CommentEditComponent)
+  editComponent?: CommentEditComponent;
   @ViewChild(CommentThreadComponent)
   threadComponent?: CommentThreadComponent;
 
@@ -117,10 +120,10 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     }));
   }
 
-  saveChanges(): boolean {
-    const replyDirty = this.replyComponent?.saveChanges();
-    const threadDirty = this.threadComponent?.saveChanges();
-    return !replyDirty && !threadDirty;
+  saveChanges() {
+    return !!this.editComponent?.saveChanges()
+      && !!this.replyComponent?.saveChanges()
+      && !!this.threadComponent?.saveChanges();
   }
 
   ngOnInit(): void {
