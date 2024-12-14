@@ -187,7 +187,7 @@ export const dalleQueryPlugin: Plugin = {
             'User-Tag': '+plugin/delta/dalle',
             'Content-Type': 'image/png',
           },
-          params: { mime: 'image/png' },
+          params: { origin, mime: 'image/png' },
         })).data;
         delete cache.metadata;
         console.log(JSON.stringify({
