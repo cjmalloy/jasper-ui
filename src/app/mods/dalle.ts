@@ -158,8 +158,10 @@ export const dalleQueryPlugin: Plugin = {
       tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)));
       tags = tags.filter((v, i, a) => a.indexOf(v) === i);
       const sources = [ref.url];
-      if (ref.tags?.includes('plugin/thread') || ref.tags?.includes('plugin/comment')) {
+      if (ref.sources && (ref.tags.includes('plugin/thread') || ref.tags.includes('plugin/comment'))) {
         sources.push(ref.sources[1] || ref.sources[0] || ref.url);
+      } else {
+        sources.push(ref.url);
       }
       const image = {
         sources,
