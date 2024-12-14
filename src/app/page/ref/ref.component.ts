@@ -1,10 +1,12 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, filter, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { RefComponent } from '../../component/ref/ref.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import { isWiki } from '../../mods/wiki';
 import { AdminService } from '../../service/admin.service';
@@ -21,9 +23,12 @@ import { hasTag, privateTag, top } from '../../util/tag';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
 })
-export class RefPage implements OnInit, OnDestroy {
+export class RefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
+
+  @ViewChild(RefComponent)
+  ref?: RefComponent;
 
   newResponses = 0;
   private watchSelf?: Subscription;
@@ -39,6 +44,10 @@ export class RefPage implements OnInit, OnDestroy {
     private stomp: StompService,
   ) {
     store.view.clearRef();
+  }
+
+  saveChanges() {
+    return !this.ref || this.ref.saveChanges();
   }
 
   ngOnInit(): void {

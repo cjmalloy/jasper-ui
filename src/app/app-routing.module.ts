@@ -157,6 +157,7 @@ const routes: Routes = [
   {
     path: 'ref/:url',
     component: RefPage,
+    canDeactivate: [pendingChangesGuard],
     children: [
       { path: '', component: RefSummaryComponent, canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
       { path: 'comments', component: RefCommentsComponent, canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
