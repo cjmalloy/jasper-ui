@@ -298,40 +298,34 @@ export class AdminService {
 
   private pluginToStatus(list: Plugin[]) {
     for (const p of list) {
-      const key = this.keyOf(this.def.plugins, p.tag);
       if (p.config?.disabled) {
-        this.status.disabledPlugins[key] = p;
+        this.status.disabledPlugins[p.tag] = p;
       } else {
-        this.status.plugins[key] = p;
-        this.def.plugins[key] ||= clear(p);
+        this.status.plugins[p.tag] = p;
+        this.def.plugins[p.tag] ||= clear(p);
       }
       p.config ||= {};
-      p.config.needsUpdate ||= this.needsUpdate(this.def.plugins[key], p);
+      p.config.needsUpdate ||= this.needsUpdate(this.def.plugins[p.tag], p);
       if (p.config.needsUpdate) {
-        console.log(key + ' needs update');
+        console.log(p.tag + ' needs update');
       }
     }
   }
 
   private templateToStatus(list: Template[]) {
     for (const t of list) {
-      const key = this.keyOf(this.def.templates, t.tag);
       if (t.config?.disabled) {
-        this.status.disabledTemplates[key] = t;
+        this.status.disabledTemplates[t.tag] = t;
       } else {
-        this.status.templates[key] = t;
-        this.def.templates[key] ||= t;
+        this.status.templates[t.tag] = t;
+        this.def.templates[t.tag] ||= t;
       }
       t.config ||= {};
-      t.config.needsUpdate ||= this.needsUpdate(this.def.templates[key], t);
+      t.config.needsUpdate ||= this.needsUpdate(this.def.templates[t.tag], t);
       if (t.config.needsUpdate) {
-        console.log(key + ' needs update');
+        console.log(t.tag + ' needs update');
       }
     }
-  }
-
-  keyOf(dict: Record<string, Tag>, tag: string) {
-    return findKey(dict, p => p.tag === tag) || tag || 'root';
   }
 
   private get _extFallback() {
@@ -1001,10 +995,10 @@ export class AdminService {
       of(null).pipe(tap(() => _($localize`Updating ${mod} mod...`))),
       ...Object.values(this.def.plugins)
         .filter(p => modId(p) === mod)
-        .map(p => this.updatePlugin$(this.keyOf(this.def.plugins, p.tag), _)),
+        .map(p => this.updatePlugin$(p.tag, _)),
       ...Object.values(this.def.templates)
         .filter(t => modId(t) === mod)
-        .map(t => this.updateTemplate$(this.keyOf(this.def.templates, t.tag), _)),
+        .map(t => this.updateTemplate$(t.tag, _)),
     ]).pipe(toArray());
   }
 
