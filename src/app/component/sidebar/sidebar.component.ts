@@ -254,7 +254,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     return forkJoin(this.store.view.exts.map(ext => this.exts.page({
       query: ext.tag,
       sort: ['origin', 'levels', 'tag', 'modified,DESC'],
-      size: 5,
+      size: ext.config?.childTags || 5,
     }).pipe(
       map(page => ({
         ext: ext,

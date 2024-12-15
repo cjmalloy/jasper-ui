@@ -160,6 +160,12 @@ export const rootTemplate: Template = {
         ],
       },
     }, {
+      key: 'childTags',
+      type: 'number',
+      props: {
+        label: $localize`Child Tags in Sidebar:`,
+      },
+    }, {
       key: 'noFloatingSidebar',
       type: 'boolean',
       props: {
@@ -205,6 +211,7 @@ export const rootTemplate: Template = {
       hideEdit: { type: 'boolean'},
       disableResize: { type: 'boolean'},
       defaultCols: { type: 'int8'},
+      childTags: { type: 'int8'},
       noFloatingSidebar: { type: 'boolean'},
     },
   },
@@ -229,6 +236,7 @@ export interface RootConfig {
   hideEdit?: boolean;
   disableResize?: boolean;
   defaultCols?: number;
+  childTags?: number;
   noFloatingSidebar?: boolean;
 }
 
