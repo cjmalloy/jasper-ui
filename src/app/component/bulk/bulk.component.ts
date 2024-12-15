@@ -10,7 +10,7 @@ import { Ref } from '../../model/ref';
 import { Action, active, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { Template } from '../../model/template';
 import { User } from '../../model/user';
-import { deleteNotice, tagDeleteNotice } from '../../mods/delete';
+import { deleteNotice, isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -256,13 +256,13 @@ export class BulkComponent implements OnChanges, OnDestroy {
       );
     } else if (this.type === 'ext' || this.type === 'user') {
       return this.batch$<Ext | User>(tag => this.tagService.delete(tag.tag + tag.origin).pipe(
-        switchMap(() => !tag.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+        switchMap(() => !isDeletorTag(tag.tag) && this.admin.getPlugin('plugin/delete')
           ? this.tagService.create(tagDeleteNotice(tag))
           : of(null)),
       ));
     } else {
       return this.batch$<Plugin | Template>(tag => this.tagService.delete(tag.tag + tag.origin).pipe(
-        switchMap(() => !tag.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+        switchMap(() => !isDeletorTag(tag.tag) && this.admin.getPlugin('plugin/delete')
           ? this.tagService.create(tagDeleteNotice(tag))
           : of(null)),
       ));

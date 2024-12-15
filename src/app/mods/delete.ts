@@ -4,7 +4,7 @@ import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Mod, Tag } from '../model/tag';
-import { hasTag, publicTag } from '../util/tag';
+import { hasTag, localTag, publicTag, tagOrigin } from '../util/tag';
 
 export const deletePlugin: Plugin = {
   tag: 'plugin/delete',
@@ -52,6 +52,22 @@ export function deleteNotice(ref: Ref): Ref {
     published: ref.published,
     modifiedString: ref.modifiedString,
   };
+}
+
+export function isDeletorTag(tag: string) {
+  tag = localTag(tag);
+  return tag === "deleted" || tag.endsWith("/deleted");
+}
+
+export function deletorTag(tag: string) {
+  if (!tag) return "deleted"
+  return localTag(tag) + "/deleted" + tagOrigin(tag);
+}
+
+export function deletedTag(deletor: string) {
+  const local = localTag(deletor);
+  if (local === "deleted") return "";
+  return local.substring(0, local.length - "/deleted".length) + tagOrigin(deletor);
 }
 
 export function tagDeleteNotice(tag: Tag) {

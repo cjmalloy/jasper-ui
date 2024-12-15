@@ -20,7 +20,7 @@ import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { getRole, Profile } from '../../model/profile';
 import { Role, User } from '../../model/user';
-import { tagDeleteNotice } from '../../mods/delete';
+import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ProfileService } from '../../service/api/profile.service';
@@ -269,7 +269,7 @@ export class UserComponent implements OnChanges, HasChanges {
     this.serverError = [];
     const os = [];
     if (this.user) {
-      const deleteNotice = !this.user.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+      const deleteNotice = !isDeletorTag(this.user.tag) && this.admin.getPlugin('plugin/delete')
         ? this.users.create(tagDeleteNotice(this.user))
         : of(null);
       os.push(this.users.delete(this.qualifiedTag).pipe(

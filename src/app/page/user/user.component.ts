@@ -7,7 +7,7 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
-import { tagDeleteNotice } from '../../mods/delete';
+import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ProfileService } from '../../service/api/profile.service';
 import { UserService } from '../../service/api/user.service';
@@ -172,7 +172,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
   delete() {
     // TODO: Better dialogs
     if (confirm($localize`Are you sure you want to delete this user?`)) {
-      const deleteNotice = !this.store.view.selectedUser!.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+      const deleteNotice = !isDeletorTag(this.store.view.selectedUser!.tag) && this.admin.getPlugin('plugin/delete')
         ? this.users.create(tagDeleteNotice(this.store.view.selectedUser!))
         : of(null);
       this.users.delete(this.store.view.localTag + this.store.account.origin).pipe(

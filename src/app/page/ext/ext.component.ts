@@ -8,7 +8,7 @@ import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
-import { tagDeleteNotice } from '../../mods/delete';
+import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ModService } from '../../service/mod.service';
@@ -227,7 +227,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     const ext = this.store.view.ext!;
     // TODO: Better dialogs
     if (confirm($localize`Are you sure you want to delete this tag extension?`)) {
-      const deleteNotice = !ext.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+      const deleteNotice = !isDeletorTag(ext.tag) && this.admin.getPlugin('plugin/delete')
         ? this.exts.create(tagDeleteNotice(ext))
         : of(null);
       this.deleting = this.exts.delete(ext.tag + ext.origin).pipe(

@@ -6,7 +6,7 @@ import { tap } from 'rxjs/operators';
 import { pluginForm } from '../../form/plugin/plugin.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Plugin, writePlugin } from '../../model/plugin';
-import { tagDeleteNotice } from "../../mods/delete";
+import { isDeletorTag, tagDeleteNotice } from "../../mods/delete";
 import { AdminService } from '../../service/admin.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { ModService } from '../../service/mod.service';
@@ -156,7 +156,7 @@ export class PluginComponent implements OnChanges, HasChanges {
   }
 
   delete$ = () => {
-    const deleteNotice = !this.plugin.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+    const deleteNotice = !isDeletorTag(this.plugin.tag) && this.admin.getPlugin('plugin/delete')
       ? this.plugins.create(tagDeleteNotice(this.plugin))
       : of(null);
     return this.plugins.delete(this.qualifiedTag).pipe(
