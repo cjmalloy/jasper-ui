@@ -25,6 +25,7 @@ import { ImageUploadComponent } from './image-upload/image-upload.component';
 import { FormlyFieldInput } from './input.type';
 import { ListTypeComponent } from './list.type';
 import { FormlyFieldMultiCheckbox } from './multicheckbox.type';
+import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
 import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
 import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldSelect } from './select.type';
@@ -46,6 +47,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
     ImageUploadComponent,
     VideoUploadComponent,
     AudioUploadComponent,
+    PdfUploadComponent,
     ListTypeComponent,
   ],
   exports: [
@@ -236,6 +238,9 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
             label: $localize`Audio:`,
           },
         },
+      }, {
+        name: 'pdf',
+        extends: 'url',
       }, {
         name: 'qr',
         extends: 'url',

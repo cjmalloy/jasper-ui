@@ -26,10 +26,7 @@ export const pdfPlugin: Plugin = {
     extensions: ['.pdf'],
     advancedForm: [{
       key: 'url',
-      type: 'url',
-      props: {
-        label: $localize`URL:`,
-      },
+      type: 'pdf',
     }, {
       key: 'showAbstract',
       type: 'boolean',

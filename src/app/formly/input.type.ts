@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
+import { AdminService } from '../service/admin.service';
 import { getErrorMessage } from './errors';
 
 @Component({
@@ -24,17 +25,23 @@ import { getErrorMessage } from './errors';
       }
       @if (props.clear) { <button type="button" (click)="field.formControl!.setValue(null)" i18n-title title="Clear" i18n>🆑️</button> }
       @if (field.type ===    'qr') { <app-qr-scanner   (data)="$event && field.formControl!.setValue($event)"></app-qr-scanner> }
-      @if (field.type === 'audio') { <app-audio-upload (data)="$event && field.formControl!.setValue($event)"></app-audio-upload> }
-      @if (field.type === 'video') { <app-video-upload (data)="$event && field.formControl!.setValue($event)"></app-video-upload> }
-      @if (field.type === 'image') { <app-image-upload (data)="$event && field.formControl!.setValue($event)"></app-image-upload> }
+      @if (files) {
+        @if (field.type ===   'pdf') { <app-pdf-upload   (data)="$event && field.formControl!.setValue($event)"></app-pdf-upload> }
+        @if (field.type === 'audio') { <app-audio-upload (data)="$event && field.formControl!.setValue($event)"></app-audio-upload> }
+        @if (field.type === 'video') { <app-video-upload (data)="$event && field.formControl!.setValue($event)"></app-video-upload> }
+        @if (field.type === 'image') { <app-image-upload (data)="$event && field.formControl!.setValue($event)"></app-image-upload> }
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
 
+  files = !!this.admin.getPlugin('plugin/file');
+
   constructor(
     private config: FormlyConfig,
+    private admin: AdminService,
   ) {
     super();
   }
