@@ -16,7 +16,7 @@ import { Chess, Move, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Observable, Subscription, throwError } from 'rxjs';
+import { catchError, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
@@ -106,7 +106,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     if (!this.watch && this.updates$) {
       this.watch = this.updates$.subscribe(u => {
         if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
-        else this.ref!.modifiedString = u.modifiedString;
+        this.ref!.modifiedString = u.modifiedString;
         const prev = this.prevComment
           .trim()
           .split(/\s+/g)
@@ -286,7 +286,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
     if (move) {
       this.check();
-      this.save(move!);
+      this.save();
     }
   }
 
@@ -316,30 +316,36 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
   }
 
-  save(move?: Move) {
+  save() {
+    const move = this.chess.history({ verbose: true })[this.chess.history().length - 1];
     const comment = this.prevComment = (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
-    this.comment.emit(comment)
+    this.comment.emit(comment);
     if (!this.ref) return;
     const title = move && this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + move.san : '';
     (this.cursor ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor,
       { title, comment }
     ).pipe(
       catchError(err => {
-        window.alert('Error syncing game. Please reload.');
+        if (err.status === 409) {
+          this.move(move.from, move.to);
+          return of(null);
+        }
+        alert('Error syncing game. Please reload.');
         return throwError(() => err);
-      })
+      }),
     ) : this.refs.create({
       ...this.ref,
       origin: this.store.account.origin,
       title,
       comment,
     })).subscribe(cursor => {
+      if (!cursor) return;
       this.writeAccess = true;
       if (this.prevComment !== comment) return;
       this.ref!.title = title;
       this.ref!.comment = comment;
       this.ref!.modified = DateTime.fromISO(cursor);
-      this.ref!.modifiedString = cursor;
+      this.cursor = this.ref!.modifiedString = cursor;
       if (!this.local) {
         this.ref!.origin = this.store.account.origin;
         this.copied.emit(this.store.account.origin)
