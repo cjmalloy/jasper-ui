@@ -10,7 +10,7 @@
   <div class="info">
     <span [title]="template.modified?.toISO()" i18n>modified {{ template.modified?.toRelative() }}</span>
     @if (!local) {
-      <span i18n>on <a [routerLink]="['/tag', template.origin]">{{ template.origin }}</a></span>
+      &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', template.origin]">{{ template.origin }}</a>
     }
   </div>
   <div class="actions">

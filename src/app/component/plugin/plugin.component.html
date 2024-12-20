@@ -10,7 +10,7 @@
   <div class="info">
     <span [title]="plugin.modified?.toISO()" i18n>modified {{ plugin.modified?.toRelative() }}</span>
     @if (!local) {
-      <span i18n>on <a [routerLink]="['/tag', plugin.origin]">{{ plugin.origin }}</a></span>
+      &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', plugin.origin]">{{ plugin.origin }}</a>
     }
   </div>
   <div class="actions">

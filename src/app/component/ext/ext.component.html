@@ -14,7 +14,7 @@
       <span class="icon" (click)="bookmarks.toggleTag(icon.tag)" [title]="icon.tag">{{ icon.config!.view! }}</span>
     }
     @if (!local) {
-      <span i18n>on</span> <a [routerLink]="['/tag', ext.origin]">{{ ext.origin || 'default' }}</a>
+      &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', ext.origin]">{{ ext.origin || 'default' }}</a>
     }
   </div>
   <div class="actions">
