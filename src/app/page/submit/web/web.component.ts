@@ -86,7 +86,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         this.addTag('internal');
         this.setTitle($localize`Submit: Feed`);
       }
-      let url = this.store.submit.url.trim();
+      let url = this.store.submit.url?.trim();
       if (this.store.submit.repost) {
         this.url = 'internal:' + uuid();
         this.addTag('plugin/repost');
