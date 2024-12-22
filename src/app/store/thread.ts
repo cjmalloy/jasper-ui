@@ -46,11 +46,11 @@ export class ThreadStore {
     this.cache.clear();
   }
 
-  setArgs(top: Ref, sort?: RefSort | RefSort[], filters?: UrlFilter[], search?: string) {
+  setArgs(top?: Ref, sort?: RefSort | RefSort[], filters?: UrlFilter[], search?: string) {
     this.clear();
     this.args = {
       ...getArgs('plugin/comment', sort, filters, search),
-      responses: top.url,
+      responses: top?.url,
       size: this.defaultBatchSize,
       page: 0,
     };

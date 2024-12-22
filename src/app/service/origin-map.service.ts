@@ -63,14 +63,16 @@ export class OriginMapService {
   /**
    * Searches push configs to list api aliases.
    */
-  private get selfApis(): Set<string> {
+  private get selfApis(): Map<string, string> {
+    const config = (remote?: Ref): any => remote?.plugins?.['+plugin/origin'];
     const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
     const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
-    return new Set([this.api,
+    return new Map([
+      [this.api, this.store.account.origin],
       ...remotesForOrigin(this.store.account.origin)
         .filter(remote => isPushing(remote, ''))
-        .map(remote => trimUrl(remote.url)),
-    ]);
+        .map(remote => [trimUrl(remote.url), config(remote).remote]),
+    ] as [string, string][]);
   }
 
   /**
