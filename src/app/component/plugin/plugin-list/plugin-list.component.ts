@@ -2,6 +2,7 @@ import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
+import { Plugin } from '../../../model/plugin';
 import { Tag } from '../../../model/tag';
 import { PluginComponent } from '../plugin.component';
 
@@ -17,7 +18,7 @@ export class PluginListComponent implements HasChanges {
   @ViewChildren(PluginComponent)
   list?: QueryList<PluginComponent>;
 
-  private _page?: Page<Tag>;
+  private _page?: Page<Plugin>;
 
   constructor(private router: Router) { }
 
@@ -30,7 +31,7 @@ export class PluginListComponent implements HasChanges {
   }
 
   @Input()
-  set page(value: Page<Tag> | undefined) {
+  set page(value: Page<Plugin> | undefined) {
     this._page = value;
     if (this._page) {
       if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
 import { Tag } from '../../../model/tag';
+import { Template } from '../../../model/template';
 import { TemplateComponent } from '../template.component';
 
 @Component({
@@ -17,7 +18,7 @@ export class TemplateListComponent implements HasChanges {
   @ViewChildren(TemplateComponent)
   list?: QueryList<TemplateComponent>;
 
-  private _page?: Page<Tag>;
+  private _page?: Page<Template>;
 
   constructor(private router: Router) { }
 
@@ -30,7 +31,7 @@ export class TemplateListComponent implements HasChanges {
   }
 
   @Input()
-  set page(value: Page<Tag> | undefined) {
+  set page(value: Page<Template> | undefined) {
     this._page = value;
     if (this._page) {
       if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
