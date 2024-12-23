@@ -697,7 +697,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get defaultView() {
-    if (this.thread) return 'thread';
+    if (this.thread || this.threads || this.dm) return 'thread';
     if (this.comment) return 'comments';
     return undefined;
   }
