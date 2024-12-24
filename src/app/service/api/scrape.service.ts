@@ -24,12 +24,12 @@ export class ScrapeService {
     private login: LoginService,
   ) {
     autorun(() => {
-      if (this.store.eventBus.event === 'pull') {
+      if (store.eventBus.event === 'pull') {
         if (hasTag('plugin/feed', this.store.eventBus.ref)) {
-          this.store.eventBus.runAndReload(this.feed(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
+          store.eventBus.runAndReload(this.feed(store.eventBus.ref!.url, store.eventBus.ref!.origin));
         }
       }
-      if (this.store.eventBus.event === '+plugin/scrape:defaults' || this.store.eventBus.event === '*:defaults') {
+      if (store.eventBus.event === '+plugin/scrape:defaults' || store.eventBus.event === '*:defaults') {
         this.defaults().subscribe();
       }
     });

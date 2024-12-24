@@ -84,8 +84,10 @@ import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
 import { addHierarchicalTags, hasPrefix, hasTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
+import { OEmbedService } from './api/oembed.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
+import { ScrapeService } from './api/scrape.service';
 import { TemplateService } from './api/template.service';
 import { UserService } from './api/user.service';
 import { AuthzService } from './authz.service';
@@ -195,6 +197,8 @@ export class AdminService {
     private users: UserService,
     private plugins: PluginService,
     private templates: TemplateService,
+    private oembed: OEmbedService,
+    private scrape: ScrapeService,
     private store: Store,
   ) {
     autorun(() => {
