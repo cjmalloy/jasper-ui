@@ -51,7 +51,7 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
           const args = getArgs(
             q,
             this.store.view.sort,
-            this.store.view.filter,
+            ['user/!plugin/hide', ...this.store.view.filter],
             this.store.view.search,
             this.store.view.pageNumber,
             this.store.view.pageSize,
@@ -62,7 +62,7 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
         const args = getArgs(
           this.store.account.subscriptionQuery,
           this.store.view.sort,
-          this.store.view.filter,
+          ['user/!plugin/hide', ...this.store.view.filter],
           this.store.view.search,
           this.store.view.pageNumber,
           this.store.view.pageSize,

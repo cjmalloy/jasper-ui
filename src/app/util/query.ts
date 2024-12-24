@@ -20,6 +20,7 @@ export type UrlFilter = Filter |
   `responses/${string}` |
   `query/${string}` |
   `scheme/${string}` |
+  `user/${string}` |
   `plugin/${string}` |
   `+plugin/${string}` |
   `_plugin/${string}` |
@@ -29,7 +30,7 @@ export type UrlFilter = Filter |
 
 export function negatable(filter: string) {
   if (!filter) return false;
-  return filter.startsWith('query/') || filter.startsWith('!') || hasPrefix(filter, 'plugin');
+  return filter.startsWith('query/') || filter.startsWith('user/') || filter.startsWith('!') || hasPrefix(filter, 'plugin');
 }
 
 export function toggle(filter: UrlFilter): UrlFilter {
@@ -39,6 +40,14 @@ export function toggle(filter: UrlFilter): UrlFilter {
       return 'query/' + query.substring(2, query.length - 1) as UrlFilter;
     } else {
       return 'query/!(' + query + ')' as UrlFilter;
+    }
+  }
+  if (filter.startsWith('user/')) {
+    const plugin = filter.substring('user/'.length);
+    if (plugin.startsWith('!')) {
+      return 'user/' + plugin.substring(1) as UrlFilter;
+    } else {
+      return 'user/!' + plugin as UrlFilter;
     }
   }
   if (filter.startsWith('!')) return filter.substring(1) as any;
@@ -54,6 +63,8 @@ export function convertFilter(filter: FilterConfig): FilterItem {
     return { filter: `scheme/${filter.scheme}`, label: filter.label || filter.scheme, title: filter.title };
   } else if (filter.query) {
     return { filter: `query/${filter.query}`, label: filter.label || filter.query, title: filter.title };
+  } else if (filter.user) {
+    return { filter: `user/${filter.user}`, label: filter.label || filter.user, title: filter.title };
   } else if (filter.response) {
     return { filter: filter.response, label: filter.label || filter.response, title: filter.title };
   }
@@ -73,6 +84,9 @@ export function getArgs(
   }
   if (filters?.includes('query/plugin/delete')) {
     filters = without(filters, 'query/!plugin/delete');
+  }
+  if (filters?.includes('user/plugin/hide')) {
+    filters = without(filters, 'user/!plugin/hide');
   }
   filters = uniq(filters);
   let queryFilter = getFiltersQuery(filters);
@@ -154,6 +168,15 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       result.responses = f.substring('responses/'.length)
     } else if (f.startsWith('scheme/')) {
       result.scheme = f.substring('scheme/'.length)
+    } else if (f.startsWith('user/')) {
+      const p = f.substring('user/'.length);
+      if (hasPrefix(p, 'plugin')) {
+        result.userResponse ||= [];
+        result.userResponse.push(p);
+      } else if (p.startsWith('!') && hasPrefix(p.substring(1), 'plugin')) {
+        result.noUserResponse ||= [];
+        result.noUserResponse.push(p.substring(1));
+      }
     } else if (hasPrefix(f, 'plugin')) {
       result.pluginResponse ||= [];
       result.pluginResponse.push(f);

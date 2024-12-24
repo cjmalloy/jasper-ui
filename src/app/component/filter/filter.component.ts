@@ -254,6 +254,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
       } else if (!this.allFilters.find(g => g.filters.find(i => i.filter === f))) {
         // Current filter is missing
         if (f.startsWith('query/')) setToggles.push(f);
+        if (f.startsWith('user/')) setToggles.push(f);
         if (f.startsWith('!') || hasPrefix(f, 'plugin')) setToggles.push(f);
         if (f.startsWith('scheme/')) this.loadFilter({ group: $localize`Schemes 🏳️️`, scheme: f.substring('scheme/'.length)});
         if (f.startsWith('sources/')) this.loadFilter({ group: $localize`Filters 🕵️️`, label: $localize`Sources ⤴️`, sources: f.substring('sources/'.length) });
@@ -269,7 +270,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
           const target = g.filters.find(i => i.filter === toggle(f));
           if (target) {
             target.filter = f;
-            if (f.startsWith('!') || f.startsWith('query/!(')) {
+            if (f.startsWith('!') || f.startsWith('user/!') || f.startsWith('query/!(')) {
               target.label = this.store.account.querySymbol('!') + target.label;
             } else {
               target.label = target.label.substring(this.store.account.querySymbol('!').length);
@@ -278,6 +279,8 @@ export class FilterComponent implements OnChanges, OnDestroy {
         });
       } else if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
         this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
+      } else if (f.startsWith('user/')) {
+        this.loadFilter({ group: $localize`Filters 🕵️️`, user: f.substring('user/'.length) as any });
       } else {
         // TODO: On page load Kanaban Exts are not loaded in time to find proper negate query filter
         this.loadFilter({ group: $localize`Queries 🔎️️`, query: f.substring('query/'.length)});

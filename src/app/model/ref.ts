@@ -89,6 +89,8 @@ export type RefFilter = FilterObj & {
   scheme?: string;
   pluginResponse?: string[];
   noPluginResponse?: string[];
+  userResponse?: string[];
+  noUserResponse?: string[];
   url?: string;
   obsolete?: boolean;
   responses?: string;

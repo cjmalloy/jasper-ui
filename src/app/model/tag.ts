@@ -298,11 +298,15 @@ export interface FilterConfig {
    */
   responses?: string;
   /**
-   * Filter based on plugin responses in metadata. Plugins must have be
-   * generating metadata to work.
-   * If set, query  and scheme must not be set.
+   * Filter based on plugin responses in metadata. Plugins must be generating metadata to work.
+   * If set, query and scheme must not be set.
    */
   response?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
+  /**
+   * Filter based on user plugin responses in metadata. Plugins must have be user URLs and generating metadata to work.
+   * If set, query and scheme must not be set.
+   */
+  user?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
   label?: string;
   title?: string;
   group?: string;
