@@ -39,6 +39,7 @@ import { folderMod } from '../mods/folder';
 import { fullscreenMod } from '../mods/fullscreen';
 import { gdprMod } from '../mods/gdpr';
 import { graphMod } from '../mods/graph';
+import { hideMod } from '../mods/hide';
 import { homeMod } from '../mods/home';
 import { htmlToMarkdownMod } from '../mods/htmlToMarkdown';
 import { imageMod } from '../mods/image';
@@ -59,6 +60,7 @@ import { qrMod } from '../mods/qr';
 import { queueMod } from '../mods/queue';
 import { repostMod } from '../mods/repost';
 import { rootMod } from '../mods/root';
+import { saveMod } from '../mods/save';
 import { scrapeMod } from '../mods/scrape';
 import { seamlessMod } from '../mods/seamless';
 import { secretMod } from '../mods/secret';
@@ -111,6 +113,8 @@ export class AdminService {
     blogMod,
     chatMod,
     mailboxMod,
+    hideMod,
+    saveMod,
 
     // Themes
     themesMod,
