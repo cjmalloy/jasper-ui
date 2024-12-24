@@ -780,6 +780,11 @@ video.qr-preview {
   max-width: 100vw;
   border-bottom: 1px solid var(--border);
 
+  &.measuring > a:not(.logo):not(.current-tab) {
+    position: absolute;
+    opacity: 0;
+  }
+
   .logo {
     width: 120px;
     height: 56px;

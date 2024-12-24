@@ -30,6 +30,9 @@ export class TabsComponent implements AfterViewInit {
   map = new Map<string, number>();
   hidden = 0;
 
+  @HostBinding('class.measuring')
+  measuring = true;
+
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
 
   constructor(
@@ -40,6 +43,7 @@ export class TabsComponent implements AfterViewInit {
   ngAfterViewInit() {
     this.updateTabs();
     this.anchors.changes.subscribe(value => {
+      this.measuring = true;
       this.updateTabs();
     });
     defer(() => this.resizeObserver?.observe(this.el.nativeElement!.parentElement!));
@@ -93,6 +97,7 @@ export class TabsComponent implements AfterViewInit {
         i--;
       }
     }
+    this.measuring = false;
   }
 
   @memo
