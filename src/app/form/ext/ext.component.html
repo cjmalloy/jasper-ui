@@ -23,7 +23,8 @@
                     [control]="popover"></app-editor>
       </div>
     }
-    @if (userTheme) {
+    @if (userTheme && userThemeValues.length) {
+      <!-- TODO: replace empty themes with instructions -->
       <label for="userTheme" i18n>User Theme:</label>
       <div i18n-title title="This theme will be used on every page. Tag page themes will be ignored.">
         <select id="userTheme" formControlName="userTheme">
@@ -96,7 +97,8 @@
                     [control]="sidebar"></app-editor>
       </div>
     }
-    @if (themes) {
+    @if (themes && themeValues.length) {
+      <!-- TODO: replace empty themes with instructions -->
       <label for="theme" i18n>Tag Page Theme:</label>
       <div>
         <select id="theme" formControlName="theme">
