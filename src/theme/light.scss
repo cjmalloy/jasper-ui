@@ -111,6 +111,8 @@ body.light-theme {
   }
 
   .sidebar {
+    transform: translateY(-1px);
+    border-top: 1px solid var(--border);
     border-left: 1px dashed var(--border);
     border-bottom: 1px dashed var(--border);
     backdrop-filter: grayscale(1) contrast(0.2) brightness(1.5) blur(6px);
