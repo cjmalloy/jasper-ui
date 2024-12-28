@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyFieldProps } from '@ngx-formly/core';
 import { FormlyFieldSelectProps } from '@ngx-formly/core/select';
 
@@ -65,4 +65,7 @@ export class FormlyFieldSelect extends FieldType<FieldTypeConfig<SelectProps>> {
       },
     },
   };
+
+  @HostBinding('class.field')
+  css = true;
 }

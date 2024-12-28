@@ -28,6 +28,7 @@ import { FormlyFieldMultiCheckbox } from './multicheckbox.type';
 import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
 import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
 import { FormlyFieldRadio } from './radio.type';
+import { FormlyFieldRange } from './range.type';
 import { FormlyFieldSelect } from './select.type';
 import { FormlyFieldTextArea } from './textarea.type';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
@@ -36,6 +37,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
   declarations: [
     FormlyWrapperFormField,
     FormlyFieldInput,
+    FormlyFieldRange,
     FormlyFieldTextArea,
     FormlyFieldCheckbox,
     FormlyFieldMultiCheckbox,
@@ -75,6 +77,17 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         name: 'input',
         component: FormlyFieldInput,
         wrappers: ['form-field'],
+      }, {
+        name: 'range',
+        component: FormlyFieldRange,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          props: {
+            min: 0,
+            max: 10,
+            step: 1,
+          }
+        }
       }, {
         name: 'string',
         extends: 'input',

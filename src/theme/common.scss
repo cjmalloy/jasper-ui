@@ -1165,12 +1165,10 @@ formly-list-section .form-array > formly-field > formly-group {
     margin-top: 2px;
   }
   .nested-form,
+  .field,
   formly-field,
   formly-group,
   formly-wrapper-form-field,
-  formly-field-textarea,
-  formly-field-input,
-  formly-field-select,
   formly-list-section {
     margin: 0;
     display: contents;
