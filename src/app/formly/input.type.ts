@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { AdminService } from '../service/admin.service';
 import { getErrorMessage } from './errors';
@@ -6,6 +6,7 @@ import { getErrorMessage } from './errors';
 @Component({
   standalone: false,
   selector: 'formly-field-input',
+  host: {'class': 'field'},
   template: `
     <div class="form-array">
       @if (type !== 'number') {
@@ -36,9 +37,6 @@ import { getErrorMessage } from './errors';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
-
-  @HostBinding('class.field')
-  css = true;
 
   files = !!this.admin.getPlugin('plugin/file');
 

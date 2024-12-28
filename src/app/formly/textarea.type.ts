@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig, FormlyFieldProps } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
 
@@ -10,6 +10,7 @@ interface TextAreaProps extends FormlyFieldProps {
 @Component({
   standalone: false,
   selector: 'formly-field-textarea',
+  host: {'class': 'field'},
   template: `
     <textarea (blur)="validate($any($event.target))"
               [formControl]="formControl"
@@ -27,9 +28,6 @@ export class FormlyFieldTextArea extends FieldType<FieldTypeConfig<TextAreaProps
       rows: 1,
     },
   };
-
-  @HostBinding('class.field')
-  css = true;
 
   constructor(
     private config: FormlyConfig,

@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
 
 @Component({
   standalone: false,
   selector: 'formly-field-range',
+  host: {'class': 'field'},
   template: `
     <input class="grow"
            type="range"
@@ -19,9 +20,6 @@ import { getErrorMessage } from './errors';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormlyFieldRange extends FieldType<FieldTypeConfig> {
-
-  @HostBinding('class.field')
-  css = true;
 
   constructor(
     private config: FormlyConfig,

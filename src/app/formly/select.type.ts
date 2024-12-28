@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyFieldProps } from '@ngx-formly/core';
 import { FormlyFieldSelectProps } from '@ngx-formly/core/select';
 
@@ -10,6 +10,7 @@ interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
 @Component({
   standalone: false,
   selector: 'formly-field-select',
+  host: {'class': 'field'},
   template: `
     <select *ngIf="props.multiple; else singleSelect"
             multiple
@@ -65,7 +66,4 @@ export class FormlyFieldSelect extends FieldType<FieldTypeConfig<SelectProps>> {
       },
     },
   };
-
-  @HostBinding('class.field')
-  css = true;
 }
