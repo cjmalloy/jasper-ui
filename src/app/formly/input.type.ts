@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { AdminService } from '../service/admin.service';
 import { getErrorMessage } from './errors';
@@ -24,7 +24,7 @@ import { getErrorMessage } from './errors';
                [class.is-invalid]="showError">
       }
       @if (props.clear) { <button type="button" (click)="field.formControl!.setValue(null)" i18n-title title="Clear" i18n>🆑️</button> }
-      @if (field.type ===    'qr') { <app-qr-scanner   (data)="$event && field.formControl!.setValue($event)"></app-qr-scanner> }
+      @if (field.type   ===    'qr') { <app-qr-scanner   (data)="$event && field.formControl!.setValue($event)"></app-qr-scanner> }
       @if (files) {
         @if (field.type ===   'pdf') { <app-pdf-upload   (data)="$event && field.formControl!.setValue($event)"></app-pdf-upload> }
         @if (field.type === 'audio') { <app-audio-upload (data)="$event && field.formControl!.setValue($event)"></app-audio-upload> }
@@ -36,6 +36,9 @@ import { getErrorMessage } from './errors';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
+
+  @HostBinding('class.field')
+  css = true;
 
   files = !!this.admin.getPlugin('plugin/file');
 

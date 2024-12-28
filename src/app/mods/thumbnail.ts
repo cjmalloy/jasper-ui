@@ -53,9 +53,12 @@ export const thumbnailPlugin: Plugin = {
       },
     }, {
       key: 'radius',
-      type: 'number',
+      type: 'range',
       props: {
         label: $localize`Radius:`,
+        min: 0,
+        max: 24,
+        step: 4,
       },
     }],
   },

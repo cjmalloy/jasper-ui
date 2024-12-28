@@ -13,20 +13,24 @@ import { defer } from 'lodash-es';
          cdkScrollable
          [cdkDropListData]="this"
          (cdkDropListDropped)="drop($any($event))">
-      <button type="button" *ngIf="props.showAdd !== false" (click)="add()">{{ props.addText }}</button>
-      <ng-container *ngFor="let field of field.fieldGroup; let i = index">
+      @if (props.showAdd !== false) {
+        <button type="button" (click)="add()">{{ props.addText }}</button>
+      }
+      @for (field of field.fieldGroup; track field; let i = $index) {
         <div class="form-array list-drag"
              cdkDrag
              [cdkDragData]="model[i]"
              cdkDragRootElement="formly-wrapper-form-field label">
-          <div *ngIf="groupArray" cdkDragHandle class="drag-handle"></div>
+          @if (groupArray) {
+            <div cdkDragHandle class="drag-handle"></div>
+          }
           <formly-field class="grow"
                         [field]="field"
                         (focusout)="maybeRemove($event, i)"
                         (keydown)="keydown($event, i)"></formly-field>
           <button type="button" (click)="remove(i)" i18n>&ndash;</button>
         </div>
-      </ng-container>
+      }
     </div>
   `,
 })

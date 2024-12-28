@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig, FormlyFieldProps } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
 
@@ -27,6 +27,9 @@ export class FormlyFieldTextArea extends FieldType<FieldTypeConfig<TextAreaProps
       rows: 1,
     },
   };
+
+  @HostBinding('class.field')
+  css = true;
 
   constructor(
     private config: FormlyConfig,

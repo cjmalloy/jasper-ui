@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Directive, ElementRef, forwardRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Directive, ElementRef, forwardRef, HostBinding } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { Duration } from 'luxon';
@@ -6,7 +6,7 @@ import { getErrorMessage } from './errors';
 
 @Component({
   standalone: false,
-  selector: 'formly-field-input',
+  selector: 'formly-field-duration',
   template: `
     <input duration
            class="grow"
@@ -19,6 +19,9 @@ import { getErrorMessage } from './errors';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
+
+  @HostBinding('class.field')
+  css = true;
 
   constructor(
     private config: FormlyConfig,
