@@ -15,18 +15,19 @@ import { getErrorMessage } from './errors';
       <div class="preview grow"
            type="text"
            [style.display]="preview ? 'block' : 'none'"
-           (click)="edit()"
-           (focus)="edit()">{{ preview }}</div>
-      <input class="grow"
+           (click)="edit(input)"
+           (focus)="edit(input)">{{ preview }}</div>
+      <input #input
+             class="grow"
              type="email"
              [attr.list]="id + '_list'"
              [style.opacity]="preview ? 0 : 1"
              [style.position]="preview ? 'absolute' : 'relative'"
-             (input)="search($any($event.target).value)"
-             (blur)="blur($any($event.target))"
-             (focusin)="edit()"
-             (focus)="edit()"
-             (focusout)="getPreview($any($event.target).value)"
+             (input)="search(input.value)"
+             (blur)="blur(input)"
+             (focusin)="edit(input)"
+             (focus)="edit(input)"
+             (focusout)="getPreview(input.value)"
              [formControl]="formControl"
              [formlyAttributes]="field"
              [class.is-invalid]="showError">
@@ -106,8 +107,9 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     });
   }
 
-  edit() {
+  edit(input: HTMLInputElement) {
     this.preview = '';
+    input.focus();
   }
 
   search = debounce((value: string) => {
