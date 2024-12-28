@@ -231,6 +231,12 @@ button {
   }
 }
 
+.preview {
+  border: 2px solid var(--bg);
+  text-decoration: underline;
+  font-weight: bold;
+}
+
 input:not([type=checkbox]):not([type=radio]) {
   height: 24px;
   &.big {

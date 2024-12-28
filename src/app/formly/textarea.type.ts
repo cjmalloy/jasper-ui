@@ -29,16 +29,27 @@ export class FormlyFieldTextArea extends FieldType<FieldTypeConfig<TextAreaProps
     },
   };
 
+  private showedError = false;
+
   constructor(
     private config: FormlyConfig,
   ) {
     super();
   }
 
-  validate(input: HTMLTextAreaElement) {
+  validate(input: HTMLInputElement) {
     if (this.showError) {
       input.setCustomValidity(getErrorMessage(this.field, this.config));
       input.reportValidity();
+    }
+  }
+
+  blur(input: HTMLInputElement) {
+    if (this.showError && !this.showedError) {
+      this.showedError = true;
+      this.validate(input);
+    } else {
+      this.showedError = false;
     }
   }
 }

@@ -99,7 +99,7 @@ export const userTemplate: Template = {
       },
     }, {
       key: 'pinned',
-      type: 'urls',
+      type: 'refs',
       props: {
         label: $localize`Pinned:`,
         addText: $localize`+ Add another pinned link`,

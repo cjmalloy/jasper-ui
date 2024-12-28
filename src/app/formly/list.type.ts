@@ -1,7 +1,8 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, HostBinding, HostListener } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { FieldArrayType } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
+import { Store } from '../store/store';
 
 @Component({
   standalone: false,
@@ -16,7 +17,7 @@ import { defer } from 'lodash-es';
       @if (props.showAdd !== false) {
         <button type="button" (click)="add()">{{ props.addText }}</button>
       }
-      @for (field of field.fieldGroup; track field; let i = $index) {
+      @for (field of field.fieldGroup; track field.id; let i = $index) {
         <div class="form-array list-drag"
              cdkDrag
              [cdkDragData]="model[i]"
@@ -35,7 +36,12 @@ import { defer } from 'lodash-es';
   `,
 })
 export class ListTypeComponent extends FieldArrayType {
-  private crtl = false;
+
+  constructor(
+    private store: Store,
+  ) {
+    super();
+  }
 
   @HostBinding('title')
   get title() {
@@ -51,16 +57,6 @@ export class ListTypeComponent extends FieldArrayType {
     // @ts-ignore
     this.field.fieldArray.focus = index === undefined && !initialModel;
     super.add(...arguments);
-  }
-
-  @HostListener('window:keydown', ['$event'])
-  windowKeydown(e: KeyboardEvent) {
-    this.crtl = e.ctrlKey;
-  }
-
-  @HostListener('window:keyup', ['$event'])
-  windowKeyup(e: KeyboardEvent) {
-    this.crtl = e.ctrlKey;
   }
 
   keydown(event: KeyboardEvent, index: number) {
@@ -149,7 +145,7 @@ export class ListTypeComponent extends FieldArrayType {
   }
 
   drop(event: CdkDragDrop<ListTypeComponent>) {
-    if (!this.crtl || event.previousContainer === event.container) {
+    if (!this.store.hotkey || event.previousContainer === event.container) {
       event.previousContainer.data.remove(event.previousIndex);
     }
     super.add(event.currentIndex, event.item.data);
