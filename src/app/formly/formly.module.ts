@@ -5,7 +5,6 @@ import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormlyModule } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
-import { Duration } from 'luxon';
 import {
   ORIGIN_REGEX,
   PLUGIN_REGEX,
@@ -218,13 +217,18 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         defaultOptions: {
           props: {
             label: $localize`Duration:`,
-            hint: $localize`Use time spans (HH:MM:SS) or ISO 8601 Durations`,
-          },
-          validators: {
-            interval: {
-              expression: (c: AbstractControl) =>  Duration.fromISO(c.value).isValid,
-              message: $localize`Scrape Duration must be valid time span (HH:MM:SS) or ISO 8601 Duration.`,
-            }
+            datalist: [
+              { value: 'PT1M', label: $localize`1 min`},
+              { value: 'PT5M', label: $localize`5 mins`},
+              { value: 'PT15M', label: $localize`15 mins`},
+              { value: 'PT30M', label: $localize`30 mins`},
+              { value: 'PT30M', label: $localize`30 mins`},
+              { value: 'PT1H', label: $localize`1 hour`},
+              { value: 'PT2H', label: $localize`2 hours`},
+              { value: 'PT6H', label: $localize`6 hours`},
+              { value: 'PT12H', label: $localize`12 hours`},
+              { value: 'PT24H', label: $localize`1 day`},
+            ],
           },
         },
       }, {

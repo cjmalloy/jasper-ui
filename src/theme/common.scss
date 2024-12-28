@@ -1112,6 +1112,14 @@ details.mini:not([open]) {
   }
 }
 
+.col {
+  display: flex;
+  flex-direction: column;
+  .center {
+    text-align: center;
+  }
+}
+
 .list-container {
   display: grid;
   grid-template-columns: min-content auto;
@@ -1261,7 +1269,7 @@ formly-list-section > .form-group {
       }
     }
     & > label,
-    & > formly-field-input > .form-array {
+    & > .field > .form-array {
       margin: 0 4px;
     }
   }
@@ -1283,7 +1291,7 @@ formly-list-section .form-array:not(:nth-child(2)) > formly-field > formly-group
   overflow: visible;
   cursor: grabbing !important;
   & > formly-field > formly-group,
-  formly-field-input,
+  .field,
   button {
     visibility: hidden;
   }
