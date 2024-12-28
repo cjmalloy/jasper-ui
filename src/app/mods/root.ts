@@ -59,7 +59,7 @@ export const rootTemplate: Template = {
     ],
     form: [{
       key: 'pinned',
-      type: 'urls',
+      type: 'refs',
       props: {
         label: $localize`Pinned:`,
         addText: $localize`+ Add another pinned link`,
@@ -140,7 +140,7 @@ export const rootTemplate: Template = {
       }
     }, {
       key: 'defaultThumbnail',
-      type: 'url',
+      type: 'ref',
       props: {
         label: $localize`Default Thumbnail:`
       }

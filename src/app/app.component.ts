@@ -71,11 +71,16 @@ export class AppComponent implements AfterViewInit {
     return /Macintosh/i.test(navigator.userAgent);
   }
 
-  @HostListener('document:keydown', ['$event'])
-  onHotkey(event: KeyboardEvent) {
-    let hotkey = this.macos
+  hotkey(event: KeyboardEvent) {
+    return this.macos
       ? (event.key === 'Meta' && !event.altKey && !event.ctrlKey && !event.shiftKey)
       : (event.key === 'Control' && !event.altKey && !event.metaKey && !event.shiftKey);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  @HostListener('document:keyup', ['$event'])
+  onHotkey(event: KeyboardEvent) {
+    const hotkey = this.hotkey(event);
     if (this.store.hotkey !== hotkey) {
       runInAction(() => this.store.hotkey = hotkey);
       if (hotkey) {
@@ -87,7 +92,6 @@ export class AppComponent implements AfterViewInit {
   }
 
   @HostListener('window:blur')
-  @HostListener('document:keyup')
   removeHotkey() {
     if (this.store.hotkey) {
       runInAction(() => this.store.hotkey = false);

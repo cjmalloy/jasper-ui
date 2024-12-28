@@ -11,7 +11,7 @@ import { getErrorMessage } from './errors';
     <div class="form-array">
       @if (type !== 'number') {
         <input class="grow"
-               (blur)="validate($any($event.target))"
+               (blur)="blur($any($event.target))"
                [type]="type"
                [formControl]="formControl"
                [formlyAttributes]="field"
@@ -19,7 +19,7 @@ import { getErrorMessage } from './errors';
       } @else {
         <input type="number"
                class="grow"
-               (blur)="validate($any($event.target))"
+               (blur)="blur($any($event.target))"
                [formControl]="formControl"
                [formlyAttributes]="field"
                [class.is-invalid]="showError">
@@ -39,6 +39,8 @@ import { getErrorMessage } from './errors';
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
 
   files = !!this.admin.getPlugin('plugin/file');
+
+  private showedError = false;
 
   constructor(
     private config: FormlyConfig,
@@ -60,6 +62,15 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
     if (this.showError) {
       input.setCustomValidity(getErrorMessage(this.field, this.config));
       input.reportValidity();
+    }
+  }
+
+  blur(input: HTMLInputElement) {
+    if (this.showError && !this.showedError) {
+      this.showedError = true;
+      this.validate(input);
+    } else {
+      this.showedError = false;
     }
   }
 }

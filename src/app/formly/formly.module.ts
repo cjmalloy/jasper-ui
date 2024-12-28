@@ -28,7 +28,9 @@ import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
 import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
 import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldRange } from './range.type';
+import { FormlyFieldRefInput } from './ref.type';
 import { FormlyFieldSelect } from './select.type';
+import { FormlyFieldTagInput } from './tag.type';
 import { FormlyFieldTextArea } from './textarea.type';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
 
@@ -37,6 +39,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
     FormlyWrapperFormField,
     FormlyFieldInput,
     FormlyFieldRange,
+    FormlyFieldTagInput,
+    FormlyFieldRefInput,
     FormlyFieldTextArea,
     FormlyFieldCheckbox,
     FormlyFieldMultiCheckbox,
@@ -149,6 +153,38 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           },
         },
       }, {
+        name: 'ref',
+        component: FormlyFieldRefInput,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          props: {
+            label: $localize`URL:`,
+          },
+          validators: {
+            pattern: {
+              expression: (c: AbstractControl) => !c.value || URI_REGEX.test(c.value),
+              message: $localize`Must be a valid URI (see RFC 3986).`,
+            }
+          },
+        },
+      }, {
+        name: 'refs',
+        extends: 'list',
+        defaultOptions: {
+          props: {
+            showLabel: true,
+            label: $localize`URLs: `,
+            showAdd: true,
+            addText: $localize`+ Add another URL`,
+          },
+          fieldArray: {
+            type: 'ref',
+            props: {
+              label: $localize`🔗️`,
+            }
+          },
+        },
+      }, {
         name: 'email',
         extends: 'input',
         defaultOptions: {
@@ -233,7 +269,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'image',
-        extends: 'url',
+        extends: 'ref',
         defaultOptions: {
           props: {
             label: $localize`Image:`,
@@ -241,7 +277,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'video',
-        extends: 'url',
+        extends: 'ref',
         defaultOptions: {
           props: {
             label: $localize`Video:`,
@@ -249,7 +285,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'audio',
-        extends: 'url',
+        extends: 'ref',
         defaultOptions: {
           props: {
             label: $localize`Audio:`,
@@ -257,13 +293,14 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'pdf',
-        extends: 'url',
+        extends: 'ref',
       }, {
         name: 'qr',
-        extends: 'url',
+        extends: 'ref',
       }, {
         name: 'tag',
-        extends: 'input',
+        component: FormlyFieldTagInput,
+        wrappers: ['form-field'],
         defaultOptions: {
           props: {
             type: 'email',
@@ -288,7 +325,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         defaultOptions: {
           props: {
             type: 'email',
-            label: $localize`Origin:`,
+            label: $localize`@`,
           },
           validators: {
             pattern: {

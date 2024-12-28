@@ -20,7 +20,7 @@ export class LinksFormComponent {
 
   model: string[] = [];
   field = {
-    type: 'urls',
+    type: 'refs',
     props: {
       showLabel: true,
       label: $localize`Sources: `,

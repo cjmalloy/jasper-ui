@@ -12,7 +12,7 @@ import { getErrorMessage } from './errors';
            [min]="props.min"
            [max]="props.max"
            [step]="props.step"
-           (blur)="validate($any($event.target))"
+           (blur)="blur($any($event.target))"
            [formControl]="formControl"
            [formlyAttributes]="field"
            [class.is-invalid]="showError">
@@ -20,6 +20,8 @@ import { getErrorMessage } from './errors';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormlyFieldRange extends FieldType<FieldTypeConfig> {
+
+  private showedError = false;
 
   constructor(
     private config: FormlyConfig,
@@ -31,6 +33,15 @@ export class FormlyFieldRange extends FieldType<FieldTypeConfig> {
     if (this.showError) {
       input.setCustomValidity(getErrorMessage(this.field, this.config));
       input.reportValidity();
+    }
+  }
+
+  blur(input: HTMLInputElement) {
+    if (this.showError && !this.showedError) {
+      this.showedError = true;
+      this.validate(input);
+    } else {
+      this.showedError = false;
     }
   }
 }
