@@ -115,7 +115,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
               const remoteTag = childTag.substring(origin.length + 1);
               const originFormat = origin ? ' @' + origin : '';
               return this.exts.getCachedExt(remoteTag, origin).pipe(
-                  map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' +  c.name + originFormat })),
+                  map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
               );
             }
             let a = access(x.tag);
@@ -125,7 +125,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
               originFormat = this.field.props.origin || '';
             }
             return this.exts.getCachedExt(a + childTag, this.field.props.origin).pipe(
-                map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' +  c.name + originFormat })),
+                map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
             );
           }
           if (this.admin.getTemplates(x.tag).length) {
@@ -134,7 +134,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
             if (x.tag === longestMatch.tag) return of(longestMatch);
             const childTag = x.tag.substring(longestMatch.tag.length + 1);
             return this.exts.getCachedExt(childTag, this.field.props.origin).pipe(
-                map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' +  c.name })),
+                map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) })),
             );
           }
           return of(undefined);
