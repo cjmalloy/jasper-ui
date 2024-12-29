@@ -104,7 +104,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     if (this.showError) return;
     this.exts.getCachedExt(value, this.field.props.origin).pipe(
         switchMap(x => {
-          if (x.modified) return of(x);
+          if (x.modified && x.origin === (this.field.props.origin || this.store.account.origin)) return of(x);
           if (this.admin.getPlugin(x.tag)) return of(this.admin.getPlugin(x.tag));
           if (this.admin.getParentPlugins(x.tag).length) {
             const longestMatch = this.admin.getParentPlugins(x.tag)[this.admin.getParentPlugins(x.tag).length - 1];
@@ -138,10 +138,11 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
                 map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) })),
             );
           }
+          if (x.modified) return of(x);
           return of(undefined);
         })
-    ).subscribe(x => {
-      this.preview = x?.name || '';
+    ).subscribe((x?: { name?: string, tag?: string }) => {
+      this.preview = x?.name || x?.tag || '';
       this.cd.detectChanges();
     });
   }
