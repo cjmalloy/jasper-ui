@@ -196,7 +196,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get modmail() {
-    return this.rootConfig?.modmail;
+    return !this.store.view.query && this.rootConfig?.modmail;
   }
 
   @memo
