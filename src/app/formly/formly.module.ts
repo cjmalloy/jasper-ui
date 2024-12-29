@@ -340,7 +340,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'plugin',
-        extends: 'input',
+        extends: 'tag',
         defaultOptions: {
           props: {
             type: 'email',

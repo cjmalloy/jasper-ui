@@ -128,6 +128,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
                 map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
             );
           }
+          if (this.field.type === 'plugin') return of(undefined);
           if (this.admin.getTemplates(x.tag).length) {
             const longestMatch = this.admin.getTemplates(x.tag)[this.admin.getTemplates(x.tag).length - 1];
             if (!longestMatch.tag) return of(undefined);
