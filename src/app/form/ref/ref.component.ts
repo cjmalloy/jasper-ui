@@ -25,6 +25,8 @@ export class RefFormComponent {
   @HostBinding('class') css = 'nested-form';
 
   @Input()
+  origin? = '';
+  @Input()
   group!: UntypedFormGroup;
   @Output()
   toggleTag = new EventEmitter<string>();

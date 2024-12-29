@@ -1,4 +1,13 @@
-import { Component, EventEmitter, HostBinding, Input, OnDestroy, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  HostBinding,
+  Input,
+  OnChanges,
+  OnDestroy,
+  Output,
+  SimpleChanges
+} from '@angular/core';
 import { FormBuilder, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormlyFormOptions } from '@ngx-formly/core';
 import { FormlyValueChangeEvent } from '@ngx-formly/core/lib/models';
@@ -14,10 +23,12 @@ import { hasTag } from '../../util/tag';
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss']
 })
-export class TagsFormComponent implements OnDestroy {
+export class TagsFormComponent implements OnChanges, OnDestroy {
   static validators = [Validators.pattern(TAG_REGEX)];
   @HostBinding('class') css = 'form-group';
 
+  @Input()
+  origin? = '';
   @Input()
   group?: UntypedFormGroup;
   @Input()
@@ -38,7 +49,7 @@ export class TagsFormComponent implements OnDestroy {
       focus: false,
       props: {
         label: $localize`🏷️`,
-      }
+      } as any,
     },
   };
 
@@ -51,6 +62,10 @@ export class TagsFormComponent implements OnDestroy {
     private fb: FormBuilder,
   ) {
     this.options.fieldChanges?.subscribe(() => this.syncTags.emit(this.tags!.value))
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    this.field.fieldArray.props.origin = this.origin;
   }
 
   ngOnDestroy() {

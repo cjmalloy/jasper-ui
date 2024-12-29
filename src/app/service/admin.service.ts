@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
-import { findKey, identity, isEqual, reduce, uniq } from 'lodash-es';
+import { identity, isEqual, reduce, uniq } from 'lodash-es';
 import { autorun, runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -9,7 +9,7 @@ import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { bundleSize, clear, Config, EditorButton, Mod, Tag } from '../model/tag';
+import { bundleSize, clear, Config, EditorButton, Mod } from '../model/tag';
 import { Template } from '../model/template';
 import { User } from '../model/user';
 import { aiMod } from '../mods/ai';
@@ -688,6 +688,11 @@ export class AdminService {
   @memo
   getPlugin(tag: string) {
     return Object.values(this.status.plugins).find(p => p?.tag === tag);
+  }
+
+  @memo
+  getParentPlugins(tag: string) {
+    return this.getPlugins([tag]);
   }
 
   getPlugins(tags: string[] | undefined) {

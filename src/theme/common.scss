@@ -233,13 +233,14 @@ button {
 
 .preview {
   border: 2px solid var(--bg);
-  text-decoration: underline;
-  font-weight: bold;
   cursor: text;
+  height: 20px;
+  overflow: hidden;
 }
 
 .hotkey .preview {
   cursor: pointer;
+  text-decoration: underline;
 }
 
 input:not([type=checkbox]):not([type=radio]) {

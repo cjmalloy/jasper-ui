@@ -1,10 +1,12 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer } from 'lodash-es';
-import { Subscription } from 'rxjs';
+import { map, of, Subscription, switchMap } from 'rxjs';
+import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
 import { ConfigService } from '../service/config.service';
 import { Store } from '../store/store';
+import { access } from '../util/tag';
 import { getErrorMessage } from './errors';
 
 @Component({
@@ -53,6 +55,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   constructor(
     private configs: ConfigService,
     private config: FormlyConfig,
+    private admin: AdminService,
     private exts: ExtService,
     public store: Store,
     private cd: ChangeDetectorRef,
@@ -99,12 +102,45 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   getPreview(value: string) {
     if (!value) return;
     if (this.showError) return;
-    this.exts.getCachedExt(value).subscribe(x => {
-      if (!x.modified) {
-        this.preview = '';
-      } else {
-        this.preview = x.name || x.tag;
-      }
+    this.exts.getCachedExt(value, this.field.props.origin).pipe(
+        switchMap(x => {
+          if (x.modified) return of(x);
+          if (this.admin.getPlugin(x.tag)) return of(this.admin.getPlugin(x.tag));
+          if (this.admin.getParentPlugins(x.tag).length) {
+            const longestMatch = this.admin.getParentPlugins(x.tag)[this.admin.getParentPlugins(x.tag).length - 1];
+            if (x.tag === longestMatch.tag) return of(longestMatch);
+            const childTag = x.tag.substring(longestMatch.tag.length + 1);
+            if (longestMatch.tag === 'plugin/outbox') {
+              const origin = childTag.substring(0, childTag.indexOf('/'));
+              const remoteTag = childTag.substring(origin.length + 1);
+              const originFormat = origin ? ' @' + origin : '';
+              return this.exts.getCachedExt(remoteTag, origin).pipe(
+                  map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' +  c.name + originFormat })),
+              );
+            }
+            let a = access(x.tag);
+            let originFormat = '';
+            if (childTag === 'user' || childTag.startsWith('user/')) {
+              a ||= '+';
+              originFormat = this.field.props.origin || '';
+            }
+            return this.exts.getCachedExt(a + childTag, this.field.props.origin).pipe(
+                map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' +  c.name + originFormat })),
+            );
+          }
+          if (this.admin.getTemplates(x.tag).length) {
+            const longestMatch = this.admin.getTemplates(x.tag)[this.admin.getTemplates(x.tag).length - 1];
+            if (!longestMatch.tag) return of(undefined);
+            if (x.tag === longestMatch.tag) return of(longestMatch);
+            const childTag = x.tag.substring(longestMatch.tag.length + 1);
+            return this.exts.getCachedExt(childTag, this.field.props.origin).pipe(
+                map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' +  c.name })),
+            );
+          }
+          return of(undefined);
+        })
+    ).subscribe(x => {
+      this.preview = x?.name || '';
       this.cd.detectChanges();
     });
   }
@@ -125,7 +161,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   search = debounce((value: string) => {
     this.searching?.unsubscribe();
     this.searching = this.exts.page({
-      query: this.store.account.origin || '@',
+      query: this.field.props.origin || this.store.account.origin || '@',
       search: value,
       size: 5,
     }).subscribe(page => {
