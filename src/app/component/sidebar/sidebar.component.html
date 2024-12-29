@@ -60,9 +60,9 @@
         </div>
       }
     }
-    @if (store.view.current === 'tag' && store.account.user && (home || store.account.tag === tag)) {
+    @if (store.account.user && (home || store.account.tag === tag || notes)) {
       <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
-           [queryParams]="{ to: store.account.tag }">
+           [queryParams]="{ to: null }">
         <span i18n-title title="Notes" i18n>✍️</span> <label i18n>Notes</label>
       </div>
     }
