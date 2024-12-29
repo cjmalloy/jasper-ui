@@ -361,6 +361,29 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           },
         },
       }, {
+        name: 'template',
+        extends: 'tag',
+        defaultOptions: {
+          props: {
+            type: 'email',
+            label: $localize`Template:`,
+            required: false,
+          },
+          validators: {
+            pattern: {
+              expression: (c: AbstractControl) => !c.value || TAG_REGEX.test(c.value),
+              message: $localize`
+                Templates must be lower case letters, numbers, periods and forward slashes.
+                The root template is blank.
+                Must not start with a forward slash or period.
+                Must not or contain two forward slashes or periods in a row.
+                Protected tags start with a plus sign.
+                Private tags start with an underscore.
+                (i.e. "", "science", "my/tag", or "_my/private/tag")`,
+            }
+          },
+        },
+      }, {
         name: 'tags',
         extends: 'list',
         defaultOptions: {

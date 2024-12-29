@@ -105,40 +105,43 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     this.exts.getCachedExt(value, this.field.props.origin).pipe(
         switchMap(x => {
           if (x.modified && x.origin === (this.field.props.origin || this.store.account.origin)) return of(x);
-          if (this.admin.getPlugin(x.tag)) return of(this.admin.getPlugin(x.tag));
-          if (this.admin.getParentPlugins(x.tag).length) {
-            const longestMatch = this.admin.getParentPlugins(x.tag)[this.admin.getParentPlugins(x.tag).length - 1];
-            if (x.tag === longestMatch.tag) return of(longestMatch);
-            const childTag = x.tag.substring(longestMatch.tag.length + 1);
-            if (longestMatch.tag === 'plugin/outbox') {
-              const origin = childTag.substring(0, childTag.indexOf('/'));
-              const remoteTag = childTag.substring(origin.length + 1);
-              const originFormat = origin ? ' @' + origin : '';
-              return this.exts.getCachedExt(remoteTag, origin).pipe(
+          if (this.field.type !== 'template') {
+            if (this.admin.getPlugin(x.tag)) return of(this.admin.getPlugin(x.tag));
+            if (this.admin.getParentPlugins(x.tag).length) {
+              const longestMatch = this.admin.getParentPlugins(x.tag)[this.admin.getParentPlugins(x.tag).length - 1];
+              if (x.tag === longestMatch.tag) return of(longestMatch);
+              const childTag = x.tag.substring(longestMatch.tag.length + 1);
+              if (longestMatch.tag === 'plugin/outbox') {
+                const origin = childTag.substring(0, childTag.indexOf('/'));
+                const remoteTag = childTag.substring(origin.length + 1);
+                const originFormat = origin ? ' @' + origin : '';
+                return this.exts.getCachedExt(remoteTag, origin).pipe(
+                    map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
+                );
+              }
+              let a = access(x.tag);
+              let originFormat = '';
+              if (childTag === 'user' || childTag.startsWith('user/')) {
+                a ||= '+';
+                originFormat = this.field.props.origin || '';
+              }
+              return this.exts.getCachedExt(a + childTag, this.field.props.origin).pipe(
                   map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
               );
             }
-            let a = access(x.tag);
-            let originFormat = '';
-            if (childTag === 'user' || childTag.startsWith('user/')) {
-              a ||= '+';
-              originFormat = this.field.props.origin || '';
+          }
+          if (this.field.type !== 'plugin') {
+            if (this.admin.getTemplates(x.tag).length) {
+              const longestMatch = this.admin.getTemplates(x.tag)[this.admin.getTemplates(x.tag).length - 1];
+              if (!longestMatch.tag) return of(undefined);
+              if (x.tag === longestMatch.tag) return of(longestMatch);
+              const childTag = x.tag.substring(longestMatch.tag.length + 1);
+              return this.exts.getCachedExt(childTag, this.field.props.origin).pipe(
+                  map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) })),
+              );
             }
-            return this.exts.getCachedExt(a + childTag, this.field.props.origin).pipe(
-                map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
-            );
+            if (x.modified) return of(x);
           }
-          if (this.field.type === 'plugin') return of(undefined);
-          if (this.admin.getTemplates(x.tag).length) {
-            const longestMatch = this.admin.getTemplates(x.tag)[this.admin.getTemplates(x.tag).length - 1];
-            if (!longestMatch.tag) return of(undefined);
-            if (x.tag === longestMatch.tag) return of(longestMatch);
-            const childTag = x.tag.substring(longestMatch.tag.length + 1);
-            return this.exts.getCachedExt(childTag, this.field.props.origin).pipe(
-                map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) })),
-            );
-          }
-          if (x.modified) return of(x);
           return of(undefined);
         })
     ).subscribe((x?: { name?: string, tag?: string }) => {
@@ -161,13 +164,22 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   search = debounce((value: string) => {
-    this.searching?.unsubscribe();
-    this.searching = this.exts.page({
-      query: this.field.props.origin || this.store.account.origin || '@',
-      search: value,
-      size: 5,
-    }).subscribe(page => {
-      this.autocomplete = page.content.map(x => ({ value: x.tag, label: x.name || x.tag }));
-    })
-  }, 400)
+    if (this.field.type === 'plugin') {
+      this.autocomplete = this.admin.searchPlugins(value).slice(0, 5).map(p => ({ value: p.tag, label: p.name || p.tag }));
+      this.cd.detectChanges();
+    } else if (this.field.type === 'template') {
+      this.autocomplete = this.admin.searchTemplates(value).slice(0, 5).map(t => ({ value: t.tag, label: t.name || t.tag }));
+      this.cd.detectChanges();
+    } else {
+      this.searching?.unsubscribe();
+      this.searching = this.exts.page({
+        query: this.field.props.origin || this.store.account.origin || '@',
+        search: value,
+        size: 5,
+      }).subscribe(page => {
+        this.autocomplete = page.content.map(x => ({ value: x.tag, label: x.name || x.tag }));
+        this.cd.detectChanges();
+      });
+    }
+  }, 400);
 }

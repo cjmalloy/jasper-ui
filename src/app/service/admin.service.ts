@@ -691,6 +691,12 @@ export class AdminService {
   }
 
   @memo
+  searchPlugins(text: string) {
+    text = text.toLowerCase();
+    return Object.values(this.status.plugins).filter(p => p?.tag.includes(text) || p?.name?.includes(text));
+  }
+
+  @memo
   getParentPlugins(tag: string) {
     return this.getPlugins([tag]);
   }
@@ -725,6 +731,12 @@ export class AdminService {
       if (t?.tag === tag.replace('+', '')) return true;
       return t?.tag === tag.replace('_', '');
     });
+  }
+
+  @memo
+  searchTemplates(text: string) {
+    text = text.toLowerCase();
+    return Object.values(this.status.templates).filter(p => p?.tag.includes(text) || p?.name?.includes(text));
   }
 
   defaultConfig(tag: string) {
