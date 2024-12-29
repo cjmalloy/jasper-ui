@@ -3,6 +3,7 @@ import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer } from 'lodash-es';
 import { Subscription } from 'rxjs';
 import { ExtService } from '../service/api/ext.service';
+import { ConfigService } from '../service/config.service';
 import { Store } from '../store/store';
 import { getErrorMessage } from './errors';
 
@@ -14,15 +15,16 @@ import { getErrorMessage } from './errors';
     <div class="form-array">
       <div class="preview grow"
            type="text"
+           [title]="input.value"
            [style.display]="preview ? 'block' : 'none'"
-           (click)="edit(input)"
+           [class.fake-link]="store.hotkey"
+           (click)="clickPreview(input)"
            (focus)="edit(input)">{{ preview }}</div>
       <input #input
              class="grow"
              type="email"
              [attr.list]="id + '_list'"
-             [style.opacity]="preview ? 0 : 1"
-             [style.position]="preview ? 'absolute' : 'relative'"
+             [class.hidden-without-removing]="preview"
              (input)="search(input.value)"
              (blur)="blur(input)"
              (focusin)="edit(input)"
@@ -50,9 +52,10 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   private formChanges?: Subscription;
 
   constructor(
+    private configs: ConfigService,
     private config: FormlyConfig,
     private exts: ExtService,
-    private store: Store,
+    public store: Store,
     private cd: ChangeDetectorRef,
   ) {
     super();
@@ -110,6 +113,14 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   edit(input: HTMLInputElement) {
     this.preview = '';
     input.focus();
+  }
+
+  clickPreview(input: HTMLInputElement) {
+    if (this.store.hotkey) {
+      window.open(this.configs.base + 'tag/' + input.value);
+    } else {
+      this.edit(input);
+    }
   }
 
   search = debounce((value: string) => {

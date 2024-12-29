@@ -4,6 +4,8 @@ import { debounce, defer, uniqBy } from 'lodash-es';
 import { Subscription } from 'rxjs';
 import { AdminService } from '../service/admin.service';
 import { RefService } from '../service/api/ref.service';
+import { ConfigService } from '../service/config.service';
+import { Store } from '../store/store';
 import { getPageTitle } from '../util/format';
 import { getErrorMessage } from './errors';
 
@@ -15,15 +17,16 @@ import { getErrorMessage } from './errors';
     <div class="form-array">
       <div class="preview grow"
            type="text"
+           [title]="input.value"
            [style.display]="preview ? 'block' : 'none'"
-           (click)="edit(input)"
+           [class.fake-link]="store.hotkey"
+           (click)="clickPreview(input)"
            (focus)="edit(input)">{{ preview }}</div>
       <input #input
              class="grow"
              type="url"
              [attr.list]="id + '_list'"
-             [style.opacity]="preview ? 0 : 1"
-             [style.position]="preview ? 'absolute' : 'relative'"
+             [class.hidden-without-removing]="preview"
              (input)="search(input.value)"
              (blur)="blur(input)"
              (focusin)="edit(input)"
@@ -60,6 +63,8 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   private formChanges?: Subscription;
 
   constructor(
+    private configs: ConfigService,
+    public store: Store,
     private config: FormlyConfig,
     private refs: RefService,
     private admin: AdminService,
@@ -119,6 +124,14 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     this.previewUrl = '';
     this.preview = '';
     input.focus();
+  }
+
+  clickPreview(input: HTMLInputElement) {
+    if (this.store.hotkey) {
+      window.open(this.configs.base + 'ref/' + input.value);
+    } else {
+      this.edit(input);
+    }
   }
 
   search = debounce((value: string) => {
