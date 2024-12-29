@@ -38,8 +38,10 @@ export class ExtFormComponent {
   @Output()
   clear = new EventEmitter<void>();
 
-  @ViewChild('fill')
-  fill?: ElementRef;
+  @ViewChild('fillPopover')
+  fillPopover?: ElementRef;
+  @ViewChild('fillSidebar')
+  fillSidebar?: ElementRef;
   @ViewChild('mainFormlyForm')
   mainFormlyForm?: FormlyForm;
   @ViewChild('advancedFormlyForm')

@@ -15,11 +15,12 @@
   <ng-container [formGroup]="config">
     @if (popover) {
       <label for="popover" class="editor-label" i18n>Popover:</label>
-      <div class="fill-editor">
+      <div #fillPopover class="fill-editor">
         <app-editor id="popover"
                     [addButton]="true"
                     i18n-addCommentTitle addCommentTitle="Add popover"
                     i18n-addCommentLabel addCommentLabel="+ Add popover"
+                    [fillWidth]="fillPopover"
                     [control]="popover"></app-editor>
       </div>
     }
@@ -87,13 +88,13 @@
     }
     @if (sidebar) {
       <label for="sidebar" class="editor-label" i18n>Sidebar:</label>
-      <div #fill class="fill-editor">
+      <div #fillSidebar class="fill-editor">
         <app-editor id="sidebar"
                     class="bubble"
                     [addButton]="true"
                     i18n-addCommentTitle addCommentTitle="Add sidebar"
                     i18n-addCommentLabel addCommentLabel="+ Add sidebar"
-                    [fillWidth]="fill"
+                    [fillWidth]="fillSidebar"
                     [control]="sidebar"></app-editor>
       </div>
     }
