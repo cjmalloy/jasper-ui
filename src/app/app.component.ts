@@ -77,17 +77,21 @@ export class AppComponent implements AfterViewInit {
       : (event.key === 'Control' && !event.altKey && !event.metaKey && !event.shiftKey);
   }
 
-  @HostListener('document:keydown', ['$event'])
   @HostListener('document:keyup', ['$event'])
-  onHotkey(event: KeyboardEvent) {
+  onKeyup(event: KeyboardEvent) {
     const hotkey = this.hotkey(event);
-    if (this.store.hotkey !== hotkey) {
-      runInAction(() => this.store.hotkey = hotkey);
-      if (hotkey) {
-        document.body.classList.add('hotkey');
-      } else {
-        document.body.classList.remove('hotkey');
-      }
+    if (this.store.hotkey && hotkey) {
+      runInAction(() => this.store.hotkey = false);
+      document.body.classList.remove('hotkey');
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeydown(event: KeyboardEvent) {
+    const hotkey = this.hotkey(event);
+    if (!this.store.hotkey && hotkey) {
+      runInAction(() => this.store.hotkey = true);
+      document.body.classList.add('hotkey');
     }
   }
 

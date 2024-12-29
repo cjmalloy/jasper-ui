@@ -19,7 +19,6 @@ import { getErrorMessage } from './errors';
            type="text"
            [title]="input.value"
            [style.display]="preview ? 'block' : 'none'"
-           [class.fake-link]="store.hotkey"
            (click)="clickPreview(input)"
            (focus)="edit(input)">{{ preview }}</div>
       <input #input

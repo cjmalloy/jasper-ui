@@ -200,7 +200,7 @@ hr {
 }
 
 .fake-link {
-  cursor: pointer !important;
+  cursor: pointer;
 }
 
 .no-select {
@@ -236,6 +236,10 @@ button {
   text-decoration: underline;
   font-weight: bold;
   cursor: text;
+}
+
+.hotkey .preview {
+  cursor: pointer;
 }
 
 input:not([type=checkbox]):not([type=radio]) {
