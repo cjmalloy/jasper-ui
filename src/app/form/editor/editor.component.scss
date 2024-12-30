@@ -25,7 +25,7 @@
     .expand {
       padding-bottom: calc(var(--viewport-height) - 32px);
     }
-    &.stacked.preview {
+    &.stacked.md-preview {
       textarea {
         padding-bottom: calc((var(--viewport-height) / 2) - 64px);
       }
@@ -57,7 +57,7 @@
     }
   }
 
-  &:not(.preview) {
+  &:not(.md-preview) {
     .text-wrapper {
       width: calc(100vw - 4px) !important;
       height: 100% !important;

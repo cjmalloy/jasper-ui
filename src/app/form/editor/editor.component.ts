@@ -49,7 +49,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   fullscreen = false;
   @HostBinding('class.help')
   help = false;
-  @HostBinding('class.preview')
+  @HostBinding('class.md-preview')
   preview = this.store.local.showPreview;
 
   @ViewChild('editor')
