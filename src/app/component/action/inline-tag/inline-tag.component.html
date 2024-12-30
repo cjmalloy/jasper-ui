@@ -3,9 +3,15 @@
 </a>
 @if (editing) {
   <span class="inline-tagging">
+    <datalist [id]="id">
+        @for (o of autocomplete; track o.value) {
+          <option [value]="o.value">{{ o.label }}</option>
+        }
+    </datalist>
     <input #inlineTag
-           (keydown)="$event.key === 'Enter' && save(inlineTag) || true"
-           (input)="inlineTag.value = inlineTag.value.toLowerCase()"
+           [attr.list]="id"
+           (keydown)="keydown($event, inlineTag)"
+           (input)="search(inlineTag)"
            type="text"
            inputmode="email"
            enterkeyhint="enter"
