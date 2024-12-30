@@ -22,6 +22,11 @@ import { getErrorMessage } from './errors';
            [style.display]="preview ? 'block' : 'none'"
            (click)="clickPreview(input)"
            (focus)="edit(input)">{{ preview }}</div>
+        <datalist [id]="id + '_list'">
+            @for (o of autocomplete; track o.value) {
+                <option [value]="o.value">{{ o.label }}</option>
+            }
+        </datalist>
       <input #input
              class="grow"
              type="email"
@@ -35,11 +40,6 @@ import { getErrorMessage } from './errors';
              [formControl]="formControl"
              [formlyAttributes]="field"
              [class.is-invalid]="showError">
-      <datalist [id]="id + '_list'">
-        @for (o of autocomplete; track o.value) {
-          <option [value]="o.value">{{ o.label }}</option>
-        }
-      </datalist>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

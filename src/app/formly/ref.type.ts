@@ -21,6 +21,11 @@ import { getErrorMessage } from './errors';
            [style.display]="preview ? 'block' : 'none'"
            (click)="clickPreview(input)"
            (focus)="edit(input)">{{ preview }}</div>
+        <datalist [id]="id + '_list'">
+            @for (o of autocomplete; track o.value) {
+                <option [value]="o.value">{{ o.label }}</option>
+            }
+        </datalist>
       <input #input
              class="grow"
              type="url"
@@ -34,11 +39,6 @@ import { getErrorMessage } from './errors';
              [formControl]="formControl"
              [formlyAttributes]="field"
              [class.is-invalid]="showError">
-      <datalist [id]="id + '_list'">
-        @for (o of autocomplete; track o.value) {
-          <option [value]="o.value">{{ o.label }}</option>
-        }
-      </datalist>
       @if (field.type   ===    'qr') { <app-qr-scanner   (data)="$event && field.formControl!.setValue($event)"></app-qr-scanner> }
       @if (files) {
         @if (field.type ===   'pdf') { <app-pdf-upload   (data)="$event && field.formControl!.setValue($event)"></app-pdf-upload> }
