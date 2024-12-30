@@ -1,6 +1,7 @@
 import { Component, Input, OnDestroy } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
+import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
@@ -20,9 +21,11 @@ export class CodeComponent implements OnDestroy {
 
   options: any = {
     language: 'css',
+    automaticLayout: true,
   };
 
   constructor(
+    public config: ConfigService,
     private store: Store,
   ) {
     this.disposers.push(autorun(() => {

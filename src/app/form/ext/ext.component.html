@@ -98,8 +98,7 @@
                     [control]="sidebar"></app-editor>
       </div>
     }
-    @if (themes && themeValues.length) {
-      <!-- TODO: replace empty themes with instructions -->
+    @if (themes) {
       <label for="theme" i18n>Tag Page Theme:</label>
       <div>
         <select id="theme" formControlName="theme">

@@ -53,4 +53,11 @@ export class ListEditorComponent{
       this.selected.emit(undefined);
     }
   }
+
+  keydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      this.add();
+      event.preventDefault();
+    }
+  }
 }
