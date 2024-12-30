@@ -836,22 +836,22 @@ video.qr-preview {
   }
 
   .mobile-tab-select {
-      margin: 0 4px;
-      select {
-        appearance: none;
-        border-radius: 0;
-        font-size: 16px;
-        height: 25px !important;
-        line-height: 25px;
-        width: 44px;
-        padding: 0 10px;
-        text-align: center;
-        position: relative;
-        outline: none !important;
-        cursor: pointer;
-        background-color: var(--unselected-tab);
-        border: none;
-      }
+    margin: 0 4px;
+    select {
+      appearance: none;
+      border-radius: 0;
+      font-size: 16px;
+      height: 25px !important;
+      line-height: 25px;
+      width: 44px;
+      padding: 0 10px;
+      text-align: center;
+      position: relative;
+      outline: none !important;
+      cursor: pointer;
+      background-color: var(--unselected-tab);
+      border: none;
+    }
   }
 
   & > a:not(.logo) {
