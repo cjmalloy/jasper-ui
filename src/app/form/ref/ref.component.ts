@@ -82,6 +82,19 @@ export class RefFormComponent {
     this.tags!.setTags(newTags);
   }
 
+  get editorLabel() {
+    if (this.tags?.hasTag('plugin/alt')) return $localize`Alt Text`;
+    return $localize`Abstract`;
+  }
+
+  get addEditorLabel() {
+    return $localize`+ Add ` + this.editorLabel.toLowerCase();
+  }
+
+  get addEditorTitle() {
+    return $localize`Add ` + this.editorLabel.toLowerCase();
+  }
+
   validate(input: HTMLInputElement) {
     if (this.title.touched) {
       if (this.title.errors?.['required']) {
