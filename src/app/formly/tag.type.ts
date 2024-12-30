@@ -2,6 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, O
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer } from 'lodash-es';
 import { map, of, Subscription, switchMap } from 'rxjs';
+import { Config } from '../model/tag';
 import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
 import { ConfigService } from '../service/config.service';
@@ -164,11 +165,14 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   search = debounce((value: string) => {
+    const toEntry = (p: Config) => ({ value: p.tag, label: p.name || p.tag });
+    const getPlugins = (text: string, size = 5) => this.admin.searchPlugins(text).slice(0, size).map(toEntry);
+    const getTemplates = (text: string, size = 5) => this.admin.searchTemplates(text).slice(0, size).map(toEntry);
     if (this.field.type === 'plugin') {
-      this.autocomplete = this.admin.searchPlugins(value).slice(0, 5).map(p => ({ value: p.tag, label: p.name || p.tag }));
+      this.autocomplete = getPlugins(value);
       this.cd.detectChanges();
     } else if (this.field.type === 'template') {
-      this.autocomplete = this.admin.searchTemplates(value).slice(0, 5).map(t => ({ value: t.tag, label: t.name || t.tag }));
+      this.autocomplete = getTemplates(value);
       this.cd.detectChanges();
     } else {
       this.searching?.unsubscribe();
@@ -178,6 +182,8 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
         size: 5,
       }).subscribe(page => {
         this.autocomplete = page.content.map(x => ({ value: x.tag, label: x.name || x.tag }));
+        if (this.autocomplete.length < 5) this.autocomplete.push(...getPlugins(value, 5 - this.autocomplete.length));
+        if (this.autocomplete.length < 5) this.autocomplete.push(...getTemplates(value, 5 - this.autocomplete.length));
         this.cd.detectChanges();
       });
     }
