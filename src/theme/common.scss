@@ -1137,9 +1137,10 @@ details.mini:not([open]) {
   display: grid;
   grid-template-columns: min-content auto;
 
-  .list-number {
+  .list-number, .label {
     color: var(--info);
     text-align: right;
+    white-space: nowrap;
     padding: 0 10px;
     font-weight: bold;
     height: 100%;

@@ -163,8 +163,10 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
   for (const f of filter) {
     if (f.startsWith('query/')) continue;
     if (f.startsWith('sources/')) {
+      if (result.sources) console.warn('Multiple sources filters (last wins)');
       result.sources = f.substring('sources/'.length)
     } else if (f.startsWith('responses/')) {
+      if (result.responses) console.warn('Multiple response filters (last wins)');
       result.responses = f.substring('responses/'.length)
     } else if (f.startsWith('scheme/')) {
       result.scheme = f.substring('scheme/'.length)

@@ -13,10 +13,14 @@ import { RefService } from '../service/api/ref.service';
 export class QueryStore {
 
   args?: RefPageArgs = {} as any;
+  sourcesOf?: Ref = {} as any;
+  responseOf?: Ref = {} as any;
   page?: Page<Ref> = {} as any;
   error?: HttpErrorResponse = {} as any;
 
   private running?: Subscription;
+  private runningSources?: Subscription;
+  private runningResponses?: Subscription;
 
   constructor(
     private refs: RefService,
@@ -33,6 +37,8 @@ export class QueryStore {
     this.args = undefined;
     this.page = undefined;
     this.error = undefined;
+    this.sourcesOf = undefined;
+    this.responseOf = undefined;
   }
 
   setArgs(args: RefPageArgs) {
@@ -50,6 +56,16 @@ export class QueryStore {
           return throwError(() => err);
         }),
       ).subscribe(p => runInAction(() => this.page = p));
+      this.runningSources?.unsubscribe();
+      if (this.args.sources) {
+        this.runningSources = this.refs.getCurrent(this.args.sources)
+          .subscribe(ref => runInAction(() => this.sourcesOf = ref));
+      }
+      this.runningResponses?.unsubscribe();
+      if (this.args.responses) {
+        this.runningResponses = this.refs.getCurrent(this.args.responses)
+          .subscribe(ref => runInAction(() => this.responseOf = ref));
+      }
     }
   }
 }
