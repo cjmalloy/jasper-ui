@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
-import { debounce, defer } from 'lodash-es';
+import { debounce, defer, uniqBy } from 'lodash-es';
 import { map, of, Subscription, switchMap } from 'rxjs';
 import { Config } from '../model/tag';
 import { AdminService } from '../service/admin.service';
@@ -22,11 +22,11 @@ import { getErrorMessage } from './errors';
            [style.display]="preview ? 'block' : 'none'"
            (click)="clickPreview(input)"
            (focus)="edit(input)">{{ preview }}</div>
-        <datalist [id]="id + '_list'">
-            @for (o of autocomplete; track o.value) {
-                <option [value]="o.value">{{ o.label }}</option>
-            }
-        </datalist>
+      <datalist [id]="id + '_list'">
+        @for (o of autocomplete; track o.value) {
+          <option [value]="o.value">{{ o.label }}</option>
+        }
+      </datalist>
       <input #input
              class="grow"
              type="email"
@@ -184,6 +184,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
         this.autocomplete = page.content.map(x => ({ value: x.tag, label: x.name || x.tag }));
         if (this.autocomplete.length < 5) this.autocomplete.push(...getPlugins(value, 5 - this.autocomplete.length));
         if (this.autocomplete.length < 5) this.autocomplete.push(...getTemplates(value, 5 - this.autocomplete.length));
+        this.autocomplete = uniqBy(this.autocomplete, 'value')
         this.cd.detectChanges();
       });
     }
