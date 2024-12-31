@@ -309,13 +309,12 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || TAG_REGEX.test(c.value),
-              message: $localize`
-                Tags must be lower case letters, numbers, periods and forward slashes.
-                Must not start with a forward slash or period.
-                Must not or contain two forward slashes or periods in a row.
-                Protected tags start with a plus sign.
-                Private tags start with an underscore.
-                (i.e. "science", "my/tag", or "_my/private/tag")`,
+              message: $localize`Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "science", "my/tag", or "_my/private/tag")`,
             }
           },
         },
@@ -330,11 +329,10 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || ORIGIN_REGEX.test(c.value),
-              message: $localize`
-                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
-                The default origin is blank.
-                Must not start with a period or contain two periods in a row.
-                (i.e. "@origin", "@my.origin", or "").`,
+              message: $localize`Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+The default origin is blank.
+Must not start with a period or contain two periods in a row.
+(i.e. "@origin", "@my.origin", or "").`,
             }
           },
         },
@@ -349,14 +347,13 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || PLUGIN_REGEX.test(c.value),
-              message: $localize`
-                Plugin tags must start with the "plugin/", "+plugin/" or "_plugin/" prefix.
-                Tags must be lower case letters, numbers, periods and forward slashes.
-                Must not start with a forward slash or period.
-                Must not or contain two forward slashes or periods in a row.
-                Protected tags start with a plus sign.
-                Private tags start with an underscore.
-                (i.e. "plugin/thumbnail", "plugin/image" "+plugin/cron", or "_plugin/admin")`,
+              message: $localize`Plugin tags must start with the "plugin/", "+plugin/" or "_plugin/" prefix.
+Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "plugin/thumbnail", "plugin/image" "+plugin/cron", or "_plugin/admin")`,
             }
           },
         },
@@ -372,14 +369,13 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || TAG_REGEX.test(c.value),
-              message: $localize`
-                Templates must be lower case letters, numbers, periods and forward slashes.
-                The root template is blank.
-                Must not start with a forward slash or period.
-                Must not or contain two forward slashes or periods in a row.
-                Protected tags start with a plus sign.
-                Private tags start with an underscore.
-                (i.e. "", "science", "my/tag", or "_my/private/tag")`,
+              message: $localize`Templates must be lower case letters, numbers, periods and forward slashes.
+The root template is blank.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "", "science", "my/tag", or "_my/private/tag")`,
             }
           },
         },
@@ -405,15 +401,14 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || QUALIFIED_TAG_REGEX.test(c.value),
-              message: $localize`
-                Tags must be lower case letters, numbers, periods and forward slashes.
-                Must not start with a forward slash or period.
-                Must not or contain two forward slashes or periods in a row.
-                Tags may be qualified with an origin.
-                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
-                Protected tags start with a plus sign.
-                Private tags start with an underscore.
-                (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")`,
+              message: $localize`Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Tags may be qualified with an origin.
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "science", "science@origin" "my/tag", or "_my/private/tag")`,
             }
           },
         },
@@ -435,11 +430,10 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || USER_REGEX.test(c.value),
-              message: $localize`
-                User tags must start with the "+user/" or "_user/" prefix.
-                Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-                tags start with an underscore.
-                (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")`,
+              message: $localize`User tags must start with the "+user/" or "_user/" prefix.
+Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+tags start with an underscore.
+(i.e. "+user/alice", "_user/bob", or "+user/department/charlie")`,
             }
           },
         },
@@ -468,13 +462,12 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || QUALIFIED_USER_REGEX.test(c.value),
-              message: $localize`
-                User tags must start with the "+user/" or "_user/" prefix.
-                Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-                tags start with an underscore.
-                Tags may be qualified with an origin.
-                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
-                (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")`,
+              message: $localize`User tags must start with the "+user/" or "_user/" prefix.
+Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+tags start with an underscore.
+Tags may be qualified with an origin.
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+(i.e. "+user/alice", "_user/bob", or "+user/department/charlie")`,
             }
           },
         },
@@ -496,18 +489,17 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || SELECTOR_REGEX.test(c.value),
-              message: $localize`
-                Tags must be lower case letters, numbers, periods and forward slashes.
-                Must not start with a forward slash or period.
-                Must not or contain two forward slashes or periods in a row.
-                Use the local wildcard (*) to match all tags with a local origin.
-                Tags may be qualified with an origin, or a wildcard origin (@*).
-                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
-                Use an origin without a tag to match all tags at that origin.
-                The wildcard origin (@*) by itself will match everything.
-                Protected tags start with a plus sign.
-                Private tags start with an underscore.
-                (i.e. "*", "science", "science@origin" "my/tag@", or "_my/private/tag")`,
+              message: $localize`Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Use the local wildcard (*) to match all tags with a local origin.
+Tags may be qualified with an origin, or a wildcard origin (@*).
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+Use an origin without a tag to match all tags at that origin.
+The wildcard origin (@*) by itself will match everything.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "*", "science", "science@origin" "my/tag@", or "_my/private/tag")`,
             }
           },
         },
@@ -532,19 +524,18 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || QUERY_REGEX.test(c.value),
-              message: $localize`
-                Queries support AND (:), OR (|), NOT (!) and grouping qualified tags (parentheses).
-                Tags must be lower case letters, numbers, periods and forward slashes.
-                Must not start with a forward slash or period.
-                Must not or contain two forward slashes or periods in a row.
-                Use the local wildcard (*) to match all tags with a local origin.
-                Tags may be qualified with an origin, or a wildcard origin (@*).
-                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
-                Use an origin without a tag to match all tags at that origin.
-                The wildcard origin (@*) by itself will match everything.
-                Protected tags start with a plus sign.
-                Private tags start with an underscore.
-                (i.e. "science:news", "science@origin science@other" "your/tag my/tag", "!cool", or "news:_my/private/tag")`,
+              message: $localize`Queries support AND (:), OR (|), NOT (!) and grouping qualified tags (parentheses).
+Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Use the local wildcard (*) to match all tags with a local origin.
+Tags may be qualified with an origin, or a wildcard origin (@*).
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+Use an origin without a tag to match all tags at that origin.
+The wildcard origin (@*) by itself will match everything.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "science:news", "science@origin science@other" "your/tag my/tag", "!cool", or "news:_my/private/tag")`,
             }
           },
         },
