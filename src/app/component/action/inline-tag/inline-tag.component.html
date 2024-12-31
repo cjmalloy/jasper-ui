@@ -4,9 +4,9 @@
 @if (editing) {
   <span class="inline-tagging">
     <datalist [id]="id">
-        @for (o of autocomplete; track o.value) {
-          <option [value]="o.value">{{ o.label }}</option>
-        }
+      @for (o of autocomplete; track o.value) {
+        <option [value]="o.value">{{ o.label }}</option>
+      }
     </datalist>
     <input #inlineTag
            [attr.list]="id"

@@ -21,7 +21,7 @@ import { getErrorMessage } from './errors';
            [style.display]="preview ? 'block' : 'none'"
            (click)="clickPreview(input)"
            (focus)="edit(input)">{{ preview }}</div>
-      <datalist [id]="id + '_list'">
+      <datalist [id]="id">
         @for (o of autocomplete; track o.value) {
           <option [value]="o.value">{{ o.label }}</option>
         }
@@ -29,7 +29,7 @@ import { getErrorMessage } from './errors';
       <input #input
              class="grow"
              type="url"
-             [attr.list]="id + '_list'"
+             [attr.list]="id"
              [class.hidden-without-removing]="preview"
              (input)="search(input.value)"
              (blur)="blur(input)"
