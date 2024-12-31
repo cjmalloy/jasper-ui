@@ -33,6 +33,7 @@
     "europa": "^6.0.0",
     "europa-core": "^6.0.0",
     "file-saver": "^2.0.5",
+    "globalthis": "^1.0.4",
     "hammerjs": "^2.0.8",
     "handlebars": "^4.7.8",
     "he": "^1.2.0",
