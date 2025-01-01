@@ -200,6 +200,11 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   @memo
+  get modifiedIsSubmitted() {
+    return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created!, 'seconds').seconds) <= 5;
+  }
+
+  @memo
   get canInvoice() {
     if (this.ref.origin) return false;
     if (!this.admin.getPlugin('plugin/invoice')) return false;

@@ -60,16 +60,14 @@
             @if (publishedIsSubmitted) {
               <span [title]="ref.created.toISO()">
                 {{ config.mobile ? '' : submittedLabel }}
-                {{ ref.created.toRelative() }}
-              </span>
+                {{ ref.created.toRelative() }}</span>
             } @else {
               <span [title]="ref.published!.toISO()" i18n>
                 {{ config.mobile ? '' : publishedLabel }}
-                {{ ref.published!.toRelative() }}
-              </span>
+                {{ ref.published!.toRelative() }}</span>
             }
             @if (!modifiedIsSubmitted) {
-              <span i18n-title  title="last edited {{ ref.modified!.toRelative() }}">*</span>
+              <span i18n-title title="last edited {{ ref.modified!.toRelative() }}">* </span>
             }
           }
           @if (authors.length) {
