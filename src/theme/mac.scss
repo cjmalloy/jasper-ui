@@ -115,11 +115,19 @@ body.ios {
       min-width: 56px !important;
     }
   }
+  .controls {
+    line-height: 30px;
+  }
   select {
     height: 30px !important;
   }
   .shrink select {
     margin-top: 4px;
+  }
+  .actions, .advanced-actions {
+    input {
+      height: 20px !important;
+    }
   }
   .toggle {
     .toggle-x {
