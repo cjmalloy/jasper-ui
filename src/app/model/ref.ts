@@ -173,8 +173,8 @@ export function writeRef(ref: Ref): Ref {
 export function findExtension(ending: string, ref?: Ref, repost?: Ref): Ref | undefined {
   if (!ref) return undefined;
   ending = ending.toLowerCase();
-  if (repost?.url.toLowerCase().endsWith(ending)) return repost;
-  if (ref.url.toLowerCase().endsWith(ending)) return ref;
+  if (repost?.url?.toLowerCase().endsWith(ending)) return repost;
+  if (ref.url?.toLowerCase().endsWith(ending)) return ref;
   for (const s of ref.alternateUrls || []) {
     if (new URL(s).pathname.toLowerCase().endsWith(ending)) {
       return { url: s, origin: ref.origin };
@@ -193,8 +193,8 @@ export function findExtension(ending: string, ref?: Ref, repost?: Ref): Ref | un
  */
 export function findCache(ref?: Ref, repost?: Ref): Ref | undefined {
   if (!ref) return undefined;
-  if (repost?.url.startsWith('cache:')) return repost;
-  if (ref.url.startsWith('cache:')) return ref;
+  if (repost?.url?.startsWith('cache:')) return repost;
+  if (ref.url?.startsWith('cache:')) return ref;
   for (const s of ref.alternateUrls || []) {
     if (s.startsWith('cache:')) {
       return { url: s, origin: ref.origin };
