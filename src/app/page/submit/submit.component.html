@@ -124,6 +124,11 @@
           }
         </div>
 
+        @if (existingRef) {
+          <br>
+          <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
+        }
+
         <br>
         <div class="validations">
           @for (v of validations; track v.name) {
@@ -143,10 +148,23 @@
         </span>
       </form>
 
-      @if (existingRef) {
-        <br>
-        <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
-      }
+      <span></span>
+      <div class="summary-box" [class.hidden-without-removing]="!store.submit.refs.length">
+        <h5 routerLink="./responses" i18n>Unsaved:</h5>
+        <div class="list-container">
+          @for (ref of store.submit.topRefs; track ref.url; let i = $index) {
+            <div class="list-number">{{ i + 1 }}</div>
+            <app-ref [ref]="ref" [showToggle]="true"></app-ref>
+          }
+        </div>
+        @if (store.submit.refs.length > store.submit.topRefs.length) {
+          <a routerLink="./submit/upload"
+             queryParamsHandling="merge"
+             class="load-more no-select" i18n>
+            more unsaved
+          </a>
+        }
+      </div>
     </div>
   }
 </ng-container>
