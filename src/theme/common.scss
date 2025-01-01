@@ -104,7 +104,6 @@ textarea {
 .hidden-without-removing {
   position: absolute;
   opacity: 0;
-  clip: rect(0, 0, 1px, 1px);
 }
 
 .tag {
