@@ -78,7 +78,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
-      if (value && !this.showError) {
+      if (this.preview && value) {
         this.getPreview(value);
       } else {
         this.preview = '';
