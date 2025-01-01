@@ -87,6 +87,7 @@ export class NavComponent implements OnInit {
 
   get hasText() {
     if (!this.text || hasPrefix(this.text, 'user')) return false;
+    if (this.url.startsWith('/tag/') && this.text === '#' + this.url.substring('/tag/'.length)) return false;
     return this.text != this.url;
   }
 
