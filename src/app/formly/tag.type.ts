@@ -2,6 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, O
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, uniqBy } from 'lodash-es';
 import { map, of, Subscription, switchMap } from 'rxjs';
+import { v4 as uuid } from 'uuid';
 import { Config } from '../model/tag';
 import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
@@ -22,7 +23,7 @@ import { getErrorMessage } from './errors';
            [style.display]="preview ? 'block' : 'none'"
            (click)="clickPreview(input)"
            (focus)="edit(input)">{{ preview }}</div>
-      <datalist [id]="id">
+      <datalist [id]="listId">
         @for (o of autocomplete; track o.value) {
           <option [value]="o.value">{{ o.label }}</option>
         }
@@ -30,7 +31,7 @@ import { getErrorMessage } from './errors';
       <input #input
              class="grow"
              type="email"
-             [attr.list]="id"
+             [attr.list]="listId"
              [class.hidden-without-removing]="preview"
              (input)="search(input.value)"
              (blur)="blur(input)"
@@ -46,6 +47,7 @@ import { getErrorMessage } from './errors';
 })
 export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 
+  listId = uuid();
   preview = '';
   autocomplete: { value: string, label: string }[] = [];
 
@@ -65,17 +67,15 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   ngAfterViewInit() {
-    this.field.hooks ||= {};
-    this.field.hooks.afterViewInit = (field) => {
-      this.getPreview(this.model[this.key as any]);
-      this.formChanges?.unsubscribe();
-      this.formChanges = field.formControl!.valueChanges.subscribe(() => {
-        if (this.preview) {
-          this.preview = '';
-          this.getPreview(this.model[this.key as any]);
-        }
-      });
-    }
+    if (this.model) this.getPreview(this.model[this.key as any]);
+    this.formChanges?.unsubscribe();
+    this.formChanges = this.formControl.valueChanges.subscribe(value => {
+      if (value && !this.showError) {
+        this.getPreview(value);
+      } else {
+        this.preview = '';
+      }
+    });
   }
 
   ngOnDestroy() {
