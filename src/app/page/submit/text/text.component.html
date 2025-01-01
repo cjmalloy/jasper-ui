@@ -54,7 +54,7 @@
                 (syncTags)="syncTags($event)"></app-tags>
 
       <span><!-- Advanced --></span>
-      <a class="fake-link no-select" (click)="advanced = true" i18n>show advanced</a>
+      <a class="fake-link no-select" (click)="showAdvanced()" i18n>show advanced</a>
     } @else {
       <app-ref-form #advancedForm
                     [group]="textForm"

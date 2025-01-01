@@ -21,7 +21,7 @@ export const imagePlugin: Plugin = {
       { query: 'plugin/image', label: $localize`🖼️ image`, title: $localize`Images`, group: $localize`Media 🎬️` },
     ],
     extensions: ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'],
-    description: $localize`Display the image inline.`,
+    description: $localize`Display an image.`,
     advancedForm: [{
       key: 'url',
       type: 'image',

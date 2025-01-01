@@ -1,20 +1,24 @@
 <input #imageFile type="file" accept="image/*" (change)="readQr(imageFile.files!)"/>
-<button type="button" (click)="imageFile.click()" i18n-title title="QR from photo or camera" i18n>📷️</button>
+@if (upload) {
+  <button type="button" (click)="imageFile.click()" i18n-title title="QR from photo or camera" i18n>📷️</button>
+}
 <button type="button" *ngIf="hasCamera" (click)="scanQr()" i18n-title title="Scan for QR with video" i18n>🤳️</button>
 <ng-template #video>
   <video class="qr-preview"
          i18n-title title="Click anywhere to stop scanning"
          (click)="stopScanQr()"></video>
   <div class="floating-toggles big">
-    <button *ngIf="hasFlash"
-            type="button"
-            (click)="scanner?.toggleFlash()"
-            i18n-title title="Toggle flash"
-            i18n>🔦️</button>
-    <button *ngIf="hasMultipleCameras"
-            type="button"
-            (click)="nextCamera()"
-            i18n-title title="Next camera"
-            i18n>🔃️</button>
+    @if (hasFlash) {
+      <button type="button"
+              (click)="scanner?.toggleFlash()"
+              i18n-title title="Toggle flash"
+              i18n>🔦️</button>
+    }
+    @if (hasMultipleCameras) {
+      <button type="button"
+              (click)="nextCamera()"
+              i18n-title title="Next camera"
+              i18n>🔃️</button>
+    }
   </div>
 </ng-template>

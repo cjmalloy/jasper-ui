@@ -19,7 +19,7 @@ export const audioPlugin: Plugin = {
       { query: 'plugin/audio', label: $localize`📻️ audio`, title: $localize`Audio`, group: $localize`Media 🎬️` },
     ],
     extensions: ['.mp3', '.aac', '.flac', '.m4a', '.ogg', '.wav'],
-    description: $localize`Play in an inline audio player.`,
+    description: $localize`Play audio in an audio player.`,
     advancedForm: [{
       key: 'url',
       type: 'audio',

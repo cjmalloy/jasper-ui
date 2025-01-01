@@ -182,6 +182,22 @@ export class SubmitPage implements OnInit, OnDestroy {
     });
   }
 
+  upload(file: { url: string, name: string}) {
+    let tags = this.store.submit.tags;
+    if (this.store.submit.web && this.plugin) {
+      tags.push(this.plugin);
+    }
+    this.router.navigate(['./submit', 'text'], {
+      queryParams: {
+        upload: file.url,
+        plugin: this.plugin,
+        title: file.name,
+        tag: uniq(tags),
+      },
+      queryParamsHandling: 'merge',
+    });
+  }
+
   validLink(control: AbstractControl): Observable<ValidationErrors | null> {
     const vs: Observable<ValidationErrors | null>[] = [];
     for (const v of this.validations) {
@@ -222,7 +238,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     this.router.navigate([], {
       queryParams: {
         url: data,
-        tag: uniq([...this.store.submit.tags, 'plugin/qr']),
+        tag: uniq([...this.store.submit.tags]),
       },
       queryParamsHandling: 'merge'
     });

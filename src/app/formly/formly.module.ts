@@ -57,7 +57,10 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
   ],
   exports: [
     QrScannerComponent,
+    AudioUploadComponent,
+    VideoUploadComponent,
     ImageUploadComponent,
+    PdfUploadComponent,
   ],
   imports: [
     BrowserModule,

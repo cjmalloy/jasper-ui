@@ -1,5 +1,5 @@
-import { flatten, isArray, omitBy, without } from 'lodash-es';
-import { action, autorun, computed, makeAutoObservable, observable } from 'mobx';
+import { flatten, isArray, without } from 'lodash-es';
+import { action, autorun, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -71,6 +71,10 @@ export class SubmitStore {
     return !!this.url?.startsWith(this.wikiPrefix);
   }
 
+  get title(): string {
+    return this.route.routeSnapshot?.queryParams['title'] || '';
+  }
+
   get to(): string[] {
     const tag = this.route.routeSnapshot?.queryParams['to'];
     if (!tag) return [];
@@ -90,6 +94,15 @@ export class SubmitStore {
 
   get thumbnail() {
     return this.route.routeSnapshot?.queryParams['thumbnail'] as string;
+  }
+
+  get plugin() {
+    return this.route.routeSnapshot?.queryParams['plugin'] || '' as string;
+  }
+
+  get pluginUpload() {
+    if (!this.plugin) return '';
+    return this.route.routeSnapshot?.queryParams['upload'] || '' as string;
   }
 
   get repost() {

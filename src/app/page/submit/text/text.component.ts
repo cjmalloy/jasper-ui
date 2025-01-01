@@ -9,10 +9,11 @@ import { catchError, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LinksFormComponent } from '../../../form/links/links.component';
-import { writePlugins } from '../../../form/plugins/plugins.component';
+import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
+import { Ref } from '../../../model/ref';
 import { wikiTitleFormat, wikiUriFormat } from '../../../mods/wiki';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -45,10 +46,12 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   @ViewChild(TagsFormComponent)
   tags!: TagsFormComponent;
+  @ViewChild(PluginsFormComponent)
+  plugins!: PluginsFormComponent;
 
   submitting?: Subscription;
   private oldSubmit: string[] = [];
-  private _advancedForm?: RefFormComponent;
+  private savedRef?: Ref;
 
   constructor(
     private mod: ModService,
@@ -81,6 +84,8 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
           this.mod.setTitle($localize`Submit: Wiki`);
           this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
           this.title.disable();
+        } else if (this.store.submit.title) {
+          this.title.setValue(this.store.submit.title);
         }
         this.url.setValue(url);
         this.url.disable();
@@ -92,8 +97,23 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
           this.tags!.setTags(newTags);
           this.oldSubmit = tags;
         }
+        let plugins = {};
         if (this.store.submit.thumbnail) {
           this.addTag('plugin/thumbnail');
+          this.plugins.setValue(plugins = {
+            ...plugins,
+            'plugin/thumbnail': { url: this.store.submit.thumbnail },
+          });
+        }
+        if (this.store.submit.pluginUpload) {
+          this.addTag(this.store.submit.plugin);
+          this.plugins.setValue(plugins = {
+            ...plugins,
+            [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
+          });
+          if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
+            this.addTag('plugin/thumbnail');
+          }
         }
         for (const s of this.store.submit.sources) {
           this.addSource(s)
@@ -107,22 +127,27 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     this.disposers.length = 0;
   }
 
-  @ViewChild('advancedForm')
-  set advancedForm(value: RefFormComponent | undefined) {
-    this._advancedForm = value;
-    if (value) {
-      const ref = this.textForm.value;
-      if (this.store.submit.thumbnail) {
-        ref.plugins = {
-          'plugin/thumbnail': { url: this.store.submit.thumbnail },
-        };
-      }
-      value.setRef(ref);
-    }
+  showAdvanced() {
+    const tags = uniq(this.textForm.value.tags);
+    const published = this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : DateTime.now();
+    this.savedRef = {
+      ...this.textForm.value,
+      url: this.url.value, // Need to pull separately since control is locked
+      title: this.title.value, // Need to pull separately if disabled by wiki mode
+      origin: this.store.account.origin,
+      published,
+      tags,
+      plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),
+    };
+    this.advanced = true;
   }
 
-  get advancedForm() {
-    return this._advancedForm;
+  @ViewChild('advancedForm')
+  set advancedForm(value: RefFormComponent | undefined) {
+    if (this.savedRef && value) {
+      value.setRef(this.savedRef);
+      delete this.savedRef;
+    }
   }
 
   get url() {
@@ -188,7 +213,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq([...(this.textForm.value.tags || []), ...this.editorTags || []]);
+    const tags = uniq(this.textForm.value.tags);
     const published = this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : DateTime.now();
     const ref = {
       ...this.textForm.value,
@@ -199,11 +224,6 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       tags,
       plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),
     };
-    if (!this.advanced && this.store.submit.thumbnail && hasTag('plugin/thumbnail', ref)) {
-      ref.plugins = {
-        'plugin/thumbnail': { url: this.store.submit.thumbnail },
-      };
-    }
     this.submitting = this.refs.create(ref).pipe(
       tap(() => {
         if (this.admin.getPlugin('plugin/vote/up')) {

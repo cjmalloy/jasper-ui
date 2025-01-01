@@ -107,8 +107,18 @@
                  autocomplete="off"
                  formControlName="url"
                  appAutofocus>
-          @if (admin.getPlugin('plugin/qr') && !store.submit.wiki) {
-            <app-qr-scanner (data)="scanQr($event)"></app-qr-scanner>
+          @if (!store.submit.wiki) {
+            @if ((!plugin || plugin === 'plugin/qr') && admin.getPlugin('plugin/qr')) {
+              <app-qr-scanner [upload]="plugin === 'plugin/qr'" (data)="scanQr($event)"></app-qr-scanner>
+            }
+            @if (admin.getPlugin('plugin/file')) {
+              @switch (plugin) {
+                @case (  'plugin/pdf') { <app-pdf-upload   (data)="upload($event)"></app-pdf-upload> }
+                @case ('plugin/audio') { <app-audio-upload (data)="upload($event)"></app-audio-upload> }
+                @case ('plugin/video') { <app-video-upload (data)="upload($event)"></app-video-upload> }
+                @case ('plugin/image') { <app-image-upload (data)="upload($event)"></app-image-upload> }
+              }
+            }
           }
         </div>
 

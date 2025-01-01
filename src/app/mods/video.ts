@@ -19,7 +19,7 @@ export const videoPlugin: Plugin = {
       { query: 'plugin/video', label: $localize`🎞️ video`, title: $localize`Videos`, group: $localize`Media 🎬️` },
     ],
     extensions: ['.3gp', '.mpg', '.mpeg', '.mp4', '.m4v', '.m4p', '.webm', '.ogv', '.m3u8', '.mov'],
-    description: $localize`Play in an inline video player.`,
+    description: $localize`Play in a video player.`,
     advancedForm: [{
       key: 'url',
       type: 'video',

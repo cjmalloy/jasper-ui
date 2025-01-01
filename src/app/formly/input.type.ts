@@ -27,10 +27,10 @@ import { getErrorMessage } from './errors';
       @if (props.clear) { <button type="button" (click)="field.formControl!.setValue(null)" i18n-title title="Clear" i18n>🆑️</button> }
       @if (field.type   ===    'qr') { <app-qr-scanner   (data)="$event && field.formControl!.setValue($event)"></app-qr-scanner> }
       @if (files) {
-        @if (field.type ===   'pdf') { <app-pdf-upload   (data)="$event && field.formControl!.setValue($event)"></app-pdf-upload> }
-        @if (field.type === 'audio') { <app-audio-upload (data)="$event && field.formControl!.setValue($event)"></app-audio-upload> }
-        @if (field.type === 'video') { <app-video-upload (data)="$event && field.formControl!.setValue($event)"></app-video-upload> }
-        @if (field.type === 'image') { <app-image-upload (data)="$event && field.formControl!.setValue($event)"></app-image-upload> }
+        @if (field.type ===   'pdf') { <app-pdf-upload   (data)="$event && field.formControl!.setValue($event.url)"></app-pdf-upload> }
+        @if (field.type === 'audio') { <app-audio-upload (data)="$event && field.formControl!.setValue($event.url)"></app-audio-upload> }
+        @if (field.type === 'video') { <app-video-upload (data)="$event && field.formControl!.setValue($event.url)"></app-video-upload> }
+        @if (field.type === 'image') { <app-image-upload (data)="$event && field.formControl!.setValue($event.url)"></app-image-upload> }
       }
     </div>
   `,

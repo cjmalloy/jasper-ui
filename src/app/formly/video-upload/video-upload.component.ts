@@ -13,7 +13,7 @@ export class VideoUploadComponent {
   @HostBinding('class') css = 'form-array';
 
   @Output()
-  data = new EventEmitter<string>();
+  data = new EventEmitter<{ url: string, name: string }>();
 
   constructor(
     private store: Store,
@@ -28,7 +28,7 @@ export class VideoUploadComponent {
       this.proxy.save(file, this.store.account.origin).pipe(
         map(ref => ref.url),
         catchError(err => of(reader.result as string))
-      ).subscribe(url => this.data.next(url));
+      ).subscribe(url => this.data.next({ url, name: file.name }));
     }
     reader.readAsDataURL(file);
   }

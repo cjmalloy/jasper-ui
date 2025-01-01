@@ -86,6 +86,9 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         this.addTag('internal');
         this.setTitle($localize`Submit: Feed`);
       }
+      if (this.store.submit.title) {
+        this.webForm.get('title')!.setValue(this.store.submit.title);
+      }
       let url = this.store.submit.url?.trim();
       if (this.store.submit.repost) {
         this.url = 'internal:' + uuid();
@@ -102,10 +105,10 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
             this.refForm!.scrapePlugins();
             if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
               const username = url.substring(url.indexOf('@'));
-              this.webForm.get('title')!.setValue(username);
+              if (!this.store.submit.title) this.webForm.get('title')!.setValue(username);
               const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
               this.addFeedTags(tag);
-            } else {
+            } else if (!this.store.submit.title) {
               this.refForm!.scrapeTitle();
             }
           } else {
@@ -115,7 +118,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       } else {
         this.oembeds.get(url).subscribe(oembed => {
           if (!oembed) {
-            this.refForm!.scrapeTitle();
+            if (!this.store.submit.title) this.refForm!.scrapeTitle();
             return;
           }
           if (oembed?.thumbnail_url) {

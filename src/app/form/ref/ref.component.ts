@@ -149,7 +149,7 @@ export class RefFormComponent {
         catchError(err => of(s)),
       )),
     ).subscribe((s: Ref) => {
-      this.group.patchValue({ title: s.title });
+      if (s.title) this.group.patchValue({ title: s.title });
     });
   }
 
