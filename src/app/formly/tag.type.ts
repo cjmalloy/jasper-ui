@@ -30,7 +30,11 @@ import { getErrorMessage } from './errors';
       </datalist>
       <input #input
              class="grow"
-             type="email"
+             type="text"
+             inputmode="email"
+             enterkeyhint="enter"
+             autocorrect="off"
+             autocapitalize="none"
              [attr.list]="listId"
              [class.hidden-without-removing]="preview"
              (input)="search(input.value)"
