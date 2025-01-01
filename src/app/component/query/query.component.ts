@@ -171,7 +171,13 @@ export class QueryComponent {
     }
     for (const t of crumbs) {
       const tag = t.tag?.startsWith('!') ? t.tag.substring(1) : t.tag;
-      if (tag && !tag.startsWith('@')) {
+      if (tag === 'plugin') {
+        t.text = '📦';
+      } else if (tag === '+plugin') {
+        t.text = '+📦';
+      } else if (tag === '_plugin') {
+        t.text = '_📦';
+      } else if (tag && !tag.startsWith('@')) {
         this.exts.getCachedExt(tag).subscribe(ext => {
           // TODO: possible delayed write
           if (ext?.modifiedString && ext?.name) {
