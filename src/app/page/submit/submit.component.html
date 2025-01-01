@@ -38,7 +38,7 @@
          i18n-title title="📨️ Direct Message"
          queryParamsHandling="merge" i18n>dm</a>
     }
-    @for (p of store.submit.submitGenId; track p) {
+    @for (p of store.submit.submitGenId; track p.tag) {
       @if (p.config?.submitDm) {
         <a routerLink="/submit/dm"
            [class.current-tab]="store.submit.subpage === 'dm' && store.submit.to[0] === p.tag"
@@ -126,7 +126,7 @@
 
         <br>
         <div class="validations">
-          @for (v of validations; track v) {
+          @for (v of validations; track v.name) {
             @if (v.passed) {
               <div>✅️ &nbsp;{{ v.name }}</div>
             } @else {

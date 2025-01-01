@@ -50,7 +50,7 @@
       }
       @if (selectResponseType && responseButtons.length > 1) {
         <div class="toolbar-toggle toolbar-toggle-{{toggleIndex}}">
-          @for (plugin of responseButtons; track plugin; let i=$index) {
+          @for (plugin of responseButtons; track plugin.tag; let i=$index) {
             <button type="button"
                     class="response-button"
                     (click)="setResponse(plugin.tag)"

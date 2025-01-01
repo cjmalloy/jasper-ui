@@ -72,55 +72,55 @@
               <span i18n-title  title="last edited {{ ref.modified!.toRelative() }}">*</span>
             }
           }
-          <ng-container *ngIf="authors.length" i18n>
-            by
-            <ng-container *ngIf="authorExts$ | async as authorExts; else authorNoExts">
-              <ng-container *ngFor="let user of authorExts">
+          @if (authors.length) {
+            <ng-container i18n>by </ng-container>
+            @if (authorExts$ | async; as authorExts) {
+              @for (user of authorExts; track user.tag + user.origin) {
                 <a class="user tag"
                    [title]="formatAuthor(user.tag + user.origin)"
                    [routerLink]="['/tag', user.tag + user.origin]"
                    [appTitle]="user">{{ user.name || formatAuthor(user.tag) }}</a>
-              </ng-container>
-            </ng-container>
-            <ng-template #authorNoExts>
+              }
+            } @else {
               @for (t of authors; track t) {
                 <a class="user tag"
                    [title]="formatAuthor(t)"
                    [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
               }
-            </ng-template>
-          </ng-container>
-          <ng-container *ngIf="tags.length" i18n>
-            tagged
-            <ng-container *ngIf="tagExts$ | async as tagExts; else tagNoExts">
+            }
+          }
+          @if (tags.length) {
+            <ng-container i18n>tagged </ng-container>
+            @if (tagExts$ | async; as tagExts) {
               @for (e of tagExts; track e.tag) {
-                <a class="tag" [routerLink]="['/tag', e.tag]" [appTitle]="e">{{ e.name || e.tag }}</a>
+                <a class="tag"
+                   [routerLink]="['/tag', e.tag]"
+                   [appTitle]="e">{{ e.name || e.tag }}</a>
               }
-            </ng-container>
-            <ng-template #tagNoExts>
+            } @else {
               @for (t of tags; track t) {
-                <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
+                <a class="tag"
+                   [routerLink]="['/tag', t]">{{ t }}</a>
               }
-            </ng-template>
-          </ng-container>
-          <ng-container *ngIf="recipients.length" i18n>
-            to
-            <ng-container *ngIf="recipientExts$ | async as recipientExts; else recipientNoExts">
-              @for (user of recipientExts; track user) {
+            }
+          }
+          @if (recipients.length) {
+            <ng-container i18n>to </ng-container>
+            @if (recipientExts$ | async; as recipientExts) {
+              @for (user of recipientExts; track user.tag + user.origin) {
                 <a class="user tag"
                    [title]="formatAuthor(user.tag + user.origin)"
                    [routerLink]="['/tag', user.tag + user.origin]"
                    [appTitle]="user">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
               }
-            </ng-container>
-            <ng-template #recipientNoExts>
+            } @else {
               @for (t of recipients; track t) {
                 <a class="user tag"
                    [title]="formatAuthor(t)"
                    [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
               }
-            </ng-template>
-          </ng-container>
+            }
+          }
           @if (showAlarm && alarm) {
             <span class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm ({{ alarm }})">🔔</span>
           }
@@ -139,9 +139,10 @@
                     [origin]="ref.origin"
                     [text]="uiMarkdown(ui.tag)"></app-md>
           }
-          <ng-container *ngIf="ref.created && !local" i18n>
-            on <a class="origin tag" [routerLink]="['/tag', ref.origin || '*']">{{ ref.origin || 'default' }}</a>
-          </ng-container>
+          @if (ref.created && !local) {
+            <ng-container i18n>on </ng-container>
+            <a class="origin tag" [routerLink]="['/tag', ref.origin || '*']">{{ ref.origin || 'default' }}</a>
+          }
           @if (local) {
             @if (originPull) {
               @if (remoteOrigin) {

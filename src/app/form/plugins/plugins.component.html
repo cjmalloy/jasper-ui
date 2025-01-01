@@ -7,7 +7,7 @@
     }
   </div>
 }
-@for (plugin of forms; track plugin) {
+@for (plugin of forms; track plugin.tag) {
   @if (!plugin.config?.submitChild) {
     <app-form-gen #gen
                   [plugins]="plugins"

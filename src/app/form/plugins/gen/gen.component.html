@@ -27,7 +27,7 @@
       </details>
     }
   }
-  @for (child of children; track child) {
+  @for (child of children; track child.tag) {
     @if (plugins.contains(child.tag)) {
       <hr>
       <div>
@@ -38,7 +38,7 @@
 }
 
 <div class="floating-ribbons">
-  @for (child of children; track child) {
+  @for (child of children; track child.tag) {
     <div class="icon {{ cssClass(child.tag) }}"
          [class.on]="plugins.contains(child.tag)"
          (click)="toggleChild(child.tag)"><span>{{ child.config?.submitChild }}</span></div>

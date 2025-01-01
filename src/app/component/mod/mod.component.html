@@ -27,7 +27,7 @@
 }
 @if (mod?.plugin?.length) {
   <h5 i18n>Plugins</h5>
-  @for (plugin of mod?.plugin || []; track plugin) {
+  @for (plugin of mod?.plugin || []; track plugin.tag) {
     <app-plugin [plugin]="plugin"></app-plugin>
   }
   @if (mod?.template?.length) {
@@ -36,7 +36,7 @@
 }
 @if (mod?.template?.length) {
   <h5 i18n>Templates</h5>
-  @for (template of mod?.template || []; track template) {
+  @for (template of mod?.template || []; track template.tag) {
     <app-template [template]="template"></app-template>
   }
 }

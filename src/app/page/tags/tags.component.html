@@ -20,7 +20,7 @@
        queryParamsHandling="merge"
        i18n-title title="🔖 Simple Tags"
        i18n>🏷️</a>
-    @for (tmpl of templates; track tmpl) {
+    @for (tmpl of templates; track tmpl.tag) {
       <a [routerLink]="['/tags', tmpl.tag]"
          [queryParams]="{ noTemplate: null, home: null }"
          [class.current-tab]="templateIs(tmpl.tag)"
