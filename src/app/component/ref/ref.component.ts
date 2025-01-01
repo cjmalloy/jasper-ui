@@ -1041,6 +1041,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
             }
             return throwError(() => err);
           }),
+          tap(() => {
+            this.store.submit.removeRef(ref);
+          }),
         )), ref);
   }
 

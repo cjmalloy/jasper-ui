@@ -51,7 +51,7 @@ export class UploadPage implements OnDestroy {
     mod.setTitle($localize`Submit: Upload`);
     this.disposers.push(autorun(() => {
       this.readUploads(this.store.submit.files);
-      defer(() => this.store.submit.clearFiles());
+      runInAction(() => this.store.submit.clearFiles());
     }));
     this.store.submit.clearOverride();
   }

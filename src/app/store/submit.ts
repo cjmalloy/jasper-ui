@@ -1,5 +1,5 @@
-import { flatten, isArray, without } from 'lodash-es';
-import { autorun, makeAutoObservable, observable } from 'mobx';
+import { flatten, isArray, omitBy, without } from 'lodash-es';
+import { action, autorun, computed, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -27,6 +27,8 @@ export class SubmitStore {
       submitGenId: observable.shallow,
       submitDm: observable.shallow,
       files: observable.shallow,
+      setRef: action,
+      setExt: action,
     });
 
     autorun(() => {
@@ -36,6 +38,14 @@ export class SubmitStore {
         }
       }
     });
+  }
+
+  get topRefs() {
+    return this.refs.slice(0, 5);
+  }
+
+  get topExts() {
+    return this.exts.slice(0, 5);
   }
 
   get subpage() {
@@ -144,11 +154,11 @@ export class SubmitStore {
   }
 
   removeRef(ref: Ref) {
-    this.refs = without(this.refs, ref);
+    this.refs = this.refs.filter(r => r.url !== ref.url || r.modifiedString !== ref.modifiedString);
   }
 
   removeExt(ext: Ext) {
-    this.exts = without(this.exts, ext);
+    this.exts = this.exts.filter(x => x.tag !== ext.tag || x.modifiedString !== ext.modifiedString);
   }
 
   clearUpload() {
@@ -156,7 +166,7 @@ export class SubmitStore {
     this.refs = [];
   }
 
-  setFiles(files?: File[]) {
+  addFiles(files?: File[]) {
     if (!files) return;
     this.files ||= [];
     this.files.push(...files);

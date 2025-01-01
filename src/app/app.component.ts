@@ -124,18 +124,15 @@ export class AppComponent implements AfterViewInit {
 
   drop(event: DragEvent) {
     const items = event.dataTransfer?.items;
-    if (!items) {
-      this.store.submit.setFiles([]);
-      return;
-    }
+    if (!items) return;
+    event.preventDefault();
     const files = [] as any;
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
       if (d?.kind !== 'file') return;
       files.push(d.getAsFile());
     }
-    event.preventDefault();
-    this.store.submit.setFiles(files);
+    this.store.submit.addFiles(files);
     if (!this.store.submit.upload) {
       this.router.navigate(['/submit/upload'], { queryParams: { tag: this.store.view.queryTags }});
     }
