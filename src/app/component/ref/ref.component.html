@@ -71,7 +71,7 @@
             }
           }
           @if (authors.length) {
-            <ng-container i18n>by </ng-container>
+            <span i18n> by</span>
             @if (authorExts$ | async; as authorExts) {
               @for (user of authorExts; track user.tag + user.origin) {
                 <a class="user tag"
@@ -88,7 +88,7 @@
             }
           }
           @if (tags.length) {
-            <ng-container i18n>tagged </ng-container>
+            <span i18n> tagged</span>
             @if (tagExts$ | async; as tagExts) {
               @for (e of tagExts; track e.tag) {
                 <a class="tag"
@@ -103,7 +103,7 @@
             }
           }
           @if (recipients.length) {
-            <ng-container i18n>to </ng-container>
+            <span i18n> to</span>
             @if (recipientExts$ | async; as recipientExts) {
               @for (user of recipientExts; track user.tag + user.origin) {
                 <a class="user tag"
@@ -138,7 +138,7 @@
                     [text]="uiMarkdown(ui.tag)"></app-md>
           }
           @if (ref.created && !local) {
-            <ng-container i18n>on </ng-container>
+            <span i18n> on</span>
             <a class="origin tag" [routerLink]="['/tag', ref.origin || '*']">{{ ref.origin || 'default' }}</a>
           }
           @if (local) {

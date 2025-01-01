@@ -84,7 +84,7 @@
             <span [title]="'last edited ' + ref.modified!.toRelative()">* </span>
           }
           @if (tagged.length) {
-            <ng-container i18n>tagged </ng-container>
+            <span i18n> tagged</span>
             @if (tagExts$ | async; as tagExts) {
               @for (e of tagExts; track e.tag) {
                 <a class="tag"
