@@ -73,6 +73,12 @@ export const originPullPlugin: Plugin = {
       { event: 'pull', label: $localize`pull`, title: $localize`Pull a batch of updates from the remote.`, confirm: $localize`Are you sure you want to pull?` },
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable` },
     ],
+    // language=Handlebars
+    infoUi: `
+      {{#if (interestingTags addTags)}} tagging refs {{/if}}
+      {{#each (interestingTags addTags)}}
+        #{{.}}
+      {{/each}}`,
     form: [{
       key: 'cache',
       type: 'boolean',

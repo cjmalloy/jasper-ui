@@ -468,22 +468,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
-  get addTags() {
-    if (this.feed) {
-      return interestingTags(this.ref.plugins?.['plugin/feed']?.addTags);
-    }
-    if (this.originPull) {
-      return interestingTags(this.ref.plugins?.['+plugin/origin']?.addTags);
-    }
-    return undefined;
-  }
-
-  @memo
-  get addTagExts$() {
-    return this.exts.getCachedExts(this.addTags || [], this.ref.origin || '').pipe(this.admin.extFallbacks);
-  }
-
-  @memo
   get localOrigin() {
     if (this.originPull || this.originPush) {
       return this.ref.plugins?.['+plugin/origin']?.local && subOrigin(this.ref.origin, this.ref.plugins?.['+plugin/origin']?.local);

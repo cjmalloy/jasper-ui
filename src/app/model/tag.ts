@@ -6,6 +6,7 @@ import { defer, isEqual, omitBy, uniqWith } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
 import { toJS } from 'mobx';
 import { v4 as uuid } from 'uuid';
+import { interestingTags } from '../util/format';
 import { hasAnyResponse, hasResponse, hasTag, localTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
 import { Ext, extSchema } from './ext';
@@ -466,6 +467,7 @@ Handlebars.registerHelper('fromNow', (value: string) => DateTime.fromISO(value).
 Handlebars.registerHelper('formatInterval', (value: string) => Duration.fromISO(value).toHuman());
 Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?.userUrls?.includes(value));
 Handlebars.registerHelper('includes', (array: string[], value: string) => array?.includes(value));
+Handlebars.registerHelper('interestingTags', (tags: string[]) => interestingTags(tags));
 Handlebars.registerHelper('hasTag', (tag: string | undefined, ref: Ref | string[] | undefined) => hasTag(tag, ref));
 Handlebars.registerHelper('eq', (v1, v2) => v1 === v2);
 Handlebars.registerHelper('ne', (v1, v2) => v1 !== v2);
