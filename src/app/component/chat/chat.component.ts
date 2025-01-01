@@ -97,9 +97,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
     }
   }
 
-  refresh = debounce((origin?: string) => this._refresh(origin), 400);
-
-  _refresh(origin?: string) {
+  refresh = debounce((origin?: string) => {
     if (origin === undefined) {
       for (const origin of this.cursors.keys()) {
         this.loadMore(origin);
@@ -107,7 +105,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
     } else {
       this.loadMore(origin);
     }
-  }
+  }, 400);
 
   loadMore(origin: string) {
     this.clearPoll();
@@ -269,7 +267,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
         }
         return throwError(err);
       }),
-    ).subscribe(ref => {
+    ).subscribe(cursor => {
       this.fetch();
     });
   }

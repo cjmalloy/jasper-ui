@@ -3,6 +3,7 @@ import { RxStomp } from '@stomp/rx-stomp';
 import { map, Observable } from 'rxjs';
 import { mapRef, RefUpdates } from '../../model/ref';
 import { Store } from '../../store/store';
+import { isSubOrigin, localTag, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 
 @Injectable({
@@ -54,7 +55,8 @@ export class StompService extends RxStomp {
   }
 
   watchTag(tag: string): Observable<string> {
-    return this.watch('/topic/tag/' + (this.store.account.origin || 'default') + '/' + encodeURIComponent(tag), this.headers).pipe(
+    const origin = isSubOrigin(this.store.account.origin, tagOrigin(tag)) ? tagOrigin(tag) : this.store.account.origin;
+    return this.watch('/topic/tag/' + (origin || 'default') + '/' + encodeURIComponent(localTag(tag)), this.headers).pipe(
       map(m => m.body as string),
     );
   }

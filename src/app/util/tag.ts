@@ -140,6 +140,12 @@ export function defaultOrigin(tag: string, origin?: string) {
   return localTag(tag) + origin;
 }
 
+export function isSubOrigin(local?: string, origin?: string) {
+  if (!local) return true;
+  if (!origin) return false;
+  return origin.startsWith(local + '.');
+}
+
 export function subOrigin(local?: string, origin?: string) {
   if (!local) local = '';
   if (!origin) origin = '';
