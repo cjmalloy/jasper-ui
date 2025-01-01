@@ -56,6 +56,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   listId = uuid();
   previewUrl = '';
   preview = '';
+  editing = false;
   files = !!this.admin.getPlugin('plugin/file');
   autocomplete: { value: string, label: string }[] = [];
 
@@ -78,7 +79,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
-      if (this.preview && value) {
+      if (!this.editing && value) {
         this.getPreview(value);
       } else {
         this.preview = '';
@@ -99,6 +100,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   }
 
   blur(input: HTMLInputElement) {
+    this.editing = false;
     if (this.showError && !this.showedError) {
       this.showedError = true;
       defer(() => this.validate(input));
@@ -120,6 +122,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   }
 
   edit(input: HTMLInputElement) {
+    this.editing = true;
     this.previewUrl = '';
     this.preview = '';
     input.focus();

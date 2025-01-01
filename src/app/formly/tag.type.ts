@@ -53,6 +53,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
 
   listId = uuid();
   preview = '';
+  editing = false;
   autocomplete: { value: string, label: string }[] = [];
 
   private showedError = false;
@@ -74,7 +75,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
-      if (this.preview && value) {
+      if (!this.editing && value) {
         this.getPreview(value);
       } else {
         this.preview = '';
@@ -95,6 +96,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   blur(input: HTMLInputElement) {
+    this.editing = false;
     if (this.showError && !this.showedError) {
       this.showedError = true;
       defer(() => this.validate(input));
@@ -156,6 +158,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   edit(input: HTMLInputElement) {
+    this.editing = true;
     this.preview = '';
     input.focus();
   }
