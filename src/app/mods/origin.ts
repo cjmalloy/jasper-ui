@@ -212,15 +212,10 @@ export const originPushPlugin: Plugin = {
       props: {
         label: $localize`Batch Size:`,
       }
-    }, {
-      key: 'checkRemoteCursor',
-      type: 'boolean',
-      props: {
-        label: $localize`Check Remote Cursor:`,
-      }
     }],
   },
   defaults: {
+    pushOnChange: true,
     cache: true,
   },
   schema: {
@@ -229,12 +224,6 @@ export const originPushPlugin: Plugin = {
       cache: { type: 'boolean' },
       query: { type: 'string' },
       batchSize: { type: 'int32' },
-      checkRemoteCursor: { type: 'boolean' },
-      lastModifiedRefWritten: { type: 'string' },
-      lastModifiedExtWritten: { type: 'string' },
-      lastModifiedUserWritten: { type: 'string' },
-      lastModifiedPluginWritten: { type: 'string' },
-      lastModifiedTemplateWritten: { type: 'string' },
     },
   },
 };
