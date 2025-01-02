@@ -12,7 +12,7 @@ import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
-import { authors, clickableLink, formatAuthor, getTitle } from '../../../util/format';
+import { authors, clickableLink, formatAuthor, getNiceTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, tagOrigin } from '../../../util/tag';
@@ -97,8 +97,8 @@ export class ChatEntryComponent implements OnChanges {
     const title = (this.ref?.title || '').trim();
     if (title) return title;
     if (this.focused) return '';
-    if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
-    return getTitle(this.ref);
+    if (this.bareRepost) return getNiceTitle(this.repostRef) || $localize`Repost`;
+    return getNiceTitle(this.ref);
   }
 
   get allowActions(): boolean {

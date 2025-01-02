@@ -2,11 +2,9 @@
   display: contents;
   white-space: nowrap;
 }
-
 .sending {
   opacity: 0.5;
 }
-
 .loading-container {
   margin-top: -25px;
   height: 40px;
@@ -14,10 +12,8 @@
     padding: 0 4px;
   }
 }
-
 .gutter {
   text-align: right;
-
   .timestamp {
     display: none;
   }
@@ -27,20 +23,16 @@
     }
   }
 }
-
 .message {
   display: flex;
   height: 18.5px;
   overflow: hidden;
-
   :first-child {
     flex: 1;
   }
-
   .has-title {
     height: 18.5px;
     overflow: hidden;
-
     app-md {
       padding: 0 12px;
       display: inline-block;
@@ -49,6 +41,7 @@
   }
   .actions {
     display: none;
+    margin-left: 10px;
   }
   &:focus-within, &:hover, &.deleting, &.tagging, &.focused {
     white-space: normal !important;

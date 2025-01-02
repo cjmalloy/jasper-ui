@@ -128,6 +128,20 @@ export function getTitle(ref: Ref | undefined): string {
   return trimCommentForTitle(comment);
 }
 
+export function getNiceTitle(ref: Ref | undefined): string {
+  if (!ref) return '';
+  const title = (ref.title || '').trim();
+  const comment = (ref.comment || '').trim();
+  if (title) return title;
+  if (!comment) {
+    if (ref.url.startsWith('cache:')) return '';
+    if (ref.url.startsWith('comment:')) return '';
+    if (ref.url.startsWith('internal:')) return '';
+    return ref.url;
+  }
+  return trimCommentForTitle(comment);
+}
+
 export function getPageTitle(ref: Ref | undefined, top?: Ref): string {
   if (!ref) return '';
   const title = (ref.title || '').trim();
