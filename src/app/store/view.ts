@@ -8,7 +8,7 @@ import { TagSort } from '../model/tag';
 import { Template } from '../model/template';
 import { User } from '../model/user';
 import { RootConfig } from '../mods/root';
-import { getPageTitle, getTitle } from '../util/format';
+import { getPageTitle } from '../util/format';
 import { UrlFilter } from '../util/query';
 import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
 import { AccountStore } from './account';
@@ -322,11 +322,11 @@ export class ViewStore {
   }
 
   get noTemplate(): boolean {
-    return this.route.routeSnapshot?.queryParams['noTemplate'] === 'true';
+    return this.route.routeSnapshot?.queryParams['noTemplate'] !== undefined && this.route.routeSnapshot?.queryParams['noTemplate'] !== 'false';
   }
 
   get home(): boolean {
-    return this.route.routeSnapshot?.queryParams['home'] === 'true';
+    return this.route.routeSnapshot?.queryParams['home'] !== undefined && this.route.routeSnapshot?.queryParams['home'] !== 'false';
   }
 
   get query() {
@@ -443,7 +443,7 @@ export class ViewStore {
   }
 
   get showRemotes() {
-    return this.route.routeSnapshot?.queryParams['showRemotes'] === 'true';
+    return this.route.routeSnapshot?.queryParams['showRemotes'] !== undefined && this.route.routeSnapshot?.queryParams['showRemotes'] !== 'false';
   }
 
   get repost() {

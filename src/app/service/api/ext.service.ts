@@ -142,7 +142,7 @@ export class ExtService {
     return this._cache.get(key)!;
   }
 
-  private defaultExt(tag: string, defaultOrigin = '', name = ''): Ext {
+  defaultExt(tag: string, defaultOrigin = '', name = ''): Ext {
     const origin = tagOrigin(tag) || defaultOrigin || '';
     tag = localTag(tag);
     name = name || hasPrefix(tag, 'user') ? removePrefix(protectedTag(tag) ? tag.substring(1) : tag) : name;

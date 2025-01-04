@@ -209,7 +209,7 @@
       }
     </div>
   }
-  @if (expanded) {
+  @if (!home && expanded) {
     @for (res of queryExts$ | async; track res) {
       <h5>{{ res.ext.name || res.ext.tag}} Tags:</h5>
       @for (c of res.children; track ext) {
@@ -223,39 +223,5 @@
         </a>
       }
     }
-  }
-  @if (user || home) {
-    <div class="hide home">
-      @if (bookmarkExts.length) {
-        <div class="ext-text" i18n>
-          My Bookmarks:
-          <br>
-          @for (book of bookmarkExts; track book; let i = $index) {
-            <a class="tag" [routerLink]="['/tag', userConfig!.bookmarks![i]]" [appTitle]="book">{{ book.name || userConfig!.bookmarks![i] }}</a>
-            <br>
-          }
-        </div>
-      }
-      @if (userSubExts.length) {
-        <div class="ext-text" i18n>
-          Following:
-          <br>
-          @for (sub of userSubExts; track sub; let i = $index) {
-            <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]" [appTitle]="sub">{{ sub.name || (sub.tag + sub.origin) }}</a>
-            <br>
-          }
-        </div>
-      }
-      @if (tagSubExts.length) {
-        <div class="ext-text" i18n>
-          Subscribed to:
-          <br>
-          @for (sub of tagSubExts; track sub; let i = $index) {
-            <a class="tag" [routerLink]="['/tag', sub.tag + sub.origin]" [appTitle]="sub">{{ sub.name || (sub.tag + sub.origin) }}</a>
-            <br>
-          }
-        </div>
-      }
-    </div>
   }
 </ng-container>

@@ -97,7 +97,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       }
       if (tag) {
         const template = this.admin.getTemplate(tag);
-        if (template) {
+        if (template?.config?.submit) {
           this.templates.unshift(template);
           this.template = tag;
           this.tag.setValue('')
