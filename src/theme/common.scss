@@ -233,8 +233,10 @@ button {
 .preview {
   border: 2px solid var(--bg);
   cursor: text;
-  height: 20px;
-  line-height: 20px;
+  height: 16px;
+  line-height: 16px;
+  padding-block: 2px;
+  padding-inline: 8px;
   overflow: hidden;
 }
 
