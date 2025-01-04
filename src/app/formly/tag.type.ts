@@ -184,8 +184,8 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     } else {
       this.searching?.unsubscribe();
       this.searching = this.exts.page({
-        query: this.field.props.origin || this.store.account.origin || '@',
         search: value,
+        sort: ['nesting'],
         size: 5,
       }).subscribe(page => {
         this.autocomplete = page.content.map(x => ({ value: x.tag, label: x.name || x.tag }));

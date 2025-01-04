@@ -86,6 +86,7 @@ type FilterObj = {
 
 export type RefFilter = FilterObj & {
   query?: string;
+  nesting?: number,
   scheme?: string;
   pluginResponse?: string[];
   noPluginResponse?: string[];
@@ -122,6 +123,7 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
   'scheme' | 'scheme,ASC' | 'scheme,DESC' |
   'title' | 'title,ASC' | 'title,DESC' |
   'origin' | 'origin,ASC' | 'origin,DESC' |
+  'nesting' | 'nesting,ASC' | 'nesting,DESC' |
   'comment' | 'comment,ASC' | 'comment,DESC' |
   'tagCount' | 'tagCount,ASC' | 'tagCount,DESC' |
   'sourceCount' | 'sourceCount,ASC' | 'sourceCount,DESC' |

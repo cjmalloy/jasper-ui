@@ -27,6 +27,7 @@ export const allRefSorts: {value: RefSort, label: string, title?: string }[] = [
   { value: 'url', label: $localize`🔗️ url` },
   { value: 'scheme', label: $localize`🏳️️ scheme` },
   { value: 'origin', label: $localize`🏛️ origin` },
+  { value: 'nesting', label: $localize`🪆 nesting` },
   { value: 'tagCount', label: $localize`🏷️ tags`, title: $localize`Number of tags` },
   { value: 'responseCount', label: $localize`💌️ responses`, title: $localize`Number of responses` },
   { value: 'sourceCount', label: $localize`📜️ sources`, title: $localize`Number of sources` },
@@ -50,6 +51,7 @@ export class SortComponent implements OnChanges, OnDestroy {
 
   allSorts: {value: RefSort | TagSort, label: string, title?: string}[] = [
     { value: 'modified', label: $localize`🕓️ modified` },
+    { value: 'nesting', label: $localize`🪆 nesting` },
   ];
   sorts: string[] = [];
   replace = false;
@@ -93,6 +95,7 @@ export class SortComponent implements OnChanges, OnDestroy {
           { value: 'tag', label: $localize`🏷️ tag` },
           { value: 'levels', label: $localize`/🏷️ level`, title: $localize`Number of subtags` },
           { value: 'origin', label: $localize`🏛️ origin` },
+          { value: 'nesting', label: $localize`🪆 nesting` },
         ]
       }
     }

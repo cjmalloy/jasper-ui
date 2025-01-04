@@ -515,6 +515,7 @@ export function clear<T extends Config>(c: T) {
 
 export type TagQueryArgs = {
   query?: string,
+  nesting?: number,
   level?: number,
   deleted?: boolean,
   search?: string,
@@ -533,4 +534,5 @@ export type TagSort = '' |
   'tag' | 'tag,ASC' | 'tag,DESC' |
   'levels' | 'levels,ASC' | 'levels,DESC' |
   'name' | 'name,ASC' | 'name,DESC' |
-  'origin' | 'origin,ASC' | 'origin,DESC';
+  'origin' | 'origin,ASC' | 'origin,DESC' |
+  'nesting' | 'nesting,ASC' | 'nesting,DESC';
