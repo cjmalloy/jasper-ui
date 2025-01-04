@@ -808,7 +808,7 @@ export class AdminService {
     if (defaults) {
       if (!tag || template!.config?.overrideForm) return defaults;
       return {
-        ...this.getTemplateForm(parent!),
+        ...this.getDefaults(parent!),
         ...defaults
       };
     } else if (tag) {
