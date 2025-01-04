@@ -35,7 +35,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   created = false;
   submitted = false;
   invalid = false;
-  overwrite = true;
+  overwrite = false;
   force = false;
   extForm: UntypedFormGroup;
   editForm!: UntypedFormGroup;
@@ -188,7 +188,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       tag: this.store.view.ext!.tag, // Need to fetch because control is disabled
       modifiedString: this.store.view.ext!.modifiedString,
     };
-    if (!this.invalid || !this.overwrite) {
+    if (!this.overwrite) {
       const config = this.store.view.ext!.config;
       ext = {
         ...this.store.view.ext,
@@ -197,13 +197,13 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
           ...isObject(config) ? config : {},
           ...ext.config,
         },
-      }
+      };
     }
     this.editing = this.exts.update(ext, this.force).pipe(
       catchError((res: HttpErrorResponse) => {
         delete this.editing;
         if (res.status === 400) {
-          if (this.invalid) {
+          if (this.invalid && this.overwrite) {
             this.force = true;
           } else {
             this.invalid = true;
