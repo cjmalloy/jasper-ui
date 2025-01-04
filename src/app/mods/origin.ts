@@ -91,6 +91,12 @@ export const originPullPlugin: Plugin = {
       props: {
         label: $localize`Proxy All Requests Through Cache:`,
       }
+    }, {
+      key: 'cacheProxyPrefetch',
+      type: 'boolean',
+      props: {
+        label: $localize`Prefetch Proxy Cache during Replicate:`,
+      }
     }],
     advancedForm: [{
       key: 'query',
@@ -153,6 +159,7 @@ export const originPullPlugin: Plugin = {
     optionalProperties: {
       cache: { type: 'boolean' },
       cacheProxy: { type: 'boolean' },
+      cacheProxyPrefetch: { type: 'boolean' },
       query: { type: 'string' },
       batchSize: { type: 'int32' },
       generateMetadata: { type: 'boolean' },
