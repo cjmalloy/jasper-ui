@@ -48,7 +48,8 @@ export class ActionListComponent implements AfterViewInit {
   overlayRef?: OverlayRef;
 
   private overlayEvents?: Subscription;
-  private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
+  private overlayResizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.overlayRef?.updatePosition()) || undefined;
+  private resizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
 
   constructor(
     private config: ConfigService,
@@ -155,10 +156,12 @@ export class ActionListComponent implements AfterViewInit {
             this.zone.run(() => this.closeAdvanced());
         }
       });
+      this.overlayResizeObserver?.observe(this.overlayRef.overlayElement);
     });
   }
 
   closeAdvanced() {
+    if (this.overlayRef?.overlayElement) this.overlayResizeObserver?.unobserve(this.overlayRef?.overlayElement);
     this.overlayRef?.dispose();
     this.overlayEvents?.unsubscribe();
     this.overlayRef = undefined;
