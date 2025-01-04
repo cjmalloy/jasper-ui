@@ -32,11 +32,11 @@ export class BookmarkService {
   }
 
   toggleSources(url: string) {
-    this.toggleFilter('sources/' + url as UrlFilter, 'responses/', 'sources/');
+    this.toggleFilter('sources/' + url as UrlFilter, 'responses/' + url);
   }
 
   toggleResponses(url: string) {
-    this.toggleFilter('responses/' + url as UrlFilter, 'responses/', 'sources/');
+    this.toggleFilter('responses/' + url as UrlFilter, 'sources/' + url);
   }
 
   get filters() {

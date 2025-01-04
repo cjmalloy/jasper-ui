@@ -1,36 +1,44 @@
-<app-loading *ngIf="!ref.modified"></app-loading>
+@if (!ref.modified) {
+  <app-loading></app-loading>
+}
 <div class="kanban-card-container">
   <div class="badges">
     <!-- TODO: Check if local version is mostly identical -->
-    <a class="badge"
-       *ngIf="remote"
-       (click)="copy()"
-       i18n-title title="Copy remote ref">📥️</a>
-    <ng-container *ngIf="badgeExts$ | async as badgeExts">
-      <a class="badge filter-toggle"
-         *ngFor="let e of badgeExts"
-         [class.filtering]="bookmarks.filters.includes($any('query/' + e.tag))"
-         (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + e.tag + ')' : e.tag)"
-         [title]="e.name && e.tag">{{ e.name || e.tag }}</a>
-    </ng-container>
-    <a class="badge"
-       *ngIf="dependents"
-       (click)="bookmarks.toggleSources(ref.url)"
-       i18n-title title="{{ dependents }} Dependents">⤴️</a>
-    <a class="badge"
-       *ngIf="dependencies"
-       (click)="bookmarks.toggleResponses(ref.url)"
-       i18n-title title="{{ dependencies }} Dependencies">⤵️</a>
-    <a class="badge"
-       *ngIf="threads"
-       (focus)="store.view.setLastSelected(ref)"
-       (pointerdown)="store.view.setLastSelected(ref)"
-       [routerLink]="['/ref', thread, 'thread']"
-       i18n-title title="Thread ({{ threads }} replies)">🧵️</a>
-    <a class="badge"
-       *ngIf="comments"
-       [routerLink]="['/ref', ref.url, 'comments']"
-       i18n-title title="{{ comments }} Comments">💬️</a>
+    @if (remote) {
+      <a class="badge"
+         (click)="copy()"
+         i18n-title title="Copy remote ref">📥️</a>
+    }
+    @if (badgeExts$ | async; as xs) {
+      @for (x of xs; track x.tag) {
+        <a class="badge filter-toggle"
+           [class.filtering]="bookmarks.filters.includes($any('query/' + x.tag))"
+           (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + x.tag + ')' : x.tag)"
+           [title]="x.name && x.tag">{{ x.name || x.tag }}</a>
+      }
+    }
+    @if (dependents) {
+      <a class="badge"
+         (click)="bookmarks.toggleSources(ref.url)"
+         i18n-title title="{{ dependents }} Dependents">⤴️</a>
+    }
+    @if (dependencies) {
+      <a class="badge"
+         (click)="bookmarks.toggleResponses(ref.url)"
+         i18n-title title="{{ dependencies }} Dependencies">⤵️</a>
+    }
+    @if (threads) {
+      <a class="badge"
+         (focus)="store.view.setLastSelected(ref)"
+         (pointerdown)="store.view.setLastSelected(ref)"
+         [routerLink]="['/ref', thread, 'thread']"
+         i18n-title title="Thread ({{ threads }} replies)">🧵️</a>
+    }
+    @if (comments) {
+      <a class="badge"
+         [routerLink]="['/ref', ref.url, 'comments']"
+         i18n-title title="{{ comments }} Comments">💬️</a>
+    }
   </div>
   <div class="row">
     @if (thumbnail) {
@@ -41,34 +49,36 @@
     }
     <a class="card-title grow" [routerLink]="['/ref', ref.url]">{{ title }}</a>
   </div>
-  <app-chess *ngIf="chess"
-             [white]="chessWhite"
-             [ref]="ref"></app-chess>
-  <app-todo *ngIf="todo"
-             [ref]="ref"></app-todo>
-  <app-md *ngIf="currentText"
-          [origin]="ref.origin || ''"
-          [plugins]="ref.tags || []"
-          [text]="currentText"></app-md>
+  @if (chess) {
+    <app-chess [white]="chessWhite"
+               [ref]="ref"></app-chess>
+  }
+  @if (todo) {
+    <app-todo [ref]="ref"></app-todo>
+  }
+  @if (currentText) {
+    <app-md [origin]="ref.origin || ''"
+            [plugins]="ref.tags || []"
+            [text]="currentText"></app-md>
+  }
 
   <ng-template #cardMenu>
     <div class="context-menu" (click)="$event.stopPropagation()">
       <span i18n>Toggle Badges</span>
-      <ng-container *ngIf="allBadgeExts$ | async as badgeExts; else allBadgesNoExts">
-        <ng-container *ngFor="let e of badgeExts">
+      @if (allBadgeExts$ | async; as xs) {
+        @for (x of xs; track x.tag) {
           <div (contextmenu)="$event.preventDefault()"
                (pointerdown)="autoClose = false"
-               (pointerup)="toggleBadge(e.tag, $event)">
-            <input [id]="e.tag"
+               (pointerup)="toggleBadge(x.tag, $event)">
+            <input [id]="x.tag"
                    type="checkbox"
-                   [checked]="ref.tags?.includes(e.tag)">
-            <label [for]="e.tag"
-                   [title]="e.name && e.tag" i18n>{{ e.name || e.tag }}</label>
+                   [checked]="ref.tags?.includes(x.tag)">
+            <label [for]="x.tag"
+                   [title]="x.name && x.tag" i18n>{{ x.name || x.tag }}</label>
           </div>
-        </ng-container>
-      </ng-container>
-      <ng-template #allBadgesNoExts>
-        <ng-container *ngFor="let b of ext?.config?.badges || [],">
+        }
+      } @else {
+        @for (b of ext?.config?.badges || []; track b) {
           <div (contextmenu)="$event.preventDefault()"
                (pointerdown)="autoClose = false"
                (pointerup)="toggleBadge(b, $event)">
@@ -77,8 +87,8 @@
                    [checked]="ref.tags?.includes(b)">
             <label [for]="b" i18n>{{ b }}</label>
           </div>
-        </ng-container>
-      </ng-template>
+        }
+      }
     </div>
   </ng-template>
 </div>

@@ -83,10 +83,6 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
     this.updates.complete();
   }
 
-  trackByIdx(index: number, value: string) {
-    return index;
-  }
-
   @HostListener('window:resize')
   onResize() {
     const margin = 20;

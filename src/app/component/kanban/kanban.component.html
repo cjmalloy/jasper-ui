@@ -1,8 +1,10 @@
 <ng-container *mobxAutorun>
-  <app-loading *ngIf="!error && !ext else loaded"></app-loading>
-  <ng-template #loaded>
-    <div *ngIf="ext else error"
-         class="kanban"
+  @if (!error && !ext) {
+    <app-loading></app-loading>
+  } @else if (error) {
+    <div class="error-404" i18n>Not Found</div>
+  } @else if (ext) {
+    <div class="kanban"
          cdkDropListGroup
          cdkScrollable
          [class.single-column]="(columns.length || 0) + (showColumnBacklog ? 1 : 0) === 1"
@@ -17,68 +19,109 @@
            [style.grid-column]="'1 / ' + (1 + (swimLanes ? 1 : 0) + (showColumnBacklog ? 1 : 0) + columns.length)">
         <div class="kanban-options">
           <h2><a [routerLink]="['/tag', ext.tag + ext.origin]" [appTitle]="ext">{{ ext.name || ext.tag }}</a></h2>
-          <div *ngIf="pageControls">
-            <div *ngIf="kanbanConfig.swimLanes?.length"
-                 class="disable-swim-lanes">
-              <input id="disable-swim-lanes"
-                     type="checkbox"
-                     [(ngModel)]="disableSwimLanes">
-              <label for="disable-swim-lanes" i18n>Hide Swim Lanes</label>
+          @if (pageControls) {
+            <div>
+              @if (kanbanConfig.swimLanes?.length) {
+                <div class="disable-swim-lanes">
+                  <input id="disable-swim-lanes"
+                         type="checkbox"
+                         [(ngModel)]="disableSwimLanes">
+                  <label for="disable-swim-lanes" i18n>Hide Swim Lanes</label>
+                </div>
+              }
+              <app-page-controls [hideCols]="true"></app-page-controls>
             </div>
-            <app-page-controls [hideCols]="true"></app-page-controls>
-          </div>
+          }
         </div>
         <div class="kanban-remove">🗑️</div>
       </div>
-      <div *ngIf="swimLanes"><!-- corner spacer --></div>
-      <a *ngIf="showColumnBacklog"
-         class="column-title tag"
-         (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + colBacklog + ')' : colBacklog)"
-         title="No matching column tag"><span class="filter-toggle">{{ kanbanConfig.columnBacklogTitle || 'Backlog' }}</span></a>
-      <a *ngFor="let col of columns trackBy: trackByIdx"
-         class="column-title tag"
-         (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + col + ')' : col)"
-         [title]="col"><span class="filter-toggle">{{ (exts.getCachedExt(col, ext.origin || '') | async)?.name || col }}</span></a>
-      <ng-container *ngIf="swimLanes else noSwimLanes">
-        <ng-container *ngFor="let sl of swimLanes trackBy: trackByIdx">
+      @if (swimLanes) {
+        <div><!-- corner spacer --></div>
+      }
+      @if (showColumnBacklog) {
+        <a class="column-title tag"
+           (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + colBacklog + ')' : colBacklog)"
+           title="No matching column tag"><span class="filter-toggle">{{ kanbanConfig.columnBacklogTitle || 'Backlog' }}</span></a>
+      }
+      @for (col of columns; track col) {
+        <a class="column-title tag"
+           (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + col + ')' : col)"
+           [title]="col"><span class="filter-toggle">{{ (exts.getCachedExt(col, ext.origin || '') | async)?.name || col }}</span></a>
+      }
+      @if (swimLanes) {
+        @for (sl of swimLanes; track sl) {
           <a class="swim-lane-title tag"
              (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + sl + ')' : sl)"
              [title]="sl"><span class="filter-toggle">{{ (exts.getCachedExt(sl, ext.origin || '') | async)?.name || sl }}</span></a>
-          <app-kanban-column *ngIf="showColumnBacklog"
-                             cdkDropList
-                             cdkScrollable
-                             [ext]="ext"
-                             [size]="size"
-                             [sort]="sort"
-                             [filter]="filter"
-                             [search]="search"
-                             [hideSwimLanes]="disableSwimLanes"
-                             [cdkDropListData]="{sl}"
-                             (cdkDropListDropped)="drop($any($event))"
-                             [updates]="updates"
-                             [query]="getQuery({sl})"
-                             [addTags]="addingTags({sl})"></app-kanban-column>
-          <app-kanban-column *ngFor="let col of columns trackBy: trackByIdx"
-                             cdkDropList
-                             cdkScrollable
-                             [ext]="ext"
-                             [size]="size"
-                             [sort]="sort"
-                             [filter]="filter"
-                             [search]="search"
-                             [hideSwimLanes]="disableSwimLanes"
-                             [cdkDropListData]="{col, sl}"
-                             (cdkDropListDropped)="drop($any($event))"
-                             [updates]="updates"
-                             [query]="getQuery({col, sl})"
-                             [addTags]="addingTags({col, sl})"></app-kanban-column>
-        </ng-container>
-        <ng-container *ngIf="showSwimLaneBacklog">
+          @if (showColumnBacklog) {
+            <app-kanban-column cdkDropList
+                               cdkScrollable
+                               [ext]="ext"
+                               [size]="size"
+                               [sort]="sort"
+                               [filter]="filter"
+                               [search]="search"
+                               [hideSwimLanes]="disableSwimLanes"
+                               [cdkDropListData]="{sl}"
+                               (cdkDropListDropped)="drop($any($event))"
+                               [updates]="updates"
+                               [query]="getQuery({sl})"
+                               [addTags]="addingTags({sl})"></app-kanban-column>
+          }
+          @for (col of columns; track col) {
+            <app-kanban-column cdkDropList
+                               cdkScrollable
+                               [ext]="ext"
+                               [size]="size"
+                               [sort]="sort"
+                               [filter]="filter"
+                               [search]="search"
+                               [hideSwimLanes]="disableSwimLanes"
+                               [cdkDropListData]="{col, sl}"
+                               (cdkDropListDropped)="drop($any($event))"
+                               [updates]="updates"
+                               [query]="getQuery({col, sl})"
+                               [addTags]="addingTags({col, sl})"></app-kanban-column>
+          }
+        }
+        @if (showSwimLaneBacklog) {
           <a class="swim-lane-title tag"
              (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + slBacklog + ')' : slBacklog)"
              title="No matching swim lane"><span class="filter-toggle">{{ kanbanConfig.swimLaneBacklogTitle || 'Backlog' }}</span></a>
-          <app-kanban-column *ngIf="showColumnBacklog"
-                             cdkDropList
+          @if (showColumnBacklog) {
+            <app-kanban-column cdkDropList
+                               cdkScrollable
+                               [ext]="ext"
+                               [size]="size"
+                               [sort]="sort"
+                               [filter]="filter"
+                               [search]="search"
+                               [hideSwimLanes]="disableSwimLanes"
+                               [cdkDropListData]="{}"
+                               (cdkDropListDropped)="drop($any($event))"
+                               [updates]="updates"
+                               [query]="getQuery({})"
+                               [addTags]="addingTags({})"></app-kanban-column>
+          }
+          @for (col of columns; track col) {
+            <app-kanban-column cdkDropList
+                               cdkScrollable
+                               [ext]="ext"
+                               [size]="size"
+                               [sort]="sort"
+                               [filter]="filter"
+                               [search]="search"
+                               [hideSwimLanes]="disableSwimLanes"
+                               [cdkDropListData]="{col}"
+                               (cdkDropListDropped)="drop($any($event))"
+                               [updates]="updates"
+                               [query]="getQuery({col})"
+                               [addTags]="addingTags({col})"></app-kanban-column>
+          }
+        }
+      } @else {
+        @if (showColumnBacklog) {
+          <app-kanban-column cdkDropList
                              cdkScrollable
                              [ext]="ext"
                              [size]="size"
@@ -91,8 +134,9 @@
                              [updates]="updates"
                              [query]="getQuery({})"
                              [addTags]="addingTags({})"></app-kanban-column>
-          <app-kanban-column *ngFor="let col of columns trackBy: trackByIdx"
-                             cdkDropList
+        }
+        @for (col of columns; track col) {
+          <app-kanban-column cdkDropList
                              cdkScrollable
                              [ext]="ext"
                              [size]="size"
@@ -105,42 +149,11 @@
                              [updates]="updates"
                              [query]="getQuery({col})"
                              [addTags]="addingTags({col})"></app-kanban-column>
-        </ng-container>
-      </ng-container>
-      <ng-template #noSwimLanes>
-        <app-kanban-column *ngIf="showColumnBacklog"
-                           cdkDropList
-                           cdkScrollable
-                           [ext]="ext"
-                           [size]="size"
-                           [sort]="sort"
-                           [filter]="filter"
-                           [search]="search"
-                           [hideSwimLanes]="disableSwimLanes"
-                           [cdkDropListData]="{}"
-                           (cdkDropListDropped)="drop($any($event))"
-                           [updates]="updates"
-                           [query]="getQuery({})"
-                           [addTags]="addingTags({})"></app-kanban-column>
-        <app-kanban-column *ngFor="let col of columns trackBy: trackByIdx"
-                           cdkDropList
-                           cdkScrollable
-                           [ext]="ext"
-                           [size]="size"
-                           [sort]="sort"
-                           [filter]="filter"
-                           [search]="search"
-                           [hideSwimLanes]="disableSwimLanes"
-                           [cdkDropListData]="{col}"
-                           (cdkDropListDropped)="drop($any($event))"
-                           [updates]="updates"
-                           [query]="getQuery({col})"
-                           [addTags]="addingTags({col})"></app-kanban-column>
-      </ng-template>
+        }
+      }
     </div>
-    <ng-template #error>
-      <div class="error-404" i18n>Not Found</div>
-    </ng-template>
-  </ng-template>
-  <app-page-controls *ngIf="pageControls"></app-page-controls>
+  }
+  @if (pageControls) {
+    <app-page-controls></app-page-controls>
+  }
 </ng-container>

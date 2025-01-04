@@ -65,6 +65,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   adding: string[] = [];
 
   private currentRequest?: Subscription;
+  private runningSources?: Subscription;
+  private runningResponses?: Subscription;
   private _sort: RefSort[] = [];
   private _filter: UrlFilter[] = [];
 
@@ -135,18 +137,43 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     this._sort = [...this.sort];
     this._filter = [...this.filter];
     if (removeCurrent) delete this.page;
-    this.currentRequest?.unsubscribe();
-    this.currentRequest = this.refs.page(getArgs(
+    const args = getArgs(
       this.query,
       this.sort,
       this.filter,
       this.search,
       0,
       this.size,
-    )).pipe(
+    );
+    this.currentRequest?.unsubscribe();
+    this.currentRequest = this.refs.page(args).pipe(
       takeUntil(this.destroy$)
     ).subscribe(page => {
       this.page = page;
+      this.runningSources?.unsubscribe();
+      if (args.sources) {
+        this.runningSources = this.refs.page({ ...args, url: args.sources, size: 1, sources: undefined, responses: undefined })
+          .subscribe(res => {
+            if (res.content[0]) {
+              this.mutated = true;
+              // @ts-ignore
+              res.content[0]['pinned'] = true
+              page.content.unshift(res.content[0]);
+            }
+          });
+      }
+      this.runningResponses?.unsubscribe();
+      if (args.responses) {
+        this.runningResponses = this.refs.page({ ...args, url: args.responses, size: 1, sources: undefined, responses: undefined })
+          .subscribe(res => {
+            if (res.content[0]) {
+              this.mutated = true;
+              // @ts-ignore
+              res.content[0]['pinned'] = true
+              page.content.unshift(res.content[0]);
+            }
+          });
+      }
     });
   }
 
@@ -174,14 +201,17 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   loadMore() {
+    const pinned: Ref[] = [];
     const pageNumber = this.page?.page.number || 0;
     if (this.page && this.mutated) {
+      // @ts-ignore
+      pinned.push(...this.page.content.filter(r => r['pinned']));
       for (let i = 0; i <= pageNumber; i++) {
         this.refreshPage(i);
       }
     }
     this.mutated = false;
-    this.refreshPage(pageNumber + 1);
+    this.refreshPage(pageNumber + 1, pinned);
   }
 
   add() {
@@ -270,7 +300,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     });
   }
 
-  private refreshPage(i: number) {
+  private refreshPage(i: number, pinned?: Ref[]) {
     this.refs.page(getArgs(
       this.query,
       this.sort,
@@ -284,6 +314,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       for (let offset = 0; offset < page.content.length; offset++) {
         this.page!.content[pageOffset + offset] = page.content[offset];
       }
+      if (pinned?.length) this.page!.content.unshift(...pinned);
+
     });
   }
 

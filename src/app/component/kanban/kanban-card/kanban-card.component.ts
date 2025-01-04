@@ -184,7 +184,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   @memo
   get dependents() {
-    return !hasTag('plugin/thread', this.ref) && this.ref.sources?.length || 0;
+    return !hasTag('plugin/comment', this.ref) && !hasTag('plugin/thread', this.ref) && this.ref.sources?.length || 0;
   }
 
   @memo
