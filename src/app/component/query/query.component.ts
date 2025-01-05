@@ -174,20 +174,20 @@ export class QueryComponent {
       if (tag && !tag.startsWith('@')) {
         this.exts.getCachedExt(tag).subscribe(ext => {
           // TODO: possible delayed write
-          if (ext?.modifiedString && ext?.name) {
+          if (ext.modifiedString && ext.name) {
             t.text = ext.name;
-          } else if (tag === 'plugin') {
+          } else if (ext.tag === 'plugin') {
             t.text = '📦';
-          } else if (tag === '+plugin') {
+          } else if (ext.tag === '+plugin') {
             t.text = '+📦';
-          } else if (tag === '_plugin') {
+          } else if (ext.tag === '_plugin') {
             t.text = '_📦';
           } else {
-            const template = this.admin.getTemplate(localTag(tag));
+            const template = this.admin.getTemplate(ext.tag);
             if (template?.name) {
               t.text = template.name;
             } else {
-              const plugin = this.admin.getPlugin(localTag(tag));
+              const plugin = this.admin.getPlugin(ext.tag);
               if (plugin?.name) t.text = plugin.name;
             }
           }
