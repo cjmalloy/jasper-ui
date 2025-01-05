@@ -17,7 +17,7 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { defer, delay, difference, intersection, uniq, without } from 'lodash-es';
+import { defer, delay, difference, intersection, uniq } from 'lodash-es';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
 import { equalsRef, Ref } from '../../../model/ref';

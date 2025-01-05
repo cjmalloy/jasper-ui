@@ -8,7 +8,6 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { $localize } from '@angular/localize/init';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';

@@ -7,7 +7,7 @@ import { DateTime, Duration } from 'luxon';
 import { toJS } from 'mobx';
 import { v4 as uuid } from 'uuid';
 import { interestingTags } from '../util/format';
-import { hasAnyResponse, hasResponse, hasTag, localTag, prefix } from '../util/tag';
+import { hasAnyResponse, hasResponse, hasTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
 import { Ext, extSchema } from './ext';
 import { Plugin, pluginSchema } from './plugin';

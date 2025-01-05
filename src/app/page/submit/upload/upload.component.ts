@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { defer, delay, pick, uniq } from 'lodash-es';
+import { delay, pick, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import { catchError, concat, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';

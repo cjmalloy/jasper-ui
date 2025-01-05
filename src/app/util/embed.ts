@@ -1,7 +1,7 @@
 import { ComponentRef } from '@angular/core';
 import { Ext } from '../model/ext';
 import { Page } from '../model/page';
-import { Ref, RefPageArgs } from '../model/ref';
+import { Ref } from '../model/ref';
 
 export interface Embed {
   createLink(url: string, text: string, title?: string, css?: string): ComponentRef<any>;

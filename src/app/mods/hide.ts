@@ -1,4 +1,3 @@
-import { $localize } from '@angular/localize/init';
 import { DateTime } from 'luxon';
 import { Mod } from '../model/tag';
 

@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
 import { Plugin } from '../../../model/plugin';
-import { Tag } from '../../../model/tag';
 import { PluginComponent } from '../plugin.component';
 
 @Component({

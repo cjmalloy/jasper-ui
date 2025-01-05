@@ -1,8 +1,8 @@
 import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { flatMap, uniq, uniqBy } from 'lodash-es';
+import { uniq, uniqBy } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, filter, forkJoin, map, mergeAll, mergeMap, Observable, of, Subject } from 'rxjs';
+import { catchError, filter, forkJoin, map, Observable, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';

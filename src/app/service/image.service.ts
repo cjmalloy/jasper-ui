@@ -1,8 +1,4 @@
 import { Injectable } from '@angular/core';
-import { firstValueFrom, map } from 'rxjs';
-import { Resource } from '../model/resource';
-import { getSearchParams } from '../util/http';
-import { ProxyService } from './api/proxy.service';
 
 export interface Dim {
   width: number;

@@ -2,7 +2,6 @@ import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
-import { Tag } from '../../../model/tag';
 import { Template } from '../../../model/template';
 import { TemplateComponent } from '../template.component';
 

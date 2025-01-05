@@ -1,4 +1,3 @@
-import { $localize } from '@angular/localize/init';
 import { filter } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
