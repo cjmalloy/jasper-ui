@@ -21,12 +21,14 @@ import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, throttle, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { EditorComponent as MonacoEditor } from 'ngx-monaco-editor';
 import { filter } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
+import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
 
@@ -53,7 +55,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   preview = this.store.local.showPreview;
 
   @ViewChild('editor')
-  editor?: ElementRef<HTMLTextAreaElement>;
+  textAreaEditor?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('monacoEditor')
+  monacoEditor?: ElementRef<HTMLElement>;
 
   @ViewChild('help')
   helpTemplate!: TemplateRef<any>;
@@ -162,6 +166,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
   }
 
+  get editor() {
+    return this.textAreaEditor || this.monacoEditor;
+  }
+
   @HostListener('window:scroll')
   preventScroll() {
     if (this.overlayRef) {
@@ -171,8 +179,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   onSelect() {
     defer(() => {
-      this.selectionStart = this.editor?.nativeElement.selectionStart || 0;
-      this.selectionEnd = this.editor?.nativeElement.selectionEnd || 0;
+      this.selectionStart = this.textAreaEditor?.nativeElement.selectionStart || 0;
+      this.selectionEnd = this.textAreaEditor?.nativeElement.selectionEnd || 0;
     });
   }
 
@@ -408,7 +416,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         this.editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
       }
     }
-    if (this.focused && override === undefined) this.editor?.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
+    if (this.focused && override === undefined) this.textAreaEditor?.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
   }
 
   toggleHelp(override?: boolean) {
@@ -443,7 +451,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         baseUri: this.url,
         inline: true,
       });
-      const md = this.europa.convert(this.editor!.nativeElement.value);
+      const md = this.europa.convert(this.control.value);
       this.control.setValue(md);
       this.syncText(md);
     } else if (event === 'scrape') {
