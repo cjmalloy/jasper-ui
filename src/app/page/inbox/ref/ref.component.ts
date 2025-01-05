@@ -47,7 +47,7 @@ export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
       const args = getArgs(
         this.store.view.childTag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
         this.store.view.sort,
-        uniq(['obsolete', ...this.store.view.filter]),
+        uniq(['!obsolete', ...this.store.view.filter]),
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
