@@ -19,12 +19,28 @@ export class TemplateFormComponent {
   @Input()
   schemaErrors: string[] = [];
 
+  editingConfig = false;
+  editingDefaults = false;
+  editingSchema = false;
+
   get tag() {
     return this.group.get('tag') as UntypedFormControl;
   }
 
   get name() {
     return this.group.get('name') as UntypedFormControl;
+  }
+
+  get config() {
+    return this.group.get('config')?.value;
+  }
+
+  get defaults() {
+    return this.group.get('defaults')?.value;
+  }
+
+  get schema() {
+    return this.group.get('schema')?.value;
   }
 
   validate(input: HTMLInputElement) {

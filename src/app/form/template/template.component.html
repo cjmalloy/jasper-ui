@@ -9,41 +9,59 @@
          (blur)="validate($any($event.target))">
 
   <label for="config" i18n>Config:</label>
-  <app-json id="config"
-            fieldName="config"
-            [group]="group"></app-json>
-  @if (configErrors.length) {
-    <span><!-- Errors --></span>
-    @for (e of configErrors; track e) {
-      <div>
-        <span class="error">{{ e }}</span>
-      </div>
+  @if (!editingConfig && !config) {
+    <div>
+      <button type="button" (click)="editingConfig = true" i18n>+ Add Config</button>
+    </div>
+  } @else {
+    <app-json id="config"
+              fieldName="config"
+              [group]="group"></app-json>
+    @if (configErrors.length) {
+      <span><!-- Errors --></span>
+      @for (e of configErrors; track e) {
+        <div>
+          <span class="error">{{ e }}</span>
+        </div>
+      }
     }
   }
 
   <label for="defaults" i18n>Defaults:</label>
-  <app-json id="defaults"
-            fieldName="defaults"
-            [group]="group"></app-json>
-  @if (defaultsErrors.length) {
-    <span><!-- Errors --></span>
-    @for (e of defaultsErrors; track e) {
-      <div>
-        <span class="error">{{ e }}</span>
-      </div>
+  @if (!editingDefaults && !defaults) {
+    <div>
+      <button type="button" (click)="editingDefaults = true" i18n>+ Add Defaults</button>
+    </div>
+  } @else {
+    <app-json id="defaults"
+              fieldName="defaults"
+              [group]="group"></app-json>
+    @if (defaultsErrors.length) {
+      <span><!-- Errors --></span>
+      @for (e of defaultsErrors; track e) {
+        <div>
+          <span class="error">{{ e }}</span>
+        </div>
+      }
     }
   }
 
   <label for="schema" i18n>Schema:</label>
-  <app-json id="schema"
-            fieldName="schema"
-            [group]="group"></app-json>
-  @if (schemaErrors.length) {
-    <span><!-- Errors --></span>
-    @for (e of schemaErrors; track e) {
-      <div>
-        <span class="error">{{ e }}</span>
-      </div>
+  @if (!editingSchema && !schema) {
+    <div>
+      <button type="button" (click)="editingSchema = true" i18n>+ Add Schema</button>
+    </div>
+  } @else {
+    <app-json id="schema"
+              fieldName="schema"
+              [group]="group"></app-json>
+    @if (schemaErrors.length) {
+      <span><!-- Errors --></span>
+      @for (e of schemaErrors; track e) {
+        <div>
+          <span class="error">{{ e }}</span>
+        </div>
+      }
     }
   }
 </ng-container>
