@@ -60,19 +60,35 @@
         </div>
       }
     </div>
-    <textarea #editor
-              [formControl]="control"
-              (touchstart)="fullscreenDefault = fullscreenDefault === undefined ? true : undefined"
-              (focusin)="editing = true"
-              (pointerup)="onSelect()"
-              (select)="onSelect()"
-              (selectionchange)="onSelect()"
-              (input)="setText($any($event).target.value)"
-              (blur)="blurText($any($event).target.value)"
-              (focus)="focusText()"
-              [appFillWidth]="fillWidth"
-              [padding]="padding"
-              [appAutofocus]="autoFocus"></textarea>
+    @if (admin.getPlugin('plugin/monaco')) {
+      <app-code #monacoEditor
+                [formControl]="control" language="markdown"
+                (touchstart)="fullscreenDefault = fullscreenDefault === undefined ? true : undefined"
+                (focusin)="editing = true"
+                (pointerup)="onSelect()"
+                (select)="onSelect()"
+                (selectionchange)="onSelect()"
+                (input)="setText($any($event).target.value)"
+                (blur)="blurText($any($event).target.value)"
+                (focus)="focusText()"
+                [appFillWidth]="fillWidth"
+                [padding]="padding"
+                [appAutofocus]="autoFocus"></app-code>
+    } @else {
+      <textarea #editor
+                [formControl]="control"
+                (touchstart)="fullscreenDefault = fullscreenDefault === undefined ? true : undefined"
+                (focusin)="editing = true"
+                (pointerup)="onSelect()"
+                (select)="onSelect()"
+                (selectionchange)="onSelect()"
+                (input)="setText($any($event).target.value)"
+                (blur)="blurText($any($event).target.value)"
+                (focus)="focusText()"
+                [appFillWidth]="fillWidth"
+                [padding]="padding"
+                [appAutofocus]="autoFocus"></textarea>
+    }
     <div class="floating-toggles">
     </div>
   </div>
@@ -81,7 +97,7 @@
             [origin]="store.account.origin"
             [text]="currentText"
             [plugins]="fullTags"
-            [appLimitWidth]="editor"></app-md>
+            [appLimitWidth]="editor?.nativeElement"></app-md>
   }
 
   <ng-template #help>

@@ -28,7 +28,7 @@ import { dalleMod } from '../mods/dalle';
 import { debugMod } from '../mods/debug';
 import { deleteMod, tagDeleteNotice } from '../mods/delete';
 import { deltaMod } from '../mods/delta';
-import { htmlMod, latexMod } from '../mods/editor';
+import { htmlMod, latexMod, monacoMod } from '../mods/editor';
 import { emailMod } from '../mods/email';
 import { embedMod } from '../mods/embed';
 import { errorMod } from '../mods/error';
@@ -161,6 +161,7 @@ export class AdminService {
     archiveMod,
     latexMod,
     codeMod,
+    monacoMod,
     htmlMod,
     personMod,
     repostMod,
