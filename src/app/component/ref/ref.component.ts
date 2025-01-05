@@ -56,6 +56,7 @@ import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import {
   capturesAny,
+  expandedTagsInclude,
   hasTag,
   hasUserUrlResponse,
   isOwnerTag,
@@ -821,10 +822,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (this.ref.upload) {
       runInAction(() => {
         this.ref.tags ||= [];
-        for (const t of tag.split(' ').filter(t => !!t)) {
+        for (const t of tag.split(' ').filter(t => !!t.trim())) {
           if (t.startsWith('-')) {
-            this.ref.tags = without(this.ref.tags, t.substring(1));
-          } else if (!this.ref.tags.includes(t)) {
+            this.ref.tags = this.ref.tags.filter(r => expandedTagsInclude(r, t.substring(1)));
+          } else if (!hasTag(t, this.ref)) {
             this.ref.tags.push(t);
           }
         }
