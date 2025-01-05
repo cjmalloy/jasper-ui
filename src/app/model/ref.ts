@@ -93,7 +93,7 @@ export type RefFilter = FilterObj & {
   userResponse?: string[];
   noUserResponse?: string[];
   url?: string;
-  obsolete?: boolean;
+  obsolete?: boolean | null;
   responses?: string;
   sources?: string;
   search?: string;

@@ -8,6 +8,7 @@ export const defaultDesc = ['created', 'published', 'modified', 'metadataModifie
 export type FilterItem = { filter: UrlFilter, label: string, title?: string, time?: boolean };
 export type FilterGroup = { filters: FilterItem[], label: string };
 export type UrlFilter = Filter |
+  `!obsolete` |
   `modified/before/${string}` |
   `modified/after/${string}` |
   `published/before/${string}` |
@@ -30,6 +31,7 @@ export type UrlFilter = Filter |
 
 export function negatable(filter: string) {
   if (!filter) return false;
+  if (filter === 'obsolete') return true;
   return filter.startsWith('query/') || filter.startsWith('user/') || filter.startsWith('!') || hasPrefix(filter, 'plugin');
 }
 
@@ -201,6 +203,10 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       result.responseBefore = f.substring('response/before/'.length);
     } else if (f.startsWith('response/after/')) {
       result.responseAfter = f.substring('response/after/'.length);
+    } else if (f === '!obsolete') {
+      result['obsolete'] = null as any;
+    } else if (f.startsWith('!')) {
+      result[f.substring(1) as Filter] = false;
     } else {
       result[f as Filter] = true;
     }

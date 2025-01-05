@@ -62,7 +62,7 @@
          i18n-title title="Alternate URLs"
          i18n>alts</a>
     }
-    @if (store.view.current === 'ref/versions' || (store.view.versions && !store.view.ref?.created) || store.view.versions > 1) {
+    @if (store.view.current === 'ref/versions' || store.view.versions) {
       <a routerLink="versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
          i18n-title title="Versions"
          i18n>versions</a>

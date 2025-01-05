@@ -67,6 +67,9 @@ export class RefService {
 
   page(args?: RefPageArgs): Observable<Page<Ref>> {
     if (args?.query === '!@*') return of(Page.of<Ref>([]));
+    if (args && args.obsolete === undefined) {
+      args.obsolete = false;
+    }
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(
@@ -76,6 +79,9 @@ export class RefService {
   }
 
   count(args?: RefFilter): Observable<number> {
+    if (args && args.obsolete === undefined) {
+      args.obsolete = false;
+    }
     return this.http.get(`${this.base}/count`, {
       responseType: 'text',
       params: params(args),
