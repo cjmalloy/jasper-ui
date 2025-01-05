@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { debounce } from 'lodash-es';
 import { catchError, Observable, of, Subscription } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -13,10 +13,10 @@ import { ActionComponent } from '../action.component';
   standalone: false,
   selector: 'app-inline-tag',
   templateUrl: './inline-tag.component.html',
-  styleUrls: ['./inline-tag.component.scss']
+  styleUrls: ['./inline-tag.component.scss'],
+  host: {'class': 'action'}
 })
 export class InlineTagComponent extends ActionComponent {
-  @HostBinding('class') css = 'action';
   tagRegex = TAGS_REGEX.source;
 
   @Input()

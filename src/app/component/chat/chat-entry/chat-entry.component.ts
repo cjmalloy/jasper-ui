@@ -22,10 +22,10 @@ import { ActionComponent } from '../../action/action.component';
   standalone: false,
   selector: 'app-chat-entry',
   templateUrl: './chat-entry.component.html',
-  styleUrls: ['./chat-entry.component.scss']
+  styleUrls: ['./chat-entry.component.scss'],
+  host: {'class': 'chat-entry'}
 })
 export class ChatEntryComponent implements OnChanges {
-  @HostBinding('class') css = 'chat-entry';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @ViewChildren('action')

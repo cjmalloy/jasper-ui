@@ -8,9 +8,9 @@ import { Store } from '../../store/store';
   selector: 'app-page-controls',
   templateUrl: './page-controls.component.html',
   styleUrls: ['./page-controls.component.scss'],
+  host: {'class': 'page-controls'}
 })
 export class PageControlsComponent {
-  @HostBinding('class') css = 'page-controls';
 
   @Input()
   page?: Page<any>;

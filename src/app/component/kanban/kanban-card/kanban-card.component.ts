@@ -38,10 +38,10 @@ import { expandedTagsInclude, hasTag } from '../../../util/tag';
   standalone: false,
   selector: 'app-kanban-card',
   templateUrl: './kanban-card.component.html',
-  styleUrls: ['./kanban-card.component.scss']
+  styleUrls: ['./kanban-card.component.scss'],
+  host: {'class': 'kanban-card'}
 })
 export class KanbanCardComponent implements OnChanges, AfterViewInit {
-  @HostBinding('class') css = 'kanban-card';
 
   @HostBinding('class.unlocked')
   unlocked = false;

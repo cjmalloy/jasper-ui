@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { ActionComponent } from '../action.component';
 
@@ -6,10 +6,10 @@ import { ActionComponent } from '../action.component';
   standalone: false,
   selector: 'app-confirm-action',
   templateUrl: './confirm-action.component.html',
-  styleUrls: ['./confirm-action.component.scss']
+  styleUrls: ['./confirm-action.component.scss'],
+  host: {'class': 'action'}
 })
 export class ConfirmActionComponent extends ActionComponent {
-  @HostBinding('class') css = 'action';
 
   @Input()
   message = $localize`are you sure?`;

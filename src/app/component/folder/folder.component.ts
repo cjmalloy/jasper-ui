@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
 import { toJS } from 'mobx';
@@ -16,10 +16,10 @@ import { level } from '../../util/tag';
   standalone: false,
   selector: 'app-folder',
   templateUrl: './folder.component.html',
-  styleUrls: ['./folder.component.scss']
+  styleUrls: ['./folder.component.scss'],
+  host: {'class': 'folder ext'}
 })
 export class FolderComponent implements OnChanges, HasChanges {
-  @HostBinding('class') css = 'folder ext';
 
   @Input()
   tag = ''

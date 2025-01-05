@@ -23,9 +23,9 @@ import { printError } from '../../util/http';
   selector: 'app-todo',
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
+  host: {'class': 'todo-list'}
 })
 export class TodoComponent implements OnChanges {
-  @HostBinding('class') css = 'todo-list';
 
   @Input()
   ref?: Ref;

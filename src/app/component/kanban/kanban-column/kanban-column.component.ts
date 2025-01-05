@@ -33,10 +33,10 @@ import { KanbanDrag } from '../kanban.component';
   standalone: false,
   selector: 'app-kanban-column',
   templateUrl: './kanban-column.component.html',
-  styleUrls: ['./kanban-column.component.scss']
+  styleUrls: ['./kanban-column.component.scss'],
+  host: {'class': 'kanban-column'}
 })
 export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy {
-  @HostBinding('class') css = 'kanban-column';
   private destroy$ = new Subject<void>();
 
   @Input()

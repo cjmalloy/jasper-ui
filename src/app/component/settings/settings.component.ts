@@ -1,4 +1,4 @@
-import { Component, HostBinding } from '@angular/core';
+import { Component } from '@angular/core';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
@@ -9,9 +9,9 @@ import { Store } from '../../store/store';
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
+  host: {'class': 'settings'}
 })
 export class SettingsComponent {
-  @HostBinding('class') css = 'settings';
 
   constructor(
     public admin: AdminService,

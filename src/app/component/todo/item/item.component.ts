@@ -6,10 +6,10 @@ import { Store } from '../../../store/store';
   standalone: false,
   selector: 'app-todo-item',
   templateUrl: './item.component.html',
-  styleUrls: ['./item.component.scss']
+  styleUrls: ['./item.component.scss'],
+  host: {'class': 'todo-item'}
 })
 export class TodoItemComponent {
-  @HostBinding('class') css = 'todo-item';
 
   @HostBinding('class.unlocked')
   unlocked = false;

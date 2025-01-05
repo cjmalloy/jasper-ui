@@ -1,4 +1,4 @@
-import { Component, HostBinding, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
@@ -22,10 +22,10 @@ import { hasTag, removeTag } from '../../../util/tag';
   standalone: false,
   selector: 'app-ref-thread',
   templateUrl: './thread.component.html',
-  styleUrls: ['./thread.component.scss']
+  styleUrls: ['./thread.component.scss'],
+  host: {'class': 'thread'}
 })
 export class RefThreadComponent implements HasChanges {
-  @HostBinding('class') css = 'thread';
 
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();

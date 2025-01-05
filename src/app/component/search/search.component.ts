@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { debounce } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
@@ -11,10 +11,10 @@ import { View } from '../../store/view';
   standalone: false,
   selector: 'app-search',
   templateUrl: './search.component.html',
-  styleUrls: ['./search.component.scss']
+  styleUrls: ['./search.component.scss'],
+  host: {'class': 'search form-group'}
 })
 export class SearchComponent implements OnDestroy {
-  @HostBinding('class') css = 'search form-group';
 
   private disposers: IReactionDisposer[] = [];
 

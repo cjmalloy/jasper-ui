@@ -1,5 +1,5 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, HostBinding, HostListener, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Component, HostListener, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
@@ -28,10 +28,10 @@ export interface KanbanDrag {
   standalone: false,
   selector: 'app-kanban',
   templateUrl: './kanban.component.html',
-  styleUrls: ['./kanban.component.scss']
+  styleUrls: ['./kanban.component.scss'],
+  host: {'class': 'kanban ext'}
 })
 export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
-  @HostBinding('class') css = 'kanban ext';
 
   @Input()
   query?: string;

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding } from '@angular/core';
+import { Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { flatten, uniq, without } from 'lodash-es';
@@ -24,10 +24,10 @@ import { prefix } from '../../../util/tag';
   standalone: false,
   selector: 'app-submit-invoice',
   templateUrl: './invoice.component.html',
-  styleUrls: ['./invoice.component.scss']
+  styleUrls: ['./invoice.component.scss'],
+  host: {'class': 'full-page-form'}
 })
 export class SubmitInvoicePage implements HasChanges {
-  @HostBinding('class') css = 'full-page-form';
 
   submitted = false;
   invoiceForm: UntypedFormGroup;

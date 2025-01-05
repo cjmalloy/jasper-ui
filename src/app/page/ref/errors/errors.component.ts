@@ -1,4 +1,4 @@
-import { Component, HostBinding, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
@@ -19,10 +19,10 @@ import { hasTag } from '../../../util/tag';
   standalone: false,
   selector: 'app-ref-errors',
   templateUrl: './errors.component.html',
-  styleUrl: './errors.component.scss'
+  styleUrl: './errors.component.scss',
+  host: {'class': 'errors'}
 })
 export class RefErrorsComponent implements HasChanges {
-  @HostBinding('class') css = 'errors';
 
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();

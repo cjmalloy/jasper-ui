@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
@@ -10,9 +10,9 @@ import { getArgs } from '../../../util/query';
   selector: 'app-thread-summary',
   templateUrl: './thread-summary.component.html',
   styleUrls: ['./thread-summary.component.scss'],
+  host: {'class': 'thread-summary'}
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
-  @HostBinding('class') css = 'thread-summary';
   private destroy$ = new Subject<void>();
 
   @Input()

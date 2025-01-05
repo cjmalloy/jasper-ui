@@ -34,10 +34,10 @@ import { memo, MemoCache } from '../../util/memo';
   standalone: false,
   selector: 'app-editor',
   templateUrl: './editor.component.html',
-  styleUrls: ['./editor.component.scss']
+  styleUrls: ['./editor.component.scss'],
+  host: {'class': 'editor'}
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
-  @HostBinding('class') css = 'editor';
 
   private disposers: IReactionDisposer[] = [];
 

@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, HostBinding, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { map } from 'rxjs';
 import { Ext } from '../../model/ext';
@@ -14,9 +14,9 @@ import { Store } from '../../store/store';
   selector: 'app-subscription-bar',
   templateUrl: './subscription-bar.component.html',
   styleUrls: ['./subscription-bar.component.scss'],
+  host: {'class': 'subscription-bar'}
 })
 export class SubscriptionBarComponent implements OnDestroy {
-  @HostBinding('class') css = 'subscription-bar';
   private disposers: IReactionDisposer[] = [];
 
   bookmarkExts: Ext[] = [];

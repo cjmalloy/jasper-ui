@@ -1,7 +1,6 @@
 import {
   Component,
   EventEmitter,
-  HostBinding,
   Input,
   OnChanges,
   Output,
@@ -23,10 +22,10 @@ import { GenFormComponent } from './gen/gen.component';
   standalone: false,
   selector: 'app-form-plugins',
   templateUrl: './plugins.component.html',
-  styleUrls: ['./plugins.component.scss']
+  styleUrls: ['./plugins.component.scss'],
+  host: {'class': 'plugins-form'}
 })
 export class PluginsFormComponent implements OnChanges {
-  @HostBinding('class') css = 'plugins-form';
 
   @ViewChildren('gen')
   gens?: QueryList<GenFormComponent>;

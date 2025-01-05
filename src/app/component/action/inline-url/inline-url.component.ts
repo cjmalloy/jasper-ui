@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { URI_REGEX } from '../../../util/format';
 import { ActionComponent } from '../action.component';
@@ -7,10 +7,10 @@ import { ActionComponent } from '../action.component';
   standalone: false,
   selector: 'app-inline-url',
   templateUrl: './inline-url.component.html',
-  styleUrls: ['./inline-url.component.scss']
+  styleUrls: ['./inline-url.component.scss'],
+  host: {'class': 'action'}
 })
 export class InlineUrlComponent extends ActionComponent {
-  @HostBinding('class') css = 'action';
   uriRegex = URI_REGEX.source;
 
   @Input()

@@ -1,13 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  HostBinding,
-  Input,
-  OnChanges,
-  OnDestroy,
-  SimpleChanges,
-  ViewChild
-} from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -31,10 +22,10 @@ import { hasPrefix } from '../../util/tag';
   standalone: false,
   selector: 'app-filter',
   templateUrl: './filter.component.html',
-  styleUrls: ['./filter.component.scss']
+  styleUrls: ['./filter.component.scss'],
+  host: {'class': 'filter form-group'}
 })
 export class FilterComponent implements OnChanges, OnDestroy {
-  @HostBinding('class') css = 'filter form-group';
 
   private disposers: IReactionDisposer[] = [];
 

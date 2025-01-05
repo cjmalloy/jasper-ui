@@ -38,10 +38,10 @@ import { ActionComponent } from '../action/action.component';
   standalone: false,
   selector: 'app-ext',
   templateUrl: './ext.component.html',
-  styleUrls: ['./ext.component.scss']
+  styleUrls: ['./ext.component.scss'],
+  host: {'class': 'ext list-item'}
 })
 export class ExtComponent implements OnChanges, HasChanges {
-  @HostBinding('class') css = 'ext list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @ViewChildren('action')

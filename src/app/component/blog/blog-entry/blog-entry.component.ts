@@ -55,10 +55,10 @@ import { ActionComponent } from '../../action/action.component';
   standalone: false,
   selector: 'app-blog-entry',
   templateUrl: './blog-entry.component.html',
-  styleUrls: ['./blog-entry.component.scss']
+  styleUrls: ['./blog-entry.component.scss'],
+  host: {'class': 'blog-entry'}
 })
 export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
-  @HostBinding('class') css = 'blog-entry';
   @HostBinding('attr.tabindex') tabIndex = 0;
   private disposers: IReactionDisposer[] = [];
 

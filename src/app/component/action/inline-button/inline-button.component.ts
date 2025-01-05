@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { ActionComponent } from '../action.component';
 
@@ -6,10 +6,10 @@ import { ActionComponent } from '../action.component';
   standalone: false,
   selector: 'app-inline-button',
   templateUrl: './inline-button.component.html',
-  styleUrls: ['./inline-button.component.scss']
+  styleUrls: ['./inline-button.component.scss'],
+  host: {'class': 'action'}
 })
 export class InlineButtonComponent extends ActionComponent {
-  @HostBinding('class') css = 'action';
 
   @Input()
   action: () => Observable<any|never> = () => of(null);

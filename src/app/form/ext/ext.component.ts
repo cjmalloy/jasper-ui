@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -24,10 +24,10 @@ import { themesForm } from '../themes/themes.component';
   standalone: false,
   selector: 'app-ext-form',
   templateUrl: './ext.component.html',
-  styleUrls: ['./ext.component.scss']
+  styleUrls: ['./ext.component.scss'],
+  host: {'class': 'nested-form'}
 })
 export class ExtFormComponent {
-  @HostBinding('class') css = 'nested-form';
   allSorts = allRefSorts;
   allFilters = this.admin.filters.map(convertFilter);
 

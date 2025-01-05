@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
@@ -13,10 +13,10 @@ import { UserComponent } from '../user.component';
   standalone: false,
   selector: 'app-user-list',
   templateUrl: './user-list.component.html',
-  styleUrls: ['./user-list.component.scss']
+  styleUrls: ['./user-list.component.scss'],
+  host: {'class': 'user-list'}
 })
 export class UserListComponent implements HasChanges {
-  @HostBinding('class') css = 'user-list';
 
   @Input()
   scim?: Page<Profile>;

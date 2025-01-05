@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -9,10 +9,10 @@ import { TemplateComponent } from '../template.component';
   standalone: false,
   selector: 'app-template-list',
   templateUrl: './template-list.component.html',
-  styleUrls: ['./template-list.component.scss']
+  styleUrls: ['./template-list.component.scss'],
+  host: {'class': 'template-list'}
 })
 export class TemplateListComponent implements HasChanges {
-  @HostBinding('class') css = 'template-list';
 
   @ViewChildren(TemplateComponent)
   list?: QueryList<TemplateComponent>;

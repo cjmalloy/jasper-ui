@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 
@@ -6,10 +6,10 @@ import { mapValues } from 'lodash-es';
   standalone: false,
   selector: 'app-themes',
   templateUrl: './themes.component.html',
-  styleUrls: ['./themes.component.scss']
+  styleUrls: ['./themes.component.scss'],
+  host: {'class': 'form-group'}
 })
 export class ThemesFormComponent implements OnChanges {
-  @HostBinding('class') css = 'form-group';
 
   @Input()
   fieldName = 'themes';

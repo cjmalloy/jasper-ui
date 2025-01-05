@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, Output } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { catchError, map, of } from 'rxjs';
 import { ProxyService } from '../../service/api/proxy.service';
 import { Store } from '../../store/store';
@@ -7,10 +7,10 @@ import { Store } from '../../store/store';
   standalone: false,
   selector: 'app-pdf-upload',
   templateUrl: './pdf-upload.component.html',
-  styleUrls: ['./pdf-upload.component.scss']
+  styleUrls: ['./pdf-upload.component.scss'],
+  host: {'class': 'form-array'}
 })
 export class PdfUploadComponent {
-  @HostBinding('class') css = 'form-array';
 
   @Output()
   data = new EventEmitter<{ url: string, name: string }>();

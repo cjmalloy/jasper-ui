@@ -4,10 +4,10 @@ import { relativeX, relativeY } from '../util/math';
 
 @Directive({
   standalone: false,
-  selector: '[appResizeHandle]'
+  selector: '[appResizeHandle]',
+  host: {'class': 'resize-handle'}
 })
 export class ResizeHandleDirective {
-  @HostBinding('class') css = 'resize-handle';
   @HostBinding('style.cursor') cursor = 'auto';
 
   @Input()

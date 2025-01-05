@@ -3,7 +3,6 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import {
   Component,
   EventEmitter,
-  HostBinding,
   Input,
   OnDestroy,
   Output,
@@ -19,10 +18,10 @@ import { Camera, hasCamera, listCameras } from '../../util/webcam';
   standalone: false,
   selector: 'app-qr-scanner',
   templateUrl: './qr-scanner.component.html',
-  styleUrls: ['./qr-scanner.component.scss']
+  styleUrls: ['./qr-scanner.component.scss'],
+  host: {'class': 'form-array'}
 })
 export class QrScannerComponent implements OnDestroy {
-  @HostBinding('class') css = 'form-array';
 
   @ViewChild('video')
   video!: TemplateRef<HTMLVideoElement>;

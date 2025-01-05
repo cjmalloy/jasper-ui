@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, Output } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { catchError, map, of } from 'rxjs';
 import { ProxyService } from '../../service/api/proxy.service';
 import { Store } from '../../store/store';
@@ -7,10 +7,10 @@ import { Store } from '../../store/store';
   standalone: false,
   selector: 'app-audio-upload',
   templateUrl: './audio-upload.component.html',
-  styleUrls: ['./audio-upload.component.scss']
+  styleUrls: ['./audio-upload.component.scss'],
+  host: {'class': 'form-array'}
 })
 export class AudioUploadComponent {
-  @HostBinding('class') css = 'form-array';
 
   @Output()
   data = new EventEmitter<{ url: string, name: string }>();

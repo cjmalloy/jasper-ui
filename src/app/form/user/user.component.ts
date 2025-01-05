@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { User } from '../../model/user';
 import { isMailbox } from '../../mods/mailbox';
@@ -9,10 +9,10 @@ import { TagsFormComponent } from '../tags/tags.component';
   standalone: false,
   selector: 'app-user-form',
   templateUrl: './user.component.html',
-  styleUrls: ['./user.component.scss']
+  styleUrls: ['./user.component.scss'],
+  host: {'class': 'nested-form'}
 })
 export class UserFormComponent implements OnInit {
-  @HostBinding('class') css = 'nested-form';
 
   @Input()
   group!: UntypedFormGroup;

@@ -33,10 +33,10 @@ type Piece = { type: PieceType, color: PieceColor, square: Square, };
   selector: 'app-chess',
   templateUrl: './chess.component.html',
   styleUrls: ['./chess.component.scss'],
-  hostDirectives: [CdkDropListGroup]
+  hostDirectives: [CdkDropListGroup],
+  host: {'class': 'chess-board'}
 })
 export class ChessComponent implements OnInit, OnChanges, OnDestroy {
-  @HostBinding('class') css = 'chess-board';
   private disposers: IReactionDisposer[] = [];
 
   @Input()

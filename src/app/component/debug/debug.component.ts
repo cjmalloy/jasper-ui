@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -19,10 +19,10 @@ import { printError } from '../../util/http';
   standalone: false,
   selector: 'app-debug',
   templateUrl: './debug.component.html',
-  styleUrls: ['./debug.component.scss']
+  styleUrls: ['./debug.component.scss'],
+  host: {'class': 'debug actions'}
 })
 export class DebugComponent {
-  @HostBinding('class') css = 'debug actions';
 
   generating = false;
   settingUser = false;

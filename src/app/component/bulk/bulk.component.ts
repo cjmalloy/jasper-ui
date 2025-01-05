@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { groupBy, intersection, map, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
@@ -36,10 +36,10 @@ import { hasTag, isOwnerTag } from '../../util/tag';
   standalone: false,
   selector: 'app-bulk',
   templateUrl: './bulk.component.html',
-  styleUrls: ['./bulk.component.scss']
+  styleUrls: ['./bulk.component.scss'],
+  host: {'class': 'bulk actions'}
 })
 export class BulkComponent implements OnChanges, OnDestroy {
-  @HostBinding('class') css = 'bulk actions';
 
   private disposers: IReactionDisposer[] = [];
 

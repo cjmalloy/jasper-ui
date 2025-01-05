@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -9,10 +9,10 @@ import { PluginComponent } from '../plugin.component';
   standalone: false,
   selector: 'app-plugin-list',
   templateUrl: './plugin-list.component.html',
-  styleUrls: ['./plugin-list.component.scss']
+  styleUrls: ['./plugin-list.component.scss'],
+  host: {'class': 'plugin-list'}
 })
 export class PluginListComponent implements HasChanges {
-  @HostBinding('class') css = 'plugin-list';
 
   @ViewChildren(PluginComponent)
   list?: QueryList<PluginComponent>;

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, HostBinding, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, some, uniq, without } from 'lodash-es';
@@ -26,10 +26,10 @@ import { printError } from '../../../util/http';
   standalone: false,
   selector: 'app-submit-dm',
   templateUrl: './dm.component.html',
-  styleUrls: ['./dm.component.scss']
+  styleUrls: ['./dm.component.scss'],
+  host: {'class': 'full-page-form'}
 })
 export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
-  @HostBinding('class') css = 'full-page-form';
   private disposers: IReactionDisposer[] = [];
 
 

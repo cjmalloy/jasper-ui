@@ -1,4 +1,4 @@
-import { Component, HostBinding } from '@angular/core';
+import { Component } from '@angular/core';
 import { runInAction } from 'mobx';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
@@ -7,10 +7,10 @@ import { Store } from '../../store/store';
   standalone: false,
   selector: 'app-login-popup',
   templateUrl: './login-popup.component.html',
-  styleUrls: ['./login-popup.component.scss']
+  styleUrls: ['./login-popup.component.scss'],
+  host: {'class': 'login-popup'}
 })
 export class LoginPopupComponent {
-  @HostBinding('class') css = 'login-popup';
 
   constructor(
     public store: Store,

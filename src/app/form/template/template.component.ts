@@ -1,14 +1,14 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 @Component({
   standalone: false,
   selector: 'app-template-form',
   templateUrl: './template.component.html',
-  styleUrls: ['./template.component.scss']
+  styleUrls: ['./template.component.scss'],
+  host: {'class': 'nested-form'}
 })
 export class TemplateFormComponent {
-  @HostBinding('class') css = 'nested-form';
 
   @Input()
   group!: UntypedFormGroup;

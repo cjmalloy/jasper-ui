@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { merge, pickBy, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -25,9 +25,9 @@ import { hasTag, removeTag, tagIntersection } from '../../../util/tag';
   selector: 'app-comment-reply',
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
+  host: {'class': 'comment-reply'}
 })
 export class CommentReplyComponent implements AfterViewInit, HasChanges {
-  @HostBinding('class') css = 'comment-reply';
 
   @Input()
   to!: Ref;

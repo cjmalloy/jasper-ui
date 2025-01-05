@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -13,10 +13,10 @@ import { getArgs } from '../../../util/query';
   standalone: false,
   selector: 'app-inbox-alarms',
   templateUrl: './alarms.component.html',
-  styleUrls: ['./alarms.component.scss']
+  styleUrls: ['./alarms.component.scss'],
+  host: {'class': 'alarms'}
 })
 export class InboxAlarmsPage implements OnInit, OnDestroy, HasChanges {
-  @HostBinding('class') css = 'alarms';
 
   private disposers: IReactionDisposer[] = [];
 

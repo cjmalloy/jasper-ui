@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
@@ -10,9 +10,9 @@ import { access } from '../../util/tag';
   selector: 'app-select-template',
   templateUrl: './select-template.component.html',
   styleUrls: ['./select-template.component.scss'],
+  host: {'class': 'select-template'}
 })
 export class SelectTemplateComponent {
-  @HostBinding('class') css = 'select-template';
 
   @Output()
   templateChange = new EventEmitter<string>();

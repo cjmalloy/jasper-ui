@@ -16,10 +16,10 @@ import { memo, MemoCache } from '../../util/memo';
   standalone: false,
   selector: 'app-tabs',
   templateUrl: './tabs.component.html',
-  styleUrl: './tabs.component.scss'
+  styleUrl: './tabs.component.scss',
+  host: {'class': 'tabs'}
 })
 export class TabsComponent implements AfterViewInit {
-  @HostBinding('class') css = 'tabs';
 
   @ContentChildren(RouterLink)
   routerLinks!: QueryList<RouterLink>;

@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
 import { runInAction } from 'mobx';
@@ -19,10 +19,10 @@ import { printError } from '../../../util/http';
   standalone: false,
   selector: 'app-settings-me-page',
   templateUrl: './me.component.html',
-  styleUrls: ['./me.component.scss']
+  styleUrls: ['./me.component.scss'],
+  host: {'class': 'full-page-form'}
 })
 export class SettingsMePage implements HasChanges {
-  @HostBinding('class') css = 'full-page-form';
 
   @ViewChild('form')
   form?: ExtFormComponent;

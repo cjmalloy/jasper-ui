@@ -7,10 +7,10 @@ import { Store } from '../../../store/store';
   standalone: false,
   selector: 'app-subfolder',
   templateUrl: './subfolder.component.html',
-  styleUrls: ['./subfolder.component.scss']
+  styleUrls: ['./subfolder.component.scss'],
+  host: {'class': 'subfolder'}
 })
 export class SubfolderComponent {
-  @HostBinding('class') css = 'subfolder';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()

@@ -39,9 +39,9 @@ import { ActionComponent } from '../action/action.component';
   selector: 'app-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
+  host: {'class': 'profile list-item'}
 })
 export class UserComponent implements OnChanges, HasChanges {
-  @HostBinding('class') css = 'profile list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @ViewChildren('action')

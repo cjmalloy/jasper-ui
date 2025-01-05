@@ -53,9 +53,9 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   selector: 'app-comment',
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],
+  host: {'class': 'comment'}
 })
 export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, HasChanges {
-  @HostBinding('class') css = 'comment';
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
   private disposers: IReactionDisposer[] = [];

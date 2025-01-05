@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, HostBinding, Input } from '@angular/core';
+import { AfterViewInit, Component, Input } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, Subject, Subscription, switchMap, throwError } from 'rxjs';
@@ -15,9 +15,9 @@ import { printError } from '../../../util/http';
   selector: 'app-comment-edit',
   templateUrl: './comment-edit.component.html',
   styleUrls: ['./comment-edit.component.scss'],
+  host: {'class': 'comment-edit'}
 })
 export class CommentEditComponent implements AfterViewInit, HasChanges {
-  @HostBinding('class') css = 'comment-edit';
 
   serverError: string[] = [];
 

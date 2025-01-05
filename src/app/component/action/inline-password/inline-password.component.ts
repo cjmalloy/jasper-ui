@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { ActionComponent } from '../action.component';
 
@@ -6,10 +6,10 @@ import { ActionComponent } from '../action.component';
   standalone: false,
   selector: 'app-inline-password',
   templateUrl: './inline-password.component.html',
-  styleUrls: ['./inline-password.component.scss']
+  styleUrls: ['./inline-password.component.scss'],
+  host: {'class': 'action'}
 })
 export class InlinePasswordComponent extends ActionComponent {
-  @HostBinding('class') css = 'action';
 
   @Input()
   action: (password: string) => Observable<any|never> = () => of(null);

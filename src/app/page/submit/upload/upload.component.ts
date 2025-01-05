@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { delay, pick, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -26,10 +26,10 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
   standalone: false,
   selector: 'app-upload',
   templateUrl: './upload.component.html',
-  styleUrls: ['./upload.component.scss']
+  styleUrls: ['./upload.component.scss'],
+  host: {'class': 'full-page-upload'}
 })
 export class UploadPage implements OnDestroy {
-  @HostBinding('class') css = 'full-page-upload';
   private disposers: IReactionDisposer[] = [];
   tagRegex = TAGS_REGEX.source;
 

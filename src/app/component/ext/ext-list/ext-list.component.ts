@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
@@ -9,10 +9,10 @@ import { ExtComponent } from '../ext.component';
   standalone: false,
   selector: 'app-ext-list',
   templateUrl: './ext-list.component.html',
-  styleUrls: ['./ext-list.component.scss']
+  styleUrls: ['./ext-list.component.scss'],
+  host: {'class': 'ext-list'}
 })
 export class ExtListComponent implements HasChanges {
-  @HostBinding('class') css = 'ext-list';
 
   @ViewChildren(ExtComponent)
   list?: QueryList<ExtComponent>;

@@ -1,14 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  HostBinding,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  ViewChild
-} from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Plugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
@@ -18,10 +8,10 @@ import { AuthzService } from '../../service/authz.service';
   standalone: false,
   selector: 'app-select-plugin',
   templateUrl: './select-plugin.component.html',
-  styleUrls: ['./select-plugin.component.scss']
+  styleUrls: ['./select-plugin.component.scss'],
+  host: {'class': 'select-plugin'}
 })
 export class SelectPluginComponent implements OnChanges {
-  @HostBinding('class') css = 'select-plugin';
 
   @Input()
   add = false;

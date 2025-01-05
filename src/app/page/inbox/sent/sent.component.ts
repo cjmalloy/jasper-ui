@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -13,10 +13,10 @@ import { getArgs } from '../../../util/query';
   standalone: false,
   selector: 'app-inbox-sent',
   templateUrl: './sent.component.html',
-  styleUrls: ['./sent.component.scss']
+  styleUrls: ['./sent.component.scss'],
+  host: {'class': 'inbox-sent'}
 })
 export class InboxSentPage implements OnInit, OnDestroy, HasChanges {
-  @HostBinding('class') css = 'inbox-sent';
 
   private disposers: IReactionDisposer[] = [];
 

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, Output } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { catchError, map, of } from 'rxjs';
 import { ProxyService } from '../../service/api/proxy.service';
 import { Store } from '../../store/store';
@@ -7,10 +7,10 @@ import { Store } from '../../store/store';
   standalone: false,
   selector: 'app-image-upload',
   templateUrl: './image-upload.component.html',
-  styleUrls: ['./image-upload.component.scss']
+  styleUrls: ['./image-upload.component.scss'],
+  host: {'class': 'form-array'}
 })
 export class ImageUploadComponent {
-  @HostBinding('class') css = 'form-array';
 
   @Output()
   data = new EventEmitter<{ url: string, name: string }>();

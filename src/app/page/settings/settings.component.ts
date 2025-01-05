@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { runInAction } from 'mobx';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
@@ -10,9 +10,9 @@ import { Store } from '../../store/store';
   selector: 'app-settings-page',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
+  host: {'class': 'settings'}
 })
 export class SettingsPage implements OnInit {
-  @HostBinding('class') css = 'settings';
 
   constructor(
     public admin: AdminService,

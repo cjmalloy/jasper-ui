@@ -1,13 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  HostBinding,
-  Input,
-  OnChanges,
-  OnDestroy,
-  SimpleChanges,
-  ViewChild
-} from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { filter } from 'rxjs';
@@ -37,10 +28,10 @@ export const allRefSorts: {value: RefSort, label: string, title?: string }[] = [
   standalone: false,
   selector: 'app-sort',
   templateUrl: './sort.component.html',
-  styleUrls: ['./sort.component.scss']
+  styleUrls: ['./sort.component.scss'],
+  host: {'class': 'sort form-group'}
 })
 export class SortComponent implements OnChanges, OnDestroy {
-  @HostBinding('class') css = 'sort form-group';
   private disposers: IReactionDisposer[] = [];
 
   @ViewChild('create')

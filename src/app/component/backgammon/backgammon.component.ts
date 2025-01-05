@@ -40,10 +40,10 @@ const MAX_PLAYERS = 2;
   selector: 'app-backgammon',
   templateUrl: './backgammon.component.html',
   styleUrls: ['./backgammon.component.scss'],
-  hostDirectives: [CdkDropListGroup]
+  hostDirectives: [CdkDropListGroup],
+  host: {'class': 'backgammon-board'}
 })
 export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
-  @HostBinding('class') css = 'backgammon-board';
   private disposers: IReactionDisposer[] = [];
 
   @Input()

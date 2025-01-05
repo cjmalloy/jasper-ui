@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { ActionComponent } from '../action.component';
 
@@ -6,10 +6,10 @@ import { ActionComponent } from '../action.component';
   standalone: false,
   selector: 'app-inline-select',
   templateUrl: './inline-select.component.html',
-  styleUrls: ['./inline-select.component.scss']
+  styleUrls: ['./inline-select.component.scss'],
+  host: {'class': 'action'}
 })
 export class InlineSelectComponent extends ActionComponent {
-  @HostBinding('class') css = 'action';
 
   @Input()
   action: (value: any) => Observable<any|never> = () => of(null);

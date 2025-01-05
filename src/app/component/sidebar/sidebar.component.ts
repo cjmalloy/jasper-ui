@@ -29,9 +29,9 @@ type Exts = { ext: Ext, children: Ext[], more: boolean };
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
+  host: {'class': 'sidebar'}
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
-  @HostBinding('class') css = 'sidebar';
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 

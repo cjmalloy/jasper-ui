@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding } from '@angular/core';
+import { Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { DateTime } from 'luxon';
 import { catchError, throwError } from 'rxjs';
@@ -15,10 +15,10 @@ import { printError } from '../../../util/http';
   standalone: false,
   selector: 'app-settings-backup-page',
   templateUrl: './backup.component.html',
-  styleUrls: ['./backup.component.scss']
+  styleUrls: ['./backup.component.scss'],
+  host: {'class': 'backup'}
 })
 export class SettingsBackupPage {
-  @HostBinding('class') css = 'backup';
   originPattern = ORIGIN_REGEX.source;
 
   submitted = false;

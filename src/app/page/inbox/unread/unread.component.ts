@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -15,9 +15,9 @@ import { Store } from '../../../store/store';
   selector: 'app-unread',
   templateUrl: './unread.component.html',
   styleUrls: ['./unread.component.scss'],
+  host: {'class': 'unread'}
 })
 export class InboxUnreadPage implements OnInit, OnDestroy {
-  @HostBinding('class') css = 'unread';
 
   private disposers: IReactionDisposer[] = [];
   private lastNotified?: DateTime;

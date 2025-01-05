@@ -28,7 +28,7 @@ import { hasTag, isOwnerTag } from '../../../util/tag';
   styleUrls: ['./file.component.scss']
 })
 export class FileComponent implements OnChanges {
-  @HostBinding('class') css = 'file ';
+  css = 'file ';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()

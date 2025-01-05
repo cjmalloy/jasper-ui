@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -14,10 +14,10 @@ import { getArgs } from '../../../util/query';
   standalone: false,
   selector: 'app-inbox-modlist',
   templateUrl: './modlist.component.html',
-  styleUrls: ['./modlist.component.scss']
+  styleUrls: ['./modlist.component.scss'],
+  host: {'class': 'modlist'}
 })
 export class InboxModlistPage implements OnInit, OnDestroy, HasChanges {
-  @HostBinding('class') css = 'modlist';
 
   private disposers: IReactionDisposer[] = [];
 

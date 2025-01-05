@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, HostBinding, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -29,9 +29,9 @@ import { printError } from '../../../util/http';
   selector: 'app-submit-web-page',
   templateUrl: './web.component.html',
   styleUrls: ['./web.component.scss'],
+  host: {'class': 'full-page-form'}
 })
 export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
-  @HostBinding('class') css = 'full-page-form';
 
   private disposers: IReactionDisposer[] = [];
 

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, HostBinding, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
@@ -31,9 +31,9 @@ import { hasTag } from '../../../util/tag';
   selector: 'app-submit-text',
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
+  host: {'class': 'full-page-form'}
 })
 export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
-  @HostBinding('class') css = 'full-page-form';
   private disposers: IReactionDisposer[] = [];
 
   submitted = false;

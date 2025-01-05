@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -14,10 +14,10 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
   standalone: false,
   selector: 'app-blog',
   templateUrl: './blog.component.html',
-  styleUrls: ['./blog.component.scss']
+  styleUrls: ['./blog.component.scss'],
+  host: {'class': 'blog ext'}
 })
 export class BlogComponent implements HasChanges {
-  @HostBinding('class') css = 'blog ext';
 
   @Input()
   pageControls = true;

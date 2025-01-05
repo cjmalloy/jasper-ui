@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostBinding, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer, uniq, without } from 'lodash-es';
 import { catchError, map, of, switchMap } from 'rxjs';
@@ -19,10 +19,10 @@ import { TagsFormComponent } from '../tags/tags.component';
   standalone: false,
   selector: 'app-ref-form',
   templateUrl: './ref.component.html',
-  styleUrls: ['./ref.component.scss']
+  styleUrls: ['./ref.component.scss'],
+  host: {'class': 'nested-form'}
 })
 export class RefFormComponent {
-  @HostBinding('class') css = 'nested-form';
 
   @Input()
   origin? = '';
