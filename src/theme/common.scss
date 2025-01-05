@@ -102,6 +102,8 @@ textarea {
 }
 
 .hidden-without-removing {
+  pointer-events: none;
+  user-select: none;
   position: absolute;
   opacity: 0;
 }
