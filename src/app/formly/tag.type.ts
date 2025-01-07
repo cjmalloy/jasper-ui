@@ -111,11 +111,21 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     if (this.showError) return;
     this.exts.getCachedExt(value, this.field.props.origin).pipe(
         switchMap(x => {
+          if (this.field.type !== 'plugin') {
+            const templates = this.admin.getTemplates(x.tag).filter(t => t.tag);
+            if (templates.length) {
+              const longestMatch = templates[templates.length - 1];
+              if (x.tag === longestMatch.tag) return of(longestMatch);
+              return of({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (x.name || x.tag) });
+            }
+          }
           if (x.modified && x.origin === (this.field.props.origin || this.store.account.origin)) return of(x);
+          const plugin = this.admin.getPlugin(x.tag);
           if (this.field.type !== 'template') {
-            if (this.admin.getPlugin(x.tag)) return of(this.admin.getPlugin(x.tag));
-            if (this.admin.getParentPlugins(x.tag).length) {
-              const longestMatch = this.admin.getParentPlugins(x.tag)[this.admin.getParentPlugins(x.tag).length - 1];
+            if (plugin) return of(plugin);
+            const parentPlugins = this.admin.getParentPlugins(x.tag);
+            if (parentPlugins.length) {
+              const longestMatch = parentPlugins[parentPlugins.length - 1];
               if (x.tag === longestMatch.tag) return of(longestMatch);
               const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
               if (longestMatch.tag === 'plugin/outbox') {
@@ -135,15 +145,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
               );
             }
           }
-          if (this.field.type !== 'plugin') {
-            if (this.admin.getTemplates(x.tag).length) {
-              const longestMatch = this.admin.getTemplates(x.tag)[this.admin.getTemplates(x.tag).length - 1];
-              if (!longestMatch.tag) return of(undefined);
-              if (x.tag === longestMatch.tag) return of(longestMatch);
-              return of({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (x.name || x.tag) });
-            }
-            if (x.modified) return of(x);
-          }
+          if (x.modified) return of(x);
           return of(undefined);
         })
     ).subscribe((x?: { name?: string, tag?: string }) => {
