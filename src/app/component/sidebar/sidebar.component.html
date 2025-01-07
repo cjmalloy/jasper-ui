@@ -3,7 +3,7 @@
     @if (showToggle) {
       <div class="toggle" (click)="expanded = !expanded">☰</div>
     }
-    @if (store.view.type && (!home || store.view.search || store.view.filter.length || query.page?.content?.length)) {
+    @if (store.view.type) {
       <div class="wide">
         <app-search [class.centered]="!expanded || !store.view.settings && !store.view.tags"></app-search>
         @if (expanded && (store.view.settings || store.view.tags)) {
@@ -16,7 +16,7 @@
     }
   </div>
   @if (expanded) {
-    @if (store.view.type && (!home || store.view.search || store.view.filter.length || query.page?.content?.length)) {
+    @if (store.view.type) {
       @if (store.view.tag) {
         <app-query [query]="tag" class="breadcrumbs"></app-query>
       }
