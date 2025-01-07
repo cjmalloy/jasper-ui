@@ -18,12 +18,10 @@ import { getErrorMessage } from './errors';
     <div class="form-array skip-margin">
       <input class="preview grow"
              type="text"
-             tabindex="-1"
              [value]="preview"
              [title]="input.value"
              [style.display]="preview ? 'block' : 'none'"
-             (click)="clickPreview(input)"
-             (focus)="$any($event.target).blur()">
+             (focus)="clickPreview(input)">
       <datalist [id]="listId">
         @for (o of autocomplete; track o.value) {
           <option [value]="o.value">{{ o.label }}</option>
@@ -146,9 +144,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
       search: value,
       size: 3,
     }).subscribe(page => {
-      this.autocomplete = uniqBy(
-        page.content.map(ref => ({ value: ref.url, label: getPageTitle(ref) })),
-        o => o.value);
+      this.autocomplete = uniqBy(page.content, ref => ref.url).map(ref => ({ value: ref.url, label: getPageTitle(ref) }));
       this.cd.detectChanges();
     })
   }, 400);
