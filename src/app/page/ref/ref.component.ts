@@ -31,6 +31,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   ref?: RefComponent;
 
   newResponses = 0;
+  private url = '';
   private watchSelf?: Subscription;
   private watchResponses?: Subscription;
   private seen = new Set<string>();
@@ -51,9 +52,13 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
+    this.url = this.store.view.url;
+    if (this.url) this.reload(this.url);
     this.disposers.push(autorun(() => {
       const url = this.store.view.url;
       if (!url) return;
+      if (url === this.url) return;
+      this.url = url;
       this.reload(url);
     }));
   }
@@ -114,17 +119,18 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
 
   reload(url?: string) {
     MemoCache.clear(this);
-    url ||= this.store.view.url;
+    url ||= this.store.view.url || '';
+    if (url !== this.store.view.ref?.url) this.store.view.clearRef();
     if (!url) return;
     this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() => this.store.view.versions = count));
     this.refs.getCurrent(url).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
-      tap(ref => this.store.view.setRef(ref || { url })),
-      switchMap(ref => !top ? of(undefined)
-        : top(ref) === url ? of(ref)
-        : this.refs.getCurrent(top(ref)).pipe(catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)))
-      ),
+      tap(ref => this.store.view.setRef(ref)),
+      switchMap(ref => top(ref) === url ? of(ref)
+        : this.refs.getCurrent(top(ref)).pipe(
+          catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        )),
       tap(top => runInAction(() => this.store.view.top = top)),
     ).subscribe();
     if (this.config.websockets) {

@@ -47,10 +47,12 @@
       @if (comments) {
         <a  [routerLink]="['/ref', ref.url, 'comments']"
             [queryParams]="{ origin: nonLocalOrigin }"
+            (click)="store.view.setRef(ref)"
             i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
       } @else {
         <a [routerLink]="['/ref', ref.url]"
            [queryParams]="{ origin: nonLocalOrigin }"
+           (click)="store.view.setRef(ref)"
            i18n>permalink</a>
       }
       @if (store.account.mod || taggingAccess) {

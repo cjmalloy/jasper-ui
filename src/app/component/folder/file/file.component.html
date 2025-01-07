@@ -21,6 +21,7 @@
   </div>
   <a [routerLink]="['/ref', ref.url]"
      [queryParams]="{ origin: nonLocalOrigin }"
+     (click)="store.view.setRef(ref)"
      [style.pointer-events]="dragging ? 'none' : undefined">{{ title }}</a>
 </div>
 

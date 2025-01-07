@@ -34,7 +34,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   @ViewChildren('comment')
   list?: QueryList<CommentComponent>;
 
-  comments?: Ref[];
+  comments?: Ref[] = [];
   newComments: Ref[] = [];
 
   constructor(
@@ -42,7 +42,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
     public thread: ThreadStore,
   ) {
     this.disposers.push(autorun(() => {
-      if (thread.latest) {
+      if (thread.latest.length) {
         this.comments = thread.cache.get(this.source?.url);
         if (this.comments && this.pageSize) {
           this.comments = [...this.comments!];

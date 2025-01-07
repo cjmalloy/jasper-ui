@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   @if (store.view.top && store.view.top.url !== store.view.ref?.url) {
-    <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url, 'comments']" i18n>
+    <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url, 'comments']"  (click)="store.view.setRef(store.view.top)"i18n>
       full comments
     </span>
   }
@@ -9,14 +9,18 @@
                        quote=""
                        [tags]="replyTags"
                        (save)="newComments$.next($event)"></app-comment-reply>
-    <app-comment-thread [source]="store.view.ref"
-                        [newComments$]="newComments$"
-                        [scrollToLatest]="true"
-                        [depth]="depth"></app-comment-thread>
-    @if (thread.hasMore) {
-      <span class="fake-link load-more" (click)="thread.loadMore()" i18n>
+    @if (thread.latest.length) {
+      <app-comment-thread [source]="store.view.ref"
+                          [newComments$]="newComments$"
+                          [scrollToLatest]="true"
+                          [depth]="depth"></app-comment-thread>
+      @if (thread.hasMore) {
+        <span class="fake-link load-more" (click)="thread.loadMore()" i18n>
         load more comments
       </span>
+      }
+    } @else {
+      <app-loading></app-loading>
     }
   } @else {
     <app-loading></app-loading>

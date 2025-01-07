@@ -118,6 +118,7 @@
         <div class="actions">
           <a [routerLink]="['/ref', ref.url, 'comments']"
              [queryParams]="{ origin: nonLocalOrigin }"
+             (click)="store.view.setRef(ref)"
              i18n>permalink</a>
           <a class="fake-link"
              (click)="replying = !replying"
@@ -125,11 +126,13 @@
           @if(responses) {
             <a [routerLink]="['/ref', ref.url, 'responses']"
                [queryParams]="{ origin: nonLocalOrigin }"
+               (click)="store.view.setRef(ref)"
                i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
           }
           @if (sources > 2) {
             <a [routerLink]="['/ref', ref.url, 'sources']"
                [queryParams]="{ origin: nonLocalOrigin }"
+               (click)="store.view.setRef(ref)"
                i18n>{{ sources }}&thinsp;sources</a>
           }
           @if (writeAccess) {
@@ -182,7 +185,8 @@
     } @else {
       <a class="load-more"
          [routerLink]="['/ref', ref.url, 'comments']"
-         [queryParams]="{ origin: nonLocalOrigin }" i18n>
+         [queryParams]="{ origin: nonLocalOrigin }"
+         (click)="store.view.setRef(ref)" i18n>
         continue this thread
       </a>
     }
