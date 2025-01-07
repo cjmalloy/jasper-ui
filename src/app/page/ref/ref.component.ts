@@ -43,9 +43,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     private refs: RefService,
     private router: Router,
     private stomp: StompService,
-  ) {
-    store.view.clearRef();
-  }
+  ) { }
 
   saveChanges() {
     return !this.ref || this.ref.saveChanges();
