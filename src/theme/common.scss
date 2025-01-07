@@ -233,13 +233,9 @@ button {
 }
 
 .preview {
-  border: 2px solid var(--bg);
   cursor: text;
-  height: 16px;
-  line-height: 16px;
-  padding-block: 2px;
-  padding-inline: 8px;
-  overflow: hidden;
+  pointer-events: all;
+  text-decoration: none;
 }
 
 .hotkey .preview {
@@ -1289,6 +1285,9 @@ formly-list-section .form-array > formly-field > formly-group {
       margin-right: 0 !important;
     }
   }
+  &.skip-margin * {
+    margin-right: 0 !important;
+  }
   input {
     flex: 1;
     flex-basis: 100%;
@@ -1372,6 +1371,7 @@ formly-field-radio, formly-field-multicheckbox {
 
   .form {
     padding-bottom: 0 !important;
+    max-width: 100%;
   }
 
   details.advanced {

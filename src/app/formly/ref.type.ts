@@ -15,13 +15,15 @@ import { getErrorMessage } from './errors';
   selector: 'formly-field-ref-input',
   host: {'class': 'field'},
   template: `
-    <div class="form-array">
-      <div class="preview grow"
-           type="text"
-           [title]="input.value"
-           [style.display]="preview ? 'block' : 'none'"
-           (click)="clickPreview(input)"
-           (focus)="edit(input)">{{ preview }}</div>
+    <div class="form-array skip-margin">
+      <input class="preview grow"
+             type="text"
+             tabindex="-1"
+             [value]="preview"
+             [title]="input.value"
+             [style.display]="preview ? 'block' : 'none'"
+             (click)="clickPreview(input)"
+             (focus)="$any($event.target).blur()">
       <datalist [id]="listId">
         @for (o of autocomplete; track o.value) {
           <option [value]="o.value">{{ o.label }}</option>
@@ -122,10 +124,11 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   }
 
   edit(input: HTMLInputElement) {
-    this.editing = true;
-    this.previewUrl = '';
-    this.preview = '';
     input.focus();
+    if (this.preview) input.setSelectionRange(0, input.value.length);
+    this.editing = true;
+    this.preview = '';
+    this.previewUrl = '';
   }
 
   clickPreview(input: HTMLInputElement) {
