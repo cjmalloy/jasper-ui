@@ -100,6 +100,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private _padding = 8;
 
   private europa?: Europa;
+  private scrollTop = 0;
+  private scrollTopFullscreen = 0;
   private selectionStart = 0;
   private selectionEnd = 0;
   private blurTimeout = 0;
@@ -372,6 +374,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this._text = this.currentText;
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
+      this.scrollTop = this.editor.nativeElement.scrollTop;
       let height = 'calc(100vh - 4px)';
       if (window.visualViewport?.height) {
         height = (window.visualViewport.height - 4) + 'px';
@@ -392,23 +395,27 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.overlayRef.attach(new DomPortal(this.el));
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
       this.overlayRef.keydownEvents().subscribe(event => event.key === 'Escape' && this.toggleFullscreen(false));
-      this.editor.nativeElement.focus();
       this.editor.nativeElement.scrollIntoView({ block: 'end' });
+      this.editor.nativeElement.focus();
+      this.editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
+      this.editor.nativeElement.scrollTop = this.scrollTopFullscreen;
     } else {
       this.stacked = true;
       this.preview = this.store.local.showPreview;
+      this.scrollTopFullscreen = this.editor.nativeElement.scrollTop;
       this.overlayRef?.detach();
       this.overlayRef?.dispose();
       delete this.overlayRef;
       document.body.style.height = '';
       this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
       document.body.classList.remove('fullscreen');
+      this.editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
       if (this.focused) {
         this.editor.nativeElement.focus();
-        this.editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
+        this.editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
+        this.editor.nativeElement.scrollTop = this.scrollTop;
       }
     }
-    if (this.focused && override === undefined) this.editor?.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
   }
 
   toggleHelp(override?: boolean) {
