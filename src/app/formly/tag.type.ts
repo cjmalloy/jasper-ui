@@ -8,7 +8,7 @@ import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
 import { ConfigService } from '../service/config.service';
 import { Store } from '../store/store';
-import { access } from '../util/tag';
+import { access, removePrefix } from '../util/tag';
 import { getErrorMessage } from './errors';
 
 @Component({
@@ -119,7 +119,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
             if (this.admin.getParentPlugins(x.tag).length) {
               const longestMatch = this.admin.getParentPlugins(x.tag)[this.admin.getParentPlugins(x.tag).length - 1];
               if (x.tag === longestMatch.tag) return of(longestMatch);
-              const childTag = x.tag.substring(longestMatch.tag.length + 1);
+              const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
               if (longestMatch.tag === 'plugin/outbox') {
                 const origin = childTag.substring(0, childTag.indexOf('/'));
                 const remoteTag = childTag.substring(origin.length + 1);
@@ -129,13 +129,11 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
                 );
               }
               let a = access(x.tag);
-              let originFormat = '';
               if (childTag === 'user' || childTag.startsWith('user/')) {
                 a ||= '+';
-                originFormat = this.field.props.origin || '';
               }
               return this.exts.getCachedExt(a + childTag, this.field.props.origin).pipe(
-                  map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
+                  map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + c.name || c.tag })),
               );
             }
           }
@@ -144,10 +142,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
               const longestMatch = this.admin.getTemplates(x.tag)[this.admin.getTemplates(x.tag).length - 1];
               if (!longestMatch.tag) return of(undefined);
               if (x.tag === longestMatch.tag) return of(longestMatch);
-              const childTag = x.tag.substring(longestMatch.tag.length + 1);
-              return this.exts.getCachedExt(childTag, this.field.props.origin).pipe(
-                  map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) })),
-              );
+              return of({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (x.name || x.tag) });
             }
             if (x.modified) return of(x);
           }
