@@ -122,11 +122,10 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   }
 
   edit(input: HTMLInputElement) {
-    input.focus();
-    if (this.preview) input.setSelectionRange(0, input.value.length);
     this.editing = true;
     this.preview = '';
     this.previewUrl = '';
+    input.focus();
   }
 
   clickPreview(input: HTMLInputElement) {

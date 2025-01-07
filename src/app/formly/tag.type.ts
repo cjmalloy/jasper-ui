@@ -155,10 +155,9 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   edit(input: HTMLInputElement) {
-    input.focus();
-    if (this.preview) input.setSelectionRange(0, input.value.length);
     this.editing = true;
     this.preview = '';
+    input.focus();
   }
 
   clickPreview(input: HTMLInputElement) {
