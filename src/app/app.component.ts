@@ -37,6 +37,22 @@ export class AppComponent implements AfterViewInit {
   ) {
     document.body.style.height = '';
     if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
+    window.addEventListener('keyup', event => {
+      const hotkey = !this.hotkeyActive(event) || this.hotkey(event.key);
+      console.log('keyup ' + event.key, hotkey);
+      if (this.store.hotkey && hotkey) {
+        runInAction(() => this.store.hotkey = false);
+        document.body.classList.remove('hotkey');
+      }
+    }, { capture: true });
+    window.addEventListener('keydown', event => {
+      const hotkey = this.hotkeyActive(event) || this.hotkey(event.key);
+      console.log('keydown ' + event.key, hotkey);
+      if (!this.store.hotkey && hotkey) {
+        runInAction(() => this.store.hotkey = true);
+        document.body.classList.add('hotkey');
+      }
+    }, { capture: true });
   }
 
   ngAfterViewInit() {
@@ -71,28 +87,12 @@ export class AppComponent implements AfterViewInit {
     return /Macintosh/i.test(navigator.userAgent);
   }
 
-  hotkey(event: KeyboardEvent) {
-    return this.macos
-      ? (event.key === 'Meta' && !event.altKey && !event.ctrlKey && !event.shiftKey)
-      : (event.key === 'Control' && !event.altKey && !event.metaKey && !event.shiftKey);
+  hotkey(key: string) {
+    return this.macos ? key === 'Meta' : key === 'Control';
   }
 
-  @HostListener('document:keyup', ['$event'])
-  onKeyup(event: KeyboardEvent) {
-    const hotkey = this.hotkey(event);
-    if (this.store.hotkey && hotkey) {
-      runInAction(() => this.store.hotkey = false);
-      document.body.classList.remove('hotkey');
-    }
-  }
-
-  @HostListener('document:keydown', ['$event'])
-  onKeydown(event: KeyboardEvent) {
-    const hotkey = this.hotkey(event);
-    if (!this.store.hotkey && hotkey) {
-      runInAction(() => this.store.hotkey = true);
-      document.body.classList.add('hotkey');
-    }
+  hotkeyActive(event: KeyboardEvent) {
+    return this.macos ? event.metaKey : event.ctrlKey;
   }
 
   @HostListener('window:blur')
