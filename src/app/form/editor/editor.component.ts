@@ -279,7 +279,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       }
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
-    this.editor?.nativeElement.focus();
+    if (this.focused !== false) this.editor?.nativeElement.focus();
   }
 
   buttonOn(tag: string) {
@@ -294,7 +294,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.syncTags.next(this.addTags);
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
-    this.editor?.nativeElement.focus();
+    if (this.focused !== false) this.editor?.nativeElement.focus();
   }
 
   focusText() {
@@ -345,7 +345,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     } else {
       this.store.local.showPreview = this.preview = !this.preview;
     }
-    this.editor?.nativeElement.focus();
+    if (this.focused !== false) this.editor?.nativeElement.focus();
   }
 
   toggleStacked() {
@@ -359,7 +359,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     } else {
       this.store.local.editorStacked = this.stacked = true;
     }
-    this.editor?.nativeElement.focus();
+    if (this.focused !== false) this.editor?.nativeElement.focus();
   }
 
   toggleFullscreen(override?: boolean) {
@@ -451,7 +451,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     } {
       this.store.eventBus.fire(event);
     }
-    this.editor?.nativeElement.focus();
+    if (this.focused !== false) this.editor?.nativeElement.focus();
   }
 
   addComment() {
