@@ -11,12 +11,12 @@
                    [ext]="parent"
                    [name]="'..'"></app-subfolder>
   }
-  @for (f of folderExts; track f.tag) {
+  @for (f of folderExts; track f.tag + f.origin) {
     <app-subfolder cdkDrag
                    cdkDragBoundary=".desktop"
                    [dragging]="dragging"
                    [style.transform]="subfolders[f.tag]"
-                   [style.position]="subfolders[ext!.tag] ? 'absolute' : 'relative'"
+                   [style.position]="subfolders[f.tag] ? 'absolute' : 'relative'"
                    (cdkDragStarted)="startMoving($any($event.event.target))"
                    (cdkDragMoved)="moveFolder(f.tag, $any($event.event.target))"
                    (cdkDragEnded)="dragging = false"
