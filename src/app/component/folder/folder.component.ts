@@ -122,7 +122,7 @@ export class FolderComponent implements OnChanges, HasChanges {
     const cursor = this.cursor;
     this.cursor = '';
     this.dragging = true
-    this.exts.patch(this.ext!.tag, cursor, [{
+    this.exts.patch(this.ext!.tag + this.store.account.origin, cursor, [{
       op: 'add',
       path: '/config/subfolders/' + (tag === '..' ? '..' : escapePath(tag.substring(this.ext!.tag.length + 1))),
       value: {
