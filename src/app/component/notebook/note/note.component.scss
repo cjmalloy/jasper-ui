@@ -1,0 +1,86 @@
+:host {
+  margin: 8px;
+  flex-shrink: 0;
+  display: block;
+  max-height: 160px;
+  max-width: 600px;
+  user-select: none;
+  scroll-padding: 40px;
+  overflow: hidden;
+
+  .kanban-card-container {
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+  }
+
+  &.full-size {
+    max-height: unset;
+    overflow: visible;
+    .kanban-card-container {
+      overflow: visible;
+    }
+  }
+}
+
+app-loading {
+  z-index: 1;
+  position: absolute;
+  padding: 0;
+  top: -20px;
+  left: -2px;
+  width: 100%;
+  height: calc(20px + 100%);
+}
+
+.thumbnail {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.card-title {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+.badges {
+  float: right;
+  position: relative;;
+  z-index: 1;
+  .badge {
+    cursor: pointer;
+    text-decoration: none;
+    margin: 4px;
+    margin-right: 7px;
+    padding: 0 2px;
+    border-radius: 4px;
+    line-height: 21px;
+    min-width: 21px;
+    text-align: center;
+    display: block;
+    border: 1px solid transparent;
+    &.filtering {
+      transform: translate(1px, -1px);
+      background-color: var(--card);
+      filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    &:hover {
+      transform: scale(1.2) translate(1px, -1px);
+      background-color: var(--card);
+      filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    &:active {
+      transform: scale(1.1);
+      margin-left: 2px;
+      background-color: var(--card);
+      filter: drop-shadow(-1px -1px 0.5px black);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+  }
+}

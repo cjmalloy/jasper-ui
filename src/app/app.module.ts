@@ -54,6 +54,8 @@ import { LoginPopupComponent } from './component/login-popup/login-popup.compone
 import { MdComponent } from './component/md/md.component';
 import { ModComponent } from './component/mod/mod.component';
 import { NavComponent } from './component/nav/nav.component';
+import { NoteComponent } from './component/notebook/note/note.component';
+import { NotebookComponent } from './component/notebook/notebook.component';
 import { PageControlsComponent } from './component/page-controls/page-controls.component';
 import { PlaylistComponent } from './component/playlist/playlist.component';
 import { PluginListComponent } from './component/plugin/plugin-list/plugin-list.component';
@@ -254,6 +256,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     KanbanComponent,
     KanbanColumnComponent,
     KanbanCardComponent,
+    NotebookComponent,
+    NoteComponent,
     MdComponent,
     ModComponent,
     BlogComponent,

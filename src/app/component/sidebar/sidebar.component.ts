@@ -279,8 +279,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get notes() {
-    if (!this.store.account.user) return false;
-    return this.addTags.includes('notes');
+    return this.admin.getTemplate('notes') && this.store.account.user;
   }
 
   @memo

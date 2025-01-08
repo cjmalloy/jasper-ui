@@ -3,15 +3,15 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
-import { KanbanComponent } from './kanban.component';
+import { NotebookComponent } from './notebook.component';
 
-describe('KanbanComponent', () => {
-  let component: KanbanComponent;
-  let fixture: ComponentFixture<KanbanComponent>;
+describe('NotebookComponent', () => {
+  let component: NotebookComponent;
+  let fixture: ComponentFixture<NotebookComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [KanbanComponent],
+      declarations: [NotebookComponent],
       imports: [RouterModule.forRoot([])],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
@@ -21,7 +21,7 @@ describe('KanbanComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(KanbanComponent);
+    fixture = TestBed.createComponent(NotebookComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

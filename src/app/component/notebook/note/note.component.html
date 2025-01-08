@@ -1,0 +1,96 @@
+@if (!ref.modified) {
+  <app-loading></app-loading>
+}
+<div class="note-container">
+  <div class="badges">
+    <!-- TODO: Check if local version is mostly identical -->
+    @if (remote) {
+      <a class="badge"
+         (click)="copy()"
+         i18n-title title="Copy remote ref">📥️</a>
+    }
+    @if (badgeExts$ | async; as xs) {
+      @for (x of xs; track x.tag) {
+        <a class="badge filter-toggle"
+           [class.filtering]="bookmarks.filters.includes($any('query/' + x.tag))"
+           (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + x.tag + ')' : x.tag)"
+           [title]="x.name && x.tag">{{ x.name || x.tag }}</a>
+      }
+    }
+    @if (dependents) {
+      <a class="badge"
+         (click)="bookmarks.toggleSources(ref.url)"
+         i18n-title title="{{ dependents }} Dependents">⤴️</a>
+    }
+    @if (dependencies) {
+      <a class="badge"
+         (click)="bookmarks.toggleResponses(ref.url)"
+         i18n-title title="{{ dependencies }} Dependencies">⤵️</a>
+    }
+    @if (threads) {
+      <a class="badge"
+         (focus)="store.view.setLastSelected(ref)"
+         (pointerdown)="store.view.setLastSelected(ref)"
+         [routerLink]="['/ref', thread, 'thread']"
+         (click)="store.view.setRef(ref)"
+         i18n-title title="Thread ({{ threads }} replies)">🧵️</a>
+    }
+    @if (comments) {
+      <a class="badge"
+         [routerLink]="['/ref', ref.url, 'comments']"
+         (click)="store.view.setRef(ref)"
+         i18n-title title="{{ comments }} Comments">💬️</a>
+    }
+  </div>
+  <div class="row">
+    @if (thumbnail) {
+      <div class="thumbnail"
+           [style.background-image]="[repostRef, ref] | thumbnail | async | cssUrl"
+           [style.background-color]="thumbnailColor"
+           [style.border-radius]="thumbnailRadius">{{ thumbnailEmoji }}</div>
+    }
+    <a class="card-title grow" [routerLink]="['/ref', ref.url]" (click)="store.view.setRef(ref)">{{ title }}</a>
+  </div>
+  @if (chess) {
+    <app-chess [white]="chessWhite"
+               [ref]="ref"></app-chess>
+  }
+  @if (todo) {
+    <app-todo [ref]="ref"></app-todo>
+  }
+  @if (currentText) {
+    <app-md [origin]="ref.origin || ''"
+            [plugins]="ref.tags || []"
+            [text]="currentText"></app-md>
+  }
+
+  <ng-template #cardMenu>
+    <div class="context-menu" (click)="$event.stopPropagation()">
+      <span i18n>Toggle Badges</span>
+      @if (allBadgeExts$ | async; as xs) {
+        @for (x of xs; track x.tag) {
+          <div (contextmenu)="$event.preventDefault()"
+               (pointerdown)="autoClose = false"
+               (pointerup)="toggleBadge(x.tag, $event)">
+            <input [id]="x.tag"
+                   type="checkbox"
+                   [checked]="ref.tags?.includes(x.tag)">
+            <label [for]="x.tag"
+                   [title]="x.name && x.tag" i18n>{{ x.name || x.tag }}</label>
+          </div>
+        }
+      } @else {
+        @for (b of ext?.config?.badges || []; track b) {
+          <div (contextmenu)="$event.preventDefault()"
+               (pointerdown)="autoClose = false"
+               (pointerup)="toggleBadge(b, $event)">
+            <input [id]="b"
+                   type="checkbox"
+                   [checked]="ref.tags?.includes(b)">
+            <label [for]="b" i18n>{{ b }}</label>
+          </div>
+        }
+      }
+    </div>
+  </ng-template>
+</div>

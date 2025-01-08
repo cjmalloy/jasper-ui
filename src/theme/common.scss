@@ -1470,6 +1470,7 @@ formly-field-radio, formly-field-multicheckbox {
 
 .list-item:not(.full-page):not(.expand),
 .kanban-card,
+.note,
 .comment {
   &.last-selected {
     border: 1px dashed var(--border);
@@ -2092,19 +2093,29 @@ ngx-monaco-editor {
   }
 }
 
-.kanban-card-container .row * {
-  align-self: center;
+.kanban-card-container,
+.note-container {
+  .row * {
+    align-self: center;
+  }
 }
 
-.kanban-card {
+.kanban-card,
+.note {
   padding: 4px;
   margin-top: 2px;
   border-radius: 4px;
   background-color: var(--card);
-
   .plugin_thread .toggle {
     background-color: var(--toggle-accent);
   }
+
+  .md p {
+    text-align: left;
+  }
+}
+
+.kanban-card {
   &.unlocked {
     border-radius: 5px;
     border: 0.25px dashed var(--border-accent);
@@ -2115,11 +2126,6 @@ ngx-monaco-editor {
   &.cdk-drag-placeholder {
     background-color: var(--placeholder);
   }
-
-  .md p {
-    text-align: left;
-  }
-
   &.no-write {
     cursor: no-drop !important;
 
@@ -2131,7 +2137,6 @@ ngx-monaco-editor {
       }
     }
   }
-
   transform: scale(1);
   transform-origin: center;
   transition: transform 0.1s cubic-bezier(.47,1.64,.8,1.2);
@@ -2143,22 +2148,18 @@ ngx-monaco-editor {
     z-index: 1;
     transform: scale(1.01);
   }
-
   &:not(.no-write) {
     cursor: grab;
   }
-
   .card-title, .thumbnail {
     margin-bottom: 4px;
   }
-
   &.cdk-drag-preview {
     transition: transform 0s;
     box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
     0 8px 10px 1px rgba(0, 0, 0, 0.14),
     0 3px 14px 2px rgba(0, 0, 0, 0.12);
   }
-
   &.cdk-drag-placeholder {
     transition: transform 0s;
     * {

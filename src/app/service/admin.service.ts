@@ -49,6 +49,7 @@ import { mailboxMod } from '../mods/mailbox';
 import { modMod } from '../mods/mod';
 import { modlistMod } from '../mods/modlist';
 import { ninjaTriangleMod } from '../mods/ninga-triangle';
+import { notesMod } from '../mods/notes';
 import { oembedMod } from '../mods/oembed';
 import { remoteOriginMod } from '../mods/origin';
 import { pdfMod } from '../mods/pdf';
@@ -149,6 +150,7 @@ export class AdminService {
     modlistMod,
     commentMod,
     threadMod,
+    notesMod,
     emailMod,
     fullscreenMod,
     seamlessMod,

@@ -60,7 +60,7 @@
         </div>
       }
     }
-    @if (store.account.user && (home || store.account.tag === tag || notes)) {
+    @if (notes && (home || store.account.tag === tag || addTags.includes('notes'))) {
       <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
            [queryParams]="{ to: null }">
         <span i18n-title title="Notes" i18n>✍️</span> <label i18n>Notes</label>

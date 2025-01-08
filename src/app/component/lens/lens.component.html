@@ -20,6 +20,14 @@
   <app-force-directed #lens
                       [tag]="tag"
                       [content]="page?.content || []"></app-force-directed>
+} @else if (isTemplate('notes')) {
+  <app-notebook #lens
+                [class]="cssClass(ext?.tag)"
+                [ext]="ext"
+                [page]="page"
+                [pageControls]="pageControls"
+                [plugins]="plugins"
+                [cols]="cols"></app-notebook>
 } @else if (isTemplate('kanban')) {
   <app-kanban #lens
               [query]="tag"
