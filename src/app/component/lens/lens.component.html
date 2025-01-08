@@ -50,6 +50,7 @@
 } @else if (isTemplate('folder')) {
   <app-folder #lens
               [page]="page"
+              [tag]="tag"
               [ext]="ext!"></app-folder>
 } @else {
   <app-ref-list #lens

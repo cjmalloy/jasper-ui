@@ -125,7 +125,7 @@ export function getTitle(ref: Ref | undefined): string {
   const comment = (ref.comment || '').trim();
   if (title) return title;
   if (!comment) {
-    if (ref.url.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
+    if (ref.url?.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
     return ref.url;
   }
   return trimCommentForTitle(comment);

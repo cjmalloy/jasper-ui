@@ -2,24 +2,26 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
-import { KanbanCardComponent } from './kanban-card.component';
+import { NoteComponent } from './note.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
-describe('KanbanCardComponent', () => {
-  let component: KanbanCardComponent;
-  let fixture: ComponentFixture<KanbanCardComponent>;
+describe('NoteComponent', () => {
+  let component: NoteComponent;
+  let fixture: ComponentFixture<NoteComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [KanbanCardComponent],
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
+      declarations: [NoteComponent],
+      imports: [RouterModule.forRoot([])],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+      ],
+    }).compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(KanbanCardComponent);
+    fixture = TestBed.createComponent(NoteComponent);
     component = fixture.componentInstance;
     component.ref = {url: ''};
     fixture.detectChanges();

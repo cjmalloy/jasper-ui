@@ -17,6 +17,8 @@ export class SubfolderComponent {
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
+  tag?: string;
+  @Input()
   ext!: Ext;
   @Input()
   name?: string;

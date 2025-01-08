@@ -22,6 +22,8 @@ import { level } from '../../util/tag';
 export class FolderComponent implements OnChanges, HasChanges {
 
   @Input()
+  tag?: string;
+  @Input()
   ext!: Ext;
   @Input()
   pinned?: Ref[] | null;
