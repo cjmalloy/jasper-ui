@@ -171,6 +171,12 @@ export class ListTypeComponent extends FieldArrayType {
       if (d?.type !== 'text/plain') continue;
       d.getAsString(url => {
         let path = getPath(url) || url;
+        // @ts-ignore
+        if (url.startsWith(window.configService.base)) {
+          // @ts-ignore
+          path = url.substring(window.configService.base.length);
+          if (!path.startsWith('/')) path = '/' + path;
+        }
         if (path.startsWith('/tag/')) {
           // @ts-ignore
           switch(this.field.fieldArray?.type) {
