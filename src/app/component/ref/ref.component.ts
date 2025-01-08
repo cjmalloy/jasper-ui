@@ -62,6 +62,7 @@ import {
   isOwnerTag,
   localTag,
   removeTag,
+  repost,
   subOrigin,
   tagOrigin,
   top
@@ -234,7 +235,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
-    if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != this.ref.sources![0]) {
+    if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
         ? of(this.store.view.top)
         : this.refs.getCurrent(this.url)

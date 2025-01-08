@@ -317,3 +317,7 @@ export function removeTag(tag: string | undefined, tags: string[]): string[] {
 export function top(ref?: Ref) {
   return ref?.sources?.[1] || ref?.sources?.[0] || ref?.url || '';
 }
+
+export function repost(ref?: Ref) {
+  return ref?.sources?.[0] || '';
+}

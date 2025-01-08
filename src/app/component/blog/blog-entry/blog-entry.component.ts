@@ -48,7 +48,7 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme, printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, isOwnerTag, localTag, tagOrigin } from '../../../util/tag';
+import { hasTag, isOwnerTag, localTag, repost, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
 
 @Component({
@@ -132,7 +132,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
     this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
     this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
-    if (this.repost && this.ref && this.repostRef?.url != this.ref.sources![0]) {
+    if (this.repost && this.ref && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
           ? of(this.store.view.top)
           : this.refs.getCurrent(this.url)

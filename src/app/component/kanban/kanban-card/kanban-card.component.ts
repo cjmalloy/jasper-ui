@@ -32,7 +32,7 @@ import { Store } from '../../../store/store';
 import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { expandedTagsInclude, hasTag } from '../../../util/tag';
+import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -91,7 +91,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     this.todo = !!this.admin.getPlugin('plugin/todo') && !!this.ref.tags?.includes('plugin/todo');
     this.chess = !!this.admin.getPlugin('plugin/chess') && !!this.ref.tags?.includes('plugin/chess');
     this.chessWhite = !!this.ref.tags?.includes(this.store.account.localTag);
-    if (this.repost && this.ref && this.repostRef?.url != this.ref.sources![0]) {
+    if (this.repost && this.ref && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
           ? of(this.store.view.top)
           : this.refs.getCurrent(this.url)

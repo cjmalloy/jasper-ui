@@ -118,19 +118,32 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   reload(url?: string) {
     MemoCache.clear(this);
     url ||= this.store.view.url || '';
-    if (url !== this.store.view.ref?.url) this.store.view.clearRef();
-    if (!url) return;
-    this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() => this.store.view.versions = count));
-    this.refs.getCurrent(url).pipe(
-      catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-      map(ref => ref || { url }),
-      tap(ref => this.store.view.setRef(ref)),
-      switchMap(ref => top(ref) === url ? of(ref)
-        : this.refs.getCurrent(top(ref)).pipe(
+    if (!url) {
+      this.store.view.clearRef();
+      return;
+    }
+    if (url !== this.store.view.ref?.url) {
+      this.store.view.clearRef();
+      this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() => this.store.view.versions = count));
+      this.refs.getCurrent(url).pipe(
+        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        map(ref => ref || { url }),
+        tap(ref => this.store.view.setRef(ref)),
+        switchMap(ref => top(ref) === url ? of(ref)
+          : this.refs.getCurrent(top(ref)).pipe(
+            catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+          )),
+        tap(top => runInAction(() => this.store.view.top = top)),
+      ).subscribe();
+    } else if (top(this.store.view.ref) != this.store.view.top?.url) {
+      if (top(this.store.view.ref) === url) {
+        runInAction(() => this.store.view.top = this.store.view.ref);
+      } else {
+        this.refs.getCurrent(top(this.store.view.ref)).pipe(
           catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        )),
-      tap(top => runInAction(() => this.store.view.top = top)),
-    ).subscribe();
+        ).subscribe(top => runInAction(() => this.store.view.top = top));
+      }
+    }
     if (this.config.websockets) {
       this.watchSelf?.unsubscribe();
       this.watchSelf = this.stomp.watchRef(url).pipe(

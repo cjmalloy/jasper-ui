@@ -19,7 +19,7 @@ import { Store } from '../../../store/store';
 import { getTitle, templates } from '../../../util/format';
 import { getScheme } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, isOwnerTag } from '../../../util/tag';
+import { hasTag, isOwnerTag, repost } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -74,7 +74,7 @@ export class FileComponent implements OnChanges {
       this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
 
       this.expandPlugins = this.admin.getEmbeds(this.ref);
-      if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != this.ref.sources![0]) {
+      if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
         (this.store.view.top?.url === this.ref.sources![0]
             ? of(this.store.view.top)
             : this.refs.getCurrent(this.url)

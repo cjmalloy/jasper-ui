@@ -15,7 +15,7 @@ import { Store } from '../../../store/store';
 import { authors, clickableLink, formatAuthor, getNiceTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, tagOrigin } from '../../../util/tag';
+import { hasTag, repost, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
 
 @Component({
@@ -64,7 +64,7 @@ export class ChatEntryComponent implements OnChanges {
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);
-    if (this.bareRepost && this.ref && this.repostRef?.url != this.ref.sources![0]) {
+    if (this.bareRepost && this.ref && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
           ? of(this.store.view.top)
           : this.refs.getCurrent(this.url)
