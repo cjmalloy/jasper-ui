@@ -3,7 +3,7 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular
 import Europa from 'europa';
 import { Plugin, PluginApi } from 'europa-core';
 import { difference, uniq } from 'lodash-es';
-import { map, Observable, of, switchMap } from 'rxjs';
+import { filter, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { TagsFormComponent } from '../form/tags/tags.component';
 import { Store } from '../store/store';
 import { getMailboxes } from '../util/editor';
@@ -125,8 +125,8 @@ export class EditorService {
     }
   }
 
-  getTagPreview(tag: string): Observable<{ name?: string, tag?: string } | undefined> {
-    return this.exts.getCachedExt(tag).pipe(
+  getTagPreview(tag: string, defaultOrigin = ''): Observable<{ name?: string, tag?: string } | undefined> {
+    return this.exts.getCachedExt(tag, defaultOrigin).pipe(
       switchMap(x => {
         const templates = this.admin.getTemplates(x.tag).filter(t => t.tag);
         if (templates.length) {
@@ -154,7 +154,7 @@ export class EditorService {
           if (childTag === 'user' || childTag.startsWith('user/')) {
             a ||= '+';
           }
-          return this.exts.getCachedExt(a + childTag).pipe(
+          return this.exts.getCachedExt(a + childTag, defaultOrigin).pipe(
             map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + c.name || c.tag })),
           );
         }
@@ -164,4 +164,9 @@ export class EditorService {
     );
   }
 
+  getTagsPreview(tags: string[], defaultOrigin = '') {
+    return forkJoin(tags.map( t => this.getTagPreview(t, defaultOrigin))).pipe(
+      filter(p => !!p),
+    ) as Observable<{name: string, tag: string}[]>;
+  }
 }

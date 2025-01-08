@@ -20,7 +20,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, map, Observable, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
@@ -656,7 +656,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get tagExts$() {
-    return this.exts.getCachedExts(this.tags, this.ref.origin || '').pipe(this.admin.authorFallback);
+    return this.editor.getTagsPreview(this.tags, this.ref.origin || '');
   }
 
   @memo

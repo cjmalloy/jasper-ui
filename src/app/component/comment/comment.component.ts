@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { delay, groupBy, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import {
@@ -37,6 +37,7 @@ import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
+import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
@@ -101,6 +102,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     private auth: AuthzService,
     private refs: RefService,
     private exts: ExtService,
+    private editor: EditorService,
     private ts: TaggingService,
     private bookmarks: BookmarkService,
     private el: ElementRef<HTMLDivElement>,
@@ -265,7 +267,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @memo
   get tagExts$() {
-    return this.exts.getCachedExts(this.tagged, this.ref.origin || '').pipe(this.admin.extFallbacks);
+    return this.editor.getTagsPreview(this.tagged, this.ref.origin || '');
   }
 
   @memo

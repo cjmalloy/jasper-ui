@@ -277,7 +277,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
 
   @memo
   get tagExts$() {
-    return this.exts.getCachedExts(this.tags, this.ref.origin || '').pipe(this.admin.authorFallback);
+    return this.editor.getTagsPreview(this.tags, this.ref.origin || '');
   }
 
   @memo
