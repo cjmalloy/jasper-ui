@@ -3,10 +3,14 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular
 import Europa from 'europa';
 import { Plugin, PluginApi } from 'europa-core';
 import { difference, uniq } from 'lodash-es';
+import { map, Observable, of, switchMap } from 'rxjs';
 import { TagsFormComponent } from '../form/tags/tags.component';
 import { Store } from '../store/store';
 import { getMailboxes } from '../util/editor';
 import { getPath } from '../util/http';
+import { access, removePrefix } from '../util/tag';
+import { AdminService } from './admin.service';
+import { ExtService } from './api/ext.service';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -16,6 +20,8 @@ export class EditorService {
 
   constructor(
     private config: ConfigService,
+    private admin: AdminService,
+    private exts: ExtService,
     private store: Store,
   ) {
     const superscriptProvider = (api: PluginApi): Plugin => ({
@@ -117,6 +123,45 @@ export class EditorService {
     for (const t of mailboxes) {
       (group.get('tags') as UntypedFormArray).push(fb.control(t, TagsFormComponent.validators));
     }
+  }
+
+  getTagPreview(tag: string): Observable<{ name?: string, tag?: string } | undefined> {
+    return this.exts.getCachedExt(tag).pipe(
+      switchMap(x => {
+        const templates = this.admin.getTemplates(x.tag).filter(t => t.tag);
+        if (templates.length) {
+          const longestMatch = templates[templates.length - 1];
+          if (x.tag === longestMatch.tag) return of(longestMatch);
+          return of({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (x.name || x.tag) });
+        }
+        if (x.modified && x.origin === this.store.account.origin) return of(x);
+        const plugin = this.admin.getPlugin(x.tag);
+        if (plugin) return of(plugin);
+        const parentPlugins = this.admin.getParentPlugins(x.tag);
+        if (parentPlugins.length) {
+          const longestMatch = parentPlugins[parentPlugins.length - 1];
+          if (x.tag === longestMatch.tag) return of(longestMatch);
+          const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
+          if (longestMatch.tag === 'plugin/outbox') {
+            const origin = childTag.substring(0, childTag.indexOf('/'));
+            const remoteTag = childTag.substring(origin.length + 1);
+            const originFormat = origin ? ' @' + origin : '';
+            return this.exts.getCachedExt(remoteTag, origin).pipe(
+              map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
+            );
+          }
+          let a = access(x.tag);
+          if (childTag === 'user' || childTag.startsWith('user/')) {
+            a ||= '+';
+          }
+          return this.exts.getCachedExt(a + childTag).pipe(
+            map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + c.name || c.tag })),
+          );
+        }
+        if (x.modified) return of(x);
+        return of(undefined);
+      })
+    );
   }
 
 }

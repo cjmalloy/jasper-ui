@@ -1,11 +1,12 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, uniqBy } from 'lodash-es';
-import { Subscription } from 'rxjs';
+import { catchError, of, Subscription, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { AdminService } from '../service/admin.service';
 import { RefService } from '../service/api/ref.service';
 import { ConfigService } from '../service/config.service';
+import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { getPageTitle } from '../util/format';
 import { getErrorMessage } from './errors';
@@ -69,6 +70,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     public store: Store,
     private config: FormlyConfig,
     private refs: RefService,
+    private editor: EditorService,
     private admin: AdminService,
     private cd: ChangeDetectorRef,
   ) {
@@ -115,9 +117,18 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     if (this.showError) return;
     if (value === this.previewUrl) return;
     this.previewUrl = value;
-    this.refs.getCurrent(value).subscribe(ref => {
-      this.preview = getPageTitle(ref);
-      this.cd.detectChanges();
+    this.refs.getCurrent(value).pipe(
+      catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+    ).subscribe(ref => {
+      if (ref) {
+        this.preview = getPageTitle(ref);
+        this.cd.detectChanges();
+      } else if (value.toLowerCase().startsWith('tag:/')) {
+        this.editor.getTagPreview(value.substring('tag:/'.length)).subscribe(x => {
+          this.preview = x?.name || x?.tag || '';
+          this.cd.detectChanges();
+        });
+      }
     });
   }
 

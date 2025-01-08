@@ -124,7 +124,10 @@ export function getTitle(ref: Ref | undefined): string {
   const title = (ref.title || '').trim();
   const comment = (ref.comment || '').trim();
   if (title) return title;
-  if (!comment) return ref.url;
+  if (!comment) {
+    if (ref.url.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
+    return ref.url;
+  }
   return trimCommentForTitle(comment);
 }
 
@@ -137,6 +140,7 @@ export function getNiceTitle(ref: Ref | undefined): string {
     if (ref.url.startsWith('cache:')) return '';
     if (ref.url.startsWith('comment:')) return '';
     if (ref.url.startsWith('internal:')) return '';
+    if (ref.url.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
     return ref.url;
   }
   return trimCommentForTitle(comment);
@@ -148,7 +152,11 @@ export function getPageTitle(ref: Ref | undefined, top?: Ref): string {
   const comment = (ref.comment || '').trim();
   if (title) return title;
   if (top?.title) return $localize`Re: ` + getTitle(top);
-  if (!comment) return top?.comment ? ($localize`Re: ` + getTitle(top)) : ref.url;
+  if (!comment) {
+    if (top?.comment) return $localize`Re: ` + getTitle(top);
+    if (ref.url.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
+    return ref.url;
+  }
   return trimCommentForTitle(comment);
 }
 

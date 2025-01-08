@@ -1,8 +1,8 @@
 import { Component, ElementRef, Input, OnInit } from '@angular/core';
 import { AdminService } from '../../service/admin.service';
-import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
+import { EditorService } from '../../service/editor.service';
 import { VisibilityService } from '../../service/visibility.service';
 import { getPath, parseParams } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
@@ -32,7 +32,7 @@ export class NavComponent implements OnInit {
     private config: ConfigService,
     private admin: AdminService,
     private refs: RefService,
-    private exts: ExtService,
+    private editor: EditorService,
     private vis: VisibilityService,
     private el: ElementRef,
   ) { }
@@ -41,9 +41,8 @@ export class NavComponent implements OnInit {
     if (this.localUrl) {
       this.nav = this.getNav();
       if (this.nav[0] === '/tag' && !this.external && !this.hasText) {
-        this.exts.getCachedExt(this.nav[1] as string)
-          .pipe(this.admin.extFallback)
-          .subscribe(x => this.text = x.name || this.text);
+        this.editor.getTagPreview(this.nav[1] as string)
+          .subscribe(x => this.text = x?.name || this.text || x?.tag || '');
       }
     } else if (!this.external) {
       this.vis.notifyVisible(this.el, () => {
@@ -91,7 +90,9 @@ export class NavComponent implements OnInit {
 
   get hasText() {
     if (!this.text || hasPrefix(this.text, 'user')) return false;
-    if (this.url.startsWith('/tag/') && this.text === '#' + this.url.substring('/tag/'.length)) return false;
+    if (this.url.startsWith('/tag/') || this.url.toLowerCase().startsWith('tag:/')) {
+      if (this.text === '#' + this.url.substring(5)) return false;
+    }
     return this.text != this.url;
   }
 
