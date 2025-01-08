@@ -17,8 +17,6 @@ export class SubfolderComponent {
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
-  tag?: string;
-  @Input()
   ext!: Ext;
   @Input()
   name?: string;
@@ -42,6 +40,6 @@ export class SubfolderComponent {
 
   saveExt() {
     this.query.clear();
-    runInAction(() => this.store.view.exts = [this.ext]);
+    if (this.ext) runInAction(() => this.store.view.exts = [this.ext!]);
   }
 }

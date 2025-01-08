@@ -60,7 +60,23 @@ export class FolderComponent implements OnChanges, HasChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.tag || changes.ext) {
+    if (changes.tag) {
+      delete this.parent;
+      if (this.tag?.includes('/')) {
+        this.exts.getCachedExt(this.tag.substring(0, this.tag.lastIndexOf('/')))
+          .subscribe(ext => this.parent = ext);
+      }
+      this.folderSubscription?.unsubscribe();
+      if (!this.tag) return;
+      this.folderSubscription = this.exts.page({
+        query: this.tag + this.ext.origin,
+        level: level(this.tag) + 1,
+        size: 100
+      }).subscribe(page => {
+        this.folderExts = page.content;
+      });
+    }
+    if (changes.ext) {
       this.files = {};
       this.subfolders = {};
       this.folderExts = [];
@@ -69,21 +85,8 @@ export class FolderComponent implements OnChanges, HasChanges {
       this.cursor = this.ext.modifiedString!;
       this.files = mapValues(toJS(this.ext.config.files) || {}, p => this.transform(p));
       for (const e of Object.entries<Pos>(toJS(this.ext.config.subfolders) || {})) {
-        this.subfolders[e[0] !== '..' ? this.ext!.tag + '/' + e[0] : '..'] = this.transform(e[1]);
+        this.subfolders[e[0] !== '..' ? this.tag + '/' + e[0] : '..'] = this.transform(e[1]);
       }
-      delete this.parent;
-      if (this.ext!.tag.includes('/')) {
-        this.exts.getCachedExt(this.ext!.tag.substring(0, this.ext!.tag.lastIndexOf('/')))
-          .subscribe(ext => this.parent = ext);
-      }
-      this.folderSubscription?.unsubscribe();
-      this.folderSubscription = this.exts.page({
-        query: this.ext.tag + this.ext.origin,
-        level: level(this.ext.tag) + 1,
-        size: 100
-      }).subscribe(page => {
-        this.folderExts = page.content;
-      });
     }
   }
 
