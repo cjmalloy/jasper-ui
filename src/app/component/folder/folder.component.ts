@@ -73,7 +73,7 @@ export class FolderComponent implements OnChanges, HasChanges {
           .subscribe(ext => this.parent = ext);
       }
       this.exts.page({
-        query: this.ext.tag,
+        query: this.ext.tag + this.ext.origin,
         level: level(this.ext.tag) + 1,
         size: 100
       }).subscribe(page => {
