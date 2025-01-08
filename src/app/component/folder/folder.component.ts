@@ -22,9 +22,7 @@ import { level } from '../../util/tag';
 export class FolderComponent implements OnChanges, HasChanges {
 
   @Input()
-  tag = ''
-  @Input()
-  ext?: Ext;
+  ext!: Ext;
   @Input()
   pinned?: Ref[] | null;
   @Input()
@@ -32,6 +30,7 @@ export class FolderComponent implements OnChanges, HasChanges {
 
   error: any;
 
+  parent?: Ext;
   flatten = false;
   files: Record<string, string | undefined> = {};
   subfolders: Record<string, string | undefined> = {};
@@ -60,6 +59,7 @@ export class FolderComponent implements OnChanges, HasChanges {
     if (changes.tag || changes.ext) {
       this.files = {};
       this.subfolders = {};
+      this.folderExts = [];
       this.flatten = this.ext?.config.flatten;
       if (!this.ext) return;
       this.cursor = this.ext.modifiedString!;
@@ -67,8 +67,13 @@ export class FolderComponent implements OnChanges, HasChanges {
       for (const e of Object.entries<Pos>(toJS(this.ext.config.subfolders) || {})) {
         this.subfolders[e[0] !== '..' ? this.ext!.tag + '/' + e[0] : '..'] = this.transform(e[1]);
       }
+      delete this.parent;
+      if (this.ext!.tag.includes('/')) {
+        this.exts.getCachedExt(this.ext!.tag.substring(0, this.ext!.tag.lastIndexOf('/')))
+          .subscribe(ext => this.parent = ext);
+      }
       this.exts.page({
-        query: this.tag,
+        query: this.ext.tag,
         level: level(this.ext.tag) + 1,
         size: 100
       }).subscribe(page => {
@@ -130,11 +135,6 @@ export class FolderComponent implements OnChanges, HasChanges {
         y: Math.floor(target.getBoundingClientRect().y + window.scrollY - this.el.nativeElement.offsetTop),
       },
     }]).subscribe(cursor => this.cursor = cursor);
-  }
-
-  get parent() {
-    if (!this.ext!.tag.includes('/')) return '';
-    return this.ext!.tag.substring(0, this.ext!.tag.lastIndexOf('/'));
   }
 
   inSubfolder(ref: Ref) {

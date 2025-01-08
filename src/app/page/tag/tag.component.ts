@@ -1,5 +1,5 @@
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { defer, uniq } from 'lodash-es';
+import { defer, isEqualWith, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { LensComponent } from '../../component/lens/lens.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -55,7 +55,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
         this.exts.getCachedExts(this.store.view.queryTags)
           .pipe(this.admin.extFallbacks)
           .subscribe(exts => {
-            runInAction(() => this.store.view.exts = exts);
+            if (!isEqualWith(exts, this.store.view.exts, x => x.tag)) runInAction(() => this.store.view.exts = exts);
             this.loading = false;
         });
       }

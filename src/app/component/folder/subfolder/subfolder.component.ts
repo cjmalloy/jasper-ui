@@ -1,6 +1,9 @@
 import { Component, HostBinding, Input } from '@angular/core';
+import { runInAction } from 'mobx';
+import { Ext } from '../../../model/ext';
 import { Action, Icon } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
+import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 
 @Component({
@@ -14,7 +17,7 @@ export class SubfolderComponent {
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
-  tag?: string;
+  ext!: Ext;
   @Input()
   name?: string;
   @Input()
@@ -27,6 +30,7 @@ export class SubfolderComponent {
   constructor(
     public admin: AdminService,
     public store: Store,
+    private query: QueryStore,
   ) { }
 
   get thumbnail() {
@@ -34,4 +38,8 @@ export class SubfolderComponent {
     return '';
   }
 
+  saveExt() {
+    this.query.clear();
+    runInAction(() => this.store.view.exts = [this.ext]);
+  }
 }

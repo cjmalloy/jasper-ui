@@ -8,7 +8,7 @@
                    (cdkDragStarted)="startMoving($any($event.event.target))"
                    (cdkDragMoved)="moveFolder(ext!.tag, $any($event.event.target))"
                    (cdkDragEnded)="dragging = false"
-                   [tag]="parent"
+                   [ext]="parent"
                    [name]="'..'"></app-subfolder>
   }
   @for (f of folderExts; track f.tag) {
@@ -20,7 +20,7 @@
                    (cdkDragStarted)="startMoving($any($event.event.target))"
                    (cdkDragMoved)="moveFolder(f.tag, $any($event.event.target))"
                    (cdkDragEnded)="dragging = false"
-                   [tag]="f.tag"
+                   [ext]="f"
                    [name]="f.name || f.tag"></app-subfolder>
   }
   @for (ref of page?.content; track ref.origin + '@' + ref.url) {
