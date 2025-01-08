@@ -64,17 +64,20 @@ export class ChatEntryComponent implements OnChanges {
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);
-    if (this.ref && this.bareRepost && !this.repostRef) {
-      this.refs.getCurrent(this.url).pipe(
+    if (this.bareRepost && this.ref && this.repostRef?.url != this.ref.sources![0]) {
+      (this.store.view.top?.url === this.ref.sources![0]
+          ? of(this.store.view.top)
+          : this.refs.getCurrent(this.url)
+      ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       ).subscribe(ref => {
         this.repostRef = ref;
-          if (!ref) return;
-          this.noComment = {
-            ...ref,
-            comment: '',
-          };
-        });
+        if (!ref) return;
+        this.noComment = {
+          ...ref,
+          comment: '',
+        };
+      });
     } else {
       this.noComment = {
         ...this.ref,
@@ -220,6 +223,10 @@ export class ChatEntryComponent implements OnChanges {
       user = user.replace(this.store.account.origin, '');
     }
     return formatAuthor(user);
+  }
+
+  saveRef() {
+    this.store.view.setRef(this.ref, this.repostRef);
   }
 
   tag$ = (tag: string) => {

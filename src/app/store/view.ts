@@ -65,11 +65,12 @@ export class ViewStore {
     this.clear(); // Initial observables may not be null for MobX
   }
 
-  setRef(ref?: Ref) {
+  setRef(ref?: Ref, top?: Ref) {
     if (this.ref && this.ref !== ref) {
       this.lastSelected = this.ref;
     }
     this.ref = ref;
+    if (top) this.top = top;
   }
 
   setLastSelected(ref?: Ref) {

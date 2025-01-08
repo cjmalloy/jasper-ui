@@ -234,21 +234,22 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
-    if (this.repost) {
-      if (this.ref && this.fetchRepost && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-        this.refs.getCurrent(this.url).pipe(
+    if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != this.ref.sources![0]) {
+      (this.store.view.top?.url === this.ref.sources![0]
+        ? of(this.store.view.top)
+        : this.refs.getCurrent(this.url)
+      ).pipe(
           catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        ).subscribe(ref => {
-          this.repostRef = ref;
-          if (!ref) return;
-          MemoCache.clear(this);
-          if (this.bareRepost) {
-            this.expandPlugins = this.admin.getEmbeds(ref);
-          } else {
-            this.expandPlugins.push('plugin/repost');
-          }
-        });
-      }
+      ).subscribe(ref => {
+        this.repostRef = ref;
+        if (!ref) return;
+        MemoCache.clear(this);
+        if (this.bareRepost) {
+          this.expandPlugins = this.admin.getEmbeds(ref);
+        } else {
+          this.expandPlugins.push('plugin/repost');
+        }
+      });
     }
   }
 
@@ -812,6 +813,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
     return hydrate(plugin.config, 'infoUi', getPluginScope(plugin, this.ref));
+  }
+
+  saveRef() {
+    this.store.view.setRef(this.ref, this.repostRef);
   }
 
   formatAuthor(user: string) {

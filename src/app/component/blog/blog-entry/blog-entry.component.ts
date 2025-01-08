@@ -132,15 +132,13 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
     this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
     this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
-    if (this.repost) {
-      if (this.ref && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-        this.refs.getCurrent(this.url).pipe(
-          catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        ).subscribe(ref => {
-          this.repostRef = ref;
-          MemoCache.clear(this);
-        });
-      }
+    if (this.repost && this.ref && this.repostRef?.url != this.ref.sources![0]) {
+      (this.store.view.top?.url === this.ref.sources![0]
+          ? of(this.store.view.top)
+          : this.refs.getCurrent(this.url)
+      ).pipe(
+        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+      ).subscribe(ref => this.repostRef = ref);
     }
   }
 
@@ -310,6 +308,10 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
       user = user.replace(this.store.account.origin, '');
     }
     return formatAuthor(user);
+  }
+
+  saveRef() {
+    this.store.view.setRef(this.ref, this.repostRef);
   }
 
   download() {

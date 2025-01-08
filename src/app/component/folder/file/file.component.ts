@@ -74,21 +74,22 @@ export class FileComponent implements OnChanges {
       this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
 
       this.expandPlugins = this.admin.getEmbeds(this.ref);
-      if (this.repost) {
-        if (this.ref && this.fetchRepost && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-          this.refs.getCurrent(this.url).pipe(
-            catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-          ).subscribe(ref => {
-            this.repostRef = ref;
-            if (!ref) return;
-            MemoCache.clear(this);
-            if (this.bareRepost) {
-              this.expandPlugins = this.admin.getEmbeds(ref);
-            } else {
-              this.expandPlugins.push('plugin/repost');
-            }
-          });
-        }
+      if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != this.ref.sources![0]) {
+        (this.store.view.top?.url === this.ref.sources![0]
+            ? of(this.store.view.top)
+            : this.refs.getCurrent(this.url)
+        ).pipe(
+          catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        ).subscribe(ref => {
+          this.repostRef = ref;
+          if (!ref) return;
+          MemoCache.clear(this);
+          if (this.bareRepost) {
+            this.expandPlugins = this.admin.getEmbeds(ref);
+          } else {
+            this.expandPlugins.push('plugin/repost');
+          }
+        });
       }
     }
   }
@@ -170,6 +171,10 @@ export class FileComponent implements OnChanges {
   @memo
   get isRecipient() {
     return hasTag(this.store.account.mailbox, this.ref);
+  }
+
+  saveRef() {
+    this.store.view.setRef(this.ref, this.repostRef);
   }
 
   showIcon(i: Icon) {

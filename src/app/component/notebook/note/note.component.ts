@@ -91,8 +91,11 @@ export class NoteComponent implements OnChanges, AfterViewInit {
     this.todo = !!this.admin.getPlugin('plugin/todo') && !!this.ref.tags?.includes('plugin/todo');
     this.chess = !!this.admin.getPlugin('plugin/chess') && !!this.ref.tags?.includes('plugin/chess');
     this.chessWhite = !!this.ref.tags?.includes(this.store.account.localTag);
-    if (this.repost && this.ref && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-      this.refs.getCurrent(this.url).pipe(
+    if (this.repost && this.ref && this.repostRef?.url != this.ref.sources![0]) {
+      (this.store.view.top?.url === this.ref.sources![0]
+          ? of(this.store.view.top)
+          : this.refs.getCurrent(this.url)
+      ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       ).subscribe(ref => this.repostRef = ref);
     }
@@ -291,6 +294,10 @@ export class NoteComponent implements OnChanges, AfterViewInit {
         }
       });
     });
+  }
+
+  saveRef() {
+    this.store.view.setRef(this.ref, this.repostRef);
   }
 
   close() {
