@@ -97,6 +97,12 @@ export const originPullPlugin: Plugin = {
       props: {
         label: $localize`Prefetch Proxy Cache during Replicate:`,
       }
+    }, {
+      key: 'websocket',
+      type: 'boolean',
+      props: {
+        label: $localize`Listen to Websocket Cursor updates to Pull:`,
+      }
     }],
     advancedForm: [{
       key: 'query',
@@ -151,6 +157,7 @@ export const originPullPlugin: Plugin = {
   },
   defaults: {
     cache: true,
+    websocket: true,
     generateMetadata: true,
     validatePlugins: true,
     validateTemplates: true,
@@ -160,6 +167,7 @@ export const originPullPlugin: Plugin = {
       cache: { type: 'boolean' },
       cacheProxy: { type: 'boolean' },
       cacheProxyPrefetch: { type: 'boolean' },
+      websocket: { type: 'boolean' },
       query: { type: 'string' },
       batchSize: { type: 'int32' },
       generateMetadata: { type: 'boolean' },
