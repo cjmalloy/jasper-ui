@@ -3,17 +3,23 @@ import { Component, HostBinding } from '@angular/core';
 import { FieldArrayType } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Store } from '../store/store';
+import { getPath } from '../util/http';
 
 @Component({
   standalone: false,
   selector: 'formly-list-section',
   template: `
     <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>
-    <div class="form-group"
+    <div #fg
+         class="form-group"
          cdkDropList
          cdkScrollable
          [cdkDropListData]="this"
-         (cdkDropListDropped)="drop($any($event))">
+         (cdkDropListDropped)="drop($any($event))"
+         [class.dropping]="dropping"
+         (drop)="dnd($event)"
+         (dragenter)="dropping = true"
+         (dragleave)="dragLeave(fg, $any($event.target))">
       @if (props.showAdd !== false) {
         <button type="button" (click)="add()">{{ props.addText }}</button>
       }
@@ -36,6 +42,8 @@ import { Store } from '../store/store';
   `,
 })
 export class ListTypeComponent extends FieldArrayType {
+
+  dropping = false;
 
   constructor(
     private store: Store,
@@ -149,5 +157,46 @@ export class ListTypeComponent extends FieldArrayType {
       event.previousContainer.data.remove(event.previousIndex);
     }
     super.add(event.currentIndex, event.item.data);
+  }
+
+  dnd(event: DragEvent) {
+    this.dropping = false;
+    event.preventDefault();
+    event.stopPropagation();
+    const items = event.dataTransfer?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      const d = items[i];
+      if (d?.kind !== 'string') continue;
+      if (d?.type !== 'text/plain') continue;
+      d.getAsString(url => {
+        let path = getPath(url) || url;
+        if (path.startsWith('/tag/')) {
+          // @ts-ignore
+          switch(this.field.fieldArray?.type) {
+            case 'url':
+            case 'ref':
+            case 'pdf':
+            case 'qr':
+            case 'audio':
+            case 'video':
+            case 'image':
+              this.add(undefined, 'tag:' + path.substring('/tag'.length));
+              return;
+          }
+          this.add(undefined, path.substring('/tag/'.length));
+        } else if (path.startsWith('/ref/')) {
+          this.add(undefined, path.substring('/ref/'.length));
+        } else {
+          this.add(undefined, url);
+        }
+      });
+    }
+  }
+
+  dragLeave(parent: HTMLElement, target: HTMLElement) {
+    if (this.dropping && parent === target || !parent.contains(target)) {
+      this.dropping = false;
+    }
   }
 }

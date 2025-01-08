@@ -8,11 +8,11 @@
   <app-links #alts
              fieldName="alternateUrls"
              i18n-label label="Alts:"
-             [showLabel]="!!alts.links?.length"
+             [showLabel]="dropping || !!alts.links?.length"
              i18n-emoji emoji="📎️"
              [showAdd]="false"
              [group]="group"
-             [class.no-margin]="!alts.links?.length"></app-links>
+             [class.no-margin]="!dropping && !alts.links?.length"></app-links>
 
   <label for="title" i18n>Title:</label>
   <div class="form-array">
@@ -49,11 +49,11 @@
              id="sources"
              fieldName="sources"
              i18n-label label="Sources:"
-             [showLabel]="!!sources.links?.length"
+             [showLabel]="dropping || !!sources.links?.length"
              i18n-emoji emoji="🔗️"
              [showAdd]="false"
              [group]="group"
-             [class.no-margin]="!sources.links?.length"></app-links>
+             [class.no-margin]="!dropping && !sources.links?.length"></app-links>
 
   <div class="add-plugins-label">
     <label for="plugins" class="mobile-inline" i18n>Add Plugin:</label>

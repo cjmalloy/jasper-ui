@@ -1,4 +1,13 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostBinding,
+  HostListener,
+  Input,
+  Output,
+  ViewChild
+} from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer, uniq, without } from 'lodash-es';
 import { catchError, map, of, switchMap } from 'rxjs';
@@ -41,6 +50,9 @@ export class RefFormComponent {
   plugins!: PluginsFormComponent;
   @ViewChild('fill')
   fill?: ElementRef;
+
+  @HostBinding('class.show-drops')
+  dropping = false;
 
   oembed?: Oembed;
   scraped?: Ref;
@@ -93,6 +105,16 @@ export class RefFormComponent {
 
   get addEditorTitle() {
     return $localize`Add ` + this.editorLabel.toLowerCase();
+  }
+
+  @HostListener('dragenter')
+  onDragEnter() {
+    this.dropping = true;
+  }
+
+  @HostListener('window:dragend')
+  OnDragEnd() {
+    this.dropping = false;
   }
 
   validate(input: HTMLInputElement) {
