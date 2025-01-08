@@ -2,6 +2,7 @@ import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
 import { toJS } from 'mobx';
+import { Subscription } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -42,6 +43,7 @@ export class FolderComponent implements OnChanges, HasChanges {
   zIndex = 1;
 
   private _page?: Page<Ref>;
+  private folderSubscription?: Subscription;
 
   // TODO: handle resize moving relatively positioned moved tiles
 
@@ -74,7 +76,8 @@ export class FolderComponent implements OnChanges, HasChanges {
         this.exts.getCachedExt(this.ext!.tag.substring(0, this.ext!.tag.lastIndexOf('/')))
           .subscribe(ext => this.parent = ext);
       }
-      this.exts.page({
+      this.folderSubscription?.unsubscribe();
+      this.folderSubscription = this.exts.page({
         query: this.ext.tag + this.ext.origin,
         level: level(this.ext.tag) + 1,
         size: 100
