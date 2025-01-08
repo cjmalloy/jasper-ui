@@ -1058,23 +1058,29 @@ video.qr-preview {
     }
   }
 
-  .info, .actions, .advanced-actions * {
-    font-size: 16px;
-    line-height: 28px;
-    height: 28px;
-    padding-top: 0;
-    padding-bottom: 0;
-    overflow-y: hidden;
-    overflow-x: auto;
-    white-space: nowrap;
-    &::-webkit-scrollbar {
-      display: none;
-    }
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  .bulk.actions .action * {
+    display: block;
+  }
 
-    a, .fake-link {
+  .ref, .ext {
+    .info, .actions, .advanced-actions * {
+      font-size: 16px;
       line-height: 28px;
+      height: 28px;
+      padding-top: 0;
+      padding-bottom: 0;
+      overflow-y: hidden;
+      overflow-x: auto;
+      white-space: nowrap;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+
+      a, .fake-link {
+        line-height: 28px;
+      }
     }
   }
 
