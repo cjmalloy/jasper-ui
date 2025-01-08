@@ -30,7 +30,9 @@
       (pointerenter)="allowActions = true"
       (pointerleave)="allowActions = false">
   <div [class.has-title]="clickableLink || title && !focused">
-    @if (clickableLink && (title && !focused || !media)) {
+    @if (tagLink) {
+      <app-nav [url]="ref.url" [text]="title"></app-nav>
+    } @else if (clickableLink && (title && !focused || !media)) {
       <app-nav [url]="ref.url" [text]="title" [external]="true"></app-nav>
     } @else {
       <span>{{ title }}</span>

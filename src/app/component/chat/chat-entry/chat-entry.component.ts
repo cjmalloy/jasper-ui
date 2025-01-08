@@ -139,6 +139,11 @@ export class ChatEntryComponent implements OnChanges {
   }
 
   @memo
+  get tagLink() {
+    return this.url.toLowerCase().startsWith('tag:/');
+  }
+
+  @memo
   get clickableLink() {
     return clickableLink(this.url);
   }

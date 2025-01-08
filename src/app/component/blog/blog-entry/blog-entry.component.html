@@ -1,7 +1,9 @@
 <div class="row">
   <div class="stack">
     <h2 class="link blog-title" [class.remote]="!local">
-      @if (clickableLink) {
+      @if (tagLink) {
+        <app-nav [url]="url" [text]="title"></app-nav>
+      } @else if (clickableLink) {
         <app-nav [url]="url" [text]="title" [external]="true"></app-nav>
       } @else {
         <span>{{ title }}</span>

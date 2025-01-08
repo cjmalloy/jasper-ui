@@ -695,6 +695,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get tagLink() {
+    return this.url.toLowerCase().startsWith('tag:/');
+  }
+
+  @memo
   get clickableLink() {
     if (this.file) return true;
     return clickableLink(this.url);

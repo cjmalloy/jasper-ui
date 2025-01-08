@@ -281,6 +281,11 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   @memo
+  get tagLink() {
+    return this.url.toLowerCase().startsWith('tag:/');
+  }
+
+  @memo
   get clickableLink() {
     return clickableLink(this.ref.url);
   }

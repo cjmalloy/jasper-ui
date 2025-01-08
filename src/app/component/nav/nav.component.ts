@@ -57,6 +57,9 @@ export class NavComponent implements OnInit {
   }
 
   getNav() {
+    if (this.url.toLowerCase().startsWith('tag:/')) {
+      return ['/tag', getPath(this.url.substring('tag:'.length))!.substring(1)];
+    }
     let path = getPath(this.url) || '';
     const basePath = getPath(this.config.base)!;
     if (path.startsWith(basePath)) {
@@ -79,6 +82,7 @@ export class NavComponent implements OnInit {
   }
 
   get localUrl() {
+    if (this.url.toLowerCase().startsWith('tag:/'))return true
     if (this.url.startsWith(this.config.base)) return true
     if (this.url.startsWith(getPath(this.config.base)!)) return true;
     if (this.url.startsWith('/')) return true;

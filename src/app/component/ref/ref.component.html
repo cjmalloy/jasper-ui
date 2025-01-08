@@ -31,7 +31,9 @@
          [class.comment-title]="!ref.title"
          [class.redundant]="redundantLink"
          [attr.title]="altText">
-      @if (clickableLink) {
+      @if (tagLink) {
+        <app-nav [url]="url" [text]="title"></app-nav>
+      } @else if (clickableLink) {
         <app-nav [url]="link" [text]="title" [external]="true"></app-nav>
       } @else {
         <a [routerLink]="defaultView ? ['/ref', url, defaultView] : ['/ref', url]"
