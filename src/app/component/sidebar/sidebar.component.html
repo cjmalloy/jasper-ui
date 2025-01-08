@@ -212,7 +212,7 @@
   @if (!home && expanded) {
     @for (res of queryExts$ | async; track res) {
       <h5>{{ res.ext.name || res.ext.tag}} Tags:</h5>
-      @for (c of res.children; track ext) {
+      @for (c of res.children; track c.tag + c.origin) {
         <app-ext [ext]="c" [useEditPage]="true"></app-ext>
       }
       @if (res.more) {
