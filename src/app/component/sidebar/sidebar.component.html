@@ -223,5 +223,8 @@
         </a>
       }
     }
+    @if (chat) {
+      <app-chat query="chat" [responseOf]="store.view.ref"></app-chat>
+    }
   }
 </ng-container>

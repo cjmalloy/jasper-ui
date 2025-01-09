@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
-import { defer } from 'lodash-es';
+import { defer, uniq } from 'lodash-es';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
@@ -15,7 +15,7 @@ import { Store } from '../../../store/store';
 import { authors, clickableLink, formatAuthor, getNiceTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, repost, tagOrigin } from '../../../util/tag';
+import { hasTag, localTag, repost, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
 
 @Component({
@@ -130,7 +130,11 @@ export class ChatEntryComponent implements OnChanges {
 
   @memo
   get authors() {
-    return authors(this.ref, this.store.view.ext?.config?.authorTags || []);
+    const lookup = this.store.origins.originMap.get(this.ref.origin || '');
+    return uniq([
+      ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
+      ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
+    ]);
   }
 
   @memo

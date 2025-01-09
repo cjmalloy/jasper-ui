@@ -19,6 +19,7 @@ export const backgammonPlugin: Plugin = {
       { query: 'plugin/backgammon', label: $localize`🎲️ backgammon`, title: $localize`Backgammon games`, group: $localize`Games 🕹️` },
     ],
     actions: [
+      { tag: 'plugin/chat', labelOff: $localize`chat`, title: $localize`Open chatroom` },
       { event: 'flip', label: $localize`flip`, title: $localize`Spin the board 180 degrees.` },
       { event: 'reload', label: $localize`reload`, title: $localize`Reload the game.`  },
     ],

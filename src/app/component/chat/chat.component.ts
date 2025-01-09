@@ -1,5 +1,5 @@
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { Component, Input, OnDestroy, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
@@ -24,14 +24,18 @@ import { braces, tagOrigin } from '../../util/tag';
   styleUrls: ['./chat.component.scss'],
   host: {'class': 'chat ext'}
 })
-export class ChatComponent implements OnDestroy, HasChanges {
+export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   private destroy$ = new Subject<void>();
   itemSize = 18.5;
+
+  @Input()
+  query = 'chat';
+  @Input()
+  responseOf?: Ref;
 
   @ViewChild(CdkVirtualScrollViewport)
   viewport!: CdkVirtualScrollViewport;
 
-  _query!: string;
   cursors = new Map<string, string | undefined>();
   loadingPrev = false;
   plugins = this.store.account.defaultEditors(['plugin/latex']);
@@ -65,18 +69,10 @@ export class ChatComponent implements OnDestroy, HasChanges {
     return true;
   }
 
-  @Input()
-  set query(value: string) {
-    this._query = value;
-    this.clear();
-  }
-
-  get query() {
-    return this._query;
-  }
-
-  get containerHeight() {
-    return Math.max(300, Math.min(window.innerHeight - 400, this.itemSize * (this.messages?.length || 1)));
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.query || changes.responseOf) {
+      this.init();
+    }
   }
 
   ngOnDestroy(): void {
@@ -85,7 +81,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
     this.destroy$.complete();
   }
 
-  clear() {
+  init() {
     this.messages = undefined;
     this.cursors.clear();
     this.loadPrev(true);
@@ -95,6 +91,10 @@ export class ChatComponent implements OnDestroy, HasChanges {
         takeUntil(this.destroy$),
       ).subscribe(tag =>  this.refresh(tagOrigin(tag)));
     }
+  }
+
+  get containerHeight() {
+    return Math.max(300, Math.min(window.innerHeight - 400, this.itemSize * (this.messages?.length || 1)));
   }
 
   refresh = debounce((origin?: string) => {
@@ -124,6 +124,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
         this.store.view.pageNumber,
         this.store.view.pageSize,
       ),
+      responses: this.responseOf?.url,
       modifiedAfter: this.cursors.get(origin!)
     }).pipe(catchError(err => {
       this.setPoll(true);
@@ -156,6 +157,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
         this.store.view.pageNumber,
         Math.max(this.store.view.pageSize, !this.cursors.size ? this.initialSize : 0),
       ),
+      responses: this.responseOf?.url,
       modifiedBefore: this.messages?.[0]?.modifiedString,
     }).pipe(catchError(err => {
       this.loadingPrev = false;
@@ -231,10 +233,10 @@ export class ChatComponent implements OnDestroy, HasChanges {
     this.scrollLock = undefined;
     const newTags = uniq([
       'internal',
-      ...(uniq([this.store.view.localTag, ...this.store.view.ext?.config?.addTags || []])),
+      ...([this.store.view.localTag || 'chat', ...this.store.view.ext?.config?.addTags || []]),
       ...this.plugins,
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),]);
-    const ref = URI_REGEX.test(this.addText) ? {
+      ...(this.store.account.localTag ? [this.store.account.localTag] : [])]).filter(t => !!t);
+    const ref: Ref = URI_REGEX.test(this.addText) ? {
       url: this.editor.getRefUrl(this.addText),
       origin: this.store.account.origin,
       tags: newTags,
@@ -249,6 +251,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
   }
 
   private send(ref: Ref) {
+    if (this.responseOf) ref.sources = [this.responseOf.url];
     this.sending.push(ref);
     this.refs.create(ref).pipe(
       map(() => ref),
@@ -259,7 +262,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
             ...ref,
             url: 'comment:' + uuid(),
             tags: [...ref.tags!, 'plugin/repost'],
-            sources: [ ref.url ],
+            sources: [ ref.url, ...ref.sources || [] ],
           });
         } else {
           pull(this.sending, ref);
