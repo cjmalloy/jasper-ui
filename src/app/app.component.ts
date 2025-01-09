@@ -39,7 +39,6 @@ export class AppComponent implements AfterViewInit {
     if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
     window.addEventListener('keyup', event => {
       const hotkey = !this.hotkeyActive(event) || this.hotkey(event.key);
-      console.log('keyup ' + event.key, hotkey);
       if (this.store.hotkey && hotkey) {
         runInAction(() => this.store.hotkey = false);
         document.body.classList.remove('hotkey');
@@ -47,7 +46,6 @@ export class AppComponent implements AfterViewInit {
     }, { capture: true });
     window.addEventListener('keydown', event => {
       const hotkey = this.hotkeyActive(event) || this.hotkey(event.key);
-      console.log('keydown ' + event.key, hotkey);
       if (!this.store.hotkey && hotkey) {
         runInAction(() => this.store.hotkey = true);
         document.body.classList.add('hotkey');
