@@ -20,7 +20,7 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
-import { hasPrefix, localTag, tagOrigin, topAnds } from '../../util/tag';
+import { hasPrefix, hasTag, localTag, tagOrigin, topAnds } from '../../util/tag';
 
 type Exts = { ext: Ext, children: Ext[], more: boolean };
 
@@ -210,6 +210,10 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @memo
   get canAddTag() {
     return !this.plugin?.tag || this.auth.canAddTag(this.plugin.tag);
+  }
+
+  get chat() {
+    return !!this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.store.view.ref);
   }
 
   @memo
