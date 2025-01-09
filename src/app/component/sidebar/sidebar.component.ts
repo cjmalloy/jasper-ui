@@ -14,6 +14,7 @@ import { UserConfig } from '../../mods/user';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
+import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
@@ -75,6 +76,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     public config: ConfigService,
     private auth: AuthzService,
     private account: AccountService,
+    public ts: TaggingService,
     private exts: ExtService,
     private templates: TemplateService,
     private el: ElementRef,
@@ -335,5 +337,10 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   set showRemotes(value: boolean) {
     this.router.navigate([], { queryParams: { showRemotes: value ? true : null }, queryParamsHandling: 'merge' })
+  }
+
+  startChat() {
+    runInAction(() => this.store.view.ref?.tags?.push('plugin/chat'));
+    this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe()
   }
 }
