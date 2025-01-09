@@ -125,14 +125,14 @@ export class EditorService {
     }
   }
 
-  getTagPreview(tag: string, defaultOrigin = ''): Observable<{ name?: string, tag?: string } | undefined> {
+  getTagPreview(tag: string, defaultOrigin = ''): Observable<{ name?: string, tag: string } | undefined> {
     return this.exts.getCachedExt(tag, defaultOrigin).pipe(
       switchMap(x => {
         const templates = this.admin.getTemplates(x.tag).filter(t => t.tag);
         if (templates.length) {
           const longestMatch = templates[templates.length - 1];
           if (x.tag === longestMatch.tag) return of(longestMatch);
-          return of({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (x.name || x.tag) });
+          return of({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (x.name || x.tag) });
         }
         if (x.modified && x.origin === this.store.account.origin) return of(x);
         const plugin = this.admin.getPlugin(x.tag);
@@ -147,7 +147,7 @@ export class EditorService {
             const remoteTag = childTag.substring(origin.length + 1);
             const originFormat = origin ? ' @' + origin : '';
             return this.exts.getCachedExt(remoteTag, origin).pipe(
-              map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
+              map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
             );
           }
           let a = access(x.tag);
@@ -155,7 +155,7 @@ export class EditorService {
             a ||= '+';
           }
           return this.exts.getCachedExt(a + childTag, defaultOrigin).pipe(
-            map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + c.name || c.tag })),
+            map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + c.name || c.tag })),
           );
         }
         if (x.modified) return of(x);
@@ -164,9 +164,9 @@ export class EditorService {
     );
   }
 
-  getTagsPreview(tags: string[], defaultOrigin = '') {
+  getTagsPreview(tags: string[], defaultOrigin = ''): Observable<{ name?: string, tag?: string }[]> {
     return forkJoin(tags.map( t => this.getTagPreview(t, defaultOrigin))).pipe(
-      filter(p => !!p),
-    ) as Observable<{name: string, tag: string}[]>;
+      map(xs => xs.filter(x => !!x)),
+    ) as Observable<{name?: string, tag: string}[]>;
   }
 }
