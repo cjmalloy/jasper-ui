@@ -133,14 +133,9 @@ export const aiQueryPlugin: Plugin = {
       ];
       if (mods.length) messages.push({ role: 'system', content: msg('Mods', aiInstructions) });
       if (exts.length) messages.push({ role: 'system', content: msg('Exts', JSON.stringify(exts)) });
-      const mergeRoles = config?.provider === 'anthropic';
       for (const c of [...context.values()].sort((a, b) => (a.published > b.published) - (a.published < b.published))) {
         const role = c.tags?.includes('+plugin/delta/ai') ? 'assistant' : 'user';
-        if (mergeRoles && messages[messages.length - 1].role === role) {
-          messages[messages.length - 1].content += JSON.stringify(c);
-        } else {
-          messages.push({ role, content: JSON.stringify(c) });
-        }
+        messages.push({ role, content: JSON.stringify(c) });
       }
       if (ref.tags?.includes('+plugin/delta/ai')) {
         messages.push({ role: 'system', content: msg('Spawning Agent Prompt', systemConfig.followupPrompt) });
@@ -150,11 +145,7 @@ export const aiQueryPlugin: Plugin = {
           content: msg('Explanation of signature tag', systemConfig.responsePrompt + JSON.stringify(authors))
         });
       }
-      if (mergeRoles && messages[messages.length - 2].role === 'user') {
-        messages[messages.length - 2].content += JSON.stringify(sample);
-      } else {
-        messages.push({ role: 'user', content: JSON.stringify(sample) });
-      }
+      messages.push({ role: 'user', content: JSON.stringify(sample) });
       let completion;
       let usage;
       if (!config?.provider || config.provider === 'openai') {
@@ -1159,6 +1150,14 @@ considered their title or comment.
 Responses sent to you will only include direct sources plus 7 levels of ancestors,
 or the entire thread in the case of threads.
 Be sure to only respond to the last Ref sent to you, the others are just for context.
+
+When responding to messages, you should only directly address the most recent message
+sent to you. Previous messages in the thread should only be used for context. Each
+response should focus on answering or addressing the specific content of the latest
+message, not revisiting or re-answering earlier messages in the conversation. If the
+most recent message references or builds upon earlier messages, you may reference
+that context in your response, but your primary focus should be on the immediate
+question or topic at hand.
 `,
     // language=Handlebars
     infoUi: `{{#if model}}<span style="user-select:none;cursor:zoom-in" title="{{provider}} {{model}}: {{usage.total_tokens}} ({{usage.prompt_tokens}} + {{usage.completion_tokens}})">ℹ️ ({{model}})</span>{{/if}}`,
