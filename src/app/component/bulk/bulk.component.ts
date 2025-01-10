@@ -30,7 +30,7 @@ import { Type } from '../../store/view';
 import { downloadPage } from '../../util/download';
 import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { hasTag, isOwnerTag } from '../../util/tag';
+import { addAllHierarchicalTags, expandedTagsInclude, hasTag, isOwnerTag, subOrigin } from '../../util/tag';
 
 @Component({
   standalone: false,
@@ -280,15 +280,26 @@ export class BulkComponent implements OnChanges, OnDestroy {
   copy$ = () => {
     return this.batch$<Ref>(ref => {
       if (ref.origin === this.store.account.origin) return of(null);
-      const tags = uniq([
+      const tags = uniq(addAllHierarchicalTags([
         ...(this.store.account.localTag ? [this.store.account.localTag] : []),
         ...(ref.tags || []).filter(t => this.auth.canAddTag(t))
-      ]);
+      ]).filter(t => !expandedTagsInclude(t, '+plugin/origin/push')
+        && !expandedTagsInclude(t, 'plugin/delta')
+        && !expandedTagsInclude(t, '+plugin/delta')
+        && !expandedTagsInclude(t, '+plugin/cron')));
       const copied: Ref = {
         ...ref,
         origin: this.store.account.origin,
         tags,
       };
+      copied.plugins = pick(copied.plugins, tags || []);
+      if (hasTag('+plugin/origin', copied)) {
+        copied.plugins['+plugin/origin'].local = copied.plugins['+plugin/origin'].remote = subOrigin(ref.origin, copied.plugins['+plugin/origin'].local);
+        copied.plugins['+plugin/origin'].proxy = this.store.origins.lookup.get(ref.origin || '');
+      }
+      if (hasTag('+plugin/origin/tunnel', copied)) {
+        copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup.get(ref.origin || '');
+      }
       copied.plugins = pick(copied.plugins, tags || []);
       return this.refs.create(copied, true);
     });

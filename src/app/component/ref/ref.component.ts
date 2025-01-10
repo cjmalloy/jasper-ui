@@ -20,7 +20,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, map, Observable, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
@@ -55,6 +55,7 @@ import {
 import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import {
+  addAllHierarchicalTags,
   capturesAny,
   expandedTagsInclude,
   hasTag,
@@ -976,16 +977,26 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   copy$ = () => {
-    const tags = uniq([
+    const tags = uniq(addAllHierarchicalTags([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
       ...(this.ref.tags || []).filter(t => this.auth.canAddTag(t))
-    ]);
+    ]).filter(t => !expandedTagsInclude(t, '+plugin/origin/push')
+      && !expandedTagsInclude(t, 'plugin/delta')
+      && !expandedTagsInclude(t, '+plugin/delta')
+      && !expandedTagsInclude(t, '+plugin/cron')));
     const copied: Ref = {
       ...this.ref,
       origin: this.store.account.origin,
       tags,
     };
     copied.plugins = pick(copied.plugins, tags || []);
+    if (hasTag('+plugin/origin', copied)) {
+      copied.plugins['+plugin/origin'].local = copied.plugins['+plugin/origin'].remote = subOrigin(this.ref.origin, copied.plugins['+plugin/origin'].local);
+      copied.plugins['+plugin/origin'].proxy = this.store.origins.lookup.get(this.ref.origin || '');
+    }
+    if (hasTag('+plugin/origin/tunnel', copied)) {
+      copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup.get(this.ref.origin || '');
+    }
     return this.refs.create(copied, true).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
