@@ -25,6 +25,7 @@ import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
+import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
@@ -72,6 +73,7 @@ export class ExtComponent implements OnChanges, HasChanges {
     public store: Store,
     private auth: AuthzService,
     private exts: ExtService,
+    private editor: EditorService,
     public bookmarks: BookmarkService,
     private fb: UntypedFormBuilder,
   ) { }
@@ -148,6 +150,11 @@ export class ExtComponent implements OnChanges, HasChanges {
   @memo
   get extLink() {
     return tagLink(this.ext.tag, this.ext.origin, this.store.account.origin);
+  }
+
+  @memo
+  get preview() {
+    return this.editor.getTagPreview(this.ext.tag, this.ext.origin);
   }
 
   save() {

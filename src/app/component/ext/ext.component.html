@@ -1,5 +1,9 @@
 <div class="link" [class.remote]="!local">
-  <a [routerLink]="['/tag', extLink]" [appTitle]="ext">{{ ext.name || template?.name || plugin?.name || ext.tag }}</a>
+  @if (preview | async; as p) {
+    <a [routerLink]="['/tag', extLink]" [appTitle]="ext">{{ p.name || p.tag }}</a>
+  } @else {
+    <a [routerLink]="['/tag', extLink]" [appTitle]="ext">{{ ext.name || template?.name || plugin?.name || ext.tag }}</a>
+  }
   <span *ngIf="ext.name" class="host">({{ qualifiedTag }})</span>
   <span *ngIf="!ext.name && ext.origin" class="host">({{ ext.origin }})</span>
 </div>
