@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, uniqBy } from 'lodash-es';
-import { map, of, Subscription, switchMap } from 'rxjs';
+import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Config } from '../model/tag';
 import { AdminService } from '../service/admin.service';
@@ -109,49 +109,53 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   getPreview(value: string) {
     if (!value) return;
     if (this.showError) return;
-    this.exts.getCachedExt(value, this.field.props.origin).pipe(
-        switchMap(x => {
-          if (this.field.type !== 'plugin') {
-            const templates = this.admin.getTemplates(x.tag).filter(t => t.tag);
-            if (templates.length) {
-              const longestMatch = templates[templates.length - 1];
-              if (x.tag === longestMatch.tag) return of(longestMatch);
-              return of({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (x.name || x.tag) });
-            }
-          }
-          if (x.modified && x.origin === (this.field.props.origin || this.store.account.origin)) return of(x);
-          const plugin = this.admin.getPlugin(x.tag);
-          if (this.field.type !== 'template') {
-            if (plugin) return of(plugin);
-            const parentPlugins = this.admin.getParentPlugins(x.tag);
-            if (parentPlugins.length) {
-              const longestMatch = parentPlugins[parentPlugins.length - 1];
-              if (x.tag === longestMatch.tag) return of(longestMatch);
-              const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
-              if (longestMatch.tag === 'plugin/outbox') {
-                const origin = childTag.substring(0, childTag.indexOf('/'));
-                const remoteTag = childTag.substring(origin.length + 1);
-                const originFormat = origin ? ' @' + origin : '';
-                return this.exts.getCachedExt(remoteTag, origin).pipe(
-                    map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
-                );
-              }
-              let a = access(x.tag);
-              if (childTag === 'user' || childTag.startsWith('user/')) {
-                a ||= '+';
-              }
-              return this.exts.getCachedExt(a + childTag, this.field.props.origin).pipe(
-                  map(c => ({ name: (longestMatch.name || longestMatch.tag) + ' / ' + c.name || c.tag })),
-              );
-            }
-          }
-          if (x.modified) return of(x);
-          return of(undefined);
-        })
-    ).subscribe((x?: { name?: string, tag?: string }) => {
+    this.preview$(value).subscribe((x?: { name?: string, tag: string }) => {
       this.preview = x?.name || x?.tag || '';
       this.cd.detectChanges();
     });
+  }
+
+  preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
+    return this.exts.getCachedExt(value, this.field.props.origin).pipe(
+      switchMap(x => {
+        if (this.field.type !== 'plugin') {
+          const templates = this.admin.getTemplates(x.tag).filter(t => t.tag);
+          if (templates.length) {
+            const longestMatch = templates[templates.length - 1];
+            if (x.tag === longestMatch.tag) return of(longestMatch);
+            return of({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (x.name || x.tag) });
+          }
+        }
+        if (x.modified && x.origin === (this.field.props.origin || this.store.account.origin)) return of(x);
+        const plugin = this.admin.getPlugin(x.tag);
+        if (this.field.type !== 'template') {
+          if (plugin) return of(plugin);
+          const parentPlugins = this.admin.getParentPlugins(x.tag);
+          if (parentPlugins.length) {
+            const longestMatch = parentPlugins[parentPlugins.length - 1];
+            if (x.tag === longestMatch.tag) return of(longestMatch);
+            const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
+            if (longestMatch.tag === 'plugin/outbox') {
+              const origin = childTag.substring(0, childTag.indexOf('/'));
+              const remoteTag = childTag.substring(origin.length + 1);
+              const originFormat = origin ? ' @' + origin : '';
+              return this.exts.getCachedExt(remoteTag, origin).pipe(
+                map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
+              );
+            }
+            let a = access(x.tag);
+            if (childTag === 'user' || childTag.startsWith('user/')) {
+              a ||= '+';
+            }
+            return this.exts.getCachedExt(a + childTag, this.field.props.origin).pipe(
+              map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + c.name || c.tag })),
+            );
+          }
+        }
+        if (x.modified) return of(x);
+        return of(undefined);
+      })
+    );
   }
 
   edit(input: HTMLInputElement) {
@@ -184,8 +188,11 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
         search: value,
         sort: ['nesting'],
         size: 5,
-      }).subscribe(page => {
-        this.autocomplete = page.content.map(x => ({ value: x.tag, label: x.name || x.tag }));
+      }).pipe(
+        switchMap(page => forkJoin(page.content.map(x => this.preview$(x.tag + x.origin)))),
+        map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
+      ).subscribe(xs => {
+        this.autocomplete = xs.map(x => ({ value: x.tag, label: x.name || x.tag }));
         if (this.autocomplete.length < 5) this.autocomplete.push(...getPlugins(value, 5 - this.autocomplete.length));
         if (this.autocomplete.length < 5) this.autocomplete.push(...getTemplates(value, 5 - this.autocomplete.length));
         this.autocomplete = uniqBy(this.autocomplete, 'value')
