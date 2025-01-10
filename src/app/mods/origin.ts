@@ -67,8 +67,8 @@ export const originPullPlugin: Plugin = {
       You may configure if metadata is generated or plugins are validated. `,
     icons: [
       { label: $localize`📥️` },
-      { tag: '-+plugin/cron', condition: '!websocket', label: $localize`🚫️`, title: $localize`Pulling disabled`, order: -1 },
-      { condition: 'websocket', label: $localize`📶️`, title: $localize`Pulling on websocket monitor`, order: -1 },
+      { tag: '-+plugin/cron', label: $localize`🚫️`, title: $localize`Pulling disabled`, order: -1 },
+      { tag: '+plugin/cron', condition: 'websocket', label: $localize`📶️`, title: $localize`Pulling on websocket monitor`, order: -1 },
     ],
     actions: [
       { event: 'pull', label: $localize`pull`, title: $localize`Pull a batch of updates from the remote.`, confirm: $localize`Are you sure you want to pull?` },
@@ -195,11 +195,17 @@ export const originPushPlugin: Plugin = {
       On the scrape interval set, the server will check if the remote cursor is
       behind the local cursor. If writeOnly is set, this check is skipped and
       the lastModifiedWritten config is used instead.`,
-    icons: [{ label: $localize`📤️` }],
-    actions: [{ event: 'push', label: $localize`push`, title: $localize`Push a batch of updates to the remote.`, confirm: $localize`Are you sure you want to push?` }],
+    icons: [
+      { label: $localize`📤️` },
+      { tag: '-+plugin/cron', label: $localize`🚫️`, title: $localize`Pushing disabled`, order: -1 },
+      { tag: '+plugin/cron', condition: 'pushOnChange', label: $localize`📶️`, title: $localize`Pushing on change`, order: -1 },
+    ],
+    actions: [
+      { event: 'push', label: $localize`push`, title: $localize`Push a batch of updates to the remote.`, confirm: $localize`Are you sure you want to push?` },
+      { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable` },
+    ],
     // language=Handlebars
     infoUi: `
-      {{#if pushOnChange}} pushing on change {{/if}}
       {{#if (and (hasTag '+plugin/origin/pull' ref) (hasTag '+plugin/origin/push' ref))}}
         <span title="Pushing and Pulling is not recommended">⛔️</span>
       {{/if}}`,
