@@ -12,7 +12,7 @@ export const feedPlugin: Plugin = {
     settings: $localize`feeds`,
     icons: [
       { label: $localize`🗞️`, order: 3 },
-      { tag: '-+plugin/cron',  label: $localize`🚫️`, order: -1 },
+      { tag: '-+plugin/cron',  label: $localize`🚫️`, title: $localize`Pulling disabled`, order: -1 },
     ],
     description: $localize`Import entries from an RSS / Atom feed. The feed will be scraped on an interval you specify.`,
     actions: [

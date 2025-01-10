@@ -9,7 +9,7 @@ import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { bundleSize, clear, Config, EditorButton, Mod } from '../model/tag';
+import { bundleSize, clear, condition, Config, EditorButton, Mod } from '../model/tag';
 import { Template } from '../model/template';
 import { User } from '../model/user';
 import { aiMod } from '../mods/ai';
@@ -626,7 +626,7 @@ export class AdminService {
     const match = ['plugin', ...(tags || [])];
     return this.actions
       .flatMap(p => p.config!.actions!.filter(a => {
-        if (a.condition && !config?.[p.tag]?.[a.condition]) return false;
+        if (a.condition && !condition(a.condition, config?.[p.tag])) return false;
         if (a.global) return true;
         return hasTag(p.tag, match);
       }).map(addParent(p)))
@@ -637,7 +637,7 @@ export class AdminService {
     const match = ['plugin', ...(tags || [])];
     return this.advancedActions
       .flatMap(p => p.config!.advancedActions!.filter(a => {
-        if (a.condition && !config?.[p.tag]?.[a.condition]) return false;
+        if (a.condition && !condition(a.condition, config?.[p.tag])) return false;
         if (a.global) return true;
         return hasTag(p.tag, match);
       }).map(addParent(p)))
@@ -648,7 +648,7 @@ export class AdminService {
     const match = ['plugin', ...(tags || [])];
     return this.icons
       .flatMap(p => p.config!.icons!.filter(i => {
-        if (i.condition && !config?.[p.tag]?.[i.condition]) return false;
+        if (i.condition && !condition(i.condition, config?.[p.tag])) return false;
         if (i.global) return true;
         if (i.scheme && i.scheme === scheme) return true;
         return hasTag(p.tag, match);

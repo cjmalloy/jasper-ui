@@ -67,7 +67,8 @@ export const originPullPlugin: Plugin = {
       You may configure if metadata is generated or plugins are validated. `,
     icons: [
       { label: $localize`📥️` },
-      { tag: '-+plugin/cron',  label: $localize`🚫️`, order: -1 },
+      { tag: '-+plugin/cron', condition: '!websocket', label: $localize`🚫️`, title: $localize`Pulling disabled`, order: -1 },
+      { condition: 'websocket', label: $localize`📶️`, title: $localize`Pulling on websocket monitor`, order: -1 },
     ],
     actions: [
       { event: 'pull', label: $localize`pull`, title: $localize`Pull a batch of updates from the remote.`, confirm: $localize`Are you sure you want to pull?` },
