@@ -59,6 +59,7 @@ export class QrScannerComponent implements OnDestroy {
       this.stopScanQr();
       return;
     }
+    document.documentElement.style.overflowY = 'auto';
     this.overlayRef = this.overlay.create({
       height: '100vh',
       width: '100vw',
@@ -78,6 +79,7 @@ export class QrScannerComponent implements OnDestroy {
   }
 
   stopScanQr() {
+    document.documentElement.style.overflowY = 'scroll';
     if (!this.scanner) return;
     this.scanner.stop();
     this.scanner.destroy();

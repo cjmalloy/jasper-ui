@@ -371,6 +371,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.fullscreen = override !== undefined ? override : !this.fullscreen;
     this.focused ||= this.focused === undefined || this.fullscreen;
     if (this.fullscreen) {
+      document.documentElement.style.overflowY = 'auto';
       this._text = this.currentText;
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
@@ -400,6 +401,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
       this.editor.nativeElement.scrollTop = this.scrollTopFullscreen;
     } else {
+      document.documentElement.style.overflowY = 'scroll';
       this.stacked = true;
       this.preview = this.store.local.showPreview;
       this.scrollTopFullscreen = this.editor.nativeElement.scrollTop;
