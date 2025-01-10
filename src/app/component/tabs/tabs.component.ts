@@ -57,7 +57,11 @@ export class TabsComponent implements AfterViewInit {
   @HostListener('window:resize')
   onResize() {
     if (!this.options.length) return;
-    defer(() => this.measureVisible());
+    defer(() => {
+      if (!document.body.classList.contains('fullscreen')) {
+        this.measureVisible();
+      }
+    });
   }
 
   measureVisible() {
