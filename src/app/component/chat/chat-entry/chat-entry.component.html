@@ -45,11 +45,21 @@
   </div>
   @if (ref.created) {
     <div class="actions" [style.pointer-events]="allowActions ? 'auto' : 'none'">
-      @if (comments) {
+      @if (threads) {
+        <a  [routerLink]="['/ref', ref.url, 'thread']"
+            [queryParams]="{ origin: nonLocalOrigin }"
+            (click)="saveRef()"
+            i18n>sidebar</a>
+      } @else if (comments) {
         <a  [routerLink]="['/ref', ref.url, 'comments']"
             [queryParams]="{ origin: nonLocalOrigin }"
             (click)="saveRef()"
             i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
+      } @else if (chatroom) {
+        <a [routerLink]="['/ref', ref.url]"
+           [queryParams]="{ origin: nonLocalOrigin }"
+           (click)="saveRef()"
+           i18n>sidebar</a>
       } @else {
         <a [routerLink]="['/ref', ref.url]"
            [queryParams]="{ origin: nonLocalOrigin }"

@@ -227,6 +227,24 @@ export class ChatEntryComponent implements OnChanges {
   }
 
   @memo
+  get chatroom() {
+    return this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.ref);
+  }
+
+  @memo
+  get thread() {
+    if (!this.admin.getPlugin('plugin/thread')) return '';
+    if (!hasTag('plugin/thread', this.ref) && !this.threads) return '';
+    return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
+  }
+
+  @memo
+  get threads() {
+    if (!this.admin.getPlugin('plugin/thread')) return 0;
+    return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
+  }
+
+  @memo
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
       user = user.replace(this.store.account.origin, '');
