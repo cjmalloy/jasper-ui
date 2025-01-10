@@ -21,7 +21,7 @@ export const aiQueryPlugin: Plugin = {
     advancedActions: [
       { tag: 'plugin/delta/ai', labelOff: $localize`ask ai`, global: true }
     ],
-    timeoutMs: 60_000,
+    timeoutMs: 90_000,
     language: 'javascript',
     // language=JavaScript
     script: `
