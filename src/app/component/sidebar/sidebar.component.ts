@@ -90,6 +90,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => {
+      if (hasTag('plugin/chat', this.store.view.ref)) return;
       if (this.config.tablet && this.lastView != this.store.view.current ||
           !this.config.huge  && this.store.view.current === 'ref/summary') {
         this.lastView = this.store.view.current;
