@@ -1068,7 +1068,13 @@ video.qr-preview {
     display: block;
   }
 
+  .md table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
   .ref, .ext {
+    white-space: nowrap;
     .info, .actions, .advanced-actions * {
       font-size: 16px;
       line-height: 28px;
@@ -1077,7 +1083,6 @@ video.qr-preview {
       padding-bottom: 0;
       overflow-y: hidden;
       overflow-x: auto;
-      white-space: nowrap;
       &::-webkit-scrollbar {
         display: none;
       }
