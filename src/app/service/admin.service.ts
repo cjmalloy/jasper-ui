@@ -23,11 +23,9 @@ import { chatMod } from '../mods/chat';
 import { chessMod } from '../mods/chess';
 import { codeMod } from '../mods/code';
 import { commentMod } from '../mods/comment';
-import { cronMod } from '../mods/cron';
 import { dalleMod } from '../mods/dalle';
 import { debugMod } from '../mods/debug';
 import { deleteMod, tagDeleteNotice } from '../mods/delete';
-import { deltaMod } from '../mods/delta';
 import { htmlMod, latexMod } from '../mods/editor';
 import { emailMod } from '../mods/email';
 import { embedMod } from '../mods/embed';
@@ -63,6 +61,7 @@ import { repostMod } from '../mods/repost';
 import { rootMod } from '../mods/root';
 import { saveMod } from '../mods/save';
 import { scrapeMod } from '../mods/scrape';
+import { scriptMod } from '../mods/script';
 import { seamlessMod } from '../mods/seamless';
 import { secretMod } from '../mods/secret';
 import { snippetMod } from '../mods/snippet';
@@ -142,8 +141,7 @@ export class AdminService {
     secretMod,
     errorMod,
     remoteOriginMod,
-    cronMod,
-    deltaMod,
+    scriptMod,
     feedMod,
     deleteMod,
     mailboxMod,
