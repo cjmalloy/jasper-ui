@@ -71,8 +71,10 @@ export const originPullPlugin: Plugin = {
       { tag: '+plugin/cron', condition: 'websocket', label: $localize`📶️`, title: $localize`Pulling on websocket monitor`, order: -1 },
     ],
     actions: [
-      { response: '+plugin/run', labelOff: $localize`pull`, title: $localize`Pull a batch of updates from the remote.`, confirm: $localize`Are you sure you want to pull?` },
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable` },
+    ],
+    advancedActions: [
+      { response: '+plugin/run', labelOff: $localize`pull`, title: $localize`Pull a batch of updates from the remote.`, confirm: $localize`Are you sure you want to pull?` },
     ],
     // language=Handlebars
     infoUi: `
@@ -201,8 +203,10 @@ export const originPushPlugin: Plugin = {
       { tag: '+plugin/cron', condition: 'pushOnChange', label: $localize`📶️`, title: $localize`Pushing on change`, order: -1 },
     ],
     actions: [
-      { response: '+plugin/run', labelOff: $localize`push`, title: $localize`Push a batch of updates to the remote.`, confirm: $localize`Are you sure you want to push?` },
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable` },
+    ],
+    advancedActions: [
+      { response: '+plugin/run', labelOff: $localize`push`, title: $localize`Push a batch of updates to the remote.`, confirm: $localize`Are you sure you want to push?` },
     ],
     // language=Handlebars
     infoUi: `
