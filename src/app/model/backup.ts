@@ -6,6 +6,7 @@ export interface BackupOptions {
   origin?: boolean;
   plugin?: boolean;
   template?: boolean;
+  cache?: boolean;
 }
 
 export const all: BackupOptions = {
@@ -16,4 +17,5 @@ export const all: BackupOptions = {
   origin: true,
   plugin: true,
   template: true,
+  cache: true,
 }

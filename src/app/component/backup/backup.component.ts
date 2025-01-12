@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { AdminService } from '../../service/admin.service';
 import { BackupService } from '../../service/api/backup.service';
 import { Store } from '../../store/store';
@@ -19,8 +20,6 @@ export class BackupComponent {
   @Input()
   origin = '';
 
-  restoring = false;
-  deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
   serverError: string[] = [];
@@ -52,29 +51,29 @@ export class BackupComponent {
     return this.downloadLink + '?p=' + this.backupKey;
   }
 
-  restore() {
-    this.backups.restore(this.origin, this.id).pipe(
+  restore$ = () => {
+    return this.backups.restore(this.origin, this.id).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-    ).subscribe(() => {
-      this.serverError = [];
-        this.restoring = false;
-    });
+      tap(() => {
+        this.serverError = [];
+      }),
+    );
   }
 
-  delete() {
-    this.backups.delete(this.origin, this.id).pipe(
+  delete$ = () => {
+    return this.backups.delete(this.origin, this.id).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-    ).subscribe(() => {
-      this.serverError = [];
-      this.deleting = false;
-      this.deleted = true;
-    });
+      tap(() => {
+        this.serverError = [];
+        this.deleted = true;
+      }),
+    );
   }
 
 }
