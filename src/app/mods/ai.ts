@@ -171,7 +171,11 @@ export const aiQueryPlugin: Plugin = {
           messages: messages.filter(m => m.role !== 'system'),
         });
         completion = '{"ref":[' + res.content[0]?.text;
-        usage = res.usage;
+        usage = {
+          'prompt_tokens': res.usage.input_tokens,
+          'completion_tokens': res.usage.output_tokens,
+          'total_tokens': res.usage.input_tokens + res.usage.output_tokens,
+        };
       }
       function fixJsonLinefeeds(json) {
         return json.replace(/"(?:\\\\.|[^"])*"|[^"]+/g, (match) => {
