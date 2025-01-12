@@ -18,7 +18,9 @@ describe('Wiki Plugin', {
     cy.get('#url').type('WIKI TEST');
     cy.get('button').contains('Next').click();
     cy.get('#comment textarea').type('Link to [[Other WIKI]].');
+    cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
+    cy.wait('@submit');
     cy.get('.full-page.ref .link a').should('have.text', 'Wiki test');
   });
   it('should rename page for URL', () => {
@@ -52,6 +54,9 @@ describe('Wiki Plugin', {
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('template').click();
     cy.get('.template.wiki .actions').contains('edit').click();
+    cy.get('button').then($b => {
+      if ($b.text().includes('+ Add Config')) $b.click();
+    });
     cy.wait(1000); // Warm up monaco editor
     if (Cypress.platform == 'darwin') {
       cy.get('#config').click().focused().type('{cmd}a{backspace}');

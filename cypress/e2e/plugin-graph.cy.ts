@@ -31,7 +31,9 @@ describe('Graph Plugin', {
     cy.get('#title').type('Title');
     cy.contains('show advanced').click();
     cy.get('#published').type('2020-01-01T00:00');
+    cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
+    cy.wait('@submit');
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
   it('shows graph', () => {
@@ -45,7 +47,9 @@ describe('Graph Plugin', {
   it('creates reply', () => {
     cy.get('.ref .actions *').contains('reply').click();
     cy.get('.comment-reply textarea').type('Reply');
+    cy.intercept({pathname: '/api/v1/ref'}).as('reply');
     cy.get('button').contains('reply').click();
+    cy.wait('@reply');
     cy.get('.ref .actions *').contains('permalink').click();
     cy.get('.ref-list-item.ref .actions *').contains('permalink').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Reply');

@@ -16,10 +16,13 @@ describe('Smoke Tests', {
     openSidebar();
     cy.contains('Submit').click();
     cy.get('#url').type('https://jasperkm.info/');
-    cy.contains('Next').click();
+    cy.contains('Next').as('next');
+    cy.get('@next').click();
     cy.wait(1000); // First part of 'Title' getting truncated
     cy.get('#title').type('Title');
+    cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
+    cy.wait('@submit');
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });
   it('deletes a ref', () => {

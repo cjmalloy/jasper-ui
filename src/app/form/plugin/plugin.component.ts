@@ -32,15 +32,15 @@ export class PluginFormComponent {
   }
 
   get config() {
-    return this.group.get('config')?.value;
+    return this.editingConfig ||= this.group.get('config')?.value;
   }
 
   get defaults() {
-    return this.group.get('defaults')?.value;
+    return this.editingDefaults ||= this.group.get('defaults')?.value;
   }
 
   get schema() {
-    return this.group.get('schema')?.value;
+    return this.editingSchema ||= this.group.get('schema')?.value;
   }
 
   validate(input: HTMLInputElement) {
