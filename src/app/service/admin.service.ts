@@ -84,10 +84,8 @@ import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
 import { addHierarchicalTags, hasPrefix, hasTag, tagIntersection } from '../util/tag';
 import { ExtService } from './api/ext.service';
-import { OEmbedService } from './api/oembed.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
-import { ScrapeService } from './api/scrape.service';
 import { TemplateService } from './api/template.service';
 import { UserService } from './api/user.service';
 import { AuthzService } from './authz.service';
@@ -188,6 +186,7 @@ export class AdminService {
   };
 
   _cache = new Map<string, any>();
+  private firstRun = false;
 
   constructor(
     private config: ConfigService,
@@ -197,8 +196,6 @@ export class AdminService {
     private users: UserService,
     private plugins: PluginService,
     private templates: TemplateService,
-    private oembed: OEmbedService,
-    private scrape: ScrapeService,
     private store: Store,
   ) {
     autorun(() => {
@@ -236,6 +233,8 @@ export class AdminService {
   }
 
   get firstRun$(): Observable<any> {
+    if (this.firstRun) return of(null);
+    this.firstRun = true;
     if (!this.store.account.admin || this.store.account.ext) return of(null);
     if (Object.values(this.status.plugins).filter(p => !!p).length > 0) return of(null);
     if (Object.values(this.status.templates).filter(t => !!t && !t.tag.startsWith('_config/')).length > 0) return of(null);
@@ -288,7 +287,7 @@ export class AdminService {
     }
     return this.plugins.page({query: this.localOriginQuery, page, size: this.config.fetchBatch}).pipe(
       tap(batch => this.pluginToStatus(batch.content)),
-      switchMap(batch => !batch.content.length ? of(null) : this.loadPlugins$(page + 1)),
+      switchMap(batch => page + 1 < batch.page.totalPages ? this.loadPlugins$(page + 1) : of(null)),
     );
   }
 
@@ -300,7 +299,7 @@ export class AdminService {
     }
     return this.templates.page({query: this.localOriginQuery + ':!_config', page, size: this.config.fetchBatch}).pipe(
       tap(batch => this.templateToStatus(batch.content)),
-      switchMap(batch => !batch.content.length ? of(null) : this.loadTemplates$(page + 1)),
+      switchMap(batch => page + 1 < batch.page.totalPages ? this.loadTemplates$(page + 1) : of(null)),
     );
   }
 
