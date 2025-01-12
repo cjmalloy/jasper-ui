@@ -158,8 +158,7 @@ export class EditorService {
             map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + c.name || c.tag })),
           );
         }
-        if (x.modified) return of(x);
-        return of(undefined);
+        return of(x);
       })
     );
   }
