@@ -17,18 +17,8 @@ export class OriginService {
   constructor(
     private http: HttpClient,
     private config: ConfigService,
-    private store: Store,
     private login: LoginService,
-  ) {
-    autorun(() => {
-      if (this.store.eventBus.event === 'push' && hasTag('+plugin/origin/push', this.store.eventBus.ref)) {
-        this.store.eventBus.runAndReload(this.push(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
-      }
-      if (this.store.eventBus.event === 'pull' && hasTag('+plugin/origin/pull', this.store.eventBus.ref)) {
-        this.store.eventBus.runAndReload(this.pull(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin));
-      }
-    });
-  }
+  ) { }
 
   private get base() {
     return this.config.api + '/api/v1/origin';

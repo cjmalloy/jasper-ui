@@ -24,11 +24,6 @@ export class ScrapeService {
     private login: LoginService,
   ) {
     autorun(() => {
-      if (store.eventBus.event === 'pull') {
-        if (hasTag('plugin/feed', this.store.eventBus.ref)) {
-          store.eventBus.runAndReload(this.feed(store.eventBus.ref!.url, store.eventBus.ref!.origin));
-        }
-      }
       if (store.eventBus.event === '+plugin/scrape:defaults' || store.eventBus.event === '*:defaults') {
         this.defaults().subscribe();
       }
@@ -37,14 +32,6 @@ export class ScrapeService {
 
   private get base() {
     return this.config.api + '/api/v1/scrape';
-  }
-
-  feed(url: string, origin = ''): Observable<void> {
-    return this.http.post<void>(`${this.base}/feed`, null, {
-      params: params({ url, origin }),
-    }).pipe(
-      catchError(err => this.login.handleHttpError(err)),
-    );
   }
 
   webScrape(url: string): Observable<Ref> {
