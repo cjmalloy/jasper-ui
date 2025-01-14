@@ -49,8 +49,8 @@ describe('Origin Push Plugin', {
     cy.wait(1000);
     cy.get('#title').type('Push Test');
     cy.get('button').contains('Submit').click({ force: true });
-    cy.get('.full-page.ref .link a').should('have.text', 'Push Test');
     cy.wait(1000);
+    cy.get('.full-page.ref .link a').should('have.text', 'Push Test');
   });
   it('@repl: clear mods', () => {
     clearMods(replUrl);

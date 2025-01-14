@@ -107,6 +107,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('#comment textarea').type('Hi +user/alice@repl.main! How\'s it going? You should also see this +user/charlie.').blur();
     cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Ref from other');
+    cy.wait(1000);
   });
   it('@repl: local user notified', () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
@@ -139,6 +140,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('@ref').find('.actions').contains('permalink').click();
     cy.get('.comment-reply textarea').type('Doing well, thanks!').blur();
     cy.get('.comment-reply button').contains('reply').click();
+    cy.wait(1000);
   });
   it('@repl: check reply was pulled', () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
