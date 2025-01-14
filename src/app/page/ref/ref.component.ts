@@ -131,6 +131,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       return;
     }
     if (url !== this.store.view.ref?.url) {
+      this.newResponses = 0;
       this.store.view.clearRef();
       this.refs.count({ url, obsolete: true })
         .subscribe(count => runInAction(() => this.store.view.versions = count));
