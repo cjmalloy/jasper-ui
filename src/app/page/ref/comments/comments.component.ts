@@ -11,7 +11,7 @@ import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, removeTag, top } from '../../../util/tag';
+import { hasTag, removeTag } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -65,11 +65,6 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.newComments$.complete();
-  }
-
-  @memo
-  get top() {
-    return top(this.store.view.ref);
   }
 
   @memo

@@ -77,7 +77,7 @@ export class RefThreadComponent implements HasChanges {
     }));
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
-      if (top(this.store.view.ref) && this.config.websockets) {
+      if (this.store.view.ref && this.config.websockets) {
         this.watch?.unsubscribe();
         this.watch = this.stomp.watchResponse(top(this.store.view.ref)).pipe(
           takeUntil(this.destroy$),

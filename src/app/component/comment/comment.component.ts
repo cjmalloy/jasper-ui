@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { delay, groupBy, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import {
@@ -43,7 +43,7 @@ import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
 import { getScheme } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin, top } from '../../util/tag';
+import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 import { CommentEditComponent } from './comment-edit/comment-edit.component';
 import { CommentReplyComponent } from './comment-reply/comment-reply.component';
@@ -194,11 +194,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
-  }
-
-  @memo
-  get top() {
-    return top(this.ref);
   }
 
   @memo
