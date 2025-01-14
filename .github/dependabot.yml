@@ -22,6 +22,8 @@ updates:
         - "zone.js"
         - "typescript"
         - "tslib"
+        - "ngx-markdown"
+        - "ngx-monaco-editor"
     formly:
       patterns:
         - "@ngx-formly/*"
