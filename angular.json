@@ -65,6 +65,7 @@
               "node_modules/prismjs/components/prism-css-extras.min.js",
               "node_modules/prismjs/components/prism-csv.min.js",
               "node_modules/prismjs/components/prism-dart.min.js",
+              "node_modules/prismjs/components/prism-diff.min.js",
               "node_modules/prismjs/components/prism-docker.min.js",
               "node_modules/prismjs/components/prism-go.min.js",
               "node_modules/prismjs/components/prism-go-module.min.js",
