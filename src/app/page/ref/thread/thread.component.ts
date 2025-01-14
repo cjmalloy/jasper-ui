@@ -93,7 +93,7 @@ export class RefThreadComponent implements HasChanges {
       }
     }));
     this.newRefs$.subscribe(c => {
-      if (c && this.store.view.ref) {
+      if (c && this.store.view.ref && hasTag('plugin/thread', c)) {
         if (c.published! > this.to.published!) {
           this.to = c;
         }
