@@ -16,7 +16,7 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
-import { hasTag, removeTag } from '../../../util/tag';
+import { hasTag, removeTag, top } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -79,7 +79,7 @@ export class RefThreadComponent implements HasChanges {
       MemoCache.clear(this);
       if (this.store.view.top && this.config.websockets) {
         this.watch?.unsubscribe();
-        this.watch = this.stomp.watchResponse(this.store.view.top.url).pipe(
+        this.watch = this.stomp.watchResponse(top(this.store.view.ref)).pipe(
           takeUntil(this.destroy$),
           switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
           filter(ref => hasTag('plugin/thread', ref)),
