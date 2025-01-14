@@ -216,7 +216,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     ).subscribe(() => {
       delete this.submitting;
       this.dmForm.markAsPristine();
-      this.router.navigate(['/ref', url, 'thread'], { queryParams: { published }});
+      this.router.navigate(['/ref', url, 'thread'], { queryParams: { published }, replaceUrl: true});
     });
   }
 }

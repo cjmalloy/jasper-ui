@@ -179,6 +179,7 @@ export class SubmitPage implements OnInit, OnDestroy {
         tag: uniq(tags),
       },
       queryParamsHandling: 'merge',
+      replaceUrl: true,
     });
   }
 

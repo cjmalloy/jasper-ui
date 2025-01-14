@@ -239,9 +239,9 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       delete this.submitting;
       this.textForm.markAsPristine();
       if (hasTag('plugin/thread', ref)) {
-        this.router.navigate(['/ref', this.url.value, 'thread'], { queryParams: { published }});
+        this.router.navigate(['/ref', this.url.value, 'thread'], { queryParams: { published }, replaceUrl: true });
       } else {
-        this.router.navigate(['/ref', this.url.value], { queryParams: { published }});
+        this.router.navigate(['/ref', this.url.value], { queryParams: { published }, replaceUrl: true});
       }
     });
   }

@@ -165,7 +165,7 @@ export class SubmitInvoicePage implements HasChanges {
     ).subscribe(() => {
       delete this.submitting;
       this.invoiceForm.markAsPristine();
-      this.router.navigate(['/ref', this.invoiceForm.value.url], { queryParams: { published }});
+      this.router.navigate(['/ref', this.invoiceForm.value.url], { queryParams: { published }, replaceUrl: true});
     });
   }
 }
