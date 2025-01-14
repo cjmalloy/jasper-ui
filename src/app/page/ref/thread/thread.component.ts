@@ -115,6 +115,11 @@ export class RefThreadComponent implements HasChanges {
   }
 
   @memo
+  get thread() {
+    return this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.store.view.ref);
+  }
+
+  @memo
   get mailboxes() {
     return mailboxes(this.to, this.store.account.tag, this.store.origins.originMap);
   }

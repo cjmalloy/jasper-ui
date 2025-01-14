@@ -87,9 +87,17 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     return this.store.view.ref?.plugins?.['plugin/fullscreen'];
   }
 
+  get comment() {
+    return this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref);
+  }
+
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
+  }
+
+  get thread() {
+    return this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.store.view.ref);
   }
 
   get threads() {

@@ -72,7 +72,7 @@
                [tag]="store.view.tag"
                [activeExts]="store.view.activeExts"></app-sidebar>
   @if (store.view.ref) {
-    @if (store.view.top && store.view.ref.url !== store.view.top.url && store.view.current !== 'ref/sources' && !store.view.repost) {
+    @if ((thread || comment) && store.view.top && store.view.ref.url !== store.view.top.url && store.view.current !== 'ref/sources' && !store.view.repost) {
       <app-ref class="print-hide"
                [class.thread]="store.view.current === 'ref/thread'"
                [class.parent-ref]="true"
@@ -80,9 +80,9 @@
                [showToggle]="false"
                [expanded]="false"
                (copied)="reload()"></app-ref>
-      @if (store.view.current === 'ref/thread') {
+      @if (thread && store.view.current === 'ref/thread') {
         <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url, 'thread']" (click)="store.view.setRef(store.view.top)" i18n>full thread</span>
-      } @else if (store.view.current === 'ref/comments') {
+      } @else if (comment && store.view.current === 'ref/comments') {
         <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url, 'comments']" (click)="store.view.setRef(store.view.top)" i18n>full comments</span>
       } @else {
         <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url]" (click)="store.view.setRef(store.view.top)" i18n>parent</span>
