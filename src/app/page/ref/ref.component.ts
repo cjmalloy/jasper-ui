@@ -132,26 +132,24 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     }
     if (url !== this.store.view.ref?.url) {
       this.store.view.clearRef();
-      this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() => this.store.view.versions = count));
-      this.refs.getCurrent(url).pipe(
-        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        map(ref => ref || { url }),
-        tap(ref => this.store.view.setRef(ref)),
-        switchMap(ref => top(ref) === url ? of(ref)
-          : this.refs.getCurrent(top(ref)).pipe(
-            catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-          )),
-        tap(top => runInAction(() => this.store.view.top = top)),
-      ).subscribe();
-    } else if (top(this.store.view.ref) != this.store.view.top?.url) {
-      if (top(this.store.view.ref) === url) {
-        runInAction(() => this.store.view.top = this.store.view.ref);
-      } else {
-        this.refs.getCurrent(top(this.store.view.ref)).pipe(
-          catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        ).subscribe(top => runInAction(() => this.store.view.top = top));
-      }
+      this.refs.count({ url, obsolete: true })
+        .subscribe(count => runInAction(() => this.store.view.versions = count));
     }
+    (url === this.store.view.ref?.url
+      ? of (this.store.view.ref)
+      : this.refs.getCurrent(url)
+    ).pipe(
+      catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+      map(ref => ref || { url }),
+      tap(ref => this.store.view.setRef(ref)),
+      switchMap(ref => (!this.comment && !this.thread) ? of(undefined)
+        : top(ref) === url ? of(ref)
+        : top(ref) === this.store.view.top?.url ? of(this.store.view.top)
+        : this.refs.getCurrent(top(ref)).pipe(
+          catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        )),
+      tap(top => runInAction(() => this.store.view.top = top)),
+    ).subscribe();
     if (this.config.websockets) {
       this.watchSelf?.unsubscribe();
       this.watchSelf = this.stomp.watchRef(url).pipe(
