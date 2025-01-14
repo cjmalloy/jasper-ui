@@ -692,7 +692,7 @@ export class AdminService {
   @memo
   searchPlugins(text: string) {
     text = text.toLowerCase();
-    return Object.values(this.status.plugins).filter(p => p?.tag.includes(text) || p?.name?.includes(text));
+    return Object.values(this.status.plugins).filter(p => p?.tag.includes(text) || p?.name?.toLowerCase()?.includes(text));
   }
 
   @memo
@@ -735,7 +735,7 @@ export class AdminService {
   @memo
   searchTemplates(text: string) {
     text = text.toLowerCase();
-    return Object.values(this.status.templates).filter(p => p?.tag.includes(text) || p?.name?.includes(text));
+    return Object.values(this.status.templates).filter(p => p?.tag.includes(text) || p?.name?.toLowerCase()?.includes(text));
   }
 
   defaultConfig(tag: string) {
