@@ -13,7 +13,7 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
-import { hasTag } from '../../../util/tag';
+import { hasTag, top } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -68,9 +68,9 @@ export class RefErrorsComponent implements HasChanges {
       this.mod.setTitle($localize`Errors: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
     this.disposers.push(autorun(() => {
-      if (this.store.view.top && this.config.websockets) {
+      if (this.store.view.ref && this.config.websockets) {
         this.watch?.unsubscribe();
-        this.watch = this.stomp.watchResponse(this.store.view.top.url).pipe(
+        this.watch = this.stomp.watchResponse(this.store.view.ref.url).pipe(
           takeUntil(this.destroy$),
           switchMap(url => this.refs.getCurrent(url)),
           filter(ref => hasTag('+plugin/log', ref)),
