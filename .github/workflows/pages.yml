@@ -1,0 +1,72 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches: [ master ]
+  workflow_run:
+    workflows: ["Cypress"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+
+      # Build docs from root
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+
+      # Download and merge any test reports
+      - name: Process Reports
+        run: |
+          mkdir -p "_site/reports"
+          gh auth login --with-token <<< "${{ github.token }}"
+          gh run download --pattern "cypress-reports-*" --dir _site/reports
+          cat > _site/reports/index.html << EOF
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Test Reports</title>
+            <style>
+              body { font-family: sans-serif; margin: 2em; }
+              .report { margin: 1em 0; }
+            </style>
+          </head>
+          <body>
+            <h1>Test Reports</h1>
+            <div id="reports">
+              $(for d in _site/reports/*/; do
+                name=$(basename "$d")
+                echo "<div class='report'><a href='$name/'>$name</a></div>"
+              done)
+            </div>
+          </body>
+          </html>
+          EOF
+
+      # Upload combined site
+      - uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v4
