@@ -1,0 +1,117 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches: [ master ]
+  workflow_run:
+    workflows: ["Cypress"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+
+      # Create site directory
+      - name: Create site directory
+        run: |
+          mkdir -p _build _site
+          cp README.md _build/
+          cp -r docs _build/
+
+      # Build docs from root
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./_build
+          destination: ./_site
+
+      # Download and merge any test reports
+      - name: Process Reports
+        run: |
+          mkdir -p "_site/reports"
+          gh auth login --with-token <<< "${{ github.token }}"
+          gh run download --pattern "cypress-reports-*" --dir _site/reports
+          # Create copy of latest master report
+          latest_master=$(ls -dv _site/reports/cypress-reports-master-* 2>/dev/null | tail -1)
+          if [ -n "$latest_master" ] && [ -d "$latest_master" ]; then
+            mkdir -p _site/reports/latest-master
+            cp -r "$latest_master/." _site/reports/latest-master/
+          fi
+          cat > _site/reports/index.html << EOF
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Cypress Test Reports</title>
+            <style>
+              body {
+                font-family: system-ui, -apple-system, sans-serif;
+                margin: 2em auto;
+                max-width: 800px;
+                line-height: 1.6;
+              }
+              h1 {
+                color: #2c3e50;
+                border-bottom: 2px solid #eee;
+                padding-bottom: 0.5em;
+              }
+              .report {
+                margin: 1em 0;
+                padding: 0.8em;
+                background: #f8f9fa;
+                border-radius: 4px;
+              }
+              .report a {
+                color: #3498db;
+                text-decoration: none;
+              }
+              .report a:hover {
+                text-decoration: underline;
+              }
+              .latest {
+                background: #e8f5e9;
+                border-left: 4px solid #4caf50;
+              }
+            </style>
+          </head>
+          <body>
+            <h1>Cypress Test Reports</h1>
+            <div class='report'>
+              <a href='$(basename $latest_master)/'>Latest Master Report</a>
+            </div>
+            <h2>All Reports</h2>
+            <div id="reports">
+              $(for d in _site/reports/*/; do
+                name=$(basename "$d")
+                if [ "$name" != "latest-master" ]; then
+                  echo "<div class='report'><a href='$name/'>$name</a></div>"
+                fi
+              done)
+            </div>
+          </body>
+          </html>
+          EOF
+
+      # Upload combined site
+      - uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v4
