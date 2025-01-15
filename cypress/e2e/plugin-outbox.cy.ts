@@ -140,7 +140,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('@ref').find('.actions').contains('permalink').click();
     cy.get('.comment-reply textarea').type('Doing well, thanks!').blur();
     cy.get('.comment-reply button').contains('reply').click();
-    cy.wait(2000);
+    cy.wait(3000);
   });
   it('@repl: check reply was pulled', () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
