@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { marked } from 'marked';
+import { marked, Tokens } from 'marked';
 import { MarkdownService } from 'ngx-markdown';
 import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { Ext } from '../model/ext';
@@ -42,54 +42,75 @@ export class EmbedService {
       breaks: false,
       pedantic: false,
     };
-    // @ts-ignore
-    const parseMarked = markdownService.parseMarked;
-    // @ts-ignore
-    markdownService.parseMarked = (html: string, markedOptions: any, inline = false) => {
-      const parsed = parseMarked.call(markdownService, html, markedOptions, inline);
-      const parser = new DOMParser();
-      const htmlDoc = parser.parseFromString(parsed, 'text/html');
-      const media = htmlDoc.querySelectorAll<HTMLImageElement|HTMLSourceElement>('img, source');
-      media.forEach(t => {
-        if (t.src) {
-          t.src = 'unsafe:' + t.src;
+    function cleanUrl(href: string) {
+      try {
+        href = encodeURI(href).replace(/%25/g, '%');
+      } catch {
+        return null;
+      }
+      return href;
+    }
+    marked.use({
+      renderer: {
+        html({text}: Tokens.HTML | Tokens.Tag): string {
+          return text.replace(/<img/g, '<img loading="lazy"');
+        },
+        image({href, title, text}: Tokens.Image): string {
+          const cleanHref = cleanUrl(href);
+          if (cleanHref === null) {
+            return escape(text);
+          }
+          href = cleanHref;
+          if (href.startsWith(config.base) || !href.startsWith('http')) {
+            return `<a class="inline-embed" title="${text}">${href}</a>`;
+          }
+          let out = `<img src="${href}" alt="${text}"`;
+          if (title) {
+            out += ` title="${escape(title)}"`;
+          }
+          out += '>';
+          return out;
+        },
+        link({href, title, tokens}: Tokens.Link): string {
+          const text = this.parser.parseInline(tokens);
+          const cleanHref = cleanUrl(href);
+          if (cleanHref === null) {
+            return text;
+          }
+          href = cleanHref;
+          let out = '<a href="' + href + '"';
+          if (title) {
+            out += ' title="' + (escape(title)) + '"';
+          }
+          out += '>' + text + '</a>';
+          if (text.toLowerCase().trim() === 'toggle' || admin.getPluginsForUrl(href).length) {
+            return out + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
+          }
+          const type = editor.getUrlType(href);
+          if (type === 'ref' || type === 'tag') {
+            return out + `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span></span>`;
+          }
+          return out;
         }
-        if (t.srcset) {
-          t.srcset = t.srcset.split(', ').map(src => 'unsafe:' + src).join(', ');
+      },
+      hooks: {
+        postprocess(html: string): string {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, 'text/html');
+          const media = htmlDoc.querySelectorAll<HTMLImageElement|HTMLSourceElement>('img, source');
+          media.forEach(t => {
+            if (t.src) {
+              t.src = 'unsafe:' + t.src;
+            }
+            if (t.srcset) {
+              t.srcset = t.srcset.split(', ').map(src => 'unsafe:' + src).join(', ');
+            }
+          });
+          return htmlDoc.body.innerHTML;
         }
-      });
-      return htmlDoc.body.innerHTML;
-    };
-    const renderHtml = markdownService.renderer.html;
-    markdownService.renderer.html = (html: string, block) => {
-      let src = renderHtml.call(markdownService.renderer, html, block);
-      if (!src) return src;
-      return src
-        .replace(/<img/g, '<img loading="lazy"');
-    }
-    const renderImage = markdownService.renderer.image;
-    markdownService.renderer.image = (href: string, title: string | null, text: string) => {
-      let html = renderImage.call(markdownService.renderer, href, title, text);
-      if (!href) return html;
-      if (href.startsWith(this.config.base) || !href.startsWith('http')) {
-        return `<a class="inline-embed" title="${text}">${href}</a>`;
-      }
-      return html;
-    }
-    const renderLink = markdownService.renderer.link;
-    markdownService.renderer.link = (href: string, title: string | null, text: string) => {
-      let html = renderLink.call(markdownService.renderer, href, title, text);
-      if (!href) return html;
-      if (text.toLowerCase().trim() === 'toggle' || this.admin.getPluginsForUrl(href).length) {
-        return html + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
-      }
-      const type = this.editor.getUrlType(href);
-      if (type === 'ref' || type === 'tag') {
-        return html + `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span></span>`;
-      }
-      return html;
-    }
-    marked.use({extensions: this.extensions});
+      },
+      extensions: this.extensions,
+    });
   }
 
   private get extensions() {
