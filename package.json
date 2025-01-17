@@ -83,6 +83,7 @@
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.1.0",
     "karma-junit-reporter": "^2.0.1",
+    "lodash": "^4.17.21",
     "raw-loader": "^4.0.2",
     "typescript": "~5.5.4"
   },
@@ -112,6 +113,9 @@
     },
     "cypress-real-events": {
       "cypress": "$cypress"
+    },
+    "karma-html-reporter": {
+      "lodash": "$lodash"
     }
   },
   "browser": {
