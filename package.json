@@ -41,6 +41,7 @@
     "jsqr": "^1.4.0",
     "jszip": "^3.10.1",
     "jtd": "^0.1.1",
+    "katex": "^0.16.21",
     "lodash-es": "^4.17.21",
     "luxon": "^3.5.0",
     "marked": "^15.0.6",
@@ -93,6 +94,7 @@
       "@angular/core": "$@angular/core",
       "@angular/platform-browser": "$@angular/platform-browser",
       "zone.js": "$zone.js",
+      "katex": "$katex",
       "marked": "$marked"
     },
     "ngx-monaco-editor": {
