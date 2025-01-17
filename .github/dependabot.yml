@@ -22,7 +22,7 @@ updates:
         - "zone.js"
         - "typescript"
         - "tslib"
-#        - "ngx-markdown"
+        - "ngx-markdown"
         - "ngx-monaco-editor"
     formly:
       patterns:
