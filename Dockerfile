@@ -31,7 +31,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 RUN npm i -g @angular/cli
 COPY --from=builder /app ./
-CMD ng test --karma-config karma-ci.conf.js
+CMD ng test --karma-config karma-ci.conf.js && \
+    mkdir -p /report && \
+    cp -r /reports/*/* /report/
 
 FROM nginx:1.27-alpine3.19-slim AS deploy
 RUN apk add jq moreutils

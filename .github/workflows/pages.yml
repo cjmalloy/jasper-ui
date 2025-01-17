@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
   workflow_run:
-    workflows: ["Cypress"]
+    workflows: ["Test", "Cypress"]
     types:
       - completed
   workflow_dispatch:
@@ -45,18 +45,24 @@ jobs:
         run: |
           mkdir -p "_site/reports"
           gh auth login --with-token <<< "${{ github.token }}"
-          gh run download --pattern "cypress-reports-*" --dir _site/reports
-          # Create copy of latest master report
-          latest_master=$(ls -dv _site/reports/cypress-reports-master-* 2>/dev/null | tail -1)
-          if [ -n "$latest_master" ] && [ -d "$latest_master" ]; then
-            mkdir -p _site/reports/latest-master
-            cp -r "$latest_master/." _site/reports/latest-master/
+          gh run download --pattern "*-reports-*" --dir _site/reports
+          latest_karma=$(ls -dv _site/reports/karma-reports-master-* 2>/dev/null | tail -1)
+          echo "Creating latest Karma $latest_karma"
+          if [ -n "$latest_karma" ] && [ -d "$latest_karma" ]; then
+            mkdir -p _site/reports/latest-karma
+            cp -r "$latest_karma/." _site/reports/latest-karma/
+          fi
+          latest_cypress=$(ls -dv _site/reports/cypress-reports-master-* 2>/dev/null | tail -1)
+          echo "Creating latest Cypress $latest_cypress"
+          if [ -n "$latest_cypress" ] && [ -d "$latest_cypress" ]; then
+            mkdir -p _site/reports/latest-cypress
+            cp -r "$latest_cypress/." _site/reports/latest-cypress/
           fi
           cat > _site/reports/index.html << EOF
           <!DOCTYPE html>
           <html>
           <head>
-            <title>Cypress Test Reports</title>
+            <title>Test Reports</title>
             <style>
               :root {
                 /* Light mode variables */
@@ -116,15 +122,18 @@ jobs:
             </style>
           </head>
           <body>
-            <h1>Cypress Test Reports</h1>
+            <h1>Test Reports</h1>
             <div class='report'>
-              <a href='$(basename $latest_master)/'>Latest Master Report</a>
+              <a href='$(basename $latest_cypress)/'>Latest Cypress Report</a>
+            </div>
+            <div class='report'>
+              <a href='$(basename $latest_karma)/'>Latest Karma Report</a>
             </div>
             <h2>All Reports</h2>
             <div id="reports">
               $(for d in _site/reports/*/; do
                 name=$(basename "$d")
-                if [ "$name" != "latest-master" ]; then
+                if [[ ! "$name" =~ ^latest-.*$ ]]; then
                   echo "<div class='report'><a href='$name/'>$name</a></div>"
                 fi
               done)
