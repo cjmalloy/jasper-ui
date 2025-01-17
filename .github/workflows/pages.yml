@@ -31,6 +31,7 @@ jobs:
           mkdir -p _build _site
           cp README.md _build/
           cp _config.yml _build/
+          cp -r _includes _build/
           cp -r docs _build/
 
       # Build docs from root
