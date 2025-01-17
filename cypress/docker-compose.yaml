@@ -4,8 +4,14 @@ services:
     profiles:
       - ci
     depends_on:
-      - client
-      - repl-client
+      client:
+          condition: service_started
+      repl-client:
+        condition: service_started
+      web:
+          condition: service_healthy
+      repl-web:
+        condition: service_healthy
     network_mode: host
     environment:
       CYPRESS_DEFAULT_COMMAND_TIMEOUT: 30000
@@ -40,6 +46,8 @@ services:
 #    build: ../../jasper
     ports:
       - 8081:80
+    healthcheck:
+      test: "curl -f http://localhost/management/health/readiness"
     environment:
       SPRING_LOGGING_LEVEL_ROOT: WARN
       SPRING_PROFILES_ACTIVE: prod,jwt
@@ -83,6 +91,8 @@ services:
 #    build: ../../jasper
     ports:
       - 8083:80
+    healthcheck:
+      test: "curl -f http://localhost/management/health/readiness"
     environment:
       SPRING_LOGGING_LEVEL_ROOT: WARN
       SPRING_PROFILES_ACTIVE: prod,jwt

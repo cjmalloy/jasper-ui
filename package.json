@@ -9,7 +9,7 @@
     "test": "ng test",
     "e2e": "ng e2e",
     "cy:open": "(cd cypress; docker compose pull && docker compose up --build -d) && cypress open && (cd cypress; docker compose down)",
-    "cy:ci": "(cd cypress; docker compose pull && docker compose up web repl-web -d) && docker compose --profile ci -f 'cypress/docker-compose.yaml' up --build --exit-code-from cypress"
+    "cy:ci": "docker compose --profile ci -f 'cypress/docker-compose.yaml' up --build --exit-code-from cypress"
   },
   "private": true,
   "dependencies": {
