@@ -7,8 +7,10 @@ describe('Smoke Tests', {
     cy.visit('/?debug=USER');
     cy.contains('Home', { timeout: 1000 * 60 * 20 }); // 20 minutes
   });
-  it('clear mods', () => {
+  it('@main: clear mods', () => {
     clearMods();
+  });
+  it('@repl: clear mods', () => {
     clearMods(Cypress.env('CYPRESS_replUrl') || 'http://localhost:8082');
   });
   it('creates a ref', () => {
