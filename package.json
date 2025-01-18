@@ -84,41 +84,22 @@
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.1.0",
     "karma-junit-reporter": "^2.0.1",
-    "lodash": "^4.17.21",
     "raw-loader": "^4.0.2",
     "typescript": "~5.5.4"
   },
   "overrides": {
-    "ngx-markdown": {
-      "@angular/common": "$@angular/common",
-      "@angular/core": "$@angular/core",
-      "@angular/platform-browser": "$@angular/platform-browser",
-      "zone.js": "$zone.js",
-      "katex": "$katex",
-      "marked": "$marked"
-    },
-    "ngx-monaco-editor": {
-      "@angular/common": "$@angular/common",
-      "@angular/core": "$@angular/core",
-      "monaco-editor": "$monaco-editor"
-    },
-    "mobx-angular": {
-      "@angular/common": "$@angular/common",
-      "@angular/core": "$@angular/core",
-      "@angular/cdk": "$@angular/cdk"
-    },
-    "dagre-d3": {
-      "d3": "$d3"
-    },
-    "@stomp/rx-stomp": {
-      "uuid": "$uuid"
-    },
-    "cypress-real-events": {
-      "cypress": "$cypress"
-    },
-    "karma-html-reporter": {
-      "lodash": "$lodash"
-    }
+    "@angular/common": "$@angular/common",
+    "@angular/core": "$@angular/core",
+    "@angular/cdk": "$@angular/cdk",
+    "@angular/platform-browser": "$@angular/platform-browser",
+    "zone.js": "$zone.js",
+    "katex": "$katex",
+    "marked": "$marked",
+    "monaco-editor": "$monaco-editor",
+    "d3": "$d3",
+    "uuid": "$uuid",
+    "cypress": "$cypress",
+    "lodash": "^4.17.21"
   },
   "browser": {
     "fs": false,
