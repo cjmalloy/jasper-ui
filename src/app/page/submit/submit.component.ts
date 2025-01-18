@@ -9,7 +9,7 @@ import {
   Validators
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { uniq, without } from 'lodash-es';
+import { isString, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
@@ -39,6 +39,8 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   submitForm: UntypedFormGroup;
 
+  uploading = false;
+  progress = -1;
   validations: Validation[] = [];
 
   genUrl = 'internal:' + uuid();
@@ -183,20 +185,30 @@ export class SubmitPage implements OnInit, OnDestroy {
     });
   }
 
-  upload(file: { url: string, name: string}) {
-    let tags = this.store.submit.tags;
-    if (this.store.submit.web && this.plugin) {
-      tags.push(this.plugin);
+  onUpload(event?: { url?: string, name: string, progress?: number } | string) {
+    if (!event) {
+      this.uploading = false;
+    } else if (isString(event)) {
+      // TODO set error
+    } else if (event.url) {
+      this.uploading = false;
+      let tags = this.store.submit.tags;
+      if (this.store.submit.web && this.plugin) {
+        tags.push(this.plugin);
+      }
+      this.router.navigate(['./submit', 'text'], {
+        queryParams: {
+          upload: event.url,
+          plugin: this.plugin,
+          title: event.name,
+          tag: uniq(tags),
+        },
+        queryParamsHandling: 'merge',
+      });
+    } else {
+      this.uploading = true;
+      this.progress = event.progress || -1;
     }
-    this.router.navigate(['./submit', 'text'], {
-      queryParams: {
-        upload: file.url,
-        plugin: this.plugin,
-        title: file.name,
-        tag: uniq(tags),
-      },
-      queryParamsHandling: 'merge',
-    });
   }
 
   validLink(control: AbstractControl): Observable<ValidationErrors | null> {

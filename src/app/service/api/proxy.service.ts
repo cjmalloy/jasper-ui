@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
@@ -72,11 +72,13 @@ export class ProxyService {
     );
   }
 
-  save(file: File, origin = ''): Observable<Ref> {
+  save(file: File, origin = ''): Observable<HttpEvent<Ref> | Ref> {
     return this.http.post(`${this.base}`, file, {
-      params: params({ mime: file.type, origin }),
+      params: params({ title: file.name, mime: file.type, origin }),
+      reportProgress: true,
+      observe: 'events',
     }).pipe(
-      map(mapRef),
+      map(res => 'type' in res ? res as HttpEvent<Ref> : mapRef(res)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }

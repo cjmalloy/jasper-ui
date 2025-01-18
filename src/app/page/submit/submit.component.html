@@ -99,24 +99,28 @@
             <app-select-plugin [(plugin)]="plugin"
                                [settings]="!!admin.getPluginSettings(store.submit.tags).length"></app-select-plugin>
           }
-          <input id="url"
-                 [placeholder]="placeholder"
-                 class="big"
-                 type="text"
-                 size="1"
-                 autocomplete="off"
-                 formControlName="url"
-                 appAutofocus>
+          @if (uploading) {
+            <progress class="grow" max="100" [value]="progress"></progress>
+          } @else {
+            <input id="url"
+                   [placeholder]="placeholder"
+                   class="big"
+                   type="text"
+                   size="1"
+                   autocomplete="off"
+                   formControlName="url"
+                   appAutofocus>
+          }
           @if (!store.submit.wiki) {
             @if ((!plugin || plugin === 'plugin/qr') && admin.getPlugin('plugin/qr')) {
               <app-qr-scanner [upload]="plugin === 'plugin/qr'" (data)="scanQr($event)"></app-qr-scanner>
             }
             @if (admin.getPlugin('plugin/file')) {
               @switch (plugin) {
-                @case (  'plugin/pdf') { <app-pdf-upload   (data)="upload($event)"></app-pdf-upload> }
-                @case ('plugin/audio') { <app-audio-upload (data)="upload($event)"></app-audio-upload> }
-                @case ('plugin/video') { <app-video-upload (data)="upload($event)"></app-video-upload> }
-                @case ('plugin/image') { <app-image-upload (data)="upload($event)"></app-image-upload> }
+                @case (  'plugin/pdf') { <app-pdf-upload   (data)="onUpload($event)"></app-pdf-upload> }
+                @case ('plugin/audio') { <app-audio-upload (data)="onUpload($event)"></app-audio-upload> }
+                @case ('plugin/video') { <app-video-upload (data)="onUpload($event)"></app-video-upload> }
+                @case ('plugin/image') { <app-image-upload (data)="onUpload($event)"></app-image-upload> }
               }
             }
           }
@@ -134,28 +138,30 @@
           }
         </div>
 
-        @if (existingRef) {
-          <br>
-          <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
-        }
-
-        <br>
-        <div class="validations">
-          @for (v of validations; track v.name) {
-            @if (v.passed) {
-              <div>✅️ &nbsp;{{ v.name }}</div>
-            } @else {
-              <div>❌️ &nbsp;{{ v.name }}</div>
-            }
+        @if (!uploading) {
+          @if (existingRef) {
+            <br>
+            <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
           }
-        </div>
 
-        <span><!-- Buttons --></span>
-        <span class="buttons right">
+          <br>
+          <div class="validations">
+            @for (v of validations; track v.name) {
+              @if (v.passed) {
+                <div>✅️ &nbsp;{{ v.name }}</div>
+              } @else {
+                <div>❌️ &nbsp;{{ v.name }}</div>
+              }
+            }
+          </div>
+
+          <span><!-- Buttons --></span>
+          <span class="buttons right">
           <button type="submit" [disabled]="!submitForm.valid && !existingRef"
                   i18n-title title="Submit link"
                   i18n>{{ repost ? 'Repost' : 'Next' }}</button>
         </span>
+        }
       </form>
 
       <span></span>

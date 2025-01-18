@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
+import { isString } from 'lodash-es';
 import { AdminService } from '../service/admin.service';
 import { getErrorMessage } from './errors';
 
@@ -9,7 +10,9 @@ import { getErrorMessage } from './errors';
   host: {'class': 'field'},
   template: `
     <div class="form-array">
-      @if (type !== 'number') {
+      @if (uploading) {
+        <progress class="grow" max="100" [value]="progress"></progress>
+      } @else if (type !== 'number') {
         <input class="grow"
                (blur)="blur($any($event.target))"
                [type]="type"
@@ -27,10 +30,10 @@ import { getErrorMessage } from './errors';
       @if (props.clear) { <button type="button" (click)="field.formControl!.setValue(null)" i18n-title title="Clear" i18n>🆑️</button> }
       @if (field.type   ===    'qr') { <app-qr-scanner   (data)="$event && field.formControl!.setValue($event)"></app-qr-scanner> }
       @if (files) {
-        @if (field.type ===   'pdf') { <app-pdf-upload   (data)="$event && field.formControl!.setValue($event.url)"></app-pdf-upload> }
-        @if (field.type === 'audio') { <app-audio-upload (data)="$event && field.formControl!.setValue($event.url)"></app-audio-upload> }
-        @if (field.type === 'video') { <app-video-upload (data)="$event && field.formControl!.setValue($event.url)"></app-video-upload> }
-        @if (field.type === 'image') { <app-image-upload (data)="$event && field.formControl!.setValue($event.url)"></app-image-upload> }
+        @if (field.type ===   'pdf') { <app-pdf-upload   (data)="onUpload($event)"></app-pdf-upload> }
+        @if (field.type === 'audio') { <app-audio-upload (data)="onUpload($event)"></app-audio-upload> }
+        @if (field.type === 'video') { <app-video-upload (data)="onUpload($event)"></app-video-upload> }
+        @if (field.type === 'image') { <app-image-upload (data)="onUpload($event)"></app-image-upload> }
       }
     </div>
   `,
@@ -38,6 +41,8 @@ import { getErrorMessage } from './errors';
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
 
+  progress?: number;
+  uploading = false;
   files = !!this.admin.getPlugin('plugin/file');
 
   private showedError = false;
@@ -45,6 +50,7 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
   constructor(
     private config: FormlyConfig,
     private admin: AdminService,
+    private cd: ChangeDetectorRef,
   ) {
     super();
   }
@@ -72,5 +78,20 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
     } else {
       this.showedError = false;
     }
+  }
+
+  onUpload(event?: { url?: string, name: string, progress?: number } | string) {
+    if (!event) {
+      this.uploading = false;
+    } else if (isString(event)) {
+      // TODO set error
+    } else if (event.url) {
+      this.uploading = false;
+      this.field.formControl!.setValue(event.url);
+    } else {
+      this.uploading = true;
+      this.progress = event.progress || -1;
+    }
+    this.cd.detectChanges();
   }
 }

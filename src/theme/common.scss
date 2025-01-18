@@ -1232,6 +1232,10 @@ details.mini:not([open]) {
   }
 }
 
+progress.grow {
+  height: 100%;
+}
+
 .no-margin {
   margin: 0 !important;
 }

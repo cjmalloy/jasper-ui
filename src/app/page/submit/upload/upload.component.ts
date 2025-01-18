@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { delay, pick, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
-import { catchError, concat, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
 import { Ext, mapTag } from '../../../model/ext';
@@ -164,7 +164,9 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       this.proxy.save(file, this.store.account.origin).pipe(
-        map(ref => {
+        // @ts-ignore
+        last(), // TODO: progress bar
+        map((ref: Ref) => {
           ref.title = file.name;
           ref.tags = uniq([...ref.tags || [], tag, ...extraTags.filter(t => !!t)]);
           return ref;

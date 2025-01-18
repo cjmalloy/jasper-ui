@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
-import { debounce, defer, uniqBy } from 'lodash-es';
+import { debounce, defer, isString, uniqBy } from 'lodash-es';
 import { catchError, of, Subscription, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { AdminService } from '../service/admin.service';
@@ -16,37 +16,41 @@ import { getErrorMessage } from './errors';
   selector: 'formly-field-ref-input',
   host: {'class': 'field'},
   template: `
-    <div class="form-array skip-margin">
-      <input class="preview grow"
-             type="text"
-             [value]="preview"
-             [title]="input.value"
-             [style.display]="preview ? 'block' : 'none'"
-             (focus)="clickPreview(input)">
-      <datalist [id]="listId">
-        @for (o of autocomplete; track o.value) {
-          <option [value]="o.value">{{ o.label }}</option>
-        }
-      </datalist>
-      <input #input
-             class="grow"
-             type="url"
-             [attr.list]="listId"
-             [class.hidden-without-removing]="preview"
-             (input)="search(input.value)"
-             (blur)="blur(input)"
-             (focusin)="edit(input)"
-             (focus)="edit(input)"
-             (focusout)="getPreview(input.value)"
-             [formControl]="formControl"
-             [formlyAttributes]="field"
-             [class.is-invalid]="showError">
+    <div class="form-array">
+      @if (uploading) {
+        <progress class="grow" max="100" [value]="progress"></progress>
+      } @else {
+        <input class="preview grow"
+               type="text"
+               [value]="preview"
+               [title]="input.value"
+               [style.display]="preview ? 'block' : 'none'"
+               (focus)="clickPreview(input)">
+        <datalist [id]="listId">
+          @for (o of autocomplete; track o.value) {
+            <option [value]="o.value">{{ o.label }}</option>
+          }
+        </datalist>
+        <input #input
+               class="grow"
+               type="url"
+               [attr.list]="listId"
+               [class.hidden-without-removing]="preview"
+               (input)="search(input.value)"
+               (blur)="blur(input)"
+               (focusin)="edit(input)"
+               (focus)="edit(input)"
+               (focusout)="getPreview(input.value)"
+               [formControl]="formControl"
+               [formlyAttributes]="field"
+               [class.is-invalid]="showError">
+      }
       @if (field.type   ===    'qr') { <app-qr-scanner   (data)="$event && field.formControl!.setValue($event)"></app-qr-scanner> }
       @if (files) {
-        @if (field.type ===   'pdf') { <app-pdf-upload   (data)="$event && field.formControl!.setValue($event.url)"></app-pdf-upload> }
-        @if (field.type === 'audio') { <app-audio-upload (data)="$event && field.formControl!.setValue($event.url)"></app-audio-upload> }
-        @if (field.type === 'video') { <app-video-upload (data)="$event && field.formControl!.setValue($event.url)"></app-video-upload> }
-        @if (field.type === 'image') { <app-image-upload (data)="$event && field.formControl!.setValue($event.url)"></app-image-upload> }
+        @if (field.type ===   'pdf') { <app-pdf-upload   (data)="onUpload($event)"></app-pdf-upload> }
+        @if (field.type === 'audio') { <app-audio-upload (data)="onUpload($event)"></app-audio-upload> }
+        @if (field.type === 'video') { <app-video-upload (data)="onUpload($event)"></app-video-upload> }
+        @if (field.type === 'image') { <app-image-upload (data)="onUpload($event)"></app-image-upload> }
       }
     </div>
   `,
@@ -58,6 +62,8 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   previewUrl = '';
   preview = '';
   editing = false;
+  progress = -1;
+  uploading = false;
   files = !!this.admin.getPlugin('plugin/file');
   autocomplete: { value: string, label: string }[] = [];
 
@@ -158,4 +164,20 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
       this.cd.detectChanges();
     })
   }, 400);
+
+  onUpload(event?: { url?: string, name: string, progress?: number } | string) {
+    if (!event) {
+      this.uploading = false;
+    } else if (isString(event)) {
+      // TODO set error
+    } else if (event.url) {
+      this.uploading = false;
+      this.preview = event.name;
+      this.field.formControl!.setValue(event.url);
+    } else {
+      this.uploading = true;
+      this.progress = event.progress || -1;
+    }
+    this.cd.detectChanges();
+  }
 }
