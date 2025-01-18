@@ -17,6 +17,13 @@
           class="refresh"
           [title]="'last polled ' + lastPoll.toRelative()"
           (click)="refresh()" i18n>🔄</button>
+  @for (button of editorPushButtons; track button; let i = $index) {
+    @if (!button.event) {
+      <button type="button"
+              (click)="toggleTag(button)"
+              [title]="button.title" i18n>{{(buttonOn(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</button>
+    }
+  }
   <input type="text"
          i18n-placeholder
          placeholder="chat..."

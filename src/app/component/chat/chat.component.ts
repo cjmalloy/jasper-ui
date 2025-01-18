@@ -6,10 +6,12 @@ import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'r
 import { v4 as uuid } from 'uuid';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
+import { EditorButton, sortOrder } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
+import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
@@ -49,6 +51,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
 
   latex = this.admin.getPlugin('plugin/latex');
 
+  private tags: string[] = [];
   private timeoutId?: number;
   private retries = 0;
   private lastScrolled = 0;
@@ -59,6 +62,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     private accounts: AccountService,
     public admin: AdminService,
     private store: Store,
+    private auth: AuthzService,
     private refs: RefService,
     private editor: EditorService,
     private stomp: StompService,
@@ -91,6 +95,21 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         takeUntil(this.destroy$),
       ).subscribe(tag =>  this.refresh(tagOrigin(tag)));
     }
+  }
+
+  get editorButtons() {
+    return sortOrder(this.admin.getEditorButtons()).reverse();
+  }
+
+  get editorPushButtons() {
+    return this.editorButtons.filter(b => !b.ribbon && this.visible(b));
+  }
+
+  visible(button: EditorButton) {
+    if (button.scheme) return false;
+    if (!button.global) return false;
+    if (button.toggle && !this.auth.canAddTag(button.toggle)) return false;
+    return true;
   }
 
   get containerHeight() {
@@ -233,6 +252,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     this.scrollLock = undefined;
     const newTags = uniq([
       'internal',
+      ...this.tags,
       ...([this.store.view.localTag || 'chat', ...this.store.view.ext?.config?.addTags || []]),
       ...this.plugins,
       ...(this.store.account.localTag ? [this.store.account.localTag] : [])]).filter(t => !!t);
@@ -287,6 +307,26 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     if (diff < -5) {
       this.scrollLock = undefined;
     }
+  }
+
+  toggleTag(button: EditorButton) {
+    const tag = button.toggle!;
+    if (this.buttonOn(tag)) {
+      if (this.tags.includes(tag)) this.tags.splice(this.tags.indexOf(tag), 1);
+      if (button.remember && this.admin.getTemplate('user')) {
+        this.accounts.removeConfigArray$('editors', tag).subscribe();
+      }
+    } else {
+      this.tags.push(tag);
+      if (button.remember && this.admin.getTemplate('user')) {
+        this.accounts.addConfigArray$('editors', tag).subscribe();
+      }
+    }
+    if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
+  }
+
+  buttonOn(tag: string) {
+    return this.tags?.includes(tag);
   }
 
 }
