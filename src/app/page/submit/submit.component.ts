@@ -40,7 +40,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   submitForm: UntypedFormGroup;
 
   uploading = false;
-  progress = -1;
+  progress?: number;
   validations: Validation[] = [];
 
   genUrl = 'internal:' + uuid();
@@ -192,7 +192,7 @@ export class SubmitPage implements OnInit, OnDestroy {
       // TODO set error
     } else if (event.url) {
       this.uploading = false;
-      let tags = this.store.submit.tags;
+      const tags = this.store.submit.tags;
       if (this.store.submit.web && this.plugin) {
         tags.push(this.plugin);
       }
@@ -207,7 +207,7 @@ export class SubmitPage implements OnInit, OnDestroy {
       });
     } else {
       this.uploading = true;
-      this.progress = event.progress || -1;
+      this.progress = event.progress || undefined;
     }
   }
 
