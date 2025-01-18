@@ -47,12 +47,19 @@ export const embedPlugin: Plugin = {
           min: 'Height must be at least 200px.'
         }
       }
+    }, {
+      key: 'resize',
+      type: 'boolean',
+      props: {
+        label: $localize`Resizeable:`
+      }
     }],
   },
   defaults: {},
   schema: {
     optionalProperties: {
       url: { type: 'string' },
+      resize: { type: 'boolean' },
       width: { type: 'int32', nullable: true },
       height: { type: 'int32', nullable: true },
     },

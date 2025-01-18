@@ -13,6 +13,12 @@ export class ResizeHandleDirective {
   @Input()
   hitArea = 24;
 
+  @Input()
+  appResizeHandle?: boolean | string = true;
+
+  @Input()
+  child?: HTMLElement;
+
   dragging = false;
   x = 0;
   y = 0;
@@ -27,6 +33,10 @@ export class ResizeHandleDirective {
 
   get resizeCursor() {
     return this.config.mobile ? 'row-resize' : 'se-resize';
+  }
+
+  get enabled() {
+    return this.dragging !== false;
   }
 
   @HostListener('pointerdown', ['$event'])
@@ -51,8 +61,8 @@ export class ResizeHandleDirective {
       this.zone.run(() => {
         const dx = event.clientX - this.x;
         const dy = event.clientY - this.y;
-        this.el.nativeElement.style.width = (this.width + dx) + 'px';
-        this.el.nativeElement.style.height = (this.height + dy) + 'px';
+        this.setWidth(this.el.nativeElement.style.width = (this.width + dx) + 'px');
+        this.setHeight(this.el.nativeElement.style.height = (this.height + dy) + 'px');
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
@@ -77,6 +87,16 @@ export class ResizeHandleDirective {
     const x = this.el.nativeElement.offsetWidth - relativeX(event.clientX, this.el.nativeElement);
     const y = this.el.nativeElement.offsetHeight - relativeY(event.clientY, this.el.nativeElement);
     return x + y < this.hitArea;
+  }
+
+  private setWidth(width: string) {
+    this.el.nativeElement.style.width = width;
+    if (this.child) this.child.style.width = width;
+  }
+
+  private setHeight(height: string) {
+    this.el.nativeElement.style.height = height;
+    if (this.child) this.child.style.height = height;
   }
 
 }
