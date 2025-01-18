@@ -98,8 +98,7 @@
     "monaco-editor": "$monaco-editor",
     "d3": "$d3",
     "uuid": "$uuid",
-    "cypress": "$cypress",
-    "lodash": "^4.17.21"
+    "cypress": "$cypress"
   },
   "browser": {
     "fs": false,
