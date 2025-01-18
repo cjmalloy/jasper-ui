@@ -1288,6 +1288,10 @@ formly-list-section .form-array > formly-field > formly-group {
     user-select: none;
     white-space: nowrap;
   }
+  .block-form {
+    display: flex;
+    align-items: center;
+  }
 }
 
 .show-drops {
