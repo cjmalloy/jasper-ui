@@ -90,7 +90,7 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
       this.field.formControl!.setValue(event.url);
     } else {
       this.uploading = true;
-      this.progress = event.progress || -1;
+      this.progress = event.progress || undefined;
     }
     this.cd.detectChanges();
   }

@@ -62,7 +62,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   previewUrl = '';
   preview = '';
   editing = false;
-  progress = -1;
+  progress?: number;
   uploading = false;
   files = !!this.admin.getPlugin('plugin/file');
   autocomplete: { value: string, label: string }[] = [];
@@ -176,7 +176,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
       this.field.formControl!.setValue(event.url);
     } else {
       this.uploading = true;
-      this.progress = event.progress || -1;
+      this.progress = event.progress || undefined;
     }
     this.cd.detectChanges();
   }
