@@ -13,10 +13,12 @@
 </cdk-virtual-scroll-viewport>
 <div class="spacer"></div>
 <div class="input-box">
-  <button type="button"
-          class="refresh"
-          [title]="'last polled ' + lastPoll.toRelative()"
-          (click)="refresh()" i18n>🔄</button>
+  @if (!config.websockets) {
+    <button type="button"
+            class="refresh"
+            [title]="'last polled ' + lastPoll.toRelative()"
+            (click)="refresh()" i18n>🔄</button>
+  }
   @for (button of editorPushButtons; track button; let i = $index) {
     @if (!button.event) {
       <button type="button"

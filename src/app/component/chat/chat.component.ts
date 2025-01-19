@@ -58,7 +58,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   private watch?: Subscription;
 
   constructor(
-    private config: ConfigService,
+    public config: ConfigService,
     private accounts: AccountService,
     public admin: AdminService,
     private store: Store,
