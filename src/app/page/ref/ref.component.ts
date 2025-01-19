@@ -127,12 +127,12 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     MemoCache.clear(this);
     url ||= this.store.view.url || '';
     if (!url) {
-      this.store.view.clearRef();
+      this.store.view.clear();
       return;
     }
     if (url !== this.store.view.ref?.url) {
       this.newResponses = 0;
-      this.store.view.clearRef();
+      this.store.view.clear();
       this.refs.count({ url, obsolete: true })
         .subscribe(count => runInAction(() => this.store.view.versions = count));
     }
