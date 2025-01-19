@@ -88,6 +88,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   init() {
     this.messages = undefined;
     this.cursors.clear();
+    this.tags = this.store.account.defaultEditors(this.editors);
     this.loadPrev(true);
     if (this.config.websockets) {
       this.watch?.unsubscribe();
@@ -95,6 +96,10 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         takeUntil(this.destroy$),
       ).subscribe(tag =>  this.refresh(tagOrigin(tag)));
     }
+  }
+
+  get editors() {
+    return this.editorButtons.map(p => p?.toggle as string).filter(p => !!p);
   }
 
   get editorButtons() {
