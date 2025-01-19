@@ -316,7 +316,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   saveRef() {
-    this.store.view.setRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref, this.repostRef);
   }
 
   download() {

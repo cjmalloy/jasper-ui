@@ -174,7 +174,7 @@ export class FileComponent implements OnChanges {
   }
 
   saveRef() {
-    this.store.view.setRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref, this.repostRef);
   }
 
   showIcon(i: Icon) {

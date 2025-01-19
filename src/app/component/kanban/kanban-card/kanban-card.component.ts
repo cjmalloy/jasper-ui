@@ -297,7 +297,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   }
 
   saveRef() {
-    this.store.view.setRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref, this.repostRef);
   }
 
   close() {

@@ -12,7 +12,6 @@ import { getPageTitle } from '../util/format';
 import { UrlFilter } from '../util/query';
 import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
 import { AccountStore } from './account';
-import { EventBus } from './bus';
 
 /**
  * ID for current view. Only includes pages that make queries.
@@ -51,11 +50,11 @@ export class ViewStore {
   constructor(
     public route: RouterStore,
     private account: AccountStore,
-    private eventBus: EventBus,
   ) {
     makeAutoObservable(this, {
       clear: action,
-      setRef: action,
+      clearRef: action,
+      preloadRef: action,
       setLastSelected: action,
       exts: observable.shallow,
       extTemplates: observable.shallow,
@@ -63,14 +62,6 @@ export class ViewStore {
       settingsTabs: observable.shallow,
     });
     this.clear(); // Initial observables may not be null for MobX
-  }
-
-  setRef(ref?: Ref, top?: Ref) {
-    if (this.ref && this.ref !== ref) {
-      this.lastSelected = this.ref;
-    }
-    this.ref = ref;
-    if (top) this.top = top;
   }
 
   setLastSelected(ref?: Ref) {
@@ -92,13 +83,21 @@ export class ViewStore {
     this.defaultSearchSort = defaultSearchSort;
   }
 
-  clearRef(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
-    this.ref = undefined;
-    this.top = undefined;
+  clearRef(ref?: Ref, top?: Ref, defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
+    this.ref = ref;
+    if (ref) this.lastSelected = ref;
+    this.top = top;
     this.versions = 0;
+    this.exts = [];
+    this.extTemplates = [];
     this.selectedUser = undefined;
     this.defaultSort = defaultSort;
     this.defaultSearchSort = defaultSearchSort;
+  }
+
+  preloadRef(ref: Ref, top?: Ref) {
+    this.ref = ref;
+    this.top = top;
   }
 
   get pageTitle() {

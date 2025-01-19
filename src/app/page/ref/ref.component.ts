@@ -66,7 +66,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    this.store.view.setRef(undefined);
+    this.store.view.clearRef();
   }
 
   @memo
@@ -132,7 +132,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     }
     if (url !== this.store.view.ref?.url) {
       this.newResponses = 0;
-      this.store.view.clearRef();
       this.refs.count({ url, obsolete: true })
         .subscribe(count => runInAction(() => this.store.view.versions = count));
     }
@@ -142,14 +141,14 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
-      tap(ref => this.store.view.setRef(ref)),
-      switchMap(ref => (!this.comment && !this.thread) ? of(undefined)
-        : top(ref) === url ? of(ref)
-        : top(ref) === this.store.view.top?.url ? of(this.store.view.top)
+      switchMap(ref => (!this.comment && !this.thread) ? of([ref, undefined])
+        : top(ref) === url ? of([ref, ref])
+        : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
         : this.refs.getCurrent(top(ref)).pipe(
-          catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+          catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
+          map(top => [ref, top] as [Ref, Ref]),
         )),
-      tap(top => runInAction(() => this.store.view.top = top)),
+      tap(([ref, top]) => runInAction(() => this.store.view.clearRef(ref, top))),
     ).subscribe();
     if (this.config.websockets) {
       this.watchSelf?.unsubscribe();
