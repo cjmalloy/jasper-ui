@@ -12,11 +12,11 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
-import { Chess, Move, Square } from 'chess.js';
+import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
@@ -130,7 +130,14 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         }
         this.prevComment = u.comment || '';
         if (prev.length || !current.length) return;
-        for (const m of current) this.chess.move(m);
+        for (const m of current) {
+          try {
+            this.chess.move(m);
+          } catch (e) {
+            // Skip illegal move
+            console.log(e);
+          }
+        }
         this.check();
         // TODO: queue all moves and animate one by one
         const move = current.shift()!;
@@ -195,6 +202,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
           try {
             this.chess.move(l);
           } catch (e) {
+            // invalid move
             console.log(e);
           }
         }
@@ -283,10 +291,15 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   move(from: Square, to: Square) {
     if (from === to) return;
     const isPromotion = !!this.chess.moves({ verbose: true }).find((move) => move.from === from && move.to === to && move.flags.includes('p'));
-    const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
-    if (move) {
-      this.check();
-      this.save();
+    try {
+        const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
+        if (move) {
+          this.check();
+          this.save();
+        }
+    } catch (e) {
+      // invalid move
+      console.log(e);
     }
   }
 
