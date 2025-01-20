@@ -556,7 +556,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           this.save();
           return of(null);
         }
-        alert('Error syncing game. Please reload.');
+        alert('Error ' + err.status + ' syncing game. Please reload.');
         return throwError(() => err);
       }),
     ) : this.refs.create({

@@ -367,7 +367,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     ).pipe(
       catchError(err => {
         if (err.status === 409) return of(null);
-        alert('Error syncing game. Please reload.');
+        alert('Error ' + err.status + ' syncing game. Please reload.');
         return throwError(() => err);
       }),
     ) : this.refs.create({
