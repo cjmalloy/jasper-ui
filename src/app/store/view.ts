@@ -96,7 +96,7 @@ export class ViewStore {
   }
 
   preloadRef(ref: Ref, top?: Ref) {
-    this.ref = ref;
+    if (ref?.created) this.ref = ref;
     this.top = top;
   }
 
