@@ -130,18 +130,17 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.store.view.clearRef();
       return;
     }
-    if (url !== this.store.view.ref?.url) {
-      this.newResponses = 0;
-      this.refs.count({ url, obsolete: true })
-        .subscribe(count => runInAction(() => this.store.view.versions = count));
-    }
+    this.newResponses = 0;
+    this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() =>
+      this.store.view.versions = count));
     (url === this.store.view.ref?.url
-      ? of (this.store.view.ref)
+      ? of(this.store.view.ref)
       : this.refs.getCurrent(url)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
-      switchMap(ref => (!this.comment && !this.thread) ? of([ref, undefined])
+      switchMap(ref => (!this.comment && !this.thread)
+        ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
         : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
         : this.refs.getCurrent(top(ref)).pipe(
