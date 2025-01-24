@@ -171,26 +171,26 @@ export const aiQueryPlugin: Plugin = {
           system,
           messages: messages.filter(m => m.role !== 'system'),
         });
-        completion = '{"ref":[' + res.content[0]?.text;
+        function fixJsonLinefeeds(json) {
+          return json.replace(/"(?:\\\\.|[^"])*"|[^"]+/g, (match) => {
+            if (match.startsWith('"')) {
+              // This is a string, replace linefeeds
+              return match.replace(/\\n/g, '\\\\n');
+            }
+            // This is not a string, return as-is
+            return match;
+          });
+        }
+        completion = fixJsonLinefeeds('{"ref":[' + res.content[0]?.text);
         usage = {
           'prompt_tokens': res.usage.input_tokens,
           'completion_tokens': res.usage.output_tokens,
           'total_tokens': res.usage.input_tokens + res.usage.output_tokens,
         };
       }
-      function fixJsonLinefeeds(json) {
-        return json.replace(/"(?:\\\\.|[^"])*"|[^"]+/g, (match) => {
-          if (match.startsWith('"')) {
-            // This is a string, replace linefeeds
-            return match.replace(/\\n/g, '\\\\n');
-          }
-          // This is not a string, return as-is
-          return match;
-        });
-      }
       let bundle;
       try {
-        bundle = JSON.parse(fixJsonLinefeeds(completion));
+        bundle = JSON.parse(completion);
         if (!bundle.ref) {
           // Model returned a bare Ref?
           bundle = {
