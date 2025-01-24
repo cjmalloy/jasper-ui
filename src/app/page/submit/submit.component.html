@@ -165,7 +165,7 @@
       </form>
 
       <span></span>
-      <div class="summary-box" [class.hidden-without-removing]="!store.submit.refs.length">
+      <div class="summary-box" [class.cdk-visually-hidden]="!store.submit.refs.length">
         <h5 routerLink="./responses" i18n>Unsaved:</h5>
         <div class="list-container">
           @for (ref of store.submit.topRefs; track ref.url; let i = $index) {

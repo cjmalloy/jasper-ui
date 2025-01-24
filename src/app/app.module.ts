@@ -1,3 +1,4 @@
+import { A11yModule } from '@angular/cdk/a11y';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from '@angular/cdk/overlay';
 import { ScrollingModule } from '@angular/cdk/scrolling';
@@ -329,6 +330,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     MonacoEditorModule.forRoot(),
     DragDropModule,
     OverlayModule,
+    A11yModule,
     ScrollingModule,
     FormlyModule,
     JasperFormlyModule,

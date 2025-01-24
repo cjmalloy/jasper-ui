@@ -292,6 +292,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   focusText() {
+    this.editing = true;
     this.focused = true;
     if (this.blurTimeout) {
       clearTimeout(this.blurTimeout);

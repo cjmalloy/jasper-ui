@@ -35,12 +35,10 @@ import { getErrorMessage } from './errors';
                class="grow"
                type="url"
                [attr.list]="listId"
-               [class.hidden-without-removing]="preview"
+               [class.cdk-visually-hidden]="preview"
                (input)="search(input.value)"
-               (blur)="blur(input)"
-               (focusin)="edit(input)"
-               (focus)="edit(input)"
-               (focusout)="getPreview(input.value)"
+               cdkMonitorElementFocus
+               (cdkFocusChange)="$event ? edit(input) : blur(input)"
                [formControl]="formControl"
                [formlyAttributes]="field"
                [class.is-invalid]="showError">

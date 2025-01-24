@@ -1,3 +1,4 @@
+import { A11yModule } from '@angular/cdk/a11y';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { NgModule } from '@angular/core';
@@ -67,6 +68,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
     ReactiveFormsModule,
     DragDropModule,
     OverlayModule,
+    A11yModule,
     FormlySelectModule,
     FormlyModule.forRoot({
       validationMessages: [

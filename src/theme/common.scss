@@ -107,13 +107,6 @@ textarea {
   border: 1px solid var(--border);
 }
 
-.hidden-without-removing {
-  pointer-events: none;
-  user-select: none;
-  position: absolute;
-  opacity: 0;
-}
-
 .tag {
   color: var(--tag) !important;
 }
