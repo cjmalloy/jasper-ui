@@ -62,14 +62,12 @@
     </div>
     <textarea #editor
               [formControl]="control"
-              (touchstart)="fullscreenDefault = fullscreenDefault === undefined ? true : undefined"
-              (focusin)="editing = true"
               (pointerup)="onSelect()"
               (select)="onSelect()"
               (selectionchange)="onSelect()"
               (input)="setText($any($event).target.value)"
-              (blur)="blurText($any($event).target.value)"
-              (focus)="focusText()"
+              cdkMonitorElementFocus
+              (cdkFocusChange)="$event ? focusText() : blurText(editor.value)"
               [appFillWidth]="fillWidth"
               [padding]="padding"
               [appAutofocus]="autoFocus"></textarea>
