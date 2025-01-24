@@ -151,9 +151,10 @@ export const aiQueryPlugin: Plugin = {
       if (!config?.provider || config.provider === 'openai') {
         const OpenAi = require('openai');
         const openai = new OpenAi({ apiKey });
+        const model = config?.model || 'o1';
         const res = await openai.chat.completions.create({
-          model: config?.model || 'gpt-4o',
-          max_tokens: config?.maxTokens || 4096,
+          model,
+          [model === 'o1' ? 'max_completion_tokens' : 'max_tokens']: config?.maxTokens || 4096,
           response_format: { "type": "json_object" },
           messages,
         });
