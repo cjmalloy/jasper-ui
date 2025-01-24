@@ -62,7 +62,6 @@
     </div>
     <textarea #editor
               [formControl]="control"
-              (touchstart)="fullscreenDefault = fullscreenDefault === undefined ? true : undefined"
               (focusin)="editing = true"
               (pointerup)="onSelect()"
               (select)="onSelect()"
