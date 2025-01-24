@@ -61,8 +61,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input()
   selectResponseType = false;
   @Input()
-  fullscreenDefault?: boolean;
-  @Input()
   tags?: string[];
   @Input()
   control!: UntypedFormControl;
@@ -216,12 +214,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   set editing(value: boolean) {
     if (!this._editing && value) {
       this.syncTags.emit(this.addTags);
-      defer(() => {
-        this._editing = true;
-        if (this.fullscreenDefault && !this.initialFullscreen) {
-          this.toggleFullscreen(true);
-        }
-      });
+      defer(() => this._editing = true);
     }
   }
 
