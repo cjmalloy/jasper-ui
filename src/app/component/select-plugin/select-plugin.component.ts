@@ -30,6 +30,7 @@ export class SelectPluginComponent implements OnChanges {
   textPlugins = this.admin.submitText.filter(p => this.auth.canAddTag(p.tag));
   settingsPlugins = this.admin.submitSettings.filter(p => this.auth.canAddTag(p.tag));
 
+  customPlugin?: Plugin;
   plugins: Plugin[] = [];
 
   constructor(
@@ -39,6 +40,7 @@ export class SelectPluginComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     this.plugins = [
+      ...(this.customPlugin ? [this.customPlugin] : []),
       ...(this.add ? this.addPlugins : []),
       ...(this.text ? this.textPlugins : []),
       ...(this.settings ? this.settingsPlugins : []),
@@ -54,8 +56,9 @@ export class SelectPluginComponent implements OnChanges {
       if (!this.plugins.find(p => p?.tag === value)) {
         const plugin = this.admin.getPlugin(value);
         if (plugin) {
+          this.customPlugin = plugin;
           this.plugins.unshift(plugin);
-          this.select!.nativeElement.selectedIndex = 1;
+          defer(() => this.select!.nativeElement.selectedIndex = 1);
           return;
         }
       }
