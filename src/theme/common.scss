@@ -1209,6 +1209,7 @@ details.mini:not([open]) {
     padding: 0 10px;
     font-weight: bold;
     height: 100%;
+    min-width: 18px;
     max-height: 57px;
     line-height: 57px;
   }
