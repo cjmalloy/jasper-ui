@@ -283,6 +283,7 @@ export const aiQueryPlugin: Plugin = {
       type: 'tag',
       props: {
         label: $localize`🔑️ API Key Tag:`,
+        prefix: '+plugin/secret',
       },
     }, {
       key: 'model',

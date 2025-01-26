@@ -153,6 +153,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     } else {
       this.searching?.unsubscribe();
       this.searching = this.exts.page({
+        query: this.props.prefix,
         search: value,
         sort: ['nesting'],
         size: 5,
