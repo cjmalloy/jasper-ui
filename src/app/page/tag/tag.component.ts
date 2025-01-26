@@ -83,7 +83,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
         this.store.view.pageNumber,
         this.store.view.pageSize,
       );
-      defer(() => this.query.setArgs(args));
+      runInAction(() => this.query.setArgs(args));
     }));
   }
 
