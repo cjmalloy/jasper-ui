@@ -87,7 +87,7 @@ export class FolderComponent implements OnChanges, HasChanges {
       this.cursor = this.ext.modifiedString!;
       this.files = mapValues(toJS(this.ext.config.files) || {}, p => this.transform(p));
       for (const e of Object.entries<Pos>(toJS(this.ext.config.subfolders) || {})) {
-        this.subfolders[e[0] !== '..' ? this.tag + '/' + e[0] : '..'] = this.transform(e[1]);
+        this.subfolders[this.ext.tag + (e[0] !== '..' ? '/' + e[0] : '')] = this.transform(e[1]);
       }
     }
   }
@@ -145,7 +145,7 @@ export class FolderComponent implements OnChanges, HasChanges {
     this.dragging = true
     this.exts.patch(this.ext!.tag + this.store.account.origin, cursor, [{
       op: 'add',
-      path: '/config/subfolders/' + (tag === '..' ? '..' : escapePath(tag.substring(this.ext!.tag.length + 1))),
+      path: '/config/subfolders/' + (tag === this.tag ? '..' : escapePath(tag.substring(this.ext!.tag.length + 1))),
       value: {
         x: Math.floor(target.getBoundingClientRect().x + window.scrollX - this.el.nativeElement.offsetLeft),
         y: Math.floor(target.getBoundingClientRect().y + window.scrollY - this.el.nativeElement.offsetTop),
