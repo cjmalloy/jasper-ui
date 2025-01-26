@@ -122,7 +122,7 @@ export class FolderComponent implements OnChanges, HasChanges {
       x: Math.floor(target.getBoundingClientRect().x + window.scrollX - this.el.nativeElement.offsetLeft),
       y: Math.floor(target.getBoundingClientRect().y + window.scrollY - this.el.nativeElement.offsetTop),
     };
-    this.exts.patch(this.ext!.tag, cursor, [{
+    this.exts.patch(this.ext!.tag + this.store.account.origin, cursor, [{
       op: 'add',
       path: '/config/files/' + escapePath(url),
       value: pos,
