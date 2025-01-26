@@ -125,40 +125,45 @@ export class EditorService {
     }
   }
 
-  getTagPreview(tag: string, defaultOrigin = ''): Observable<{ name?: string, tag: string } | undefined> {
+  getTagPreview(tag: string, defaultOrigin = '', returnDefault = true, loadTemplates = true, loadPlugins = true): Observable<{ name?: string, tag: string } | undefined> {
     return this.exts.getCachedExt(tag, defaultOrigin).pipe(
       switchMap(x => {
-        const templates = this.admin.getTemplates(x.tag).filter(t => t.tag);
-        if (templates.length) {
-          const longestMatch = templates[templates.length - 1];
-          if (x.tag === longestMatch.tag) return of(longestMatch);
-          return of({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (x.name || x.tag) });
+        if (loadTemplates) {
+          const templates = this.admin.getTemplates(x.tag).filter(t => t.tag);
+          if (templates.length) {
+            const longestMatch = templates[templates.length - 1];
+            if (x.tag === longestMatch.tag) return of(longestMatch);
+            return of({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (x.name || x.tag) });
+          }
         }
-        if (x.modified && x.origin === this.store.account.origin) return of(x);
+        if (x.modified && x.origin === (defaultOrigin || this.store.account.origin)) return of(x);
         const plugin = this.admin.getPlugin(x.tag);
-        if (plugin) return of(plugin);
-        const parentPlugins = this.admin.getParentPlugins(x.tag);
-        if (parentPlugins.length) {
-          const longestMatch = parentPlugins[parentPlugins.length - 1];
-          if (x.tag === longestMatch.tag) return of(longestMatch);
-          const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
-          if (longestMatch.tag === 'plugin/outbox') {
-            const origin = childTag.substring(0, childTag.indexOf('/'));
-            const remoteTag = childTag.substring(origin.length + 1);
-            const originFormat = origin ? ' @' + origin : '';
-            return this.exts.getCachedExt(remoteTag, origin).pipe(
-              map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
+        if (loadPlugins) {
+          if (plugin) return of(plugin);
+          const parentPlugins = this.admin.getParentPlugins(x.tag);
+          if (parentPlugins.length) {
+            const longestMatch = parentPlugins[parentPlugins.length - 1];
+            if (x.tag === longestMatch.tag) return of(longestMatch);
+            const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
+            if (longestMatch.tag === 'plugin/outbox') {
+              const origin = childTag.substring(0, childTag.indexOf('/'));
+              const remoteTag = childTag.substring(origin.length + 1);
+              const originFormat = origin ? ' @' + origin : '';
+              return this.exts.getCachedExt(remoteTag, origin).pipe(
+                map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
+              );
+            }
+            let a = access(x.tag);
+            if (childTag === 'user' || childTag.startsWith('user/')) {
+              a ||= '+';
+            }
+            return this.exts.getCachedExt(a + childTag, defaultOrigin).pipe(
+              map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + c.name || c.tag })),
             );
           }
-          let a = access(x.tag);
-          if (childTag === 'user' || childTag.startsWith('user/')) {
-            a ||= '+';
-          }
-          return this.exts.getCachedExt(a + childTag, defaultOrigin).pipe(
-            map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + c.name || c.tag })),
-          );
         }
-        return of(x);
+        if (x.modified || returnDefault) return of(x);
+        return of(undefined);
       })
     );
   }

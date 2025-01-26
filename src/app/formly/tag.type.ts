@@ -7,6 +7,7 @@ import { Config } from '../model/tag';
 import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
 import { ConfigService } from '../service/config.service';
+import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { access, removePrefix } from '../util/tag';
 import { getErrorMessage } from './errors';
@@ -64,6 +65,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     private configs: ConfigService,
     private config: FormlyConfig,
     private admin: AdminService,
+    private editor: EditorService,
     private exts: ExtService,
     public store: Store,
     private cd: ChangeDetectorRef,
@@ -116,46 +118,12 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
-    return this.exts.getCachedExt(value, this.field.props.origin).pipe(
-      switchMap(x => {
-        if (this.field.type !== 'plugin') {
-          const templates = this.admin.getTemplates(x.tag).filter(t => t.tag);
-          if (templates.length) {
-            const longestMatch = templates[templates.length - 1];
-            if (x.tag === longestMatch.tag) return of(longestMatch);
-            return of({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (x.name || x.tag) });
-          }
-        }
-        if (x.modified && x.origin === (this.field.props.origin || this.store.account.origin)) return of(x);
-        const plugin = this.admin.getPlugin(x.tag);
-        if (this.field.type !== 'template') {
-          if (plugin) return of(plugin);
-          const parentPlugins = this.admin.getParentPlugins(x.tag);
-          if (parentPlugins.length) {
-            const longestMatch = parentPlugins[parentPlugins.length - 1];
-            if (x.tag === longestMatch.tag) return of(longestMatch);
-            const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
-            if (longestMatch.tag === 'plugin/outbox') {
-              const origin = childTag.substring(0, childTag.indexOf('/'));
-              const remoteTag = childTag.substring(origin.length + 1);
-              const originFormat = origin ? ' @' + origin : '';
-              return this.exts.getCachedExt(remoteTag, origin).pipe(
-                map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
-              );
-            }
-            let a = access(x.tag);
-            if (childTag === 'user' || childTag.startsWith('user/')) {
-              a ||= '+';
-            }
-            return this.exts.getCachedExt(a + childTag, this.field.props.origin).pipe(
-              map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + c.name || c.tag })),
-            );
-          }
-        }
-        if (x.modified) return of(x);
-        return of(undefined);
-      })
-    );
+    return this.editor.getTagPreview(
+      value,
+      this.field.props.origin || this.store.account.origin,
+      false,
+      this.field.type !== 'plugin',
+      this.field.type !== 'template');
   }
 
   edit(input: HTMLInputElement) {
