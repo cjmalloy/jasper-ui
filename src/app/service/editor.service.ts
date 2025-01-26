@@ -3,12 +3,12 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular
 import Europa from 'europa';
 import { Plugin, PluginApi } from 'europa-core';
 import { difference, uniq } from 'lodash-es';
-import { filter, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { TagsFormComponent } from '../form/tags/tags.component';
 import { Store } from '../store/store';
 import { getMailboxes } from '../util/editor';
 import { getPath } from '../util/http';
-import { access, removePrefix } from '../util/tag';
+import { access, removePrefix, setPublic } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { ConfigService } from './config.service';
@@ -158,7 +158,7 @@ export class EditorService {
               a ||= '+';
             }
             return this.exts.getCachedExt(a + childTag, defaultOrigin).pipe(
-              map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + c.name || c.tag })),
+              map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || setPublic(c.tag)) })),
             );
           }
         }
