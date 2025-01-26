@@ -11,7 +11,7 @@ import { Pos } from '../../mods/folder';
 import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
 import { escapePath } from '../../util/json-patch';
-import { level } from '../../util/tag';
+import { defaultOrigin, level, tagOrigin } from '../../util/tag';
 
 @Component({
   standalone: false,
@@ -25,7 +25,7 @@ export class FolderComponent implements OnChanges, HasChanges {
   @Input()
   tag?: string;
   @Input()
-  ext!: Ext;
+  ext?: Ext;
   @Input()
   pinned?: Ref[] | null;
   @Input()
@@ -64,13 +64,13 @@ export class FolderComponent implements OnChanges, HasChanges {
       delete this.folderExts;
       delete this.parent;
       if (this.tag?.includes('/')) {
-        this.exts.getCachedExt(this.tag.substring(0, this.tag.lastIndexOf('/')))
+        this.exts.getCachedExt(this.tag.substring(0, this.tag.lastIndexOf('/')), tagOrigin(this.tag) || '@')
           .subscribe(ext => this.parent = ext);
       }
       this.folderSubscription?.unsubscribe();
       if (!this.tag) return;
       this.folderSubscription = this.exts.page({
-        query: this.tag + this.ext.origin,
+        query: defaultOrigin(this.tag, (this.ext?.origin || '@')),
         level: level(this.tag) + 1,
         size: 100
       }).pipe(
