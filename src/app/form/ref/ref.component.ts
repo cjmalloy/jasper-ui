@@ -95,6 +95,8 @@ export class RefFormComponent {
   }
 
   get editorLabel() {
+    // TODO: Move to config
+    if (this.tags?.hasTag('+plugin/secret')) return $localize`Secret Key`;
     if (this.tags?.hasTag('plugin/alt')) return $localize`Alt Text`;
     return $localize`Abstract`;
   }
