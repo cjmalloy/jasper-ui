@@ -5,6 +5,7 @@ import { Plugin, PluginApi } from 'europa-core';
 import { difference, uniq } from 'lodash-es';
 import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { TagsFormComponent } from '../form/tags/tags.component';
+import { Ext } from '../model/ext';
 import { Store } from '../store/store';
 import { getMailboxes } from '../util/editor';
 import { getPath } from '../util/http';
@@ -12,6 +13,8 @@ import { access, removePrefix, setPublic } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { ConfigService } from './config.service';
+
+export type TagPreview = { name?: string, tag?: string } | Ext;
 
 @Injectable({
   providedIn: 'root'
@@ -168,7 +171,7 @@ export class EditorService {
     );
   }
 
-  getTagsPreview(tags: string[], defaultOrigin = ''): Observable<{ name?: string, tag?: string }[]> {
+  getTagsPreview(tags: string[], defaultOrigin = ''): Observable<TagPreview[]> {
     return forkJoin(tags.map( t => this.getTagPreview(t, defaultOrigin))).pipe(
       map(xs => xs.filter(x => !!x)),
     ) as Observable<{name?: string, tag: string}[]>;

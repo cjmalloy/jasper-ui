@@ -5,6 +5,7 @@ import { getPluginScope } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { hydrate, Visibility } from '../model/tag';
 import { getTemplateScope } from '../model/template';
+import { TagPreview } from '../service/editor.service';
 import { Store } from '../store/store';
 
 @Directive({
@@ -14,7 +15,7 @@ import { Store } from '../store/store';
 export class TitleDirective implements OnChanges {
 
   @Input('appTitle')
-  node?: Visibility | Visibility[] | Ext | string;
+  node?: Visibility | Visibility[] | Ext | string | TagPreview;
   @Input()
   ref?: Ref;
 
