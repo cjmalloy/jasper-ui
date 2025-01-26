@@ -37,9 +37,4 @@ export class SubfolderComponent {
     // TODO: Thumbnail in config
     return '';
   }
-
-  saveExt() {
-    this.query.clear();
-    if (this.ext) runInAction(() => this.store.view.exts = [this.ext!]);
-  }
 }
