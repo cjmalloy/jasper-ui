@@ -246,6 +246,7 @@ $tablet-width: 948px;
     .list-number {
       opacity: 0;
       width: 0;
+      min-width: 0;
       padding: 0;
       line-height: 0;
     }
