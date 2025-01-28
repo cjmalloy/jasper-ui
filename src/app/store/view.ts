@@ -53,7 +53,7 @@ export class ViewStore {
   ) {
     makeAutoObservable(this, {
       clear: action,
-      clearRef: action,
+      setRef: action,
       preloadRef: action,
       setLastSelected: action,
       exts: observable.shallow,
@@ -83,7 +83,7 @@ export class ViewStore {
     this.defaultSearchSort = defaultSearchSort;
   }
 
-  clearRef(ref?: Ref, top?: Ref, defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
+  setRef(ref?: Ref, top?: Ref) {
     this.ref = ref;
     if (ref) this.lastSelected = ref;
     this.top = top;
@@ -91,8 +91,6 @@ export class ViewStore {
     this.exts = [];
     this.extTemplates = [];
     this.selectedUser = undefined;
-    this.defaultSort = defaultSort;
-    this.defaultSearchSort = defaultSearchSort;
   }
 
   preloadRef(ref: Ref, top?: Ref) {

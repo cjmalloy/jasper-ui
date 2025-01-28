@@ -66,7 +66,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    this.store.view.clearRef();
   }
 
   @memo
@@ -135,7 +134,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   reload(url?: string) {
     url ||= this.store.view.url || '';
     if (!url) {
-      this.store.view.clearRef();
+      this.store.view.clear();
       return;
     }
     this.newResponses = 0;
@@ -156,7 +155,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
           map(top => [ref, top] as [Ref, Ref]),
         )),
-      tap(([ref, top]) => runInAction(() => this.store.view.clearRef(ref, top))),
+      tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
     ).subscribe(() => MemoCache.clear(this));
     if (this.config.websockets) {
       this.watchSelf?.unsubscribe();
