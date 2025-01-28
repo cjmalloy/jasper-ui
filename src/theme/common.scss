@@ -641,11 +641,17 @@ video.qr-preview {
   overflow: hidden;
 }
 
+.add-more,
 .overwrite.warning,
 .force.error {
+  display: flex;
+  align-items: center;
   font-size: 100% !important;
   margin-right: 16px !important;
   padding: 0 !important;
+  input {
+    margin: 4px;
+  }
 }
 
 .tag,

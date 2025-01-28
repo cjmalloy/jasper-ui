@@ -50,6 +50,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   plugins!: PluginsFormComponent;
 
   submitting?: Subscription;
+  addAnother = false;
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
 
@@ -125,6 +126,10 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  get randomURL() {
+    return !this.store.submit.url && (this.admin.isWikiExternal() || !this.store.submit.wiki) ;
   }
 
   showAdvanced() {
@@ -238,7 +243,11 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     ).subscribe(() => {
       delete this.submitting;
       this.textForm.markAsPristine();
-      if (hasTag('plugin/thread', ref)) {
+      if (this.addAnother) {
+        this.url.enable();
+        this.url.setValue('comment:' + uuid());
+        this.url.disable();
+      } else if (hasTag('plugin/thread', ref)) {
         this.router.navigate(['/ref', this.url.value, 'thread'], { queryParams: { published }, replaceUrl: true });
       } else {
         this.router.navigate(['/ref', this.url.value], { queryParams: { published }, replaceUrl: true});
