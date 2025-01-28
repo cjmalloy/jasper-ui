@@ -1627,8 +1627,12 @@ formly-field-radio, formly-field-multicheckbox {
     }
   }
 }
+.parent-ref.thread {
+  & > .row > .stack > .link-below > .toggle {
+    display: none;
+  }
+}
 .thread > .ref-list > .list-container > .ref,
-.parent-ref.thread,
 .full-page.ref.thread {
   & > .row > .stack > .comment-title,
   & > .row > .stack > .link-below > .toggle {
