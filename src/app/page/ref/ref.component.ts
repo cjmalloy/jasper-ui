@@ -82,49 +82,57 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.store.local.isRefToggled(this.store.view.url, this.store.view.current === 'ref/summary' || this.fullscreen?.onload);
   }
 
+  @memo
   get fullscreen() {
     if (!this.admin.getPlugin('plugin/fullscreen')) return undefined;
     return this.store.view.ref?.plugins?.['plugin/fullscreen'];
   }
 
+  @memo
   get comment() {
     return this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref);
   }
 
+  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
+  @memo
   get thread() {
     return this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.store.view.ref);
   }
 
+  @memo
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return hasTag('plugin/thread', this.store.view.ref) || this.store.view.ref?.metadata?.plugins?.['plugin/thread'];
   }
 
+  @memo
   get logs() {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
     return this.store.view.ref?.metadata?.plugins?.['+plugin/log'];
   }
 
+  @memo
   get responses() {
     return this.store.view.ref?.metadata?.responses || 0;
   }
 
+  @memo
   get sources() {
     const sources = (this.store.view.ref?.sources || []).filter( s => s != this.store.view.url);
     return sources.length || 0;
   }
 
+  @memo
   get alts() {
     return this.store.view.ref?.alternateUrls?.length || 0;
   }
 
   reload(url?: string) {
-    MemoCache.clear(this);
     url ||= this.store.view.url || '';
     if (!url) {
       this.store.view.clearRef();
@@ -133,13 +141,14 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     this.newResponses = 0;
     this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() =>
       this.store.view.versions = count));
+    const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     (url === this.store.view.ref?.url
       ? of(this.store.view.ref)
       : this.refs.getCurrent(url)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
-      switchMap(ref => (!this.comment && !this.thread)
+      switchMap(ref => !fetchTop(ref)
         ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
         : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
@@ -148,7 +157,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           map(top => [ref, top] as [Ref, Ref]),
         )),
       tap(([ref, top]) => runInAction(() => this.store.view.clearRef(ref, top))),
-    ).subscribe();
+    ).subscribe(() => MemoCache.clear(this));
     if (this.config.websockets) {
       this.watchSelf?.unsubscribe();
       this.watchSelf = this.stomp.watchRef(url).pipe(
