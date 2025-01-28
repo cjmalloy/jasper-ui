@@ -100,7 +100,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
 
   @memo
   get thread() {
-    return this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.store.view.ref);
+    return this.admin.getPlugin('plugin/thread') && (hasTag('plugin/thread', this.store.view.ref) || this.store.view.current === 'ref/thread');
   }
 
   @memo
