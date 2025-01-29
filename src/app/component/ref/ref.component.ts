@@ -636,12 +636,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get replyTags(): string[] {
     const tags = [
-      ...this.admin.reply.filter(p => (this.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
-    if (this.comments) tags.push('plugin/comment', 'internal');
-    if (this.threads) tags.push('plugin/thread', 'internal');
-    if (this.dm) tags.push('dm', 'plugin/thread', 'internal');
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
