@@ -136,7 +136,8 @@ export class EditorService {
           if (templates.length) {
             const longestMatch = templates[templates.length - 1];
             if (x.tag === longestMatch.tag) return of(longestMatch);
-            return of({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (x.name || x.tag) });
+            const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
+            return of({ tag: x.tag, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + (x.name || childTag) });
           }
         }
         if (x.modified && x.origin === (defaultOrigin || this.store.account.origin)) return of(x);
@@ -160,8 +161,8 @@ export class EditorService {
             if (childTag === 'user' || childTag.startsWith('user/')) {
               a ||= '+';
             }
-            return this.exts.getCachedExt(a + childTag, defaultOrigin).pipe(
-              map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || setPublic(c.tag)) })),
+            return this.exts.getCachedExt(a + setPublic(childTag), defaultOrigin).pipe(
+              map(c => ({ tag: x.tag, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + (c.name || setPublic(childTag)) })),
             );
           }
         }
