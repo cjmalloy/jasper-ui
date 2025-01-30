@@ -69,6 +69,7 @@ export class ListTypeComponent extends FieldArrayType {
 
   keydown(event: KeyboardEvent, index: number) {
     if (this.groupArray) return;
+    if (event.repeat) return;
     const len = this.formControl.length;
     if (!event.shiftKey) {
       if (event.key === 'Enter' || event.key === 'Tab' && len - 1 === index) {
