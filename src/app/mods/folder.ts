@@ -12,6 +12,7 @@ export const folderTemplate: Template = {
     submit: $localize`📂️ folder/`,
     view: $localize`📂️`,
     writeAccess: ['+folder'],
+    local: true,
     description: $localize`Activates built-in Folder mode for viewing Refs.`,
     filters: [
       { query: 'folder', label: $localize`📂️ folder`, title: $localize`Folders`, group: $localize`Templates 🎨️` },

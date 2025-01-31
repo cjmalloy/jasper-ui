@@ -149,6 +149,7 @@ export class ExtComponent implements OnChanges, HasChanges {
 
   @memo
   get extLink() {
+    if (this.admin.local.find(t => hasPrefix(this.ext.tag, t.tag))) return this.ext.tag + (this.ext.origin || '@');
     return tagLink(this.ext.tag, this.ext.origin, this.store.account.origin);
   }
 

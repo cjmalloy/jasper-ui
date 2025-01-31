@@ -513,6 +513,10 @@ export class AdminService {
     return this.templateConfigProperty('view');
   }
 
+  get local() {
+    return this.templateConfigProperty('local');
+  }
+
   get editorButtons() {
     return this.configProperty('editorButtons');
   }

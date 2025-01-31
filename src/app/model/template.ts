@@ -17,6 +17,10 @@ export interface Template extends Config {
      */
     view?: string,
     /**
+     * Always use fully qualified tag when creating web links.
+     */
+    local?: boolean,
+    /**
      * This view is available by default, no tagging required.
      */
     global?: boolean;
