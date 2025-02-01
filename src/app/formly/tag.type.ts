@@ -140,6 +140,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   search = debounce((value: string) => {
+    value = value.toLowerCase();
     const toEntry = (p: Config) => ({ value: p.tag, label: p.name || p.tag });
     const getPlugins = (text: string, size = 5) => this.admin.searchPlugins(text).slice(0, size).map(toEntry);
     const getTemplates = (text: string, size = 5) => this.admin.searchTemplates(text).slice(0, size).map(toEntry);

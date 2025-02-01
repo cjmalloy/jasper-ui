@@ -2,10 +2,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, some, uniq, without } from 'lodash-es';
+import { debounce, defer, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Subscription, throwError } from 'rxjs';
+import { catchError, forkJoin, map, Observable, Subscription, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
@@ -13,13 +13,15 @@ import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Plugin } from '../../../model/plugin';
 import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
+import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { BookmarkService } from '../../../service/bookmark.service';
+import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
-import { QUALIFIED_TAG_REGEX } from '../../../util/format';
+import { QUALIFIED_TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -45,23 +47,30 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   @ViewChild(TagsFormComponent)
   tags?: TagsFormComponent;
 
+  preview = '';
+  editing = false;
+  autocomplete: { value: string, label: string }[] = [];
   submitting?: Subscription;
+  private showedError = false;
   private addedMailboxes: string[] = [];
   private oldSubmit: string[] = [];
+  private searching?: Subscription;
 
   constructor(
+    private config: ConfigService,
     private mod: ModService,
     public admin: AdminService,
     private router: Router,
     public store: Store,
     public bookmarks: BookmarkService,
     private refs: RefService,
+    private exts: ExtService,
     private editor: EditorService,
     private fb: UntypedFormBuilder,
   ) {
     mod.setTitle($localize`Submit: Direct Message`);
     this.dmForm = fb.group({
-      to: ['', [Validators.pattern(QUALIFIED_TAG_REGEX)]],
+      to: ['', [Validators.pattern(QUALIFIED_TAGS_REGEX)]],
       title: [''],
       sources: fb.array([]),
       comment: [''],
@@ -136,19 +145,15 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   validate(input: HTMLInputElement) {
-    if (this.to.touched) {
-      if (this.to.errors?.['pattern']) {
-        input.setCustomValidity($localize`
-          User tags must start with the "+user/" or "_user/" prefix.
-          Notification tags must start with the "plugin/inbox" or "plugin/outbox" prefix.
-          Tags must be lower case letters, numbers, periods and forward slashes.
-          Must not or contain two forward slashes or periods in a row.
-          (i.e. "+user/bob", "plugin/outbox/dictionary/science", or "_user/charlie@jasperkm.info")`);
-        input.reportValidity();
-        return;
-      }
+    if (this.to.touched && this.to.errors?.['pattern']) {
+      input.setCustomValidity($localize`
+        User tags must start with the "+user/" or "_user/" prefix.
+        Notification tags must start with the "plugin/inbox" or "plugin/outbox" prefix.
+        Tags must be lower case letters, numbers, periods and forward slashes.
+        Must not or contain two forward slashes or periods in a row.
+        (i.e. "+user/bob", "plugin/outbox/dictionary/science", or "_user/charlie@jasperkm.info")`);
+      input.reportValidity();
     }
-    this.setTo(input.value);
   }
 
   syncTags(value: string[]) {
@@ -167,13 +172,73 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       this.tags!.setTags(newTags);
       this.addedMailboxes = [];
     } else if (!notes) {
-      const mailboxes = ['dm', 'plugin/thread', ...value.split(/\s+/).flatMap((t: string) => this.getMailboxes(t))];
+      const mailboxes = ['dm', 'plugin/thread', ...value.toLowerCase().split(/\s+/).filter(t => !!t).flatMap((t: string) => this.getMailboxes(t))];
       const added = without(mailboxes, ...this.addedMailboxes);
       const removed = without(this.addedMailboxes, ...mailboxes);
       const newTags = uniq([...without(this.tags!.tags!.value, ...removed, 'notes'), ...added]);
       this.tags!.setTags(newTags);
       this.addedMailboxes = mailboxes;
     }
+  }
+
+  preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
+    return this.editor.getTagPreview(value, this.store.account.origin);
+  }
+
+  edit(input: HTMLInputElement) {
+    this.editing = true;
+    this.preview = '';
+    input.focus();
+  }
+
+  clickPreview(input: HTMLInputElement) {
+    if (this.store.hotkey) {
+      window.open(this.config.base + 'tag/' + input.value);
+    } else {
+      this.edit(input);
+    }
+  }
+
+  search = debounce((input: HTMLInputElement) => {
+    const text = input.value.toLowerCase();
+    const parts = text.split(/\s+/).filter(t => !!t);
+    const value = parts.pop() || '';
+    const tag = value.replace(/[^_+a-z0-9./]/, '');
+    const prefix = parts.join(' ') + ' ' + (value.startsWith('-') ? '-' : '');
+    this.searching?.unsubscribe();
+    this.searching = this.exts.page({
+      query: '+user|_user',
+      search: tag,
+      size: 1,
+    }).pipe(
+      switchMap(page => forkJoin(page.content.map(x => this.preview$(x.tag + x.origin)))),
+      map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
+    ).subscribe(xs => {
+      this.autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag }));
+    });
+  }, 400);
+
+  blur(input: HTMLInputElement) {
+    this.editing = false;
+    if (this.to.errors?.['pattern']) {
+      if (!this.showedError) {
+        this.showedError = true;
+        defer(() => this.validate(input));
+      } else {
+        this.showedError = false;
+      }
+    } else {
+      this.setTo(input.value);
+      this.getPreview(input.value) ;
+    }
+  }
+
+  getPreview(value: string) {
+    if (!value) return;
+    if (this.to.errors?.['pattern']) return;
+    forkJoin(value.split(/\s+/).map( part => this.preview$(part))).subscribe(xs => {
+      this.preview = xs.map(x => x?.name || x?.tag || '').join(',  ');
+    });
   }
 
   getMailboxes(tag: string): string[] {

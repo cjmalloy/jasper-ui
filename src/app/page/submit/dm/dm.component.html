@@ -3,13 +3,33 @@
         [appLimitWidth]="fill?.nativeElement" [limitSibling]="true">
     @if (!store.submit.dmPlugin) {
       <label for="to">To:</label>
-      <input id="to"
-             placeholder="Myself"
-             [formControl]="to"
-             type="email"
-             autocorrect="off"
-             autocapitalize="none"
-             (blur)="validate($any($event.target))">
+      <div class="form-array skip-margin">
+        <input class="preview grow"
+               type="text"
+               [value]="preview"
+               [title]="toInput.value"
+               [style.display]="preview ? 'block' : 'none'"
+               (focus)="clickPreview(toInput)">
+        <datalist id="to-list">
+          @for (o of autocomplete; track o.value) {
+            <option [value]="o.value">{{ o.label }}</option>
+          }
+        </datalist>
+        <input #toInput
+               id="to"
+               placeholder="Myself"
+               [formControl]="to"
+               type="email"
+               autocorrect="off"
+               autocapitalize="none"
+               list="to-list"
+               [class.hidden-without-removing]="preview"
+               (input)="search(toInput)"
+               (blur)="blur(toInput)"
+               (focusin)="edit(toInput)"
+               (focus)="edit(toInput)"
+               (focusout)="getPreview(toInput.value)">
+      </div>
       @if (to.touched && !to.value) {
         <div><!-- Warning --></div>
         <div>
