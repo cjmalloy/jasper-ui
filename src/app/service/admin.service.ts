@@ -652,11 +652,12 @@ export class AdminService {
         if (i.condition && !condition(i.condition, config?.[p.tag])) return false;
         if (i.global) return true;
         if (i.scheme && i.scheme === scheme) return true;
+        if (i.tag && !hasTag(i.tag, match)) return false;
         return hasTag(p.tag, match);
       }).map(addParent(p))
         .map(i => {
-          if (!i.response && !i.anyResponse && !i.noResponse && !i.scheme) i.tag ||= p.tag;
-          if (i.tag === p.tag)  i.title ||= p.name;
+          if (!i.tag && !i.response && !i.anyResponse && !i.noResponse && !i.scheme) i.tag ||= p.tag;
+          if (!i.tag || i.tag === p.tag) i.title ||= p.name;
           i.title ||= i.tag;
           return i;
         }))
