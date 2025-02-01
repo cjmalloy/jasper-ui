@@ -83,6 +83,11 @@ export class ViewStore {
     this.defaultSearchSort = defaultSearchSort;
   }
 
+  clearRef() {
+    this.ref = undefined;
+    this.top = undefined;
+  }
+
   setRef(ref?: Ref, top?: Ref) {
     this.ref = ref;
     if (ref) this.lastSelected = ref;

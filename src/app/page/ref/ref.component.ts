@@ -66,6 +66,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.store.view.clearRef();
   }
 
   @memo
@@ -141,7 +142,10 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() =>
       this.store.view.versions = count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
-    this.refs.getCurrent(url).pipe(
+    (url === this.store.view.ref?.url
+      ? of(this.store.view.ref)
+      : this.refs.getCurrent(url)
+    ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
       switchMap(ref => !fetchTop(ref)
