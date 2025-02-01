@@ -43,7 +43,7 @@ export const summaryQueryPlugin: Plugin = {
       const openai = new OpenAi({ apiKey });
       const completion = await openai.chat.completions.create({
         model: config?.model || 'gpt-4o',
-        max_tokens: config?.maxTokens || 4096,
+        max_completion_tokens: config?.maxTokens || 4096,
         messages: [
           {role: 'system', content: 'Summarize the following:'},
           {role: 'user', content: prompt},
@@ -107,7 +107,7 @@ export const summaryQueryPlugin: Plugin = {
   defaults: {
     provider: 'openai',
     apiKeyTag: '+plugin/secret/openai',
-    model: 'gpt-4o',
+    model: 'o3-mini',
     maxTokens: 4096,
   },
   schema: {
