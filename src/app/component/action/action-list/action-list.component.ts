@@ -7,6 +7,8 @@ import {
   HostListener,
   Input,
   NgZone,
+  OnChanges,
+  SimpleChanges,
   TemplateRef,
   ViewChild,
   ViewContainerRef
@@ -18,7 +20,7 @@ import { Action } from '../../../model/tag';
 import { ActionService } from '../../../service/action.service';
 import { ConfigService } from '../../../service/config.service';
 import { downloadRef } from '../../../util/download';
-import { memo } from '../../../util/memo';
+import { memo, MemoCache } from '../../../util/memo';
 
 @Component({
   standalone: false,
@@ -26,7 +28,7 @@ import { memo } from '../../../util/memo';
   templateUrl: './action-list.component.html',
   styleUrl: './action-list.component.scss'
 })
-export class ActionListComponent implements AfterViewInit {
+export class ActionListComponent implements AfterViewInit, OnChanges {
 
   @Input()
   ref!: Ref;
@@ -62,6 +64,10 @@ export class ActionListComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.resizeObserver?.observe(this.el.nativeElement!.parentElement!);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    MemoCache.clear(this);
     this.onResize();
   }
 
