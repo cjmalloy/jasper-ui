@@ -1,10 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { debounce } from 'lodash-es';
-import { catchError, Observable, of, Subscription } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Config } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
+import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { TAGS_REGEX } from '../../../util/format';
 import { ActionComponent } from '../action.component';
@@ -32,6 +33,7 @@ export class InlineTagComponent extends ActionComponent {
   constructor(
     private store: Store,
     private admin: AdminService,
+    private editor: EditorService,
     private exts: ExtService,
   ) {
     super();
@@ -65,20 +67,31 @@ export class InlineTagComponent extends ActionComponent {
     ).subscribe(() => this.acting = false);
   }
 
+  preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
+    return this.editor.getTagPreview(value, this.store.account.origin, false,);
+  }
+
   search = debounce((input: HTMLInputElement) => {
-    const value = input.value = input.value.toLowerCase();
+    const text = input.value = input.value.toLowerCase();
+    const parts = text.split(/\s+/).filter(t => !!t);
+    const value = parts.pop() || '';
+    const tag = value.replace(/[^_+a-z0-9./]/, '');
+    const prefix = parts.join(' ') + ' ' + (value.startsWith('-') ? '-' : '');
     const toEntry = (p: Config) => ({ value: p.tag, label: p.name || p.tag });
     const getPlugins = (text: string) => this.admin.searchPlugins(text).slice(0, 1).map(toEntry);
     const getTemplates = (text: string) => this.admin.searchTemplates(text).slice(0, 1).map(toEntry);
     this.searching?.unsubscribe();
     this.searching = this.exts.page({
       query: this.store.account.origin || '@',
-      search: value,
+      search: tag,
       size: 1,
-    }).subscribe(page => {
-      this.autocomplete = page.content.map(x => ({ value: x.tag, label: x.name || x.tag }));
-      if (this.autocomplete.length < 1) this.autocomplete.push(...getPlugins(value));
-      if (this.autocomplete.length < 1) this.autocomplete.push(...getTemplates(value));
+    }).pipe(
+      switchMap(page => forkJoin(page.content.map(x => this.preview$(x.tag + x.origin)))),
+      map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
+    ).subscribe(xs => {
+      this.autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag }));
+      if (this.autocomplete.length < 1) this.autocomplete.push(...getPlugins(tag));
+      if (this.autocomplete.length < 1) this.autocomplete.push(...getTemplates(tag));
     });
   }, 400);
 

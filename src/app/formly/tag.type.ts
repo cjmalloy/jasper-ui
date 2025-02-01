@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, uniqBy } from 'lodash-es';
-import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
+import { forkJoin, map, Observable, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Config } from '../model/tag';
 import { AdminService } from '../service/admin.service';
@@ -9,7 +9,6 @@ import { ExtService } from '../service/api/ext.service';
 import { ConfigService } from '../service/config.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
-import { access, removePrefix } from '../util/tag';
 import { getErrorMessage } from './errors';
 
 @Component({
