@@ -44,7 +44,7 @@
     }
   </app-tabs>
   @if (store.view.type) {
-    <app-sidebar [tag]="store.view.childTag"></app-sidebar>
+    <app-sidebar [tag]="store.view.inboxTag"></app-sidebar>
   }
   <router-outlet></router-outlet>
 </ng-container>

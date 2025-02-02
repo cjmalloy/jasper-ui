@@ -42,10 +42,10 @@ export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.plugin = this.admin.getPlugin(this.store.view.childTag);
-      this.mod.setTitle($localize`Inbox: ${this.plugin?.config?.inbox || this.store.view.childTag}`);
+      this.plugin = this.admin.getPlugin(this.store.view.inboxTag);
+      this.mod.setTitle($localize`Inbox: ${this.plugin?.config?.inbox || this.store.view.inboxTag}`);
       const args = getArgs(
-        this.store.view.childTag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
+        this.store.view.inboxTag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
         this.store.view.sort,
         uniq(['!obsolete', ...this.store.view.filter]),
         this.store.view.search,

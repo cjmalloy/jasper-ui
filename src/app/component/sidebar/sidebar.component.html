@@ -5,19 +5,21 @@
     }
     @if (store.view.type) {
       <div class="wide">
-        <app-search [class.centered]="!expanded || !store.view.settings && !store.view.tags"></app-search>
-        @if (expanded && (store.view.settings || store.view.tags)) {
+        @if (expanded && (store.view.inboxTag || store.view.settingsTag || store.view.tags)) {
+          <app-search></app-search>
           <div class="show-remotes">
             <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
             <label for="show-remotes" i18n>show remotes</label>
           </div>
+        } @else {
+          <app-search class="centered"></app-search>
         }
       </div>
     }
   </div>
   @if (expanded) {
     @if (store.view.type) {
-      @if (store.view.tag) {
+      @if (tag && (store.view.tag || store.view.template)) {
         <app-query [query]="tag" class="breadcrumbs"></app-query>
       }
       <div class="row mini-col reverse">

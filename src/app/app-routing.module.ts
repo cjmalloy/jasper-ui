@@ -148,7 +148,7 @@ const routes: Routes = [
   { path: 'all', redirectTo: 'tag/@*', pathMatch: 'full' },
   { path: 'tag', redirectTo: 'tag/@*', pathMatch: 'full' },
   { path: 'tag/:tag', component: TagPage, canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
-  { path: 'tags', component: TagsPage, canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
+  { path: 'tags', redirectTo: 'tags/@*', pathMatch: 'full' },
   { path: 'tags/:template', component: TagsPage, canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
   { path: 'ext', component: ExtPage },
   { path: 'ext/:tag', component: ExtPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },

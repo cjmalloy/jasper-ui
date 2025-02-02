@@ -44,11 +44,11 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.plugin = this.admin.getPlugin(this.store.view.childTag);
-      this.writeAccess = this.auth.canAddTag(this.store.view.childTag);
-      this.mod.setTitle($localize`Settings: ${this.plugin?.config?.settings || this.store.view.childTag}`);
+      this.plugin = this.admin.getPlugin(this.store.view.settingsTag);
+      this.writeAccess = this.auth.canAddTag(this.store.view.settingsTag);
+      this.mod.setTitle($localize`Settings: ${this.plugin?.config?.settings || this.store.view.settingsTag}`);
       const args = getArgs(
-        this.store.view.childTag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
+        this.store.view.settingsTag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
         this.store.view.sort,
         uniq(['!obsolete', ...this.store.view.filter]),
         this.store.view.search,
@@ -66,14 +66,14 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
 
   loadDefaults() {
     if (!this.plugin?.config?.defaultsConfirm || confirm(this.plugin?.config?.defaultsConfirm)) {
-      this.store.eventBus.fire(this.store.view.childTag + ':defaults');
+      this.store.eventBus.fire(this.store.view.settingsTag + ':defaults');
       this.store.eventBus.reset();
     }
   }
 
   clearCache() {
     if (!this.plugin?.config?.clearCacheConfirm || confirm(this.plugin?.config?.clearCacheConfirm)) {
-      this.store.eventBus.fire(this.store.view.childTag + ':clear-cache');
+      this.store.eventBus.fire(this.store.view.settingsTag + ':clear-cache');
       this.store.eventBus.reset();
     }
   }

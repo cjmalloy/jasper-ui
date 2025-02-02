@@ -189,11 +189,6 @@ export class ViewStore {
     return s?.url[0].path === 'tags';
   }
 
-  get allTags(): boolean {
-    const s = this.route.routeSnapshot?.firstChild;
-    return s?.url[0].path === 'tags' && !s?.params.template;
-  }
-
   get settings() {
     const s = this.route.routeSnapshot?.firstChild;
     return s?.routeConfig?.path === 'settings';
@@ -201,8 +196,17 @@ export class ViewStore {
 
   get settingsTag() {
     if (!this.settings) return '';
-    const s = this.route.routeSnapshot?.firstChild?.firstChild;
-    return s?.params['tag'];
+    return this.childTag;
+  }
+
+  get inbox() {
+    const s = this.route.routeSnapshot?.firstChild;
+    return s?.routeConfig?.path === 'inbox';
+  }
+
+  get inboxTag() {
+    if (!this.inbox) return '';
+    return this.childTag;
   }
 
   get current(): View | undefined {

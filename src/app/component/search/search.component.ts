@@ -78,7 +78,7 @@ export class SearchComponent implements OnDestroy {
       case 'inbox/dms': return $localize`direct messages`;
       case 'inbox/modlist': return $localize`unmoderated`;
       case 'inbox/reports': return $localize`flagged`;
-      case 'inbox/ref': return this.admin.getPlugin(this.store.view.childTag)?.name || this.store.view.childTag;
+      case 'inbox/ref': return this.admin.getPlugin(this.store.view.inboxTag)?.name || this.store.view.inboxTag;
       case 'ref/thread': return $localize`thread`;
       case 'ref/comments': return $localize`comments`;
       case 'ref/responses': return $localize`responses`;
@@ -87,7 +87,7 @@ export class SearchComponent implements OnDestroy {
       case 'settings/user': return $localize`permissions`;
       case 'settings/plugin': return $localize`plugins`;
       case 'settings/template': return $localize`templates`;
-      case 'settings/ref': return this.admin.getPlugin(this.store.view.childTag)?.name || this.store.view.childTag;
+      case 'settings/ref': return this.admin.getPlugin(this.store.view.settingsTag)?.name || this.store.view.settingsTag;
     }
     return view || '';
   }
