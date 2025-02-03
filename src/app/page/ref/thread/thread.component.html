@@ -6,13 +6,13 @@
                   [showToggle]="false"
                   [expanded]="true"
                   [expandInline]="true"></app-ref-list>
+  } @else {
+    <app-loading></app-loading>
   }
   @if (store.view.ref) {
     <app-comment-reply [to]="to"
                        quote=""
                        [tags]="replyTags"
                        (save)="newRefs$.next($event)"></app-comment-reply>
-  } @else {
-    <app-loading></app-loading>
   }
 </ng-container>
