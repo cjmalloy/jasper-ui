@@ -11,7 +11,7 @@
   <button type="button" *ngIf="query && editing" (click)="search(editor.value)">🔎️</button>
 } @else {
   <div #div class="breadcrumbs" (click)="$event.target === div && edit(false)">
-    @for (breadcrumb of breadcrumbs; track breadcrumb.pos) {
+    @for (breadcrumb of breadcrumbs; track breadcrumb) {
       <span class="crumb">
         @if (breadcrumb.tag) {
           <a class="tag" [routerLink]="['../', breadcrumb.tag]" queryParamsHandling="merge"><span (click)="click($event, breadcrumb)">{{ breadcrumb.text }}</span></a>
