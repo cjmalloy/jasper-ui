@@ -68,8 +68,8 @@ export class BackupService {
     );
   }
 
-  backfill(origin: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/backfill`, null, {
+  regen(origin: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/regen`, null, {
       params: params({ origin }),
     }).pipe(
         catchError(err => this.login.handleHttpError(err)),

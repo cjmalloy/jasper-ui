@@ -74,9 +74,9 @@ export class SettingsBackupPage {
     });
   }
 
-  backfill() {
+  regen() {
     this.serverError = [];
-    this.backups.backfill(this.origin).pipe(
+    this.backups.regen(this.origin).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
