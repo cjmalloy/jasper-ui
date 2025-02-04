@@ -129,7 +129,10 @@ export const originPullPlugin: Plugin = {
       type: 'boolean',
       defaultValue: true,
       props: {
-        label: $localize`Generate Metadata:`,
+        label: $localize`Generate Metadata (slow):`,
+        title: $localize`
+          Turn this off to replicate a large amount very quickly.
+          Turn back on for faster metadata generation`,
       }
     }, {
       key: 'validatePlugins',
