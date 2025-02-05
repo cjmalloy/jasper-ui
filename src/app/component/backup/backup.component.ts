@@ -44,12 +44,12 @@ export class BackupComponent {
     if (link.startsWith('//')) link = location.protocol + link;
     if (link.startsWith("_")) link = link.substring(1);
     if (!link.endsWith(".zip")) link = link + '.zip';
-    if (this.origin) link += '?origin=' + this.origin
+    if (this.origin) link += '?origin=' + encodeURIComponent(this.origin)
     return link;
   }
 
   get downloadLinkAuth() {
-    return this.downloadLink + (this.origin ? '&' : '?') + 'p=' + this.backupKey;
+    return this.downloadLink + (this.origin ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
   }
 
   restore$ = () => {
