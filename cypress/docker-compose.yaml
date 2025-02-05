@@ -9,7 +9,7 @@ services:
       repl-client:
         condition: service_started
       web:
-          condition: service_healthy
+        condition: service_healthy
       repl-web:
         condition: service_healthy
     network_mode: host
