@@ -1,9 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { sortBy } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, throwError } from 'rxjs';
-import { BackupService } from '../../../service/api/backup.service';
+import { BackupRef, BackupService } from '../../../service/api/backup.service';
 import { OriginService } from '../../../service/api/origin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
@@ -25,7 +26,7 @@ export class SettingsBackupPage {
   originForm: UntypedFormGroup;
 
   origin = this.store.account.origin;
-  list?: string[];
+  list?: BackupRef[];
   uploading = false;
   serverError: string[] = [];
 
@@ -38,7 +39,7 @@ export class SettingsBackupPage {
   ) {
     mod.setTitle($localize`Settings: Backup & Restore`);
     backups.list(this.origin)
-      .subscribe(list => this.list = list.sort().reverse());
+      .subscribe(list => this.list = sortBy(list, 'id').reverse());
     this.originForm = fb.group({
       origin: ['', [Validators.pattern(ORIGIN_REGEX)]],
       olderThan: [DateTime.now().toISO()],
@@ -53,7 +54,7 @@ export class SettingsBackupPage {
         return throwError(() => res);
       }),
     ).subscribe(id => {
-      this.list?.unshift('_' + id);
+      this.list?.unshift({ id: '_' + id });
     });
   }
 
@@ -70,7 +71,7 @@ export class SettingsBackupPage {
       }),
     ).subscribe(() => {
       this.uploading = false;
-      this.list?.unshift(files[0].name);
+      this.list?.unshift({ id: files[0].name });
     });
   }
 

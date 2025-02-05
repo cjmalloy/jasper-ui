@@ -5,6 +5,7 @@ import { tap } from 'rxjs/operators';
 import { AdminService } from '../../service/admin.service';
 import { BackupService } from '../../service/api/backup.service';
 import { Store } from '../../store/store';
+import { readableBytes } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
@@ -17,6 +18,8 @@ export class BackupComponent {
 
   @Input()
   id!: string;
+  @Input()
+  size? = 0;
   @Input()
   origin = '';
 
@@ -37,6 +40,10 @@ export class BackupComponent {
 
   get inProgress() {
     return this.id.startsWith('_');
+  }
+
+  get fileSize() {
+    return readableBytes(this.size || 0);
   }
 
   get downloadLink() {

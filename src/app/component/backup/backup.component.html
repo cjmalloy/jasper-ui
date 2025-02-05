@@ -10,6 +10,9 @@
     @if (inProgress) {
       <span i18n>in progress...</span>
     }
+    @if (size) {
+      <span>{{ fileSize }}</span>
+    }
   </div>
   <div class="actions">
     <a [routerLink]="['/ref', downloadLink]" i18n>ref</a>

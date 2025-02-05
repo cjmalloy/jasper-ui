@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { BackupRef } from '../../../service/api/backup.service';
 
 @Component({
   standalone: false,
@@ -9,7 +10,7 @@ import { Component, Input } from '@angular/core';
 export class BackupListComponent {
 
   @Input()
-  list?: string[];
+  list?: BackupRef[];
   @Input()
   origin = '';
 
