@@ -88,17 +88,30 @@
     "typescript": "~5.5.4"
   },
   "overrides": {
-    "@angular/common": "$@angular/common",
-    "@angular/core": "$@angular/core",
-    "@angular/cdk": "$@angular/cdk",
-    "@angular/platform-browser": "$@angular/platform-browser",
-    "zone.js": "$zone.js",
-    "katex": "$katex",
     "marked": "$marked",
-    "monaco-editor": "$monaco-editor",
-    "d3": "$d3",
     "uuid": "$uuid",
-    "cypress": "$cypress"
+    "ngx-markdown": {
+      "@angular/common": "$@angular/common",
+      "@angular/core": "$@angular/core",
+      "@angular/platform-browser": "$@angular/platform-browser",
+      "zone.js": "$zone.js"
+    },
+    "ngx-monaco-editor": {
+      "@angular/common": "$@angular/common",
+      "@angular/core": "$@angular/core",
+      "monaco-editor": "$monaco-editor"
+    },
+    "mobx-angular": {
+      "@angular/common": "$@angular/common",
+      "@angular/core": "$@angular/core",
+      "@angular/cdk": "$@angular/cdk"
+    },
+    "dagre-d3": {
+      "d3": "$d3"
+    },
+    "cypress-real-events": {
+      "cypress": "$cypress"
+    }
   },
   "browser": {
     "fs": false,
