@@ -324,3 +324,21 @@ export function repost(ref?: Ref) {
   if (!hasTag('plugin/repost', ref)) return '';
   return ref!.sources?.[0] || '';
 }
+
+export function updateMetadata(parent: Ref, child: Ref) {
+  parent.metadata ||= {};
+  parent.metadata.plugins ||= {} as any;
+  for (const plugin of ['plugin/comment', 'plugin/thread', '+plugin/log']) {
+    if (hasTag(plugin, child)) {
+      parent.metadata.plugins![plugin] ||= 0;
+      parent.metadata.plugins![plugin]++;
+    }
+  }
+  if (hasTag('internal', child)) {
+    parent.metadata.internalResponses ||= 0;
+    parent.metadata.internalResponses++;
+  } else {
+    parent.metadata.responses ||= 0;
+    parent.metadata.responses++;
+  }
+}

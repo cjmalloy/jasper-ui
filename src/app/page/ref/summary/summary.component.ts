@@ -17,7 +17,7 @@ import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
-import { hasTag, removeTag, top } from '../../../util/tag';
+import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -156,23 +156,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
     runInAction(() => {
       if (ref && this.store.view.ref) {
         MemoCache.clear(this);
-        this.store.view.ref.metadata ||= {};
-        this.store.view.ref.metadata.plugins ||= {} as any;
-        if (hasTag('plugin/comment', ref)) {
-          this.store.view.ref.metadata.plugins!['plugin/comment'] ||= 0;
-          this.store.view.ref.metadata.plugins!['plugin/comment']++;
-        }
-        if (hasTag('plugin/thread', ref)) {
-          this.store.view.ref.metadata.plugins!['plugin/thread'] ||= 0;
-          this.store.view.ref.metadata.plugins!['plugin/thread']++;
-        }
-        if (hasTag('internal', ref)) {
-          this.store.view.ref.metadata.internalResponses ||= 0;
-          this.store.view.ref.metadata.internalResponses++;
-        } else {
-          this.store.view.ref.metadata.responses ||= 0;
-          this.store.view.ref.metadata.responses++;
-        }
+        runInAction(() => updateMetadata(this.store.view.ref!, ref));
       }
     });
     this.store.eventBus.reload(ref);

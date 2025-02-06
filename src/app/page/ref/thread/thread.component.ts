@@ -16,7 +16,7 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
-import { hasTag, removeTag, top } from '../../../util/tag';
+import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -93,16 +93,11 @@ export class RefThreadComponent implements HasChanges {
       }
     }));
     this.newRefs$.subscribe(c => {
-      if (c && this.store.view.ref && hasTag('plugin/thread', c)) {
-        if (c.published! > this.to.published!) {
+      if (c && this.store.view.ref) {
+        if (hasTag('plugin/thread', c) && c.published! > this.to.published!) {
           this.to = c;
         }
-        runInAction(() => {
-          this.store.view.ref!.metadata ||= {};
-          this.store.view.ref!.metadata.plugins ||= {} as any;
-          this.store.view.ref!.metadata.plugins!['plugin/thread'] ||= 0;
-          this.store.view.ref!.metadata.plugins!['plugin/thread']++;
-        });
+        runInAction(() => updateMetadata(this.store.view.ref!, c));
       }
     });
   }

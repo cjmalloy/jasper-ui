@@ -11,7 +11,7 @@ import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, removeTag } from '../../../util/tag';
+import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -52,10 +52,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
     }));
     this.newComments$.subscribe(c => {
       if (c && this.store.view.ref) {
-        this.store.view.ref.metadata ||= {};
-        this.store.view.ref.metadata.plugins ||= {} as any;
-        this.store.view.ref.metadata.plugins!['plugin/comment'] ||= 0;
-        this.store.view.ref.metadata.plugins!['plugin/comment']++;
+        runInAction(() => updateMetadata(this.store.view.ref!, c));
         this.store.eventBus.refresh(this.store.view.ref!);
       }
     });

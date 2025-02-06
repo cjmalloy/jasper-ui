@@ -13,7 +13,7 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
-import { hasTag, top } from '../../../util/tag';
+import { hasTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -80,12 +80,7 @@ export class RefErrorsComponent implements HasChanges {
     }));
     this.newRefs$.subscribe(c => {
       if (c && this.store.view.ref) {
-        runInAction(() => {
-          this.store.view.ref!.metadata ||= {};
-          this.store.view.ref!.metadata.plugins ||= {} as any;
-          this.store.view.ref!.metadata.plugins!['+plugin/log'] ||= 0;
-          this.store.view.ref!.metadata.plugins!['+plugin/log']++;
-        });
+        runInAction(() => updateMetadata(this.store.view.ref!, c));
       }
     });
   }
