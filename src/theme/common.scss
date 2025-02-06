@@ -620,6 +620,32 @@ video.qr-preview {
   margin: 8px;
 }
 
+
+.submit-button {
+  white-space: nowrap;
+  text-transform: capitalize;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  margin: 4px 0;
+  padding: 4px;
+  cursor: pointer;
+  overflow: hidden;
+  user-select: none;
+  transition: background-color 0.2s;
+  &:hover {
+    background-color: var(--bg-hover);
+    &:active {
+      background-color: var(--bg-active);
+    }
+  }
+  label {
+    margin-left: 16px;
+  }
+  * {
+    cursor: pointer;
+  }
+}
+
 .warning {
   font-size: 80%;
   font-style: italic;
@@ -1019,28 +1045,7 @@ video.qr-preview {
   }
 
   .submit-button {
-    white-space: nowrap;
-    text-transform: capitalize;
-    border: 1px solid var(--border);
-    border-radius: 2px;
     margin: 4px 0;
-    padding: 4px;
-    cursor: pointer;
-    overflow: hidden;
-    user-select: none;
-    transition: background-color 0.2s;
-    &:hover {
-      background-color: var(--bg-hover);
-      &:active {
-        background-color: var(--bg-active);
-      }
-    }
-    label {
-      margin-left: 16px;
-    }
-    * {
-      cursor: pointer;
-    }
   }
 
   .tag-header {
