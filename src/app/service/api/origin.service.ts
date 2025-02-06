@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { DateTime } from 'luxon';
 import { autorun } from 'mobx';
-import { catchError, Observable } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
 import { hasTag } from '../../util/tag';
@@ -24,18 +24,9 @@ export class OriginService {
     return this.config.api + '/api/v1/origin';
   }
 
-  push(url: string, origin = ''): Observable<void> {
-    return this.http.post<void>(`${this.base}/push`, null, {
-      params: params({ url, origin }),
-    }).pipe(
-      catchError(err => this.login.handleHttpError(err)),
-    );
-  }
-
-  pull(url: string, origin = ''): Observable<void> {
-    return this.http.post<void>(`${this.base}/pull`, null, {
-      params: params({ url, origin }),
-    }).pipe(
+  list(): Observable<string[]> {
+    return this.http.get(`${this.base}`).pipe(
+      map(res => res as string[]),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
