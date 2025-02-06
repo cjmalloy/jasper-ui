@@ -1,43 +1,46 @@
-<form class="form" [formGroup]="originForm" (ngSubmit)="deleteOrigin()">
+<form class="form" [formGroup]="originForm">
   <span></span>
-  <h2>Clear Origin</h2>
+  <h2>Backup & Restore</h2>
 
   <label>Origin:</label>
-  <input type="text" [pattern]="originPattern" formControlName="origin">
+  <select #originSelect
+          formControlName="origin"
+          [value]="origin"
+          (input)="selectOrigin(originSelect.value)">
+    @if (!store.origins.list.includes(origin)) {
+      <option [value]="origin">{{ origin || 'default' }}</option>
+    }
+    @for (origin of store.origins.list; track origin) {
+      <option [value]="origin">{{ origin || 'default' }}</option>
+    }
+  </select>
 
   <label>Older than:</label>
   <input type="datetime-local" step="1" formControlName="olderThan">
 
   <span><!-- Buttons --></span>
   <span class="buttons right">
-    <button type="submit" [disabled]="submitted && !originForm.valid" i18n>Delete</button>
   </span>
 </form>
 
-<div class="buttons">
+<div class="backup buttons">
   @if (store.account.admin) {
     <button type="button"
+            [disabled]="!originForm.valid"
             (click)="backup()"
-            i18n-title
-            title="Create Backup"
-            class="backup" i18n>+ backup</button>
-  }
-
-  @if (store.account.mod) {
+            i18n-title title="Create Backup" i18n>+ backup</button>
     <button type="button"
-            (click)="regen()"
-            i18n-title
-            title="Backfill Metadata"
-            class="backfill" i18n>♻️ backfill</button>
+            [disabled]="!originForm.valid"
+            (click)="deleteOrigin()"
+            i18n-title title="Delete all from origin" i18n>&ndash; delete</button>
   }
 
   @if (!uploading) {
-    <button
-      type="button"
-      (click)="uploadFile.click()"
-      i18n-title
-      title="Upload Backup"
-      class="upload" i18n>+ upload</button>
+    <button type="button"
+            [disabled]="!originForm.valid"
+            (click)="uploadFile.click()"
+            i18n-title
+            title="Upload Backup" i18n>+ upload</button>
   } @else {
     <app-loading></app-loading>
   }
@@ -45,6 +48,14 @@
          type="file"
          class="upload"
          (change)="upload(uploadFile?.files!)">
+
+  @if (store.account.mod) {
+    <button type="button"
+            [disabled]="!originForm.valid"
+            (click)="regen()"
+            i18n-title
+            title="Regenerate Metadata" i18n>♻️ regen</button>
+  }
 </div>
 
 @for (e of serverError; track e) {

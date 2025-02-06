@@ -6,6 +6,7 @@ import { DateTime } from 'luxon';
 import { catchError, throwError } from 'rxjs';
 import { BackupRef, BackupService } from '../../../service/api/backup.service';
 import { OriginService } from '../../../service/api/origin.service';
+import { BookmarkService } from '../../../service/bookmark.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
@@ -20,12 +21,9 @@ import { printError } from '../../../util/http';
   host: {'class': 'backup'}
 })
 export class SettingsBackupPage {
-  originPattern = ORIGIN_REGEX.source;
 
-  submitted = false;
   originForm: UntypedFormGroup;
 
-  origin = this.store.account.origin;
   list?: BackupRef[];
   uploading = false;
   serverError: string[] = [];
@@ -34,16 +32,32 @@ export class SettingsBackupPage {
     private mod: ModService,
     public store: Store,
     private backups: BackupService,
+    private bookmarks: BookmarkService,
     private origins: OriginService,
     private fb: UntypedFormBuilder,
   ) {
     mod.setTitle($localize`Settings: Backup & Restore`);
-    backups.list(this.origin)
-      .subscribe(list => this.list = sortBy(list, 'id').reverse());
+    this.fetchBackups();
     this.originForm = fb.group({
-      origin: ['', [Validators.pattern(ORIGIN_REGEX)]],
+      origin: [this.origin, [Validators.pattern(ORIGIN_REGEX)]],
       olderThan: [DateTime.now().toISO()],
     });
+  }
+
+  get origin() {
+    return this.store.view.origin || this.store.account.origin;
+  }
+
+  selectOrigin(origin: string) {
+    if (origin === this.origin) return;
+    this.fetchBackups(origin);
+    this.bookmarks.origin = origin;
+  }
+
+  fetchBackups(origin?: string) {
+    this.list = [];
+    this.backups.list(origin === undefined ? this.origin : origin)
+      .subscribe(list => this.list = sortBy(list, 'id').reverse());
   }
 
   backup() {
@@ -77,6 +91,7 @@ export class SettingsBackupPage {
 
   regen() {
     this.serverError = [];
+    if (!confirm($localize`Are you sure you want totally regenerate metadata in ${this.origin}?`)) return;
     this.backups.regen(this.origin).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
@@ -87,21 +102,18 @@ export class SettingsBackupPage {
 
   deleteOrigin() {
     this.serverError = [];
-    this.submitted = true;
     this.originForm.markAllAsTouched();
     if (!this.originForm.valid) {
       scrollToFirstInvalid();
       return;
     }
-    const origin = this.originForm.value.origin;
+    if (!confirm($localize`Are you sure you want totally delete everything in ${this.origin}?`)) return;
     const olderThan = DateTime.fromISO(this.originForm.value.olderThan);
-    this.origins.delete(origin, olderThan).pipe(
+    this.origins.delete(this.origin, olderThan).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).subscribe(() => {
-      this.submitted = true;
-    });
+    ).subscribe();
   }
 }
