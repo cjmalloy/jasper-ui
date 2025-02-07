@@ -58,7 +58,7 @@ export class SettingsBackupPage {
   }
 
   fetchBackups(origin?: string) {
-    this.list = [];
+    delete this.list;
     this.backups.list(origin === undefined ? this.origin : origin)
       .subscribe(list => this.list = sortBy(list, 'id').reverse());
   }
@@ -71,7 +71,8 @@ export class SettingsBackupPage {
         return throwError(() => res);
       }),
     ).subscribe(id => {
-      this.list?.unshift({ id: '_' + id });
+      this.list ||= [];
+      this.list.unshift({ id: '_' + id });
     });
   }
 
@@ -88,7 +89,8 @@ export class SettingsBackupPage {
       }),
     ).subscribe(() => {
       this.uploading = false;
-      this.list?.unshift({ id: files[0].name });
+      this.list ||= [];
+      this.list.unshift({ id: files[0].name });
     });
   }
 
