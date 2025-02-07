@@ -63,7 +63,7 @@
     <textarea #editor
               [formControl]="control"
               (focusin)="editing = true"
-              (pointerup)="onSelect()"
+              (pointerup)="onSelect($event)"
               (select)="onSelect()"
               (selectionchange)="onSelect()"
               (input)="setText($any($event).target.value)"

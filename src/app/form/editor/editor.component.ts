@@ -169,7 +169,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     }
   }
 
-  onSelect() {
+  onSelect(event?: MouseEvent) {
+    if (event && !event.button) return;
     defer(() => {
       this.selectionStart = this.editor?.nativeElement.selectionStart || 0;
       this.selectionEnd = this.editor?.nativeElement.selectionEnd || 0;
