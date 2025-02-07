@@ -1553,8 +1553,11 @@ formly-field-radio, formly-field-multicheckbox {
   display: block;
 }
 
-.ref.thread textarea {
-  max-width: 800px;
+.ref.thread,
+.ref.plugin_thread  {
+  textarea {
+    max-width: 800px;
+  }
 }
 
 .thread > .ref-list > .list-container > .ref,
