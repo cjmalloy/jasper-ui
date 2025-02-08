@@ -68,9 +68,9 @@ export class RefErrorsComponent implements HasChanges {
       this.mod.setTitle($localize`Errors: ` + (this.store.view.ref?.title || this.store.view.url));
     }));
     this.disposers.push(autorun(() => {
-      if (this.store.view.ref && this.config.websockets) {
+      if (this.store.view.url && this.config.websockets) {
         this.watch?.unsubscribe();
-        this.watch = this.stomp.watchResponse(this.store.view.ref.url).pipe(
+        this.watch = this.stomp.watchResponse(this.store.view.url).pipe(
           takeUntil(this.destroy$),
           switchMap(url => this.refs.getCurrent(url)),
           filter(ref => hasTag('+plugin/log', ref)),

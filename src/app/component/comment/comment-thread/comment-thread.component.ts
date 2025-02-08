@@ -19,7 +19,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   private disposers: IReactionDisposer[] = [];
 
   @Input()
-  source?: Ref;
+  source = '';
   @Input()
   scrollToLatest = false;
   @Input()
@@ -43,7 +43,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ) {
     this.disposers.push(autorun(() => {
       if (thread.latest.length) {
-        this.comments = thread.cache.get(this.source?.url);
+        this.comments = thread.cache.get(this.source);
         if (this.comments && this.pageSize) {
           this.comments = [...this.comments!];
           this.comments.length = this.pageSize;
@@ -65,7 +65,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ngOnChanges(changes: SimpleChanges) {
     if (changes.source || changes.pageSize) {
       this.newComments = [];
-      this.comments = this.thread.cache.get(this.source?.url);
+      this.comments = this.thread.cache.get(this.source);
       if (this.comments && this.pageSize) {
         this.comments = [...this.comments!];
         this.comments.length = this.pageSize;

@@ -39,6 +39,7 @@ export class RefThreadComponent implements HasChanges {
 
   to = this.store.view.ref!;
 
+  private watchUrl = '';
   private watch?: Subscription;
 
   constructor(
@@ -78,13 +79,17 @@ export class RefThreadComponent implements HasChanges {
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
       if (this.store.view.ref && this.config.websockets) {
-        this.watch?.unsubscribe();
-        this.watch = this.stomp.watchResponse(top(this.store.view.ref)).pipe(
-          takeUntil(this.destroy$),
-          switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
-          filter(ref => hasTag('plugin/thread', ref)),
-          catchError(err => of(undefined)),
-        ).subscribe(ref => this.newRefs$.next(ref));
+        const topUrl = top(this.store.view.ref);
+        if (this.watchUrl !== topUrl) {
+          this.watchUrl = topUrl;
+          this.watch?.unsubscribe();
+          this.watch = this.stomp.watchResponse(topUrl).pipe(
+            takeUntil(this.destroy$),
+            switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
+            filter(ref => hasTag('plugin/thread', ref)),
+            catchError(err => of(undefined)),
+          ).subscribe(ref => this.newRefs$.next(ref));
+        }
       }
     }));
     this.disposers.push(autorun(() => {

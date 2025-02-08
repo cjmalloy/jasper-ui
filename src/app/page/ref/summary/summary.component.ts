@@ -63,7 +63,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
     this.disposers.push(autorun(() => this.mod.setTitle((this.store.view.ref?.title || this.store.view.url))));
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
-      const top = this.store.view.ref!;
+      const top = this.store.view.url;
       const sort = this.store.view.sort;
       const filter = this.store.view.filter;
       const search = this.store.view.search;

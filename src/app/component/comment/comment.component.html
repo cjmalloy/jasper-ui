@@ -170,7 +170,7 @@
   }
   <div class="comment-children"
        [class.hidden-without-removing]="collapsed">
-    <app-comment-thread [source]="ref"
+    <app-comment-thread [source]="ref.url"
                         [scrollToLatest]="scrollToLatest"
                         [depth]="depth! - 1"
                         [context]="context + 1"

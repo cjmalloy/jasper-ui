@@ -9,7 +9,7 @@
       <h5 routerLink="./comments" i18n>Comments:</h5>
       <app-thread-summary query="plugin/comment:!plugin/delete"
                           [commentView]="true"
-                          [source]="store.view.ref"
+                          [source]="store.view.url"
                           [newRefs$]="newComment$"
                           [depth]="1"
                           [pageSize]="summaryItems"></app-thread-summary>
@@ -22,7 +22,7 @@
     <div class="summary-box thread" [class.hidden-without-removing]="!threads">
       <h5 routerLink="./thread" i18n>Threads:</h5>
       <app-thread-summary query="plugin/thread:!plugin/comment:!plugin/delete"
-                          [source]="store.view.ref"
+                          [source]="store.view.url"
                           [newRefs$]="newThread$"
                           [depth]="1"
                           [pageSize]="summaryItems"></app-thread-summary>

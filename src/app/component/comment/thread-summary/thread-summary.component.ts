@@ -16,7 +16,7 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   private destroy$ = new Subject<void>();
 
   @Input()
-  source?: Ref;
+  source = '';
   @Input()
   commentView = false;
   @Input()
@@ -53,7 +53,7 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
       this.newRefs = [];
       this.refs.page({
         ...getArgs(this.query, this.store.view.sort, this.store.view.filter),
-        responses: this.source?.url,
+        responses: this.source,
         size: this.pageSize,
       }).subscribe(page => {
         this.list = page.content;

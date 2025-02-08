@@ -33,6 +33,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   newResponses = 0;
   private url = '';
   private watchSelf?: Subscription;
+  private watchUrl = '';
   private watchResponses?: Subscription;
   private seen = new Set<string>();
 
@@ -158,7 +159,8 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
         )),
       tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
     ).subscribe(() => MemoCache.clear(this));
-    if (this.config.websockets) {
+    if (this.config.websockets && this.watchUrl !== url) {
+      this.watchUrl = url;
       this.watchSelf?.unsubscribe();
       this.watchSelf = this.stomp.watchRef(url).pipe(
         takeUntil(this.destroy$),
@@ -187,6 +189,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           modified: this.store.view.ref?.modified,
           modifiedString: this.store.view.ref?.modifiedString,
         };
+        runInAction(() => this.store.view.ref = merged);
         this.store.eventBus.refresh(merged);
         this.store.eventBus.reset();
       });
