@@ -10,7 +10,7 @@ import { User } from '../model/user';
 import { RootConfig } from '../mods/root';
 import { getPageTitle } from '../util/format';
 import { UrlFilter } from '../util/query';
-import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
+import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, top, topAnds } from '../util/tag';
 import { AccountStore } from './account';
 
 /**
@@ -98,9 +98,9 @@ export class ViewStore {
     this.selectedUser = undefined;
   }
 
-  preloadRef(ref: Ref, top?: Ref) {
+  preloadRef(ref: Ref, topRef?: Ref) {
     if (ref?.created) this.ref = ref;
-    this.top = top;
+    if (topRef || top(ref) !== this.top?.url) this.top = topRef;
   }
 
   get pageTitle() {
