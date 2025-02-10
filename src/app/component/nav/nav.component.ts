@@ -97,7 +97,7 @@ export class NavComponent implements OnInit, OnDestroy {
   }
 
   get hasText() {
-    if (!this.text || hasPrefix(this.text, 'user')) return false;
+    if (!this.text || hasPrefix(this.text, 'user') || hasPrefix(this.text, 'plugin')) return false;
     if (this.url.startsWith('/tag/') || this.url.toLowerCase().startsWith('tag:/')) {
       if (this.text === '#' + this.url.substring(5)) return false;
     }
