@@ -1,4 +1,5 @@
-import { Component, ElementRef, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { Subject, takeUntil } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
@@ -13,7 +14,8 @@ import { hasPrefix } from '../../util/tag';
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.scss']
 })
-export class NavComponent implements OnInit {
+export class NavComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   @Input()
   url: string = '';
@@ -42,17 +44,23 @@ export class NavComponent implements OnInit {
       this.nav = this.getNav();
       if (this.nav[0] === '/tag' && !this.external && !this.hasText) {
         this.editor.getTagPreview(this.nav[1] as string)
+          .pipe(takeUntil(this.destroy$))
           .subscribe(x => this.text = x?.name || this.text || x?.tag || '');
       }
     } else if (!this.external) {
       this.vis.notifyVisible(this.el, () => {
-        this.refs.exists(this.url).subscribe(exists => {
+        this.refs.exists(this.url).pipe(takeUntil(this.destroy$)).subscribe(exists => {
           if (exists) {
             this.nav = ['/ref', this.url];
           }
         });
       });
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   getNav() {

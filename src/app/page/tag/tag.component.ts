@@ -1,5 +1,5 @@
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { defer, isEqual, uniq } from 'lodash-es';
+import { isEqual, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { LensComponent } from '../../component/lens/lens.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -62,6 +62,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
         });
       }
     }));
+    this.query.clear();
   }
 
   saveChanges() {
@@ -88,6 +89,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

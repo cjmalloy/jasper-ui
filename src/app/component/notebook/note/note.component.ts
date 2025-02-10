@@ -11,6 +11,7 @@ import {
   Input,
   NgZone,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   TemplateRef,
@@ -18,7 +19,7 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
-import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
 import { equalsRef, Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
@@ -41,7 +42,8 @@ import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
   styleUrls: ['./note.component.scss'],
   host: {'class': 'note'}
 })
-export class NoteComponent implements OnChanges, AfterViewInit {
+export class NoteComponent implements OnChanges, AfterViewInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   @HostBinding('class.unlocked')
   unlocked = false;
@@ -97,6 +99,7 @@ export class NoteComponent implements OnChanges, AfterViewInit {
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        takeUntil(this.destroy$),
       ).subscribe(ref => this.repostRef = ref);
     }
   }
@@ -113,6 +116,11 @@ export class NoteComponent implements OnChanges, AfterViewInit {
         this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
       }
     }, 400);
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   @HostListener('click')
@@ -356,7 +364,7 @@ export class NoteComponent implements OnChanges, AfterViewInit {
         console.error(printError(err));
         return throwError(() => err);
       }),
-      switchMap(() => this.refs.get(copied.url, this.store.account.origin)),
+      switchMap(() => this.refs.get(copied.url, this.store.account.origin).pipe(takeUntil(this.destroy$))),
     ).subscribe(ref => {
       this.ref = ref;
       this.init();

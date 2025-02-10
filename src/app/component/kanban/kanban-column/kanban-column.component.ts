@@ -152,8 +152,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       this.page = page;
       this.runningSources?.unsubscribe();
       if (args.sources) {
-        this.runningSources = this.refs.page({ ...args, url: args.sources, size: 1, sources: undefined, responses: undefined })
-          .subscribe(res => {
+        this.runningSources = this.refs.page({ ...args, url: args.sources, size: 1, sources: undefined, responses: undefined }).pipe(
+          takeUntil(this.destroy$)
+        ).subscribe(res => {
             if (res.content[0]) {
               this.mutated = true;
               // @ts-ignore
@@ -164,8 +165,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       }
       this.runningResponses?.unsubscribe();
       if (args.responses) {
-        this.runningResponses = this.refs.page({ ...args, url: args.responses, size: 1, sources: undefined, responses: undefined })
-          .subscribe(res => {
+        this.runningResponses = this.refs.page({ ...args, url: args.responses, size: 1, sources: undefined, responses: undefined }).pipe(
+          takeUntil(this.destroy$)
+        ).subscribe(res => {
             if (res.content[0]) {
               this.mutated = true;
               // @ts-ignore
@@ -308,7 +310,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       this.search,
       i,
       this.size
-    )).subscribe(page => {
+    )).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(page => {
       const pageOffset = i * this.size;
       this.page!.page.number = page.page.number;
       for (let offset = 0; offset < page.content.length; offset++) {

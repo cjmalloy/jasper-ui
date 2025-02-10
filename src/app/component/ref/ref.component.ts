@@ -241,7 +241,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         ? of(this.store.view.top)
         : this.refs.getCurrent(this.url)
       ).pipe(
-          catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        takeUntil(this.destroy$),
       ).subscribe(ref => {
         this.repostRef = ref;
         if (!ref) return;

@@ -1,7 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import {
+  Component,
+  HostBinding,
+  Input,
+  OnChanges,
+  OnDestroy,
+  QueryList,
+  SimpleChanges,
+  ViewChildren
+} from '@angular/core';
 import { defer, uniq } from 'lodash-es';
-import { catchError, map, of, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
@@ -25,8 +34,9 @@ import { ActionComponent } from '../../action/action.component';
   styleUrls: ['./chat-entry.component.scss'],
   host: {'class': 'chat-entry'}
 })
-export class ChatEntryComponent implements OnChanges {
+export class ChatEntryComponent implements OnChanges, OnDestroy {
   @HostBinding('attr.tabindex') tabIndex = 0;
+  private destroy$ = new Subject<void>();
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
@@ -70,6 +80,7 @@ export class ChatEntryComponent implements OnChanges {
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        takeUntil(this.destroy$),
       ).subscribe(ref => {
         this.repostRef = ref;
         if (!ref) return;
@@ -93,6 +104,11 @@ export class ChatEntryComponent implements OnChanges {
       MemoCache.clear(this);
       if (!this.focused && !this._allowActions) this.actionComponents?.forEach(c => c.reset());
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   @memo
@@ -267,7 +283,7 @@ export class ChatEntryComponent implements OnChanges {
       path: '/tags/-',
       value: '_moderated',
     }]).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntil(this.destroy$))),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, Input } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
-import { catchError, Subject, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
@@ -17,7 +17,8 @@ import { printError } from '../../../util/http';
   styleUrls: ['./comment-edit.component.scss'],
   host: {'class': 'comment-edit'}
 })
-export class CommentEditComponent implements AfterViewInit, HasChanges {
+export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   serverError: string[] = [];
 
@@ -48,6 +49,11 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
     this.comment.setValue(this.ref.comment);
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   get comment() {
     return this.commentForm.get('comment') as UntypedFormControl;
   }
@@ -76,7 +82,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
       });
     }
     this.editing = this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntil(this.destroy$))),
       catchError((res: HttpErrorResponse) => {
         delete this.editing;
         this.serverError = printError(res);

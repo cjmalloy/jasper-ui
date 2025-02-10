@@ -117,21 +117,23 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref)) {
       this.refs.getCurrent(this.ref.sources[0]).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        takeUntil(this.destroy$),
       ).subscribe(ref => this.repost = ref);
     }
     const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || this.ref?.url;
     if (queryUrl && hasTag('plugin/lens', this.ref)) {
       this.embeds.loadQuery$(queryUrl)
-      .subscribe(({params, page, ext}) => {
-        this.page = page;
-        this.ext = ext;
-        this.lensQuery = this.editor.getQuery(queryUrl);
-        this.lensSize = params.size;
-        this.lensCols = params.cols;
-        this.lensSort = params.sort;
-        this.lensFilter = params.filter;
-        this.lensSearch = params.search;
-      });
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(({params, page, ext}) => {
+          this.page = page;
+          this.ext = ext;
+          this.lensQuery = this.editor.getQuery(queryUrl);
+          this.lensSize = params.size;
+          this.lensCols = params.cols;
+          this.lensSort = params.sort;
+          this.lensFilter = params.filter;
+          this.lensSearch = params.search;
+        });
     }
     if (this.ref?.url && hasTag('plugin/embed', this.currentTags)) {
       this.width = this.embed?.width || (this.config.mobile ? (window.innerWidth - (this.thread ? 32 : 12)) : this.el.nativeElement.parentElement.offsetWidth - 400);

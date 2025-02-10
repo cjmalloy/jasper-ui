@@ -83,7 +83,8 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
     } else {
       forkJoin((value.config.pinned as string[])
         .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({ url: pin }))
+          catchError(err => of({ url: pin })),
+          takeUntil(this.destroy$),
         )))
         .subscribe(pinned => this.pinned = pinned);
     }

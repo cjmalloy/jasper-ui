@@ -55,7 +55,9 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
         ...getArgs(this.query, this.store.view.sort, this.store.view.filter),
         responses: this.source,
         size: this.pageSize,
-      }).subscribe(page => {
+      }).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(page => {
         this.list = page.content;
       });
     }

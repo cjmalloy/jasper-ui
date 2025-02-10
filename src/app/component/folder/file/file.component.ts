@@ -1,5 +1,5 @@
-import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { catchError, of, throwError } from 'rxjs';
+import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import {
   Action,
@@ -27,9 +27,10 @@ import { hasTag, isOwnerTag, repost } from '../../../util/tag';
   templateUrl: './file.component.html',
   styleUrls: ['./file.component.scss']
 })
-export class FileComponent implements OnChanges {
+export class FileComponent implements OnChanges, OnDestroy {
   css = 'file ';
   @HostBinding('attr.tabindex') tabIndex = 0;
+  private destroy$ = new Subject<void>();
 
   @Input()
   ref!: Ref;
@@ -80,6 +81,7 @@ export class FileComponent implements OnChanges {
             : this.refs.getCurrent(this.url)
         ).pipe(
           catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+          takeUntil(this.destroy$),
         ).subscribe(ref => {
           this.repostRef = ref;
           if (!ref) return;
@@ -92,6 +94,11 @@ export class FileComponent implements OnChanges {
         });
       }
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   @memo

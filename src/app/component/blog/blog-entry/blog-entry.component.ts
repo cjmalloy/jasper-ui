@@ -14,7 +14,7 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
@@ -61,6 +61,7 @@ import { ActionComponent } from '../../action/action.component';
 export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
   private disposers: IReactionDisposer[] = [];
+  private destroy$ = new Subject<void>();
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
@@ -138,6 +139,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        takeUntil(this.destroy$),
       ).subscribe(ref => this.repostRef = ref);
     }
   }
@@ -149,6 +151,8 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }
@@ -393,7 +397,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
         ...this.editForm.value.plugins
       }),
     }).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin).pipe(takeUntil(this.destroy$))),
       catchError((err: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(err);

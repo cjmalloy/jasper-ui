@@ -158,6 +158,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           map(top => [ref, top] as [Ref, Ref]),
         )),
       tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
+      takeUntil(this.destroy$),
     ).subscribe(() => MemoCache.clear(this));
     if (this.config.websockets && this.watchUrl !== url) {
       this.watchUrl = url;
@@ -195,10 +196,10 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       });
       this.watchResponses?.unsubscribe();
       this.watchResponses = this.stomp.watchResponse(url).pipe(
-        takeUntil(this.destroy$),
         filter(url => url != this.store.view.url),
         filter(url => !url.startsWith('tag:')),
         filter(url => !this.seen.has(url)),
+        takeUntil(this.destroy$),
       ).subscribe(url => {
         this.seen.add(url);
         this.newResponses++;

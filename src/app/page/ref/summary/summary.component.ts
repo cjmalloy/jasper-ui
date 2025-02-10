@@ -84,6 +84,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.newResp$.complete();

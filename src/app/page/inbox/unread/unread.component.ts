@@ -62,6 +62,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     if (this.lastNotified) {

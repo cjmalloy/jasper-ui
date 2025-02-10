@@ -1,6 +1,6 @@
-import { Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -17,7 +17,8 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
   styleUrls: ['./blog.component.scss'],
   host: {'class': 'blog ext'}
 })
-export class BlogComponent implements HasChanges {
+export class BlogComponent implements HasChanges, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   @Input()
   pageControls = true;
@@ -40,6 +41,11 @@ export class BlogComponent implements HasChanges {
     private store: Store,
     private refs: RefService,
   ) { }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   saveChanges() {
     return !this.list?.find(r => !r.saveChanges());
@@ -80,7 +86,8 @@ export class BlogComponent implements HasChanges {
     } else {
       forkJoin((value.config.pinned as string[])
         .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({url: pin}))
+          catchError(err => of({url: pin})),
+          takeUntil(this.destroy$),
         )))
         .subscribe(pinned => this.pinned = pinned);
     }

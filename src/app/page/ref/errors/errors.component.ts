@@ -13,7 +13,7 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
-import { hasTag, top, updateMetadata } from '../../../util/tag';
+import { hasTag, updateMetadata } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -71,10 +71,10 @@ export class RefErrorsComponent implements HasChanges {
       if (this.store.view.url && this.config.websockets) {
         this.watch?.unsubscribe();
         this.watch = this.stomp.watchResponse(this.store.view.url).pipe(
-          takeUntil(this.destroy$),
           switchMap(url => this.refs.getCurrent(url)),
           filter(ref => hasTag('+plugin/log', ref)),
           catchError(err => of(undefined)),
+          takeUntil(this.destroy$),
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));
@@ -86,6 +86,7 @@ export class RefErrorsComponent implements HasChanges {
   }
 
   ngOnDestroy() {
+    this.query.close();
     this.destroy$.next();
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
