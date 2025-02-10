@@ -1,4 +1,5 @@
 import { Component, HostBinding, Input } from '@angular/core';
+import { delay } from 'lodash-es';
 import { Page } from '../../model/page';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
@@ -76,7 +77,7 @@ export class PageControlsComponent {
   }
 
   scrollUp() {
-    window.scrollTo(0, 0);
+    delay(() => window.scrollTo(0, 0), 400);
   }
 
   outOfPageSizeRange(size: number) {
