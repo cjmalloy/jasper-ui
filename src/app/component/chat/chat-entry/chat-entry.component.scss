@@ -14,12 +14,18 @@
 }
 .gutter {
   text-align: right;
+  width: 100%;
   .timestamp {
-    display: none;
+    max-inline-size: 0;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: middle;
+    transition: max-inline-size 1s 2s ease-out;
   }
   &:focus-within, &:hover {
     .timestamp {
-      display: inline;
+      max-inline-size: 150px;
+      transition: max-inline-size 0s 0s ease-in;
     }
   }
 }
