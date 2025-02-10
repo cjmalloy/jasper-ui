@@ -286,10 +286,17 @@ export const originTunnelPlugin: Plugin = {
         label: $localize`SSH Port:`,
         min: 22,
       },
+    }, {
+      key: 'hostFingerprint',
+      type: 'string',
+      props: {
+        label: $localize`Host Fingerprint:`
+      }
     }],
   },
   schema: {
     optionalProperties: {
+      hostFingerprint: { type: 'string' },
       remoteUser: { type: 'string' },
       sshHost: { type: 'string' },
       sshPort: { type: 'uint32' },
