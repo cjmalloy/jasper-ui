@@ -106,16 +106,16 @@ export class SettingsSetupPage {
 
   updateAll() {
     const _ = (msg?: string) => this.installMessages.push(msg!);
-    const updates = [];
+    const mods: string[] = [];
     for (const plugin in this.admin.status.plugins) {
       const status = this.admin.status.plugins[plugin];
-      if (this.needsUpdate(status)) updates.push(this.admin.updateMod$(modId(status), _));
+      if (this.needsUpdate(status)) mods.push(modId(status));
     }
     for (const template in this.admin.status.templates) {
       const status = this.admin.status.templates[template];
-      if (this.needsUpdate(status)) updates.push(this.admin.updateMod$(modId(status), _));
+      if (this.needsUpdate(status)) mods.push(modId(status));
     }
-    concat(...updates).pipe(
+    concat(...uniq(mods).map(mod => this.admin.updateMod$(mod, _))).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
