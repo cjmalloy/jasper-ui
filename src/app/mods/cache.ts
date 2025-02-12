@@ -12,7 +12,12 @@ export const cachePlugin: Plugin = {
     settings: $localize`cache`,
     submit: $localize`🗜️ cache`,
     internal: true,
-    icons: [{ label: $localize`🗜️`, thumbnail: $localize`🗜️`, order: -10 }],
+    icons: [
+      { label: $localize`🗜️`, thumbnail: $localize`🗜️`, order: -10 },
+      { label: $localize`⭕️`, condition: 'thumbnail', order: -1 },
+      { label: $localize`🙅️`, condition: 'ban', order: 10 },
+      { label: $localize`⛔️`, condition: '!id', order: 10 },
+    ],
     filters: [
       { query: '_plugin/cache', label: $localize`🗜️ cache`, title: $localize`Has cache entry`, group: $localize`Plugins 🧰️` },
       { scheme: 'cache:', label: $localize`cache:`, group: $localize`Schemes 🏳️️`},
