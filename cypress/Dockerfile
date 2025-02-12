@@ -1,2 +1,2 @@
-FROM cypress/included:14.0.2
+FROM cypress/included:14.0.3
 RUN apt-get update && apt-get install fonts-noto-color-emoji -y
