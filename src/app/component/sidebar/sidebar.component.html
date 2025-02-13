@@ -35,7 +35,7 @@
     }
   }
   <span class="button-bar">
-    @if (!user && canAddTag && !plugin?.config?.reply && store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
+    @if (!dm && !user && canAddTag && !plugin?.config?.reply && store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
       @if (plugin?.config?.submitText || rootConfig?.submitText) {
         <div class="submit-button" routerLink="/submit/text" tabindex="0"
              [queryParams]="{ tag: addTags, thumbnail: defaultThumbnail }">
@@ -82,7 +82,7 @@
           &nbsp;
           {{ mailPlugin.config?.submit || '' }}</label>
         </div>
-      } @else if (modmail || user) {
+      } @else if (dm || modmail || user) {
         <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
              [queryParams]="{ to: tag, tag: null }">
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
