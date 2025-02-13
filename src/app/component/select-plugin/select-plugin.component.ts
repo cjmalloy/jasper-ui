@@ -1,5 +1,5 @@
 import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { defer } from 'lodash-es';
+import { defer, uniqBy } from 'lodash-es';
 import { Plugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
@@ -39,13 +39,13 @@ export class SelectPluginComponent implements OnChanges {
   ) {  }
 
   ngOnChanges(changes: SimpleChanges) {
-    this.plugins = [
+    this.plugins = uniqBy([
       ...(this.customPlugin ? [this.customPlugin] : []),
       ...(this.add ? this.addPlugins : []),
       ...(this.text ? this.textPlugins : []),
       ...(this.settings ? this.settingsPlugins : []),
       ...this.submitPlugins
-    ];
+    ], 'tag');
   }
 
   @Input()
