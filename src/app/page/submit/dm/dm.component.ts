@@ -138,8 +138,12 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     this.tagsFormComponent.setTags(value);
   }
 
+  get showError() {
+    return this.to.touched && this.to.errors?.['pattern'];
+  }
+
   validate(input: HTMLInputElement) {
-    if (this.to.touched && this.to.errors?.['pattern']) {
+    if (this.showError) {
       input.setCustomValidity($localize`
         User tags must start with the "+user/" or "_user/" prefix.
         Notification tags must start with the "plugin/inbox" or "plugin/outbox" prefix.
@@ -211,14 +215,11 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   blur(input: HTMLInputElement) {
     this.editing = false;
-    if (this.to.errors?.['pattern']) {
-      if (!this.showedError) {
-        this.showedError = true;
-        defer(() => this.validate(input));
-      } else {
-        this.showedError = false;
-      }
+    if (this.showError && !this.showedError) {
+      this.showedError = true;
+      defer(() => this.validate(input));
     } else {
+      this.showedError = false;
       this.setTo(input.value);
       this.getPreview(input.value) ;
     }

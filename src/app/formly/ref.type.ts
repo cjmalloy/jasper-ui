@@ -115,8 +115,8 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
       defer(() => this.validate(input));
     } else {
       this.showedError = false;
+      this.getPreview(input.value);
     }
-    this.getPreview(input.value);
   }
 
   getPreview(value: string) {
