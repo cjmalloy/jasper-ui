@@ -26,38 +26,40 @@
                 i18n>📝️</button>
       }
       @for (button of editorPushButtons; track button; let i = $index) {
-        @if (!button.event) {
-          <button type="button"
-                  (click)="toggleTag(button)"
-                  [title]="button.title" i18n>{{(button._on ? button.labelOn : button.labelOff) || button.label }}</button>
-        } @else {
+        @if (button.event) {
           <button type="button"
                   (click)="fireEvent(button.event)"
                   [title]="button.title" i18n>{{ button.label }}</button>
+        } @else if (hasTags) {
+          <button type="button"
+                  (click)="toggleTag(button)"
+                  [title]="button.title" i18n>{{(button._on ? button.labelOn : button.labelOff) || button.label }}</button>
         }
       }
-      @for (button of editorRibbons; track button; let i = $index) {
-        <div class="editor-toggle">
-          <input type="checkbox"
-                 [style.display]="'none'"
-                 [id]="'ribbon-' + id + i"
-                 [checked]="button._on"
-                 (click)="toggleTag(button)">
-          <label [for]="'ribbon-' + id + i"
-                 [class.on]="button._on"
-                 [title]="button.title">{{(button._on ? button.labelOn : button.labelOff) || button.label }}</label>
-        </div>
-      }
-      @if (selectResponseType && responseButtons.length > 1) {
-        <div class="toolbar-toggle toolbar-toggle-{{toggleIndex}}">
-          @for (plugin of responseButtons; track plugin.tag; let i=$index) {
-            <button type="button"
-                    class="response-button"
-                    (click)="setResponse(plugin.tag)"
-                    [class.selected]="toggleIndex === i"
-                    [title]="plugin.name" i18n>{{ plugin.config?.responseButton }}</button>
-          }
-        </div>
+      @if (hasTags) {
+        @for (button of editorRibbons; track button; let i = $index) {
+          <div class="editor-toggle">
+            <input type="checkbox"
+                   [style.display]="'none'"
+                   [id]="'ribbon-' + id + i"
+                   [checked]="button._on"
+                   (click)="toggleTag(button)">
+            <label [for]="'ribbon-' + id + i"
+                   [class.on]="button._on"
+                   [title]="button.title">{{(button._on ? button.labelOn : button.labelOff) || button.label }}</label>
+          </div>
+        }
+        @if (selectResponseType && responseButtons.length > 1) {
+          <div class="toolbar-toggle toolbar-toggle-{{toggleIndex}}">
+            @for (plugin of responseButtons; track plugin.tag; let i=$index) {
+              <button type="button"
+                      class="response-button"
+                      (click)="setResponse(plugin.tag)"
+                      [class.selected]="toggleIndex === i"
+                      [title]="plugin.name" i18n>{{ plugin.config?.responseButton }}</button>
+            }
+          </div>
+        }
       }
     </div>
     <textarea #editor

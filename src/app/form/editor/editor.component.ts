@@ -59,6 +59,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   helpTemplate!: TemplateRef<any>;
 
   @Input()
+  hasTags = true;
+  @Input()
   selectResponseType = false;
   @Input()
   tags?: UntypedFormArray;
