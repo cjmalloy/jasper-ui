@@ -195,11 +195,11 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   search = debounce((input: HTMLInputElement) => {
-    const text = input.value.toLowerCase();
+    const text = input.value.replace(/[,\s]+$/, '');
     const parts = text.split(/[,\s]+/).filter(t => !!t);
     const value = parts.pop() || '';
-    const tag = value.replace(/[^_+a-z0-9./]/, '');
-    const prefix = parts.join(' ') + ' ' + (value.startsWith('-') ? '-' : '');
+    const prefix = text.substring(0, text.length - value.length)
+    const tag = value.replace(/[^_+a-z0-9./]/, '').toLowerCase();
     this.searching?.unsubscribe();
     this.searching = this.exts.page({
       query: '+user|_user',
