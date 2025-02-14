@@ -120,7 +120,7 @@
       <div class="submit-button" [routerLink]="['/ext', tag]" tabindex="0">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
       </div>
-    } @else if (!local && store.account.user && ext && store.view.noQuery) {
+    } @else if (!local && store.account.user && existing && store.view.noQuery) {
       <div class="submit-button" [routerLink]="['/tags', tag]" [queryParams]="{ showRemotes: true }" tabindex="0">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Copy Tag</label>
       </div>

@@ -163,7 +163,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get local() {
-    return this.ext?.origin === this.store.account.origin;
+    return !this.existing || this.ext?.origin === this.store.account.origin;
   }
 
   get ext(): Ext | undefined {
@@ -174,6 +174,10 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   set ext(value: Ext | undefined) {
     this._ext = value;
     runInAction(() => this.store.view.floatingSidebar = !value?.config?.noFloatingSidebar && value?.config?.defaultCols === undefined);
+  }
+
+  get existing() {
+    return this.ext?.modified;
   }
 
   get expanded(): boolean {
