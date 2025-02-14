@@ -8,8 +8,8 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { defer, uniq, without } from 'lodash-es';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { defer } from 'lodash-es';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Oembed } from '../../model/oembed';
@@ -41,7 +41,7 @@ export class RefFormComponent {
   toggleTag = new EventEmitter<string>();
 
   @ViewChild(TagsFormComponent)
-  tags!: TagsFormComponent;
+  tagsFormComponent!: TagsFormComponent;
   @ViewChild('sources')
   sources!: LinksFormComponent;
   @ViewChild('alts')
@@ -87,17 +87,22 @@ export class RefFormComponent {
     return this.group.get('published') as UntypedFormControl;
   }
 
-  set editorTags(value: string[]) {
-    const addTags = value.filter(t => !t.startsWith('-'));
-    const removeTags = value.filter(t => t.startsWith('-')).map(t => t.substring(1));
-    const newTags = uniq([...without(this.tags!.tags!.value, ...removeTags), ...addTags]);
-    this.tags!.setTags(newTags);
+  get tags() {
+    return this.group.get('tags') as UntypedFormArray;
+  }
+
+  setTags(value: string[]) {
+    if (!this.tagsFormComponent?.tags) {
+      defer(() => this.setTags(value));
+      return;
+    }
+    this.tagsFormComponent.setTags(value);
   }
 
   get editorLabel() {
     // TODO: Move to config
-    if (this.tags?.hasTag('+plugin/secret')) return $localize`Secret Key`;
-    if (this.tags?.hasTag('plugin/alt')) return $localize`Alt Text`;
+    if (hasTag('+plugin/secret', this.tags.value)) return $localize`Secret Key`;
+    if (hasTag('plugin/alt', this.tags.value)) return $localize`Alt Text`;
     return $localize`Abstract`;
   }
 
@@ -140,7 +145,7 @@ export class RefFormComponent {
 
   get scrape$() {
     if (this.scraped) return of(this.scraped);
-    return this.scrape.webScrape(this.tags.hasTag('plugin/repost') ? this.sources.links?.value?.[0] : this.url.value).pipe(
+    return this.scrape.webScrape(hasTag('plugin/repost', this.tags.value) ? this.sources.links?.value?.[0] : this.url.value).pipe(
       tap(s => {
         this.scraped = s;
         if (s.modified && this.ref?.modified) {
@@ -202,7 +207,7 @@ export class RefFormComponent {
     } else {
       this.scrape$.subscribe(s => {
         for (const t of s.tags || []) {
-          if (!this.tags.hasTag(t)) this.togglePlugin(t);
+          if (!hasTag(t, this.tags.value)) this.togglePlugin(t);
         }
         defer(() => {
           this.plugins.setValue({
@@ -225,24 +230,22 @@ export class RefFormComponent {
   togglePlugin(tag: string) {
     this.toggleTag.next(tag);
     if (tag) {
-      if (this.tags.hasTag(tag)) {
-        this.tags.removeTagAndChildren(tag);
+      if (hasTag(tag, this.tags.value)) {
+        this.tagsFormComponent.removeTagAndChildren(tag);
       } else {
-        this.tags.addTag(tag);
+        this.tagsFormComponent.addTag(tag);
       }
     }
   }
 
   setRef(ref: Ref) {
     this.ref = ref;
-    this.sources.model = [...ref?.sources || []];
-    this.alts.model = [...ref?.alternateUrls || []];
-    this.tags.model = [...ref.tags || []];
     this.group.setControl('plugins', pluginsForm(this.fb, this.admin, ref.tags || []));
     this.group.patchValue({
       ...ref,
       published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
     });
+    defer(() => this.tagsFormComponent.setTags(ref.tags || []));
     defer(() => this.plugins.setValue(ref.plugins));
   }
 }

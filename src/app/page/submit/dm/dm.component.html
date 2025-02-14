@@ -47,15 +47,12 @@
                        [text]="true"
                        i18n-title title="Add Plugin"
                        (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-    <app-form-plugins id="plugins"
-                      (togglePlugin)="bookmarks.toggleTag($event)"
-                      [tags]="$any(dmForm.value).tags"
-                      [group]="dmForm"></app-form-plugins>
+    <app-form-plugins id="plugins"[group]="dmForm"></app-form-plugins>
 
     @if (editingViewer) {
       <span><!-- Viewer --></span>
       <app-viewer [text]="dmForm.value.comment"
-                  [tags]="$any(dmForm.value).tags"
+                  [tags]="tags.value"
                   [commentControl]="comment"
                   (comment)="comment.setValue($event)"></app-viewer>
     } @else {
@@ -65,15 +62,13 @@
                     [control]="comment"
                     [fillWidth]="fill"
                     (syncEditor)="syncEditor()"
-                    [tags]="$any(dmForm.value).tags"
-                    (syncTags)="editorTags = $event"
+                    [tags]="tags"
+                    (syncTags)="setTags($event)"
                     [autoFocus]="!!store.submit.dmPlugin"></app-editor>
       </div>
     }
 
-    <app-tags #tags
-              [group]="dmForm"
-              (syncTags)="syncTags($event)"></app-tags>
+    <app-tags [group]="dmForm"></app-tags>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>

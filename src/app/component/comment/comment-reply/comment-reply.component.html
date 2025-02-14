@@ -1,6 +1,6 @@
 <form>
   <app-editor [control]="comment"
-              [tags]="tags"
+              [createdTags]="tags || []"
               [selectResponseType]="selectResponseType"
               (syncTags)="editorTags = $event"
               [autoFocus]="autofocus"></app-editor>

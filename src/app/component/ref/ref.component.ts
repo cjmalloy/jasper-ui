@@ -640,6 +640,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
+    if (this.comments) {
+      tags.push('plugin/comment', 'internal')
+    } else if (this.threads) {
+      tags.push('plugin/thread', 'internal')
+    }
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 

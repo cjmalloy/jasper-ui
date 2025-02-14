@@ -74,18 +74,11 @@ export class UserFormComponent implements OnInit {
   }
 
   setUser(user: User) {
-    const ns = (user.readAccess || []).filter(isMailbox);
-    this.notifications.model = ns;
-    const ra = (user.readAccess || []).filter(t => !isMailbox(t));
-    this.readAccess.model = ra;
-    this.writeAccess.model = [...user.writeAccess || []];
-    this.tagReadAccess.model = [...user.tagReadAccess || []];
-    this.tagWriteAccess.model = [...user.tagWriteAccess || []];
-    this.group.patchValue({
-      ...user,
-      notifications: ns,
-      readAccess: ra,
-    });
+    this.notifications.setTags((user.readAccess || []).filter(isMailbox));
+    this.readAccess.setTags((user.readAccess || []).filter(t => !isMailbox(t)));
+    this.writeAccess.setTags([...user.writeAccess || []]);
+    this.tagReadAccess.setTags([...user.tagReadAccess || []]);
+    this.tagWriteAccess.setTags([...user.tagWriteAccess || []]);
   }
 
 }

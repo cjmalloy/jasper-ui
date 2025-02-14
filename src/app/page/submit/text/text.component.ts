@@ -45,7 +45,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   fill?: ElementRef;
 
   @ViewChild(TagsFormComponent)
-  tags!: TagsFormComponent;
+  tagsFormComponent!: TagsFormComponent;
   @ViewChild(PluginsFormComponent)
   plugins!: PluginsFormComponent;
 
@@ -75,52 +75,50 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     return !this.textForm?.dirty;
   }
 
-  ngAfterViewInit(): void {
-    defer(() => {
-      if (this.store.account.localTag) this.addTag(this.store.account.localTag);
-      this.disposers.push(autorun(() => {
-        let url = this.store.submit.url || 'comment:' + uuid();
-        if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
-          url = wikiUriFormat(url, this.admin.getWikiPrefix());
-          this.mod.setTitle($localize`Submit: Wiki`);
-          this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
-          this.title.disable();
-        } else if (this.store.submit.title) {
-          this.title.setValue(this.store.submit.title);
-        }
-        this.url.setValue(url);
-        this.url.disable();
-        const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
-        const added = without(tags, ...this.oldSubmit);
-        const removed = without(this.oldSubmit, ...tags);
-        if (added.length || removed.length) {
-          const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
-          this.tags!.setTags(newTags);
-          this.oldSubmit = tags;
-        }
-        let plugins = {};
-        if (this.store.submit.thumbnail) {
+  ngAfterViewInit() {
+    if (this.store.account.localTag) this.addTag(this.store.account.localTag);
+    this.disposers.push(autorun(() => {
+      let url = this.store.submit.url || 'comment:' + uuid();
+      if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
+        url = wikiUriFormat(url, this.admin.getWikiPrefix());
+        this.mod.setTitle($localize`Submit: Wiki`);
+        this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
+        this.title.disable();
+      } else if (this.store.submit.title) {
+        this.title.setValue(this.store.submit.title);
+      }
+      this.url.setValue(url);
+      this.url.disable();
+      const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+      const added = without(tags, ...this.oldSubmit);
+      const removed = without(this.oldSubmit, ...tags);
+      if (added.length || removed.length) {
+        const newTags = uniq([...without(this.tagsFormComponent!.tags!.value, ...removed), ...added]);
+        this.tagsFormComponent!.setTags(newTags);
+        this.oldSubmit = tags;
+      }
+      let plugins = {};
+      if (this.store.submit.thumbnail) {
+        this.addTag('plugin/thumbnail');
+        this.plugins.setValue(plugins = {
+          ...plugins,
+          'plugin/thumbnail': { url: this.store.submit.thumbnail },
+        });
+      }
+      if (this.store.submit.pluginUpload) {
+        this.addTag(this.store.submit.plugin);
+        this.plugins.setValue(plugins = {
+          ...plugins,
+          [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
+        });
+        if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
           this.addTag('plugin/thumbnail');
-          this.plugins.setValue(plugins = {
-            ...plugins,
-            'plugin/thumbnail': { url: this.store.submit.thumbnail },
-          });
         }
-        if (this.store.submit.pluginUpload) {
-          this.addTag(this.store.submit.plugin);
-          this.plugins.setValue(plugins = {
-            ...plugins,
-            [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
-          });
-          if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
-            this.addTag('plugin/thumbnail');
-          }
-        }
-        for (const s of this.store.submit.sources) {
-          this.addSource(s)
-        }
-      }));
-    });
+      }
+      for (const s of this.store.submit.sources) {
+        this.addSource(s)
+      }
+    }));
   }
 
   ngOnDestroy() {
@@ -171,15 +169,16 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     return this.textForm.get('sources') as UntypedFormArray;
   }
 
-  set editorTags(value: string[]) {
-    if (!this.tags) {
-      defer(() => this.editorTags = value);
+  get tags() {
+    return this.textForm.get('tags') as UntypedFormArray;
+  }
+
+  setTags(value: string[]) {
+    if (!this.tagsFormComponent?.tags) {
+      defer(() => this.setTags(value));
       return;
     }
-    const addTags = value.filter(t => !t.startsWith('-'));
-    const removeTags = value.filter(t => t.startsWith('-')).map(t => t.substring(1));
-    const newTags = uniq([...without(this.tags!.tags!.value, ...removeTags), ...addTags]);
-    this.tags!.setTags(newTags);
+    this.tagsFormComponent.setTags(value);
   }
 
   validate(input: HTMLInputElement) {
@@ -191,12 +190,12 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     }
   }
 
-  syncTags(value: string[]) {
-    this.bookmarks.toggleTag(...without(this.store.submit.tags, ...value));
-  }
-
   addTag(...values: string[]) {
-    this.tags.addTag(...values);
+    if (!this.tagsFormComponent?.tags) {
+      defer(() => this.addTag(...values));
+      return;
+    }
+    this.tagsFormComponent.addTag(...values);
     this.submitted = false;
   }
 

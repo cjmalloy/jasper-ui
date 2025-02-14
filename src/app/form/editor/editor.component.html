@@ -29,7 +29,7 @@
         @if (!button.event) {
           <button type="button"
                   (click)="toggleTag(button)"
-                  [title]="button.title" i18n>{{(buttonOn(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</button>
+                  [title]="button.title" i18n>{{(button._on ? button.labelOn : button.labelOff) || button.label }}</button>
         } @else {
           <button type="button"
                   (click)="fireEvent(button.event)"
@@ -41,11 +41,11 @@
           <input type="checkbox"
                  [style.display]="'none'"
                  [id]="'ribbon-' + id + i"
-                 [checked]="buttonOn(button.toggle!)"
+                 [checked]="button._on"
                  (click)="toggleTag(button)">
           <label [for]="'ribbon-' + id + i"
-                 [class.on]="buttonOn(button.toggle!)"
-                 [title]="button.title">{{(buttonOn(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</label>
+                 [class.on]="button._on"
+                 [title]="button.title">{{(button._on ? button.labelOn : button.labelOff) || button.label }}</label>
         </div>
       }
       @if (selectResponseType && responseButtons.length > 1) {
@@ -79,7 +79,7 @@
     <app-md class="expand"
             [origin]="store.account.origin"
             [text]="currentText"
-            [plugins]="fullTags"
+            [plugins]="allTags"
             [appLimitWidth]="editor"></app-md>
   }
 

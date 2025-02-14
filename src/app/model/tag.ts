@@ -376,6 +376,7 @@ export interface EditorButton {
 
   //cache
   _parent?: Config;
+  _on?: boolean;
 }
 
 export type Action = (TagAction | ResponseAction | EmitAction | EventAction) & {

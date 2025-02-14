@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { merge, pickBy, uniq, without } from 'lodash-es';
+import { merge, pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -15,7 +15,7 @@ import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { Store } from '../../../store/store';
-import { getMailboxes, getTags } from '../../../util/editor';
+import { getMailboxes } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasTag, removeTag, tagIntersection } from '../../../util/tag';
@@ -73,11 +73,6 @@ export class CommentReplyComponent implements AfterViewInit, HasChanges {
     this.comment.setValue(this.quote);
   }
 
-  get publicTag() {
-    if (!hasTag('public', this.to)) return [];
-    return ['public'];
-  }
-
   get comment() {
     return this.commentForm.get('comment') as UntypedFormControl;
   }
@@ -109,16 +104,11 @@ export class CommentReplyComponent implements AfterViewInit, HasChanges {
     if (!this.comment.value) return;
     const url = 'comment:' + uuid();
     const value = this.comment.value;
-    const addTags = this.editorTags.filter(t => !t.startsWith('-'));
-    const removeTags = this.editorTags.filter(t => t.startsWith('-')).map(t => t.substring(1));
-    const tags = removeTag(getMailbox(this.store.account.tag, this.store.account.origin), without(uniq([
-      ...this.publicTag,
+    const tags = removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...without(this.tags, ...this.admin.getEditorButtons(this.tags, 'comment:').map(b => b.toggle) as string[]),
-      ...addTags,
-      ...getTags(value),
+      ...this.editorTags,
       ...getMailboxes(value, this.store.account.origin),
-    ]), ...removeTags));
+    ]));
     const sources = [this.to.url];
     if (hasTag('plugin/comment', tags) || hasTag('plugin/thread', tags)) {
       if (hasTag('plugin/comment', this.to) || hasTag('plugin/thread', this.to)) {

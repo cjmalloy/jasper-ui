@@ -23,6 +23,7 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { QUALIFIED_TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { hasTag } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -34,18 +35,15 @@ import { printError } from '../../../util/http';
 export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
-
   submitted = false;
   dmForm: UntypedFormGroup;
   serverError: string[] = [];
-
-  loadedParams = false;
 
   @ViewChild('fill')
   fill?: ElementRef;
 
   @ViewChild(TagsFormComponent)
-  tags?: TagsFormComponent;
+  tagsFormComponent?: TagsFormComponent;
 
   preview = '';
   editing = false;
@@ -53,7 +51,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   submitting?: Subscription;
   private showedError = false;
   private addedMailboxes: string[] = [];
-  private oldSubmit: string[] = [];
   private searching?: Subscription;
 
   constructor(
@@ -83,7 +80,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     return !this.dmForm.dirty;
   }
 
-  ngAfterViewInit(): void {
+  ngAfterViewInit() {
     this.disposers.push(autorun(() => {
       if (this.store.submit.dmPlugin) {
         this.setTo(this.store.submit.dmPlugin);
@@ -92,19 +89,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       } else {
         this.setTo('');
       }
-
-      if (this.store.submit.sources) {
-        this.sources.setValue(this.store.submit.sources)
-      }
-      const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
-      const added = without(tags, ...this.oldSubmit);
-      const removed = without(this.oldSubmit, ...tags);
-      if (added.length || removed.length) {
-        const newTags = uniq([...without(this.tags!.tags!.value, ...removed), ...added]);
-        this.tags!.setTags(newTags);
-        this.oldSubmit = tags;
-      }
-      this.loadedParams = true;
+      this.addTags([...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])]);
     }));
   }
 
@@ -129,19 +114,28 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     return this.dmForm.get('comment') as UntypedFormControl;
   }
 
+  get tags() {
+    return this.dmForm.get('tags') as UntypedFormArray;
+  }
+
   get notes() {
     return !this.to.value || this.to.value === this.store.account.tag;
   }
 
-  set editorTags(value: string[]) {
-    if (this.tags?.tags) {
-      const addTags = value.filter(t => !t.startsWith('-'));
-      const removeTags = value.filter(t => t.startsWith('-')).map(t => t.substring(1));
-      const newTags = uniq([...without(this.tags!.tags!.value, ...removeTags), ...addTags]);
-      this.tags!.setTags(newTags);
-    } else {
-      defer(() => this.editorTags = value);
+  addTags(value: string[]) {
+    if (!this.tagsFormComponent?.tags) {
+      defer(() => this.addTags(value));
+      return;
     }
+    this.tagsFormComponent.setTags(uniq([...this.tags.value, ...value]));
+  }
+
+  setTags(value: string[]) {
+    if (!this.tagsFormComponent?.tags) {
+      defer(() => this.setTags(value));
+      return;
+    }
+    this.tagsFormComponent.setTags(value);
   }
 
   validate(input: HTMLInputElement) {
@@ -156,10 +150,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     }
   }
 
-  syncTags(value: string[]) {
-    this.bookmarks.toggleTag(...without(this.store.submit.tags, ...value));
-  }
-
   setTo(value: string) {
     this.to.setValue(value);
     this.changedTo(value);
@@ -167,16 +157,16 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   changedTo(value: string) {
     const notes = !value || value === this.store.account.tag;
-    if (notes && !this.tags?.hasTag('notes')) {
-      const newTags = uniq([...without(this.tags!.tags!.value, ...['dm', 'plugin/thread', ...this.addedMailboxes]), 'notes']);
-      this.tags!.setTags(newTags);
+    if (notes && !hasTag('notes', this.tags.value)) {
+      const newTags = uniq([...without(this.tags.value, ...['dm', 'plugin/thread', ...this.addedMailboxes]), 'notes']);
+      this.setTags(newTags);
       this.addedMailboxes = [];
     } else if (!notes) {
       const mailboxes = ['dm', 'plugin/thread', ...value.toLowerCase().split(/\s+/).filter(t => !!t).flatMap((t: string) => this.getMailboxes(t))];
       const added = without(mailboxes, ...this.addedMailboxes);
       const removed = without(this.addedMailboxes, ...mailboxes);
-      const newTags = uniq([...without(this.tags!.tags!.value, ...removed, 'notes'), ...added]);
-      this.tags!.setTags(newTags);
+      const newTags = uniq([...without(this.tags.value, ...removed, 'notes'), ...added]);
+      this.setTags(newTags);
       this.addedMailboxes = mailboxes;
     }
   }
@@ -246,7 +236,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get editingViewer() {
-    return some(this.admin.editingViewer, (t: Plugin) => this.tags?.hasTag(t.tag));
+    return some(this.admin.editingViewer, (t: Plugin) => hasTag(t.tag, this.tags.value));
   }
 
   syncEditor() {
@@ -268,7 +258,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       origin: this.store.account.origin,
       title: this.dmForm.value.title,
       comment: this.dmForm.value.comment,
-      sources: this.dmForm.value.sources,
+      sources: this.store.submit.sources,
       published,
       tags: this.dmForm.value.tags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),

@@ -1,5 +1,5 @@
 <app-editor [control]="comment"
-            [tags]="ref.tags"
+            [createdTags]="ref.tags || []"
             (syncTags)="editorTags = $event"
             [autoFocus]="true"></app-editor>
 @for (e of serverError; track e) {

@@ -179,13 +179,13 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   addTag(...values: string[]) {
     for (const value of values) {
-      this.refForm!.tags.addTag(value);
+      this.refForm!.tagsFormComponent.addTag(value);
     }
     this.submitted = false;
   }
 
   addPlugin(tag: string, plugin: any) {
-    this.refForm!.tags.addTag(tag);
+    this.refForm!.tagsFormComponent.addTag(tag);
     this.refForm!.plugins.setValue({
       ...this.webForm.value.plugins,
       [tag]: plugin,

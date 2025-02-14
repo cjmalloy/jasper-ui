@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   EventEmitter,
   Input,
@@ -8,9 +9,10 @@ import {
   SimpleChanges,
   ViewChildren
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { toJS } from 'mobx';
+import { Subject, takeUntil } from 'rxjs';
 import { Plugin } from '../../model/plugin';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
@@ -25,10 +27,12 @@ import { GenFormComponent } from './gen/gen.component';
   styleUrls: ['./plugins.component.scss'],
   host: {'class': 'plugins-form'}
 })
-export class PluginsFormComponent implements OnChanges {
+export class PluginsFormComponent implements OnChanges, AfterViewInit {
+  private destroy$ = new Subject<void>();
 
   @ViewChildren('gen')
   gens?: QueryList<GenFormComponent>;
+
   @Input()
   fieldName = 'plugins';
   @Input()
@@ -39,8 +43,6 @@ export class PluginsFormComponent implements OnChanges {
   icons: Icon[] = [];
   forms: Plugin[] = [];
 
-  private _tags: string[] = [];
-
   constructor(
     public admin: AdminService,
     private fb: UntypedFormBuilder,
@@ -50,41 +52,55 @@ export class PluginsFormComponent implements OnChanges {
     });
   }
 
+  init() {
+    if (this.plugins) {
+      for (const p in this.plugins.value) {
+        if (!this.allTags.includes(p)) {
+          this.plugins.removeControl(p);
+        }
+      }
+    }
+    if (!this.plugins) {
+      this.group.addControl(this.fieldName, pluginsForm(this.fb, this.admin, this.allTags));
+    } else if (this.allTags) {
+      for (const t of this.allTags) {
+        if (!this.plugins.contains(t)) {
+          const form = pluginForm(this.fb, this.admin, t);
+          if (form) {
+            this.plugins.addControl(t, form);
+          }
+        }
+      }
+    }
+    this.forms = this.admin.getPluginForms(this.allTags);
+    this.icons = sortOrder(this.admin.getIcons(this.allTags, this.plugins.value, getScheme(this.group.value.url))
+      .filter(i => !this.forms.find(p => p.tag === i.tag)))
+      .filter(i => this.showIcon(i));
+  }
+
+  ngAfterViewInit() {
+    this.tags.valueChanges.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(() => this.init());
+  }
+
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.group || changes.tags) {
-      if (this.plugins) {
-        for (const p in this.plugins.value) {
-          if (!this.tags.includes(p)) {
-            this.plugins.removeControl(p);
-          }
-        }
-      }
-      if (!this.plugins) {
-        this.group.addControl(this.fieldName, pluginsForm(this.fb, this.admin, this.tags));
-      } else if (this.tags) {
-        for (const t of this.tags) {
-          if (!this.plugins.contains(t)) {
-            const form = pluginForm(this.fb, this.admin, t);
-            if (form) {
-              this.plugins.addControl(t, form);
-            }
-          }
-        }
-      }
-      this.forms = this.admin.getPluginForms(this.tags);
-      this.icons = sortOrder(this.admin.getIcons(this.tags, this.plugins.value, getScheme(this.group.value.url))
-        .filter(i => !this.forms.find(p => p.tag === i.tag)))
-        .filter(i => this.showIcon(i));
+    if (changes.group) {
+      this.init();
     }
   }
 
-  get tags(): string[] {
-    return this._tags;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  @Input()
-  set tags(tags: string[]) {
-    this._tags = addAllHierarchicalTags(tags);
+  get tags() {
+    return this.group.get('tags') as UntypedFormArray;
+  }
+
+  get allTags() {
+    return addAllHierarchicalTags(this.tags.value);
   }
 
   get plugins() {

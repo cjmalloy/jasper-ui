@@ -20,15 +20,12 @@
                          [text]="true"
                          i18n-title title="Add Plugin"
                          (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-      <app-form-plugins id="plugins"
-                        (togglePlugin)="bookmarks.toggleTag($event)"
-                        [tags]="$any(textForm.value).tags"
-                        [group]="textForm"></app-form-plugins>
+      <app-form-plugins id="plugins" [group]="textForm"></app-form-plugins>
 
-      @if (tags.editingViewer) {
+      @if (tagsFormComponent.editingViewer) {
         <span><!-- Viewer --></span>
         <app-viewer [text]="textForm.value.comment"
-                    [tags]="$any(textForm.value).tags"
+                    [tags]="tags.value"
                     [commentControl]="comment"
                     (comment)="comment.setValue($event)"></app-viewer>
       } @else {
@@ -42,16 +39,14 @@
                       class="bubble"
                       [control]="comment"
                       (syncEditor)="syncEditor()"
-                      [tags]="$any(textForm.value).tags"
-                      (syncTags)="editorTags = $event"
+                      [tags]="tags"
+                      (syncTags)="setTags($event)"
                       [fillWidth]="fill"
                       [autoFocus]="true"></app-editor>
         </div>
       }
 
-      <app-tags #tags
-                [group]="textForm"
-                (syncTags)="syncTags($event)"></app-tags>
+      <app-tags #tagsFormComponent [group]="textForm"></app-tags>
 
       <span><!-- Advanced --></span>
       <a class="fake-link no-select" (click)="showAdvanced()" i18n>show advanced</a>

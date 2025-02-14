@@ -16,12 +16,12 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { UntypedFormControl } from '@angular/forms';
+import { UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, throttle, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { filter } from 'rxjs';
+import { filter, Subject, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
@@ -38,7 +38,7 @@ import { memo, MemoCache } from '../../util/memo';
   host: {'class': 'editor'}
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
-
+  private destroy$ = new Subject<void>();
   private disposers: IReactionDisposer[] = [];
 
   id = uuid();
@@ -61,7 +61,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input()
   selectResponseType = false;
   @Input()
-  tags?: string[];
+  tags?: UntypedFormArray;
+  @Input()
+  createdTags: string[] = [];
   @Input()
   control!: UntypedFormControl;
   @Input()
@@ -87,9 +89,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
   toggleIndex = 0;
-  toggleResponse: string[] = [];
-  addEditorTags: string[] = [];
-  removeEditorTags: string[] = [];
   initialFullscreen = false;
   focused?: boolean = false;
 
@@ -121,19 +120,14 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   init() {
     MemoCache.clear(this);
-    this.addEditorTags = this.store.account.defaultEditors(this.editors);
     if (this.selectResponseType && this.responseButtons.length) {
-      this.toggleResponse = this.responseButtons[0].config?.reply || [this.responseButtons[0].tag];
       this.toggleIndex = 0;
+      const tags = this.tags?.value || this.createdTags;
       for (const p of this.responseButtons) {
-        if (this.tags?.includes(p.tag)) {
-          this.toggleResponse = p.config?.reply || [p.tag];
+        if (tags.includes(p.tag)) {
           this.toggleIndex = this.responseButtons.indexOf(p);
         }
       }
-    }
-    if (this.editing) {
-      this.syncTags.next(this.addTags);
     }
   }
 
@@ -146,6 +140,16 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         this.el.nativeElement.style.setProperty('--viewport-height', height + 'px');
       }
     }));
+    if (this.tags) {
+      this.tags.valueChanges.pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(() => {
+        this.init();
+      });
+    } else {
+      this.init();
+      this.updateTags(this.editing ? this.initTags : this.allTags);
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -155,6 +159,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     document.body.style.height = '';
@@ -192,21 +198,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this._padding = value;
   }
 
-  get addTags() {
-    return without(uniq([
-      ...this.toggleResponse,
-      ...this.addEditorTags,
-    ]), ...this.removeEditorTags.map(t => '-' + t));
-  }
-
-  get fullTags() {
-    return without(uniq([
-      ...this.tags || [],
-      ...this.toggleResponse,
-      ...this.addEditorTags,
-    ]), ...this.removeEditorTags);
-  }
-
   get editing(): boolean {
     return this._editing;
   }
@@ -214,9 +205,27 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @HostBinding('class.editing')
   set editing(value: boolean) {
     if (!this._editing && value) {
-      this.syncTags.emit(this.addTags);
-      defer(() => this._editing = true);
+      defer(() => {
+        this._editing = true;
+        this.updateTags(this.initTags);
+      });
     }
+  }
+
+  @memo
+  get allTags() {
+    return uniq([
+      ...without(this.tags ? this.tags.value : this.createdTags, ...this.allResponseTags),
+      ...this.responseTags,
+    ]);
+  }
+
+  @memo
+  get initTags() {
+    return [
+      ...without(this.store.account.defaultEditors(this.editors), ...this.allTags),
+      ...this.allTags,
+    ];
   }
 
   @memo
@@ -225,8 +234,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   @memo
-  get editorButtons() {
-    return sortOrder(this.admin.getEditorButtons(this.tags, this.scheme)).reverse();
+  get editorButtons(): EditorButton[] {
+    return sortOrder(this.admin.getEditorButtons(this.allTags, this.scheme)).reverse();
   }
 
   @memo
@@ -236,12 +245,25 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get editorRibbons() {
-    return this.editorButtons.filter(b => b.ribbon && this.visible(b));
+    return this.editorButtons.filter(b => b.ribbon && this.visible(b)).map(b => this.setButtonOn(b));
   }
 
   @memo
   get editorPushButtons() {
-    return this.editorButtons.filter(b => !b.ribbon && this.visible(b));
+    return this.editorButtons.filter(b => !b.ribbon && this.visible(b)).map(b => this.setButtonOn(b));
+  }
+
+  @memo
+  get responseTags() {
+    if (!this.selectResponseType) return [];
+    const p = this.responseButtons[this.toggleIndex];
+    return p.config?.reply || [p.tag];
+  }
+
+  @memo
+  get allResponseTags() {
+    if (!this.selectResponseType) return [];
+    return this.responseButtons.flatMap(p => p.config?.reply || [p.tag]);
   }
 
   @memo
@@ -255,21 +277,24 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     return this._text || this.control?.value || '';
   }
 
+  updateTags(tags: string[]) {
+    if (!this.tags) {
+      this.createdTags = tags;
+      MemoCache.clear(this);
+    }
+    this.syncTags.next(tags);
+  }
+
   toggleTag(button: EditorButton) {
     if (button.event) this.fireEvent(button.event);
     const tag = button.toggle!;
-    MemoCache.clear(this);
-    if (this.buttonOn(tag)) {
-      if (this.addEditorTags.includes(tag)) this.addEditorTags.splice(this.addEditorTags.indexOf(tag), 1);
-      this.removeEditorTags.push(tag);
-      this.syncTags.next(this.addTags);
+    if (this.allTags.includes(tag)) {
+      this.updateTags(without(this.allTags, tag));
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.removeConfigArray$('editors', tag).subscribe();
       }
     } else if (tag !== 'locked' || confirm($localize`Locking is permanent once saved. Are you sure you want to lock?`)) {
-      if (this.removeEditorTags.includes(tag)) this.removeEditorTags.splice(this.removeEditorTags.indexOf(tag), 1);
-      this.addEditorTags.push(tag);
-      this.syncTags.next(this.addTags);
+      this.updateTags([...this.allTags, tag]);
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.addConfigArray$('editors', tag).subscribe();
       }
@@ -278,16 +303,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (this.focused !== false) this.editor?.nativeElement.focus();
   }
 
-  buttonOn(tag: string) {
-    return (this.tags?.includes(tag) || this.addEditorTags.includes(tag)) && !this.removeEditorTags.includes(tag);
-  }
-
   setResponse(tag: string) {
-    if (!this.tags?.includes(tag)) {
+    const tags = this.tags?.value || this.createdTags;
+    if (!tags.includes(tag)) {
       this.toggleIndex = this.responseButtons.map(p => p.tag).indexOf(tag);
-      const button = this.responseButtons[this.toggleIndex];
-      this.toggleResponse = button?.config?.reply || [button.tag];
-      this.syncTags.next(this.addTags);
+      this.updateTags([...tags, tag]);
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
     if (this.focused !== false) this.editor?.nativeElement.focus();
@@ -432,11 +452,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     }
   }
 
-  visible(button: EditorButton) {
+  private visible(button: EditorButton) {
     if (button.scheme && button.scheme !== this.scheme) return false;
     if (button.toggle && !this.auth.canAddTag(button.toggle)) return false;
     if (button.global) return true;
-    return this.tags?.includes(button._parent!.tag);
+    return this.allTags.includes(button._parent!.tag);
   }
 
   fireEvent(event: string) {
@@ -460,5 +480,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addComment() {
     this.editing = true;
     defer(() => this.editor?.nativeElement?.focus());
+  }
+
+  private setButtonOn(b: EditorButton) {
+    b._on = !!b.toggle && this.allTags.includes(b.toggle);
+    return b;
   }
 }

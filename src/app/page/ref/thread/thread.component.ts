@@ -126,21 +126,10 @@ export class RefThreadComponent implements HasChanges {
   }
 
   @memo
-  get replyExts() {
-    return (this.to.tags || [])
-      .map(tag => this.admin.getPlugin(tag))
-      .flatMap(p => p?.config?.reply)
-      .filter(t => !!t) as string[];
-  }
-
-  @memo
   get replyTags(): string[] {
     const tags = [
-      'internal',
-      'plugin/thread',
       ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
-      ...this.replyExts,
     ];
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }

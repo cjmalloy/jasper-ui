@@ -57,6 +57,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   autocomplete: { value: string, label: string }[] = [];
 
   private showedError = false;
+  private previewing?: Subscription;
   private searching?: Subscription;
   private formChanges?: Subscription;
 
@@ -85,6 +86,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   ngOnDestroy() {
+    this.previewing?.unsubscribe();
     this.searching?.unsubscribe();
     this.formChanges?.unsubscribe();
   }
@@ -110,7 +112,8 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   getPreview(value: string) {
     if (!value) return;
     if (this.showError) return;
-    this.preview$(value).subscribe((x?: { name?: string, tag: string }) => {
+    this.previewing?.unsubscribe();
+    this.previewing = this.preview$(value).subscribe((x?: { name?: string, tag: string }) => {
       this.preview = x?.name || x?.tag || '';
       this.cd.detectChanges();
     });

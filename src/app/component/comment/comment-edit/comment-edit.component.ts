@@ -9,6 +9,7 @@ import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { getIfNew, getMailboxes } from '../../../util/editor';
 import { printError } from '../../../util/http';
+import { OpPatch } from '../../../util/json-patch';
 
 @Component({
   standalone: false,
@@ -58,27 +59,30 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     return this.commentForm.get('comment') as UntypedFormControl;
   }
 
-  get patchTags() {
-    const addTags = this.editorTags.filter(t => !t.startsWith('-'));
-    const removeTags = this.editorTags.filter(t => t.startsWith('-')).map(t => t.substring(1));
-    return getIfNew(without(uniq([
-      ...this.ref.tags || [],
+  get newTags() {
+    return getIfNew(uniq([
+      ...this.editorTags,
       ...getMailboxes(this.comment.value, this.store.account.origin),
-      ...addTags]), ...removeTags),
-      this.ref.tags);
+    ]), this.ref.tags);
   }
 
   save() {
-    const patches: any[] = [{
+    const patches: OpPatch[] = [{
       op: 'add',
       path: '/comment',
       value: this.comment.value,
     }];
-    for (const t of this.patchTags) {
+    for (const t of without(this.newTags, ...this.ref.tags || [])) {
       patches.push({
         op: 'add',
         path: '/tags/-',
         value: t,
+      });
+    }
+    for (const t of without(this.ref.tags, ...this.newTags)) {
+      patches.push({
+        op: 'remove',
+        path: '/tags/' + this.ref.tags!.indexOf(t),
       });
     }
     this.editing = this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(

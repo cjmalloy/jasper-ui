@@ -68,6 +68,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   autocomplete: { value: string, label: string }[] = [];
 
   private showedError = false;
+  private previewing?: Subscription;
   private searching?: Subscription;
   private formChanges?: Subscription;
 
@@ -123,7 +124,8 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     if (this.showError) return;
     if (value === this.previewUrl) return;
     this.previewUrl = value;
-    this.refs.getCurrent(value).pipe(
+    this.previewing?.unsubscribe();
+    this.previewing = this.refs.getCurrent(value).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
     ).subscribe(ref => {
       if (ref) {

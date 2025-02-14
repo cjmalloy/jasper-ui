@@ -65,13 +65,12 @@
   </div>
   <app-form-plugins id="plugins"
                     (togglePlugin)="togglePlugin($event)"
-                    [tags]="$any(group.value).tags"
                     [group]="group"></app-form-plugins>
 
-  @if (tags.editingViewer) {
+  @if (tagsFormComponent.editingViewer) {
     <span><!-- Viewer --></span>
     <app-viewer [text]="ref?.comment"
-                [tags]="$any(group.value).tags"
+                [tags]="tags.value"
                 [commentControl]="comment"
                 (comment)="comment.setValue($event)"></app-viewer>
   } @else {
@@ -83,15 +82,15 @@
                   [addCommentTitle]="addEditorTitle"
                   [addCommentLabel]="addEditorLabel"
                   [control]="comment"
-                  [tags]="$any(group.value).tags"
+                  [tags]="tags"
                   [fillWidth]="fill"
                   [url]="web && url.value"
                   (scrape)="scrapeAll()"
                   (syncEditor)="syncEditor()"
-                  (syncTags)="editorTags = $event"></app-editor>
+                  (syncTags)="setTags($event)"></app-editor>
     </div>
   }
 
-  <app-tags #tags [group]="group" [origin]="origin"></app-tags>
+  <app-tags #tagsFormComponent [group]="group" [origin]="origin"></app-tags>
 
 </ng-container>

@@ -238,19 +238,11 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
   }
 
-  get replyExts() {
-    return (this.ref.tags || [])
-      .map(tag => this.admin.getPlugin(tag))
-      .flatMap(p => p?.config?.reply)
-      .filter(t => !!t) as string[];
-  }
-
   @memo
   get replyTags(): string[] {
     const tags = [
       ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
-      ...this.replyExts,
     ];
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
