@@ -152,6 +152,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   setTo(value: string) {
     this.to.setValue(value);
+    this.getPreview(value);
     this.changedTo(value);
   }
 
