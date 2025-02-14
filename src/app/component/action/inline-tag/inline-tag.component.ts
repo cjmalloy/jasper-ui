@@ -18,7 +18,7 @@ import { ActionComponent } from '../action.component';
   host: {'class': 'action'}
 })
 export class InlineTagComponent extends ActionComponent {
-  tagRegex = TAGS_REGEX.source;
+  tagsRegex = TAGS_REGEX.source;
 
   @Input()
   action: (tag: string) => Observable<any|never> = () => of(null);
@@ -73,7 +73,7 @@ export class InlineTagComponent extends ActionComponent {
 
   search = debounce((input: HTMLInputElement) => {
     const text = input.value = input.value.toLowerCase();
-    const parts = text.split(/\s+/).filter(t => !!t);
+    const parts = text.split(/[,\s]+/).filter(t => !!t);
     const value = parts.pop() || '';
     const tag = value.replace(/[^_+a-z0-9./]/, '');
     const prefix = parts.join(' ') + ' ' + (value.startsWith('-') ? '-' : '');

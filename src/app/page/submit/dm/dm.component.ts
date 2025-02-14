@@ -167,7 +167,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       this.setTags(newTags);
       this.addedMailboxes = [];
     } else if (!notes) {
-      const mailboxes = ['dm', 'plugin/thread', ...value.toLowerCase().split(/\s+/).filter(t => !!t).flatMap((t: string) => this.getMailboxes(t))];
+      const mailboxes = ['dm', 'plugin/thread', ...value.toLowerCase().split(/[,\s]+/).filter(t => !!t).flatMap((t: string) => this.getMailboxes(t))];
       const added = without(mailboxes, ...this.addedMailboxes);
       const removed = without(this.addedMailboxes, ...mailboxes);
       const newTags = uniq([...without(this.tags.value, ...removed, 'notes'), ...added]);
@@ -196,7 +196,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   search = debounce((input: HTMLInputElement) => {
     const text = input.value.toLowerCase();
-    const parts = text.split(/\s+/).filter(t => !!t);
+    const parts = text.split(/[,\s]+/).filter(t => !!t);
     const value = parts.pop() || '';
     const tag = value.replace(/[^_+a-z0-9./]/, '');
     const prefix = parts.join(' ') + ' ' + (value.startsWith('-') ? '-' : '');
@@ -227,8 +227,8 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   getPreview(value: string) {
     if (!value) return;
-    if (this.to.errors?.['pattern']) return;
-    forkJoin(value.split(/\s+/).map( part => this.preview$(part))).subscribe(xs => {
+    if (this.showedError) return;
+    forkJoin(value.split(/[,\s]+/).filter(t => !!t).map( part => this.preview$(part))).subscribe(xs => {
       this.preview = xs.map(x => x?.name || x?.tag || '').join(',  ');
     });
   }
