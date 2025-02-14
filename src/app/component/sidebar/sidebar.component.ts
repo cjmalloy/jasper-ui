@@ -51,7 +51,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   localTag?: string;
   addTags: string[] = this.rootConfig?.addTags || ['public'];
   defaultThumbnail = this.rootConfig?.defaultThumbnail;
-  local = true;
   plugin?: Plugin;
   mailPlugin?: Plugin;
   tagTemplate?: Template;
@@ -128,8 +127,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         this.userSubExts = [];
       }
       if (this.tag) {
-        const origin = tagOrigin(this.tag);
-        this.local = !origin || origin === this.store.account.origin;
         this.localTag = localTag(this.tag);
         this.plugin = this.admin.getPlugin(this.tag);
         if (this.home) {
@@ -145,7 +142,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         this.writeAccess = this.auth.tagWriteAccess(this.tag);
         this.ui = this.admin.getTemplateUi(this.tag);
       } else {
-        this.local = true;
         this.localTag = undefined;
         this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
         this.plugin = undefined;
@@ -163,6 +159,11 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  @memo
+  get local() {
+    return this.ext?.origin === this.store.account.origin;
   }
 
   get ext(): Ext | undefined {
