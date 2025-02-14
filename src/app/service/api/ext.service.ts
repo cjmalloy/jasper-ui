@@ -98,7 +98,8 @@ export class ExtService {
     }).pipe(
       map(mapTag),
       tap(ext => {
-        this._cache.set(tag + ':', of(ext));
+        this.clearCache(tag, ext.origin);
+        this._cache.set(tag + ext.origin + ':', of(ext));
         this.store.local.loadExt([...this._cache.keys()]);
       }),
       catchError(err => this.login.handleHttpError(err)),
