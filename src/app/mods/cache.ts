@@ -14,9 +14,9 @@ export const cachePlugin: Plugin = {
     internal: true,
     icons: [
       { label: $localize`🗜️`, thumbnail: $localize`🗜️`, order: -10 },
-      { label: $localize`⭕️`, condition: 'thumbnail', order: -1 },
-      { label: $localize`🙅️`, condition: 'ban', order: 10 },
-      { label: $localize`⛔️`, condition: '!id', order: 10 },
+      { label: $localize`⭕️`, condition: 'thumbnail', title: $localize`Thumbnail`, order: -1 },
+      { label: $localize`🙅️`, condition: 'ban', title: $localize`Banned`, order: 10 },
+      { label: $localize`⛔️`, condition: '!id', title: $localize`Broken`, order: 10 },
     ],
     filters: [
       { query: '_plugin/cache', label: $localize`🗜️ cache`, title: $localize`Has cache entry`, group: $localize`Plugins 🧰️` },
