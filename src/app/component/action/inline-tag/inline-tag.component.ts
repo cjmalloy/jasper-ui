@@ -82,8 +82,8 @@ export class InlineTagComponent extends ActionComponent {
     const getTemplates = (text: string) => this.admin.searchTemplates(text).slice(0, 1).map(toEntry);
     this.searching?.unsubscribe();
     this.searching = this.exts.page({
-      query: this.store.account.origin || '@',
       search: tag,
+      sort: ['nesting', 'levels'],
       size: 1,
     }).pipe(
       switchMap(page => forkJoin(page.content.map(x => this.preview$(x.tag + x.origin)))),

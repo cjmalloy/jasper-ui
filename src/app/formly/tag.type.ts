@@ -155,9 +155,9 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     } else {
       this.searching?.unsubscribe();
       this.searching = this.exts.page({
-        query: this.props.prefix,
+        query: this.props.prefix || '',
         search: value,
-        sort: ['nesting'],
+        sort: ['nesting', 'levels'],
         size: 5,
       }).pipe(
         switchMap(page => forkJoin(page.content.map(x => this.preview$(x.tag + x.origin)))),

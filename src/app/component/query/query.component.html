@@ -1,6 +1,6 @@
 @if (editing || !query) {
-  <input type="email"
-         #editor
+  <input #editor
+         type="text"
          autocorrect="off"
          autocapitalize="none"
          i18n-placeholder
@@ -8,7 +8,7 @@
          [ngModel]="query"
          (blur)="blur($event)"
          (keydown)="$event.key === 'Enter' && search(editor.value) || true">
-  <button type="button" *ngIf="query && editing" (click)="search(editor.value)">🔎️</button>
+  <button type="button" (click)="search(editor.value)">🔎️</button>
 } @else {
   <div #div class="breadcrumbs" (click)="$event.target === div && edit(false)">
     @for (breadcrumb of breadcrumbs; track breadcrumb) {

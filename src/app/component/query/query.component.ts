@@ -52,15 +52,12 @@ export class QueryComponent {
       if (this.select === true) {
         el.select();
       } else if (this.select) {
-        el.setAttribute('type', 'text'); // Email does not support selections
         el.setSelectionRange(this.select.pos, this.select.pos + this.select.len);
-        el.setAttribute('type', 'email');
       }
     });
   }
 
   click(event: MouseEvent, breadcrumb: Crumb): boolean {
-    if (!this.store.hotkey) return true;
     event.preventDefault();
     event.stopImmediatePropagation();
     this.edit(breadcrumb);

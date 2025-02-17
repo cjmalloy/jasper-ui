@@ -26,6 +26,7 @@ import { ListTypeComponent } from './list.type';
 import { FormlyFieldMultiCheckbox } from './multicheckbox.type';
 import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
 import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
+import { FormlyFieldQueryInput } from './query.type';
 import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldRange } from './range.type';
 import { FormlyFieldRefInput } from './ref.type';
@@ -40,6 +41,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
     FormlyFieldInput,
     FormlyFieldRange,
     FormlyFieldTagInput,
+    FormlyFieldQueryInput,
     FormlyFieldRefInput,
     FormlyFieldTextArea,
     FormlyFieldCheckbox,
@@ -519,7 +521,8 @@ Private tags start with an underscore.
         },
       }, {
         name: 'query',
-        extends: 'tag',
+        component: FormlyFieldQueryInput,
+        wrappers: ['form-field'],
         defaultOptions: {
           props: {
             label: $localize`Query: `,
