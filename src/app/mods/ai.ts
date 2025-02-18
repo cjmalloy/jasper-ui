@@ -154,8 +154,32 @@ export const aiQueryPlugin: Plugin = {
         const model = config?.model || 'o3-mini';
         const res = await openai.chat.completions.create({
           model,
-          [model.startsWith('o') ? 'max_completion_tokens' : 'max_tokens']: config?.maxTokens || 4096,
-          response_format: { "type": "json_object" },
+          max_completion_tokens: config?.maxTokens || 4096,
+          response_format: { 'type': 'json_object' },
+          messages,
+        });
+        completion = res.choices[0]?.message?.content;
+        usage = res.usage;
+      } else if (config.provider === 'x') {
+        const OpenAi = require('openai');
+        const openai = new OpenAi({ apiKey, baseURL: 'https://api.x.ai/v1' });
+        const model = config?.model || 'grok-2-latest';
+        const res = await openai.chat.completions.create({
+          model,
+          max_completion_tokens: config?.maxTokens || 4096,
+          response_format: { 'type': 'json_object' },
+          messages,
+        });
+        completion = res.choices[0]?.message?.content;
+        usage = res.usage;
+      } else if (config.provider === 'ds') {
+        const OpenAi = require('openai');
+        const openai = new OpenAi({ apiKey, baseURL: 'https://api.deepseek.com' });
+        const model = config?.model || 'deepseek-reasoner';
+        const res = await openai.chat.completions.create({
+          model,
+          max_completion_tokens: config?.maxTokens || 4096,
+          response_format: { 'type': 'json_object' },
           messages,
         });
         completion = res.choices[0]?.message?.content;
@@ -166,7 +190,7 @@ export const aiQueryPlugin: Plugin = {
         const system = messages.filter(m => m.role === 'system').map(m => m.content).join("\\n\\n");
         messages.push({ role: 'assistant', content: '{"ref":['});
         const res = await anthropic.messages.create({
-          model: config?.model || 'claude-3-5-sonnet-20241022',
+          model: config?.model || 'claude-3-5-sonnet-latest',
           max_tokens: config?.maxTokens || 4096,
           system,
           messages: messages.filter(m => m.role !== 'system'),
@@ -186,6 +210,25 @@ export const aiQueryPlugin: Plugin = {
           'prompt_tokens': res.usage.input_tokens,
           'completion_tokens': res.usage.output_tokens,
           'total_tokens': res.usage.input_tokens + res.usage.output_tokens,
+        };
+      } else if (config?.provider === 'gemini') {
+        const { GoogleGenerativeAI } = require('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const system = messages.filter(m => m.role === 'system').map(m => m.content).join("\\n\\n");
+        const model = genAI.getGenerativeModel({
+          model: config?.model || 'gemini-2.0-flash',
+        });
+        const result = await model.generateContent({
+          contents: messages.filter(m => m.role !== 'system').map( c => ({ role: c.role, parts: [{ text: c.content }]})),
+          systemInstruction: system,
+        });
+        completion = result.response.text().trim();
+        while (completion && !completion.startsWith('{')) completion = completion.substring(1).trim();
+        while (completion && !completion.endsWith('}')) completion = completion.substring(0, completion.length - 1).trim();
+        usage = {
+          'prompt_tokens': result.response.usageMetadata.promptTokenCount,
+          'completion_tokens': result.response.usageMetadata.candidatesTokenCount,
+          'total_tokens': result.response.usageMetadata.totalTokenCount,
         };
       }
       let bundle;
@@ -276,6 +319,9 @@ export const aiQueryPlugin: Plugin = {
         options: [
           { value: 'openai', label: $localize`OpenAI` },
           { value: 'anthropic', label: $localize`Anthropic` },
+          { value: 'x', label: $localize`xAI` },
+          { value: 'gemini', label: $localize`Gemini` },
+          { value: 'ds', label: $localize`Deep Seek` },
         ],
       },
     }, {
@@ -292,12 +338,6 @@ export const aiQueryPlugin: Plugin = {
         label: $localize`Model:`,
       },
     }, {
-      key: 'maxTokens',
-      type: 'number',
-      props: {
-        label: $localize`Max Tokens:`,
-      },
-    }, {
       key: 'systemPrompt',
       type: 'textarea',
       props: {
@@ -306,9 +346,9 @@ export const aiQueryPlugin: Plugin = {
     }],
   },
   defaults: {
-    provider: 'openai',
-    apiKeyTag: '+plugin/secret/openai',
-    model: 'o3-mini',
+    provider: 'x',
+    apiKeyTag: '+plugin/secret/x',
+    model: 'grok-2-latest',
     maxTokens: 4096,
     maxContext: 7,
     maxSources: 2000,

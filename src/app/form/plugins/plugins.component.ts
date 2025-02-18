@@ -48,7 +48,8 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
     private fb: UntypedFormBuilder,
   ) {
     this.group = fb.group({
-      [this.fieldName]: pluginsForm(fb, admin, [])
+      tags: fb.array([]),
+      [this.fieldName]: pluginsForm(fb, admin, []),
     });
   }
 
