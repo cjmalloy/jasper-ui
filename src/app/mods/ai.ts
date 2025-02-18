@@ -148,14 +148,15 @@ export const aiQueryPlugin: Plugin = {
       messages.push({ role: 'user', content: JSON.stringify(sample) });
       let completion;
       let usage;
-      if (!config?.provider || config.provider === 'openai') {
+      if (!config?.provider || config.provider === 'openai' || config.provider === 'x') {
         const OpenAi = require('openai');
-        const openai = new OpenAi({ apiKey });
+        const baseURL = config.provider === 'x' ? 'https://api.x.ai/v1' : undefined;
+        const openai = new OpenAi({ apiKey, baseURL });
         const model = config?.model || 'o3-mini';
         const res = await openai.chat.completions.create({
           model,
-          [model.startsWith('o') ? 'max_completion_tokens' : 'max_tokens']: config?.maxTokens || 4096,
-          response_format: { "type": "json_object" },
+          max_completion_tokens: config?.maxTokens || 4096,
+          response_format: { 'type': 'json_object' },
           messages,
         });
         completion = res.choices[0]?.message?.content;
@@ -276,6 +277,7 @@ export const aiQueryPlugin: Plugin = {
         options: [
           { value: 'openai', label: $localize`OpenAI` },
           { value: 'anthropic', label: $localize`Anthropic` },
+          { value: 'x', label: $localize`xAI` },
         ],
       },
     }, {
@@ -306,9 +308,9 @@ export const aiQueryPlugin: Plugin = {
     }],
   },
   defaults: {
-    provider: 'openai',
-    apiKeyTag: '+plugin/secret/openai',
-    model: 'o3-mini',
+    provider: 'x',
+    apiKeyTag: '+plugin/secret/x',
+    model: 'grok-2-latest',
     maxTokens: 4096,
     maxContext: 7,
     maxSources: 2000,
