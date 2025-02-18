@@ -1,6 +1,6 @@
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 import { PluginsFormComponent } from './plugins.component';
@@ -12,12 +12,16 @@ describe('PluginsFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [PluginsFormComponent],
-    imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
+      declarations: [PluginsFormComponent],
+      imports: [
+        RouterModule.forRoot([]),
+        ReactiveFormsModule
+      ],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+      ],
+    }).compileComponents();
   });
 
   beforeEach(() => {
