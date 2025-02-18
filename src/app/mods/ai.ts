@@ -172,6 +172,18 @@ export const aiQueryPlugin: Plugin = {
         });
         completion = res.choices[0]?.message?.content;
         usage = res.usage;
+      } else if (config.provider === 'ds') {
+        const OpenAi = require('openai');
+        const openai = new OpenAi({ apiKey, baseURL: 'https://api.deepseek.com' });
+        const model = config?.model || 'deepseek-reasoner';
+        const res = await openai.chat.completions.create({
+          model,
+          max_completion_tokens: config?.maxTokens || 4096,
+          response_format: { 'type': 'json_object' },
+          messages,
+        });
+        completion = res.choices[0]?.message?.content;
+        usage = res.usage;
       } else if (config?.provider === 'anthropic') {
         const Anthropic = require('@anthropic-ai/sdk');
         const anthropic = new Anthropic({ apiKey });
@@ -309,6 +321,7 @@ export const aiQueryPlugin: Plugin = {
           { value: 'anthropic', label: $localize`Anthropic` },
           { value: 'x', label: $localize`xAI` },
           { value: 'gemini', label: $localize`Gemini` },
+          { value: 'ds', label: $localize`Deep Seek` },
         ],
       },
     }, {
