@@ -8,6 +8,7 @@ import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { StompService } from '../../../service/api/stomp.service';
+import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
@@ -42,9 +43,11 @@ export class RefErrorsComponent implements HasChanges {
     public query: QueryStore,
     private stomp: StompService,
     private refs: RefService,
+    private bookmarks: BookmarkService,
   ) {
     query.clear();
     runInAction(() => store.view.defaultSort = ['published']);
+    if (!this.store.view.filter.length) bookmarks.filters = ['query/' + store.account.origin];
   }
 
   saveChanges() {

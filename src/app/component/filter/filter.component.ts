@@ -184,6 +184,12 @@ export class FilterComponent implements OnChanges, OnDestroy {
           });
         }
       }
+      this.pushFilter({
+        label: $localize`Queries 🔎️️`,
+        filters: [
+          { filter: 'query/' + this.store.account.origin as UrlFilter, label: this.store.account.origin? $localize`🏛️ ${this.store.account.origin}` : $localize`✴️ local` },
+        ],
+      });
       this.sync();
     }
   }
@@ -271,6 +277,9 @@ export class FilterComponent implements OnChanges, OnDestroy {
         this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
       } else if (f.startsWith('user/')) {
         this.loadFilter({ group: $localize`Filters 🕵️️`, user: f.substring('user/'.length) as any });
+      } else if (f.startsWith('query/@')) {
+        const origin = f.substring('query/'.length);
+        this.loadFilter({ group: $localize`Queries 🔎️️`, label: $localize`🏛️ ${origin}`, query: origin });
       } else {
         // TODO: On page load Kanaban Exts are not loaded in time to find proper negate query filter
         this.loadFilter({ group: $localize`Queries 🔎️️`, query: f.substring('query/'.length)});
