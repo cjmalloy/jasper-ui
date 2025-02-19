@@ -147,6 +147,7 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
     if (this._query === value) return;
     this._query = value;
     this.breadcrumbs = this.queryCrumbs(this._query);
+    this.cd.detectChanges();
   }
 
   validate(input: HTMLInputElement) {
