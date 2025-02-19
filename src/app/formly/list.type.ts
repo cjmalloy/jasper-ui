@@ -61,6 +61,31 @@ export class ListTypeComponent extends FieldArrayType {
     return this.field.fieldArray.fieldGroup;
   }
 
+  get type() {
+    // @ts-ignore
+    switch(this.field.fieldArray?.type) {
+      case 'url':
+      case 'ref':
+      case 'pdf':
+      case 'qr':
+      case 'audio':
+      case 'video':
+      case 'image':
+        return 'ref';
+      case 'tag':
+      case 'qtag':
+      case 'user':
+      case 'quser':
+      case 'query':
+      case 'selector':
+      case 'plugin':
+      case 'template':
+        return 'tag';
+    }
+    // @ts-ignore
+    return this.field.fieldArray?.type;
+  }
+
   override add(index?: number, initialModel?: any) {
     // @ts-ignore
     this.field.fieldArray.focus = index === undefined && !initialModel;
@@ -157,7 +182,25 @@ export class ListTypeComponent extends FieldArrayType {
     if (!this.store.hotkey || event.previousContainer === event.container) {
       event.previousContainer.data.remove(event.previousIndex);
     }
-    super.add(event.currentIndex, event.item.data);
+    let value = event.item.data;
+    if (event.previousContainer.data.type === 'ref' && event.container.data.type === 'tag') {
+      let path = getPath(value) || value;
+      // @ts-ignore
+      if (value.startsWith(window.configService.base)) {
+        // @ts-ignore
+        path = value.substring(window.configService.base.length);
+        if (!path.startsWith('/')) path = '/' + path;
+      }
+      if (path.startsWith('/ref/')) path = path.substring('/ref/'.length);
+      if (path.startsWith('tag:/')) {
+        value = path.substring('tag:/'.length);
+      } else if (value.startsWith('tag:/')) {
+        value = value.substring('tag:/'.length);
+      }
+    } else if (event.previousContainer.data.type === 'tag' && event.container.data.type === 'ref') {
+      value = 'tag:/' + value;
+    }
+    super.add(event.currentIndex, value);
   }
 
   dnd(event: DragEvent) {
@@ -178,22 +221,25 @@ export class ListTypeComponent extends FieldArrayType {
           path = url.substring(window.configService.base.length);
           if (!path.startsWith('/')) path = '/' + path;
         }
+        if (path.startsWith('/ref/')) path = path.substring('/ref/'.length);
         if (path.startsWith('/tag/')) {
-          // @ts-ignore
-          switch(this.field.fieldArray?.type) {
-            case 'url':
-            case 'ref':
-            case 'pdf':
-            case 'qr':
-            case 'audio':
-            case 'video':
-            case 'image':
-              this.add(undefined, 'tag:' + path.substring('/tag'.length));
-              return;
+          if (this.type == 'ref') {
+            this.add(undefined, 'tag:' + path.substring('/tag'.length));
+          } else {
+            this.add(undefined, path.substring('/tag/'.length));
           }
-          this.add(undefined, path.substring('/tag/'.length));
-        } else if (path.startsWith('/ref/')) {
-          this.add(undefined, path.substring('/ref/'.length));
+        } else if (path.startsWith('tag:/')) {
+          if (this.type == 'ref') {
+            this.add(undefined, path);
+          } else {
+            this.add(undefined, path.substring('tag:/'.length));
+          }
+        } else if (url.startsWith('tag:/')) {
+          if (this.type == 'ref') {
+            this.add(undefined, url);
+          } else {
+            this.add(undefined, url.substring('tag:/'.length));
+          }
         } else {
           this.add(undefined, url);
         }
