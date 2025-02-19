@@ -1125,6 +1125,20 @@ video.qr-preview {
   }
 }
 
+.hotkey {
+  .sidebar .breadcrumbs .tag {
+    color: var(--text);
+    text-decoration: unset;
+    cursor: text;
+  }
+  .form {
+     .breadcrumbs .tag span {
+       text-decoration: underline !important;
+       cursor: pointer !important;
+     }
+   }
+}
+
 details.advanced {
   transition: max-height 1s;
   max-height: 37px;
