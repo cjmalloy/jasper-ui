@@ -109,7 +109,8 @@
                    size="1"
                    autocomplete="off"
                    formControlName="url"
-                   appAutofocus>
+                   appAutofocus
+                   (paste)="getUrlPlugin()">
           }
           @if (!store.submit.wiki) {
             @if ((!plugin || plugin === 'plugin/qr') && admin.getPlugin('plugin/qr')) {
