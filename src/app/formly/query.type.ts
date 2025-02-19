@@ -29,17 +29,17 @@ import { getErrorMessage } from './errors';
       box-sizing: border-box;
       width: 100%;
       height: 100%;
-      cursor: text;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       padding-block: 2px;
       padding-inline: 8px;
-      .tag {
-        white-space: nowrap;
+      * {
+        color: var(--text);
+        text-decoration: none;
+        cursor: text;
       }
       .op {
-        word-wrap: break-word;
         font-family: KaTeX_Main, "Times New Roman", serif;
       }
     }
@@ -57,9 +57,7 @@ import { getErrorMessage } from './errors';
         @for (breadcrumb of breadcrumbs; track breadcrumb) {
           <span class="crumb">
               @if (breadcrumb.tag) {
-                <!--                <a class="tag" [routerLink]="['../', breadcrumb.tag]" queryParamsHandling="merge">-->
-                <span (click)="clickPreview(input, $event, breadcrumb)">{{ breadcrumb.text }}</span>
-                <!--                </a>-->
+                <a class="tag" [routerLink]="['../', breadcrumb.tag]" queryParamsHandling="merge"><span (click)="clickPreview(input, $event, breadcrumb)">{{ breadcrumb.text }}</span></a>
               } @else {
                 <span class="op" (click)="edit(input, breadcrumb)">{{ breadcrumb.text }}</span>
               }
@@ -143,11 +141,11 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
   }
 
   set query(value: string) {
-    if (this._query === value) return;
     this.editing = false;
+    this.cd.detectChanges();
+    if (this._query === value) return;
     this._query = value;
     this.breadcrumbs = this.queryCrumbs(this._query);
-    this.cd.detectChanges();
   }
 
   validate(input: HTMLInputElement) {

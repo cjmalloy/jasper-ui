@@ -58,6 +58,7 @@ export class QueryComponent {
   }
 
   click(event: MouseEvent, breadcrumb: Crumb): boolean {
+    if (!this.store.hotkey) return true;
     event.preventDefault();
     event.stopImmediatePropagation();
     this.edit(breadcrumb);

@@ -5,6 +5,7 @@ import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormlyModule } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
+import { AppRoutingModule } from '../app-routing.module';
 import {
   ORIGIN_REGEX,
   PLUGIN_REGEX,
@@ -67,6 +68,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
   imports: [
     BrowserModule,
     ReactiveFormsModule,
+    AppRoutingModule,
     DragDropModule,
     OverlayModule,
     FormlySelectModule,
