@@ -67,7 +67,7 @@
   <ng-template #cardMenu>
     <div class="context-menu" (click)="$event.stopPropagation()">
       <span i18n>Toggle Badges</span>
-      @if (allBadgeExts$ | async; as xs) {
+      @if (allBadges$ | async; as xs) {
         @for (x of xs; track x.tag) {
           <div (contextmenu)="$event.preventDefault()"
                (pointerdown)="autoClose = false"
