@@ -29,6 +29,7 @@ import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
+import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
@@ -81,6 +82,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
     private auth: AuthzService,
     private refs: RefService,
     private tags: TaggingService,
+    private editor: EditorService,
     private exts: ExtService,
     private overlay: Overlay,
     private el: ElementRef,
@@ -237,12 +239,12 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
 
   @memo
   get badgeExts$() {
-    return this.exts.getCachedExts(this.badges, this.ref.origin || '');
+    return this.editor.getTagsPreview(this.badges, this.ref.origin || '');
   }
 
   @memo
-  get allBadgeExts$() {
-    return this.exts.getCachedExts(this.ext?.config?.badges || [], this.ref.origin || '');
+  get allBadges$() {
+    return this.editor.getTagsPreview(this.ext?.config?.badges || [], this.ref.origin || '');
   }
 
   @HostBinding('class.last-selected')

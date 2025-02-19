@@ -14,7 +14,7 @@ import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { ConfigService } from './config.service';
 
-export type TagPreview = { name?: string, tag?: string } | Ext;
+export type TagPreview = { name?: string, tag: string } | Ext;
 
 @Injectable({
   providedIn: 'root'
