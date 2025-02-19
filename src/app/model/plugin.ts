@@ -71,6 +71,10 @@ export interface Plugin extends Config {
      */
     extensions?: string[],
     /**
+     * List of url prefixes that match this plugin.
+     */
+    prefix?: string[],
+    /**
      * List of web hosts that match this plugin.
      */
     hosts?: string[],

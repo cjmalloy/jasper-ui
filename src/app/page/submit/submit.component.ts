@@ -9,7 +9,7 @@ import {
   Validators
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { isString, uniq, without } from 'lodash-es';
+import { defer, isString, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
@@ -72,13 +72,6 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.plugin = '';
-      for (const t of this.store.submit.tags) {
-        if (hasPrefix(t, 'plugin')) {
-          this.plugin = t;
-          break;
-        }
-      }
       this.validations.length = 0;
       if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
         this.validations.push({ name: 'Valid title', passed: false, test: url => of(this.linkType(this.fixed(url))) });
@@ -90,6 +83,18 @@ export class SubmitPage implements OnInit, OnDestroy {
         this.validations.push({ name: 'No link shorteners', passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
       }
       this.url.updateValueAndValidity();
+      if (this.url.value) {
+        const tags = [
+          ...this.store.submit.tags,
+          ...this.admin.getPluginsForUrl(this.store.submit.url).map(p => p.tag),
+        ];
+        for (const t of tags) {
+          if (hasPrefix(t, 'plugin')) {
+            this.plugin = t;
+            break;
+          }
+        }
+      }
     }));
   }
 
@@ -254,6 +259,19 @@ export class SubmitPage implements OnInit, OnDestroy {
         tag: uniq([...this.store.submit.tags]),
       },
       queryParamsHandling: 'merge'
+    });
+  }
+
+  getUrlPlugin() {
+    defer(() => {
+      if (!this.plugin && this.url.value) {
+        for (const t of this.admin.getPluginsForUrl(this.url.value).map(p => p.tag)) {
+          if (hasPrefix(t, 'plugin')) {
+            this.plugin = t;
+            break;
+          }
+        }
+      }
     });
   }
 }

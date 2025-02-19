@@ -501,6 +501,10 @@ export class AdminService {
     return this.pluginConfigProperty('extensions');
   }
 
+  get prefix() {
+    return this.pluginConfigProperty('prefix');
+  }
+
   get hosts() {
     return this.pluginConfigProperty('hosts');
   }
@@ -602,7 +606,7 @@ export class AdminService {
   }
 
   getPluginsForUrl(url: string) {
-    return uniq([...this.getPluginsForHost(url), ...this.getPluginsForExtension(url)]);
+    return uniq([...this.getPluginsForHost(url), ...this.getPluginsForPrefix(url), ...this.getPluginsForExtension(url)]);
   }
 
   getPluginsForCache(ref: Ref): string[] {
@@ -616,6 +620,10 @@ export class AdminService {
   getPluginsForHost(url: string) {
     const host = getHost(url);
     return this.hosts.filter(p => p.config!.hosts!.includes(host!))
+  }
+
+  getPluginsForPrefix(url: string) {
+    return this.prefix.filter(p => p.config!.prefix!.find(prefix => url.startsWith(prefix)));
   }
 
   getPluginsForExtension(url: string) {
