@@ -19,11 +19,13 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { catchError, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Ext } from '../../../model/ext';
 import { equalsRef, Ref } from '../../../model/ref';
+import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
-import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
@@ -83,7 +85,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
     private refs: RefService,
     private tags: TaggingService,
     private editor: EditorService,
-    private exts: ExtService,
+    private accounts: AccountService,
     private overlay: Overlay,
     private el: ElementRef,
     private viewContainerRef: ViewContainerRef,
@@ -320,12 +322,16 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
 
   toggleBadge(tag: string, event?: MouseEvent) {
     if (hasTag(tag, this.ref.tags)) {
-      this.tags.delete(tag, this.ref.url, this.ref.origin).subscribe(() => {
+      this.tags.delete(tag, this.ref.url, this.ref.origin).pipe(
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      ).subscribe(() => {
         this.ref.tags = this.ref.tags!.filter(t => expandedTagsInclude(t, tag));
         this.init();
       });
     } else {
-      this.tags.create(tag, this.ref.url, this.ref.origin).subscribe(() => {
+      this.tags.create(tag, this.ref.url, this.ref.origin).pipe(
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      ).subscribe(() => {
         this.ref.tags ||= [];
         this.ref.tags.push(tag);
         this.init();
@@ -366,6 +372,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
         console.error(printError(err));
         return throwError(() => err);
       }),
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
       switchMap(() => this.refs.get(copied.url, this.store.account.origin).pipe(takeUntil(this.destroy$))),
     ).subscribe(ref => {
       this.ref = ref;
