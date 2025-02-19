@@ -124,6 +124,9 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           if (oembed?.thumbnail_url) {
             this.addPlugin('plugin/thumbnail', { url: oembed.thumbnail_url });
           }
+          if (oembed?.author_url) {
+            this.addSource(oembed?.author_url);
+          }
           if (oembed.url && oembed.type === 'photo') {
             this.addPlugin('plugin/image', { url: oembed.url });
           } else {
