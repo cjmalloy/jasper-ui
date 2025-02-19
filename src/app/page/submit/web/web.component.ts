@@ -186,7 +186,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   addPlugin(tag: string, plugin: any) {
     this.refForm!.tagsFormComponent.addTag(tag);
-    this.refForm!.plugins.setValue({
+    this.refForm!.pluginsFormComponent.setValue({
       ...this.webForm.value.plugins,
       [tag]: plugin,
     });
@@ -194,12 +194,12 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   addSource(value = '') {
-    this.refForm!.sources.addLink(value);
+    this.refForm!.sourcesFormComponent.addLink(value);
     this.submitted = false;
   }
 
   addAlt(value = '') {
-    this.refForm!.alts.addLink(value);
+    this.refForm!.altsFormComponent.addLink(value);
     this.submitted = false;
   }
 
@@ -248,6 +248,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     ref.plugins ||= {};
     ref.plugins['plugin/feed'] ||= {};
     ref.plugins['plugin/feed'].addTags = uniq([...ref.plugins['plugin/feed'].addTags || [], ...tags]);
-    this.refForm!.plugins.setValue(ref.plugins);
+    this.refForm!.pluginsFormComponent.setValue(ref.plugins);
   }
 }

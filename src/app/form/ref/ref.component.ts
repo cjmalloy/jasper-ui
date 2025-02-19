@@ -43,11 +43,11 @@ export class RefFormComponent {
   @ViewChild(TagsFormComponent)
   tagsFormComponent!: TagsFormComponent;
   @ViewChild('sources')
-  sources!: LinksFormComponent;
+  sourcesFormComponent!: LinksFormComponent;
   @ViewChild('alts')
-  alts!: LinksFormComponent;
+  altsFormComponent!: LinksFormComponent;
   @ViewChild(PluginsFormComponent)
-  plugins!: PluginsFormComponent;
+  pluginsFormComponent!: PluginsFormComponent;
   @ViewChild('fill')
   fill?: ElementRef;
 
@@ -89,6 +89,10 @@ export class RefFormComponent {
 
   get tags() {
     return this.group.get('tags') as UntypedFormArray;
+  }
+
+  get sources() {
+    return this.group.get('sources') as UntypedFormArray;
   }
 
   setTags(value: string[]) {
@@ -145,7 +149,7 @@ export class RefFormComponent {
 
   get scrape$() {
     if (this.scraped) return of(this.scraped);
-    return this.scrape.webScrape(hasTag('plugin/repost', this.tags.value) ? this.sources.links?.value?.[0] : this.url.value).pipe(
+    return this.scrape.webScrape(hasTag('plugin/repost', this.tags.value) ? this.sources.value?.[0] : this.url.value).pipe(
       tap(s => {
         this.scraped = s;
         if (s.modified && this.ref?.modified) {
@@ -210,7 +214,7 @@ export class RefFormComponent {
           if (!hasTag(t, this.tags.value)) this.togglePlugin(t);
         }
         defer(() => {
-          this.plugins.setValue({
+          this.pluginsFormComponent.setValue({
             ...this.group.value.plugins || {},
             ...s.plugins || {},
           });
@@ -245,8 +249,10 @@ export class RefFormComponent {
       ...ref,
       published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
     });
+    defer(() => this.sourcesFormComponent.addLink(...ref.sources || []));
+    defer(() => this.altsFormComponent.addLink(...ref.alternateUrls || []));
     defer(() => this.tagsFormComponent.setTags(ref.tags || []));
-    defer(() => this.plugins.setValue(ref.plugins));
+    defer(() => this.pluginsFormComponent.setValue(ref.plugins));
   }
 }
 
