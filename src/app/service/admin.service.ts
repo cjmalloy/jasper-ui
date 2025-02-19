@@ -57,6 +57,7 @@ import { playlistMod } from '../mods/playlist';
 import { pollMod } from '../mods/poll';
 import { qrMod } from '../mods/qr';
 import { queueMod } from '../mods/queue';
+import { readMod } from '../mods/read';
 import { repostMod } from '../mods/repost';
 import { rootMod } from '../mods/root';
 import { saveMod } from '../mods/save';
@@ -115,6 +116,7 @@ export class AdminService {
     mailboxMod,
     hideMod,
     saveMod,
+    readMod,
 
     // Themes
     themesMod,
