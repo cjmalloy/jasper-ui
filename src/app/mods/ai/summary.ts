@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
-import { Plugin } from '../model/plugin';
-import { Mod } from '../model/tag';
+import { Plugin } from '../../model/plugin';
+import { Mod } from '../../model/tag';
 
 export const summaryQueryPlugin: Plugin = {
   tag: 'plugin/delta/summary',

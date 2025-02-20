@@ -12,7 +12,10 @@ import { Ref } from '../model/ref';
 import { bundleSize, clear, condition, Config, EditorButton, Mod } from '../model/tag';
 import { Template } from '../model/template';
 import { User } from '../model/user';
-import { aiMod } from '../mods/ai';
+import { aiMod } from '../mods/ai/ai';
+import { dalleMod } from '../mods/ai/dalle';
+import { naviMod } from '../mods/ai/navi';
+import { summaryMod } from '../mods/ai/summary';
 import { archiveMod } from '../mods/archive';
 import { audioMod } from '../mods/audio';
 import { backgammonMod } from '../mods/backgammon';
@@ -23,7 +26,6 @@ import { chatMod } from '../mods/chat';
 import { chessMod } from '../mods/chess';
 import { codeMod } from '../mods/code';
 import { commentMod } from '../mods/comment';
-import { dalleMod } from '../mods/dalle';
 import { debugMod } from '../mods/debug';
 import { deleteMod, tagDeleteNotice } from '../mods/delete';
 import { htmlMod, latexMod } from '../mods/editor';
@@ -66,7 +68,6 @@ import { scriptMod } from '../mods/script';
 import { seamlessMod } from '../mods/seamless';
 import { secretMod } from '../mods/secret';
 import { snippetMod } from '../mods/snippet';
-import { summaryMod } from '../mods/summary';
 import { systemMod } from '../mods/system';
 import { tableMod } from '../mods/table';
 import { thanksMod } from '../mods/thanks';
@@ -155,6 +156,7 @@ export class AdminService {
     thumbnailMod,
     tableMod,
     aiMod,
+    naviMod,
     dalleMod,
     summaryMod,
     pdfMod,
