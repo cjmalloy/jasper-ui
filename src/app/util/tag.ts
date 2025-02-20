@@ -61,6 +61,13 @@ export function getStrictPrefix(a: string, b: string) {
   return getLargestPrefix(parentTag(a), parentTag(b));
 }
 
+export function hasDownwardsTag(tag: string | undefined, ref: Ref | string[] | undefined): boolean {
+  if (!tag) return false;
+  if (hasTag(tag, ref)) return true;
+  if (privateTag(tag) && hasTag('+' + setPublic(tag), ref)) return true;
+  return hasTag(setPublic(tag), ref);
+}
+
 export function hasTag(tag: string | undefined, ref: Ref | string[] | undefined): boolean {
   if (!tag) return false;
   if (tag.startsWith('-')) return !hasTag(tag.substring(1), ref);
@@ -108,14 +115,24 @@ export function expandedTagsInclude(tag?: string, target?: string) {
   return tag === target || tag.startsWith(target + '/');
 }
 
-export function isOwner(user: User, ref: Ref) {
+export function isAuthor(user: User, ref: Ref) {
   if (user.origin !== ref.origin) return false;
   return hasTag(user.tag, ref);
 }
 
-export function isOwnerTag(tag: string, ref?: Ref) {
+export function isOwner(user: User, ref: Ref) {
+  if (user.origin !== ref.origin) return false;
+  return hasDownwardsTag(user.tag, ref);
+}
+
+export function isAuthorTag(tag: string, ref?: Ref) {
   if (ref?.origin !== tagOrigin(tag)) return false;
   return hasTag(localTag(tag), ref);
+}
+
+export function isOwnerTag(tag: string, ref?: Ref) {
+  if (ref?.origin !== tagOrigin(tag)) return false;
+  return hasDownwardsTag(localTag(tag), ref);
 }
 
 export function localTag(tag?: string) {

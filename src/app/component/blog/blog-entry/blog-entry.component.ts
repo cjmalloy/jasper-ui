@@ -48,7 +48,7 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme, printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, isOwnerTag, localTag, repost, tagOrigin } from '../../../util/tag';
+import { hasTag, isAuthorTag, localTag, repost, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
 
 @Component({
@@ -250,7 +250,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
 
   @memo
   get isAuthor() {
-    return isOwnerTag(this.store.account.tag, this.ref);
+    return isAuthorTag(this.store.account.tag, this.ref);
   }
 
   @memo
