@@ -185,10 +185,13 @@ export class FilterComponent implements OnChanges, OnDestroy {
         }
       }
       this.pushFilter({
-        label: $localize`Queries 🔎️️`,
-        filters: [
-          { filter: 'query/' + this.store.account.origin as UrlFilter, label: this.store.account.origin? $localize`🏛️ ${this.store.account.origin}` : $localize`✴️ local` },
-        ],
+        label: $localize`Origins 🏛️`,
+        filters: this.store.origins.list.map(o => ({ filter: 'query/' + o as UrlFilter,
+          label:
+            !o ? $localize`✴️ local`
+            : o === this.store.account.origin ? $localize`🏛️ ${o}`
+            : !this.store.account.origin ? $localize`🏛️ ${o}`
+            : $localize`🪆 ${o}` })),
       });
       this.sync();
     }
