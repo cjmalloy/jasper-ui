@@ -30,7 +30,7 @@ import { Type } from '../../store/view';
 import { downloadPage } from '../../util/download';
 import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { addAllHierarchicalTags, expandedTagsInclude, hasTag, isOwnerTag, subOrigin } from '../../util/tag';
+import { addAllHierarchicalTags, expandedTagsInclude, hasTag, isAuthorTag, subOrigin } from '../../util/tag';
 
 @Component({
   standalone: false,
@@ -220,7 +220,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   showAction(ref: Ref, a: Action) {
-    if (!visible(a, isOwnerTag(this.store.account.tag, ref), hasTag(this.store.account.mailbox, ref))) return false;
+    if (!visible(a, isAuthorTag(this.store.account.tag, ref), hasTag(this.store.account.mailbox, ref))) return false;
     const writeAccess = this.auth.writeAccess(ref);
     const taggingAccess = this.auth.taggingAccess(ref);
     if ('scheme' in a) {

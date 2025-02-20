@@ -1574,6 +1574,33 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
+.ref.plugin_placeholder {
+  .expand {
+    animation: fadein 2s ease-in-out;
+    animation-iteration-count: infinite;
+  }
+  .actions, .info {
+    opacity: 0;
+  }
+  &:hover {
+    .actions, .info {
+      opacity: 1;
+    }
+  }
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 .thread > .ref-list > .list-container > .ref,
 .thread .ref.plugin_thread:not(.ref-list-item),
 .md .ref.plugin_thread:not(.ref-list-item),

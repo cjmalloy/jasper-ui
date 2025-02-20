@@ -60,7 +60,7 @@ import {
   expandedTagsInclude,
   hasTag,
   hasUserUrlResponse,
-  isOwnerTag,
+  isAuthorTag,
   localTag,
   removeTag,
   repost,
@@ -578,7 +578,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   @HostBinding('class.sent')
   get isAuthor() {
-    return isOwnerTag(this.store.account.tag, this.ref);
+    return isAuthorTag(this.store.account.tag, this.ref);
   }
 
   @memo
@@ -885,7 +885,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if ('tag' in a) {
       if (a.tag === 'locked' && !this.writeAccess) return false;
       if (a.tag && !this.taggingAccess) return false;
-      if (a.tag && !this.auth.canAddTag(a.tag)) return false;
+      if (a.tag && !hasTag(a.tag, this.ref) && !this.auth.canAddTag(a.tag)) return false;
+      if (a.tag && hasTag(a.tag, this.ref) && !this.writeAccess) return false;
     }
     if ('tag' in a || 'response' in a) {
       if (active(this.ref, a) && !a.labelOn) return false;

@@ -19,7 +19,7 @@ import { Store } from '../../../store/store';
 import { getTitle, templates } from '../../../util/format';
 import { getScheme } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, isOwnerTag, repost } from '../../../util/tag';
+import { hasTag, isAuthorTag, repost } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -172,7 +172,7 @@ export class FileComponent implements OnChanges, OnDestroy {
   @memo
   @HostBinding('class.sent')
   get isAuthor() {
-    return isOwnerTag(this.store.account.tag, this.ref);
+    return isAuthorTag(this.store.account.tag, this.ref);
   }
 
   @memo
