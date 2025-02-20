@@ -860,6 +860,13 @@ export class AdminService {
     return this.getTemplate('wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
   }
 
+  getMod(mod: String) {
+    return this.mods.find(m =>
+      m.plugin?.find(p => modId(p) === mod) ||
+      m.template?.find(t => modId(t) === mod)
+    );
+  }
+
   installRef$(def: Ref, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.title || def.url} ref...`)),
@@ -958,27 +965,32 @@ export class AdminService {
   }
 
   install$(mod: string, bundle: Mod, _: progress): Observable<any> {
-    const defaultMod: <T extends Config> (t: T) => T = c =>( { ...c, config: { ...c.config || {}, mod: c.config?.mod || mod } });
+    if (!bundle) throw 'mod not found';
     return concat(...[
       of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
       ...(bundle.ref || []).map(p => this.installRef$(p, _)),
       ...(bundle.ext || []).map(p => this.installExt$(p, _)),
       ...(bundle.user || []).map(p => this.installUser$(p, _)),
-      ...(bundle.plugin || []).map(p => this.installPlugin$(defaultMod(p), _)),
-      ...(bundle.template || []).map(t => this.installTemplate$(defaultMod(t), _)),
+      ...(bundle.plugin || []).map(p => this.installPlugin$(p, _)),
+      ...(bundle.template || []).map(t => this.installTemplate$(t, _)),
     ]).pipe(toArray());
   }
 
   installMod$(mod: string, _: progress): Observable<any> {
+    return this.install$(mod, this.getMod(mod)!, _);
+  }
+
+  update$(mod: string, bundle: Mod, _: progress): Observable<any> {
+    if (!bundle) throw 'mod not found';
     return concat(...[
       of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
-      ...Object.values(this.def.plugins)
-        .filter(p => modId(p) === mod)
-        .map(p => this.installPlugin$(p, _)),
-      ...Object.values(this.def.templates)
-        .filter(t => modId(t) === mod)
-        .map(t => this.installTemplate$(t, _)),
+      ...(bundle.plugin || []).map(p => this.updatePlugin$(p, _)),
+      ...(bundle.template || []).map(t => this.updateTemplate$(t, _)),
     ]).pipe(toArray());
+  }
+
+  updateMod$(mod: string, _: progress): Observable<any> {
+    return this.update$(mod, this.getMod(mod)!, _);
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {
@@ -993,9 +1005,8 @@ export class AdminService {
     ]).pipe(toArray());
   }
 
-  updatePlugin$(key: string, _: progress) {
-    const def = this.def.plugins[key];
-    const status = this.status.plugins[key];
+  updatePlugin$(def: Plugin, _: progress) {
+    const status = this.status.plugins[def.tag];
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} plugin...`)),
       switchMap(() => this.plugins.update({
@@ -1011,9 +1022,8 @@ export class AdminService {
     );
   }
 
-  updateTemplate$(key: string, _: progress) {
-    const def = this.def.templates[key];
-    const status = this.status.templates[key];
+  updateTemplate$(def: Template, _: progress) {
+    const status = this.status.templates[def.tag];
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} template...`)),
       switchMap(() => this.templates.update({
@@ -1027,18 +1037,6 @@ export class AdminService {
       })),
       tap(() => _('', 1)),
     );
-  }
-
-  updateMod$(mod: string, _: progress): Observable<any> {
-    return concat(...[
-      of(null).pipe(tap(() => _($localize`Updating ${mod} mod...`))),
-      ...Object.values(this.def.plugins)
-        .filter(p => modId(p) === mod)
-        .map(p => this.updatePlugin$(p.tag, _)),
-      ...Object.values(this.def.templates)
-        .filter(t => modId(t) === mod)
-        .map(t => this.updateTemplate$(t.tag, _)),
-    ]).pipe(toArray());
   }
 
   needsUpdate(def: Config, status: Config) {
