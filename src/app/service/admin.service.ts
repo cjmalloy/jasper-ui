@@ -863,9 +863,16 @@ export class AdminService {
   }
 
   getMod(mod: String) {
-    return this.mods.find(m =>
+    const bundle = this.mods.find(m =>
       m.plugin?.find(p => modId(p) === mod) ||
       m.template?.find(t => modId(t) === mod)
+    );
+    if (bundle) return bundle;
+    const modPlugins = Object.values(this.status.plugins).filter(p => modId(p) === mod).map(p => p.tag);
+    const modTemplates = Object.values(this.status.templates).filter(p => modId(p) === mod).map(t => t.tag);
+    return this.mods.find(m =>
+      m.plugin?.find(p => modPlugins.includes(p.tag)) ||
+      m.template?.find(t => modTemplates.includes(t.tag))
     );
   }
 
@@ -967,7 +974,7 @@ export class AdminService {
   }
 
   install$(mod: string, bundle: Mod, _: progress): Observable<any> {
-    if (!bundle) throw 'mod not found';
+    if (!bundle) return of(null);
     return concat(...[
       of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
       ...(bundle.ref || []).map(p => this.installRef$(p, _)),
@@ -983,7 +990,7 @@ export class AdminService {
   }
 
   update$(mod: string, bundle: Mod, _: progress): Observable<any> {
-    if (!bundle) throw 'mod not found';
+    if (!bundle) return of(null);
     return concat(...[
       of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
       ...(bundle.plugin || []).map(p => this.updatePlugin$(p, _)),
