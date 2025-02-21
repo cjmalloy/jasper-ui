@@ -18,7 +18,7 @@ import { Store } from '../../../store/store';
 import { getMailboxes } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag, removeTag, tagIntersection } from '../../../util/tag';
+import { hasTag, removeTag, setPublic } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -91,12 +91,12 @@ export class CommentReplyComponent implements AfterViewInit, HasChanges {
 
   get inheritedPlugins() {
     const plugins = this.admin.getPlugins(this.to.tags)
-      .filter(p => p.tag === p.config?.signature && tagIntersection(this.tags, p.config?.reply).length)
+      .filter(p => p.tag === p.config?.signature && p.config?.reply?.find(t => hasTag(t, this.tags)))
       .map(p => p.tag);
-    const parentPlugins = pickBy(this.to.plugins, (data, tag) => plugins.includes(tag));
+    const parentPlugins = pickBy(this.to.plugins, (data, tag) => hasTag(tag, plugins));
     return merge({}, ...Object.keys(parentPlugins)
-      .flatMap(tag => (this.admin.getPlugin(tag)?.config?.reply || [])
-        .filter(r => this.tags.includes(r))
+      .flatMap(tag => (this.admin.getPlugin(tag)?.config?.reply || [setPublic(tag)])
+        .filter(r => hasTag(r, this.tags))
         .map(r => ({ [r]: this.admin.stripInvalid(r, parentPlugins[tag]) }))));
   }
 
