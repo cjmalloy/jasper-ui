@@ -85,7 +85,6 @@ export class RefThreadComponent implements HasChanges {
           this.watch?.unsubscribe();
           this.watch = this.stomp.watchResponse(topUrl).pipe(
             switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
-            filter(ref => hasTag('plugin/thread', ref)),
             catchError(err => of(undefined)),
             takeUntil(this.destroy$),
           ).subscribe(ref => this.newRefs$.next(ref));
