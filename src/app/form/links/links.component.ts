@@ -70,7 +70,6 @@ export class LinksFormComponent {
     this.field.fieldArray.focus = true;
     for (const value of values) {
       if (value) this.field.fieldArray.focus = false;
-      if (value && value !== 'placeholder' && this.model.includes(value)) return;
       this.model.push(value);
     }
   }
