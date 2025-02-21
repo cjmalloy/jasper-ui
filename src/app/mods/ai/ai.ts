@@ -33,7 +33,7 @@ export const aiQueryPlugin: Plugin = {
         },
         params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
       })).data.content[0]?.comment;
-      let response = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+      const response = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
           'Local-Origin': origin || 'default',
           'User-Tag': authors[0] || '',
@@ -44,6 +44,10 @@ export const aiQueryPlugin: Plugin = {
           size: 1,
         },
       })).data.content[0];
+      if (!response) {
+        // No placeholder, earlier stage failed
+        process.exit(0);
+      }
       const sources = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
           'Local-Origin': origin || 'default',

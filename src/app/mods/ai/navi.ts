@@ -76,7 +76,7 @@ export const naviQueryPlugin: Plugin = {
         thread.forEach(t => context.set(t.url, t));
       }
       const tags = new Set(ref.tags);
-      for (const p of context.values()) await tags.add(p?.tags);
+      for (const p of context.values()) await tags.add(...p?.tags || []);
       const modPrompt = (await axios.get(process.env.JASPER_API + '/api/v1/ref', {
         headers: {
           'Local-Origin': origin || 'default',
