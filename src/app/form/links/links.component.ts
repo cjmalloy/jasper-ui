@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { map } from 'lodash-es';
 import { URI_REGEX } from '../../util/format';
 
@@ -35,6 +35,10 @@ export class LinksFormComponent {
     },
   };
 
+  constructor(
+    private fb: FormBuilder,
+  ) { }
+
   @Input()
   set emoji(value: string) {
     this.field.fieldArray.props.label = value;
@@ -62,6 +66,13 @@ export class LinksFormComponent {
 
   get links() {
     return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
+  }
+
+  setLinks(values: string[]) {
+    if (!this.links) throw 'Not ready yet!';
+    while (this.links.length > values.length) this.links.removeAt(this.links.length - 1, { emitEvent: false });
+    while (this.links.length < values.length) this.links.push(this.fb.control(''), { emitEvent: false });
+    this.links.setValue(values);
   }
 
   addLink(...values: string[]) {

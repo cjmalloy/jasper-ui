@@ -249,8 +249,8 @@ export class RefFormComponent {
       ...ref,
       published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
     });
-    defer(() => this.sourcesFormComponent.addLink(...ref.sources || []));
-    defer(() => this.altsFormComponent.addLink(...ref.alternateUrls || []));
+    defer(() => this.sourcesFormComponent.setLinks(ref.sources || []));
+    defer(() => this.altsFormComponent.setLinks(ref.alternateUrls || []));
     defer(() => this.tagsFormComponent.setTags(ref.tags || []));
     defer(() => this.pluginsFormComponent.setValue(ref.plugins));
   }
