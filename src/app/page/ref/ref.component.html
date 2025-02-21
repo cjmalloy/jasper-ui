@@ -93,7 +93,7 @@
              [ref]="store.view.ref"
              [showToggle]="!thread"
              [expandInline]="!config.mobile || !!thread"
-             [expanded]="expandedOnLoad"
+             [expanded]="expandedOnLoad || !!thread"
              (copied)="reload()"></app-ref>
     @if (newResponses) {
       <div class="warning print-hide" i18n>
