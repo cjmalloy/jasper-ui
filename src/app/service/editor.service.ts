@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import Europa from 'europa';
-import { Plugin, PluginApi } from 'europa-core';
+import { Plugin, PluginApi, PluginConverter } from 'europa-core';
 import { difference, uniq } from 'lodash-es';
 import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { TagsFormComponent } from '../form/tags/tags.component';
@@ -38,6 +38,83 @@ export class EditorService {
         },
       },
     });
+    const paragraphConverter: PluginConverter = {
+      startTag(conversion, context): boolean {
+        // @ts-ignore
+        if (conversion.atParagraph || conversion.inline) return true;
+        conversion.appendParagraph();
+        return true;
+      },
+
+      endTag(conversion, context) {
+        // @ts-ignore
+        if (conversion.inline) return;
+        conversion.appendParagraph();
+      },
+    };
+    const paragraphProvider = (api: PluginApi): Plugin => ({
+      converters: {
+        ADDRESS: paragraphConverter,
+        ARTICLE: paragraphConverter,
+        ASIDE: paragraphConverter,
+        DIV: paragraphConverter,
+        FIELDSET: paragraphConverter,
+        FOOTER: paragraphConverter,
+        HEADER: paragraphConverter,
+        MAIN: paragraphConverter,
+        NAV: paragraphConverter,
+        P: paragraphConverter,
+        SECTION: paragraphConverter,
+      },
+    });
+    const linkProvider = (api: PluginApi): Plugin => ({
+      converters: {
+        A: {
+          startTag(conversion, context): boolean {
+            const absolute = conversion.getOption('absolute');
+            const inline = conversion.getOption('inline');
+            const { element } = conversion;
+            const href = element.attr('href');
+            if (!href) {
+              return true;
+            }
+
+            // Set inline flag
+            // @ts-ignore
+            conversion.inline = true;
+
+            const title = element.attr('title');
+            const url = absolute ? conversion.resolveUrl(href) : href;
+            let value = title ? `${url} "${title}"` : url;
+
+            if (inline) {
+              value = `(${value})`;
+            } else {
+              const reference = conversion.addReference('link', value);
+              value = `[${reference}]`;
+            }
+
+            context.set('value', value);
+            conversion.output('[');
+            conversion.atNoWhitespace = true;
+
+            return true;
+          },
+
+          endTag(conversion, context) {
+            if (context.has('value')) {
+              conversion.output(`]${context.get<string>('value')}`);
+
+              // Unset inline flag
+              // @ts-ignore
+              conversion.inline = false;
+            }
+          }
+        }
+      }
+    });
+    Europa.registerPlugin(paragraphProvider);
+    Europa.registerPlugin(linkProvider);
     Europa.registerPlugin(superscriptProvider);
   }
 
