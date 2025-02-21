@@ -50,6 +50,7 @@ export const aiQueryPlugin: Plugin = {
           'User-Tag': authors[0] || '',
         },
         params: {
+          query: '!+system/prompt/placeholder',
           sources: response.url,
           sort: 'published',
           size: config.maxSources,

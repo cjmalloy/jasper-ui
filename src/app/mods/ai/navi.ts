@@ -885,6 +885,12 @@ export const modPrompt: Ref = {
   title: $localize`Mod List`,
   tags: ['public', 'internal', '+system/prompt'],
 };
+export const extPrompt: Ref = {
+  url: 'system:ext-prompt',
+  title: $localize`Ext List`,
+  tags: ['public', 'internal', '+system/prompt/placeholder'],
+  comment: $localize`Placeholder for dynamic prompt context of all Exts mentioned.`
+};
 export const appPrompt: Ref = {
   url: 'system:app-prompt',
   title: $localize`Application Prompt`,
@@ -1002,6 +1008,7 @@ export const naviMod: Mod = {
   ref: [
     systemPrompt,
     modPrompt,
+    extPrompt,
     appPrompt,
   ],
   plugin: [
