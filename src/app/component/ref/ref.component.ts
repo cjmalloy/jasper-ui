@@ -300,9 +300,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @HostBinding('class')
   get pluginClasses() {
-    return this.css + ' ' + templates(this.ref.tags, 'plugin')
-      .map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-'))
-      .join(' ');
+    return this.css + ' ' + [
+      ...templates(this.ref.tags, 'plugin'),
+      ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p)
+    ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
   }
 
   @HostBinding('class.last-selected')

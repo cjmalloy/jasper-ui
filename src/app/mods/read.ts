@@ -14,6 +14,14 @@ export const readMod: Mod = {
       ],
       actions: [{ response: 'plugin/read', labelOff: $localize`read`, global: true }],
       advancedActions: [{ response: 'plugin/read', labelOn: $localize`unread`, global: true }],
+      // language=CSS
+      css: `
+        .ref.response-plugin_read .link {
+          a, .fake-link {
+            color: var(--visited) !important;
+          }
+        }
+      `
     },
     generateMetadata: true,
     userUrl: true,
