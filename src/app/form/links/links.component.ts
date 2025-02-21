@@ -69,7 +69,8 @@ export class LinksFormComponent {
   }
 
   setLinks(values: string[]) {
-    if (!this.links) throw 'Not ready yet!';
+    this.model = values;
+    if (!this.links) return;
     while (this.links.length > values.length) this.links.removeAt(this.links.length - 1, { emitEvent: false });
     while (this.links.length < values.length) this.links.push(this.fb.control(''), { emitEvent: false });
     this.links.setValue(values);
