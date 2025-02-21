@@ -134,7 +134,7 @@ export const naviQueryPlugin: Plugin = {
           ...context.keys(),
           ...[...tags].filter(t => !response.tags.includes(t)).map(t => 'tag:/' + t),
         ].filter(uniq).filter(s => !sources.includes(s))
-      ];
+      ].filter(s => !!s);
       console.log(JSON.stringify(bundle));
     `
   }
