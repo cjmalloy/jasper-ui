@@ -2,6 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -85,6 +86,8 @@ export class RefThreadComponent implements HasChanges {
           this.watch?.unsubscribe();
           this.watch = this.stomp.watchResponse(topUrl).pipe(
             switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
+            tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
+            filter(ref => hasTag('plugin/thread', ref)),
             catchError(err => of(undefined)),
             takeUntil(this.destroy$),
           ).subscribe(ref => this.newRefs$.next(ref));
@@ -101,7 +104,6 @@ export class RefThreadComponent implements HasChanges {
         if (hasTag('plugin/thread', c) && c.published! > this.to.published!) {
           this.to = c;
         }
-        runInAction(() => updateMetadata(this.store.view.ref!, c));
       }
     });
   }

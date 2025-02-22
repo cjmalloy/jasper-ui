@@ -2,6 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -75,17 +76,13 @@ export class RefErrorsComponent implements HasChanges {
         this.watch?.unsubscribe();
         this.watch = this.stomp.watchResponse(this.store.view.url).pipe(
           switchMap(url => this.refs.getCurrent(url)),
+          tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
           filter(ref => hasTag('+plugin/log', ref)),
           catchError(err => of(undefined)),
           takeUntil(this.destroy$),
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));
-    this.newRefs$.subscribe(c => {
-      if (c && this.store.view.ref) {
-        runInAction(() => updateMetadata(this.store.view.ref!, c));
-      }
-    });
   }
 
   ngOnDestroy() {
