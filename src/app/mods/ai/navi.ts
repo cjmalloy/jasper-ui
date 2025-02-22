@@ -102,7 +102,7 @@ export const naviQueryPlugin: Plugin = {
       const response = {
         origin,
         url: 'ai:' + uuid.v4(),
-        comment: '+plugin/delta/ai/navi is writing...',
+        comment: '+plugin/delta/ai/navi is thinking...',
       };
       bundle.ref.push(response);
       response.tags ||= [];

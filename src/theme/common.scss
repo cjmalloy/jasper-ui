@@ -1578,7 +1578,7 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
-.ref.plugin_placeholder {
+.ref-list .ref.plugin_placeholder {
   .expand {
     animation: fadein 2s ease-in-out;
     animation-iteration-count: infinite;
@@ -1589,7 +1589,13 @@ formly-field-radio, formly-field-multicheckbox {
   &:hover {
     .actions, .info {
       opacity: 1;
+      animation: none;
     }
+  }
+  &.plugin_thread:not(:hover) {
+    border-color: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
   }
 }
 
