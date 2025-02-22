@@ -52,6 +52,40 @@ export const feedPlugin: Plugin = {
     form: [{
       key: 'addTags',
       type: 'tags',
+    }, {
+      key: 'defaultThumbnail',
+      wrappers: ['form-group'],
+      props: {
+        label: $localize`Default Thumbnail`
+      },
+      fieldGroup: [{
+        key: 'url',
+        type: 'image',
+        props: {
+          label: $localize`URL:`,
+        },
+      }, {
+        key: 'color',
+        type: 'color',
+        props: {
+          label: $localize`Color:`,
+        },
+      }, {
+        key: 'emoji',
+        type: 'string',
+        props: {
+          label: $localize`Emoji:`,
+        },
+      }, {
+        key: 'radius',
+        type: 'range',
+        props: {
+          label: $localize`Radius:`,
+          min: 0,
+          max: 24,
+          step: 4,
+        },
+      }],
     }],
     advancedForm: [{
       key: 'disableEtag',
@@ -137,6 +171,14 @@ export const feedPlugin: Plugin = {
       scrapeAudio: { type: 'boolean' },
       scrapeVideo: { type: 'boolean' },
       scrapeEmbed: { type: 'boolean' },
+      defaultThumbnail: {
+        optionalProperties: {
+          url: { type: 'string' },
+          color: { type: 'string' },
+          emoji: { type: 'string' },
+          radius: { type: 'int32' },
+        },
+      }
     },
   },
 };

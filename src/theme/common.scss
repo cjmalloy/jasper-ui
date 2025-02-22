@@ -1281,6 +1281,10 @@ formly-list-section .form-array > formly-field > formly-group {
   .shrink select {
     margin-top: 2px;
   }
+  .nested-title {
+    text-align: left;
+    margin: 12px 4px 0;
+  }
   .nested-form,
   .field,
   formly-field,

@@ -21,6 +21,7 @@ import { AudioUploadComponent } from './audio-upload/audio-upload.component';
 import { FormlyFieldCheckbox } from './checkbox.type';
 import { DurationInputAccessor, FormlyFieldDuration } from './duration.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
+import { FormlyWrapperFormGroup } from './form-group.wrapper';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
 import { FormlyFieldInput } from './input.type';
 import { ListTypeComponent } from './list.type';
@@ -79,6 +80,9 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
       wrappers: [{
         name: 'form-field',
         component: FormlyWrapperFormField,
+      }, {
+        name: 'form-group',
+        component: FormlyWrapperFormGroup,
       }],
       types: [{
         name: 'list',
