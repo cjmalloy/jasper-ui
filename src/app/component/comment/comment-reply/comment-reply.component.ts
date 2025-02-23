@@ -8,6 +8,7 @@ import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
+import { isSignaturePair } from '../../../model/plugin';
 import { Ref } from '../../../model/ref';
 import { commentPlugin } from '../../../mods/comment';
 import { getMailbox } from '../../../mods/mailbox';
@@ -91,7 +92,7 @@ export class CommentReplyComponent implements AfterViewInit, HasChanges {
 
   get inheritedPlugins() {
     const plugins = this.admin.getPlugins(this.to.tags)
-      .filter(p => p.tag === p.config?.signature && p.config?.reply?.find(t => hasTag(t, this.tags)))
+      .filter(p => isSignaturePair(p) && p.config?.reply?.find(t => hasTag(t, this.tags)))
       .map(p => p.tag);
     const parentPlugins = pickBy(this.to.plugins, (data, tag) => hasTag(tag, plugins));
     return merge({}, ...Object.keys(parentPlugins)

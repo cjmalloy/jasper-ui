@@ -144,6 +144,10 @@ export function mapPlugin(obj: any): Plugin {
   return obj;
 }
 
+export function isSignaturePair(plugin: Plugin) {
+  return plugin.tag === plugin.config?.signature || plugin.config?.reply?.includes(plugin.tag);
+}
+
 export function maybePlugin(obj: any): Plugin | undefined {
   if (!obj) return undefined;
   return mapPlugin(obj);

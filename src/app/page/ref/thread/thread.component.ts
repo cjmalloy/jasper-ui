@@ -96,12 +96,12 @@ export class RefThreadComponent implements HasChanges {
     }));
     this.disposers.push(autorun(() => {
       if (this.query.page) {
-        this.to = this.query.page?.content?.[(this.query.page?.content?.length || 0) - 1] || this.store.view.ref!;
+        this.to = this.query.page?.content?.filter(ref => !hasTag('+plugin/placeholder', ref))?.[(this.query.page?.content?.length || 0) - 1] || this.store.view.ref!;
       }
     }));
     this.newRefs$.subscribe(c => {
       if (c && this.store.view.ref) {
-        if (hasTag('plugin/thread', c) && c.published! > this.to.published!) {
+        if (hasTag('plugin/thread', c) && !hasTag('+plugin/placeholder', c) && c.published! > this.to.published!) {
           this.to = c;
         }
       }
