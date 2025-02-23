@@ -18,8 +18,11 @@ export type UrlFilter = Filter |
   `response/before/${string}` |
   `response/after/${string}` |
   `sources/${string}` |
+  `noSources/${string}` |
   `responses/${string}` |
+  `noResponses/${string}` |
   `query/${string}` |
+  `noDescendents/${string}` |
   `scheme/${string}` |
   `user/${string}` |
   `plugin/${string}` |
@@ -164,12 +167,21 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
   let result: RefFilter = {};
   for (const f of filter) {
     if (f.startsWith('query/')) continue;
-    if (f.startsWith('sources/')) {
+    if (f.startsWith('noDescendents/')) {
+      if (result.noDescendents) console.warn('Multiple noDescendents filters (last wins)');
+      result.noDescendents = f.substring('noDescendents/'.length)
+    } else if (f.startsWith('sources/')) {
       if (result.sources) console.warn('Multiple sources filters (last wins)');
       result.sources = f.substring('sources/'.length)
+    } else if (f.startsWith('noSources/')) {
+      if (result.noSources) console.warn('Multiple noSources filters (last wins)');
+      result.noSources = f.substring('noSources/'.length)
     } else if (f.startsWith('responses/')) {
       if (result.responses) console.warn('Multiple response filters (last wins)');
       result.responses = f.substring('responses/'.length)
+    } else if (f.startsWith('noResponses/')) {
+      if (result.noResponses) console.warn('Multiple noResponses filters (last wins)');
+      result.noResponses = f.substring('noResponses/'.length)
     } else if (f.startsWith('scheme/')) {
       result.scheme = f.substring('scheme/'.length)
     } else if (f.startsWith('user/')) {

@@ -86,6 +86,7 @@ type FilterObj = {
 
 export type RefFilter = FilterObj & {
   query?: string;
+  noDescendents?: string;
   nesting?: number,
   scheme?: string;
   pluginResponse?: string[];
@@ -94,8 +95,10 @@ export type RefFilter = FilterObj & {
   noUserResponse?: string[];
   url?: string;
   obsolete?: boolean | null;
+  noResponses?: string;
   responses?: string;
   sources?: string;
+  noSources?: string;
   search?: string;
   modifiedAfter?: string | DateTime;
   modifiedBefore?: string | DateTime;
