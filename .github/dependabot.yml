@@ -11,10 +11,12 @@ updates:
     - "/cypress"
   schedule:
     interval: daily
+    timezone: America/Halifax
 - package-ecosystem: npm
   directory: /
   schedule:
     interval: daily
+    timezone: America/Halifax
   groups:
     angular:
       patterns:
@@ -43,3 +45,4 @@ updates:
   directory: /
   schedule:
     interval: daily
+    timezone: America/Halifax
