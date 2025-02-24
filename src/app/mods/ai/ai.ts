@@ -15,6 +15,7 @@ export const aiQueryPlugin: Plugin = {
     language: 'javascript',
     // language=JavaScript
     script: `
+      const { Buffer } = require('buffer');
       const uuid = require('uuid');
       const axios = require('axios');
       const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
@@ -113,15 +114,62 @@ export const aiQueryPlugin: Plugin = {
         const role
           = c.tags?.includes('+system/prompt') ? 'system'
           : c.tags?.includes('+plugin/delta/ai/navi') ? 'assistant'
-          : 'user';
-        messages.push({ role, content: JSON.stringify(c) });
+            : 'user';
+        const message = { role };
+        if (config.vision && c.tags?.includes('plugin/image')) {
+          const url = c.plugins?.['plugin/image']?.url || c.url;
+          const res = await axios.get(process.env.JASPER_API + '/api/v1/proxy', {
+            responseType: 'arraybuffer',
+            headers: {
+              'Local-Origin': origin || 'default',
+              'User-Tag': authors[0] || '',
+            },
+            params: { url, origin },
+          });
+          if (!config.provider || config.provider === 'openai' || config.provider === 'x') {
+            // TODO: OpenAI and X supports fetching images itself
+            message.content = [{
+              type: 'text',
+              text: JSON.stringify(c),
+            }, {
+              type: 'image_url',
+              image_url: {
+                url: 'data:' + res.headers['content-type'] + ';base64,' + Buffer.from(res.data, 'binary').toString('base64'),
+                detail: 'low',
+              },
+            }];
+          } else if (config.provider === 'anthropic') {
+            message.content = [{
+              type: 'text',
+              text: JSON.stringify(c),
+            }, {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: res.headers['content-type'] || 'image/png',
+                data: Buffer.from(res.data, 'binary').toString('base64'),
+              },
+            }];
+          } else if (config.provider === 'gemini') {
+            message.parts = [
+              { text: JSON.stringify(c) },
+              { inlineData: {
+                mimeType: res.headers['content-type'] || 'image/png',
+                data: Buffer.from(res.data, 'binary').toString('base64'),
+              }
+            }];
+          }
+        } else {
+          message.content = JSON.stringify(c);
+        }
+        messages.push(message);
       }
       let completion;
       let usage;
       if (!config.provider || config.provider === 'openai') {
         const OpenAi = require('openai');
         const openai = new OpenAi({ apiKey });
-        const model = config.model ||= 'o3-mini';
+        const model = config.model ||= config.vision ? 'o1' : 'o3-mini';
         const res = await openai.chat.completions.create({
           model,
           max_completion_tokens: config.maxTokens || 4096,
@@ -133,7 +181,7 @@ export const aiQueryPlugin: Plugin = {
       } else if (config.provider === 'x') {
         const OpenAi = require('openai');
         const openai = new OpenAi({ apiKey, baseURL: 'https://api.x.ai/v1' });
-        const model = config.model ||= 'grok-2-latest';
+        const model = config.model ||= config.vision ? 'grok-2-vision-latest' : 'grok-2-latest';
         const res = await openai.chat.completions.create({
           model,
           max_completion_tokens: config.maxTokens || 4096,
@@ -189,7 +237,7 @@ export const aiQueryPlugin: Plugin = {
           model: config.model ||= 'gemini-2.0-flash',
         });
         const result = await model.generateContent({
-          contents: messages.filter(m => m.role !== 'system').map( c => ({ role: c.role, parts: [{ text: c.content }]})),
+          contents: messages.filter(m => m.role !== 'system'),
           systemInstruction: system,
         });
         completion = result.response.text().trim();
@@ -200,6 +248,9 @@ export const aiQueryPlugin: Plugin = {
           'completion_tokens': result.response.usageMetadata.candidatesTokenCount,
           'total_tokens': result.response.usageMetadata.totalTokenCount,
         };
+      }
+      if (!completion) {
+        throw 'Error: No completion in response'
       }
       let bundle;
       try {
@@ -292,6 +343,13 @@ export const aiQueryPlugin: Plugin = {
       },
     }],
     advancedForm: [{
+      key: 'vision',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Vision`,
+      },
+    }, {
       key: 'apiKeyTag',
       type: 'tag',
       props: {
@@ -314,6 +372,7 @@ export const aiQueryPlugin: Plugin = {
   },
   defaults: {
     provider: 'gemini',
+    vision: true,
     maxTokens: 4096,
     maxContext: 7,
     maxSources: 2000,
@@ -323,6 +382,7 @@ export const aiQueryPlugin: Plugin = {
       provider: { type: 'string' },
       apiKeyTag: { type: 'string' },
       model: { type: 'string' },
+      vision: { type: 'boolean' },
       maxTokens: { type: 'uint32' },
       maxContext: { type: 'uint32' },
       maxSources: { type: 'uint32' },
@@ -347,6 +407,7 @@ export const aiPlugin: Plugin = {
       provider: { type: 'string' },
       apiKeyTag: { type: 'string' },
       model: { type: 'string' },
+      vision: { type: 'boolean' },
       maxTokens: { type: 'uint32' },
       maxContext: { type: 'uint32' },
       maxSources: { type: 'uint32' },
