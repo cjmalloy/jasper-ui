@@ -156,6 +156,10 @@ export const naviPlugin: Plugin = {
     icons: [{ thumbnail: $localize`👻️`, order: 1 }],
     description: $localize`AI signature tag. Plugin configures Navi to respond to 'plugin/delta/ai/navi' prompts
     and sign this response with this tag. Plugin data contains token usage stats.`,
+    advancedActions: [
+      { tag: '+plugin/delta/ai/navi', labelOn: $localize`redo`, title: $localize`Redo response` },
+      { tag: 'plugin/alias/plugin/delta/ai/navi', labelOff: $localize`redo`, title: $localize`Redo response` },
+    ]
   }
 };
 
