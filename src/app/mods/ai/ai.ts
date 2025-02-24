@@ -57,6 +57,21 @@ export const aiQueryPlugin: Plugin = {
         },
       })).data.content;
       const messages = [];
+      const folderTags = (ref.tags || []).filter(t => t === 'folder' || t.startsWith('folder/'))
+      let workspace = [];
+      if (folderTags.length) {
+        workspace = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+          headers: {
+            'Local-Origin': origin || 'default',
+            'User-Tag': authors[0] || '',
+          },
+          params: {
+            query: folderTags.join(':') + (origin || '@'),
+            sort: 'published',
+            size: config.maxSources,
+          },
+        })).data.content;
+      }
       if (response.sources.includes('system:ext-prompt')) {
         const exts = new Map();
         const getExt = async tag => {
@@ -86,6 +101,13 @@ export const aiQueryPlugin: Plugin = {
       }
       if (config.systemPrompt) {
         messages.push({ role: 'system', content: { url: 'system:app-prompt-override', origin, title: 'App Prompt Override', comment: config.systemPrompt } });
+      }
+      for (const w of workspace) {
+        const role
+          = w.tags?.includes('+system/prompt') ? 'system'
+          : w.tags?.includes('+plugin/delta/ai/navi') ? 'assistant'
+          : 'user';
+        messages.push({ role, content: JSON.stringify(w) });
       }
       for (const c of sources) {
         const role
