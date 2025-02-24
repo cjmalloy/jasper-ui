@@ -159,6 +159,8 @@ export const aiQueryPlugin: Plugin = {
               }
             }];
           }
+        } else if (config.provider === 'gemini') {
+          message.parts = { text: JSON.stringify(c) };
         } else {
           message.content = JSON.stringify(c);
         }
