@@ -1584,18 +1584,28 @@ formly-field-radio, formly-field-multicheckbox {
     animation-iteration-count: infinite;
   }
   .actions, .info {
+    transition: opacity 0.2s linear;
     opacity: 0;
   }
   &:hover {
     .actions, .info {
+      transition: opacity 0.2s 1s linear;
       opacity: 1;
       animation: none;
     }
   }
   &.plugin_thread:not(:hover) {
+    transition: border-color 0.2s linear,
+                background-color 0.2s linear,
+                box-shadow 0.2s linear;
     border-color: transparent !important;
     background-color: transparent !important;
     box-shadow: none !important;
+  }
+  &.plugin_thread:hover {
+    transition: border-color 0.2s 1s linear,
+                background-color 0.2s 1s linear,
+                box-shadow 0.2s 1s linear;
   }
 }
 
