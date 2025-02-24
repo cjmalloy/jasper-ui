@@ -24,7 +24,7 @@ export function templates(tags?: string[], template?: string) {
   return filter(tags, t => hasPrefix(t, template));
 }
 
-export function authors(ref: Ref, prefixes = ['+user', '_user', 'plugin/from']) {
+export function authors(ref: Ref, prefixes = ['+user', '_user', 'plugin/from', 'plugin/alias']) {
   const authors = [];
   for (const p of prefixes) {
     if (p === '+user') {
@@ -35,6 +35,8 @@ export function authors(ref: Ref, prefixes = ['+user', '_user', 'plugin/from']) 
       authors.push(...templates(ref.tags || [], '+plugin').map(t => t + (ref.origin || '')));
     } else if (p === 'plugin/from') {
       authors.push(...templates(ref.tags || [], 'plugin/from').map(t => reverseOrigin(t.substring('plugin/from/'.length), ref.origin || '')));
+    } else if (p === 'plugin/alias') {
+      authors.push(...templates(ref.tags || [], 'plugin/alias').map(t => t.substring('plugin/alias/'.length) + (ref.origin || '')));
     }
   }
   return uniq(authors);
