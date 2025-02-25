@@ -166,6 +166,7 @@ export const aiQueryPlugin: Plugin = {
         }
         messages.push(message);
       }
+      let bundle;
       let completion;
       let usage;
       if (!config.provider || config.provider === 'openai') {
@@ -208,24 +209,53 @@ export const aiQueryPlugin: Plugin = {
         const Anthropic = require('@anthropic-ai/sdk');
         const anthropic = new Anthropic({ apiKey });
         const system = messages.filter(m => m.role === 'system').map(m => m.content).join("\\n\\n");
-        messages.push({ role: 'assistant', content: '{"ref":['});
         const res = await anthropic.messages.create({
-          model: config.model ||= 'claude-3-5-sonnet-latest',
+          model: config.model ||= 'claude-3-7-sonnet-latest',
           max_tokens: config.maxTokens || 4096,
           system,
+          tools: [{
+            name: 'bundle',
+            description: 'JSON responses in bundle format',
+            input_schema: {
+              type: 'object',
+              properties: {
+                ref: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      url: { type: 'string' },
+                      title: { type: 'string' },
+                      comment: { type: 'string' },
+                      tags: { type: 'array', items: { type: 'string' } },
+                      sources: { type: 'array', items: { type: 'string' } },
+                      alternateUrls: { type: 'array', items: { type: 'string' } },
+                      plugins: { type: 'object' },
+                      published: { type: 'string' },
+                    }
+                  }
+                },
+                ext: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      tag: { type: 'string' },
+                      name: { type: 'string' },
+                      config: { type: 'object' },
+                    }
+                  }
+                }
+              }
+            }
+          }],
+          tool_choice: { type: 'tool', name: 'bundle' },
           messages: messages.filter(m => m.role !== 'system'),
         });
-        function fixJsonLinefeeds(json) {
-          return json.replace(/"(?:\\\\.|[^"])*"|[^"]+/g, (match) => {
-            if (match.startsWith('"')) {
-              // This is a string, replace linefeeds
-              return match.replace(/\\n/g, '\\\\n');
-            }
-            // This is not a string, return as-is
-            return match;
-          });
-        }
-        completion = fixJsonLinefeeds('{"ref":[' + res.content[0]?.text);
+        var text = res.content.filter(t => t.type === 'text');
+        var tools = res.content.filter(t => t.type === 'tool_use');
+        completion = text[0] || '';
+        bundle = tools[0].input;
         usage = {
           'prompt_tokens': res.usage.input_tokens,
           'completion_tokens': res.usage.output_tokens,
@@ -251,22 +281,23 @@ export const aiQueryPlugin: Plugin = {
           'total_tokens': result.response.usageMetadata.totalTokenCount,
         };
       }
-      if (!completion) {
-        throw 'Error: No completion in response'
-      }
-      let bundle;
-      try {
-        bundle = JSON.parse(completion);
-        if (!bundle.ref) {
-          // Model returned a bare Ref?
-          bundle = {
-            ref: [bundle],
-          };
+      if (!bundle) {
+        if (!completion) {
+          throw 'Error: No completion in response'
         }
-      } catch (e) {
-        console.error('Error parsing completion:', e);
-        console.error(completion);
-        process.exit(1);
+        try {
+          bundle = JSON.parse(completion);
+          if (!bundle.ref) {
+            // Model returned a bare Ref?
+            bundle = {
+              ref: [bundle],
+            };
+          }
+        } catch (e) {
+          console.error('Error parsing completion:', e);
+          console.error(completion);
+          process.exit(1);
+        }
       }
       const completionRef = bundle.ref[0];
       bundle.ref[0] = response;
