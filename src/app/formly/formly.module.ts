@@ -96,6 +96,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         component: FormlyFieldRange,
         wrappers: ['form-field'],
         defaultOptions: {
+          defaultValue: 0,
           props: {
             min: 0,
             max: 10,

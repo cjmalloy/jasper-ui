@@ -79,6 +79,7 @@ export const feedPlugin: Plugin = {
       }, {
         key: 'radius',
         type: 'range',
+        defaultValue: 0,
         props: {
           label: $localize`Radius:`,
           min: 0,
