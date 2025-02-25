@@ -51,6 +51,7 @@ export const naviQueryPlugin: Plugin = {
           'User-Role': followup ? 'ROLE_ADMIN' : '',
         },
         params: {
+          query: '!+plugin/log',
           [rel]: url,
           sort: 'published',
           size: config.maxSources,
