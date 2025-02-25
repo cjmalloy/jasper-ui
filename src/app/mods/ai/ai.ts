@@ -116,51 +116,108 @@ export const aiQueryPlugin: Plugin = {
           : c.tags?.includes('+plugin/delta/ai/navi') ? 'assistant'
             : 'user';
         const message = { role };
-        if (config.vision && c.tags?.includes('plugin/image')) {
-          const url = c.plugins?.['plugin/image']?.url || c.url;
-          const res = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
+        let audio;
+        if (config.audio && c.tags?.includes('plugin/audio')) {
+          const url = c.plugins?.['plugin/audio']?.url || c.url;
+          audio = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
             responseType: 'arraybuffer',
             headers: {
               'Local-Origin': origin || 'default',
               'User-Tag': authors[0] || '',
             },
-            params: { url, origin },
+            params: { url, origin: c.origin || '' },
           });
-          if (!config.provider || config.provider === 'openai' || config.provider === 'x') {
-            // TODO: OpenAI and X supports fetching images itself
-            message.content = [{
-              type: 'text',
-              text: JSON.stringify(c),
-            }, {
+        }
+        let video;
+        if (config.vision && c.tags?.includes('plugin/video')) {
+          const url = c.plugins?.['plugin/video']?.url || c.url;
+          video = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
+            responseType: 'arraybuffer',
+            headers: {
+              'Local-Origin': origin || 'default',
+              'User-Tag': authors[0] || '',
+            },
+            params: { url, origin: c.origin || '' },
+          });
+        }
+        let image;
+        if (config.vision && c.tags?.includes('plugin/image')) {
+          const url = c.plugins?.['plugin/image']?.url || c.url;
+          image = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
+            responseType: 'arraybuffer',
+            headers: {
+              'Local-Origin': origin || 'default',
+              'User-Tag': authors[0] || '',
+            },
+            params: { url, origin: c.origin || '' },
+          });
+        }
+        if (!config.provider || config.provider === 'openai' || config.provider === 'x') {
+          // TODO: OpenAI and X supports fetching images itself
+          message.content = [{
+            type: 'text',
+            text: JSON.stringify(c),
+          }];
+          if (audio) {
+            message.content.push({
+              type: 'input_audio',
+              input_audio: {
+                data: Buffer.from(audio.data, 'binary').toString('base64'),
+                format: audio.headers['content-type'] === 'audio/mpeg' ? 'mp3' :
+                        audio.headers['content-type'] === 'audio/wav'  ? 'wav' : 'mp3',
+              }
+            });
+          }
+          if (image) {
+            message.content.push({
               type: 'image_url',
               image_url: {
-                url: 'data:' + res.headers['content-type'] + ';base64,' + Buffer.from(res.data, 'binary').toString('base64'),
-                detail: 'low',
-              },
-            }];
-          } else if (config.provider === 'anthropic') {
-            message.content = [{
-              type: 'text',
-              text: JSON.stringify(c),
-            }, {
+                url: 'data:' + image.headers['content-type'] + ';base64,' + Buffer.from(image.data, 'binary').toString('base64'),
+                detail: 'auto',
+              }
+            });
+          }
+        } else if (config.provider === 'anthropic') {
+          message.content = [{
+            type: 'text',
+            text: JSON.stringify(c),
+          }];
+          if (image) {
+            message.content.push({
               type: 'image',
               source: {
                 type: 'base64',
-                media_type: res.headers['content-type'] || 'image/png',
-                data: Buffer.from(res.data, 'binary').toString('base64'),
+                media_type: image.headers['content-type'] || 'image/png',
+                data: Buffer.from(image.data, 'binary').toString('base64'),
               },
-            }];
-          } else if (config.provider === 'gemini') {
-            message.parts = [
-              { text: JSON.stringify(c) },
-              { inlineData: {
-                mimeType: res.headers['content-type'] || 'image/png',
-                data: Buffer.from(res.data, 'binary').toString('base64'),
-              }
-            }];
+            });
           }
         } else if (config.provider === 'gemini') {
-          message.parts = { text: JSON.stringify(c) };
+          message.parts = [{ text: JSON.stringify(c) }];
+          if (audio) {
+            message.parts.push({
+              inlineData: {
+                mimeType: audio.headers['content-type'] || 'image/png',
+                data: Buffer.from(audio.data, 'binary').toString('base64'),
+              }
+            });
+          }
+          if (video) {
+            message.parts.push({
+              inlineData: {
+                mimeType: video.headers['content-type'] || 'image/png',
+                data: Buffer.from(video.data, 'binary').toString('base64'),
+              }
+            });
+          }
+          if (image) {
+            message.parts.push({
+              inlineData: {
+                mimeType: image.headers['content-type'] || 'image/png',
+                data: Buffer.from(image.data, 'binary').toString('base64'),
+              }
+            });
+          }
         } else {
           message.content = JSON.stringify(c);
         }
@@ -172,11 +229,11 @@ export const aiQueryPlugin: Plugin = {
       if (!config.provider || config.provider === 'openai') {
         const OpenAi = require('openai');
         const openai = new OpenAi({ apiKey });
-        const model = config.model ||= config.vision ? 'o1' : 'o3-mini';
+        const model = config.model ||= config.vision ? 'o1' : config.audio ? 'gpt-4o-audio-preview' : 'o3-mini';
         const res = await openai.chat.completions.create({
           model,
           max_completion_tokens: config.maxTokens || 4096,
-          response_format: { 'type': 'json_object' },
+          response_format: { 'type': model === 'gpt-4o-audio-preview' ? 'text' : 'json_object' },
           messages,
         });
         completion = res.choices[0]?.message?.content;
@@ -272,6 +329,9 @@ export const aiQueryPlugin: Plugin = {
           contents: messages.filter(m => m.role !== 'system'),
           systemInstruction: system,
         });
+        // for (const part of result.response.candidates) {
+        // // TODO: parse non-text responses
+        // }
         completion = result.response.text().trim();
         while (completion && !completion.startsWith('{')) completion = completion.substring(1).trim();
         while (completion && !completion.endsWith('}')) completion = completion.substring(0, completion.length - 1).trim();
@@ -376,6 +436,13 @@ export const aiQueryPlugin: Plugin = {
       },
     }],
     advancedForm: [{
+      key: 'audio',
+      type: 'boolean',
+      defaultValue: false,
+      props: {
+        label: $localize`Audio`,
+      },
+    }, {
       key: 'vision',
       type: 'boolean',
       defaultValue: true,
@@ -415,6 +482,7 @@ export const aiQueryPlugin: Plugin = {
       provider: { type: 'string' },
       apiKeyTag: { type: 'string' },
       model: { type: 'string' },
+      audio: { type: 'boolean' },
       vision: { type: 'boolean' },
       maxTokens: { type: 'uint32' },
       maxContext: { type: 'uint32' },
@@ -440,6 +508,7 @@ export const aiPlugin: Plugin = {
       provider: { type: 'string' },
       apiKeyTag: { type: 'string' },
       model: { type: 'string' },
+      audio: { type: 'boolean' },
       vision: { type: 'boolean' },
       maxTokens: { type: 'uint32' },
       maxContext: { type: 'uint32' },
