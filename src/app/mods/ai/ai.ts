@@ -116,6 +116,18 @@ export const aiQueryPlugin: Plugin = {
           : c.tags?.includes('+plugin/delta/ai/navi') ? 'assistant'
             : 'user';
         const message = { role };
+        let pdf;
+        if (c.tags?.includes('plugin/pdf')) {
+          const url = c.plugins?.['plugin/pdf']?.url || c.url;
+          pdf = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
+            responseType: 'arraybuffer',
+            headers: {
+              'Local-Origin': origin || 'default',
+              'User-Tag': authors[0] || '',
+            },
+            params: { url, origin: c.origin || '' },
+          });
+        }
         let audio;
         if (config.audio && c.tags?.includes('plugin/audio')) {
           const url = c.plugins?.['plugin/audio']?.url || c.url;
@@ -182,6 +194,17 @@ export const aiQueryPlugin: Plugin = {
             type: 'text',
             text: JSON.stringify(c),
           }];
+          if (pdf) {
+            message.content.push({
+              type: 'document',
+              source: {
+                type: 'base64',
+                media_type: pdf.headers['content-type'] || 'application/pdf',
+                data: Buffer.from(pdf.data, 'binary').toString('base64'),
+              },
+              cache_control: { type: 'ephemeral' },
+            });
+          }
           if (image) {
             message.content.push({
               type: 'image',
