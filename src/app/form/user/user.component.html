@@ -9,7 +9,7 @@
            autocapitalize="none"
            formControlName="tag"
            (keydown)="$event.key === 'Enter' && validate(tagInput) || true"
-           (blur)="validate(tagInput)">
+           (blur)="blur(tagInput)">
     @if (showClear) {
       <button type="button" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
     }

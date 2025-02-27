@@ -1,5 +1,6 @@
 import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { defer } from 'lodash-es';
 import { User } from '../../model/user';
 import { isMailbox } from '../../mods/mailbox';
 import { USER_REGEX } from '../../util/format';
@@ -41,6 +42,8 @@ export class UserFormComponent implements OnInit {
   @ViewChild('tagWriteAccess')
   tagWriteAccess!: TagsFormComponent;
 
+  private showedError = false;
+
   ngOnInit(): void {
     this.pubKey.disable();
   }
@@ -53,8 +56,12 @@ export class UserFormComponent implements OnInit {
     return this.group.get('pubKey') as UntypedFormControl;
   }
 
+  get showError() {
+    return this.tag.touched && this.tag.errors;
+  }
+
   validate(input: HTMLInputElement) {
-    if (this.tag.touched) {
+    if (this.showError) {
       if (this.tag.errors?.['required']) {
         input.setCustomValidity($localize`Tag must not be blank.`);
         input.reportValidity();
@@ -68,7 +75,14 @@ export class UserFormComponent implements OnInit {
         input.reportValidity();
       }
     }
-    if (!this.tag.errors) {
+  }
+
+  blur(input: HTMLInputElement) {
+    if (this.showError && !this.showedError) {
+      this.showedError = true;
+      defer(() => this.validate(input));
+    } else {
+      this.showedError = false;
       this.tagChanges.next(input.value)
     }
   }
