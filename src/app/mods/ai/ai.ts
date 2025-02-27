@@ -79,7 +79,7 @@ export const aiQueryPlugin: Plugin = {
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.image = ['o1', 'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'].includes(config.model);
+            config.image = ['o1', 'gpt-4.5-preview', 'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'].includes(config.model);
             config.audio = config.model === 'gpt-4o-audio-preview';
             config.video = false;
           },
