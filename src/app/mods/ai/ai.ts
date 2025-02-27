@@ -23,13 +23,6 @@ export const aiQueryPlugin: Plugin = {
       const config = ref.plugins?.['plugin/delta/ai'] || {};
       const followup = ref.tags.includes('+plugin/delta/ai');
       const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
-      const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
-        headers: {
-          'Local-Origin': origin || 'default',
-          'User-Role': 'ROLE_ADMIN',
-        },
-        params: { query: (config.apiKeyTag ||= ('+plugin/secret/' + config.provider)) + origin },
-      })).data.content[0]?.comment;
       const response = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
           'Local-Origin': origin || 'default',
@@ -45,34 +38,294 @@ export const aiQueryPlugin: Plugin = {
         // No placeholder, earlier stage failed
         process.exit(0);
       }
-      const sources = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+      const bundleSchema = {
+        type: 'object',
+        properties: {
+          ref: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'object',
+              properties: {
+                url: { type: 'string' },
+                title: { type: 'string' },
+                comment: { type: 'string' },
+                tags: { type: 'array', items: { type: 'string' } },
+                sources: { type: 'array', items: { type: 'string' } },
+                alternateUrls: { type: 'array', items: { type: 'string' } },
+                plugins: { type: 'object' },
+                published: { type: 'string' },
+              }
+            }
+          },
+          ext: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                tag: { type: 'string' },
+                name: { type: 'string' },
+                config: { type: 'object' },
+              },
+              required: ['tag']
+            }
+          }
+        }
+      };
+      const providers = {
+        openai: {
+          init(config) {
+            config.model ||= config.vision ? 'o1' : config.audio ? 'gpt-4o-audio-preview' : 'o3-mini';
+            config.maxTokens ||= 4096;
+            config.thinking = false;
+            config.pdf = false;
+            config.image = ['o1', 'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'].includes(config.model);
+            config.audio = config.model === 'gpt-4o-audio-preview';
+            config.video = false;
+          },
+          loadMessage(source, plugins) {
+            // TODO: OpenAI and X supports fetching images itself
+            const message = {};
+            message.content = [{ type: 'text', text: JSON.stringify(source) }];
+            if (plugins['plugin/audio']) {
+              message.content.push({
+                type: 'input_audio',
+                input_audio: {
+                  data: Buffer.from(plugins['plugin/audio'].data, 'binary').toString('base64'),
+                  format: plugins['plugin/audio'].headers['content-type'] === 'audio/mpeg' ? 'mp3' :
+                          plugins['plugin/audio'].headers['content-type'] === 'audio/wav'  ? 'wav' : 'mp3',
+                }
+              });
+            }
+            if (plugins['plugin/image']) {
+              message.content.push({
+                type: 'image_url',
+                image_url: {
+                  url: 'data:' + plugins['plugin/image'].headers['content-type'] + ';base64,' + Buffer.from(plugins['plugin/image'].data, 'binary').toString('base64'),
+                  detail: 'auto',
+                }
+              });
+            }
+            return message;
+          },
+          async generate(messages, config) {
+            const OpenAi = require('openai');
+            const openai = new OpenAi({ apiKey });
+            const res = await openai.chat.completions.create({
+              model: config.model,
+              max_completion_tokens: config.maxTokens,
+              response_format: { 'type': config.audio ? 'text' : 'json_object' },
+              messages,
+            });
+            return {
+              completion: res.choices[0]?.message?.content,
+              usage: res.usage,
+            };
+          }
+        },
+        x: {
+          init(config) {
+            config.model ||= config.vision ? 'grok-2-vision-latest' : 'grok-2-latest';
+            config.maxTokens ||= 4096;
+            config.thinking = false;
+            config.pdf = false;
+            config.image = config.model === 'grok-2-vision-latest';
+            config.audio = false;
+            config.video = false;
+          },
+          loadMessage(source, plugins) {
+            return providers['openai'].loadMessage(source, plugins);
+          },
+          async generate(messages, config) {
+            const OpenAi = require('openai');
+            const openai = new OpenAi({ apiKey, baseURL: 'https://api.x.ai/v1' });
+            const res = await openai.chat.completions.create({
+              model: config.model,
+              max_completion_tokens: config.maxTokens,
+              response_format: { 'type': 'json_object' },
+              messages,
+            });
+            return {
+              completion: res.choices[0]?.message?.content,
+              usage: res.usage,
+            };
+          }
+        },
+        ds: {
+          init(config) {
+            config.model ||= config.thinking ? 'deepseek-reasoner' : 'deepseek-chat';
+            config.maxTokens ||= 4096;
+            config.thinking = config.model === 'deepseek-reasoner';
+            config.image = false;
+            config.audio = false;
+            config.video = false;
+          },
+          loadMessage(source, plugins) {
+            return providers['openai'].loadMessage(source, plugins);
+          },
+          async generate(messages, config) {
+            const OpenAi = require('openai');
+            const openai = new OpenAi({ apiKey, baseURL: 'https://api.deepseek.com' });
+            const res = await openai.chat.completions.create({
+              model: config.model,
+              max_completion_tokens: config.maxTokens,
+              response_format: config.thinking ? undefined : { 'type': 'json_object' },
+              messages,
+            });
+            return {
+              completion: res.choices[0]?.message?.content,
+              usage: res.usage,
+            };
+          }
+        },
+        anthropic: {
+          init(config) {
+            config.model ||= 'claude-3-7-sonnet-latest';
+            config.maxTokens ||= 4096;
+            config.thinkingTokens ||= 4096
+            config.pdf = true;
+            config.image = true;
+            config.audio = false;
+            config.video = false;
+          },
+          loadMessage(source, plugins) {
+            const message = {};
+            message.content = [{
+              type: 'text',
+              text: JSON.stringify(source),
+            }];
+            if (plugins['plugin/pdf']) {
+              message.content.push({
+                type: 'document',
+                source: {
+                  type: 'base64',
+                  media_type: plugins['plugin/pdf'].headers['content-type'] || 'application/pdf',
+                  data: Buffer.from(plugins['plugin/pdf'].data, 'binary').toString('base64'),
+                },
+                cache_control: { type: 'ephemeral' },
+              });
+            }
+            if (plugins['plugin/image']) {
+              message.content.push({
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: plugins['plugin/image'].headers['content-type'] || 'image/png',
+                  data: Buffer.from(plugins['plugin/image'].data, 'binary').toString('base64'),
+                },
+                cache_control: { type: 'ephemeral' },
+              });
+            }
+            return message;
+          },
+          async generate(messages, config) {
+            const Anthropic = require('@anthropic-ai/sdk');
+            const anthropic = new Anthropic({ apiKey });
+            const system = messages.filter(m => m.role === 'system').map(m => m.content).join("\\n\\n");
+            const thinking = config.thinking ? {
+              thinking: {
+                type: 'enabled',
+                budget_tokens: config.thinkingTokens,
+              }
+            } : {};
+            const toolUse = !config.thinking ? {
+              tools: [{
+                name: 'bundle',
+                description: 'JSON responses in bundle format',
+                input_schema: bundleSchema,
+              }],
+              tool_choice: { type: 'tool', name: 'bundle' },
+            } : {};
+            const res = await anthropic.messages.create({
+              model: config.model,
+              max_tokens: config.maxTokens + (config.thinking ? config.thinkingTokens : 0),
+              system,
+              ...thinking,
+              ...toolUse,
+              messages: messages.filter(m => m.role !== 'system'),
+            });
+            let text = res.content.filter(t => t.type === 'text');
+            const tools = res.content.filter(t => t.type === 'tool_use');
+            return {
+              completion: JSON.stringify(thinking ? { comment: text[0]?.text || '' } : tools[0]?.input),
+              usage: {
+                'prompt_tokens': res.usage.input_tokens,
+                'completion_tokens': res.usage.output_tokens,
+                'total_tokens': res.usage.input_tokens + res.usage.output_tokens,
+              },
+            };
+          }
+        },
+        gemini: {
+          init(config) {
+            config.model ||= 'gemini-2.0-flash';
+            config.pdf = false;
+            config.image = true;
+            config.audio = true;
+            config.video = true;
+          },
+          loadMessage(source, plugins) {
+            const message = {};
+            message.parts = [{ text: JSON.stringify(source) }];
+            if (plugins['plugin/audio']) {
+              message.parts.push({
+                inlineData: {
+                  mimeType: plugins['plugin/audio'].headers['content-type'] || 'image/mpeg',
+                  data: Buffer.from(plugins['plugin/audio'].data, 'binary').toString('base64'),
+                }
+              });
+            }
+            if (plugins['plugin/video']) {
+              message.parts.push({
+                inlineData: {
+                  mimeType: plugins['plugin/video'].headers['content-type'] || 'video/mp4',
+                  data: Buffer.from(plugins['plugin/video'].data, 'binary').toString('base64'),
+                }
+              });
+            }
+            if (plugins['plugin/image']) {
+              message.parts.push({
+                inlineData: {
+                  mimeType: plugins['plugin/image'].headers['content-type'] || 'image/png',
+                  data: Buffer.from(plugins['plugin/image'].data, 'binary').toString('base64'),
+                }
+              });
+            }
+            return message;
+          },
+          async generate(messages, config) {
+            const { GoogleGenerativeAI } = require('@google/generative-ai');
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const system = messages.filter(m => m.role === 'system').map(m => m.parts[0].text).join("\\n\\n");
+            const model = genAI.getGenerativeModel({ model: config.model });
+            const result = await model.generateContent({
+              contents: messages.filter(m => m.role !== 'system'),
+              systemInstruction: system,
+            });
+            let text = result.response.text().trim();
+            while (text && !text.startsWith('{')) text = text.substring(1).trim();
+            while (text && !text.endsWith('}')) text = text.substring(0, text.length - 1).trim();
+            return {
+              completion: text,
+              usage: {
+                prompt_tokens: result.response.usageMetadata.promptTokenCount,
+                completion_tokens: result.response.usageMetadata.candidatesTokenCount,
+                total_tokens: result.response.usageMetadata.totalTokenCount,
+              },
+            };
+          }
+        },
+      };
+      const provider = providers[config.provider ||= 'gemini'];
+      provider.init(config);
+      const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
           'Local-Origin': origin || 'default',
-          'User-Tag': authors[0] || '',
+          'User-Role': 'ROLE_ADMIN',
         },
-        params: {
-          query: '!+system/prompt/placeholder',
-          sources: response.url,
-          sort: 'published',
-          size: config.maxSources,
-        },
-      })).data.content;
+        params: { query: (config.apiKeyTag ||= ('+plugin/secret/' + config.provider)) + origin },
+      })).data.content[0]?.comment;
       const messages = [];
-      const folderTags = (ref.tags || []).filter(t => t === 'folder' || t.startsWith('folder/'))
-      let workspace = [];
-      if (folderTags.length) {
-        workspace = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
-          headers: {
-            'Local-Origin': origin || 'default',
-            'User-Tag': authors[0] || '',
-          },
-          params: {
-            query: folderTags.join(':') + (origin || '@'),
-            sort: 'published',
-            size: config.maxSources,
-          },
-        })).data.content;
-      }
       if (response.sources.includes('system:ext-prompt')) {
         const exts = new Map();
         const getExt = async tag => {
@@ -98,298 +351,147 @@ export const aiQueryPlugin: Plugin = {
         }
         await loadTags(response.tags);
         await loadTags(response.sources.filter(t => t.startsWith('tag:/')).map(t => t.substring('tag:/'.length)));
-        if (exts.length) messages.push({ role: 'system', content: { url: 'system:ext-prompt', origin, title: 'Ext Sources', comment: JSON.stringify(exts) } });
+        if (exts.length) {
+          messages.push({
+            role: 'system',
+            ...provider.loadMessage({ url: 'system:ext-prompt', origin, title: 'Ext Sources', comment: JSON.stringify(exts) }),
+          });
+        }
       }
       if (config.systemPrompt) {
-        messages.push({ role: 'system', content: { url: 'system:app-prompt-override', origin, title: 'App Prompt Override', comment: config.systemPrompt } });
+        messages.push({
+          role: 'system',
+          ...provider.loadMessage({ url: 'system:app-prompt-override', origin, title: 'App Prompt Override', comment: config.systemPrompt }),
+        });
       }
-      for (const w of workspace) {
-        const role
-          = w.tags?.includes('+system/prompt') ? 'system'
-          : w.tags?.includes('+plugin/delta/ai/navi') ? 'assistant'
-          : 'user';
-        messages.push({ role, content: JSON.stringify(w) });
+      const folderTags = (ref.tags || []).filter(t => t === 'folder' || t.startsWith('folder/'))
+      if (folderTags.length) {
+        const workspace = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+          headers: {
+            'Local-Origin': origin || 'default',
+            'User-Tag': authors[0] || '',
+          },
+          params: {
+            query: folderTags.join(':') + (origin || '@'),
+            sort: 'published',
+            size: config.maxSources,
+          },
+        })).data.content;
+        for (const w of workspace) {
+          const role
+            = w.tags?.includes('+system/prompt') ? 'system'
+            : w.tags?.includes('+plugin/delta/ai/navi') ? 'assistant'
+              : 'user';
+          messages.push({
+            role,
+            ...provider.loadMessage(w),
+          });
+        }
       }
+      const sources = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+        headers: {
+          'Local-Origin': origin || 'default',
+          'User-Tag': authors[0] || '',
+        },
+        params: {
+          query: '!+system/prompt/placeholder',
+          sources: response.url,
+          sort: 'published',
+          size: config.maxSources,
+        },
+      })).data.content;
       for (const c of sources) {
+        const plugins = {};
+        if (config.pdf && c.tags?.includes('plugin/pdf')) {
+          const url = c.plugins?.['plugin/pdf']?.url || c.url;
+          plugins['plugin/pdf'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
+            responseType: 'arraybuffer',
+            headers: {
+              'Local-Origin': origin || 'default',
+              'User-Tag': authors[0] || '',
+            },
+            params: { url, origin: c.origin || '' },
+          });
+        }
+        if (config.image && c.tags?.includes('plugin/image')) {
+          const url = c.plugins?.['plugin/image']?.url || c.url;
+          plugins['plugin/image'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
+            responseType: 'arraybuffer',
+            headers: {
+              'Local-Origin': origin || 'default',
+              'User-Tag': authors[0] || '',
+            },
+            params: { url, origin: c.origin || '' },
+          });
+        }
+        if (config.audio && c.tags?.includes('plugin/audio')) {
+          const url = c.plugins?.['plugin/audio']?.url || c.url;
+          plugins['plugin/audio'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
+            responseType: 'arraybuffer',
+            headers: {
+              'Local-Origin': origin || 'default',
+              'User-Tag': authors[0] || '',
+            },
+            params: { url, origin: c.origin || '' },
+          });
+        }
+        if (config.video && c.tags?.includes('plugin/video')) {
+          const url = c.plugins?.['plugin/video']?.url || c.url;
+          plugins['plugin/video'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
+            responseType: 'arraybuffer',
+            headers: {
+              'Local-Origin': origin || 'default',
+              'User-Tag': authors[0] || '',
+            },
+            params: { url, origin: c.origin || '' },
+          });
+        }
         const role
           = c.tags?.includes('+system/prompt') ? 'system'
           : c.tags?.includes('+plugin/delta/ai/navi') ? 'assistant'
             : 'user';
-        const message = { role };
-        let pdf;
-        if (c.tags?.includes('plugin/pdf')) {
-          const url = c.plugins?.['plugin/pdf']?.url || c.url;
-          pdf = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
-            responseType: 'arraybuffer',
-            headers: {
-              'Local-Origin': origin || 'default',
-              'User-Tag': authors[0] || '',
-            },
-            params: { url, origin: c.origin || '' },
-          });
-        }
-        let audio;
-        if (config.audio && c.tags?.includes('plugin/audio')) {
-          const url = c.plugins?.['plugin/audio']?.url || c.url;
-          audio = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
-            responseType: 'arraybuffer',
-            headers: {
-              'Local-Origin': origin || 'default',
-              'User-Tag': authors[0] || '',
-            },
-            params: { url, origin: c.origin || '' },
-          });
-        }
-        let video;
-        if (config.vision && c.tags?.includes('plugin/video')) {
-          const url = c.plugins?.['plugin/video']?.url || c.url;
-          video = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
-            responseType: 'arraybuffer',
-            headers: {
-              'Local-Origin': origin || 'default',
-              'User-Tag': authors[0] || '',
-            },
-            params: { url, origin: c.origin || '' },
-          });
-        }
-        let image;
-        if (config.vision && c.tags?.includes('plugin/image')) {
-          const url = c.plugins?.['plugin/image']?.url || c.url;
-          image = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
-            responseType: 'arraybuffer',
-            headers: {
-              'Local-Origin': origin || 'default',
-              'User-Tag': authors[0] || '',
-            },
-            params: { url, origin: c.origin || '' },
-          });
-        }
-        if (!config.provider || config.provider === 'openai' || config.provider === 'x') {
-          // TODO: OpenAI and X supports fetching images itself
-          message.content = [{
-            type: 'text',
-            text: JSON.stringify(c),
-          }];
-          if (audio) {
-            message.content.push({
-              type: 'input_audio',
-              input_audio: {
-                data: Buffer.from(audio.data, 'binary').toString('base64'),
-                format: audio.headers['content-type'] === 'audio/mpeg' ? 'mp3' :
-                        audio.headers['content-type'] === 'audio/wav'  ? 'wav' : 'mp3',
-              }
-            });
-          }
-          if (image) {
-            message.content.push({
-              type: 'image_url',
-              image_url: {
-                url: 'data:' + image.headers['content-type'] + ';base64,' + Buffer.from(image.data, 'binary').toString('base64'),
-                detail: 'auto',
-              }
-            });
-          }
-        } else if (config.provider === 'anthropic') {
-          message.content = [{
-            type: 'text',
-            text: JSON.stringify(c),
-          }];
-          if (pdf) {
-            message.content.push({
-              type: 'document',
-              source: {
-                type: 'base64',
-                media_type: pdf.headers['content-type'] || 'application/pdf',
-                data: Buffer.from(pdf.data, 'binary').toString('base64'),
-              },
-              cache_control: { type: 'ephemeral' },
-            });
-          }
-          if (image) {
-            message.content.push({
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: image.headers['content-type'] || 'image/png',
-                data: Buffer.from(image.data, 'binary').toString('base64'),
-              },
-            });
-          }
-        } else if (config.provider === 'gemini') {
-          message.parts = [{ text: JSON.stringify(c) }];
-          if (audio) {
-            message.parts.push({
-              inlineData: {
-                mimeType: audio.headers['content-type'] || 'image/png',
-                data: Buffer.from(audio.data, 'binary').toString('base64'),
-              }
-            });
-          }
-          if (video) {
-            message.parts.push({
-              inlineData: {
-                mimeType: video.headers['content-type'] || 'image/png',
-                data: Buffer.from(video.data, 'binary').toString('base64'),
-              }
-            });
-          }
-          if (image) {
-            message.parts.push({
-              inlineData: {
-                mimeType: image.headers['content-type'] || 'image/png',
-                data: Buffer.from(image.data, 'binary').toString('base64'),
-              }
-            });
-          }
-        } else {
-          message.content = JSON.stringify(c);
-        }
-        messages.push(message);
+        messages.push({
+          role,
+          ...provider.loadMessage(c, plugins),
+        });
       }
+      let { completion, usage } = await provider.generate(messages, config);
       let bundle;
-      let completion;
-      let usage;
-      if (!config.provider || config.provider === 'openai') {
-        const OpenAi = require('openai');
-        const openai = new OpenAi({ apiKey });
-        const model = config.model ||= config.vision ? 'o1' : config.audio ? 'gpt-4o-audio-preview' : 'o3-mini';
-        const res = await openai.chat.completions.create({
-          model,
-          max_completion_tokens: config.maxTokens || 4096,
-          response_format: { 'type': model === 'gpt-4o-audio-preview' ? 'text' : 'json_object' },
-          messages,
-        });
-        completion = res.choices[0]?.message?.content;
-        usage = res.usage;
-      } else if (config.provider === 'x') {
-        const OpenAi = require('openai');
-        const openai = new OpenAi({ apiKey, baseURL: 'https://api.x.ai/v1' });
-        const model = config.model ||= config.vision ? 'grok-2-vision-latest' : 'grok-2-latest';
-        const res = await openai.chat.completions.create({
-          model,
-          max_completion_tokens: config.maxTokens || 4096,
-          response_format: { 'type': 'json_object' },
-          messages,
-        });
-        completion = res.choices[0]?.message?.content;
-        usage = res.usage;
-      } else if (config.provider === 'ds') {
-        const OpenAi = require('openai');
-        const openai = new OpenAi({ apiKey, baseURL: 'https://api.deepseek.com' });
-        const model = config.model ||= 'deepseek-reasoner';
-        const res = await openai.chat.completions.create({
-          model,
-          max_completion_tokens: config.maxTokens || 4096,
-          response_format: { 'type': 'json_object' },
-          messages,
-        });
-        completion = res.choices[0]?.message?.content;
-        usage = res.usage;
-      } else if (config.provider === 'anthropic') {
-        const Anthropic = require('@anthropic-ai/sdk');
-        const anthropic = new Anthropic({ apiKey });
-        const system = messages.filter(m => m.role === 'system').map(m => m.content).join("\\n\\n");
-        const res = await anthropic.messages.create({
-          model: config.model ||= 'claude-3-7-sonnet-latest',
-          max_tokens: config.maxTokens || 4096,
-          system,
-          tools: [{
-            name: 'bundle',
-            description: 'JSON responses in bundle format',
-            input_schema: {
-              type: 'object',
-              properties: {
-                ref: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      url: { type: 'string' },
-                      title: { type: 'string' },
-                      comment: { type: 'string' },
-                      tags: { type: 'array', items: { type: 'string' } },
-                      sources: { type: 'array', items: { type: 'string' } },
-                      alternateUrls: { type: 'array', items: { type: 'string' } },
-                      plugins: { type: 'object' },
-                      published: { type: 'string' },
-                    }
-                  }
-                },
-                ext: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      tag: { type: 'string' },
-                      name: { type: 'string' },
-                      config: { type: 'object' },
-                    }
-                  }
-                }
-              }
-            }
-          }],
-          tool_choice: { type: 'tool', name: 'bundle' },
-          messages: messages.filter(m => m.role !== 'system'),
-        });
-        var text = res.content.filter(t => t.type === 'text');
-        var tools = res.content.filter(t => t.type === 'tool_use');
-        completion = text[0] || '';
-        bundle = tools[0].input;
-        usage = {
-          'prompt_tokens': res.usage.input_tokens,
-          'completion_tokens': res.usage.output_tokens,
-          'total_tokens': res.usage.input_tokens + res.usage.output_tokens,
-        };
-      } else if (config.provider === 'gemini') {
-        const { GoogleGenerativeAI } = require('@google/generative-ai');
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const system = messages.filter(m => m.role === 'system').map(m => m.content).join("\\n\\n");
-        const model = genAI.getGenerativeModel({
-          model: config.model ||= 'gemini-2.0-flash',
-        });
-        const result = await model.generateContent({
-          contents: messages.filter(m => m.role !== 'system'),
-          systemInstruction: system,
-        });
-        // for (const part of result.response.candidates) {
-        // // TODO: parse non-text responses
-        // }
-        completion = result.response.text().trim();
-        while (completion && !completion.startsWith('{')) completion = completion.substring(1).trim();
-        while (completion && !completion.endsWith('}')) completion = completion.substring(0, completion.length - 1).trim();
-        usage = {
-          'prompt_tokens': result.response.usageMetadata.promptTokenCount,
-          'completion_tokens': result.response.usageMetadata.candidatesTokenCount,
-          'total_tokens': result.response.usageMetadata.totalTokenCount,
-        };
+      if (!completion) {
+        throw 'Error: No completion in response'
       }
-      if (!bundle) {
-        if (!completion) {
-          throw 'Error: No completion in response'
+      try {
+        bundle = JSON.parse(completion);
+        if (!bundle.ref) {
+          // Model returned a bare Ref?
+          bundle = {
+            ref: [bundle],
+          };
         }
-        try {
-          bundle = JSON.parse(completion);
-          if (!bundle.ref) {
-            // Model returned a bare Ref?
-            bundle = {
-              ref: [bundle],
-            };
-          }
-        } catch (e) {
-          console.error('Error parsing completion:', e);
-          console.error(completion);
-          process.exit(1);
-        }
+      } catch (e) {
+        console.error('Error parsing completion:', e);
+        console.error(completion);
+        process.exit(1);
       }
       const completionRef = bundle.ref[0];
+      if (!completionRef) {
+        console.error('No ref');
+        console.error(completion);
+        process.exit(1);
+      }
       bundle.ref[0] = response;
       delete response.metadata;
-      response.title = completionRef.title;
-      response.comment = completionRef.comment;
+      response.title = completionRef.title || '';
+      response.comment = completionRef.comment || '';
       response.plugins ||= {};
       response.plugins['+plugin/delta/ai'] = {
-        ...config,
+        provider: config.provider,
+        model: config.model,
+        maxTokens: config.maxTokens,
+        thinking: config.thinking,
+        thinkingTokens: config.thinkingTokens,
+        vision: config.vision,
+        audio: config.audio,
         usage: {
           promptTokens: usage.prompt_tokens,
           completionTokens: usage.completion_tokens,
@@ -468,7 +570,7 @@ export const aiQueryPlugin: Plugin = {
     }, {
       key: 'vision',
       type: 'boolean',
-      defaultValue: true,
+      defaultValue: false,
       props: {
         label: $localize`Vision`,
       },
@@ -491,12 +593,41 @@ export const aiQueryPlugin: Plugin = {
       props: {
         label: $localize`System Prompt:`,
       },
+    }, {
+      key: 'maxTokens',
+      type: 'number',
+      props: {
+        label: $localize`Max Tokens:`,
+      },
+    }, {
+      key: 'thinking',
+      type: 'boolean',
+      defaultValue: false,
+      props: {
+        label: $localize`Thinking`,
+      },
+    }, {
+      key: 'thinkingTokens',
+      type: 'number',
+      props: {
+        label: $localize`Thinking Tokens:`,
+      },
+    }, {
+      key: 'maxContext',
+      type: 'number',
+      props: {
+        label: $localize`Max Context:`,
+      },
+    }, {
+      key: 'maxSources',
+      type: 'number',
+      props: {
+        label: $localize`Max Sources:`,
+      },
     }],
   },
   defaults: {
     provider: 'gemini',
-    vision: true,
-    maxTokens: 4096,
     maxContext: 7,
     maxSources: 2000,
   },
@@ -508,6 +639,8 @@ export const aiQueryPlugin: Plugin = {
       audio: { type: 'boolean' },
       vision: { type: 'boolean' },
       maxTokens: { type: 'uint32' },
+      thinking: { type: 'boolean' },
+      thinkingTokens: { type: 'uint32' },
       maxContext: { type: 'uint32' },
       maxSources: { type: 'uint32' },
       systemPrompt: { type: 'string' },
@@ -534,6 +667,8 @@ export const aiPlugin: Plugin = {
       audio: { type: 'boolean' },
       vision: { type: 'boolean' },
       maxTokens: { type: 'uint32' },
+      thinking: { type: 'boolean' },
+      thinkingTokens: { type: 'uint32' },
       maxContext: { type: 'uint32' },
       maxSources: { type: 'uint32' },
       systemPrompt: { type: 'string' },
