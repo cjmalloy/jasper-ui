@@ -1,6 +1,5 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
-import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
@@ -32,7 +31,6 @@ export class NavComponent implements OnInit, OnDestroy {
 
   constructor(
     private config: ConfigService,
-    private admin: AdminService,
     private refs: RefService,
     private editor: EditorService,
     private vis: VisibilityService,

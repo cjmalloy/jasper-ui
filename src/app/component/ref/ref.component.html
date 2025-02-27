@@ -97,7 +97,7 @@
               @for (e of tagExts; track e.tag) {
                 <a class="tag"
                    [routerLink]="['/tag', e.tag]"
-                   [appTitle]="e.tag">{{ e.name || e.tag }}</a>
+                   [appTitle]="e.tag">{{ e.name || '#' + e.tag }}</a>
               }
             } @else {
               @for (t of tags; track t) {

@@ -146,8 +146,8 @@ import { TagPage } from './page/tag/tag.component';
 import { TagsPage } from './page/tags/tags.component';
 import { UserPage } from './page/user/user.component';
 import { CssUrlPipe } from './pipe/css-url.pipe';
-import { PluginsPipe } from './pipe/plugins.pipe';
 import { SafePipe } from './pipe/safe.pipe';
+import { TagPreviewPipe } from './pipe/tag-preview.pipe';
 import { ThumbnailPipe } from './pipe/thumbnail.pipe';
 import { AccountService } from './service/account.service';
 import { AdminService } from './service/admin.service';
@@ -298,7 +298,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     InboxReportsPage,
     ChessComponent,
     TagsPage,
-    PluginsPipe,
+    TagPreviewPipe,
     TitleDirective,
     InboxAlarmsPage,
     InputDoneDirective,

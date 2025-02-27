@@ -4,7 +4,7 @@
           (input)="pluginChange.next(select.value)">
     <option value="" i18n>🧰️</option>
     @for (p of plugins; track p.tag) {
-      <option [value]="p.tag">{{ p.name || p.tag }}</option>
+      <option [value]="p.tag">{{ p.name || '#' + p.tag }}</option>
     }
   </select>
 }

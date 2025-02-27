@@ -134,8 +134,8 @@
 
         <span><!-- Tags --></span>
         <div class="form-array right">
-          @for (tag of store.submit.tags | plugins; track tag) {
-            <span>{{ tag }}</span>
+          @for (p of store.submit.tags | tagPreview | async; track p.tag) {
+            <a [routerLink]="['/tag', p.tag]">{{ p.name || '#' + p.tag }}</a>
           }
         </div>
 

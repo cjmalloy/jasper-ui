@@ -73,7 +73,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
         for (const ext of this.activeExts) {
           for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
             this.loadFilter({
-              group: ext.name || this.admin.getPlugin(ext.tag)?.name || this.admin.getTemplate(ext.tag)?.name || ext.tag,
+              group: ext.name || this.admin.getPlugin(ext.tag)?.name || this.admin.getTemplate(ext.tag)?.name || '#' + ext.tag,
               ...f,
             });
           }
@@ -120,7 +120,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
               for (const e of exts) {
                 this.loadFilter({
                   group,
-                  label: e.name || e.tag,
+                  label: e.name || '#' + e.tag,
                   query: e.tag,
                 });
               }
