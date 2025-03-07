@@ -104,6 +104,7 @@ export const originPullPlugin: Plugin = {
     }, {
       key: 'websocket',
       type: 'boolean',
+      defaultValue: true,
       props: {
         label: $localize`Listen to Websocket Cursor updates to Pull:`,
       }
@@ -221,6 +222,7 @@ export const originPushPlugin: Plugin = {
     form: [{
       key: 'pushOnChange',
       type: 'boolean',
+      defaultValue: true,
       props: {
         label: $localize`Push on change`,
       }
