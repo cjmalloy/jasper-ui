@@ -9,7 +9,7 @@
     &bullet; <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a>
     &bullet; <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
     @if (bookmarks.length) {
-      @for (b of bookmarks; track b.tag; let i = $index) {
+      @for (b of bookmarks; track i; let i = $index) {
         &bullet; <a [routerLink]="['/tag', store.account.bookmarks[i]]" [appTitle]="b" routerLinkActive="current-page">{{ b.name || store.account.bookmarks[i] }}</a>
       }
     } @else {
@@ -18,7 +18,7 @@
       }
     }
     @if (subs.length) {
-      @for (sub of subs; track sub.tag; let i = $index) {
+      @for (sub of subs; track i; let i = $index) {
         &bullet; <a [routerLink]="['/tag', store.account.subs[i]]" [appTitle]="sub" routerLinkActive="current-page">{{ sub.name || store.account.subs[i] }}</a>
       }
     } @else {
