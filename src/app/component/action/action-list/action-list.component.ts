@@ -68,7 +68,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     MemoCache.clear(this);
-    this.onResize();
+    defer(() => this.onResize());
   }
 
   @memo
