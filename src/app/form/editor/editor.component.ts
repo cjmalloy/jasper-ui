@@ -257,7 +257,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get responseTags() {
-    if (!this.selectResponseType) return [];
+    if (!this.selectResponseType || !this.responseButtons.length) return [];
     const p = this.responseButtons[this.toggleIndex];
     return p.config?.reply || [p.tag];
   }
