@@ -12,7 +12,7 @@
                    [options]="options"></formly-form>
     }
     @if (plugin.config!.advancedForm) {
-      <details class="advanced"
+      <details class="advanced {{ cssClass(plugin.tag) }}"
                [class.mini]="!plugin.config!.form">
         @if (plugin.config!.form) {
           <summary><span i18n>Advanced</span></summary>
