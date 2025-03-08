@@ -51,6 +51,7 @@ describe('Graph Plugin', {
     cy.get('button').contains('reply').click();
     cy.wait('@reply');
     cy.get('.ref .actions *').contains('permalink').click();
+    cy.get('.tabs').contains('responses').click();
     cy.get('.ref-list-item.ref .actions *').contains('permalink').click();
     cy.get('.full-page.ref .link a').should('have.text', 'Reply');
   });
