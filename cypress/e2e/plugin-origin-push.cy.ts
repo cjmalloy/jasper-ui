@@ -55,7 +55,7 @@ describe('Origin Push Plugin', {
   it('@repl: clear mods', () => {
     clearMods(replUrl);
   });
-  it('@main: check ref was scraped', () => {
+  it('@repl: check ref was scraped', () => {
     cy.visit(replUrl + '/tag/@repl?debug=ADMIN');
     cy.get('.ref-list .link').contains('Push Test').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('bob');
