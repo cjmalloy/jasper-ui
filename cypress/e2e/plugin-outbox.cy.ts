@@ -23,6 +23,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.wait(100);
     cy.get('#mod-comment').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-mailbox').should('not.be.checked').check().should('be.checked');
+    cy.get('#mod-root').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-remoteorigin').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-user').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
@@ -68,6 +69,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.log').contains('Success');
 
     cy.wait(100);
+    cy.get('#mod-root').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-remoteorigin').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
