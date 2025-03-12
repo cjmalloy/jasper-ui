@@ -5,7 +5,7 @@
     }
     @if (store.view.type) {
       <div class="wide">
-        @if (expanded && (store.view.inboxTag || store.view.settingsTag || store.view.tags)) {
+        @if (expanded && store.view.showRemotesCheckbox) {
           <app-search></app-search>
           <div class="show-remotes">
             <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">

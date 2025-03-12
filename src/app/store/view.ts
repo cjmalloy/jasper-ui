@@ -176,10 +176,6 @@ export class ViewStore {
     return this.extTemplates.filter(t => t.config?.global);
   }
 
-  get hasTemplate() {
-    return !!this.activeTemplates.length || !!this.globalTemplates.length;
-  }
-
   isTemplate(template: string) {
     return hasPrefix(this.viewExt?.tag, template);
   }
@@ -252,6 +248,10 @@ export class ViewStore {
         return undefined;
     }
     return undefined;
+  }
+
+  get showRemotesCheckbox() {
+    return this.inbox || ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref'].includes(this.current!);
   }
 
   get type(): Type | undefined {
