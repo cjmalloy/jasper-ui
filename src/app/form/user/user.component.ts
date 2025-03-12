@@ -93,6 +93,7 @@ export class UserFormComponent implements OnInit {
     this.writeAccess.setTags([...user.writeAccess || []]);
     this.tagReadAccess.setTags([...user.tagReadAccess || []]);
     this.tagWriteAccess.setTags([...user.tagWriteAccess || []]);
+    this.group.patchValue(user);
   }
 
 }
