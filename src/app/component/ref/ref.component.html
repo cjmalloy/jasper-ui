@@ -264,14 +264,14 @@
       </div>
       <div class="toggle actions-toggle"
            (click)="actionsExpanded = !actionsExpanded">⚙️</div>
-      @if (threads) {
+      @if (thread || threads) {
         <div class="toggle threads"
              (focus)="delayLastSelected()"
              (pointerdown)="delayLastSelected()"
              [routerLink]="['/ref', top, 'thread']"
              (click)="saveRef()"
              [queryParams]="{ origin: obsoleteOrigin }">🧵️</div>
-      } @else if (comments) {
+      } @else if (comment || comments) {
         <div class="toggle comments"
              [routerLink]="['/ref', ref.url, 'comments']"
              [queryParams]="{ origin: obsoleteOrigin }"
