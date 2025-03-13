@@ -308,8 +308,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   setResponse(tag: string) {
     const tags = this.tags?.value || this.createdTags;
     if (!tags.includes(tag)) {
-      this.toggleIndex = this.responseButtons.map(p => p.tag).indexOf(tag);
-      this.updateTags([...tags, tag]);
+      const responses = this.responseButtons.map(p => p.tag);
+      this.toggleIndex = responses.indexOf(tag);
+      this.updateTags([...without(tags, ...responses), tag]);
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
     if (this.focused !== false) this.editor?.nativeElement.focus();
