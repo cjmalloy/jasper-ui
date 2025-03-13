@@ -12,6 +12,9 @@ describe('Origin Push Plugin', {
   it('@main: clear mods', () => {
     clearMods();
   });
+  it('@repl: clear mods', () => {
+    clearMods(replUrl);
+  });
   it('@main: turn on push', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
@@ -53,10 +56,7 @@ describe('Origin Push Plugin', {
     cy.wait(1000);
     cy.get('.full-page.ref .link a').should('have.text', 'Push Test');
   });
-  it('@repl: clear mods', () => {
-    clearMods(replUrl);
-  });
-  it('@repl: check ref was scraped', () => {
+  it('@repl: check ref was pushed', () => {
     cy.visit(replUrl + '/tag/@repl?debug=ADMIN');
     cy.get('.ref-list .link').contains('Push Test').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('bob');
