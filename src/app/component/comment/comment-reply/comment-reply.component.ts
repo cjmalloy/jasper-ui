@@ -28,7 +28,7 @@ import { hasTag, removeTag, setPublic } from '../../../util/tag';
   styleUrls: ['./comment-reply.component.scss'],
   host: {'class': 'comment-reply'}
 })
-export class CommentReplyComponent implements AfterViewInit, HasChanges {
+export class CommentReplyComponent implements HasChanges {
 
   @Input()
   to!: Ref;
@@ -70,24 +70,8 @@ export class CommentReplyComponent implements AfterViewInit, HasChanges {
     return !this.commentForm.dirty;
   }
 
-  ngAfterViewInit(): void {
-    this.comment.setValue(this.quote);
-  }
-
   get comment() {
     return this.commentForm.get('comment') as UntypedFormControl;
-  }
-
-  get quote() {
-    if (this._quote !== undefined) return this._quote;
-    const q = this.to.comment || '';
-    if (!q) return q;
-    return q.split('\n').map(l => '> ' + l).join('\n') + '\n\n';
-  }
-
-  @Input()
-  set quote(value: string) {
-    this._quote = value;
   }
 
   get inheritedPlugins() {
