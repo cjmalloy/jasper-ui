@@ -815,6 +815,22 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return hasTag('plugin/fullscreen', this.ref);
   }
 
+  toggle() {
+    if (this.editing) {
+      this.editing = false;
+    } else if (this.viewSource) {
+      this.viewSource = false;
+    } else {
+      this.expanded = !this.expanded;
+      this.store.local.setRefToggled(this.ref.url, this.expanded);
+      // Mark as read
+      if (!this.expanded) return;
+      if (!this.admin.getPlugin('plugin/read')) return;
+      if (this.ref.metadata?.userUrls?.includes('plugin/read')) return;
+      this.ts.createResponse('plugin/read', this.ref.url).subscribe();
+    }
+  }
+
   @memo
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
