@@ -1,6 +1,8 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
+import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
+import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { VisibilityService } from '../../service/visibility.service';
@@ -31,7 +33,9 @@ export class NavComponent implements OnInit, OnDestroy {
 
   constructor(
     private config: ConfigService,
+    private admin: AdminService,
     private refs: RefService,
+    private ts: TaggingService,
     private editor: EditorService,
     private vis: VisibilityService,
     private el: ElementRef,
@@ -100,6 +104,11 @@ export class NavComponent implements OnInit, OnDestroy {
       if (this.text === '#' + this.url.substring(5)) return false;
     }
     return this.text != this.url;
+  }
+
+  markRead() {
+    if (!this.admin.getPlugin('plugin/read')) return;
+    this.ts.createResponse('plugin/read', this.url).subscribe();
   }
 
 }

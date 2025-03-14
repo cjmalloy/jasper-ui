@@ -12,6 +12,7 @@ import { isWiki } from '../../mods/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
+import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
@@ -42,6 +43,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     public admin: AdminService,
     public store: Store,
     private refs: RefService,
+    private ts: TaggingService,
     private router: Router,
     private stomp: StompService,
   ) { }
@@ -149,6 +151,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
+      tap(ref => this.markRead(ref)),
       switchMap(ref => !fetchTop(ref)
         ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
@@ -210,5 +213,11 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   @memo
   isWiki(url: string) {
     return !this.admin.isWikiExternal() && isWiki(url, this.admin.getWikiPrefix());
+  }
+
+  markRead(ref: Ref) {
+    if (!this.admin.getPlugin('plugin/read')) return;
+    if (ref.metadata?.userUrls?.includes('plugin/read')) return;
+    this.ts.createResponse('plugin/read', ref.url).subscribe();
   }
 }
