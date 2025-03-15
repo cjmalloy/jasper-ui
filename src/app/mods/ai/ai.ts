@@ -518,10 +518,10 @@ export const aiQueryPlugin: Plugin = {
           if (r.tags?.includes('dm')) r.tags.push('plugin/thread');
           if (r.tags?.includes('plugin/thread')) r.tags.push('internal');
           if (r.tags?.includes('plugin/comment')) r.tags.push('internal');
-          r.tags = (r.tags || [])
-            .filter(t => publicTagRegex.test(t) || t === '+plugin/delta/ai')
-            .filter(uniq);
         }
+        r.tags = (r.tags || [])
+          .filter(t => publicTagRegex.test(t) || t === '+plugin/delta/ai' || t.startsWith('+plugin/delta/ai'))
+          .filter(uniq);
         delete r.metadata;
         const oldUrl = i === 0 ? completionRef.url : r.url;
         // TODO: only replace comment: urls
