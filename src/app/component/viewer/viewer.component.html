@@ -19,6 +19,8 @@
             [search]="lensSearch"></app-lens>
   <div *ngIf="currentTags.includes('plugin/embed')"
        class="embed-container"
+       [appResizeHandle]="true"
+       [child]="iframe"
        [class.twitter]="twitter">
     <app-loading *ngIf="!embedReady"></app-loading>
     <iframe #iframe
