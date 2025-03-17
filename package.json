@@ -46,7 +46,7 @@
     "lodash-es": "^4.17.21",
     "luxon": "^3.5.0",
     "marked": "^15.0.7",
-    "mobx": "^6.13.6",
+    "mobx": "^6.13.7",
     "mobx-angular": "^4.8.0",
     "monaco-editor": "^0.50.0",
     "ngx-markdown": "^19.1.0",
