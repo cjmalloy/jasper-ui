@@ -126,19 +126,8 @@ export const originPullPlugin: Plugin = {
         label: $localize`Batch Size:`,
       }
     }, {
-      key: 'generateMetadata',
-      type: 'boolean',
-      defaultValue: true,
-      props: {
-        label: $localize`Generate Metadata (slow):`,
-        title: $localize`
-          Turn this off to replicate a large amount very quickly.
-          Turn back on for faster metadata generation`,
-      }
-    }, {
       key: 'validatePlugins',
       type: 'boolean',
-      defaultValue: true,
       props: {
         label: $localize`Validate Plugins:`,
       }
@@ -151,7 +140,6 @@ export const originPullPlugin: Plugin = {
     }, {
       key: 'validateTemplates',
       type: 'boolean',
-      defaultValue: true,
       props: {
         label: $localize`Validate Templates:`,
       }
@@ -166,9 +154,6 @@ export const originPullPlugin: Plugin = {
   defaults: {
     cache: true,
     websocket: true,
-    generateMetadata: true,
-    validatePlugins: true,
-    validateTemplates: true,
   },
   schema: {
     optionalProperties: {
@@ -178,7 +163,6 @@ export const originPullPlugin: Plugin = {
       websocket: { type: 'boolean' },
       query: { type: 'string' },
       batchSize: { type: 'int32' },
-      generateMetadata: { type: 'boolean' },
       validatePlugins: { type: 'boolean' },
       stripInvalidPlugins: { type: 'boolean' },
       validateTemplates: { type: 'boolean' },
