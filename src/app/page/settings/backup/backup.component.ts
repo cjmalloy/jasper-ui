@@ -112,7 +112,12 @@ export class SettingsBackupPage {
       scrollToFirstInvalid();
       return;
     }
-    if (!confirm($localize`Are you sure you want totally delete everything in ${this.origin}?`)) return;
+    var confirmation = prompt($localize`Are you sure you want totally delete everything in ${this.origin || 'default'}?\n\nEnter the origin to confirm:`);
+    if (confirmation === null) return;
+    if (confirmation !== (this.origin || 'default')){
+      alert($localize`Origin did not match ${this.origin || 'default'}, aborting.`)
+      return;
+    }
     const olderThan = DateTime.fromISO(this.originForm.value.olderThan);
     this.origins.delete(this.origin, olderThan).pipe(
       catchError((res: HttpErrorResponse) => {
