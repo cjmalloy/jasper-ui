@@ -151,6 +151,34 @@ export const aiQueryPlugin: Plugin = {
             };
           }
         },
+        nous: {
+          init(config) {
+            config.model ||= 'DeepHermes-3-Llama-3-8B-Preview';
+            config.maxTokens ||= 4096;
+            config.thinking = false;
+            config.pdf = false;
+            config.image = false;
+            config.audio = false;
+            config.video = false;
+          },
+          loadMessage(source, plugins) {
+            return providers['openai'].loadMessage(source, plugins);
+          },
+          async generate(messages, config) {
+            const OpenAi = require('openai');
+            const openai = new OpenAi({ apiKey, baseURL: 'https://inference-api.nousresearch.com/v1' });
+            const res = await openai.chat.completions.create({
+              model: config.model,
+              max_completion_tokens: config.maxTokens,
+              response_format: { 'type': 'json_object' },
+              messages,
+            });
+            return {
+              completion: res.choices[0]?.message?.content,
+              usage: res.usage,
+            };
+          }
+        },
         ds: {
           init(config) {
             config.model ||= config.thinking ? 'deepseek-reasoner' : 'deepseek-chat';
@@ -557,6 +585,7 @@ export const aiQueryPlugin: Plugin = {
           { value: 'x', label: $localize`xAI` },
           { value: 'gemini', label: $localize`Gemini` },
           { value: 'ds', label: $localize`Deep Seek` },
+          { value: 'nous', label: $localize`Nous` },
         ],
       },
     }],
