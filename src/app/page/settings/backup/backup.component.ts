@@ -112,7 +112,7 @@ export class SettingsBackupPage {
       scrollToFirstInvalid();
       return;
     }
-    var confirmation = prompt($localize`Are you sure you want totally delete everything in ${this.origin || 'default'}?\n\nEnter the origin to confirm:`);
+    const confirmation = prompt($localize`Are you sure you want totally delete everything in ${this.origin || 'default'}?\n\nEnter the origin to confirm:`);
     if (confirmation === null) return;
     if (confirmation !== (this.origin || 'default')){
       alert($localize`Origin did not match ${this.origin || 'default'}, aborting.`)
