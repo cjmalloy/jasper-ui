@@ -75,7 +75,7 @@ export const aiQueryPlugin: Plugin = {
       const providers = {
         openai: {
           init(config) {
-            config.model ||= config.vision ? 'o1' : config.audio ? 'gpt-4o-audio-preview' : 'o3-mini';
+            config.model ||= config.vision ? 'o1' : config.audio ? 'gpt-4o-audio-preview' : 'o1';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
