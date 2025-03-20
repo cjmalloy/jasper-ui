@@ -50,7 +50,7 @@ describe('Graph Plugin', {
     cy.intercept({pathname: '/api/v1/ref'}).as('reply');
     cy.get('button').contains('reply').click();
     cy.wait('@reply');
-    cy.wait('1000');
+    cy.wait(1000);
     cy.get('.ref .actions *').contains('permalink').click();
     cy.get('.tabs').contains('responses').click();
     cy.get('.ref-list-item.ref .actions *').contains('permalink').click();
