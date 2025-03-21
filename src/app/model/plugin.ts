@@ -67,6 +67,10 @@ export interface Plugin extends Config {
      */
     signature?: string,
     /**
+     * Copy this plugin into responses.
+     */
+    inherit?: boolean,
+    /**
      * List of file extensions that match this plugin.
      */
     extensions?: string[],
@@ -142,10 +146,6 @@ export function mapPlugin(obj: any): Plugin {
   obj.modifiedString = obj.modified;
   obj.modified &&= DateTime.fromISO(obj.modified);
   return obj;
-}
-
-export function isSignaturePair(plugin: Plugin) {
-  return plugin.tag === plugin.config?.signature || plugin.config?.reply?.includes(plugin.tag);
 }
 
 export function maybePlugin(obj: any): Plugin | undefined {

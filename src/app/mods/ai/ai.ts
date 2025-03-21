@@ -20,8 +20,9 @@ export const aiQueryPlugin: Plugin = {
       const axios = require('axios');
       const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
       const origin = ref.origin || ''
-      const config = ref.plugins?.['plugin/delta/ai'] || {};
-      const followup = ref.tags.includes('+plugin/delta/ai');
+      const matchesTag = (prefix, tag) => prefix === tag || tag.startsWith(tag + '/');
+      const hasTag = (tag, ref) => ref.tags?.find(t => matchesTag(tag, t));
+      const followup = hasTag('+plugin/delta/ai', ref);
       const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
       const response = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
@@ -37,6 +38,10 @@ export const aiQueryPlugin: Plugin = {
       if (!response) {
         // No placeholder, earlier stage failed
         process.exit(0);
+      }
+      const config = {
+        ...ref.plugins?.['plugin/llm'] || {},
+        ...response.plugins?.['plugin/llm'] || {},
       }
       const bundleSchema = {
         type: 'object',
@@ -72,6 +77,13 @@ export const aiQueryPlugin: Plugin = {
           }
         }
       };
+      const formatMessage = source => {
+        if (config.json) {
+          return JSON.stringify(source);
+        } else {
+          return (source.title ? source.title + ':' : '') + source.comment;
+        }
+      };
       const providers = {
         openai: {
           init(config) {
@@ -86,7 +98,7 @@ export const aiQueryPlugin: Plugin = {
           loadMessage(source, plugins) {
             // TODO: OpenAI and X supports fetching images itself
             const message = {};
-            message.content = [{ type: 'text', text: JSON.stringify(source) }];
+            message.content = [{ type: 'text', text: formatMessage(source) }];
             if (plugins['plugin/audio']) {
               message.content.push({
                 type: 'input_audio',
@@ -114,7 +126,7 @@ export const aiQueryPlugin: Plugin = {
             const res = await openai.chat.completions.create({
               model: config.model,
               max_completion_tokens: config.maxTokens,
-              response_format: { 'type': config.audio ? 'text' : 'json_object' },
+              response_format: { 'type': config.audio || !config.json ? 'text' : 'json_object' },
               messages,
             });
             return {
@@ -142,7 +154,7 @@ export const aiQueryPlugin: Plugin = {
             const res = await openai.chat.completions.create({
               model: config.model,
               max_completion_tokens: config.maxTokens,
-              response_format: { 'type': 'json_object' },
+              response_format: !config.json ? undefined : { 'type': 'json_object' },
               messages,
             });
             return {
@@ -170,7 +182,7 @@ export const aiQueryPlugin: Plugin = {
             const res = await openai.chat.completions.create({
               model: config.model,
               max_completion_tokens: config.maxTokens,
-              response_format: { 'type': 'json_object' },
+              response_format: !config.json ? undefined : { 'type': 'json_object' },
               messages,
             });
             return {
@@ -197,7 +209,7 @@ export const aiQueryPlugin: Plugin = {
             const res = await openai.chat.completions.create({
               model: config.model,
               max_completion_tokens: config.maxTokens,
-              response_format: config.thinking ? undefined : { 'type': 'json_object' },
+              response_format: (!config.json || config.thinking) ? undefined : { 'type': 'json_object' },
               messages,
             });
             return {
@@ -220,7 +232,7 @@ export const aiQueryPlugin: Plugin = {
             const message = {};
             message.content = [{
               type: 'text',
-              text: JSON.stringify(source),
+              text: formatMessage(source),
             }];
             if (plugins['plugin/pdf']) {
               message.content.push({
@@ -256,7 +268,7 @@ export const aiQueryPlugin: Plugin = {
                 budget_tokens: config.thinkingTokens,
               }
             } : {};
-            const toolUse = !config.thinking ? {
+            const toolUse = !config.json && !config.thinking ? {
               tools: [{
                 name: 'bundle',
                 description: 'JSON responses in bundle format',
@@ -272,10 +284,10 @@ export const aiQueryPlugin: Plugin = {
               ...toolUse,
               messages: messages.filter(m => m.role !== 'system'),
             });
-            let text = res.content.filter(t => t.type === 'text');
+            const text = res.content.filter(t => t.type === 'text');
             const tools = res.content.filter(t => t.type === 'tool_use');
             return {
-              completion: JSON.stringify(tools[0]?.input || { comment: text[0]?.text || '' }),
+              completion: config.json ? JSON.stringify(tools[0]?.input || { comment: text[0]?.text || '' }) : text[0]?.text,
               usage: {
                 'prompt_tokens': res.usage.input_tokens,
                 'completion_tokens': res.usage.output_tokens,
@@ -294,7 +306,7 @@ export const aiQueryPlugin: Plugin = {
           },
           loadMessage(source, plugins) {
             const message = {};
-            message.parts = [{ text: JSON.stringify(source) }];
+            message.parts = [{ text: formatMessage(source) }];
             if (plugins['plugin/audio']) {
               message.parts.push({
                 inlineData: {
@@ -331,8 +343,10 @@ export const aiQueryPlugin: Plugin = {
               systemInstruction: system,
             });
             let text = result.response.text().trim();
-            while (text && !text.startsWith('{')) text = text.substring(1).trim();
-            while (text && !text.endsWith('}')) text = text.substring(0, text.length - 1).trim();
+            if (config.json) {
+              while (text && !text.startsWith('{')) text = text.substring(1).trim();
+              while (text && !text.endsWith('}')) text = text.substring(0, text.length - 1).trim();
+            }
             return {
               completion: text,
               usage: {
@@ -402,14 +416,14 @@ export const aiQueryPlugin: Plugin = {
           params: {
             query: folderTags.join(':') + (origin || '@'),
             sort: 'published',
-            size: config.maxSources,
+            size: config.maxSources || 2000,
           },
         })).data.content;
         for (const w of workspace) {
           const role
-            = w.tags?.includes('+system/prompt') ? 'system'
-            : w.tags?.includes('+plugin/delta/ai/navi') ? 'assistant'
-              : 'user';
+            = hasTag('+system/prompt', w) ? 'system'
+            : hasTag('+plugin/delta/ai', w) ? 'assistant'
+            : 'user';
           messages.push({
             role,
             ...provider.loadMessage(w),
@@ -430,7 +444,7 @@ export const aiQueryPlugin: Plugin = {
       })).data.content;
       for (const c of sources) {
         const plugins = {};
-        if (config.pdf && c.tags?.includes('plugin/pdf')) {
+        if (config.pdf && hasTag('plugin/pdf', c)) {
           const url = c.plugins?.['plugin/pdf']?.url || c.url;
           plugins['plugin/pdf'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
             responseType: 'arraybuffer',
@@ -441,7 +455,7 @@ export const aiQueryPlugin: Plugin = {
             params: { url, origin: c.origin || '' },
           });
         }
-        if (config.image && c.tags?.includes('plugin/image')) {
+        if (config.image && hasTag('plugin/image', c)) {
           const url = c.plugins?.['plugin/image']?.url || c.url;
           plugins['plugin/image'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
             responseType: 'arraybuffer',
@@ -452,7 +466,7 @@ export const aiQueryPlugin: Plugin = {
             params: { url, origin: c.origin || '' },
           });
         }
-        if (config.audio && c.tags?.includes('plugin/audio')) {
+        if (config.audio && hasTag('plugin/audio', c)) {
           const url = c.plugins?.['plugin/audio']?.url || c.url;
           plugins['plugin/audio'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
             responseType: 'arraybuffer',
@@ -463,7 +477,7 @@ export const aiQueryPlugin: Plugin = {
             params: { url, origin: c.origin || '' },
           });
         }
-        if (config.video && c.tags?.includes('plugin/video')) {
+        if (config.video && hasTag('plugin/video', c)) {
           const url = c.plugins?.['plugin/video']?.url || c.url;
           plugins['plugin/video'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
             responseType: 'arraybuffer',
@@ -476,8 +490,8 @@ export const aiQueryPlugin: Plugin = {
         }
         const role
           = c.tags?.includes('+system/prompt') ? 'system'
-          : c.tags?.includes('+plugin/delta/ai/navi') ? 'assistant'
-            : 'user';
+          : c.tags?.includes('+plugin/delta/ai') ? 'assistant'
+          : 'user';
         messages.push({
           role,
           ...provider.loadMessage(c, plugins),
@@ -488,18 +502,27 @@ export const aiQueryPlugin: Plugin = {
       if (!completion) {
         throw 'Error: No completion in response'
       }
-      try {
-        bundle = JSON.parse(completion);
-        if (!bundle.ref) {
-          // Model returned a bare Ref?
-          bundle = {
-            ref: [bundle],
-          };
+      if (config.json) {
+        try {
+          bundle = JSON.parse(completion);
+          if (!bundle.ref) {
+            // Model returned a bare Ref?
+            bundle = {
+              ref: [bundle],
+            };
+          }
+        } catch (e) {
+          console.error('Error parsing completion:', e);
+          console.error(completion);
+          process.exit(1);
         }
-      } catch (e) {
-        console.error('Error parsing completion:', e);
-        console.error(completion);
-        process.exit(1);
+      } else {
+        bundle = {
+          ref: [{
+            title: response.title,
+            comment: completion,
+          }],
+        };
       }
       const completionRef = bundle.ref[0];
       if (!completionRef) {
@@ -511,10 +534,12 @@ export const aiQueryPlugin: Plugin = {
       delete response.metadata;
       response.title = completionRef.title || '';
       response.comment = completionRef.comment || '';
+      response.tags.push('plugin/llm');
       response.plugins ||= {};
-      response.plugins['+plugin/delta/ai'] = {
+      response.plugins['plugin/llm'] = {
         provider: config.provider,
         model: config.model,
+        json: config.json,
         maxTokens: config.maxTokens,
         thinking: config.thinking,
         thinkingTokens: config.thinkingTokens,
@@ -531,6 +556,7 @@ export const aiQueryPlugin: Plugin = {
         const mailboxes = ref.tags.filter(tag => tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox'));
         response.tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)));
       }
+      response.tags.push(...response.tags.filter(t => matchesTag('plugin/delta/ai', t)).map(t => '+' + t));
       const uniq = (v, i, a) => a.indexOf(v) === i;
       response.tags = [...response.tags, ...completionRef.tags || [], '+plugin/delta/ai'].filter(uniq).filter(t => t !== '+plugin/placeholder');
       if (followup && response.tags.find(t => t.startWith('plugin/delta/ai'))) {
@@ -543,9 +569,9 @@ export const aiQueryPlugin: Plugin = {
       for (let i = 0; i < bundle.ref.length; i++) {
         const r = bundle.ref[i];
         if (i) {
-          if (r.tags?.includes('dm')) r.tags.push('plugin/thread');
-          if (r.tags?.includes('plugin/thread')) r.tags.push('internal');
-          if (r.tags?.includes('plugin/comment')) r.tags.push('internal');
+          if (hasTag('dm', r)) r.tags.push('plugin/thread');
+          if (hasTag('plugin/thread', r)) r.tags.push('internal');
+          if (hasTag('plugin/comment', r)) r.tags.push('internal');
         }
         r.tags = (r.tags || [])
           .filter(t => publicTagRegex.test(t) || t === '+plugin/delta/ai' || t.startsWith('+plugin/delta/ai'))
@@ -574,6 +600,32 @@ export const aiQueryPlugin: Plugin = {
       }
       console.log(JSON.stringify(bundle));
     `,
+  },
+};
+
+export const aiPlugin: Plugin = {
+  tag: '+plugin/delta/ai',
+  name: $localize`✨️ AI Response`,
+  config: {
+    mod: $localize`✨️ AI Generation`,
+    type: 'tool',
+    default: false,
+    generated: $localize`Generated by jasper-ui ${DateTime.now().toISO()}`,
+  },
+  generateMetadata: true,
+};
+
+export const llmPlugin: Plugin = {
+  tag: 'plugin/llm',
+  name: $localize`✨️ LLM Config`,
+  config: {
+    mod: $localize`✨️ AI Generation`,
+    type: 'tool',
+    default: false,
+    inherit: true,
+    generated: $localize`Generated by jasper-ui ${DateTime.now().toISO()}`,
+    // language=Handlebars
+    infoUi: `{{#if usage}}<span style="user-select:none;cursor:zoom-in" title="{{model}}: {{usage.totalTokens}} ({{usage.promptTokens}} + {{usage.completionTokens}})">ℹ️ ({{provider}})</span>{{/if}}`,
     form: [{
       key: 'provider',
       type: 'select',
@@ -655,44 +707,12 @@ export const aiQueryPlugin: Plugin = {
       },
     }],
   },
-  defaults: {
-    provider: 'gemini',
-    maxContext: 7,
-    maxSources: 2000,
-  },
   schema: {
     optionalProperties: {
       provider: { type: 'string' },
       apiKeyTag: { type: 'string' },
       model: { type: 'string' },
-      audio: { type: 'boolean' },
-      vision: { type: 'boolean' },
-      maxTokens: { type: 'uint32' },
-      thinking: { type: 'boolean' },
-      thinkingTokens: { type: 'uint32' },
-      maxContext: { type: 'uint32' },
-      maxSources: { type: 'uint32' },
-      systemPrompt: { type: 'string' },
-    }
-  }
-};
-
-export const aiPlugin: Plugin = {
-  tag: '+plugin/delta/ai',
-  name: $localize`✨️ AI Response`,
-  config: {
-    mod: $localize`✨️ AI Generation`,
-    type: 'tool',
-    default: false,
-    generated: $localize`Generated by jasper-ui ${DateTime.now().toISO()}`,
-    // language=Handlebars
-    infoUi: `{{#if model}}<span style="user-select:none;cursor:zoom-in" title="{{model}}: {{usage.totalTokens}} ({{usage.promptTokens}} + {{usage.completionTokens}})">ℹ️ ({{provider}})</span>{{/if}}`,
-  },
-  schema: {
-    optionalProperties: {
-      provider: { type: 'string' },
-      apiKeyTag: { type: 'string' },
-      model: { type: 'string' },
+      json: { type: 'boolean' },
       audio: { type: 'boolean' },
       vision: { type: 'boolean' },
       maxTokens: { type: 'uint32' },
@@ -710,12 +730,12 @@ export const aiPlugin: Plugin = {
       }
     },
   },
-  generateMetadata: true,
 };
 
 export const aiMod: Mod = {
   plugin: [
     aiPlugin,
     aiQueryPlugin,
+    llmPlugin,
   ],
 };

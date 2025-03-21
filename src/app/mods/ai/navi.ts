@@ -28,7 +28,7 @@ export const naviQueryPlugin: Plugin = {
       const axios = require('axios');
       const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
       const origin = ref.origin || ''
-      const config = ref.plugins?.['plugin/delta/ai'];
+      const config = ref.plugins?.['plugin/llm'] || {};
       const followup = ref.tags.includes('+plugin/delta/ai');
       const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
       const existingResponse = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
@@ -104,10 +104,15 @@ export const naviQueryPlugin: Plugin = {
         origin,
         url: 'ai:' + uuid.v4(),
         comment: '+plugin/delta/ai/navi is thinking...',
+        tags: ['+plugin/placeholder', 'plugin/llm'],
+        plugins: {
+          'plugin/llm': {
+            ...config,
+            json: true,
+          }
+        }
       };
       bundle.ref.push(response);
-      response.tags ||= [];
-      response.tags.push('+plugin/placeholder');
       response.tags.push(...authors.map(a => a.startsWith('+') || a.startsWith('_') ? a.substring(1) : a));
       if (ref.tags.includes('public')) response.tags.push('public');
       if (ref.tags.includes('internal')) response.tags.push('internal');

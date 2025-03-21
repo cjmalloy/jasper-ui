@@ -1,14 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { merge, pickBy, uniq } from 'lodash-es';
+import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
-import { isSignaturePair } from '../../../model/plugin';
 import { Ref } from '../../../model/ref';
 import { commentPlugin } from '../../../mods/comment';
 import { getMailbox } from '../../../mods/mailbox';
@@ -19,7 +18,7 @@ import { Store } from '../../../store/store';
 import { getMailboxes } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag, removeTag, setPublic } from '../../../util/tag';
+import { hasTag, removeTag } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -52,7 +51,6 @@ export class CommentReplyComponent implements HasChanges {
   commentForm: UntypedFormGroup;
   serverError: string[] = [];
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
-  _quote?: string;
 
   constructor(
     public admin: AdminService,
@@ -76,23 +74,21 @@ export class CommentReplyComponent implements HasChanges {
 
   get inheritedPlugins() {
     const plugins = this.admin.getPlugins(this.to.tags)
-      .filter(p => isSignaturePair(p) && p.config?.reply?.find(t => hasTag(t, this.tags)))
+      .filter(p => p.config?.inherit)
       .map(p => p.tag);
-    const parentPlugins = pickBy(this.to.plugins, (data, tag) => hasTag(tag, plugins));
-    return merge({}, ...Object.keys(parentPlugins)
-      .flatMap(tag => (this.admin.getPlugin(tag)?.config?.reply || [setPublic(tag)])
-        .filter(r => hasTag(r, this.tags))
-        .map(r => ({ [r]: this.admin.stripInvalid(r, parentPlugins[tag]) }))));
+    return pickBy(this.to.plugins, (data, tag) => hasTag(tag, plugins));
   }
 
   reply() {
     if (!this.comment.value) return;
     const url = 'comment:' + uuid();
     const value = this.comment.value;
+    const inheritedPlugins = this.inheritedPlugins;
     const tags = removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
       ...this.editorTags,
       ...getMailboxes(value, this.store.account.origin),
+      ...Object.keys(inheritedPlugins),
     ]));
     const sources = [this.to.url];
     if (hasTag('plugin/comment', tags) || hasTag('plugin/thread', tags)) {
@@ -111,7 +107,7 @@ export class CommentReplyComponent implements HasChanges {
       comment: value,
       sources,
       tags,
-      plugins: this.inheritedPlugins,
+      plugins: inheritedPlugins,
       published: DateTime.now(),
     };
     this.comment.disable();
