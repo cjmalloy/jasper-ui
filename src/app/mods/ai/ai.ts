@@ -275,7 +275,7 @@ export const aiQueryPlugin: Plugin = {
             let text = res.content.filter(t => t.type === 'text');
             const tools = res.content.filter(t => t.type === 'tool_use');
             return {
-              completion: JSON.stringify(thinking ? { comment: text[0]?.text || '' } : tools[0]?.input),
+              completion: JSON.stringify(tools[0]?.input || { comment: text[0]?.text || '' }),
               usage: {
                 'prompt_tokens': res.usage.input_tokens,
                 'completion_tokens': res.usage.output_tokens,
