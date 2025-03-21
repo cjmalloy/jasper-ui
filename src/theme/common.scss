@@ -1579,7 +1579,7 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
-.ref-list .ref.plugin_placeholder {
+.ref-list .ref.plugin_thread.plugin_placeholder {
   .expand {
     animation: fadein 2s ease-in-out;
     animation-iteration-count: infinite;
@@ -1595,7 +1595,7 @@ formly-field-radio, formly-field-multicheckbox {
       animation: none;
     }
   }
-  &.plugin_thread:not(:hover) {
+  &:not(:hover) {
     transition: border-color 0.2s linear,
                 background-color 0.2s linear,
                 box-shadow 0.2s linear;
@@ -1603,7 +1603,7 @@ formly-field-radio, formly-field-multicheckbox {
     background-color: transparent !important;
     box-shadow: none !important;
   }
-  &.plugin_thread:hover {
+  &:hover {
     transition: border-color 0.2s 1s linear,
                 background-color 0.2s 1s linear,
                 box-shadow 0.2s 1s linear;
