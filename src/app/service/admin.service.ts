@@ -737,6 +737,7 @@ export class AdminService {
     return this.forms.filter(p => hasTag(p.tag, match));
   }
 
+  @memo
   getPluginSubForms(parent: string) {
     return this.forms.filter(p => p.config?.submitChild && hasPrefix(p.tag, parent));
   }

@@ -131,6 +131,15 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   showIcon(i: Icon) {
     return this.visible(i) && this.active(i);
   }
+
+  hasForm(plugin?: Plugin) {
+    if (!plugin) return false;
+    if (plugin.config?.submitChild) return false;
+    if (plugin.config?.form?.length) return true;
+    if (plugin.config?.advancedForm?.length) return true;
+    if (this.admin.getPluginSubForms(plugin.tag).length) return true;
+    return false;
+  }
 }
 
 export function pluginsForm(fb: UntypedFormBuilder, admin: AdminService, tags: string[]) {
