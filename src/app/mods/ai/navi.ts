@@ -107,7 +107,6 @@ export const naviQueryPlugin: Plugin = {
         tags: ['+plugin/placeholder', 'plugin/llm'],
         plugins: {
           'plugin/llm': {
-            ...config,
             json: true,
           }
         }
