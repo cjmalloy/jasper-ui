@@ -223,7 +223,7 @@ export const aiQueryPlugin: Plugin = {
         },
         anthropic: {
           init(config) {
-            config.model ||= 'claude-3-7-sonnet-latest';
+            config.model ||= 'claude-3-5-sonnet-latest';
             config.maxTokens ||= 4096;
             config.thinkingTokens ||= 4096
             config.pdf = true;
@@ -301,7 +301,7 @@ export const aiQueryPlugin: Plugin = {
         },
         gemini: {
           init(config) {
-            config.model ||= 'gemini-2.5-pro-exp-03-25';
+            config.model ||= 'gemini-2.0-flash';
             config.pdf = false;
             config.image = true;
             config.audio = true;
