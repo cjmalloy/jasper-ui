@@ -29,6 +29,8 @@ export const naviQueryPlugin: Plugin = {
       const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
       const origin = ref.origin || ''
       const config = ref.plugins?.['plugin/llm'] || {};
+      config.maxSources ||= 2000;
+      config.maxContext ||= 7;
       const followup = ref.tags.includes('+plugin/delta/ai');
       const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
       const existingResponse = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
