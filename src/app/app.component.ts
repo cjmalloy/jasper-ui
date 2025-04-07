@@ -6,6 +6,7 @@ import { pdfPlugin, pdfUrl } from './mods/pdf';
 import { AdminService } from './service/admin.service';
 import { OriginService } from './service/api/origin.service';
 import { ProxyService } from './service/api/proxy.service';
+import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { memo } from './util/memo';
@@ -33,6 +34,7 @@ export class AppComponent implements AfterViewInit {
     private admin: AdminService,
     private proxy: ProxyService,
     private origins: OriginService,
+    private scrape: ScrapeService,
     private router: Router,
   ) {
     document.body.style.height = '';

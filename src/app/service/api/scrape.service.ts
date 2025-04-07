@@ -6,7 +6,6 @@ import { mapRef, Ref } from '../../model/ref';
 import { catchAll } from '../../mods/scrape';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
-import { hasTag } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 import { RefService } from './ref.service';
