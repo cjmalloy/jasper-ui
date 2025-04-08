@@ -45,7 +45,7 @@
     "katex": "^0.16.21",
     "lodash-es": "^4.17.21",
     "luxon": "^3.6.1",
-    "marked": "^15.0.7",
+    "marked": "^15.0.8",
     "mobx": "^6.13.7",
     "mobx-angular": "^4.8.0",
     "monaco-editor": "^0.50.0",
