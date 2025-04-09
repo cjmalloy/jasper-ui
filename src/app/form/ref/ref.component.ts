@@ -156,8 +156,10 @@ export class RefFormComponent {
           this.ref!.modifiedString = s.modifiedString;
           this.ref!.modified = s.modified;
           if (hasTag('_plugin/cache', s)) {
-            this.ref!.tags ||= [];
-            this.ref!.tags.push('_plugin/cache');
+            if (!hasTag('_plugin/cache', this.ref)) {
+              this.ref!.tags ||= [];
+              this.ref!.tags.push('_plugin/cache');
+            }
             this.ref!.plugins ||= {}
             this.ref!.plugins['_plugin/cache'] = s.plugins?.['_plugin/cache'];
           }
