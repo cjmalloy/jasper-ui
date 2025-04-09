@@ -140,7 +140,7 @@ export const aiQueryPlugin: Plugin = {
         },
         x: {
           init(config) {
-            config.model ||= config.vision ? 'grok-2-vision-latest' : 'grok-2-latest';
+            config.model ||= config.vision ? 'grok-2-vision-latest' : 'grok-3-beta';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
@@ -361,7 +361,7 @@ export const aiQueryPlugin: Plugin = {
           }
         },
       };
-      const provider = providers[config.provider ||= 'gemini'];
+      const provider = providers[config.provider ||= 'x'];
       provider.init(config);
       const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
