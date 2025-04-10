@@ -79,8 +79,7 @@
 }
 @if (code) {
   @if (commentControl) {
-    <ngx-monaco-editor *ngIf="code"
-                       [formControl]="commentControl"
+    <ngx-monaco-editor [formControl]="commentControl"
                        [options]="codeOptions"
                        [style.width]="'min(900px, 50vw)'"
                        [style.height]="'min(200px, 90vh)'"
@@ -90,9 +89,8 @@
     <app-md [origin]="currentOrigin"
             [text]="currentCode"></app-md>
   }
-} @else {
-  <app-md *ngIf="currentText"
-          [class.expand]="expand"
+} @else if (currentText) {
+  <app-md [class.expand]="expand"
           [origin]="currentOrigin"
           [text]="currentText"
           [plugins]="currentTags"></app-md>
