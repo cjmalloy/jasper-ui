@@ -140,7 +140,7 @@ export const aiQueryPlugin: Plugin = {
         },
         x: {
           init(config) {
-            config.model ||= config.vision ? 'grok-2-vision-latest' : 'grok-3-beta';
+            config.model ||= config.vision ? 'grok-2-vision-latest' : 'grok-3-fast-latest';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
