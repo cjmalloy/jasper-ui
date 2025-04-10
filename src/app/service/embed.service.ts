@@ -216,7 +216,7 @@ export class EmbedService {
         if (self.admin.isWikiExternal()) {
           return `<a target="_blank" href="${token.href}">${token.text}</a>`;
         } else {
-          return `<a class="inline-embed">${token.href}</a>`;
+          return `<span class="inline-embed">${token.href}</span>`;
         }
       }
     }, {
@@ -240,7 +240,7 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<a class="inline-embed">${token.href}</a>`;
+        return `<span class="inline-embed">${token.href}</span>`;
       }
     }, {
       name: 'embed',
@@ -263,7 +263,7 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<a class="inline-${token.css}">${token.text}</a>`;
+        return `<span class="inline-${token.css}">${token.text}</span>`;
       }
     }, {
       name: 'preserveMath',
