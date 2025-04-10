@@ -298,18 +298,8 @@
                      [tags]="replyTags"
                      (save)="onReply($event)"></app-comment-reply>
 }
-@if (editing) {
-  <app-viewer *ngIf="expanded && !expandInline && !editing && !viewSource"
-              class="viewer-below"
-              [ref]="bareRef"
-              [commentControl]="$any(editForm.controls.comment)"
-              [tags]="plugins || currentTags"
-              [disableResize]="disableResize"
-              (contextmenu)="unlockViewer($event)"
-              (copied)="copied.emit($event)"></app-viewer>
-} @else {
-  <app-viewer *ngIf="expanded && !expandInline && !editing && !viewSource"
-              class="viewer-below"
+@if (expanded && !expandInline && !editing && !viewSource) {
+  <app-viewer class="viewer-below"
               [ref]="bareRef"
               [tags]="plugins || currentTags"
               [disableResize]="disableResize"
