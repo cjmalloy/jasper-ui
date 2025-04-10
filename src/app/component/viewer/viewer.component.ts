@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import Hls from 'hls.js';
-import { defer, some, without } from 'lodash-es';
+import { defer, isEqual, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { Ext } from '../../model/ext';
@@ -147,7 +147,9 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref || changes.tags || changes.text) {
+    const changesRef = changes.ref && changes.ref.currentValue?.modifiedString !== changes.ref.previousValue?.modifiedString;
+    const changesTags = changes.tags && !isEqual(changes.tags.previousValue, changes.tags.currentValue);
+    if (changesRef || changesTags || changes.text) {
       this.init();
     }
   }
@@ -199,6 +201,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       defer(() => this.oembed = oembed);
       return;
     }
+    if (isEqual(this._oembed, oembed)) return;
     this._oembed = oembed!;
     MemoCache.clear(this);
     const i = this.iframe.nativeElement;
