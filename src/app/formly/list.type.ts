@@ -150,9 +150,15 @@ export class ListTypeComponent extends FieldArrayType {
     }
   }
 
+  /**
+   * Remove blank inputs on blur.
+   */
   maybeRemove(event: FocusEvent, i: number) {
     if (this.groupArray) return;
-    if (!(event.target as any).value) this.remove(i);
+    const input = event.target as HTMLInputElement;
+    if (input.tagName !== 'INPUT') return;
+    if (input.classList.contains('preview')) return;
+    if (!input.value) this.remove(i);
   }
 
   focus(index?: number, select = false) {
