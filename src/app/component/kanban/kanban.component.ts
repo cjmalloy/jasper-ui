@@ -15,7 +15,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 import { negate, UrlFilter } from '../../util/query';
-import { isQuery, isSelector, topAnds } from '../../util/tag';
+import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
 
 export interface KanbanDrag {
   from: string;
@@ -225,7 +225,7 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   addingTags(tags: { col?: string, sl?: string }) {
     const result = [
         ...this.kanbanConfig.addTags || [],
-        ...this.store.view.queryTags
+        ...this.store.view.queryTags.map(localTag),
     ];
     result.push(this.ext!.tag);
     if (tags.col) result.push(tags.col);
