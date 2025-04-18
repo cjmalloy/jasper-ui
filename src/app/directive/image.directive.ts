@@ -34,7 +34,6 @@ export class ImageDirective implements OnInit, OnDestroy {
     private elRef: ElementRef,
     private imgs: ImageService,
   ) {
-    this.el.style.backgroundImage = `url("./assets/image-loading.png")`;
     this.disposers.push(autorun(() => {
       if (this.store.eventBus.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {

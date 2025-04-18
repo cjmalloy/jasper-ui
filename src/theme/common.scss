@@ -1974,39 +1974,53 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .image-expand {
-  height: 240px;
+  height: 600px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+}
 
-  &.loading {
-    border-radius: 7px;
-    opacity: 50%;
-    animation-duration: 4s;
-    animation-name: image-loading;
-    animation-iteration-count: infinite;
-    animation-timing-function: linear;
+.loading {
+  color: transparent;
+  user-select: none;
+  background-image: url("~/assets/image-loading.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: unset;
+  border-radius: 7px;
+  opacity: 50%;
+  animation-duration: 4s;
+  animation-name: image-loading;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+
+  * {
+    display: none;
   }
-  @keyframes image-loading {
-    from {
-      box-shadow: inset 0 0 5px grey;
-    }
 
-    5% {
-      box-shadow: inset 0 0 5px grey;
-    }
+  &.inline-embed {
+    height: 600px;
+  }
+}
+@keyframes image-loading {
+  from {
+    box-shadow: inset 0 0 5px grey;
+  }
 
-    35% {
-      box-shadow: inset 0 0 30px grey;
-    }
+  5% {
+    box-shadow: inset 0 0 5px grey;
+  }
 
-    70% {
-      box-shadow: inset 0 0 30px grey;
-    }
+  35% {
+    box-shadow: inset 0 0 30px grey;
+  }
 
-    to {
-      box-shadow: inset 0 0 5px grey;
-    }
+  70% {
+    box-shadow: inset 0 0 30px grey;
+  }
+
+  to {
+    box-shadow: inset 0 0 5px grey;
   }
 }
 

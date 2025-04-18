@@ -62,7 +62,7 @@ export class EmbedService {
           }
           href = cleanHref;
           if (href.startsWith(config.base) || !href.startsWith('http')) {
-            return `<a class="inline-embed" title="${text}">${href}</a>`;
+            return `<div class="loading inline-embed" title="${text}">${href}</div>`;
           }
           let out = `<img src="${href}" alt="${text}"`;
           if (title) {
@@ -220,7 +220,7 @@ export class EmbedService {
         if (self.admin.isWikiExternal()) {
           return `<a target="_blank" href="${token.href}">${token.text}</a>`;
         } else {
-          return `<span class="inline-embed">${token.href}</span>`;
+          return `<div class="loading inline-embed">${token.href}</div>`;
         }
       }
     }, {
@@ -244,7 +244,7 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<span class="inline-embed">${token.href}</span>`;
+        return `<div class="loading inline-embed">${token.href}</div>`;
       }
     }, {
       name: 'embed',
@@ -267,7 +267,7 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<span class="inline-${token.css}">${token.text}</span>`;
+        return `<div class="inline-${token.css}">${token.text}</div>`;
       }
     }, {
       name: 'preserveMath',
