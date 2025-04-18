@@ -73,6 +73,10 @@ export class EmbedService {
         },
         link({href, title, tokens}: Tokens.Link): string {
           const text = this.parser.parseInline(tokens);
+          if (tokens.find(t => t.type === 'bang-embed' || t.type === 'image')) {
+            // Skip linking images
+            return text;
+          }
           const cleanHref = cleanUrl(href);
           if (cleanHref === null) {
             return text;
@@ -584,7 +588,7 @@ export class EmbedService {
     const links = el.querySelectorAll<HTMLAnchorElement>('a[href]');
     links.forEach(t => {
       if (t.querySelectorAll('app-viewer').length) {
-        // TODO: allow image links?
+        // Don't allow image linking images
         while (t.firstChild) t.parentNode?.insertBefore(t.firstChild, t);
         t.remove();
         return;
