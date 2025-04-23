@@ -588,7 +588,7 @@ export class EmbedService {
     const links = el.querySelectorAll<HTMLAnchorElement>('a[href]');
     links.forEach(t => {
       if (t.querySelectorAll('app-viewer').length) {
-        // Don't allow image linking images
+        // Don't allow linking images
         while (t.firstChild) t.parentNode?.insertBefore(t.firstChild, t);
         t.remove();
         return;
