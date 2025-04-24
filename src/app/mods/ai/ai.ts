@@ -601,6 +601,27 @@ export const aiQueryPlugin: Plugin = {
           }
         }
       }
+      if (hasTag('+plugin/debug', ref)) {
+        const debugJson = JSON.stringify(messages.map(m => {
+          if (m.content && config.json) {
+            m.content = m.content.map(c => {
+              if (c.type === 'text') {
+                c.text = JSON.parse(c.text);
+              }
+              return c;
+            });
+          }
+          return m;
+        }), null, 2);
+        // console.error('\`\`\`json\\n' + debugJson + '\\n\`\`\`');
+        bundle.ref.push({
+          url: 'log:' + uuid.v4(),
+          sources: [response.url],
+          title: 'Debugging sources',
+          comment: '\`\`\`json\\n' + debugJson + '\\n\`\`\`',
+          tags: ['internal', '+plugin/log'],
+        });
+      }
       console.log(JSON.stringify(bundle));
     `,
   },
