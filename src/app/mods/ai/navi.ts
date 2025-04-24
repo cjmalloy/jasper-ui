@@ -58,7 +58,7 @@ export const naviQueryPlugin: Plugin = {
           sort: 'published',
           size: config.maxSources,
         },
-      })).data.content;
+      })).data.content.filter(p => !p.url.startsWith('tag:') || !p.url.includes('?'));
       let parents = await getSources(ref.url);
       parents.forEach(p => context.set(p.url, p));
       for (let i = 0; i < config.maxContext; i++) {
