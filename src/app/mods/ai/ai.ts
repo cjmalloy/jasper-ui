@@ -46,6 +46,7 @@ export const aiQueryPlugin: Plugin = {
         ...ref.plugins?.['plugin/llm'] || {},
         ...response.plugins?.['plugin/llm'] || {},
       }
+      config.maxSources ||= 2000;
       const bundleSchema = {
         type: 'object',
         properties: {
@@ -419,7 +420,7 @@ export const aiQueryPlugin: Plugin = {
           params: {
             query: folderTags.join(':') + (origin || '@'),
             sort: 'published',
-            size: config.maxSources || 2000,
+            size: config.maxSources,
           },
         })).data.content;
         for (const w of workspace) {
