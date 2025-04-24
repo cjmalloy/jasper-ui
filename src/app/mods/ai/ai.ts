@@ -445,7 +445,7 @@ export const aiQueryPlugin: Plugin = {
           size: config.maxSources,
         },
       })).data.content;
-      for (const c of sources) {
+      for (const c of [...sources, ref]) {
         const plugins = {};
         if (config.pdf && hasTag('plugin/pdf', c)) {
           const url = c.plugins?.['plugin/pdf']?.url || c.url;
