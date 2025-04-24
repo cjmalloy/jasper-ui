@@ -302,7 +302,7 @@ export const aiQueryPlugin: Plugin = {
         },
         gemini: {
           init(config) {
-            config.model ||= 'gemini-2.0-flash';
+            config.model ||= 'gemini-2.5-flash-preview-04-17';
             config.pdf = false;
             config.image = true;
             config.audio = true;
