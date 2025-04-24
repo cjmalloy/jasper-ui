@@ -493,8 +493,8 @@ export const aiQueryPlugin: Plugin = {
           });
         }
         const role
-          = c.tags?.includes('+system/prompt') ? 'system'
-          : c.tags?.includes('+plugin/delta/ai') ? 'assistant'
+          = hasTag('+system/prompt', c) ? 'system'
+          : hasTag('+plugin/delta/ai', c) ? 'assistant'
           : 'user';
         messages.push({
           role,
