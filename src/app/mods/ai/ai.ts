@@ -343,7 +343,10 @@ export const aiQueryPlugin: Plugin = {
             const system = messages.filter(m => m.role === 'system').map(m => m.parts[0].text).join("\\n\\n");
             const model = genAI.getGenerativeModel({ model: config.model });
             const result = await model.generateContent({
-              contents: messages.filter(m => m.role !== 'system'),
+              contents: messages.filter(m => m.role !== 'system').map(m => {
+                if (m.role === 'assistant') m.role = 'model';
+                return m;
+              }),
               systemInstruction: system,
             });
             let text = result.response.text().trim();
