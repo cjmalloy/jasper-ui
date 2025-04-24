@@ -39,7 +39,7 @@ export const naviQueryPlugin: Plugin = {
           'User-Tag': authors[0] || '',
         },
         params: {
-          query: '+plugin/placeholder:!+plugin/delta:' + authors.map(a => a.substring(1)).join(':'),
+          query: '+plugin/placeholder:!+plugin/delta:' + authors.map(a => a.substring(1)).join(':') + ':' + (origin || '@'),
           responses: ref.url,
           size: 1,
         },

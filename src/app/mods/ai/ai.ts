@@ -34,7 +34,7 @@ export const aiQueryPlugin: Plugin = {
           'User-Tag': authors[0] || '',
         },
         params: {
-          query: '+plugin/placeholder:!+plugin/delta:' + authors.map(a => a.substring(1)).join(':'),
+          query: '+plugin/placeholder:!+plugin/delta:' + authors.map(a => a.substring(1)).join(':') + ':' + (origin || '@'),
           responses: ref.url,
           size: 1,
         },
@@ -99,7 +99,7 @@ export const aiQueryPlugin: Plugin = {
             config.audio = ['gpt-4o-audio-preview', 'gpt-4o-mini-audio-preview'].includes(config.model);
             config.video = false;
           },
-          loadMessage(source, plugins) {
+          loadMessage(source, plugins = {}) {
             // TODO: OpenAI and X supports fetching images itself
             const message = {};
             message.content = [{ type: 'text', text: formatMessage(source) }];
@@ -149,7 +149,7 @@ export const aiQueryPlugin: Plugin = {
             config.audio = false;
             config.video = false;
           },
-          loadMessage(source, plugins) {
+          loadMessage(source, plugins = {}) {
             return providers['openai'].loadMessage(source, plugins);
           },
           async generate(messages, config) {
@@ -177,7 +177,7 @@ export const aiQueryPlugin: Plugin = {
             config.audio = false;
             config.video = false;
           },
-          loadMessage(source, plugins) {
+          loadMessage(source, plugins = {}) {
             return providers['openai'].loadMessage(source, plugins);
           },
           async generate(messages, config) {
@@ -204,7 +204,7 @@ export const aiQueryPlugin: Plugin = {
             config.audio = false;
             config.video = false;
           },
-          loadMessage(source, plugins) {
+          loadMessage(source, plugins = {}) {
             return providers['openai'].loadMessage(source, plugins);
           },
           async generate(messages, config) {
@@ -232,7 +232,7 @@ export const aiQueryPlugin: Plugin = {
             config.audio = false;
             config.video = false;
           },
-          loadMessage(source, plugins) {
+          loadMessage(source, plugins = {}) {
             const message = {};
             message.content = [{
               type: 'text',
@@ -308,7 +308,7 @@ export const aiQueryPlugin: Plugin = {
             config.audio = true;
             config.video = true;
           },
-          loadMessage(source, plugins) {
+          loadMessage(source, plugins = {}) {
             const message = {};
             message.parts = [{ text: formatMessage(source) }];
             if (plugins['plugin/audio']) {
@@ -369,9 +369,29 @@ export const aiQueryPlugin: Plugin = {
           'Local-Origin': origin || 'default',
           'User-Role': 'ROLE_ADMIN',
         },
-        params: { query: (config.apiKeyTag ||= ('+plugin/secret/' + config.provider)) + origin },
+        params: { query: (config.apiKeyTag ||= ('+plugin/secret/' + config.provider)) + (origin || '@') },
       })).data.content[0]?.comment;
       const messages = [];
+      const systemPrompts = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+        headers: {
+          'Local-Origin': origin || 'default',
+          'User-Tag': authors[0] || '',
+        },
+        params: {
+          query: '+system/prompt' + (origin || '@'),
+          sources: response.url,
+          sort: 'published',
+          size: response.sources.length,
+        },
+      })).data.content;
+      for (const c of systemPrompts) {
+        if (c.url === 'system:ext-prompt') continue; // Placeholder
+        if (config.systemPrompt && c.url === 'system:app-prompt') continue; // Overridden by config.systemPrompt
+        messages.push({
+          role: 'system',
+          ...provider.loadMessage(c),
+        });
+      }
       if (response.sources.includes('system:ext-prompt')) {
         const exts = new Map();
         const getExt = async tag => {
@@ -440,7 +460,7 @@ export const aiQueryPlugin: Plugin = {
           'User-Tag': authors[0] || '',
         },
         params: {
-          query: '!+system/prompt/placeholder',
+          query: '!+system/prompt',
           sources: response.url,
           sort: 'published',
           size: response.sources.length,
@@ -492,12 +512,8 @@ export const aiQueryPlugin: Plugin = {
             params: { url, origin: c.origin || '' },
           });
         }
-        const role
-          = hasTag('+system/prompt', c) ? 'system'
-          : hasTag('+plugin/delta/ai', c) ? 'assistant'
-          : 'user';
         messages.push({
-          role,
+          role: hasTag('+plugin/delta/ai', c) ? 'assistant' : 'user',
           ...provider.loadMessage(c, plugins),
         });
       }
