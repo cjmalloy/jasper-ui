@@ -80,6 +80,20 @@ export const naviQueryPlugin: Plugin = {
       }
       const tags = new Set(ref.tags);
       for (const p of context.values()) await tags.add(...p?.tags || []);
+      const pluginCursor = (await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/plugin/cursor', {
+        headers: {
+          'Local-Origin': origin || 'default',
+          'User-Role': 'ROLE_ADMIN',
+        },
+        params: { origin },
+      })).data;
+      const templateCursor = (await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/template/cursor', {
+        headers: {
+          'Local-Origin': origin || 'default',
+          'User-Role': 'ROLE_ADMIN',
+        },
+        params: { origin },
+      })).data;
       const modPrompt = (await axios.get(process.env.JASPER_API + '/api/v1/ref', {
         headers: {
           'Local-Origin': origin || 'default',
@@ -87,7 +101,7 @@ export const naviQueryPlugin: Plugin = {
         },
         params: { url: 'system:mod-prompt', origin },
       })).data;
-      if (!modPrompt.comment) {
+      if (modPrompt.modified < templateCursor || modPrompt.modified < pluginCursor) {
         const getAll = async type => (await axios.get(process.env.JASPER_API + '/api/v1/' + type + '/page', {
           headers: {
             'Local-Origin': origin || 'default',
