@@ -55,7 +55,7 @@ export const naviQueryPlugin: Plugin = {
         params: {
           query: '!+plugin/log',
           [rel]: url,
-          sort: 'published',
+          sort: 'published,desc',
           size: config.maxSources,
         },
       })).data.content.filter(p => !p.url.startsWith('tag:') || !p.url.includes('?'));

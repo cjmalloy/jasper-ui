@@ -419,10 +419,10 @@ export const aiQueryPlugin: Plugin = {
           },
           params: {
             query: folderTags.join(':') + (origin || '@'),
-            sort: 'published',
+            sort: 'published,desc',
             size: config.maxSources || 2000,
           },
-        })).data.content;
+        })).data.content.reverse();
         for (const w of workspace) {
           const role
             = hasTag('+system/prompt', w) ? 'system'
@@ -443,7 +443,7 @@ export const aiQueryPlugin: Plugin = {
           query: '!+system/prompt/placeholder',
           sources: response.url,
           sort: 'published',
-          size: config.maxSources,
+          size: response.sources.length,
         },
       })).data.content;
       for (const c of sources) {
