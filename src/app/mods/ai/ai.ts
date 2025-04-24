@@ -18,6 +18,7 @@ export const aiQueryPlugin: Plugin = {
     language: 'javascript',
     // language=JavaScript
     script: `
+      const DEFAULT_PROVIDER = 'openai';
       const { Buffer } = require('buffer');
       const uuid = require('uuid');
       const axios = require('axios');
@@ -91,12 +92,12 @@ export const aiQueryPlugin: Plugin = {
       const providers = {
         openai: {
           init(config) {
-            config.model ||= config.vision ? 'o1' : config.audio ? 'gpt-4o-audio-preview' : 'o1';
+            config.model ||= config.vision ? 'o3' : config.audio ? 'gpt-4o-audio-preview' : 'o3';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.image = ['o1', 'gpt-4.5-preview', 'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'].includes(config.model);
-            config.audio = config.model === 'gpt-4o-audio-preview';
+            config.image = ['o4-mini', 'o3', 'o1', 'o1-pro', 'gpt-4.1', 'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'].includes(config.model);
+            config.audio = ['gpt-4o-audio-preview', 'gpt-4o-mini-audio-preview'].includes(config.model);
             config.video = false;
           },
           loadMessage(source, plugins) {
@@ -362,7 +363,7 @@ export const aiQueryPlugin: Plugin = {
           }
         },
       };
-      const provider = providers[config.provider ||= 'x'];
+      const provider = providers[config.provider ||= DEFAULT_PROVIDER];
       provider.init(config);
       const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
