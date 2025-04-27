@@ -72,10 +72,10 @@ export const originPullPlugin: Plugin = {
     ],
     actions: [
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable` },
-      { response: '+plugin/run', labelOn: $localize`cancel`, title: $localize`Cancel pulling.` },
+      { response: '+plugin/user/run', labelOn: $localize`cancel`, title: $localize`Cancel pulling.` },
     ],
     advancedActions: [
-      { response: '+plugin/run', labelOff: $localize`pull`, title: $localize`Pull a batch of updates from the remote.`, confirm: $localize`Are you sure you want to pull?` },
+      { response: '+plugin/user/run', labelOff: $localize`pull`, title: $localize`Pull a batch of updates from the remote.`, confirm: $localize`Are you sure you want to pull?` },
     ],
     // language=Handlebars
     infoUi: `
@@ -193,10 +193,10 @@ export const originPushPlugin: Plugin = {
     ],
     actions: [
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable` },
-      { response: '+plugin/run', labelOn: $localize`cancel`, title: $localize`Cancel pushing` },
+      { response: '+plugin/user/run', labelOn: $localize`cancel`, title: $localize`Cancel pushing` },
     ],
     advancedActions: [
-      { response: '+plugin/run', labelOff: $localize`push`, title: $localize`Push a batch of updates to the remote.`, confirm: $localize`Are you sure you want to push?` },
+      { response: '+plugin/user/run', labelOff: $localize`push`, title: $localize`Push a batch of updates to the remote.`, confirm: $localize`Are you sure you want to push?` },
     ],
     // language=Handlebars
     infoUi: `

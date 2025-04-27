@@ -4,7 +4,7 @@ import { Ref } from '../model/ref';
 import { Mod } from '../model/tag';
 
 export const voteUpPlugin: Plugin = {
-  tag: 'plugin/vote/up',
+  tag: 'plugin/user/vote/up',
   name: '⬆️ Vote Up',
   config: {
     mod: '⬆️ Voting',
@@ -67,11 +67,10 @@ export const voteUpPlugin: Plugin = {
     }`
   },
   generateMetadata: true,
-  userUrl: true,
 };
 
 export const voteDownPlugin: Plugin = {
-  tag: 'plugin/vote/down',
+  tag: 'plugin/user/vote/down',
   name: '⬇️ Vote Down',
   config: {
     mod: '⬆️ Voting',
@@ -81,16 +80,15 @@ export const voteDownPlugin: Plugin = {
     description: $localize`Allows users to downvote Refs. Required upvote plugin to be installed.`,
   },
   generateMetadata: true,
-  userUrl: true,
 };
 
 export function score(ref: Ref) {
   let score = 0;
-  if (ref.metadata?.plugins?.['plugin/vote/up']) {
-    score += ref.metadata?.plugins['plugin/vote/up'];
+  if (ref.metadata?.plugins?.['plugin/user/vote/up']) {
+    score += ref.metadata?.plugins['plugin/user/vote/up'];
   }
-  if (ref.metadata?.plugins?.['plugin/vote/down']) {
-    score -= ref.metadata?.plugins['plugin/vote/down'];
+  if (ref.metadata?.plugins?.['plugin/user/vote/down']) {
+    score -= ref.metadata?.plugins['plugin/user/vote/down'];
   }
   return score;
 }

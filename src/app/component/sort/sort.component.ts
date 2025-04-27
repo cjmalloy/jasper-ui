@@ -69,9 +69,9 @@ export class SortComponent implements OnChanges, OnDestroy {
         if (this.admin.getPlugin('plugin/comment')) {
           this.allSorts.splice(7, 0, { value: 'commentCount', label: $localize`💬️ comments`, title: $localize`Number of comments` });
         }
-        if (this.admin.getPlugin('plugin/vote/up')) {
+        if (this.admin.getPlugin('plugin/user/vote/up')) {
           this.allSorts.splice(0, 0, { value: 'voteCount', label: '❤️ top', title: $localize`Total activity` });
-          if (this.admin.getPlugin('plugin/vote/down')) {
+          if (this.admin.getPlugin('plugin/user/vote/down')) {
             this.allSorts.splice(0, 0, { value: 'voteScore', label: '📈️ score', title: $localize`Total score` });
           }
           this.allSorts.splice(0, 0, { value: 'voteScoreDecay', label: '🔥️ hot', title: $localize`Decaying score` });

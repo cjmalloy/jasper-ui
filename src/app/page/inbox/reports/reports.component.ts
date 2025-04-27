@@ -42,7 +42,7 @@ export class InboxReportsPage  implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     if (!this.store.view.filter.length) {
-      this.router.navigate([], { queryParams: { filter: ['plugin/report', '!+plugin/approve'] }, replaceUrl: true });
+      this.router.navigate([], { queryParams: { filter: ['plugin/user/report', '!+plugin/approve'] }, replaceUrl: true });
     }
     this.disposers.push(autorun(() => {
       const args = getArgs(

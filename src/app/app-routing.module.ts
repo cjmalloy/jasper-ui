@@ -179,7 +179,7 @@ const routes: Routes = [
       { path: 'sent', component: InboxSentPage, canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
       { path: 'alarms', component: InboxAlarmsPage, canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
       { path: 'modlist', component: InboxModlistPage, canActivate: [installedModGuard('_moderated', ['../reports'])], canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
-      { path: 'reports', component: InboxReportsPage, canActivate: [installedModGuard('plugin/report', ['../ref', getInbox])], canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
+      { path: 'reports', component: InboxReportsPage, canActivate: [installedModGuard('plugin/user/report', ['../ref', getInbox])], canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
       { path: 'ref/:tag', component: InboxRefPage, canActivate: [conditionGuard(getInbox, ['../../alarms'])], canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
     ],
   },

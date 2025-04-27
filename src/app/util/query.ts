@@ -90,8 +90,8 @@ export function getArgs(
   if (filters?.includes('query/plugin/delete')) {
     filters = without(filters, 'query/!plugin/delete');
   }
-  if (filters?.includes('user/plugin/hide')) {
-    filters = without(filters, 'user/!plugin/hide');
+  if (filters?.includes('user/plugin/user/hide')) {
+    filters = without(filters, 'user/!plugin/user/hide');
   }
   filters = uniq(filters);
   let queryFilter = getFiltersQuery(filters);

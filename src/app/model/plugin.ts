@@ -112,10 +112,6 @@ export interface Plugin extends Config {
    * Generate separate Ref response metadata for this plugin.
    */
   generateMetadata?: boolean;
-  /**
-   * Validate that any Ref with this plugin has a valid User URL.
-   */
-  userUrl?: boolean;
   // Client-only
   type?: 'plugin';
 }
@@ -128,7 +124,6 @@ export const pluginSchema: Schema = {
     defaults: {},
     schema: {},
     generateMetadata: { type: 'boolean' },
-    userUrl: { type: 'boolean' },
   }
 };
 

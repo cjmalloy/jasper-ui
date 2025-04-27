@@ -32,7 +32,7 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
     private exts: ExtService,
   ) {
     mod.setTitle($localize`Home`);
-    store.view.clear([!!admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay' : 'published']);
+    store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'voteScoreDecay' : 'published']);
     query.clear();
     if (admin.getTemplate('home')) {
       exts.getCachedExt('home' + store.account.origin).subscribe(x => runInAction(() => {
@@ -57,7 +57,7 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
           const args = getArgs(
             q,
             this.store.view.sort,
-            ['user/!plugin/hide', ...this.store.view.filter],
+            ['user/!plugin/user/hide', ...this.store.view.filter],
             this.store.view.search,
             this.store.view.pageNumber,
             this.store.view.pageSize,
@@ -68,7 +68,7 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
         const args = getArgs(
           this.store.account.subscriptionQuery,
           this.store.view.sort,
-          ['user/!plugin/hide', ...this.store.view.filter],
+          ['user/!plugin/user/hide', ...this.store.view.filter],
           this.store.view.search,
           this.store.view.pageNumber,
           this.store.view.pageSize,

@@ -38,7 +38,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     this.disposers.push(autorun(() => this.mod.setTitle(this.store.view.name)));
     runInAction(() => {
       this.store.view.clear([
-        !!this.admin.getPlugin('plugin/vote/up')
+        !!this.admin.getPlugin('plugin/user/vote/up')
         ? 'voteScoreDecay'
         : this.store.view.tag.includes('*')
         ? 'published'
@@ -79,7 +79,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
       const args = getArgs(
         this.store.view.tag,
         this.store.view.sort,
-        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete', 'user/!plugin/hide'] : ['query/!plugin/delete', 'user/!plugin/hide'], ...filters || []]) as UrlFilter[],
+        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete', 'user/!plugin/user/hide'] : ['query/!plugin/delete', 'user/!plugin/user/hide'], ...filters || []]) as UrlFilter[],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,

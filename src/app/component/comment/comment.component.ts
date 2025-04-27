@@ -285,12 +285,12 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @memo
   get upvote() {
-    return hasUserUrlResponse('plugin/vote/up', this.ref);
+    return hasUserUrlResponse('plugin/user/vote/up', this.ref);
   }
 
   @memo
   get downvote() {
-    return hasUserUrlResponse('plugin/vote/down', this.ref);
+    return hasUserUrlResponse('plugin/user/vote/down', this.ref);
   }
 
   @memo
@@ -362,15 +362,15 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.ref.metadata ||= {};
     this.ref.metadata.userUrls ||= [];
     if (this.upvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/vote/up', this.ref.url), this.ref);
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/up', this.ref.url), this.ref);
     } else if (!this.downvote) {
-      this.ref.metadata.userUrls.push('plugin/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/vote/up', this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/up', this.ref.url), this.ref);
     } else {
-      this.ref.metadata.userUrls.push('plugin/vote/up');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/vote/up', '-plugin/vote/down'], this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/up');
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], this.ref.url), this.ref);
     }
   }
 
@@ -378,15 +378,15 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.ref.metadata ||= {};
     this.ref.metadata.userUrls ||= [];
     if (this.downvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/vote/down', this.ref.url), this.ref);
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/down', this.ref.url), this.ref);
     } else if (!this.upvote) {
-      this.ref.metadata.userUrls.push('plugin/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/vote/down', this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/down', this.ref.url), this.ref);
     } else {
-      this.ref.metadata.userUrls.push('plugin/vote/down');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/vote/up', 'plugin/vote/down'], this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/down');
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], this.ref.url), this.ref);
     }
   }
 

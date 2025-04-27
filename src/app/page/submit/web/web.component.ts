@@ -228,8 +228,8 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       plugins: writePlugins(this.webForm.value.tags, this.webForm.value.plugins),
     }).pipe(
       tap(() => {
-        if (this.admin.getPlugin('plugin/vote/up')) {
-          this.ts.createResponse('plugin/vote/up', this.url).subscribe();
+        if (this.admin.getPlugin('plugin/user/vote/up')) {
+          this.ts.createResponse('plugin/user/vote/up', this.url).subscribe();
         }
       }),
       catchError((res: HttpErrorResponse) => {

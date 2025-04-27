@@ -801,12 +801,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get upvote() {
-    return hasUserUrlResponse('plugin/vote/up', this.ref);
+    return hasUserUrlResponse('plugin/user/vote/up', this.ref);
   }
 
   @memo
   get downvote() {
-    return hasUserUrlResponse('plugin/vote/down', this.ref);
+    return hasUserUrlResponse('plugin/user/vote/down', this.ref);
   }
 
   @memo
@@ -825,9 +825,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       this.store.local.setRefToggled(this.ref.url, this.expanded);
       // Mark as read
       if (!this.expanded) return;
-      if (!this.admin.getPlugin('plugin/read')) return;
-      if (this.ref.metadata?.userUrls?.includes('plugin/read')) return;
-      this.ts.createResponse('plugin/read', this.ref.url).subscribe();
+      if (!this.admin.getPlugin('plugin/user/read')) return;
+      if (this.ref.metadata?.userUrls?.includes('plugin/user/read')) return;
+      this.ts.createResponse('plugin/user/read', this.ref.url).subscribe();
     }
   }
 
@@ -913,15 +913,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.ref.metadata ||= {};
     this.ref.metadata.userUrls ||= [];
     if (this.upvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/vote/up', this.ref.url), this.ref);
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/up', this.ref.url), this.ref);
     } else if (!this.downvote) {
-      this.ref.metadata.userUrls.push('plugin/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/vote/up', this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/up', this.ref.url), this.ref);
     } else {
-      this.ref.metadata.userUrls.push('plugin/vote/up');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/vote/up', '-plugin/vote/down'], this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/up');
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], this.ref.url), this.ref);
     }
   }
 
@@ -929,15 +929,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.ref.metadata ||= {};
     this.ref.metadata.userUrls ||= [];
     if (this.downvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/vote/down', this.ref.url), this.ref);
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/down', this.ref.url), this.ref);
     } else if (!this.upvote) {
-      this.ref.metadata.userUrls.push('plugin/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/vote/down', this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/down', this.ref.url), this.ref);
     } else {
-      this.ref.metadata.userUrls.push('plugin/vote/down');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/vote/up', 'plugin/vote/down'], this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/down');
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], this.ref.url), this.ref);
     }
   }
 
