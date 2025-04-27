@@ -18,7 +18,7 @@
           }
         }
       }
-      @if (store.view.isVoteSorted && admin.getPlugin('plugin/vote/up')) {
+      @if (store.view.isVoteSorted && admin.getPlugin('plugin/user/vote/up')) {
         <span class="vote-score" i18n>{{ score }} points&nbsp;</span>
       }
       <span [title]="ref.created?.toISO()">{{ ref.created?.toRelative() }}</span>
@@ -44,12 +44,12 @@
     </div>
   }
   <div class="row">
-    @if (store.view.isVoteSorted && !collapsed && !deleted && store.account.user && admin.getPlugin('plugin/vote/up')) {
+    @if (store.view.isVoteSorted && !collapsed && !deleted && store.account.user && admin.getPlugin('plugin/user/vote/up')) {
       <div class="voting">
         <div class="vote-up"
              [class.on]="upvote"
              (click)="voteUp()"></div>
-        @if (admin.getPlugin('plugin/vote/down')) {
+        @if (admin.getPlugin('plugin/user/vote/down')) {
           <div class="vote-down"
                [class.on]="downvote"
                (click)="voteDown()"></div>
@@ -76,7 +76,7 @@
               }
             }
           }
-          @if (admin.getPlugin('plugin/vote/up')) {
+          @if (admin.getPlugin('plugin/user/vote/up')) {
             <span class="vote-score" i18n>{{ score }} points&nbsp;</span>
           }
           <span [title]="ref.created?.toISO()">{{ ref.created?.toRelative() }}</span>

@@ -107,8 +107,8 @@ export class NavComponent implements OnInit, OnDestroy {
   }
 
   markRead() {
-    if (!this.admin.getPlugin('plugin/read')) return;
-    this.ts.createResponse('plugin/read', this.url).subscribe();
+    if (!this.admin.getPlugin('plugin/user/read')) return;
+    this.ts.createResponse('plugin/user/read', this.url).subscribe();
   }
 
 }

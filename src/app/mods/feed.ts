@@ -38,11 +38,11 @@ export const feedPlugin: Plugin = {
     ],
     description: $localize`Import entries from an RSS / Atom feed. The feed will be scraped on an interval you specify.`,
     actions: [
-      { response: '+plugin/run', labelOn: $localize`cancel`, title: $localize`Cancel scraping feed.` },
+      { response: '+plugin/user/run', labelOn: $localize`cancel`, title: $localize`Cancel scraping feed.` },
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable`, title: $localize`Schedule this feed to pull every 15 minutes.` },
     ],
     advancedActions: [
-      { response: '+plugin/run', labelOff: $localize`pull`, title: $localize`Scrape the feed and add any new Refs.`, confirm: $localize`Are you sure you want to pull?` },],
+      { response: '+plugin/user/run', labelOff: $localize`pull`, title: $localize`Scrape the feed and add any new Refs.`, confirm: $localize`Are you sure you want to pull?` },],
     // language=Handlebars
     infoUi: `
       {{#if (interestingTags addTags)}} tagging refs {{/if}}

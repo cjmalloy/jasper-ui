@@ -43,7 +43,7 @@ export class InboxAllPage implements OnInit, OnDestroy, HasChanges {
       const args = getArgs(
         '!dm:(' + this.store.account.inboxQuery + ')',
         this.store.view.sort,
-        ['query/!plugin/delete', 'user/!plugin/hide', ...this.store.view.filter],
+        ['query/!plugin/delete', 'user/!plugin/user/hide', ...this.store.view.filter],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,

@@ -216,8 +216,8 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   markRead(ref: Ref) {
-    if (!this.admin.getPlugin('plugin/read')) return;
-    if (ref.metadata?.userUrls?.includes('plugin/read')) return;
-    this.ts.createResponse('plugin/read', ref.url).subscribe();
+    if (!this.admin.getPlugin('plugin/user/read')) return;
+    if (ref.metadata?.userUrls?.includes('plugin/user/read')) return;
+    this.ts.createResponse('plugin/user/read', ref.url).subscribe();
   }
 }

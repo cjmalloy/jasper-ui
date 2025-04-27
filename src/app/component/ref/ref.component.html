@@ -1,11 +1,11 @@
 <div class="row">
-  <div *ngIf="store.view.isVoteSorted && store.account.user && admin.getPlugin('plugin/vote/up')"
+  <div *ngIf="store.view.isVoteSorted && store.account.user && admin.getPlugin('plugin/user/vote/up')"
        class="voting">
     <div class="vote-up"
          [class.on]="upvote"
          (click)="voteUp()"></div>
     <div class="vote-down"
-         *ngIf="admin.getPlugin('plugin/vote/down')"
+         *ngIf="admin.getPlugin('plugin/user/vote/down')"
          [class.on]="downvote"
          (click)="voteDown()"></div>
   </div>

@@ -115,8 +115,8 @@ export class CommentReplyComponent implements HasChanges {
       tap(cursor => {
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
-        if (this.admin.getPlugin('plugin/vote/up')) {
-          this.ts.createResponse('plugin/vote/up', url).subscribe();
+        if (this.admin.getPlugin('plugin/user/vote/up')) {
+          this.ts.createResponse('plugin/user/vote/up', url).subscribe();
         }
       }),
       catchError((err: HttpErrorResponse) => {
@@ -136,7 +136,7 @@ export class CommentReplyComponent implements HasChanges {
         created: DateTime.now(),
         metadata: {
           plugins: {
-            'plugin/vote/up': 1
+            'plugin/user/vote/up': 1
           }
         }
       };

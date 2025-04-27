@@ -42,7 +42,7 @@ export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
       const args = getArgs(
         '',
         this.store.view.sort,
-        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete', 'user/!plugin/hide'] : ['query/!plugin/delete', 'user/!plugin/hide'], ...this.store.view.filter || []]) as UrlFilter[],
+        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete', 'user/!plugin/user/hide'] : ['query/!plugin/delete', 'user/!plugin/user/hide'], ...this.store.view.filter || []]) as UrlFilter[],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
