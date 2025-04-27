@@ -248,8 +248,3 @@ print(json.dumps({
     `,
   }
 };
-
-export const kmeansSignaturePlugin = {
-  tag: '+plugin/delta/kmeans',
-  generateMetadata: true,
-};
