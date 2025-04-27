@@ -718,10 +718,6 @@ const whatPlugin = {
     \`,
   },
 };
-const whatPluginSignature = {
-  tag: '+plugin/delta/what',
-  generateMetadata: true,
-};
 \`\`\`
 
 ### Cron scripts

@@ -21,6 +21,5 @@ export const readMod: Mod = {
         }
       `
     },
-    generateMetadata: true,
   }],
 };
