@@ -15,6 +15,15 @@ import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
     <div class="nested-form">
       <ng-template #fieldComponent></ng-template>
     </div>
+
+    @if (props.footer) {
+      <div class="nested-footer-left">
+        <!-- Footer -->
+      </div>
+      <div class="nested-footer-right">
+        <!-- Footer -->
+      </div>
+    }
   `,
 })
 export class FormlyWrapperFormGroup extends FieldWrapper<FormlyFieldConfig> {

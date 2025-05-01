@@ -1329,6 +1329,22 @@ formly-list-section .form-array > formly-field > formly-group {
   }
 }
 
+.nested-footer-left, .nested-footer-right {
+  border: none;
+  border-top: 0.5px dotted var(--border);
+  position: relative;
+  width: calc(100% + 16px);
+  margin-bottom: 8px !important;
+}
+
+.nested-footer-left {
+  left: -16px;
+}
+
+.nested-footer-right {
+  left: 0.5px;
+}
+
 .show-drops {
   .nested-form,
   .field,

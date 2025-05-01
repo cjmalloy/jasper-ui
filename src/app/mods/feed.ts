@@ -52,11 +52,64 @@ export const feedPlugin: Plugin = {
     form: [{
       key: 'addTags',
       type: 'tags',
+    }],
+    advancedForm: [{
+      key: 'scrapeAudio',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Audio:`,
+        title: $localize`Check feed entries for audio.`
+      }
+    }, {
+      key: 'scrapeVideo',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Video:`,
+        title: $localize`Check feed entries for video.`
+      }
+    }, {
+      key: 'scrapeWebpage',
+      type: 'boolean',
+      props: {
+        label: $localize`Scrape Webpage:`
+      }
+    }, {
+      key: 'scrapeDescription',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Description:`
+      }
+    }, {
+      key: 'scrapeContents',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Contents:`,
+        title: $localize`Will overwrite description if found.`
+      }
+    }, {
+      key: 'scrapeAuthors',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Authors:`
+      }
+    }, {
+      key: 'scrapeThumbnail',
+      type: 'boolean',
+      defaultValue: true,
+      props: {
+        label: $localize`Thumbnail:`
+      }
     }, {
       key: 'defaultThumbnail',
       wrappers: ['form-group'],
       props: {
-        label: $localize`Default Thumbnail`
+        label: $localize`Default Thumbnail`,
+        footer: true,
       },
       fieldGroup: [{
         key: 'url',
@@ -87,74 +140,19 @@ export const feedPlugin: Plugin = {
           step: 4,
         },
       }],
-    }],
-    advancedForm: [{
-      key: 'disableEtag',
-      type: 'boolean',
-      props: {
-        label: $localize`Disable Etag Caching:`
-      }
     }, {
       key: 'stripQuery',
       type: 'boolean',
       props: {
-        label: $localize`Strip Query:`
+        label: $localize`Strip Query:`,
+        title: $localize`Strip all query parameters from the feed entry URLs.`
       }
     }, {
-      key: 'scrapeWebpage',
+      key: 'disableEtag',
       type: 'boolean',
       props: {
-        label: $localize`Scrape Webpage:`
-      }
-    }, {
-      key: 'scrapeDescription',
-      type: 'boolean',
-      defaultValue: true,
-      props: {
-        label: $localize`Scrape Description:`
-      }
-    }, {
-      key: 'scrapeContents',
-      type: 'boolean',
-      defaultValue: true,
-      props: {
-        label: $localize`Scrape Contents:`,
-        title: $localize`Will overwrite description if both scraped and found.`
-      }
-    }, {
-      key: 'scrapeAuthors',
-      type: 'boolean',
-      defaultValue: true,
-      props: {
-        label: $localize`Scrape Authors:`
-      }
-    }, {
-      key: 'scrapeThumbnail',
-      type: 'boolean',
-      defaultValue: true,
-      props: {
-        label: $localize`Scrape Thumbnail:`
-      }
-    }, {
-      key: 'scrapeAudio',
-      type: 'boolean',
-      defaultValue: true,
-      props: {
-        label: $localize`Scrape Audio:`
-      }
-    }, {
-      key: 'scrapeVideo',
-      type: 'boolean',
-      defaultValue: true,
-      props: {
-        label: $localize`Scrape Video:`
-      }
-    }, {
-      key: 'scrapeEmbed',
-      type: 'boolean',
-      defaultValue: true,
-      props: {
-        label: $localize`Scrape Embed:`
+        label: $localize`Disable ETag Caching:`,
+        title: $localize`Don't use the ETag to check if a feed is updated.`
       }
     }]
   },
@@ -171,7 +169,6 @@ export const feedPlugin: Plugin = {
       scrapeThumbnail: { type: 'boolean' },
       scrapeAudio: { type: 'boolean' },
       scrapeVideo: { type: 'boolean' },
-      scrapeEmbed: { type: 'boolean' },
       defaultThumbnail: {
         optionalProperties: {
           url: { type: 'string' },
