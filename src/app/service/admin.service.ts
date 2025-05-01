@@ -334,7 +334,7 @@ export class AdminService {
       t.config ||= {};
       t.config.needsUpdate ||= this.needsUpdate(this.def.templates[t.tag], t);
       if (t.config.needsUpdate) {
-        console.log(t.tag + ' needs update');
+        console.log((t.tag || 'Root template') + ' needs update');
       }
     }
   }
