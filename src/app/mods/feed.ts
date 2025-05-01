@@ -93,7 +93,6 @@ export const feedPlugin: Plugin = {
     }, {
       key: 'scrapeAuthors',
       type: 'boolean',
-      defaultValue: true,
       props: {
         label: $localize`Authors:`
       }
