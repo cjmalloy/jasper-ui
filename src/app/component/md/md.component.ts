@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, ElementRef, Input, Output } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
@@ -19,7 +19,7 @@ export class MdComponent {
   plugins?: string[];
   @Input()
   disableSanitizer = false;
-
+  @Output()
   postProcessMarkdown: Subject<void> = new Subject();
 
   katexOptions = {
@@ -36,6 +36,7 @@ export class MdComponent {
   constructor(
     public admin: AdminService,
     public store: Store,
+    public el: ElementRef,
   ) { }
 
   get text(): string {

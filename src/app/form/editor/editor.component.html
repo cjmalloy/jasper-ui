@@ -78,11 +78,16 @@
     </div>
   </div>
   @if (preview && (fullscreen || currentText)) {
-    <app-md class="expand"
+    <app-md #md
+            class="expand"
             [origin]="store.account.origin"
             [text]="currentText"
             [plugins]="allTags"
-            [appLimitWidth]="editor"></app-md>
+            [appLimitWidth]="editor"
+            (postProcessMarkdown)="postProcessMarkdown()"
+            (pointerup)="onSelectPreview()"></app-md>
+    <textarea #hiddenMeasure
+              class="measurer"></textarea>
   }
 
   <ng-template #help>

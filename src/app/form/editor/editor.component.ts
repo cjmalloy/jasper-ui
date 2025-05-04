@@ -19,10 +19,11 @@ import {
 import { UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
-import { debounce, defer, delay, throttle, uniq, without } from 'lodash-es';
+import { debounce, defer, delay, sortedLastIndex, throttle, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { filter, Subject, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { MdComponent } from '../../component/md/md.component';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -54,6 +55,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild(MdComponent)
+  md?: MdComponent;
+  @ViewChild('hiddenMeasure')
+  hiddenMeasure?: ElementRef<HTMLTextAreaElement>;
 
   @ViewChild('help')
   helpTemplate!: TemplateRef<any>;
@@ -104,6 +109,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private selectionStart = 0;
   private selectionEnd = 0;
   private blurTimeout = 0;
+
+  private scrollMap = new Map<number, number>();
+  private sourceMap: number[] = [];
 
   constructor(
     public admin: AdminService,
@@ -182,7 +190,43 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     defer(() => {
       this.selectionStart = this.editor?.nativeElement.selectionStart || 0;
       this.selectionEnd = this.editor?.nativeElement.selectionEnd || 0;
+      if (this.selectionEnd > this.selectionStart) {
+        this.onSelectEditor();
+      }
     });
+  }
+
+  postProcessMarkdown() {
+    this.sourceMap.length = 0;
+    this.scrollMap.clear();
+    this.el.nativeElement.querySelectorAll('[aria-posinset]').forEach((el: HTMLElement) => {
+      const start = +el.getAttribute('aria-posinset')!;
+      this.scrollMap.set(start, el.offsetTop);
+      this.sourceMap.push(start);
+    });
+    this.sourceMap.sort((a, b) => a - b);
+  }
+
+  onSelectEditor() {
+    if (!this.preview || !this.fullscreen || !this.md) return;
+    const start = this.sourceMap[Math.max(sortedLastIndex(this.sourceMap, this.selectionStart) - 1, 0)];
+    this.md.el.nativeElement.scrollTop = (this.scrollMap.get(start) ?? 0) - this.md.el.nativeElement.clientHeight / 2;
+  }
+
+  onSelectPreview() {
+    if (!this.preview || !this.fullscreen || !this.hiddenMeasure || !this.editor) return;
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    if (!this.md?.el.nativeElement?.contains(sel.anchorNode)) return;
+    const anchorEl = (sel.anchorNode as Node).nodeType === Node.ELEMENT_NODE
+      ? sel.anchorNode as HTMLElement
+      : (sel.anchorNode as Node).parentElement;
+    const sourceMap = anchorEl!.closest('[aria-posinset]');
+    if (!sourceMap) return;
+    const start = +sourceMap.getAttribute('aria-posinset')!;
+    this.hiddenMeasure.nativeElement.style.width = this.editor.nativeElement.clientWidth + 'px';
+    this.hiddenMeasure.nativeElement.value = this.currentText.slice(0, start);
+    this.editor.nativeElement.scrollTop = this.hiddenMeasure.nativeElement.scrollHeight - this.editor.nativeElement.clientHeight / 2;
   }
 
   @HostBinding('class.add-button')

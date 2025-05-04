@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { marked, Tokens } from 'marked';
-import { MarkdownService } from 'ngx-markdown';
+import { marked, Token, Tokens, TokensList } from 'marked';
+import { MarkdownService, MarkedRenderer } from 'ngx-markdown';
 import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
@@ -50,8 +50,53 @@ export class EmbedService {
       }
       return href;
     }
+    function sourceMap<T extends keyof MarkedRenderer>(name: T) {
+      const orig = marked.Renderer.prototype[name] as any;
+      return function (this: any, token: any, ...rest: any[]) {
+        const html = orig.call(this, token, ...rest);
+        return html.replace(/^(<\w+)/, `$1 aria-posinset="${token.sourceMap}"`);
+      };
+    }
     marked.use({
+      hooks: {
+        processAllTokens(tokens: Token[] | TokensList) {
+          let pos = 0;
+          const walk = (ts: any[]) => {
+            for (const t of ts) {
+              t.sourceMap = pos;
+              if (t.tokens?.length) walk(t.tokens);
+              else if (t.items?.length) walk(t.items);
+              else if (t.rows?.length) walk(t.rows);
+              pos = t.sourceMap + t.raw?.length ?? 0;
+            }
+          };
+          walk(tokens);
+          return tokens;
+        },
+        postprocess(html: string): string {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, 'text/html');
+          const media = htmlDoc.querySelectorAll<HTMLImageElement|HTMLSourceElement>('img, source');
+          media.forEach(t => {
+            if (t.src) {
+              t.src = 'unsafe:' + t.src;
+            }
+            if (t.srcset) {
+              t.srcset = t.srcset.split(', ').map(src => 'unsafe:' + src).join(', ');
+            }
+          });
+          return htmlDoc.body.innerHTML;
+        },
+      },
       renderer: {
+        paragraph : sourceMap('paragraph'),
+        heading   : sourceMap('heading'),
+        list      : sourceMap('list'),
+        listitem  : sourceMap('listitem'),
+        code      : sourceMap('code'),
+        blockquote: sourceMap('blockquote'),
+        table     : sourceMap('table'),
+        tablerow  : sourceMap('tablerow'),
         html({text}: Tokens.HTML | Tokens.Tag): string {
           return text.replace(/<img/g, '<img loading="lazy"');
         },
@@ -95,22 +140,6 @@ export class EmbedService {
             return out + `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span></span>`;
           }
           return out;
-        }
-      },
-      hooks: {
-        postprocess(html: string): string {
-          const parser = new DOMParser();
-          const htmlDoc = parser.parseFromString(html, 'text/html');
-          const media = htmlDoc.querySelectorAll<HTMLImageElement|HTMLSourceElement>('img, source');
-          media.forEach(t => {
-            if (t.src) {
-              t.src = 'unsafe:' + t.src;
-            }
-            if (t.srcset) {
-              t.srcset = t.srcset.split(', ').map(src => 'unsafe:' + src).join(', ');
-            }
-          });
-          return htmlDoc.body.innerHTML;
         }
       },
       extensions: this.extensions,
