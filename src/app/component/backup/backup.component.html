@@ -9,8 +9,7 @@
   <div class="info">
     @if (inProgress) {
       <span i18n>in progress...</span>
-    }
-    @if (size) {
+    } @else if (size) {
       <span>{{ fileSize }}</span>
     }
   </div>
