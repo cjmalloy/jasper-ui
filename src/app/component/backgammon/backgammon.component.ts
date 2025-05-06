@@ -16,7 +16,7 @@ import {
 import { defer, delay, filter, range, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Observable, Subscription, throwError } from 'rxjs';
+import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
@@ -132,8 +132,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
     if (!this.watch && this.updates$) {
       this.watch = this.updates$.subscribe(u => {
-        if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
-        else this.ref!.modifiedString = u.modifiedString;
+        if (u.origin === this.store.account.origin && (!this.cursor || this.cursor < u.modifiedString!)) this.cursor = u.modifiedString;
+        this.ref!.modifiedString = u.modifiedString;
         const prev = [...this.board];
         const current = (u.comment || '')
           .trim()
@@ -158,9 +158,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           current[0] = multiple;
         }
         if (prev.length) {
-          alert($localize`Game history was rewritten!`);
-          this.ref = u;
-          this.store.eventBus.refresh(u);
+          if (this.cursor! <= u.modifiedString!) {
+            alert($localize`Game history was rewritten!`);
+            this.ref = u;
+            this.store.eventBus.refresh(u);
+          } else {
+            // Our changes won, just ignore
+          }
+          return;
         }
         if (prev.length || !current.length) return;
         this.ref!.comment = u.comment;
@@ -545,11 +550,21 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (!this.ref) return;
     (this.cursor ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor,
       { comment }
+    ).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          this.save();
+          return of(null);
+        }
+        alert('Error ' + err.status + ' syncing game. Please reload.');
+        return throwError(() => err);
+      }),
     ) : this.refs.create({
       ...this.ref,
       origin: this.store.account.origin,
       comment,
     })).subscribe(cursor => {
+      if (!cursor) return;
       this.writeAccess = true;
       if (this.patchingComment !== comment) return;
       this.ref!.comment = comment;
