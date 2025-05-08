@@ -62,6 +62,7 @@ export class UserComponent implements OnChanges, HasChanges {
   deleted = false;
   writeAccess = false;
   serverError: string[] = [];
+  externalErrors: string[] = [];
 
   constructor(
     public admin: AdminService,
@@ -235,6 +236,13 @@ export class UserComponent implements OnChanges, HasChanges {
       origin: this.origin,
       readAccess: uniq([...this.editForm.value.readAccess, ...this.editForm.value.notifications]),
     };
+    this.externalErrors = [];
+    try {
+      if (!updates.external) delete updates.external;
+      if (updates.external) updates.external = JSON.parse(updates.external);
+    } catch (e: any) {
+      this.externalErrors.push(e.message);
+    }
     (this.user
       ? this.users.update(updates)
       : this.users.create(updates)).pipe(

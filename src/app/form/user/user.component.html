@@ -71,4 +71,25 @@
               [appFillWidth]="fill"></textarea>
   </div>
 
+  @if (store.account.mod) {
+    <label for="external" i18n>External Config:</label>
+    @if (!editingExternal && !external) {
+      <div>
+        <button type="button" (click)="editingExternal = true" i18n>+ Add Config</button>
+      </div>
+    } @else {
+      <app-json id="external"
+                fieldName="external"
+                [group]="group"></app-json>
+      @if (externalErrors.length) {
+        <span><!-- Errors --></span>
+        @for (e of externalErrors; track e) {
+          <div>
+            <span class="error">{{ e }}</span>
+          </div>
+        }
+      }
+    }
+  }
+
 </ng-container>

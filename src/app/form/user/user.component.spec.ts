@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 import { UserFormComponent } from './user.component';
 
@@ -11,10 +12,10 @@ describe('UserFormComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ UserFormComponent ],
       imports: [
+        RouterModule.forRoot([]),
         ReactiveFormsModule,
       ],
-    })
-    .compileComponents();
+    }).compileComponents();
   });
 
   beforeEach(() => {
