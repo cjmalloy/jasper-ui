@@ -71,7 +71,7 @@
               [appFillWidth]="fill"></textarea>
   </div>
 
-  @if (store.account.mod) {
+  @if (store.account.mod || external) {
     <label for="external" i18n>External Config:</label>
     @if (!editingExternal && !external) {
       <div>
@@ -80,6 +80,7 @@
     } @else {
       <app-json id="external"
                 fieldName="external"
+                [style.pointer-events]="store.account.mod ? 'auto' : 'none'"
                 [group]="group"></app-json>
       @if (externalErrors.length) {
         <span><!-- Errors --></span>
