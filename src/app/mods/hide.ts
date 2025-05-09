@@ -14,6 +14,5 @@ export const hideMod: Mod = {
       ],
       actions: [{ response: 'plugin/user/hide', labelOff: $localize`hide`, labelOn: $localize`unhide`, global: true }],
     },
-    generateMetadata: true,
   }],
 };

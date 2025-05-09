@@ -26,7 +26,6 @@ export const commentPlugin: Plugin = {
       { query: 'plugin/comment', label: $localize`💬️ comments`, title: $localize`Comments`, group: $localize`Plugins 🧰️` },
     ],
   },
-  generateMetadata: true,
 };
 
 export const commentMod: Mod = {

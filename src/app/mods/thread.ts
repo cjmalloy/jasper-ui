@@ -25,7 +25,6 @@ export const threadPlugin: Plugin = {
       { query: 'plugin/thread', label: $localize`🧵️ threads`, title: $localize`Discussion Threads or DMs`, group: $localize`Plugins 🧰️` },
     ],
   },
-  generateMetadata: true,
 };
 
 export const threadMod: Mod = {

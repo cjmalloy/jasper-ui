@@ -62,7 +62,6 @@ export const reportPlugin: Plugin = {
       { response: 'plugin/user/report', label: $localize`🙅️ reports`, title: $localize`Reported to Mods`, group: $localize`Mod Tools 🛡️` },
     ],
   },
-  generateMetadata: true,
 };
 
 export const approvePlugin: Plugin = {
@@ -80,7 +79,6 @@ export const approvePlugin: Plugin = {
       { response: '+plugin/approve', label: $localize`🙆️ approved`, title: $localize`Approved by Mod`, group: $localize`Mod Tools 🛡️` },
     ],
   },
-  generateMetadata: true,
 };
 
 export const modlistMod: Mod = {
