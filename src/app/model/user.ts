@@ -11,6 +11,7 @@ export interface User extends Tag {
   tagWriteAccess?: string[];
   pubKey?: string;
   authorizedKeys?: string;
+  external?: any;
 }
 
 export const userSchema: Schema = {
@@ -22,6 +23,7 @@ export const userSchema: Schema = {
     tagWriteAccess: { elements: { type: 'string' } },
     pubKey: { type: 'string' },
     authorizedKeys: { type: 'string' },
+    external: {},
   }
 };
 

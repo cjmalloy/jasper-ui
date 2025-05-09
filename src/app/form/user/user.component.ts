@@ -3,6 +3,7 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } 
 import { defer } from 'lodash-es';
 import { User } from '../../model/user';
 import { isMailbox } from '../../mods/mailbox';
+import { Store } from '../../store/store';
 import { USER_REGEX } from '../../util/format';
 import { TagsFormComponent } from '../tags/tags.component';
 
@@ -27,6 +28,8 @@ export class UserFormComponent implements OnInit {
   showClear = false;
   @Output()
   clear = new EventEmitter<void>();
+  @Input()
+  externalErrors: string[] = [];
 
   @ViewChild('fill')
   fill?: ElementRef;
@@ -42,7 +45,13 @@ export class UserFormComponent implements OnInit {
   @ViewChild('tagWriteAccess')
   tagWriteAccess!: TagsFormComponent;
 
+  editingExternal = false;
+
   private showedError = false;
+
+  constructor(
+    public store: Store,
+  ) { }
 
   ngOnInit(): void {
     this.pubKey.disable();
@@ -54,6 +63,10 @@ export class UserFormComponent implements OnInit {
 
   get pubKey() {
     return this.group.get('pubKey') as UntypedFormControl;
+  }
+
+  get external() {
+    return this.editingExternal ||= this.group.get('external')?.value;
   }
 
   get showError() {
@@ -93,7 +106,10 @@ export class UserFormComponent implements OnInit {
     this.writeAccess.setTags([...user.writeAccess || []]);
     this.tagReadAccess.setTags([...user.tagReadAccess || []]);
     this.tagWriteAccess.setTags([...user.tagWriteAccess || []]);
-    this.group.patchValue(user);
+    this.group.patchValue({
+      ...user,
+      external: user.external ? JSON.stringify(user.external, null, 2) : undefined,
+    });
   }
 
 }
@@ -110,5 +126,6 @@ export function userForm(fb: UntypedFormBuilder, locked = false) {
     tagWriteAccess: fb.array([]),
     pubKey: ['', { disabled: true }],
     authorizedKeys: [''],
+    external: [],
   });
 }

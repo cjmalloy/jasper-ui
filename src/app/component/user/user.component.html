@@ -67,7 +67,8 @@
 @if (editing) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-    <app-user-form [group]="editForm"></app-user-form>
+    <app-user-form [group]="editForm"
+                   [externalErrors]="externalErrors"></app-user-form>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>
