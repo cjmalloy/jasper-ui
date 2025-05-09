@@ -7,6 +7,7 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
+import { User } from '../../model/user';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ProfileService } from '../../service/api/profile.service';
@@ -34,6 +35,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
   submitted = false;
   profileForm: UntypedFormGroup;
   serverError: string[] = [];
+  externalErrors: string[] = [];
 
   constructor(
     private mod: ModService,
@@ -126,6 +128,13 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
       readAccess: uniq([...this.user.value.readAccess, ...this.user.value.notifications]),
     };
     delete updates.notifications;
+    this.externalErrors = [];
+    try {
+      if (!updates.external) delete updates.external;
+      if (updates.external) updates.external = JSON.parse(updates.external);
+    } catch (e: any) {
+      this.externalErrors.push(e.message);
+    }
     const entities: Observable<any>[] = [
       (this.store.view.selectedUser
         ? this.users.update(updates)
