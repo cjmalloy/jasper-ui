@@ -958,6 +958,7 @@ and the tag added to the Ref in question.
 As ngx-markdown supports mixed markdown and HTML, you can output HTML if necessary to overcome some limitation.
  - ngx-markdown does not have emoji or clipboard enabled. If you need to use an emoji, just use the actual character.
 However, markdown is more portable so it is strongly preferred.
+Never create lists with a bullet character, always use * to be valid markdown.
 
 You can reply with multiple Refs and request help from another assistant by tagging with plugin/delta/ai/navi.
 You may only request further ai responses once. If you are already responding to yourself, adding plugin/delta/ai/navi
