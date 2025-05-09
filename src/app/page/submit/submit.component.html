@@ -135,7 +135,7 @@
         <span><!-- Tags --></span>
         <div class="form-array right">
           @for (p of store.submit.tags | tagPreview | async; track p.tag) {
-            <a [routerLink]="['/tag', p.tag]">{{ p.name || '#' + p.tag }}</a>
+            <a class="tag" [routerLink]="['/tag', p.tag]">{{ p.name || '#' + p.tag }}</a>
           }
         </div>
 
