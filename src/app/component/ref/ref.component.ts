@@ -276,7 +276,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   ngAfterViewInit(): void {
     delay(() => {
-      if (this.scrollToLatest && this.lastSelected) {
+      if (this.lastSelected) {
         scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' });
       }
     }, 400);
@@ -287,7 +287,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    if (this.scrollToLatest && this.lastSelected) {
+    if (this.lastSelected) {
       this.store.view.clearLastSelected();
     }
   }
@@ -308,7 +308,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @HostBinding('class.last-selected')
   get lastSelected() {
-    return this.store.view.lastSelected?.url === this.ref.url;
+    return this.scrollToLatest && this.store.view.lastSelected?.url === this.ref.url;
   }
 
   @HostBinding('class.upload')
@@ -337,9 +337,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @HostListener('click')
   onClick() {
-    if (!this.lastSelected && this.store.view.lastSelected) {
-      this.store.view.clearLastSelected();
-    }
+    this.store.view.clearLastSelected(this.ref.url);
   }
 
   @ViewChild(ViewerComponent)

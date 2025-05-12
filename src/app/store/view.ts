@@ -1,5 +1,5 @@
-import { isEqual, uniq } from 'lodash-es';
-import { action, makeAutoObservable, observable } from 'mobx';
+import { delay, isEqual, uniq } from 'lodash-es';
+import { action, makeAutoObservable, observable, runInAction } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -68,8 +68,10 @@ export class ViewStore {
     this.lastSelected = ref;
   }
 
-  clearLastSelected() {
-    this.lastSelected = undefined;
+  clearLastSelected(url?: string) {
+    if (!url || url === this.lastSelected?.url) {
+      this.lastSelected = undefined;
+    }
   }
 
   clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
@@ -84,13 +86,14 @@ export class ViewStore {
   }
 
   clearRef() {
+    if (this.ref) this.lastSelected = this.ref;
     this.ref = undefined;
     this.top = undefined;
   }
 
   setRef(ref?: Ref, top?: Ref) {
+    this.clearRef();
     this.ref = ref;
-    if (ref) this.lastSelected = ref;
     this.top = top;
     this.versions = 0;
     this.exts = [];
