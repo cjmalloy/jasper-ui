@@ -96,7 +96,7 @@ export class SettingsBackupPage {
 
   regen() {
     this.serverError = [];
-    if (!confirm($localize`Are you sure you want totally regenerate metadata in ${this.origin}?`)) return;
+    if (!confirm($localize`Are you sure you want totally regenerate metadata${this.origin ? ' in ' + this.origin : ''}?`)) return;
     this.backups.regen(this.origin).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
