@@ -76,7 +76,6 @@ export const scrapePlugin: Plugin = {
     }, {
       key: 'textSelectors',
       type: 'list',
-      expressions: { hide: '!formState.config.text' },
       props: {
         label: $localize`Text Selectors: `,
         addText: $localize`+ Add text selector`,
@@ -86,6 +85,9 @@ export const scrapePlugin: Plugin = {
         props: {
           label: $localize`🎯️`,
         }
+      },
+      expressions: {
+        hide: '!field.parent.model.text',
       },
     }, {
       key: 'publishedSelectors',
