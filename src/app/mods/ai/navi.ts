@@ -211,8 +211,8 @@ or embed existing dashboard panels directly to create your central business inte
 See [Jasper-UI](https://github.com/cjmalloy/jasper-ui) for documentation on the reference client.
 
 ### Centralized Business Intelligence
-Dumping all department-level data into a central data lake to perform analytics on is a hugely complicated
-task with no proven benefit. Instead, empower departments to run their own analytics and formalize the
+Dumping all department-level data into a central data lake to perform analytics on is a massive undertaking
+with dubious potential benefit. Instead, empower departments to run their own analytics and formalize the
 reporting format to allow centralized aggregation.
 
 Build a Business Intelligence (BI) dashboard without building a data lake. Business departments can use
@@ -229,9 +229,9 @@ in a [small, readable file](https://github.com/cjmalloy/jasper/blob/master/src/m
 ### Build your own client
 Connect to Jasper with a custom client to give users a streamlined user experience (UX). Frontend
 developers can create a bespoke interface without needing to make any server side changes. Create custom
-plugins and templates and ensure data integrity with [JTD](https://jsontypedef.com/docs/jtd-in-5-minutes/)
+plugins and templates and ensure data shape with [JTD](https://jsontypedef.com/docs/jtd-in-5-minutes/)
 schemas. Fork [the reference client](https://github.com/cjmalloy/jasper-ui) or use the
-[OpenApi docs](https://app.swaggerhub.com/apis/cjmalloy/Jasper) to generate API stubs.
+[OpenApi docs](https://editor.swagger.io/?url=https://raw.githubusercontent.com/cjmalloy/jasper/refs/heads/master/src/main/resources/swagger/api.yml) to generate API stubs.
 
 ## Standards
 Jasper is a standard data model and API. While JSON is used in this document, Jasper may be generalised
@@ -244,9 +244,9 @@ the model.
 4. Plugin
 5. Template
 
-The main entity is the Ref, it represents a reference to external content. The main field in a Ref
-is the URL field which can be a link to a web page, or a reference to arbitrary resources predicated
-on the URL scheme. Web content will of course use the http or https scheme. To reference a book,
+The main entity is the Ref, it represents a reference to an external resource. The main field in a Ref
+is the URL field which can be a link to a web page, or a reference to any arbitrary resources predicated
+by the URL scheme. Web content will of course use the http or https scheme. To reference a book,
 one could use the [ISBN](https://en.wikipedia.org/wiki/ISBN) scheme (i.e. \`isbn:978-3-16-148410-0\`).
 For comments, [Jasper-UI](https://github.com/cjmalloy/jasper-ui) uses a \`comment\` scheme followed by an arbitrary ID, usually a UUID
 (i.e. \`comment:75b36465-4236-4d64-8c78-027d87f3c072\`). For hosting internal wikis,
@@ -254,10 +254,10 @@ For comments, [Jasper-UI](https://github.com/cjmalloy/jasper-ui) uses a \`commen
 [Wiki Page Name](https://en.wikipedia.org/wiki/Wikipedia:Page_name) (i.e. \`wiki:John_Cena\`).
 
 Like the [OSI model](https://en.wikipedia.org/wiki/OSI_model), Jasper's data model is defined in layers:
-1. Identity Layer
-2. Indexing Layer
-3. Application Layer
-4. Plugin Layer
+1. **Identity Layer** - Structure and Persistence of entities
+2. **Indexing Layer** - Defining optional fields used to query, sort, filter, and transport
+3. **Validation Layer** - plugins and templates are validated
+4. **Modding Layer** - custom plugins, templates, and clients
 
 ## Tagging
 Jasper support hierarchical tagging of Refs. Tags are not entities, they are strings with
@@ -304,10 +304,10 @@ but would not match \`['science', 'math']\`
  * \`music:people/murray\`: All Refs that have the \`music\` tag and \`people/murray\` tag. It would also
 match Refs with \`['music', 'people/murray/anne']\` or \`['music', 'people/murray/bill']\`
 
-## Extending
+## Modding
 Jasper allows extensive modification with server reuse. Since changes are done by creating
 Plugin and Template entities, server restarts are not required.
-This method of extensions means that only client changes are required. The same Jasper server,
+This method of modding means that only client changes are required. The same Jasper server,
 without any code modifications, can be used. The client can define and support its own Plugins
 and Templates. This allows for much more flexible development, as writing client code (in particular
 web clients) is much easier than writing server code. A developer with only front-end expertise
@@ -464,8 +464,6 @@ A Plugin is a Tag-like entity used to extend the functionality of Refs.
       "height": {"type": "int32", "nullable": true}
     }
   },
-  "generateMetadata": false,
-  "userUrl": false,
   "modified": "2022-06-18T16:27:13.774959Z"
 }
 \`\`\`
@@ -480,10 +478,6 @@ data according to the Plugin schema.
 **Config:** Arbitrary JSON.
 **Defaults:** Default plugin data if creating a new Ref with empty plugin data.
 **Schema:** Json Type Def (JTD) schema used to validate plugin data in Ref.
-**Generate Metadata:** Flag to indicate Refs should generate a separate inverse source lookup for
-this plugin in all Ref metadata.
-**User Url:** Flag to only allow this plugin on a User Url, which is a specially constructed URL
-of the form \`tag:/{tag}?user={user}\`. This has the effect of restricting the plugin to one Ref per user.
 **Modified:** Last modified date of this Plugin.
 
 ### Template
@@ -538,14 +532,90 @@ replication.
 
 ### Indexing Layer
 The indexing layer of the Jasper model adds tags to Refs. A system operating at this layer should support
-tag queries.
+tag queries, sorting and filtering.
 
-### Application Layer
-The application layer of the Jasper model includes all entity fields. Plugins and templates are validated
+### Validation Layer
+The validation layer of the Jasper model includes all entity fields. Plugins and Templates are validated
 according to their schema.
 
-### Plugin Layer
-The plugin layer of the Jasper model is entirely client side. No server changes are required in order to
+#### Plugin and Template Inheritance
+Plugins and Templates behave differently in how they inherit the fields of the parent Ext.
+Plugins stack and templates merge.
+For example, the Plugin \`plugin/test\` like:
+\`\`\`json
+{
+  "tag": "plugin/test",
+  "schema": {
+    "properties": {
+      "test": { "type":  "string" }
+    }
+  }
+}
+\`\`\`
+And the Plugin \`plugin/test/this\` like:
+\`\`\`json
+{
+  "tag": "plugin/test/this",
+  "schema": {
+    "properties": {
+      "more": { "type":  "string" }
+    }
+  }
+}
+\`\`\`
+If we use both of these plugins in the same Ref, both plugins would have their
+data stacked, like:
+\`\`\`json
+{
+  "url": "test:1",
+  "plugins": {
+    "plugin/test": {
+      "test": "data"
+    },
+    "plugin/test/this": {
+      "more": "tests"
+    }
+  }
+}
+\`\`\`
+A template would merge all fields, overwriting at every stage, into a final result.
+For example, the Template \`a\` like:
+\`\`\`json
+{
+  "tag": "a",
+  "schema": {
+    "properties": {
+      "test": { "type":  "string" }
+    }
+  }
+}
+\`\`\`
+And the Template \`a/b\` like:
+\`\`\`json
+{
+  "tag": "a/b",
+  "schema": {
+    "properties": {
+      "more": { "type":  "string" }
+    }
+  }
+}
+\`\`\`
+If we use both of these plugins in the same Ext, both plugins would have their
+data merged, like:
+\`\`\`json
+{
+  "tag": "a/b/c",
+  "config": {
+    "test": "data",
+    "more": "tests"
+  }
+}
+\`\`\`
+If a child Template defines an overlapping field in the schema, it will override the parent type.
+
+### Modding Layer
+The modding layer of the Jasper model is entirely client side. No server changes are required in order to
 support new plugins or templates.
 
 ## Cursor Replication
@@ -602,6 +672,30 @@ The tag permissions are stored in the User entities:
    * Can write ref with tag
    * Can edit tag Ext
 
+### Special URL Schemas
+
+### Cache
+URLs that have the \`cache:\` scheme represent items stored in a file cache.
+Most URLs with a resource in a file cache have a standard \`https:\` scheme,
+as they are just a cache of a resource that exists elsewhere.
+When a file is pushed into the cache (such as a generated thumbnail), it is
+generated a random \`cache:<uuid>\` URL.
+
+#### Tag URLs
+URLs that point to a tag, such as \`tag:/history\` ignore regular tagging access rules.
+Instead, you can access this Ref if you can access the tag it points to.
+
+#### User URLs
+URLs that point to a user tag, such as \`tag:/+user/chris\` are always owned by the user.
+These specials URLs can also be used to store per-plugin config data,
+such as \`tag:/+user/chris?url=tag:/plugin/kanban\`.
+Visibility of plugin setting can be set on a per-user, per-plugin basis.
+For convenience, the user URL is used if a blank URL is passed to the tagging response controller.
+This allows you to quickly ensure settings are initialized and fetch / edit Ref plugins and tags to read settings.
+If a tag are passed, for example \`plugin/kanban\`, the default is the kanban user settings Ref: \`tag:/+user/chris?url=tag:/plugin/kanban\`.
+If a blank URL and a blank tag are passed, the default is the generic user settings Ref: \`tag:/+user/chris\`.
+User plugins, which follow the template \`plugin/user\`, may **only** be added to user URL Refs.
+
 ### Special Tags
 Some public tags have special significance:
  * \`public\`: everyone can read
@@ -614,7 +708,7 @@ For example, if a tenant has origin \`@test\`, they can also read \`@test.other\
 origins other than your own is never allowed.
 
 ## Backup / Restore
-Jasper has a built-in backup system for mod use. Non mods should instead replicate to a separate jasper instance.
+Jasper has a built-in backup system for mods and/or admins. Regular users should instead replicate to a separate jasper instance.
 In order to use the backup system, the \`storage\` profile must be active.
 
 ## Validation
@@ -625,17 +719,26 @@ When ingesting entities, Jasper performs the following validation:
  * If a Ref has plugins present, any plugin data must conform to the plugin's schema
  * If an Ext matches a template prefix, any config must conform to all matching templates merged schemas
 
+Plugin and Template schemas are in JTD, which only validates the shape of the data. In addition
+to total bytes of the entity, these are the only server side data validations performed. No security related
+validations should be required on Ref or Ext data, so client side validation should be sufficient in most cases.
+Error checking should be the first part of any script parsing user input as part of a workflow.
+We always want to err on the side of accepting well-shaped data rather than rejecting it, as server validation
+errors rejecting valid user input are infuriating and very common. Error correction can happen as a follow-up step
+if the client validation was somehow circumvented.
+
 ## Metadata
-Jasper uses async metadata generation to allow efficient lookups while only requiring a simple
-data model.
+Jasper uses metadata generation pre-compute graph connections without including it in the transmitted data model.
 Jasper generates the following metadata in Refs:
  * List of responses: This is an inverse lookup of the Ref sources. Excludes any Refs with the internal tag.
  * List of internal responses: This is an inverse lookup of the Ref sources that include the internal tag.
- * List of plugin responses: If a plugin has enabled metadata generation, this will include a list of responses with that plugin.
+ * List of plugin responses: A list of responses with that plugin.
+ * List of user plugin responses: A list of responses with that plugin.
  * Obsolete: flag set if another origin contains the newest version of this Ref
+While the metadata is not transferred during replication, a simplified version is sent over the client API, with
+counts for each response type, and user plugin responses for the current user.
 
 ## Server Scripting
-
 When the \`scripts\` profile is active, scripts may be attached to Refs with either the \`plugin/delta\` tag or the
 \`plugin/script\` tag.
 Only admin users may install scripts and they run with very few guardrails. A regular user may invoke the script
