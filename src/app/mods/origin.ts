@@ -68,7 +68,7 @@ export const originPullPlugin: Plugin = {
     icons: [
       { label: $localize`📥️` },
       { tag: '-+plugin/cron', label: $localize`🚫️`, title: $localize`Pulling disabled`, order: -1 },
-      { tag: '+plugin/cron', condition: 'websocket', label: $localize`📶️`, title: $localize`Pulling on websocket monitor`, order: -1 },
+      { tag: '+plugin/cron', condition: 'websocket', label: $localize`📶️`, title: $localize`Streaming updates`, order: -1 },
     ],
     actions: [
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable` },
@@ -84,71 +84,87 @@ export const originPullPlugin: Plugin = {
         #{{.}}
       {{/each}}`,
     form: [{
-      key: 'cache',
-      type: 'boolean',
-      props: {
-        label: $localize`Prefetch Cache during Replicate:`,
-      }
+      key: 'query',
+      type: 'query'
     }, {
-      key: 'cacheProxy',
-      type: 'boolean',
+      key: 'addTags',
+      type: 'tags',
       props: {
-        label: $localize`Proxy All Requests Through Cache:`,
-      }
-    }, {
-      key: 'cacheProxyPrefetch',
-      type: 'boolean',
-      props: {
-        label: $localize`Prefetch Proxy Cache during Replicate:`,
-      }
+        label: $localize`Add Tags:`,
+      },
     }, {
       key: 'websocket',
       type: 'boolean',
       defaultValue: true,
       props: {
-        label: $localize`Listen to Websocket Cursor updates to Pull:`,
-      }
+        label: $localize`Stream Updates:`,
+      },
+    }, {
+      key: 'cacheProxy',
+      type: 'boolean',
+      props: {
+        label: $localize`Proxy:`,
+      },
+    }, {
+      key: 'cacheProxyPrefetch',
+      type: 'boolean',
+      props: {
+        label: $localize`Prefetch Proxy:`,
+      },
+      expressions: {
+        hide: '!model.cacheProxy',
+      },
     }],
     advancedForm: [{
-      key: 'query',
-      type: 'query'
+      key: 'cachePrefetch',
+      type: 'boolean',
+      props: {
+        label: $localize`Prefetch Files:`,
+      },
     }, {
       key: 'removeTags',
       type: 'tags',
       props: {
         label: $localize`Remove Tags:`,
-      }
+        addText: $localize`+ Remove another tag`,
+      },
     }, {
       key: 'batchSize',
       type: 'integer',
       defaultValue: 250,
       props: {
         label: $localize`Batch Size:`,
-      }
+      },
     }, {
       key: 'validatePlugins',
       type: 'boolean',
       props: {
         label: $localize`Validate Plugins:`,
-      }
+      },
     }, {
       key: 'stripInvalidPlugins',
       type: 'boolean',
       props: {
         label: $localize`Strip Invalid Plugins:`,
-      }
+      },
+      expressions: {
+        hide: '!model.validatePlugins',
+      },
     }, {
       key: 'validateTemplates',
       type: 'boolean',
       props: {
         label: $localize`Validate Templates:`,
-      }
+      },
     }, {
       key: 'stripInvalidTemplates',
       type: 'boolean',
       props: {
         label: $localize`Strip Invalid Templates:`,
-      }
+      },
+      expressions: {
+        hide: '!model.validateTemplates',
+      },
     }],
   },
   defaults: {
@@ -157,7 +173,7 @@ export const originPullPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      cache: { type: 'boolean' },
+      cachePrefetch: { type: 'boolean' },
       cacheProxy: { type: 'boolean' },
       cacheProxyPrefetch: { type: 'boolean' },
       websocket: { type: 'boolean' },
