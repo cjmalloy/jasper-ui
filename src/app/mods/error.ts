@@ -50,7 +50,6 @@ const logPlugin: Plugin = {
     }
     `
   },
-  generateMetadata: true,
 };
 
 export const errorMod: Mod = {

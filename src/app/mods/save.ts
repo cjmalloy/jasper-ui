@@ -15,6 +15,5 @@ export const saveMod: Mod = {
       actions: [{ response: 'plugin/user/save', labelOff: $localize`save`, global: true }],
       advancedActions: [{ response: 'plugin/user/save', labelOn: $localize`unsave`, global: true }],
     },
-    generateMetadata: true,
   }],
 };

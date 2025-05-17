@@ -299,7 +299,6 @@ export const dallePlugin: Plugin = {
     description: $localize`DALL-E signature tag. Plugin configures DALL-E to respond to 'plugin/delta/dalle' prompts
     and sign this response with this tag`,
   },
-  generateMetadata: true,
 };
 
 export const dalleMod: Mod = {
