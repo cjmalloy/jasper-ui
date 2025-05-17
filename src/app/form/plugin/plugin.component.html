@@ -8,11 +8,6 @@
          [formControl]="name"
          (blur)="validate($any($event.target))">
 
-  <label for="generateMetadata" i18n>Generate metadata:</label>
-  <div>
-    <input id="generateMetadata" type="checkbox" formControlName="generateMetadata">
-  </div>
-
   <label for="config" i18n>Config:</label>
   @if (!editingConfig && !config) {
     <div>

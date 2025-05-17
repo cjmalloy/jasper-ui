@@ -108,10 +108,6 @@ export interface Plugin extends Config {
      */
     clearCacheConfirm?: string;
   };
-  /**
-   * Generate separate Ref response metadata for this plugin.
-   */
-  generateMetadata?: boolean;
   // Client-only
   type?: 'plugin';
 }
@@ -123,7 +119,6 @@ export const pluginSchema: Schema = {
     config: {},
     defaults: {},
     schema: {},
-    generateMetadata: { type: 'boolean' },
   }
 };
 

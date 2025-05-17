@@ -58,7 +58,6 @@ export function pluginForm(fb: UntypedFormBuilder) {
   return fb.group({
     tag: [{value: '', disabled: true}, [Validators.required]],
     name: ['', [Validators.required]],
-    generateMetadata: [false],
     config: [],
     defaults: [],
     schema: [],

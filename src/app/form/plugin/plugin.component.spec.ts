@@ -18,7 +18,6 @@ describe('PluginFormComponent', () => {
     component.group = new UntypedFormGroup({
       tag: new UntypedFormControl(),
       name: new UntypedFormControl(),
-      generateMetadata: new UntypedFormControl(),
       config: new UntypedFormControl(),
       defaults: new UntypedFormControl(),
       schema: new UntypedFormControl(),
