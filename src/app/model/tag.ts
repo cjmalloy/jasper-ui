@@ -280,7 +280,7 @@ export interface Icon extends Visibility {
   /**
    * If set, makes this icon conditional on the current user's plugin response.
    */
-  response?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}`;
+  response?: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}`;
   /**
    * If set, makes this icon conditional on a ref scheme.
    */
@@ -309,15 +309,15 @@ export interface FilterConfig {
    */
   responses?: string;
   /**
-   * Filter based on plugin responses in metadata. Plugins must be generating metadata to work.
+   * Filter based on plugin responses in metadata.
    * If set, query and scheme must not be set.
    */
   response?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
   /**
-   * Filter based on user plugin responses in metadata. Plugins must have be user URLs and generating metadata to work.
+   * Filter based on user plugin responses in metadata.
    * If set, query and scheme must not be set.
    */
-  user?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
+  user?: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}` | `!plugin/user/${string}` | `!+plugin/user/${string}` | `!_plugin/user/${string}`;
   label?: string;
   title?: string;
   group?: string;
@@ -405,11 +405,11 @@ export interface ResponseAction extends Visibility {
   /**
    * Add a tag response to the Ref.
    */
-  response: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
+  response: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}` | `!plugin/user/${string}` | `!+plugin/user/${string}` | `!_plugin/user/${string}`;
   /**
    * Clear other tag responses when adding tag response.
    */
-  clear?: (`plugin/${string}` | `+plugin/${string}` | `_plugin/${string}`)[];
+  clear?: (`plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}`)[];
   /**
    * Handlebars template label to show when this action has been applied.
    * The response plugin must have metadata generation turned on.
